@@ -31,3 +31,4 @@ All defined in `package.json`, registered from `extension.ts` to handlers define
 - `onCommand:mdb.runPlaygroundBlock`
 - `onCommand:mdb.runAllPlaygroundBlocks`
 - `onCommand:mdb.openInBrowser`
+-
