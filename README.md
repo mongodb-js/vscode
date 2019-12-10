@@ -1,3 +1,9 @@
+# :construction: [Design in Progress](https://github.com/mongodb-js/vscode/pull/1) 
+
+Official MongoDB Visual Studio Code Extension
+
+> brought to you by the Compass team
+
 # mongodb README
 
 This is the README for your extension "mongodb". After writing up a brief description, we recommend including the following sections.
