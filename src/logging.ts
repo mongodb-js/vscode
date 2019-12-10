@@ -1,11 +1,16 @@
-import { Logger } from 'ts-log';
+import { Logger as ILogger } from 'ts-log';
+import * as vscode from 'vscode';
 
-class ChannelLogger implements Logger {
-  private channel;
+class Logger implements ILogger {
+  static channel: vscode.OutputChannel = vscode.window.createOutputChannel(
+    'mongodb'
+  );
+
+  private name: string;
 
   public constructor(name: string) {
     // https://code.visualstudio.com/api/references/vscode-api#window.createOutputChannel
-    this.channel = window.createOutputChannel('mongodb');
+    this.name = name;
   }
 
   public trace(message?: any, ...optionalParams: any[]): void {
@@ -31,6 +36,12 @@ class ChannelLogger implements Logger {
   private append(type: string, message: string) {
     // https://code.visualstudio.com/api/references/vscode-api#window.createOutputChannel
 
-    this.channel.appendLine(`${new Date().toISOString()} ${type} ${message}\n`);
+    Logger.channel.appendLine(
+      `${new Date().toISOString()} ${this.name} ${type} ${message}\n`
+    );
   }
 }
+
+export const createLogger = (name: string): Logger => {
+  return new Logger(name);
+};
