@@ -1,3 +1,5 @@
 - completion proivders
+- codelens provider
 - language service
+- playground executor service
 -
