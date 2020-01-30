@@ -119,10 +119,14 @@ const removeMongoDBConnection = async () => {
   }
 };
 
+function launchMongoShell() {
+  const mongoShell = vscode.window.createTerminal('Mongo Shell');
+  mongoShell.sendText('mongo');
+  mongoShell.show();
+}
+
 const registerCommands = (context: vscode.ExtensionContext) => {
   console.group('registerCommands');
-
-  console.log('context', context);
 
   vscode.commands.registerCommand('mdb.connect', addMongoDBConnection);
   vscode.commands.registerCommand('mdb.addConnection', addMongoDBConnection);
@@ -132,7 +136,9 @@ const registerCommands = (context: vscode.ExtensionContext) => {
 
   vscode.commands.registerCommand('mdb.removeConnection', removeMongoDBConnection);
 
+  vscode.commands.registerCommand('mdb.launchShell', launchMongoShell);
+
   console.groupEnd();
 };
 
-export { registerCommands };
+export { launchMongoShell, registerCommands };

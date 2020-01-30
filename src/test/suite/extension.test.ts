@@ -1,15 +1,63 @@
 import * as assert from 'assert';
 
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-// import * as myExtension from '../extension';
+
+import { registerCommands, launchMongoShell } from '../../commands';
+
+import { TestExtensionContext } from './stubs';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 
+	let disposables: vscode.Disposable[] = [];
+
+	teardown(() => {
+		disposables.forEach(d => d.dispose());
+		disposables.length = 0;
+	});
+
 	test('Sample test', () => {
 		assert.equal(-1, [1, 2, 3].indexOf(5));
 		assert.equal(-1, [1, 2, 3].indexOf(0));
+	});
+
+	test('commands are registered in vscode', done => {
+		const mockExtensionContext = new TestExtensionContext();
+
+		registerCommands(mockExtensionContext);
+
+		vscode.commands.getCommands().then(registeredCommands => {
+			const expectedCommands = [
+				'mdb.connect',
+				'mdb.addConnection',
+				'mdb.connectWithURI',
+				'mdb.addConnectionWithURI',
+				'mdb.removeConnection',
+				'mdb.launchShell'
+			];
+
+			for (let i = 0; i < expectedCommands.length; i++) {
+				try {
+					assert.notEqual(
+						registeredCommands.indexOf(expectedCommands[i]),
+						-1,
+						`command ${expectedCommands[i]} not registered and was expected`
+					);
+				} catch (e) {
+					done(e);
+					return;
+				}
+			}
+
+			done();
+		});
+	});
+
+	test('launchMongoShell should open a terminal', done => {
+		disposables.push(vscode.window.onDidOpenTerminal(() => {
+			done();
+		}));
+
+		launchMongoShell();
 	});
 });
