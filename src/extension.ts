@@ -8,32 +8,21 @@ import { activate as createExplorerView } from './explorer';
 // TODO: lucas: Future usage: shared state for across modules. Maybe. If needed. ;)
 import { mdb } from './mdb';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+// Called when our extension is activated.
+// See "activationEvents" in `package.json` for the events that cause activation.
 export function activate(context: vscode.ExtensionContext) {
-  createExplorerView(context);
-  registerCommands(context);
+    createExplorerView(context);
 
-  // <--- boilerplate below
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "mongodb" is now active!');
+    // Register our extension's commands. These are the event handlers and control
+    // the functionality of our extension.
+    registerCommands(context);
 
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with registerCommand
-  // The commandId parameter must match the command field in package.json
-  let disposable = vscode.commands.registerCommand(
-    'extension.helloWorld',
-    () => {
-      // The code you place here will be executed every time your command is executed
+    // TODO: Connect to any existing database connections.
 
-      // Display a message box to the user
-      vscode.window.showInformationMessage('Hello World!');
-    }
-  );
-
-  context.subscriptions.push(disposable);
+    console.log('Congratulations, your extension "mongodb" is now active!');
 }
 
-// this method is called when your extension is deactivated
-export function deactivate() {}
+// Called when our extension is deactivated.
+export function deactivate() {
+    // TODO: Close all active connections & end active queries/playgrounds.
+}
