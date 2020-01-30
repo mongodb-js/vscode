@@ -7,51 +7,51 @@ handlers defined in this directory.
 Think RPC handlers.
 
 ## Connection commands
-- `onCommand:mdb.connect`
-- `onCommand:mdb.connectWithURI`
-- `onCommand:mdb.addConnection`
-- `onCommand:mdb.addConnectionWithURI`
-- `onCommand:mdb.removeConnection`
-- `onCommand:mdb.reload`
-- `onCommand:mdb.refresh`
+- `mdb.connect`
+- `mdb.connectWithURI`
+- `mdb.addConnection`
+- `mdb.addConnectionWithURI`
+- `mdb.removeConnection`
+- `mdb.reload`
+- `mdb.refresh`
 
 ## General database commands
-- `onCommand:mdb.createDatabase`
-- `onCommand:mdb.dropDatabase`
-- `onCommand:mdb.createCollection`
-- `onCommand:mdb.dropCollection`
+- `mdb.createDatabase`
+- `mdb.dropDatabase`
+- `mdb.createCollection`
+- `mdb.dropCollection`
 
-- `onCommand:mdb.createDocument`
-- `onCommand:mdb.removeDocument`
-- `onCommand:mdb.updateDocument`
+- `mdb.createDocument`
+- `mdb.removeDocument`
+- `mdb.updateDocument`
 
-- `onCommand:mdb.launchMongoShell`
+- `mdb.launchMongoShell`
 
 ## Query commands (json input fields)
-- `onCommand:mdb.aggregate`
-- `onCommand:mdb.explainAggregate`
-- `onCommand:mdb.find`
-- `onCommand:mdb.findOne`
-- `onCommand:mdb.findBy", // -> pick(value) -> pick(key) -> sho`
-- `onCommand:mdb.explain` *Uses the active cursor (only possible after a query)*
-- `onCommand:mdb.getMore` *Uses the active cursor (only possible after a query)*
+- `mdb.aggregate`
+- `mdb.explainAggregate`
+- `mdb.find`
+- `mdb.findOne`
+- `mdb.findBy`  *-> pick(value) -> pick(key) -> show*
+- `mdb.explain` *Uses the active cursor (only possible after a query)*
+- `mdb.getMore` *Uses the active cursor (only possible after a query)*
 
 ## Playground commands
-- `onCommand:mdb.playground`
-- `onCommand:mdb.createPlayground`
-- `onCommand:mdb.removePlayground`
-- `onCommand:mdb.runPlaygroundBlock`
-- `onCommand:mdb.runAllPlaygroundBlocks`
+- `mdb.playground`
+- `mdb.createPlayground`
+- `mdb.removePlayground`
+- `mdb.runPlaygroundBlock`
+- `mdb.runAllPlaygroundBlocks`
 
 ## Index commands
-- `onCommand:mdb.createIndex`
-- `onCommand:mdb.getIndex`
-- `onCommand:mdb.removeIndex`
+- `mdb.createIndex`
+- `mdb.getIndex`
+- `mdb.removeIndex`
 
 ## Import/Export commands
-- `onCommand:mdb.importDocument`
+- `mdb.importDocument`
 
-- `onCommand:mdb.import`
-- `onCommand:mdb.cancelImport`
-- `onCommand:mdb.export`
-- `onCommand:mdb.cancelExport`
+- `mdb.import`
+- `mdb.cancelImport`
+- `mdb.export`
+- `mdb.cancelExport`
