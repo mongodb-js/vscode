@@ -1,0 +1,34 @@
+
+All defined in `package.json`, registered from `extension.ts` to handlers defined in this directory. From skunkworks, commands looked like below. Think RPC handlers.
+
+- `onCommand:mdb.connect`
+- `onCommand:mdb.addConnection`
+- `onCommand:mdb.removeConnection`
+- `onCommand:mdb.createDatabase`
+- `onCommand:mdb.dropDatabase`
+- `onCommand:mdb.createCollection`
+- `onCommand:mdb.dropCollection`
+- `onCommand:mdb.dropCollection`
+- `onCommand:mdb.import`
+- `onCommand:mdb.cancelImport`
+- `onCommand:mdb.export`
+- `onCommand:mdb.cancelExport`
+- `onCommand:mdb.createDocument`
+- `onCommand:mdb.removeDocument`
+- `onCommand:mdb.updateDocument`
+- `onCommand:mdb.aggregate`
+- `onCommand:mdb.explainAggregate`
+- `onCommand:mdb.find`
+- `onCommand:mdb.findOne`
+- `onCommand:mdb.findBy", // -> pick(value) -> pick(key) -> sho`
+- `onCommand:mdb.explain`
+- `onCommand:mdb.getMore`
+- `onCommand:mdb.reload`
+- `onCommand:mdb.refresh`
+- `onCommand:mdb.playground`
+- `onCommand:mdb.createPlayground`
+- `onCommand:mdb.removePlayground`
+- `onCommand:mdb.runPlaygroundBlock`
+- `onCommand:mdb.runAllPlaygroundBlocks`
+- `onCommand:mdb.openInBrowser`
+-
