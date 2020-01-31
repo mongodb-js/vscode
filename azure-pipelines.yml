@@ -5,32 +5,40 @@
 
 trigger:
   - master
-
-strategy:
-  matrix:
-    linux:
-      imageName: "ubuntu-latest"
-    mac:
-      imageName: "macOS-latest"
-    windows:
-      imageName: "windows-latest"
-
-pool:
-  vmImage: $(imageName)
-
-steps:
-  - script: |
-      set -e
-    displayName: "Install Services"
-  - task: NodeTool@0
-    inputs:
-      versionSpec: "12.4.0"
-    displayName: "Install Node.js"
-  - bash: |
-      /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      echo ">>> Started xvfb"
-    displayName: Start xvfb
-    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-  - script: |
-      npm test
-    displayName: "Run Tests"
+jobs:
+  - job: Ubuntu
+    pool:
+      vmImage: "ubuntu-latest"
+    steps:
+      - script: |
+          set -e
+        displayName: "Install Services"
+      - task: NodeTool@0
+        inputs:
+          versionSpec: "12.4.0"
+        displayName: "Install Node.js"
+      - script: |
+          npm run test
+        displayName: "Run Tests"
+  - job: MacOS
+    pool:
+      vmImage: "macOS-latest"
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: "12.4.0"
+        displayName: "Install Node.js"
+      - script: |
+          npm run test
+        displayName: "Run Tests"
+  - job: Windows
+    pool:
+      vmImage: "windows-latest"
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: "12.4.0"
+        displayName: "Install Node.js"
+      - script: |
+          npm run test
+        displayName: "Run Tests"
