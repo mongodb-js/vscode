@@ -1,8 +1,8 @@
-# :construction: [Work in Progress] :construction:
+# :construction: MongoDB VSCode [Work in Progress] :construction:
 
-**Not Yet Released**
+[![Build Status](https://dev.azure.com/team-compass/team-compass/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/team-compass/_build/latest?definitionId=4&branchName=master)
 
-Official MongoDB Visual Studio Code Extension
+Official MongoDB Visual Studio Code Extension. **Not Yet Released**.
 
 > brought to you by the Compass team
 
@@ -12,7 +12,7 @@ Official MongoDB Visual Studio Code Extension
 
 ## Extension Settings
 
-* `mdb.show`: Show/Hide the MongoDB extension.
+`mdb.show`: Show/Hide the MongoDB extension.
 
 ## Contributing
 
