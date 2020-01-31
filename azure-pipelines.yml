@@ -23,9 +23,11 @@ jobs:
           npm install
           npm run compile
         displayName: "Run install and compile"
-      - script: |
+      - bash: |
           npm run test
         displayName: "Run Tests"
+        env:
+          DISPLAY: ":99.0"
   - job: MacOS
     pool:
       vmImage: "macos-10.13"
