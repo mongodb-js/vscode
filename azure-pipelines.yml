@@ -18,6 +18,10 @@ jobs:
           versionSpec: "12.4.0"
         displayName: "Install Node.js"
       - script: |
+          npm install
+          npm run compile
+        displayName: "Run install and compile"
+      - script: |
           npm run test
         displayName: "Run Tests"
   - job: MacOS
@@ -29,6 +33,10 @@ jobs:
           versionSpec: "12.4.0"
         displayName: "Install Node.js"
       - script: |
+          npm install
+          npm run compile
+        displayName: "Run install and compile"
+      - script: |
           npm run test
         displayName: "Run Tests"
   - job: Windows
@@ -39,6 +47,10 @@ jobs:
         inputs:
           versionSpec: "12.4.0"
         displayName: "Install Node.js"
+      - script: |
+          npm install
+          npm run compile
+        displayName: "Run install and compile"
       - script: |
           npm run test
         displayName: "Run Tests"
