@@ -5,56 +5,37 @@
 
 trigger:
   - master
-jobs:
-  - job: Ubuntu
-    pool:
-      vmImage: "ubuntu-16.04"
-    steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: "12.4.0"
-        displayName: "Install Node.js"
-      - bash: |
-          /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          echo ">>> Started xvfb"
-        displayName: Start xvfb
-        condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-      - script: |
-          npm install
-          npm run compile
-        displayName: "Run install and compile"
-      - bash: |
-          npm run test
-        displayName: "Run Tests"
-        env:
-          DISPLAY: ":99.0"
-  - job: MacOS
-    pool:
-      vmImage: "macos-10.13"
-    steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: "12.4.0"
-        displayName: "Install Node.js"
-      - script: |
-          npm install
-          npm run compile
-        displayName: "Run install and compile"
-      - script: |
-          npm run test
-        displayName: "Run Tests"
-  - job: Windows
-    pool:
-      vmImage: "vs2017-win2016"
-    steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: "12.4.0"
-        displayName: "Install Node.js"
-      - script: |
-          npm install
-          npm run compile
-        displayName: "Run install and compile"
-      - script: |
-          npm run test
-        displayName: "Run Tests"
+
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-16.04'
+    mac:
+      imageName: 'macos-10.13'
+    windows:
+      imageName: 'vs2017-win2016'
+
+pool:
+  vmImage: $(imageName)
+
+steps:
+
+- task: NodeTool@0
+  inputs:
+    versionSpec: "12.4.0"
+  displayName: "Install Node.js"
+
+- bash: |
+    /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+    echo ">>> Started xvfb"
+  displayName: Start xvfb
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+
+- bash: |
+    echo ">>> Run install and compile"
+    npm install && npm run compile
+    echo ">>> Run integration tests"
+    npm run test
+  displayName: Run Tests
+  env:
+    DISPLAY: ':99.0
