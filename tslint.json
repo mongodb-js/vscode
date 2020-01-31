@@ -9,7 +9,12 @@
 			true,
 			"always"
 		],
-		"triple-equals": true
+		"triple-equals": true,
+		"indent": [
+			true,
+			"spaces",
+			2
+		]
 	},
 	"defaultSeverity": "warning"
 }

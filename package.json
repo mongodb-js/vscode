@@ -4,15 +4,27 @@
   "description": "MongoDB for Visual Studio Code",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.40.0"
+    "vscode": "^1.40.0",
+    "node": "^12.4.0",
+    "npm": ">=6.13.0"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.helloWorld"
+    "onCommand:mdb.connect",
+    "onCommand:mdb.connectWithURI",
+    "onCommand:mdb.addConnection",
+    "onCommand:mdb.addConnectionWithURI",
+    "onCommand:mdb.removeConnection",
+    "onView:mongoDB"
   ],
   "main": "./out/extension.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mongodb-js/vscode"
+  },
+  "icon": "images/mongodb.png",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -26,7 +38,7 @@
     "views": {
       "mongodb": [
         {
-          "id": "MongoDB",
+          "id": "mongoDB",
           "name": "MongoDB",
           "when": "config.mdb.show == true"
         }
@@ -34,10 +46,40 @@
     },
     "commands": [
       {
-        "command": "extension.helloWorld",
-        "title": "Hello World"
+        "command": "mdb.connect",
+        "title": "MongoDB: Connect"
+      },
+      {
+        "command": "mdb.connectWithURI",
+        "title": "MongoDB: Connect with Connection String..."
+      },
+      {
+        "command": "mdb.addConnection",
+        "title": "MongoDB: Add Connection"
+      },
+      {
+        "command": "mdb.addConnectionWithURI",
+        "title": "MongoDB: Add Connection by Connection String..."
+      },
+      {
+        "command": "mdb.removeConnection",
+        "title": "MongoDB: Remove Connection..."
+      },
+      {
+        "command": "mdb.launchShell",
+        "title": "MongoDB: Launch Mongo Shell"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "MongoDB",
+      "properties": {
+        "mdb.show": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show or hide the MongoDB view."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

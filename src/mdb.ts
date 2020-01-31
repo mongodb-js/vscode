@@ -7,11 +7,6 @@ import * as vscode from 'vscode';
 
 export namespace mdb {
   /**
-   * Set on extension.activate()
-   */
-  export let context: vscode.ExtensionContext;
-
-  /**
    * https://github.com/microsoft/vscode-extension-samples/tree/master/tree-view-sample
    */
   export let treeDataProvider: any;

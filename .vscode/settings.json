@@ -1,6 +1,9 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  // Insert spaces when pressing Tab.
+  "editor.insertSpaces": true,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "files.exclude": {

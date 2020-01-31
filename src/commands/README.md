@@ -1,34 +1,57 @@
+# Extension Commands
 
-All defined in `package.json`, registered from `extension.ts` to handlers defined in this directory. From skunkworks, commands looked like below. Think RPC handlers.
+This README contains a list of all of the commands the extension handles.
 
-- `onCommand:mdb.connect`
-- `onCommand:mdb.addConnection`
-- `onCommand:mdb.removeConnection`
-- `onCommand:mdb.createDatabase`
-- `onCommand:mdb.dropDatabase`
-- `onCommand:mdb.createCollection`
-- `onCommand:mdb.dropCollection`
-- `onCommand:mdb.dropCollection`
-- `onCommand:mdb.import`
-- `onCommand:mdb.cancelImport`
-- `onCommand:mdb.export`
-- `onCommand:mdb.cancelExport`
-- `onCommand:mdb.createDocument`
-- `onCommand:mdb.removeDocument`
-- `onCommand:mdb.updateDocument`
-- `onCommand:mdb.aggregate`
-- `onCommand:mdb.explainAggregate`
-- `onCommand:mdb.find`
-- `onCommand:mdb.findOne`
-- `onCommand:mdb.findBy", // -> pick(value) -> pick(key) -> sho`
-- `onCommand:mdb.explain`
-- `onCommand:mdb.getMore`
-- `onCommand:mdb.reload`
-- `onCommand:mdb.refresh`
-- `onCommand:mdb.playground`
-- `onCommand:mdb.createPlayground`
-- `onCommand:mdb.removePlayground`
-- `onCommand:mdb.runPlaygroundBlock`
-- `onCommand:mdb.runAllPlaygroundBlocks`
-- `onCommand:mdb.openInBrowser`
--
+These commands are defined in `package.json`, registered from `extension.ts` to
+handlers defined in this directory.
+Think RPC handlers.
+
+## Connection commands
+- `mdb.connect`
+- `mdb.connectWithURI`
+- `mdb.addConnection`
+- `mdb.addConnectionWithURI`
+- `mdb.removeConnection`
+- `mdb.reload`
+- `mdb.refresh`
+
+## General database commands
+- `mdb.createDatabase`
+- `mdb.dropDatabase`
+- `mdb.createCollection`
+- `mdb.dropCollection`
+
+- `mdb.createDocument`
+- `mdb.removeDocument`
+- `mdb.updateDocument`
+
+- `mdb.launchMongoShell`
+
+## Query commands (json input fields)
+- `mdb.aggregate`
+- `mdb.explainAggregate`
+- `mdb.find`
+- `mdb.findOne`
+- `mdb.findBy`  *-> pick(value) -> pick(key) -> show*
+- `mdb.explain` *Uses the active cursor (only possible after a query)*
+- `mdb.getMore` *Uses the active cursor (only possible after a query)*
+
+## Playground commands
+- `mdb.playground`
+- `mdb.createPlayground`
+- `mdb.removePlayground`
+- `mdb.runPlaygroundBlock`
+- `mdb.runAllPlaygroundBlocks`
+
+## Index commands
+- `mdb.createIndex`
+- `mdb.getIndex`
+- `mdb.removeIndex`
+
+## Import/Export commands
+- `mdb.importDocument`
+
+- `mdb.import`
+- `mdb.cancelImport`
+- `mdb.export`
+- `mdb.cancelExport`
