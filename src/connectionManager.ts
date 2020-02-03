@@ -3,6 +3,7 @@ const DataService = require('mongodb-data-service');
 import * as vscode from 'vscode';
 
 import { createLogger } from './logging';
+import { StatusView } from './views';
 
 const log = createLogger('commands');
 
@@ -33,8 +34,10 @@ export default class ConnectionManager {
   _connecting: boolean = false;
   _disconnecting: boolean = false;
 
-  constructor() {
+  _statusView: StatusView;
 
+  constructor(_statusView: StatusView) {
+    this._statusView = _statusView;
   }
 
   public addMongoDBConnection(): Promise<boolean> {
@@ -74,42 +77,42 @@ export default class ConnectionManager {
     this._connecting = true;
 
     return new Promise<boolean>((resolve, reject) => {
-      Connection.from(connectionString, (error: any, newConnectionConfig: any) => {
+      Connection.from(connectionString, async (error: any, newConnectionConfig: any) => {
         if (error) {
-          vscode.window.showErrorMessage('Invalid connection string.');
           this._connecting = false;
-          return reject('Failed to connect.');
+          return reject('Failed to connect: invalid connection string.');
         }
 
         const { instanceId } = newConnectionConfig.getAttributes({ derived: true });
 
-        // Ensure we don't already have that connection configuration.
+        // Ensure we don't already have the supplied connection configuration.
         for (let i = 0; i < this._connectionConfigs.length; i++) {
           const derivedProps = this._connectionConfigs[i].getAttributes({ derived: true });
           if (derivedProps.instanceId === instanceId) {
-            vscode.window.showErrorMessage('Connection already exists.');
             this._connecting = false;
-            return reject('Connection already exists.');
+            return reject('Failed to connect: connection already exists.');
           }
         }
 
         console.log('New connection config with instance id:', instanceId);
 
         if (this._currentConnection) {
-          // TODO: Disconnect from the active connection.
+          // TODO: Ensure this happens sync like we want it to.
+          await this.disconnect();
         }
 
-        vscode.window.showInformationMessage('Connecting...');
+        this._statusView.showMessage('Connecting to MongoDB...');
 
         const newConnection = new DataService(newConnectionConfig);
         newConnection.connect((err: any) => {
+          this._statusView.hideMessage();
+
           if (err) {
             this._connecting = false;
-            console.log('Failed to connect:', err);
-            return reject('Failed to connect.');
+            return reject('An error occured when attempting to connect.');
           }
 
-          console.log('Connected!');
+          console.log('Connected to new connection.');
           vscode.window.showInformationMessage('Successfully connected.');
 
           this._connectionConfigs.push(newConnectionConfig);
@@ -156,9 +159,51 @@ export default class ConnectionManager {
     return this.connectToDatabase(connectionString);
   }
 
+  private disconnect(): Promise<boolean> {
+    // Disconnect from the active connection.
+    return new Promise<boolean>(resolve => {
+      if (this._disconnecting) {
+        vscode.window.showWarningMessage('Please wait for the current disconnecting operation to complete.', {
+          modal: true
+        });
+        return resolve(false);
+      }
+
+      if (!this._currentConnection) {
+        return resolve(false);
+      }
+
+      this._disconnecting = true;
+      this._statusView.showMessage('Disconnecting from current connection...');
+
+      this._currentConnection.disconnect((err: any) => {
+        if (err) {
+          vscode.window.showErrorMessage('An error occured while disconnecting from the current connection.');
+        } else {
+          vscode.window.showInformationMessage('MongoDB connection removed.');
+        }
+
+        this._currentConnection = null;
+        this._currentConnectionInstanceId = '';
+
+        this._disconnecting = false;
+        this._statusView.hideMessage();
+
+        if (err) {
+          // When we error we're lenient here, and still remove the connection config.
+          return resolve(false);
+        }
+
+        return resolve(true);
+      });
+    });
+  }
+
   public async removeMongoDBConnection(): Promise<boolean> {
     console.log('mdb.removeMongoDBConnection');
     log.info('mdb.removeMongoDBConnection command called');
+
+    // TODO: Ensure we remove the right connection.
 
     // Ensure we aren't currently connecting or disconnecting.
     if (this._connecting) {
@@ -166,14 +211,7 @@ export default class ConnectionManager {
         modal: true
       });
       return Promise.resolve(false);
-    } else if (this._disconnecting) {
-      vscode.window.showWarningMessage('Please wait for the current disconnecting operation to complete.', {
-        modal: true
-      });
-      return Promise.resolve(false);
     }
-
-    this._disconnecting = true;
 
     const connections = this._connectionConfigs.map(connectionConfig => connectionConfig.getAttributes({ derived: true }).instanceId);
 
@@ -183,7 +221,6 @@ export default class ConnectionManager {
         modal: true
       });
 
-      this._disconnecting = false;
       return Promise.resolve(false);
     }
 
@@ -191,63 +228,33 @@ export default class ConnectionManager {
     if (connections.length === 1) {
       connectionToRemove = connections[0];
     } else {
-      try {
-        // More than 1 possible connection to remove.
-        connectionToRemove = await vscode.window.showQuickPick(connections, {
-          placeHolder: 'Choose a connection to remove...'
-        });
-      } catch (err) {
-        this._disconnecting = false;
-        return Promise.resolve(false);
-      }
+      // There is more than 1 possible connection to remove.
+      connectionToRemove = await vscode.window.showQuickPick(connections, {
+        placeHolder: 'Choose a connection to remove...'
+      });
     }
 
     if (!connectionToRemove) {
-      this._disconnecting = false;
       return Promise.resolve(false);
     }
 
-    try {
-      const removeConfirmationResponse = await vscode.window.showInformationMessage(
-        `Are you sure to want to remove connection ${connectionToRemove}?`,
-        { modal: true },
-        'Yes'
-      );
+    const removeConfirmationResponse = await vscode.window.showInformationMessage(
+      `Are you sure to want to remove connection ${connectionToRemove}?`,
+      { modal: true },
+      'Yes'
+    );
 
-      if (removeConfirmationResponse !== 'Yes') {
-        this._disconnecting = false;
-        return Promise.resolve(false);
-      }
-    } catch (err) {
-      this._disconnecting = false;
+    if (removeConfirmationResponse !== 'Yes') {
       return Promise.resolve(false);
     }
 
+    // TODO: Ensure we splice the right one in case a disconnect / connect occured.
     this._connectionConfigs.splice(connections.indexOf(this._currentConnectionInstanceId), 1);
 
     if (this._currentConnection && connectionToRemove === this._currentConnectionInstanceId) {
-      // Disconnect from the active connection.
-      // TODO: We should be lenient here - does it error if the connection
-      // is already closed?
-      return new Promise<boolean>((resolve, reject) => {
-        this._currentConnection.disconnect((err: any) => {
-          if (err) {
-            vscode.window.showErrorMessage('Unable to remove connection.');
-            this._disconnecting = false;
-            return reject('Unable to remove connection.');
-          }
-
-          this._currentConnection = null;
-          this._currentConnectionInstanceId = '';
-
-          vscode.window.showInformationMessage('MongoDB connection removed.');
-          this._disconnecting = false;
-          resolve(true);
-        });
-      });
+      return this.disconnect();
     } else {
       vscode.window.showInformationMessage('MongoDB connection removed.');
-      this._disconnecting = false;
       return Promise.resolve(true);
     }
   }

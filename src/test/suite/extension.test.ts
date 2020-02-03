@@ -60,4 +60,17 @@ suite('Extension Test Suite', () => {
 
     mockMDBExtension.launchMongoShell();
   });
+
+  /**
+   * Connection tests to write:
+   * - Connect to a database.
+   * - Connect to multiple databases.
+   * - Connect to multiple databases and ensure only 1 is live.
+   * - Ensure status bar shows text when connecting & disconnecting.
+   * - Disconnect from a database.
+   * - Disconnect from 2nd database on connection list and ensure that one dcs.
+   * - Disconnect from active database connection.
+   * - Try to disconnect while connecting.
+   * - Try to connect while disconnecting.
+   */
 });

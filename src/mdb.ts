@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 
 import ConnectionManager from './connectionManager';
+import { StatusView } from './views';
 import { createLogger } from './logging';
 
 const log = createLogger('commands');
@@ -13,7 +14,13 @@ const log = createLogger('commands');
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
-  private _connectionManager: ConnectionManager = new ConnectionManager();
+  private _connectionManager: ConnectionManager;
+  private _statusView: StatusView;
+
+  constructor() {
+    this._statusView = new StatusView();
+    this._connectionManager = new ConnectionManager(this._statusView);
+  }
 
   public activate(context: vscode.ExtensionContext) {
     console.group('registerCommands');
