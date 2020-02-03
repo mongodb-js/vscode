@@ -2,7 +2,7 @@ import * as assert from 'assert';
 
 import * as vscode from 'vscode';
 
-import { registerCommands, launchMongoShell } from '../../commands';
+import MDBExtensionController from '../../mdb';
 
 import { TestExtensionContext } from './stubs';
 
@@ -19,7 +19,9 @@ suite('Extension Test Suite', () => {
   test('commands are registered in vscode', done => {
     const mockExtensionContext = new TestExtensionContext();
 
-    registerCommands(mockExtensionContext);
+    const mockMDBExtension = new MDBExtensionController();
+
+    mockMDBExtension.activate(mockExtensionContext);
 
     vscode.commands.getCommands().then(registeredCommands => {
       const expectedCommands = [
@@ -53,6 +55,9 @@ suite('Extension Test Suite', () => {
       done();
     }));
 
-    launchMongoShell();
+    const mockExtensionContext = new TestExtensionContext();
+    const mockMDBExtension = new MDBExtensionController();
+
+    mockMDBExtension.launchMongoShell();
   });
 });

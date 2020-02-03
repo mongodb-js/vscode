@@ -17,6 +17,7 @@
     "onCommand:mdb.addConnection",
     "onCommand:mdb.addConnectionWithURI",
     "onCommand:mdb.removeConnection",
+    "onCommand:mdb.launchShell",
     "onView:mongoDB"
   ],
   "main": "./out/extension.js",
@@ -59,7 +60,7 @@
       },
       {
         "command": "mdb.addConnectionWithURI",
-        "title": "MongoDB: Add Connection by Connection String..."
+        "title": "MongoDB: Add Connection with Connection String..."
       },
       {
         "command": "mdb.removeConnection",
@@ -100,6 +101,8 @@
     "vscode-test": "^1.3.0"
   },
   "dependencies": {
+    "mongodb-connection-model": "^14.4.3",
+    "mongodb-data-service": "^16.5.0",
     "ts-log": "^2.1.4"
   }
 }
