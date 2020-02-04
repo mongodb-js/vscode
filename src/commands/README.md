@@ -11,6 +11,7 @@ Think RPC handlers.
 - `mdb.connectWithURI`
 - `mdb.addConnection`
 - `mdb.addConnectionWithURI`
+- `mdb.disconnect`
 - `mdb.removeConnection`
 - `mdb.reload`
 - `mdb.refresh`
