@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-
 import * as vscode from 'vscode';
 
 import MDBExtensionController from '../../mdb';
@@ -45,18 +44,15 @@ suite('Extension Test Suite', () => {
           return;
         }
       }
-
-      done();
-    });
+    }).then(() => done(), done);
   });
 
   test('launchMongoShell should open a terminal', done => {
-    disposables.push(vscode.window.onDidOpenTerminal(() => {
-      done();
-    }));
+    disposables.push(vscode.window.onDidOpenTerminal(() => done()));
 
     const mockExtensionContext = new TestExtensionContext();
     const mockMDBExtension = new MDBExtensionController();
+    // mockMDBExtension.activate(mockExtensionContext);
 
     mockMDBExtension.launchMongoShell();
   });
