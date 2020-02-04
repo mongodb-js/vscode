@@ -1,9 +1,17 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import {
+  before,
+  after
+} from 'mocha';
 
 import MDBExtensionController from '../../mdbExtensionController';
+import ConnectionManager from '../../connectionManager';
+import { StatusView } from '../../views';
 
 import { TestExtensionContext } from './stubs';
+
+const testDatabaseURI = 'mongodb://localhost';
 
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
@@ -19,6 +27,7 @@ suite('Extension Test Suite', () => {
     const mockExtensionContext = new TestExtensionContext();
 
     const mockMDBExtension = new MDBExtensionController();
+    disposables.push(mockMDBExtension);
 
     mockMDBExtension.activate(mockExtensionContext);
 
@@ -53,5 +62,30 @@ suite('Extension Test Suite', () => {
     const mockMDBExtension = new MDBExtensionController();
 
     mockMDBExtension.launchMongoShell();
+  });
+
+  test('when the extension is deactivated, the active connection is discconected', function (done) {
+    before(require('mongodb-runner/mocha/before'));
+    after(require('mongodb-runner/mocha/after'));
+
+    const testConnectionMgr = new ConnectionManager(new StatusView());
+
+    const mockMDBExtension = new MDBExtensionController(testConnectionMgr);
+    disposables.push(mockMDBExtension);
+
+    // Assume 2s is enough for connect & disconnect. (1s for each).
+    this.timeout(2000);
+
+    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
+      assert(succesfullyConnected === true, 'Expected a successful (true) connection response.');
+      assert(testConnectionMgr.getActiveConnection() !== null, 'Expected active connection to not be null.');
+
+      mockMDBExtension.deactivate();
+
+      setTimeout(function () {
+        assert(testConnectionMgr.getActiveConnection() === null, 'Expected active connection to be null.');
+        done();
+      }, 1000);
+    });
   });
 });

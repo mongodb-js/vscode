@@ -88,7 +88,6 @@ export default class ConnectionManager {
     return this.addNewConnectionAndConnect(connectionString);
   }
 
-  // Exposed for testing.
   public addNewConnectionAndConnect(connectionString: string): Promise<boolean> {
     log.info('Trying to connect to a new connection configuration');
 
@@ -151,8 +150,6 @@ export default class ConnectionManager {
         this._currentConnection = newConnection;
         this._connecting = false;
 
-        // TODO: Push an event to notify listeners of the new data source.
-
         resolve(true);
       });
     });
@@ -161,24 +158,23 @@ export default class ConnectionManager {
   public disconnect(): Promise<boolean> {
     log.info('Disconnect called');
 
+    if (this._disconnecting) {
+      // TODO: The desired UX here may be for the connection to be interrupted.
+      return Promise.reject('Unable to disconnect: already disconnecting from an instance.');
+    }
+
+    if (!this._currentConnection) {
+      return Promise.resolve(false);
+    }
+
     // Disconnect from the active connection.
     return new Promise<boolean>((resolve, reject) => {
-      if (this._disconnecting) {
-        // TODO: The desired UX here may be for the connection to be interrupted.
-        return reject('Unable to disconnect: already disconnecting from an instance.');
-      }
-
-      if (!this._currentConnection) {
-        return reject('Unable to disconnect: no active connection.');
-      }
-
-
       this._disconnecting = true;
       this._statusView.showMessage('Disconnecting from current connection...');
 
       this._currentConnection.disconnect((err: any) => {
         if (err) {
-          // Show an error, however we still remove the connection to free up the extension.
+          // Show an error, however we still reset the active connection to free up the extension.
           vscode.window.showErrorMessage('An error occured while disconnecting from the current connection.');
         } else {
           vscode.window.showInformationMessage('MongoDB connection removed.');
@@ -190,10 +186,6 @@ export default class ConnectionManager {
         this._disconnecting = false;
         this._statusView.hideMessage();
 
-        if (err) {
-          return resolve(false);
-        }
-
         return resolve(true);
       });
     });
@@ -204,21 +196,14 @@ export default class ConnectionManager {
 
     // Ensure we aren't currently connecting or disconnecting.
     if (this._connecting) {
-      vscode.window.showWarningMessage('Please wait for the current connecting operation to complete before starting a new one.', {
-        modal: true
-      });
-      return Promise.resolve(false);
+      return Promise.reject('Unable to remove connection: currently connecting.');
     }
 
     const connectionInstanceIds = Object.keys(this._connectionConfigs);
 
     if (connectionInstanceIds.length === 0) {
       // No active connection(s) to remove.
-      vscode.window.showWarningMessage('There are currently no connections to remove.', {
-        modal: true
-      });
-
-      return Promise.resolve(false);
+      return Promise.reject('No connections to remove.');
     }
 
     let connectionToRemove;
@@ -264,19 +249,16 @@ export default class ConnectionManager {
   public getActiveConnection() {
     return this._currentConnectionInstanceId;
   }
-  public getDisconnecting() {
-    return this._disconnecting;
-  }
-  public setDisconnecting(disconnecting: boolean) {
-    this._disconnecting = disconnecting;
-  }
   public getConnnecting() {
     return this._connecting;
   }
   public setConnnecting(connecting: boolean) {
     this._disconnecting = connecting;
   }
+  public getDisconnecting() {
+    return this._disconnecting;
+  }
+  public setDisconnecting(disconnecting: boolean) {
+    this._disconnecting = disconnecting;
+  }
 }
-
-
-

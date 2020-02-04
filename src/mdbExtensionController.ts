@@ -17,9 +17,13 @@ export default class MDBExtensionController implements vscode.Disposable {
   private _connectionManager: ConnectionManager;
   private _statusView: StatusView;
 
-  constructor() {
+  constructor(connectionManager?: ConnectionManager) {
     this._statusView = new StatusView();
-    this._connectionManager = new ConnectionManager(this._statusView);
+    if (connectionManager) {
+      this._connectionManager = connectionManager;
+    } else {
+      this._connectionManager = new ConnectionManager(this._statusView);
+    }
   }
 
   public activate(context: vscode.ExtensionContext) {
@@ -52,6 +56,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   public deactivate(): void {
-    // TODO: Close all active connections & end active queries/playgrounds.
+    // TODO: Cancel active queries/playgrounds.
+    this._connectionManager.disconnect();
   }
 }

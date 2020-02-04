@@ -14,13 +14,6 @@ const testDatabaseURI_2_WithTimeout = 'mongodb://shouldfail?connectTimeoutMS=100
 suite('Connection Manager Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  let disposables: vscode.Disposable[] = [];
-
-  teardown(() => {
-    disposables.forEach(d => d.dispose());
-    disposables.length = 0;
-  });
-
   before(require('mongodb-runner/mocha/before'));
   after(require('mongodb-runner/mocha/after'));
 
@@ -67,13 +60,13 @@ suite('Connection Manager Test Suite', () => {
     });
   });
 
-  test('"removeMongoDBConnection()" returns false when there is no active connection', done => {
+  test('"removeMongoDBConnection()" returns a reject promise when there is no active connection', done => {
     const testConnectionMgr = new ConnectionManager(new StatusView());
 
-    testConnectionMgr.removeMongoDBConnection().then(successfullyDisconnected => {
+    testConnectionMgr.removeMongoDBConnection().then(null, err => {
       assert(
-        successfullyDisconnected === false,
-        `Expected a false remove connection response, recieved ${successfullyDisconnected}.`
+        !!err,
+        `Expected an error response, recieved ${err}.`
       );
     }).then(() => done(), done);
   });
@@ -167,14 +160,4 @@ suite('Connection Manager Test Suite', () => {
       assert(!!err, 'Expected an error disconnect response.');
     }).then(() => done(), done);
   });
-
-
-  /**
-   * Connection tests to write:
-   * - Connect to multiple databases and ensure only 1 is live.
-   * - Ensure status bar shows text when connecting & disconnecting.
-   * - Remove a database connection while it is not the active connection.
-   * - Try to disconnect while connecting.
-   * - Try to connect while disconnecting.
-   */
 });
