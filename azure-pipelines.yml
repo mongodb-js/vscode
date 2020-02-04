@@ -42,9 +42,12 @@ steps:
       path: $(npm_config_cache)
     displayName: 'Cache npm'
 
+  - script: npm install
+    displayName: 'Install npm'
+
   - bash: |
       echo ">>> Run Compile"
-      npm install && npm run compile
+      npm run compile
       echo ">>> Compiled"
       echo ">>> Run integration tests"
       npm run test
