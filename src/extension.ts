@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 import { activate as createExplorerView } from './explorer';
 
-import MDBExtensionController from './mdb';
+import MDBExtensionController from './mdbExtensionController';
 
 let mdbExtension: MDBExtensionController;
 

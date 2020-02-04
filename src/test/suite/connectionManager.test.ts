@@ -128,19 +128,53 @@ suite('Connection Manager Test Suite', () => {
     });
   });
 
+  test('"connect()" failed when we are currently connecting', function (done) {
+    const testConnectionMgr = new ConnectionManager(new StatusView());
+
+    testConnectionMgr.setConnnecting(true);
+
+    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(null, err => {
+      assert(!!err, 'Expected an error promise response.');
+    }).then(() => done());
+  });
+
+  test('"connect()" failed when we are currently disconnecting', function (done) {
+    const testConnectionMgr = new ConnectionManager(new StatusView());
+
+    testConnectionMgr.setDisconnecting(true);
+
+    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(null, err => {
+      assert(!!err, 'Expected an error promise response.');
+    }).then(() => done());
+  });
+
+  test('"disconnect()" fails when we are currently connecting', function (done) {
+    const testConnectionMgr = new ConnectionManager(new StatusView());
+
+    testConnectionMgr.setConnnecting(true);
+
+    testConnectionMgr.disconnect().then(null, err => {
+      assert(!!err, 'Expected an error disconnect response.');
+    }).then(() => done(), done);
+  });
+
+  test('"disconnect()" fails when we are currently disconnecting', function (done) {
+    const testConnectionMgr = new ConnectionManager(new StatusView());
+
+    testConnectionMgr.setDisconnecting(true);
+
+    testConnectionMgr.disconnect().then(null, err => {
+      assert(!!err, 'Expected an error disconnect response.');
+    }).then(() => done(), done);
+  });
+
 
   /**
    * Connection tests to write:
-   * - Connect to a database.
-   * - Connect to multiple databases.
    * - Connect to multiple databases and ensure only 1 is live.
    * - Ensure status bar shows text when connecting & disconnecting.
-   * - Disconnect from a database.
-   * - Disconnect from 2nd database on connection list and ensure that one dcs.
-   * - Disconnect from active database connection.
+   * - Remove a database connection while it is not the active connection.
    * - Try to disconnect while connecting.
    * - Try to connect while disconnecting.
-   *
-   * - End to end on commands for connecting?
    */
 });

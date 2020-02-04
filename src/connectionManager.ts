@@ -25,17 +25,17 @@ function getConnectWebviewContent() {
 
 export default class ConnectionManager {
   // This is a map of connection instance ids to their connection model.
-  _connectionConfigs: {
+  private _connectionConfigs: {
     [key: string]: any
   } = {};
 
-  _currentConnection: any;
-  _currentConnectionInstanceId: string | null = null;
+  private _currentConnection: any;
+  private _currentConnectionInstanceId: string | null = null;
 
-  _connecting: boolean = false;
-  _disconnecting: boolean = false;
+  private _connecting: boolean = false;
+  private _disconnecting: boolean = false;
 
-  _statusView: StatusView;
+  private _statusView: StatusView;
 
   constructor(_statusView: StatusView) {
     this._statusView = _statusView;
@@ -66,7 +66,7 @@ export default class ConnectionManager {
     try {
       connectionString = await vscode.window.showInputBox({
         value: '',
-        placeHolder: 'MongoDB connection string',
+        placeHolder: 'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
         validateInput: text => {
           let connectionStringError = null;
@@ -258,15 +258,23 @@ export default class ConnectionManager {
   public getConnections() {
     return this._connectionConfigs;
   }
-
-  // Exposed for testing.
   public getActiveConnectionInstanceId() {
     return this._currentConnectionInstanceId;
   }
-
-  // Exposed for testing
   public getActiveConnection() {
     return this._currentConnectionInstanceId;
+  }
+  public getDisconnecting() {
+    return this._disconnecting;
+  }
+  public setDisconnecting(disconnecting: boolean) {
+    this._disconnecting = disconnecting;
+  }
+  public getConnnecting() {
+    return this._connecting;
+  }
+  public setConnnecting(connecting: boolean) {
+    this._disconnecting = connecting;
   }
 }
 
