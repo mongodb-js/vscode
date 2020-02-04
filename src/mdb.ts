@@ -23,7 +23,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   public activate(context: vscode.ExtensionContext) {
-    console.group('registerCommands');
+    log.info('Registering commands...');
 
     // Register our extension's commands. These are the event handlers and control
     // the functionality of our extension.
@@ -37,7 +37,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     vscode.commands.registerCommand('mdb.launchShell', this.launchMongoShell);
 
-    console.groupEnd();
+    log.info('Registered commands.')
   }
 
   public launchMongoShell() {
