@@ -68,9 +68,11 @@ export default class ConnectionManager {
         value: '',
         placeHolder: 'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
-        validateInput: text => {
+        validateInput: uri => {
           let connectionStringError = null;
-          if (text && text.indexOf('mongodb://') === -1 && text.indexOf('mongodb+srv://') === -1) {
+          console.log('validate', uri);
+
+          if (!Connection.isURI(uri)) {
             connectionStringError = 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
           }
 
