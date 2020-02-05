@@ -34,11 +34,10 @@ suite('Extension Test Suite', () => {
     vscode.commands.getCommands().then(registeredCommands => {
       const expectedCommands = [
         'mdb.connect',
-        'mdb.addConnection',
         'mdb.connectWithURI',
-        'mdb.addConnectionWithURI',
+        'mdb.disconnect',
         'mdb.removeConnection',
-        'mdb.launchShell'
+        'mdb.openMongoShell'
       ];
 
       for (let i = 0; i < expectedCommands.length; i++) {
@@ -61,7 +60,7 @@ suite('Extension Test Suite', () => {
 
     const mockMDBExtension = new MDBExtensionController();
 
-    mockMDBExtension.launchMongoShell();
+    mockMDBExtension.openMongoShell();
   });
 
   test('when the extension is deactivated, the active connection is discconected', function (done) {

@@ -9,8 +9,6 @@ Think RPC handlers.
 ## Connection commands
 - `mdb.connect`
 - `mdb.connectWithURI`
-- `mdb.addConnection`
-- `mdb.addConnectionWithURI`
 - `mdb.disconnect`
 - `mdb.removeConnection`
 - `mdb.reload`
@@ -26,7 +24,7 @@ Think RPC handlers.
 - `mdb.removeDocument`
 - `mdb.updateDocument`
 
-- `mdb.launchMongoShell`
+- `mdb.openMongoShell`
 
 ## Query commands (json input fields)
 - `mdb.aggregate`

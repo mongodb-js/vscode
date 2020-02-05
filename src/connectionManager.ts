@@ -249,13 +249,13 @@ export default class ConnectionManager {
   public getActiveConnection() {
     return this._currentConnectionInstanceId;
   }
-  public getConnnecting() {
+  public isConnnecting() {
     return this._connecting;
   }
   public setConnnecting(connecting: boolean) {
     this._disconnecting = connecting;
   }
-  public getDisconnecting() {
+  public isDisconnecting() {
     return this._disconnecting;
   }
   public setDisconnecting(disconnecting: boolean) {

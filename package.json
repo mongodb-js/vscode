@@ -14,11 +14,9 @@
   "activationEvents": [
     "onCommand:mdb.connect",
     "onCommand:mdb.connectWithURI",
-    "onCommand:mdb.addConnection",
-    "onCommand:mdb.addConnectionWithURI",
     "onCommand:mdb.disconnect",
     "onCommand:mdb.removeConnection",
-    "onCommand:mdb.launchShell",
+    "onCommand:mdb.openMongoShell",
     "onView:mongoDB"
   ],
   "main": "./out/extension.js",
@@ -56,14 +54,6 @@
         "title": "MongoDB: Connect with Connection String..."
       },
       {
-        "command": "mdb.addConnection",
-        "title": "MongoDB: Add Connection"
-      },
-      {
-        "command": "mdb.addConnectionWithURI",
-        "title": "MongoDB: Add Connection with Connection String..."
-      },
-      {
         "command": "mdb.disconnect",
         "title": "MongoDB: Disconnect"
       },
@@ -72,7 +62,7 @@
         "title": "MongoDB: Remove Connection..."
       },
       {
-        "command": "mdb.launchShell",
+        "command": "mdb.openMongoShell",
         "title": "MongoDB: Launch Mongo Shell"
       }
     ],
