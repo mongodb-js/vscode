@@ -1,27 +1,72 @@
 import * as vscode from 'vscode';
 
+import MongoDBDatabaseTreeItem from './mongoDBDatabaseTreeItem';
+// import ConnectionController from '../connectionController';
+
 export default class MongoDBConnectionTreeItem extends vscode.TreeItem implements vscode.TreeDataProvider<MongoDBConnectionTreeItem> {
+  connectionInstanceId: string;
+  isActiveConnection: boolean;
+  _dataService: any;
+
   constructor(
-    public readonly label: string
-    // public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    // public readonly command?: vscode.Command
+    connectionInstanceId: string,
+    isActiveConnection: boolean,
+    dataService: any
   ) {
-    super(label); // collapsibleState
+    super(
+      connectionInstanceId,
+      isActiveConnection ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed
+    );
+
+    this.connectionInstanceId = connectionInstanceId;
+    this.isActiveConnection = isActiveConnection;
+    this._dataService = dataService;
+
+    console.log('created tree item.');
   }
 
   get tooltip(): string {
-    return 'tooltip';
+    return this.connectionInstanceId;
   }
 
   get description(): string {
-    return 'description';
+    return this.isActiveConnection ? 'connected' : '';
   }
 
-  getTreeItem(element: MongoDBConnectionTreeItem): vscode.TreeItem {
+  getTreeItem(element: MongoDBConnectionTreeItem): MongoDBConnectionTreeItem {
+    console.log('Get connection tree item');
     return element;
   }
 
-  getChildren(): Thenable<MongoDBConnectionTreeItem[]> {
+  // TODO: Get a slightly stricter type than any.
+  getChildren(element?: MongoDBConnectionTreeItem): Thenable<any[]> {
+    console.log('Get connection tree item children');
+
+    // if (this.connectionInstanceId) {
+    // if (this.isActiveConnection) {
+    console.log('element', element);
+    console.log('this.isActiveConnectio', this.isActiveConnection);
+    console.log('this.connectionInstanceId', this.connectionInstanceId);
+    if (this.isActiveConnection) {
+      return new Promise((resolve, reject) => {
+        console.log('about to list databases');
+        this._dataService.listDatabases((err: any, databases: string[]) => {
+          console.log('got databases', databases);
+          if (err) {
+            // TODO: Error here properly
+            return resolve([]);
+          }
+
+          if (databases) {
+            return resolve(databases.map(({ name }: any) => new MongoDBDatabaseTreeItem(name)));
+          }
+
+          return resolve([]);
+        });
+      });
+    }
+
+    // Here we either want to return loading or nothing.
     return Promise.resolve([]);
   }
 

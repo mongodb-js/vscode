@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import { createLogger } from './logging';
 import { StatusView } from './views';
 
-const log = createLogger('connection manager');
+const log = createLogger('connection controller');
 
 function getConnectWebviewContent() {
   return `<!DOCTYPE html>
@@ -23,7 +23,11 @@ function getConnectWebviewContent() {
   </html>`;
 }
 
-export default class ConnectionManager {
+export enum DataServiceEventTypes {
+  connectionsDidChange
+}
+
+export default class ConnectionController {
   // This is a map of connection instance ids to their connection model.
   private _connectionConfigs: {
     [key: string]: any
@@ -36,6 +40,14 @@ export default class ConnectionManager {
   private _disconnecting: boolean = false;
 
   private _statusView: StatusView;
+
+  // Parts of the extension that respond to changes in the connections.
+  // This map stores the functions which are listening.
+  public eventListeners: {
+    [key in DataServiceEventTypes]: (() => void)[]
+  } = {
+      [DataServiceEventTypes.connectionsDidChange]: []
+    };
 
   constructor(_statusView: StatusView) {
     this._statusView = _statusView;
@@ -151,6 +163,8 @@ export default class ConnectionManager {
         this._currentConnection = newConnection;
         this._connecting = false;
 
+        this.fireEvent(DataServiceEventTypes.connectionsDidChange);
+
         resolve(true);
       });
     });
@@ -178,7 +192,7 @@ export default class ConnectionManager {
           // Show an error, however we still reset the active connection to free up the extension.
           vscode.window.showErrorMessage('An error occured while disconnecting from the current connection.');
         } else {
-          vscode.window.showInformationMessage('MongoDB connection removed.');
+          vscode.window.showInformationMessage('MongoDB disconnected.');
         }
 
         this._currentConnection = null;
@@ -186,6 +200,8 @@ export default class ConnectionManager {
 
         this._disconnecting = false;
         this._statusView.hideMessage();
+
+        this.fireEvent(DataServiceEventTypes.connectionsDidChange);
 
         return resolve(true);
       });
@@ -244,15 +260,24 @@ export default class ConnectionManager {
     return Object.keys(this._connectionConfigs);
   }
 
+  public getActiveConnectionInstanceId() {
+    return this._currentConnectionInstanceId;
+  }
+
+  public addEventListener(connectionType: DataServiceEventTypes, listener: () => void) {
+    this.eventListeners[connectionType].push(listener);
+  }
+
+  public fireEvent(connectionType: DataServiceEventTypes) {
+    this.eventListeners[connectionType].map(eventListener => eventListener());
+  }
+
   // Exposed for testing.
   public getConnections() {
     return this._connectionConfigs;
   }
-  public getActiveConnectionInstanceId() {
-    return this._currentConnectionInstanceId;
-  }
   public getActiveConnection() {
-    return this._currentConnectionInstanceId;
+    return this._currentConnection;
   }
   public isConnnecting() {
     return this._connecting;

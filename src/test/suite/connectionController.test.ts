@@ -11,7 +11,7 @@ import { StatusView } from '../../views';
 const testDatabaseURI = 'mongodb://localhost';
 const testDatabaseURI_2_WithTimeout = 'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
-suite('Connection Manager Test Suite', () => {
+suite('Connection Controller Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
   before(require('mongodb-runner/mocha/before'));

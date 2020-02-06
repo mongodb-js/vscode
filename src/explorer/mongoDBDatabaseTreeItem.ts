@@ -2,11 +2,11 @@ import * as vscode from 'vscode';
 
 export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements vscode.TreeDataProvider<MongoDBDatabaseTreeItem> {
   constructor(
-    public readonly label: string
+    databaseName: string
     // public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     // public readonly command?: vscode.Command
   ) {
-    super(label); // collapsibleState
+    super(databaseName, vscode.TreeItemCollapsibleState.None); // collapsibleState
   }
 
   get tooltip(): string {
@@ -17,11 +17,11 @@ export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements 
     return 'description';
   }
 
-  getTreeItem(element: MongoDBDatabaseTreeItem): vscode.TreeItem {
+  getTreeItem(element: MongoDBDatabaseTreeItem): MongoDBDatabaseTreeItem {
     return element;
   }
 
-  getChildren(): Thenable<[]> {
+  getChildren(): Thenable<MongoDBDatabaseTreeItem[]> {
     return Promise.resolve([]);
   }
 

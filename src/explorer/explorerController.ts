@@ -4,11 +4,24 @@ import ConnectionController from '../connectionController';
 import ExplorerDataProvider from './explorerTreeRoot';
 
 export default class ConnectionExplorerController {
-  private connectionTreeViewer?: vscode.TreeView<vscode.TreeItem>;
+  private _connectionTreeViewer?: vscode.TreeView<vscode.TreeItem>;
+  private _treeDataProvider?: ExplorerDataProvider;
 
-  activate(connectionController: ConnectionController) {
-    const treeDataProvider = new ExplorerDataProvider(connectionController);
+  public activate(connectionController: ConnectionController) {
+    this._treeDataProvider = new ExplorerDataProvider(connectionController);
 
-    this.connectionTreeViewer = vscode.window.createTreeView('mongoDB', { treeDataProvider });
+    this._connectionTreeViewer = vscode.window.createTreeView('mongoDB', {
+      treeDataProvider: this._treeDataProvider
+    });
+  }
+
+  public refresh(): Promise<boolean> {
+    if (!this._treeDataProvider) {
+      return Promise.reject('MongoDB service has not yet activated.');
+    }
+
+    this._treeDataProvider.refresh();
+
+    return Promise.resolve(true);
   }
 }

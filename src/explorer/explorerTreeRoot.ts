@@ -1,41 +1,55 @@
 
 import * as vscode from 'vscode';
 
-import ConnectionController from '../connectionController';
+import ConnectionController, { DataServiceEventTypes } from '../connectionController';
 import MongoDBConnectionTreeItem from './mongoDBConnectionTreeItem';
-// import MongoDBDatabaseTreeItem from './mongoDBDatabaseTreeItem';
+import MongoDBDatabaseTreeItem from './mongoDBDatabaseTreeItem';
 
 export default class ExplorerTreeRootController implements vscode.TreeDataProvider<vscode.TreeItem> {
   _rootTreeItem: ExplorerRootTreeItem;
 
   constructor(connectionController: ConnectionController) {
     this._rootTreeItem = new ExplorerRootTreeItem(connectionController);
+
+    this._onDidChangeTreeData = new vscode.EventEmitter<any>();
+    this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+    // Subscribe to changes in the connections.
+    // TODO: Make sure we cleanup.
+    connectionController.addEventListener(
+      DataServiceEventTypes.connectionsDidChange,
+      () => this.refresh()
+    );
+  }
+
+  private _onDidChangeTreeData: vscode.EventEmitter<any>;
+  readonly onDidChangeTreeData: vscode.Event<any>;
+
+  public refresh() {
+    console.log('Refresh explorer tree called.');
+    this._onDidChangeTreeData.fire();
   }
 
   getTreeItem(element: ExplorerRootTreeItem): vscode.TreeItem {
     return element;
   }
 
-  getChildren(element?: ExplorerRootTreeItem | MongoDBConnectionTreeItem): Thenable<ExplorerRootTreeItem[] | MongoDBConnectionTreeItem[]> {
-    // TODO: Get the data from our active connection if we don't have it yet.
-
+  getChildren(element?: ExplorerRootTreeItem | MongoDBConnectionTreeItem | MongoDBDatabaseTreeItem): Thenable<ExplorerRootTreeItem[] | MongoDBConnectionTreeItem[] | MongoDBDatabaseTreeItem[]> {
     if (!element) {
       return Promise.resolve([
         this._rootTreeItem
       ]);
-      // return [this._rootTreeItem];
     } else {
       return element.getChildren();
     }
-
-    // return Promise.resolve([]);
   }
 }
 
 const rootLabel = 'Connections';
+const rootTooltip = 'Your MongoDB connections';
 
-export class ExplorerRootTreeItem extends vscode.TreeItem implements vscode.TreeDataProvider<MongoDBConnectionTreeItem> {
-  _connectionController: ConnectionController;
+export class ExplorerRootTreeItem extends vscode.TreeItem implements vscode.TreeDataProvider<vscode.TreeItem> {
+  private _connectionController: ConnectionController;
 
   constructor(connectionController: ConnectionController) {
     super(rootLabel, vscode.TreeItemCollapsibleState.Expanded);
@@ -44,31 +58,30 @@ export class ExplorerRootTreeItem extends vscode.TreeItem implements vscode.Tree
   }
 
   get tooltip(): string {
-    return rootLabel;
+    return rootTooltip;
   }
 
   get description(): string {
     return '';
   }
 
-  getTreeItem(element: MongoDBConnectionTreeItem): vscode.TreeItem {
+  getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+    console.log('Get tree item!');
     return element;
   }
 
   getChildren(): Thenable<MongoDBConnectionTreeItem[]> {
-    // new MongoDBConnectionTreeItem('mock connection 1');
-    // new MongoDBConnectionTreeItem('mock connection 2');
+    console.log('Get children of root item.');
 
-    // return Promise.resolve(mockConnectionsA);
     const connectionIds = this._connectionController.getConnectionInstanceIds();
     const connectionTreeItems = connectionIds.map(
-      connection => new MongoDBConnectionTreeItem(connection)
+      connectionId => new MongoDBConnectionTreeItem(
+        connectionId,
+        connectionId === this._connectionController.getActiveConnectionInstanceId(),
+        this._connectionController.getActiveConnection()
+      )
     );
 
     return Promise.resolve(connectionTreeItems);
   }
-
-  // getChildren(element: { key: string }): { key: string }[] {
-  //   return Object.keys(mockConnections);
-  // }
 }

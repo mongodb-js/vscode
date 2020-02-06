@@ -47,6 +47,9 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     vscode.commands.registerCommand('mdb.openMongoDBShell', this.openMongoDBShell);
 
+    vscode.commands.registerCommand('mdb.refresh', () => this._explorerController.refresh());
+    vscode.commands.registerCommand('mdb.reload', () => this._explorerController.refresh());
+
     log.info('Registered commands.');
 
     this._explorerController.activate(this._connectionController);
