@@ -37,7 +37,7 @@ suite('Extension Test Suite', () => {
         'mdb.connectWithURI',
         'mdb.disconnect',
         'mdb.removeConnection',
-        'mdb.openMongoShell'
+        'mdb.openMongoDBShell'
       ];
 
       for (let i = 0; i < expectedCommands.length; i++) {
@@ -60,7 +60,7 @@ suite('Extension Test Suite', () => {
 
     const mockMDBExtension = new MDBExtensionController();
 
-    mockMDBExtension.openMongoShell();
+    mockMDBExtension.openMongoDBShell();
   });
 
   test('when the extension is deactivated, the active connection is discconected', function (done) {

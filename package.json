@@ -16,7 +16,7 @@
     "onCommand:mdb.connectWithURI",
     "onCommand:mdb.disconnect",
     "onCommand:mdb.removeConnection",
-    "onCommand:mdb.openMongoShell",
+    "onCommand:mdb.openMongoDBShell",
     "onView:mongoDB"
   ],
   "main": "./out/extension.js",
@@ -62,7 +62,7 @@
         "title": "MongoDB: Remove Connection..."
       },
       {
-        "command": "mdb.openMongoShell",
+        "command": "mdb.openMongoDBShell",
         "title": "MongoDB: Launch Mongo Shell"
       }
     ],

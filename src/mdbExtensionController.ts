@@ -37,15 +37,15 @@ export default class MDBExtensionController implements vscode.Disposable {
     vscode.commands.registerCommand('mdb.disconnect', () => this._connectionManager.disconnect());
     vscode.commands.registerCommand('mdb.removeConnection', () => this._connectionManager.removeMongoDBConnection());
 
-    vscode.commands.registerCommand('mdb.openMongoShell', this.openMongoShell);
+    vscode.commands.registerCommand('mdb.openMongoDBShell', this.openMongoDBShell);
 
     log.info('Registered commands.');
   }
 
-  public openMongoShell() {
-    const mongoShell = vscode.window.createTerminal('Mongo Shell');
-    mongoShell.sendText('mongo');
-    mongoShell.show();
+  public openMongoDBShell() {
+    const mongoDBShell = vscode.window.createTerminal('MongoDB Shell');
+    mongoDBShell.sendText('mongo');
+    mongoDBShell.show();
   }
 
   dispose(): void {

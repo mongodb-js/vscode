@@ -24,7 +24,7 @@ Think RPC handlers.
 - `mdb.removeDocument`
 - `mdb.updateDocument`
 
-- `mdb.openMongoShell`
+- `mdb.openMongoDBShell`
 
 ## Query commands (json input fields)
 - `mdb.aggregate`
