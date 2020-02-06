@@ -5,7 +5,7 @@ import {
   after
 } from 'mocha';
 
-import ConnectionManager from '../../connectionManager';
+import ConnectionController from '../../connectionController';
 import { StatusView } from '../../views';
 
 const testDatabaseURI = 'mongodb://localhost';
@@ -18,16 +18,16 @@ suite('Connection Manager Test Suite', () => {
   after(require('mongodb-runner/mocha/after'));
 
   test('it connects to mongodb', function (done) {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
     this.timeout(2000);
 
-    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
       assert(succesfullyConnected === true, 'Expected a successful connection response.');
       assert(
-        Object.keys(testConnectionMgr.getConnections()).length === 1,
+        Object.keys(testConnectionController.getConnections()).length === 1,
         'Expected there to be 1 connection in the connection list.'
       );
-      const instanceId = testConnectionMgr.getActiveConnectionInstanceId();
+      const instanceId = testConnectionController.getActiveConnectionInstanceId();
       assert(
         instanceId === 'localhost:27017',
         `Expected active connection to be 'localhost:27017' found ${instanceId}`
@@ -37,21 +37,21 @@ suite('Connection Manager Test Suite', () => {
   });
 
   test('"disconnect()" disconnects from the active connection', function (done) {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
     this.timeout(2000);
 
-    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
       assert(succesfullyConnected === true, 'Expected a successful (true) connection response.');
 
-      testConnectionMgr.disconnect().then(successfullyDisconnected => {
+      testConnectionController.disconnect().then(successfullyDisconnected => {
         assert(successfullyDisconnected === true, 'Expected a successful (true) disconnect response.');
         // Disconnecting should keep the connection contract, just disconnected.
-        const connectionsCount = Object.keys(testConnectionMgr.getConnections()).length;
+        const connectionsCount = Object.keys(testConnectionController.getConnections()).length;
         assert(
           connectionsCount === 1,
           `Expected the amount of connections to be 1 found ${connectionsCount}.`
         );
-        const instanceId = testConnectionMgr.getActiveConnectionInstanceId();
+        const instanceId = testConnectionController.getActiveConnectionInstanceId();
         assert(
           instanceId === null,
           `Expected the active connection instance id to be null, found ${instanceId}`
@@ -61,9 +61,9 @@ suite('Connection Manager Test Suite', () => {
   });
 
   test('"removeMongoDBConnection()" returns a reject promise when there is no active connection', done => {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
 
-    testConnectionMgr.removeMongoDBConnection().then(null, err => {
+    testConnectionController.removeMongoDBConnection().then(null, err => {
       assert(
         !!err,
         `Expected an error response, recieved ${err}.`
@@ -72,28 +72,28 @@ suite('Connection Manager Test Suite', () => {
   });
 
   test('"disconnect()" fails when there is no active connection', done => {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
 
-    testConnectionMgr.disconnect().then(null, err => {
+    testConnectionController.disconnect().then(null, err => {
       assert(!!err, `Expected an error disconnect response.`);
     }).then(() => done(), done);
   });
 
   test('when adding a new connection it disconnects from the current connection', function (done) {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
     this.timeout(2000);
 
-    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
       assert(succesfullyConnected === true, 'Expected a successful (true) connection response.');
 
-      testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI_2_WithTimeout).then(null, err => {
+      testConnectionController.addNewConnectionAndConnect(testDatabaseURI_2_WithTimeout).then(null, err => {
         assert(!!err, 'Expected an error promise response.');
         assert(
-          testConnectionMgr.getActiveConnection() === null,
+          testConnectionController.getActiveConnection() === null,
           'Expected to current connection to be null (not connected).'
         );
         assert(
-          testConnectionMgr.getActiveConnectionInstanceId() === null,
+          testConnectionController.getActiveConnectionInstanceId() === null,
           'Expected to current connection instanceId to be null (not connected).'
         );
       }).then(() => done());
@@ -101,20 +101,20 @@ suite('Connection Manager Test Suite', () => {
   });
 
   test('when adding a new connection it disconnects from the current connection', function (done) {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
     this.timeout(2000);
 
-    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
       assert(succesfullyConnected === true, 'Expected a successful (true) connection response.');
 
-      testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI_2_WithTimeout).then(null, err => {
+      testConnectionController.addNewConnectionAndConnect(testDatabaseURI_2_WithTimeout).then(null, err => {
         assert(!!err, 'Expected an error promise response.');
         assert(
-          testConnectionMgr.getActiveConnection() === null,
+          testConnectionController.getActiveConnection() === null,
           'Expected to current connection to be null (not connected).'
         );
         assert(
-          testConnectionMgr.getActiveConnectionInstanceId() === null,
+          testConnectionController.getActiveConnectionInstanceId() === null,
           'Expected to current connection instanceId to be null (not connected).'
         );
       }).then(() => done());
@@ -122,41 +122,41 @@ suite('Connection Manager Test Suite', () => {
   });
 
   test('"connect()" failed when we are currently connecting', function (done) {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
 
-    testConnectionMgr.setConnnecting(true);
+    testConnectionController.setConnnecting(true);
 
-    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(null, err => {
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(null, err => {
       assert(!!err, 'Expected an error promise response.');
     }).then(() => done());
   });
 
   test('"connect()" failed when we are currently disconnecting', function (done) {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
 
-    testConnectionMgr.setDisconnecting(true);
+    testConnectionController.setDisconnecting(true);
 
-    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(null, err => {
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(null, err => {
       assert(!!err, 'Expected an error promise response.');
     }).then(() => done());
   });
 
   test('"disconnect()" fails when we are currently connecting', function (done) {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
 
-    testConnectionMgr.setConnnecting(true);
+    testConnectionController.setConnnecting(true);
 
-    testConnectionMgr.disconnect().then(null, err => {
+    testConnectionController.disconnect().then(null, err => {
       assert(!!err, 'Expected an error disconnect response.');
     }).then(() => done(), done);
   });
 
   test('"disconnect()" fails when we are currently disconnecting', function (done) {
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
 
-    testConnectionMgr.setDisconnecting(true);
+    testConnectionController.setDisconnecting(true);
 
-    testConnectionMgr.disconnect().then(null, err => {
+    testConnectionController.disconnect().then(null, err => {
       assert(!!err, 'Expected an error disconnect response.');
     }).then(() => done(), done);
   });

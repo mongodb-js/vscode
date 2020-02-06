@@ -2,23 +2,24 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-import { activate as createExplorerView } from './explorer';
+import { createLogger } from './logging';
 
 import MDBExtensionController from './mdbExtensionController';
 
 let mdbExtension: MDBExtensionController;
 
+const log = createLogger('commands');
+
 // Called when our extension is activated.
 // See "activationEvents" in `package.json` for the events that cause activation.
 export function activate(context: vscode.ExtensionContext) {
+  log.info('activate extension called');
   mdbExtension = new MDBExtensionController();
 
   // Add our extension to a list of disposables for when we are deactivated.
   context.subscriptions.push(mdbExtension);
 
   mdbExtension.activate(context);
-
-  createExplorerView(context);
 
   console.log('Congratulations, your extension "mongodb" is now active!');
 }

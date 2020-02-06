@@ -6,7 +6,7 @@ import {
 } from 'mocha';
 
 import MDBExtensionController from '../../mdbExtensionController';
-import ConnectionManager from '../../connectionManager';
+import ConnectionController from '../../connectionController';
 import { StatusView } from '../../views';
 
 import { TestExtensionContext } from './stubs';
@@ -67,7 +67,7 @@ suite('Extension Test Suite', () => {
     before(require('mongodb-runner/mocha/before'));
     after(require('mongodb-runner/mocha/after'));
 
-    const testConnectionMgr = new ConnectionManager(new StatusView());
+    const testConnectionMgr = new ConnectionController(new StatusView());
 
     const mockMDBExtension = new MDBExtensionController(testConnectionMgr);
     disposables.push(mockMDBExtension);

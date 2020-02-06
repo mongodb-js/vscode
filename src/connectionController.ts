@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import { createLogger } from './logging';
 import { StatusView } from './views';
 
-const log = createLogger('commands');
+const log = createLogger('connection manager');
 
 function getConnectWebviewContent() {
   return `<!DOCTYPE html>
@@ -238,6 +238,10 @@ export default class ConnectionManager {
     delete this._connectionConfigs[connectionToRemove];
     vscode.window.showInformationMessage('MongoDB connection removed.');
     return Promise.resolve(true);
+  }
+
+  public getConnectionInstanceIds(): string[] {
+    return Object.keys(this._connectionConfigs);
   }
 
   // Exposed for testing.
