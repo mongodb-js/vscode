@@ -70,7 +70,6 @@ export default class ConnectionManager {
         prompt: 'Enter your connection string (SRV or standard)',
         validateInput: uri => {
           let connectionStringError = null;
-          console.log('validate', uri);
 
           if (!Connection.isURI(uri)) {
             connectionStringError = 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
