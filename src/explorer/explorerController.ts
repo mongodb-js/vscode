@@ -4,13 +4,15 @@ import ConnectionController from '../connectionController';
 import ExplorerDataProvider from './explorerTreeRoot';
 
 export default class ConnectionExplorerController {
-  private _connectionTreeViewer?: vscode.TreeView<vscode.TreeItem>;
+  // private _connectionTreeViewer?: vscode.TreeView<vscode.TreeItem>;
   private _treeDataProvider?: ExplorerDataProvider;
 
   public activate(connectionController: ConnectionController) {
     this._treeDataProvider = new ExplorerDataProvider(connectionController);
 
-    this._connectionTreeViewer = vscode.window.createTreeView('mongoDB', {
+    // TODO: teardown?
+    // this._connectionTreeViewer =
+    vscode.window.createTreeView('mongoDB', {
       treeDataProvider: this._treeDataProvider
     });
   }

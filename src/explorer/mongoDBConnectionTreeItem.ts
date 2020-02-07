@@ -39,7 +39,7 @@ export default class MongoDBConnectionTreeItem extends vscode.TreeItem implement
   }
 
   // TODO: Get a slightly stricter type than any.
-  getChildren(element?: MongoDBConnectionTreeItem): Thenable<any[]> {
+  getChildren(): Thenable<any[]> {
     console.log('Get connection tree item children');
 
     if (this.isActiveConnection) {
@@ -53,7 +53,7 @@ export default class MongoDBConnectionTreeItem extends vscode.TreeItem implement
           }
 
           if (databases) {
-            return resolve(databases.map(({ name }: any) => new MongoDBDatabaseTreeItem(name)));
+            return resolve(databases.map(({ name }: any) => new MongoDBDatabaseTreeItem(name, this._dataService)));
           }
 
           return resolve([]);

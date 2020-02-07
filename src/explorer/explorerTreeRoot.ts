@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import ConnectionController, { DataServiceEventTypes } from '../connectionController';
 import MongoDBConnectionTreeItem from './mongoDBConnectionTreeItem';
 import MongoDBDatabaseTreeItem from './mongoDBDatabaseTreeItem';
+import MongoDBCollectionTreeItem from './mongoDBCollectionTreeItem';
 
 export default class ExplorerTreeRootController implements vscode.TreeDataProvider<vscode.TreeItem> {
   _rootTreeItem: ExplorerRootTreeItem;
@@ -34,7 +35,7 @@ export default class ExplorerTreeRootController implements vscode.TreeDataProvid
     return element;
   }
 
-  getChildren(element?: ExplorerRootTreeItem | MongoDBConnectionTreeItem | MongoDBDatabaseTreeItem): Thenable<ExplorerRootTreeItem[] | MongoDBConnectionTreeItem[] | MongoDBDatabaseTreeItem[]> {
+  getChildren(element?: ExplorerRootTreeItem | MongoDBConnectionTreeItem | MongoDBDatabaseTreeItem | MongoDBCollectionTreeItem): Thenable<ExplorerRootTreeItem[] | MongoDBConnectionTreeItem[] | MongoDBDatabaseTreeItem[] | MongoDBCollectionTreeItem[]> {
     if (!element) {
       return Promise.resolve([
         this._rootTreeItem
