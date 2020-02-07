@@ -7,6 +7,7 @@ import {
 
 import MDBExtensionController from '../../mdbExtensionController';
 import ConnectionController from '../../connectionController';
+
 import { StatusView } from '../../views';
 
 import { TestExtensionContext } from './stubs';
@@ -67,22 +68,22 @@ suite('Extension Test Suite', () => {
     before(require('mongodb-runner/mocha/before'));
     after(require('mongodb-runner/mocha/after'));
 
-    const testConnectionMgr = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(new StatusView());
 
-    const mockMDBExtension = new MDBExtensionController(testConnectionMgr);
+    const mockMDBExtension = new MDBExtensionController(testConnectionController);
     disposables.push(mockMDBExtension);
 
     // Assume 2s is enough for connect & disconnect. (1s for each).
     this.timeout(2000);
 
-    testConnectionMgr.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
       assert(succesfullyConnected === true, 'Expected a successful (true) connection response.');
-      assert(testConnectionMgr.getActiveConnection() !== null, 'Expected active connection to not be null.');
+      assert(testConnectionController.getActiveConnection() !== null, 'Expected active connection to not be null.');
 
       mockMDBExtension.deactivate();
 
       setTimeout(function () {
-        assert(testConnectionMgr.getActiveConnection() === null, 'Expected active connection to be null.');
+        assert(testConnectionController.getActiveConnection() === null, 'Expected active connection to be null.');
         done();
       }, 1000);
     });
