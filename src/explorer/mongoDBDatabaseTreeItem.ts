@@ -9,8 +9,6 @@ export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements 
 
   constructor(
     databaseName: string,
-    // public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    // public readonly command?: vscode.Command
     dataService: any
   ) {
     super(databaseName, vscode.TreeItemCollapsibleState.Expanded); // collapsibleState
@@ -25,7 +23,7 @@ export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements 
   }
 
   get description(): string {
-    return 'description';
+    return '';
   }
 
   getTreeItem(element: MongoDBDatabaseTreeItem): MongoDBDatabaseTreeItem {
@@ -46,7 +44,7 @@ export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements 
           }
 
           if (collections) {
-            return resolve(collections.map(({ name }: any) => new MongoDBCollectionTreeItem(name)));
+            return resolve(collections.map(({ name }: any) => new MongoDBCollectionTreeItem(name, this._databaseName, this._dataService)));
           }
 
           return resolve([]);
