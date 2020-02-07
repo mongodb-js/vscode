@@ -42,18 +42,13 @@ export default class MongoDBConnectionTreeItem extends vscode.TreeItem implement
   getChildren(element?: MongoDBConnectionTreeItem): Thenable<any[]> {
     console.log('Get connection tree item children');
 
-    // if (this.connectionInstanceId) {
-    // if (this.isActiveConnection) {
-    console.log('element', element);
-    console.log('this.isActiveConnectio', this.isActiveConnection);
-    console.log('this.connectionInstanceId', this.connectionInstanceId);
     if (this.isActiveConnection) {
       return new Promise((resolve, reject) => {
         console.log('about to list databases');
         this._dataService.listDatabases((err: any, databases: string[]) => {
           console.log('got databases', databases);
           if (err) {
-            // TODO: Error here properly
+            // TODO: Error here properly.
             return resolve([]);
           }
 
