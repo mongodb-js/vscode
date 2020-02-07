@@ -21,14 +21,15 @@ Project](https://jira.mongodb.org/browse/VSCODE).
 
 ## Development
 
-First, we recommend familiarizing yourself with the VSCode extension documentation:
-[code.visualstudio.com/api](https://code.visualstudio.com/api)
+We recommend familiarizing yourself with the VSCode extension documentation:
+[code.visualstudio.com/api](https://code.visualstudio.com/api).
 
-Running the MongoDB VSCode plugin requires [Node.js](https://nodejs.org) and npm
+Running the MongoDB VSCode plugin requires [Node.js](https://nodejs.org) and npm.
 
+1. Clone this project, navigate to the folder, then run:
 ```shell
 npm install
 npm run watch
 ```
 
-Inside of [VS Code Insiders](https://code.visualstudio.com/insiders/) press `F5` to begin debugging the extension.
+2. Inside of [VS Code Insiders](https://code.visualstudio.com/insiders/) open this directory and press `F5` to begin debugging the extension. This should launch a new VSCode window which is running the extension.

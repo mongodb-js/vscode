@@ -3,14 +3,13 @@
 This README contains a list of all of the commands the extension handles.
 
 These commands are defined in `package.json`, registered from `extension.ts` to
-handlers defined in this directory.
+handlers defined in `mdb.ts`.
 Think RPC handlers.
 
 ## Connection commands
 - `mdb.connect`
 - `mdb.connectWithURI`
-- `mdb.addConnection`
-- `mdb.addConnectionWithURI`
+- `mdb.disconnect`
 - `mdb.removeConnection`
 - `mdb.reload`
 - `mdb.refresh`
@@ -25,7 +24,7 @@ Think RPC handlers.
 - `mdb.removeDocument`
 - `mdb.updateDocument`
 
-- `mdb.launchMongoShell`
+- `mdb.openMongoDBShell`
 
 ## Query commands (json input fields)
 - `mdb.aggregate`
