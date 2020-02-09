@@ -15,7 +15,6 @@ export default class ConnectionExplorerController {
     this._treeDataProvider = new ExplorerDataProvider(connectionController);
 
     // TODO: teardown?
-    // this._connectionTreeViewer =
     const explorerTreeView = vscode.window.createTreeView('mongoDB', {
       treeDataProvider: this._treeDataProvider
     });

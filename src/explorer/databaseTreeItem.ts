@@ -37,13 +37,12 @@ export default class DatabaseTreeItem extends vscode.TreeItem implements TreeIte
       if (this._childrenCacheIsUpToDate) {
         return Promise.resolve(this._childrenCache);
       } else {
-        // TODO: Version cache requests.
         return new Promise((resolve, reject) => {
           this._dataService.listCollections(this._databaseName, {}, (err: any, collections: string[]) => {
             this._childrenCacheIsUpToDate = true;
 
             if (err) {
-              // TODO: Error here properly.
+              // TODO: More in depth error.
               this._childrenCache = [];
               return resolve(this._childrenCache);
             }
@@ -74,11 +73,4 @@ export default class DatabaseTreeItem extends vscode.TreeItem implements TreeIte
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
   }
-
-  // iconPath = {
-  //   light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-  //   dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-  // };
-
-  contextValue = 'dependency';
 }

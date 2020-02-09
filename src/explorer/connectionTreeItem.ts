@@ -7,7 +7,7 @@ import TreeItemParent from './treeItemParentInterface';
 export default class ConnectionTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
   private _childrenCache: DatabaseTreeItem[] = [];
   private _childrenCacheIsUpToDate: boolean = false;
-  // private _dataService: any;
+
   private _connectionController: ConnectionController;
   private _connectionInstanceId: string;
 
@@ -41,19 +41,15 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
   }
 
   getTreeItem(element: ConnectionTreeItem): ConnectionTreeItem {
-    console.log('Get connection tree item');
     return element;
   }
 
   // TODO: Get a slightly stricter type than any.
   getChildren(): Thenable<any[]> {
-    console.log('Get connection tree item children is exp', this.isExpanded, 'is cache up to date', this._childrenCacheIsUpToDate);
-
     if (this.isExpanded) {
       if (this._childrenCacheIsUpToDate) {
         return Promise.resolve(this._childrenCache);
       } else {
-        // TODO: Version cache requests.
         return new Promise(async (resolve, reject) => {
           // If we aren't the active connection, we reconnect.
           if (this._connectionController.getActiveConnectionInstanceId() !== this._connectionInstanceId) {
@@ -63,13 +59,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
               return reject(err);
             }
           }
+
           const dataService = this._connectionController.getActiveConnection();
           dataService.listDatabases((err: any, databases: string[]) => {
             this._childrenCacheIsUpToDate = true;
 
-            // console.log('got databases', databases);
             if (err) {
-              // TODO: Error here properly.
+              // TODO: More descriptive error.
               this._childrenCache = [];
               return resolve([]);
             }
@@ -98,15 +94,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
   }
 
   async onDidExpand() {
-    console.log('expand connection', this._connectionInstanceId);
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
   }
-
-  // iconPath = {
-  //   light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-  //   dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-  // };
-
-  contextValue = 'dependency';
 }

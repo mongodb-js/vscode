@@ -36,10 +36,6 @@ export default class CollectionTreeItem extends vscode.TreeItem implements TreeI
     return this._collectionName;
   }
 
-  get description(): string {
-    return '';
-  }
-
   getTreeItem(element: CollectionTreeItem): CollectionTreeItem {
     return element;
   }
@@ -50,7 +46,6 @@ export default class CollectionTreeItem extends vscode.TreeItem implements TreeI
         return Promise.resolve(this._childrenCache);
       } else {
         console.log('updating collection cache.');
-        // TODO: Version cache requests.
         return new Promise(resolve => {
           this._dataService.find(
             `${this._databaseName}.${this._collectionName}`,
@@ -64,6 +59,7 @@ export default class CollectionTreeItem extends vscode.TreeItem implements TreeI
               this._childrenCacheIsUpToDate = true;
 
               if (err) {
+                // TODO: More indepth error.
                 this._childrenCache = [];
                 return resolve(this._childrenCache);
               }
@@ -88,10 +84,8 @@ export default class CollectionTreeItem extends vscode.TreeItem implements TreeI
   }
 
   onShowMoreClicked = () => {
-    console.log('Show more clicked.');
     this._maxDocumentsToShow += defaultMaxDocumentsToShow;
     this._childrenCacheIsUpToDate = false;
-    console.log('max documents', this._maxDocumentsToShow);
   }
 
   onDidCollapse = () => {
@@ -104,13 +98,6 @@ export default class CollectionTreeItem extends vscode.TreeItem implements TreeI
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
   }
-
-  // iconPath = {
-  //   light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-  //   dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-  // };
-
-  contextValue = 'dependency';
 }
 
 class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
