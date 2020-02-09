@@ -5,7 +5,7 @@ import {
   after
 } from 'mocha';
 
-import ConnectionController from '../../connectionController';
+import ConnectionController, { DataServiceEventTypes } from '../../connectionController';
 import { StatusView } from '../../views';
 
 const testDatabaseURI = 'mongodb://localhost';
@@ -159,5 +159,41 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController.disconnect().then(null, err => {
       assert(!!err, 'Expected an error disconnect response.');
     }).then(() => done(), done);
+  });
+
+  test('"connect()" should fire a connectionsDidChange event', function (done) {
+    const testConnectionController = new ConnectionController(new StatusView());
+
+    let didFireConnectionEvent = false;
+
+    testConnectionController.addConnectionEventListener(DataServiceEventTypes.connectionsDidChange, () => {
+      didFireConnectionEvent = true;
+    });
+
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(() => {
+      setTimeout(function () {
+        assert(didFireConnectionEvent === true, 'Expected connection event to be fired.');
+        done();
+      }, 150);
+    });
+  });
+
+  test('"connect()" then "disconnect()" should fire the connectionsDidChange event 2x', function (done) {
+    const testConnectionController = new ConnectionController(new StatusView());
+
+    let connectionEventFiredCount = 0;
+
+    testConnectionController.addConnectionEventListener(DataServiceEventTypes.connectionsDidChange, () => {
+      connectionEventFiredCount++;
+    });
+
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(() => {
+      testConnectionController.disconnect().then(() => {
+        setTimeout(function () {
+          assert(connectionEventFiredCount === 2, `Expected connection event to be fired twice, got ${connectionEventFiredCount}.`);
+          done();
+        }, 150);
+      });
+    });
   });
 });

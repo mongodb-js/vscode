@@ -1,5 +1,6 @@
 const Connection = require('mongodb-connection-model');
 const DataService = require('mongodb-data-service');
+const events = require('events');
 import * as vscode from 'vscode';
 
 import { createLogger } from './logging';
@@ -163,7 +164,7 @@ export default class ConnectionController {
         this._currentConnection = newConnection;
         this._connecting = false;
 
-        this.fireEvent(DataServiceEventTypes.connectionsDidChange);
+        this.fireConnectionEvent(DataServiceEventTypes.connectionsDidChange);
 
         resolve(true);
       });
@@ -174,8 +175,7 @@ export default class ConnectionController {
     if (this._connectionConfigs[connectionId]) {
       return this.connect(this._connectionConfigs[connectionId]);
     } else {
-      // TODO: This should be a bigger error.
-      return Promise.reject('Connection no longer found.');
+      return Promise.reject('Connection not found.');
     }
   }
 
@@ -210,7 +210,7 @@ export default class ConnectionController {
         this._disconnecting = false;
         this._statusView.hideMessage();
 
-        this.fireEvent(DataServiceEventTypes.connectionsDidChange);
+        this.fireConnectionEvent(DataServiceEventTypes.connectionsDidChange);
 
         return resolve(true);
       });
@@ -273,11 +273,11 @@ export default class ConnectionController {
     return this._currentConnectionInstanceId;
   }
 
-  public addEventListener(connectionType: DataServiceEventTypes, listener: () => void) {
+  public addConnectionEventListener(connectionType: DataServiceEventTypes, listener: () => void) {
     this.eventListeners[connectionType].push(listener);
   }
 
-  public fireEvent(connectionType: DataServiceEventTypes) {
+  public fireConnectionEvent(connectionType: DataServiceEventTypes) {
     this.eventListeners[connectionType].map(eventListener => eventListener());
   }
 

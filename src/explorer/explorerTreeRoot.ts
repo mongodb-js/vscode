@@ -18,7 +18,7 @@ export default class ExplorerTreeRootController implements vscode.TreeDataProvid
 
     // Subscribe to changes in the connections.
     // TODO: Make sure we cleanup.
-    connectionController.addEventListener(
+    connectionController.addConnectionEventListener(
       DataServiceEventTypes.connectionsDidChange,
       () => this.refresh()
     );
