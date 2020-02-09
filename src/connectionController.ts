@@ -170,6 +170,15 @@ export default class ConnectionController {
     });
   }
 
+  public async connectWithInstanceId(connectionId: string): Promise<boolean> {
+    if (this._connectionConfigs[connectionId]) {
+      return this.connect(this._connectionConfigs[connectionId]);
+    } else {
+      // TODO: This should be a bigger error.
+      return Promise.reject('Connection no longer found.');
+    }
+  }
+
   public disconnect(): Promise<boolean> {
     log.info('Disconnect called');
 

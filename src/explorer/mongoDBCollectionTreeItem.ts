@@ -1,24 +1,35 @@
 import * as vscode from 'vscode';
 
 import MongoDBDocumentTreeItem from './mongoDBDocumentTreeItem';
+import TreeItemParent from './treeItemParent';
 
-export default class MongoDBCollectionTreeItem extends vscode.TreeItem implements vscode.TreeDataProvider<MongoDBCollectionTreeItem> {
-  _collectionName: string;
-  _databaseName: string;
-  _dataService: any;
-  _isOpen: boolean;
+// We fetch 1 more than this in order to see if there are more to fetch.
+// Each time `show more` is clicked, the collection item increases the amount
+// of documents shown by this amount.
+const defaultMaxDocumentsToShow = 10;
+
+export default class MongoDBCollectionTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<MongoDBCollectionTreeItem> {
+  private _childrenCache: vscode.TreeItem[] = [];
+  private _childrenCacheIsUpToDate: boolean = false;
+  // We fetch 1 more than this in order to see if there are more to fetch.
+  private _maxDocumentsToShow = defaultMaxDocumentsToShow;
+
+  private _collectionName: string;
+  private _databaseName: string;
+  private _dataService: any;
+
+  isExpanded: boolean = false;
 
   constructor(
     collectionName: string,
     databaseName: string,
     dataService: any
   ) {
-    super(collectionName, vscode.TreeItemCollapsibleState.Collapsed); // collapsibleState
+    super(collectionName, vscode.TreeItemCollapsibleState.Collapsed);
 
     this._collectionName = collectionName;
     this._databaseName = databaseName;
     this._dataService = dataService;
-    this._isOpen = true;
   }
 
   get tooltip(): string {
@@ -34,28 +45,64 @@ export default class MongoDBCollectionTreeItem extends vscode.TreeItem implement
   }
 
   getChildren(): Thenable<any[]> {
-    console.log('Get connection tree item children');
+    if (this.isExpanded) {
+      if (this._childrenCacheIsUpToDate) {
+        return Promise.resolve(this._childrenCache);
+      } else {
+        console.log('updating collection cache.');
+        // TODO: Version cache requests.
+        return new Promise(resolve => {
+          this._dataService.find(
+            `${this._databaseName}.${this._collectionName}`,
+            { /* No filter */ },
+            {
+              // We fetch 1 more than the max documents to show to see if
+              // there are more documents we aren't showing.
+              limit: 1 + this._maxDocumentsToShow
+            },
+            (err: any, documents: any[]) => {
+              this._childrenCacheIsUpToDate = true;
 
-    // TODO: Only show when open.
+              if (err) {
+                this._childrenCache = [];
+                return resolve(this._childrenCache);
+              }
 
-    return new Promise(resolve => {
-      this._dataService.find(
-        `${this._databaseName}.${this._collectionName}`,
-        { /* No filter */ },
-        {
-          $limit: 10
-        },
-        (err: any, documents: any[]) => {
-          if (err) {
-            // TODO: Handle.
-            return resolve([]);
-          }
+              if (documents) {
+                this._childrenCache = documents.map(
+                  (document, index) => index === this._maxDocumentsToShow ?
+                    new ShowMoreDocumentsTreeItem(this.onShowMoreClicked) : new MongoDBDocumentTreeItem(document)
+                );
+              } else {
+                this._childrenCache = [];
+              }
 
-          // TODO: _id could be a different type.
-          return resolve(documents.map(document => new MongoDBDocumentTreeItem(document._id)));
-        }
-      );
-    });
+              return resolve(this._childrenCache);
+            }
+          );
+        });
+      }
+    }
+
+    return Promise.resolve([]);
+  }
+
+  onShowMoreClicked = () => {
+    console.log('Show more clicked.');
+    this._maxDocumentsToShow += defaultMaxDocumentsToShow;
+    this._childrenCacheIsUpToDate = false;
+    console.log('max documents', this._maxDocumentsToShow);
+  }
+
+  onDidCollapse = () => {
+    this.isExpanded = false;
+    this._childrenCacheIsUpToDate = false;
+    this._maxDocumentsToShow = defaultMaxDocumentsToShow;
+  }
+
+  onDidExpand = () => {
+    this._childrenCacheIsUpToDate = false;
+    this.isExpanded = true;
   }
 
   // iconPath = {
@@ -64,4 +111,20 @@ export default class MongoDBCollectionTreeItem extends vscode.TreeItem implement
   // };
 
   contextValue = 'dependency';
+}
+
+class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
+  // This is the identifier we use to identify this tree item when a tree item
+  // has been clicked. Activated from the explorer controller `onDidChangeSelection`.
+  public isShowMoreItem: boolean = true;
+  public onShowMoreClicked: () => void;
+
+  constructor(showMore: () => void) {
+    super(`Show more...`, vscode.TreeItemCollapsibleState.None);
+
+    // We assign the item an id so that when it is selected the selection
+    // resets (de-selects) when the documents are fetched and a new item is shown.
+    this.id = `show-more-${Math.random()}`;
+    this.onShowMoreClicked = showMore;
+  }
 }

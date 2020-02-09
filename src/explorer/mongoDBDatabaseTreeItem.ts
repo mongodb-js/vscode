@@ -1,29 +1,30 @@
 import * as vscode from 'vscode';
 
 import MongoDBCollectionTreeItem from './mongoDBCollectionTreeItem';
+import TreeItemParent from './treeItemParent';
 
-export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements vscode.TreeDataProvider<MongoDBDatabaseTreeItem> {
-  _databaseName: string;
-  _dataService: any;
-  _isOpen: boolean;
+export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<MongoDBDatabaseTreeItem> {
+  private _childrenCache: MongoDBCollectionTreeItem[] = [];
+  private _childrenCacheIsUpToDate: boolean = false;
+
+  private _databaseName: string;
+  private _dataService: any;
+
+  isExpanded: boolean;
 
   constructor(
     databaseName: string,
     dataService: any
   ) {
-    super(databaseName, vscode.TreeItemCollapsibleState.Expanded); // collapsibleState
+    super(databaseName, vscode.TreeItemCollapsibleState.Collapsed);
 
     this._databaseName = databaseName;
     this._dataService = dataService;
-    this._isOpen = true;
+    this.isExpanded = false;
   }
 
   get tooltip(): string {
-    return 'tooltip';
-  }
-
-  get description(): string {
-    return '';
+    return this._databaseName;
   }
 
   getTreeItem(element: MongoDBDatabaseTreeItem): MongoDBDatabaseTreeItem {
@@ -32,27 +33,46 @@ export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements 
 
   // TODO: Get a slightly stricter type than any.
   getChildren(): Thenable<any[]> {
-    console.log('Get children of database item, _dataService', this._dataService);
-    if (this._isOpen) {
-      return new Promise((resolve, reject) => {
-        console.log('about to list collections');
-        this._dataService.listCollections(this._databaseName, {}, (err: any, collections: string[]) => {
-          console.log('got collections', collections);
-          if (err) {
-            // TODO: Error here properly.
-            return resolve([]);
-          }
+    if (this.isExpanded) {
+      if (this._childrenCacheIsUpToDate) {
+        return Promise.resolve(this._childrenCache);
+      } else {
+        // TODO: Version cache requests.
+        return new Promise((resolve, reject) => {
+          this._dataService.listCollections(this._databaseName, {}, (err: any, collections: string[]) => {
+            this._childrenCacheIsUpToDate = true;
 
-          if (collections) {
-            return resolve(collections.map(({ name }: any) => new MongoDBCollectionTreeItem(name, this._databaseName, this._dataService)));
-          }
+            if (err) {
+              // TODO: Error here properly.
+              this._childrenCache = [];
+              return resolve(this._childrenCache);
+            }
 
-          return resolve([]);
+            if (collections) {
+              this._childrenCache = collections.map(
+                ({ name }: any) => new MongoDBCollectionTreeItem(name, this._databaseName, this._dataService)
+              );
+            } else {
+              this._childrenCache = [];
+            }
+
+            return resolve(this._childrenCache);
+          });
         });
-      });
+      }
     }
 
     return Promise.resolve([]);
+  }
+
+  onDidCollapse() {
+    this.isExpanded = false;
+    this._childrenCacheIsUpToDate = false;
+  }
+
+  onDidExpand() {
+    this._childrenCacheIsUpToDate = false;
+    this.isExpanded = true;
   }
 
   // iconPath = {

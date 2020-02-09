@@ -1,22 +1,25 @@
 import * as vscode from 'vscode';
 
 export default class MongoDBDocumentTreeItem extends vscode.TreeItem implements vscode.TreeDataProvider<MongoDBDocumentTreeItem> {
-  constructor(
-    documentId: string
-    // public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    // public readonly command?: vscode.Command
-  ) {
-    super(documentId, vscode.TreeItemCollapsibleState.None); // collapsibleState
+  private _documentId: string;
+  private _documentLabel: string;
 
-    // this._collectionName = collectionName
+  constructor(
+    document: any
+  ) {
+    super(JSON.stringify(document._id), vscode.TreeItemCollapsibleState.None);
+    // const documentLabel = JSON.stringify(document._id);
+
+    this._documentId = document._id;
+    this._documentLabel = JSON.stringify(document._id);
   }
 
   get tooltip(): string {
-    return 'tooltip';
+    return this._documentLabel;
   }
 
   get description(): string {
-    return 'description';
+    return '';
   }
 
   getTreeItem(element: MongoDBDocumentTreeItem): MongoDBDocumentTreeItem {
