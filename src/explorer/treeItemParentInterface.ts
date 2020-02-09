@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export default interface TreeItemParent extends vscode.TreeItem {
+export default interface TreeItemParentInterface extends vscode.TreeItem {
   isExpanded: boolean;
 
   onDidCollapse(): void;

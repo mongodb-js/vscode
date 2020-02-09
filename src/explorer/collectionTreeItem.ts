@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 
-import MongoDBDocumentTreeItem from './mongoDBDocumentTreeItem';
-import TreeItemParent from './treeItemParent';
+import DocumentTreeItem from './documentTreeItem';
+import TreeItemParent from './treeItemParentInterface';
 
 // We fetch 1 more than this in order to see if there are more to fetch.
 // Each time `show more` is clicked, the collection item increases the amount
 // of documents shown by this amount.
 const defaultMaxDocumentsToShow = 10;
 
-export default class MongoDBCollectionTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<MongoDBCollectionTreeItem> {
+export default class CollectionTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
   private _childrenCache: vscode.TreeItem[] = [];
   private _childrenCacheIsUpToDate: boolean = false;
   // We fetch 1 more than this in order to see if there are more to fetch.
@@ -40,7 +40,7 @@ export default class MongoDBCollectionTreeItem extends vscode.TreeItem implement
     return '';
   }
 
-  getTreeItem(element: MongoDBCollectionTreeItem): MongoDBCollectionTreeItem {
+  getTreeItem(element: CollectionTreeItem): CollectionTreeItem {
     return element;
   }
 
@@ -71,7 +71,7 @@ export default class MongoDBCollectionTreeItem extends vscode.TreeItem implement
               if (documents) {
                 this._childrenCache = documents.map(
                   (document, index) => index === this._maxDocumentsToShow ?
-                    new ShowMoreDocumentsTreeItem(this.onShowMoreClicked) : new MongoDBDocumentTreeItem(document)
+                    new ShowMoreDocumentsTreeItem(this.onShowMoreClicked) : new DocumentTreeItem(document)
                 );
               } else {
                 this._childrenCache = [];

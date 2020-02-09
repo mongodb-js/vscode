@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 
-import MongoDBDatabaseTreeItem from './mongoDBDatabaseTreeItem';
+import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
-import TreeItemParent from './treeItemParent';
+import TreeItemParent from './treeItemParentInterface';
 
-export default class MongoDBConnectionTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<MongoDBConnectionTreeItem> {
-  private _childrenCache: MongoDBDatabaseTreeItem[] = [];
+export default class ConnectionTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
+  private _childrenCache: DatabaseTreeItem[] = [];
   private _childrenCacheIsUpToDate: boolean = false;
   // private _dataService: any;
   private _connectionController: ConnectionController;
@@ -40,7 +40,7 @@ export default class MongoDBConnectionTreeItem extends vscode.TreeItem implement
     return this._connectionController.getActiveConnectionInstanceId() === this._connectionInstanceId ? 'connected' : '';
   }
 
-  getTreeItem(element: MongoDBConnectionTreeItem): MongoDBConnectionTreeItem {
+  getTreeItem(element: ConnectionTreeItem): ConnectionTreeItem {
     console.log('Get connection tree item');
     return element;
   }
@@ -55,17 +55,15 @@ export default class MongoDBConnectionTreeItem extends vscode.TreeItem implement
       } else {
         // TODO: Version cache requests.
         return new Promise(async (resolve, reject) => {
-          const dataService = this._connectionController.getActiveConnection();
           // If we aren't the active connection, we reconnect.
           if (this._connectionController.getActiveConnectionInstanceId() !== this._connectionInstanceId) {
-            if (this._connectionController.getActiveConnectionInstanceId() !== this._connectionInstanceId) {
-              try {
-                await this._connectionController.connectWithInstanceId(this._connectionInstanceId);
-              } catch (err) {
-                reject(err);
-              }
+            try {
+              await this._connectionController.connectWithInstanceId(this._connectionInstanceId);
+            } catch (err) {
+              return reject(err);
             }
           }
+          const dataService = this._connectionController.getActiveConnection();
           dataService.listDatabases((err: any, databases: string[]) => {
             this._childrenCacheIsUpToDate = true;
 
@@ -78,7 +76,7 @@ export default class MongoDBConnectionTreeItem extends vscode.TreeItem implement
 
             if (databases) {
               this._childrenCache = databases.map(
-                ({ name }: any) => new MongoDBDatabaseTreeItem(name, dataService)
+                ({ name }: any) => new DatabaseTreeItem(name, dataService)
               );
             } else {
               this._childrenCache = [];

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 
-import MongoDBCollectionTreeItem from './mongoDBCollectionTreeItem';
-import TreeItemParent from './treeItemParent';
+import CollectionTreeItem from './collectionTreeItem';
+import TreeItemParent from './treeItemParentInterface';
 
-export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<MongoDBDatabaseTreeItem> {
-  private _childrenCache: MongoDBCollectionTreeItem[] = [];
+export default class DatabaseTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
+  private _childrenCache: CollectionTreeItem[] = [];
   private _childrenCacheIsUpToDate: boolean = false;
 
   private _databaseName: string;
@@ -27,7 +27,7 @@ export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements 
     return this._databaseName;
   }
 
-  getTreeItem(element: MongoDBDatabaseTreeItem): MongoDBDatabaseTreeItem {
+  getTreeItem(element: DatabaseTreeItem): DatabaseTreeItem {
     return element;
   }
 
@@ -50,7 +50,7 @@ export default class MongoDBDatabaseTreeItem extends vscode.TreeItem implements 
 
             if (collections) {
               this._childrenCache = collections.map(
-                ({ name }: any) => new MongoDBCollectionTreeItem(name, this._databaseName, this._dataService)
+                ({ name }: any) => new CollectionTreeItem(name, this._databaseName, this._dataService)
               );
             } else {
               this._childrenCache = [];

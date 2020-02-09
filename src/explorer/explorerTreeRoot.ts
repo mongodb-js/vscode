@@ -2,10 +2,10 @@
 import * as vscode from 'vscode';
 
 import ConnectionController, { DataServiceEventTypes } from '../connectionController';
-import MongoDBConnectionTreeItem from './mongoDBConnectionTreeItem';
-import MongoDBDatabaseTreeItem from './mongoDBDatabaseTreeItem';
-import MongoDBCollectionTreeItem from './mongoDBCollectionTreeItem';
-import TreeItemParent from './treeItemParent';
+import ConnectionTreeItem from './connectionTreeItem';
+import DatabaseTreeItem from './databaseTreeItem';
+import CollectionTreeItem from './collectionTreeItem';
+import TreeItemParent from './treeItemParentInterface';
 
 export default class ExplorerTreeRootController implements vscode.TreeDataProvider<vscode.TreeItem> {
   _rootTreeItem: ExplorerRootTreeItem;
@@ -41,7 +41,7 @@ export default class ExplorerTreeRootController implements vscode.TreeDataProvid
     return element;
   }
 
-  getChildren(element?: ExplorerRootTreeItem | MongoDBConnectionTreeItem | MongoDBDatabaseTreeItem | MongoDBCollectionTreeItem): Thenable<ExplorerRootTreeItem[] | MongoDBConnectionTreeItem[] | MongoDBDatabaseTreeItem[] | MongoDBCollectionTreeItem[]> {
+  getChildren(element?: ExplorerRootTreeItem | ConnectionTreeItem | DatabaseTreeItem | CollectionTreeItem): Thenable<ExplorerRootTreeItem[] | ConnectionTreeItem[] | DatabaseTreeItem[] | CollectionTreeItem[]> {
     if (!element) {
       return Promise.resolve([
         this._rootTreeItem
@@ -53,11 +53,11 @@ export default class ExplorerTreeRootController implements vscode.TreeDataProvid
 }
 
 const rootLabel = 'Connections';
-const rootTooltip = 'Your MongoDB connections';
+const rootTooltip = 'Your  connections';
 
 export class ExplorerRootTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
-  private _connectionTreeItems: MongoDBConnectionTreeItem[] = [];
+  private _connectionTreeItems: ConnectionTreeItem[] = [];
 
   isExpanded: boolean;
 
@@ -82,14 +82,14 @@ export class ExplorerRootTreeItem extends vscode.TreeItem implements TreeItemPar
     return element;
   }
 
-  getChildren(): Thenable<MongoDBConnectionTreeItem[]> {
+  getChildren(): Thenable<ConnectionTreeItem[]> {
     return Promise.resolve(this._connectionTreeItems);
   }
 
   loadConnections() {
     const connectionIds = this._connectionController.getConnectionInstanceIds();
     this._connectionTreeItems = connectionIds.map(
-      connectionId => new MongoDBConnectionTreeItem(
+      connectionId => new ConnectionTreeItem(
         connectionId,
         connectionId === this._connectionController.getActiveConnectionInstanceId(),
         this._connectionController
