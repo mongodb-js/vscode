@@ -28,7 +28,6 @@ export default class ExplorerTreeRootController implements vscode.TreeDataProvid
   readonly onDidChangeTreeData: vscode.Event<any>;
 
   public refresh() {
-    console.log('Refresh explorer tree called.');
     this._rootTreeItem.loadConnections();
     this._onDidChangeTreeData.fire();
   }
@@ -53,7 +52,7 @@ export default class ExplorerTreeRootController implements vscode.TreeDataProvid
 }
 
 const rootLabel = 'Connections';
-const rootTooltip = 'Your  connections';
+const rootTooltip = 'Your MongoDB connections';
 
 export class ExplorerRootTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
@@ -72,10 +71,6 @@ export class ExplorerRootTreeItem extends vscode.TreeItem implements TreeItemPar
 
   get tooltip(): string {
     return rootTooltip;
-  }
-
-  get description(): string {
-    return '';
   }
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
