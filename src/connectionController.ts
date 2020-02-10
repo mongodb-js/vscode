@@ -38,6 +38,7 @@ export default class ConnectionController {
   private _currentConnectionInstanceId: string | null = null;
 
   private _connecting: boolean = false;
+  private _connectingInstanceId: string = '';
   private _disconnecting: boolean = false;
 
   private _statusView: StatusView;
@@ -124,7 +125,9 @@ export default class ConnectionController {
   }
 
   public async connect(connectionConfig: any): Promise<boolean> {
-    log.info('Connect called');
+    log.info('Connect called to connect to instance:', connectionConfig.getAttributes({
+      derived: true
+    }).instanceId);
 
     if (this._connecting) {
       return Promise.reject('Unable to connect: already connecting.');
@@ -136,7 +139,12 @@ export default class ConnectionController {
       await this.disconnect();
     }
 
+    const { instanceId } = connectionConfig.getAttributes({ derived: true });
+
     this._connecting = true;
+    this._connectingInstanceId = instanceId;
+
+    this.fireConnectionEvent(DataServiceEventTypes.connectionsDidChange);
 
     this._statusView.showMessage('Connecting to MongoDB...');
 
@@ -148,13 +156,12 @@ export default class ConnectionController {
         if (err) {
           this._connecting = false;
           log.info('Failed to connect');
+          this.fireConnectionEvent(DataServiceEventTypes.connectionsDidChange);
           return reject(`Failed to connect: ${err}`);
         }
 
         log.info('Successfully connected');
         vscode.window.showInformationMessage('MongoDB connection successful.');
-
-        const { instanceId } = connectionConfig.getAttributes({ derived: true });
 
         if (!this._connectionConfigs[instanceId]) {
           // Add new configurations to our saved connection configurations.
@@ -180,7 +187,7 @@ export default class ConnectionController {
   }
 
   public disconnect(): Promise<boolean> {
-    log.info('Disconnect called');
+    log.info('Disconnect called, currently connected to', this._currentConnectionInstanceId);
 
     if (this._disconnecting) {
       // TODO: The desired UX here may be for the connection to be interrupted.
@@ -281,6 +288,18 @@ export default class ConnectionController {
     this.eventListeners[connectionType].map(eventListener => eventListener());
   }
 
+  public isConnnecting() {
+    return this._connecting;
+  }
+
+  public isDisconnecting() {
+    return this._disconnecting;
+  }
+
+  public getConnectingInstanceId() {
+    return this._connectingInstanceId;
+  }
+
   // Exposed for testing.
   public getConnections() {
     return this._connectionConfigs;
@@ -288,14 +307,8 @@ export default class ConnectionController {
   public getActiveConnection() {
     return this._currentConnection;
   }
-  public isConnnecting() {
-    return this._connecting;
-  }
   public setConnnecting(connecting: boolean) {
     this._disconnecting = connecting;
-  }
-  public isDisconnecting() {
-    return this._disconnecting;
   }
   public setDisconnecting(disconnecting: boolean) {
     this._disconnecting = disconnecting;

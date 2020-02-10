@@ -31,7 +31,6 @@ export default class DatabaseTreeItem extends vscode.TreeItem implements TreeIte
     return element;
   }
 
-  // TODO: Get a slightly stricter type than any.
   getChildren(): Thenable<any[]> {
     if (this.isExpanded) {
       if (this._childrenCacheIsUpToDate) {
@@ -39,13 +38,11 @@ export default class DatabaseTreeItem extends vscode.TreeItem implements TreeIte
       } else {
         return new Promise((resolve, reject) => {
           this._dataService.listCollections(this._databaseName, {}, (err: any, collections: string[]) => {
-            this._childrenCacheIsUpToDate = true;
-
             if (err) {
-              // TODO: More in depth error.
-              this._childrenCache = [];
-              return resolve(this._childrenCache);
+              return reject(`Unable to list collections: ${err}`);
             }
+
+            this._childrenCacheIsUpToDate = true;
 
             if (collections) {
               this._childrenCache = collections.map(

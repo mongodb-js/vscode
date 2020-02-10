@@ -45,10 +45,11 @@ export default class CollectionTreeItem extends vscode.TreeItem implements TreeI
       if (this._childrenCacheIsUpToDate) {
         return Promise.resolve(this._childrenCache);
       } else {
-        console.log('updating collection cache.');
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
+          const namespace = `${this._databaseName}.${this._collectionName}`;
+
           this._dataService.find(
-            `${this._databaseName}.${this._collectionName}`,
+            namespace,
             { /* No filter */ },
             {
               // We fetch 1 more than the max documents to show to see if
@@ -56,18 +57,16 @@ export default class CollectionTreeItem extends vscode.TreeItem implements TreeI
               limit: 1 + this._maxDocumentsToShow
             },
             (err: any, documents: any[]) => {
-              this._childrenCacheIsUpToDate = true;
-
               if (err) {
-                // TODO: More indepth error.
-                this._childrenCache = [];
-                return resolve(this._childrenCache);
+                return reject(`Unable to list documents: ${err}`);
               }
+
+              this._childrenCacheIsUpToDate = true;
 
               if (documents) {
                 this._childrenCache = documents.map(
                   (document, index) => index === this._maxDocumentsToShow ?
-                    new ShowMoreDocumentsTreeItem(this.onShowMoreClicked) : new DocumentTreeItem(document)
+                    new ShowMoreDocumentsTreeItem(namespace, this.onShowMoreClicked) : new DocumentTreeItem(document)
                 );
               } else {
                 this._childrenCache = [];
@@ -106,12 +105,12 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
   public isShowMoreItem: boolean = true;
   public onShowMoreClicked: () => void;
 
-  constructor(showMore: () => void) {
+  constructor(namespace: string, showMore: () => void) {
     super(`Show more...`, vscode.TreeItemCollapsibleState.None);
 
     // We assign the item an id so that when it is selected the selection
     // resets (de-selects) when the documents are fetched and a new item is shown.
-    this.id = `show-more-${Math.random()}`;
+    this.id = `show-more-${namespace}`;
     this.onShowMoreClicked = showMore;
   }
 }

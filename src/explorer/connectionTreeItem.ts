@@ -37,14 +37,21 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
   }
 
   get description(): string {
-    return this._connectionController.getActiveConnectionInstanceId() === this._connectionInstanceId ? 'connected' : '';
+    if (this._connectionController.getActiveConnectionInstanceId() === this._connectionInstanceId) {
+      if (this._connectionController.isDisconnecting()) {
+        return 'disconnecting...';
+      } else {
+        return 'connected';
+      }
+    }
+
+    return '';
   }
 
   getTreeItem(element: ConnectionTreeItem): ConnectionTreeItem {
     return element;
   }
 
-  // TODO: Get a slightly stricter type than any.
   getChildren(): Thenable<any[]> {
     if (this.isExpanded) {
       if (this._childrenCacheIsUpToDate) {
@@ -56,19 +63,20 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
             try {
               await this._connectionController.connectWithInstanceId(this._connectionInstanceId);
             } catch (err) {
+              console.log('here!');
+              this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+              console.log('here again');
               return reject(err);
             }
           }
 
           const dataService = this._connectionController.getActiveConnection();
           dataService.listDatabases((err: any, databases: string[]) => {
-            this._childrenCacheIsUpToDate = true;
-
             if (err) {
-              // TODO: More descriptive error.
-              this._childrenCache = [];
-              return resolve([]);
+              return reject(`Unable to list databases: ${err}`);
             }
+
+            this._childrenCacheIsUpToDate = true;
 
             if (databases) {
               this._childrenCache = databases.map(
