@@ -5,8 +5,8 @@ import {
   after
 } from 'mocha';
 
-import MDBExtensionController from '../../mdbExtensionController';
 import ConnectionController from '../../connectionController';
+import MDBExtensionController from '../../mdbExtensionController';
 
 import { StatusView } from '../../views';
 

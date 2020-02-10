@@ -1,59 +1,46 @@
 import * as vscode from 'vscode';
 
-import ConnectionController from '../connectionController';
-import ExplorerDataProvider from './explorerTreeRoot';
+import ConnectionController from '../connectionController'
+import ExplorerTreeController from './explorerTreeController';
 
 import { createLogger } from '../logging';
 
 const log = createLogger('explorer controller');
 
-export default class ConnectionExplorerController {
-  // private _connectionTreeViewer?: vscode.TreeView<vscode.TreeItem>;
-  private _treeDataProvider?: ExplorerDataProvider;
+export default class ExplorerController {
+  private _treeController?: ExplorerTreeController;
+  private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
-  public activate(connectionController: ConnectionController) {
-    this._treeDataProvider = new ExplorerDataProvider(connectionController);
+  activate(connectionController: ConnectionController) {
+    log.info('activate explorer controller');
 
-    // TODO: teardown?
-    const explorerTreeView = vscode.window.createTreeView('mongoDB', {
-      treeDataProvider: this._treeDataProvider
+    this._treeController = new ExplorerTreeController(connectionController);
+
+    this._treeView = vscode.window.createTreeView('mongoDB', {
+      treeDataProvider: this._treeController
     });
 
-    explorerTreeView.onDidCollapseElement((event: any) => {
-      log.info('Tree item was collapsed:', event.element.label);
-      event.element.onDidCollapse();
-
-      if (this._treeDataProvider) {
-        this._treeDataProvider.onTreeItemUpdate();
-      }
-    });
-
-    explorerTreeView.onDidExpandElement(async (event: any) => {
-      log.info('Tree item was expanded:', event.element.label);
-      await event.element.onDidExpand();
-
-      if (this._treeDataProvider) {
-        this._treeDataProvider.onTreeItemUpdate();
-      }
-    });
-
-    explorerTreeView.onDidChangeSelection((event: any) => {
-      if (this._treeDataProvider && event.selection && event.selection.length === 1) {
-        if (event.selection[0].isShowMoreItem) {
-          event.selection[0].onShowMoreClicked();
-          this._treeDataProvider.onTreeItemUpdate();
-        }
-      }
-    });
+    this._treeController.activateTreeViewEventHandlers(this._treeView);
   }
 
-  public refresh(): Promise<boolean> {
-    if (!this._treeDataProvider) {
-      return Promise.reject('MongoDB service has not yet activated.');
+  deactivate() {
+    if (this._treeView) {
+      this._treeView.dispose();
     }
+  }
 
-    this._treeDataProvider.refresh();
+  refresh() {
+    if (this._treeController) {
+      this._treeController.refresh();
+    }
+  }
 
-    return Promise.resolve(true);
+  // Exposed for testing.
+  public getTreeView(): vscode.TreeView<vscode.TreeItem> | undefined {
+    return this._treeView;
+  }
+  public getTreeController(): ExplorerTreeController | undefined {
+    return this._treeController;
   }
 }
+

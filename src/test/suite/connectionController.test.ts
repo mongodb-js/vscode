@@ -178,7 +178,8 @@ suite('Connection Controller Test Suite', () => {
     });
   });
 
-  test('"connect()" then "disconnect()" should fire the connectionsDidChange event 2x', function (done) {
+  const expectedTimesToFire = 3;
+  test(`"connect()" then "disconnect()" should fire the connectionsDidChange event ${expectedTimesToFire} times`, function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     let connectionEventFiredCount = 0;
@@ -190,7 +191,7 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(() => {
       testConnectionController.disconnect().then(() => {
         setTimeout(function () {
-          assert(connectionEventFiredCount === 2, `Expected connection event to be fired twice, got ${connectionEventFiredCount}.`);
+          assert(connectionEventFiredCount === expectedTimesToFire, `Expected connection event to be fired ${expectedTimesToFire} times, got ${connectionEventFiredCount}.`);
           done();
         }, 150);
       });

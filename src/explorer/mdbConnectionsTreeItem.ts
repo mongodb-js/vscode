@@ -1,60 +1,13 @@
-
 import * as vscode from 'vscode';
 
-import ConnectionController, { DataServiceEventTypes } from '../connectionController';
+import ConnectionController from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
-import DatabaseTreeItem from './databaseTreeItem';
-import CollectionTreeItem from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
-
-export default class ExplorerTreeRootController implements vscode.TreeDataProvider<vscode.TreeItem> {
-  _rootTreeItem: ExplorerRootTreeItem;
-
-  constructor(connectionController: ConnectionController) {
-    this._rootTreeItem = new ExplorerRootTreeItem(connectionController);
-
-    this._onDidChangeTreeData = new vscode.EventEmitter<any>();
-    this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-
-    // Subscribe to changes in the connections.
-    // TODO: Make sure we cleanup.
-    connectionController.addConnectionEventListener(
-      DataServiceEventTypes.connectionsDidChange,
-      () => this.refresh()
-    );
-  }
-
-  private _onDidChangeTreeData: vscode.EventEmitter<any>;
-  readonly onDidChangeTreeData: vscode.Event<any>;
-
-  public refresh() {
-    this._rootTreeItem.loadConnections();
-    this._onDidChangeTreeData.fire();
-  }
-
-  public onTreeItemUpdate() {
-    this._onDidChangeTreeData.fire();
-  }
-
-  getTreeItem(element: ExplorerRootTreeItem): vscode.TreeItem {
-    return element;
-  }
-
-  getChildren(element?: ExplorerRootTreeItem | ConnectionTreeItem | DatabaseTreeItem | CollectionTreeItem): Thenable<ExplorerRootTreeItem[] | ConnectionTreeItem[] | DatabaseTreeItem[] | CollectionTreeItem[]> {
-    if (!element) {
-      return Promise.resolve([
-        this._rootTreeItem
-      ]);
-    } else {
-      return element.getChildren();
-    }
-  }
-}
 
 const rootLabel = 'Connections';
 const rootTooltip = 'Your MongoDB connections';
 
-export class ExplorerRootTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
+export default class ExplorerRootTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _connectionTreeItems: vscode.TreeItem[] = [];
 

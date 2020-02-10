@@ -61,12 +61,13 @@ export default class MDBExtensionController implements vscode.Disposable {
     mongoDBShell.show();
   }
 
-  dispose(): void {
+  dispose() {
     this.deactivate();
   }
 
-  public deactivate(): void {
+  public deactivate() {
     // TODO: Cancel active queries/playgrounds.
     this._connectionController.disconnect();
+    this._explorerController.deactivate();
   }
 }
