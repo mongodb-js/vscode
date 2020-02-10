@@ -202,5 +202,8 @@ suite('Explorer Controller Test Suite', () => {
    * - Expanding a collection shows that collection.
    * - It displays a show more when there are more documents to show.
    * - Selecting the show more increases the amount of documents the collection fetches.
+   *
+   * - I think there's a bug when connections go inactive it doesn't
+   * - reactive the connection for a query / inspect on tree item.
    */
 });
