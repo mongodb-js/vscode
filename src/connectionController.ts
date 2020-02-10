@@ -308,7 +308,10 @@ export default class ConnectionController {
     return this._currentConnection;
   }
   public setConnnecting(connecting: boolean) {
-    this._disconnecting = connecting;
+    this._connecting = connecting;
+  }
+  public setConnnectingInstanceId(connectingInstanceId: string) {
+    this._connectingInstanceId = connectingInstanceId;
   }
   public setDisconnecting(disconnecting: boolean) {
     this._disconnecting = disconnecting;

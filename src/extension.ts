@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   mdbExtension.activate(context);
 
-  console.log('Congratulations, your extension "mongodb" is now active!');
+  log.info('extension activated');
 }
 
 // Called when our extension is deactivated.

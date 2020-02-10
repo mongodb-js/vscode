@@ -44,7 +44,7 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem implements Tre
       )
     );
 
-    if (this._connectionController.isConnnecting() && this._connectionController.getConnectionInstanceIds()) {
+    if (this._connectionController.isConnnecting() && this._connectionController.getConnectionInstanceIds().indexOf(this._connectionController.getConnectingInstanceId()) === -1) {
       const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
         this._connectionController.getConnectingInstanceId()
       );

@@ -102,4 +102,9 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
   }
+
+  // Exposed for testing.
+  public getIsExpanded() {
+    return this.isExpanded;
+  }
 }
