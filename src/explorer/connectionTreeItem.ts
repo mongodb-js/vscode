@@ -63,9 +63,6 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
             try {
               await this._connectionController.connectWithInstanceId(this._connectionInstanceId);
             } catch (err) {
-              console.log('here!');
-              this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-              console.log('here again');
               return reject(err);
             }
           }

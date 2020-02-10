@@ -106,7 +106,7 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
   public onShowMoreClicked: () => void;
 
   constructor(namespace: string, showMore: () => void) {
-    super(`Show more...`, vscode.TreeItemCollapsibleState.None);
+    super('Show more...', vscode.TreeItemCollapsibleState.None);
 
     // We assign the item an id so that when it is selected the selection
     // resets (de-selects) when the documents are fetched and a new item is shown.
