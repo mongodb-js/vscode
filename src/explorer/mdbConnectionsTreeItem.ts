@@ -51,7 +51,7 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem implements Tre
 
       notYetEstablishConnectionTreeItem.description = 'connecting...';
 
-      // When we're connecting to a new connection we add temporary node.
+      // When we're connecting to a new connection we add simple node showing the connecting status.
       this._connectionTreeItems.push(notYetEstablishConnectionTreeItem);
     }
   }

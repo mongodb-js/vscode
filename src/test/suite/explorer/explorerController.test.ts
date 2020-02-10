@@ -49,7 +49,7 @@ suite('Explorer Controller Test Suite', () => {
       const treeController = testExplorerController.getTreeController();
 
       if (!treeController) {
-        // Should fail.
+        // Shouldn't get here so this should fail.
         assert(!!treeController, 'Tree controller should not be undefined');
         return;
       }
@@ -90,7 +90,6 @@ suite('Explorer Controller Test Suite', () => {
     const treeController = testExplorerController.getTreeController();
 
     if (!treeController) {
-      // Should fail.
       assert(!!treeController, 'Tree controller should not be undefined');
       return;
     }
@@ -130,7 +129,6 @@ suite('Explorer Controller Test Suite', () => {
     const treeController = testExplorerController.getTreeController();
 
     if (!treeController) {
-      // Should fail.
       assert(!!treeController, 'Tree controller should not be undefined');
       return;
     }
@@ -149,7 +147,7 @@ suite('Explorer Controller Test Suite', () => {
         `Expected active connection to be 'localhost:27017' found ${instanceId}`
       );
 
-      // We let the connection run
+      // This will timeout in 1s, which is enough time for us to just check.
       testConnectionController.addNewConnectionAndConnect(testDatabaseURI_2_WithTimeout);
 
       treeController.getChildren().then(treeControllerChildren => {
@@ -167,12 +165,42 @@ suite('Explorer Controller Test Suite', () => {
     });
   });
 
+  test('shows the databases of connected connection in tree', function (done) {
+    const testConnectionController = new ConnectionController(new StatusView());
+
+    const testExplorerController = new ExplorerController();
+
+    testExplorerController.activate(testConnectionController);
+
+    const treeController = testExplorerController.getTreeController();
+
+    if (!treeController) {
+      assert(!!treeController, 'Tree controller should not be undefined');
+      return;
+    }
+
+    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(() => {
+      treeController.getChildren().then(treeControllerChildren => {
+        treeControllerChildren[0].getChildren().then(connectionsItems => {
+          // Expand the connection.
+          treeControllerChildren[0].onDidExpand();
+
+          connectionsItems[0].getChildren().then((databaseItems: any) => {
+            assert(databaseItems.length === 3, `Expected there be 3 database tree items, found ${databaseItems.length}`);
+            assert(databaseItems[0].label === 'admin', `First database tree item should have label "admin" found ${connectionsItems[0].label}.`);
+
+            testExplorerController.deactivate();
+          }).then(() => done(), done);
+        });
+      });
+    });
+  });
+
   /**
    * Things we want to test:
-   * - Connecting to a database adds that connection to the tree.
+   * - Expanding a database shows collections.
    * - Expanding a collection shows that collection.
-   * - Expanding another connection disconnects the current connection and connects to that one.
    * - It displays a show more when there are more documents to show.
-   * - Selecting the show more increases the amount of documents the collection fetchs.
+   * - Selecting the show more increases the amount of documents the collection fetches.
    */
 });
