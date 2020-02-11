@@ -307,6 +307,9 @@ export default class ConnectionController {
   public getActiveConnection() {
     return this._currentConnection;
   }
+  public setActiveConnection(newActiveConnection: any) {
+    this._currentConnection = newActiveConnection;
+  }
   public setConnnecting(connecting: boolean) {
     this._connecting = connecting;
   }
