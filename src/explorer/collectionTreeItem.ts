@@ -66,7 +66,8 @@ export default class CollectionTreeItem extends vscode.TreeItem implements TreeI
               if (documents) {
                 this._childrenCache = documents.map(
                   (document, index) => index === this._maxDocumentsToShow ?
-                    new ShowMoreDocumentsTreeItem(namespace, this.onShowMoreClicked) : new DocumentTreeItem(document)
+                    new ShowMoreDocumentsTreeItem(namespace, this.onShowMoreClicked, this._maxDocumentsToShow)
+                    : new DocumentTreeItem(document)
                 );
               } else {
                 this._childrenCache = [];
@@ -110,12 +111,12 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
   public isShowMoreItem: boolean = true;
   public onShowMoreClicked: () => void;
 
-  constructor(namespace: string, showMore: () => void) {
+  constructor(namespace: string, showMore: () => void, documentsShown: number) {
     super('Show more...', vscode.TreeItemCollapsibleState.None);
 
-    // We assign the item an id so that when it is selected the selection
+    // We assign the item a unique id so that when it is selected the selection
     // resets (de-selects) when the documents are fetched and a new item is shown.
-    this.id = `show-more-${namespace}`;
+    this.id = `show-more-${namespace}-${documentsShown}`;
     this.onShowMoreClicked = showMore;
   }
 }

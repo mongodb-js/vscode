@@ -24,6 +24,10 @@ export default class ExplorerController {
   }
 
   deactivate() {
+    if (this._treeController) {
+      this._treeController.removeListeners();
+    }
+
     if (this._treeView) {
       this._treeView.dispose();
     }

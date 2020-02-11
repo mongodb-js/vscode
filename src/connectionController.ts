@@ -280,6 +280,10 @@ export default class ConnectionController {
     this.eventEmitter.addListener(eventType, listener);
   }
 
+  public removeEventListener(eventType: DataServiceEventTypes, listener: () => void) {
+    this.eventEmitter.removeListener(eventType, listener);
+  }
+
   public isConnnecting() {
     return this._connecting;
   }

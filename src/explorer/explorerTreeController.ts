@@ -12,6 +12,7 @@ import { createLogger } from '../logging';
 const log = createLogger('explorer controller');
 
 export default class ExplorerTreeController implements vscode.TreeDataProvider<vscode.TreeItem> {
+  private _connectionController: ConnectionController;
   private _mdbConnectionsTreeItem: MDBConnectionsTreeItem;
 
   constructor(connectionController: ConnectionController) {
@@ -20,10 +21,18 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
     this._onDidChangeTreeData = new vscode.EventEmitter<any>();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
 
+    this._connectionController = connectionController;
     // Subscribe to changes in the connections.
-    connectionController.addEventListener(
+    this._connectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      () => this.refresh()
+      this.refresh
+    );
+  }
+
+  removeListeners() {
+    this._connectionController.removeEventListener(
+      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      this.refresh
     );
   }
 
@@ -55,7 +64,7 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
   private _onDidChangeTreeData: vscode.EventEmitter<any>;
   readonly onDidChangeTreeData: vscode.Event<any>;
 
-  public refresh() {
+  public refresh = () => {
     this._mdbConnectionsTreeItem.loadConnections();
     this._onDidChangeTreeData.fire();
   }
