@@ -1,10 +1,10 @@
 const Connection = require('mongodb-connection-model');
 const DataService = require('mongodb-data-service');
-const events = require('events');
 import * as vscode from 'vscode';
 
 import { createLogger } from './logging';
 import { StatusView } from './views';
+import { EventEmitter } from 'events';
 
 const log = createLogger('connection controller');
 
@@ -25,7 +25,7 @@ function getConnectWebviewContent() {
 }
 
 export enum DataServiceEventTypes {
-  connectionsDidChange
+  CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE'
 }
 
 export default class ConnectionController {
@@ -45,11 +45,7 @@ export default class ConnectionController {
 
   // Parts of the extension that respond to changes in the connections.
   // This map stores the functions which are listening.
-  public eventListeners: {
-    [key in DataServiceEventTypes]: (() => void)[]
-  } = {
-      [DataServiceEventTypes.connectionsDidChange]: []
-    };
+  private eventEmitter: EventEmitter = new EventEmitter();
 
   constructor(_statusView: StatusView) {
     this._statusView = _statusView;
@@ -144,7 +140,7 @@ export default class ConnectionController {
     this._connecting = true;
     this._connectingInstanceId = instanceId;
 
-    this.fireConnectionEvent(DataServiceEventTypes.connectionsDidChange);
+    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
     this._statusView.showMessage('Connecting to MongoDB...');
 
@@ -156,7 +152,7 @@ export default class ConnectionController {
         if (err) {
           this._connecting = false;
           log.info('Failed to connect');
-          this.fireConnectionEvent(DataServiceEventTypes.connectionsDidChange);
+          this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
           return reject(`Failed to connect: ${err}`);
         }
 
@@ -171,7 +167,7 @@ export default class ConnectionController {
         this._currentConnection = newConnection;
         this._connecting = false;
 
-        this.fireConnectionEvent(DataServiceEventTypes.connectionsDidChange);
+        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
         resolve(true);
       });
@@ -217,7 +213,7 @@ export default class ConnectionController {
         this._disconnecting = false;
         this._statusView.hideMessage();
 
-        this.fireConnectionEvent(DataServiceEventTypes.connectionsDidChange);
+        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
         return resolve(true);
       });
@@ -280,12 +276,8 @@ export default class ConnectionController {
     return this._currentConnectionInstanceId;
   }
 
-  public addConnectionEventListener(connectionType: DataServiceEventTypes, listener: () => void) {
-    this.eventListeners[connectionType].push(listener);
-  }
-
-  public fireConnectionEvent(connectionType: DataServiceEventTypes) {
-    this.eventListeners[connectionType].map(eventListener => eventListener());
+  public addEventListener(eventType: DataServiceEventTypes, listener: () => void) {
+    this.eventEmitter.addListener(eventType, listener);
   }
 
   public isConnnecting() {

@@ -21,8 +21,8 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     // Subscribe to changes in the connections.
-    connectionController.addConnectionEventListener(
-      DataServiceEventTypes.connectionsDidChange,
+    connectionController.addEventListener(
+      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => this.refresh()
     );
   }

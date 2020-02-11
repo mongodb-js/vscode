@@ -161,12 +161,12 @@ suite('Connection Controller Test Suite', () => {
     }).then(() => done(), done);
   });
 
-  test('"connect()" should fire a connectionsDidChange event', function (done) {
+  test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     let didFireConnectionEvent = false;
 
-    testConnectionController.addConnectionEventListener(DataServiceEventTypes.connectionsDidChange, () => {
+    testConnectionController.addEventListener(DataServiceEventTypes.CONNECTIONS_DID_CHANGE, () => {
       didFireConnectionEvent = true;
     });
 
@@ -179,12 +179,12 @@ suite('Connection Controller Test Suite', () => {
   });
 
   const expectedTimesToFire = 3;
-  test(`"connect()" then "disconnect()" should fire the connectionsDidChange event ${expectedTimesToFire} times`, function (done) {
+  test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     let connectionEventFiredCount = 0;
 
-    testConnectionController.addConnectionEventListener(DataServiceEventTypes.connectionsDidChange, () => {
+    testConnectionController.addEventListener(DataServiceEventTypes.CONNECTIONS_DID_CHANGE, () => {
       connectionEventFiredCount++;
     });
 
