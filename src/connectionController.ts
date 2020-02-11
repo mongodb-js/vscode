@@ -4,8 +4,9 @@ import * as vscode from 'vscode';
 
 import { createLogger } from './logging';
 import { StatusView } from './views';
+import { EventEmitter } from 'events';
 
-const log = createLogger('commands');
+const log = createLogger('connection controller');
 
 function getConnectWebviewContent() {
   return `<!DOCTYPE html>
@@ -23,7 +24,11 @@ function getConnectWebviewContent() {
   </html>`;
 }
 
-export default class ConnectionManager {
+export enum DataServiceEventTypes {
+  CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE'
+}
+
+export default class ConnectionController {
   // This is a map of connection instance ids to their connection model.
   private _connectionConfigs: {
     [key: string]: any
@@ -33,9 +38,13 @@ export default class ConnectionManager {
   private _currentConnectionInstanceId: string | null = null;
 
   private _connecting: boolean = false;
+  private _connectingInstanceId: string = '';
   private _disconnecting: boolean = false;
 
   private _statusView: StatusView;
+
+  // Used by other parts of the extension that respond to changes in the connections.
+  private eventEmitter: EventEmitter = new EventEmitter();
 
   constructor(_statusView: StatusView) {
     this._statusView = _statusView;
@@ -111,7 +120,9 @@ export default class ConnectionManager {
   }
 
   public async connect(connectionConfig: any): Promise<boolean> {
-    log.info('Connect called');
+    log.info('Connect called to connect to instance:', connectionConfig.getAttributes({
+      derived: true
+    }).instanceId);
 
     if (this._connecting) {
       return Promise.reject('Unable to connect: already connecting.');
@@ -123,7 +134,12 @@ export default class ConnectionManager {
       await this.disconnect();
     }
 
+    const { instanceId } = connectionConfig.getAttributes({ derived: true });
+
     this._connecting = true;
+    this._connectingInstanceId = instanceId;
+
+    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
     this._statusView.showMessage('Connecting to MongoDB...');
 
@@ -135,13 +151,12 @@ export default class ConnectionManager {
         if (err) {
           this._connecting = false;
           log.info('Failed to connect');
+          this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
           return reject(`Failed to connect: ${err}`);
         }
 
         log.info('Successfully connected');
         vscode.window.showInformationMessage('MongoDB connection successful.');
-
-        const { instanceId } = connectionConfig.getAttributes({ derived: true });
 
         if (!this._connectionConfigs[instanceId]) {
           // Add new configurations to our saved connection configurations.
@@ -151,13 +166,23 @@ export default class ConnectionManager {
         this._currentConnection = newConnection;
         this._connecting = false;
 
+        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+
         resolve(true);
       });
     });
   }
 
+  public async connectWithInstanceId(connectionId: string): Promise<boolean> {
+    if (this._connectionConfigs[connectionId]) {
+      return this.connect(this._connectionConfigs[connectionId]);
+    } else {
+      return Promise.reject('Connection not found.');
+    }
+  }
+
   public disconnect(): Promise<boolean> {
-    log.info('Disconnect called');
+    log.info('Disconnect called, currently connected to', this._currentConnectionInstanceId);
 
     if (this._disconnecting) {
       // TODO: The desired UX here may be for the connection to be interrupted.
@@ -178,7 +203,7 @@ export default class ConnectionManager {
           // Show an error, however we still reset the active connection to free up the extension.
           vscode.window.showErrorMessage('An error occured while disconnecting from the current connection.');
         } else {
-          vscode.window.showInformationMessage('MongoDB connection removed.');
+          vscode.window.showInformationMessage('MongoDB disconnected.');
         }
 
         this._currentConnection = null;
@@ -186,6 +211,8 @@ export default class ConnectionManager {
 
         this._disconnecting = false;
         this._statusView.hideMessage();
+
+        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
         return resolve(true);
       });
@@ -240,24 +267,49 @@ export default class ConnectionManager {
     return Promise.resolve(true);
   }
 
+  public getConnectionInstanceIds(): string[] {
+    return Object.keys(this._connectionConfigs);
+  }
+
+  public getActiveConnectionInstanceId() {
+    return this._currentConnectionInstanceId;
+  }
+
+  public addEventListener(eventType: DataServiceEventTypes, listener: () => void) {
+    this.eventEmitter.addListener(eventType, listener);
+  }
+
+  public removeEventListener(eventType: DataServiceEventTypes, listener: () => void) {
+    this.eventEmitter.removeListener(eventType, listener);
+  }
+
+  public isConnnecting() {
+    return this._connecting;
+  }
+
+  public isDisconnecting() {
+    return this._disconnecting;
+  }
+
+  public getConnectingInstanceId() {
+    return this._connectingInstanceId;
+  }
+
   // Exposed for testing.
   public getConnections() {
     return this._connectionConfigs;
   }
-  public getActiveConnectionInstanceId() {
-    return this._currentConnectionInstanceId;
-  }
   public getActiveConnection() {
-    return this._currentConnectionInstanceId;
+    return this._currentConnection;
   }
-  public isConnnecting() {
-    return this._connecting;
+  public setActiveConnection(newActiveConnection: any) {
+    this._currentConnection = newActiveConnection;
   }
   public setConnnecting(connecting: boolean) {
-    this._disconnecting = connecting;
+    this._connecting = connecting;
   }
-  public isDisconnecting() {
-    return this._disconnecting;
+  public setConnnectingInstanceId(connectingInstanceId: string) {
+    this._connectingInstanceId = connectingInstanceId;
   }
   public setDisconnecting(disconnecting: boolean) {
     this._disconnecting = disconnecting;

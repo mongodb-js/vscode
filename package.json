@@ -29,14 +29,14 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "mongodb",
+          "id": "mongoDB",
           "title": "MongoDB",
           "icon": "images/mongodb.svg"
         }
       ]
     },
     "views": {
-      "mongodb": [
+      "mongoDB": [
         {
           "id": "mongoDB",
           "name": "MongoDB",
