@@ -43,8 +43,7 @@ export default class ConnectionController {
 
   private _statusView: StatusView;
 
-  // Parts of the extension that respond to changes in the connections.
-  // This map stores the functions which are listening.
+  // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();
 
   constructor(_statusView: StatusView) {
