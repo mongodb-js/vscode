@@ -10,17 +10,15 @@ const rootTooltip = 'Your MongoDB connections';
 export default class ExplorerRootTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
-  private _connectionTreeItems: vscode.TreeItem[] = [];
+  private _connectionTreeItems: { [key: string]: any } = {};
+  private _childrenCacheIsUpToDate = false;
 
-  isExpanded: boolean;
+  public isExpanded = true;
 
   constructor(connectionController: ConnectionController) {
     super(rootLabel, vscode.TreeItemCollapsibleState.Expanded);
 
     this._connectionController = connectionController;
-    this.loadConnections();
-
-    this.isExpanded = true;
   }
 
   get tooltip(): string {
@@ -32,43 +30,50 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<vscode.TreeItem[]> {
-    return Promise.resolve(this._connectionTreeItems);
-  }
+    if (!this._childrenCacheIsUpToDate) {
+      const connectionIds = this._connectionController.getConnectionInstanceIds();
+      const pastConnectionTreeItems = this._connectionTreeItems;
+      this._connectionTreeItems = {};
 
-  loadConnections(): void {
-    const connectionIds = this._connectionController.getConnectionInstanceIds();
-    this._connectionTreeItems = connectionIds.map(
-      connectionId =>
-        new ConnectionTreeItem(
-          connectionId,
-          connectionId ===
-          this._connectionController.getActiveConnectionInstanceId(),
-          this._connectionController
-        )
-    );
+      connectionIds.forEach(
+        connectionId => {
+          const isExpanded = connectionId === this._connectionController.getActiveConnectionInstanceId();
 
-    if (
-      this._connectionController.isConnnecting() &&
-      !this._connectionController
-        .getConnectionInstanceIds()
-        .includes(this._connectionController.getConnectingInstanceId())
-    ) {
-      const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
-        this._connectionController.getConnectingInstanceId()
+          this._connectionTreeItems[connectionId] = new ConnectionTreeItem(
+            connectionId,
+            isExpanded,
+            this._connectionController,
+            pastConnectionTreeItems[connectionId] ? pastConnectionTreeItems[connectionId].getChildrenCache() : {}
+          );
+        }
       );
 
-      notYetEstablishConnectionTreeItem.description = 'connecting...';
+      if (this._connectionController.isConnnecting() && this._connectionController.getConnectionInstanceIds().indexOf(this._connectionController.getConnectingInstanceId()) === -1) {
+        const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
+          this._connectionController.getConnectingInstanceId()
+        );
 
-      // When we're connecting to a new connection we add simple node showing the connecting status.
-      this._connectionTreeItems.push(notYetEstablishConnectionTreeItem);
+        notYetEstablishConnectionTreeItem.description = 'connecting...';
+
+        // When we're connecting to a new connection we add simple node showing the connecting status.
+        this._connectionTreeItems['_____connecting_temp_node____'] = notYetEstablishConnectionTreeItem;
+      }
     }
+
+    return Promise.resolve(Object.values(this._connectionTreeItems));
+  }
+
+  connectionsDidChange() {
+    this._childrenCacheIsUpToDate = false;
   }
 
   onDidCollapse(): void {
     this.isExpanded = false;
+    this._childrenCacheIsUpToDate = false;
   }
 
   onDidExpand(): void {
     this.isExpanded = true;
+    this._childrenCacheIsUpToDate = false;
   }
 }

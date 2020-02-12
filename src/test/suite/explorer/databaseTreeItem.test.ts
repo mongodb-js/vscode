@@ -7,10 +7,12 @@ import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
 suite('DatabaseTreeItem Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  test('when not expanded it does not show collections', function(done) {
+  test('when not expanded it does not show collections', function (done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      {}
     );
 
     testDatabaseTreeItem
@@ -24,10 +26,12 @@ suite('DatabaseTreeItem Test Suite', () => {
       .then(() => done(), done);
   });
 
-  test('when expanded shows the collections of a database in tree', function(done) {
+  test('when expanded shows the collections of a database in tree', function (done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      {}
     );
 
     testDatabaseTreeItem.onDidExpand();
@@ -42,10 +46,8 @@ suite('DatabaseTreeItem Test Suite', () => {
 
         assert(
           collections[1].label ===
-            mockDatabases[mockDatabaseNames[1]].collections[1].name,
-          `Expected a tree item child with the label collection name ${
-            mockDatabases[mockDatabaseNames[1]].collections[1].name
-          } found ${collections[1].label}`
+          mockDatabases[mockDatabaseNames[1]].collections[1].name,
+          `Expected a tree item child with the label collection name ${mockDatabases[mockDatabaseNames[1]].collections[1].name} found ${collections[1].label}`
         );
       })
       .then(() => done(), done);

@@ -1,18 +1,21 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
-import CollectionTreeItem from '../../../explorer/collectionTreeItem';
+import CollectionTreeItem, { defaultMaxDocumentsToShow } from '../../../explorer/collectionTreeItem';
 
 import { DataServiceStub, mockDocuments } from '../stubs';
 
 suite('CollectionTreeItem Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  test('when the "show more" click handler function is called it increases the amount of documents to show by 10', function() {
+  test('when the "show more" click handler function is called it increases the amount of documents to show by 10', function () {
     const testCollectionTreeItem = new CollectionTreeItem(
       'collectionName',
       'databaseName',
-      'not_real_dataservice'
+      'not_real_dataservice',
+      false,
+      [],
+      defaultMaxDocumentsToShow
     );
 
     const maxDocumentsToShow = testCollectionTreeItem.getMaxDocumentsToShow();
@@ -30,11 +33,14 @@ suite('CollectionTreeItem Test Suite', () => {
     );
   });
 
-  test('when not expanded it does not show documents', function(done) {
+  test('when not expanded it does not show documents', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
       'mock_collection_name',
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      defaultMaxDocumentsToShow
     );
 
     testCollectionTreeItem
@@ -48,11 +54,14 @@ suite('CollectionTreeItem Test Suite', () => {
       .then(() => done(), done);
   });
 
-  test('when expanded shows the documents of a collection in tree', function(done) {
+  test('when expanded shows the documents of a collection in tree', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
       'mock_collection_name_1',
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      defaultMaxDocumentsToShow
     );
 
     testCollectionTreeItem.onDidExpand();
@@ -72,13 +81,15 @@ suite('CollectionTreeItem Test Suite', () => {
       .then(() => done(), done);
   });
 
-  test('it should show a show more item when there are more documents to show', function(done) {
+  test('it should show a show more item when there are more documents to show', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
       'mock_collection_name_2',
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      defaultMaxDocumentsToShow
     );
-
     testCollectionTreeItem.onDidExpand();
 
     testCollectionTreeItem
@@ -96,11 +107,14 @@ suite('CollectionTreeItem Test Suite', () => {
       .then(() => done(), done);
   });
 
-  test('it should show more documents after the show more click handler is called', function(done) {
+  test('it should show more documents after the show more click handler is called', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
       'mock_collection_name_3',
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      defaultMaxDocumentsToShow
     );
 
     testCollectionTreeItem.onDidExpand();
@@ -125,11 +139,14 @@ suite('CollectionTreeItem Test Suite', () => {
       .then(() => done(), done);
   });
 
-  test('it should not show a show more item when there not are more documents to show', function(done) {
+  test('it should not show a show more item when there not are more documents to show', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
       'mock_collection_name_4',
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      defaultMaxDocumentsToShow
     );
 
     testCollectionTreeItem.onDidExpand();
