@@ -35,6 +35,7 @@ export default class ConnectionController {
   } = {};
 
   private _currentConnection: any;
+  private _currentConnectionConfig: any;
   private _currentConnectionInstanceId: string | null = null;
 
   private _connecting: boolean = false;
@@ -163,6 +164,7 @@ export default class ConnectionController {
           this._connectionConfigs[instanceId] = (connectionConfig);
         }
         this._currentConnectionInstanceId = instanceId;
+        this._currentConnectionConfig = connectionConfig;
         this._currentConnection = newConnection;
         this._connecting = false;
 
@@ -301,6 +303,9 @@ export default class ConnectionController {
   }
   public getActiveConnection() {
     return this._currentConnection;
+  }
+  public getActiveConnectionConfig() {
+    return this._currentConnectionConfig;
   }
   public setActiveConnection(newActiveConnection: any) {
     this._currentConnection = newActiveConnection;

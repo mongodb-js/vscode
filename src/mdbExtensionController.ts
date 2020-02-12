@@ -45,7 +45,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     vscode.commands.registerCommand('mdb.disconnect', () => this._connectionController.disconnect());
     vscode.commands.registerCommand('mdb.removeConnection', () => this._connectionController.removeMongoDBConnection());
 
-    vscode.commands.registerCommand('mdb.openMongoDBShell', this.openMongoDBShell);
+    vscode.commands.registerCommand('mdb.openMongoDBShell', () => this.openMongoDBShell());
 
     vscode.commands.registerCommand('mdb.refresh', () => this._explorerController.refresh());
     vscode.commands.registerCommand('mdb.reload', () => this._explorerController.refresh());
@@ -56,8 +56,14 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   public openMongoDBShell() {
-    const mongoDBShell = vscode.window.createTerminal('MongoDB Shell');
-    mongoDBShell.sendText('mongo');
+    let mdbConnectionString;
+    if (this._connectionController) {
+      const activeConnectionConfig = this._connectionController.getActiveConnectionConfig();
+      mdbConnectionString = activeConnectionConfig ? activeConnectionConfig.driverUrl : '';
+    }
+    const mongoDBShell = vscode.window.createTerminal({ name: 'MongoDB Shell', env: { MDB_CONNECTION_STRING: mdbConnectionString } });
+    const shellCommand = vscode.workspace.getConfiguration('mdb').get('shell');
+    mongoDBShell.sendText(`${shellCommand} $MDB_CONNECTION_STRING`);
     mongoDBShell.show();
   }
 

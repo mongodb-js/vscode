@@ -27,25 +27,20 @@
   "icon": "images/mongodb.png",
   "contributes": {
     "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "mongoDB",
-          "title": "MongoDB",
-          "icon": "images/mongodb.svg"
-        }
-      ]
+      "activitybar": [{
+        "id": "mongoDB",
+        "title": "MongoDB",
+        "icon": "images/mongodb.svg"
+      }]
     },
     "views": {
-      "mongoDB": [
-        {
-          "id": "mongoDB",
-          "name": "MongoDB",
-          "when": "config.mdb.show == true"
-        }
-      ]
+      "mongoDB": [{
+        "id": "mongoDB",
+        "name": "MongoDB",
+        "when": "config.mdb.show == true"
+      }]
     },
-    "commands": [
-      {
+    "commands": [{
         "command": "mdb.connect",
         "title": "MongoDB: Connect"
       },
@@ -73,6 +68,16 @@
           "type": "boolean",
           "default": true,
           "description": "Show or hide the MongoDB view."
+        },
+        "mdb.shell": {
+          "type": "string",
+          "enum": ["mongo", "mongosh"],
+          "enumDescriptions": [
+            "Use the legacy mongosh",
+            "Use the new mongosh"
+          ],
+          "default": "mongo",
+          "description": "The mongodb shell to use"
         }
       }
     }
