@@ -39,7 +39,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         this._dataService.listCollections(
           this._databaseName,
           {},
-          (err: any, collections: string[]) => {
+          (err: Error, collections: string[]) => {
             if (err) {
               return reject(`Unable to list collections: ${err}`);
             }
@@ -48,9 +48,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
             if (collections) {
               this._childrenCache = collections.map(
-                ({ name }: any) =>
+                collection =>
                   new CollectionTreeItem(
-                    name,
+                    collection,
                     this._databaseName,
                     this._dataService
                   )

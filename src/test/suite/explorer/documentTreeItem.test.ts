@@ -11,7 +11,7 @@ suite('DocumentTreeItem Test Suite', () => {
       _id: 'mock_document_id'
     };
 
-    const testCollectionTreeItem = new DocumentTreeItem(mockDocument);
+    const testCollectionTreeItem = new DocumentTreeItem(mockDocument, 1);
 
     const documentTreeItemLabel = testCollectionTreeItem.label;
     assert(
@@ -30,7 +30,20 @@ suite('DocumentTreeItem Test Suite', () => {
 
     const expectedLabel = JSON.stringify(mockDocument._id);
 
-    const testCollectionTreeItem = new DocumentTreeItem(mockDocument);
+    const testCollectionTreeItem = new DocumentTreeItem(mockDocument, 1);
+
+    const documentTreeItemLabel = testCollectionTreeItem.label;
+    assert(documentTreeItemLabel === expectedLabel, `Expected tree item label to be ${expectedLabel}, found ${documentTreeItemLabel}.`);
+  });
+
+  test('when the document does not have an _id, its label is the supplied index', function () {
+    const mockDocument = {
+      noIdField: true
+    };
+
+    const expectedLabel = 'Document 2';
+
+    const testCollectionTreeItem = new DocumentTreeItem(mockDocument, 1);
 
     const documentTreeItemLabel = testCollectionTreeItem.label;
     assert(

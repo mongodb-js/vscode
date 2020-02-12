@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+const path = require('path');
 
 import DocumentTreeItem from './documentTreeItem';
 import TreeItemParent from './treeItemParentInterface';
@@ -24,6 +25,11 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
   }
 }
 
+enum CollectionTypes {
+  collection = 'collection',
+  view = 'view'
+}
+
 export default class CollectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
   private _childrenCache: vscode.TreeItem[] = [];
@@ -34,19 +40,27 @@ export default class CollectionTreeItem extends vscode.TreeItem
   private _collectionName: string;
   private _databaseName: string;
   private _dataService: any;
+  private _type: CollectionTypes;
 
   isExpanded = false;
 
-  constructor(collectionName: string, databaseName: string, dataService: any) {
-    super(collectionName, vscode.TreeItemCollapsibleState.Collapsed);
+  constructor(
+    collection: any,
+    databaseName: string,
+    dataService: any
+  ) {
+    super(collection.name, vscode.TreeItemCollapsibleState.Collapsed);
 
-    this._collectionName = collectionName;
+    this._collectionName = collection.name;
+    this._type = collection.type; // Type can be `collection` or `view`.
     this._databaseName = databaseName;
     this._dataService = dataService;
   }
 
   get tooltip(): string {
-    return this._collectionName;
+    return this._type === CollectionTypes.view
+      ? 'Read only view'
+      : this._collectionName;
   }
 
   getTreeItem(element: CollectionTreeItem): CollectionTreeItem {
@@ -102,6 +116,16 @@ export default class CollectionTreeItem extends vscode.TreeItem
     }
 
     return Promise.resolve([]);
+  }
+
+  public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    // TODO: Here we can distinguish between light or dark view as well.
+    // return getThemedIconPath('ConnectPlugged.svg');
+
+    return this._type === CollectionTypes.view ? {
+      light: path.join(__filename, '..', 'resources', 'light', 'eye.svg'),
+      dark: path.join(__filename, '..', 'resources', 'dark', 'eye.svg')
+    } : '';
   }
 
   onShowMoreClicked = (): void => {
