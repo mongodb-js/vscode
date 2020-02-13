@@ -56,10 +56,6 @@ suite.only('Stage Autocompleter Test Suite', () => {
       properties
     };
 
-    console.log('jsonSchema----------------------');
-    console.log(jsonSchema);
-    console.log('----------------------');
-
     expect(SNIPPETS_FILE)
       .to.be.a.file()
       .with.json.using.schema(jsonSchema);
