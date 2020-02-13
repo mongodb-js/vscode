@@ -79,6 +79,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     if (!this.isExpanded) {
       return Promise.resolve([]);
     }
+
     if (this._childrenCacheIsUpToDate) {
       return Promise.resolve(this._childrenCache);
     }

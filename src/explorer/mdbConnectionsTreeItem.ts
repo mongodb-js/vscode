@@ -38,6 +38,7 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem
     const pastConnectionTreeItems = this._connectionTreeItems;
     this._connectionTreeItems = {};
 
+    // Create new connection tree items, using cached children whereever possible.
     connectionIds.forEach(connectionId => {
       const isActiveConnection = connectionId === this._connectionController.getActiveConnectionInstanceId();
       const isBeingConnectedTo = this._connectionController.isConnnecting() && connectionId === this._connectionController.getConnectingInstanceId();
@@ -48,9 +49,11 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem
         connectionExpandedState = vscode.TreeItemCollapsibleState.Collapsed;
       }
       if (isActiveConnection && this._connectionController.isDisconnecting()) {
+        // Don't show a collapsable state when the connection is being disconnected from.
         connectionExpandedState = vscode.TreeItemCollapsibleState.None;
       }
       if (isBeingConnectedTo) {
+        // Don't show a collapsable state when the connection is being connected to.
         connectionExpandedState = vscode.TreeItemCollapsibleState.None;
       }
 
@@ -71,7 +74,7 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem
       notYetEstablishConnectionTreeItem.description = 'connecting...';
 
       // When we're connecting to a new connection we add simple node showing the connecting status.
-      this._connectionTreeItems['_____connecting_temp_node____'] = notYetEstablishConnectionTreeItem;
+      this._connectionTreeItems['_____connecting_temp_node_____'] = notYetEstablishConnectionTreeItem;
     }
 
     return Promise.resolve(Object.values(this._connectionTreeItems));

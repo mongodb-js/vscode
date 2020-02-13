@@ -82,9 +82,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         this._childrenCacheIsUpToDate = true;
 
         if (databases) {
-          const pastChildrenCache = {
-            ...this._childrenCache
-          };
+          const pastChildrenCache = this._childrenCache;
           this._childrenCache = {};
 
           databases.forEach(({ name }: any) => {
@@ -112,11 +110,11 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
     // If we aren't the active connection, we reconnect.
     if (this._connectionController.getActiveConnectionInstanceId() !== this._connectionInstanceId) {
-      return new Promise((resolve, reject) => {
+      return new Promise(resolve => {
         this._connectionController.connectWithInstanceId(this._connectionInstanceId).then(() => resolve(true), err => {
           this.isExpanded = false;
           vscode.window.showErrorMessage(err);
-          reject(err);
+          resolve(false);
         });
       });
     }

@@ -59,10 +59,10 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         this._childrenCacheIsUpToDate = true;
 
         if (collections) {
-          const pastChildrenCache = {
-            ...this._childrenCache
-          };
+          const pastChildrenCache = this._childrenCache;
           this._childrenCache = {};
+          // Create new collection tree items, using previously cached items
+          // where possible.
           collections.forEach((collection: any) => {
             if (pastChildrenCache[collection.name]) {
               this._childrenCache[collection.name] = new CollectionTreeItem(
