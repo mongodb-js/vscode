@@ -16,20 +16,19 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
   constructor(
     connectionInstanceId: string,
-    isActiveConnection: boolean,
+    collapsibleState: vscode.TreeItemCollapsibleState,
+    isExpanded: boolean,
     connectionController: ConnectionController,
     existingChildrenCache: { [key: string]: DatabaseTreeItem }
   ) {
     super(
       connectionInstanceId,
-      isActiveConnection
-        ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+      collapsibleState
     );
 
     this._connectionInstanceId = connectionInstanceId;
     this._connectionController = connectionController;
-    this.isExpanded = isActiveConnection;
+    this.isExpanded = isExpanded;
     this._childrenCache = existingChildrenCache;
 
     // Create a unique id to ensure the tree updates the expanded property.
@@ -53,6 +52,10 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return 'connected';
     }
 
+    if (this._connectionController.isConnnecting() && this._connectionController.getConnectingInstanceId() === this._connectionInstanceId) {
+      return 'connecting...';
+    }
+
     return '';
   }
 
@@ -61,7 +64,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<any[]> {
-    if (!this.isExpanded) {
+    if (!this.isExpanded || this._connectionController.isDisconnecting() || this._connectionController.isConnnecting()) {
       return Promise.resolve([]);
     }
 
@@ -69,16 +72,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return Promise.resolve(Object.values(this._childrenCache));
     }
 
-    return new Promise(async (resolve, reject) => {
-      // If we aren't the active connection, we reconnect.
-      if (this._connectionController.getActiveConnectionInstanceId() !== this._connectionInstanceId) {
-        try {
-          await this._connectionController.connectWithInstanceId(this._connectionInstanceId);
-        } catch (err) {
-          return reject(err);
-        }
-      }
-
+    return new Promise((resolve, reject) => {
       const dataService = this._connectionController.getActiveConnection();
       dataService.listDatabases((err: any, databases: string[]) => {
         if (err) {
@@ -115,6 +109,14 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   onDidExpand(): void {
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
+
+    // If we aren't the active connection, we reconnect.
+    if (this._connectionController.getActiveConnectionInstanceId() !== this._connectionInstanceId) {
+      this._connectionController.connectWithInstanceId(this._connectionInstanceId).then(() => { }).catch((err) => {
+        vscode.window.showErrorMessage(err);
+        this.isExpanded = false;
+      });
+    }
   }
 
   public getChildrenCache(): { [key: string]: DatabaseTreeItem } {
