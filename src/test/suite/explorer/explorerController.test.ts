@@ -273,28 +273,26 @@ suite('Explorer Controller Test Suite', function () {
     }
 
     testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(() => {
-      treeController.getChildren().then(treeControllerChildren => {
-        treeControllerChildren[0].getChildren().then(connectionsItems => {
+      treeController.getChildren().then(rootTreeItem => {
+        const connectionsTreeItem = rootTreeItem[0];
+        connectionsTreeItem.getChildren().then(connectionsItems => {
           // Expand the connection.
-          treeControllerChildren[0].onDidExpand().then(() => {
-            console.log('did expand?');
+          const testConnectionTreeItem = connectionsItems[0];
+          testConnectionTreeItem.onDidExpand().then(() => {
 
-            connectionsItems[0].getChildren().then((databaseItems: any) => {
+            testConnectionTreeItem.getChildren().then((databaseItems: any) => {
               assert(databaseItems[1].isExpanded === false, 'Expected database tree item not to be expanded on default.');
 
               // Expand the first database item.
               databaseItems[1].onDidExpand().then(() => {
                 assert(databaseItems[1].isExpanded === true, 'Expected database tree item be expanded.');
                 // Collapse the connection.
-                treeControllerChildren[0].onDidCollapse();
-                console.log('isExpanded', treeControllerChildren[0].isExpanded);
+                testConnectionTreeItem.onDidCollapse();
 
-                treeControllerChildren[0].getChildren().then((databaseTreeItems: any) => {
-                  console.log('is collapsed after got childrem', treeControllerChildren[0].isExpanded);
-                  console.log('got children', databaseTreeItems);
-                  // assert(databaseTreeItems.length === 0, `Expected the connection tree to return no children when collapsed, found ${databaseTreeItems.length}`);
-                  treeControllerChildren[0].onDidExpand();
-                  connectionsItems[0].getChildren().then((newDatabaseItems: any) => {
+                testConnectionTreeItem.getChildren().then((databaseTreeItems: any) => {
+                  assert(databaseTreeItems.length === 0, `Expected the connection tree to return no children when collapsed, found ${databaseTreeItems.length}`);
+                  testConnectionTreeItem.onDidExpand();
+                  testConnectionTreeItem.getChildren().then((newDatabaseItems: any) => {
                     assert(newDatabaseItems[1].isExpanded === true, 'Expected database tree to be expanded from cache.');
                     testExplorerController.deactivate();
                   }).then(() => done(), done);

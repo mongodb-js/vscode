@@ -64,8 +64,6 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<any[]> {
-    console.log('get children of connection, is expanded', this.isExpanded);
-
     if (!this.isExpanded || this._connectionController.isDisconnecting() || this._connectionController.isConnnecting()) {
       return Promise.resolve([]);
     }

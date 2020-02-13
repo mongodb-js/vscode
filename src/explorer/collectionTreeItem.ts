@@ -122,8 +122,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
     // return getThemedIconPath('ConnectPlugged.svg');
 
     return this._type === CollectionTypes.view ? {
-      light: path.join(__filename, '..', 'resources', 'light', 'eye.svg'),
-      dark: path.join(__filename, '..', 'resources', 'dark', 'eye.svg')
+      light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'view.svg'),
+      dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'view.svg')
     } : '';
   }
 
