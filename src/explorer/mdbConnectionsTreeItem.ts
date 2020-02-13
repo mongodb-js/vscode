@@ -86,8 +86,9 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
   }
 
-  onDidExpand(): void {
+  onDidExpand(): Promise<any> {
     this.isExpanded = true;
     this._childrenCacheIsUpToDate = false;
+    return Promise.resolve(true);
   }
 }

@@ -49,11 +49,16 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
       this.onTreeItemUpdate();
     });
 
-    treeView.onDidExpandElement(async (event: any) => {
+    treeView.onDidExpandElement((event: any): Promise<any> => {
       log.info('Tree item was expanded:', event.element.label);
-      await event.element.onDidExpand();
-
-      this.onTreeItemUpdate();
+      return new Promise((resolve, reject) => {
+        event.element.onDidExpand().then(() => {
+          this.onTreeItemUpdate();
+          resolve(true);
+        }, (err: any) => {
+          reject(err);
+        });
+      });
     });
 
     treeView.onDidChangeSelection((event: any) => {

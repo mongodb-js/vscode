@@ -98,9 +98,10 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
   }
 
-  onDidExpand(): void {
+  onDidExpand(): Promise<any> {
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
+    return Promise.resolve(true);
   }
 
   public getChildrenCache(): { [key: string]: CollectionTreeItem } {

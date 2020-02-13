@@ -138,9 +138,11 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this._maxDocumentsToShow = defaultMaxDocumentsToShow;
   };
 
-  onDidExpand = (): void => {
+  onDidExpand = (): Promise<any> => {
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
+
+    return Promise.resolve(true);
   };
 
   public getChildrenCache(): vscode.TreeItem[] {
