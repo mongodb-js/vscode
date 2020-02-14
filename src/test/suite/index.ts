@@ -5,7 +5,7 @@ import * as glob from 'glob';
 export function run(): Promise<void> {
   const reporterOptions = {
     spec: '-',
-    'mocha-junit-reporter': './test-results.xml'
+    'mocha-junit-reporter': path.resolve(__dirname, './test-results.xml')
   };
 
   // Create the mocha tester.
