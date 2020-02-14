@@ -1,6 +1,7 @@
 import fs = require('fs');
 
 const STAGE_OPERATORS = require('mongodb-ace-autocompleter').STAGE_OPERATORS;
+const config = require(`${__dirname}/../../package.json`);
 const SNIPPETS_DIR = `${__dirname}/../snippets`;
 
 const snippetTemplate = (
@@ -46,7 +47,9 @@ fs.mkdir(SNIPPETS_DIR, (mkdirError: any) => {
   if (!mkdirError || (mkdirError && mkdirError.code === 'EEXIST')) {
     fs.writeFile(
       `${SNIPPETS_DIR}/stage-autocompleter.json`,
-      JSON.stringify(snippets, null, 2),
+      `// Generated from mongodb-ace-autocompleter@${
+        config.devDependencies['mongodb-ace-autocompleter']
+      }\n${JSON.stringify(snippets, null, 2)}`,
       'utf8',
       (writeFileError: Record<string, any> | null) => {
         if (writeFileError) {
