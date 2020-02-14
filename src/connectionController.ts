@@ -191,7 +191,7 @@ export default class ConnectionController {
     });
   }
 
-  public async connectWithInstanceId(connectionId: string): Promise<boolean> {
+  public async connectWithInstanceId(connectionId: string): Promise<any> {
     if (this._connectionConfigs[connectionId]) {
       return this.connect(this._connectionConfigs[connectionId]);
     } else {
@@ -217,10 +217,9 @@ export default class ConnectionController {
     }
 
     // Disconnect from the active connection.
-    return new Promise<boolean>((resolve, reject) => {
+    return new Promise<boolean>(resolve => {
       this._disconnecting = true;
       this._statusView.showMessage('Disconnecting from current connection...');
-
       this._currentConnection.disconnect((err: any) => {
         if (err) {
           // Show an error, however we still reset the active connection to free up the extension.
@@ -304,56 +303,56 @@ export default class ConnectionController {
     return Object.keys(this._connectionConfigs);
   }
 
-  public getActiveConnectionInstanceId() {
+  public getActiveConnectionInstanceId(): any {
     return this._currentConnectionInstanceId;
   }
 
   public addEventListener(
     eventType: DataServiceEventTypes,
     listener: () => void
-  ) {
+  ): any {
     this.eventEmitter.addListener(eventType, listener);
   }
 
   public removeEventListener(
     eventType: DataServiceEventTypes,
     listener: () => void
-  ) {
+  ): any {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
-  public isConnnecting() {
+  public isConnnecting(): any {
     return this._connecting;
   }
 
-  public isDisconnecting() {
+  public isDisconnecting(): any {
     return this._disconnecting;
   }
 
-  public getConnectingInstanceId() {
+  public getConnectingInstanceId(): any {
     return this._connectingInstanceId;
   }
 
   // Exposed for testing.
-  public getConnections() {
+  public getConnections(): any {
     return this._connectionConfigs;
   }
-  public getActiveConnection() {
+  public getActiveConnection(): any {
     return this._currentConnection;
   }
-  public getActiveConnectionConfig() {
+  public getActiveConnectionConfig(): any {
     return this._currentConnectionConfig;
   }
-  public setActiveConnection(newActiveConnection: any) {
+  public setActiveConnection(newActiveConnection: any): any {
     this._currentConnection = newActiveConnection;
   }
-  public setConnnecting(connecting: boolean) {
+  public setConnnecting(connecting: boolean): any {
     this._connecting = connecting;
   }
-  public setConnnectingInstanceId(connectingInstanceId: string) {
+  public setConnnectingInstanceId(connectingInstanceId: string): any {
     this._connectingInstanceId = connectingInstanceId;
   }
-  public setDisconnecting(disconnecting: boolean) {
+  public setDisconnecting(disconnecting: boolean): any {
     this._disconnecting = disconnecting;
   }
 }

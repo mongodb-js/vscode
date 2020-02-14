@@ -81,14 +81,15 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
             if (documents) {
               this._childrenCache = documents.map((document, index) => {
-                const showMore = new ShowMoreDocumentsTreeItem(
-                  namespace,
-                  this.onShowMoreClicked,
-                  this._maxDocumentsToShow
-                );
-                return index === this._maxDocumentsToShow
-                  ? showMore
-                  : new DocumentTreeItem(document);
+                if (index === this._maxDocumentsToShow) {
+                  return new ShowMoreDocumentsTreeItem(
+                    namespace,
+                    this.onShowMoreClicked,
+                    this._maxDocumentsToShow
+                  );
+                }
+
+                return new DocumentTreeItem(document);
               });
             } else {
               this._childrenCache = [];

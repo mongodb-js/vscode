@@ -1,200 +1,237 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import {
-  before,
-  after
-} from 'mocha';
+import { before, after } from 'mocha';
+import mongodbRunnerMochaBefore = require('mongodb-runner/mocha/before');
+import mongodbRunnerMochaAfter = require('mongodb-runner/mocha/after');
 
-import ConnectionController, { DataServiceEventTypes } from '../../connectionController';
+import ConnectionController, {
+  DataServiceEventTypes
+} from '../../connectionController';
 import { StatusView } from '../../views';
 
 const testDatabaseURI = 'mongodb://localhost';
-const testDatabaseURI_2_WithTimeout = 'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
+const testDatabaseURI2WithTimeout =
+  'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
-suite('Connection Controller Test Suite', () => {
+suite('Connection Controller Test Suite', function() {
   vscode.window.showInformationMessage('Starting tests...');
 
-  before(require('mongodb-runner/mocha/before'));
-  after(require('mongodb-runner/mocha/after'));
+  before(mongodbRunnerMochaBefore);
+  after(mongodbRunnerMochaAfter);
 
-  test('it connects to mongodb', function (done) {
+  test('it connects to mongodb', function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
     this.timeout(2000);
 
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
-      assert(succesfullyConnected === true, 'Expected a successful connection response.');
-      assert(
-        Object.keys(testConnectionController.getConnections()).length === 1,
-        'Expected there to be 1 connection in the connection list.'
-      );
-      const instanceId = testConnectionController.getActiveConnectionInstanceId();
-      assert(
-        instanceId === 'localhost:27017',
-        `Expected active connection to be 'localhost:27017' found ${instanceId}`
-      );
-
-    }).then(() => done(), done);
-  });
-
-  test('"disconnect()" disconnects from the active connection', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
-    this.timeout(2000);
-
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
-      assert(succesfullyConnected === true, 'Expected a successful (true) connection response.');
-
-      testConnectionController.disconnect().then(successfullyDisconnected => {
-        assert(successfullyDisconnected === true, 'Expected a successful (true) disconnect response.');
-        // Disconnecting should keep the connection contract, just disconnected.
-        const connectionsCount = Object.keys(testConnectionController.getConnections()).length;
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(succesfullyConnected => {
         assert(
-          connectionsCount === 1,
-          `Expected the amount of connections to be 1 found ${connectionsCount}.`
+          succesfullyConnected === true,
+          'Expected a successful connection response.'
+        );
+        assert(
+          Object.keys(testConnectionController.getConnections()).length === 1,
+          'Expected there to be 1 connection in the connection list.'
         );
         const instanceId = testConnectionController.getActiveConnectionInstanceId();
         assert(
-          instanceId === null,
-          `Expected the active connection instance id to be null, found ${instanceId}`
+          instanceId === 'localhost:27017',
+          `Expected active connection to be 'localhost:27017' found ${instanceId}`
         );
-      }).then(() => done(), done);
-    });
+      })
+      .then(done);
+  });
+
+  test('"disconnect()" disconnects from the active connection', function(done) {
+    const testConnectionController = new ConnectionController(new StatusView());
+    this.timeout(2000);
+
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(succesfullyConnected => {
+        assert(
+          succesfullyConnected === true,
+          'Expected a successful (true) connection response.'
+        );
+
+        testConnectionController
+          .disconnect()
+          .then(successfullyDisconnected => {
+            assert(
+              successfullyDisconnected === true,
+              'Expected a successful (true) disconnect response.'
+            );
+            // Disconnecting should keep the connection contract, just disconnected.
+            const connectionsCount = Object.keys(
+              testConnectionController.getConnections()
+            ).length;
+            assert(
+              connectionsCount === 1,
+              `Expected the amount of connections to be 1 found ${connectionsCount}.`
+            );
+            const instanceId = testConnectionController.getActiveConnectionInstanceId();
+            assert(
+              instanceId === null,
+              `Expected the active connection instance id to be null, found ${instanceId}`
+            );
+          })
+          .then(done);
+      });
   });
 
   test('"removeMongoDBConnection()" returns a reject promise when there is no active connection', done => {
     const testConnectionController = new ConnectionController(new StatusView());
 
-    testConnectionController.removeMongoDBConnection().then(null, err => {
-      assert(
-        !!err,
-        `Expected an error response, recieved ${err}.`
-      );
-    }).then(() => done(), done);
+    testConnectionController
+      .removeMongoDBConnection()
+      .then(null, err => {
+        assert(!!err, `Expected an error response, recieved ${err}.`);
+      })
+      .then(done);
   });
 
   test('"disconnect()" fails when there is no active connection', done => {
     const testConnectionController = new ConnectionController(new StatusView());
 
-    testConnectionController.disconnect().then(null, err => {
-      assert(!!err, `Expected an error disconnect response.`);
-    }).then(() => done(), done);
+    testConnectionController
+      .disconnect()
+      .then(null, err => {
+        assert(!!err, 'Expected an error disconnect response.');
+      })
+      .then(done);
   });
 
-  test('when adding a new connection it disconnects from the current connection', function (done) {
+  test('when adding a new connection it disconnects from the current connection', function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
-    this.timeout(2000);
 
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
-      assert(succesfullyConnected === true, 'Expected a successful (true) connection response.');
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(succesfullyConnected => {
+        assert(
+          succesfullyConnected === true,
+          'Expected a successful (true) connection response.'
+        );
 
-      testConnectionController.addNewConnectionAndConnect(testDatabaseURI_2_WithTimeout).then(null, err => {
-        assert(!!err, 'Expected an error promise response.');
-        assert(
-          testConnectionController.getActiveConnection() === null,
-          'Expected to current connection to be null (not connected).'
-        );
-        assert(
-          testConnectionController.getActiveConnectionInstanceId() === null,
-          'Expected to current connection instanceId to be null (not connected).'
-        );
-      }).then(() => done());
-    });
+        testConnectionController
+          .addNewConnectionAndConnect(testDatabaseURI2WithTimeout)
+          .then(null, err => {
+            assert(!!err, 'Expected an error promise response.');
+            assert(
+              testConnectionController.getActiveConnection() === null,
+              'Expected to current connection to be null (not connected).'
+            );
+            assert(
+              testConnectionController.getActiveConnectionInstanceId() === null,
+              'Expected to current connection instanceId to be null (not connected).'
+            );
+          })
+          .then(done);
+      });
   });
 
-  test('when adding a new connection it disconnects from the current connection', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
-    this.timeout(2000);
-
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
-      assert(succesfullyConnected === true, 'Expected a successful (true) connection response.');
-
-      testConnectionController.addNewConnectionAndConnect(testDatabaseURI_2_WithTimeout).then(null, err => {
-        assert(!!err, 'Expected an error promise response.');
-        assert(
-          testConnectionController.getActiveConnection() === null,
-          'Expected to current connection to be null (not connected).'
-        );
-        assert(
-          testConnectionController.getActiveConnectionInstanceId() === null,
-          'Expected to current connection instanceId to be null (not connected).'
-        );
-      }).then(() => done());
-    });
-  });
-
-  test('"connect()" failed when we are currently connecting', function (done) {
+  test('"connect()" failed when we are currently connecting', function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     testConnectionController.setConnnecting(true);
 
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(null, err => {
-      assert(!!err, 'Expected an error promise response.');
-    }).then(() => done());
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(null, err => {
+        assert(!!err, 'Expected an error promise response.');
+      })
+      .then(done);
   });
 
-  test('"connect()" failed when we are currently disconnecting', function (done) {
+  test('"connect()" failed when we are currently disconnecting', function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     testConnectionController.setDisconnecting(true);
 
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(null, err => {
-      assert(!!err, 'Expected an error promise response.');
-    }).then(() => done());
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(null, err => {
+        assert(!!err, 'Expected an error promise response.');
+      })
+      .then(done);
   });
 
-  test('"disconnect()" fails when we are currently connecting', function (done) {
+  test('"disconnect()" fails when we are currently connecting', function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     testConnectionController.setConnnecting(true);
 
-    testConnectionController.disconnect().then(null, err => {
-      assert(!!err, 'Expected an error disconnect response.');
-    }).then(() => done(), done);
+    testConnectionController
+      .disconnect()
+      .then(null, err => {
+        assert(!!err, 'Expected an error disconnect response.');
+      })
+      .then(done);
   });
 
-  test('"disconnect()" fails when we are currently disconnecting', function (done) {
+  test('"disconnect()" fails when we are currently disconnecting', function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     testConnectionController.setDisconnecting(true);
 
-    testConnectionController.disconnect().then(null, err => {
-      assert(!!err, 'Expected an error disconnect response.');
-    }).then(() => done(), done);
+    testConnectionController
+      .disconnect()
+      .then(null, err => {
+        assert(!!err, 'Expected an error disconnect response.');
+      })
+      .then(done);
   });
 
-  test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', function (done) {
+  test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     let didFireConnectionEvent = false;
 
-    testConnectionController.addEventListener(DataServiceEventTypes.CONNECTIONS_DID_CHANGE, () => {
-      didFireConnectionEvent = true;
-    });
+    testConnectionController.addEventListener(
+      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      () => {
+        didFireConnectionEvent = true;
+      }
+    );
 
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(() => {
-      setTimeout(function () {
-        assert(didFireConnectionEvent === true, 'Expected connection event to be fired.');
-        done();
-      }, 150);
-    });
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(() => {
+        setTimeout(function() {
+          assert(
+            didFireConnectionEvent === true,
+            'Expected connection event to be fired.'
+          );
+          done();
+        }, 150);
+      });
   });
 
   const expectedTimesToFire = 3;
-  test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, function (done) {
+  test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     let connectionEventFiredCount = 0;
 
-    testConnectionController.addEventListener(DataServiceEventTypes.CONNECTIONS_DID_CHANGE, () => {
-      connectionEventFiredCount++;
-    });
+    testConnectionController.addEventListener(
+      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      () => {
+        connectionEventFiredCount++;
+      }
+    );
 
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(() => {
-      testConnectionController.disconnect().then(() => {
-        setTimeout(function () {
-          assert(connectionEventFiredCount === expectedTimesToFire, `Expected connection event to be fired ${expectedTimesToFire} times, got ${connectionEventFiredCount}.`);
-          done();
-        }, 150);
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(() => {
+        testConnectionController.disconnect().then(() => {
+          setTimeout(function() {
+            assert(
+              connectionEventFiredCount === expectedTimesToFire,
+              `Expected connection event to be fired ${expectedTimesToFire} times, got ${connectionEventFiredCount}.`
+            );
+            done();
+          }, 150);
+        });
       });
-    });
   });
 });

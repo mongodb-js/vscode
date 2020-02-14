@@ -19,7 +19,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
     this.logPath = '';
     this.subscriptions = [];
     this.workspaceState = {
-      get: () => {},
+      get: (): void => {},
       update: (key: string, value: any) => {
         return new Promise<void>(() => {});
       }
@@ -36,8 +36,8 @@ class TestExtensionContext implements vscode.ExtensionContext {
 }
 
 const mockDatabases: any = {
-  mock_database_1: {
-    databaseName: 'mock_database_1',
+  mockDatabase1: {
+    databaseName: 'mockDatabase1',
     collections: [
       {
         name: 'mock_db_1_collection_1'
@@ -47,8 +47,8 @@ const mockDatabases: any = {
       }
     ]
   },
-  mock_database_2: {
-    databaseName: 'mock_database_2',
+  mockDatabase2: {
+    databaseName: 'mockDatabase2',
     collections: [
       {
         name: 'mock_db_2_collection_1'
