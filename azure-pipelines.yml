@@ -54,3 +54,8 @@ steps:
     displayName: 'Run Tests'
     env:
       DISPLAY: ':99.0'
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testRunner: JUnit
+      testResultsFiles: '**/test-results.xml'
