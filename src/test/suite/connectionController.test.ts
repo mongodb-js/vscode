@@ -1,8 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { before, after } from 'mocha';
-import mongodbRunnerMochaBefore = require('mongodb-runner/mocha/before');
-import mongodbRunnerMochaAfter = require('mongodb-runner/mocha/after');
 
 import ConnectionController, {
   DataServiceEventTypes
@@ -13,11 +11,11 @@ const testDatabaseURI = 'mongodb://localhost';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
-suite('Connection Controller Test Suite', function() {
+suite('Connection Controller Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  before(mongodbRunnerMochaBefore);
-  after(mongodbRunnerMochaAfter);
+  before(require('mongodb-runner/mocha/before'));
+  after(require('mongodb-runner/mocha/after'));
 
   test('it connects to mongodb', function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
@@ -40,7 +38,7 @@ suite('Connection Controller Test Suite', function() {
           `Expected active connection to be 'localhost:27017' found ${instanceId}`
         );
       })
-      .then(done);
+      .then(() => done(), done);
   });
 
   test('"disconnect()" disconnects from the active connection', function(done) {
@@ -76,7 +74,7 @@ suite('Connection Controller Test Suite', function() {
               `Expected the active connection instance id to be null, found ${instanceId}`
             );
           })
-          .then(done);
+          .then(() => done(), done);
       });
   });
 
@@ -88,7 +86,7 @@ suite('Connection Controller Test Suite', function() {
       .then(null, err => {
         assert(!!err, `Expected an error response, recieved ${err}.`);
       })
-      .then(done);
+      .then(() => done(), done);
   });
 
   test('"disconnect()" fails when there is no active connection', done => {
@@ -99,11 +97,12 @@ suite('Connection Controller Test Suite', function() {
       .then(null, err => {
         assert(!!err, 'Expected an error disconnect response.');
       })
-      .then(done);
+      .then(() => done(), done);
   });
 
   test('when adding a new connection it disconnects from the current connection', function(done) {
     const testConnectionController = new ConnectionController(new StatusView());
+    this.timeout(2000);
 
     testConnectionController
       .addNewConnectionAndConnect(testDatabaseURI)
@@ -126,7 +125,36 @@ suite('Connection Controller Test Suite', function() {
               'Expected to current connection instanceId to be null (not connected).'
             );
           })
-          .then(done);
+          .then(() => done());
+      });
+  });
+
+  test('when adding a new connection it disconnects from the current connection', function(done) {
+    const testConnectionController = new ConnectionController(new StatusView());
+    this.timeout(2000);
+
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(succesfullyConnected => {
+        assert(
+          succesfullyConnected === true,
+          'Expected a successful (true) connection response.'
+        );
+
+        testConnectionController
+          .addNewConnectionAndConnect(testDatabaseURI2WithTimeout)
+          .then(null, err => {
+            assert(!!err, 'Expected an error promise response.');
+            assert(
+              testConnectionController.getActiveConnection() === null,
+              'Expected to current connection to be null (not connected).'
+            );
+            assert(
+              testConnectionController.getActiveConnectionInstanceId() === null,
+              'Expected to current connection instanceId to be null (not connected).'
+            );
+          })
+          .then(() => done());
       });
   });
 
@@ -140,7 +168,7 @@ suite('Connection Controller Test Suite', function() {
       .then(null, err => {
         assert(!!err, 'Expected an error promise response.');
       })
-      .then(done);
+      .then(() => done());
   });
 
   test('"connect()" failed when we are currently disconnecting', function(done) {
@@ -153,7 +181,7 @@ suite('Connection Controller Test Suite', function() {
       .then(null, err => {
         assert(!!err, 'Expected an error promise response.');
       })
-      .then(done);
+      .then(() => done());
   });
 
   test('"disconnect()" fails when we are currently connecting', function(done) {
@@ -166,7 +194,7 @@ suite('Connection Controller Test Suite', function() {
       .then(null, err => {
         assert(!!err, 'Expected an error disconnect response.');
       })
-      .then(done);
+      .then(() => done(), done);
   });
 
   test('"disconnect()" fails when we are currently disconnecting', function(done) {
@@ -179,7 +207,7 @@ suite('Connection Controller Test Suite', function() {
       .then(null, err => {
         assert(!!err, 'Expected an error disconnect response.');
       })
-      .then(done);
+      .then(() => done(), done);
   });
 
   test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', function(done) {

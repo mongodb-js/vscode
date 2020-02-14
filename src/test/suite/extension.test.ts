@@ -4,8 +4,6 @@ import { before, after } from 'mocha';
 
 import ConnectionController from '../../connectionController';
 import MDBExtensionController from '../../mdbExtensionController';
-import mongodbRunnerMochaBefore = require('mongodb-runner/mocha/before');
-import mongodbRunnerMochaAfter = require('mongodb-runner/mocha/after');
 
 import { StatusView } from '../../views';
 
@@ -67,8 +65,8 @@ suite('Extension Test Suite', () => {
   });
 
   test('when the extension is deactivated, the active connection is discconected', function(done) {
-    before(mongodbRunnerMochaBefore);
-    after(mongodbRunnerMochaAfter);
+    before(require('mongodb-runner/mocha/before'));
+    after(require('mongodb-runner/mocha/after'));
 
     const testConnectionController = new ConnectionController(new StatusView());
 

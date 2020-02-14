@@ -9,11 +9,13 @@ const snippetTemplate = (
   snippet: string,
   comment?: string
 ): { prefix: string; body: Array<string>; description: string } => {
+  const body = snippet.split('\n');
+
+  body[0] = `${prefix}: ${body[0]}`;
+
   return {
     prefix,
-    body: comment
-      ? [...comment.split('\n'), ...snippet.split('\n')]
-      : [...snippet.split('\n')],
+    body: comment ? [...comment.split('\n'), ...body] : [...body],
     description
   };
 };

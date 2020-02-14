@@ -1,8 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { before, after } from 'mocha';
-import mongodbRunnerMochaBefore = require('mongodb-runner/mocha/before');
-import mongodbRunnerMochaAfter = require('mongodb-runner/mocha/after');
 
 import ConnectionController from '../../../connectionController';
 import { ExplorerController } from '../../../explorer';
@@ -15,8 +13,8 @@ const testDatabaseURI2WithTimeout =
 suite('Explorer Controller Test Suite', function() {
   vscode.window.showInformationMessage('Starting tests...');
 
-  before(mongodbRunnerMochaBefore);
-  after(mongodbRunnerMochaAfter);
+  before(require('mongodb-runner/mocha/before'));
+  after(require('mongodb-runner/mocha/after'));
 
   test('when activated it creates a tree with a connections root', async function() {
     const testConnectionController = new ConnectionController(new StatusView());

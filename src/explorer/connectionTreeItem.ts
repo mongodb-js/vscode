@@ -109,7 +109,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
   }
 
-  async onDidExpand(): Promise<void> {
+  onDidExpand(): void {
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
   }
