@@ -42,14 +42,14 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem
         new ConnectionTreeItem(
           connectionId,
           connectionId ===
-            this._connectionController.getActiveConnectionInstanceId(),
+          this._connectionController.getActiveConnectionInstanceId(),
           this._connectionController
         )
     );
 
     if (
       this._connectionController.isConnnecting() &&
-      this._connectionController
+      !this._connectionController
         .getConnectionInstanceIds()
         .includes(this._connectionController.getConnectingInstanceId())
     ) {
