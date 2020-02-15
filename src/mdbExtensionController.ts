@@ -11,6 +11,7 @@ import { ExplorerController, CollectionTreeItem } from './explorer';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController } from './storage';
+import { openSunburst } from './sunburst';
 
 const log = createLogger('commands');
 
@@ -73,6 +74,10 @@ export default class MDBExtensionController implements vscode.Disposable {
         const namespace = `${element.databaseName}.${element.collectionName}`;
         return this._editorsController.onViewCollectionDocuments(namespace);
       });
+
+    vscode.commands.registerCommand('mdb.openSunburst', (treeItemSelected: any) => {
+      openSunburst(this._connectionController);
+    });
 
     this.registerCommand('mdb.codeLens.showMoreDocumentsClicked', (
       operationId,

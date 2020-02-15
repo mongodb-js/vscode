@@ -10,6 +10,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   private _childrenCache: { [key: string]: DatabaseTreeItem };
   private _childrenCacheIsUpToDate = false;
 
+  contextValue = 'mongoDBConnectionTreeItem';
+
   private _connectionController: ConnectionController;
   private _connectionInstanceId: string;
 

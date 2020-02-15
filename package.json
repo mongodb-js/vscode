@@ -106,6 +106,10 @@
         "title": "MongoDB: Launch Mongo Shell"
       },
       {
+        "command": "mdb.openSunburst",
+        "title": "MongoDB: Open Sunburst"
+      },
+      {
         "command": "mdb.viewCollectionDocuments",
         "title": "View Documents"
       }
@@ -115,6 +119,10 @@
         {
           "command": "mdb.viewCollectionDocuments",
           "when": "view == mongoDB && viewItem == collectionTreeItem"
+        },
+        {
+          "command": "mdb.openSunburst",
+          "when": "view == mongoDB && viewItem == mongoDBConnectionTreeItem"
         }
       ]
     },
