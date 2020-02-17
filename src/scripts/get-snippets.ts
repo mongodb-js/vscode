@@ -1,8 +1,9 @@
 import fs = require('fs');
+import path = require('path');
 
 const STAGE_OPERATORS = require('mongodb-ace-autocompleter').STAGE_OPERATORS;
-const config = require(`${__dirname}/../../package.json`);
-const SNIPPETS_DIR = `${__dirname}/../snippets`;
+const config = require(path.resolve(__dirname, '../../package.json'));
+const SNIPPETS_DIR = path.resolve(__dirname, '../../src/snippets/');
 
 const snippetTemplate = (
   prefix: string,
@@ -47,9 +48,7 @@ fs.mkdir(SNIPPETS_DIR, (mkdirError: any) => {
   if (!mkdirError || (mkdirError && mkdirError.code === 'EEXIST')) {
     fs.writeFile(
       `${SNIPPETS_DIR}/stage-autocompleter.json`,
-      `// Generated from mongodb-ace-autocompleter@${
-        config.devDependencies['mongodb-ace-autocompleter']
-      }\n${JSON.stringify(snippets, null, 2)}`,
+      JSON.stringify(snippets, null, 2),
       'utf8',
       (writeFileError: Record<string, any> | null) => {
         if (writeFileError) {
@@ -59,7 +58,27 @@ fs.mkdir(SNIPPETS_DIR, (mkdirError: any) => {
           );
         }
 
-        console.log('stage-autocompleter.json file has been saved');
+        console.log(
+          `${SNIPPETS_DIR}/stage-autocompleter.json file has been saved`
+        );
+
+        const readme = `Generated from mongodb-ace-autocompleter@${config.devDependencies['mongodb-ace-autocompleter']}`;
+
+        fs.writeFile(
+          `${SNIPPETS_DIR}/README.md`,
+          readme,
+          'utf8',
+          (writeReadmeError: Record<string, any> | null) => {
+            if (writeReadmeError) {
+              return console.log(
+                'An error occured while writing to README.md',
+                writeReadmeError
+              );
+            }
+
+            console.log(readme);
+          }
+        );
       }
     );
   } else {

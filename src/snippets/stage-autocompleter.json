@@ -1,4 +1,3 @@
-// Generated from mongodb-ace-autocompleter@^0.4.1
 {
   "MongoDB Aggregations $addFields": {
     "prefix": "$addFields",

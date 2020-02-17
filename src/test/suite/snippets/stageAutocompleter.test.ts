@@ -7,8 +7,8 @@ chai.use(chaiFs);
 chai.use(chaiJsonSchema);
 
 const expect = chai.expect;
-const SNIPPETS_DIR = `${__dirname}/../../../../src/snippets`;
-const SNIPPETS_FILE = `${SNIPPETS_DIR}/stage-autocompleter.json`;
+const SNIPPETS_DIR = `${__dirname}/../../../../src/snippets/`;
+const SNIPPETS_FILE = `${SNIPPETS_DIR}stage-autocompleter.json`;
 
 const STAGE_LABELS = [
   'MongoDB Aggregations $addFields',
@@ -58,6 +58,7 @@ suite('Stage Autocompleter Test Suite', () => {
       properties
     };
 
+    expect(SNIPPETS_DIR).to.be.a.path();
     expect(SNIPPETS_FILE)
       .to.be.a.file()
       .with.json.using.schema(jsonSchema);
