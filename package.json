@@ -116,7 +116,7 @@
     "compile": "ts-node ./src/scripts/get-snippets.ts && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && mongodb-runner start",
-    "test": "mocha ./src/test/runTest.js",
+    "test": "mocha ./out/test/runTest.js",
     "posttest": "mongodb-runner stop",
     "vscode:prepublish": "npm run compile",
     "check": "mongodb-js-precommit './src/**/*{.ts}'"
