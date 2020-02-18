@@ -5,6 +5,8 @@ import { before, after } from 'mocha';
 import ConnectionController from '../../../connectionController';
 import { ExplorerController } from '../../../explorer';
 import { StatusView } from '../../../views';
+import { TestExtensionContext } from '../stubs';
+import { StorageController } from '../../../storage';
 
 const testDatabaseURI = 'mongodb://localhost';
 const testDatabaseURI2WithTimeout =
@@ -16,8 +18,14 @@ suite('Explorer Controller Test Suite', function () {
   before(require('mongodb-runner/mocha/before'));
   after(require('mongodb-runner/mocha/after'));
 
+  const mockExtensionContext = new TestExtensionContext();
+  const mockStorageController = new StorageController(mockExtensionContext);
+
   test('when activated it creates a tree with a connections root', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     const testExplorerController = new ExplorerController();
 
@@ -46,7 +54,8 @@ suite('Explorer Controller Test Suite', function () {
 
   test('it updates the connections to account for a change in the connection controller', function (done) {
     const testConnectionController = new ConnectionController(
-      new StatusView()
+      new StatusView(),
+      mockStorageController
     );
 
     const testExplorerController = new ExplorerController();
@@ -85,7 +94,10 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('when a connection is added and connected it is added to the tree and expanded', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     const testExplorerController = new ExplorerController();
 
@@ -144,7 +156,10 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('only the active connection is displayed as connected in the tree', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     const testExplorerController = new ExplorerController();
 
@@ -208,7 +223,10 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('shows the databases of connected connection in tree', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
     const testExplorerController = new ExplorerController();
 
     testExplorerController.activate(testConnectionController);

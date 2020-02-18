@@ -4,7 +4,7 @@ import { before, after } from 'mocha';
 
 import ConnectionController from '../../connectionController';
 import MDBExtensionController from '../../mdbExtensionController';
-
+import { StorageController } from '../../storage';
 import { StatusView } from '../../views';
 
 import { TestExtensionContext } from './stubs';
@@ -24,10 +24,10 @@ suite('Extension Test Suite', () => {
   test('commands are registered in vscode', done => {
     const mockExtensionContext = new TestExtensionContext();
 
-    const mockMDBExtension = new MDBExtensionController();
+    const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
     disposables.push(mockMDBExtension);
 
-    mockMDBExtension.activate(mockExtensionContext);
+    mockMDBExtension.activate();
 
     vscode.commands
       .getCommands()
@@ -58,8 +58,9 @@ suite('Extension Test Suite', () => {
 
   test('launchMongoShell should open a terminal', done => {
     disposables.push(vscode.window.onDidOpenTerminal(() => done()));
+    const mockExtensionContext = new TestExtensionContext();
 
-    const mockMDBExtension = new MDBExtensionController();
+    const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
 
     mockMDBExtension.openMongoDBShell();
   });
@@ -69,15 +70,20 @@ suite('Extension Test Suite', () => {
     after(require('mongodb-runner/mocha/after'));
 
     test('when the extension is deactivated, the active connection is disconnected', (done) => {
-      const testConnectionController = new ConnectionController(new StatusView());
+      const mockExtensionContext = new TestExtensionContext();
+      const mockStorageController = new StorageController(mockExtensionContext);
+      const testConnectionController = new ConnectionController(
+        new StatusView(),
+        mockStorageController
+      );
 
       const mockMDBExtension = new MDBExtensionController(
+        mockExtensionContext,
         testConnectionController
       );
       disposables.push(mockMDBExtension);
 
-      const mockExtensionContext = new TestExtensionContext();
-      mockMDBExtension.activate(mockExtensionContext);
+      mockMDBExtension.activate();
 
       testConnectionController
         .addNewConnectionAndConnect(testDatabaseURI)

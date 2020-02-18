@@ -15,12 +15,12 @@ const log = createLogger('commands');
 export function activate(context: vscode.ExtensionContext) {
   log.info('activate extension called');
 
-  mdbExtension = new MDBExtensionController();
+  mdbExtension = new MDBExtensionController(context);
 
   // Add our extension to a list of disposables for when we are deactivated.
   context.subscriptions.push(mdbExtension);
 
-  mdbExtension.activate(context);
+  mdbExtension.activate();
 
   log.info('extension activated');
 }

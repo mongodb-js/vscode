@@ -5,7 +5,10 @@ import { before, after } from 'mocha';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../../connectionController';
+import { StorageController } from '../../storage';
 import { StatusView } from '../../views';
+
+import { TestExtensionContext } from './stubs';
 
 const testDatabaseURI = 'mongodb://localhost';
 const testDatabaseURI2WithTimeout =
@@ -17,8 +20,14 @@ suite('Connection Controller Test Suite', () => {
   before(require('mongodb-runner/mocha/before'));
   after(require('mongodb-runner/mocha/after'));
 
+  const mockExtensionContext = new TestExtensionContext();
+  const mockStorageController = new StorageController(mockExtensionContext);
+
   test('it connects to mongodb', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
     this.timeout(2000);
 
     testConnectionController
@@ -42,7 +51,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('"disconnect()" disconnects from the active connection', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
     this.timeout(2000);
 
     testConnectionController
@@ -79,7 +91,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('"removeMongoDBConnection()" returns a reject promise when there is no active connection', done => {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     testConnectionController
       .removeMongoDBConnection()
@@ -90,7 +105,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('"disconnect()" fails when there is no active connection', done => {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     testConnectionController
       .disconnect()
@@ -101,7 +119,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('when adding a new connection it disconnects from the current connection', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
     this.timeout(2000);
 
     testConnectionController
@@ -130,7 +151,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('when adding a new connection it disconnects from the current connection', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
     this.timeout(2000);
 
     testConnectionController
@@ -159,7 +183,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('"connect()" failed when we are currently connecting', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     testConnectionController.setConnnecting(true);
 
@@ -172,7 +199,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('"connect()" failed when we are currently disconnecting', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     testConnectionController.setDisconnecting(true);
 
@@ -185,7 +215,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('"disconnect()" fails when we are currently connecting', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     testConnectionController.setConnnecting(true);
 
@@ -198,7 +231,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('"disconnect()" fails when we are currently disconnecting', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     testConnectionController.setDisconnecting(true);
 
@@ -211,7 +247,10 @@ suite('Connection Controller Test Suite', () => {
   });
 
   test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     let didFireConnectionEvent = false;
 
@@ -237,7 +276,10 @@ suite('Connection Controller Test Suite', () => {
 
   const expectedTimesToFire = 3;
   test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     let connectionEventFiredCount = 0;
 

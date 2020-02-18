@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
+import { StorageController, StorageVariables } from './storage';
 
 const Connection = require('mongodb-connection-model');
 const DataService = require('mongodb-data-service');
@@ -44,12 +45,20 @@ export default class ConnectionController {
   private _disconnecting = false;
 
   private _statusView: StatusView;
+  private _storageController: StorageController;
 
   // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();
 
-  constructor(_statusView: StatusView) {
+  constructor(_statusView: StatusView, storageController: StorageController) {
     this._statusView = _statusView;
+    this._storageController = storageController;
+  }
+
+  activate(): void {
+    // Pull in existing connections from storage.
+    const existingConnectionModels = this._storageController.get(StorageVariables.CONNECTION_MODELS);
+    this._connectionConfigs = existingConnectionModels || {};
   }
 
   public addMongoDBConnection(): Promise<boolean> {
