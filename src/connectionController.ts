@@ -1,15 +1,15 @@
-const Connection = require('mongodb-connection-model');
-const DataService = require('mongodb-data-service');
-const { name, version } = require('../package.json');
+import path = require('path');
 import * as vscode from 'vscode';
-
 import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
 
+const Connection = require('mongodb-connection-model');
+const DataService = require('mongodb-data-service');
 const log = createLogger('connection controller');
+const { name, version } = require(path.resolve(__dirname, '../package.json'));
 
-function getConnectWebviewContent() {
+function getConnectWebviewContent(): string {
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -39,9 +39,9 @@ export default class ConnectionController {
   private _currentConnectionConfig: any;
   private _currentConnectionInstanceId: string | null = null;
 
-  private _connecting: boolean = false;
-  private _connectingInstanceId: string = '';
-  private _disconnecting: boolean = false;
+  private _connecting = false;
+  private _connectingInstanceId = '';
+  private _disconnecting = false;
 
   private _statusView: StatusView;
 
@@ -80,15 +80,12 @@ export default class ConnectionController {
         placeHolder:
           'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
-        validateInput: uri => {
-          let connectionStringError = null;
-
+        validateInput: (uri: any) => {
           if (!Connection.isURI(uri)) {
-            connectionStringError =
-              'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
+            return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
           }
 
-          return connectionStringError;
+          return null;
         }
       });
     } catch (e) {
@@ -194,9 +191,9 @@ export default class ConnectionController {
   public async connectWithInstanceId(connectionId: string): Promise<any> {
     if (this._connectionConfigs[connectionId]) {
       return this.connect(this._connectionConfigs[connectionId]);
-    } else {
-      return Promise.reject('Connection not found.');
     }
+
+    return Promise.reject('Connection not found.');
   }
 
   public disconnect(): Promise<boolean> {
