@@ -12,12 +12,16 @@ const snippetTemplate = (
   comment?: string
 ): { prefix: string; body: Array<string>; description: string } => {
   const body = snippet.split('\n');
+  const find = /[$]/;
+  const re = new RegExp(find, 'g');
 
   body[0] = `\\${prefix}: ${body[0]}`;
 
   return {
     prefix,
-    body: comment ? [...comment.split('\n'), ...body] : [...body],
+    body: comment
+      ? [...comment.replace(re, '\\$').split('\n'), ...body]
+      : [...body],
     description
   };
 };
