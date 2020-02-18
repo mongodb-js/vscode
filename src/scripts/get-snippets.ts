@@ -1,4 +1,5 @@
-const fs = require('fs');
+import fs = require('fs');
+
 const STAGE_OPERATORS = require('mongodb-ace-autocompleter').STAGE_OPERATORS;
 const SNIPPETS_DIR = `${__dirname}/../snippets`;
 
@@ -7,7 +8,7 @@ const snippetTemplate = (
   description: string,
   snippet: string,
   comment?: string
-) => {
+): { prefix: string; body: Array<string>; description: string } => {
   return {
     prefix,
     body: comment
@@ -45,7 +46,7 @@ fs.mkdir(SNIPPETS_DIR, (mkdirError: any) => {
       `${SNIPPETS_DIR}/stage-autocompleter.json`,
       JSON.stringify(snippets, null, 2),
       'utf8',
-      (writeFileError: Object) => {
+      (writeFileError: Record<string, any> | null) => {
         if (writeFileError) {
           return console.log(
             'An error occured while writing to stage-autocompleter.json',

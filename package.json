@@ -120,6 +120,11 @@
     "vscode:prepublish": "npm run compile",
     "check": "mongodb-js-precommit './src/**/*{.ts}'"
   },
+  "dependency-check": {
+    "ignore": [
+      "vscode"
+    ]
+  },
   "devDependencies": {
     "@types/chai": "^4.2.9",
     "@types/chai-fs": "^2.0.2",
@@ -128,6 +133,7 @@
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.1",
     "@types/vscode": "^1.41.0",
+    "@typescript-eslint/eslint-plugin": "^2.19.2",
     "@typescript-eslint/parser": "^2.19.2",
     "chai": "^4.2.0",
     "chai-fs": "^2.0.0",
@@ -146,8 +152,7 @@
   "dependencies": {
     "mongodb-connection-model": "^14.5.0",
     "mongodb-data-service": "^16.5.1",
-    "ts-log": "^2.1.4",
-    "vscode": "^1.1.36"
+    "ts-log": "^2.1.4"
   },
   "license": "Apache-2.0"
 }

@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import * as chai from 'chai';
+import chaiFs = require('chai-fs');
+import chaiJsonSchema = require('chai-json-schema');
 
-chai.use(require('chai-fs'));
-chai.use(require('chai-json-schema'));
+chai.use(chaiFs);
+chai.use(chaiJsonSchema);
 
 const expect = chai.expect;
 const SNIPPETS_DIR = `${__dirname}/../../../../src/snippets`;
@@ -38,7 +40,7 @@ const STAGE_LABELS = [
   'MongoDB Aggregations $unwind'
 ];
 
-suite.only('Stage Autocompleter Test Suite', () => {
+suite('Stage Autocompleter Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
   test('checks that stage-autocompleter.json exists and includes JSON with prefix, body and description', () => {

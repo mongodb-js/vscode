@@ -4,9 +4,10 @@ import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
 import TreeItemParent from './treeItemParentInterface';
 
-export default class ConnectionTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
+export default class ConnectionTreeItem extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
   private _childrenCache: DatabaseTreeItem[] = [];
-  private _childrenCacheIsUpToDate: boolean = false;
+  private _childrenCacheIsUpToDate = false;
 
   private _connectionController: ConnectionController;
   private _connectionInstanceId: string;
@@ -20,7 +21,9 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
   ) {
     super(
       connectionInstanceId,
-      isActiveConnection ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed
+      isActiveConnection
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Collapsed
     );
 
     this._connectionInstanceId = connectionInstanceId;
@@ -37,12 +40,15 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
   }
 
   get description(): string {
-    if (this._connectionController.getActiveConnectionInstanceId() === this._connectionInstanceId) {
+    if (
+      this._connectionController.getActiveConnectionInstanceId() ===
+      this._connectionInstanceId
+    ) {
       if (this._connectionController.isDisconnecting()) {
         return 'disconnecting...';
-      } else {
-        return 'connected';
       }
+
+      return 'connected';
     }
 
     return '';
@@ -56,55 +62,60 @@ export default class ConnectionTreeItem extends vscode.TreeItem implements TreeI
     if (this.isExpanded) {
       if (this._childrenCacheIsUpToDate) {
         return Promise.resolve(this._childrenCache);
-      } else {
-        return new Promise(async (resolve, reject) => {
-          // If we aren't the active connection, we reconnect.
-          if (this._connectionController.getActiveConnectionInstanceId() !== this._connectionInstanceId) {
-            try {
-              await this._connectionController.connectWithInstanceId(this._connectionInstanceId);
-            } catch (err) {
-              return reject(err);
-            }
+      }
+
+      return new Promise(async (resolve, reject) => {
+        // If we aren't the active connection, we reconnect.
+        if (
+          this._connectionController.getActiveConnectionInstanceId() !==
+          this._connectionInstanceId
+        ) {
+          try {
+            await this._connectionController.connectWithInstanceId(
+              this._connectionInstanceId
+            );
+          } catch (err) {
+            return reject(err);
+          }
+        }
+
+        const dataService = this._connectionController.getActiveConnection();
+        dataService.listDatabases((err: any, databases: string[]) => {
+          if (err) {
+            return reject(`Unable to list databases: ${err}`);
           }
 
-          const dataService = this._connectionController.getActiveConnection();
-          dataService.listDatabases((err: any, databases: string[]) => {
-            if (err) {
-              return reject(`Unable to list databases: ${err}`);
-            }
+          this._childrenCacheIsUpToDate = true;
 
-            this._childrenCacheIsUpToDate = true;
+          if (databases) {
+            this._childrenCache = databases.map(
+              ({ name }: any) => new DatabaseTreeItem(name, dataService)
+            );
+          } else {
+            this._childrenCache = [];
+          }
 
-            if (databases) {
-              this._childrenCache = databases.map(
-                ({ name }: any) => new DatabaseTreeItem(name, dataService)
-              );
-            } else {
-              this._childrenCache = [];
-            }
-
-            return resolve(this._childrenCache);
-          });
+          return resolve(this._childrenCache);
         });
-      }
+      });
     }
 
     // Here we either want to return loading or nothing.
     return Promise.resolve([]);
   }
 
-  onDidCollapse() {
+  onDidCollapse(): void {
     this.isExpanded = false;
     this._childrenCacheIsUpToDate = false;
   }
 
-  async onDidExpand() {
+  async onDidExpand(): Promise<void> {
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
   }
 
   // Exposed for testing.
-  public getIsExpanded() {
+  public getIsExpanded(): boolean {
     return this.isExpanded;
   }
 }
