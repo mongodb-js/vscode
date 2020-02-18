@@ -12,8 +12,7 @@ import { createLogger } from '../logging';
 
 const log = createLogger('explorer controller');
 
-export default class ExplorerTreeController
-implements vscode.TreeDataProvider<vscode.TreeItem> {
+export default class ExplorerTreeController implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _mdbConnectionsTreeItem: MDBConnectionsTreeItem;
 
@@ -50,11 +49,16 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
       this.onTreeItemUpdate();
     });
 
-    treeView.onDidExpandElement(async (event: any) => {
+    treeView.onDidExpandElement((event: any): Promise<any> => {
       log.info('Tree item was expanded:', event.element.label);
-      await event.element.onDidExpand();
-
-      this.onTreeItemUpdate();
+      return new Promise((resolve, reject) => {
+        event.element.onDidExpand().then(() => {
+          this.onTreeItemUpdate();
+          resolve(true);
+        }, (err: Error) => {
+          reject(err);
+        });
+      });
     });
 
     treeView.onDidChangeSelection((event: any) => {
@@ -71,7 +75,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   readonly onDidChangeTreeData: vscode.Event<any>;
 
   public refresh = (): void => {
-    this._mdbConnectionsTreeItem.loadConnections();
+    this._mdbConnectionsTreeItem.connectionsDidChange();
     this._onDidChangeTreeData.fire();
   };
 

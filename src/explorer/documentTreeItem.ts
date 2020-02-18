@@ -4,11 +4,21 @@ export default class MongoDBDocumentTreeItem extends vscode.TreeItem implements 
   private _documentLabel: string;
 
   constructor(
-    document: any
+    document: any,
+    documentIndexInTree: number
   ) {
-    super(JSON.stringify(document._id), vscode.TreeItemCollapsibleState.None);
+    // A document can not have a `_id` when it is in a view. In this instance
+    // we just show the document's index in the tree.
+    super(
+      document._id
+        ? JSON.stringify(document._id)
+        : `Document ${documentIndexInTree + 1}`,
+      vscode.TreeItemCollapsibleState.None
+    );
 
-    this._documentLabel = JSON.stringify(document._id);
+    this._documentLabel = document._id
+      ? JSON.stringify(document._id)
+      : `Document ${documentIndexInTree + 1}`;
   }
 
   get tooltip(): string {

@@ -1,18 +1,24 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
-import CollectionTreeItem from '../../../explorer/collectionTreeItem';
+import CollectionTreeItem, {
+  CollectionTypes,
+  MAX_DOCUMENTS_VISIBLE
+} from '../../../explorer/collectionTreeItem';
 
 import { DataServiceStub, mockDocuments } from '../stubs';
 
 suite('CollectionTreeItem Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  test('when the "show more" click handler function is called it increases the amount of documents to show by 10', function() {
+  test('when the "show more" click handler function is called it increases the amount of documents to show by 10', function () {
     const testCollectionTreeItem = new CollectionTreeItem(
       'collectionName',
       'databaseName',
-      'not_real_dataservice'
+      'not_real_dataservice',
+      false,
+      [],
+      MAX_DOCUMENTS_VISIBLE
     );
 
     const maxDocumentsToShow = testCollectionTreeItem.getMaxDocumentsToShow();
@@ -30,36 +36,44 @@ suite('CollectionTreeItem Test Suite', () => {
     );
   });
 
-  test('when not expanded it does not show documents', function(done) {
+  test('when not expanded it does not show documents', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
-      'mock_collection_name',
+      { name: 'mock_collection_name', type: CollectionTypes.collection },
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      MAX_DOCUMENTS_VISIBLE
     );
 
     testCollectionTreeItem
       .getChildren()
-      .then((collections: any) => {
+      .then(collections => {
         assert(
           collections.length === 0,
           `Expected no collections to be returned, found ${collections.length}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
-  test('when expanded shows the documents of a collection in tree', function(done) {
+  test('when expanded shows the documents of a collection in tree', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
-      'mock_collection_name_1',
+      {
+        name: 'mock_collection_name_1',
+        type: CollectionTypes.collection
+      },
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      MAX_DOCUMENTS_VISIBLE
     );
-
     testCollectionTreeItem.onDidExpand();
 
     testCollectionTreeItem
       .getChildren()
-      .then((documents: any) => {
+      .then(documents => {
         assert(
           documents.length === 11,
           `Expected 11 documents to be returned, found ${documents.length}`
@@ -69,21 +83,26 @@ suite('CollectionTreeItem Test Suite', () => {
           `Expected a tree item child with the label document name ${mockDocuments[1]._id} found ${documents[1].label}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
-  test('it should show a show more item when there are more documents to show', function(done) {
+  test('it should show a show more item when there are more documents to show', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
-      'mock_collection_name_2',
+      {
+        name: 'mock_collection_name_2',
+        type: CollectionTypes.collection
+      },
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      MAX_DOCUMENTS_VISIBLE
     );
-
     testCollectionTreeItem.onDidExpand();
 
     testCollectionTreeItem
       .getChildren()
-      .then((documents: any) => {
+      .then(documents => {
         assert(
           documents.length === 11,
           `Expected 11 documents to be returned, found ${documents.length}`
@@ -93,14 +112,20 @@ suite('CollectionTreeItem Test Suite', () => {
           `Expected a tree item child with the label "show more..." found ${documents[10].label}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
-  test('it should show more documents after the show more click handler is called', function(done) {
+  test('it should show more documents after the show more click handler is called', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
-      'mock_collection_name_3',
+      {
+        name: 'mock_collection_name_3',
+        type: CollectionTypes.collection
+      },
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      MAX_DOCUMENTS_VISIBLE
     );
 
     testCollectionTreeItem.onDidExpand();
@@ -108,7 +133,7 @@ suite('CollectionTreeItem Test Suite', () => {
 
     testCollectionTreeItem
       .getChildren()
-      .then((documents: any) => {
+      .then(documents => {
         assert(
           documents.length === 21,
           `Expected 21 documents to be returned, found ${documents.length}`
@@ -122,14 +147,20 @@ suite('CollectionTreeItem Test Suite', () => {
           `Expected a tree item child with the label "show more..." found ${documents[10].label}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
-  test('it should not show a show more item when there not are more documents to show', function(done) {
+  test('it should not show a show more item when there not are more documents to show', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
-      'mock_collection_name_4',
+      {
+        name: 'mock_collection_name_4',
+        type: CollectionTypes.collection
+      },
       'mock_db_name',
-      new DataServiceStub()
+      new DataServiceStub(),
+      false,
+      [],
+      MAX_DOCUMENTS_VISIBLE
     );
 
     testCollectionTreeItem.onDidExpand();
@@ -140,7 +171,7 @@ suite('CollectionTreeItem Test Suite', () => {
 
     testCollectionTreeItem
       .getChildren()
-      .then((documents: any) => {
+      .then(documents => {
         assert(
           documents.length === 25,
           `Expected 25 documents to be returned, found ${documents.length}`
@@ -150,6 +181,38 @@ suite('CollectionTreeItem Test Suite', () => {
           'Expected the last tree item to not have the label "show more..."'
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
+  });
+
+  test('a view should show an icon, a collection should not', function () {
+    const testCollectionViewTreeItem = new CollectionTreeItem({
+      name: 'mock_collection_name_4',
+      type: CollectionTypes.view
+    }, 'mock_db_name', new DataServiceStub(), false, [], MAX_DOCUMENTS_VISIBLE);
+
+    const viewIconPath: any = testCollectionViewTreeItem.iconPath;
+    assert(
+      viewIconPath.light.indexOf('view.svg') > -1,
+      'Expected icon path to point to an svg by the name "view" with a light mode'
+    );
+    assert(
+      viewIconPath.dark.indexOf('view.svg') > -1,
+      'Expected icon path to point to an svg by the name "view" a dark mode'
+    );
+
+    const testCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_4',
+        type: CollectionTypes.collection
+      },
+      'mock_db_name',
+      new DataServiceStub(),
+      false,
+      [],
+      MAX_DOCUMENTS_VISIBLE
+    );
+
+    const collectionIconPath: any = testCollectionTreeItem.iconPath;
+    assert(collectionIconPath === '', 'Expected icon path to be an empty string on a collection type');
   });
 });
