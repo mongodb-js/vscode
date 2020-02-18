@@ -13,7 +13,7 @@ const snippetTemplate = (
 ): { prefix: string; body: Array<string>; description: string } => {
   const body = snippet.split('\n');
 
-  body[0] = `${prefix}: ${body[0]}`;
+  body[0] = `\\${prefix}: ${body[0]}`;
 
   return {
     prefix,
