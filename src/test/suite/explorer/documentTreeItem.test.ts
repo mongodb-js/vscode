@@ -6,7 +6,7 @@ import DocumentTreeItem from '../../../explorer/documentTreeItem';
 suite('DocumentTreeItem Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  test('it makes the document _id the label of the document tree item', function() {
+  test('it makes the document _id the label of the document tree item', function () {
     const mockDocument = {
       _id: 'mock_document_id'
     };
@@ -20,7 +20,7 @@ suite('DocumentTreeItem Test Suite', () => {
     );
   });
 
-  test('when the document has an object _id, it is stringified into the tree item label', function() {
+  test('when the document has an object _id, it is stringified into the tree item label', function () {
     const mockDocument = {
       _id: {
         someIdField: 'mock_document_id',
@@ -33,7 +33,10 @@ suite('DocumentTreeItem Test Suite', () => {
     const testCollectionTreeItem = new DocumentTreeItem(mockDocument, 1);
 
     const documentTreeItemLabel = testCollectionTreeItem.label;
-    assert(documentTreeItemLabel === expectedLabel, `Expected tree item label to be ${expectedLabel}, found ${documentTreeItemLabel}.`);
+    assert(
+      documentTreeItemLabel === expectedLabel,
+      `Expected tree item label to be ${expectedLabel}, found ${documentTreeItemLabel}.`
+    );
   });
 
   test('when the document does not have an _id, its label is the supplied index', function () {

@@ -52,7 +52,9 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return 'connected';
     }
 
-    if (this._connectionController.isConnnecting() && this._connectionController.getConnectingInstanceId() === this._connectionInstanceId) {
+    if (this._connectionController.isConnnecting()
+      && this._connectionController.getConnectingInstanceId() === this._connectionInstanceId
+    ) {
       return 'connecting...';
     }
 
@@ -64,7 +66,10 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<any[]> {
-    if (!this.isExpanded || this._connectionController.isDisconnecting() || this._connectionController.isConnnecting()) {
+    if (!this.isExpanded
+      || this._connectionController.isDisconnecting()
+      || this._connectionController.isConnnecting()
+    ) {
       return Promise.resolve([]);
     }
 
@@ -125,11 +130,14 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     // If we aren't the active connection, we reconnect.
     if (this._connectionController.getActiveConnectionInstanceId() !== this._connectionInstanceId) {
       return new Promise(resolve => {
-        this._connectionController.connectWithInstanceId(this._connectionInstanceId).then(() => resolve(true), err => {
-          this.isExpanded = false;
-          vscode.window.showErrorMessage(err);
-          resolve(false);
-        });
+        this._connectionController.connectWithInstanceId(this._connectionInstanceId).then(
+          () => resolve(true),
+          err => {
+            this.isExpanded = false;
+            vscode.window.showErrorMessage(err);
+            resolve(false);
+          }
+        );
       });
     }
 

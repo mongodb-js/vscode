@@ -270,19 +270,34 @@ suite('Explorer Controller Test Suite', function () {
           const testConnectionTreeItem = connectionsItems[0];
           testConnectionTreeItem.onDidExpand().then(() => {
             testConnectionTreeItem.getChildren().then((databaseItems: any) => {
-              assert(databaseItems[1].isExpanded === false, 'Expected database tree item not to be expanded on default.');
+              assert(
+                databaseItems[1].isExpanded === false,
+                'Expected database tree item not to be expanded on default.'
+              );
 
               // Expand the first database item.
               databaseItems[1].onDidExpand().then(() => {
-                assert(databaseItems[1].isExpanded === true, 'Expected database tree item be expanded.');
+                assert(
+                  databaseItems[1].isExpanded === true,
+                  'Expected database tree item be expanded.'
+                );
+
                 // Collapse the connection.
                 testConnectionTreeItem.onDidCollapse();
 
                 testConnectionTreeItem.getChildren().then((databaseTreeItems: any) => {
-                  assert(databaseTreeItems.length === 0, `Expected the connection tree to return no children when collapsed, found ${databaseTreeItems.length}`);
+                  assert(
+                    databaseTreeItems.length === 0,
+                    `Expected the connection tree to return no children when collapsed, found ${databaseTreeItems.length}`
+                  );
+
                   testConnectionTreeItem.onDidExpand();
                   testConnectionTreeItem.getChildren().then((newDatabaseItems: any) => {
-                    assert(newDatabaseItems[1].isExpanded === true, 'Expected database tree to be expanded from cache.');
+                    assert(
+                      newDatabaseItems[1].isExpanded === true,
+                      'Expected database tree to be expanded from cache.'
+                    );
+
                     testExplorerController.deactivate();
                   }).then(done, done);
                 });

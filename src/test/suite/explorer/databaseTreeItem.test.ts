@@ -54,29 +54,50 @@ suite('DatabaseTreeItem Test Suite', () => {
   });
 
   test('when expanded and collapsed its collections cache their expanded documents', function (done) {
-    const testDatabaseTreeItem = new DatabaseTreeItem(mockDatabaseNames[1], new DataServiceStub(), false, {});
+    const testDatabaseTreeItem = new DatabaseTreeItem(
+      mockDatabaseNames[1],
+      new DataServiceStub(),
+      false,
+      {}
+    );
 
     testDatabaseTreeItem.onDidExpand();
 
     testDatabaseTreeItem.getChildren().then(collectionTreeItems => {
-      assert(collectionTreeItems[1].isExpanded === false, 'Expected collection tree item not to be expanded on default.');
+      assert(
+        collectionTreeItems[1].isExpanded === false,
+        'Expected collection tree item not to be expanded on default.'
+      );
+
       collectionTreeItems[1].onDidExpand();
       collectionTreeItems[1].onShowMoreClicked();
 
       collectionTreeItems[1].getChildren().then((documents: any) => {
-        assert(documents.length === 21, `Expected 21 documents to be returned, found ${documents.length}`);
+        assert(
+          documents.length === 21,
+          `Expected 21 documents to be returned, found ${documents.length}`
+        );
 
         testDatabaseTreeItem.onDidCollapse();
         testDatabaseTreeItem.getChildren().then(postCollapseCollectionTreeItems => {
-          assert(postCollapseCollectionTreeItems.length === 0, `Expected the database tree to return no children when collapsed, found ${collectionTreeItems.length}`);
+          assert(
+            postCollapseCollectionTreeItems.length === 0,
+            `Expected the database tree to return no children when collapsed, found ${collectionTreeItems.length}`
+          );
 
           testDatabaseTreeItem.onDidExpand();
           testDatabaseTreeItem.getChildren().then(newCollectionTreeItems => {
-            assert(newCollectionTreeItems[1].isExpanded === true, 'Expected collection tree item to be expanded from cache.');
+            assert(
+              newCollectionTreeItems[1].isExpanded === true,
+              'Expected collection tree item to be expanded from cache.'
+            );
 
             newCollectionTreeItems[1].getChildren().then((documentsPostCollapseExpand: any) => {
               // It should cache that we activated show more.
-              assert(documentsPostCollapseExpand.length === 21, `Expected a cached 21 documents to be returned, found ${documents.length}`);
+              assert(
+                documentsPostCollapseExpand.length === 21,
+                `Expected a cached 21 documents to be returned, found ${documents.length}`
+              );
             }).then(done, done);
           });
         });
