@@ -279,7 +279,6 @@ suite('Explorer Controller Test Suite', function () {
           // Expand the connection.
           const testConnectionTreeItem = connectionsItems[0];
           testConnectionTreeItem.onDidExpand().then(() => {
-
             testConnectionTreeItem.getChildren().then((databaseItems: any) => {
               assert(databaseItems[1].isExpanded === false, 'Expected database tree item not to be expanded on default.');
 

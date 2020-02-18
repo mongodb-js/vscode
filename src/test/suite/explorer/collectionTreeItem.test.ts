@@ -37,10 +37,8 @@ suite('CollectionTreeItem Test Suite', () => {
   });
 
   test('when not expanded it does not show documents', function (done) {
-    const testCollectionTreeItem = new CollectionTreeItem({
-      name: 'mock_collection_name',
-      type: CollectionTypes.collection
-    },
+    const testCollectionTreeItem = new CollectionTreeItem(
+      { name: 'mock_collection_name', type: CollectionTypes.collection },
       'mock_db_name',
       new DataServiceStub(),
       false,
@@ -50,7 +48,7 @@ suite('CollectionTreeItem Test Suite', () => {
 
     testCollectionTreeItem
       .getChildren()
-      .then((collections: any) => {
+      .then(collections => {
         assert(
           collections.length === 0,
           `Expected no collections to be returned, found ${collections.length}`
@@ -60,10 +58,11 @@ suite('CollectionTreeItem Test Suite', () => {
   });
 
   test('when expanded shows the documents of a collection in tree', function (done) {
-    const testCollectionTreeItem = new CollectionTreeItem({
-      name: 'mock_collection_name_1',
-      type: CollectionTypes.collection
-    },
+    const testCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_1',
+        type: CollectionTypes.collection
+      },
       'mock_db_name',
       new DataServiceStub(),
       false,
@@ -74,7 +73,7 @@ suite('CollectionTreeItem Test Suite', () => {
 
     testCollectionTreeItem
       .getChildren()
-      .then((documents: any) => {
+      .then(documents => {
         assert(
           documents.length === 11,
           `Expected 11 documents to be returned, found ${documents.length}`
@@ -88,10 +87,11 @@ suite('CollectionTreeItem Test Suite', () => {
   });
 
   test('it should show a show more item when there are more documents to show', function (done) {
-    const testCollectionTreeItem = new CollectionTreeItem({
-      name: 'mock_collection_name_2',
-      type: CollectionTypes.collection
-    },
+    const testCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_2',
+        type: CollectionTypes.collection
+      },
       'mock_db_name',
       new DataServiceStub(),
       false,
@@ -102,7 +102,7 @@ suite('CollectionTreeItem Test Suite', () => {
 
     testCollectionTreeItem
       .getChildren()
-      .then((documents: any) => {
+      .then(documents => {
         assert(
           documents.length === 11,
           `Expected 11 documents to be returned, found ${documents.length}`
@@ -116,10 +116,11 @@ suite('CollectionTreeItem Test Suite', () => {
   });
 
   test('it should show more documents after the show more click handler is called', function (done) {
-    const testCollectionTreeItem = new CollectionTreeItem({
-      name: 'mock_collection_name_3',
-      type: CollectionTypes.collection
-    },
+    const testCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_3',
+        type: CollectionTypes.collection
+      },
       'mock_db_name',
       new DataServiceStub(),
       false,
@@ -132,7 +133,7 @@ suite('CollectionTreeItem Test Suite', () => {
 
     testCollectionTreeItem
       .getChildren()
-      .then((documents: any) => {
+      .then(documents => {
         assert(
           documents.length === 21,
           `Expected 21 documents to be returned, found ${documents.length}`
@@ -150,10 +151,11 @@ suite('CollectionTreeItem Test Suite', () => {
   });
 
   test('it should not show a show more item when there not are more documents to show', function (done) {
-    const testCollectionTreeItem = new CollectionTreeItem({
-      name: 'mock_collection_name_4',
-      type: CollectionTypes.collection
-    },
+    const testCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_4',
+        type: CollectionTypes.collection
+      },
       'mock_db_name',
       new DataServiceStub(),
       false,
@@ -169,7 +171,7 @@ suite('CollectionTreeItem Test Suite', () => {
 
     testCollectionTreeItem
       .getChildren()
-      .then((documents: any) => {
+      .then(documents => {
         assert(
           documents.length === 25,
           `Expected 25 documents to be returned, found ${documents.length}`

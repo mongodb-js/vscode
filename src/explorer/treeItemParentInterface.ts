@@ -4,5 +4,5 @@ export default interface TreeItemParentInterface extends vscode.TreeItem {
   isExpanded: boolean;
 
   onDidCollapse(): void;
-  onDidExpand(): Promise<any>;
+  onDidExpand(): Promise<boolean>;
 }

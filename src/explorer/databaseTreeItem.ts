@@ -51,45 +51,48 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     }
 
     return new Promise((resolve, reject) => {
-      this._dataService.listCollections(this._databaseName, {}, (err: any, collections: string[]) => {
-        if (err) {
-          return reject(`Unable to list collections: ${err}`);
-        }
+      this._dataService.listCollections(
+        this._databaseName,
+        {}, // No filter.
+        (err: any, collections: string[]) => {
+          if (err) {
+            return reject(`Unable to list collections: ${err}`);
+          }
 
-        this._childrenCacheIsUpToDate = true;
+          this._childrenCacheIsUpToDate = true;
 
-        if (collections) {
-          const pastChildrenCache = this._childrenCache;
-          this._childrenCache = {};
-          // Create new collection tree items, using previously cached items
-          // where possible.
-          collections.forEach((collection: any) => {
-            if (pastChildrenCache[collection.name]) {
-              this._childrenCache[collection.name] = new CollectionTreeItem(
-                collection,
-                this._databaseName,
-                this._dataService,
-                pastChildrenCache[collection.name].isExpanded,
-                pastChildrenCache[collection.name].getChildrenCache(),
-                pastChildrenCache[collection.name].getMaxDocumentsToShow()
-              );
-            } else {
-              this._childrenCache[collection.name] = new CollectionTreeItem(
-                collection,
-                this._databaseName,
-                this._dataService,
-                false, // Not expanded.
-                [], // No cached documents.
-                defaultMaxDocumentsToShow
-              );
-            }
-          });
-        } else {
-          this._childrenCache = {};
-        }
+          if (collections) {
+            const pastChildrenCache = this._childrenCache;
+            this._childrenCache = {};
+            // Create new collection tree items, using previously cached items
+            // where possible.
+            collections.forEach((collection: any) => {
+              if (pastChildrenCache[collection.name]) {
+                this._childrenCache[collection.name] = new CollectionTreeItem(
+                  collection,
+                  this._databaseName,
+                  this._dataService,
+                  pastChildrenCache[collection.name].isExpanded,
+                  pastChildrenCache[collection.name].getChildrenCache(),
+                  pastChildrenCache[collection.name].getMaxDocumentsToShow()
+                );
+              } else {
+                this._childrenCache[collection.name] = new CollectionTreeItem(
+                  collection,
+                  this._databaseName,
+                  this._dataService,
+                  false, // Not expanded.
+                  [], // No cached documents.
+                  defaultMaxDocumentsToShow
+                );
+              }
+            });
+          } else {
+            this._childrenCache = {};
+          }
 
-        return resolve(Object.values(this._childrenCache));
-      });
+          return resolve(Object.values(this._childrenCache));
+        });
     });
   }
 
@@ -98,7 +101,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
   }
 
-  onDidExpand(): Promise<any> {
+  onDidExpand(): Promise<boolean> {
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
     return Promise.resolve(true);

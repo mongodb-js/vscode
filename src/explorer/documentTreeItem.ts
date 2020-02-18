@@ -10,7 +10,9 @@ export default class MongoDBDocumentTreeItem extends vscode.TreeItem implements 
     // A document can not have a `_id` when it is in a view. In this instance
     // we just show the document's index in the tree.
     super(
-      document._id ? JSON.stringify(document._id) : `Document ${documentIndexInTree + 1}`,
+      document._id
+        ? JSON.stringify(document._id)
+        : `Document ${documentIndexInTree + 1}`,
       vscode.TreeItemCollapsibleState.None
     );
 

@@ -125,23 +125,23 @@ export default class CollectionTreeItem extends vscode.TreeItem
     } : '';
   }
 
-  onShowMoreClicked = (): void => {
+  onShowMoreClicked(): void {
     this._maxDocumentsToShow += defaultMaxDocumentsToShow;
     this._childrenCacheIsUpToDate = false;
-  };
+  }
 
-  onDidCollapse = (): void => {
+  onDidCollapse(): void {
     this.isExpanded = false;
     this._childrenCacheIsUpToDate = false;
     this._maxDocumentsToShow = defaultMaxDocumentsToShow;
-  };
+  }
 
-  onDidExpand = (): Promise<any> => {
+  onDidExpand(): Promise<boolean> {
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
 
     return Promise.resolve(true);
-  };
+  }
 
   public getChildrenCache(): vscode.TreeItem[] {
     return this._childrenCache;
