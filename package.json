@@ -1,5 +1,5 @@
 {
-  "name": "mongodb",
+  "name": "mongodb-vscode",
   "displayName": "MongoDB",
   "description": "MongoDB for Visual Studio Code",
   "version": "0.0.1",

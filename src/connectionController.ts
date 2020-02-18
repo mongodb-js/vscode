@@ -1,5 +1,6 @@
 const Connection = require('mongodb-connection-model');
 const DataService = require('mongodb-data-service');
+const { name, version } = require('../package.json');
 import * as vscode from 'vscode';
 
 import { createLogger } from './logging';
@@ -114,6 +115,9 @@ export default class ConnectionController {
         if (this._connectionConfigs[instanceId]) {
           return reject('Failed to connect: connection already exists.');
         }
+
+        // Override default `appname`
+        newConnectionConfig.appname = `${name} ${version}`;
 
         this.connect(newConnectionConfig).then(resolve, reject);
       });
