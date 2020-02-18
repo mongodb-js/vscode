@@ -109,7 +109,7 @@ export default class ConnectionController {
         connectionString,
         (error: any, newConnectionConfig: any) => {
           if (error) {
-            return reject('Failed to connect: invalid connection string.');
+            return reject(new Error('Failed to connect: invalid connection string.'));
           }
 
           const { instanceId } = newConnectionConfig.getAttributes({
@@ -118,7 +118,7 @@ export default class ConnectionController {
 
           // Ensure we don't already have the supplied connection configuration.
           if (this._connectionConfigs[instanceId]) {
-            return reject('Failed to connect: connection already exists.');
+            return reject(new Error('Failed to connect: connection already exists.'));
           }
 
           // Override default `appname`
@@ -139,9 +139,11 @@ export default class ConnectionController {
     );
 
     if (this._connecting) {
-      return Promise.reject('Unable to connect: already connecting.');
+      return Promise.reject(new Error('Unable to connect: already connecting.'));
     } else if (this._disconnecting) {
-      return Promise.reject('Unable to connect: currently disconnecting.');
+      return Promise.reject(new Error(
+        'Unable to connect: currently disconnecting.'
+      ));
     }
 
     if (this._currentConnection) {
@@ -166,7 +168,7 @@ export default class ConnectionController {
           this._connecting = false;
           log.info('Failed to connect');
           this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-          return reject(`Failed to connect: ${err}`);
+          return reject(new Error(`Failed to connect: ${err}`));
         }
 
         log.info('Successfully connected');
@@ -193,7 +195,7 @@ export default class ConnectionController {
       return this.connect(this._connectionConfigs[connectionId]);
     }
 
-    return Promise.reject('Connection not found.');
+    return Promise.reject(new Error('Connection not found.'));
   }
 
   public disconnect(): Promise<boolean> {
@@ -205,7 +207,7 @@ export default class ConnectionController {
     if (this._disconnecting) {
       // TODO: The desired UX here may be for the connection to be interrupted.
       return Promise.reject(
-        'Unable to disconnect: already disconnecting from an instance.'
+        new Error('Unable to disconnect: already disconnecting from an instance.')
       );
     }
 
@@ -246,7 +248,7 @@ export default class ConnectionController {
     // Ensure we aren't currently connecting or disconnecting.
     if (this._connecting) {
       return Promise.reject(
-        'Unable to remove connection: currently connecting.'
+        new Error('Unable to remove connection: currently connecting.')
       );
     }
 
@@ -254,7 +256,7 @@ export default class ConnectionController {
 
     if (connectionInstanceIds.length === 0) {
       // No active connection(s) to remove.
-      return Promise.reject('No connections to remove.');
+      return Promise.reject(new Error('No connections to remove.'));
     }
 
     let connectionToRemove;

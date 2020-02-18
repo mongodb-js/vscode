@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 
 import CollectionTreeItem, {
   CollectionTypes,
-  defaultMaxDocumentsToShow
+  MAX_DOCUMENTS_VISIBLE
 } from '../../../explorer/collectionTreeItem';
 
 import { DataServiceStub, mockDocuments } from '../stubs';
@@ -18,7 +18,7 @@ suite('CollectionTreeItem Test Suite', () => {
       'not_real_dataservice',
       false,
       [],
-      defaultMaxDocumentsToShow
+      MAX_DOCUMENTS_VISIBLE
     );
 
     const maxDocumentsToShow = testCollectionTreeItem.getMaxDocumentsToShow();
@@ -43,7 +43,7 @@ suite('CollectionTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       [],
-      defaultMaxDocumentsToShow
+      MAX_DOCUMENTS_VISIBLE
     );
 
     testCollectionTreeItem
@@ -67,7 +67,7 @@ suite('CollectionTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       [],
-      defaultMaxDocumentsToShow
+      MAX_DOCUMENTS_VISIBLE
     );
     testCollectionTreeItem.onDidExpand();
 
@@ -96,7 +96,7 @@ suite('CollectionTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       [],
-      defaultMaxDocumentsToShow
+      MAX_DOCUMENTS_VISIBLE
     );
     testCollectionTreeItem.onDidExpand();
 
@@ -125,7 +125,7 @@ suite('CollectionTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       [],
-      defaultMaxDocumentsToShow
+      MAX_DOCUMENTS_VISIBLE
     );
 
     testCollectionTreeItem.onDidExpand();
@@ -160,7 +160,7 @@ suite('CollectionTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       [],
-      defaultMaxDocumentsToShow
+      MAX_DOCUMENTS_VISIBLE
     );
 
     testCollectionTreeItem.onDidExpand();
@@ -188,7 +188,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionViewTreeItem = new CollectionTreeItem({
       name: 'mock_collection_name_4',
       type: CollectionTypes.view
-    }, 'mock_db_name', new DataServiceStub(), false, [], defaultMaxDocumentsToShow);
+    }, 'mock_db_name', new DataServiceStub(), false, [], MAX_DOCUMENTS_VISIBLE);
 
     const viewIconPath: any = testCollectionViewTreeItem.iconPath;
     assert(
@@ -209,7 +209,7 @@ suite('CollectionTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       [],
-      defaultMaxDocumentsToShow
+      MAX_DOCUMENTS_VISIBLE
     );
 
     const collectionIconPath: any = testCollectionTreeItem.iconPath;

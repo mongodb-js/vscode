@@ -7,7 +7,7 @@ import TreeItemParent from './treeItemParentInterface';
 // We fetch 1 more than this in order to see if there are more to fetch.
 // Each time `show more` is clicked, the collection item increases the amount
 // of documents shown by this amount.
-export const defaultMaxDocumentsToShow = 10;
+export const MAX_DOCUMENTS_VISIBLE = 10;
 
 class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
   // This is the identifier we use to identify this tree item when a tree item
@@ -97,7 +97,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
         },
         (err: Error, documents: []) => {
           if (err) {
-            return reject(`Unable to list documents: ${err}`);
+            return reject(new Error(`Unable to list documents: ${err}`));
           }
 
           this._childrenCacheIsUpToDate = true;
@@ -134,14 +134,14 @@ export default class CollectionTreeItem extends vscode.TreeItem
   }
 
   onShowMoreClicked(): void {
-    this._maxDocumentsToShow += defaultMaxDocumentsToShow;
+    this._maxDocumentsToShow += MAX_DOCUMENTS_VISIBLE;
     this._childrenCacheIsUpToDate = false;
   }
 
   onDidCollapse(): void {
     this.isExpanded = false;
     this._childrenCacheIsUpToDate = false;
-    this._maxDocumentsToShow = defaultMaxDocumentsToShow;
+    this._maxDocumentsToShow = MAX_DOCUMENTS_VISIBLE;
   }
 
   onDidExpand(): Promise<boolean> {

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import CollectionTreeItem, { defaultMaxDocumentsToShow } from './collectionTreeItem';
+import CollectionTreeItem, { MAX_DOCUMENTS_VISIBLE } from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 
 export default class DatabaseTreeItem extends vscode.TreeItem
@@ -56,7 +56,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         {}, // No filter.
         (err: any, collections: string[]) => {
           if (err) {
-            return reject(`Unable to list collections: ${err}`);
+            return reject(new Error(`Unable to list collections: ${err}`));
           }
 
           this._childrenCacheIsUpToDate = true;
@@ -83,7 +83,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
                   this._dataService,
                   false, // Not expanded.
                   [], // No cached documents.
-                  defaultMaxDocumentsToShow
+                  MAX_DOCUMENTS_VISIBLE
                 );
               }
             });
