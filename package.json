@@ -112,6 +112,7 @@
   "scripts": {
     "clean": "rimraf ./src/snippets",
     "precompile": "npm run clean",
+    "lint": "./node_modules/.bin/eslint ./src/**/*.ts",
     "compile": "ts-node ./src/scripts/get-snippets.ts && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && mongodb-runner start",

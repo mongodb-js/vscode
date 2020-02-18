@@ -32,7 +32,6 @@ steps:
       echo ">>> Started xvfb"
     displayName: 'Start xvfb'
     condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-
   - task: Cache@2
     inputs:
       key: 'npm | "$(Agent.OS)" | package-lock.json'
@@ -54,9 +53,3 @@ steps:
     displayName: 'Run Tests'
     env:
       DISPLAY: ':99.0'
-  - task: PublishTestResults@2
-    condition: succeededOrFailed()
-    inputs:
-      testRunner: JUnit
-      testResultsFiles: './test-results.xml'
-      failOnStandardError: 'true'

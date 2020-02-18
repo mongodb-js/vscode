@@ -6,7 +6,7 @@ export function run(): Promise<void> {
   const reporterOptions = {
     spec: '-',
     'mocha-junit-reporter': 'test-results.xml'
-  }
+  };
 
   // Create the mocha tester.
   const mocha = new Mocha({
