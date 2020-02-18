@@ -23,7 +23,7 @@ suite('DatabaseTreeItem Test Suite', () => {
           `Expected no collections to be returned, recieved ${collections.length}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
   test('when expanded shows the collections of a database in tree', function (done) {
@@ -50,7 +50,7 @@ suite('DatabaseTreeItem Test Suite', () => {
           `Expected a tree item child with the label collection name ${mockDatabases[mockDatabaseNames[1]].collections[1].name} found ${collections[1].label}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
   test('when expanded and collapsed its collections cache their expanded documents', function (done) {
@@ -77,7 +77,7 @@ suite('DatabaseTreeItem Test Suite', () => {
             newCollectionTreeItems[1].getChildren().then((documentsPostCollapseExpand: any) => {
               // It should cache that we activated show more.
               assert(documentsPostCollapseExpand.length === 21, `Expected a cached 21 documents to be returned, found ${documents.length}`);
-            }).then(() => done(), done);
+            }).then(done, done);
           });
         });
       });

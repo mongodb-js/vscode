@@ -17,7 +17,7 @@ suite('Connection Controller Test Suite', () => {
   before(require('mongodb-runner/mocha/before'));
   after(require('mongodb-runner/mocha/after'));
 
-  test('it connects to mongodb', function(done) {
+  test('it connects to mongodb', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
     this.timeout(2000);
 
@@ -38,10 +38,10 @@ suite('Connection Controller Test Suite', () => {
           `Expected active connection to be 'localhost:27017' found ${instanceId}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
-  test('"disconnect()" disconnects from the active connection', function(done) {
+  test('"disconnect()" disconnects from the active connection', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
     this.timeout(2000);
 
@@ -74,7 +74,7 @@ suite('Connection Controller Test Suite', () => {
               `Expected the active connection instance id to be null, found ${instanceId}`
             );
           })
-          .then(() => done(), done);
+          .then(done, done);
       });
   });
 
@@ -86,7 +86,7 @@ suite('Connection Controller Test Suite', () => {
       .then(null, err => {
         assert(!!err, `Expected an error response, recieved ${err}.`);
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
   test('"disconnect()" fails when there is no active connection', done => {
@@ -97,10 +97,10 @@ suite('Connection Controller Test Suite', () => {
       .then(null, err => {
         assert(!!err, 'Expected an error disconnect response.');
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
-  test('when adding a new connection it disconnects from the current connection', function(done) {
+  test('when adding a new connection it disconnects from the current connection', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
     this.timeout(2000);
 
@@ -125,11 +125,11 @@ suite('Connection Controller Test Suite', () => {
               'Expected to current connection instanceId to be null (not connected).'
             );
           })
-          .then(() => done());
+          .then(done, done);
       });
   });
 
-  test('when adding a new connection it disconnects from the current connection', function(done) {
+  test('when adding a new connection it disconnects from the current connection', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
     this.timeout(2000);
 
@@ -154,11 +154,11 @@ suite('Connection Controller Test Suite', () => {
               'Expected to current connection instanceId to be null (not connected).'
             );
           })
-          .then(() => done());
+          .then(done, done);
       });
   });
 
-  test('"connect()" failed when we are currently connecting', function(done) {
+  test('"connect()" failed when we are currently connecting', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     testConnectionController.setConnnecting(true);
@@ -168,10 +168,10 @@ suite('Connection Controller Test Suite', () => {
       .then(null, err => {
         assert(!!err, 'Expected an error promise response.');
       })
-      .then(() => done());
+      .then(done, done);
   });
 
-  test('"connect()" failed when we are currently disconnecting', function(done) {
+  test('"connect()" failed when we are currently disconnecting', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     testConnectionController.setDisconnecting(true);
@@ -181,10 +181,10 @@ suite('Connection Controller Test Suite', () => {
       .then(null, err => {
         assert(!!err, 'Expected an error promise response.');
       })
-      .then(() => done());
+      .then(done, done);
   });
 
-  test('"disconnect()" fails when we are currently connecting', function(done) {
+  test('"disconnect()" fails when we are currently connecting', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     testConnectionController.setConnnecting(true);
@@ -194,10 +194,10 @@ suite('Connection Controller Test Suite', () => {
       .then(null, err => {
         assert(!!err, 'Expected an error disconnect response.');
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
-  test('"disconnect()" fails when we are currently disconnecting', function(done) {
+  test('"disconnect()" fails when we are currently disconnecting', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     testConnectionController.setDisconnecting(true);
@@ -207,10 +207,10 @@ suite('Connection Controller Test Suite', () => {
       .then(null, err => {
         assert(!!err, 'Expected an error disconnect response.');
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
-  test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', function(done) {
+  test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     let didFireConnectionEvent = false;
@@ -225,7 +225,7 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController
       .addNewConnectionAndConnect(testDatabaseURI)
       .then(() => {
-        setTimeout(function() {
+        setTimeout(function () {
           assert(
             didFireConnectionEvent === true,
             'Expected connection event to be fired.'
@@ -236,7 +236,7 @@ suite('Connection Controller Test Suite', () => {
   });
 
   const expectedTimesToFire = 3;
-  test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, function(done) {
+  test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     let connectionEventFiredCount = 0;
@@ -252,7 +252,7 @@ suite('Connection Controller Test Suite', () => {
       .addNewConnectionAndConnect(testDatabaseURI)
       .then(() => {
         testConnectionController.disconnect().then(() => {
-          setTimeout(function() {
+          setTimeout(function () {
             assert(
               connectionEventFiredCount === expectedTimesToFire,
               `Expected connection event to be fired ${expectedTimesToFire} times, got ${connectionEventFiredCount}.`

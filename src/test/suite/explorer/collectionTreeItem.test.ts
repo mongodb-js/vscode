@@ -54,7 +54,7 @@ suite('CollectionTreeItem Test Suite', () => {
           `Expected no collections to be returned, found ${collections.length}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
   test('when expanded shows the documents of a collection in tree', function (done) {
@@ -83,7 +83,7 @@ suite('CollectionTreeItem Test Suite', () => {
           `Expected a tree item child with the label document name ${mockDocuments[1]._id} found ${documents[1].label}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
   test('it should show a show more item when there are more documents to show', function (done) {
@@ -112,7 +112,7 @@ suite('CollectionTreeItem Test Suite', () => {
           `Expected a tree item child with the label "show more..." found ${documents[10].label}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
   test('it should show more documents after the show more click handler is called', function (done) {
@@ -147,7 +147,7 @@ suite('CollectionTreeItem Test Suite', () => {
           `Expected a tree item child with the label "show more..." found ${documents[10].label}`
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
   test('it should not show a show more item when there not are more documents to show', function (done) {
@@ -181,7 +181,7 @@ suite('CollectionTreeItem Test Suite', () => {
           'Expected the last tree item to not have the label "show more..."'
         );
       })
-      .then(() => done(), done);
+      .then(done, done);
   });
 
   test('a view should show an icon, a collection should not', function () {

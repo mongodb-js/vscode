@@ -16,7 +16,7 @@ suite('Explorer Controller Test Suite', function () {
   before(require('mongodb-runner/mocha/before'));
   after(require('mongodb-runner/mocha/after'));
 
-  test('when activated it creates a tree with a connections root', async function () {
+  test('when activated it creates a tree with a connections root', function (done) {
     const testConnectionController = new ConnectionController(new StatusView());
 
     const testExplorerController = new ExplorerController();
@@ -27,22 +27,24 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(!!treeController, 'Tree controller should not be undefined');
     if (treeController) {
-      const treeControllerChildren = await treeController.getChildren();
-
-      assert(
-        treeControllerChildren.length === 1,
-        `Tree controller should have 1 child, found ${treeControllerChildren.length}`
-      );
-      assert(
-        treeControllerChildren[0].label === 'Connections',
-        'Tree controller should have a "Connections" child'
-      );
+      treeController.getChildren().then(treeControllerChildren => {
+        assert(
+          treeControllerChildren.length === 1,
+          `Tree controller should have 1 child, found ${treeControllerChildren.length}`
+        );
+        assert(
+          treeControllerChildren[0].label === 'Connections',
+          'Tree controller should have a "Connections" child'
+        );
+      }).then(done, done);
+    } else {
+      done();
     }
 
     testExplorerController.deactivate();
   });
 
-  test('when refreshed it updates the connections to account for a change in the connection controller', function (done) {
+  test('it updates the connections to account for a change in the connection controller', function (done) {
     const testConnectionController = new ConnectionController(
       new StatusView()
     );
@@ -61,7 +63,6 @@ suite('Explorer Controller Test Suite', function () {
 
     const mockConnectionInstanceId = 'testInstanceId';
 
-    // Here we silently update the connections (maybe simulating a bug).
     testConnectionController.setConnnectingInstanceId(
       mockConnectionInstanceId
     );
@@ -71,26 +72,15 @@ suite('Explorer Controller Test Suite', function () {
     treeController.getChildren().then(treeControllerChildren => {
       treeControllerChildren[0].getChildren().then(connectionsItems => {
         assert(
-          connectionsItems.length === 0,
-          'Expected there not to be any connection tree items'
+          connectionsItems.length === 1,
+          `Expected there to be 1 connection tree item, found ${connectionsItems.length}`
         );
-
-        treeController.refresh();
-
-        treeController.getChildren().then(newTreeControllerChildren => {
-          newTreeControllerChildren[0].getChildren().then(newConnectionItems => {
-            assert(
-              newConnectionItems.length === 1,
-              `Expected there to be 1 connection tree item, found ${newConnectionItems.length}`
-            );
-            assert(
-              newConnectionItems[0].label === 'testInstanceId',
-              'There should be a connection tree item with the label "testInstanceId"'
-            );
-            testExplorerController.deactivate();
-          }).then(() => done(), done);
-        });
-      });
+        assert(
+          connectionsItems[0].label === 'testInstanceId',
+          'There should be a connection tree item with the label "testInstanceId"'
+        );
+        testExplorerController.deactivate();
+      }).then(done, done);
     });
   });
 
@@ -142,13 +132,13 @@ suite('Explorer Controller Test Suite', function () {
                 'There should be a connection tree item with the description "connected"'
               );
               assert(
-                connectionsItems[0].getIsExpanded(),
+                connectionsItems[0].isExpanded,
                 'Expected the connection tree item to be expanded'
               );
 
               testExplorerController.deactivate();
             })
-            .then(() => done(), done);
+            .then(done, done);
         });
       });
   });
@@ -212,7 +202,7 @@ suite('Explorer Controller Test Suite', function () {
           );
 
           testExplorerController.deactivate();
-        }).then(() => done(), done);
+        }).then(done, done);
       });
     });
   });
@@ -242,8 +232,8 @@ suite('Explorer Controller Test Suite', function () {
               .getChildren()
               .then((databaseItems: any) => {
                 assert(
-                  databaseItems.length === 3,
-                  `Expected there be 3 database tree items, found ${databaseItems.length}`
+                  databaseItems.length >= 3,
+                  `Expected there be 3 or more database tree items, found ${databaseItems.length}`
                 );
                 assert(
                   databaseItems[0].label === 'admin',
@@ -252,7 +242,7 @@ suite('Explorer Controller Test Suite', function () {
 
                 testExplorerController.deactivate();
               })
-              .then(() => done(), done);
+              .then(done, done);
           });
         });
       });
@@ -294,7 +284,7 @@ suite('Explorer Controller Test Suite', function () {
                   testConnectionTreeItem.getChildren().then((newDatabaseItems: any) => {
                     assert(newDatabaseItems[1].isExpanded === true, 'Expected database tree to be expanded from cache.');
                     testExplorerController.deactivate();
-                  }).then(() => done(), done);
+                  }).then(done, done);
                 });
               });
             });
