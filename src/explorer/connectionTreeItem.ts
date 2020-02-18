@@ -86,9 +86,23 @@ export default class ConnectionTreeItem extends vscode.TreeItem
           this._childrenCache = {};
 
           databases.forEach(({ name }: any) => {
-            this._childrenCache[name] = pastChildrenCache[name]
-              ? new DatabaseTreeItem(name, dataService, pastChildrenCache[name].isExpanded, pastChildrenCache[name].getChildrenCache())
-              : new DatabaseTreeItem(name, dataService, false /* Collapsed */, {});
+            if (pastChildrenCache[name]) {
+              // We create a new element here instead of reusing the cached one
+              // in order to ensure the expanded state is set.
+              this._childrenCache[name] = new DatabaseTreeItem(
+                name,
+                dataService,
+                pastChildrenCache[name].isExpanded,
+                pastChildrenCache[name].getChildrenCache()
+              );
+            } else {
+              this._childrenCache[name] = new DatabaseTreeItem(
+                name,
+                dataService,
+                false, // Collapsed.
+                {} // No existing cache.
+              );
+            }
           });
         } else {
           this._childrenCache = {};

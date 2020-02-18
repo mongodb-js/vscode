@@ -90,7 +90,7 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem
     return Promise.resolve(Object.values(this._connectionTreeItems));
   }
 
-  connectionsDidChange() {
+  connectionsDidChange(): void {
     this._childrenCacheIsUpToDate = false;
   }
 

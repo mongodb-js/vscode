@@ -11,7 +11,7 @@ export default class ExplorerController {
   private _treeController?: ExplorerTreeController;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
-  activate(connectionController: ConnectionController) {
+  activate(connectionController: ConnectionController): void {
     log.info('activate explorer controller');
 
     this._treeController = new ExplorerTreeController(connectionController);
@@ -23,7 +23,7 @@ export default class ExplorerController {
     this._treeController.activateTreeViewEventHandlers(this._treeView);
   }
 
-  deactivate() {
+  deactivate(): void {
     if (this._treeController) {
       this._treeController.removeListeners();
     }
@@ -33,7 +33,7 @@ export default class ExplorerController {
     }
   }
 
-  refresh() {
+  refresh(): void {
     if (this._treeController) {
       this._treeController.refresh();
     }

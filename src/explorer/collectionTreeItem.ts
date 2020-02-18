@@ -95,7 +95,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
           // there are more documents we aren't showing.
           limit: 1 + this._maxDocumentsToShow
         },
-        (err: any, documents: any[]) => {
+        (err: Error, documents: []) => {
           if (err) {
             return reject(`Unable to list documents: ${err}`);
           }
@@ -104,9 +104,17 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
           if (documents) {
             this._childrenCache = documents.map(
-              (document, index) => index === this._maxDocumentsToShow ?
-                new ShowMoreDocumentsTreeItem(namespace, this.onShowMoreClicked, this._maxDocumentsToShow)
-                : new DocumentTreeItem(document, index)
+              (document, index) => {
+                if (index === this._maxDocumentsToShow) {
+                  return new ShowMoreDocumentsTreeItem(
+                    namespace,
+                    () => this.onShowMoreClicked(),
+                    this._maxDocumentsToShow
+                  );
+                }
+
+                return new DocumentTreeItem(document, index);
+              }
             );
           } else {
             this._childrenCache = [];
