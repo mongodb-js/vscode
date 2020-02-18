@@ -19,15 +19,15 @@ class TestExtensionContext implements vscode.ExtensionContext {
     this.logPath = '';
     this.subscriptions = [];
     this.workspaceState = {
-      get: () => { },
+      get: () => {},
       update: (key: string, value: any) => {
-        return new Promise(() => { });
+        return new Promise<void>(() => {});
       }
     };
     this.globalState = {
-      get: () => { },
+      get: () => {},
       update: (key: string, value: any) => {
-        return new Promise(() => { });
+        return new Promise<void>(() => {});
       }
     };
     this.extensionPath = '';
@@ -38,19 +38,25 @@ class TestExtensionContext implements vscode.ExtensionContext {
 const mockDatabases: any = {
   mock_database_1: {
     databaseName: 'mock_database_1',
-    collections: [{
-      name: 'mock_db_1_collection_1'
-    }, {
-      name: 'mock_db_1_collection_2'
-    }]
+    collections: [
+      {
+        name: 'mock_db_1_collection_1'
+      },
+      {
+        name: 'mock_db_1_collection_2'
+      }
+    ]
   },
   mock_database_2: {
     databaseName: 'mock_database_2',
-    collections: [{
-      name: 'mock_db_2_collection_1'
-    }, {
-      name: 'mock_db_2_collection_2'
-    }]
+    collections: [
+      {
+        name: 'mock_db_2_collection_1'
+      },
+      {
+        name: 'mock_db_2_collection_2'
+      }
+    ]
   }
 };
 const mockDatabaseNames = Object.keys(mockDatabases);
@@ -76,4 +82,10 @@ class DataServiceStub {
   }
 }
 
-export { mockDocuments, mockDatabaseNames, mockDatabases, DataServiceStub, TestExtensionContext };
+export {
+  mockDocuments,
+  mockDatabaseNames,
+  mockDatabases,
+  DataServiceStub,
+  TestExtensionContext
+};

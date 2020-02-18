@@ -17,7 +17,8 @@
     "onCommand:mdb.disconnect",
     "onCommand:mdb.removeConnection",
     "onCommand:mdb.openMongoDBShell",
-    "onView:mongoDB"
+    "onView:mongoDB",
+    "onLanguage:json"
   ],
   "main": "./out/extension.js",
   "repository": {
@@ -27,20 +28,43 @@
   "icon": "images/mongodb.png",
   "contributes": {
     "viewsContainers": {
-      "activitybar": [{
-        "id": "mongoDB",
-        "title": "MongoDB",
-        "icon": "images/mongodb.svg"
-      }]
+      "activitybar": [
+        {
+          "id": "mongoDB",
+          "title": "MongoDB",
+          "icon": "images/mongodb.svg"
+        }
+      ]
     },
     "views": {
-      "mongoDB": [{
-        "id": "mongoDB",
-        "name": "MongoDB",
-        "when": "config.mdb.show == true"
-      }]
+      "mongoDB": [
+        {
+          "id": "mongoDB",
+          "name": "MongoDB",
+          "when": "config.mdb.show == true"
+        }
+      ]
     },
-    "commands": [{
+    "languages": [
+      {
+        "id": "mongodb",
+        "extensions": [
+          ".mongodb"
+        ],
+        "aliases": [
+          "mongodb",
+          "mdb"
+        ]
+      }
+    ],
+    "snippets": [
+      {
+        "language": "mongodb",
+        "path": "./src/snippets/stage-autocompleter.json"
+      }
+    ],
+    "commands": [
+      {
         "command": "mdb.connect",
         "title": "MongoDB: Connect"
       },
@@ -71,7 +95,10 @@
         },
         "mdb.shell": {
           "type": "string",
-          "enum": ["mongo", "mongosh"],
+          "enum": [
+            "mongo",
+            "mongosh"
+          ],
           "enumDescriptions": [
             "Use the legacy mongosh",
             "Use the new mongosh"
@@ -83,29 +110,44 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "clean": "rimraf ./src/snippets",
+    "precompile": "npm run clean",
+    "compile": "ts-node ./src/scripts/get-snippets.ts && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && mongodb-runner start",
     "test": "mocha ./out/test/runTest.js",
-    "posttest": "mongodb-runner stop"
+    "posttest": "mongodb-runner stop",
+    "vscode:prepublish": "npm run compile",
+    "check": "mongodb-js-precommit './src/**/*{.ts}'"
   },
   "devDependencies": {
+    "@types/chai": "^4.2.9",
+    "@types/chai-fs": "^2.0.2",
+    "@types/chai-json-schema": "^1.4.5",
     "@types/glob": "^7.1.1",
     "@types/mocha": "^7.0.1",
-    "@types/node": "^13.5.3",
+    "@types/node": "^13.7.1",
     "@types/vscode": "^1.41.0",
+    "@typescript-eslint/parser": "^2.19.2",
+    "chai": "^4.2.0",
+    "chai-fs": "^2.0.0",
+    "chai-json-schema": "^1.5.1",
+    "eslint": "^6.8.0",
+    "eslint-config-mongodb-js": "^5.0.3",
     "glob": "^7.1.6",
     "mocha": "^7.0.1",
+    "mongodb-ace-autocompleter": "^0.4.1",
+    "mongodb-js-precommit": "^2.2.1",
     "mongodb-runner": "^4.8.0",
+    "ts-node": "^8.6.2",
     "typescript": "^3.7.5",
-    "tslint": "^5.20.0",
     "vscode-test": "^1.3.0"
   },
   "dependencies": {
     "mongodb-connection-model": "^14.5.0",
     "mongodb-data-service": "^16.5.1",
-    "ts-log": "^2.1.4"
+    "ts-log": "^2.1.4",
+    "vscode": "^1.1.36"
   },
   "license": "Apache-2.0"
 }

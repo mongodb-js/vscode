@@ -1,0 +1,24 @@
+{
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "parser": "@typescript-eslint/parser", // Specifies the ESLint parser
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "mongodb-js/node"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "camelcase": 1,
+    "new-cap": 0,
+    "no-use-before-define": 0
+  }
+}
