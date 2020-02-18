@@ -116,7 +116,7 @@ export default class ConnectionController {
           return reject('Failed to connect: connection already exists.');
         }
 
-        //Override default `appname`
+        // Override default `appname`
         newConnectionConfig.appname = `${name} ${version}`;
 
         this.connect(newConnectionConfig).then(resolve, reject);
