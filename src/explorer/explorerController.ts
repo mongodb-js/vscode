@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import ConnectionController from '../connectionController'
+import ConnectionController from '../connectionController';
 import ExplorerTreeController from './explorerTreeController';
 
 import { createLogger } from '../logging';
@@ -47,4 +47,3 @@ export default class ExplorerController {
     return this._treeController;
   }
 }
-

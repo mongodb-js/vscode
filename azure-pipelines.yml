@@ -32,16 +32,6 @@ steps:
       echo ">>> Started xvfb"
     displayName: 'Start xvfb'
     condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-
-  - task: Cache@2
-    inputs:
-      key: 'npm | "$(Agent.OS)" | package-lock.json'
-      restoreKeys: |
-        npm | "$(Agent.OS)"
-        npm
-      path: $(npm_config_cache)
-    displayName: 'Cache npm'
-
   - script: npm install
     displayName: 'Install npm'
 
@@ -54,3 +44,10 @@ steps:
     displayName: 'Run Tests'
     env:
       DISPLAY: ':99.0'
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
+    condition: succeededOrFailed()
+    inputs:
+      testRunner: JUnit
+      testResultsFiles: './test-results.xml'
+      failTaskOnFailedTests: true

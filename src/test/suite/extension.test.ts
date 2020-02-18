@@ -1,9 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import {
-  before,
-  after
-} from 'mocha';
+import { before, after } from 'mocha';
 
 import ConnectionController from '../../connectionController';
 import MDBExtensionController from '../../mdbExtensionController';
@@ -17,7 +14,7 @@ const testDatabaseURI = 'mongodb://localhost';
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  let disposables: vscode.Disposable[] = [];
+  const disposables: vscode.Disposable[] = [];
 
   teardown(() => {
     disposables.forEach(d => d.dispose());
@@ -32,28 +29,31 @@ suite('Extension Test Suite', () => {
 
     mockMDBExtension.activate(mockExtensionContext);
 
-    vscode.commands.getCommands().then(registeredCommands => {
-      const expectedCommands = [
-        'mdb.connect',
-        'mdb.connectWithURI',
-        'mdb.disconnect',
-        'mdb.removeConnection',
-        'mdb.openMongoDBShell'
-      ];
+    vscode.commands
+      .getCommands()
+      .then(registeredCommands => {
+        const expectedCommands = [
+          'mdb.connect',
+          'mdb.connectWithURI',
+          'mdb.disconnect',
+          'mdb.removeConnection',
+          'mdb.openMongoDBShell'
+        ];
 
-      for (let i = 0; i < expectedCommands.length; i++) {
-        try {
-          assert.notEqual(
-            registeredCommands.indexOf(expectedCommands[i]),
-            -1,
-            `command ${expectedCommands[i]} not registered and was expected`
-          );
-        } catch (e) {
-          done(e);
-          return;
+        for (let i = 0; i < expectedCommands.length; i++) {
+          try {
+            assert.notEqual(
+              registeredCommands.indexOf(expectedCommands[i]),
+              -1,
+              `command ${expectedCommands[i]} not registered and was expected`
+            );
+          } catch (e) {
+            done(e);
+            return;
+          }
         }
-      }
-    }).then(() => done(), done);
+      })
+      .then(() => done(), done);
   });
 
   test('launchMongoShell should open a terminal', done => {
@@ -64,28 +64,45 @@ suite('Extension Test Suite', () => {
     mockMDBExtension.openMongoDBShell();
   });
 
-  test('when the extension is deactivated, the active connection is discconected', function (done) {
+  test('extension connections', () => {
     before(require('mongodb-runner/mocha/before'));
     after(require('mongodb-runner/mocha/after'));
 
-    const testConnectionController = new ConnectionController(new StatusView());
+    test('when the extension is deactivated, the active connection is disconnected', (done) => {
+      const testConnectionController = new ConnectionController(new StatusView());
 
-    const mockMDBExtension = new MDBExtensionController(testConnectionController);
-    disposables.push(mockMDBExtension);
+      const mockMDBExtension = new MDBExtensionController(
+        testConnectionController
+      );
+      disposables.push(mockMDBExtension);
 
-    // Assume 2s is enough for connect & disconnect. (1s for each).
-    this.timeout(2000);
+      const mockExtensionContext = new TestExtensionContext();
+      mockMDBExtension.activate(mockExtensionContext);
 
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
-      assert(succesfullyConnected === true, 'Expected a successful (true) connection response.');
-      assert(testConnectionController.getActiveConnection() !== null, 'Expected active connection to not be null.');
+      testConnectionController
+        .addNewConnectionAndConnect(testDatabaseURI)
+        .then(succesfullyConnected => {
+          assert(
+            succesfullyConnected === true,
+            'Expected a successful (true) connection response.'
+          );
+          assert(
+            testConnectionController.getActiveConnection() !== null,
+            'Expected active connection to not be null.'
+          );
 
-      mockMDBExtension.deactivate();
+          mockMDBExtension.deactivate();
 
-      setTimeout(function () {
-        assert(testConnectionController.getActiveConnection() === null, 'Expected active connection to be null.');
-        done();
-      }, 1000);
+          setTimeout(() => {
+            assert(
+              testConnectionController.getActiveConnection() === null,
+              'Expected active connection to be null.'
+            );
+            done();
+          }, 300);
+        }, () => {
+          assert(false, 'Did not expect extension connection to fail.');
+        });
     });
   });
 });

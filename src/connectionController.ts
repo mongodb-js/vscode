@@ -1,15 +1,15 @@
-const Connection = require('mongodb-connection-model');
-const DataService = require('mongodb-data-service');
-const { name, version } = require('../package.json');
+import path = require('path');
 import * as vscode from 'vscode';
-
 import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
 
+const Connection = require('mongodb-connection-model');
+const DataService = require('mongodb-data-service');
 const log = createLogger('connection controller');
+const { name, version } = require(path.resolve(__dirname, '../package.json'));
 
-function getConnectWebviewContent() {
+function getConnectWebviewContent(): string {
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -32,16 +32,16 @@ export enum DataServiceEventTypes {
 export default class ConnectionController {
   // This is a map of connection instance ids to their connection model.
   private _connectionConfigs: {
-    [key: string]: any
+    [key: string]: any;
   } = {};
 
   private _currentConnection: any;
   private _currentConnectionConfig: any;
   private _currentConnectionInstanceId: string | null = null;
 
-  private _connecting: boolean = false;
-  private _connectingInstanceId: string = '';
-  private _disconnecting: boolean = false;
+  private _connecting = false;
+  private _connectingInstanceId = '';
+  private _disconnecting = false;
 
   private _statusView: StatusView;
 
@@ -77,16 +77,15 @@ export default class ConnectionController {
     try {
       connectionString = await vscode.window.showInputBox({
         value: '',
-        placeHolder: 'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
+        placeHolder:
+          'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
-        validateInput: uri => {
-          let connectionStringError = null;
-
+        validateInput: (uri: any) => {
           if (!Connection.isURI(uri)) {
-            connectionStringError = 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
+            return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
           }
 
-          return connectionStringError;
+          return null;
         }
       });
     } catch (e) {
@@ -100,34 +99,44 @@ export default class ConnectionController {
     return this.addNewConnectionAndConnect(connectionString);
   }
 
-  public addNewConnectionAndConnect(connectionString: string): Promise<boolean> {
+  public addNewConnectionAndConnect(
+    connectionString: string
+  ): Promise<boolean> {
     log.info('Trying to connect to a new connection configuration');
 
     return new Promise<boolean>((resolve, reject) => {
-      Connection.from(connectionString, (error: any, newConnectionConfig: any) => {
-        if (error) {
-          return reject('Failed to connect: invalid connection string.');
+      Connection.from(
+        connectionString,
+        (error: any, newConnectionConfig: any) => {
+          if (error) {
+            return reject('Failed to connect: invalid connection string.');
+          }
+
+          const { instanceId } = newConnectionConfig.getAttributes({
+            derived: true
+          });
+
+          // Ensure we don't already have the supplied connection configuration.
+          if (this._connectionConfigs[instanceId]) {
+            return reject('Failed to connect: connection already exists.');
+          }
+
+          // Override default `appname`
+          newConnectionConfig.appname = `${name} ${version}`;
+
+          this.connect(newConnectionConfig).then(resolve, reject);
         }
-
-        const { instanceId } = newConnectionConfig.getAttributes({ derived: true });
-
-        // Ensure we don't already have the supplied connection configuration.
-        if (this._connectionConfigs[instanceId]) {
-          return reject('Failed to connect: connection already exists.');
-        }
-
-        // Override default `appname`
-        newConnectionConfig.appname = `${name} ${version}`;
-
-        this.connect(newConnectionConfig).then(resolve, reject);
-      });
+      );
     });
   }
 
   public async connect(connectionConfig: any): Promise<boolean> {
-    log.info('Connect called to connect to instance:', connectionConfig.getAttributes({
-      derived: true
-    }).instanceId);
+    log.info(
+      'Connect called to connect to instance:',
+      connectionConfig.getAttributes({
+        derived: true
+      }).instanceId
+    );
 
     if (this._connecting) {
       return Promise.reject('Unable to connect: already connecting.');
@@ -165,7 +174,7 @@ export default class ConnectionController {
 
         if (!this._connectionConfigs[instanceId]) {
           // Add new configurations to our saved connection configurations.
-          this._connectionConfigs[instanceId] = (connectionConfig);
+          this._connectionConfigs[instanceId] = connectionConfig;
         }
         this._currentConnectionInstanceId = instanceId;
         this._currentConnectionConfig = connectionConfig;
@@ -179,20 +188,25 @@ export default class ConnectionController {
     });
   }
 
-  public async connectWithInstanceId(connectionId: string): Promise<boolean> {
+  public async connectWithInstanceId(connectionId: string): Promise<any> {
     if (this._connectionConfigs[connectionId]) {
       return this.connect(this._connectionConfigs[connectionId]);
-    } else {
-      return Promise.reject('Connection not found.');
     }
+
+    return Promise.reject('Connection not found.');
   }
 
   public disconnect(): Promise<boolean> {
-    log.info('Disconnect called, currently connected to', this._currentConnectionInstanceId);
+    log.info(
+      'Disconnect called, currently connected to',
+      this._currentConnectionInstanceId
+    );
 
     if (this._disconnecting) {
       // TODO: The desired UX here may be for the connection to be interrupted.
-      return Promise.reject('Unable to disconnect: already disconnecting from an instance.');
+      return Promise.reject(
+        'Unable to disconnect: already disconnecting from an instance.'
+      );
     }
 
     if (!this._currentConnection) {
@@ -200,14 +214,15 @@ export default class ConnectionController {
     }
 
     // Disconnect from the active connection.
-    return new Promise<boolean>((resolve, reject) => {
+    return new Promise<boolean>(resolve => {
       this._disconnecting = true;
       this._statusView.showMessage('Disconnecting from current connection...');
-
       this._currentConnection.disconnect((err: any) => {
         if (err) {
           // Show an error, however we still reset the active connection to free up the extension.
-          vscode.window.showErrorMessage('An error occured while disconnecting from the current connection.');
+          vscode.window.showErrorMessage(
+            'An error occured while disconnecting from the current connection.'
+          );
         } else {
           vscode.window.showInformationMessage('MongoDB disconnected.');
         }
@@ -230,7 +245,9 @@ export default class ConnectionController {
 
     // Ensure we aren't currently connecting or disconnecting.
     if (this._connecting) {
-      return Promise.reject('Unable to remove connection: currently connecting.');
+      return Promise.reject(
+        'Unable to remove connection: currently connecting.'
+      );
     }
 
     const connectionInstanceIds = Object.keys(this._connectionConfigs);
@@ -245,9 +262,12 @@ export default class ConnectionController {
       connectionToRemove = connectionInstanceIds[0];
     } else {
       // There is more than 1 possible connection to remove.
-      connectionToRemove = await vscode.window.showQuickPick(connectionInstanceIds, {
-        placeHolder: 'Choose a connection to remove...'
-      });
+      connectionToRemove = await vscode.window.showQuickPick(
+        connectionInstanceIds,
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
     }
 
     if (!connectionToRemove) {
@@ -264,7 +284,10 @@ export default class ConnectionController {
       return Promise.resolve(false);
     }
 
-    if (this._currentConnection && connectionToRemove === this._currentConnectionInstanceId) {
+    if (
+      this._currentConnection &&
+      connectionToRemove === this._currentConnectionInstanceId
+    ) {
       await this.disconnect();
     }
 
@@ -277,50 +300,56 @@ export default class ConnectionController {
     return Object.keys(this._connectionConfigs);
   }
 
-  public getActiveConnectionInstanceId() {
+  public getActiveConnectionInstanceId(): any {
     return this._currentConnectionInstanceId;
   }
 
-  public addEventListener(eventType: DataServiceEventTypes, listener: () => void) {
+  public addEventListener(
+    eventType: DataServiceEventTypes,
+    listener: () => void
+  ): any {
     this.eventEmitter.addListener(eventType, listener);
   }
 
-  public removeEventListener(eventType: DataServiceEventTypes, listener: () => void) {
+  public removeEventListener(
+    eventType: DataServiceEventTypes,
+    listener: () => void
+  ): any {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
-  public isConnnecting() {
+  public isConnnecting(): any {
     return this._connecting;
   }
 
-  public isDisconnecting() {
+  public isDisconnecting(): any {
     return this._disconnecting;
   }
 
-  public getConnectingInstanceId() {
+  public getConnectingInstanceId(): any {
     return this._connectingInstanceId;
   }
 
   // Exposed for testing.
-  public getConnections() {
+  public getConnections(): any {
     return this._connectionConfigs;
   }
-  public getActiveConnection() {
+  public getActiveConnection(): any {
     return this._currentConnection;
   }
-  public getActiveConnectionConfig() {
+  public getActiveConnectionConfig(): any {
     return this._currentConnectionConfig;
   }
-  public setActiveConnection(newActiveConnection: any) {
+  public setActiveConnection(newActiveConnection: any): any {
     this._currentConnection = newActiveConnection;
   }
-  public setConnnecting(connecting: boolean) {
+  public setConnnecting(connecting: boolean): any {
     this._connecting = connecting;
   }
-  public setConnnectingInstanceId(connectingInstanceId: string) {
+  public setConnnectingInstanceId(connectingInstanceId: string): any {
     this._connectingInstanceId = connectingInstanceId;
   }
-  public setDisconnecting(disconnecting: boolean) {
+  public setDisconnecting(disconnecting: boolean): any {
     this._disconnecting = disconnecting;
   }
 }

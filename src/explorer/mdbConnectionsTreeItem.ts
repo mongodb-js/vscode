@@ -7,7 +7,8 @@ import TreeItemParent from './treeItemParentInterface';
 const rootLabel = 'Connections';
 const rootTooltip = 'Your MongoDB connections';
 
-export default class ExplorerRootTreeItem extends vscode.TreeItem implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
+export default class ExplorerRootTreeItem extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _connectionTreeItems: vscode.TreeItem[] = [];
 
@@ -34,17 +35,24 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem implements Tre
     return Promise.resolve(this._connectionTreeItems);
   }
 
-  loadConnections() {
+  loadConnections(): void {
     const connectionIds = this._connectionController.getConnectionInstanceIds();
     this._connectionTreeItems = connectionIds.map(
-      connectionId => new ConnectionTreeItem(
-        connectionId,
-        connectionId === this._connectionController.getActiveConnectionInstanceId(),
-        this._connectionController
-      )
+      connectionId =>
+        new ConnectionTreeItem(
+          connectionId,
+          connectionId ===
+          this._connectionController.getActiveConnectionInstanceId(),
+          this._connectionController
+        )
     );
 
-    if (this._connectionController.isConnnecting() && this._connectionController.getConnectionInstanceIds().indexOf(this._connectionController.getConnectingInstanceId()) === -1) {
+    if (
+      this._connectionController.isConnnecting() &&
+      !this._connectionController
+        .getConnectionInstanceIds()
+        .includes(this._connectionController.getConnectingInstanceId())
+    ) {
       const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
         this._connectionController.getConnectingInstanceId()
       );
@@ -56,11 +64,11 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem implements Tre
     }
   }
 
-  onDidCollapse() {
+  onDidCollapse(): void {
     this.isExpanded = false;
   }
 
-  onDidExpand() {
+  onDidExpand(): void {
     this.isExpanded = true;
   }
 }

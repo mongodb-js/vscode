@@ -3,8 +3,15 @@ import * as Mocha from 'mocha';
 import * as glob from 'glob';
 
 export function run(): Promise<void> {
-  // Create the mocha test
+  const reporterOptions = {
+    spec: '-',
+    'mocha-junit-reporter': path.resolve(__dirname, './test-results.xml')
+  };
+
+  // Create the mocha tester.
   const mocha = new Mocha({
+    reporter: 'mocha-multi',
+    reporterOptions,
     ui: 'tdd'
   });
   mocha.useColors(true);
@@ -17,11 +24,11 @@ export function run(): Promise<void> {
         return e(err);
       }
 
-      // Add files to the test suite
+      // Add files to the test suite.
       files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
       try {
-        // Run the mocha test
+        // Run the mocha test.
         mocha.run(failures => {
           if (failures > 0) {
             e(new Error(`${failures} tests failed.`));
@@ -29,8 +36,8 @@ export function run(): Promise<void> {
             c();
           }
         });
-      } catch (err) {
-        e(err);
+      } catch (mochaRunErr) {
+        e(mochaRunErr);
       }
     });
   });
