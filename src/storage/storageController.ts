@@ -102,15 +102,18 @@ export default class StorageController {
     }
 
     return new Promise(resolve => {
-      const storeOnWorkspace = 'Save on workspace';
-      const storeGlobally = 'Save globally on vscode';
+      const storeOnWorkspace = 'Save the connection on this workspace';
+      const storeGlobally = 'Save the connection globally on vscode';
       // Prompt the user where they want to save the new connection.
-      vscode.window.showInformationMessage(
-        'Would you like to save this new connection ?\'Cancel\' will make this connection only last in this session. (This message can be disabled in the extension settings.)',
-        { modal: true },
-        'Cancel',
-        storeOnWorkspace,
-        storeGlobally
+      vscode.window.showQuickPick(
+        [
+          storeOnWorkspace,
+          storeGlobally,
+          'Don\'t save this connection (it will be lost when the session is closed)'
+        ],
+        {
+          placeHolder: 'Where would you like to save this new connection? (This message can be disabled in the extension settings.)'
+        }
       ).then(saveConnectionScope => {
         if (saveConnectionScope === storeOnWorkspace) {
           this.addNewConnectionToWorkspaceStore(newConnectionConfig, newConnectionId);

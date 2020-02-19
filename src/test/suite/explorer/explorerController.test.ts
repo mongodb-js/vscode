@@ -238,7 +238,7 @@ suite('Explorer Controller Test Suite', function () {
                   'Expected the first connection to have no description.'
                 );
                 assert(
-                  connectionsItems[0].getIsExpanded() === false,
+                  connectionsItems[0].isExpanded === false,
                   'Expected the first connection tree item to not be expanded'
                 );
                 assert(

@@ -42,7 +42,7 @@ export default class ConnectionController {
   private _currentConnectionInstanceId: string | null = null;
 
   private _connecting = false;
-  private _connectingInstanceId = '';
+  private _connectingInstanceId: string | null = null;
   private _disconnecting = false;
 
   private _statusView: StatusView;
@@ -260,7 +260,7 @@ export default class ConnectionController {
     });
   }
 
-  public removeConnectionConfig(connectionId: string) {
+  public removeConnectionConfig(connectionId: string): void {
     delete this._connectionConfigs[connectionId];
     this._storageController.removeConnection(connectionId);
 
@@ -328,33 +328,33 @@ export default class ConnectionController {
     return Object.keys(this._connectionConfigs);
   }
 
-  public getActiveConnectionInstanceId(): any {
+  public getActiveConnectionInstanceId(): string | null {
     return this._currentConnectionInstanceId;
   }
 
   public addEventListener(
     eventType: DataServiceEventTypes,
     listener: () => void
-  ): any {
+  ): void {
     this.eventEmitter.addListener(eventType, listener);
   }
 
   public removeEventListener(
     eventType: DataServiceEventTypes,
     listener: () => void
-  ): any {
+  ): void {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
-  public isConnnecting(): any {
+  public isConnnecting(): boolean {
     return this._connecting;
   }
 
-  public isDisconnecting(): any {
+  public isDisconnecting(): boolean {
     return this._disconnecting;
   }
 
-  public getConnectingInstanceId(): any {
+  public getConnectingInstanceId(): string | null {
     return this._connectingInstanceId;
   }
 
@@ -368,16 +368,16 @@ export default class ConnectionController {
   public getActiveConnectionConfig(): any {
     return this._currentConnectionConfig;
   }
-  public setActiveConnection(newActiveConnection: any): any {
+  public setActiveConnection(newActiveConnection: any): void {
     this._currentConnection = newActiveConnection;
   }
-  public setConnnecting(connecting: boolean): any {
+  public setConnnecting(connecting: boolean): void {
     this._connecting = connecting;
   }
-  public setConnnectingInstanceId(connectingInstanceId: string): any {
+  public setConnnectingInstanceId(connectingInstanceId: string): void {
     this._connectingInstanceId = connectingInstanceId;
   }
-  public setDisconnecting(disconnecting: boolean): any {
+  public setDisconnecting(disconnecting: boolean): void {
     this._disconnecting = disconnecting;
   }
 }
