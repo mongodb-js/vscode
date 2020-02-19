@@ -32,18 +32,25 @@ steps:
       echo ">>> Started xvfb"
     displayName: 'Start xvfb'
     condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+
+  - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
+    inputs:
+      keyfile: commit
+      targetfolder: output
+      vstsFeed: '$(ArtifactFeed)'
+      dryRun: true
+
   - script: npm install
     displayName: 'Install npm'
+    condition: ne(variables['CacheExists'], 'true')
 
   - bash: |
-      echo ">>> Run Compile"
-      npm run compile
-      echo ">>> Compiled"
       echo ">>> Run integration tests"
       npm run test
     displayName: 'Run Tests'
     env:
       DISPLAY: ':99.0'
+
   - task: PublishTestResults@2
     displayName: 'Publish Test Results'
     condition: succeededOrFailed()
