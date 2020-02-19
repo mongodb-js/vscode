@@ -4,6 +4,7 @@ import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
+import { StorageScope } from './storage/storageController';
 
 const Connection = require('mongodb-connection-model');
 const DataService = require('mongodb-data-service');
@@ -58,7 +59,8 @@ export default class ConnectionController {
   activate(): void {
     // Pull in existing connections from storage.
     const existingGlobalConnectionModels = this._storageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS) || {};
-    const existingWorkspaceConnectionModels = this._storageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS) || {};
+    const existingWorkspaceConnectionModels = this._storageController.get(StorageVariables.WORKSPACE_CONNECTION_MODELS, StorageScope.WORKSPACE) || {};
+
     this._connectionConfigs = {
       ...existingGlobalConnectionModels,
       ...existingWorkspaceConnectionModels

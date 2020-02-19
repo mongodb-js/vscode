@@ -27,36 +27,45 @@ export default class StorageController {
     this._workspaceState = context.workspaceState;
   }
 
-  public get(variableName: StorageVariables): any {
+  public get(variableName: StorageVariables, storageScope?: StorageScope): any {
+    if (storageScope === StorageScope.WORKSPACE) {
+      return this._workspaceState.get(`${STORAGE_PREFIX}${variableName}`);
+    }
+
     return this._globalState.get(`${STORAGE_PREFIX}${variableName}`);
   }
 
   // Update something in the storage. Defaults to global storage (not workspace).
-  public update(variableName: StorageVariables, value: any): Thenable<void> {
-    return this._globalState.update(`${STORAGE_PREFIX}${variableName}`, value);
+  public update(variableName: StorageVariables, value: any, storageScope?: StorageScope): void {
+    if (storageScope === StorageScope.WORKSPACE) {
+      this._globalState.update(`${STORAGE_PREFIX}${variableName}`, value);
+      return;
+    }
+
+    this._globalState.update(`${STORAGE_PREFIX}${variableName}`, value);
   }
 
-  private addNewConnectionToGlobalStore(newConnectionConfig: any, newConnectionId: string): Thenable<void> {
+  private addNewConnectionToGlobalStore(newConnectionConfig: any, newConnectionId: string): void {
     // Get the current save connections.
-    let connectionConfigs: { [key: string]: any } | undefined = this._workspaceState.get(
+    let connectionConfigs: { [key: string]: any } | undefined = this._globalState.get(
       `${STORAGE_PREFIX}${StorageVariables.GLOBAL_CONNECTION_MODELS}`
     );
+
     if (!connectionConfigs) {
       connectionConfigs = {};
     }
 
     // Add the new connection.
     connectionConfigs[newConnectionId] = newConnectionConfig;
-    // TODO: Is this read only???? ^^^ Maybe deconstruct needed.
 
     // Update the store.
-    return this._workspaceState.update(
+    this._globalState.update(
       `${STORAGE_PREFIX}${StorageVariables.GLOBAL_CONNECTION_MODELS}`,
       connectionConfigs
     );
   }
 
-  private addNewConnectionToWorkspaceStore(newConnectionConfig: any, newConnectionId: string): Thenable<void> {
+  private addNewConnectionToWorkspaceStore(newConnectionConfig: any, newConnectionId: string): void {
     // Get the current save connections.
     let connectionConfigs: { [key: string]: any } | undefined = this._workspaceState.get(
       `${STORAGE_PREFIX}${StorageVariables.WORKSPACE_CONNECTION_MODELS}`
@@ -70,7 +79,7 @@ export default class StorageController {
     // TODO: Is this read only???? ^^^ Maybe deconstruct needed.
 
     // Update the store.
-    return this._workspaceState.update(
+    this._workspaceState.update(
       `${STORAGE_PREFIX}${StorageVariables.WORKSPACE_CONNECTION_MODELS}`,
       connectionConfigs
     );
@@ -78,10 +87,6 @@ export default class StorageController {
 
 
   public storeNewConnection(newConnectionConfig: any, newConnectionId: string): Thenable<void> {
-    console.log('hideOption for choosing connecting storing scope:', this._globalState.get(
-      `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`
-    ));
-
     if (this._globalState.get(
       `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`
     ) === true
@@ -91,10 +96,11 @@ export default class StorageController {
       const preferedStorageScope = this._globalState.get(
         `${STORAGE_PREFIX}${StorageVariables.STORAGE_SCOPE_FOR_STORING_CONNECTIONS}`
       );
+
       if (preferedStorageScope === StorageScope.WORKSPACE) {
-        return this.addNewConnectionToWorkspaceStore(newConnectionConfig, newConnectionId);
+        this.addNewConnectionToWorkspaceStore(newConnectionConfig, newConnectionId);
       } else if (preferedStorageScope === StorageScope.GLOBAL) {
-        return this.addNewConnectionToGlobalStore(newConnectionConfig, newConnectionId);
+        this.addNewConnectionToGlobalStore(newConnectionConfig, newConnectionId);
       }
 
       // The user prefers for the connections not to be saved.
@@ -111,21 +117,18 @@ export default class StorageController {
         storeOnWorkspace,
         storeGlobally
       ).then(saveConnectionScope => {
-        console.log('saveConnectionScope', saveConnectionScope);
-
         if (!saveConnectionScope || saveConnectionScope === 'Don\'t save past this session') {
-          console.log('not storing connection');
           // Don't store the connection.
           return resolve();
         }
 
         if (saveConnectionScope === storeOnWorkspace) {
-          console.log('storing on workspace');
-          return resolve(this.addNewConnectionToWorkspaceStore(newConnectionConfig, newConnectionId));
+          this.addNewConnectionToWorkspaceStore(newConnectionConfig, newConnectionId);
+        } else {
+          this.addNewConnectionToGlobalStore(newConnectionConfig, newConnectionId);
         }
 
-        console.log('storing globally');
-        return resolve(this.addNewConnectionToGlobalStore(newConnectionConfig, newConnectionId));
+        return resolve();
       });
     });
   }
