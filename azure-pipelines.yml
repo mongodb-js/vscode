@@ -33,15 +33,8 @@ steps:
     displayName: 'Start xvfb'
     condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
 
-  - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreAndSaveCacheV1.RestoreAndSaveCache@1
-    inputs:
-      keyfile: 'package-lock.json'
-      targetfolder: 'node_modules, !node_modules/**/node_modules'
-      vstsFeed: '$(ArtifactFeed)'
-
   - script: npm install
     displayName: 'Install npm'
-    condition: ne(variables['CacheRestored'], 'true')
 
   - bash: |
       echo ">>> Run integration tests"
