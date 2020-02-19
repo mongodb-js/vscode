@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { before, after } from 'mocha';
 
 import ConnectionController from '../../../connectionController';
+import { STORAGE_PREFIX, StorageVariables } from '../../../storage/storageController';
 import { ExplorerController } from '../../../explorer';
 import { StatusView } from '../../../views';
 import { TestExtensionContext } from '../stubs';
@@ -19,6 +20,11 @@ suite('Explorer Controller Test Suite', function () {
   after(require('mongodb-runner/mocha/after'));
 
   const mockExtensionContext = new TestExtensionContext();
+  // Disable the dialogue for prompting the user where to store the connection.
+  mockExtensionContext.globalState.update(
+    `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`,
+    true
+  );
   const mockStorageController = new StorageController(mockExtensionContext);
 
   test('when activated it creates a tree with a connections root', function (done) {

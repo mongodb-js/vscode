@@ -5,7 +5,8 @@ import { before, after } from 'mocha';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../../connectionController';
-import { StorageController } from '../../storage';
+import { StorageController, StorageVariables } from '../../storage';
+import { STORAGE_PREFIX } from '../../storage/storageController';
 import { StatusView } from '../../views';
 
 import { TestExtensionContext } from './stubs';
@@ -21,6 +22,11 @@ suite('Connection Controller Test Suite', () => {
   after(require('mongodb-runner/mocha/after'));
 
   const mockExtensionContext = new TestExtensionContext();
+  // Disable the dialogue for prompting the user where to store the connection.
+  mockExtensionContext.globalState.update(
+    `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`,
+    true
+  );
   const mockStorageController = new StorageController(mockExtensionContext);
 
   test('it connects to mongodb', function (done) {
@@ -304,4 +310,42 @@ suite('Connection Controller Test Suite', () => {
         });
       });
   });
+
+  // test('when there are no existing connections in the store and the connection controller is activated', function () {
+  //   const testExtensionContext = new TestExtensionContext();
+  //   const testStorageController = new StorageController(testExtensionContext);
+
+  //   const testConnectionController = new ConnectionController(
+  //     new StatusView(),
+  //     testStorageController
+  //   );
+
+  //   testConnectionController.activate();
+  //   assert(
+  //     testConnectionController.getConnections() === {},
+  //     `Expected connections to be '{}' found ${testConnectionController.getConnections()}`
+  //   );
+  //   assert(
+  //     Object.keys(testConnectionController.getConnections()).length === 0,
+  //     `Expected 0 connection configurations found ${Object.keys(testConnectionController.getConnections()).length}`
+  //   );
+  // });
+
+  // test('When activated, the connection model loads both global and workspace stored connection models', function () {
+  //   const testExtensionContext = new TestExtensionContext();
+  //   // Set existing connections.
+  //   testExtensionContext.globalState.update(
+  //     `${STORAGE_PREFIX}${StorageVariables.GLOBAL_CONNECTION_MODELS}`,
+  //     {
+  //       'testGlobalConnectionModel': {},
+  //       'testGlobalConnectionModel2': {},
+  //     }
+  //   );
+  //   const testStorageController = new StorageController(testExtensionContext);
+
+  //   const testConnectionController = new ConnectionController(
+  //     new StatusView(),
+  //     testStorageController
+  //   );
+  // });
 });

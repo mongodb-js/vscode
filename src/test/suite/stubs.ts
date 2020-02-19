@@ -6,7 +6,9 @@ class TestExtensionContext implements vscode.ExtensionContext {
   logPath: string;
   subscriptions: { dispose(): any }[];
   workspaceState: vscode.Memento;
+  _workspaceState = {};
   globalState: vscode.Memento;
+  _globalState = {};
   extensionPath: string;
   storagePath: string;
 
@@ -19,15 +21,19 @@ class TestExtensionContext implements vscode.ExtensionContext {
     this.logPath = '';
     this.subscriptions = [];
     this.workspaceState = {
-      get: (): void => {},
-      update: (key: string, value: any) => {
-        return new Promise<void>(() => {});
+      get: (key: string): any => {
+        return this._workspaceState[key];
+      },
+      update: (key: string, value: any): Thenable<void> => {
+        return new Promise<void>(() => { this._workspaceState[key] = value; });
       }
     };
     this.globalState = {
-      get: () => {},
-      update: (key: string, value: any) => {
-        return new Promise<void>(() => {});
+      get: (key: string): any => {
+        return this._globalState[key];
+      },
+      update: (key: string, value: any): Thenable<void> => {
+        return new Promise<void>(() => { this._globalState[key] = value; });
       }
     };
     this.extensionPath = '';

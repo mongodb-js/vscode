@@ -57,8 +57,12 @@ export default class ConnectionController {
 
   activate(): void {
     // Pull in existing connections from storage.
-    const existingConnectionModels = this._storageController.get(StorageVariables.CONNECTION_MODELS);
-    this._connectionConfigs = existingConnectionModels || {};
+    const existingGlobalConnectionModels = this._storageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS) || {};
+    const existingWorkspaceConnectionModels = this._storageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS) || {};
+    this._connectionConfigs = {
+      ...existingGlobalConnectionModels,
+      ...existingWorkspaceConnectionModels
+    };
   }
 
   public addMongoDBConnection(): Promise<boolean> {
@@ -190,11 +194,14 @@ export default class ConnectionController {
         this._currentConnectionInstanceId = instanceId;
         this._currentConnectionConfig = connectionConfig;
         this._currentConnection = newConnection;
-        this._connecting = false;
 
-        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+        this._storageController.storeNewConnection(connectionConfig, instanceId).then(() => {
+          this._connecting = false;
 
-        resolve(true);
+          this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+
+          resolve(true);
+        });
       });
     });
   }
@@ -342,7 +349,7 @@ export default class ConnectionController {
   }
 
   // Exposed for testing.
-  public getConnections(): any {
+  public getConnections(): object {
     return this._connectionConfigs;
   }
   public getActiveConnection(): any {
