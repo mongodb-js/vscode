@@ -35,10 +35,11 @@ steps:
 
   - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
     inputs:
-      keyfile: commit
-      targetfolder: output
+      keyfile: 'package-lock.json'
+      targetfolder: 'node_modules'
       vstsFeed: '$(ArtifactFeed)'
       dryRun: true
+      platformIndependent: true
 
   - script: npm install
     displayName: 'Install npm'
