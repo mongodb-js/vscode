@@ -3,28 +3,46 @@ import * as vscode from 'vscode';
 import { before, after } from 'mocha';
 
 import ConnectionController from '../../../connectionController';
-import { STORAGE_PREFIX, StorageVariables } from '../../../storage/storageController';
+import { DefaultSavingLocations } from '../../../storage/storageController';
 import { ExplorerController } from '../../../explorer';
 import { StatusView } from '../../../views';
 import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
 
-const testDatabaseURI = 'mongodb://localhost';
+const testDatabaseURI = 'mongodb://localhost:27018';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
 suite('Explorer Controller Test Suite', function () {
   vscode.window.showInformationMessage('Starting tests...');
 
-  before(require('mongodb-runner/mocha/before'));
-  after(require('mongodb-runner/mocha/after'));
+  before(async () => {
+    require('mongodb-runner/mocha/before');
+    // Disable the dialogue for prompting the user where to store the connection.
+    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'hideOptionToChooseWhereToSaveNewConnections',
+      true
+    );
+    // Don't save connections on default.
+    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'defaultConnectionSavingLocation',
+      DefaultSavingLocations['Session Only']
+    );
+  });
+  after(async () => {
+    require('mongodb-runner/mocha/after');
+    // Unset the variable we set in `before`.
+    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'hideOptionToChooseWhereToSaveNewConnections',
+      false
+    );
+    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'defaultConnectionSavingLocation',
+      DefaultSavingLocations.Workspace
+    );
+  });
 
   const mockExtensionContext = new TestExtensionContext();
-  // Disable the dialogue for prompting the user where to store the connection.
-  mockExtensionContext.globalState.update(
-    `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`,
-    true
-  );
   const mockStorageController = new StorageController(mockExtensionContext);
 
   test('when activated it creates a tree with a connections root', function (done) {
@@ -224,8 +242,8 @@ suite('Explorer Controller Test Suite', function () {
                   'Expected the first connection tree item to not be expanded'
                 );
                 assert(
-                  connectionsItems[1].label === 'shouldfail:27018',
-                  'Second connection tree item should have label "shouldfail:27018"'
+                  connectionsItems[1].label === 'shouldfail:27017',
+                  'Second connection tree item should have label "shouldfail:27017"'
                 );
                 assert(
                   connectionsItems[1].description === 'connecting...',

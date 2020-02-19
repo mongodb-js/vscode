@@ -9,7 +9,7 @@ import { StatusView } from '../../views';
 
 import { TestExtensionContext } from './stubs';
 
-const testDatabaseURI = 'mongodb://localhost';
+const testDatabaseURI = 'mongodb://localhost:27018';
 
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');

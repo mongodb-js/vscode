@@ -260,6 +260,13 @@ export default class ConnectionController {
     });
   }
 
+  public removeConnectionConfig(connectionId: string) {
+    delete this._connectionConfigs[connectionId];
+    this._storageController.removeConnection(connectionId);
+
+    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+  }
+
   public async removeMongoDBConnection(): Promise<boolean> {
     log.info('mdb.removeMongoDBConnection command called');
 
@@ -311,7 +318,8 @@ export default class ConnectionController {
       await this.disconnect();
     }
 
-    delete this._connectionConfigs[connectionToRemove];
+    this.removeConnectionConfig(connectionToRemove);
+
     vscode.window.showInformationMessage('MongoDB connection removed.');
     return Promise.resolve(true);
   }

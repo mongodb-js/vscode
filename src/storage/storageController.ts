@@ -1,21 +1,21 @@
 import * as vscode from 'vscode';
 
-// Exported for testing.
-export const STORAGE_PREFIX = 'mongoDB-ext-';
-
 export enum StorageVariables {
-  // TODO: I think these should be stored as configuration option in extension settings.
-  HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE = 'HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE',
-  STORAGE_SCOPE_FOR_STORING_CONNECTIONS = 'STORAGE_SCOPE_FOR_STORING_CONNECTIONS',
-  GLOBAL_CONNECTION_MODELS = 'GLOBAL_CONNECTION_MODELS',
-  WORKSPACE_CONNECTION_MODELS = 'WORKSPACE_CONNECTION_MODELS'
-  // CONNECTION_MODELS = 'CONNECTION_MODELS' // This exists both on workspace state and global state.
+  GLOBAL_CONNECTION_MODELS = 'GLOBAL_CONNECTION_MODELS', // Only exists on globalState.
+  WORKSPACE_CONNECTION_MODELS = 'WORKSPACE_CONNECTION_MODELS' // Only exists on workspaceState.
 }
 
 // Typically variables default to 'GLOBAL' scope.
 export enum StorageScope {
   GLOBAL = 'GLOBAL',
   WORKSPACE = 'WORKSPACE'
+}
+
+// Coupled with the `defaultConnectionSavingLocation` configuration in `package.json`.
+export enum DefaultSavingLocations {
+  'Workspace' = 'Workspace',
+  'Global' = 'Global',
+  'Session Only' = 'Session Only'
 }
 
 export default class StorageController {
@@ -29,26 +29,26 @@ export default class StorageController {
 
   public get(variableName: StorageVariables, storageScope?: StorageScope): any {
     if (storageScope === StorageScope.WORKSPACE) {
-      return this._workspaceState.get(`${STORAGE_PREFIX}${variableName}`);
+      return this._workspaceState.get(variableName);
     }
 
-    return this._globalState.get(`${STORAGE_PREFIX}${variableName}`);
+    return this._globalState.get(variableName);
   }
 
   // Update something in the storage. Defaults to global storage (not workspace).
   public update(variableName: StorageVariables, value: any, storageScope?: StorageScope): void {
     if (storageScope === StorageScope.WORKSPACE) {
-      this._globalState.update(`${STORAGE_PREFIX}${variableName}`, value);
+      this._workspaceState.update(variableName, value);
       return;
     }
 
-    this._globalState.update(`${STORAGE_PREFIX}${variableName}`, value);
+    this._globalState.update(variableName, value);
   }
 
-  private addNewConnectionToGlobalStore(newConnectionConfig: any, newConnectionId: string): void {
+  public addNewConnectionToGlobalStore(newConnectionConfig: any, newConnectionId: string): void {
     // Get the current save connections.
-    let connectionConfigs: { [key: string]: any } | undefined = this._globalState.get(
-      `${STORAGE_PREFIX}${StorageVariables.GLOBAL_CONNECTION_MODELS}`
+    let connectionConfigs: { [key: string]: any } | undefined = this.get(
+      StorageVariables.GLOBAL_CONNECTION_MODELS
     );
 
     if (!connectionConfigs) {
@@ -59,16 +59,14 @@ export default class StorageController {
     connectionConfigs[newConnectionId] = newConnectionConfig;
 
     // Update the store.
-    this._globalState.update(
-      `${STORAGE_PREFIX}${StorageVariables.GLOBAL_CONNECTION_MODELS}`,
-      connectionConfigs
-    );
+    this.update(StorageVariables.GLOBAL_CONNECTION_MODELS, connectionConfigs);
   }
 
-  private addNewConnectionToWorkspaceStore(newConnectionConfig: any, newConnectionId: string): void {
+  public addNewConnectionToWorkspaceStore(newConnectionConfig: any, newConnectionId: string): void {
     // Get the current save connections.
-    let connectionConfigs: { [key: string]: any } | undefined = this._workspaceState.get(
-      `${STORAGE_PREFIX}${StorageVariables.WORKSPACE_CONNECTION_MODELS}`
+    let connectionConfigs: { [key: string]: any } | undefined = this.get(
+      StorageVariables.WORKSPACE_CONNECTION_MODELS,
+      StorageScope.WORKSPACE
     );
     if (!connectionConfigs) {
       connectionConfigs = {};
@@ -76,30 +74,26 @@ export default class StorageController {
 
     // Add the new connection.
     connectionConfigs[newConnectionId] = newConnectionConfig;
-    // TODO: Is this read only???? ^^^ Maybe deconstruct needed.
 
     // Update the store.
-    this._workspaceState.update(
-      `${STORAGE_PREFIX}${StorageVariables.WORKSPACE_CONNECTION_MODELS}`,
-      connectionConfigs
-    );
+    this.update(StorageVariables.WORKSPACE_CONNECTION_MODELS, connectionConfigs, StorageScope.WORKSPACE);
   }
-
 
   public storeNewConnection(newConnectionConfig: any, newConnectionId: string): Thenable<void> {
-    if (this._globalState.get(
-      `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`
-    ) === true
-    ) {
+    const dontShowSaveLocationPrompt = vscode.workspace.getConfiguration(
+      'mdb.connectionSaving'
+    ).get('hideOptionToChooseWhereToSaveNewConnections');
+
+    if (dontShowSaveLocationPrompt === true) {
       // The user has chosen not to show the message on where to save the connection.
       // Save the connection in their default preference.
-      const preferedStorageScope = this._globalState.get(
-        `${STORAGE_PREFIX}${StorageVariables.STORAGE_SCOPE_FOR_STORING_CONNECTIONS}`
-      );
+      const preferedStorageScope = vscode.workspace.getConfiguration(
+        'mdb.connectionSaving'
+      ).get('defaultConnectionSavingLocation');
 
-      if (preferedStorageScope === StorageScope.WORKSPACE) {
+      if (preferedStorageScope === DefaultSavingLocations.Workspace) {
         this.addNewConnectionToWorkspaceStore(newConnectionConfig, newConnectionId);
-      } else if (preferedStorageScope === StorageScope.GLOBAL) {
+      } else if (preferedStorageScope === DefaultSavingLocations.Global) {
         this.addNewConnectionToGlobalStore(newConnectionConfig, newConnectionId);
       }
 
@@ -127,5 +121,32 @@ export default class StorageController {
         return resolve();
       });
     });
+  }
+
+  public removeConnection(connectionId: string): void {
+    // See if the connection exists in the saved global or workspace connections
+    // and remove it if it is.
+    const globalConnectionConfigs: { [key: string]: any } | undefined = this.get(
+      StorageVariables.GLOBAL_CONNECTION_MODELS
+    );
+    if (globalConnectionConfigs && globalConnectionConfigs[connectionId]) {
+      delete globalConnectionConfigs[connectionId];
+      this.update(
+        StorageVariables.GLOBAL_CONNECTION_MODELS,
+        globalConnectionConfigs
+      );
+    }
+
+    const workspaceConnectionConfigs: { [key: string]: any } | undefined = this.get(
+      StorageVariables.WORKSPACE_CONNECTION_MODELS,
+      StorageScope.WORKSPACE
+    );
+    if (workspaceConnectionConfigs && workspaceConnectionConfigs[connectionId]) {
+      delete workspaceConnectionConfigs[connectionId];
+      this.update(
+        StorageVariables.WORKSPACE_CONNECTION_MODELS,
+        workspaceConnectionConfigs
+      );
+    }
   }
 }

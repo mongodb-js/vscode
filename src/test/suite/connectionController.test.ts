@@ -6,12 +6,12 @@ import ConnectionController, {
   DataServiceEventTypes
 } from '../../connectionController';
 import { StorageController, StorageVariables } from '../../storage';
-import { STORAGE_PREFIX, StorageScope } from '../../storage/storageController';
+import { StorageScope, DefaultSavingLocations } from '../../storage/storageController';
 import { StatusView } from '../../views';
 
 import { TestExtensionContext } from './stubs';
 
-const testDatabaseURI = 'mongodb://localhost';
+const testDatabaseURI = 'mongodb://localhost:27018';
 const testDatabaseInstanceId = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
@@ -19,16 +19,36 @@ const testDatabaseURI2WithTimeout =
 suite('Connection Controller Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  before(require('mongodb-runner/mocha/before'));
-  after(require('mongodb-runner/mocha/after'));
-
   const mockExtensionContext = new TestExtensionContext();
-  // Disable the dialogue for prompting the user where to store the connection.
-  mockExtensionContext.globalState.update(
-    `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`,
-    true
-  );
   const mockStorageController = new StorageController(mockExtensionContext);
+
+  before(async () => {
+    require('mongodb-runner/mocha/before');
+    // Disable the dialogue for prompting the user where to store the connection.
+    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'hideOptionToChooseWhereToSaveNewConnections',
+      true
+    );
+    // Don't save connections on default.
+    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'defaultConnectionSavingLocation',
+      DefaultSavingLocations['Session Only']
+    );
+  });
+  after(async () => {
+    require('mongodb-runner/mocha/after');
+    // Unset the variable we set in `before`.
+    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'hideOptionToChooseWhereToSaveNewConnections',
+      false
+    );
+    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'defaultConnectionSavingLocation',
+      DefaultSavingLocations.Workspace
+    );
+    mockExtensionContext._workspaceState = {};
+    mockExtensionContext._globalState = {};
+  });
 
   test('it connects to mongodb', function (done) {
     const testConnectionController = new ConnectionController(
@@ -332,14 +352,14 @@ suite('Connection Controller Test Suite', () => {
     const testExtensionContext = new TestExtensionContext();
     // Set existing connections.
     testExtensionContext.globalState.update(
-      `${STORAGE_PREFIX}${StorageVariables.GLOBAL_CONNECTION_MODELS}`,
+      StorageVariables.GLOBAL_CONNECTION_MODELS,
       {
         'testGlobalConnectionModel': {},
         'testGlobalConnectionModel2': {},
       }
     );
     testExtensionContext.workspaceState.update(
-      `${STORAGE_PREFIX}${StorageVariables.WORKSPACE_CONNECTION_MODELS}`,
+      StorageVariables.WORKSPACE_CONNECTION_MODELS,
       {
         'testWorkspaceConnectionModel': {},
         'testWorkspaceConnectionModel2': {},
@@ -371,14 +391,6 @@ suite('Connection Controller Test Suite', () => {
 
   test('When a connection is added it is saved to the global store', function (done) {
     const testExtensionContext = new TestExtensionContext();
-    testExtensionContext.globalState.update(
-      `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`,
-      true
-    );
-    testExtensionContext.globalState.update(
-      `${STORAGE_PREFIX}${StorageVariables.STORAGE_SCOPE_FOR_STORING_CONNECTIONS}`,
-      StorageScope.GLOBAL
-    );
     const testStorageController = new StorageController(testExtensionContext);
 
     const testConnectionController = new ConnectionController(
@@ -388,37 +400,40 @@ suite('Connection Controller Test Suite', () => {
 
     testConnectionController.activate();
 
-    testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
-      .then(() => {
-        const globalStoreConnections = testStorageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS);
-        assert(
-          Object.keys(globalStoreConnections).length === 1,
-          `Expected global store connections to have 1 connection found ${Object.keys(globalStoreConnections).length}`
-        );
-        assert(
-          Object.keys(globalStoreConnections).includes(testDatabaseInstanceId),
-          `Expected global store connections to have the new connection '${testDatabaseInstanceId}' found ${Object.keys(globalStoreConnections)}`
-        );
+    vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'defaultConnectionSavingLocation',
+      DefaultSavingLocations.Global
+    ).then(() => {
+      testConnectionController
+        .addNewConnectionAndConnect(testDatabaseURI)
+        .then(() => {
+          // Unset the variable we set.
+          vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+            'defaultConnectionSavingLocation',
+            DefaultSavingLocations['Session Only']
+          ).then(() => {
+            const globalStoreConnections = testStorageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS);
+            assert(
+              Object.keys(globalStoreConnections).length === 1,
+              `Expected global store connections to have 1 connection found ${Object.keys(globalStoreConnections).length}`
+            );
+            assert(
+              Object.keys(globalStoreConnections).includes(testDatabaseInstanceId),
+              `Expected global store connections to have the new connection '${testDatabaseInstanceId}' found ${Object.keys(globalStoreConnections)}`
+            );
 
-        const workspaceStoreConnections = testStorageController.get(StorageVariables.WORKSPACE_CONNECTION_MODELS);
-        assert(
-          workspaceStoreConnections === undefined,
-          `Expected workspace store connections to be 'undefined' found ${workspaceStoreConnections}`
-        );
-      }).then(done).catch(done);
+            const workspaceStoreConnections = testStorageController.get(StorageVariables.WORKSPACE_CONNECTION_MODELS);
+            assert(
+              workspaceStoreConnections === undefined,
+              `Expected workspace store connections to be 'undefined' found ${workspaceStoreConnections}`
+            );
+          }).then(done, done);
+        });
+    });
   });
 
   test('When a connection is added it is saved to the workspace store', function (done) {
     const testExtensionContext = new TestExtensionContext();
-    testExtensionContext.globalState.update(
-      `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`,
-      true
-    );
-    testExtensionContext.globalState.update(
-      `${STORAGE_PREFIX}${StorageVariables.STORAGE_SCOPE_FOR_STORING_CONNECTIONS}`,
-      StorageScope.WORKSPACE
-    );
     const testStorageController = new StorageController(testExtensionContext);
 
     const testConnectionController = new ConnectionController(
@@ -428,33 +443,38 @@ suite('Connection Controller Test Suite', () => {
 
     testConnectionController.activate();
 
-    testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
-      .then(() => {
-        const workspaceStoreConnections = testStorageController.get(StorageVariables.WORKSPACE_CONNECTION_MODELS, StorageScope.WORKSPACE);
-        assert(
-          Object.keys(workspaceStoreConnections).length === 1,
-          `Expected global store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
-        );
-        assert(
-          Object.keys(workspaceStoreConnections).includes(testDatabaseInstanceId),
-          `Expected global store connections to have the new connection '${testDatabaseInstanceId}' found ${Object.keys(workspaceStoreConnections)}`
-        );
+    vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'defaultConnectionSavingLocation',
+      DefaultSavingLocations.Workspace
+    ).then(() => {
+      testConnectionController
+        .addNewConnectionAndConnect(testDatabaseURI)
+        .then(() => {
+          const workspaceStoreConnections = testStorageController.get(
+            StorageVariables.WORKSPACE_CONNECTION_MODELS,
+            StorageScope.WORKSPACE
+          );
 
-        const globalStoreConnections = testStorageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS);
-        assert(
-          globalStoreConnections === undefined,
-          `Expected workspace store connections to be 'undefined' found ${globalStoreConnections}`
-        );
-      }).then(done).catch(done);
+          assert(
+            Object.keys(workspaceStoreConnections).length === 1,
+            `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
+          );
+          assert(
+            Object.keys(workspaceStoreConnections).includes(testDatabaseInstanceId),
+            `Expected workspace store connections to have the new connection '${testDatabaseInstanceId}' found ${Object.keys(workspaceStoreConnections)}`
+          );
+
+          const globalStoreConnections = testStorageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS);
+          assert(
+            globalStoreConnections === undefined,
+            `Expected global store connections to be 'undefined' found ${globalStoreConnections}`
+          );
+        }).then(done, done);
+    });
   });
 
   test('When a connection is added and the user has set it to not save on default it is not saved', function (done) {
     const testExtensionContext = new TestExtensionContext();
-    testExtensionContext.globalState.update(
-      `${STORAGE_PREFIX}${StorageVariables.HIDE_OPTION_TO_CHOOSE_CONNECTION_STORING_SCOPE}`,
-      true
-    );
     const testStorageController = new StorageController(testExtensionContext);
 
     const testConnectionController = new ConnectionController(
@@ -464,20 +484,73 @@ suite('Connection Controller Test Suite', () => {
 
     testConnectionController.activate();
 
-    testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
-      .then(() => {
-        const globalStoreConnections = testStorageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS);
-        assert(
-          globalStoreConnections === undefined,
-          `Expected global store connections to be 'undefined' found ${globalStoreConnections}`
-        );
+    vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'defaultConnectionSavingLocation',
+      DefaultSavingLocations['Session Only']
+    ).then(() => {
+      testConnectionController
+        .addNewConnectionAndConnect(testDatabaseURI)
+        .then(() => {
+          const objectString = JSON.stringify(undefined);
+          const globalStoreConnections = testStorageController.get(
+            StorageVariables.GLOBAL_CONNECTION_MODELS
+          );
+          assert(
+            JSON.stringify(globalStoreConnections) === objectString,
+            `Expected global store connections to be an empty object found ${globalStoreConnections}`
+          );
 
-        const workspaceStoreConnections = testStorageController.get(StorageVariables.WORKSPACE_CONNECTION_MODELS, StorageScope.WORKSPACE);
-        assert(
-          workspaceStoreConnections === undefined,
-          `Expected workspace store connections to be 'undefined' found ${workspaceStoreConnections}`
-        );
-      }).then(done).catch(done);
+          const workspaceStoreConnections = testStorageController.get(
+            StorageVariables.WORKSPACE_CONNECTION_MODELS,
+            StorageScope.WORKSPACE
+          );
+          assert(
+            JSON.stringify(workspaceStoreConnections) === objectString,
+            `Expected workspace store connections to be an empty object found ${JSON.stringify(workspaceStoreConnections)}`
+          );
+        }).then(done).catch(done);
+    });
+  });
+
+  test('When a connection is remove it is also removed from storage', function (done) {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      testStorageController
+    );
+
+    testConnectionController.activate();
+
+    vscode.workspace.getConfiguration('mdb.connectionSaving').update(
+      'defaultConnectionSavingLocation',
+      DefaultSavingLocations.Workspace
+    ).then(() => {
+      testConnectionController
+        .addNewConnectionAndConnect(testDatabaseURI)
+        .then(() => {
+          const workspaceStoreConnections = testStorageController.get(
+            StorageVariables.WORKSPACE_CONNECTION_MODELS,
+            StorageScope.WORKSPACE
+          );
+
+          assert(
+            Object.keys(workspaceStoreConnections).length === 1,
+            `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
+          );
+
+          testConnectionController.removeConnectionConfig(testDatabaseInstanceId);
+
+          const postWorkspaceStoreConnections = testStorageController.get(
+            StorageVariables.WORKSPACE_CONNECTION_MODELS,
+            StorageScope.WORKSPACE
+          );
+          assert(
+            Object.keys(postWorkspaceStoreConnections).length === 0,
+            `Expected workspace store connections to have 0 connections found ${Object.keys(postWorkspaceStoreConnections).length}`
+          );
+        }).then(done).catch(done);
+    });
   });
 });
