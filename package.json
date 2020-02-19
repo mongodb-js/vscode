@@ -88,10 +88,25 @@
     "configuration": {
       "title": "MongoDB",
       "properties": {
-        "mdb.show": {
+        "mdb.defaultConnectionSavingLocation": {
+          "type": "string",
+          "enum": [
+            "WORKSPACE",
+            "GLOBAL",
+            "DONT_SAVE"
+          ],
+          "enumDescriptions": [
+            "Save new connections globally on vscode.",
+            "Save new connections to the active workspace.",
+            "Don't save new connections (connections are lost when the session is closed)."
+          ],
+          "default": "WORKSPACE",
+          "description": "When the setting to hide the option of choosing where to save new connections is checked, this setting sets where new connections are saved to, or if they are not to be saved."
+        },
+        "mdb.hideOptionToChooseWhereToSaveNewConnections": {
           "type": "boolean",
-          "default": true,
-          "description": "Show or hide the MongoDB view."
+          "default": false,
+          "description": "When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used."
         },
         "mdb.shell": {
           "type": "string",
@@ -105,6 +120,11 @@
           ],
           "default": "mongo",
           "description": "The mongodb shell to use"
+        },
+        "mdb.show": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show or hide the MongoDB view."
         }
       }
     }
