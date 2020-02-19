@@ -271,7 +271,7 @@
     "body": [
       "/**",
       " * expression: Any valid expression that",
-      " *   evaluates to $$DESCEND, $$PRUNE, or $$KEEP.",
+      " *   evaluates to \\$\\$DESCEND, \\$\\$PRUNE, or \\$\\$KEEP.",
       " */",
       "",
       "\\$redact: {",
