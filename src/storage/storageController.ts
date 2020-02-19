@@ -114,17 +114,13 @@ export default class StorageController {
       vscode.window.showInformationMessage(
         'Would you like to save this new connection ?\'Cancel\' will make this connection only last in this session. (This message can be disabled in the extension settings.)',
         { modal: true },
+        'Cancel',
         storeOnWorkspace,
         storeGlobally
       ).then(saveConnectionScope => {
-        if (!saveConnectionScope || saveConnectionScope === 'Don\'t save past this session') {
-          // Don't store the connection.
-          return resolve();
-        }
-
         if (saveConnectionScope === storeOnWorkspace) {
           this.addNewConnectionToWorkspaceStore(newConnectionConfig, newConnectionId);
-        } else {
+        } else if (saveConnectionScope === storeGlobally) {
           this.addNewConnectionToGlobalStore(newConnectionConfig, newConnectionId);
         }
 

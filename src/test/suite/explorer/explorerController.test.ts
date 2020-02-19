@@ -129,8 +129,8 @@ suite('Explorer Controller Test Suite', function () {
         );
         const instanceId = testConnectionController.getActiveConnectionInstanceId();
         assert(
-          instanceId === 'localhost:27017',
-          `Expected active connection to be 'localhost:27017' found ${instanceId}`
+          instanceId === 'localhost:27018',
+          `Expected active connection to be 'localhost:27018' found ${instanceId}`
         );
 
         treeController.getChildren().then(treeControllerChildren => {
@@ -142,8 +142,8 @@ suite('Explorer Controller Test Suite', function () {
                 `Expected there be 1 connection tree item, found ${connectionsItems.length}`
               );
               assert(
-                connectionsItems[0].label === 'localhost:27017',
-                'There should be a connection tree item with the label "localhost:27017"'
+                connectionsItems[0].label === 'localhost:27018',
+                'There should be a connection tree item with the label "localhost:27018"'
               );
               assert(
                 connectionsItems[0].description === 'connected',
@@ -180,52 +180,63 @@ suite('Explorer Controller Test Suite', function () {
 
     this.timeout(1500);
 
-    testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(succesfullyConnected => {
-      assert(succesfullyConnected === true, 'Expected a successful connection response.');
-      assert(
-        Object.keys(testConnectionController.getConnections()).length === 1,
-        'Expected there to be 1 connection in the connection list.'
-      );
-      const instanceId = testConnectionController.getActiveConnectionInstanceId();
-      assert(
-        instanceId === 'localhost:27017',
-        `Expected active connection to be 'localhost:27017' found ${instanceId}`
-      );
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(succesfullyConnected => {
+        assert(
+          succesfullyConnected === true,
+          'Expected a successful connection response.'
+        );
+        assert(
+          Object.keys(testConnectionController.getConnections()).length === 1,
+          'Expected there to be 1 connection in the connection list.'
+        );
+        const instanceId = testConnectionController.getActiveConnectionInstanceId();
+        assert(
+          instanceId === 'localhost:27018',
+          `Expected active connection to be 'localhost:27018' found ${instanceId}`
+        );
 
-      // This will timeout in 1s, which is enough time for us to just check.
-      testConnectionController.addNewConnectionAndConnect(testDatabaseURI2WithTimeout);
+        // This will timeout in 1s, which is enough time for us to just check.
+        testConnectionController.addNewConnectionAndConnect(
+          testDatabaseURI2WithTimeout
+        ).then(() => { }, () => { } /* Silent fail (should fail) */);
 
-      treeController.getChildren().then(treeControllerChildren => {
-        treeControllerChildren[0].getChildren().then(connectionsItems => {
-          assert(
-            connectionsItems.length === 2,
-            `Expected there be 2 connection tree item, found ${connectionsItems.length}`
-          );
-          assert(
-            connectionsItems[0].label === 'localhost:27017',
-            `First connection tree item should have label "localhost:27017" found ${connectionsItems[0].label}`
-          );
-          assert(
-            connectionsItems[0].description === '',
-            'Expected the first connection to have no description.'
-          );
-          assert(
-            connectionsItems[0].isExpanded === false,
-            'Expected the first connection tree item to not be expanded'
-          );
-          assert(
-            connectionsItems[1].label === 'shouldfail:27017',
-            'Second connection tree item should have label "shouldfail:27017"'
-          );
-          assert(
-            connectionsItems[1].description === 'connecting...',
-            'The second connection should have a connecting description.'
-          );
+        setTimeout(() => {
+          treeController.getChildren().then(treeControllerChildren => {
+            treeControllerChildren[0]
+              .getChildren()
+              .then(connectionsItems => {
+                assert(
+                  connectionsItems.length === 2,
+                  `Expected there be 2 connection tree item, found ${connectionsItems.length}`
+                );
+                assert(
+                  connectionsItems[0].label === 'localhost:27018',
+                  `First connection tree item should have label "localhost:27018" found ${connectionsItems[0].label}`
+                );
+                assert(
+                  connectionsItems[0].description === '',
+                  'Expected the first connection to have no description.'
+                );
+                assert(
+                  connectionsItems[0].getIsExpanded() === false,
+                  'Expected the first connection tree item to not be expanded'
+                );
+                assert(
+                  connectionsItems[1].label === 'shouldfail:27018',
+                  'Second connection tree item should have label "shouldfail:27018"'
+                );
+                assert(
+                  connectionsItems[1].description === 'connecting...',
+                  'The second connection should have a connecting description.'
+                );
 
-          testExplorerController.deactivate();
-        }).then(done, done);
+                testExplorerController.deactivate();
+              }).then(done, done);
+          });
+        }, 100);
       });
-    });
   });
 
   test('shows the databases of connected connection in tree', function (done) {
@@ -273,7 +284,10 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('caches the expanded state of databases in the tree when a connection is expanded or collapsed', function (done) {
-    const testConnectionController = new ConnectionController(new StatusView());
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
 
     const testExplorerController = new ExplorerController();
 

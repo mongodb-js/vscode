@@ -12,7 +12,7 @@ import { StatusView } from '../../views';
 import { TestExtensionContext } from './stubs';
 
 const testDatabaseURI = 'mongodb://localhost';
-const testDatabaseInstanceId = 'localhost:27017';
+const testDatabaseInstanceId = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
@@ -50,8 +50,8 @@ suite('Connection Controller Test Suite', () => {
         );
         const instanceId = testConnectionController.getActiveConnectionInstanceId();
         assert(
-          instanceId === 'localhost:27017',
-          `Expected active connection to be 'localhost:27017' found ${instanceId}`
+          instanceId === 'localhost:27018',
+          `Expected active connection to be 'localhost:27018' found ${instanceId}`
         );
       })
       .then(done, done);
