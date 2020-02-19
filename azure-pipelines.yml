@@ -29,16 +29,13 @@ steps:
 
   - bash: |
       /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      echo ">>> Started xvfb"
     displayName: 'Start xvfb'
     condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
 
   - script: npm install
     displayName: 'Install npm'
 
-  - bash: |
-      echo ">>> Run integration tests"
-      npm run test
+  - bash: npm run test
     displayName: 'Run Tests'
     env:
       DISPLAY: ':99.0'
