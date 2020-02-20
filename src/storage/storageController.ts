@@ -148,7 +148,8 @@ export default class StorageController {
       delete workspaceStoredConnections[connectionId];
       this.update(
         StorageVariables.WORKSPACE_CONNECTION_STRINGS,
-        workspaceStoredConnections
+        workspaceStoredConnections,
+        StorageScope.WORKSPACE
       );
     }
   }
