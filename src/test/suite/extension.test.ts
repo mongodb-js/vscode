@@ -66,9 +66,6 @@ suite('Extension Test Suite', () => {
   });
 
   test('extension connections', () => {
-    before(require('mongodb-runner/mocha/before'));
-    after(require('mongodb-runner/mocha/after'));
-
     test('when the extension is deactivated, the active connection is disconnected', (done) => {
       const mockExtensionContext = new TestExtensionContext();
       const mockStorageController = new StorageController(mockExtensionContext);

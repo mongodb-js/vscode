@@ -17,7 +17,6 @@ suite('Explorer Controller Test Suite', function () {
   vscode.window.showInformationMessage('Starting tests...');
 
   before(async () => {
-    require('mongodb-runner/mocha/before');
     // Disable the dialogue for prompting the user where to store the connection.
     await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'hideOptionToChooseWhereToSaveNewConnections',
@@ -30,7 +29,6 @@ suite('Explorer Controller Test Suite', function () {
     );
   });
   after(async () => {
-    require('mongodb-runner/mocha/after');
     // Unset the variable we set in `before`.
     await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'hideOptionToChooseWhereToSaveNewConnections',
