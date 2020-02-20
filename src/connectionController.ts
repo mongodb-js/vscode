@@ -58,15 +58,17 @@ export default class ConnectionController {
 
   activate(): void {
     // Load saved connections from storage.
-    const existingGlobalConnectionStrings = this._storageController.get(StorageVariables.GLOBAL_CONNECTION_STRINGS) || {};
-    if (existingGlobalConnectionStrings && Object.keys(existingGlobalConnectionStrings).length > 0) {
+    const existingGlobalConnectionStrings = this._storageController.get(
+      StorageVariables.GLOBAL_CONNECTION_STRINGS
+    ) || {};
+    if (Object.keys(existingGlobalConnectionStrings).length > 0) {
       // Try to pull in the previous connections. We are open to failing here
       // in case the old connection has been corrupted or is no longer supported.
       Object.keys(existingGlobalConnectionStrings).forEach(connectionId => {
         Connection.from(existingGlobalConnectionStrings[connectionId], (err, loadedGlobalConnectionConfig) => {
           if (err) {
-            // Here we silently fail.
-            // This may mean a connection has been corrupted or is no longer supported.
+            // This may indicate a connection has been corrupted or is no longer supported.
+            return;
           }
 
           // Override the default connection `appname`.
@@ -77,15 +79,18 @@ export default class ConnectionController {
       });
     }
 
-    const existingWorkspaceConnectionStrings = this._storageController.get(StorageVariables.WORKSPACE_CONNECTION_STRINGS, StorageScope.WORKSPACE) || {};
-    if (existingWorkspaceConnectionStrings && Object.keys(existingWorkspaceConnectionStrings).length > 0) {
+    const existingWorkspaceConnectionStrings = this._storageController.get(
+      StorageVariables.WORKSPACE_CONNECTION_STRINGS,
+      StorageScope.WORKSPACE
+    ) || {};
+    if (Object.keys(existingWorkspaceConnectionStrings).length > 0) {
       // Try to pull in the previous connections. We are open to failing here
       // in case the old connection has been corrupted or is no longer supported.
       Object.keys(existingWorkspaceConnectionStrings).forEach(connectionId => {
         Connection.from(existingWorkspaceConnectionStrings[connectionId], (err, loadedWorkspaceConnectionConfig) => {
           if (err) {
-            // Here we silently fail.
-            // This may mean a connection has been corrupted or is no longer supported.
+            // This may indicate a connection has been corrupted or is no longer supported.
+            return;
           }
 
           // Override the default connection `appname`.

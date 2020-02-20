@@ -124,7 +124,7 @@
             "Don't save new connections (connections are lost when the session is closed)."
           ],
           "default": "Workspace",
-          "description": "When the setting to hide the option of choosing where to save new connections is checked, this setting sets where new connections are saved to, or if they are not to be saved."
+          "description": "When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved."
         }
       }
     }
