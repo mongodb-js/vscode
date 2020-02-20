@@ -58,54 +58,47 @@ export default class ConnectionController {
 
   activate(): void {
     // Load saved connections from storage.
-    const existingGlobalConnectionModels = this._storageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS) || {};
-    if (existingGlobalConnectionModels && Object.keys(existingGlobalConnectionModels).length > 0) {
+    const existingGlobalConnectionStrings = this._storageController.get(StorageVariables.GLOBAL_CONNECTION_STRINGS) || {};
+    if (existingGlobalConnectionStrings && Object.keys(existingGlobalConnectionStrings).length > 0) {
       // Try to pull in the previous connections. We are open to failing here
       // in case the old connection has been corrupted or is no longer supported.
-      Object.keys(existingGlobalConnectionModels).forEach(connectionId => {
-        try {
-          const loadedGlobalConnectionConfig = new Connection({
-            ...existingGlobalConnectionModels[connectionId]
-          });
+      Object.keys(existingGlobalConnectionStrings).forEach(connectionId => {
+        Connection.from(existingGlobalConnectionStrings[connectionId], (err, loadedGlobalConnectionConfig) => {
+          if (err) {
+            // Here we silently fail.
+            // This may mean a connection has been corrupted or is no longer supported.
+          }
+
           // Override the default connection `appname`.
           loadedGlobalConnectionConfig.appname = `${name} ${version}`;
 
           this._connectionConfigs[connectionId] = loadedGlobalConnectionConfig;
-          console.log('global config to load', existingGlobalConnectionModels[connectionId]);
-          console.log('now its', this._connectionConfigs[connectionId]);
-        } catch (error) {
-          // Here we silently fail.
-          // This may mean a connection has been corrupted or is no longer supported.
-        }
+        });
       });
     }
 
-    const existingWorkspaceConnectionModels = this._storageController.get(StorageVariables.WORKSPACE_CONNECTION_MODELS, StorageScope.WORKSPACE) || {};
-    if (existingWorkspaceConnectionModels && Object.keys(existingWorkspaceConnectionModels).length > 0) {
+    const existingWorkspaceConnectionStrings = this._storageController.get(StorageVariables.WORKSPACE_CONNECTION_STRINGS, StorageScope.WORKSPACE) || {};
+    if (existingWorkspaceConnectionStrings && Object.keys(existingWorkspaceConnectionStrings).length > 0) {
       // Try to pull in the previous connections. We are open to failing here
       // in case the old connection has been corrupted or is no longer supported.
-      Object.keys(existingWorkspaceConnectionModels).forEach(connectionId => {
-        try {
-          const loadedWorkspaceConnectionConfig = new Connection({
-            ...existingWorkspaceConnectionModels[connectionId]
-          });
+      Object.keys(existingWorkspaceConnectionStrings).forEach(connectionId => {
+        Connection.from(existingWorkspaceConnectionStrings[connectionId], (err, loadedWorkspaceConnectionConfig) => {
+          if (err) {
+            // Here we silently fail.
+            // This may mean a connection has been corrupted or is no longer supported.
+          }
+
           // Override the default connection `appname`.
           loadedWorkspaceConnectionConfig.appname = `${name} ${version}`;
 
           this._connectionConfigs[connectionId] = loadedWorkspaceConnectionConfig;
-          console.log('workspace config to load', existingWorkspaceConnectionModels[connectionId]);
-          console.log('now its', this._connectionConfigs[connectionId]);
-        } catch (error) {
-          // Here we silently fail.
-          // This may mean a connection has been corrupted or is no longer supported.
-        }
+        });
       });
     }
 
     if (Object.keys(this._connectionConfigs).length > 0) {
       this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     }
-    console.log('loaded connection configs', this._connectionConfigs);
   }
 
   public addMongoDBConnection(): Promise<boolean> {
@@ -168,7 +161,10 @@ export default class ConnectionController {
             return reject(new Error('Failed to connect: invalid connection string.'));
           }
 
-          const { instanceId } = newConnectionConfig.getAttributes({
+          const {
+            driverUrl,
+            instanceId
+          } = newConnectionConfig.getAttributes({
             derived: true
           });
 
@@ -181,8 +177,7 @@ export default class ConnectionController {
           newConnectionConfig.appname = `${name} ${version}`;
 
           this.connect(newConnectionConfig).then(() => {
-            console.log('added new connection with config', newConnectionConfig);
-            this._storageController.storeNewConnection(newConnectionConfig, instanceId).then(() => {
+            this._storageController.storeNewConnection(driverUrl, instanceId).then(() => {
               resolve(true);
             });
           }).catch(reject);
@@ -402,7 +397,7 @@ export default class ConnectionController {
   }
 
   // Exposed for testing.
-  public getConnections(): object {
+  public getConnections(): any {
     return this._connectionConfigs;
   }
   public getActiveConnection(): any {

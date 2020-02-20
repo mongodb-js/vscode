@@ -352,17 +352,17 @@ suite('Connection Controller Test Suite', () => {
     const testExtensionContext = new TestExtensionContext();
     // Set existing connections.
     testExtensionContext.globalState.update(
-      StorageVariables.GLOBAL_CONNECTION_MODELS,
+      StorageVariables.GLOBAL_CONNECTION_STRINGS,
       {
-        'testGlobalConnectionModel': {},
-        'testGlobalConnectionModel2': {},
+        'testGlobalConnectionModel': 'testGlobalConnectionModelDriverUrl',
+        'testGlobalConnectionModel2': 'testGlobalConnectionModel2DriverUrl'
       }
     );
     testExtensionContext.workspaceState.update(
-      StorageVariables.WORKSPACE_CONNECTION_MODELS,
+      StorageVariables.WORKSPACE_CONNECTION_STRINGS,
       {
-        'testWorkspaceConnectionModel': {},
-        'testWorkspaceConnectionModel2': {},
+        'testWorkspaceConnectionModel': 'testWorkspaceConnectionModel1DriverUrl',
+        'testWorkspaceConnectionModel2': 'testWorkspaceConnectionModel2DriverUrl'
       }
     );
     const testStorageController = new StorageController(testExtensionContext);
@@ -386,6 +386,10 @@ suite('Connection Controller Test Suite', () => {
     assert(
       Object.keys(connections).includes('testWorkspaceConnectionModel2') === true,
       'Expected connection configurations to include \'testWorkspaceConnectionModel2\''
+    );
+    assert(
+      connections.testGlobalConnectionModel2.hostname === 'testglobalconnectionmodel2driverurl',
+      'Expected connection configuration to include hostname \'testglobalconnectionmodel2driverurl\''
     );
   });
 
@@ -412,7 +416,7 @@ suite('Connection Controller Test Suite', () => {
             'defaultConnectionSavingLocation',
             DefaultSavingLocations['Session Only']
           ).then(() => {
-            const globalStoreConnections = testStorageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS);
+            const globalStoreConnections = testStorageController.get(StorageVariables.GLOBAL_CONNECTION_STRINGS);
             assert(
               Object.keys(globalStoreConnections).length === 1,
               `Expected global store connections to have 1 connection found ${Object.keys(globalStoreConnections).length}`
@@ -422,7 +426,7 @@ suite('Connection Controller Test Suite', () => {
               `Expected global store connections to have the new connection '${testDatabaseInstanceId}' found ${Object.keys(globalStoreConnections)}`
             );
 
-            const workspaceStoreConnections = testStorageController.get(StorageVariables.WORKSPACE_CONNECTION_MODELS);
+            const workspaceStoreConnections = testStorageController.get(StorageVariables.WORKSPACE_CONNECTION_STRINGS);
             assert(
               workspaceStoreConnections === undefined,
               `Expected workspace store connections to be 'undefined' found ${workspaceStoreConnections}`
@@ -451,7 +455,7 @@ suite('Connection Controller Test Suite', () => {
         .addNewConnectionAndConnect(testDatabaseURI)
         .then(() => {
           const workspaceStoreConnections = testStorageController.get(
-            StorageVariables.WORKSPACE_CONNECTION_MODELS,
+            StorageVariables.WORKSPACE_CONNECTION_STRINGS,
             StorageScope.WORKSPACE
           );
 
@@ -464,7 +468,7 @@ suite('Connection Controller Test Suite', () => {
             `Expected workspace store connections to have the new connection '${testDatabaseInstanceId}' found ${Object.keys(workspaceStoreConnections)}`
           );
 
-          const globalStoreConnections = testStorageController.get(StorageVariables.GLOBAL_CONNECTION_MODELS);
+          const globalStoreConnections = testStorageController.get(StorageVariables.GLOBAL_CONNECTION_STRINGS);
           assert(
             globalStoreConnections === undefined,
             `Expected global store connections to be 'undefined' found ${globalStoreConnections}`
@@ -492,7 +496,7 @@ suite('Connection Controller Test Suite', () => {
         .addNewConnectionAndConnect(testDatabaseURI)
         .then(() => {
           const workspaceStoreConnections = testStorageController.get(
-            StorageVariables.WORKSPACE_CONNECTION_MODELS,
+            StorageVariables.WORKSPACE_CONNECTION_STRINGS,
             StorageScope.WORKSPACE
           );
           assert(
@@ -517,9 +521,12 @@ suite('Connection Controller Test Suite', () => {
             testConnectionController
               .connectWithInstanceId(testDatabaseInstanceId)
               .then(() => {
+                const { instanceId } = testConnectionController.getActiveConnectionConfig().getAttributes({
+                  derived: true
+                });
                 assert(
-                  testConnectionController.getActiveConnectionInstanceId() === testDatabaseURI,
-                  `Expected the active connection to be ${testDatabaseURI}, found ${testConnectionController.getActiveConnectionInstanceId()}.`
+                  instanceId === 'localhost:27018',
+                  `Expected the active connection to be 'localhost:27018', found ${instanceId}.`
                 );
               }).then(done, done);
           });
@@ -547,7 +554,7 @@ suite('Connection Controller Test Suite', () => {
         .then(() => {
           const objectString = JSON.stringify(undefined);
           const globalStoreConnections = testStorageController.get(
-            StorageVariables.GLOBAL_CONNECTION_MODELS
+            StorageVariables.GLOBAL_CONNECTION_STRINGS
           );
           assert(
             JSON.stringify(globalStoreConnections) === objectString,
@@ -555,7 +562,7 @@ suite('Connection Controller Test Suite', () => {
           );
 
           const workspaceStoreConnections = testStorageController.get(
-            StorageVariables.WORKSPACE_CONNECTION_MODELS,
+            StorageVariables.WORKSPACE_CONNECTION_STRINGS,
             StorageScope.WORKSPACE
           );
           assert(
@@ -585,7 +592,7 @@ suite('Connection Controller Test Suite', () => {
         .addNewConnectionAndConnect(testDatabaseURI)
         .then(() => {
           const workspaceStoreConnections = testStorageController.get(
-            StorageVariables.WORKSPACE_CONNECTION_MODELS,
+            StorageVariables.WORKSPACE_CONNECTION_STRINGS,
             StorageScope.WORKSPACE
           );
 
@@ -597,7 +604,7 @@ suite('Connection Controller Test Suite', () => {
           testConnectionController.removeConnectionConfig(testDatabaseInstanceId);
 
           const postWorkspaceStoreConnections = testStorageController.get(
-            StorageVariables.WORKSPACE_CONNECTION_MODELS,
+            StorageVariables.WORKSPACE_CONNECTION_STRINGS,
             StorageScope.WORKSPACE
           );
           assert(
@@ -627,7 +634,7 @@ suite('Connection Controller Test Suite', () => {
         .addNewConnectionAndConnect(testDatabaseURI)
         .then(() => {
           const globalStoreConnections = testStorageController.get(
-            StorageVariables.GLOBAL_CONNECTION_MODELS
+            StorageVariables.GLOBAL_CONNECTION_STRINGS
           );
 
           assert(
@@ -638,7 +645,7 @@ suite('Connection Controller Test Suite', () => {
           testConnectionController.removeConnectionConfig(testDatabaseInstanceId);
 
           const postGlobalStoreConnections = testStorageController.get(
-            StorageVariables.GLOBAL_CONNECTION_MODELS
+            StorageVariables.GLOBAL_CONNECTION_STRINGS
           );
           assert(
             Object.keys(postGlobalStoreConnections).length === 0,
