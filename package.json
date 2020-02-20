@@ -83,8 +83,16 @@
       {
         "command": "mdb.openMongoDBShell",
         "title": "MongoDB: Launch Mongo Shell"
+      },
+      {
+        "command": "mdb.viewCollectionDocuments",
+        "title": "View Documents"
       }
     ],
+    "view/item/context": {
+      "command": "mdb.viewCollectionDocuments",
+      "when": "view == mongoDB && viewItem == collectionTreeItem"
+    },
     "configuration": {
       "title": "MongoDB",
       "properties": {

@@ -35,6 +35,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
   private _childrenCache: vscode.TreeItem[] = [];
   private _childrenCacheIsUpToDate = false;
 
+  contextValue = 'collectionTreeItem';
+
   // We fetch 1 more than this in order to see if there are more to fetch.
   private _maxDocumentsToShow: number;
 

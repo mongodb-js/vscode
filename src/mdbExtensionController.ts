@@ -51,6 +51,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     vscode.commands.registerCommand('mdb.refresh', () => this._explorerController.refresh());
     vscode.commands.registerCommand('mdb.reload', () => this._explorerController.refresh());
 
+    vscode.commands.registerCommand('mdb.viewCollectionDocuments', () => {
+      console.log('heererererere');
+    });
+
     log.info('Registered commands.');
   }
 
