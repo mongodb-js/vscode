@@ -75,6 +75,7 @@ export default class ConnectionController {
           loadedGlobalConnectionConfig.appname = `${name} ${version}`;
 
           this._connectionConfigs[connectionId] = loadedGlobalConnectionConfig;
+          this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
         });
       });
     }
@@ -97,12 +98,9 @@ export default class ConnectionController {
           loadedWorkspaceConnectionConfig.appname = `${name} ${version}`;
 
           this._connectionConfigs[connectionId] = loadedWorkspaceConnectionConfig;
+          this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
         });
       });
-    }
-
-    if (Object.keys(this._connectionConfigs).length > 0) {
-      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     }
   }
 
