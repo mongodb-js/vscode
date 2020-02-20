@@ -76,7 +76,11 @@ export default class StorageController {
     connectionStrings[newConnectionId] = connectionString;
 
     // Update the store.
-    this.update(StorageVariables.WORKSPACE_CONNECTION_STRINGS, connectionStrings, StorageScope.WORKSPACE);
+    this.update(
+      StorageVariables.WORKSPACE_CONNECTION_STRINGS,
+      connectionStrings,
+      StorageScope.WORKSPACE
+    );
   }
 
   public storeNewConnection(connectionString: string, newConnectionId: string): Thenable<void> {
