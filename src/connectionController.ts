@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
+import { StorageController, StorageVariables } from './storage';
+import { StorageScope } from './storage/storageController';
 
 const Connection = require('mongodb-connection-model');
 const DataService = require('mongodb-data-service');
@@ -44,12 +46,62 @@ export default class ConnectionController {
   private _disconnecting = false;
 
   private _statusView: StatusView;
+  private _storageController: StorageController;
 
   // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();
 
-  constructor(_statusView: StatusView) {
+  constructor(_statusView: StatusView, storageController: StorageController) {
     this._statusView = _statusView;
+    this._storageController = storageController;
+  }
+
+  activate(): void {
+    // Load saved connections from storage.
+    const existingGlobalConnectionStrings = this._storageController.get(
+      StorageVariables.GLOBAL_CONNECTION_STRINGS
+    ) || {};
+    if (Object.keys(existingGlobalConnectionStrings).length > 0) {
+      // Try to pull in the previous connections. We are open to failing here
+      // in case the old connection has been corrupted or is no longer supported.
+      Object.keys(existingGlobalConnectionStrings).forEach(connectionId => {
+        Connection.from(existingGlobalConnectionStrings[connectionId], (err, loadedGlobalConnectionConfig) => {
+          if (err) {
+            // This may indicate a connection has been corrupted or is no longer supported.
+            return;
+          }
+
+          // Override the default connection `appname`.
+          loadedGlobalConnectionConfig.appname = `${name} ${version}`;
+
+          this._connectionConfigs[connectionId] = loadedGlobalConnectionConfig;
+          this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+        });
+      });
+    }
+
+    const existingWorkspaceConnectionStrings = this._storageController.get(
+      StorageVariables.WORKSPACE_CONNECTION_STRINGS,
+      StorageScope.WORKSPACE
+    ) || {};
+    if (Object.keys(existingWorkspaceConnectionStrings).length > 0) {
+      // Try to pull in the previous connections. We are open to failing here
+      // in case the old connection has been corrupted or is no longer supported.
+      Object.keys(existingWorkspaceConnectionStrings).forEach(connectionId => {
+        Connection.from(existingWorkspaceConnectionStrings[connectionId], (err, loadedWorkspaceConnectionConfig) => {
+          if (err) {
+            // This may indicate a connection has been corrupted or is no longer supported.
+            return;
+          }
+
+          // Override the default connection `appname`.
+          loadedWorkspaceConnectionConfig.appname = `${name} ${version}`;
+
+          this._connectionConfigs[connectionId] = loadedWorkspaceConnectionConfig;
+          this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+        });
+      });
+    }
   }
 
   public addMongoDBConnection(): Promise<boolean> {
@@ -112,7 +164,10 @@ export default class ConnectionController {
             return reject(new Error('Failed to connect: invalid connection string.'));
           }
 
-          const { instanceId } = newConnectionConfig.getAttributes({
+          const {
+            driverUrl,
+            instanceId
+          } = newConnectionConfig.getAttributes({
             derived: true
           });
 
@@ -121,10 +176,14 @@ export default class ConnectionController {
             return reject(new Error('Failed to connect: connection already exists.'));
           }
 
-          // Override default `appname`
+          // Override the default connection `appname`.
           newConnectionConfig.appname = `${name} ${version}`;
 
-          this.connect(newConnectionConfig).then(resolve, reject);
+          this.connect(newConnectionConfig).then(() => {
+            this._storageController.storeNewConnection(driverUrl, instanceId).then(() => {
+              resolve(true);
+            });
+          }).catch(reject);
         }
       );
     });
@@ -181,8 +240,8 @@ export default class ConnectionController {
         this._currentConnectionInstanceId = instanceId;
         this._currentConnectionConfig = connectionConfig;
         this._currentConnection = newConnection;
-        this._connecting = false;
 
+        this._connecting = false;
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
         resolve(true);
@@ -242,6 +301,13 @@ export default class ConnectionController {
     });
   }
 
+  public removeConnectionConfig(connectionId: string): void {
+    delete this._connectionConfigs[connectionId];
+    this._storageController.removeConnection(connectionId);
+
+    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+  }
+
   public async removeMongoDBConnection(): Promise<boolean> {
     log.info('mdb.removeMongoDBConnection command called');
 
@@ -293,7 +359,8 @@ export default class ConnectionController {
       await this.disconnect();
     }
 
-    delete this._connectionConfigs[connectionToRemove];
+    this.removeConnectionConfig(connectionToRemove);
+
     vscode.window.showInformationMessage('MongoDB connection removed.');
     return Promise.resolve(true);
   }
@@ -302,33 +369,33 @@ export default class ConnectionController {
     return Object.keys(this._connectionConfigs);
   }
 
-  public getActiveConnectionInstanceId(): any {
+  public getActiveConnectionInstanceId(): string | null {
     return this._currentConnectionInstanceId;
   }
 
   public addEventListener(
     eventType: DataServiceEventTypes,
     listener: () => void
-  ): any {
+  ): void {
     this.eventEmitter.addListener(eventType, listener);
   }
 
   public removeEventListener(
     eventType: DataServiceEventTypes,
     listener: () => void
-  ): any {
+  ): void {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
-  public isConnnecting(): any {
+  public isConnnecting(): boolean {
     return this._connecting;
   }
 
-  public isDisconnecting(): any {
+  public isDisconnecting(): boolean {
     return this._disconnecting;
   }
 
-  public getConnectingInstanceId(): any {
+  public getConnectingInstanceId(): string {
     return this._connectingInstanceId;
   }
 
@@ -342,16 +409,19 @@ export default class ConnectionController {
   public getActiveConnectionConfig(): any {
     return this._currentConnectionConfig;
   }
-  public setActiveConnection(newActiveConnection: any): any {
+  public clearConnectionConfigs(): void {
+    this._connectionConfigs = {};
+  }
+  public setActiveConnection(newActiveConnection: any): void {
     this._currentConnection = newActiveConnection;
   }
-  public setConnnecting(connecting: boolean): any {
+  public setConnnecting(connecting: boolean): void {
     this._connecting = connecting;
   }
-  public setConnnectingInstanceId(connectingInstanceId: string): any {
+  public setConnnectingInstanceId(connectingInstanceId: string): void {
     this._connectingInstanceId = connectingInstanceId;
   }
-  public setDisconnecting(disconnecting: boolean): any {
+  public setDisconnecting(disconnecting: boolean): void {
     this._disconnecting = disconnecting;
   }
 }

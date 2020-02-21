@@ -7,7 +7,7 @@ import TreeItemParent from './treeItemParentInterface';
 const rootLabel = 'Connections';
 const rootTooltip = 'Your MongoDB connections';
 
-export default class ExplorerRootTreeItem extends vscode.TreeItem
+export default class MDBConnectionsTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _connectionTreeItems: { [key: string]: any } = {};
@@ -75,7 +75,9 @@ export default class ExplorerRootTreeItem extends vscode.TreeItem
     });
 
     if (this._connectionController.isConnnecting()
-      && !this._connectionController.getConnectionInstanceIds().includes(this._connectionController.getConnectingInstanceId())
+      && !this._connectionController.getConnectionInstanceIds().includes(
+        this._connectionController.getConnectingInstanceId()
+      )
     ) {
       const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
         this._connectionController.getConnectingInstanceId()

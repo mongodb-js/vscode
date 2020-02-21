@@ -9,6 +9,7 @@ import ConnectionController from './connectionController';
 import { ExplorerController } from './explorer';
 import { StatusView } from './views';
 import { createLogger } from './logging';
+import { StorageController } from './storage';
 
 const log = createLogger('commands');
 
@@ -19,24 +20,24 @@ export default class MDBExtensionController implements vscode.Disposable {
   private _explorerController: ExplorerController;
   private _statusView: StatusView;
 
-  constructor(connectionController?: ConnectionController, _explorerController?: ExplorerController) {
+  constructor(context: vscode.ExtensionContext, connectionController?: ConnectionController) {
     this._statusView = new StatusView();
+    const storageController = new StorageController(context);
+
     if (connectionController) {
       this._connectionController = connectionController;
     } else {
-      this._connectionController = new ConnectionController(this._statusView);
+      this._connectionController = new ConnectionController(this._statusView, storageController);
     }
 
-    if (_explorerController) {
-      this._explorerController = _explorerController;
-    } else {
-      this._explorerController = new ExplorerController();
-    }
+    this._explorerController = new ExplorerController();
   }
 
-  public activate(context: vscode.ExtensionContext) {
-    log.info('Registering commands...');
+  public activate(): void {
+    this._connectionController.activate();
+    this._explorerController.activate(this._connectionController);
 
+    log.info('Registering commands...');
     // Register our extension's commands. These are the event handlers and control
     // the functionality of our extension.
     vscode.commands.registerCommand('mdb.connect', () => this._connectionController.addMongoDBConnection());
@@ -51,11 +52,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     vscode.commands.registerCommand('mdb.reload', () => this._explorerController.refresh());
 
     log.info('Registered commands.');
-
-    this._explorerController.activate(this._connectionController);
   }
 
-  public openMongoDBShell() {
+  public openMongoDBShell(): void {
     let mdbConnectionString;
     if (this._connectionController) {
       const activeConnectionConfig = this._connectionController.getActiveConnectionConfig();
@@ -67,11 +66,11 @@ export default class MDBExtensionController implements vscode.Disposable {
     mongoDBShell.show();
   }
 
-  dispose() {
+  dispose(): void {
     this.deactivate();
   }
 
-  public deactivate() {
+  public deactivate(): void {
     // TODO: Cancel active queries/playgrounds.
     this._connectionController.disconnect();
     this._explorerController.deactivate();

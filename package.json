@@ -88,11 +88,6 @@
     "configuration": {
       "title": "MongoDB",
       "properties": {
-        "mdb.show": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show or hide the MongoDB view."
-        },
         "mdb.shell": {
           "type": "string",
           "enum": [
@@ -105,6 +100,31 @@
           ],
           "default": "mongo",
           "description": "The mongodb shell to use"
+        },
+        "mdb.show": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show or hide the MongoDB view."
+        },
+        "mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections": {
+          "type": "boolean",
+          "default": false,
+          "description": "When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used."
+        },
+        "mdb.connectionSaving.defaultConnectionSavingLocation": {
+          "type": "string",
+          "enum": [
+            "Workspace",
+            "Global",
+            "Session Only"
+          ],
+          "enumDescriptions": [
+            "Save new connections globally on vscode.",
+            "Save new connections to the active workspace.",
+            "Don't save new connections (connections are lost when the session is closed)."
+          ],
+          "default": "Workspace",
+          "description": "When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved."
         }
       }
     }
@@ -115,9 +135,9 @@
     "lint": "./node_modules/.bin/eslint ./src/**/*.ts",
     "compile": "ts-node ./src/scripts/get-snippets.ts && tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && mongodb-runner start",
+    "pretest": "npm run compile && mongodb-runner start --port=27018",
     "test": "node ./out/test/runTest.js",
-    "posttest": "mongodb-runner stop",
+    "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run compile",
     "check": "mongodb-js-precommit './src/**/*{.ts}'"
   },
