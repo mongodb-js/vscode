@@ -6,7 +6,8 @@
 import * as vscode from 'vscode';
 
 import ConnectionController from './connectionController';
-import { ExplorerController } from './explorer';
+import { EditorsController } from './editors';
+import { ExplorerController, CollectionTreeItem } from './explorer';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController } from './storage';
@@ -16,9 +17,10 @@ const log = createLogger('commands');
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
-  private _connectionController: ConnectionController;
-  private _explorerController: ExplorerController;
-  private _statusView: StatusView;
+  _connectionController: ConnectionController;
+  _editorsController: EditorsController;
+  _explorerController: ExplorerController;
+  _statusView: StatusView;
 
   constructor(context: vscode.ExtensionContext, connectionController?: ConnectionController) {
     this._statusView = new StatusView();
@@ -30,12 +32,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController = new ConnectionController(this._statusView, storageController);
     }
 
+    this._editorsController = new EditorsController();
     this._explorerController = new ExplorerController();
   }
 
   public activate(): void {
     this._connectionController.activate();
     this._explorerController.activate(this._connectionController);
+    this._editorsController.activate(this._connectionController);
 
     log.info('Registering commands...');
     // Register our extension's commands. These are the event handlers and control
@@ -51,9 +55,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     vscode.commands.registerCommand('mdb.refresh', () => this._explorerController.refresh());
     vscode.commands.registerCommand('mdb.reload', () => this._explorerController.refresh());
 
-    vscode.commands.registerCommand('mdb.viewCollectionDocuments', () => {
-      console.log('heererererere');
-    });
+    vscode.commands.registerCommand(
+      'mdb.viewCollectionDocuments',
+      (element: CollectionTreeItem) => {
+        const namespace = `${element.databaseName}.${element.collectionName}`;
+        return this._editorsController.onViewCollectionDocuments(namespace);
+      });
 
     log.info('Registered commands.');
   }
