@@ -1,4 +1,8 @@
 
+import CollectionTreeItem from './collectionTreeItem';
 import ExplorerController from './explorerController';
 
-export { ExplorerController };
+export {
+  CollectionTreeItem,
+  ExplorerController
+};

@@ -35,11 +35,14 @@ export default class CollectionTreeItem extends vscode.TreeItem
   private _childrenCache: vscode.TreeItem[] = [];
   private _childrenCacheIsUpToDate = false;
 
+  contextValue = 'collectionTreeItem';
+
   // We fetch 1 more than this in order to see if there are more to fetch.
   private _maxDocumentsToShow: number;
 
-  private _collectionName: string;
-  private _databaseName: string;
+  public collectionName: string;
+  public databaseName: string;
+
   private _dataService: any;
   private _type: CollectionTypes;
 
@@ -55,9 +58,10 @@ export default class CollectionTreeItem extends vscode.TreeItem
   ) {
     super(collection.name, isExpanded ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed);
 
-    this._collectionName = collection.name;
+    this.collectionName = collection.name;
+    this.databaseName = databaseName;
+
     this._type = collection.type; // Type can be `collection` or `view`.
-    this._databaseName = databaseName;
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
@@ -68,7 +72,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
   get tooltip(): string {
     return this._type === CollectionTypes.view
       ? 'Read only view'
-      : this._collectionName;
+      : this.collectionName;
   }
 
   getTreeItem(element: CollectionTreeItem): CollectionTreeItem {
@@ -85,7 +89,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     }
 
     return new Promise((resolve, reject) => {
-      const namespace = `${this._databaseName}.${this._collectionName}`;
+      const namespace = `${this.databaseName}.${this.collectionName}`;
 
       this._dataService.find(
         namespace,

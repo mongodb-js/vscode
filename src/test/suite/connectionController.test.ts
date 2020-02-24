@@ -609,7 +609,7 @@ suite('Connection Controller Test Suite', () => {
             Object.keys(postWorkspaceStoreConnections).length === 0,
             `Expected workspace store connections to have 0 connections found ${Object.keys(postWorkspaceStoreConnections).length}`
           );
-        }).then(done).catch(done);
+        }).then(done, done);
     });
   });
 

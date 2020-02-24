@@ -1,6 +1,5 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { before, after } from 'mocha';
 
 import ConnectionController from '../../connectionController';
 import MDBExtensionController from '../../mdbExtensionController';
@@ -37,7 +36,8 @@ suite('Extension Test Suite', () => {
           'mdb.connectWithURI',
           'mdb.disconnect',
           'mdb.removeConnection',
-          'mdb.openMongoDBShell'
+          'mdb.openMongoDBShell',
+          'mdb.viewCollectionDocuments'
         ];
 
         for (let i = 0; i < expectedCommands.length; i++) {
