@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { EJSON } from 'bson';
 
 import ConnectionController from '../connectionController';
 
@@ -34,7 +35,7 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
             return resolve(`Unable to list documents: ${err}`);
           }
 
-          return resolve(JSON.stringify(documents, null, 2));
+          return resolve(EJSON.stringify(documents, null, 2));
         }
       );
     });
