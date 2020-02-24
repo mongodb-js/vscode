@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Add our extension to a list of disposables for when we are deactivated.
   context.subscriptions.push(mdbExtension);
 
-  mdbExtension.activate();
+  mdbExtension.activate(context);
 
   log.info('extension activated');
 }

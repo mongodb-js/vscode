@@ -97,6 +97,11 @@
         }
       ]
     },
+    "capabilities": {
+      "codeLensProvider": {
+        "resolveProvider": "true"
+      }
+    },
     "configuration": {
       "title": "MongoDB",
       "properties": {

@@ -26,7 +26,7 @@ suite('Extension Test Suite', () => {
     const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
     disposables.push(mockMDBExtension);
 
-    mockMDBExtension.activate();
+    mockMDBExtension.activate(mockExtensionContext);
 
     vscode.commands
       .getCommands()
@@ -80,7 +80,7 @@ suite('Extension Test Suite', () => {
       );
       disposables.push(mockMDBExtension);
 
-      mockMDBExtension.activate();
+      mockMDBExtension.activate(mockExtensionContext);
 
       testConnectionController
         .addNewConnectionAndConnect(testDatabaseURI)
