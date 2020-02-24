@@ -47,13 +47,30 @@
     },
     "languages": [
       {
-        "id": "mongodb",
-        "extensions": [
-          ".mongodb"
-        ],
+        "id": "ts-mongodb",
         "aliases": [
-          "mongodb",
-          "mdb"
+          "MongoDB",
+          "mongodb"
+        ],
+        "extensions": [
+          ".mongodb",
+          ".ts"
+        ],
+        "configuration": "./src/syntaxes/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ts-mongodb",
+        "path": "./src/syntaxes/ts.tmLanguage",
+        "scopeName": "source.ts"
+      },
+      {
+        "path": "./src/syntaxes/mongodb-injection.json",
+        "scopeName": "mongodb.injection",
+        "injectTo": [
+          "source.mongodb",
+          "source.ts"
         ]
       }
     ],
@@ -133,7 +150,9 @@
     "clean": "rimraf ./src/snippets ./out/*",
     "precompile": "npm run clean",
     "lint": "./node_modules/.bin/eslint ./src/**/*.ts",
-    "compile": "ts-node ./src/scripts/get-snippets.ts && tsc -p ./",
+    "getsnippets": "ts-node ./src/scripts/get-snippets.ts",
+    "getsymbols": "ts-node ./src/scripts/get-symbols.ts",
+    "compile": "npm run getsnippets && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && mongodb-runner start --port=27018",
     "test": "node ./out/test/runTest.js",
@@ -162,6 +181,7 @@
     "eslint": "^6.8.0",
     "eslint-config-mongodb-js": "^5.0.3",
     "glob": "^7.1.6",
+    "lodash.union": "^4.6.0",
     "mocha": "^7.0.1",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi": "^1.1.3",
