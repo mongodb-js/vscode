@@ -47,7 +47,7 @@
     },
     "languages": [
       {
-        "id": "ts-mongodb",
+        "id": "mongodb",
         "aliases": [
           "MongoDB",
           "mongodb"
@@ -61,7 +61,7 @@
     ],
     "grammars": [
       {
-        "language": "ts-mongodb",
+        "language": "mongodb",
         "path": "./src/syntaxes/ts.tmLanguage",
         "scopeName": "source.ts"
       },
