@@ -1,4 +1,3 @@
-import union = require('lodash.union');
 import fs = require('fs');
 import path = require('path');
 
@@ -195,14 +194,18 @@ const EXT_JSON = [
   '$undefined'
 ];
 
-const AGG_SYMBOLS = union(
-  AGG_ACCUMULATORS,
-  AGG_CONVERTERS,
-  AGG_EXPRESSION_OPERATORS,
-  AGG_QUERY_OPERATORS,
-  AGG_STAGE_OPERATORS,
-  EXT_JSON
-);
+// Creates an array of unique values from a list of arrays
+// the same way as lodash.union does.
+const AGG_SYMBOLS = [
+  ...new Set([
+    ...AGG_ACCUMULATORS,
+    ...AGG_CONVERTERS,
+    ...AGG_EXPRESSION_OPERATORS,
+    ...AGG_QUERY_OPERATORS,
+    ...AGG_STAGE_OPERATORS,
+    ...EXT_JSON
+  ])
+];
 
 interface InjectionRepo {
   [key: string]: Record<string, any>;
