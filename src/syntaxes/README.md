@@ -2,11 +2,11 @@
 
 ## ts.tmLanguage
 
-The ts.tmLanguage file contains unchanged TypeScript grammar. It can be regenerated if the TypeScript syntax will be changed at some point.
+The ts.tmLanguage file contains unchanged TypeScript grammar. It can be replaced with a new version when the TypeScript syntax will be changed at some point.
 
 The ts.tmLanguage file is derived from [TypeScriptReact.tmLanguage](https://github.com/Microsoft/TypeScript-TmLanguage/blob/master/TypeScriptReact.tmLanguage) by [yo code](https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide#developing-a-new-grammar-extension) generator.
 
-Note: Use the raw TypeScriptReact.tmLanguage file to import the grammar. `Yo code` requires the full path to either a .tmLanguage or .json TextMate grammar file.
+Note: `Yo code` requires the full path to either a .tmLanguage or .json TextMate grammar file.
 
 ## mongodb-injection.json
 
