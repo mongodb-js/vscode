@@ -1,0 +1,1121 @@
+{
+  "scopeName": "mongodb.injection",
+  "injectionSelector": "L:meta.objectliteral",
+  "patterns": [
+    {
+      "include": "#addToSet-keyword"
+    },
+    {
+      "include": "#avg-keyword"
+    },
+    {
+      "include": "#first-keyword"
+    },
+    {
+      "include": "#last-keyword"
+    },
+    {
+      "include": "#max-keyword"
+    },
+    {
+      "include": "#min-keyword"
+    },
+    {
+      "include": "#push-keyword"
+    },
+    {
+      "include": "#stdDevPop-keyword"
+    },
+    {
+      "include": "#sum-keyword"
+    },
+    {
+      "include": "#convert-keyword"
+    },
+    {
+      "include": "#ltrim-keyword"
+    },
+    {
+      "include": "#rtrim-keyword"
+    },
+    {
+      "include": "#toBool-keyword"
+    },
+    {
+      "include": "#toDate-keyword"
+    },
+    {
+      "include": "#toDecimal-keyword"
+    },
+    {
+      "include": "#toDouble-keyword"
+    },
+    {
+      "include": "#toInt-keyword"
+    },
+    {
+      "include": "#toLong-keyword"
+    },
+    {
+      "include": "#toObjectId-keyword"
+    },
+    {
+      "include": "#toString-keyword"
+    },
+    {
+      "include": "#trim-keyword"
+    },
+    {
+      "include": "#abs-keyword"
+    },
+    {
+      "include": "#add-keyword"
+    },
+    {
+      "include": "#allElementsTrue-keyword"
+    },
+    {
+      "include": "#and-keyword"
+    },
+    {
+      "include": "#anyElementTrue-keyword"
+    },
+    {
+      "include": "#arrayElemAt-keyword"
+    },
+    {
+      "include": "#arrayToObject-keyword"
+    },
+    {
+      "include": "#ceil-keyword"
+    },
+    {
+      "include": "#cmp-keyword"
+    },
+    {
+      "include": "#concat-keyword"
+    },
+    {
+      "include": "#concatArrays-keyword"
+    },
+    {
+      "include": "#cond-keyword"
+    },
+    {
+      "include": "#dateFromParts-keyword"
+    },
+    {
+      "include": "#dateFromString-keyword"
+    },
+    {
+      "include": "#dateToParts-keyword"
+    },
+    {
+      "include": "#dateToString-keyword"
+    },
+    {
+      "include": "#dayOfMonth-keyword"
+    },
+    {
+      "include": "#dayOfWeek-keyword"
+    },
+    {
+      "include": "#dayOfYear-keyword"
+    },
+    {
+      "include": "#divide-keyword"
+    },
+    {
+      "include": "#eq-keyword"
+    },
+    {
+      "include": "#exp-keyword"
+    },
+    {
+      "include": "#filter-keyword"
+    },
+    {
+      "include": "#floor-keyword"
+    },
+    {
+      "include": "#gt-keyword"
+    },
+    {
+      "include": "#gte-keyword"
+    },
+    {
+      "include": "#hour-keyword"
+    },
+    {
+      "include": "#ifNull-keyword"
+    },
+    {
+      "include": "#in-keyword"
+    },
+    {
+      "include": "#indexOfArray-keyword"
+    },
+    {
+      "include": "#indexOfBytes-keyword"
+    },
+    {
+      "include": "#indexOfCP-keyword"
+    },
+    {
+      "include": "#isArray-keyword"
+    },
+    {
+      "include": "#isoDayOfWeek-keyword"
+    },
+    {
+      "include": "#isoWeek-keyword"
+    },
+    {
+      "include": "#isoWeekYear-keyword"
+    },
+    {
+      "include": "#let-keyword"
+    },
+    {
+      "include": "#literal-keyword"
+    },
+    {
+      "include": "#lt-keyword"
+    },
+    {
+      "include": "#ln-keyword"
+    },
+    {
+      "include": "#log-keyword"
+    },
+    {
+      "include": "#log10-keyword"
+    },
+    {
+      "include": "#map-keyword"
+    },
+    {
+      "include": "#mergeObjects-keyword"
+    },
+    {
+      "include": "#meta-keyword"
+    },
+    {
+      "include": "#millisecond-keyword"
+    },
+    {
+      "include": "#minute-keyword"
+    },
+    {
+      "include": "#mod-keyword"
+    },
+    {
+      "include": "#month-keyword"
+    },
+    {
+      "include": "#multiply-keyword"
+    },
+    {
+      "include": "#new-keyword"
+    },
+    {
+      "include": "#not-keyword"
+    },
+    {
+      "include": "#objectToArray-keyword"
+    },
+    {
+      "include": "#or-keyword"
+    },
+    {
+      "include": "#pow-keyword"
+    },
+    {
+      "include": "#range-keyword"
+    },
+    {
+      "include": "#reduce-keyword"
+    },
+    {
+      "include": "#reverseArray-keyword"
+    },
+    {
+      "include": "#second-keyword"
+    },
+    {
+      "include": "#setDifference-keyword"
+    },
+    {
+      "include": "#setEquals-keyword"
+    },
+    {
+      "include": "#setIntersection-keyword"
+    },
+    {
+      "include": "#setIsSubset-keyword"
+    },
+    {
+      "include": "#setUnion-keyword"
+    },
+    {
+      "include": "#size-keyword"
+    },
+    {
+      "include": "#slice-keyword"
+    },
+    {
+      "include": "#split-keyword"
+    },
+    {
+      "include": "#sqrt-keyword"
+    },
+    {
+      "include": "#strcasecmp-keyword"
+    },
+    {
+      "include": "#strLenBytes-keyword"
+    },
+    {
+      "include": "#strLenCP-keyword"
+    },
+    {
+      "include": "#substr-keyword"
+    },
+    {
+      "include": "#substrBytes-keyword"
+    },
+    {
+      "include": "#substrCP-keyword"
+    },
+    {
+      "include": "#subtract-keyword"
+    },
+    {
+      "include": "#switch-keyword"
+    },
+    {
+      "include": "#toLower-keyword"
+    },
+    {
+      "include": "#toUpper-keyword"
+    },
+    {
+      "include": "#trunc-keyword"
+    },
+    {
+      "include": "#type-keyword"
+    },
+    {
+      "include": "#week-keyword"
+    },
+    {
+      "include": "#year-keyword"
+    },
+    {
+      "include": "#zip-keyword"
+    },
+    {
+      "include": "#all-keyword"
+    },
+    {
+      "include": "#bitsAllClear-keyword"
+    },
+    {
+      "include": "#bitsAllSet-keyword"
+    },
+    {
+      "include": "#bitsAnyClear-keyword"
+    },
+    {
+      "include": "#bitsAnySet-keyword"
+    },
+    {
+      "include": "#comment-keyword"
+    },
+    {
+      "include": "#elemMatch-keyword"
+    },
+    {
+      "include": "#exists-keyword"
+    },
+    {
+      "include": "#expr-keyword"
+    },
+    {
+      "include": "#geoIntersects-keyword"
+    },
+    {
+      "include": "#geoWithin-keyword"
+    },
+    {
+      "include": "#jsonSchema-keyword"
+    },
+    {
+      "include": "#lte-keyword"
+    },
+    {
+      "include": "#ne-keyword"
+    },
+    {
+      "include": "#near-keyword"
+    },
+    {
+      "include": "#nearSphere-keyword"
+    },
+    {
+      "include": "#nin-keyword"
+    },
+    {
+      "include": "#nor-keyword"
+    },
+    {
+      "include": "#regex-keyword"
+    },
+    {
+      "include": "#text-keyword"
+    },
+    {
+      "include": "#where-keyword"
+    },
+    {
+      "include": "#addFields-keyword"
+    },
+    {
+      "include": "#bucket-keyword"
+    },
+    {
+      "include": "#bucketAuto-keyword"
+    },
+    {
+      "include": "#collStats-keyword"
+    },
+    {
+      "include": "#count-keyword"
+    },
+    {
+      "include": "#facet-keyword"
+    },
+    {
+      "include": "#geoNear-keyword"
+    },
+    {
+      "include": "#graphLookup-keyword"
+    },
+    {
+      "include": "#group-keyword"
+    },
+    {
+      "include": "#indexStats-keyword"
+    },
+    {
+      "include": "#limit-keyword"
+    },
+    {
+      "include": "#lookup-keyword"
+    },
+    {
+      "include": "#match-keyword"
+    },
+    {
+      "include": "#out-keyword"
+    },
+    {
+      "include": "#project-keyword"
+    },
+    {
+      "include": "#redact-keyword"
+    },
+    {
+      "include": "#replaceRoot-keyword"
+    },
+    {
+      "include": "#sample-keyword"
+    },
+    {
+      "include": "#skip-keyword"
+    },
+    {
+      "include": "#sort-keyword"
+    },
+    {
+      "include": "#sortByCount-keyword"
+    },
+    {
+      "include": "#unwind-keyword"
+    },
+    {
+      "include": "#binary-keyword"
+    },
+    {
+      "include": "#date-keyword"
+    },
+    {
+      "include": "#maxKey-keyword"
+    },
+    {
+      "include": "#minKey-keyword"
+    },
+    {
+      "include": "#numberDecimal-keyword"
+    },
+    {
+      "include": "#numberDouble-keyword"
+    },
+    {
+      "include": "#numberInt-keyword"
+    },
+    {
+      "include": "#numberLong-keyword"
+    },
+    {
+      "include": "#oid-keyword"
+    },
+    {
+      "include": "#regularExpression-keyword"
+    },
+    {
+      "include": "#timestamp-keyword"
+    },
+    {
+      "include": "#undefined-keyword"
+    }
+  ],
+  "repository": {
+    "addToSet-keyword": {
+      "match": "\\$addToSet\\b",
+      "name": "keyword.addToSet"
+    },
+    "avg-keyword": {
+      "match": "\\$avg\\b",
+      "name": "keyword.avg"
+    },
+    "first-keyword": {
+      "match": "\\$first\\b",
+      "name": "keyword.first"
+    },
+    "last-keyword": {
+      "match": "\\$last\\b",
+      "name": "keyword.last"
+    },
+    "max-keyword": {
+      "match": "\\$max\\b",
+      "name": "keyword.max"
+    },
+    "min-keyword": {
+      "match": "\\$min\\b",
+      "name": "keyword.min"
+    },
+    "push-keyword": {
+      "match": "\\$push\\b",
+      "name": "keyword.push"
+    },
+    "stdDevPop-keyword": {
+      "match": "\\$stdDevPop\\b",
+      "name": "keyword.stdDevPop"
+    },
+    "sum-keyword": {
+      "match": "\\$sum\\b",
+      "name": "keyword.sum"
+    },
+    "convert-keyword": {
+      "match": "\\$convert\\b",
+      "name": "keyword.convert"
+    },
+    "ltrim-keyword": {
+      "match": "\\$ltrim\\b",
+      "name": "keyword.ltrim"
+    },
+    "rtrim-keyword": {
+      "match": "\\$rtrim\\b",
+      "name": "keyword.rtrim"
+    },
+    "toBool-keyword": {
+      "match": "\\$toBool\\b",
+      "name": "keyword.toBool"
+    },
+    "toDate-keyword": {
+      "match": "\\$toDate\\b",
+      "name": "keyword.toDate"
+    },
+    "toDecimal-keyword": {
+      "match": "\\$toDecimal\\b",
+      "name": "keyword.toDecimal"
+    },
+    "toDouble-keyword": {
+      "match": "\\$toDouble\\b",
+      "name": "keyword.toDouble"
+    },
+    "toInt-keyword": {
+      "match": "\\$toInt\\b",
+      "name": "keyword.toInt"
+    },
+    "toLong-keyword": {
+      "match": "\\$toLong\\b",
+      "name": "keyword.toLong"
+    },
+    "toObjectId-keyword": {
+      "match": "\\$toObjectId\\b",
+      "name": "keyword.toObjectId"
+    },
+    "toString-keyword": {
+      "match": "\\$toString\\b",
+      "name": "keyword.toString"
+    },
+    "trim-keyword": {
+      "match": "\\$trim\\b",
+      "name": "keyword.trim"
+    },
+    "abs-keyword": {
+      "match": "\\$abs\\b",
+      "name": "keyword.abs"
+    },
+    "add-keyword": {
+      "match": "\\$add\\b",
+      "name": "keyword.add"
+    },
+    "allElementsTrue-keyword": {
+      "match": "\\$allElementsTrue\\b",
+      "name": "keyword.allElementsTrue"
+    },
+    "and-keyword": {
+      "match": "\\$and\\b",
+      "name": "keyword.and"
+    },
+    "anyElementTrue-keyword": {
+      "match": "\\$anyElementTrue\\b",
+      "name": "keyword.anyElementTrue"
+    },
+    "arrayElemAt-keyword": {
+      "match": "\\$arrayElemAt\\b",
+      "name": "keyword.arrayElemAt"
+    },
+    "arrayToObject-keyword": {
+      "match": "\\$arrayToObject\\b",
+      "name": "keyword.arrayToObject"
+    },
+    "ceil-keyword": {
+      "match": "\\$ceil\\b",
+      "name": "keyword.ceil"
+    },
+    "cmp-keyword": {
+      "match": "\\$cmp\\b",
+      "name": "keyword.cmp"
+    },
+    "concat-keyword": {
+      "match": "\\$concat\\b",
+      "name": "keyword.concat"
+    },
+    "concatArrays-keyword": {
+      "match": "\\$concatArrays\\b",
+      "name": "keyword.concatArrays"
+    },
+    "cond-keyword": {
+      "match": "\\$cond\\b",
+      "name": "keyword.cond"
+    },
+    "dateFromParts-keyword": {
+      "match": "\\$dateFromParts\\b",
+      "name": "keyword.dateFromParts"
+    },
+    "dateFromString-keyword": {
+      "match": "\\$dateFromString\\b",
+      "name": "keyword.dateFromString"
+    },
+    "dateToParts-keyword": {
+      "match": "\\$dateToParts\\b",
+      "name": "keyword.dateToParts"
+    },
+    "dateToString-keyword": {
+      "match": "\\$dateToString\\b",
+      "name": "keyword.dateToString"
+    },
+    "dayOfMonth-keyword": {
+      "match": "\\$dayOfMonth\\b",
+      "name": "keyword.dayOfMonth"
+    },
+    "dayOfWeek-keyword": {
+      "match": "\\$dayOfWeek\\b",
+      "name": "keyword.dayOfWeek"
+    },
+    "dayOfYear-keyword": {
+      "match": "\\$dayOfYear\\b",
+      "name": "keyword.dayOfYear"
+    },
+    "divide-keyword": {
+      "match": "\\$divide\\b",
+      "name": "keyword.divide"
+    },
+    "eq-keyword": {
+      "match": "\\$eq\\b",
+      "name": "keyword.eq"
+    },
+    "exp-keyword": {
+      "match": "\\$exp\\b",
+      "name": "keyword.exp"
+    },
+    "filter-keyword": {
+      "match": "\\$filter\\b",
+      "name": "keyword.filter"
+    },
+    "floor-keyword": {
+      "match": "\\$floor\\b",
+      "name": "keyword.floor"
+    },
+    "gt-keyword": {
+      "match": "\\$gt\\b",
+      "name": "keyword.gt"
+    },
+    "gte-keyword": {
+      "match": "\\$gte\\b",
+      "name": "keyword.gte"
+    },
+    "hour-keyword": {
+      "match": "\\$hour\\b",
+      "name": "keyword.hour"
+    },
+    "ifNull-keyword": {
+      "match": "\\$ifNull\\b",
+      "name": "keyword.ifNull"
+    },
+    "in-keyword": {
+      "match": "\\$in\\b",
+      "name": "keyword.in"
+    },
+    "indexOfArray-keyword": {
+      "match": "\\$indexOfArray\\b",
+      "name": "keyword.indexOfArray"
+    },
+    "indexOfBytes-keyword": {
+      "match": "\\$indexOfBytes\\b",
+      "name": "keyword.indexOfBytes"
+    },
+    "indexOfCP-keyword": {
+      "match": "\\$indexOfCP\\b",
+      "name": "keyword.indexOfCP"
+    },
+    "isArray-keyword": {
+      "match": "\\$isArray\\b",
+      "name": "keyword.isArray"
+    },
+    "isoDayOfWeek-keyword": {
+      "match": "\\$isoDayOfWeek\\b",
+      "name": "keyword.isoDayOfWeek"
+    },
+    "isoWeek-keyword": {
+      "match": "\\$isoWeek\\b",
+      "name": "keyword.isoWeek"
+    },
+    "isoWeekYear-keyword": {
+      "match": "\\$isoWeekYear\\b",
+      "name": "keyword.isoWeekYear"
+    },
+    "let-keyword": {
+      "match": "\\$let\\b",
+      "name": "keyword.let"
+    },
+    "literal-keyword": {
+      "match": "\\$literal\\b",
+      "name": "keyword.literal"
+    },
+    "lt-keyword": {
+      "match": "\\$lt\\b",
+      "name": "keyword.lt"
+    },
+    "ln-keyword": {
+      "match": "\\$ln\\b",
+      "name": "keyword.ln"
+    },
+    "log-keyword": {
+      "match": "\\$log\\b",
+      "name": "keyword.log"
+    },
+    "log10-keyword": {
+      "match": "\\$log10\\b",
+      "name": "keyword.log10"
+    },
+    "map-keyword": {
+      "match": "\\$map\\b",
+      "name": "keyword.map"
+    },
+    "mergeObjects-keyword": {
+      "match": "\\$mergeObjects\\b",
+      "name": "keyword.mergeObjects"
+    },
+    "meta-keyword": {
+      "match": "\\$meta\\b",
+      "name": "keyword.meta"
+    },
+    "millisecond-keyword": {
+      "match": "\\$millisecond\\b",
+      "name": "keyword.millisecond"
+    },
+    "minute-keyword": {
+      "match": "\\$minute\\b",
+      "name": "keyword.minute"
+    },
+    "mod-keyword": {
+      "match": "\\$mod\\b",
+      "name": "keyword.mod"
+    },
+    "month-keyword": {
+      "match": "\\$month\\b",
+      "name": "keyword.month"
+    },
+    "multiply-keyword": {
+      "match": "\\$multiply\\b",
+      "name": "keyword.multiply"
+    },
+    "new-keyword": {
+      "match": "\\$new\\b",
+      "name": "keyword.new"
+    },
+    "not-keyword": {
+      "match": "\\$not\\b",
+      "name": "keyword.not"
+    },
+    "objectToArray-keyword": {
+      "match": "\\$objectToArray\\b",
+      "name": "keyword.objectToArray"
+    },
+    "or-keyword": {
+      "match": "\\$or\\b",
+      "name": "keyword.or"
+    },
+    "pow-keyword": {
+      "match": "\\$pow\\b",
+      "name": "keyword.pow"
+    },
+    "range-keyword": {
+      "match": "\\$range\\b",
+      "name": "keyword.range"
+    },
+    "reduce-keyword": {
+      "match": "\\$reduce\\b",
+      "name": "keyword.reduce"
+    },
+    "reverseArray-keyword": {
+      "match": "\\$reverseArray\\b",
+      "name": "keyword.reverseArray"
+    },
+    "second-keyword": {
+      "match": "\\$second\\b",
+      "name": "keyword.second"
+    },
+    "setDifference-keyword": {
+      "match": "\\$setDifference\\b",
+      "name": "keyword.setDifference"
+    },
+    "setEquals-keyword": {
+      "match": "\\$setEquals\\b",
+      "name": "keyword.setEquals"
+    },
+    "setIntersection-keyword": {
+      "match": "\\$setIntersection\\b",
+      "name": "keyword.setIntersection"
+    },
+    "setIsSubset-keyword": {
+      "match": "\\$setIsSubset\\b",
+      "name": "keyword.setIsSubset"
+    },
+    "setUnion-keyword": {
+      "match": "\\$setUnion\\b",
+      "name": "keyword.setUnion"
+    },
+    "size-keyword": {
+      "match": "\\$size\\b",
+      "name": "keyword.size"
+    },
+    "slice-keyword": {
+      "match": "\\$slice\\b",
+      "name": "keyword.slice"
+    },
+    "split-keyword": {
+      "match": "\\$split\\b",
+      "name": "keyword.split"
+    },
+    "sqrt-keyword": {
+      "match": "\\$sqrt\\b",
+      "name": "keyword.sqrt"
+    },
+    "strcasecmp-keyword": {
+      "match": "\\$strcasecmp\\b",
+      "name": "keyword.strcasecmp"
+    },
+    "strLenBytes-keyword": {
+      "match": "\\$strLenBytes\\b",
+      "name": "keyword.strLenBytes"
+    },
+    "strLenCP-keyword": {
+      "match": "\\$strLenCP\\b",
+      "name": "keyword.strLenCP"
+    },
+    "substr-keyword": {
+      "match": "\\$substr\\b",
+      "name": "keyword.substr"
+    },
+    "substrBytes-keyword": {
+      "match": "\\$substrBytes\\b",
+      "name": "keyword.substrBytes"
+    },
+    "substrCP-keyword": {
+      "match": "\\$substrCP\\b",
+      "name": "keyword.substrCP"
+    },
+    "subtract-keyword": {
+      "match": "\\$subtract\\b",
+      "name": "keyword.subtract"
+    },
+    "switch-keyword": {
+      "match": "\\$switch\\b",
+      "name": "keyword.switch"
+    },
+    "toLower-keyword": {
+      "match": "\\$toLower\\b",
+      "name": "keyword.toLower"
+    },
+    "toUpper-keyword": {
+      "match": "\\$toUpper\\b",
+      "name": "keyword.toUpper"
+    },
+    "trunc-keyword": {
+      "match": "\\$trunc\\b",
+      "name": "keyword.trunc"
+    },
+    "type-keyword": {
+      "match": "\\$type\\b",
+      "name": "keyword.type"
+    },
+    "week-keyword": {
+      "match": "\\$week\\b",
+      "name": "keyword.week"
+    },
+    "year-keyword": {
+      "match": "\\$year\\b",
+      "name": "keyword.year"
+    },
+    "zip-keyword": {
+      "match": "\\$zip\\b",
+      "name": "keyword.zip"
+    },
+    "all-keyword": {
+      "match": "\\$all\\b",
+      "name": "keyword.all"
+    },
+    "bitsAllClear-keyword": {
+      "match": "\\$bitsAllClear\\b",
+      "name": "keyword.bitsAllClear"
+    },
+    "bitsAllSet-keyword": {
+      "match": "\\$bitsAllSet\\b",
+      "name": "keyword.bitsAllSet"
+    },
+    "bitsAnyClear-keyword": {
+      "match": "\\$bitsAnyClear\\b",
+      "name": "keyword.bitsAnyClear"
+    },
+    "bitsAnySet-keyword": {
+      "match": "\\$bitsAnySet\\b",
+      "name": "keyword.bitsAnySet"
+    },
+    "comment-keyword": {
+      "match": "\\$comment\\b",
+      "name": "keyword.comment"
+    },
+    "elemMatch-keyword": {
+      "match": "\\$elemMatch\\b",
+      "name": "keyword.elemMatch"
+    },
+    "exists-keyword": {
+      "match": "\\$exists\\b",
+      "name": "keyword.exists"
+    },
+    "expr-keyword": {
+      "match": "\\$expr\\b",
+      "name": "keyword.expr"
+    },
+    "geoIntersects-keyword": {
+      "match": "\\$geoIntersects\\b",
+      "name": "keyword.geoIntersects"
+    },
+    "geoWithin-keyword": {
+      "match": "\\$geoWithin\\b",
+      "name": "keyword.geoWithin"
+    },
+    "jsonSchema-keyword": {
+      "match": "\\$jsonSchema\\b",
+      "name": "keyword.jsonSchema"
+    },
+    "lte-keyword": {
+      "match": "\\$lte\\b",
+      "name": "keyword.lte"
+    },
+    "ne-keyword": {
+      "match": "\\$ne\\b",
+      "name": "keyword.ne"
+    },
+    "near-keyword": {
+      "match": "\\$near\\b",
+      "name": "keyword.near"
+    },
+    "nearSphere-keyword": {
+      "match": "\\$nearSphere\\b",
+      "name": "keyword.nearSphere"
+    },
+    "nin-keyword": {
+      "match": "\\$nin\\b",
+      "name": "keyword.nin"
+    },
+    "nor-keyword": {
+      "match": "\\$nor\\b",
+      "name": "keyword.nor"
+    },
+    "regex-keyword": {
+      "match": "\\$regex\\b",
+      "name": "keyword.regex"
+    },
+    "text-keyword": {
+      "match": "\\$text\\b",
+      "name": "keyword.text"
+    },
+    "where-keyword": {
+      "match": "\\$where\\b",
+      "name": "keyword.where"
+    },
+    "addFields-keyword": {
+      "match": "\\$addFields\\b",
+      "name": "keyword.addFields"
+    },
+    "bucket-keyword": {
+      "match": "\\$bucket\\b",
+      "name": "keyword.bucket"
+    },
+    "bucketAuto-keyword": {
+      "match": "\\$bucketAuto\\b",
+      "name": "keyword.bucketAuto"
+    },
+    "collStats-keyword": {
+      "match": "\\$collStats\\b",
+      "name": "keyword.collStats"
+    },
+    "count-keyword": {
+      "match": "\\$count\\b",
+      "name": "keyword.count"
+    },
+    "facet-keyword": {
+      "match": "\\$facet\\b",
+      "name": "keyword.facet"
+    },
+    "geoNear-keyword": {
+      "match": "\\$geoNear\\b",
+      "name": "keyword.geoNear"
+    },
+    "graphLookup-keyword": {
+      "match": "\\$graphLookup\\b",
+      "name": "keyword.graphLookup"
+    },
+    "group-keyword": {
+      "match": "\\$group\\b",
+      "name": "keyword.group"
+    },
+    "indexStats-keyword": {
+      "match": "\\$indexStats\\b",
+      "name": "keyword.indexStats"
+    },
+    "limit-keyword": {
+      "match": "\\$limit\\b",
+      "name": "keyword.limit"
+    },
+    "lookup-keyword": {
+      "match": "\\$lookup\\b",
+      "name": "keyword.lookup"
+    },
+    "match-keyword": {
+      "match": "\\$match\\b",
+      "name": "keyword.match"
+    },
+    "out-keyword": {
+      "match": "\\$out\\b",
+      "name": "keyword.out"
+    },
+    "project-keyword": {
+      "match": "\\$project\\b",
+      "name": "keyword.project"
+    },
+    "redact-keyword": {
+      "match": "\\$redact\\b",
+      "name": "keyword.redact"
+    },
+    "replaceRoot-keyword": {
+      "match": "\\$replaceRoot\\b",
+      "name": "keyword.replaceRoot"
+    },
+    "sample-keyword": {
+      "match": "\\$sample\\b",
+      "name": "keyword.sample"
+    },
+    "skip-keyword": {
+      "match": "\\$skip\\b",
+      "name": "keyword.skip"
+    },
+    "sort-keyword": {
+      "match": "\\$sort\\b",
+      "name": "keyword.sort"
+    },
+    "sortByCount-keyword": {
+      "match": "\\$sortByCount\\b",
+      "name": "keyword.sortByCount"
+    },
+    "unwind-keyword": {
+      "match": "\\$unwind\\b",
+      "name": "keyword.unwind"
+    },
+    "binary-keyword": {
+      "match": "\\$binary\\b",
+      "name": "keyword.binary"
+    },
+    "date-keyword": {
+      "match": "\\$date\\b",
+      "name": "keyword.date"
+    },
+    "maxKey-keyword": {
+      "match": "\\$maxKey\\b",
+      "name": "keyword.maxKey"
+    },
+    "minKey-keyword": {
+      "match": "\\$minKey\\b",
+      "name": "keyword.minKey"
+    },
+    "numberDecimal-keyword": {
+      "match": "\\$numberDecimal\\b",
+      "name": "keyword.numberDecimal"
+    },
+    "numberDouble-keyword": {
+      "match": "\\$numberDouble\\b",
+      "name": "keyword.numberDouble"
+    },
+    "numberInt-keyword": {
+      "match": "\\$numberInt\\b",
+      "name": "keyword.numberInt"
+    },
+    "numberLong-keyword": {
+      "match": "\\$numberLong\\b",
+      "name": "keyword.numberLong"
+    },
+    "oid-keyword": {
+      "match": "\\$oid\\b",
+      "name": "keyword.oid"
+    },
+    "regularExpression-keyword": {
+      "match": "\\$regularExpression\\b",
+      "name": "keyword.regularExpression"
+    },
+    "timestamp-keyword": {
+      "match": "\\$timestamp\\b",
+      "name": "keyword.timestamp"
+    },
+    "undefined-keyword": {
+      "match": "\\$undefined\\b",
+      "name": "keyword.undefined"
+    }
+  }
+}

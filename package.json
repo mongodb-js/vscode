@@ -48,12 +48,29 @@
     "languages": [
       {
         "id": "mongodb",
-        "extensions": [
-          ".mongodb"
-        ],
         "aliases": [
-          "mongodb",
-          "mdb"
+          "MongoDB",
+          "mongodb"
+        ],
+        "extensions": [
+          ".mongodb",
+          ".ts"
+        ],
+        "configuration": "./src/syntaxes/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mongodb",
+        "path": "./src/syntaxes/ts.tmLanguage",
+        "scopeName": "source.ts"
+      },
+      {
+        "path": "./src/syntaxes/mongodb-injection.json",
+        "scopeName": "mongodb.injection",
+        "injectTo": [
+          "source.mongodb",
+          "source.ts"
         ]
       }
     ],
@@ -145,7 +162,9 @@
     "clean": "rimraf ./src/snippets ./out/*",
     "precompile": "npm run clean",
     "lint": "./node_modules/.bin/eslint ./src/**/*.ts",
-    "compile": "ts-node ./src/scripts/get-snippets.ts && tsc -p ./",
+    "getsnippets": "ts-node ./src/scripts/get-snippets.ts",
+    "getsymbols": "ts-node ./src/scripts/get-symbols.ts",
+    "compile": "npm run getsnippets && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && mongodb-runner start --port=27018",
     "test": "node ./out/test/runTest.js",
