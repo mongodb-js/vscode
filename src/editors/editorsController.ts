@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 
-import ConnectionController from '../connectionController';
+import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
+import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, {
   CONNECTION_ID_URI_IDENTIFIER,
-  DOC_LIMIT_URI_IDENTIFIER,
-  DOCUMENTS_LIMIT,
+  OPERATION_ID_URI_IDENTIFIER,
   NAMESPACE_URI_IDENTIFIER,
   VIEW_COLLECTION_SCHEME
 } from './collectionDocumentsProvider';
+import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 
 const log = createLogger('editors controller');
@@ -18,10 +19,16 @@ const log = createLogger('editors controller');
  */
 export default class EditorsController {
   _connectionController?: ConnectionController;
+  _collectionDocumentsOperationsStore = new CollectionDocumentsOperationsStore();
+
+  _collectionViewProvider?: CollectionDocumentsProvider;
 
   activate(context: vscode.ExtensionContext, connectionController: ConnectionController): void {
     log.info('activating...');
-    const collectionViewProvider = new CollectionDocumentsProvider(connectionController);
+    const collectionViewProvider = new CollectionDocumentsProvider(
+      connectionController,
+      this._collectionDocumentsOperationsStore
+    );
 
     this._connectionController = connectionController;
 
@@ -30,29 +37,48 @@ export default class EditorsController {
         VIEW_COLLECTION_SCHEME, collectionViewProvider
       )
     );
+    this._collectionViewProvider = collectionViewProvider;
+
+    context.subscriptions.push(vscode.languages.registerCodeLensProvider(
+      {
+        scheme: VIEW_COLLECTION_SCHEME,
+        language: 'json'
+      },
+      new CollectionDocumentsCodeLensProvider(this._collectionDocumentsOperationsStore)
+    ));
 
     log.info('activated.');
   }
 
-  // ‍‍vscode.workspace.onDidCloseTextDocument to close cursors.
-  // keep active cursors.
+  // ‍‍vscode.workspace.onDidCloseTextDocument to delete our store of queries.
+
+  getViewCollectionDocumentsUri(operationId, namespace, connectionId): vscode.Uri {
+    // We attach a unique id to the query so that it creates a new file in
+    // the editor and so that we can virtually manage the amount of docs shown.
+    const operationIdUriQuery = `${OPERATION_ID_URI_IDENTIFIER}=${operationId}`;
+
+    const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
+    const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
+    const uriQuery = `?${namespaceUriQuery}&${connectionIdUriQuery}&${operationIdUriQuery}`;
+
+    // The part of the URI after the scheme and before the query is the file name.
+    return vscode.Uri.parse(
+      `${VIEW_COLLECTION_SCHEME}:Results: ${namespace}.json${uriQuery}`
+    );
+  }
 
   onViewCollectionDocuments(namespace: string): Thenable<void> {
+    log.info('view collection documents');
     if (!this._connectionController) {
       return Promise.reject('No connection controller');
     }
 
-    const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${this._connectionController.getActiveConnectionInstanceId()}`;
-    const docLimitUriQuery = `${DOC_LIMIT_URI_IDENTIFIER}=${DOCUMENTS_LIMIT}`;
-    const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
-    const uriQuery = `?${namespaceUriQuery}&${connectionIdUriQuery}&${docLimitUriQuery}`;
-    // We attach the current time to ensure a new editor window is opened on
-    // each query and maybe help the user know when the query started.
-    // The part of the URI after the scheme and before the query is the file name.
+    const operationId = this._collectionDocumentsOperationsStore.createNewOperation();
 
-    // ${Date.now()}
-    const uri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${namespace}.json${uriQuery}`
+    const uri = this.getViewCollectionDocumentsUri(
+      operationId,
+      namespace,
+      this._connectionController.getActiveConnectionInstanceId()
     );
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(uri).then((doc) => {
@@ -64,29 +90,28 @@ export default class EditorsController {
     });
   }
 
-  onViewMoreCollectionDocuments(connectionInstanceId: string, namespace: string, currentDocLimit: number): Thenable<void> {
-    if (!this._connectionController) {
-      return Promise.reject('No connection controller');
+  onViewMoreCollectionDocuments(operationId: string, connectionId: string, namespace: string): void {
+    log.info('view more collection documents');
+
+    if (this._collectionDocumentsOperationsStore[operationId].isCurrentlyFetchingMoreDocuments) {
+      // A user might click to fetch more documents multiple times,
+      // this ensures it only performs one fetch at a time.
+      return;
     }
 
-    const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionInstanceId}`;
-    const newDocLimit = DOCUMENTS_LIMIT + currentDocLimit;
-    const docLimitUriQuery = `${DOC_LIMIT_URI_IDENTIFIER}=${newDocLimit}`;
-    const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
-    const uriQuery = `?${namespaceUriQuery}&${connectionIdUriQuery}&${docLimitUriQuery}`;
-    // We attach the current time to ensure a new editor window is opened on
-    // each query and maybe help the user know when the query started.
-    // The part of the URI after the scheme and before the query is the file name.
-    const uri = vscode.Uri.parse( //  ${Date.now()}
-      `${VIEW_COLLECTION_SCHEME}:Results: ${namespace}.json${uriQuery}`
+    if (!this._collectionViewProvider) {
+      return;
+    }
+
+    const uri = this.getViewCollectionDocumentsUri(
+      operationId,
+      namespace,
+      connectionId
     );
-    return new Promise((resolve, reject) => {
-      vscode.workspace.openTextDocument(uri).then((doc) => {
-        vscode.window.showTextDocument(doc, { preview: false }).then(
-          () => resolve(),
-          reject
-        );
-      }, reject);
-    });
+
+    this._collectionDocumentsOperationsStore.increaseOperationDocumentLimit(operationId);
+
+    // Notify the document provider to update with the new document limit.
+    this._collectionViewProvider.onDidChangeEmitter.fire(uri);
   }
 }

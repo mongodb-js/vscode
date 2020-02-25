@@ -194,7 +194,8 @@
     "bson": "^4.0.3",
     "mongodb-connection-model": "^14.5.0",
     "mongodb-data-service": "^16.5.1",
-    "ts-log": "^2.1.4"
+    "ts-log": "^2.1.4",
+    "uuid": "^7.0.0"
   },
   "license": "Apache-2.0"
 }

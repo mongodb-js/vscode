@@ -5,7 +5,6 @@
  */
 import * as vscode from 'vscode';
 
-import CollectionDocumentsCodeLensProvider from './editors/collectionDocumentsCodeLensProvider';
 import { VIEW_COLLECTION_SCHEME } from './editors/collectionDocumentsProvider';
 import ConnectionController from './connectionController';
 import { EditorsController } from './editors';
@@ -70,21 +69,12 @@ export default class MDBExtensionController implements vscode.Disposable {
       });
 
     registerCommand('mdb.codelens.showMoreDocumentsClicked', (
+      operationId,
       connectionInstanceId,
-      namespace,
-      amountOfDocuments
+      namespace
     ) => {
-      return this._editorsController.onViewMoreCollectionDocuments(connectionInstanceId, namespace, amountOfDocuments);
-      // vscode.window.showInformationMessage(`CodeLens action clicked with args=${args} amd amptejr,${anotherarg}`);
+      return this._editorsController.onViewMoreCollectionDocuments(operationId, connectionInstanceId, namespace);
     });
-
-    context.subscriptions.push(vscode.languages.registerCodeLensProvider(
-      {
-        scheme: VIEW_COLLECTION_SCHEME,
-        language: 'json'
-      },
-      new CollectionDocumentsCodeLensProvider()
-    ));
 
     log.info('Registered commands.');
   }

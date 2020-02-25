@@ -6,6 +6,7 @@ import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
+import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 
 const mockDocumentsAsJsonString = `[
   {
@@ -41,7 +42,8 @@ suite('Collection Documents Provider Test Suite', () => {
     const mockConnectionController = new ConnectionController(new StatusView(), mockStorageController);
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
-    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController);
+    const testQueryStore = new CollectionDocumentsOperationsStore();
+    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
 
     const uri = vscode.Uri.parse(
       'scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple'
@@ -76,7 +78,8 @@ suite('Collection Documents Provider Test Suite', () => {
     const mockConnectionController = new ConnectionController(new StatusView(), mockStorageController);
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
-    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController);
+    const testQueryStore = new CollectionDocumentsOperationsStore();
+    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
 
     const uri = vscode.Uri.parse(
       'scheme:Results: filename.json?namespace=test.test'
