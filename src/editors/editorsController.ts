@@ -93,7 +93,7 @@ export default class EditorsController {
   onViewMoreCollectionDocuments(operationId: string, connectionId: string, namespace: string): void {
     log.info('view more collection documents');
 
-    if (this._collectionDocumentsOperationsStore[operationId].isCurrentlyFetchingMoreDocuments) {
+    if (this._collectionDocumentsOperationsStore.operations[operationId].isCurrentlyFetchingMoreDocuments) {
       // A user might click to fetch more documents multiple times,
       // this ensures it only performs one fetch at a time.
       return;

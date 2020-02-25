@@ -123,6 +123,11 @@
           "default": true,
           "description": "Show or hide the MongoDB view."
         },
+        "mdb.amountOfDocumentsToFetch": {
+          "type": "number",
+          "default": 10,
+          "description": "The number of documents to fetch when clicking viewing documents in a collection from the explorer tree."
+        },
         "mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections": {
           "type": "boolean",
           "default": false,

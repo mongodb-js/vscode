@@ -11,8 +11,6 @@ export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
 export const CONNECTION_ID_URI_IDENTIFIER = 'connectionId';
 export const SKIP_DOCS_URI_IDENTIFIER = 'documentSkip';
 
-export const DOCUMENTS_LIMIT = 10;
-
 export const VIEW_COLLECTION_SCHEME = 'VIEW_COLLECTION_SCHEME';
 
 export default class CollectionViewProvider implements vscode.TextDocumentContentProvider {
@@ -39,7 +37,7 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
         return reject('Unable to list documents: invalid operation');
       }
 
-      const operation = this._operationsStore.operationDocLimits[operationId];
+      const operation = this._operationsStore.operations[operationId];
       const documentLimit = operation.currentLimit;
 
       // Ensure we're still connected to the correct connection.

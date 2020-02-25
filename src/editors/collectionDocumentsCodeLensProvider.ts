@@ -4,7 +4,6 @@ import * as vscode from 'vscode';
 
 import CollectionDocumentsOperationStore from './collectionDocumentsOperationsStore';
 import {
-  DOCUMENTS_LIMIT,
   CONNECTION_ID_URI_IDENTIFIER,
   NAMESPACE_URI_IDENTIFIER,
   OPERATION_ID_URI_IDENTIFIER
@@ -37,7 +36,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
       return [];
     }
 
-    const amountOfDocs = this._activeOperationsStore.operationDocLimits[operationId].currentLimit;
+    const amountOfDocs = this._activeOperationsStore.operations[operationId].currentLimit;
 
     // If we aren't showing the max amount of documents it means there aren't
     // more to show.
@@ -73,7 +72,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     if (!operationId) {
       return codeLens;
     }
-    const operation = this._activeOperationsStore.operationDocLimits[operationId];
+    const operation = this._activeOperationsStore.operations[operationId];
 
     const amountOfDocs = operation.currentLimit;
 
@@ -83,8 +82,12 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
       commandTitle = `... Fetching ${amountOfDocs} documents...`;
       commandTooltip = 'Currently fetching more documents. The amount of documents fetched can be adjusted in the extension settings.';
     } else {
-      commandTitle = `... Showing ${amountOfDocs} documents. Click to open ${DOCUMENTS_LIMIT} more documents.`;
-      commandTooltip = `Click to open ${DOCUMENTS_LIMIT} more documents, this amount can be changed in the extension settings.`;
+      const additionalDocumentsToFetch = vscode.workspace.getConfiguration(
+        'mdb'
+      ).get('amountOfDocumentsToFetch');
+
+      commandTitle = `... Showing ${amountOfDocs} documents. Click to open ${additionalDocumentsToFetch} more documents.`;
+      commandTooltip = `Click to open ${additionalDocumentsToFetch} more documents, this amount can be changed in the extension settings.`;
     }
 
     codeLens.command = {
