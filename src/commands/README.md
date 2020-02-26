@@ -16,9 +16,7 @@ Think RPC handlers.
 
 ## General database commands
 - `mdb.createDatabase`
-- `mdb.dropDatabase`
 - `mdb.createCollection`
-- `mdb.dropCollection`
 
 - `mdb.createDocument`
 - `mdb.removeDocument`
