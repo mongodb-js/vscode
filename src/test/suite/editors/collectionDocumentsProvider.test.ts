@@ -45,8 +45,10 @@ suite('Collection Documents Provider Test Suite', () => {
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
 
+    const operationId = testQueryStore.createNewOperation();
+
     const uri = vscode.Uri.parse(
-      'scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple'
+      `scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple&operationId=${operationId}`
     );
 
     testCollectionViewProvider.provideTextDocumentContent(uri).then(documents => {
@@ -81,8 +83,10 @@ suite('Collection Documents Provider Test Suite', () => {
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
 
+    const operationId = testQueryStore.createNewOperation();
+
     const uri = vscode.Uri.parse(
-      'scheme:Results: filename.json?namespace=test.test'
+      `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}`
     );
 
     testCollectionViewProvider.provideTextDocumentContent(uri).then(documents => {

@@ -33,7 +33,7 @@ suite('MDBExtensionController Test Suite', () => {
       assert(mockOpenTextDocument.firstArg.path.indexOf('Results: testDbName.testColName') === 0);
       assert(mockOpenTextDocument.firstArg.path.includes('.json'));
       assert(mockOpenTextDocument.firstArg.scheme === VIEW_COLLECTION_SCHEME);
-      assert(mockOpenTextDocument.firstArg.query === 'namespace=testDbName.testColName');
+      assert(mockOpenTextDocument.firstArg.query.includes('namespace=testDbName.testColName'));
 
       assert(
         mockShowTextDocument.firstArg === 'magna carta',
