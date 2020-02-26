@@ -126,7 +126,7 @@
         "mdb.amountOfDocumentsToFetch": {
           "type": "number",
           "default": 10,
-          "description": "The number of documents to fetch when clicking viewing documents in a collection from the explorer tree."
+          "description": "The number of documents to fetch when viewing documents from a collection."
         },
         "mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections": {
           "type": "boolean",

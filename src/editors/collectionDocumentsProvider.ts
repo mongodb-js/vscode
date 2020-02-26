@@ -62,6 +62,10 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
             return reject(`Unable to list documents: ${err}`);
           }
 
+          if (documents.length !== documentLimit) {
+            operation.hasMoreDocumentsToShow = false;
+          }
+
           return resolve(EJSON.stringify(documents, null, 2));
         }
       );

@@ -88,10 +88,50 @@ class DataServiceStub {
   }
 }
 
+const mockPosition = new vscode.Position(
+  0, 0
+);
+
+const mockRange = new vscode.Range(mockPosition, mockPosition);
+
+const mockTextLine = {
+  lineNumber: 0,
+  text: '',
+  range: mockRange,
+  rangeIncludingLineBreak: mockRange,
+  firstNonWhitespaceCharacterIndex: 0,
+  isEmptyOrWhitespace: false
+};
+
+const mockVSCodeTextDocument = {
+  uri: vscode.Uri.parse(''),
+  fileName: '',
+  isUntitled: false,
+  languageId: '',
+  version: 0,
+  isDirty: false,
+  isClosed: true,
+  eol: vscode.EndOfLine.LF,
+  lineCount: 20,
+  save: () => Promise.resolve(true),
+
+  // lineAt: (line: number): vscode.TextLine => mockTextLine,
+  lineAt: (position: vscode.Position | number): vscode.TextLine => mockTextLine,
+  offsetAt: (position: vscode.Position) => 0,
+  positionAt: (offset: number) => mockPosition,
+  getText: (range?: vscode.Range) => '',
+
+  getWordRangeAtPosition: (position: vscode.Position, regex?: RegExp) => undefined,
+  validateRange: (range: vscode.Range) => mockRange,
+
+  validatePosition: (position: vscode.Position) => mockPosition
+};
+
 export {
   mockDocuments,
   mockDatabaseNames,
   mockDatabases,
+  mockVSCodeTextDocument,
   DataServiceStub,
   TestExtensionContext
 };

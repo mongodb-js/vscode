@@ -99,6 +99,14 @@ export default class EditorsController {
       return;
     }
 
+    // Ensure we're still connected to the correct connection.
+    if (!this._connectionController
+      || connectionId !== this._connectionController.getActiveConnectionInstanceId()
+    ) {
+      vscode.window.showErrorMessage(`Unable to view more documents: no longer connected to ${connectionId}`);
+      return;
+    }
+
     if (!this._collectionViewProvider) {
       return;
     }

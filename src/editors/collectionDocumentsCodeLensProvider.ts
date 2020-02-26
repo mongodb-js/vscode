@@ -1,4 +1,3 @@
-import { EJSON } from 'bson';
 import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
 
@@ -26,21 +25,14 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
 
   public provideCodeLenses(
     document: vscode.TextDocument
-  ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
-    const documentsArray = document.getText();
-    const docJson = EJSON.parse(documentsArray);
-
+  ): vscode.CodeLens[] {
     const uriParams = new URLSearchParams(document.uri.query);
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
     if (!operationId) {
       return [];
     }
 
-    const amountOfDocs = this._activeOperationsStore.operations[operationId].currentLimit;
-
-    // If we aren't showing the max amount of documents it means there aren't
-    // more to show.
-    if (docJson.length < amountOfDocs) {
+    if (!this._activeOperationsStore.operations[operationId].hasMoreDocumentsToShow) {
       return [];
     }
 
@@ -62,7 +54,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
 
   public resolveCodeLens?(
     codeLens: vscode.CodeLens
-  ): vscode.CodeLens | Thenable<vscode.CodeLens> {
+  ): vscode.CodeLens {
     const uriParams = new URLSearchParams(this.uri.query);
 
     const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER);
