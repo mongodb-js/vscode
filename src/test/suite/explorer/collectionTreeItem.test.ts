@@ -192,11 +192,11 @@ suite('CollectionTreeItem Test Suite', () => {
 
     const viewIconPath: any = testCollectionViewTreeItem.iconPath;
     assert(
-      viewIconPath.light.indexOf('view.svg') > -1,
+      viewIconPath.light.includes('view.svg'),
       'Expected icon path to point to an svg by the name "view" with a light mode'
     );
     assert(
-      viewIconPath.dark.indexOf('view.svg') > -1,
+      viewIconPath.dark.includes('view.svg'),
       'Expected icon path to point to an svg by the name "view" a dark mode'
     );
 
@@ -213,6 +213,13 @@ suite('CollectionTreeItem Test Suite', () => {
     );
 
     const collectionIconPath: any = testCollectionTreeItem.iconPath;
-    assert(collectionIconPath === '', 'Expected icon path to be an empty string on a collection type');
+    assert(
+      collectionIconPath.light.includes('collection.svg'),
+      'Expected icon path to point to an svg by the name "collection" with a light mode'
+    );
+    assert(
+      collectionIconPath.dark.includes('collection.svg'),
+      'Expected icon path to point to an svg by the name "collection" with a light mode'
+    );
   });
 });
