@@ -5,11 +5,9 @@ import { EJSON } from 'bson';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import ConnectionController from '../connectionController';
 
-export const DOC_LIMIT_URI_IDENTIFIER = 'documentLimit';
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
 export const CONNECTION_ID_URI_IDENTIFIER = 'connectionId';
-export const SKIP_DOCS_URI_IDENTIFIER = 'documentSkip';
 
 export const VIEW_COLLECTION_SCHEME = 'VIEW_COLLECTION_SCHEME';
 

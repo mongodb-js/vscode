@@ -50,8 +50,6 @@ export default class EditorsController {
     log.info('activated.');
   }
 
-  // ‍‍vscode.workspace.onDidCloseTextDocument to delete our store of queries.
-
   getViewCollectionDocumentsUri(operationId, namespace, connectionId): vscode.Uri {
     // We attach a unique id to the query so that it creates a new file in
     // the editor and so that we can virtually manage the amount of docs shown.
