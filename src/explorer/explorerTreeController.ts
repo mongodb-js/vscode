@@ -21,7 +21,7 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
       connectionController
     );
 
-    this._onDidChangeTreeData = new vscode.EventEmitter<any>();
+    this._onDidChangeTreeData = new vscode.EventEmitter<void>();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     this._connectionController = connectionController;
