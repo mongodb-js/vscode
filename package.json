@@ -26,6 +26,19 @@
     "url": "https://github.com/mongodb-js/vscode"
   },
   "icon": "images/mongodb.png",
+  "scripts": {
+    "clean": "rimraf ./src/snippets ./out/*",
+    "precompile": "npm run clean",
+    "lint": "./node_modules/.bin/eslint ./src/**/*.ts",
+    "getsnippets": "ts-node ./src/scripts/get-snippets.ts",
+    "compile": "npm run getsnippets && tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && mongodb-runner start --port=27018",
+    "test": "node ./out/test/runTest.js",
+    "posttest": "mongodb-runner stop --port=27018",
+    "vscode:prepublish": "npm run compile",
+    "check": "mongodb-js-precommit './src/**/*{.ts}'"
+  },
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -53,25 +66,15 @@
           "mongodb"
         ],
         "extensions": [
-          ".mongodb",
-          ".ts"
-        ],
-        "configuration": "./src/syntaxes/language-configuration.json"
+          ".mongodb"
+        ]
       }
     ],
     "grammars": [
       {
         "language": "mongodb",
-        "path": "./src/syntaxes/ts.tmLanguage",
-        "scopeName": "source.ts"
-      },
-      {
-        "path": "./src/syntaxes/mongodb-injection.json",
-        "scopeName": "mongodb.injection",
-        "injectTo": [
-          "source.mongodb",
-          "source.ts"
-        ]
+        "path": "./src/syntaxes/mongodb.tmLanguage.json",
+        "scopeName": "source.mongodb"
       }
     ],
     "snippets": [
@@ -157,20 +160,6 @@
         }
       }
     }
-  },
-  "scripts": {
-    "clean": "rimraf ./src/snippets ./out/*",
-    "precompile": "npm run clean",
-    "lint": "./node_modules/.bin/eslint ./src/**/*.ts",
-    "getsnippets": "ts-node ./src/scripts/get-snippets.ts",
-    "getsymbols": "ts-node ./src/scripts/get-symbols.ts",
-    "compile": "npm run getsnippets && tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && mongodb-runner start --port=27018",
-    "test": "node ./out/test/runTest.js",
-    "posttest": "mongodb-runner stop --port=27018",
-    "vscode:prepublish": "npm run compile",
-    "check": "mongodb-js-precommit './src/**/*{.ts}'"
   },
   "dependency-check": {
     "ignore": [
