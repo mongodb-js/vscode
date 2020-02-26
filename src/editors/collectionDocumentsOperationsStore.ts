@@ -11,7 +11,7 @@ export class CollectionDocumentsOperation {
   }
 }
 
-const DOCUMENTS_TO_FETCH_CONFIG_NAME = 'amountOfDocumentsToFetch';
+const DEFAULT_LIMIT_CONFIG_NAME = 'defaultLimit';
 
 // In order to provide `show more documents...` code lens functionality we
 // need to store the current limit of documents outside of each document.
@@ -24,7 +24,7 @@ export default class CollectionDocumentsOperationsStore {
 
     const initialDocumentsLimit = vscode.workspace.getConfiguration(
       'mdb'
-    ).get(DOCUMENTS_TO_FETCH_CONFIG_NAME);
+    ).get(DEFAULT_LIMIT_CONFIG_NAME);
     this.operations[operationId] = new CollectionDocumentsOperation(Number(initialDocumentsLimit));
 
     return operationId;
@@ -35,7 +35,7 @@ export default class CollectionDocumentsOperationsStore {
 
     const additionalDocumentsToFetch = vscode.workspace.getConfiguration(
       'mdb'
-    ).get(DOCUMENTS_TO_FETCH_CONFIG_NAME);
+    ).get(DEFAULT_LIMIT_CONFIG_NAME);
     this.operations[operationId].currentLimit += Number(additionalDocumentsToFetch);
   }
 }

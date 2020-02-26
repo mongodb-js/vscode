@@ -15,7 +15,7 @@ suite('Collection Documents Operations Store Test Suite', () => {
 
     const expectedLimit = vscode.workspace.getConfiguration(
       'mdb'
-    ).get('amountOfDocumentsToFetch');
+    ).get('defaultLimit');
 
     assert(operation.currentLimit === expectedLimit, `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`);
   });
@@ -28,7 +28,7 @@ suite('Collection Documents Operations Store Test Suite', () => {
 
     const expectedLimit = Number(vscode.workspace.getConfiguration(
       'mdb'
-    ).get('amountOfDocumentsToFetch'));
+    ).get('defaultLimit'));
 
     assert(operation.currentLimit === expectedLimit, `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`);
 

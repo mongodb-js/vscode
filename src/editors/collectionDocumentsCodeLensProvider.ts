@@ -76,7 +76,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     } else {
       const additionalDocumentsToFetch = vscode.workspace.getConfiguration(
         'mdb'
-      ).get('amountOfDocumentsToFetch');
+      ).get('defaultLimit');
 
       commandTitle = `... Showing ${amountOfDocs} documents. Click to open ${additionalDocumentsToFetch} more documents.`;
       commandTooltip = `Click to open ${additionalDocumentsToFetch} more documents, this amount can be changed in the extension settings.`;

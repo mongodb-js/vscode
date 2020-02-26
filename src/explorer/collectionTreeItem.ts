@@ -131,10 +131,15 @@ export default class CollectionTreeItem extends vscode.TreeItem
   }
 
   public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    return this._type === CollectionTypes.view ? {
-      light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'view.svg'),
-      dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'view.svg')
-    } : '';
+    return this._type === CollectionTypes.collection
+      ? {
+        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'collection.svg'),
+        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'collection.svg')
+      }
+      : {
+        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'view.svg'),
+        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'view.svg')
+      };
   }
 
   onShowMoreClicked(): void {

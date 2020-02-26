@@ -123,7 +123,7 @@
           "default": true,
           "description": "Show or hide the MongoDB view."
         },
-        "mdb.amountOfDocumentsToFetch": {
+        "mdb.defaultLimit": {
           "type": "number",
           "default": 10,
           "description": "The number of documents to fetch when viewing documents from a collection."
