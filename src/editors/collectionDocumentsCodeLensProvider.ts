@@ -85,7 +85,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     codeLens.command = {
       title: commandTitle,
       tooltip: commandTooltip,
-      command: 'mdb.codelens.showMoreDocumentsClicked',
+      command: 'mdb.codeLens.showMoreDocumentsClicked',
       arguments: [operationId, connectionInstanceId, namespace]
     };
 

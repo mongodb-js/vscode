@@ -26,7 +26,11 @@ suite('Extension Test Suite', () => {
           'mdb.disconnect',
           'mdb.removeConnection',
           'mdb.openMongoDBShell',
-          'mdb.viewCollectionDocuments'
+          'mdb.viewCollectionDocuments',
+          'mdb.refresh',
+          'mdb.reload',
+          'mdb.viewCollectionDocuments',
+          'mdb.codeLens.showMoreDocumentsClicked'
         ];
 
         for (let i = 0; i < expectedCommands.length; i++) {
