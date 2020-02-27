@@ -13,7 +13,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
   storagePath: string;
 
   asAbsolutePath(relativePath: string): string {
-    return '';
+    return relativePath;
   }
 
   constructor() {
@@ -41,7 +41,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
   }
 }
 
-const mockDatabases: any = {
+const mockDatabases = {
   mockDatabase1: {
     databaseName: 'mockDatabase1',
     collections: [
@@ -124,7 +124,7 @@ const mockVSCodeTextDocument = {
   getWordRangeAtPosition: (position: vscode.Position, regex?: RegExp) => undefined,
   validateRange: (range: vscode.Range) => mockRange,
 
-  validatePosition: (position: vscode.Position) => mockPosition
+  validatePosition: (position: vscode.Position): vscode.Position => mockPosition
 };
 
 export {
