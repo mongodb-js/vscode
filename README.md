@@ -13,6 +13,12 @@ Official MongoDB Visual Studio Code Extension. **Not Yet Released**.
 ## Extension Settings
 
 `mdb.show`: Show/Hide the MongoDB extension.
+`mdb.shell`: The MongoDB shell to use.
+`mdb.defaultLimit`: The limit of documents to fetch when viewing documents from a collection.
+`mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections`: When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used.
+`mdb.connectionSaving.defaultConnectionSavingLocation`: When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved.
+
+*See `package.json` `contributes.configuration` for a full list of settings.*
 
 ## Contributing
 
