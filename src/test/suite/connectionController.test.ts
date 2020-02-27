@@ -24,11 +24,6 @@ suite('Connection Controller Test Suite', () => {
   const mockStorageController = new StorageController(mockExtensionContext);
 
   before(async () => {
-    // Disable the dialogue for prompting the user where to store the connection.
-    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
-      'hideOptionToChooseWhereToSaveNewConnections',
-      true
-    );
     // Don't save connections on default.
     await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',
@@ -38,13 +33,11 @@ suite('Connection Controller Test Suite', () => {
   after(async () => {
     // Unset the variable we set in `before`.
     await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
-      'hideOptionToChooseWhereToSaveNewConnections',
-      false
-    );
-    await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',
       DefaultSavingLocations.Workspace
     );
+
+    // Reset our mock extension's state.
     mockExtensionContext._workspaceState = {};
     mockExtensionContext._globalState = {};
   });
