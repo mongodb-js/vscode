@@ -4,7 +4,7 @@
 
 Official MongoDB Visual Studio Code Extension. **Not Yet Released**.
 
-> brought to you by the Compass team
+> brought to you by the [Compass](https://github.com/mongodb-js/compass) team
 
 ## Features
 
