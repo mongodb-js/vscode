@@ -8,6 +8,7 @@ import ConnectionController, {
 import { StorageController, StorageVariables } from '../../storage';
 import { StorageScope, DefaultSavingLocations } from '../../storage/storageController';
 import { StatusView } from '../../views';
+import MDBExtensionController from '../../mdbExtensionController';
 
 import { TestExtensionContext } from './stubs';
 
@@ -53,7 +54,6 @@ suite('Connection Controller Test Suite', () => {
       new StatusView(),
       mockStorageController
     );
-    this.timeout(2000);
 
     testConnectionController
       .addNewConnectionAndConnect(testDatabaseURI)
@@ -113,6 +113,38 @@ suite('Connection Controller Test Suite', () => {
           })
           .then(done, done);
       });
+  });
+
+  test('when the extension is deactivated, the active connection is disconnected', function (done) {
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      mockStorageController
+    );
+
+    const mockMDBExtension = new MDBExtensionController(
+      mockExtensionContext,
+      testConnectionController
+    );
+
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(succesfullyConnected => {
+        assert(
+          succesfullyConnected === true,
+          'Expected a successful (true) connection response.'
+        );
+        assert(
+          testConnectionController.getActiveConnection() !== null,
+          'Expected active connection to not be null.'
+        );
+
+        mockMDBExtension.deactivate();
+
+        assert(
+          testConnectionController.getActiveConnection() === null,
+          'Expected active connection to be null.'
+        );
+      }, done).then(done, done);
   });
 
   test('"removeMongoDBConnection()" returns a reject promise when there is no active connection', done => {

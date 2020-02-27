@@ -2,6 +2,9 @@ import * as path from 'path';
 import * as Mocha from 'mocha';
 import * as glob from 'glob';
 
+import MDBExtensionController from '../../mdbExtensionController';
+import { TestExtensionContext } from './stubs';
+
 export function run(): Promise<void> {
   const reporterOptions = {
     spec: '-',
@@ -23,6 +26,12 @@ export function run(): Promise<void> {
       if (err) {
         return e(err);
       }
+
+      // Activate the extension.
+      const mockExtensionContext = new TestExtensionContext();
+
+      const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
+      mockMDBExtension.activate(mockExtensionContext);
 
       // Add files to the test suite.
       files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
