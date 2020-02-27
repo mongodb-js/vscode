@@ -29,7 +29,6 @@ suite('Extension Test Suite', () => {
           'mdb.viewCollectionDocuments',
           'mdb.refresh',
           'mdb.reload',
-          'mdb.viewCollectionDocuments',
           'mdb.codeLens.showMoreDocumentsClicked'
         ];
 
