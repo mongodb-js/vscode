@@ -281,7 +281,7 @@ suite('Explorer Controller Test Suite', function () {
 
             connectionsItems[0]
               .getChildren()
-              .then((databaseItems: any) => {
+              .then((databaseItems) => {
                 assert(
                   databaseItems.length >= 3,
                   `Expected there be 3 or more database tree items, found ${databaseItems.length}`
@@ -323,7 +323,7 @@ suite('Explorer Controller Test Suite', function () {
           // Expand the connection.
           const testConnectionTreeItem = connectionsItems[0];
           testConnectionTreeItem.onDidExpand().then(() => {
-            testConnectionTreeItem.getChildren().then((databaseItems: any) => {
+            testConnectionTreeItem.getChildren().then((databaseItems) => {
               assert(
                 databaseItems[1].isExpanded === false,
                 'Expected database tree item not to be expanded on default.'
@@ -339,14 +339,14 @@ suite('Explorer Controller Test Suite', function () {
                 // Collapse the connection.
                 testConnectionTreeItem.onDidCollapse();
 
-                testConnectionTreeItem.getChildren().then((databaseTreeItems: any) => {
+                testConnectionTreeItem.getChildren().then((databaseTreeItems) => {
                   assert(
                     databaseTreeItems.length === 0,
                     `Expected the connection tree to return no children when collapsed, found ${databaseTreeItems.length}`
                   );
 
                   testConnectionTreeItem.onDidExpand();
-                  testConnectionTreeItem.getChildren().then((newDatabaseItems: any) => {
+                  testConnectionTreeItem.getChildren().then((newDatabaseItems) => {
                     assert(
                       newDatabaseItems[1].isExpanded === true,
                       'Expected database tree to be expanded from cache.'
