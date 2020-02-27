@@ -116,7 +116,7 @@
             "Use the new mongosh"
           ],
           "default": "mongo",
-          "description": "The mongodb shell to use"
+          "description": "The MongoDB shell to use."
         },
         "mdb.show": {
           "type": "boolean",
