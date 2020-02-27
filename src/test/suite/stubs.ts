@@ -113,16 +113,16 @@ const mockVSCodeTextDocument = {
   isClosed: true,
   eol: vscode.EndOfLine.LF,
   lineCount: 20,
-  save: () => Promise.resolve(true),
+  save: (): Promise<boolean> => Promise.resolve(true),
 
   // lineAt: (line: number): vscode.TextLine => mockTextLine,
   lineAt: (position: vscode.Position | number): vscode.TextLine => mockTextLine,
-  offsetAt: (position: vscode.Position) => 0,
-  positionAt: (offset: number) => mockPosition,
-  getText: (range?: vscode.Range) => '',
+  offsetAt: (position: vscode.Position): number => 0,
+  positionAt: (offset: number): vscode.Position => mockPosition,
+  getText: (range?: vscode.Range): string => '',
 
   getWordRangeAtPosition: (position: vscode.Position, regex?: RegExp) => undefined,
-  validateRange: (range: vscode.Range) => mockRange,
+  validateRange: (range: vscode.Range): vscode.Range => mockRange,
 
   validatePosition: (position: vscode.Position): vscode.Position => mockPosition
 };
