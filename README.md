@@ -1,6 +1,7 @@
 # :construction: MongoDB VSCode [Work in Progress] :construction:
 
 [![Build Status](https://dev.azure.com/team-compass/team-compass/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/team-compass/_build/latest?definitionId=4&branchName=master)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmongodb-js%2Fvscode.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmongodb-js%2Fvscode?ref=badge_shield)
 
 Official MongoDB Visual Studio Code Extension. **Not Yet Released**.
 
@@ -35,3 +36,7 @@ npm run watch
 ```
 
 2. Inside of [VS Code Insiders](https://code.visualstudio.com/insiders/) open this directory and press `F5` to begin debugging the extension. This should launch a new VSCode window which is running the extension.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmongodb-js%2Fvscode.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmongodb-js%2Fvscode?ref=badge_large)
