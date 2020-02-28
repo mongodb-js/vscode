@@ -21,35 +21,29 @@ pool:
 
 steps:
   - script: |
-      echo "imageName: $(imageName)"
-      echo "npm_config_cache: $(npm_config_cache)"
-      echo "node_version: $(node_version)"
-      echo "Agent.OS: $(Agent.OS)"
-      echo "Build.Reason: $(Build.Reason)"
-      echo "Agent.OSArchitecture: $(Agent.OSArchitecture)"
-      echo "Agent.Name: $(Agent.Name)"
-      echo "Agent.MachineName: $(Agent.MachineName)"
-      echo "Agent.JobName: $(Agent.JobName)"
-  # # https://docs.microsoft.com/en-us/azure/devops/pipelines/release/caching?view=azure-devops#nodejsnpm
-  # - task: Cache@2
-  #   inputs:
-  #     key: 'npm | "$(Agent.OS)" | package-lock.json'
-  #     restoreKeys: |
-  #       npm | "$(Agent.OS)"
-  #       npm
-  #     path: $(npm_config_cache)
-  #   displayName: Cache npm
-  # - script: |
-  #     set -e
-  #     sudo apt-get update
-  #     sudo apt-get install -y libsecret-1-dev libkrb5-dev
-  #   displayName: 'Install native Linux dependencies'
-  #   condition: in(variables['agent.os'], 'Linux')
+      set -e
+      sudo apt-get update
+
+      # Electron linux reqs
+      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
+
+      # Keytar and Kerberos
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev;
+    displayName: 'Install native Linux dependencies'
+    condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
     displayName: 'Install node@$(node_version)'
-
+  # # https://docs.microsoft.com/en-us/azure/devops/pipelines/release/caching?view=azure-devops#nodejsnpm
+  - task: Cache@2
+    inputs:
+      key: 'npm | $(node_version) | "$(Agent.OS)" | package-lock.json'
+      restoreKeys: |
+        npm | $(node_version) | "$(Agent.OS)"
+        npm
+      path: $(npm_config_cache)
+    displayName: Cache npm
   - script: npm ci
     displayName: 'Install dependencies from npm'
 
