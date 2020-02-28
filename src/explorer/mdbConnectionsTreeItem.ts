@@ -9,6 +9,8 @@ const rootTooltip = 'Your MongoDB connections';
 
 export default class MDBConnectionsTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
+  contextValue = 'mdbConnectionsTreeItem';
+
   private _connectionController: ConnectionController;
   private _connectionTreeItems: { [key: string]: any } = {};
   private _childrenCacheIsUpToDate = false;

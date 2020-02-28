@@ -7,6 +7,8 @@ import TreeItemParent from './treeItemParentInterface';
 
 export default class ConnectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
+  contextValue = 'connectionTreeItem';
+
   private _childrenCache: { [key: string]: DatabaseTreeItem };
   private _childrenCacheIsUpToDate = false;
 

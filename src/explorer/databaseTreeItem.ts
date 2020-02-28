@@ -6,13 +6,15 @@ import TreeItemParent from './treeItemParentInterface';
 
 export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
+  contextValue = 'databaseTreeItem';
+
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };
   private _childrenCacheIsUpToDate = false;
 
   private _databaseName: string;
   private _dataService: any;
 
-  isExpanded: boolean;
+  isExpanded: boolean; // PlusWithCircle
 
   constructor(
     databaseName: string,

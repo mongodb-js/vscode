@@ -111,14 +111,109 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
+        "command": "mdb.addConnection",
+        "title": "Add Connection",
+        "icon": {
+          "light": "resources/light/plus-circle.svg",
+          "dark": "resources/dark/plus-circle.svg"
+        }
+      },
+      {
+        "command": "mdb.addDatabase",
+        "title": "Add Database",
+        "icon": {
+          "light": "resources/light/plus-circle.svg",
+          "dark": "resources/dark/plus-circle.svg"
+        }
+      },
+      {
+        "command": "mdb.refreshConnection",
+        "title": "Refresh"
+      },
+      {
+        "command": "mdb.copyDatabaseName",
+        "title": "Copy Database Name"
+      },
+      {
+        "command": "mdb.refreshDatabase",
+        "title": "Refresh"
+      },
+      {
+        "command": "mdb.addCollection",
+        "title": "Add Collection",
+        "icon": {
+          "light": "resources/light/plus-circle.svg",
+          "dark": "resources/dark/plus-circle.svg"
+        }
+      },
+      {
         "command": "mdb.viewCollectionDocuments",
         "title": "View Documents"
+      },
+      {
+        "command": "mdb.copyCollectionName",
+        "title": "Copy Collection Name"
+      },
+      {
+        "command": "mdb.findInCollection",
+        "title": "Find in Collection..."
+      },
+      {
+        "command": "mdb.refreshCollection",
+        "title": "Refresh"
       }
     ],
     "menus": {
       "view/item/context": [
         {
+          "command": "mdb.addConnection",
+          "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem",
+          "group": "inline"
+        },
+        {
+          "command": "mdb.addDatabase",
+          "when": "view == mongoDB && viewItem == connectionTreeItem",
+          "group": "inline"
+        },
+        {
+          "command": "mdb.addDatabase",
+          "when": "view == mongoDB && viewItem == connectionTreeItem"
+        },
+        {
+          "command": "mdb.refreshConnection",
+          "when": "view == mongoDB && viewItem == connectionTreeItem"
+        },
+        {
+          "command": "mdb.addCollection",
+          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "group": "inline"
+        },
+        {
+          "command": "mdb.addCollection",
+          "when": "view == mongoDB && viewItem == databaseTreeItem"
+        },
+        {
+          "command": "mdb.copyDatabaseName",
+          "when": "view == mongoDB && viewItem == databaseTreeItem"
+        },
+        {
+          "command": "mdb.refreshDatabase",
+          "when": "view == mongoDB && viewItem == databaseTreeItem"
+        },
+        {
           "command": "mdb.viewCollectionDocuments",
+          "when": "view == mongoDB && viewItem == collectionTreeItem"
+        },
+        {
+          "command": "mdb.copyCollectionName",
+          "when": "view == mongoDB && viewItem == collectionTreeItem"
+        },
+        {
+          "command": "mdb.findInCollection",
+          "when": "view == mongoDB && viewItem == collectionTreeItem"
+        },
+        {
+          "command": "mdb.refreshCollection",
           "when": "view == mongoDB && viewItem == collectionTreeItem"
         }
       ]
@@ -211,6 +306,7 @@
     "xvfb-maybe": "^0.2.1"
   },
   "dependencies": {
+    "@leafygreen-ui/icon": "^4.0.0",
     "bson": "^4.0.3",
     "mongodb-connection-model": "^14.5.0",
     "mongodb-data-service": "^16.5.1",
