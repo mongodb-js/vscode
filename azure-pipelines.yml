@@ -41,9 +41,9 @@ steps:
   # # https://docs.microsoft.com/en-us/azure/devops/pipelines/release/caching?view=azure-devops#nodejsnpm
   - task: Cache@2
     inputs:
-      key: 'npm | $(node_version) | "$(Agent.OS)" | package-lock.json'
+      key: 'npm | "$(Agent.OS)" | package-lock.json'
       restoreKeys: |
-        npm | $(node_version) | "$(Agent.OS)"
+        npm | "$(Agent.OS)"
         npm
       path: $(npm_config_cache)
     displayName: Cache npm
