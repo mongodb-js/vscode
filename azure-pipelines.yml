@@ -1,14 +1,12 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 variables:
   npm_config_cache: $(Pipeline.Workspace)/.npm
+  node_version: '12.4.0'
 
 trigger:
   - master
 
+# For current versions of vm's using the `*-latest` alias:
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops
 strategy:
   matrix:
     linux:
@@ -16,29 +14,47 @@ strategy:
     mac:
       imageName: 'macos-latest'
     windows:
-      imageName: 'vs2017-win2016'
+      imageName: 'windows-latest'
 
 pool:
   vmImage: $(imageName)
 
 steps:
+  - script: |
+      echo "imageName: $(imageName)"
+      echo "npm_config_cache: $(npm_config_cache)"
+      echo "node_version: $(node_version)"
+      echo "Agent.OS: $(Agent.OS)"
+      echo "Build.Reason: $(Build.Reason)"
+      echo "Agent.OSArchitecture: $(Agent.OSArchitecture)"
+      echo "Agent.Name: $(Agent.Name)"
+      echo "Agent.MachineName: $(Agent.MachineName)"
+      echo "Agent.JobName: $(Agent.JobName)"
+  # # https://docs.microsoft.com/en-us/azure/devops/pipelines/release/caching?view=azure-devops#nodejsnpm
+  # - task: Cache@2
+  #   inputs:
+  #     key: 'npm | "$(Agent.OS)" | package-lock.json'
+  #     restoreKeys: |
+  #       npm | "$(Agent.OS)"
+  #       npm
+  #     path: $(npm_config_cache)
+  #   displayName: Cache npm
+  # - script: |
+  #     set -e
+  #     sudo apt-get update
+  #     sudo apt-get install -y libsecret-1-dev libkrb5-dev
+  #   displayName: 'Install native Linux dependencies'
+  #   condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
     inputs:
-      versionSpec: '12.4.0'
-    displayName: 'Install Node.js'
+      versionSpec: $(node_version)
+    displayName: 'Install node@$(node_version)'
 
-  - bash: |
-      /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-    displayName: 'Start xvfb'
-    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-
-  - script: npm install
-    displayName: 'Install npm'
+  - script: npm ci
+    displayName: 'Install dependencies from npm'
 
   - bash: npm run test
     displayName: 'Run Tests'
-    env:
-      DISPLAY: ':99.0'
 
   - task: PublishTestResults@2
     displayName: 'Publish Test Results'
