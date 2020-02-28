@@ -18,6 +18,7 @@ const log = createLogger('commands');
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
   _connectionController: ConnectionController;
+  _context?: vscode.ExtensionContext;
   _editorsController: EditorsController;
   _explorerController: ExplorerController;
   _statusView: StatusView;
@@ -36,31 +37,50 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController = new ExplorerController();
   }
 
-  public activate(): void {
+  registerCommand = (command, commandHandler): void => {
+    if (!this._context) {
+      // Not yet activated.
+      return;
+    }
+
+    this._context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
+  };
+
+  public activate(context): void {
+    this._context = context;
     this._connectionController.activate();
     this._explorerController.activate(this._connectionController);
-    this._editorsController.activate(this._connectionController);
+    this._editorsController.activate(context, this._connectionController);
 
     log.info('Registering commands...');
-    // Register our extension's commands. These are the event handlers and control
-    // the functionality of our extension.
-    vscode.commands.registerCommand('mdb.connect', () => this._connectionController.addMongoDBConnection());
-    vscode.commands.registerCommand('mdb.connectWithURI', () => this._connectionController.connectWithURI());
 
-    vscode.commands.registerCommand('mdb.disconnect', () => this._connectionController.disconnect());
-    vscode.commands.registerCommand('mdb.removeConnection', () => this._connectionController.removeMongoDBConnection());
+    // Register our extension's commands. These are the event handlers and
+    // control the functionality of our extension.
+    this.registerCommand('mdb.connect', () => this._connectionController.addMongoDBConnection());
+    this.registerCommand('mdb.connectWithURI', () => this._connectionController.connectWithURI());
 
-    vscode.commands.registerCommand('mdb.openMongoDBShell', () => this.openMongoDBShell());
+    this.registerCommand('mdb.disconnect', () => this._connectionController.disconnect());
+    this.registerCommand('mdb.removeConnection', () => this._connectionController.removeMongoDBConnection());
 
-    vscode.commands.registerCommand('mdb.refresh', () => this._explorerController.refresh());
-    vscode.commands.registerCommand('mdb.reload', () => this._explorerController.refresh());
+    this.registerCommand('mdb.openMongoDBShell', () => this.openMongoDBShell());
 
-    vscode.commands.registerCommand(
+    this.registerCommand('mdb.refresh', () => this._explorerController.refresh());
+    this.registerCommand('mdb.reload', () => this._explorerController.refresh());
+
+    this.registerCommand(
       'mdb.viewCollectionDocuments',
       (element: CollectionTreeItem) => {
         const namespace = `${element.databaseName}.${element.collectionName}`;
         return this._editorsController.onViewCollectionDocuments(namespace);
       });
+
+    this.registerCommand('mdb.codeLens.showMoreDocumentsClicked', (
+      operationId,
+      connectionInstanceId,
+      namespace
+    ) => {
+      return this._editorsController.onViewMoreCollectionDocuments(operationId, connectionInstanceId, namespace);
+    });
 
     log.info('Registered commands.');
   }

@@ -118,6 +118,11 @@
         }
       ]
     },
+    "capabilities": {
+      "codeLensProvider": {
+        "resolveProvider": "true"
+      }
+    },
     "configuration": {
       "title": "MongoDB",
       "properties": {
@@ -132,12 +137,17 @@
             "Use the new mongosh"
           ],
           "default": "mongo",
-          "description": "The mongodb shell to use"
+          "description": "The MongoDB shell to use."
         },
         "mdb.show": {
           "type": "boolean",
           "default": true,
           "description": "Show or hide the MongoDB view."
+        },
+        "mdb.defaultLimit": {
+          "type": "number",
+          "default": 10,
+          "description": "The number of documents to fetch when viewing documents from a collection."
         },
         "mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections": {
           "type": "boolean",
@@ -198,7 +208,8 @@
     "bson": "^4.0.3",
     "mongodb-connection-model": "^14.5.0",
     "mongodb-data-service": "^16.5.1",
-    "ts-log": "^2.1.4"
+    "ts-log": "^2.1.4",
+    "uuid": "^7.0.0"
   },
   "license": "Apache-2.0"
 }

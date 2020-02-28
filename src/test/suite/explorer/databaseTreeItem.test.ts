@@ -17,7 +17,7 @@ suite('DatabaseTreeItem Test Suite', () => {
 
     testDatabaseTreeItem
       .getChildren()
-      .then((collections: any) => {
+      .then((collections) => {
         assert(
           collections.length === 0,
           `Expected no collections to be returned, recieved ${collections.length}`
@@ -38,7 +38,7 @@ suite('DatabaseTreeItem Test Suite', () => {
 
     testDatabaseTreeItem
       .getChildren()
-      .then((collections: any) => {
+      .then((collections) => {
         assert(
           collections.length > 0,
           `Expected more than one collection to be returned, recieved ${collections.length}`
@@ -72,7 +72,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       collectionTreeItems[1].onDidExpand();
       collectionTreeItems[1].onShowMoreClicked();
 
-      collectionTreeItems[1].getChildren().then((documents: any) => {
+      collectionTreeItems[1].getChildren().then((documents) => {
         assert(
           documents.length === 21,
           `Expected 21 documents to be returned, found ${documents.length}`
@@ -92,7 +92,7 @@ suite('DatabaseTreeItem Test Suite', () => {
               'Expected collection tree item to be expanded from cache.'
             );
 
-            newCollectionTreeItems[1].getChildren().then((documentsPostCollapseExpand: any) => {
+            newCollectionTreeItems[1].getChildren().then((documentsPostCollapseExpand) => {
               // It should cache that we activated show more.
               assert(
                 documentsPostCollapseExpand.length === 21,

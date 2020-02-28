@@ -12,7 +12,7 @@ const log = createLogger('commands');
 
 // Called when our extension is activated.
 // See "activationEvents" in `package.json` for the events that cause activation.
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
   log.info('activate extension called');
 
   mdbExtension = new MDBExtensionController(context);
@@ -20,13 +20,13 @@ export function activate(context: vscode.ExtensionContext) {
   // Add our extension to a list of disposables for when we are deactivated.
   context.subscriptions.push(mdbExtension);
 
-  mdbExtension.activate();
+  mdbExtension.activate(context);
 
   log.info('extension activated');
 }
 
 // Called when our extension is deactivated.
-export function deactivate() {
+export function deactivate(): void {
   if (mdbExtension) {
     mdbExtension.deactivate();
   }

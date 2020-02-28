@@ -4,7 +4,7 @@
 
 Official MongoDB Visual Studio Code Extension. **Not Yet Released**.
 
-> brought to you by the Compass team
+> brought to you by the [Compass](https://github.com/mongodb-js/compass) team
 
 ## Features
 
@@ -13,6 +13,8 @@ Official MongoDB Visual Studio Code Extension. **Not Yet Released**.
 ## Extension Settings
 
 `mdb.show`: Show/Hide the MongoDB extension.
+
+*See `package.json` `contributes.configuration` for a full list of settings.*
 
 ## Contributing
 

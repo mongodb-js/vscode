@@ -6,6 +6,7 @@ import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
+import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 
 const mockDocumentsAsJsonString = `[
   {
@@ -41,10 +42,13 @@ suite('Collection Documents Provider Test Suite', () => {
     const mockConnectionController = new ConnectionController(new StatusView(), mockStorageController);
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
-    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController);
+    const testQueryStore = new CollectionDocumentsOperationsStore();
+    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
+
+    const operationId = testQueryStore.createNewOperation();
 
     const uri = vscode.Uri.parse(
-      'scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple'
+      `scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple&operationId=${operationId}`
     );
 
     testCollectionViewProvider.provideTextDocumentContent(uri).then(documents => {
@@ -76,10 +80,13 @@ suite('Collection Documents Provider Test Suite', () => {
     const mockConnectionController = new ConnectionController(new StatusView(), mockStorageController);
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
-    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController);
+    const testQueryStore = new CollectionDocumentsOperationsStore();
+    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
+
+    const operationId = testQueryStore.createNewOperation();
 
     const uri = vscode.Uri.parse(
-      'scheme:Results: filename.json?namespace=test.test'
+      `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}`
     );
 
     testCollectionViewProvider.provideTextDocumentContent(uri).then(documents => {
@@ -89,5 +96,44 @@ suite('Collection Documents Provider Test Suite', () => {
       );
       done();
     }).catch(done);
+  });
+
+  test('expected provideTextDocumentContent to set hasMoreDocumentsToShow to false when there arent more documents', (done) => {
+    const mockActiveConnection = {
+      find: (namespace, filter, options, callback): void => {
+        return callback(null, ['Apollo', 'Gemini ']);
+      }
+    };
+
+    const mockExtensionContext = new TestExtensionContext();
+    const mockStorageController = new StorageController(mockExtensionContext);
+    const mockConnectionController = new ConnectionController(new StatusView(), mockStorageController);
+    mockConnectionController.setActiveConnection(mockActiveConnection);
+
+    const testQueryStore = new CollectionDocumentsOperationsStore();
+    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
+
+    const operationId = testQueryStore.createNewOperation();
+    testQueryStore.operations[operationId].currentLimit = 5;
+
+    assert(testQueryStore.operations[operationId].hasMoreDocumentsToShow);
+
+    const uri = vscode.Uri.parse(
+      `scheme:Results: filename.json?namespace=vostok.mercury&operationId=${operationId}`
+    );
+
+    testCollectionViewProvider.provideTextDocumentContent(uri).then(() => {
+      assert(testQueryStore.operations[operationId].hasMoreDocumentsToShow === false, 'Expected not to have more documents to show.');
+
+      // Reset and test inverse.
+      testQueryStore.operations[operationId].currentLimit = 2;
+      testQueryStore.operations[operationId].hasMoreDocumentsToShow = true;
+
+      testCollectionViewProvider.provideTextDocumentContent(uri).then(() => {
+        assert(testQueryStore.operations[operationId].hasMoreDocumentsToShow);
+
+        done();
+      }).catch(done);
+    });
   });
 });

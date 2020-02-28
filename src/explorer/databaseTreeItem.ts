@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+const path = require('path');
 
 import CollectionTreeItem, { MAX_DOCUMENTS_VISIBLE } from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
@@ -94,6 +95,13 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           return resolve(Object.values(this._childrenCache));
         });
     });
+  }
+
+  public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    return {
+      light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'database.svg'),
+      dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'database.svg')
+    };
   }
 
   onDidCollapse(): void {

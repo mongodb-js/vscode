@@ -14,17 +14,17 @@ Think RPC handlers.
 - `mdb.reload`
 - `mdb.refresh`
 
+- `mdb.openMongoDBShell`
+-
 ## General database commands
 - `mdb.createDatabase`
-- `mdb.dropDatabase`
 - `mdb.createCollection`
-- `mdb.dropCollection`
 
 - `mdb.createDocument`
 - `mdb.removeDocument`
 - `mdb.updateDocument`
 
-- `mdb.openMongoDBShell`
+- `mdb.viewCollectionDocuments`
 
 ## Query commands (json input fields)
 - `mdb.aggregate`
@@ -54,3 +54,6 @@ Think RPC handlers.
 - `mdb.cancelImport`
 - `mdb.export`
 - `mdb.cancelExport`
+
+## CodeLens commands
+- `mdb.codeLens.showMoreDocumentsClicked`

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+const path = require('path');
 
 import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
@@ -116,6 +117,18 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         return resolve(Object.values(this._childrenCache));
       });
     });
+  }
+
+  public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    return this._connectionController.getActiveConnectionInstanceId() === this._connectionInstanceId
+      ? {
+        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'active-connection.svg'),
+        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'active-connection.svg')
+      }
+      : {
+        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'inactive-connection.svg'),
+        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'inactive-connection.svg')
+      };
   }
 
   onDidCollapse(): void {

@@ -13,7 +13,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
   storagePath: string;
 
   asAbsolutePath(relativePath: string): string {
-    return '';
+    return relativePath;
   }
 
   constructor() {
@@ -41,7 +41,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
   }
 }
 
-const mockDatabases: any = {
+const mockDatabases = {
   mockDatabase1: {
     databaseName: 'mockDatabase1',
     collections: [
@@ -88,10 +88,50 @@ class DataServiceStub {
   }
 }
 
+const mockPosition = new vscode.Position(
+  0, 0
+);
+
+const mockRange = new vscode.Range(mockPosition, mockPosition);
+
+const mockTextLine = {
+  lineNumber: 0,
+  text: '',
+  range: mockRange,
+  rangeIncludingLineBreak: mockRange,
+  firstNonWhitespaceCharacterIndex: 0,
+  isEmptyOrWhitespace: false
+};
+
+const mockVSCodeTextDocument = {
+  uri: vscode.Uri.parse(''),
+  fileName: '',
+  isUntitled: false,
+  languageId: '',
+  version: 0,
+  isDirty: false,
+  isClosed: true,
+  eol: vscode.EndOfLine.LF,
+  lineCount: 20,
+  save: (): Promise<boolean> => Promise.resolve(true),
+
+  // lineAt: (line: number): vscode.TextLine => mockTextLine,
+  lineAt: (position: vscode.Position | number): vscode.TextLine => mockTextLine,
+  offsetAt: (position: vscode.Position): number => 0,
+  positionAt: (offset: number): vscode.Position => mockPosition,
+  getText: (range?: vscode.Range): string => '',
+
+  getWordRangeAtPosition: (position: vscode.Position, regex?: RegExp) => undefined,
+  validateRange: (range: vscode.Range): vscode.Range => mockRange,
+
+  validatePosition: (position: vscode.Position): vscode.Position => mockPosition
+};
+
 export {
   mockDocuments,
   mockDatabaseNames,
   mockDatabases,
+  mockVSCodeTextDocument,
   DataServiceStub,
   TestExtensionContext
 };
