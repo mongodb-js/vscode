@@ -1,44 +1,60 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 variables:
   npm_config_cache: $(Pipeline.Workspace)/.npm
+  node_version: '12.4.0'
 
 trigger:
   - master
 
+# For current versions of vm's using the `*-latest` alias:
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops
 strategy:
   matrix:
     linux:
-      imageName: 'ubuntu-16.04'
+      imageName: 'ubuntu-latest'
     mac:
-      imageName: 'macos-10.13'
+      imageName: 'macos-latest'
     windows:
+      # NOTE (lucas): Also blocked on Windows 2019 by
+      # https://jira.mongodb.org/browse/NODE-2465
+      # imageName: 'windows-latest'
       imageName: 'vs2017-win2016'
 
 pool:
   vmImage: $(imageName)
 
 steps:
+  - script: |
+      set -e
+      sudo apt-get update
+
+      # Electron linux reqs
+      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
+
+      # Keytar and Kerberos
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev;
+    displayName: 'Install native Linux dependencies'
+    condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
     inputs:
-      versionSpec: '12.4.0'
-    displayName: 'Install Node.js'
-
-  - bash: |
-      /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-    displayName: 'Start xvfb'
-    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-
-  - script: npm install
-    displayName: 'Install npm'
+      versionSpec: $(node_version)
+    displayName: 'Install node@$(node_version)'
+  # Proper caching for `npm ci` to be fast
+  # https://docs.microsoft.com/en-us/azure/devops/pipelines/release/caching?view=azure-devops#nodejsnpm
+  - task: Cache@2
+    inputs:
+      key: 'npm | "$(Agent.OS)" | package-lock.json'
+      restoreKeys: |
+        npm | "$(Agent.OS)"
+        npm
+      path: $(npm_config_cache)
+    displayName: Cache npm
+  # TODO (lucas): Caching `./.vscode-test` in the future would be nice
+  # so vscode-test isn't downloading the vscode zip everytime. same goes for mongoddb-runner.
+  - script: npm ci
+    displayName: 'Install dependencies from npm'
 
   - bash: npm run test
     displayName: 'Run Tests'
-    env:
-      DISPLAY: ':99.0'
 
   - task: PublishTestResults@2
     displayName: 'Publish Test Results'
