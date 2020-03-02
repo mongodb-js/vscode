@@ -3,6 +3,7 @@
   "displayName": "MongoDB",
   "description": "MongoDB for Visual Studio Code",
   "version": "0.0.1",
+  "publisher": "mongodb",
   "engines": {
     "vscode": "^1.40.0",
     "node": "^12.4.0",
