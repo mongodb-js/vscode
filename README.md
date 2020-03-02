@@ -45,20 +45,30 @@ npm run watch
 - [web ui](https://marketplace.visualstudio.com/manage/publishers/mongodb)
 - Analytics: [Extension Reporting Hub](https://devblogs.microsoft.com/devops/extension-reporting-hub-for-marketplace-publishers/)
 - TODO (lucas) Read more carefully and update for any musts: https://code.visualstudio.com/api/references/extension-manifest#marketplace-presentation-tips
+- TODO (lucas) metrics: [sessionId and machineId from `vscode.env`](https://github.com/microsoft/vscode-extension-telemetry/blob/master/src/telemetryReporter.ts#L92)
+- TODO (lucas) Extension install/uninstall hooks https://code.visualstudio.com/api/references/extension-manifest#extension-uninstall-hook
+- TODO (lucas): ticket: pattern for examples/libraries to [add mongodb-vscode as recommended extension](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions)
+- TODO (lucas) Finish design for driver specific bundling like `MongoDB for .Net`, MongoDB for Python, etc. using [extension packs](https://code.visualstudio.com/api/references/extension-manifest#extension-packs)
+- TODO (lucas) Ticket: for bundle size and perf https://dev.to/sneezry/how-to-speed-up-your-vs-code-extension-not-only-webpack-48b5 and https://github.com/microsoft/vscode-extension-samples/tree/master/webpack-sample and https://github.com/microsoft/vscode-azuretools/blob/master/dev/src/webpack/excludeNodeModulesAndDependencies.ts and https://johnpapa.net/is-your-vs-code-extension-slow-heres-how-to-speed-it-up/
+- TODO (lucas): The Azure Personal Access Token for publishing the vscode extension. It expires: Jan 2 2021 at which point a new one will need to be generated.
 
 ### Preview
 
-The extension can be packaged as a shareable `.vsix` file you can send to others without publishing public releases to the VS Code MarketPlace.
+While [private extensions are not currently supported](https://github.com/microsoft/vscode/issues/21839), the extension can be packaged as a `.vsix` file and shared directly.
 
-To create a `.vsix`, run the below from the root of your repo:
+To create a `.vsix`:
 
 ```bash
 npm i -g vsce;
 vsce package;
 ```
 
-This will create a file like `mongodb-vscode-0.0.1.vsix` you can share it in Slack/Gmail/etc for others to download. The extension can then be installed by running
+This will create a file like `mongodb-vscode-0.0.1.vsix`. Once downloaded, the extension can be installed by running:
 
 ```bash
 code --install-extension mongodb-vscode-0.0.1.vsix
 ```
+
+## License
+
+Apache 2.0
