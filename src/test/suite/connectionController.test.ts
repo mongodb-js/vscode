@@ -134,7 +134,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .removeMongoDBConnection()
+      .onRemoveMongoDBConnection()
       .then(null, err => {
         assert(!!err, `Expected an error response, recieved ${err}.`);
       })

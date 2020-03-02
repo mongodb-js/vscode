@@ -10,12 +10,12 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   contextValue = 'connectionTreeItem';
 
   private _childrenCache: { [key: string]: DatabaseTreeItem };
-  private _childrenCacheIsUpToDate = false;
+  _childrenCacheIsUpToDate = false;
 
   private _connectionController: ConnectionController;
   connectionInstanceId: string;
 
-  public isExpanded: boolean;
+  isExpanded: boolean;
 
   constructor(
     connectionInstanceId: string,

@@ -32,7 +32,7 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
 
       if (!operationId) {
         vscode.window.showErrorMessage('Unable to list documents: invalid operation');
-        return reject('Unable to list documents: invalid operation');
+        return reject(new Error('Unable to list documents: invalid operation'));
       }
 
       const operation = this._operationsStore.operations[operationId];
@@ -42,7 +42,7 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
       if (connectionInstanceId !== this._connectionController.getActiveConnectionInstanceId()) {
         operation.isCurrentlyFetchingMoreDocuments = false;
         vscode.window.showErrorMessage(`Unable to list documents: no longer connected to ${connectionInstanceId}`);
-        return reject(`Unable to list documents: no longer connected to ${connectionInstanceId}`);
+        return reject(new Error(`Unable to list documents: no longer connected to ${connectionInstanceId}`));
       }
 
       const dataservice = this._connectionController.getActiveConnection();
@@ -57,7 +57,7 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
 
           if (err) {
             vscode.window.showErrorMessage(`Unable to list documents: ${err}`);
-            return reject(`Unable to list documents: ${err}`);
+            return reject(new Error(`Unable to list documents: ${err}`));
           }
 
           if (documents.length !== documentLimit) {

@@ -112,7 +112,15 @@
       },
       {
         "command": "mdb.addConnection",
-        "title": "Add Connection",
+        "title": "Add MongoDB Connection",
+        "icon": {
+          "light": "resources/light/plus-circle.svg",
+          "dark": "resources/dark/plus-circle.svg"
+        }
+      },
+      {
+        "command": "mdb.addConnectionWithURI",
+        "title": "Add MongoDB Connection with Connection String...",
         "icon": {
           "light": "resources/light/plus-circle.svg",
           "dark": "resources/dark/plus-circle.svg"
@@ -121,6 +129,10 @@
       {
         "command": "mdb.copyConnectionString",
         "title": "Copy Connection String"
+      },
+      {
+        "command": "mdb.treeItemRemoveConnection",
+        "title": "Remove Connection..."
       },
       {
         "command": "mdb.addDatabase",
@@ -159,10 +171,6 @@
         "title": "Copy Collection Name"
       },
       {
-        "command": "mdb.findInCollection",
-        "title": "Find in Collection..."
-      },
-      {
         "command": "mdb.refreshCollection",
         "title": "Refresh"
       }
@@ -177,6 +185,14 @@
         {
           "command": "mdb.addConnection",
           "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem"
+        },
+        {
+          "command": "mdb.addConnectionWithURI",
+          "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem"
+        },
+        {
+          "command": "mdb.treeItemRemoveConnection",
+          "when": "view == mongoDB && viewItem == connectionTreeItem"
         },
         {
           "command": "mdb.copyConnectionString",
@@ -218,10 +234,6 @@
         },
         {
           "command": "mdb.copyCollectionName",
-          "when": "view == mongoDB && viewItem == collectionTreeItem"
-        },
-        {
-          "command": "mdb.findInCollection",
           "when": "view == mongoDB && viewItem == collectionTreeItem"
         },
         {
@@ -322,6 +334,7 @@
     "bson": "^4.0.3",
     "mongodb-connection-model": "^14.5.0",
     "mongodb-data-service": "^16.5.1",
+    "mongodb-ns": "^2.2.0",
     "ts-log": "^2.1.4",
     "uuid": "^7.0.0"
   },

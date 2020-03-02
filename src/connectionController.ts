@@ -308,8 +308,45 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
   }
 
-  public async removeMongoDBConnection(): Promise<boolean> {
-    log.info('mdb.removeMongoDBConnection command called');
+  // Prompts the user to remove the connection then removes it on affirmation.
+  public async removeMongoDBConnection(connectionId: string): Promise<boolean> {
+    // Ensure we aren't currently connecting or disconnecting.
+    if (this._connecting) {
+      return Promise.reject(
+        new Error('Unable to remove connection: currently connecting.')
+      );
+    }
+
+    if (!this._connectionConfigs[connectionId]) {
+      // No active connection(s) to remove.
+      return Promise.reject(new Error('Connection does not exist.'));
+    }
+
+    const removeConfirmationResponse = await vscode.window.showInformationMessage(
+      `Are you sure to want to remove connection ${connectionId}?`,
+      { modal: true },
+      'Yes'
+    );
+
+    if (removeConfirmationResponse !== 'Yes') {
+      return Promise.resolve(false);
+    }
+
+    if (
+      this._currentConnection &&
+      connectionId === this._currentConnectionInstanceId
+    ) {
+      await this.disconnect();
+    }
+
+    this.removeConnectionConfig(connectionId);
+
+    vscode.window.showInformationMessage('MongoDB connection removed.');
+    return Promise.resolve(true);
+  }
+
+  public async onRemoveMongoDBConnection(): Promise<boolean> {
+    log.info('mdb.removeConnection command called');
 
     // Ensure we aren't currently connecting or disconnecting.
     if (this._connecting) {
@@ -325,12 +362,12 @@ export default class ConnectionController {
       return Promise.reject(new Error('No connections to remove.'));
     }
 
-    let connectionToRemove;
+    let connectionIdToRemove;
     if (connectionInstanceIds.length === 1) {
-      connectionToRemove = connectionInstanceIds[0];
+      connectionIdToRemove = connectionInstanceIds[0];
     } else {
       // There is more than 1 possible connection to remove.
-      connectionToRemove = await vscode.window.showQuickPick(
+      connectionIdToRemove = await vscode.window.showQuickPick(
         connectionInstanceIds,
         {
           placeHolder: 'Choose a connection to remove...'
@@ -338,31 +375,11 @@ export default class ConnectionController {
       );
     }
 
-    if (!connectionToRemove) {
+    if (!connectionIdToRemove) {
       return Promise.resolve(false);
     }
 
-    const removeConfirmationResponse = await vscode.window.showInformationMessage(
-      `Are you sure to want to remove connection ${connectionToRemove}?`,
-      { modal: true },
-      'Yes'
-    );
-
-    if (removeConfirmationResponse !== 'Yes') {
-      return Promise.resolve(false);
-    }
-
-    if (
-      this._currentConnection &&
-      connectionToRemove === this._currentConnectionInstanceId
-    ) {
-      await this.disconnect();
-    }
-
-    this.removeConnectionConfig(connectionToRemove);
-
-    vscode.window.showInformationMessage('MongoDB connection removed.');
-    return Promise.resolve(true);
+    return this.removeMongoDBConnection(connectionIdToRemove);
   }
 
   public getConnectionInstanceIds(): string[] {
@@ -397,6 +414,16 @@ export default class ConnectionController {
 
   public getConnectingInstanceId(): string {
     return this._connectingInstanceId;
+  }
+
+  public getConnectionStringFromConnectionId(connectionId: string): string {
+    const {
+      driverUrl
+    } = this._connectionConfigs[connectionId].getAttributes({
+      derived: true
+    });
+
+    return driverUrl;
   }
 
   // Exposed for testing.

@@ -4,6 +4,7 @@
  * Activated from `./src/extension.ts`
  */
 import * as vscode from 'vscode';
+import ns from 'mongodb-ns';
 
 import ConnectionController from './connectionController';
 import { EditorsController } from './editors';
@@ -45,7 +46,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController = new ExplorerController();
   }
 
-  registerCommand = (command, commandHandler): void => {
+  registerCommand = (command, commandHandler: (...args: any[]) => Promise<boolean>): void => {
     if (!this._context) {
       // Not yet activated.
       return;
@@ -77,7 +78,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController.disconnect()
     );
     this.registerCommand('mdb.removeConnection', () =>
-      this._connectionController.removeMongoDBConnection()
+      this._connectionController.onRemoveMongoDBConnection()
     );
 
     this.registerCommand('mdb.openMongoDBShell', () => this.openMongoDBShell());
@@ -94,55 +95,220 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Register tree view commands.
     this.registerCommand(
       'mdb.addConnection',
-      this._connectionController.addMongoDBConnection()
+      () => this._connectionController.addMongoDBConnection()
+    );
+    this.registerCommand(
+      'mdb.addConnectionWithURI',
+      () => this._connectionController.connectWithURI()
     );
     this.registerCommand(
       'mdb.refreshConnection',
       (connectionTreeItem: ConnectionTreeItem) => {
         connectionTreeItem.setCacheExpired();
         this._explorerController.refresh();
+        return Promise.resolve(true);
       }
     );
     this.registerCommand(
       'mdb.copyConnectionString',
       (element: ConnectionTreeItem) => {
-        // TODO: Password obfuscation?
-        // this._connectionController.getConnectionStringFromConnectionId(element.connectionInstanceId);
+        // TODO: Password obfuscation.
+        const connectionString = this._connectionController.getConnectionStringFromConnectionId(
+          element.connectionInstanceId
+        );
+
+        return new Promise((resolve, reject) => {
+          vscode.env.clipboard.writeText(connectionString).then(() => {
+            vscode.window.showInformationMessage('Copied to clipboard.');
+            return resolve(true);
+          }, reject);
+        });
       }
     );
     this.registerCommand(
+      'mdb.treeItemRemoveConnection',
+      (element: ConnectionTreeItem) => this._connectionController.removeMongoDBConnection(
+        element.connectionInstanceId
+      )
+    );
+    this.registerCommand(
       'mdb.addDatabase',
-      (element: DatabaseTreeItem) => {
-        // TODO: Add database. Consideration: Do we auto connect to this connection?
+      async (element: ConnectionTreeItem): Promise<boolean> => {
+        if (element.connectionInstanceId !== this._connectionController.getActiveConnectionInstanceId()) {
+          return Promise.reject(new Error('Please connect to this connection before adding a database.'));
+        }
+
+        let databaseName;
+        try {
+          databaseName = await vscode.window.showInputBox({
+            value: '',
+            placeHolder:
+              'e.g. myNewDB',
+            prompt: 'Enter the new database name.',
+            validateInput: (inputDatabaseName: any) => {
+              if (
+                inputDatabaseName
+                && inputDatabaseName.length > 0
+                && !ns(inputDatabaseName).validDatabaseName
+              ) {
+                return 'MongoDB database names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
+              }
+
+              return null;
+            }
+          });
+        } catch (e) {
+          return Promise.reject(new Error(`An error occured parsing the database name: ${e}`));
+        }
+
+        if (!databaseName) {
+          return Promise.resolve(false);
+        }
+
+        let collectionName;
+        try {
+          collectionName = await vscode.window.showInputBox({
+            value: '',
+            placeHolder:
+              'e.g. myNewCollection',
+            prompt: 'Enter the new collection name.',
+            validateInput: (inputCollectionName: any) => {
+              if (!inputCollectionName) {
+                return null;
+              }
+
+              if (!ns(`${databaseName}.${inputCollectionName}`).validCollectionName) {
+                return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
+              }
+
+              if (ns(`${databaseName}.${inputCollectionName}`).system) {
+                return 'MongoDB collection names cannot start with "system.". (Reserved for internal use.)';
+              }
+
+              return null;
+            }
+          });
+        } catch (e) {
+          return Promise.reject(new Error(
+            `An error occured parsing the collection name: ${e}`
+          ));
+        }
+
+        if (!collectionName) {
+          return Promise.resolve(false);
+        }
+
+        if (this._connectionController.isDisconnecting()) {
+          return Promise.reject(new Error('Unable to add collection: currently disconnecting.'));
+        }
+
+        if (this._connectionController.isConnnecting()) {
+          return Promise.reject(new Error('Unable to add collection: currently connecting.'));
+        }
+
+        if (element.connectionInstanceId !== this._connectionController.getActiveConnectionInstanceId()) {
+          return Promise.reject(new Error(
+            'Please connect to this connection before adding a database.'
+          ));
+        }
+
+        return new Promise((resolve, reject) => {
+          this._connectionController.getActiveConnection().createCollection(
+            `${databaseName}.${collectionName}`,
+            {}, // No options.
+            (err) => {
+              if (err) {
+                return reject(new Error(`Create collection failed: ${err}`));
+              }
+
+              return resolve(true);
+            }
+          );
+        });
       }
     );
     this.registerCommand(
       'mdb.copyDatabaseName',
       (element: DatabaseTreeItem) => {
-        vscode.env.clipboard.writeText(element.databaseName);
-        vscode.window.showInformationMessage('Copied to clipboard.');
+        return new Promise((resolve, reject) => {
+          vscode.env.clipboard.writeText(element.databaseName).then(() => {
+            vscode.window.showInformationMessage('Copied to clipboard.');
+            return resolve(true);
+          }, reject);
+        });
       }
     );
     this.registerCommand(
       'mdb.refreshDatabase',
       (databaseTreeItem: DatabaseTreeItem) => {
         databaseTreeItem.setCacheExpired();
-        this._explorerController.refresh();
+        return this._explorerController.refresh();
       }
     );
     this.registerCommand(
       'mdb.addCollection',
-      (element: DatabaseTreeItem) => {
+      async (element: DatabaseTreeItem): Promise<boolean> => {
         const databaseName = element.databaseName;
-        console.log('databaseName', databaseName);
-        // TODO: Add collection.
+
+        let collectionName;
+        try {
+          collectionName = await vscode.window.showInputBox({
+            value: '',
+            placeHolder:
+              'e.g. myNewCollection',
+            prompt: 'Enter the new collection name.',
+            validateInput: (inputCollectionName: any) => {
+              if (!inputCollectionName) {
+                return null;
+              }
+
+              if (!ns(`${databaseName}.${inputCollectionName}`).validCollectionName) {
+                return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
+              }
+
+              if (ns(`${databaseName}.${inputCollectionName}`).system) {
+                return 'MongoDB collection names cannot start with "system.". (Reserved for internal use.)';
+              }
+
+              return null;
+            }
+          });
+        } catch (e) {
+          return Promise.reject(`An error occured parsing the collection name: ${e}`);
+        }
+
+        if (!collectionName) {
+          return Promise.resolve(false);
+        }
+
+        if (this._connectionController.isDisconnecting()) {
+          return Promise.reject(new Error('Unable to add collection: currently disconnecting.'));
+        }
+
+        return new Promise((resolve, reject) => {
+          this._connectionController.getActiveConnection().createCollection(
+            `${databaseName}.${collectionName}`,
+            {}, // No options.
+            (err) => {
+              if (err) {
+                return reject(new Error(`Create collection failed: ${err}`));
+              }
+
+              return resolve(true);
+            }
+          );
+        });
       }
     );
     this.registerCommand(
       'mdb.copyCollectionName',
       (element: CollectionTreeItem) => {
-        vscode.env.clipboard.writeText(element.collectionName);
-        vscode.window.showInformationMessage('Copied to clipboard.');
+        return new Promise((resolve, reject) => {
+          vscode.env.clipboard.writeText(element.collectionName).then(() => {
+            vscode.window.showInformationMessage('Copied to clipboard.');
+            return resolve(true);
+          }, reject);
+        });
       }
     );
     this.registerCommand(
@@ -153,16 +319,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
-      'mdb.findInCollection',
-      (element: CollectionTreeItem) => {
-        // TODO: findInCollection - Open a playground.
-      }
-    );
-    this.registerCommand(
       'mdb.refreshCollection',
       (collectionTreeItem: CollectionTreeItem) => {
         collectionTreeItem.setCacheExpired();
-        this._explorerController.refresh();
+        return this._explorerController.refresh();
       }
     );
 
@@ -180,7 +340,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     log.info('Registered commands.');
   }
 
-  public openMongoDBShell(): void {
+  public openMongoDBShell(): Promise<boolean> {
     let mdbConnectionString;
     if (this._connectionController) {
       const activeConnectionConfig = this._connectionController.getActiveConnectionConfig();
@@ -197,6 +357,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       `${shellCommand} $MDB_CONNECTION_STRING; unset MDB_CONNECTION_STRING`
     );
     mongoDBShell.show();
+
+    return Promise.resolve(true);
   }
 
   public createPlayground(): void {

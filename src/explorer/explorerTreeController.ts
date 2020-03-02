@@ -74,9 +74,11 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
   private _onDidChangeTreeData: vscode.EventEmitter<any>;
   readonly onDidChangeTreeData: vscode.Event<any>;
 
-  public refresh = (): void => {
+  public refresh = (): Promise<boolean> => {
     this._mdbConnectionsTreeItem.connectionsDidChange();
     this._onDidChangeTreeData.fire();
+
+    return Promise.resolve(true);
   };
 
   public onTreeItemUpdate(): void {
