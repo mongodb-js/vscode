@@ -5,7 +5,7 @@
   "version": "0.0.1",
   "publisher": "mongodb",
   "engines": {
-    "vscode": "^1.40.0",
+    "vscode": "^1.41.0",
     "node": "^12.4.0",
     "npm": ">=6.13.0"
   },
