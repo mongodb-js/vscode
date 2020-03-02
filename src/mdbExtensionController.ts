@@ -11,6 +11,8 @@ import { ExplorerController, CollectionTreeItem } from './explorer';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController } from './storage';
+import DatabaseTreeItem from './explorer/databaseTreeItem';
+import ConnectionTreeItem from './explorer/connectionTreeItem';
 
 const log = createLogger('commands');
 
@@ -89,11 +91,78 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._explorerController.refresh()
     );
 
+    // Register tree view commands.
+    this.registerCommand(
+      'mdb.addConnection',
+      this._connectionController.addMongoDBConnection()
+    );
+    this.registerCommand(
+      'mdb.refreshConnection',
+      (connectionTreeItem: ConnectionTreeItem) => {
+        connectionTreeItem.setCacheExpired();
+        this._explorerController.refresh();
+      }
+    );
+    this.registerCommand(
+      'mdb.copyConnectionString',
+      (element: ConnectionTreeItem) => {
+        // TODO: Password obfuscation?
+        // this._connectionController.getConnectionStringFromConnectionId(element.connectionInstanceId);
+      }
+    );
+    this.registerCommand(
+      'mdb.addDatabase',
+      (element: DatabaseTreeItem) => {
+        // TODO: Add database. Consideration: Do we auto connect to this connection?
+      }
+    );
+    this.registerCommand(
+      'mdb.copyDatabaseName',
+      (element: DatabaseTreeItem) => {
+        vscode.env.clipboard.writeText(element.databaseName);
+        vscode.window.showInformationMessage('Copied to clipboard.');
+      }
+    );
+    this.registerCommand(
+      'mdb.refreshDatabase',
+      (databaseTreeItem: DatabaseTreeItem) => {
+        databaseTreeItem.setCacheExpired();
+        this._explorerController.refresh();
+      }
+    );
+    this.registerCommand(
+      'mdb.addCollection',
+      (element: DatabaseTreeItem) => {
+        const databaseName = element.databaseName;
+        console.log('databaseName', databaseName);
+        // TODO: Add collection.
+      }
+    );
+    this.registerCommand(
+      'mdb.copyCollectionName',
+      (element: CollectionTreeItem) => {
+        vscode.env.clipboard.writeText(element.collectionName);
+        vscode.window.showInformationMessage('Copied to clipboard.');
+      }
+    );
     this.registerCommand(
       'mdb.viewCollectionDocuments',
       (element: CollectionTreeItem) => {
         const namespace = `${element.databaseName}.${element.collectionName}`;
         return this._editorsController.onViewCollectionDocuments(namespace);
+      }
+    );
+    this.registerCommand(
+      'mdb.findInCollection',
+      (element: CollectionTreeItem) => {
+        // TODO: findInCollection - Open a playground.
+      }
+    );
+    this.registerCommand(
+      'mdb.refreshCollection',
+      (collectionTreeItem: CollectionTreeItem) => {
+        collectionTreeItem.setCacheExpired();
+        this._explorerController.refresh();
       }
     );
 

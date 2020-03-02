@@ -13,7 +13,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   private _childrenCacheIsUpToDate = false;
 
   private _connectionController: ConnectionController;
-  private _connectionInstanceId: string;
+  connectionInstanceId: string;
 
   public isExpanded: boolean;
 
@@ -29,7 +29,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       collapsibleState
     );
 
-    this._connectionInstanceId = connectionInstanceId;
+    this.connectionInstanceId = connectionInstanceId;
     this._connectionController = connectionController;
     this.isExpanded = isExpanded;
     this._childrenCache = existingChildrenCache;
@@ -40,13 +40,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   }
 
   get tooltip(): string {
-    return this._connectionInstanceId;
+    return this.connectionInstanceId;
   }
 
   get description(): string {
     if (
       this._connectionController.getActiveConnectionInstanceId() ===
-      this._connectionInstanceId
+      this.connectionInstanceId
     ) {
       if (this._connectionController.isDisconnecting()) {
         return 'disconnecting...';
@@ -56,7 +56,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     }
 
     if (this._connectionController.isConnnecting()
-      && this._connectionController.getConnectingInstanceId() === this._connectionInstanceId
+      && this._connectionController.getConnectingInstanceId() === this.connectionInstanceId
     ) {
       return 'connecting...';
     }
@@ -122,7 +122,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   }
 
   public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    return this._connectionController.getActiveConnectionInstanceId() === this._connectionInstanceId
+    return this._connectionController.getActiveConnectionInstanceId() === this.connectionInstanceId
       ? {
         light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'active-connection.svg'),
         dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'active-connection.svg')
@@ -142,13 +142,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
 
-    if (this._connectionController.getActiveConnectionInstanceId() === this._connectionInstanceId) {
+    if (this._connectionController.getActiveConnectionInstanceId() === this.connectionInstanceId) {
       return Promise.resolve(true);
     }
 
     // If we aren't the active connection, we reconnect.
     return new Promise(resolve => {
-      this._connectionController.connectWithInstanceId(this._connectionInstanceId).then(
+      this._connectionController.connectWithInstanceId(this.connectionInstanceId).then(
         () => resolve(true),
         err => {
           this.isExpanded = false;
@@ -157,6 +157,10 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         }
       );
     });
+  }
+
+  setCacheExpired(): void {
+    this._childrenCacheIsUpToDate = false;
   }
 
   public getChildrenCache(): { [key: string]: DatabaseTreeItem } {

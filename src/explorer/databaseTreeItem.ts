@@ -11,9 +11,10 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };
   private _childrenCacheIsUpToDate = false;
 
-  private _databaseName: string;
   private _dataService: any;
 
+
+  databaseName: string;
   isExpanded: boolean; // PlusWithCircle
 
   constructor(
@@ -29,7 +30,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         : vscode.TreeItemCollapsibleState.Collapsed
     );
 
-    this._databaseName = databaseName;
+    this.databaseName = databaseName;
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
@@ -37,7 +38,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   }
 
   get tooltip(): string {
-    return this._databaseName;
+    return this.databaseName;
   }
 
   getTreeItem(element: DatabaseTreeItem): DatabaseTreeItem {
@@ -55,7 +56,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
     return new Promise((resolve, reject) => {
       this._dataService.listCollections(
-        this._databaseName,
+        this.databaseName,
         {}, // No filter.
         (err: any, collections: string[]) => {
           if (err) {
@@ -73,7 +74,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
               if (pastChildrenCache[collection.name]) {
                 this._childrenCache[collection.name] = new CollectionTreeItem(
                   collection,
-                  this._databaseName,
+                  this.databaseName,
                   this._dataService,
                   pastChildrenCache[collection.name].isExpanded,
                   pastChildrenCache[collection.name].getChildrenCache(),
@@ -82,7 +83,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
               } else {
                 this._childrenCache[collection.name] = new CollectionTreeItem(
                   collection,
-                  this._databaseName,
+                  this.databaseName,
                   this._dataService,
                   false, // Not expanded.
                   [], // No cached documents.
@@ -115,6 +116,10 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
     return Promise.resolve(true);
+  }
+
+  setCacheExpired(): void {
+    this._childrenCacheIsUpToDate = false;
   }
 
   public getChildrenCache(): { [key: string]: CollectionTreeItem } {

@@ -119,6 +119,10 @@
         }
       },
       {
+        "command": "mdb.copyConnectionString",
+        "title": "Copy Connection String"
+      },
+      {
         "command": "mdb.addDatabase",
         "title": "Add Database",
         "icon": {
@@ -171,16 +175,24 @@
           "group": "inline"
         },
         {
+          "command": "mdb.addConnection",
+          "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem"
+        },
+        {
+          "command": "mdb.copyConnectionString",
+          "when": "view == mongoDB && viewItem == connectionTreeItem"
+        },
+        {
+          "command": "mdb.refreshConnection",
+          "when": "view == mongoDB && viewItem == connectionTreeItem"
+        },
+        {
           "command": "mdb.addDatabase",
           "when": "view == mongoDB && viewItem == connectionTreeItem",
           "group": "inline"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDB && viewItem == connectionTreeItem"
-        },
-        {
-          "command": "mdb.refreshConnection",
           "when": "view == mongoDB && viewItem == connectionTreeItem"
         },
         {
