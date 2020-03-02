@@ -12,20 +12,21 @@ suite('Extension Test Suite', () => {
   const disposables: vscode.Disposable[] = [];
 
   after(() => {
-    disposables.forEach(d => d.dispose());
+    disposables.forEach((d) => d.dispose());
     disposables.length = 0;
   });
 
-  test('commands are registered in vscode', done => {
+  test('commands are registered in vscode', (done) => {
     vscode.commands
       .getCommands()
-      .then(registeredCommands => {
+      .then((registeredCommands) => {
         const expectedCommands = [
           'mdb.connect',
           'mdb.connectWithURI',
           'mdb.disconnect',
           'mdb.removeConnection',
           'mdb.openMongoDBShell',
+          'mdb.createPlayground',
           'mdb.viewCollectionDocuments',
           'mdb.refresh',
           'mdb.reload',
@@ -48,8 +49,8 @@ suite('Extension Test Suite', () => {
       .then(() => done(), done);
   });
 
-  test('launchMongoShell should open a terminal', done => {
-    disposables.push(vscode.window.onDidOpenTerminal(() => done()));
+  test('openMongoDBShell should open a terminal', (done) => {
+    disposables.push(vscode.workspace.onDidOpenTextDocument(() => done()));
     const mockExtensionContext = new TestExtensionContext();
 
     const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
