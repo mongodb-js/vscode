@@ -63,7 +63,7 @@ npm i -g vsce;
 vsce package;
 ```
 
-This will create a file like `mongodb-vscode-0.0.1.vsix`. Once downloaded, the extension can be installed by running:
+This will create a file like `mongodb-vscode-0.0.1.vsix`. Once downloaded, the extension can be installed with the [Install .VSIX](https://github.com/fabiospampinato/vscode-install-vsix) or by running:
 
 ```bash
 code --install-extension mongodb-vscode-0.0.1.vsix
