@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import ns from 'mongodb-ns';
+const ns = require('mongodb-ns');
 const path = require('path');
 
 import CollectionTreeItem, { MAX_DOCUMENTS_VISIBLE } from './collectionTreeItem';

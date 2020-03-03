@@ -153,22 +153,34 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.addDatabase',
       async (element: ConnectionTreeItem): Promise<boolean> => {
+        if (!element) {
+          return Promise.reject(
+            new Error('Please wait for the connection to finish loading before adding a database.')
+          );
+        }
+
         if (element.connectionInstanceId !== this._connectionController.getActiveConnectionInstanceId()) {
-          return Promise.reject(new Error('Please connect to this connection before adding a database.'));
+          return Promise.reject(
+            new Error('Please connect to this connection before adding a database.')
+          );
         }
 
         if (this._connectionController.isDisconnecting()) {
-          return Promise.reject(new Error('Unable to add collection: currently disconnecting.'));
+          return Promise.reject(
+            new Error('Unable to add collection: currently disconnecting.')
+          );
         }
 
         if (this._connectionController.isConnecting()) {
-          return Promise.reject(new Error('Unable to add collection: currently connecting.'));
+          return Promise.reject(
+            new Error('Unable to add collection: currently connecting.')
+          );
         }
 
         return new Promise((resolve, reject) => {
           element.onAddDatabaseClicked().then(successfullyAddedDatabase => {
             if (successfullyAddedDatabase) {
-              vscode.window.showInformationMessage('Database added.');
+              vscode.window.showInformationMessage('Database and collection successfully created.');
 
               // When we successfully added a database & collection, we need
               // to update the explorer view.
@@ -207,7 +219,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         return new Promise((resolve, reject) => {
           element.onAddCollectionClicked().then(successfullyAddedCollection => {
             if (successfullyAddedCollection) {
-              vscode.window.showInformationMessage('Collection added.');
+              vscode.window.showInformationMessage('Collection successfully created.');
 
               // When we successfully added a collection, we need
               // to update the explorer view.

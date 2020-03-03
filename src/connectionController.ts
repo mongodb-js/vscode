@@ -1,5 +1,6 @@
 import path = require('path');
 import * as vscode from 'vscode';
+
 import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
