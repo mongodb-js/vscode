@@ -56,8 +56,8 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
           operation.isCurrentlyFetchingMoreDocuments = false;
 
           if (err) {
-            vscode.window.showErrorMessage(`Unable to list documents: ${err}`);
-            return reject(new Error(`Unable to list documents: ${err}`));
+            vscode.window.showErrorMessage(`Unable to list documents: ${err.message}`);
+            return reject(new Error(`Unable to list documents: ${err.message}`));
           }
 
           if (documents.length !== documentLimit) {

@@ -311,7 +311,7 @@ suite('MDBExtensionController Test Suite', () => {
     }, (err) => {
       assert(
         err.message === 'Please connect to this connection before adding a database.',
-        `Expected "Please connect to this connection before adding a database." when adding a database to a not connected connection, recieved "${err.msg}"`
+        `Expected "Please connect to this connection before adding a database." when adding a database to a not connected connection, recieved "${err.message}"`
       );
     }).then(done, done);
   });
@@ -398,7 +398,7 @@ suite('MDBExtensionController Test Suite', () => {
     }, (err) => {
       assert(
         err.message === 'Please connect to this connection before adding a database.',
-        `Expected "Please connect to this connection before adding a database." when adding a database to a not connected connection, recieved "${err.msg}"`
+        `Expected "Please connect to this connection before adding a database." when adding a database to a not connected connection, recieved "${err.message}"`
       );
     }).then(done, done);
   });
@@ -436,7 +436,7 @@ suite('MDBExtensionController Test Suite', () => {
     }, (err) => {
       assert(
         err.message === 'Please connect to this connection before adding a database.',
-        `Expected "Please connect to this connection before adding a database." when adding a database to a not connected connection, recieved "${err.msg}"`
+        `Expected "Please connect to this connection before adding a database." when adding a database to a not connected connection, recieved "${err.message}"`
       );
     }).then(done, done);
   });
@@ -506,7 +506,7 @@ suite('MDBExtensionController Test Suite', () => {
     }, err => {
       assert(
         err.message === 'Unable to add collection: currently disconnecting.',
-        `Expected "Unable to add collection: currently disconnecting." when adding a database to a not connected connection, recieved "${err.msg}"`
+        `Expected "Unable to add collection: currently disconnecting." when adding a database to a not connected connection, recieved "${err.message}"`
       );
     }).then(done, done);
   });

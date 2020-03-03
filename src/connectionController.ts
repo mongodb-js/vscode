@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { StorageScope } from './storage/storageController';
 
-const Connection = require('mongodb-connection-model');
+const Connection = require('mongodb-connection-model/lib/model');
 const DataService = require('mongodb-data-service');
 const log = createLogger('connection controller');
 const { name, version } = require(path.resolve(__dirname, '../package.json'));
@@ -162,7 +162,7 @@ export default class ConnectionController {
         connectionString,
         (error: any, newConnectionConfig: any) => {
           if (error) {
-            return reject(new Error('Failed to connect: invalid connection string.'));
+            return reject(new Error(`Failed to connect: ${error.message}`));
           }
 
           const {
@@ -228,7 +228,7 @@ export default class ConnectionController {
           this._connecting = false;
           log.info('Failed to connect');
           this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-          return reject(new Error(`Failed to connect: ${err}`));
+          return reject(new Error(`Failed to connect: ${err.message}`));
         }
 
         log.info('Successfully connected');

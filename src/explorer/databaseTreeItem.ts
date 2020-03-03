@@ -60,7 +60,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         {}, // No filter.
         (err: any, collections: string[]) => {
           if (err) {
-            return reject(new Error(`Unable to list collections: ${err}`));
+            return reject(new Error(`Unable to list collections: ${err.message}`));
           }
 
           this._childrenCacheIsUpToDate = true;
@@ -166,7 +166,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         {}, // No options.
         (err) => {
           if (err) {
-            return reject(new Error(`Create collection failed: ${err}`));
+            return reject(new Error(`Create collection failed: ${err.message}`));
           }
 
           this.setCacheExpired();

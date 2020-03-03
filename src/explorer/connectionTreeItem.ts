@@ -85,7 +85,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       const dataService = this._connectionController.getActiveConnection();
       dataService.listDatabases((err: any, databases: string[]) => {
         if (err) {
-          return reject(new Error(`Unable to list databases: ${err}`));
+          return reject(new Error(`Unable to list databases: ${err.message}`));
         }
 
         this._childrenCacheIsUpToDate = true;
@@ -235,7 +235,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         {}, // No options.
         (err) => {
           if (err) {
-            return reject(new Error(`Create collection failed: ${err}`));
+            return reject(new Error(`Create collection failed: ${err.message}`));
           }
 
           this.setCacheExpired();
