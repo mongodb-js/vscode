@@ -171,7 +171,7 @@ export default class MDBExtensionController implements vscode.Disposable {
             value: '',
             placeHolder:
               'e.g. myNewCollection',
-            prompt: 'Enter the new collection name.',
+            prompt: 'Enter the new collection name. (A database must have a collection to be created.)',
             validateInput: (inputCollectionName: any) => {
               if (!inputCollectionName) {
                 return null;
@@ -202,7 +202,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           return Promise.reject(new Error('Unable to add collection: currently disconnecting.'));
         }
 
-        if (this._connectionController.isConnnecting()) {
+        if (this._connectionController.isConnecting()) {
           return Promise.reject(new Error('Unable to add collection: currently connecting.'));
         }
 
@@ -221,6 +221,7 @@ export default class MDBExtensionController implements vscode.Disposable {
                 return reject(new Error(`Create collection failed: ${err}`));
               }
 
+              // TODO: We need to refresh the tree view or add the node.
               return resolve(true);
             }
           );
@@ -294,6 +295,7 @@ export default class MDBExtensionController implements vscode.Disposable {
                 return reject(new Error(`Create collection failed: ${err}`));
               }
 
+              // TODO: We need to refresh the tree view or add the node.
               return resolve(true);
             }
           );

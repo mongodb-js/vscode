@@ -8,8 +8,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
   contextValue = 'databaseTreeItem';
 
+  _childrenCacheIsUpToDate = false;
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };
-  private _childrenCacheIsUpToDate = false;
 
   private _dataService: any;
 

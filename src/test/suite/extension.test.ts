@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { after } from 'mocha';
+import { afterEach } from 'mocha';
 
 import MDBExtensionController from '../../mdbExtensionController';
 
@@ -11,7 +11,7 @@ suite('Extension Test Suite', () => {
 
   const disposables: vscode.Disposable[] = [];
 
-  after(() => {
+  afterEach(() => {
     disposables.forEach((d) => d.dispose());
     disposables.length = 0;
   });

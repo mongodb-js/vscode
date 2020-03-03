@@ -37,7 +37,7 @@ export default class ConnectionController {
     [key: string]: any;
   } = {};
 
-  private _currentConnection: any;
+  _currentConnection: any;
   private _currentConnectionConfig: any;
   private _currentConnectionInstanceId: string | null = null;
 
@@ -404,7 +404,7 @@ export default class ConnectionController {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
-  public isConnnecting(): boolean {
+  public isConnecting(): boolean {
     return this._connecting;
   }
 

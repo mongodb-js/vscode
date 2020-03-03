@@ -55,7 +55,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return 'connected';
     }
 
-    if (this._connectionController.isConnnecting()
+    if (this._connectionController.isConnecting()
       && this._connectionController.getConnectingInstanceId() === this.connectionInstanceId
     ) {
       return 'connecting...';
@@ -71,7 +71,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   getChildren(): Thenable<any[]> {
     if (!this.isExpanded
       || this._connectionController.isDisconnecting()
-      || this._connectionController.isConnnecting()
+      || this._connectionController.isConnecting()
     ) {
       return Promise.resolve([]);
     }

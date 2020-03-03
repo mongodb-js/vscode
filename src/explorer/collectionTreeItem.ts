@@ -32,8 +32,8 @@ export enum CollectionTypes {
 
 export default class CollectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
+  _childrenCacheIsUpToDate = false;
   private _childrenCache: vscode.TreeItem[] = [];
-  private _childrenCacheIsUpToDate = false;
 
   contextValue = 'collectionTreeItem';
 

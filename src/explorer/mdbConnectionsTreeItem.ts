@@ -43,7 +43,7 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
     // Create new connection tree items, using cached children whereever possible.
     connectionIds.forEach(connectionId => {
       const isActiveConnection = connectionId === this._connectionController.getActiveConnectionInstanceId();
-      const isBeingConnectedTo = this._connectionController.isConnnecting()
+      const isBeingConnectedTo = this._connectionController.isConnecting()
         && connectionId === this._connectionController.getConnectingInstanceId();
 
       let connectionExpandedState = isActiveConnection
@@ -76,7 +76,7 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
       );
     });
 
-    if (this._connectionController.isConnnecting()
+    if (this._connectionController.isConnecting()
       && !this._connectionController.getConnectionInstanceIds().includes(
         this._connectionController.getConnectingInstanceId()
       )
