@@ -160,7 +160,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     });
   }
 
-  setCacheExpired(): void {
+  resetCache(): void {
+    this._childrenCache = {};
     this._childrenCacheIsUpToDate = false;
   }
 
@@ -238,7 +239,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
             return reject(new Error(`Create collection failed: ${err.message}`));
           }
 
-          this.setCacheExpired();
+          this._childrenCacheIsUpToDate = false;
           return resolve(true);
         }
       );

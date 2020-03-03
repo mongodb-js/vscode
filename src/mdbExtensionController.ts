@@ -123,7 +123,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.refreshConnection',
       (connectionTreeItem: ConnectionTreeItem) => {
-        connectionTreeItem.setCacheExpired();
+        connectionTreeItem.resetCache();
         this._explorerController.refresh();
         return Promise.resolve(true);
       }
@@ -205,7 +205,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.refreshDatabase',
       (databaseTreeItem: DatabaseTreeItem) => {
-        databaseTreeItem.setCacheExpired();
+        databaseTreeItem.resetCache();
         return this._explorerController.refresh();
       }
     );
@@ -251,7 +251,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.refreshCollection',
       (collectionTreeItem: CollectionTreeItem) => {
-        collectionTreeItem.setCacheExpired();
+        collectionTreeItem.resetCache();
         return this._explorerController.refresh();
       }
     );

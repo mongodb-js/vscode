@@ -160,7 +160,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
     return Promise.resolve(true);
   }
 
-  setCacheExpired(): void {
+  resetCache(): void {
+    this._childrenCache = [];
     this._childrenCacheIsUpToDate = false;
   }
 

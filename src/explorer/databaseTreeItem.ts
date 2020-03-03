@@ -118,7 +118,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return Promise.resolve(true);
   }
 
-  setCacheExpired(): void {
+  resetCache(): void {
+    this._childrenCache = {};
     this._childrenCacheIsUpToDate = false;
   }
 
@@ -169,7 +170,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
             return reject(new Error(`Create collection failed: ${err.message}`));
           }
 
-          this.setCacheExpired();
+          this._childrenCacheIsUpToDate = false;
           return resolve(true);
         }
       );
