@@ -11,6 +11,8 @@ import { TestExtensionContext } from './stubs';
 import { StatusView } from '../../views';
 import ConnectionTreeItem from '../../explorer/connectionTreeItem';
 
+import { mdbTestExtension } from './stubbableMdbExtension';
+
 suite('MDBExtensionController Test Suite', () => {
   after(function () {
     sinon.restore();
@@ -61,16 +63,12 @@ suite('MDBExtensionController Test Suite', () => {
   // 'mdb.refreshCollection',
 
   test('mdb.addConnection command should call addMongoDBConnection on the connection controller', (done) => {
-    const mockExtensionContext = new TestExtensionContext();
-    const mockStorageController = new StorageController(mockExtensionContext);
-
-    const testConnectionController = new ConnectionController(
-      new StatusView(),
-      mockStorageController
-    );
-
     const mockAddConnection = sinon.fake.resolves();
-    sinon.replace(testConnectionController, 'addMongoDBConnection', mockAddConnection);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'addMongoDBConnection',
+      mockAddConnection
+    );
 
     vscode.commands.executeCommand('mdb.addConnection').then(() => {
       assert(
@@ -81,18 +79,14 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.addConnectionWithURI command should call connectWithURI on the connection controller', (done) => {
-    const mockExtensionContext = new TestExtensionContext();
-    const mockStorageController = new StorageController(mockExtensionContext);
-
-    const testConnectionController = new ConnectionController(
-      new StatusView(),
-      mockStorageController
+    const mockConnectWithUri = sinon.fake.resolves();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'connectWithURI',
+      mockConnectWithUri
     );
 
-    const mockConnectWithUri = sinon.fake.resolves();
-    sinon.replace(testConnectionController, 'connectWithURI', mockConnectWithUri);
-
-    vscode.commands.executeCommand('mdb.addConnection').then(() => {
+    vscode.commands.executeCommand('mdb.addConnectionWithURI').then(() => {
       assert(
         mockConnectWithUri.called,
         'Expected "connectWithURI" to be called on the connection controller.'
@@ -101,19 +95,11 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.refreshConnection command should reset the cache on a connection tree item', (done) => {
-    const mockExtensionContext = new TestExtensionContext();
-    const mockStorageController = new StorageController(mockExtensionContext);
-
-    const testConnectionController = new ConnectionController(
-      new StatusView(),
-      mockStorageController
-    );
-
     const mockTreeItem = new ConnectionTreeItem(
       'test',
       vscode.TreeItemCollapsibleState.None,
       false,
-      testConnectionController,
+      mdbTestExtension.testExtensionController._connectionController,
       {}
     );
 
@@ -121,31 +107,27 @@ suite('MDBExtensionController Test Suite', () => {
 
     vscode.commands.executeCommand('mdb.refreshConnection', mockTreeItem).then(() => {
       assert(
-        mockTreeItem._childrenCacheIsUpToDate === true,
-        'Expected cahce on tree item to be set to not up to date.'
+        mockTreeItem._childrenCacheIsUpToDate === false,
+        'Expected cache on tree item to be set to not up to date.'
       );
     }).then(done, done);
   });
 
   test('mdb.treeItemRemoveConnection command should call removeMongoDBConnection on the connection controller with the tree item connection id', (done) => {
-    const mockExtensionContext = new TestExtensionContext();
-    const mockStorageController = new StorageController(mockExtensionContext);
-
-    const testConnectionController = new ConnectionController(
-      new StatusView(),
-      mockStorageController
-    );
-
     const mockTreeItem = new ConnectionTreeItem(
       'craving_for_pancakes_with_maple_syrup',
       vscode.TreeItemCollapsibleState.None,
       false,
-      testConnectionController,
+      mdbTestExtension.testExtensionController._connectionController,
       {}
     );
 
     const mockRemoveMongoDBConnection = sinon.fake.resolves();
-    sinon.replace(testConnectionController, 'removeMongoDBConnection', mockRemoveMongoDBConnection);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'removeMongoDBConnection',
+      mockRemoveMongoDBConnection
+    );
 
     vscode.commands.executeCommand('mdb.treeItemRemoveConnection', mockTreeItem).then(() => {
       assert(

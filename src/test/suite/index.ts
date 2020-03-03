@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 
 import MDBExtensionController from '../../mdbExtensionController';
 import { TestExtensionContext } from './stubs';
+import { mdbTestExtension } from './stubbableMdbExtension';
 
 export function run(): Promise<void> {
   const reporterOptions = {
@@ -29,10 +30,15 @@ export function run(): Promise<void> {
       }
 
       // Activate the extension.
-      const mockExtensionContext = new TestExtensionContext();
+      // const mockExtensionContext = new TestExtensionContext();
+      mdbTestExtension.testExtensionContext = new TestExtensionContext();
+      mdbTestExtension.testExtensionController = new MDBExtensionController(
+        mdbTestExtension.testExtensionContext
+      );
+      mdbTestExtension.testExtensionController.activate(mdbTestExtension.testExtensionContext);
 
-      const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
-      mockMDBExtension.activate(mockExtensionContext);
+      // const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
+      // mockMDBExtension.activate(mockExtensionContext);
 
       // Disable the dialogue for prompting the user where to store the connection.
       vscode.workspace.getConfiguration('mdb.connectionSaving').update(
