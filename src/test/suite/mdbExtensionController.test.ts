@@ -449,9 +449,15 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.addCollection command calls the dataservice to add the collection the user inputs', (done) => {
+    let returnedNamespaceArg = '';
     const mockTreeItem = new DatabaseTreeItem(
       'iceCreamDB',
-      {},
+      {
+        createCollection: (namespace, options, callback): void => {
+          returnedNamespaceArg = namespace;
+          callback(null);
+        }
+      },
       false,
       {}
     );
@@ -462,19 +468,6 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.window,
       'showInputBox',
       mockInputBoxResolves
-    );
-
-    let returnedNamespaceArg = '';
-    const mockGetActiveConnection = sinon.fake.returns({
-      createCollection: (namespace, options, callback) => {
-        returnedNamespaceArg = namespace;
-        callback(null);
-      }
-    });
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnection',
-      mockGetActiveConnection
     );
 
     vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(() => {

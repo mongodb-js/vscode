@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import ns from 'mongodb-ns';
 const path = require('path');
 
 import DatabaseTreeItem from './databaseTreeItem';
@@ -121,7 +122,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     });
   }
 
-  public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     return this._connectionController.getActiveConnectionInstanceId() === this.connectionInstanceId
       ? {
         light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'active-connection.svg'),
@@ -163,7 +164,84 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
   }
 
-  public getChildrenCache(): { [key: string]: DatabaseTreeItem } {
+  getChildrenCache(): { [key: string]: DatabaseTreeItem } {
     return this._childrenCache;
+  }
+
+  async onAddDatabaseClicked(): Promise<boolean> {
+    let databaseName;
+    try {
+      databaseName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder:
+          'e.g. myNewDB',
+        prompt: 'Enter the new database name.',
+        validateInput: (inputDatabaseName: any) => {
+          if (
+            inputDatabaseName
+            && inputDatabaseName.length > 0
+            && !ns(inputDatabaseName).validDatabaseName
+          ) {
+            return 'MongoDB database names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(new Error(`An error occured parsing the database name: ${e}`));
+    }
+
+    if (!databaseName) {
+      return Promise.resolve(false);
+    }
+
+    let collectionName;
+    try {
+      collectionName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder:
+          'e.g. myNewCollection',
+        prompt: 'Enter the new collection name. (A database must have a collection to be created.)',
+        validateInput: (inputCollectionName: any) => {
+          if (!inputCollectionName) {
+            return null;
+          }
+
+          if (!ns(`${databaseName}.${inputCollectionName}`).validCollectionName) {
+            return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
+          }
+
+          if (ns(`${databaseName}.${inputCollectionName}`).system) {
+            return 'MongoDB collection names cannot start with "system.". (Reserved for internal use.)';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(new Error(
+        `An error occured parsing the collection name: ${e}`
+      ));
+    }
+
+    if (!collectionName) {
+      return Promise.resolve(false);
+    }
+
+    return new Promise((resolve, reject) => {
+      this._connectionController.getActiveConnection().createCollection(
+        `${databaseName}.${collectionName}`,
+        {}, // No options.
+        (err) => {
+          if (err) {
+            return reject(new Error(`Create collection failed: ${err}`));
+          }
+
+          this.setCacheExpired();
+          return resolve(true);
+        }
+      );
+    });
   }
 }

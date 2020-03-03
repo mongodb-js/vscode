@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import ns from 'mongodb-ns';
 const path = require('path');
 
 import CollectionTreeItem, { MAX_DOCUMENTS_VISIBLE } from './collectionTreeItem';
@@ -12,7 +13,6 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };
 
   private _dataService: any;
-
 
   databaseName: string;
   isExpanded: boolean; // PlusWithCircle
@@ -100,7 +100,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     });
   }
 
-  public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     return {
       light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'database.svg'),
       dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'database.svg')
@@ -122,7 +122,57 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
   }
 
-  public getChildrenCache(): { [key: string]: CollectionTreeItem } {
+  getChildrenCache(): { [key: string]: CollectionTreeItem } {
     return this._childrenCache;
+  }
+
+  async onAddCollectionClicked(): Promise<boolean> {
+    const databaseName = this.databaseName;
+
+    let collectionName;
+    try {
+      collectionName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder:
+          'e.g. myNewCollection',
+        prompt: 'Enter the new collection name.',
+        validateInput: (inputCollectionName: any) => {
+          if (!inputCollectionName) {
+            return null;
+          }
+
+          if (!ns(`${databaseName}.${inputCollectionName}`).validCollectionName) {
+            return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
+          }
+
+          if (ns(`${databaseName}.${inputCollectionName}`).system) {
+            return 'MongoDB collection names cannot start with "system.". (Reserved for internal use.)';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(`An error occured parsing the collection name: ${e}`);
+    }
+
+    if (!collectionName) {
+      return Promise.resolve(false);
+    }
+
+    return new Promise((resolve, reject) => {
+      this._dataService.createCollection(
+        `${databaseName}.${collectionName}`,
+        {}, // No options.
+        (err) => {
+          if (err) {
+            return reject(new Error(`Create collection failed: ${err}`));
+          }
+
+          this.setCacheExpired();
+          return resolve(true);
+        }
+      );
+    });
   }
 }
