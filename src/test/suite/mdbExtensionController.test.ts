@@ -3,22 +3,15 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 const sinon = require('sinon');
 
-import ConnectionController from '../../connectionController';
 import { CollectionTreeItem } from '../../explorer';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
-import { StorageController } from '../../storage';
-import { TestExtensionContext } from './stubs';
-import { StatusView } from '../../views';
 import ConnectionTreeItem from '../../explorer/connectionTreeItem';
 
 import { mdbTestExtension } from './stubbableMdbExtension';
 import DatabaseTreeItem from '../../explorer/databaseTreeItem';
 import { CollectionTypes } from '../../explorer/collectionTreeItem';
 
-const testDatabaseURI = 'mongodb://localhost:27018';
-
 suite('MDBExtensionController Test Suite', () => {
-  // const sinonSandbox = sinon.sandbox.create();
   afterEach(function () {
     sinon.restore();
   });

@@ -15,7 +15,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   private _dataService: any;
 
   databaseName: string;
-  isExpanded: boolean; // PlusWithCircle
+  isExpanded: boolean;
 
   constructor(
     databaseName: string,
