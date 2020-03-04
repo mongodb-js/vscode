@@ -50,7 +50,9 @@ steps:
     displayName: Cache npm
   # TODO (lucas): Caching `./.vscode-test` in the future would be nice
   # so vscode-test isn't downloading the vscode zip everytime. same goes for mongoddb-runner.
-  - script: npm i -g npm@latest; npm ci
+  - bash: |
+      npm i -g npm@latest;
+      npm ci;
     displayName: 'Install dependencies from npm'
 
   - bash: npm run test
@@ -64,7 +66,9 @@ steps:
       testResultsFiles: 'test-results.xml'
       failTaskOnFailedTests: true
 
-  - bash: npm version; npm run package;
+  - bash: |
+      npm i -g vsce;
+      vsce package
     displayName: 'Build .vsix'
 
   # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#set-variables-in-scripts
