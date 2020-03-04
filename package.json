@@ -3,6 +3,7 @@
   "displayName": "MongoDB",
   "description": "MongoDB for Visual Studio Code",
   "version": "0.0.1",
+  "homepage": "https://github.com/mongodb-js/vscode",
   "repository": {
     "type": "git",
     "url": "https://github.com/mongodb-js/vscode"
@@ -16,6 +17,10 @@
     "Other"
   ],
   "icon": "resources/mongodb.png",
+  "galleryBanner": {
+    "color": "#313030",
+    "theme": "dark"
+  },
   "license": "Apache-2.0",
   "main": "./out/extension.js",
   "scripts": {
