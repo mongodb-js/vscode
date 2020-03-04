@@ -1,12 +1,13 @@
 import path = require('path');
 import * as vscode from 'vscode';
+
 import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { StorageScope } from './storage/storageController';
 
-const Connection = require('mongodb-connection-model');
+const Connection = require('mongodb-connection-model/lib/model');
 const DataService = require('mongodb-data-service');
 const log = createLogger('connection controller');
 const { name, version } = require(path.resolve(__dirname, '../package.json'));
@@ -37,7 +38,7 @@ export default class ConnectionController {
     [key: string]: any;
   } = {};
 
-  private _currentConnection: any;
+  _currentConnection: any;
   private _currentConnectionConfig: any;
   private _currentConnectionInstanceId: string | null = null;
 
@@ -161,7 +162,7 @@ export default class ConnectionController {
         connectionString,
         (error: any, newConnectionConfig: any) => {
           if (error) {
-            return reject(new Error('Failed to connect: invalid connection string.'));
+            return reject(new Error(`Failed to connect: ${error.message}`));
           }
 
           const {
@@ -227,7 +228,7 @@ export default class ConnectionController {
           this._connecting = false;
           log.info('Failed to connect');
           this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-          return reject(new Error(`Failed to connect: ${err}`));
+          return reject(new Error(`Failed to connect: ${err.message}`));
         }
 
         log.info('Successfully connected');
@@ -308,42 +309,28 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
   }
 
-  public async removeMongoDBConnection(): Promise<boolean> {
-    log.info('mdb.removeMongoDBConnection command called');
-
-    // Ensure we aren't currently connecting or disconnecting.
+  // Prompts the user to remove the connection then removes it on affirmation.
+  public async removeMongoDBConnection(connectionId: string): Promise<boolean> {
+    // Ensure we aren't currently connecting.
     if (this._connecting) {
       return Promise.reject(
         new Error('Unable to remove connection: currently connecting.')
       );
     }
-
-    const connectionInstanceIds = Object.keys(this._connectionConfigs);
-
-    if (connectionInstanceIds.length === 0) {
-      // No active connection(s) to remove.
-      return Promise.reject(new Error('No connections to remove.'));
-    }
-
-    let connectionToRemove;
-    if (connectionInstanceIds.length === 1) {
-      connectionToRemove = connectionInstanceIds[0];
-    } else {
-      // There is more than 1 possible connection to remove.
-      connectionToRemove = await vscode.window.showQuickPick(
-        connectionInstanceIds,
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
+    // Ensure we aren't currently disconnecting.
+    if (this._disconnecting) {
+      return Promise.reject(
+        new Error('Unable to remove connection: currently disconnecting.')
       );
     }
 
-    if (!connectionToRemove) {
-      return Promise.resolve(false);
+    if (!this._connectionConfigs[connectionId]) {
+      // No active connection(s) to remove.
+      return Promise.reject(new Error('Connection does not exist.'));
     }
 
     const removeConfirmationResponse = await vscode.window.showInformationMessage(
-      `Are you sure to want to remove connection ${connectionToRemove}?`,
+      `Are you sure to want to remove connection ${connectionId}?`,
       { modal: true },
       'Yes'
     );
@@ -354,15 +341,58 @@ export default class ConnectionController {
 
     if (
       this._currentConnection &&
-      connectionToRemove === this._currentConnectionInstanceId
+      connectionId === this._currentConnectionInstanceId
     ) {
       await this.disconnect();
     }
 
-    this.removeConnectionConfig(connectionToRemove);
+    this.removeConnectionConfig(connectionId);
 
     vscode.window.showInformationMessage('MongoDB connection removed.');
     return Promise.resolve(true);
+  }
+
+  public async onRemoveMongoDBConnection(): Promise<boolean> {
+    log.info('mdb.removeConnection command called');
+
+    // Ensure we aren't currently connecting.
+    if (this._connecting) {
+      return Promise.reject(
+        new Error('Unable to remove connection: currently connecting.')
+      );
+    }
+    // Ensure we aren't currently disconnecting.
+    if (this._disconnecting) {
+      return Promise.reject(
+        new Error('Unable to remove connection: currently disconnecting.')
+      );
+    }
+
+    const connectionInstanceIds = Object.keys(this._connectionConfigs);
+
+    if (connectionInstanceIds.length === 0) {
+      // No active connection(s) to remove.
+      return Promise.reject(new Error('No connections to remove.'));
+    }
+
+    let connectionIdToRemove;
+    if (connectionInstanceIds.length === 1) {
+      connectionIdToRemove = connectionInstanceIds[0];
+    } else {
+      // There is more than 1 possible connection to remove.
+      connectionIdToRemove = await vscode.window.showQuickPick(
+        connectionInstanceIds,
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
+    }
+
+    if (!connectionIdToRemove) {
+      return Promise.resolve(false);
+    }
+
+    return this.removeMongoDBConnection(connectionIdToRemove);
   }
 
   public getConnectionInstanceIds(): string[] {
@@ -387,7 +417,7 @@ export default class ConnectionController {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
-  public isConnnecting(): boolean {
+  public isConnecting(): boolean {
     return this._connecting;
   }
 
@@ -397,6 +427,16 @@ export default class ConnectionController {
 
   public getConnectingInstanceId(): string {
     return this._connectingInstanceId;
+  }
+
+  public getConnectionStringFromConnectionId(connectionId: string): string {
+    const {
+      driverUrl
+    } = this._connectionConfigs[connectionId].getAttributes({
+      derived: true
+    });
+
+    return driverUrl;
   }
 
   // Exposed for testing.

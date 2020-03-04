@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { after } from 'mocha';
+import { afterEach } from 'mocha';
 
 import MDBExtensionController from '../../mdbExtensionController';
 
@@ -11,25 +11,40 @@ suite('Extension Test Suite', () => {
 
   const disposables: vscode.Disposable[] = [];
 
-  after(() => {
-    disposables.forEach(d => d.dispose());
+  afterEach(() => {
+    disposables.forEach((d) => d.dispose());
     disposables.length = 0;
   });
 
-  test('commands are registered in vscode', done => {
+  test('commands are registered in vscode', (done) => {
     vscode.commands
       .getCommands()
-      .then(registeredCommands => {
+      .then((registeredCommands) => {
         const expectedCommands = [
+          // General / connection commands.
           'mdb.connect',
           'mdb.connectWithURI',
           'mdb.disconnect',
           'mdb.removeConnection',
           'mdb.openMongoDBShell',
+          'mdb.createPlayground',
+
+          // Tree view commands.
+          'mdb.addConnection',
+          'mdb.addConnectionWithURI',
+          'mdb.copyConnectionString',
+          'mdb.treeItemRemoveConnection',
+          'mdb.addDatabase',
+          'mdb.refreshConnection',
+          'mdb.copyDatabaseName',
+          'mdb.refreshDatabase',
+          'mdb.addCollection',
           'mdb.viewCollectionDocuments',
-          'mdb.refresh',
-          'mdb.reload',
-          'mdb.codeLens.showMoreDocumentsClicked'
+          'mdb.copyCollectionName',
+          'mdb.refreshCollection',
+
+          // Editor commands.
+          'mdb.codeLens.showMoreDocumentsClicked',
         ];
 
         for (let i = 0; i < expectedCommands.length; i++) {
@@ -48,12 +63,21 @@ suite('Extension Test Suite', () => {
       .then(() => done(), done);
   });
 
-  test('launchMongoShell should open a terminal', done => {
+  test('openMongoDBShell should open a terminal', done => {
     disposables.push(vscode.window.onDidOpenTerminal(() => done()));
     const mockExtensionContext = new TestExtensionContext();
 
     const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
 
     mockMDBExtension.openMongoDBShell();
+  });
+
+  test('createPlayground should create a MongoDB playground', (done) => {
+    disposables.push(vscode.workspace.onDidOpenTextDocument(() => done()));
+    const mockExtensionContext = new TestExtensionContext();
+
+    const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
+
+    mockMDBExtension.createPlayground();
   });
 });

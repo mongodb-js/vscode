@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+const ns = require('mongodb-ns');
 const path = require('path');
 
 import DatabaseTreeItem from './databaseTreeItem';
@@ -7,13 +8,15 @@ import TreeItemParent from './treeItemParentInterface';
 
 export default class ConnectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
+  contextValue = 'connectionTreeItem';
+
   private _childrenCache: { [key: string]: DatabaseTreeItem };
-  private _childrenCacheIsUpToDate = false;
+  _childrenCacheIsUpToDate = false;
 
   private _connectionController: ConnectionController;
-  private _connectionInstanceId: string;
+  connectionInstanceId: string;
 
-  public isExpanded: boolean;
+  isExpanded: boolean;
 
   constructor(
     connectionInstanceId: string,
@@ -27,7 +30,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       collapsibleState
     );
 
-    this._connectionInstanceId = connectionInstanceId;
+    this.connectionInstanceId = connectionInstanceId;
     this._connectionController = connectionController;
     this.isExpanded = isExpanded;
     this._childrenCache = existingChildrenCache;
@@ -38,13 +41,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   }
 
   get tooltip(): string {
-    return this._connectionInstanceId;
+    return this.connectionInstanceId;
   }
 
   get description(): string {
     if (
       this._connectionController.getActiveConnectionInstanceId() ===
-      this._connectionInstanceId
+      this.connectionInstanceId
     ) {
       if (this._connectionController.isDisconnecting()) {
         return 'disconnecting...';
@@ -53,8 +56,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return 'connected';
     }
 
-    if (this._connectionController.isConnnecting()
-      && this._connectionController.getConnectingInstanceId() === this._connectionInstanceId
+    if (this._connectionController.isConnecting()
+      && this._connectionController.getConnectingInstanceId() === this.connectionInstanceId
     ) {
       return 'connecting...';
     }
@@ -69,7 +72,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   getChildren(): Thenable<any[]> {
     if (!this.isExpanded
       || this._connectionController.isDisconnecting()
-      || this._connectionController.isConnnecting()
+      || this._connectionController.isConnecting()
     ) {
       return Promise.resolve([]);
     }
@@ -82,7 +85,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       const dataService = this._connectionController.getActiveConnection();
       dataService.listDatabases((err: any, databases: string[]) => {
         if (err) {
-          return reject(new Error(`Unable to list databases: ${err}`));
+          return reject(new Error(`Unable to list databases: ${err.message}`));
         }
 
         this._childrenCacheIsUpToDate = true;
@@ -119,8 +122,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     });
   }
 
-  public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    return this._connectionController.getActiveConnectionInstanceId() === this._connectionInstanceId
+  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    return this._connectionController.getActiveConnectionInstanceId() === this.connectionInstanceId
       ? {
         light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'active-connection.svg'),
         dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'active-connection.svg')
@@ -140,13 +143,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
 
-    if (this._connectionController.getActiveConnectionInstanceId() === this._connectionInstanceId) {
+    if (this._connectionController.getActiveConnectionInstanceId() === this.connectionInstanceId) {
       return Promise.resolve(true);
     }
 
     // If we aren't the active connection, we reconnect.
     return new Promise(resolve => {
-      this._connectionController.connectWithInstanceId(this._connectionInstanceId).then(
+      this._connectionController.connectWithInstanceId(this.connectionInstanceId).then(
         () => resolve(true),
         err => {
           this.isExpanded = false;
@@ -157,7 +160,89 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     });
   }
 
-  public getChildrenCache(): { [key: string]: DatabaseTreeItem } {
+  resetCache(): void {
+    this._childrenCache = {};
+    this._childrenCacheIsUpToDate = false;
+  }
+
+  getChildrenCache(): { [key: string]: DatabaseTreeItem } {
     return this._childrenCache;
+  }
+
+  async onAddDatabaseClicked(): Promise<boolean> {
+    let databaseName;
+    try {
+      databaseName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder:
+          'e.g. myNewDB',
+        prompt: 'Enter the new database name.',
+        validateInput: (inputDatabaseName: any) => {
+          if (
+            inputDatabaseName
+            && inputDatabaseName.length > 0
+            && !ns(inputDatabaseName).validDatabaseName
+          ) {
+            return 'MongoDB database names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(new Error(`An error occured parsing the database name: ${e}`));
+    }
+
+    if (!databaseName) {
+      return Promise.resolve(false);
+    }
+
+    let collectionName;
+    try {
+      collectionName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder:
+          'e.g. myNewCollection',
+        prompt: 'Enter the new collection name. (A database must have a collection to be created.)',
+        validateInput: (inputCollectionName: any) => {
+          if (!inputCollectionName) {
+            return null;
+          }
+
+          if (!ns(`${databaseName}.${inputCollectionName}`).validCollectionName) {
+            return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
+          }
+
+          if (ns(`${databaseName}.${inputCollectionName}`).system) {
+            return 'MongoDB collection names cannot start with "system.". (Reserved for internal use.)';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(new Error(
+        `An error occured parsing the collection name: ${e}`
+      ));
+    }
+
+    if (!collectionName) {
+      return Promise.resolve(false);
+    }
+
+    return new Promise((resolve, reject) => {
+      this._connectionController.getActiveConnection().createCollection(
+        `${databaseName}.${collectionName}`,
+        {}, // No options.
+        (err) => {
+          if (err) {
+            return reject(new Error(`Create collection failed: ${err.message}`));
+          }
+
+          this._childrenCacheIsUpToDate = false;
+          return resolve(true);
+        }
+      );
+    });
   }
 }

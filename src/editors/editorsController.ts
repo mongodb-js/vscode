@@ -65,10 +65,10 @@ export default class EditorsController {
     );
   }
 
-  onViewCollectionDocuments(namespace: string): Thenable<void> {
+  onViewCollectionDocuments(namespace: string): Promise<boolean> {
     log.info('view collection documents');
     if (!this._connectionController) {
-      return Promise.reject('No connection controller');
+      return Promise.reject(new Error('No connection controller'));
     }
 
     const operationId = this._collectionDocumentsOperationsStore.createNewOperation();
@@ -81,32 +81,33 @@ export default class EditorsController {
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(uri).then((doc) => {
         vscode.window.showTextDocument(doc, { preview: false }).then(
-          () => resolve(),
+          () => resolve(true),
           reject
         );
       }, reject);
     });
   }
 
-  onViewMoreCollectionDocuments(operationId: string, connectionId: string, namespace: string): void {
+  onViewMoreCollectionDocuments(operationId: string, connectionId: string, namespace: string): Promise<boolean> {
     log.info('view more collection documents');
 
     if (this._collectionDocumentsOperationsStore.operations[operationId].isCurrentlyFetchingMoreDocuments) {
       // A user might click to fetch more documents multiple times,
       // this ensures it only performs one fetch at a time.
-      return;
+      return Promise.reject(new Error('Already fetching more documents...'));
     }
 
     // Ensure we're still connected to the correct connection.
     if (!this._connectionController
       || connectionId !== this._connectionController.getActiveConnectionInstanceId()
     ) {
-      vscode.window.showErrorMessage(`Unable to view more documents: no longer connected to ${connectionId}`);
-      return;
+      return Promise.reject(new Error(
+        `Unable to view more documents: no longer connected to ${connectionId}`
+      ));
     }
 
     if (!this._collectionViewProvider) {
-      return;
+      return Promise.reject(new Error('No registered collection view provider.'));
     }
 
     const uri = this.getViewCollectionDocumentsUri(
@@ -119,5 +120,6 @@ export default class EditorsController {
 
     // Notify the document provider to update with the new document limit.
     this._collectionViewProvider.onDidChangeEmitter.fire(uri);
+    return Promise.resolve(true);
   }
 }

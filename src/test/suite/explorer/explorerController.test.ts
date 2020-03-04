@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { before, after } from 'mocha';
+import { beforeEach, afterEach } from 'mocha';
 
 import ConnectionController from '../../../connectionController';
 import { DefaultSavingLocations } from '../../../storage/storageController';
@@ -16,15 +16,15 @@ const testDatabaseURI2WithTimeout =
 suite('Explorer Controller Test Suite', function () {
   vscode.window.showInformationMessage('Starting tests...');
 
-  before(async () => {
+  beforeEach(async () => {
     // Don't save connections on default.
     await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',
       DefaultSavingLocations['Session Only']
     );
   });
-  after(async () => {
-    // Unset the variable we set in `before`.
+  afterEach(async () => {
+    // Unset the variable we set in `beforeEach`.
     await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',
       DefaultSavingLocations.Workspace
