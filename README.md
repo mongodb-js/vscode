@@ -39,18 +39,33 @@ npm run watch
 
 ## Packaging
 
-`vscode-mongodb` will be published under the `mongodb` Visual Studio Marketplace publisher that has been setup under the existing `team-compass` Azure DevOps org we use for pipelines.
+`vscode-mongodb` will be published under the `mongodb` Visual Studio Marketplace Publisher that has been setup under the existing `team-compass` Azure DevOps org we use for pipelines.
 
-- [docs](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
-- [web ui](https://marketplace.visualstudio.com/manage/publishers/mongodb)
-- Analytics: [Extension Reporting Hub](https://devblogs.microsoft.com/devops/extension-reporting-hub-for-marketplace-publishers/)
-- TODO (lucas) Read more carefully and update for any musts: https://code.visualstudio.com/api/references/extension-manifest#marketplace-presentation-tips
-- TODO (lucas) metrics: [sessionId and machineId from `vscode.env`](https://github.com/microsoft/vscode-extension-telemetry/blob/master/src/telemetryReporter.ts#L92)
-- TODO (lucas) Extension install/uninstall hooks https://code.visualstudio.com/api/references/extension-manifest#extension-uninstall-hook
-- TODO (lucas): ticket: pattern for examples/libraries to [add mongodb-vscode as recommended extension](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions)
-- TODO (lucas) Finish design for driver specific bundling like `MongoDB for .Net`, MongoDB for Python, etc. using [extension packs](https://code.visualstudio.com/api/references/extension-manifest#extension-packs)
-- TODO (lucas) Ticket: for bundle size and perf https://dev.to/sneezry/how-to-speed-up-your-vs-code-extension-not-only-webpack-48b5 and https://github.com/microsoft/vscode-extension-samples/tree/master/webpack-sample and https://github.com/microsoft/vscode-azuretools/blob/master/dev/src/webpack/excludeNodeModulesAndDependencies.ts and https://johnpapa.net/is-your-vs-code-extension-slow-heres-how-to-speed-it-up/
-- TODO (lucas): The Azure Personal Access Token for publishing the vscode extension. It expires: Jan 2 2021 at which point a new one will need to be generated.
+Azure Org:
+`team-compass`
+
+[Azure Org Owner User](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/change-organization-ownership?view=azure-devops):
+`team-compass@mongodb.com`
+
+Azure Projects:
+
+- `vscode` The MongoDB VSCode Extension https://github.com/mongodb-js/vscode
+- `mongosh` The MongoDB Shell https://github.com/mongodb-js/mongosh
+- `compass` Compass plugins
+
+Visual Studio Marketplace:
+
+- Publisher `mongodb`
+
+- `vscode-marketplace@mongodb.com` is a member of the `team-compass` Azure DevOps Org
+  https://groups.google.com/a/mongodb.com/forum/#!forum/vscode-marketplace
+
+- `vscode@mongodb.com` is contact email to use for this project
+  https://groups.google.com/a/mongodb.com/forum/#!forum/vscode
+
+* [docs](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
+* [web ui](https://marketplace.visualstudio.com/manage/publishers/mongodb)
+* Analytics: [Extension Reporting Hub](https://devblogs.microsoft.com/devops/extension-reporting-hub-for-marketplace-publishers/)
 
 ### Preview
 

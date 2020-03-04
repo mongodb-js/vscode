@@ -3,15 +3,41 @@
   "displayName": "MongoDB",
   "description": "MongoDB for Visual Studio Code",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mongodb-js/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/mongodb-js/vscode/issues",
+    "email": "vscode@mongodb.com"
+  },
   "publisher": "mongodb",
+  "categories": [
+    "Other"
+  ],
+  "icon": "resources/mongodb.png",
+  "license": "Apache-2.0",
+  "main": "./out/extension.js",
+  "scripts": {
+    "clean": "rimraf ./src/snippets ./out/*",
+    "lint": "eslint ./src/**/*.ts",
+    "update-grammar": "./scripts/update-grammar.ts",
+    "update-snippets": "./scripts/update-snippets.ts",
+    "precompile": "npm run clean",
+    "compile": "npm run update-grammar && npm run update-snippets && tsc -p ./",
+    "watch": "npm run compile -- -watch",
+    "pretest": "npm run compile && mongodb-runner start --port=27018",
+    "test": "xvfb-maybe node ./out/test/runTest.js",
+    "posttest": "mongodb-runner stop --port=27018",
+    "vscode:prepublish": "npm run compile",
+    "check": "mongodb-js-precommit './src/**/*{.ts}'",
+    "package": "vsce package"
+  },
   "engines": {
     "vscode": "^1.41.0",
     "node": "^12.4.0",
     "npm": ">=6.13.0"
   },
-  "categories": [
-    "Other"
-  ],
   "activationEvents": [
     "onCommand:mdb.connect",
     "onCommand:mdb.connectWithURI",
@@ -21,33 +47,13 @@
     "onView:mongoDB",
     "onLanguage:json"
   ],
-  "main": "./out/extension.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mongodb-js/vscode"
-  },
-  "icon": "images/mongodb.png",
-  "scripts": {
-    "clean": "rimraf ./src/snippets ./out/*",
-    "precompile": "npm run clean",
-    "lint": "./node_modules/.bin/eslint ./src/**/*.ts",
-    "update-grammar": "ts-node ./src/scripts/update-grammar.ts",
-    "update-snippets": "ts-node ./src/scripts/update-snippets.ts",
-    "compile": "npm run update-grammar && npm run update-snippets && tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && mongodb-runner start --port=27018",
-    "test": "xvfb-maybe node ./out/test/runTest.js",
-    "posttest": "mongodb-runner stop --port=27018",
-    "vscode:prepublish": "npm run compile",
-    "check": "mongodb-js-precommit './src/**/*{.ts}'"
-  },
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
           "id": "mongoDB",
           "title": "MongoDB",
-          "icon": "images/mongodb.svg"
+          "icon": "resources/mongodb.svg"
         }
       ]
     },
@@ -173,10 +179,12 @@
       }
     }
   },
-  "dependency-check": {
-    "ignore": [
-      "vscode"
-    ]
+  "dependencies": {
+    "bson": "^4.0.3",
+    "mongodb-connection-model": "^14.5.0",
+    "mongodb-data-service": "^16.5.1",
+    "ts-log": "^2.1.4",
+    "uuid": "^7.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.9",
@@ -194,24 +202,25 @@
     "eslint": "^6.8.0",
     "eslint-config-mongodb-js": "^5.0.3",
     "glob": "^7.1.6",
+    "meow": "^6.0.1",
+    "mkdirp": "^1.0.3",
     "mocha": "^7.0.1",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi": "^1.1.3",
     "mongodb-ace-autocompleter": "^0.4.1",
     "mongodb-js-precommit": "^2.2.1",
     "mongodb-runner": "^4.8.0",
+    "ora": "^4.0.3",
     "sinon": "^9.0.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5",
+    "vsce": "^1.74.0",
     "vscode-test": "^1.3.0",
     "xvfb-maybe": "^0.2.1"
   },
-  "dependencies": {
-    "bson": "^4.0.3",
-    "mongodb-connection-model": "^14.5.0",
-    "mongodb-data-service": "^16.5.1",
-    "ts-log": "^2.1.4",
-    "uuid": "^7.0.0"
-  },
-  "license": "Apache-2.0"
+  "dependency-check": {
+    "ignore": [
+      "vscode"
+    ]
+  }
 }
