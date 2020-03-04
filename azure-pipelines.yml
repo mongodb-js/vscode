@@ -64,7 +64,7 @@ steps:
       testResultsFiles: 'test-results.xml'
       failTaskOnFailedTests: true
 
-  - bash: npm run package
+  - bash: npm version; npm run package;
     displayName: 'Build .vsix'
 
   # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#set-variables-in-scripts
