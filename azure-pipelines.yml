@@ -50,7 +50,7 @@ steps:
     displayName: Cache npm
   # TODO (lucas): Caching `./.vscode-test` in the future would be nice
   # so vscode-test isn't downloading the vscode zip everytime. same goes for mongoddb-runner.
-  - script: npm ci
+  - script: npm i -g npm@latest; npm ci
     displayName: 'Install dependencies from npm'
 
   - bash: npm run test
