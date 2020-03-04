@@ -159,6 +159,10 @@
         "title": "Copy Database Name"
       },
       {
+        "command": "mdb.dropDatabase",
+        "title": "Drop Database..."
+      },
+      {
         "command": "mdb.refreshDatabase",
         "title": "Refresh"
       },
@@ -177,6 +181,10 @@
       {
         "command": "mdb.copyCollectionName",
         "title": "Copy Collection Name"
+      },
+      {
+        "command": "mdb.dropCollection",
+        "title": "Drop Collection..."
       },
       {
         "command": "mdb.refreshCollection",
@@ -237,6 +245,10 @@
           "when": "view == mongoDB && viewItem == databaseTreeItem"
         },
         {
+          "command": "mdb.dropDatabase",
+          "when": "view == mongoDB && viewItem == databaseTreeItem"
+        },
+        {
           "command": "mdb.copyDatabaseName",
           "when": "view == mongoDB && viewItem == databaseTreeItem"
         },
@@ -246,6 +258,10 @@
         },
         {
           "command": "mdb.viewCollectionDocuments",
+          "when": "view == mongoDB && viewItem == collectionTreeItem"
+        },
+        {
+          "command": "mdb.dropCollection",
           "when": "view == mongoDB && viewItem == collectionTreeItem"
         },
         {

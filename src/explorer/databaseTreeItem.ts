@@ -182,4 +182,45 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       );
     });
   }
+
+  // Prompt the user to input the database name to confirm the drop, then drop.
+  async onDropDatabaseClicked(): Promise<boolean> {
+    const databaseName = this.databaseName;
+
+    let inputtedDatabaseName;
+    try {
+      inputtedDatabaseName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder:
+          'e.g. myNewCollection',
+        prompt: `Are you sure you wish to drop this database? Enter the database name '${databaseName}' to confirm.`,
+        validateInput: (inputDatabaseName: any) => {
+          if (inputDatabaseName && !databaseName.startsWith(inputDatabaseName)) {
+            return 'Database name does not match';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(`An error occured parsing the collection name: ${e}`);
+    }
+
+    if (!inputtedDatabaseName || databaseName !== inputtedDatabaseName) {
+      return Promise.resolve(false);
+    }
+
+    return new Promise((resolve, reject) => {
+      this._dataService.dropDatabase(databaseName,
+        (err) => {
+          if (err) {
+            return reject(new Error(`Drop database failed: ${err.message}`));
+          }
+
+          this._childrenCacheIsUpToDate = false;
+          return resolve(true);
+        }
+      );
+    });
+  }
 }

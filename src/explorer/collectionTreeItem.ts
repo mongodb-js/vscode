@@ -40,8 +40,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
   // We fetch 1 more than this in order to see if there are more to fetch.
   private _maxDocumentsToShow: number;
 
-  public collectionName: string;
-  public databaseName: string;
+  collectionName: string;
+  databaseName: string;
 
   private _dataService: any;
   private _type: CollectionTypes;
@@ -130,7 +130,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     });
   }
 
-  public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     return this._type === CollectionTypes.collection
       ? {
         light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'collection.svg'),
@@ -165,11 +165,51 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
   }
 
-  public getChildrenCache(): vscode.TreeItem[] {
+  getChildrenCache(): vscode.TreeItem[] {
     return this._childrenCache;
   }
 
-  public getMaxDocumentsToShow(): number {
+  getMaxDocumentsToShow(): number {
     return this._maxDocumentsToShow;
+  }
+
+  async onDropCollectionClicked(): Promise<boolean> {
+    const collectionName = this.collectionName;
+
+    let inputtedCollectionName;
+    try {
+      inputtedCollectionName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder:
+          'e.g. myNewCollection',
+        prompt: `Are you sure you wish to drop this collection? Enter the collection name '${collectionName}' to confirm.`,
+        validateInput: (inputCollectionName: any) => {
+          if (inputCollectionName && !collectionName.startsWith(inputCollectionName)) {
+            return 'Collection name does not match';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(`An error occured parsing the collection name: ${e}`);
+    }
+
+    if (!inputtedCollectionName || collectionName !== inputtedCollectionName) {
+      return Promise.resolve(false);
+    }
+
+    return new Promise((resolve, reject) => {
+      this._dataService.dropCollection(`${this.databaseName}.${collectionName}`,
+        (err) => {
+          if (err) {
+            return reject(new Error(`Drop collection failed: ${err.message}`));
+          }
+
+          this._childrenCacheIsUpToDate = false;
+          return resolve(true);
+        }
+      );
+    });
   }
 }

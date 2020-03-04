@@ -212,6 +212,12 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
+      'mdb.dropDatabase',
+      (element: DatabaseTreeItem) => {
+        return element.onDropDatabaseClicked();
+      }
+    );
+    this.registerCommand(
       'mdb.refreshDatabase',
       (databaseTreeItem: DatabaseTreeItem) => {
         databaseTreeItem.resetCache();
@@ -248,6 +254,12 @@ export default class MDBExtensionController implements vscode.Disposable {
             return resolve(true);
           }, reject);
         });
+      }
+    );
+    this.registerCommand(
+      'mdb.dropCollection',
+      (element: CollectionTreeItem) => {
+        return element.onDropCollectionClicked();
       }
     );
     this.registerCommand(
