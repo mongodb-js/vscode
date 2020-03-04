@@ -49,12 +49,21 @@ suite('Extension Test Suite', () => {
       .then(() => done(), done);
   });
 
-  test('openMongoDBShell should open a terminal', (done) => {
-    disposables.push(vscode.workspace.onDidOpenTextDocument(() => done()));
+  test('openMongoDBShell should open a terminal', done => {
+    disposables.push(vscode.window.onDidOpenTerminal(() => done()));
     const mockExtensionContext = new TestExtensionContext();
 
     const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
 
     mockMDBExtension.openMongoDBShell();
+  });
+
+  test('createPlayground should create a MongoDB playground', (done) => {
+    disposables.push(vscode.workspace.onDidOpenTextDocument(() => done()));
+    const mockExtensionContext = new TestExtensionContext();
+
+    const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
+
+    mockMDBExtension.createPlayground();
   });
 });
