@@ -65,7 +65,12 @@ steps:
       failTaskOnFailedTests: true
   - bash: npm run package
     displayName: 'Build .vsix'
+
+  # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#set-variables-in-scripts
+  - bash: |
+      echo "##vso[task.setvariable variable=extension_version]`npx json -f package.json version`"
+    displayName: 'Set extension_version variable from package.json version'
+
   - task: PublishPipelineArtifact@0
     inputs:
-      # TODO (lucas) Make version number dynamic
-      artifactName: 'mongodb-vscode-0.0.1.vsix'
+      artifactName: 'mongodb-vscode-$(extension_version).vsix'
