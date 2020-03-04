@@ -25,7 +25,7 @@ const cli = meow(
 	Examples
 	  $ ./update-grammar.ts
 	  ℹ Downlading latest mongodb.tmLanguage.json
-    ✔ Downloaded to /Users/lucas/vsc/src/syntaxes/mongodb.tmLanguage.json
+    ✔ Downloaded to /Users/lucas/vsc/resources/syntaxes/mongodb.tmLanguage.json
 `,
   {
     flags: {

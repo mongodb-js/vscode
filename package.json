@@ -86,14 +86,14 @@
     "grammars": [
       {
         "language": "mongodb",
-        "path": "./src/syntaxes/mongodb.tmLanguage.json",
+        "path": "./resources/syntaxes/mongodb.tmLanguage.json",
         "scopeName": "source.mongodb"
       }
     ],
     "snippets": [
       {
         "language": "mongodb",
-        "path": "./src/snippets/stage-autocompleter.json"
+        "path": "./resources/snippets/stage-autocompleter.json"
       }
     ],
     "commands": [
