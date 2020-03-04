@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 const ns = require('mongodb-ns');
 const path = require('path');
+import { StatusView } from '../views';
 
 import CollectionTreeItem, { MAX_DOCUMENTS_VISIBLE } from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
@@ -127,7 +128,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return this._childrenCache;
   }
 
-  async onAddCollectionClicked(): Promise<boolean> {
+  async onAddCollectionClicked(context: vscode.ExtensionContext): Promise<boolean> {
     const databaseName = this.databaseName;
 
     let collectionName;
@@ -161,11 +162,16 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       return Promise.resolve(false);
     }
 
+    const statusBarItem = new StatusView(context);
+    statusBarItem.showMessage('Creating new collection...');
+
     return new Promise((resolve, reject) => {
       this._dataService.createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
         (err) => {
+          statusBarItem.hideMessage();
+
           if (err) {
             return reject(new Error(`Create collection failed: ${err.message}`));
           }

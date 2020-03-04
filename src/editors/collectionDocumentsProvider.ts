@@ -4,6 +4,7 @@ import { EJSON } from 'bson';
 
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import ConnectionController from '../connectionController';
+import { StatusView } from '../views';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
@@ -14,10 +15,16 @@ export const VIEW_COLLECTION_SCHEME = 'VIEW_COLLECTION_SCHEME';
 export default class CollectionViewProvider implements vscode.TextDocumentContentProvider {
   _connectionController: ConnectionController;
   _operationsStore: CollectionDocumentsOperationsStore;
+  _statusView: StatusView;
 
-  constructor(connectionController: ConnectionController, operationsStore: CollectionDocumentsOperationsStore) {
+  constructor(
+    connectionController: ConnectionController,
+    operationsStore: CollectionDocumentsOperationsStore,
+    statusView: StatusView
+  ) {
     this._connectionController = connectionController;
     this._operationsStore = operationsStore;
+    this._statusView = statusView;
   }
 
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
@@ -45,6 +52,8 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
         return reject(new Error(`Unable to list documents: no longer connected to ${connectionInstanceId}`));
       }
 
+      this._statusView.showMessage('Fetching documents...');
+
       const dataservice = this._connectionController.getActiveConnection();
       dataservice.find(
         namespace,
@@ -54,6 +63,7 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
         },
         (err: Error, documents: []) => {
           operation.isCurrentlyFetchingMoreDocuments = false;
+          this._statusView.hideMessage();
 
           if (err) {
             vscode.window.showErrorMessage(`Unable to list documents: ${err.message}`);

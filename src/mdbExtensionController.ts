@@ -29,7 +29,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     context: vscode.ExtensionContext,
     connectionController?: ConnectionController
   ) {
-    this._statusView = new StatusView();
+    this._statusView = new StatusView(context);
     const storageController = new StorageController(context);
 
     if (connectionController) {
@@ -92,7 +92,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     this.registerEditorCommands();
-    this.registerTreeViewCommands();
+    this.registerTreeViewCommands(context);
 
     log.info('Registered commands.');
   }
@@ -111,7 +111,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
   }
 
-  registerTreeViewCommands(): void {
+  registerTreeViewCommands(context: vscode.ExtensionContext): void {
     this.registerCommand(
       'mdb.addConnection',
       () => this._connectionController.addMongoDBConnection()
@@ -178,7 +178,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         }
 
         return new Promise((resolve, reject) => {
-          element.onAddDatabaseClicked().then(successfullyAddedDatabase => {
+          element.onAddDatabaseClicked(context).then(successfullyAddedDatabase => {
             if (successfullyAddedDatabase) {
               vscode.window.showInformationMessage('Database and collection successfully created.');
 
@@ -217,7 +217,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         }
 
         return new Promise((resolve, reject) => {
-          element.onAddCollectionClicked().then(successfullyAddedCollection => {
+          element.onAddCollectionClicked(context).then(successfullyAddedCollection => {
             if (successfullyAddedCollection) {
               vscode.window.showInformationMessage('Collection successfully created.');
 
