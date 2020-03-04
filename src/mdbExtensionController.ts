@@ -11,6 +11,8 @@ import { ExplorerController, CollectionTreeItem } from './explorer';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController } from './storage';
+import DatabaseTreeItem from './explorer/databaseTreeItem';
+import ConnectionTreeItem from './explorer/connectionTreeItem';
 
 const log = createLogger('commands');
 
@@ -43,7 +45,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController = new ExplorerController();
   }
 
-  registerCommand = (command, commandHandler): void => {
+  registerCommand = (command, commandHandler: (...args: any[]) => Promise<boolean>): void => {
     if (!this._context) {
       // Not yet activated.
       return;
@@ -75,7 +77,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController.disconnect()
     );
     this.registerCommand('mdb.removeConnection', () =>
-      this._connectionController.removeMongoDBConnection()
+      this._connectionController.onRemoveMongoDBConnection()
     );
 
     this.registerCommand('mdb.openMongoDBShell', () => this.openMongoDBShell());
@@ -89,6 +91,156 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._explorerController.refresh()
     );
 
+    this.registerEditorCommands();
+    this.registerTreeViewCommands();
+
+    log.info('Registered commands.');
+  }
+
+  registerEditorCommands(): void {
+    this.registerCommand('mdb.codeLens.showMoreDocumentsClicked', (
+      operationId,
+      connectionInstanceId,
+      namespace
+    ) => {
+      return this._editorsController.onViewMoreCollectionDocuments(
+        operationId,
+        connectionInstanceId,
+        namespace
+      );
+    });
+  }
+
+  registerTreeViewCommands(): void {
+    this.registerCommand(
+      'mdb.addConnection',
+      () => this._connectionController.addMongoDBConnection()
+    );
+    this.registerCommand(
+      'mdb.addConnectionWithURI',
+      () => this._connectionController.connectWithURI()
+    );
+    this.registerCommand(
+      'mdb.refreshConnection',
+      (connectionTreeItem: ConnectionTreeItem) => {
+        connectionTreeItem.resetCache();
+        this._explorerController.refresh();
+        return Promise.resolve(true);
+      }
+    );
+    this.registerCommand(
+      'mdb.copyConnectionString',
+      (element: ConnectionTreeItem) => {
+        // TODO: Password obfuscation.
+        const connectionString = this._connectionController.getConnectionStringFromConnectionId(
+          element.connectionInstanceId
+        );
+
+        return new Promise((resolve, reject) => {
+          vscode.env.clipboard.writeText(connectionString).then(() => {
+            vscode.window.showInformationMessage('Copied to clipboard.');
+            return resolve(true);
+          }, reject);
+        });
+      }
+    );
+    this.registerCommand(
+      'mdb.treeItemRemoveConnection',
+      (element: ConnectionTreeItem) => this._connectionController.removeMongoDBConnection(
+        element.connectionInstanceId
+      )
+    );
+    this.registerCommand(
+      'mdb.addDatabase',
+      async (element: ConnectionTreeItem): Promise<boolean> => {
+        if (!element) {
+          return Promise.reject(
+            new Error('Please wait for the connection to finish loading before adding a database.')
+          );
+        }
+
+        if (element.connectionInstanceId !== this._connectionController.getActiveConnectionInstanceId()) {
+          return Promise.reject(
+            new Error('Please connect to this connection before adding a database.')
+          );
+        }
+
+        if (this._connectionController.isDisconnecting()) {
+          return Promise.reject(
+            new Error('Unable to add collection: currently disconnecting.')
+          );
+        }
+
+        if (this._connectionController.isConnecting()) {
+          return Promise.reject(
+            new Error('Unable to add collection: currently connecting.')
+          );
+        }
+
+        return new Promise((resolve, reject) => {
+          element.onAddDatabaseClicked().then(successfullyAddedDatabase => {
+            if (successfullyAddedDatabase) {
+              vscode.window.showInformationMessage('Database and collection successfully created.');
+
+              // When we successfully added a database & collection, we need
+              // to update the explorer view.
+              this._explorerController.refresh();
+            }
+            resolve();
+          }, reject);
+        });
+      }
+    );
+    this.registerCommand(
+      'mdb.copyDatabaseName',
+      (element: DatabaseTreeItem) => {
+        return new Promise((resolve, reject) => {
+          vscode.env.clipboard.writeText(element.databaseName).then(() => {
+            vscode.window.showInformationMessage('Copied to clipboard.');
+            return resolve(true);
+          }, reject);
+        });
+      }
+    );
+    this.registerCommand(
+      'mdb.refreshDatabase',
+      (databaseTreeItem: DatabaseTreeItem) => {
+        databaseTreeItem.resetCache();
+        return this._explorerController.refresh();
+      }
+    );
+    this.registerCommand(
+      'mdb.addCollection',
+      async (element: DatabaseTreeItem): Promise<boolean> => {
+        if (this._connectionController.isDisconnecting()) {
+          return Promise.reject(new Error('Unable to add collection: currently disconnecting.'));
+        }
+
+        return new Promise((resolve, reject) => {
+          element.onAddCollectionClicked().then(successfullyAddedCollection => {
+            if (successfullyAddedCollection) {
+              vscode.window.showInformationMessage('Collection successfully created.');
+
+              // When we successfully added a collection, we need
+              // to update the explorer view.
+              this._explorerController.refresh();
+            }
+            resolve();
+          }, reject);
+        });
+      }
+    );
+    this.registerCommand(
+      'mdb.copyCollectionName',
+      (element: CollectionTreeItem) => {
+        return new Promise((resolve, reject) => {
+          vscode.env.clipboard.writeText(element.collectionName).then(() => {
+            vscode.window.showInformationMessage('Copied to clipboard.');
+            return resolve(true);
+          }, reject);
+        });
+      }
+    );
     this.registerCommand(
       'mdb.viewCollectionDocuments',
       (element: CollectionTreeItem) => {
@@ -96,22 +248,16 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._editorsController.onViewCollectionDocuments(namespace);
       }
     );
-
     this.registerCommand(
-      'mdb.codeLens.showMoreDocumentsClicked',
-      (operationId, connectionInstanceId, namespace) => {
-        return this._editorsController.onViewMoreCollectionDocuments(
-          operationId,
-          connectionInstanceId,
-          namespace
-        );
+      'mdb.refreshCollection',
+      (collectionTreeItem: CollectionTreeItem) => {
+        collectionTreeItem.resetCache();
+        return this._explorerController.refresh();
       }
     );
-
-    log.info('Registered commands.');
   }
 
-  public openMongoDBShell(): void {
+  public openMongoDBShell(): Promise<boolean> {
     let mdbConnectionString;
     if (this._connectionController) {
       const activeConnectionConfig = this._connectionController.getActiveConnectionConfig();
@@ -128,17 +274,22 @@ export default class MDBExtensionController implements vscode.Disposable {
       `${shellCommand} $MDB_CONNECTION_STRING; unset MDB_CONNECTION_STRING`
     );
     mongoDBShell.show();
+
+    return Promise.resolve(true);
   }
 
-  public createPlayground(): void {
-    vscode.workspace
-      .openTextDocument({
-        language: 'mongodb',
-        content: '// The MongoDB playground'
-      })
-      .then((document) => {
-        vscode.window.showTextDocument(document);
-      });
+  public createPlayground(): Promise<boolean> {
+    return new Promise(resolve => {
+      vscode.workspace
+        .openTextDocument({
+          language: 'mongodb',
+          content: '// The MongoDB playground'
+        })
+        .then((document) => {
+          vscode.window.showTextDocument(document);
+          resolve(true);
+        });
+    });
   }
 
   dispose(): void {

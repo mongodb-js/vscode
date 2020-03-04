@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+const ns = require('mongodb-ns');
 const path = require('path');
 
 import CollectionTreeItem, { MAX_DOCUMENTS_VISIBLE } from './collectionTreeItem';
@@ -6,12 +7,14 @@ import TreeItemParent from './treeItemParentInterface';
 
 export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
-  private _childrenCache: { [collectionName: string]: CollectionTreeItem };
-  private _childrenCacheIsUpToDate = false;
+  contextValue = 'databaseTreeItem';
 
-  private _databaseName: string;
+  _childrenCacheIsUpToDate = false;
+  private _childrenCache: { [collectionName: string]: CollectionTreeItem };
+
   private _dataService: any;
 
+  databaseName: string;
   isExpanded: boolean;
 
   constructor(
@@ -27,7 +30,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         : vscode.TreeItemCollapsibleState.Collapsed
     );
 
-    this._databaseName = databaseName;
+    this.databaseName = databaseName;
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
@@ -35,7 +38,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   }
 
   get tooltip(): string {
-    return this._databaseName;
+    return this.databaseName;
   }
 
   getTreeItem(element: DatabaseTreeItem): DatabaseTreeItem {
@@ -53,11 +56,11 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
     return new Promise((resolve, reject) => {
       this._dataService.listCollections(
-        this._databaseName,
+        this.databaseName,
         {}, // No filter.
         (err: any, collections: string[]) => {
           if (err) {
-            return reject(new Error(`Unable to list collections: ${err}`));
+            return reject(new Error(`Unable to list collections: ${err.message}`));
           }
 
           this._childrenCacheIsUpToDate = true;
@@ -71,7 +74,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
               if (pastChildrenCache[collection.name]) {
                 this._childrenCache[collection.name] = new CollectionTreeItem(
                   collection,
-                  this._databaseName,
+                  this.databaseName,
                   this._dataService,
                   pastChildrenCache[collection.name].isExpanded,
                   pastChildrenCache[collection.name].getChildrenCache(),
@@ -80,7 +83,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
               } else {
                 this._childrenCache[collection.name] = new CollectionTreeItem(
                   collection,
-                  this._databaseName,
+                  this.databaseName,
                   this._dataService,
                   false, // Not expanded.
                   [], // No cached documents.
@@ -97,7 +100,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     });
   }
 
-  public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     return {
       light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'database.svg'),
       dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'database.svg')
@@ -115,7 +118,62 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return Promise.resolve(true);
   }
 
-  public getChildrenCache(): { [key: string]: CollectionTreeItem } {
+  resetCache(): void {
+    this._childrenCache = {};
+    this._childrenCacheIsUpToDate = false;
+  }
+
+  getChildrenCache(): { [key: string]: CollectionTreeItem } {
     return this._childrenCache;
+  }
+
+  async onAddCollectionClicked(): Promise<boolean> {
+    const databaseName = this.databaseName;
+
+    let collectionName;
+    try {
+      collectionName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder:
+          'e.g. myNewCollection',
+        prompt: 'Enter the new collection name.',
+        validateInput: (inputCollectionName: any) => {
+          if (!inputCollectionName) {
+            return null;
+          }
+
+          if (!ns(`${databaseName}.${inputCollectionName}`).validCollectionName) {
+            return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
+          }
+
+          if (ns(`${databaseName}.${inputCollectionName}`).system) {
+            return 'MongoDB collection names cannot start with "system.". (Reserved for internal use.)';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(`An error occured parsing the collection name: ${e}`);
+    }
+
+    if (!collectionName) {
+      return Promise.resolve(false);
+    }
+
+    return new Promise((resolve, reject) => {
+      this._dataService.createCollection(
+        `${databaseName}.${collectionName}`,
+        {}, // No options.
+        (err) => {
+          if (err) {
+            return reject(new Error(`Create collection failed: ${err.message}`));
+          }
+
+          this._childrenCacheIsUpToDate = false;
+          return resolve(true);
+        }
+      );
+    });
   }
 }

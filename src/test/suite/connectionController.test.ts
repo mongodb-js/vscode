@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { after } from 'mocha';
+import { afterEach } from 'mocha';
 
 import ConnectionController, {
   DataServiceEventTypes
@@ -23,7 +23,7 @@ suite('Connection Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
 
-  after(() => {
+  afterEach(() => {
     // Reset our mock extension's state.
     mockExtensionContext._workspaceState = {};
     mockExtensionContext._globalState = {};
@@ -134,7 +134,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .removeMongoDBConnection()
+      .onRemoveMongoDBConnection()
       .then(null, err => {
         assert(!!err, `Expected an error response, recieved ${err}.`);
       })
@@ -532,6 +532,31 @@ suite('Connection Controller Test Suite', () => {
           });
         });
     });
+  });
+
+  test('"getConnectionStringFromConnectionId" returns the driver uri of a connection', function (done) {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+
+    const testConnectionController = new ConnectionController(
+      new StatusView(),
+      testStorageController
+    );
+
+    testConnectionController.activate();
+
+    const expectedDriverUri = 'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.0.1&ssl=false';
+
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(() => {
+        const testDriverUri = testConnectionController.getConnectionStringFromConnectionId('localhost:27018');
+
+        assert(
+          testDriverUri === expectedDriverUri,
+          `Expected to be returned the driver uri "${expectedDriverUri}" found ${testDriverUri}`
+        );
+      }).then(done, done);
   });
 
   test('When a connection is added and the user has set it to not save on default it is not saved', function (done) {

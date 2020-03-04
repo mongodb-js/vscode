@@ -30,13 +30,15 @@ export default class ExplorerController {
 
     if (this._treeView) {
       this._treeView.dispose();
+      delete this._treeView;
     }
   }
 
-  refresh(): void {
+  refresh(): Promise<boolean> {
     if (this._treeController) {
-      this._treeController.refresh();
+      return this._treeController.refresh();
     }
+    return Promise.reject(new Error('No tree to refresh.'));
   }
 
   // Exposed for testing.

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { after } from 'mocha';
+import { afterEach } from 'mocha';
 
 import MDBExtensionController from '../../mdbExtensionController';
 
@@ -11,7 +11,7 @@ suite('Extension Test Suite', () => {
 
   const disposables: vscode.Disposable[] = [];
 
-  after(() => {
+  afterEach(() => {
     disposables.forEach((d) => d.dispose());
     disposables.length = 0;
   });
@@ -21,16 +21,30 @@ suite('Extension Test Suite', () => {
       .getCommands()
       .then((registeredCommands) => {
         const expectedCommands = [
+          // General / connection commands.
           'mdb.connect',
           'mdb.connectWithURI',
           'mdb.disconnect',
           'mdb.removeConnection',
           'mdb.openMongoDBShell',
           'mdb.createPlayground',
+
+          // Tree view commands.
+          'mdb.addConnection',
+          'mdb.addConnectionWithURI',
+          'mdb.copyConnectionString',
+          'mdb.treeItemRemoveConnection',
+          'mdb.addDatabase',
+          'mdb.refreshConnection',
+          'mdb.copyDatabaseName',
+          'mdb.refreshDatabase',
+          'mdb.addCollection',
           'mdb.viewCollectionDocuments',
-          'mdb.refresh',
-          'mdb.reload',
-          'mdb.codeLens.showMoreDocumentsClicked'
+          'mdb.copyCollectionName',
+          'mdb.refreshCollection',
+
+          // Editor commands.
+          'mdb.codeLens.showMoreDocumentsClicked',
         ];
 
         for (let i = 0; i < expectedCommands.length; i++) {
