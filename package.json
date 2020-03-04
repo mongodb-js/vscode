@@ -17,6 +17,7 @@
     "onCommand:mdb.disconnect",
     "onCommand:mdb.removeConnection",
     "onCommand:mdb.openMongoDBShell",
+    "onCommand:mdb.createPlayground",
     "onView:mongoDB",
     "onLanguage:json"
   ],
@@ -104,6 +105,10 @@
       {
         "command": "mdb.openMongoDBShell",
         "title": "MongoDB: Launch Mongo Shell"
+      },
+      {
+        "command": "mdb.createPlayground",
+        "title": "MongoDB: Create MongoDB Playground"
       },
       {
         "command": "mdb.viewCollectionDocuments",
