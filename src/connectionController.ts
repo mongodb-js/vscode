@@ -311,10 +311,16 @@ export default class ConnectionController {
 
   // Prompts the user to remove the connection then removes it on affirmation.
   public async removeMongoDBConnection(connectionId: string): Promise<boolean> {
-    // Ensure we aren't currently connecting or disconnecting.
+    // Ensure we aren't currently connecting.
     if (this._connecting) {
       return Promise.reject(
         new Error('Unable to remove connection: currently connecting.')
+      );
+    }
+    // Ensure we aren't currently disconnecting.
+    if (this._disconnecting) {
+      return Promise.reject(
+        new Error('Unable to remove connection: currently disconnecting.')
       );
     }
 
@@ -349,10 +355,16 @@ export default class ConnectionController {
   public async onRemoveMongoDBConnection(): Promise<boolean> {
     log.info('mdb.removeConnection command called');
 
-    // Ensure we aren't currently connecting or disconnecting.
+    // Ensure we aren't currently connecting.
     if (this._connecting) {
       return Promise.reject(
         new Error('Unable to remove connection: currently connecting.')
+      );
+    }
+    // Ensure we aren't currently disconnecting.
+    if (this._disconnecting) {
+      return Promise.reject(
+        new Error('Unable to remove connection: currently disconnecting.')
       );
     }
 
