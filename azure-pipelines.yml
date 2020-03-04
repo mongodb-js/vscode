@@ -63,3 +63,9 @@ steps:
       testRunner: JUnit
       testResultsFiles: './test-results.xml'
       failTaskOnFailedTests: true
+  - bash: npm run package
+    displayName: 'Build .vsix'
+  - task: PublishPipelineArtifact@0
+    inputs:
+      # TODO (lucas) Make version number dynamic
+      artifactName: 'mongodb-vscode-0.0.1.vsix'
