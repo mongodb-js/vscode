@@ -37,11 +37,25 @@ npm run watch
 
 2. Inside of [VS Code Insiders](https://code.visualstudio.com/insiders/) open this directory and press `F5` to begin debugging the extension. This should launch a new VSCode window which is running the extension.
 
-## Packaging
+#### Code Tour
+
+- `out` compiled extension code
+- `resources` images and other raw assets.
+- `src`
+  - `test/suite` where tests live with files names `*.test.ts`
+- `scripts` project helper scripts
+
+### Packaging
 
 `vscode-mongodb` will be published under the `mongodb` Visual Studio Marketplace Publisher that has been setup under the existing `team-compass` Azure DevOps org we use for pipelines.
 
-Azure Org:
+Visual Studio Marketplace
+
+- Publisher `mongodb`
+- [`vscode-marketplace@mongodb.com`](https://groups.google.com/a/mongodb.com/forum/#!forum/vscode-marketplace) is a member of the `team-compass` Azure DevOps Org
+- [`vscode@mongodb.com`](https://groups.google.com/a/mongodb.com/forum/#!forum/vscode) is contact email to use for this project
+
+Azure DevOps Org:
 `team-compass`
 
 [Azure Org Owner User](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/change-organization-ownership?view=azure-devops):
@@ -53,21 +67,11 @@ Azure Projects:
 - `mongosh` The MongoDB Shell https://github.com/mongodb-js/mongosh
 - `compass` Compass plugins
 
-Visual Studio Marketplace:
-
-- Publisher `mongodb`
-
-- `vscode-marketplace@mongodb.com` is a member of the `team-compass` Azure DevOps Org
-  https://groups.google.com/a/mongodb.com/forum/#!forum/vscode-marketplace
-
-- `vscode@mongodb.com` is contact email to use for this project
-  https://groups.google.com/a/mongodb.com/forum/#!forum/vscode
-
 * [docs](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 * [web ui](https://marketplace.visualstudio.com/manage/publishers/mongodb)
 * Analytics: [Extension Reporting Hub](https://devblogs.microsoft.com/devops/extension-reporting-hub-for-marketplace-publishers/)
 
-### Preview
+#### Preview Releases
 
 While [private extensions are not currently supported](https://github.com/microsoft/vscode/issues/21839), the extension can be packaged as a `.vsix` file and shared directly.
 
