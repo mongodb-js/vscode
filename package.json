@@ -36,7 +36,7 @@
     "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run compile",
     "check": "mongodb-js-precommit './src/**/*{.ts}'",
-    "package": "vsce package"
+    "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && vsce package"
   },
   "engines": {
     "vscode": "^1.41.0",
