@@ -26,8 +26,8 @@
   "scripts": {
     "clean": "rimraf ./src/snippets ./out/*",
     "lint": "eslint ./src/**/*.ts",
-    "update-grammar": "./scripts/update-grammar.ts",
-    "update-snippets": "./scripts/update-snippets.ts",
+    "update-grammar": "ts-node ./scripts/update-grammar.ts",
+    "update-snippets": "ts-node ./scripts/update-snippets.ts",
     "precompile": "npm run clean",
     "compile": "npm run update-grammar && npm run update-snippets && tsc -p ./",
     "watch": "npm run compile -- -watch",
