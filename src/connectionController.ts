@@ -250,7 +250,7 @@ export default class ConnectionController {
     });
   }
 
-  public async connectWithInstanceId(connectionId: string): Promise<any> {
+  public async connectWithInstanceId(connectionId: string): Promise<boolean> {
     if (this._connectionConfigs[connectionId]) {
       return this.connect(this._connectionConfigs[connectionId]);
     }
@@ -265,9 +265,15 @@ export default class ConnectionController {
     );
 
     if (this._disconnecting) {
-      // TODO: The desired UX here may be for the connection to be interrupted.
       return Promise.reject(
         new Error('Unable to disconnect: already disconnecting from an instance.')
+      );
+    }
+
+    if (this._connecting) {
+      // TODO: The desired UX here may be for the connection to be interrupted.
+      return Promise.reject(
+        new Error('Unable to disconnect: currently connecting to an instance.')
       );
     }
 

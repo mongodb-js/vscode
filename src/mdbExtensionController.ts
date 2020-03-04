@@ -84,13 +84,6 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommand('mdb.createPlayground', () => this.createPlayground());
 
-    this.registerCommand('mdb.refresh', () =>
-      this._explorerController.refresh()
-    );
-    this.registerCommand('mdb.reload', () =>
-      this._explorerController.refresh()
-    );
-
     this.registerEditorCommands();
     this.registerTreeViewCommands(context);
 
@@ -119,6 +112,22 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.addConnectionWithURI',
       () => this._connectionController.connectWithURI()
+    );
+    this.registerCommand(
+      'mdb.connectToConnectionTreeItem',
+      (connectionTreeItem: ConnectionTreeItem) => {
+        return this._connectionController.connectWithInstanceId(
+          connectionTreeItem.connectionInstanceId
+        );
+      }
+    );
+    this.registerCommand(
+      'mdb.disconnectFromConnectionTreeItem',
+      () => {
+        // In order for this command to be activated, the connection must
+        // be the active connection, so we can just generally disconnect.
+        return this._connectionController.disconnect();
+      }
     );
     this.registerCommand(
       'mdb.refreshConnection',

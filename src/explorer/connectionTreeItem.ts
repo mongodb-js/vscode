@@ -7,9 +7,14 @@ import ConnectionController from '../connectionController';
 import TreeItemParent from './treeItemParentInterface';
 import { StatusView } from '../views';
 
+enum ConnectionItemContextValues {
+  disconnected = 'disconnectedConnectionTreeItem',
+  connected = 'connectedConnectionTreeItem'
+}
+
 export default class ConnectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
-  contextValue = 'connectionTreeItem';
+  contextValue = 'disconnectedConnectionTreeItem';
 
   private _childrenCache: { [key: string]: DatabaseTreeItem };
   _childrenCacheIsUpToDate = false;
@@ -30,6 +35,15 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       connectionInstanceId,
       collapsibleState
     );
+
+    if (
+      connectionController.getActiveConnectionInstanceId() === connectionInstanceId
+      && !connectionController.isDisconnecting()
+      && !connectionController.isConnecting()
+    ) {
+      this.contextValue = ConnectionItemContextValues.connected;
+    }
+
 
     this.connectionInstanceId = connectionInstanceId;
     this._connectionController = connectionController;

@@ -143,6 +143,14 @@
         }
       },
       {
+        "command": "mdb.connectToConnectionTreeItem",
+        "title": "Connect"
+      },
+      {
+        "command": "mdb.disconnectFromConnectionTreeItem",
+        "title": "Disconnect"
+      },
+      {
         "command": "mdb.refreshConnection",
         "title": "Refresh"
       },
@@ -191,25 +199,33 @@
           "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem"
         },
         {
+          "command": "mdb.connectToConnectionTreeItem",
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
+        },
+        {
+          "command": "mdb.disconnectFromConnectionTreeItem",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
+        },
+        {
           "command": "mdb.treeItemRemoveConnection",
-          "when": "view == mongoDB && viewItem == connectionTreeItem"
+          "when": "view == mongoDB && (viewItem == connectedConnectionTreeItem || viewItem == disconnectedConnectionTreeItem)"
         },
         {
           "command": "mdb.copyConnectionString",
-          "when": "view == mongoDB && viewItem == connectionTreeItem"
+          "when": "view == mongoDB && (viewItem == connectedConnectionTreeItem || viewItem == disconnectedConnectionTreeItem)"
         },
         {
           "command": "mdb.refreshConnection",
-          "when": "view == mongoDB && viewItem == connectionTreeItem"
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDB && viewItem == connectionTreeItem",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
           "group": "inline"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDB && viewItem == connectionTreeItem"
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
         },
         {
           "command": "mdb.addCollection",
