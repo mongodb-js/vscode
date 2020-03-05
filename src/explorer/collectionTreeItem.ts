@@ -192,22 +192,25 @@ export default class CollectionTreeItem extends vscode.TreeItem
         }
       });
     } catch (e) {
-      return Promise.reject(`An error occured parsing the collection name: ${e}`);
+      return Promise.reject(
+        new Error(`An error occured parsing the collection name: ${e}`)
+      );
     }
 
     if (!inputtedCollectionName || collectionName !== inputtedCollectionName) {
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this._dataService.dropCollection(`${this.databaseName}.${collectionName}`,
-        (err) => {
+        (err, successfullyDroppedCollection) => {
           if (err) {
-            return reject(new Error(`Drop collection failed: ${err.message}`));
+            vscode.window.showErrorMessage(`Drop collection failed: ${err.message}`);
+            return resolve(false);
           }
 
           this._childrenCacheIsUpToDate = false;
-          return resolve(true);
+          return resolve(successfullyDroppedCollection);
         }
       );
     });

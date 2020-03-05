@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
+const sinon = require('sinon');
 
 import ConnectionController, {
   DataServiceEventTypes
@@ -27,6 +28,8 @@ suite('Connection Controller Test Suite', () => {
     // Reset our mock extension's state.
     mockExtensionContext._workspaceState = {};
     mockExtensionContext._globalState = {};
+
+    sinon.restore();
   });
 
   test('it connects to mongodb', function (done) {
@@ -60,7 +63,6 @@ suite('Connection Controller Test Suite', () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
-    this.timeout(2000);
 
     testConnectionController
       .addNewConnectionAndConnect(testDatabaseURI)
@@ -160,31 +162,26 @@ suite('Connection Controller Test Suite', () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
-    this.timeout(2000);
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(
+      vscode.window,
+      'showErrorMessage',
+      fakeVscodeErrorMessage
+    );
 
     testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
-      .then(succesfullyConnected => {
+      .disconnect()
+      .then(disconnectSucceeded => {
         assert(
-          succesfullyConnected === true,
-          'Expected a successful (true) connection response.'
+          disconnectSucceeded === false,
+          'Expected an false success disconnect response.'
         );
-
-        testConnectionController
-          .addNewConnectionAndConnect(testDatabaseURI2WithTimeout)
-          .then(null, err => {
-            assert(!!err, 'Expected an error promise response.');
-            assert(
-              testConnectionController.getActiveConnection() === null,
-              'Expected to current connection to be null (not connected).'
-            );
-            assert(
-              testConnectionController.getActiveConnectionInstanceId() === null,
-              'Expected to current connection instanceId to be null (not connected).'
-            );
-          })
-          .then(done, done);
-      });
+        const expectedMessage = 'Unable to disconnect: no active connection.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected error message "${expectedMessage}" when disconnecting with no active connection, recieved "${fakeVscodeErrorMessage.firstArg}"`
+        );
+      }).then(done, done);
   });
 
   test('when adding a new connection it disconnects from the current connection', function (done) {
@@ -198,14 +195,14 @@ suite('Connection Controller Test Suite', () => {
       .addNewConnectionAndConnect(testDatabaseURI)
       .then(succesfullyConnected => {
         assert(
-          succesfullyConnected === true,
+          succesfullyConnected,
           'Expected a successful (true) connection response.'
         );
 
         testConnectionController
           .addNewConnectionAndConnect(testDatabaseURI2WithTimeout)
-          .then(null, err => {
-            assert(!!err, 'Expected an error promise response.');
+          .then(succeededInConnecting => {
+            assert(succeededInConnecting === false, 'Expected an false succeeded promise response.');
             assert(
               testConnectionController.getActiveConnection() === null,
               'Expected to current connection to be null (not connected).'
@@ -214,8 +211,7 @@ suite('Connection Controller Test Suite', () => {
               testConnectionController.getActiveConnectionInstanceId() === null,
               'Expected to current connection instanceId to be null (not connected).'
             );
-          })
-          .then(done, done);
+          }, done).then(done, done);
       });
   });
 
@@ -227,10 +223,25 @@ suite('Connection Controller Test Suite', () => {
 
     testConnectionController.setConnnecting(true);
 
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(
+      vscode.window,
+      'showErrorMessage',
+      fakeVscodeErrorMessage
+    );
+
     testConnectionController
       .addNewConnectionAndConnect(testDatabaseURI)
-      .then(null, err => {
-        assert(!!err, 'Expected an error promise response.');
+      .then(connectSucceeded => {
+        assert(
+          connectSucceeded === false,
+          'Expected the connect to return a false succeeded response'
+        );
+        const expectedMessage = 'Unable to connect: already connecting.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected "${expectedMessage}" when connecting when already connecting, recieved "${fakeVscodeErrorMessage.firstArg}"`
+        );
       })
       .then(done, done);
   });
@@ -243,10 +254,25 @@ suite('Connection Controller Test Suite', () => {
 
     testConnectionController.setDisconnecting(true);
 
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(
+      vscode.window,
+      'showErrorMessage',
+      fakeVscodeErrorMessage
+    );
+
     testConnectionController
       .addNewConnectionAndConnect(testDatabaseURI)
-      .then(null, err => {
-        assert(!!err, 'Expected an error promise response.');
+      .then(connectSucceeded => {
+        assert(
+          connectSucceeded === false,
+          'Expected the connect to return a false succeeded response'
+        );
+        const expectedMessage = 'Unable to connect: currently disconnecting.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected "${expectedMessage}" when connecting while disconnecting, recieved "${fakeVscodeErrorMessage.firstArg}"`
+        );
       })
       .then(done, done);
   });
@@ -259,10 +285,25 @@ suite('Connection Controller Test Suite', () => {
 
     testConnectionController.setConnnecting(true);
 
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(
+      vscode.window,
+      'showErrorMessage',
+      fakeVscodeErrorMessage
+    );
+
     testConnectionController
       .disconnect()
-      .then(null, err => {
-        assert(!!err, 'Expected an error disconnect response.');
+      .then(disconnectSucceeded => {
+        assert(
+          disconnectSucceeded === false,
+          'Expected the disconnect to return a false succeeded response'
+        );
+        const expectedMessage = 'Unable to disconnect: currently connecting to an instance.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected "${expectedMessage}" when disconnecting while connecting, recieved "${fakeVscodeErrorMessage.firstArg}"`
+        );
       })
       .then(done, done);
   });
@@ -275,10 +316,25 @@ suite('Connection Controller Test Suite', () => {
 
     testConnectionController.setDisconnecting(true);
 
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(
+      vscode.window,
+      'showErrorMessage',
+      fakeVscodeErrorMessage
+    );
+
     testConnectionController
       .disconnect()
-      .then(null, err => {
-        assert(!!err, 'Expected an error disconnect response.');
+      .then(disconnectSucceeded => {
+        assert(
+          disconnectSucceeded === false,
+          'Expected the disconnect to return a false succeeded response'
+        );
+        const expectedMessage = 'Unable to disconnect: already disconnecting from an instance.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected "${expectedMessage}" when disconnecting while already disconnecting, recieved "${fakeVscodeErrorMessage.firstArg}"`
+        );
       })
       .then(done, done);
   });

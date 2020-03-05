@@ -205,7 +205,9 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         }
       });
     } catch (e) {
-      return Promise.reject(new Error(`An error occured parsing the database name: ${e}`));
+      return Promise.reject(
+        new Error(`An error occured parsing the database name: ${e}`)
+      );
     }
 
     if (!databaseName) {
@@ -248,7 +250,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     const statusView = new StatusView(context);
     statusView.showMessage('Creating new database and collection...');
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this._connectionController.getActiveConnection().createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
@@ -256,7 +258,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
           statusView.hideMessage();
 
           if (err) {
-            return reject(new Error(`Create collection failed: ${err.message}`));
+            vscode.window.showErrorMessage(`Create collection failed: ${err.message}`);
+            return resolve(false);
           }
 
           this._childrenCacheIsUpToDate = false;

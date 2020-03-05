@@ -93,19 +93,19 @@ export default class EditorsController {
   onViewMoreCollectionDocuments(operationId: string, connectionId: string, namespace: string): Promise<boolean> {
     log.info('view more collection documents');
 
+    // A user might click to fetch more documents multiple times,
+    // this ensures it only performs one fetch at a time.
     if (this._collectionDocumentsOperationsStore.operations[operationId].isCurrentlyFetchingMoreDocuments) {
-      // A user might click to fetch more documents multiple times,
-      // this ensures it only performs one fetch at a time.
-      return Promise.reject(new Error('Already fetching more documents...'));
+      vscode.window.showErrorMessage('Already fetching more documents...');
+      return Promise.resolve(false);
     }
 
     // Ensure we're still connected to the correct connection.
     if (!this._connectionController
       || connectionId !== this._connectionController.getActiveConnectionInstanceId()
     ) {
-      return Promise.reject(new Error(
-        `Unable to view more documents: no longer connected to ${connectionId}`
-      ));
+      vscode.window.showErrorMessage(`Unable to view more documents: no longer connected to ${connectionId}`);
+      return Promise.resolve(false);
     }
 
     if (!this._collectionViewProvider) {

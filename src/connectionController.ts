@@ -162,7 +162,8 @@ export default class ConnectionController {
         connectionString,
         (error: any, newConnectionConfig: any) => {
           if (error) {
-            return reject(new Error(`Failed to connect: ${error.message}`));
+            vscode.window.showErrorMessage(`Unable to connect: ${error}`);
+            return resolve(false);
           }
 
           const {
@@ -174,17 +175,22 @@ export default class ConnectionController {
 
           // Ensure we don't already have the supplied connection configuration.
           if (this._connectionConfigs[instanceId]) {
-            return reject(new Error('Failed to connect: connection already exists.'));
+            vscode.window.showErrorMessage('Failed to connect: connection already exists.');
+            return resolve(false);
           }
 
           // Override the default connection `appname`.
           newConnectionConfig.appname = `${name} ${version}`;
 
-          this.connect(newConnectionConfig).then(() => {
+          this.connect(newConnectionConfig).then(connectSuccess => {
+            if (!connectSuccess) {
+              return resolve(false);
+            }
+
             this._storageController.storeNewConnection(driverUrl, instanceId).then(() => {
-              resolve(true);
+              return resolve(true);
             });
-          }).catch(reject);
+          }, reject);
         }
       );
     });
@@ -199,11 +205,11 @@ export default class ConnectionController {
     );
 
     if (this._connecting) {
-      return Promise.reject(new Error('Unable to connect: already connecting.'));
+      vscode.window.showErrorMessage('Unable to connect: already connecting.');
+      return Promise.resolve(false);
     } else if (this._disconnecting) {
-      return Promise.reject(new Error(
-        'Unable to connect: currently disconnecting.'
-      ));
+      vscode.window.showErrorMessage('Unable to connect: currently disconnecting.');
+      return Promise.resolve(false);
     }
 
     if (this._currentConnection) {
@@ -219,7 +225,7 @@ export default class ConnectionController {
 
     this._statusView.showMessage('Connecting to MongoDB...');
 
-    return new Promise<boolean>((resolve, reject) => {
+    return new Promise<boolean>(resolve => {
       const newConnection = new DataService(connectionConfig);
       newConnection.connect((err: any) => {
         this._statusView.hideMessage();
@@ -228,7 +234,8 @@ export default class ConnectionController {
           this._connecting = false;
           log.info('Failed to connect');
           this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-          return reject(new Error(`Failed to connect: ${err.message}`));
+          vscode.window.showErrorMessage(`Failed to connect: ${err.message}`);
+          return resolve(false);
         }
 
         log.info('Successfully connected');
@@ -260,24 +267,23 @@ export default class ConnectionController {
 
   public disconnect(): Promise<boolean> {
     log.info(
-      'Disconnect called, currently connected to',
+      'Disconnect called, currently connected to:',
       this._currentConnectionInstanceId
     );
 
     if (this._disconnecting) {
-      return Promise.reject(
-        new Error('Unable to disconnect: already disconnecting from an instance.')
-      );
+      vscode.window.showErrorMessage('Unable to disconnect: already disconnecting from an instance.');
+      return Promise.resolve(false);
     }
 
     if (this._connecting) {
       // TODO: The desired UX here may be for the connection to be interrupted.
-      return Promise.reject(
-        new Error('Unable to disconnect: currently connecting to an instance.')
-      );
+      vscode.window.showErrorMessage('Unable to disconnect: currently connecting to an instance.');
+      return Promise.resolve(false);
     }
 
     if (!this._currentConnection) {
+      vscode.window.showErrorMessage('Unable to disconnect: no active connection.');
       return Promise.resolve(false);
     }
 
@@ -308,6 +314,8 @@ export default class ConnectionController {
     });
   }
 
+  // TODO: Shrink size of the leaf on the left view.
+
   public removeConnectionConfig(connectionId: string): void {
     delete this._connectionConfigs[connectionId];
     this._storageController.removeConnection(connectionId);
@@ -319,20 +327,19 @@ export default class ConnectionController {
   public async removeMongoDBConnection(connectionId: string): Promise<boolean> {
     // Ensure we aren't currently connecting.
     if (this._connecting) {
-      return Promise.reject(
-        new Error('Unable to remove connection: currently connecting.')
-      );
+      vscode.window.showErrorMessage('Unable to remove connection: currently connecting.');
+      return Promise.resolve(false);
     }
     // Ensure we aren't currently disconnecting.
     if (this._disconnecting) {
-      return Promise.reject(
-        new Error('Unable to remove connection: currently disconnecting.')
-      );
+      vscode.window.showErrorMessage('Unable to remove connection: currently disconnecting.');
+      return Promise.resolve(false);
     }
 
     if (!this._connectionConfigs[connectionId]) {
       // No active connection(s) to remove.
-      return Promise.reject(new Error('Connection does not exist.'));
+      vscode.window.showErrorMessage('Connection does not exist.');
+      return Promise.resolve(false);
     }
 
     const removeConfirmationResponse = await vscode.window.showInformationMessage(
@@ -363,22 +370,25 @@ export default class ConnectionController {
 
     // Ensure we aren't currently connecting.
     if (this._connecting) {
-      return Promise.reject(
-        new Error('Unable to remove connection: currently connecting.')
+      vscode.window.showErrorMessage(
+        'Unable to remove connection: currently connecting.'
       );
+      return Promise.resolve(false);
     }
     // Ensure we aren't currently disconnecting.
     if (this._disconnecting) {
-      return Promise.reject(
-        new Error('Unable to remove connection: currently disconnecting.')
+      vscode.window.showErrorMessage(
+        'Unable to remove connection: currently disconnecting.'
       );
+      return Promise.resolve(false);
     }
 
     const connectionInstanceIds = Object.keys(this._connectionConfigs);
 
     if (connectionInstanceIds.length === 0) {
       // No active connection(s) to remove.
-      return Promise.reject(new Error('No connections to remove.'));
+      vscode.window.showErrorMessage('No connections to remove.');
+      return Promise.resolve(false);
     }
 
     let connectionIdToRemove;

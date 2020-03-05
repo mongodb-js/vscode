@@ -155,7 +155,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         }
       });
     } catch (e) {
-      return Promise.reject(`An error occured parsing the collection name: ${e}`);
+      return Promise.reject(
+        new Error(`An error occured parsing the collection name: ${e}`)
+      );
     }
 
     if (!collectionName) {
@@ -165,7 +167,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     const statusBarItem = new StatusView(context);
     statusBarItem.showMessage('Creating new collection...');
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this._dataService.createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
@@ -173,7 +175,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           statusBarItem.hideMessage();
 
           if (err) {
-            return reject(new Error(`Create collection failed: ${err.message}`));
+            vscode.window.showErrorMessage(`Create collection failed: ${err.message}`);
+            return resolve(false);
           }
 
           this._childrenCacheIsUpToDate = false;
@@ -203,18 +206,21 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         }
       });
     } catch (e) {
-      return Promise.reject(`An error occured parsing the collection name: ${e}`);
+      return Promise.reject(
+        new Error(`An error occured parsing the collection name: ${e}`)
+      );
     }
 
     if (!inputtedDatabaseName || databaseName !== inputtedDatabaseName) {
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this._dataService.dropDatabase(databaseName,
         (err) => {
           if (err) {
-            return reject(new Error(`Drop database failed: ${err.message}`));
+            vscode.window.showErrorMessage(`Drop database failed: ${err.message}`);
+            return resolve(false);
           }
 
           this._childrenCacheIsUpToDate = false;

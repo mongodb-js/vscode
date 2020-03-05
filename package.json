@@ -216,11 +216,19 @@
         },
         {
           "command": "mdb.treeItemRemoveConnection",
-          "when": "view == mongoDB && (viewItem == connectedConnectionTreeItem || viewItem == disconnectedConnectionTreeItem)"
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
+        },
+        {
+          "command": "mdb.treeItemRemoveConnection",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
         },
         {
           "command": "mdb.copyConnectionString",
-          "when": "view == mongoDB && (viewItem == connectedConnectionTreeItem || viewItem == disconnectedConnectionTreeItem)"
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
+        },
+        {
+          "command": "mdb.copyConnectionString",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
         },
         {
           "command": "mdb.refreshConnection",
