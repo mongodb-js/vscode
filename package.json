@@ -1,7 +1,7 @@
 {
   "name": "mongodb-vscode",
-  "displayName": "MongoDB",
-  "description": "MongoDB for Visual Studio Code",
+  "displayName": "MongoDB for VS Code",
+  "description": "Connect to MongoDB and Atlas and directly from your VS Code environment, navigate your databases and collections, inspect your schema and use playgrounds to prototype queries and aggregations.",
   "version": "0.0.1",
   "homepage": "https://github.com/mongodb-js/vscode",
   "repository": {
@@ -14,14 +14,23 @@
   },
   "publisher": "mongodb",
   "categories": [
+    "Programming Languages",
+    "Snippets",
     "Other"
   ],
+  "keywords": [
+    "MongoDB",
+    "MongoDB Atlas",
+    "MQL",
+    "Database"
+  ],
+  "preview": true,
   "icon": "resources/mongodb.png",
   "galleryBanner": {
-    "color": "#313030",
+    "color": "#21313D",
     "theme": "dark"
   },
-  "license": "Apache-2.0",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./out/extension.js",
   "scripts": {
     "clean": "rimraf ./out/*",
@@ -54,50 +63,39 @@
   ],
   "contributes": {
     "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "mongoDB",
-          "title": "MongoDB",
-          "icon": "resources/mongodb.svg"
-        }
-      ]
+      "activitybar": [{
+        "id": "mongoDB",
+        "title": "MongoDB",
+        "icon": "resources/mongodb.svg"
+      }]
     },
     "views": {
-      "mongoDB": [
-        {
-          "id": "mongoDB",
-          "name": "MongoDB",
-          "when": "config.mdb.show == true"
-        }
-      ]
+      "mongoDB": [{
+        "id": "mongoDB",
+        "name": "MongoDB",
+        "when": "config.mdb.show == true"
+      }]
     },
-    "languages": [
-      {
-        "id": "mongodb",
-        "aliases": [
-          "MongoDB",
-          "mongodb"
-        ],
-        "extensions": [
-          ".mongodb"
-        ]
-      }
-    ],
-    "grammars": [
-      {
-        "language": "mongodb",
-        "path": "./resources/syntaxes/mongodb.tmLanguage.json",
-        "scopeName": "source.mongodb"
-      }
-    ],
-    "snippets": [
-      {
-        "language": "mongodb",
-        "path": "./resources/snippets/stage-autocompleter.json"
-      }
-    ],
-    "commands": [
-      {
+    "languages": [{
+      "id": "mongodb",
+      "aliases": [
+        "MongoDB",
+        "mongodb"
+      ],
+      "extensions": [
+        ".mongodb"
+      ]
+    }],
+    "grammars": [{
+      "language": "mongodb",
+      "path": "./resources/syntaxes/mongodb.tmLanguage.json",
+      "scopeName": "source.mongodb"
+    }],
+    "snippets": [{
+      "language": "mongodb",
+      "path": "./resources/snippets/stage-autocompleter.json"
+    }],
+    "commands": [{
         "command": "mdb.connect",
         "title": "MongoDB: Connect"
       },
@@ -187,8 +185,7 @@
       }
     ],
     "menus": {
-      "view/item/context": [
-        {
+      "view/item/context": [{
           "command": "mdb.addConnection",
           "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem",
           "group": "inline"
