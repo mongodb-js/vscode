@@ -6,10 +6,9 @@ const sinon = require('sinon');
 import { CollectionTreeItem } from '../../explorer';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import ConnectionTreeItem from '../../explorer/connectionTreeItem';
-
-import { mdbTestExtension } from './stubbableMdbExtension';
 import DatabaseTreeItem from '../../explorer/databaseTreeItem';
 import { CollectionTypes } from '../../explorer/collectionTreeItem';
+import { mdbTestExtension } from './stubbableMdbExtension';
 
 suite('MDBExtensionController Test Suite', () => {
   afterEach(function () {
@@ -602,14 +601,52 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
+
+    vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(() => {
+      assert(stubHideMessage.called === true);
+    }).then(done, done);
+  });
+
+  // https://code.visualstudio.com/api/references/contribution-points#Sorting-of-groups
+
+  test('mdb.dropCollection the collection after inputting the collection name', (done) => {
+    const dropCollectionFake = sinon.stub();
+    const testCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'testColName'
+      },
+      'testDbName',
+      {
+        dropCollection: dropCollectionFake
+      },
+      false,
+      [],
+      10
+    );
+
+    // TODO: Full test with db, not stubbing db behavior.
+
+    const mockInputBoxResolves = sinon.stub();
+    mockInputBoxResolves.onCall(0).resolves('testColName');
     sinon.replace(
       vscode.window,
       'showInputBox',
       mockInputBoxResolves
     );
 
-    vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(() => {
-      assert(stubHideMessage.called === true);
+    vscode.commands.executeCommand('mdb.dropCollection', testCollectionTreeItem).then(() => {
+      assert(
+        false,
+        'Expected to error'
+      );
+    }, err => {
+      assert(
+        err.message === 'Unable to add collection: currently disconnecting.',
+        `Expected "Unable to add collection: currently disconnecting." when adding a database to a not connected connection, recieved "${err.message}"`
+      );
     }).then(done, done);
   });
+
+  // Drop collection fails when the input doesn't match.
+  // Drop collection fails when the input is empty.
 });

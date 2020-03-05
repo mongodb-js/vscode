@@ -455,8 +455,14 @@ export default class ConnectionController {
   public getActiveConnectionConfig(): any {
     return this._currentConnectionConfig;
   }
-  public clearConnectionConfigs(): void {
+  public clearAllConnections(): void {
     this._connectionConfigs = {};
+    this._currentConnectionConfig = null;
+    this._currentConnectionInstanceId = null;
+    this._currentConnection = null;
+    this._connecting = false;
+    this._disconnecting = false;
+    this._connectingInstanceId = '';
   }
   public setActiveConnection(newActiveConnection: any): void {
     this._currentConnection = newActiveConnection;

@@ -42,7 +42,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
 
     this._editorsController = new EditorsController();
-    this._explorerController = new ExplorerController();
+    this._explorerController = new ExplorerController(this._connectionController);
   }
 
   registerCommand = (command, commandHandler: (...args: any[]) => Promise<boolean>): void => {
@@ -59,7 +59,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   public activate(context): void {
     this._context = context;
     this._connectionController.activate();
-    this._explorerController.activate(this._connectionController);
+    this._explorerController.activate();
     this._editorsController.activate(context, this._connectionController);
 
     log.info('Registering commands...');

@@ -4,14 +4,12 @@ import { beforeEach, afterEach } from 'mocha';
 
 import ConnectionController from '../../../connectionController';
 import { DefaultSavingLocations } from '../../../storage/storageController';
-import { ExplorerController } from '../../../explorer';
-import { StatusView } from '../../../views';
-import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
+import { mdbTestExtension } from '../stubbableMdbExtension';
 
 const testDatabaseURI = 'mongodb://localhost:27018';
 const testDatabaseURI2WithTimeout =
-  'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
+  'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=500';
 
 suite('Explorer Controller Test Suite', function () {
   vscode.window.showInformationMessage('Starting tests...');
@@ -29,59 +27,34 @@ suite('Explorer Controller Test Suite', function () {
       'defaultConnectionSavingLocation',
       DefaultSavingLocations.Workspace
     );
+    // Reset our connections.
+    mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
   });
 
-  const mockExtensionContext = new TestExtensionContext();
-  const mockStorageController = new StorageController(mockExtensionContext);
 
-  test('when activated it creates a tree with a connections root', function (done) {
-    const testConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController
-    );
-
-    const testExplorerController = new ExplorerController();
-
-    testExplorerController.activate(testConnectionController);
+  test('should have a connections root', function (done) {
+    const testExplorerController = mdbTestExtension.testExtensionController._explorerController;
 
     const treeController = testExplorerController.getTreeController();
 
     assert(!!treeController, 'Tree controller should not be undefined');
-    if (treeController) {
-      treeController.getChildren().then(treeControllerChildren => {
-        assert(
-          treeControllerChildren.length === 1,
-          `Tree controller should have 1 child, found ${treeControllerChildren.length}`
-        );
-        assert(
-          treeControllerChildren[0].label === 'Connections',
-          'Tree controller should have a "Connections" child'
-        );
-      }).then(done, done);
-    } else {
-      done();
-    }
-
-    testExplorerController.deactivate();
+    treeController.getChildren().then(treeControllerChildren => {
+      assert(
+        treeControllerChildren.length === 1,
+        `Tree controller should have 1 child, found ${treeControllerChildren.length}`
+      );
+      assert(
+        treeControllerChildren[0].label === 'Connections',
+        'Tree controller should have a "Connections" child'
+      );
+    }).then(done, done);
   });
 
   test('it updates the connections to account for a change in the connection controller', function (done) {
-    const testConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController
-    );
-
-    const testExplorerController = new ExplorerController();
-
-    testExplorerController.activate(testConnectionController);
+    const testConnectionController = mdbTestExtension.testExtensionController._connectionController;
+    const testExplorerController = mdbTestExtension.testExtensionController._explorerController;
 
     const treeController = testExplorerController.getTreeController();
-
-    if (!treeController) {
-      // Shouldn't get here so this should fail.
-      assert(!!treeController, 'Tree controller should not be undefined');
-      return;
-    }
 
     const mockConnectionInstanceId = 'testInstanceId';
 
@@ -90,7 +63,6 @@ suite('Explorer Controller Test Suite', function () {
     );
     testConnectionController.setConnnecting(true);
 
-    // Ensure the tree didn't update yet because it was a silent update.
     treeController.getChildren().then(treeControllerChildren => {
       treeControllerChildren[0].getChildren().then(connectionsItems => {
         assert(
@@ -107,21 +79,10 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('when a connection is added and connected it is added to the tree and expanded', function (done) {
-    const testConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController
-    );
-
-    const testExplorerController = new ExplorerController();
-
-    testExplorerController.activate(testConnectionController);
+    const testConnectionController = mdbTestExtension.testExtensionController._connectionController;
+    const testExplorerController = mdbTestExtension.testExtensionController._explorerController;
 
     const treeController = testExplorerController.getTreeController();
-
-    if (!treeController) {
-      assert(!!treeController, 'Tree controller should not be undefined');
-      return;
-    }
 
     testConnectionController
       .addNewConnectionAndConnect(testDatabaseURI)
@@ -169,23 +130,10 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('only the active connection is displayed as connected in the tree', function (done) {
-    const testConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController
-    );
-
-    const testExplorerController = new ExplorerController();
-
-    testExplorerController.activate(testConnectionController);
+    const testConnectionController = mdbTestExtension.testExtensionController._connectionController;
+    const testExplorerController = mdbTestExtension.testExtensionController._explorerController;
 
     const treeController = testExplorerController.getTreeController();
-
-    if (!treeController) {
-      assert(!!treeController, 'Tree controller should not be undefined');
-      return;
-    }
-
-    this.timeout(1500);
 
     testConnectionController
       .addNewConnectionAndConnect(testDatabaseURI)
@@ -204,7 +152,7 @@ suite('Explorer Controller Test Suite', function () {
           `Expected active connection to be 'localhost:27018' found ${instanceId}`
         );
 
-        // This will timeout in 1s, which is enough time for us to just check.
+        // This will timeout in 500ms, which is enough time for us to just check.
         testConnectionController.addNewConnectionAndConnect(
           testDatabaseURI2WithTimeout
         ).then(() => { }, () => { } /* Silent fail (should fail) */);
@@ -247,20 +195,10 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('shows the databases of connected connection in tree', function (done) {
-    const testConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController
-    );
-    const testExplorerController = new ExplorerController();
-
-    testExplorerController.activate(testConnectionController);
+    const testConnectionController = mdbTestExtension.testExtensionController._connectionController;
+    const testExplorerController = mdbTestExtension.testExtensionController._explorerController;
 
     const treeController = testExplorerController.getTreeController();
-
-    if (!treeController) {
-      assert(!!treeController, 'Tree controller should not be undefined');
-      return;
-    }
 
     testConnectionController
       .addNewConnectionAndConnect(testDatabaseURI)
@@ -291,21 +229,10 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('caches the expanded state of databases in the tree when a connection is expanded or collapsed', function (done) {
-    const testConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController
-    );
-
-    const testExplorerController = new ExplorerController();
-
-    testExplorerController.activate(testConnectionController);
+    const testConnectionController = mdbTestExtension.testExtensionController._connectionController;
+    const testExplorerController = mdbTestExtension.testExtensionController._explorerController;
 
     const treeController = testExplorerController.getTreeController();
-
-    if (!treeController) {
-      assert(!!treeController, 'Tree controller should not be undefined');
-      return;
-    }
 
     testConnectionController.addNewConnectionAndConnect(testDatabaseURI).then(() => {
       treeController.getChildren().then(rootTreeItem => {

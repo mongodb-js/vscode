@@ -8,14 +8,16 @@ import { createLogger } from '../logging';
 const log = createLogger('explorer controller');
 
 export default class ExplorerController {
-  private _treeController?: ExplorerTreeController;
+  private _treeController: ExplorerTreeController;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
-  activate(connectionController: ConnectionController): void {
+  constructor(connectionController: ConnectionController) {
     log.info('activate explorer controller');
 
     this._treeController = new ExplorerTreeController(connectionController);
+  }
 
+  activate(): void {
     this._treeView = vscode.window.createTreeView('mongoDB', {
       treeDataProvider: this._treeController
     });
@@ -45,7 +47,7 @@ export default class ExplorerController {
   public getTreeView(): vscode.TreeView<vscode.TreeItem> | undefined {
     return this._treeView;
   }
-  public getTreeController(): ExplorerTreeController | undefined {
+  public getTreeController(): ExplorerTreeController {
     return this._treeController;
   }
 }

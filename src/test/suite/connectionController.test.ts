@@ -505,7 +505,7 @@ suite('Connection Controller Test Suite', () => {
           );
 
           testConnectionController.disconnect().then(() => {
-            testConnectionController.clearConnectionConfigs();
+            testConnectionController.clearAllConnections();
             assert(
               testConnectionController.getConnectionInstanceIds().length === 0,
               'Expected no connection configs.'
