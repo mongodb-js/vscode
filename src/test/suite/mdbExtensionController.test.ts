@@ -402,11 +402,8 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(
-      vscode.window,
-      'showErrorMessage',
-      fakeVscodeErrorMessage
-    );
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
@@ -453,11 +450,7 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(
-      vscode.window,
-      'showErrorMessage',
-      fakeVscodeErrorMessage
-    );
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
@@ -552,11 +545,7 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
     vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(addCollectionSucceeded => {
       assert(addCollectionSucceeded);
@@ -595,11 +584,7 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(
-      vscode.window,
-      'showErrorMessage',
-      fakeVscodeErrorMessage
-    );
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
     vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(addCollectionSucceeded => {
       assert(
@@ -658,9 +643,7 @@ suite('MDBExtensionController Test Suite', () => {
   test('mdb.dropCollection calls dataservice to drop the collection after inputting the collection name', (done) => {
     let calledNamespace = '';
     const testCollectionTreeItem = new CollectionTreeItem(
-      {
-        name: 'testColName'
-      },
+      { name: 'testColName' },
       'testDbName',
       {
         dropCollection: (namespace, callback): void => {
@@ -697,9 +680,7 @@ suite('MDBExtensionController Test Suite', () => {
       testDatabaseURI
     ).then(() => {
       const testCollectionTreeItem = new CollectionTreeItem(
-        {
-          name: 'doesntExistColName'
-        },
+        { name: 'doesntExistColName' },
         'doesntExistDBName',
         testConnectionController.getActiveConnection(),
         false,
@@ -709,18 +690,10 @@ suite('MDBExtensionController Test Suite', () => {
 
       const mockInputBoxResolves = sinon.stub();
       mockInputBoxResolves.onCall(0).resolves('doesntExistColName');
-      sinon.replace(
-        vscode.window,
-        'showInputBox',
-        mockInputBoxResolves
-      );
+      sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
       const fakeVscodeErrorMessage = sinon.fake();
-      sinon.replace(
-        vscode.window,
-        'showErrorMessage',
-        fakeVscodeErrorMessage
-      );
+      sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
       vscode.commands.executeCommand('mdb.dropCollection', testCollectionTreeItem).then(successfullyDropped => {
         assert(
@@ -738,9 +711,7 @@ suite('MDBExtensionController Test Suite', () => {
 
   test('mdb.dropCollection fails when the input doesnt match the collection name', (done) => {
     const testCollectionTreeItem = new CollectionTreeItem(
-      {
-        name: 'orange'
-      },
+      { name: 'orange' },
       'fruitsThatAreTasty',
       {},
       false,
@@ -756,13 +727,6 @@ suite('MDBExtensionController Test Suite', () => {
       mockInputBoxResolves
     );
 
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(
-      vscode.window,
-      'showErrorMessage',
-      fakeVscodeErrorMessage
-    );
-
     vscode.commands.executeCommand('mdb.dropCollection', testCollectionTreeItem).then(successfullyDropped => {
       assert(
         successfullyDropped === false,
@@ -773,9 +737,7 @@ suite('MDBExtensionController Test Suite', () => {
 
   test('mdb.dropCollection fails when the collection name input is empty', (done) => {
     const testCollectionTreeItem = new CollectionTreeItem(
-      {
-        name: 'orange'
-      },
+      { name: 'orange' },
       'fruitsThatAreTasty',
       {},
       false,
@@ -791,13 +753,6 @@ suite('MDBExtensionController Test Suite', () => {
       mockInputBoxResolves
     );
 
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(
-      vscode.window,
-      'showErrorMessage',
-      fakeVscodeErrorMessage
-    );
-
     vscode.commands.executeCommand('mdb.dropCollection', testCollectionTreeItem).then(successfullyDropped => {
       assert(
         successfullyDropped === false,
@@ -809,7 +764,7 @@ suite('MDBExtensionController Test Suite', () => {
   test('mdb.dropDatabase calls dataservice to drop the database after inputting the database name', (done) => {
     let calledDatabaseName = '';
     const testDatabaseTreeItem = new DatabaseTreeItem(
-      'clubMateTheBestDrinkEverConfirmed',
+      'iMissTangerineAltoids',
       {
         dropDatabase: (dbName, callback): void => {
           calledDatabaseName = dbName;
@@ -821,7 +776,7 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     const mockInputBoxResolves = sinon.stub();
-    mockInputBoxResolves.onCall(0).resolves('clubMateTheBestDrinkEverConfirmed');
+    mockInputBoxResolves.onCall(0).resolves('iMissTangerineAltoids');
     sinon.replace(
       vscode.window,
       'showInputBox',
@@ -830,7 +785,7 @@ suite('MDBExtensionController Test Suite', () => {
 
     vscode.commands.executeCommand('mdb.dropDatabase', testDatabaseTreeItem).then(successfullyDropped => {
       assert(successfullyDropped);
-      assert(calledDatabaseName === 'clubMateTheBestDrinkEverConfirmed');
+      assert(calledDatabaseName === 'iMissTangerineAltoids');
     }).then(done, done);
   });
 
@@ -894,13 +849,6 @@ suite('MDBExtensionController Test Suite', () => {
       mockInputBoxResolves
     );
 
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(
-      vscode.window,
-      'showErrorMessage',
-      fakeVscodeErrorMessage
-    );
-
     vscode.commands.executeCommand('mdb.dropDatabase', testDatabaseTreeItem).then(successfullyDropped => {
       assert(
         successfullyDropped === false,
@@ -923,13 +871,6 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.window,
       'showInputBox',
       mockInputBoxResolves
-    );
-
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(
-      vscode.window,
-      'showErrorMessage',
-      fakeVscodeErrorMessage
     );
 
     vscode.commands.executeCommand('mdb.dropDatabase', testDatabaseTreeItem).then(successfullyDropped => {

@@ -314,8 +314,6 @@ export default class ConnectionController {
     });
   }
 
-  // TODO: Shrink size of the leaf on the left view.
-
   public removeConnectionConfig(connectionId: string): void {
     delete this._connectionConfigs[connectionId];
     this._storageController.removeConnection(connectionId);
