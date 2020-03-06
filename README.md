@@ -40,53 +40,10 @@ npm run watch
 #### Code Tour
 
 - `out` compiled extension code
-- `resources` images and other raw assets.
+- `resources` static assets like images that will be copied directly into the extension bundle
 - `src`
   - `test/suite` where tests live with files names `*.test.ts`
 - `scripts` project helper scripts
-
-### Packaging
-
-`vscode-mongodb` will be published under the `mongodb` Visual Studio Marketplace Publisher that has been setup under the existing `team-compass` Azure DevOps org we use for pipelines.
-
-Visual Studio Marketplace
-
-- Publisher `mongodb`
-- [`vscode-marketplace@mongodb.com`](https://groups.google.com/a/mongodb.com/forum/#!forum/vscode-marketplace) is a member of the `team-compass` Azure DevOps Org
-- [`vscode@mongodb.com`](https://groups.google.com/a/mongodb.com/forum/#!forum/vscode) is contact email to use for this project
-
-Azure DevOps Org:
-`team-compass`
-
-[Azure Org Owner User](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/change-organization-ownership?view=azure-devops):
-`team-compass@mongodb.com`
-
-Azure Projects:
-
-- `vscode` The MongoDB VSCode Extension https://github.com/mongodb-js/vscode
-- `mongosh` The MongoDB Shell https://github.com/mongodb-js/mongosh
-- `compass` Compass plugins
-
-* [docs](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
-* [web ui](https://marketplace.visualstudio.com/manage/publishers/mongodb)
-* Analytics: [Extension Reporting Hub](https://devblogs.microsoft.com/devops/extension-reporting-hub-for-marketplace-publishers/)
-
-#### Preview Releases
-
-While [private extensions are not currently supported](https://github.com/microsoft/vscode/issues/21839), the extension can be packaged as a `.vsix` file and shared directly.
-
-To create a `.vsix`:
-
-```bash
-npm i -g vsce;
-vsce package;
-```
-
-This will create a file like `mongodb-vscode-0.0.1.vsix`. Once downloaded, the extension can be installed with the [Install .VSIX](https://github.com/fabiospampinato/vscode-install-vsix) or by running:
-
-```bash
-code --install-extension mongodb-vscode-0.0.1.vsix
-```
 
 ## License
 
