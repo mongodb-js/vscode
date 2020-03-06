@@ -23,7 +23,7 @@ suite('Playground Controller Test Suite', () => {
     test('evaluate should throw the missing connection controller error', async () => {
       const testPlaygroundController = new PlaygroundController();
 
-      expect(await testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'No connection controller.');
+      expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'No connection controller.');
     });
   });
 
@@ -37,7 +37,7 @@ suite('Playground Controller Test Suite', () => {
 
       testPlaygroundController.activate(testConnectionController);
 
-      expect(await testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'Please connect to a database before running a playground.');
+      expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'Please connect to a database before running a playground.');
 
       testPlaygroundController.deactivate();
     });
