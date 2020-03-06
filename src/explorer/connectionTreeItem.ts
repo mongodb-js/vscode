@@ -14,7 +14,7 @@ enum ConnectionItemContextValues {
 
 export default class ConnectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
-  contextValue = 'disconnectedConnectionTreeItem';
+  contextValue = ConnectionItemContextValues.disconnected;
 
   private _childrenCache: { [key: string]: DatabaseTreeItem };
   _childrenCacheIsUpToDate = false;
@@ -43,7 +43,6 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     ) {
       this.contextValue = ConnectionItemContextValues.connected;
     }
-
 
     this.connectionInstanceId = connectionInstanceId;
     this._connectionController = connectionController;
