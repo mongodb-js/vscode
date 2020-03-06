@@ -75,10 +75,6 @@ export default class PlaygroundController {
     const res = await this._runtime.evaluate(codeToEvaluate);
     const value = formatOutput(res);
 
-    console.log('value----------------------');
-    console.log(value);
-    console.log('----------------------');
-
     return value;
   }
 
