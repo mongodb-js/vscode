@@ -43,50 +43,44 @@
   },
   "contributes": {
     "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "mongoDB",
-          "title": "MongoDB",
-          "icon": "images/mongodb.svg"
-        }
-      ]
+      "activitybar": [{
+        "id": "mongoDB",
+        "title": "MongoDB",
+        "icon": "images/mongodb.svg"
+      }]
     },
     "views": {
-      "mongoDB": [
-        {
-          "id": "mongoDB",
-          "name": "MongoDB",
-          "when": "config.mdb.show == true"
-        }
-      ]
+      "mongoDB": [{
+        "id": "mongoDB",
+        "name": "MongoDB",
+        "when": "config.mdb.show == true"
+      }]
     },
-    "languages": [
-      {
-        "id": "mongodb",
-        "aliases": [
-          "MongoDB",
-          "mongodb"
-        ],
-        "extensions": [
-          ".mongodb"
-        ]
-      }
-    ],
-    "grammars": [
-      {
-        "language": "mongodb",
-        "path": "./src/syntaxes/mongodb.tmLanguage.json",
-        "scopeName": "source.mongodb"
-      }
-    ],
-    "snippets": [
-      {
+    "languages": [{
+      "id": "mongodb",
+      "aliases": [
+        "MongoDB",
+        "mongodb"
+      ],
+      "extensions": [
+        ".mongodb"
+      ]
+    }],
+    "grammars": [{
+      "language": "mongodb",
+      "path": "./src/syntaxes/mongodb.tmLanguage.json",
+      "scopeName": "source.mongodb"
+    }],
+    "snippets": [{
         "language": "mongodb",
         "path": "./src/snippets/stage-autocompleter.json"
+      },
+      {
+        "language": "terraform",
+        "path": "./src/snippets/atlas-terraform.json"
       }
     ],
-    "commands": [
-      {
+    "commands": [{
         "command": "mdb.connect",
         "title": "MongoDB: Connect"
       },
@@ -176,8 +170,7 @@
       }
     ],
     "menus": {
-      "view/item/context": [
-        {
+      "view/item/context": [{
           "command": "mdb.addConnection",
           "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem",
           "group": "inline"
