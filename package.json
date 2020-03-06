@@ -27,7 +27,7 @@
   "preview": true,
   "icon": "resources/mongodb.png",
   "galleryBanner": {
-    "color": "#21313D",
+    "color": "#3D4F58",
     "theme": "dark"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
