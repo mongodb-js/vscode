@@ -57,7 +57,7 @@ export default class ConnectionController {
     this._storageController = storageController;
   }
 
-  activate(): void {
+  loadSavedConnections(): void {
     // Load saved connections from storage.
     const existingGlobalConnectionStrings = this._storageController.get(
       StorageVariables.GLOBAL_CONNECTION_STRINGS

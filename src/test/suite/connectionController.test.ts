@@ -398,7 +398,7 @@ suite('Connection Controller Test Suite', () => {
       });
   });
 
-  test('when there are no existing connections in the store and the connection controller is activated', function () {
+  test('when there are no existing connections in the store and the connection controller loads connections', function () {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
 
@@ -407,14 +407,14 @@ suite('Connection Controller Test Suite', () => {
       testStorageController
     );
 
-    testConnectionController.activate();
+    testConnectionController.loadSavedConnections();
     assert(
       Object.keys(testConnectionController.getConnections()).length === 0,
       `Expected connections to be 0 found ${Object.keys(testConnectionController.getConnections()).length}`
     );
   });
 
-  test('When activated, the connection model loads both global and workspace stored connection models', function () {
+  test('The connection model loads both global and workspace stored connection models', function () {
     const testExtensionContext = new TestExtensionContext();
     // Set existing connections.
     testExtensionContext.globalState.update(
@@ -438,7 +438,7 @@ suite('Connection Controller Test Suite', () => {
       testStorageController
     );
 
-    testConnectionController.activate();
+    testConnectionController.loadSavedConnections();
 
     const connections = testConnectionController.getConnections();
     assert(
@@ -468,7 +468,7 @@ suite('Connection Controller Test Suite', () => {
       testStorageController
     );
 
-    testConnectionController.activate();
+    testConnectionController.loadSavedConnections();
 
     await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',
@@ -503,7 +503,7 @@ suite('Connection Controller Test Suite', () => {
       testStorageController
     );
 
-    testConnectionController.activate();
+    testConnectionController.loadSavedConnections();
 
     await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',
@@ -542,7 +542,7 @@ suite('Connection Controller Test Suite', () => {
       testStorageController
     );
 
-    testConnectionController.activate();
+    testConnectionController.loadSavedConnections();
 
     vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',
@@ -568,7 +568,7 @@ suite('Connection Controller Test Suite', () => {
             );
 
             // Activate (which will load the past connection).
-            testConnectionController.activate();
+            testConnectionController.loadSavedConnections();
             assert(
               testConnectionController.getConnectionInstanceIds().length === 1,
               `Expected 1 connection config, found ${testConnectionController.getConnectionInstanceIds().length}.`
@@ -599,7 +599,7 @@ suite('Connection Controller Test Suite', () => {
       testStorageController
     );
 
-    testConnectionController.activate();
+    testConnectionController.loadSavedConnections();
 
     const expectedDriverUri = 'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.0.1&ssl=false';
 
@@ -624,7 +624,7 @@ suite('Connection Controller Test Suite', () => {
       testStorageController
     );
 
-    testConnectionController.activate();
+    testConnectionController.loadSavedConnections();
     // Don't save connections on default.
     vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',
@@ -663,7 +663,7 @@ suite('Connection Controller Test Suite', () => {
       testStorageController
     );
 
-    testConnectionController.activate();
+    testConnectionController.loadSavedConnections();
 
     vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',
@@ -705,7 +705,7 @@ suite('Connection Controller Test Suite', () => {
       testStorageController
     );
 
-    testConnectionController.activate();
+    testConnectionController.loadSavedConnections();
 
     await vscode.workspace.getConfiguration('mdb.connectionSaving').update(
       'defaultConnectionSavingLocation',

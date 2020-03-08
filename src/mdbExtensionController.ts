@@ -30,6 +30,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     context: vscode.ExtensionContext,
     connectionController?: ConnectionController
   ) {
+    this._context = context;
+
     this._statusView = new StatusView(context);
     this._storageController = new StorageController(context);
 
@@ -42,26 +44,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       );
     }
 
-    this._editorsController = new EditorsController();
+    this._editorsController = new EditorsController(context, this._connectionController);
     this._explorerController = new ExplorerController(this._connectionController);
   }
 
-  registerCommand = (command, commandHandler: (...args: any[]) => Promise<boolean>): void => {
-    if (!this._context) {
-      // Not yet activated.
-      return;
-    }
-
-    this._context.subscriptions.push(
-      vscode.commands.registerCommand(command, commandHandler)
-    );
-  };
-
-  public activate(context): void {
-    this._context = context;
-    this._connectionController.activate();
-    this._explorerController.activate();
-    this._editorsController.activate(context, this._connectionController);
+  activate(): void {
+    this._connectionController.loadSavedConnections();
+    this._explorerController.createTreeView();
 
     log.info('Registering commands...');
 
@@ -90,6 +79,17 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     log.info('Registered commands.');
   }
+
+  registerCommand = (command, commandHandler: (...args: any[]) => Promise<boolean>): void => {
+    if (!this._context) {
+      // Not yet activated.
+      return;
+    }
+
+    this._context.subscriptions.push(
+      vscode.commands.registerCommand(command, commandHandler)
+    );
+  };
 
   registerEditorCommands(): void {
     this.registerCommand('mdb.codeLens.showMoreDocumentsClicked', (

@@ -17,7 +17,7 @@ export default class ExplorerController {
     this._treeController = new ExplorerTreeController(connectionController);
   }
 
-  activate(): void {
+  createTreeView(): void {
     this._treeView = vscode.window.createTreeView('mongoDB', {
       treeDataProvider: this._treeController
     });
