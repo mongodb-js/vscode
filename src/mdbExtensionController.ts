@@ -20,7 +20,7 @@ const log = createLogger('commands');
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
   _connectionController: ConnectionController;
-  _context?: vscode.ExtensionContext;
+  _context: vscode.ExtensionContext;
   _editorsController: EditorsController;
   _explorerController: ExplorerController;
   _statusView: StatusView;
@@ -75,17 +75,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.createPlayground', () => this.createPlayground());
 
     this.registerEditorCommands();
-    this.registerTreeViewCommands(context);
+    this.registerTreeViewCommands();
 
     log.info('Registered commands.');
   }
 
   registerCommand = (command, commandHandler: (...args: any[]) => Promise<boolean>): void => {
-    if (!this._context) {
-      // Not yet activated.
-      return;
-    }
-
     this._context.subscriptions.push(
       vscode.commands.registerCommand(command, commandHandler)
     );
@@ -105,7 +100,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
   }
 
-  registerTreeViewCommands(context: vscode.ExtensionContext): void {
+  registerTreeViewCommands(): void {
     this.registerCommand(
       'mdb.addConnection',
       () => this._connectionController.addMongoDBConnection()
@@ -184,7 +179,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         }
 
         return new Promise((resolve, reject) => {
-          element.onAddDatabaseClicked(context).then(successfullyAddedDatabase => {
+          element.onAddDatabaseClicked(this._context).then(successfullyAddedDatabase => {
             if (successfullyAddedDatabase) {
               vscode.window.showInformationMessage('Database and collection successfully created.');
 
@@ -230,7 +225,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         }
 
         return new Promise((resolve, reject) => {
-          element.onAddCollectionClicked(context).then(successfullyAddedCollection => {
+          element.onAddCollectionClicked(this._context).then(successfullyAddedCollection => {
             if (successfullyAddedCollection) {
               vscode.window.showInformationMessage('Collection successfully created.');
 

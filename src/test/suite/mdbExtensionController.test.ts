@@ -632,6 +632,11 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
+    sinon.replace(
+      vscode.window,
+      'showInputBox',
+      mockInputBoxResolves
+    );
 
     vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(() => {
       assert(stubHideMessage.called === true);
