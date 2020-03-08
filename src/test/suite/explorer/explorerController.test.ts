@@ -36,7 +36,7 @@ suite('Explorer Controller Test Suite', function () {
 
   test('when activated it creates a tree with a connections root', function (done) {
     const testConnectionController = new ConnectionController(
-      new StatusView(),
+      new StatusView(mockExtensionContext),
       mockStorageController
     );
 
@@ -67,7 +67,7 @@ suite('Explorer Controller Test Suite', function () {
 
   test('it updates the connections to account for a change in the connection controller', function (done) {
     const testConnectionController = new ConnectionController(
-      new StatusView(),
+      new StatusView(mockExtensionContext),
       mockStorageController
     );
 
@@ -108,7 +108,7 @@ suite('Explorer Controller Test Suite', function () {
 
   test('when a connection is added and connected it is added to the tree and expanded', function (done) {
     const testConnectionController = new ConnectionController(
-      new StatusView(),
+      new StatusView(mockExtensionContext),
       mockStorageController
     );
 
@@ -170,7 +170,7 @@ suite('Explorer Controller Test Suite', function () {
 
   test('only the active connection is displayed as connected in the tree', function (done) {
     const testConnectionController = new ConnectionController(
-      new StatusView(),
+      new StatusView(mockExtensionContext),
       mockStorageController
     );
 
@@ -248,7 +248,7 @@ suite('Explorer Controller Test Suite', function () {
 
   test('shows the databases of connected connection in tree', function (done) {
     const testConnectionController = new ConnectionController(
-      new StatusView(),
+      new StatusView(mockExtensionContext),
       mockStorageController
     );
     const testExplorerController = new ExplorerController();
@@ -292,7 +292,7 @@ suite('Explorer Controller Test Suite', function () {
 
   test('caches the expanded state of databases in the tree when a connection is expanded or collapsed', function (done) {
     const testConnectionController = new ConnectionController(
-      new StatusView(),
+      new StatusView(mockExtensionContext),
       mockStorageController
     );
 

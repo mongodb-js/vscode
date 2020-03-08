@@ -441,6 +441,64 @@ suite('MDBExtensionController Test Suite', () => {
     }).then(done, done);
   });
 
+  test('mdb.addDatabase shows a status bar item while it is creating the collection then hide it', (done) => {
+    const stubShowMessage = sinon.fake();
+    const stubHideMessage = sinon.fake();
+
+    const testStatusViewObject = {
+      show: stubShowMessage,
+      hide: stubHideMessage,
+      text: ''
+    };
+    const mockSatusBarItem = sinon.fake.returns(testStatusViewObject);
+    sinon.replace(vscode.window, 'createStatusBarItem', mockSatusBarItem);
+
+    const mockTreeItem = new ConnectionTreeItem(
+      'tasty_sandwhich',
+      vscode.TreeItemCollapsibleState.None,
+      false,
+      mdbTestExtension.testExtensionController._connectionController,
+      {}
+    );
+
+    const mockInputBoxResolves = sinon.stub();
+    mockInputBoxResolves.onCall(0).resolves('theDbName');
+    mockInputBoxResolves.onCall(1).resolves('theCollectionName');
+    sinon.replace(
+      vscode.window,
+      'showInputBox',
+      mockInputBoxResolves
+    );
+    const mockGetActiveConnection = sinon.fake.returns({
+      createCollection: (namespace, options, callback) => {
+        assert(stubShowMessage.called);
+        assert(!stubHideMessage.called);
+        const expectedMessage = 'Creating new database and collection...';
+        assert(
+          testStatusViewObject.text === expectedMessage,
+          `Expected to show status bar message "${expectedMessage}", found ${stubShowMessage.firstArg}`
+        );
+
+        callback(null);
+      }
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveConnection',
+      mockGetActiveConnection
+    );
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveConnectionInstanceId',
+      mockActiveConnectionId
+    );
+
+    vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem).then(() => {
+      assert(stubHideMessage.called === true);
+    }).then(done, done);
+  });
+
   test('mdb.addCollection command calls the dataservice to add the collection the user inputs', (done) => {
     let returnedNamespaceArg = '';
     const mockTreeItem = new DatabaseTreeItem(
@@ -508,6 +566,50 @@ suite('MDBExtensionController Test Suite', () => {
         err.message === 'Unable to add collection: currently disconnecting.',
         `Expected "Unable to add collection: currently disconnecting." when adding a database to a not connected connection, recieved "${err.message}"`
       );
+    }).then(done, done);
+  });
+
+  test('mdb.addCollection shows a status bar item while it is creating the collection then hide it', (done) => {
+    const stubShowMessage = sinon.stub();
+    const stubHideMessage = sinon.stub();
+
+    const testStatusViewObject = {
+      show: stubShowMessage,
+      hide: stubHideMessage,
+      text: ''
+    };
+    const mockSatusBarItem = sinon.fake.returns(testStatusViewObject);
+    sinon.replace(vscode.window, 'createStatusBarItem', mockSatusBarItem);
+
+    const mockTreeItem = new DatabaseTreeItem(
+      'iceCreamDB',
+      {
+        createCollection: (namespace, options, callback): void => {
+          assert(stubShowMessage.called);
+          assert(!stubHideMessage.called);
+          const expectedMessage = 'Creating new collection...';
+          assert(
+            testStatusViewObject.text === expectedMessage,
+            `Expected to show status bar message "${expectedMessage}", found ${stubShowMessage.firstArg}`
+          );
+
+          callback(null);
+        }
+      },
+      false,
+      {}
+    );
+
+    const mockInputBoxResolves = sinon.stub();
+    mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
+    sinon.replace(
+      vscode.window,
+      'showInputBox',
+      mockInputBoxResolves
+    );
+
+    vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(() => {
+      assert(stubHideMessage.called === true);
     }).then(done, done);
   });
 });

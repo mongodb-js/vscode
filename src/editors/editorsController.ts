@@ -10,6 +10,7 @@ import CollectionDocumentsProvider, {
 } from './collectionDocumentsProvider';
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
+import { StatusView } from '../views';
 
 const log = createLogger('editors controller');
 
@@ -27,7 +28,8 @@ export default class EditorsController {
     log.info('activating...');
     const collectionViewProvider = new CollectionDocumentsProvider(
       connectionController,
-      this._collectionDocumentsOperationsStore
+      this._collectionDocumentsOperationsStore,
+      new StatusView(context)
     );
 
     this._connectionController = connectionController;
