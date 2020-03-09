@@ -106,11 +106,15 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     return new Promise((resolve, reject) => {
       const namespace = `${this.databaseName}.${this.collectionName}`;
 
-      log.info(`fetching ${this._maxDocumentsToShow} documents from namespace ${namespace}`);
+      log.info(
+        `fetching ${this._maxDocumentsToShow} documents from namespace ${namespace}`
+      );
 
       this._dataService.find(
         namespace,
-        { /* No filter */ },
+        {
+          /* No filter */
+        },
         {
           // We fetch 1 more than the max documents to show to see if
           // there are more documents we aren't showing.
@@ -118,28 +122,24 @@ export default class DocumentListTreeItem extends vscode.TreeItem
         },
         (err: Error, documents: []) => {
           if (err) {
-            vscode.window.showErrorMessage(
-              `Unable to list documents: ${err}`
-            );
+            vscode.window.showErrorMessage(`Unable to list documents: ${err}`);
             return reject();
           }
 
           this._childrenCacheIsUpToDate = true;
 
           if (documents) {
-            this._childrenCache = documents.map(
-              (document, index) => {
-                if (index === this._maxDocumentsToShow) {
-                  return new ShowMoreDocumentsTreeItem(
-                    namespace,
-                    () => this.onShowMoreClicked(),
-                    this._maxDocumentsToShow
-                  );
-                }
-
-                return new DocumentTreeItem(document, index);
+            this._childrenCache = documents.map((document, index) => {
+              if (index === this._maxDocumentsToShow) {
+                return new ShowMoreDocumentsTreeItem(
+                  namespace,
+                  () => this.onShowMoreClicked(),
+                  this._maxDocumentsToShow
+                );
               }
-            );
+
+              return new DocumentTreeItem(document, index);
+            });
           } else {
             this._childrenCache = [];
           }
@@ -150,7 +150,10 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     });
   }
 
-  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     return this._type === CollectionTypes.collection
       ? {
         light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'collection.svg'),

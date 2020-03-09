@@ -41,17 +41,21 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
     this._connectionTreeItems = {};
 
     // Create new connection tree items, using cached children whereever possible.
-    connectionIds.forEach(connectionId => {
-      const isActiveConnection = connectionId === this._connectionController.getActiveConnectionInstanceId();
-      const isBeingConnectedTo = this._connectionController.isConnecting()
-        && connectionId === this._connectionController.getConnectingInstanceId();
+    connectionIds.forEach((connectionId) => {
+      const isActiveConnection =
+        connectionId ===
+        this._connectionController.getActiveConnectionInstanceId();
+      const isBeingConnectedTo =
+        this._connectionController.isConnecting() &&
+        connectionId === this._connectionController.getConnectingInstanceId();
 
       let connectionExpandedState = isActiveConnection
         ? vscode.TreeItemCollapsibleState.Expanded
         : vscode.TreeItemCollapsibleState.Collapsed;
 
-      if (pastConnectionTreeItems[connectionId]
-        && !pastConnectionTreeItems[connectionId].isExpanded
+      if (
+        pastConnectionTreeItems[connectionId] &&
+        !pastConnectionTreeItems[connectionId].isExpanded
       ) {
         // Connection was manually collapsed while being active.
         connectionExpandedState = vscode.TreeItemCollapsibleState.Collapsed;
@@ -76,10 +80,11 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
       );
     });
 
-    if (this._connectionController.isConnecting()
-      && !this._connectionController.getConnectionInstanceIds().includes(
-        this._connectionController.getConnectingInstanceId()
-      )
+    if (
+      this._connectionController.isConnecting() &&
+      !this._connectionController
+        .getConnectionInstanceIds()
+        .includes(this._connectionController.getConnectingInstanceId())
     ) {
       const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
         this._connectionController.getConnectingInstanceId()

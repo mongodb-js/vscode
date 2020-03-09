@@ -3,7 +3,6 @@ const ns = require('mongodb-ns');
 const path = require('path');
 import { StatusView } from '../views';
 
-import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
 import CollectionTreeItem from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 
@@ -89,7 +88,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
                   collection,
                   this.databaseName,
                   this._dataService,
-                  false, // Not expanded.
+                  false // Not expanded.
                 );
               }
             });
@@ -182,7 +181,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       this._dataService.createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
-        (err) => {
+        err => {
           statusBarItem.hideMessage();
 
           if (err) {

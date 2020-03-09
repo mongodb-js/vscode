@@ -5,10 +5,26 @@ const parseSchema = require('mongodb-schema');
 import { createLogger } from '../logging';
 import TreeItemParent from './treeItemParentInterface';
 import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
+import FieldTreeItem from './fieldTreeItem';
+
+const log = createLogger('tree view document list');
 
 const ITEM_LABEL = 'Schema';
 
-const log = createLogger('tree view document list');
+const FIELDS_TO_SHOW = 10;
+
+class ShowAllFieldsTreeItem extends vscode.TreeItem {
+  // This is the identifier we use to identify this tree item when a tree item
+  // has been clicked. Activated from the explorer controller `onDidChangeSelection`.
+  isShowMoreItem = true;
+  onShowMoreClicked: () => void;
+
+  constructor(showMore: () => void) {
+    super('Show all fields...', vscode.TreeItemCollapsibleState.None);
+
+    this.onShowMoreClicked = showMore;
+  }
+}
 
 export default class SchemaTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<SchemaTreeItem> {
@@ -24,11 +40,14 @@ export default class SchemaTreeItem extends vscode.TreeItem
 
   isExpanded: boolean;
 
+  hasClickedShowMoreFields = false;
+
   constructor(
     collectionName: string,
     databaseName: string,
     dataService: any,
     isExpanded: boolean,
+    hasClickedShowMoreFields: boolean,
     existingCache: vscode.TreeItem[] | null
   ) {
     super(
@@ -44,6 +63,8 @@ export default class SchemaTreeItem extends vscode.TreeItem
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
+
+    this.hasClickedShowMoreFields = hasClickedShowMoreFields;
 
     if (existingCache !== null) {
       this._childrenCache = existingCache;
@@ -77,32 +98,57 @@ export default class SchemaTreeItem extends vscode.TreeItem
 
       this._dataService.find(
         namespace,
-        { /* No filter */ },
+        {
+          /* No filter */
+        },
         {
           limit: MAX_DOCUMENTS_VISIBLE
         },
         (findError: Error | undefined, documents: []) => {
           if (findError) {
-            vscode.window.showErrorMessage(`Unable to list documents: ${findError}`);
+            vscode.window.showErrorMessage(
+              `Unable to list documents: ${findError}`
+            );
             return reject(`Unable to list documents: ${findError}`);
           }
 
           this._childrenCacheIsUpToDate = true;
 
           if (!documents || documents.length === 0) {
-            vscode.window.showInformationMessage('No documents were found when attempting to parse schema.');
+            vscode.window.showInformationMessage(
+              'No documents were found when attempting to parse schema.'
+            );
             this._childrenCache = [];
             return resolve(this._childrenCache);
           }
 
           parseSchema(documents, (parseError: Error | undefined, schema) => {
             if (parseError) {
-              vscode.window.showErrorMessage(`Unable to parse schema: ${parseError.message}`);
+              vscode.window.showErrorMessage(
+                `Unable to parse schema: ${parseError.message}`
+              );
               return reject(`Unable to parse schema: ${parseError.message}`);
             }
 
-            console.log('Got schema.');
-            // console.log(JSON.stringify(schema, null, 2));
+            this._childrenCache = [];
+            const fieldsToShow = this.hasClickedShowMoreFields
+              ? schema.fields.length
+              : Math.min(FIELDS_TO_SHOW, schema.fields.length);
+            for (let i = 0; i < fieldsToShow; i++) {
+              this._childrenCache.push(new FieldTreeItem(schema.fields[i]));
+            }
+
+            // Add a clickable show more option when a schema has more fields
+            // than the default amount we show.
+            if (
+              !this.hasClickedShowMoreFields &&
+              schema.fields.length >= FIELDS_TO_SHOW
+            ) {
+              this._childrenCache.push(
+                new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
+              );
+            }
+
             return resolve(this._childrenCache);
           });
         }
@@ -112,6 +158,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
 
   onShowMoreClicked(): void {
     this._childrenCacheIsUpToDate = false;
+    this.hasClickedShowMoreFields = true;
   }
 
   onDidCollapse(): void {
