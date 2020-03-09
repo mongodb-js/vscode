@@ -8,8 +8,7 @@ import {
   OPERATION_ID_URI_IDENTIFIER
 } from './collectionDocumentsProvider';
 
-export default class CollectionDocumentsCodeLensProvider
-  implements vscode.CodeLensProvider {
+export default class CollectionDocumentsCodeLensProvider implements vscode.CodeLensProvider {
   private _codeLenses: vscode.CodeLens[] = [];
   private _activeOperationsStore: CollectionDocumentsOperationStore;
   private uri: vscode.Uri = vscode.Uri.parse('');

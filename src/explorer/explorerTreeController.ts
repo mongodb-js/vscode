@@ -12,8 +12,7 @@ import { createLogger } from '../logging';
 
 const log = createLogger('explorer controller');
 
-export default class ExplorerTreeController
-  implements vscode.TreeDataProvider<vscode.TreeItem> {
+export default class ExplorerTreeController implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _mdbConnectionsTreeItem: MDBConnectionsTreeItem;
 

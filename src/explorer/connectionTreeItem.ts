@@ -35,7 +35,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
     if (
       connectionController.getActiveConnectionInstanceId() ===
-        connectionInstanceId &&
+      connectionInstanceId &&
       !connectionController.isDisconnecting() &&
       !connectionController.isConnecting()
     ) {
@@ -71,7 +71,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     if (
       this._connectionController.isConnecting() &&
       this._connectionController.getConnectingInstanceId() ===
-        this.connectionInstanceId
+      this.connectionInstanceId
     ) {
       return 'connecting...';
     }
@@ -143,7 +143,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     const iconName =
       this._connectionController.getActiveConnectionInstanceId() ===
-      this.connectionInstanceId
+        this.connectionInstanceId
         ? 'active-connection'
         : 'inactive-connection';
     return {
