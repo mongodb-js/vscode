@@ -7,7 +7,7 @@ import { CollectionTreeItem } from '../../explorer';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import ConnectionTreeItem from '../../explorer/connectionTreeItem';
 import DatabaseTreeItem from '../../explorer/databaseTreeItem';
-import { CollectionTypes } from '../../explorer/collectionTreeItem';
+import { CollectionTypes } from '../../explorer/documentListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import ConnectionController from '../../connectionController';
 import { StorageController } from '../../storage';
@@ -15,7 +15,7 @@ import { StorageController } from '../../storage';
 const testDatabaseURI = 'mongodb://localhost:27018';
 
 suite('MDBExtensionController Test Suite', () => {
-  afterEach(function() {
+  afterEach(function () {
     sinon.restore();
   });
 
@@ -157,7 +157,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-            'craving_for_pancakes_with_maple_syrup',
+          'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })

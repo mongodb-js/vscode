@@ -1,6 +1,8 @@
 import path = require('path');
 import * as vscode from 'vscode';
 
+import { ConnectionConfigType } from './connectionConfig';
+import { DataServiceType } from './dataServiceType';
 import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
@@ -35,11 +37,11 @@ export enum DataServiceEventTypes {
 export default class ConnectionController {
   // This is a map of connection instance ids to their connection model.
   private _connectionConfigs: {
-    [key: string]: any;
+    [key: string]: ConnectionConfigType;
   } = {};
 
-  _currentConnection: any;
-  private _currentConnectionConfig: any;
+  _currentConnection: DataServiceType | null = null;
+  private _currentConnectionConfig: ConnectionConfigType | null = null;
   private _currentConnectionInstanceId: string | null = null;
 
   private _connecting = false;
@@ -65,10 +67,14 @@ export default class ConnectionController {
     if (Object.keys(existingGlobalConnectionStrings).length > 0) {
       // Try to pull in the previous connections. We are open to failing here
       // in case the old connection has been corrupted or is no longer supported.
-      Object.keys(existingGlobalConnectionStrings).forEach((connectionId) => {
+
+      Object.keys(existingGlobalConnectionStrings).forEach(connectionId => {
         Connection.from(
           existingGlobalConnectionStrings[connectionId],
-          (err, loadedGlobalConnectionConfig) => {
+          (
+            err: Error | undefined,
+            loadedGlobalConnectionConfig: ConnectionConfigType
+          ) => {
             if (err) {
               // This may indicate a connection has been corrupted or is no longer supported.
               return;
@@ -177,7 +183,7 @@ export default class ConnectionController {
     return new Promise<boolean>((resolve, reject) => {
       Connection.from(
         connectionString,
-        (error: any, newConnectionConfig: any) => {
+        (error: Error | null, newConnectionConfig: ConnectionConfigType) => {
           if (error) {
             vscode.window.showErrorMessage(`Unable to connect: ${error}`);
             return resolve(false);
@@ -214,7 +220,7 @@ export default class ConnectionController {
     });
   }
 
-  public async connect(connectionConfig: any): Promise<boolean> {
+  public async connect(connectionConfig: ConnectionConfigType): Promise<boolean> {
     log.info(
       'Connect called to connect to instance:',
       connectionConfig.getAttributes({
@@ -246,8 +252,8 @@ export default class ConnectionController {
     this._statusView.showMessage('Connecting to MongoDB...');
 
     return new Promise<boolean>((resolve) => {
-      const newConnection = new DataService(connectionConfig);
-      newConnection.connect((err: any) => {
+      const newConnection: DataServiceType = new DataService(connectionConfig);
+      newConnection.connect((err: Error | undefined) => {
         this._statusView.hideMessage();
 
         if (err) {
@@ -272,7 +278,7 @@ export default class ConnectionController {
         this._connecting = false;
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
-        resolve(true);
+        return resolve(true);
       });
     });
   }
@@ -306,18 +312,18 @@ export default class ConnectionController {
       return Promise.resolve(false);
     }
 
-    if (!this._currentConnection) {
-      vscode.window.showErrorMessage(
-        'Unable to disconnect: no active connection.'
-      );
-      return Promise.resolve(false);
-    }
-
     // Disconnect from the active connection.
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>(resolve => {
+      if (!this._currentConnection) {
+        vscode.window.showErrorMessage(
+          'Unable to disconnect: no active connection.'
+        );
+        return resolve(false);
+      }
+
       this._disconnecting = true;
       this._statusView.showMessage('Disconnecting from current connection...');
-      this._currentConnection.disconnect((err: any) => {
+      this._currentConnection.disconnect((err: Error | undefined): void => {
         if (err) {
           // Show an error, however we still reset the active connection to free up the extension.
           vscode.window.showErrorMessage(

@@ -3,9 +3,8 @@ const ns = require('mongodb-ns');
 const path = require('path');
 import { StatusView } from '../views';
 
-import CollectionTreeItem, {
-  MAX_DOCUMENTS_VISIBLE
-} from './collectionTreeItem';
+import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
+import CollectionTreeItem from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 
 export default class DatabaseTreeItem extends vscode.TreeItem
@@ -61,7 +60,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       this._dataService.listCollections(
         this.databaseName,
         {}, // No filter.
-        (err: any, collections: string[]) => {
+        (err: Error | undefined, collections: string[]) => {
           if (err) {
             return reject(
               new Error(`Unable to list collections: ${err.message}`)
@@ -82,8 +81,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
                   this.databaseName,
                   this._dataService,
                   pastChildrenCache[collection.name].isExpanded,
-                  pastChildrenCache[collection.name].getChildrenCache(),
-                  pastChildrenCache[collection.name].getMaxDocumentsToShow()
+                  pastChildrenCache[collection.name].getDocumentListChild(),
+                  pastChildrenCache[collection.name].getSchemaChild()
                 );
               } else {
                 this._childrenCache[collection.name] = new CollectionTreeItem(
@@ -91,8 +90,6 @@ export default class DatabaseTreeItem extends vscode.TreeItem
                   this.databaseName,
                   this._dataService,
                   false, // Not expanded.
-                  [], // No cached documents.
-                  MAX_DOCUMENTS_VISIBLE
                 );
               }
             });
@@ -225,7 +222,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       });
     } catch (e) {
       return Promise.reject(
-        new Error(`An error occured parsing the collection name: ${e}`)
+        new Error(`An error occured parsing the database name: ${e}`)
       );
     }
 

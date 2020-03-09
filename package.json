@@ -362,6 +362,7 @@
     "mongodb-connection-model": "^14.6.2",
     "mongodb-data-service": "^16.5.6",
     "mongodb-ns": "^2.2.0",
+    "mongodb-schema": "^8.2.5",
     "ts-log": "^2.1.4",
     "uuid": "^7.0.0"
   },
