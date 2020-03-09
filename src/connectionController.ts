@@ -183,7 +183,7 @@ export default class ConnectionController {
     return new Promise<boolean>((resolve, reject) => {
       Connection.from(
         connectionString,
-        (error: Error | null, newConnectionConfig: ConnectionConfigType) => {
+        (error: Error | undefined, newConnectionConfig: ConnectionConfigType) => {
           if (error) {
             vscode.window.showErrorMessage(`Unable to connect: ${error}`);
             return resolve(false);

@@ -1,13 +1,29 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
+import path = require('path');
 
 import DatabaseTreeItem from '../../../explorer/databaseTreeItem';
 import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
+import { CollectionTreeItem } from '../../../explorer';
+
+const { contributes } = require(path.resolve(__dirname, '../../../../package.json'));
 
 suite('DatabaseTreeItem Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
+  test('its context value should be in the package json', function () {
+    let databaseRegisteredCommandInPackageJson = false;
 
-  test('when not expanded it does not show collections', function(done) {
+    contributes.menus['view/item/context'].forEach(contextItem => {
+      if (contextItem.when.includes(DatabaseTreeItem.contextValue)) {
+        databaseRegisteredCommandInPackageJson = true;
+      }
+    });
+
+    assert(
+      databaseRegisteredCommandInPackageJson,
+      'Expected database tree item to be registered with a command in package json'
+    );
+  });
+
+  test('when not expanded it does not show collections', function (done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -26,7 +42,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('when expanded shows the collections of a database in tree', function(done) {
+  test('when expanded shows the collections of a database in tree', function (done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -46,16 +62,14 @@ suite('DatabaseTreeItem Test Suite', () => {
 
         assert(
           collections[1].label ===
-            mockDatabases[mockDatabaseNames[1]].collections[1].name,
-          `Expected a tree item child with the label collection name ${
-            mockDatabases[mockDatabaseNames[1]].collections[1].name
-          } found ${collections[1].label}`
+          mockDatabases[mockDatabaseNames[1]].collections[1].name,
+          `Expected a tree item child with the label collection name ${mockDatabases[mockDatabaseNames[1]].collections[1].name} found ${collections[1].label}`
         );
       })
       .then(done, done);
   });
 
-  test('when expanded and collapsed its collections cache their expanded documents', function(done) {
+  test('when expanded and collapsed its collections cache their expanded documents', function (done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -65,19 +79,21 @@ suite('DatabaseTreeItem Test Suite', () => {
 
     testDatabaseTreeItem.onDidExpand();
 
-    testDatabaseTreeItem.getChildren().then((collectionTreeItems) => {
+    testDatabaseTreeItem.getChildren().then((collectionTreeItems: CollectionTreeItem[]) => {
       assert(
         collectionTreeItems[1].isExpanded === false,
         'Expected collection tree item not to be expanded on default.'
       );
 
       collectionTreeItems[1].onDidExpand();
-      collectionTreeItems[1].onShowMoreClicked();
+      const documentListItem = collectionTreeItems[1].getDocumentListChild();
+      documentListItem.onDidExpand();
+      documentListItem.onShowMoreClicked();
 
-      collectionTreeItems[1].getChildren().then((documents) => {
+      documentListItem.getChildren().then((documents: any[]) => {
         assert(
           documents.length === 21,
-          `Expected 21 documents to be returned, found ${documents.length}`
+          `Expected 21 documents, recieved ${documents.length}`
         );
 
         testDatabaseTreeItem.onDidCollapse();

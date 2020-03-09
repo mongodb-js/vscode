@@ -28,13 +28,12 @@ suite('MDBExtensionController Test Suite', () => {
 
     const textCollectionTree = new CollectionTreeItem(
       {
-        name: 'testColName'
+        name: 'testColName',
+        type: CollectionTypes.collection
       },
       'testDbName',
       {},
-      false,
-      [],
-      10
+      false
     );
 
     vscode.commands
@@ -232,9 +231,7 @@ suite('MDBExtensionController Test Suite', () => {
       },
       'airZebra',
       {},
-      false,
-      [],
-      5
+      false
     );
 
     const mockCopyToClipboard = sinon.fake.resolves();
@@ -282,7 +279,7 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
-  test('mdb.refreshCollection command should reset the cache on the collection tree item and call to refresh the explorer controller', (done) => {
+  test('mdb.refreshCollection command should reset the expanded state of its children and call to refresh the explorer controller', (done) => {
     const mockTreeItem = new CollectionTreeItem(
       {
         name: 'iSawACatThatLookedLikeALionToday',
@@ -290,12 +287,12 @@ suite('MDBExtensionController Test Suite', () => {
       },
       'airZebra',
       {},
-      false,
-      [],
-      5
+      false
     );
 
-    mockTreeItem._childrenCacheIsUpToDate = true;
+    // Set expanded.
+    mockTreeItem.getSchemaChild().isExpanded = true;
+    mockTreeItem.getDocumentListChild().isExpanded = true;
 
     const mockExplorerControllerRefresh = sinon.fake.resolves();
     sinon.replace(
@@ -308,8 +305,12 @@ suite('MDBExtensionController Test Suite', () => {
       .executeCommand('mdb.refreshCollection', mockTreeItem)
       .then(() => {
         assert(
-          mockTreeItem._childrenCacheIsUpToDate === false,
-          'Expected cache on tree item to be set to not up to date.'
+          mockTreeItem.getDocumentListChild().isExpanded === false,
+          'Expected document list on collection tree item to be reset to not expanded.'
+        );
+        assert(
+          mockTreeItem.getSchemaChild().isExpanded === false,
+          'Expected schema on collection tree item to be reset to not expanded.'
         );
         assert(
           mockExplorerControllerRefresh.called === true,
@@ -672,9 +673,7 @@ suite('MDBExtensionController Test Suite', () => {
           callback(null, true);
         }
       },
-      false,
-      [],
-      10
+      false
     );
 
     const mockInputBoxResolves = sinon.stub();
@@ -700,12 +699,10 @@ suite('MDBExtensionController Test Suite', () => {
       .addNewConnectionAndConnect(testDatabaseURI)
       .then(() => {
         const testCollectionTreeItem = new CollectionTreeItem(
-          { name: 'doesntExistColName' },
+          { name: 'doesntExistColName', type: CollectionTypes.collection },
           'doesntExistDBName',
           testConnectionController.getActiveConnection(),
-          false,
-          [],
-          10
+          false
         );
 
         const mockInputBoxResolves = sinon.stub();
@@ -738,12 +735,10 @@ suite('MDBExtensionController Test Suite', () => {
 
   test('mdb.dropCollection fails when the input doesnt match the collection name', (done) => {
     const testCollectionTreeItem = new CollectionTreeItem(
-      { name: 'orange' },
+      { name: 'orange', type: CollectionTypes.collection },
       'fruitsThatAreTasty',
       {},
-      false,
-      [],
-      10
+      false
     );
 
     const mockInputBoxResolves = sinon.stub();
@@ -763,12 +758,10 @@ suite('MDBExtensionController Test Suite', () => {
 
   test('mdb.dropCollection fails when the collection name input is empty', (done) => {
     const testCollectionTreeItem = new CollectionTreeItem(
-      { name: 'orange' },
+      { name: 'orange', type: CollectionTypes.view },
       'fruitsThatAreTasty',
       {},
-      false,
-      [],
-      10
+      false
     );
 
     const mockInputBoxResolves = sinon.stub();

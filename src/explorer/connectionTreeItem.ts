@@ -11,6 +11,7 @@ enum ConnectionItemContextValues {
   disconnected = 'disconnectedConnectionTreeItem',
   connected = 'connectedConnectionTreeItem'
 }
+export { ConnectionItemContextValues };
 
 export default class ConnectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {

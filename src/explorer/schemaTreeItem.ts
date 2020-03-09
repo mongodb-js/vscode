@@ -20,7 +20,7 @@ class ShowAllFieldsTreeItem extends vscode.TreeItem {
   onShowMoreClicked: () => void;
 
   constructor(showMore: () => void) {
-    super('Show all fields...', vscode.TreeItemCollapsibleState.None);
+    super('Show more fields...', vscode.TreeItemCollapsibleState.None);
 
     this.onShowMoreClicked = showMore;
   }
@@ -31,7 +31,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
   _childrenCacheIsUpToDate = false;
   private _childrenCache: vscode.TreeItem[] = [];
 
-  contextValue = 'schemaTreeItem';
+  static contextValue = 'schemaTreeItem';
 
   collectionName: string;
   databaseName: string;
@@ -112,12 +112,11 @@ export default class SchemaTreeItem extends vscode.TreeItem
             return reject(`Unable to list documents: ${findError}`);
           }
 
-          this._childrenCacheIsUpToDate = true;
-
           if (!documents || documents.length === 0) {
             vscode.window.showInformationMessage(
               'No documents were found when attempting to parse schema.'
             );
+            this._childrenCacheIsUpToDate = true;
             this._childrenCache = [];
             return resolve(this._childrenCache);
           }
@@ -130,7 +129,9 @@ export default class SchemaTreeItem extends vscode.TreeItem
               return reject(`Unable to parse schema: ${parseError.message}`);
             }
 
+            this._childrenCacheIsUpToDate = true;
             this._childrenCache = [];
+
             const fieldsToShow = this.hasClickedShowMoreFields
               ? schema.fields.length
               : Math.min(FIELDS_TO_SHOW, schema.fields.length);

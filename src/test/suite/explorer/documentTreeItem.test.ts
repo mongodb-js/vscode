@@ -1,11 +1,8 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
 
 import DocumentTreeItem from '../../../explorer/documentTreeItem';
 
 suite('DocumentTreeItem Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
-
   test('it makes the document _id the label of the document tree item', function () {
     const mockDocument = {
       _id: 'mock_document_id'

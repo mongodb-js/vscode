@@ -40,7 +40,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
   _childrenCacheIsUpToDate = false;
   private _childrenCache: vscode.TreeItem[] = [];
 
-  contextValue = 'documentListTreeItem';
+  static contextValue = 'documentListTreeItem';
 
   // We fetch 1 more than this in order to see if there are more to fetch.
   private _maxDocumentsToShow: number;
@@ -54,7 +54,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
   isExpanded: boolean;
 
   constructor(
-    collectionName: any,
+    collectionName: string,
     databaseName: string,
     type: CollectionTypes,
     dataService: any,

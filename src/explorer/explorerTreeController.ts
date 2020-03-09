@@ -44,7 +44,14 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
   ): void => {
     treeView.onDidCollapseElement((event: any) => {
       log.info('Tree item was collapsed:', event.element.label);
+
       event.element.onDidCollapse();
+
+      if (event.element.doesNotRequireTreeUpdate) {
+        // When the element is already loaded (synchronous), we do not need to
+        // fully refresh the tree.
+        return;
+      }
 
       this.onTreeItemUpdate();
     });
@@ -55,7 +62,14 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
         return new Promise((resolve, reject) => {
           event.element.onDidExpand().then(
             () => {
+              if (event.element.doesNotRequireTreeUpdate) {
+                // When the element is already loaded (synchronous), we do not
+                //  need to fully refresh the tree.
+                return resolve(true);
+              }
+
               this.onTreeItemUpdate();
+
               resolve(true);
             },
             (err: Error) => {
@@ -70,6 +84,7 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
       if (event.selection && event.selection.length === 1) {
         if (event.selection[0].isShowMoreItem) {
           event.selection[0].onShowMoreClicked();
+
           this.onTreeItemUpdate();
         }
       }

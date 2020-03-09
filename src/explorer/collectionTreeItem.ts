@@ -9,10 +9,12 @@ import SchemaTreeItem from './schemaTreeItem';
 
 export default class CollectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
+  static contextValue = 'collectionTreeItem';
+
   private _documentListChild: DocumentListTreeItem;
   private _schemaChild: SchemaTreeItem;
 
-  contextValue = 'collectionTreeItem';
+  isSynchronousResource = true;
 
   collectionName: string;
   databaseName: string;

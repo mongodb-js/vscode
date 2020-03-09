@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
 
-import TreeItemParent from './treeItemParentInterface';
-
 export enum FieldTypes {
   document = 'Document',
   array = 'Array'
@@ -11,14 +9,23 @@ export type SchemaFieldType = {
   name: string;
   isExpanded: boolean;
   probability: number;
-  type: string;
+  bsonType: string | undefined;
+  type: string | undefined;
+  types: SchemaFieldType[];
+
+  // Note: Fields only exist on nested fields in the 'types' array.
   fields: SchemaFieldType[] | undefined;
 };
 
-function fieldIsExpandable(field: SchemaFieldType): boolean {
+export function fieldIsExpandable(field: SchemaFieldType): boolean {
   return (
     field.probability === 1 &&
-    (field.type === FieldTypes.document || field.type === FieldTypes.array)
+    (
+      field.type === FieldTypes.document ||
+      field.type === FieldTypes.array ||
+      field.bsonType === FieldTypes.document ||
+      field.bsonType === FieldTypes.array
+    )
   );
 }
 
@@ -35,9 +42,11 @@ function getCollapsibleStateForField(
 }
 
 export default class FieldTreeItem extends vscode.TreeItem
-  implements TreeItemParent, vscode.TreeDataProvider<FieldTreeItem> {
-  _childrenCacheIsUpToDate = false;
-  private _childrenCache: vscode.TreeItem[] = [];
+  implements vscode.TreeDataProvider<FieldTreeItem> {
+  // This is a flag which notes that when this tree element is updated,
+  // the tree view does not have to fully update like it does with
+  // asynchronous resources.
+  doesNotRequireTreeUpdate = true;
 
   field: SchemaFieldType;
 
@@ -45,21 +54,12 @@ export default class FieldTreeItem extends vscode.TreeItem
 
   fieldName: string;
 
-  isExpanded: boolean;
-
   constructor(field: SchemaFieldType) {
     super(field.name, getCollapsibleStateForField(field));
 
     this.field = field;
 
     this.fieldName = field.name;
-
-    this.isExpanded = field.isExpanded;
-
-    // if (existingCache !== null) {
-    //   this._childrenCache = existingCache;
-    //   this._childrenCacheIsUpToDate = true;
-    // }
   }
 
   get tooltip(): string {
@@ -75,41 +75,39 @@ export default class FieldTreeItem extends vscode.TreeItem
       return Promise.resolve([]);
     }
 
-    return new Promise((resolve) => {
-      resolve(
-        this.field.fields
-          ? this.field.fields.map((subField) => new FieldTreeItem(subField))
+    if (this.field.bsonType === FieldTypes.document) {
+      const subDocumentFields = this.field.fields;
+      return Promise.resolve(
+        subDocumentFields
+          ? subDocumentFields.map((subField) => new FieldTreeItem(subField))
           : []
       );
-    });
-  }
+    } else if (this.field.type === FieldTypes.document) {
+      const subDocumentFields = this.field.types[0].fields;
+      return Promise.resolve(
+        subDocumentFields
+          ? subDocumentFields.map((subField) => new FieldTreeItem(subField))
+          : []
+      );
+    } else if (
+      this.field.type === FieldTypes.array || this.field.bsonType === FieldTypes.array
+    ) {
+      const arrayElement = this.field.types[0];
+      return Promise.resolve([
+        new FieldTreeItem(arrayElement)
+      ]);
+    }
 
-  onShowMoreClicked(): void {
-    this._childrenCacheIsUpToDate = false;
+    return Promise.resolve([]);
   }
 
   onDidCollapse(): void {
-    this.isExpanded = false;
-    this._childrenCacheIsUpToDate = false;
+    this.field.isExpanded = false;
   }
 
   onDidExpand(): Promise<boolean> {
-    this._childrenCacheIsUpToDate = false;
-    this.isExpanded = true;
+    this.field.isExpanded = true;
 
     return Promise.resolve(true);
-  }
-
-  resetCache(): void {
-    this._childrenCache = [];
-    this._childrenCacheIsUpToDate = false;
-  }
-
-  getChildrenCache(): vscode.TreeItem[] | null {
-    if (this._childrenCacheIsUpToDate) {
-      return this._childrenCache;
-    }
-
-    return null;
   }
 }

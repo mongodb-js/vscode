@@ -1,13 +1,10 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
 
 import StorageController, { StorageVariables, StorageScope } from '../../../storage/storageController';
 
 import { TestExtensionContext } from '../stubs';
 
 suite('Storage Controller Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
-
   test('getting a variable gets it from the global context store', function () {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {
