@@ -75,7 +75,7 @@ export default class PlaygroundController {
     const res = await this._runtime.evaluate(codeToEvaluate);
     const value = formatOutput(res);
 
-    return value;
+    return Promise.resolve(value);
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
@@ -85,9 +85,16 @@ export default class PlaygroundController {
       const outputChannel = vscode.window.createOutputChannel(
         'Playground output'
       );
-      const res = await this.evaluate(codeToEvaluate);
+      let result;
 
-      outputChannel.appendLine(res);
+      try {
+        result = await this.evaluate(codeToEvaluate);
+      } catch (error) {
+        vscode.window.showErrorMessage(`Unable to run playground: ${error.message}`);
+        return resolve(false);
+      }
+
+      outputChannel.appendLine(result);
       outputChannel.show(true);
 
       resolve(true);
