@@ -30,7 +30,7 @@ suite('Playground Controller Test Suite', () => {
   suite('when user is not connected', () => {
     test('evaluate should throw the missing active connection error', async () => {
       const testConnectionController = new ConnectionController(
-        new StatusView(),
+        new StatusView(mockExtensionContext),
         mockStorageController
       );
       const testPlaygroundController = new PlaygroundController();
@@ -51,7 +51,7 @@ suite('Playground Controller Test Suite', () => {
       client: {}
     };
     const testConnectionController = new ConnectionController(
-      new StatusView(),
+      new StatusView(mockExtensionContext),
       mockStorageController
     );
     const testPlaygroundController = new PlaygroundController();
