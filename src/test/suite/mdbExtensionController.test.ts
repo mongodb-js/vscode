@@ -15,7 +15,7 @@ import { StorageController } from '../../storage';
 const testDatabaseURI = 'mongodb://localhost:27018';
 
 suite('MDBExtensionController Test Suite', () => {
-  afterEach(function () {
+  afterEach(function() {
     sinon.restore();
   });
 
@@ -37,17 +37,28 @@ suite('MDBExtensionController Test Suite', () => {
       10
     );
 
-    vscode.commands.executeCommand('mdb.viewCollectionDocuments', textCollectionTree).then(() => {
-      assert(mockOpenTextDocument.firstArg.path.indexOf('Results: testDbName.testColName') === 0);
-      assert(mockOpenTextDocument.firstArg.path.includes('.json'));
-      assert(mockOpenTextDocument.firstArg.scheme === VIEW_COLLECTION_SCHEME);
-      assert(mockOpenTextDocument.firstArg.query.includes('namespace=testDbName.testColName'));
+    vscode.commands
+      .executeCommand('mdb.viewCollectionDocuments', textCollectionTree)
+      .then(() => {
+        assert(
+          mockOpenTextDocument.firstArg.path.indexOf(
+            'Results: testDbName.testColName'
+          ) === 0
+        );
+        assert(mockOpenTextDocument.firstArg.path.includes('.json'));
+        assert(mockOpenTextDocument.firstArg.scheme === VIEW_COLLECTION_SCHEME);
+        assert(
+          mockOpenTextDocument.firstArg.query.includes(
+            'namespace=testDbName.testColName'
+          )
+        );
 
-      assert(
-        mockShowTextDocument.firstArg === 'magna carta',
-        'Expected it to call vscode to show the returned documents from the provider'
-      );
-    }).then(done, done);
+        assert(
+          mockShowTextDocument.firstArg === 'magna carta',
+          'Expected it to call vscode to show the returned documents from the provider'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.addConnection command should call addMongoDBConnection on the connection controller', (done) => {
@@ -58,12 +69,15 @@ suite('MDBExtensionController Test Suite', () => {
       mockAddConnection
     );
 
-    vscode.commands.executeCommand('mdb.addConnection').then(() => {
-      assert(
-        mockAddConnection.called,
-        'Expected "addMongoDBConnection" to be called on the connection controller.'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addConnection')
+      .then(() => {
+        assert(
+          mockAddConnection.called,
+          'Expected "addMongoDBConnection" to be called on the connection controller.'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.addConnectionWithURI command should call connectWithURI on the connection controller', (done) => {
@@ -74,12 +88,15 @@ suite('MDBExtensionController Test Suite', () => {
       mockConnectWithUri
     );
 
-    vscode.commands.executeCommand('mdb.addConnectionWithURI').then(() => {
-      assert(
-        mockConnectWithUri.called,
-        'Expected "connectWithURI" to be called on the connection controller.'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addConnectionWithURI')
+      .then(() => {
+        assert(
+          mockConnectWithUri.called,
+          'Expected "connectWithURI" to be called on the connection controller.'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.refreshConnection command should reset the cache on a connection tree item', (done) => {
@@ -100,16 +117,19 @@ suite('MDBExtensionController Test Suite', () => {
       mockExplorerControllerRefresh
     );
 
-    vscode.commands.executeCommand('mdb.refreshConnection', mockTreeItem).then(() => {
-      assert(
-        mockTreeItem._childrenCacheIsUpToDate === false,
-        'Expected cache on tree item to be set to not up to date.'
-      );
-      assert(
-        mockExplorerControllerRefresh.called === true,
-        'Expected explorer controller refresh to be called.'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.refreshConnection', mockTreeItem)
+      .then(() => {
+        assert(
+          mockTreeItem._childrenCacheIsUpToDate === false,
+          'Expected cache on tree item to be set to not up to date.'
+        );
+        assert(
+          mockExplorerControllerRefresh.called === true,
+          'Expected explorer controller refresh to be called.'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.treeItemRemoveConnection command should call removeMongoDBConnection on the connection controller with the tree item connection id', (done) => {
@@ -128,16 +148,20 @@ suite('MDBExtensionController Test Suite', () => {
       mockRemoveMongoDBConnection
     );
 
-    vscode.commands.executeCommand('mdb.treeItemRemoveConnection', mockTreeItem).then(() => {
-      assert(
-        mockRemoveMongoDBConnection.called,
-        'Expected "removeMongoDBConnection" to be called on the connection controller.'
-      );
-      assert(
-        mockRemoveMongoDBConnection.firstArg === 'craving_for_pancakes_with_maple_syrup',
-        `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.treeItemRemoveConnection', mockTreeItem)
+      .then(() => {
+        assert(
+          mockRemoveMongoDBConnection.called,
+          'Expected "removeMongoDBConnection" to be called on the connection controller.'
+        );
+        assert(
+          mockRemoveMongoDBConnection.firstArg ===
+            'craving_for_pancakes_with_maple_syrup',
+          `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.copyConnectionString command should try to copy the driver url to the vscode env clipboard', (done) => {
@@ -150,11 +174,7 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     const mockCopyToClipboard = sinon.fake.resolves();
-    sinon.replace(
-      vscode.env.clipboard,
-      'writeText',
-      mockCopyToClipboard
-    );
+    sinon.replace(vscode.env.clipboard, 'writeText', mockCopyToClipboard);
 
     const mockStubUri = sinon.fake.returns('weStubThisUri');
     sinon.replace(
@@ -163,16 +183,19 @@ suite('MDBExtensionController Test Suite', () => {
       mockStubUri
     );
 
-    vscode.commands.executeCommand('mdb.copyConnectionString', mockTreeItem).then(() => {
-      assert(
-        mockCopyToClipboard.called,
-        'Expected "writeText" to be called on "vscode.env.clipboard".'
-      );
-      assert(
-        mockCopyToClipboard.firstArg === 'weStubThisUri',
-        `Expected the clipboard to be sent the uri string "weStubThisUri", found ${mockCopyToClipboard.firstArg}.`
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.copyConnectionString', mockTreeItem)
+      .then(() => {
+        assert(
+          mockCopyToClipboard.called,
+          'Expected "writeText" to be called on "vscode.env.clipboard".'
+        );
+        assert(
+          mockCopyToClipboard.firstArg === 'weStubThisUri',
+          `Expected the clipboard to be sent the uri string "weStubThisUri", found ${mockCopyToClipboard.firstArg}.`
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.copyDatabaseName command should try to copy the database name to the vscode env clipboard', (done) => {
@@ -184,22 +207,21 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     const mockCopyToClipboard = sinon.fake.resolves();
-    sinon.replace(
-      vscode.env.clipboard,
-      'writeText',
-      mockCopyToClipboard
-    );
+    sinon.replace(vscode.env.clipboard, 'writeText', mockCopyToClipboard);
 
-    vscode.commands.executeCommand('mdb.copyDatabaseName', mockTreeItem).then(() => {
-      assert(
-        mockCopyToClipboard.called,
-        'Expected "writeText" to be called on "vscode.env.clipboard".'
-      );
-      assert(
-        mockCopyToClipboard.firstArg === 'isClubMateTheBestDrinkEver',
-        `Expected the clipboard to be sent the uri string "isClubMateTheBestDrinkEver", found ${mockCopyToClipboard.firstArg}.`
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.copyDatabaseName', mockTreeItem)
+      .then(() => {
+        assert(
+          mockCopyToClipboard.called,
+          'Expected "writeText" to be called on "vscode.env.clipboard".'
+        );
+        assert(
+          mockCopyToClipboard.firstArg === 'isClubMateTheBestDrinkEver',
+          `Expected the clipboard to be sent the uri string "isClubMateTheBestDrinkEver", found ${mockCopyToClipboard.firstArg}.`
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.copyCollectionName command should try to copy the collection name to the vscode env clipboard', (done) => {
@@ -216,31 +238,25 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     const mockCopyToClipboard = sinon.fake.resolves();
-    sinon.replace(
-      vscode.env.clipboard,
-      'writeText',
-      mockCopyToClipboard
-    );
+    sinon.replace(vscode.env.clipboard, 'writeText', mockCopyToClipboard);
 
-    vscode.commands.executeCommand('mdb.copyCollectionName', mockTreeItem).then(() => {
-      assert(
-        mockCopyToClipboard.called,
-        'Expected "writeText" to be called on "vscode.env.clipboard".'
-      );
-      assert(
-        mockCopyToClipboard.firstArg === 'waterBuffalo',
-        `Expected the clipboard to be sent the uri string "waterBuffalo", found ${mockCopyToClipboard.firstArg}.`
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.copyCollectionName', mockTreeItem)
+      .then(() => {
+        assert(
+          mockCopyToClipboard.called,
+          'Expected "writeText" to be called on "vscode.env.clipboard".'
+        );
+        assert(
+          mockCopyToClipboard.firstArg === 'waterBuffalo',
+          `Expected the clipboard to be sent the uri string "waterBuffalo", found ${mockCopyToClipboard.firstArg}.`
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.refreshDatabase command should reset the cache on the database tree item', (done) => {
-    const mockTreeItem = new DatabaseTreeItem(
-      'pinkLemonade',
-      {},
-      false,
-      {}
-    );
+    const mockTreeItem = new DatabaseTreeItem('pinkLemonade', {}, false, {});
 
     mockTreeItem._childrenCacheIsUpToDate = true;
 
@@ -251,16 +267,19 @@ suite('MDBExtensionController Test Suite', () => {
       mockExplorerControllerRefresh
     );
 
-    vscode.commands.executeCommand('mdb.refreshDatabase', mockTreeItem).then(() => {
-      assert(
-        mockTreeItem._childrenCacheIsUpToDate === false,
-        'Expected cache on tree item to be set to not up to date.'
-      );
-      assert(
-        mockExplorerControllerRefresh.called === true,
-        'Expected explorer controller refresh to be called.'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.refreshDatabase', mockTreeItem)
+      .then(() => {
+        assert(
+          mockTreeItem._childrenCacheIsUpToDate === false,
+          'Expected cache on tree item to be set to not up to date.'
+        );
+        assert(
+          mockExplorerControllerRefresh.called === true,
+          'Expected explorer controller refresh to be called.'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.refreshCollection command should reset the cache on the collection tree item and call to refresh the explorer controller', (done) => {
@@ -285,16 +304,19 @@ suite('MDBExtensionController Test Suite', () => {
       mockExplorerControllerRefresh
     );
 
-    vscode.commands.executeCommand('mdb.refreshCollection', mockTreeItem).then(() => {
-      assert(
-        mockTreeItem._childrenCacheIsUpToDate === false,
-        'Expected cache on tree item to be set to not up to date.'
-      );
-      assert(
-        mockExplorerControllerRefresh.called === true,
-        'Expected explorer controller refresh to be called.'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.refreshCollection', mockTreeItem)
+      .then(() => {
+        assert(
+          mockTreeItem._childrenCacheIsUpToDate === false,
+          'Expected cache on tree item to be set to not up to date.'
+        );
+        assert(
+          mockExplorerControllerRefresh.called === true,
+          'Expected explorer controller refresh to be called.'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.addDatabase command fails when not connected to the connection', (done) => {
@@ -307,23 +329,23 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(
-      vscode.window,
-      'showErrorMessage',
-      fakeVscodeErrorMessage
-    );
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
-    vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem).then(addDatabaseSucceeded => {
-      assert(
-        addDatabaseSucceeded === false,
-        'Expected the command handler to return a false succeeded response'
-      );
-      const expectedMessage = 'Please connect to this connection before adding a database.';
-      assert(
-        fakeVscodeErrorMessage.firstArg === expectedMessage,
-        `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
-      );
-    }, done).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addDatabase', mockTreeItem)
+      .then((addDatabaseSucceeded) => {
+        assert(
+          addDatabaseSucceeded === false,
+          'Expected the command handler to return a false succeeded response'
+        );
+        const expectedMessage =
+          'Please connect to this connection before adding a database.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
+        );
+      }, done)
+      .then(done, done);
   });
 
   test('mdb.addDatabase command calls the dataservice to add the database and collection the user inputs', (done) => {
@@ -338,11 +360,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('theDbName');
     mockInputBoxResolves.onCall(1).resolves('theCollectionName');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
     let returnedNamespaceArg = '';
     const mockGetActiveConnection = sinon.fake.returns({
@@ -363,17 +381,20 @@ suite('MDBExtensionController Test Suite', () => {
       mockActiveConnectionId
     );
 
-    vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem).then(succeeded => {
-      assert(succeeded);
-      assert(
-        mockInputBoxResolves.called === true,
-        'Expected show input box to be called'
-      );
-      assert(
-        returnedNamespaceArg === 'theDbName.theCollectionName',
-        'Expected create collection to be called with the namespace supplied.'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addDatabase', mockTreeItem)
+      .then((succeeded) => {
+        assert(succeeded);
+        assert(
+          mockInputBoxResolves.called === true,
+          'Expected show input box to be called'
+        );
+        assert(
+          returnedNamespaceArg === 'theDbName.theCollectionName',
+          'Expected create collection to be called with the namespace supplied.'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.addDatabase command fails when disconnecting', (done) => {
@@ -388,11 +409,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('theDbName');
     mockInputBoxResolves.onCall(1).resolves('theCollectionName');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
     const mockIsDisconnecting = sinon.fake.returns(true);
     sinon.replace(
@@ -411,17 +428,21 @@ suite('MDBExtensionController Test Suite', () => {
       mockActiveConnectionId
     );
 
-    vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem).then(addDatabaseSucceeded => {
-      assert(
-        addDatabaseSucceeded === false,
-        'Expected the add database command handler to return a false succeeded response'
-      );
-      const expectedMessage = 'Unable to add database: currently disconnecting.';
-      assert(
-        fakeVscodeErrorMessage.firstArg === expectedMessage,
-        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${fakeVscodeErrorMessage.firstArg}"`
-      );
-    }, done).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addDatabase', mockTreeItem)
+      .then((addDatabaseSucceeded) => {
+        assert(
+          addDatabaseSucceeded === false,
+          'Expected the add database command handler to return a false succeeded response'
+        );
+        const expectedMessage =
+          'Unable to add database: currently disconnecting.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${fakeVscodeErrorMessage.firstArg}"`
+        );
+      }, done)
+      .then(done, done);
   });
 
   test('mdb.addDatabase command fails when connecting', (done) => {
@@ -436,11 +457,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('theDbName');
     mockInputBoxResolves.onCall(1).resolves('theCollectionName');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
     const mockIsConnecting = sinon.fake.returns(true);
     sinon.replace(
@@ -458,17 +475,20 @@ suite('MDBExtensionController Test Suite', () => {
       mockActiveConnectionId
     );
 
-    vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem).then(addDatabaseSucceeded => {
-      assert(
-        addDatabaseSucceeded === false,
-        'Expected the add database command handler to return a false succeeded response'
-      );
-      const expectedMessage = 'Unable to add database: currently connecting.';
-      assert(
-        fakeVscodeErrorMessage.firstArg === expectedMessage,
-        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${fakeVscodeErrorMessage.firstArg}"`
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addDatabase', mockTreeItem)
+      .then((addDatabaseSucceeded) => {
+        assert(
+          addDatabaseSucceeded === false,
+          'Expected the add database command handler to return a false succeeded response'
+        );
+        const expectedMessage = 'Unable to add database: currently connecting.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${fakeVscodeErrorMessage.firstArg}"`
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.addDatabase shows a status bar item while it is creating the collection then hide it', (done) => {
@@ -494,11 +514,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('theDbName');
     mockInputBoxResolves.onCall(1).resolves('theCollectionName');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
     const mockGetActiveConnection = sinon.fake.returns({
       createCollection: (namespace, options, callback) => {
         assert(stubShowMessage.called);
@@ -524,9 +540,12 @@ suite('MDBExtensionController Test Suite', () => {
       mockActiveConnectionId
     );
 
-    vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem).then(() => {
-      assert(stubHideMessage.called === true);
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addDatabase', mockTreeItem)
+      .then(() => {
+        assert(stubHideMessage.called === true);
+      })
+      .then(done, done);
   });
 
   test('mdb.addCollection command calls the dataservice to add the collection the user inputs', (done) => {
@@ -547,34 +566,28 @@ suite('MDBExtensionController Test Suite', () => {
     mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(addCollectionSucceeded => {
-      assert(addCollectionSucceeded);
-      assert(
-        mockInputBoxResolves.called === true,
-        'Expected show input box to be called'
-      );
-      assert(
-        returnedNamespaceArg === 'iceCreamDB.mintChocolateChips',
-        `Expected create collection to be called with the namespace "iceCreamDB.mintChocolateChips" got ${returnedNamespaceArg}.`
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addCollection', mockTreeItem)
+      .then((addCollectionSucceeded) => {
+        assert(addCollectionSucceeded);
+        assert(
+          mockInputBoxResolves.called === true,
+          'Expected show input box to be called'
+        );
+        assert(
+          returnedNamespaceArg === 'iceCreamDB.mintChocolateChips',
+          `Expected create collection to be called with the namespace "iceCreamDB.mintChocolateChips" got ${returnedNamespaceArg}.`
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.addCollection command fails when disconnecting', (done) => {
-    const mockTreeItem = new DatabaseTreeItem(
-      'iceCreamDB',
-      {},
-      false,
-      {}
-    );
+    const mockTreeItem = new DatabaseTreeItem('iceCreamDB', {}, false, {});
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
     const mockIsDisconnecting = sinon.fake.returns(true);
     sinon.replace(
@@ -586,17 +599,21 @@ suite('MDBExtensionController Test Suite', () => {
     const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
-    vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(addCollectionSucceeded => {
-      assert(
-        addCollectionSucceeded === false,
-        'Expected the add collection command handler to return a false succeeded response'
-      );
-      const expectedMessage = 'Unable to add collection: currently disconnecting.';
-      assert(
-        fakeVscodeErrorMessage.firstArg === expectedMessage,
-        `Expected "${expectedMessage}" when adding a database to a not connected connection, recieved "${fakeVscodeErrorMessage.firstArg}"`
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addCollection', mockTreeItem)
+      .then((addCollectionSucceeded) => {
+        assert(
+          addCollectionSucceeded === false,
+          'Expected the add collection command handler to return a false succeeded response'
+        );
+        const expectedMessage =
+          'Unable to add collection: currently disconnecting.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected "${expectedMessage}" when adding a database to a not connected connection, recieved "${fakeVscodeErrorMessage.firstArg}"`
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.addCollection shows a status bar item while it is creating the collection then hide it', (done) => {
@@ -632,15 +649,14 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands.executeCommand('mdb.addCollection', mockTreeItem).then(() => {
-      assert(stubHideMessage.called === true);
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.addCollection', mockTreeItem)
+      .then(() => {
+        assert(stubHideMessage.called === true);
+      })
+      .then(done, done);
   });
 
   // https://code.visualstudio.com/api/references/contribution-points#Sorting-of-groups
@@ -663,16 +679,15 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('testColName');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands.executeCommand('mdb.dropCollection', testCollectionTreeItem).then(successfullyDropped => {
-      assert(successfullyDropped);
-      assert(calledNamespace === 'testDbName.testColName');
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.dropCollection', testCollectionTreeItem)
+      .then((successfullyDropped) => {
+        assert(successfullyDropped);
+        assert(calledNamespace === 'testDbName.testColName');
+      })
+      .then(done, done);
   });
 
   test('mdb.dropCollection fails when a collection doesnt exist', (done) => {
@@ -681,37 +696,44 @@ suite('MDBExtensionController Test Suite', () => {
       new StorageController(mdbTestExtension.testExtensionContext)
     );
 
-    testConnectionController.addNewConnectionAndConnect(
-      testDatabaseURI
-    ).then(() => {
-      const testCollectionTreeItem = new CollectionTreeItem(
-        { name: 'doesntExistColName' },
-        'doesntExistDBName',
-        testConnectionController.getActiveConnection(),
-        false,
-        [],
-        10
-      );
-
-      const mockInputBoxResolves = sinon.stub();
-      mockInputBoxResolves.onCall(0).resolves('doesntExistColName');
-      sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
-
-      const fakeVscodeErrorMessage = sinon.fake();
-      sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
-      vscode.commands.executeCommand('mdb.dropCollection', testCollectionTreeItem).then(successfullyDropped => {
-        assert(
-          successfullyDropped === false,
-          'Expected the drop collection command handler to return a false succeeded response'
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(() => {
+        const testCollectionTreeItem = new CollectionTreeItem(
+          { name: 'doesntExistColName' },
+          'doesntExistDBName',
+          testConnectionController.getActiveConnection(),
+          false,
+          [],
+          10
         );
-        const expectedMessage = 'Drop collection failed: ns not found';
-        assert(
-          fakeVscodeErrorMessage.firstArg === expectedMessage,
-          `Expected "${expectedMessage}" when dropping a collection that doesn't exist, recieved "${fakeVscodeErrorMessage.firstArg}"`
+
+        const mockInputBoxResolves = sinon.stub();
+        mockInputBoxResolves.onCall(0).resolves('doesntExistColName');
+        sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+
+        const fakeVscodeErrorMessage = sinon.fake();
+        sinon.replace(
+          vscode.window,
+          'showErrorMessage',
+          fakeVscodeErrorMessage
         );
-      }).then(done, done);
-    });
+
+        vscode.commands
+          .executeCommand('mdb.dropCollection', testCollectionTreeItem)
+          .then((successfullyDropped) => {
+            assert(
+              successfullyDropped === false,
+              'Expected the drop collection command handler to return a false succeeded response'
+            );
+            const expectedMessage = 'Drop collection failed: ns not found';
+            assert(
+              fakeVscodeErrorMessage.firstArg === expectedMessage,
+              `Expected "${expectedMessage}" when dropping a collection that doesn't exist, recieved "${fakeVscodeErrorMessage.firstArg}"`
+            );
+          })
+          .then(done, done);
+      });
   });
 
   test('mdb.dropCollection fails when the input doesnt match the collection name', (done) => {
@@ -726,18 +748,17 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('apple');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands.executeCommand('mdb.dropCollection', testCollectionTreeItem).then(successfullyDropped => {
-      assert(
-        successfullyDropped === false,
-        'Expected the drop collection command handler to return a false succeeded response'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.dropCollection', testCollectionTreeItem)
+      .then((successfullyDropped) => {
+        assert(
+          successfullyDropped === false,
+          'Expected the drop collection command handler to return a false succeeded response'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.dropCollection fails when the collection name input is empty', (done) => {
@@ -752,18 +773,17 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves(/* Return undefined. */);
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands.executeCommand('mdb.dropCollection', testCollectionTreeItem).then(successfullyDropped => {
-      assert(
-        successfullyDropped === false,
-        'Expected the drop collection command handler to return a false succeeded response'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.dropCollection', testCollectionTreeItem)
+      .then((successfullyDropped) => {
+        assert(
+          successfullyDropped === false,
+          'Expected the drop collection command handler to return a false succeeded response'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.dropDatabase calls dataservice to drop the database after inputting the database name', (done) => {
@@ -782,16 +802,15 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('iMissTangerineAltoids');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands.executeCommand('mdb.dropDatabase', testDatabaseTreeItem).then(successfullyDropped => {
-      assert(successfullyDropped);
-      assert(calledDatabaseName === 'iMissTangerineAltoids');
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.dropDatabase', testDatabaseTreeItem)
+      .then((successfullyDropped) => {
+        assert(successfullyDropped);
+        assert(calledDatabaseName === 'iMissTangerineAltoids');
+      })
+      .then(done, done);
   });
 
   test('mdb.dropDatabase succeeds even when a database doesnt exist (mdb behavior)', (done) => {
@@ -800,42 +819,41 @@ suite('MDBExtensionController Test Suite', () => {
       new StorageController(mdbTestExtension.testExtensionContext)
     );
 
-    testConnectionController.addNewConnectionAndConnect(
-      testDatabaseURI
-    ).then(() => {
-      const testDatabaseTreeItem = new DatabaseTreeItem(
-        'narnia____a',
-        testConnectionController.getActiveConnection(),
-        false,
-        {}
-      );
-
-      const mockInputBoxResolves = sinon.stub();
-      mockInputBoxResolves.onCall(0).resolves('narnia____a');
-      sinon.replace(
-        vscode.window,
-        'showInputBox',
-        mockInputBoxResolves
-      );
-
-      const fakeVscodeErrorMessage = sinon.fake();
-      sinon.replace(
-        vscode.window,
-        'showErrorMessage',
-        fakeVscodeErrorMessage
-      );
-
-      vscode.commands.executeCommand('mdb.dropDatabase', testDatabaseTreeItem).then(successfullyDropped => {
-        assert(
-          successfullyDropped,
-          'Expected the drop database command handler to return a successful boolean response'
+    testConnectionController
+      .addNewConnectionAndConnect(testDatabaseURI)
+      .then(() => {
+        const testDatabaseTreeItem = new DatabaseTreeItem(
+          'narnia____a',
+          testConnectionController.getActiveConnection(),
+          false,
+          {}
         );
-        assert(
-          fakeVscodeErrorMessage.called === false,
-          'Expected no error messages'
+
+        const mockInputBoxResolves = sinon.stub();
+        mockInputBoxResolves.onCall(0).resolves('narnia____a');
+        sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+
+        const fakeVscodeErrorMessage = sinon.fake();
+        sinon.replace(
+          vscode.window,
+          'showErrorMessage',
+          fakeVscodeErrorMessage
         );
-      }).then(done, done);
-    });
+
+        vscode.commands
+          .executeCommand('mdb.dropDatabase', testDatabaseTreeItem)
+          .then((successfullyDropped) => {
+            assert(
+              successfullyDropped,
+              'Expected the drop database command handler to return a successful boolean response'
+            );
+            assert(
+              fakeVscodeErrorMessage.called === false,
+              'Expected no error messages'
+            );
+          })
+          .then(done, done);
+      });
   });
 
   test('mdb.dropDatabase fails when the input doesnt match the database name', (done) => {
@@ -848,18 +866,17 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('apple');
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands.executeCommand('mdb.dropDatabase', testDatabaseTreeItem).then(successfullyDropped => {
-      assert(
-        successfullyDropped === false,
-        'Expected the drop database command handler to return a false succeeded response'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.dropDatabase', testDatabaseTreeItem)
+      .then((successfullyDropped) => {
+        assert(
+          successfullyDropped === false,
+          'Expected the drop database command handler to return a false succeeded response'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.dropDatabase fails when the database name input is empty', (done) => {
@@ -872,17 +889,16 @@ suite('MDBExtensionController Test Suite', () => {
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves(/* Return undefined. */);
-    sinon.replace(
-      vscode.window,
-      'showInputBox',
-      mockInputBoxResolves
-    );
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands.executeCommand('mdb.dropDatabase', testDatabaseTreeItem).then(successfullyDropped => {
-      assert(
-        successfullyDropped === false,
-        'Expected the drop database command handler to return a false succeeded response'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.dropDatabase', testDatabaseTreeItem)
+      .then((successfullyDropped) => {
+        assert(
+          successfullyDropped === false,
+          'Expected the drop database command handler to return a false succeeded response'
+        );
+      })
+      .then(done, done);
   });
 });

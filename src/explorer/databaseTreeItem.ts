@@ -3,7 +3,9 @@ const ns = require('mongodb-ns');
 const path = require('path');
 import { StatusView } from '../views';
 
-import CollectionTreeItem, { MAX_DOCUMENTS_VISIBLE } from './collectionTreeItem';
+import CollectionTreeItem, {
+  MAX_DOCUMENTS_VISIBLE
+} from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 
 export default class DatabaseTreeItem extends vscode.TreeItem
@@ -61,7 +63,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         {}, // No filter.
         (err: any, collections: string[]) => {
           if (err) {
-            return reject(new Error(`Unable to list collections: ${err.message}`));
+            return reject(
+              new Error(`Unable to list collections: ${err.message}`)
+            );
           }
 
           this._childrenCacheIsUpToDate = true;
@@ -97,14 +101,34 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           }
 
           return resolve(Object.values(this._childrenCache));
-        });
+        }
+      );
     });
   }
 
-  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     return {
-      light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'database.svg'),
-      dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'database.svg')
+      light: path.join(
+        __filename,
+        '..',
+        '..',
+        '..',
+        'resources',
+        'light',
+        'database.svg'
+      ),
+      dark: path.join(
+        __filename,
+        '..',
+        '..',
+        '..',
+        'resources',
+        'dark',
+        'database.svg'
+      )
     };
   }
 
@@ -128,22 +152,25 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return this._childrenCache;
   }
 
-  async onAddCollectionClicked(context: vscode.ExtensionContext): Promise<boolean> {
+  async onAddCollectionClicked(
+    context: vscode.ExtensionContext
+  ): Promise<boolean> {
     const databaseName = this.databaseName;
 
     let collectionName;
     try {
       collectionName = await vscode.window.showInputBox({
         value: '',
-        placeHolder:
-          'e.g. myNewCollection',
+        placeHolder: 'e.g. myNewCollection',
         prompt: 'Enter the new collection name.',
         validateInput: (inputCollectionName: any) => {
           if (!inputCollectionName) {
             return null;
           }
 
-          if (!ns(`${databaseName}.${inputCollectionName}`).validCollectionName) {
+          if (
+            !ns(`${databaseName}.${inputCollectionName}`).validCollectionName
+          ) {
             return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
           }
 
@@ -167,7 +194,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     const statusBarItem = new StatusView(context);
     statusBarItem.showMessage('Creating new collection...');
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this._dataService.createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
@@ -175,7 +202,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           statusBarItem.hideMessage();
 
           if (err) {
-            vscode.window.showErrorMessage(`Create collection failed: ${err.message}`);
+            vscode.window.showErrorMessage(
+              `Create collection failed: ${err.message}`
+            );
             return resolve(false);
           }
 
@@ -194,11 +223,13 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     try {
       inputtedDatabaseName = await vscode.window.showInputBox({
         value: '',
-        placeHolder:
-          'e.g. myNewCollection',
+        placeHolder: 'e.g. myNewCollection',
         prompt: `Are you sure you wish to drop this database? Enter the database name '${databaseName}' to confirm.`,
         validateInput: (inputDatabaseName: any) => {
-          if (inputDatabaseName && !databaseName.startsWith(inputDatabaseName)) {
+          if (
+            inputDatabaseName &&
+            !databaseName.startsWith(inputDatabaseName)
+          ) {
             return 'Database name does not match';
           }
 
@@ -215,18 +246,18 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       return Promise.resolve(false);
     }
 
-    return new Promise(resolve => {
-      this._dataService.dropDatabase(databaseName,
-        (err) => {
-          if (err) {
-            vscode.window.showErrorMessage(`Drop database failed: ${err.message}`);
-            return resolve(false);
-          }
-
-          this._childrenCacheIsUpToDate = false;
-          return resolve(true);
+    return new Promise((resolve) => {
+      this._dataService.dropDatabase(databaseName, (err) => {
+        if (err) {
+          vscode.window.showErrorMessage(
+            `Drop database failed: ${err.message}`
+          );
+          return resolve(false);
         }
-      );
+
+        this._childrenCacheIsUpToDate = false;
+        return resolve(true);
+      });
     });
   }
 }

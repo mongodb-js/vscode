@@ -7,7 +7,7 @@ import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
 suite('DatabaseTreeItem Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  test('when not expanded it does not show collections', function (done) {
+  test('when not expanded it does not show collections', function(done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -26,7 +26,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('when expanded shows the collections of a database in tree', function (done) {
+  test('when expanded shows the collections of a database in tree', function(done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -46,14 +46,16 @@ suite('DatabaseTreeItem Test Suite', () => {
 
         assert(
           collections[1].label ===
-          mockDatabases[mockDatabaseNames[1]].collections[1].name,
-          `Expected a tree item child with the label collection name ${mockDatabases[mockDatabaseNames[1]].collections[1].name} found ${collections[1].label}`
+            mockDatabases[mockDatabaseNames[1]].collections[1].name,
+          `Expected a tree item child with the label collection name ${
+            mockDatabases[mockDatabaseNames[1]].collections[1].name
+          } found ${collections[1].label}`
         );
       })
       .then(done, done);
   });
 
-  test('when expanded and collapsed its collections cache their expanded documents', function (done) {
+  test('when expanded and collapsed its collections cache their expanded documents', function(done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -63,7 +65,7 @@ suite('DatabaseTreeItem Test Suite', () => {
 
     testDatabaseTreeItem.onDidExpand();
 
-    testDatabaseTreeItem.getChildren().then(collectionTreeItems => {
+    testDatabaseTreeItem.getChildren().then((collectionTreeItems) => {
       assert(
         collectionTreeItems[1].isExpanded === false,
         'Expected collection tree item not to be expanded on default.'
@@ -79,28 +81,35 @@ suite('DatabaseTreeItem Test Suite', () => {
         );
 
         testDatabaseTreeItem.onDidCollapse();
-        testDatabaseTreeItem.getChildren().then(postCollapseCollectionTreeItems => {
-          assert(
-            postCollapseCollectionTreeItems.length === 0,
-            `Expected the database tree to return no children when collapsed, found ${collectionTreeItems.length}`
-          );
-
-          testDatabaseTreeItem.onDidExpand();
-          testDatabaseTreeItem.getChildren().then(newCollectionTreeItems => {
+        testDatabaseTreeItem
+          .getChildren()
+          .then((postCollapseCollectionTreeItems) => {
             assert(
-              newCollectionTreeItems[1].isExpanded === true,
-              'Expected collection tree item to be expanded from cache.'
+              postCollapseCollectionTreeItems.length === 0,
+              `Expected the database tree to return no children when collapsed, found ${collectionTreeItems.length}`
             );
 
-            newCollectionTreeItems[1].getChildren().then((documentsPostCollapseExpand) => {
-              // It should cache that we activated show more.
-              assert(
-                documentsPostCollapseExpand.length === 21,
-                `Expected a cached 21 documents to be returned, found ${documents.length}`
-              );
-            }).then(done, done);
+            testDatabaseTreeItem.onDidExpand();
+            testDatabaseTreeItem
+              .getChildren()
+              .then((newCollectionTreeItems) => {
+                assert(
+                  newCollectionTreeItems[1].isExpanded === true,
+                  'Expected collection tree item to be expanded from cache.'
+                );
+
+                newCollectionTreeItems[1]
+                  .getChildren()
+                  .then((documentsPostCollapseExpand) => {
+                    // It should cache that we activated show more.
+                    assert(
+                      documentsPostCollapseExpand.length === 21,
+                      `Expected a cached 21 documents to be returned, found ${documents.length}`
+                    );
+                  })
+                  .then(done, done);
+              });
           });
-        });
       });
     });
   });

@@ -31,15 +31,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     connectionController: ConnectionController,
     existingChildrenCache: { [key: string]: DatabaseTreeItem }
   ) {
-    super(
-      connectionInstanceId,
-      collapsibleState
-    );
+    super(connectionInstanceId, collapsibleState);
 
     if (
-      connectionController.getActiveConnectionInstanceId() === connectionInstanceId
-      && !connectionController.isDisconnecting()
-      && !connectionController.isConnecting()
+      connectionController.getActiveConnectionInstanceId() ===
+        connectionInstanceId &&
+      !connectionController.isDisconnecting() &&
+      !connectionController.isConnecting()
     ) {
       this.contextValue = ConnectionItemContextValues.connected;
     }
@@ -70,8 +68,10 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return 'connected';
     }
 
-    if (this._connectionController.isConnecting()
-      && this._connectionController.getConnectingInstanceId() === this.connectionInstanceId
+    if (
+      this._connectionController.isConnecting() &&
+      this._connectionController.getConnectingInstanceId() ===
+        this.connectionInstanceId
     ) {
       return 'connecting...';
     }
@@ -84,9 +84,10 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<any[]> {
-    if (!this.isExpanded
-      || this._connectionController.isDisconnecting()
-      || this._connectionController.isConnecting()
+    if (
+      !this.isExpanded ||
+      this._connectionController.isDisconnecting() ||
+      this._connectionController.isConnecting()
     ) {
       return Promise.resolve([]);
     }
@@ -136,16 +137,35 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     });
   }
 
-  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    return this._connectionController.getActiveConnectionInstanceId() === this.connectionInstanceId
-      ? {
-        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'active-connection.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'active-connection.svg')
-      }
-      : {
-        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'inactive-connection.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'inactive-connection.svg')
-      };
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const iconName =
+      this._connectionController.getActiveConnectionInstanceId() ===
+      this.connectionInstanceId
+        ? 'active-connection'
+        : 'inactive-connection';
+    return {
+      light: path.join(
+        __filename,
+        '..',
+        '..',
+        '..',
+        'resources',
+        'light',
+        `${iconName}.svg`
+      ),
+      dark: path.join(
+        __filename,
+        '..',
+        '..',
+        '..',
+        'resources',
+        'dark',
+        `${iconName}.svg`
+      )
+    };
   }
 
   onDidCollapse(): void {
@@ -157,20 +177,25 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
 
-    if (this._connectionController.getActiveConnectionInstanceId() === this.connectionInstanceId) {
+    if (
+      this._connectionController.getActiveConnectionInstanceId() ===
+      this.connectionInstanceId
+    ) {
       return Promise.resolve(true);
     }
 
     // If we aren't the active connection, we reconnect.
-    return new Promise(resolve => {
-      this._connectionController.connectWithInstanceId(this.connectionInstanceId).then(
-        () => resolve(true),
-        err => {
-          this.isExpanded = false;
-          vscode.window.showErrorMessage(err);
-          resolve(false);
-        }
-      );
+    return new Promise((resolve) => {
+      this._connectionController
+        .connectWithInstanceId(this.connectionInstanceId)
+        .then(
+          () => resolve(true),
+          (err) => {
+            this.isExpanded = false;
+            vscode.window.showErrorMessage(err);
+            resolve(false);
+          }
+        );
     });
   }
 
@@ -183,19 +208,20 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     return this._childrenCache;
   }
 
-  async onAddDatabaseClicked(context: vscode.ExtensionContext): Promise<boolean> {
+  async onAddDatabaseClicked(
+    context: vscode.ExtensionContext
+  ): Promise<boolean> {
     let databaseName;
     try {
       databaseName = await vscode.window.showInputBox({
         value: '',
-        placeHolder:
-          'e.g. myNewDB',
+        placeHolder: 'e.g. myNewDB',
         prompt: 'Enter the new database name.',
         validateInput: (inputDatabaseName: any) => {
           if (
-            inputDatabaseName
-            && inputDatabaseName.length > 0
-            && !ns(inputDatabaseName).validDatabaseName
+            inputDatabaseName &&
+            inputDatabaseName.length > 0 &&
+            !ns(inputDatabaseName).validDatabaseName
           ) {
             return 'MongoDB database names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
           }
@@ -217,15 +243,17 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     try {
       collectionName = await vscode.window.showInputBox({
         value: '',
-        placeHolder:
-          'e.g. myNewCollection',
-        prompt: 'Enter the new collection name. (A database must have a collection to be created.)',
+        placeHolder: 'e.g. myNewCollection',
+        prompt:
+          'Enter the new collection name. (A database must have a collection to be created.)',
         validateInput: (inputCollectionName: any) => {
           if (!inputCollectionName) {
             return null;
           }
 
-          if (!ns(`${databaseName}.${inputCollectionName}`).validCollectionName) {
+          if (
+            !ns(`${databaseName}.${inputCollectionName}`).validCollectionName
+          ) {
             return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
           }
 
@@ -237,9 +265,9 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         }
       });
     } catch (e) {
-      return Promise.reject(new Error(
-        `An error occured parsing the collection name: ${e}`
-      ));
+      return Promise.reject(
+        new Error(`An error occured parsing the collection name: ${e}`)
+      );
     }
 
     if (!collectionName) {
@@ -249,7 +277,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     const statusView = new StatusView(context);
     statusView.showMessage('Creating new database and collection...');
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this._connectionController.getActiveConnection().createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
@@ -257,7 +285,9 @@ export default class ConnectionTreeItem extends vscode.TreeItem
           statusView.hideMessage();
 
           if (err) {
-            vscode.window.showErrorMessage(`Create collection failed: ${err.message}`);
+            vscode.window.showErrorMessage(
+              `Create collection failed: ${err.message}`
+            );
             return resolve(false);
           }
 

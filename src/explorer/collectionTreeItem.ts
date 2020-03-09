@@ -56,7 +56,12 @@ export default class CollectionTreeItem extends vscode.TreeItem
     existingChildrenCache: vscode.TreeItem[],
     maxDocumentsToShow: number
   ) {
-    super(collection.name, isExpanded ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed);
+    super(
+      collection.name,
+      isExpanded
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Collapsed
+    );
 
     this.collectionName = collection.name;
     this.databaseName = databaseName;
@@ -93,7 +98,9 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
       this._dataService.find(
         namespace,
-        { /* No filter */ },
+        {
+          /* No filter */
+        },
         {
           // We fetch 1 more than the max documents to show to see if
           // there are more documents we aren't showing.
@@ -107,19 +114,17 @@ export default class CollectionTreeItem extends vscode.TreeItem
           this._childrenCacheIsUpToDate = true;
 
           if (documents) {
-            this._childrenCache = documents.map(
-              (document, index) => {
-                if (index === this._maxDocumentsToShow) {
-                  return new ShowMoreDocumentsTreeItem(
-                    namespace,
-                    () => this.onShowMoreClicked(),
-                    this._maxDocumentsToShow
-                  );
-                }
-
-                return new DocumentTreeItem(document, index);
+            this._childrenCache = documents.map((document, index) => {
+              if (index === this._maxDocumentsToShow) {
+                return new ShowMoreDocumentsTreeItem(
+                  namespace,
+                  () => this.onShowMoreClicked(),
+                  this._maxDocumentsToShow
+                );
               }
-            );
+
+              return new DocumentTreeItem(document, index);
+            });
           } else {
             this._childrenCache = [];
           }
@@ -130,16 +135,32 @@ export default class CollectionTreeItem extends vscode.TreeItem
     });
   }
 
-  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    return this._type === CollectionTypes.collection
-      ? {
-        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'collection.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'collection.svg')
-      }
-      : {
-        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'view.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'view.svg')
-      };
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const iconName =
+      this._type === CollectionTypes.collection ? 'collection' : 'view';
+    return {
+      light: path.join(
+        __filename,
+        '..',
+        '..',
+        '..',
+        'resources',
+        'light',
+        `${iconName}.svg`
+      ),
+      dark: path.join(
+        __filename,
+        '..',
+        '..',
+        '..',
+        'resources',
+        'dark',
+        `${iconName}.svg`
+      )
+    };
   }
 
   onShowMoreClicked(): void {
@@ -180,11 +201,13 @@ export default class CollectionTreeItem extends vscode.TreeItem
     try {
       inputtedCollectionName = await vscode.window.showInputBox({
         value: '',
-        placeHolder:
-          'e.g. myNewCollection',
+        placeHolder: 'e.g. myNewCollection',
         prompt: `Are you sure you wish to drop this collection? Enter the collection name '${collectionName}' to confirm.`,
         validateInput: (inputCollectionName: any) => {
-          if (inputCollectionName && !collectionName.startsWith(inputCollectionName)) {
+          if (
+            inputCollectionName &&
+            !collectionName.startsWith(inputCollectionName)
+          ) {
             return 'Collection name does not match';
           }
 
@@ -201,11 +224,14 @@ export default class CollectionTreeItem extends vscode.TreeItem
       return Promise.resolve(false);
     }
 
-    return new Promise(resolve => {
-      this._dataService.dropCollection(`${this.databaseName}.${collectionName}`,
+    return new Promise((resolve) => {
+      this._dataService.dropCollection(
+        `${this.databaseName}.${collectionName}`,
         (err, successfullyDroppedCollection) => {
           if (err) {
-            vscode.window.showErrorMessage(`Drop collection failed: ${err.message}`);
+            vscode.window.showErrorMessage(
+              `Drop collection failed: ${err.message}`
+            );
             return resolve(false);
           }
 
