@@ -38,7 +38,9 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
       const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
 
       if (!operationId) {
-        vscode.window.showErrorMessage('Unable to list documents: invalid operation');
+        vscode.window.showErrorMessage(
+          'Unable to list documents: invalid operation'
+        );
         return reject(new Error('Unable to list documents: invalid operation'));
       }
 
@@ -46,10 +48,19 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
       const documentLimit = operation.currentLimit;
 
       // Ensure we're still connected to the correct connection.
-      if (connectionInstanceId !== this._connectionController.getActiveConnectionInstanceId()) {
+      if (
+        connectionInstanceId !==
+        this._connectionController.getActiveConnectionInstanceId()
+      ) {
         operation.isCurrentlyFetchingMoreDocuments = false;
-        vscode.window.showErrorMessage(`Unable to list documents: no longer connected to ${connectionInstanceId}`);
-        return reject(new Error(`Unable to list documents: no longer connected to ${connectionInstanceId}`));
+        vscode.window.showErrorMessage(
+          `Unable to list documents: no longer connected to ${connectionInstanceId}`
+        );
+        return reject(
+          new Error(
+            `Unable to list documents: no longer connected to ${connectionInstanceId}`
+          )
+        );
       }
 
       this._statusView.showMessage('Fetching documents...');
@@ -66,8 +77,12 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
           this._statusView.hideMessage();
 
           if (err) {
-            vscode.window.showErrorMessage(`Unable to list documents: ${err.message}`);
-            return reject(new Error(`Unable to list documents: ${err.message}`));
+            vscode.window.showErrorMessage(
+              `Unable to list documents: ${err.message}`
+            );
+            return reject(
+              new Error(`Unable to list documents: ${err.message}`)
+            );
           }
 
           if (documents.length !== documentLimit) {

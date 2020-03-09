@@ -12,8 +12,11 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
   private _codeLenses: vscode.CodeLens[] = [];
   private _activeOperationsStore: CollectionDocumentsOperationStore;
   private uri: vscode.Uri = vscode.Uri.parse('');
-  private _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
-  public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event;
+  private _onDidChangeCodeLenses: vscode.EventEmitter<
+    void
+  > = new vscode.EventEmitter<void>();
+  public readonly onDidChangeCodeLenses: vscode.Event<void> = this
+    ._onDidChangeCodeLenses.event;
 
   constructor(operationsStore: CollectionDocumentsOperationStore) {
     this._activeOperationsStore = operationsStore;
@@ -23,38 +26,37 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     });
   }
 
-  public provideCodeLenses(
-    document: vscode.TextDocument
-  ): vscode.CodeLens[] {
+  public provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
     const uriParams = new URLSearchParams(document.uri.query);
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
     if (!operationId) {
       return [];
     }
 
-    if (!this._activeOperationsStore.operations[operationId].hasMoreDocumentsToShow) {
+    if (
+      !this._activeOperationsStore.operations[operationId]
+        .hasMoreDocumentsToShow
+    ) {
       return [];
     }
 
     // Create a codelens at the second to last line. This should be before
     // the closing ']'.
-    this._codeLenses = [new vscode.CodeLens(new vscode.Range(
-      new vscode.Position(
-        document.lineCount - 1, 0
-      ),
-      new vscode.Position(
-        document.lineCount, 0
-      ),
-    ))];
+    this._codeLenses = [
+      new vscode.CodeLens(
+        new vscode.Range(
+          new vscode.Position(document.lineCount - 1, 0),
+          new vscode.Position(document.lineCount, 0)
+        )
+      )
+    ];
 
     this.uri = document.uri;
 
     return this._codeLenses;
   }
 
-  public resolveCodeLens?(
-    codeLens: vscode.CodeLens
-  ): vscode.CodeLens {
+  public resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
     const uriParams = new URLSearchParams(this.uri.query);
 
     const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER);
@@ -72,11 +74,12 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     let commandTooltip;
     if (operation.isCurrentlyFetchingMoreDocuments) {
       commandTitle = `... Fetching ${amountOfDocs} documents...`;
-      commandTooltip = 'Currently fetching more documents. The amount of documents fetched can be adjusted in the extension settings.';
+      commandTooltip =
+        'Currently fetching more documents. The amount of documents fetched can be adjusted in the extension settings.';
     } else {
-      const additionalDocumentsToFetch = vscode.workspace.getConfiguration(
-        'mdb'
-      ).get('defaultLimit');
+      const additionalDocumentsToFetch = vscode.workspace
+        .getConfiguration('mdb')
+        .get('defaultLimit');
 
       commandTitle = `... Showing ${amountOfDocs} documents. Click to open ${additionalDocumentsToFetch} more documents.`;
       commandTooltip = `Click to open ${additionalDocumentsToFetch} more documents, this amount can be changed in the extension settings.`;

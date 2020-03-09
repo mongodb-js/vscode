@@ -22,10 +22,12 @@ export default class CollectionDocumentsOperationsStore {
   createNewOperation(): string {
     const operationId = uuidv4();
 
-    const initialDocumentsLimit = vscode.workspace.getConfiguration(
-      'mdb'
-    ).get(DEFAULT_LIMIT_CONFIG_NAME);
-    this.operations[operationId] = new CollectionDocumentsOperation(Number(initialDocumentsLimit));
+    const initialDocumentsLimit = vscode.workspace
+      .getConfiguration('mdb')
+      .get(DEFAULT_LIMIT_CONFIG_NAME);
+    this.operations[operationId] = new CollectionDocumentsOperation(
+      Number(initialDocumentsLimit)
+    );
 
     return operationId;
   }
@@ -33,9 +35,11 @@ export default class CollectionDocumentsOperationsStore {
   increaseOperationDocumentLimit(operationId: string): void {
     this.operations[operationId].isCurrentlyFetchingMoreDocuments = false;
 
-    const additionalDocumentsToFetch = vscode.workspace.getConfiguration(
-      'mdb'
-    ).get(DEFAULT_LIMIT_CONFIG_NAME);
-    this.operations[operationId].currentLimit += Number(additionalDocumentsToFetch);
+    const additionalDocumentsToFetch = vscode.workspace
+      .getConfiguration('mdb')
+      .get(DEFAULT_LIMIT_CONFIG_NAME);
+    this.operations[operationId].currentLimit += Number(
+      additionalDocumentsToFetch
+    );
   }
 }

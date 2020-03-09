@@ -24,15 +24,15 @@ export default class EditorsController {
 
   _collectionViewProvider?: CollectionDocumentsProvider;
 
-  activate(context: vscode.ExtensionContext, connectionController: ConnectionController): void {
+  constructor(context: vscode.ExtensionContext, connectionController: ConnectionController) {
     log.info('activating...');
+    this._connectionController = connectionController;
+
     const collectionViewProvider = new CollectionDocumentsProvider(
       connectionController,
       this._collectionDocumentsOperationsStore,
       new StatusView(context)
     );
-
-    this._connectionController = connectionController;
 
     context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
@@ -52,7 +52,7 @@ export default class EditorsController {
     log.info('activated.');
   }
 
-  getViewCollectionDocumentsUri(operationId, namespace, connectionId): vscode.Uri {
+  static getViewCollectionDocumentsUri(operationId, namespace, connectionId): vscode.Uri {
     // We attach a unique id to the query so that it creates a new file in
     // the editor and so that we can virtually manage the amount of docs shown.
     const operationIdUriQuery = `${OPERATION_ID_URI_IDENTIFIER}=${operationId}`;
@@ -75,7 +75,7 @@ export default class EditorsController {
 
     const operationId = this._collectionDocumentsOperationsStore.createNewOperation();
 
-    const uri = this.getViewCollectionDocumentsUri(
+    const uri = EditorsController.getViewCollectionDocumentsUri(
       operationId,
       namespace,
       this._connectionController.getActiveConnectionInstanceId()
@@ -93,26 +93,26 @@ export default class EditorsController {
   onViewMoreCollectionDocuments(operationId: string, connectionId: string, namespace: string): Promise<boolean> {
     log.info('view more collection documents');
 
+    // A user might click to fetch more documents multiple times,
+    // this ensures it only performs one fetch at a time.
     if (this._collectionDocumentsOperationsStore.operations[operationId].isCurrentlyFetchingMoreDocuments) {
-      // A user might click to fetch more documents multiple times,
-      // this ensures it only performs one fetch at a time.
-      return Promise.reject(new Error('Already fetching more documents...'));
+      vscode.window.showErrorMessage('Already fetching more documents...');
+      return Promise.resolve(false);
     }
 
     // Ensure we're still connected to the correct connection.
     if (!this._connectionController
       || connectionId !== this._connectionController.getActiveConnectionInstanceId()
     ) {
-      return Promise.reject(new Error(
-        `Unable to view more documents: no longer connected to ${connectionId}`
-      ));
+      vscode.window.showErrorMessage(`Unable to view more documents: no longer connected to ${connectionId}`);
+      return Promise.resolve(false);
     }
 
     if (!this._collectionViewProvider) {
       return Promise.reject(new Error('No registered collection view provider.'));
     }
 
-    const uri = this.getViewCollectionDocumentsUri(
+    const uri = EditorsController.getViewCollectionDocumentsUri(
       operationId,
       namespace,
       connectionId

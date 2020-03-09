@@ -143,12 +143,24 @@
         }
       },
       {
+        "command": "mdb.connectToConnectionTreeItem",
+        "title": "Connect"
+      },
+      {
+        "command": "mdb.disconnectFromConnectionTreeItem",
+        "title": "Disconnect"
+      },
+      {
         "command": "mdb.refreshConnection",
         "title": "Refresh"
       },
       {
         "command": "mdb.copyDatabaseName",
         "title": "Copy Database Name"
+      },
+      {
+        "command": "mdb.dropDatabase",
+        "title": "Drop Database..."
       },
       {
         "command": "mdb.refreshDatabase",
@@ -171,6 +183,10 @@
         "title": "Copy Collection Name"
       },
       {
+        "command": "mdb.dropCollection",
+        "title": "Drop Collection..."
+      },
+      {
         "command": "mdb.refreshCollection",
         "title": "Refresh"
       }
@@ -191,25 +207,41 @@
           "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem"
         },
         {
+          "command": "mdb.connectToConnectionTreeItem",
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
+        },
+        {
+          "command": "mdb.disconnectFromConnectionTreeItem",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
+        },
+        {
           "command": "mdb.treeItemRemoveConnection",
-          "when": "view == mongoDB && viewItem == connectionTreeItem"
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
+        },
+        {
+          "command": "mdb.treeItemRemoveConnection",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
         },
         {
           "command": "mdb.copyConnectionString",
-          "when": "view == mongoDB && viewItem == connectionTreeItem"
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
+        },
+        {
+          "command": "mdb.copyConnectionString",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
         },
         {
           "command": "mdb.refreshConnection",
-          "when": "view == mongoDB && viewItem == connectionTreeItem"
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDB && viewItem == connectionTreeItem",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
           "group": "inline"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDB && viewItem == connectionTreeItem"
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
         },
         {
           "command": "mdb.addCollection",
@@ -218,6 +250,10 @@
         },
         {
           "command": "mdb.addCollection",
+          "when": "view == mongoDB && viewItem == databaseTreeItem"
+        },
+        {
+          "command": "mdb.dropDatabase",
           "when": "view == mongoDB && viewItem == databaseTreeItem"
         },
         {
@@ -230,6 +266,10 @@
         },
         {
           "command": "mdb.viewCollectionDocuments",
+          "when": "view == mongoDB && viewItem == collectionTreeItem"
+        },
+        {
+          "command": "mdb.dropCollection",
           "when": "view == mongoDB && viewItem == collectionTreeItem"
         },
         {
