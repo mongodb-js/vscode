@@ -2,16 +2,14 @@ import * as assert from 'assert';
 
 const { contributes } = require('../../../../package.json');
 
-import {
-  ConnectionItemContextValues
-} from '../../../explorer/connectionTreeItem';
+import { ConnectionItemContextValues } from '../../../explorer/connectionTreeItem';
 
 suite('ConnectionTreeItem Test Suite', () => {
-  test('its context value should be in the package json', function () {
+  test('its context value should be in the package json', function() {
     let connectedRegisteredCommandInPackageJson = false;
     let disconnectedRegisteredCommandInPackageJson = false;
 
-    contributes.menus['view/item/context'].forEach(contextItem => {
+    contributes.menus['view/item/context'].forEach((contextItem) => {
       if (contextItem.when.includes(ConnectionItemContextValues.connected)) {
         connectedRegisteredCommandInPackageJson = true;
       }

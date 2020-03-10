@@ -7,7 +7,6 @@ export enum FieldTypes {
 
 export type SchemaFieldType = {
   name: string;
-  isExpanded: boolean;
   probability: number;
   bsonType: string | undefined;
   type: string | undefined;
@@ -20,12 +19,10 @@ export type SchemaFieldType = {
 export function fieldIsExpandable(field: SchemaFieldType): boolean {
   return (
     field.probability === 1 &&
-    (
-      field.type === FieldTypes.document ||
+    (field.type === FieldTypes.document ||
       field.type === FieldTypes.array ||
       field.bsonType === FieldTypes.document ||
-      field.bsonType === FieldTypes.array
-    )
+      field.bsonType === FieldTypes.array)
   );
 }
 
@@ -36,9 +33,7 @@ function getCollapsibleStateForField(
     return vscode.TreeItemCollapsibleState.None;
   }
 
-  return field.isExpanded
-    ? vscode.TreeItemCollapsibleState.Expanded
-    : vscode.TreeItemCollapsibleState.Collapsed;
+  return vscode.TreeItemCollapsibleState.Collapsed;
 }
 
 export default class FieldTreeItem extends vscode.TreeItem
@@ -91,24 +86,23 @@ export default class FieldTreeItem extends vscode.TreeItem
           : []
       );
     } else if (
-      this.field.type === FieldTypes.array || this.field.bsonType === FieldTypes.array
+      this.field.type === FieldTypes.array ||
+      this.field.bsonType === FieldTypes.array
     ) {
       const arrayElement = this.field.types[0];
 
-      return Promise.resolve([
-        new FieldTreeItem(arrayElement)
-      ]);
+      return Promise.resolve([new FieldTreeItem(arrayElement)]);
     }
 
     return Promise.resolve([]);
   }
 
   onDidCollapse(): void {
-    this.field.isExpanded = false;
+    // no-op until we add caching expanded state.
   }
 
   onDidExpand(): Promise<boolean> {
-    this.field.isExpanded = true;
+    // no-op until we add caching expanded state.
 
     return Promise.resolve(true);
   }

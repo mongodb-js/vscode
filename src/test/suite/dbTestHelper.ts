@@ -1,5 +1,5 @@
-import * as Connection from 'mongodb-connection-model/lib/model';
-import * as DataService from 'mongodb-data-service';
+import Connection = require('mongodb-connection-model/lib/model');
+import DataService = require('mongodb-data-service');
 
 export const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
@@ -60,7 +60,8 @@ export const seedDataAndCreateDataService = (
               }
             );
           });
-        });
+        }
+      );
     }
   });
 };
@@ -73,7 +74,8 @@ export const cleanupTestDB = (): Promise<void> => {
         return reject(connectError);
       }
 
-      newConnection.dropDatabase(TEST_DB_NAME,
+      newConnection.dropDatabase(
+        TEST_DB_NAME,
         (dropError: Error | undefined) => {
           if (dropError) {
             return reject(dropError);

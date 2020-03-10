@@ -13,7 +13,7 @@ suite('DocumentListTreeItem Test Suite', () => {
   test('its context value should be in the package json', function () {
     let documentListRegisteredCommandInPackageJson = false;
 
-    contributes.menus['view/item/context'].forEach(contextItem => {
+    contributes.menus['view/item/context'].forEach((contextItem) => {
       if (contextItem.when.includes(DocumentListTreeItem.contextValue)) {
         documentListRegisteredCommandInPackageJson = true;
       }
@@ -64,7 +64,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     testDocumentListTreeItem
       .getChildren()
-      .then(collections => {
+      .then((collections) => {
         assert(
           collections.length === 0,
           `Expected no collections to be returned, found ${collections.length}`
@@ -87,7 +87,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     testDocumentListTreeItem
       .getChildren()
-      .then(documents => {
+      .then((documents) => {
         assert(
           documents.length === 11,
           `Expected 11 documents to be returned, found ${documents.length}`
@@ -115,7 +115,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     testDocumentListTreeItem
       .getChildren()
-      .then(documents => {
+      .then((documents) => {
         assert(
           documents.length === 11,
           `Expected 11 documents to be returned, found ${documents.length}`
@@ -144,7 +144,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     testDocumentListTreeItem
       .getChildren()
-      .then(documents => {
+      .then((documents) => {
         assert(
           documents.length === 21,
           `Expected 21 documents to be returned, found ${documents.length}`
@@ -180,7 +180,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     testDocumentListTreeItem
       .getChildren()
-      .then(documents => {
+      .then((documents) => {
         assert(
           documents.length === 25,
           `Expected 25 documents to be returned, found ${documents.length}`

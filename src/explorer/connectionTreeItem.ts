@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-const ns = require('mongodb-ns');
-const path = require('path');
+import ns = require('mongodb-ns');
+import path = require('path');
 
 import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';

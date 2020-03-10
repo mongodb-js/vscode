@@ -140,11 +140,11 @@ export default class SchemaTreeItem extends vscode.TreeItem
               this._childrenCache.push(new FieldTreeItem(schema.fields[i]));
             }
 
-            // Add a clickable show more option when a schema has more fields
-            // than the default amount we show.
+            // Add a clickable show more option when a schema has more
+            // fields than the default amount we show.
             if (
               !this.hasClickedShowMoreFields &&
-              schema.fields.length >= FIELDS_TO_SHOW
+              schema.fields.length > FIELDS_TO_SHOW
             ) {
               this._childrenCache.push(
                 new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import * as Connection from 'mongodb-connection-model/lib/model';
-import * as DataService from 'mongodb-data-service';
+import Connection = require('mongodb-connection-model/lib/model');
+import DataService = require('mongodb-data-service');
 
 const { name, version } = require('../package.json');
 

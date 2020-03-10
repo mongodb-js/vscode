@@ -3,7 +3,9 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
 
-import SchemaTreeItem, { FIELDS_TO_SHOW } from '../../../explorer/schemaTreeItem';
+import SchemaTreeItem, {
+  FIELDS_TO_SHOW
+} from '../../../explorer/schemaTreeItem';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
 import {
   seedDataAndCreateDataService,
@@ -65,12 +67,13 @@ suite('SchemaTreeItem Test Suite', () => {
 
     testSchemaTreeItem
       .getChildren()
-      .then(schemaFields => {
+      .then((schemaFields) => {
         assert(FIELDS_TO_SHOW === 15, 'Expeted FIELDS_TO_SHOW to be 15');
 
         assert(
           schemaFields.length === amountOfFieldsExpected + 1,
-          `Expected ${amountOfFieldsExpected + 1} documents to be returned, found ${schemaFields.length}`
+          `Expected ${amountOfFieldsExpected +
+          1} documents to be returned, found ${schemaFields.length}`
         );
         assert(
           schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
@@ -102,7 +105,7 @@ suite('SchemaTreeItem Test Suite', () => {
 
     testSchemaTreeItem
       .getChildren()
-      .then(schemaFields => {
+      .then((schemaFields) => {
         const amountOfFieldsExpected = 30;
 
         assert(
@@ -130,15 +133,19 @@ suite('SchemaTreeItem Test Suite', () => {
       null
     );
 
-    testSchemaTreeItem.getChildren().then(schemaFields => {
-      assert(schemaFields.length === 0);
-      assert(fakeVscodeErrorMessage.called);
-      const expectedMessage = 'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
-      assert(
-        fakeVscodeErrorMessage.firstArg === expectedMessage,
-        `Expected error message to be "${expectedMessage}" found "${fakeVscodeErrorMessage.firstArg}"`
-      );
-    }).then(done, done);
+    testSchemaTreeItem
+      .getChildren()
+      .then((schemaFields) => {
+        assert(schemaFields.length === 0);
+        assert(fakeVscodeErrorMessage.called);
+        const expectedMessage =
+          'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+        assert(
+          fakeVscodeErrorMessage.firstArg === expectedMessage,
+          `Expected error message to be "${expectedMessage}" found "${fakeVscodeErrorMessage.firstArg}"`
+        );
+      })
+      .then(done, done);
   });
 
   suite('Live Database Tests', () => {
@@ -147,13 +154,12 @@ suite('SchemaTreeItem Test Suite', () => {
     });
 
     test('when not expanded it has not yet pulled the schema', function (done) {
-      seedDataAndCreateDataService(
-        'favoritePiesIWantToEatRightNow',
-        [{
+      seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
+        {
           _id: 10,
           someField: 'applePie'
-        }]
-      ).then(dataService => {
+        }
+      ]).then((dataService) => {
         const testSchemaTreeItem = new SchemaTreeItem(
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
@@ -165,25 +171,25 @@ suite('SchemaTreeItem Test Suite', () => {
 
         testSchemaTreeItem
           .getChildren()
-          .then(schemaFields => {
+          .then((schemaFields) => {
             dataService.disconnect();
 
             assert(
               schemaFields.length === 0,
               `Expected no schema tree items to be returned, recieved ${schemaFields.length}`
             );
-          }).then(done, done);
+          })
+          .then(done, done);
       });
     });
 
     test('when expanded shows the fields of a schema', function (done) {
-      seedDataAndCreateDataService(
-        'favoritePiesIWantToEatRightNow',
-        [{
+      seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
+        {
           _id: 1,
           nameOfTastyPie: 'applePie'
-        }]
-      ).then(dataService => {
+        }
+      ]).then((dataService) => {
         const testSchemaTreeItem = new SchemaTreeItem(
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
@@ -211,14 +217,14 @@ suite('SchemaTreeItem Test Suite', () => {
               schemaFields[1].label === 'nameOfTastyPie',
               `Expected label of schema tree item to be the field name, recieved ${schemaFields[1].label}`
             );
-          }).then(done, done);
+          })
+          .then(done, done);
       });
     });
 
     test('it only shows a dropdown for fields which are always documents - and not for polymorphic', function (done) {
-      seedDataAndCreateDataService(
-        'favoritePiesIWantToEatRightNow',
-        [{
+      seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
+        {
           _id: 1,
           alwaysDocument: {
             fieldName: 'nice'
@@ -226,14 +232,15 @@ suite('SchemaTreeItem Test Suite', () => {
           notAlwaysADocument: {
             sureImADocument: 'hmmmm'
           }
-        }, {
+        },
+        {
           _id: 2,
           alwaysDocument: {
             fieldName: 'nice'
           },
           notAlwaysADocument: 'A spy!'
-        }]
-      ).then(dataService => {
+        }
+      ]).then((dataService) => {
         const testSchemaTreeItem = new SchemaTreeItem(
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
@@ -261,7 +268,8 @@ suite('SchemaTreeItem Test Suite', () => {
               fieldIsExpandable(schemaFields[2].field) === false,
               'Expected field to have none expandable state'
             );
-          }).then(done, done);
+          })
+          .then(done, done);
       });
     });
   });
