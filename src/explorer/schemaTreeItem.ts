@@ -11,7 +11,7 @@ const log = createLogger('tree view document list');
 
 const ITEM_LABEL = 'Schema';
 
-const FIELDS_TO_SHOW = 10;
+export const FIELDS_TO_SHOW = 15;
 
 class ShowAllFieldsTreeItem extends vscode.TreeItem {
   // This is the identifier we use to identify this tree item when a tree item

@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
 
-import SchemaTreeItem from '../../../explorer/schemaTreeItem';
+import SchemaTreeItem, { FIELDS_TO_SHOW } from '../../../explorer/schemaTreeItem';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
 import {
   seedDataAndCreateDataService,
@@ -16,7 +16,102 @@ suite('SchemaTreeItem Test Suite', () => {
     sinon.restore();
   });
 
-  // To add: show more fields test.
+  test('when the "show more" click handler function is called it sets the schema to show more fields', function () {
+    const testSchemaTreeItem = new SchemaTreeItem(
+      'favoritePiesIWantToEatRightNow',
+      TEST_DB_NAME,
+      {},
+      false,
+      false,
+      null
+    );
+
+    assert(
+      !testSchemaTreeItem.hasClickedShowMoreFields,
+      'Expected "hasClickedShowMoreFields" to be false by default'
+    );
+    testSchemaTreeItem._childrenCacheIsUpToDate = true;
+
+    testSchemaTreeItem.onShowMoreClicked();
+
+    assert(
+      !testSchemaTreeItem._childrenCacheIsUpToDate,
+      'Expected `_childrenCacheIsUpToDate` to be reset to false'
+    );
+    assert(
+      testSchemaTreeItem.hasClickedShowMoreFields,
+      'Expected "hasClickedShowMoreFields" to be set to true'
+    );
+  });
+
+  test('it should show a show more item when there are more fields to show', function (done) {
+    const amountOfFieldsExpected = FIELDS_TO_SHOW;
+    const mockDocWithTwentyFields = {};
+    for (let i = 0; i < 20; i++) {
+      mockDocWithTwentyFields[`${i}`] = 'some value';
+    }
+    const testSchemaTreeItem = new SchemaTreeItem(
+      'favoritePiesIWantToEatRightNow',
+      TEST_DB_NAME,
+      {
+        find: (ns, filter, options, callback): void => {
+          callback(null, [mockDocWithTwentyFields]);
+        }
+      },
+      true,
+      false,
+      null
+    );
+
+    testSchemaTreeItem
+      .getChildren()
+      .then(schemaFields => {
+        assert(FIELDS_TO_SHOW === 15, 'Expeted FIELDS_TO_SHOW to be 15');
+
+        assert(
+          schemaFields.length === amountOfFieldsExpected + 1,
+          `Expected ${amountOfFieldsExpected + 1} documents to be returned, found ${schemaFields.length}`
+        );
+        assert(
+          schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
+          `Expected a tree item child with the label "Show more fields..." found ${schemaFields[amountOfFieldsExpected].label}`
+        );
+      })
+      .then(done, done);
+  });
+
+  test('it should show more fields after the show more click handler is called', function (done) {
+    const mockDocWithThirtyFields = {};
+    for (let i = 0; i < 30; i++) {
+      mockDocWithThirtyFields[`${i}`] = 'some value';
+    }
+    const testSchemaTreeItem = new SchemaTreeItem(
+      'favoritePiesIWantToEatRightNow',
+      TEST_DB_NAME,
+      {
+        find: (ns, filter, options, callback): void => {
+          callback(null, [mockDocWithThirtyFields]);
+        }
+      },
+      true,
+      false,
+      null
+    );
+
+    testSchemaTreeItem.onShowMoreClicked();
+
+    testSchemaTreeItem
+      .getChildren()
+      .then(schemaFields => {
+        const amountOfFieldsExpected = 30;
+
+        assert(
+          schemaFields.length === amountOfFieldsExpected,
+          `Expected ${amountOfFieldsExpected} documents to be returned, found ${schemaFields.length}`
+        );
+      })
+      .then(done, done);
+  });
 
   test('When schema parsing fails it displays an error message', function (done) {
     const fakeVscodeErrorMessage = sinon.fake();
