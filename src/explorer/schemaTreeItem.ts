@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-
-const parseSchema = require('mongodb-schema');
+import parseSchema = require('mongodb-schema');
 
 import { createLogger } from '../logging';
 import TreeItemParent from './treeItemParentInterface';
@@ -31,7 +30,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
   _childrenCacheIsUpToDate = false;
   private _childrenCache: vscode.TreeItem[] = [];
 
-  static contextValue = 'schemaTreeItem';
+  contextValue = 'schemaTreeItem';
 
   collectionName: string;
   databaseName: string;

@@ -7,11 +7,18 @@ import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
 import { CollectionTreeItem } from '../../../explorer';
 
 suite('DatabaseTreeItem Test Suite', () => {
-  test('its context value should be in the package json', function() {
+  test('its context value should be in the package json', function () {
     let databaseRegisteredCommandInPackageJson = false;
 
+    const testDatabaseTreeItem = new DatabaseTreeItem(
+      mockDatabaseNames[1],
+      new DataServiceStub(),
+      false,
+      {}
+    );
+
     contributes.menus['view/item/context'].forEach((contextItem) => {
-      if (contextItem.when.includes(DatabaseTreeItem.contextValue)) {
+      if (contextItem.when.includes(testDatabaseTreeItem.contextValue)) {
         databaseRegisteredCommandInPackageJson = true;
       }
     });
@@ -22,7 +29,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('when not expanded it does not show collections', function(done) {
+  test('when not expanded it does not show collections', function (done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -41,7 +48,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('when expanded shows the collections of a database in tree', function(done) {
+  test('when expanded shows the collections of a database in tree', function (done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -61,16 +68,14 @@ suite('DatabaseTreeItem Test Suite', () => {
 
         assert(
           collections[1].label ===
-            mockDatabases[mockDatabaseNames[1]].collections[1].name,
-          `Expected a tree item child with the label collection name ${
-            mockDatabases[mockDatabaseNames[1]].collections[1].name
-          } found ${collections[1].label}`
+          mockDatabases[mockDatabaseNames[1]].collections[1].name,
+          `Expected a tree item child with the label collection name ${mockDatabases[mockDatabaseNames[1]].collections[1].name} found ${collections[1].label}`
         );
       })
       .then(done, done);
   });
 
-  test('when expanded and collapsed its collections cache their expanded documents', function(done) {
+  test('when expanded and collapsed its collections cache their expanded documents', function (done) {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),

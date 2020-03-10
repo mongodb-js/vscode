@@ -6,11 +6,21 @@ import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import { CollectionTypes } from '../../../explorer/documentListTreeItem';
 
 suite('CollectionTreeItem Test Suite', () => {
-  test('its context value should be in the package json', function() {
+  test('its context value should be in the package json', function () {
     let registeredCommandInPackageJson = false;
 
+    const testCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_1',
+        type: CollectionTypes.collection
+      },
+      'mock_db_name',
+      'imaginary data service',
+      false
+    );
+
     contributes.menus['view/item/context'].forEach((contextItem) => {
-      if (contextItem.when.includes(CollectionTreeItem.contextValue)) {
+      if (contextItem.when.includes(testCollectionTreeItem.contextValue)) {
         registeredCommandInPackageJson = true;
       }
     });
@@ -21,7 +31,7 @@ suite('CollectionTreeItem Test Suite', () => {
     );
   });
 
-  test('when expanded shows a documents folder and schema folder', function(done) {
+  test('when expanded shows a documents folder and schema folder', function (done) {
     const testCollectionTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',

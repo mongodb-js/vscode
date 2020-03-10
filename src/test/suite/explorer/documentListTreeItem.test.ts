@@ -12,9 +12,18 @@ import { DataServiceStub, mockDocuments } from '../stubs';
 suite('DocumentListTreeItem Test Suite', () => {
   test('its context value should be in the package json', function () {
     let documentListRegisteredCommandInPackageJson = false;
+    const testDocumentListTreeItem = new DocumentListTreeItem(
+      'collectionName',
+      'databaseName',
+      CollectionTypes.collection,
+      'not_real_dataservice',
+      false,
+      MAX_DOCUMENTS_VISIBLE,
+      null
+    );
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
-      if (contextItem.when.includes(DocumentListTreeItem.contextValue)) {
+      if (contextItem.when.includes(testDocumentListTreeItem.contextValue)) {
         documentListRegisteredCommandInPackageJson = true;
       }
     });
