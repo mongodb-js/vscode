@@ -2,7 +2,9 @@ import * as vscode from 'vscode';
 const ns = require('mongodb-ns');
 const path = require('path');
 
-import CollectionTreeItem, { MAX_DOCUMENTS_VISIBLE } from './collectionTreeItem';
+import CollectionTreeItem, {
+  MAX_DOCUMENTS_VISIBLE
+} from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 
 export default class DatabaseTreeItem extends vscode.TreeItem
@@ -60,7 +62,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         {}, // No filter.
         (err: any, collections: string[]) => {
           if (err) {
-            return reject(new Error(`Unable to list collections: ${err.message}`));
+            return reject(
+              new Error(`Unable to list collections: ${err.message}`)
+            );
           }
 
           this._childrenCacheIsUpToDate = true;
@@ -96,14 +100,21 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           }
 
           return resolve(Object.values(this._childrenCache));
-        });
+        }
+      );
     });
   }
 
-  get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const LIGHT = path.join(__dirname, '..', '..', '..', 'images', 'light');
+    const DARK = path.join(__dirname, '..', '..', '..', 'images', 'dark');
+
     return {
-      light: path.join(__filename, '..', '..', '..', 'images', 'light', 'database.svg'),
-      dark: path.join(__filename, '..', '..', '..', 'images', 'dark', 'database.svg')
+      light: path.join(LIGHT, 'database.svg'),
+      dark: path.join(DARK, 'database.svg')
     };
   }
 
@@ -134,15 +145,16 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     try {
       collectionName = await vscode.window.showInputBox({
         value: '',
-        placeHolder:
-          'e.g. myNewCollection',
+        placeHolder: 'e.g. myNewCollection',
         prompt: 'Enter the new collection name.',
         validateInput: (inputCollectionName: any) => {
           if (!inputCollectionName) {
             return null;
           }
 
-          if (!ns(`${databaseName}.${inputCollectionName}`).validCollectionName) {
+          if (
+            !ns(`${databaseName}.${inputCollectionName}`).validCollectionName
+          ) {
             return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
           }
 
@@ -154,7 +166,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         }
       });
     } catch (e) {
-      return Promise.reject(`An error occured parsing the collection name: ${e}`);
+      return Promise.reject(
+        `An error occured parsing the collection name: ${e}`
+      );
     }
 
     if (!collectionName) {
@@ -167,7 +181,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         {}, // No options.
         (err) => {
           if (err) {
-            return reject(new Error(`Create collection failed: ${err.message}`));
+            return reject(
+              new Error(`Create collection failed: ${err.message}`)
+            );
           }
 
           this._childrenCacheIsUpToDate = false;

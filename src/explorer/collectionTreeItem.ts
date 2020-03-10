@@ -56,7 +56,12 @@ export default class CollectionTreeItem extends vscode.TreeItem
     existingChildrenCache: vscode.TreeItem[],
     maxDocumentsToShow: number
   ) {
-    super(collection.name, isExpanded ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed);
+    super(
+      collection.name,
+      isExpanded
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Collapsed
+    );
 
     this.collectionName = collection.name;
     this.databaseName = databaseName;
@@ -93,7 +98,9 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
       this._dataService.find(
         namespace,
-        { /* No filter */ },
+        {
+          /* No filter */
+        },
         {
           // We fetch 1 more than the max documents to show to see if
           // there are more documents we aren't showing.
@@ -107,19 +114,17 @@ export default class CollectionTreeItem extends vscode.TreeItem
           this._childrenCacheIsUpToDate = true;
 
           if (documents) {
-            this._childrenCache = documents.map(
-              (document, index) => {
-                if (index === this._maxDocumentsToShow) {
-                  return new ShowMoreDocumentsTreeItem(
-                    namespace,
-                    () => this.onShowMoreClicked(),
-                    this._maxDocumentsToShow
-                  );
-                }
-
-                return new DocumentTreeItem(document, index);
+            this._childrenCache = documents.map((document, index) => {
+              if (index === this._maxDocumentsToShow) {
+                return new ShowMoreDocumentsTreeItem(
+                  namespace,
+                  () => this.onShowMoreClicked(),
+                  this._maxDocumentsToShow
+                );
               }
-            );
+
+              return new DocumentTreeItem(document, index);
+            });
           } else {
             this._childrenCache = [];
           }
@@ -130,16 +135,22 @@ export default class CollectionTreeItem extends vscode.TreeItem
     });
   }
 
-  public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    return this._type === CollectionTypes.collection
-      ? {
-        light: path.join(__filename, '..', '..', '..', 'images', 'light', 'collection.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'images', 'dark', 'collection.svg')
-      }
-      : {
-        light: path.join(__filename, '..', '..', '..', 'images', 'light', 'view.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'images', 'dark', 'view.svg')
+  public get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const LIGHT = path.join(__dirname, '..', '..', '..', 'images', 'light');
+    const DARK = path.join(__dirname, '..', '..', '..', 'images', 'dark');
+    if (this._type === CollectionTypes.collection) {
+      return {
+        light: path.join(LIGHT, 'collection.svg'),
+        dark: path.join(DARK, 'collection.svg')
       };
+    }
+    return {
+      light: path.join(LIGHT, 'view.svg'),
+      dark: path.join(DARK, 'view.svg')
+    };
   }
 
   onShowMoreClicked(): void {
