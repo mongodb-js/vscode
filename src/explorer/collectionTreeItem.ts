@@ -135,31 +135,19 @@ export default class CollectionTreeItem extends vscode.TreeItem
     });
   }
 
-  get iconPath():
+  public get iconPath():
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const LIGHT = path.join(__dirname, '..', '..', '..', 'images', 'light');
+    const DARK = path.join(__dirname, '..', '..', '..', 'images', 'dark');
+
     const iconName =
       this._type === CollectionTypes.collection ? 'collection' : 'view';
+
     return {
-      light: path.join(
-        __filename,
-        '..',
-        '..',
-        '..',
-        'resources',
-        'light',
-        `${iconName}.svg`
-      ),
-      dark: path.join(
-        __filename,
-        '..',
-        '..',
-        '..',
-        'resources',
-        'dark',
-        `${iconName}.svg`
-      )
+      light: path.join(LIGHT, `${iconName}.svg`),
+      dark: path.join(DARK, `${iconName}.svg`)
     };
   }
 

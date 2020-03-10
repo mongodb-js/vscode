@@ -110,25 +110,12 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const LIGHT = path.join(__dirname, '..', '..', '..', 'images', 'light');
+    const DARK = path.join(__dirname, '..', '..', '..', 'images', 'dark');
+
     return {
-      light: path.join(
-        __filename,
-        '..',
-        '..',
-        '..',
-        'resources',
-        'light',
-        'database.svg'
-      ),
-      dark: path.join(
-        __filename,
-        '..',
-        '..',
-        '..',
-        'resources',
-        'dark',
-        'database.svg'
-      )
+      light: path.join(LIGHT, 'database.svg'),
+      dark: path.join(DARK, 'database.svg')
     };
   }
 

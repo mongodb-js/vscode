@@ -1,0 +1,421 @@
+{
+  "MongoDB Aggregations $addFields": {
+    "prefix": "$addFields",
+    "body": [
+      "/**",
+      " * newField: The new field name.",
+      " * expression: The new field expression.",
+      " */",
+      "",
+      "\\$addFields: {",
+      "  ${1:newField}: ${2:expression}, ${3:...}",
+      "}"
+    ],
+    "description": "Adds new field(s) to a document with a computed value, or reassigns an existing field(s) with a computed value."
+  },
+  "MongoDB Aggregations $bucket": {
+    "prefix": "$bucket",
+    "body": [
+      "/**",
+      " * groupBy: The expression to group by.",
+      " * boundaries: An array of the lower boundaries for each bucket.",
+      " * default: The bucket name for documents that do not fall within the specified boundaries",
+      " * output: {",
+      " *    outputN: Optional. The output object may contain a single or numerous field names used to accumulate values per bucket.",
+      " * }",
+      " */",
+      "",
+      "\\$bucket: {",
+      "  groupBy: ${1:expression},",
+      "  boundaries: [ ${2:lowerbound}, ${3:...} ],",
+      "  default: ${4:literal},",
+      "  output: {",
+      "     ${5:outputN}: { ${6:accumulator} }, ${7:...}",
+      "  }",
+      "}"
+    ],
+    "description": "Categorizes incoming documents into groups, called buckets, based on specified boundaries."
+  },
+  "MongoDB Aggregations $bucketAuto": {
+    "prefix": "$bucketAuto",
+    "body": [
+      "/**",
+      " * groupBy: The expression to group by.",
+      " * buckets: The desired number of buckets",
+      " * output: {",
+      " *    outputN: Optional. The output object may contain a single or numerous field names used to accumulate values per bucket.",
+      " * }",
+      " * granularity: Optional number series",
+      " */",
+      "",
+      "\\$bucketAuto: {",
+      "  groupBy: ${1:expression},",
+      "  buckets: ${2:number},",
+      "  output: {",
+      "    ${3:outputN}: ${4:accumulator}, ${5:...}",
+      "  },",
+      "  granularity: '${6:string}'",
+      "}"
+    ],
+    "description": "Automatically categorizes documents into a specified number of buckets, attempting even distribution if possible."
+  },
+  "MongoDB Aggregations $collStats": {
+    "prefix": "$collStats",
+    "body": [
+      "/**",
+      " * histograms: Optional latency histograms.",
+      " * storageStats: Optional storage stats.",
+      "*/",
+      "",
+      "\\$collStats: {",
+      "  latencyStats: {",
+      "    histograms: ${1:boolean}",
+      "  },",
+      "  storageStats: {${2:}},",
+      "}"
+    ],
+    "description": "Returns statistics regarding a collection or view."
+  },
+  "MongoDB Aggregations $count": {
+    "prefix": "$count",
+    "body": [
+      "/**",
+      " * Provide the field name for the count.",
+      " */",
+      "",
+      "\\$count: '${1:string}'"
+    ],
+    "description": "Returns a count of the number of documents at this stage of the aggregation pipeline."
+  },
+  "MongoDB Aggregations $facet": {
+    "prefix": "$facet",
+    "body": [
+      "/**",
+      " * outputFieldN: The first output field.",
+      " * stageN: The first aggregation stage.",
+      " */",
+      "",
+      "\\$facet: {",
+      "  ${1:outputFieldN}: [ ${2:stageN}, ${3:...} ]",
+      "}"
+    ],
+    "description": "Allows for multiple parellel aggregations to be specified."
+  },
+  "MongoDB Aggregations $geoNear": {
+    "prefix": "$geoNear",
+    "body": [
+      "/**",
+      " * options: The geo query options.",
+      " */",
+      "",
+      "\\$geoNear: {",
+      "  near: The point to search near.",
+      "  distanceField: The calculated distance.",
+      "  maxDistance: The maximum distance, in meters, documents can be before being excluded from results.",
+      "  query: Limits results that match the query",
+      "  includeLocs: Optional. Labels and includes the point used to match the document.",
+      "  num: Optional. The maximum number of documents to return.",
+      "  spherical: Defaults to false. Specifies whether to use spherical geometry.",
+      "}"
+    ],
+    "description": "Returns documents based on proximity to a geospatial point."
+  },
+  "MongoDB Aggregations $graphLookup": {
+    "prefix": "$graphLookup",
+    "body": [
+      "/**",
+      " * from: The target collection.",
+      " * startWith: Expression to start.",
+      " * connectFromField: Field to connect.",
+      " * connectToField: Field to connect to.",
+      " * as: Name of the array field.",
+      " * maxDepth: Optional max recursion depth.",
+      " * depthField: Optional Name of the depth field.",
+      " * restrictSearchWithMatch: Optional query.",
+      " */",
+      "",
+      "\\$graphLookup: {",
+      "  from: '${1:string}',",
+      "  startWith: ${2:expression},",
+      "  connectFromField: '${3:string}',",
+      "  connectToField: '${4:string}',",
+      "  as: '${5:string}',",
+      "  maxDepth: ${6:number},",
+      "  depthField: '${7:string}',",
+      "  restrictSearchWithMatch: {${8}}",
+      "}"
+    ],
+    "description": "Performs a recursive search on a collection."
+  },
+  "MongoDB Aggregations $group": {
+    "prefix": "$group",
+    "body": [
+      "/**",
+      " * _id: The id of the group.",
+      " * fieldN: The first field name.",
+      " */",
+      "",
+      "\\$group: {",
+      "  _id: ${1:expression},",
+      "  ${2:fieldN}: {",
+      "    ${3:accumulatorN}: ${4:expressionN}",
+      "  }",
+      "}"
+    ],
+    "description": "Groups documents by a specified expression."
+  },
+  "MongoDB Aggregations $indexStats": {
+    "prefix": "$indexStats",
+    "body": [
+      "/**",
+      " * No parameters.",
+      " */",
+      "",
+      "\\$indexStats: {}"
+    ],
+    "description": "Returns statistics regarding the use of each index for the collection."
+  },
+  "MongoDB Aggregations $limit": {
+    "prefix": "$limit",
+    "body": [
+      "/**",
+      " * Provide the number of documents to limit.",
+      " */",
+      "",
+      "\\$limit: ${1:number}"
+    ],
+    "description": "Limits the number of documents that flow into subsequent stages."
+  },
+  "MongoDB Aggregations $lookup": {
+    "prefix": "$lookup",
+    "body": [
+      "/**",
+      " * from: The target collection.",
+      " * localField: The local join field.",
+      " * foreignField: The target join field.",
+      " * as: The name for the results.",
+      " * pipeline: The pipeline to run on the joined collection.",
+      " * let: Optional variables to use in the pipeline field stages.",
+      " */",
+      "",
+      "\\$lookup: {",
+      "  from: '${1:string}',",
+      "  localField: '${2:string}',",
+      "  foreignField: '${3:string}',",
+      "  as: '${4:string}'",
+      "}"
+    ],
+    "description": "Performs a join between two collections."
+  },
+  "MongoDB Aggregations $match": {
+    "prefix": "$match",
+    "body": [
+      "/**",
+      " * query: The query in MQL.",
+      " */",
+      "",
+      "\\$match: {",
+      "  ${1:query}",
+      "}"
+    ],
+    "description": "Filters the document stream to allow only matching documents to pass through to subsequent stages."
+  },
+  "MongoDB Aggregations $merge": {
+    "prefix": "$merge",
+    "body": [
+      "/**",
+      " * into: The target collection.",
+      " * on: Fields to  identify.",
+      " * let: Defined variables.",
+      " * whenMatched: Action for matching docs.",
+      " * whenNotMatched: Action for non-matching docs.",
+      " */",
+      "",
+      "\\$merge: {",
+      "  into: '${1:string}',",
+      "  on: '${2:string}',",
+      "  let: '${3:specification(s)}',",
+      "  whenMatched: '${4:string}'",
+      "  whenNotMatched: '${5:string}'",
+      "}"
+    ],
+    "description": "Merges the resulting documents into a collection, optionally overriding existing documents."
+  },
+  "MongoDB Aggregations $out": {
+    "prefix": "$out",
+    "body": [
+      "/**",
+      " * Provide the name of the output collection.",
+      " */",
+      "",
+      "\\$out: '${1:string}'"
+    ],
+    "description": "Writes the result of a pipeline to a new or existing collection."
+  },
+  "MongoDB Aggregations $project": {
+    "prefix": "$project",
+    "body": [
+      "/**",
+      " * specifications: The fields to",
+      " *   include or exclude.",
+      " */",
+      "",
+      "\\$project: {",
+      "  ${1:specification(s)}",
+      "}"
+    ],
+    "description": "Adds new field(s) to a document with a computed value, or reassigns an existing field(s) with a computed value. Unlike $addFields, $project can also remove fields."
+  },
+  "MongoDB Aggregations $redact": {
+    "prefix": "$redact",
+    "body": [
+      "/**",
+      " * expression: Any valid expression that",
+      " *   evaluates to \\$\\$DESCEND, \\$\\$PRUNE, or \\$\\$KEEP.",
+      " */",
+      "",
+      "\\$redact: {",
+      "  ${1:expression}",
+      "}"
+    ],
+    "description": "Restricts the content for each document based on information stored in the documents themselves"
+  },
+  "MongoDB Aggregations $replaceWith": {
+    "prefix": "$replaceWith",
+    "body": [
+      "/**",
+      " * replacementDocument: A document or string.",
+      " */",
+      "",
+      "\\$replaceWith: {",
+      "  newWith: ${1:replacementDocument}",
+      "}"
+    ],
+    "description": "Replaces a document with the specified embedded document."
+  },
+  "MongoDB Aggregations $replaceRoot": {
+    "prefix": "$replaceRoot",
+    "body": [
+      "/**",
+      " * replacementDocument: A document or string.",
+      " */",
+      "",
+      "\\$replaceRoot: {",
+      "  newRoot: ${1:replacementDocument}",
+      "}"
+    ],
+    "description": "Replaces a document with the specified embedded document."
+  },
+  "MongoDB Aggregations $sample": {
+    "prefix": "$sample",
+    "body": [
+      "/**",
+      " * size: The number of documents to sample.",
+      " */",
+      "",
+      "\\$sample: {",
+      "  size: ${1:number}",
+      "}"
+    ],
+    "description": "Randomly selects the specified number of documents from its input."
+  },
+  "MongoDB Aggregations $searchBeta": {
+    "prefix": "$searchBeta",
+    "body": [
+      "/**",
+      " * index: The index name.",
+      " * search: The search spec.",
+      " * highlight: Search with highlights.",
+      " */",
+      "",
+      "\\$searchBeta: {",
+      "  index: '${1:string}',",
+      "  search: '${2:specification}',",
+      "  highlight: '${3:specification}'",
+      "}"
+    ],
+    "description": "Performs a full-text search on the specified field(s)."
+  },
+  "MongoDB Aggregations $set": {
+    "prefix": "$set",
+    "body": [
+      "/**",
+      " * field: The field name",
+      " * expression: The expression.",
+      " */",
+      "",
+      "\\$set: {",
+      "  ${1:field}: ${2:expression}",
+      "}"
+    ],
+    "description": "Adds new fields to documents. $set outputs documents that contain all existing fields from the input documents and newly added fields."
+  },
+  "MongoDB Aggregations $skip": {
+    "prefix": "$skip",
+    "body": [
+      "/**",
+      " * Provide the number of documents to skip.",
+      " */",
+      "",
+      "\\$skip: ${1:number}"
+    ],
+    "description": "Skips a specified number of documents before advancing to the next stage."
+  },
+  "MongoDB Aggregations $sort": {
+    "prefix": "$sort",
+    "body": [
+      "/**",
+      " * Provide any number of field/order pairs.",
+      " */",
+      "",
+      "\\$sort: {",
+      "  ${1:field1}: ${2:sortOrder}",
+      "}"
+    ],
+    "description": "Reorders the document stream by a specified sort key and direction."
+  },
+  "MongoDB Aggregations $sortByCount": {
+    "prefix": "$sortByCount",
+    "body": [
+      "/**",
+      " * expression: Grouping expression or string.",
+      " */",
+      "",
+      "\\$sortByCount: {",
+      "  ${1:expression}",
+      "}"
+    ],
+    "description": "Groups incoming documents based on the value of a specified expression, then computes the count of documents in each distinct group."
+  },
+  "MongoDB Aggregations $unset": {
+    "prefix": "$unset",
+    "body": [
+      "/**",
+      " * fields: The field name(s).",
+      " */",
+      "",
+      "\\$unset: {",
+      "  ${1:field}",
+      "}"
+    ],
+    "description": "Excludes fields from the result document."
+  },
+  "MongoDB Aggregations $unwind": {
+    "prefix": "$unwind",
+    "body": [
+      "/**",
+      " * path: Path to the array field.",
+      " * includeArrayIndex: Optional name for index.",
+      " * preserveNullAndEmptyArrays: Optional",
+      " *   toggle to unwind null and empty values.",
+      " */",
+      "",
+      "\\$unwind: {",
+      "  path: ${1:path},",
+      "  includeArrayIndex: '${2:string}',",
+      "  preserveNullAndEmptyArrays: ${3:boolean}",
+      "}"
+    ],
+    "description": "Outputs a new document for each element in a specified array. "
+  }
+}

@@ -50,16 +50,33 @@ steps:
     displayName: Cache npm
   # TODO (lucas): Caching `./.vscode-test` in the future would be nice
   # so vscode-test isn't downloading the vscode zip everytime. same goes for mongoddb-runner.
-  - script: npm ci
+  - bash: |
+      npm i -g npm@latest;
+      npm ci;
     displayName: 'Install dependencies from npm'
 
   - bash: npm run test
     displayName: 'Run Tests'
+  - bash: ls -alh
+    displayName: 'Post Tests'
 
   - task: PublishTestResults@2
     displayName: 'Publish Test Results'
     condition: succeededOrFailed()
     inputs:
       testRunner: JUnit
-      testResultsFiles: './test-results.xml'
+      testResultsFiles: 'test-results.xml'
       failTaskOnFailedTests: true
+
+  - bash: |
+      npm i -g vsce;
+      vsce package
+    displayName: 'Build .vsix'
+
+  # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#set-variables-in-scripts
+  - bash: |
+      echo "##vso[task.setvariable variable=extension_version]`npx json -f package.json version`"
+    displayName: 'Set extension_version variable from package.json version'
+  - bash: |
+      ls -alh mongodb-vscode-$(extension_version).vsix
+    displayName: 'Check .vsix filesize'

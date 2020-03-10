@@ -14,7 +14,7 @@ Official MongoDB Visual Studio Code Extension. **Not Yet Released**.
 
 `mdb.show`: Show/Hide the MongoDB extension.
 
-*See `package.json` `contributes.configuration` for a full list of settings.*
+_See `package.json` `contributes.configuration` for a full list of settings._
 
 ## Contributing
 
@@ -29,9 +29,27 @@ We recommend familiarizing yourself with the VSCode extension documentation:
 Running the MongoDB VSCode plugin requires [Node.js](https://nodejs.org) and npm.
 
 1. Clone this project, navigate to the folder, then run:
+
 ```shell
 npm install
 npm run watch
 ```
 
 2. Inside of [VS Code Insiders](https://code.visualstudio.com/insiders/) open this directory and press `F5` to begin debugging the extension. This should launch a new VSCode window which is running the extension.
+
+#### Code Tour
+
+- `out` compiled extension code
+- `images` Icons, logos, etc.
+- `snippets` [Bundled MongoDB Snippets][snippet guide]
+- `syntaxes` [Syntax highlighting for `.mongodb` files][syntax guide]
+- `src`
+  - `test/suite` where tests live with files names `*.test.ts`
+- `scripts` project helper scripts
+
+## License
+
+Apache 2.0
+
+[snippet guide]: https://code.visualstudio.com/api/language-extensions/snippet-guide
+[syntax guide]: https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide

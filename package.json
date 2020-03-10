@@ -1,46 +1,67 @@
 {
+  "preview": true,
   "name": "mongodb-vscode",
-  "displayName": "MongoDB",
-  "description": "MongoDB for Visual Studio Code",
+  "displayName": "MongoDB for VS Code",
+  "description": "Connect to MongoDB and Atlas and directly from your VS Code environment, navigate your databases and collections, inspect your schema and use playgrounds to prototype queries and aggregations.",
   "version": "0.0.1",
+  "homepage": "https://github.com/mongodb-js/vscode",
+  "qna": "https://community.mongodb.com/c/vscode/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mongodb-js/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/mongodb-js/vscode/issues",
+    "email": "vscode@mongodb.com"
+  },
+  "publisher": "mongodb",
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "MongoDB",
+    "MongoDB Atlas",
+    "MQL",
+    "Databases"
+  ],
+  "icon": "images/mongodb.png",
+  "galleryBanner": {
+    "color": "#3D4F58",
+    "theme": "dark"
+  },
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "main": "./out/extension.js",
+  "scripts": {
+    "clean": "rimraf ./out/*",
+    "lint": "eslint ./src/**/*.ts",
+    "update-grammar": "ts-node ./scripts/update-grammar.ts",
+    "update-snippets": "ts-node ./scripts/update-snippets.ts",
+    "precompile": "npm run clean",
+    "compile": "npm run update-grammar && npm run update-snippets && tsc -p ./",
+    "watch": "npm run compile -- -watch",
+    "pretest": "npm run compile && mongodb-runner start --port=27018",
+    "test": "xvfb-maybe node ./out/test/runTest.js",
+    "posttest": "mongodb-runner stop --port=27018",
+    "vscode:prepublish": "npm run compile",
+    "check": "mongodb-js-precommit './src/**/*{.ts}'",
+    "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && vsce package"
+  },
   "engines": {
-    "vscode": "^1.40.0",
+    "vscode": "^1.41.0",
     "node": "^12.4.0",
     "npm": ">=6.13.0"
   },
-  "categories": [
-    "Other"
-  ],
   "activationEvents": [
     "onCommand:mdb.connect",
     "onCommand:mdb.connectWithURI",
     "onCommand:mdb.disconnect",
     "onCommand:mdb.removeConnection",
     "onCommand:mdb.openMongoDBShell",
-    "onCommand:mdb.createPlayground",
     "onView:mongoDB",
     "onLanguage:json"
   ],
-  "main": "./out/extension.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mongodb-js/vscode"
-  },
-  "icon": "images/mongodb.png",
-  "scripts": {
-    "clean": "rimraf ./src/snippets ./out/*",
-    "precompile": "npm run clean",
-    "lint": "./node_modules/.bin/eslint ./src/**/*.ts",
-    "update-grammar": "ts-node ./src/scripts/update-grammar.ts",
-    "update-snippets": "ts-node ./src/scripts/update-snippets.ts",
-    "compile": "npm run update-grammar && npm run update-snippets && tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && mongodb-runner start --port=27018",
-    "test": "xvfb-maybe node ./out/test/runTest.js",
-    "posttest": "mongodb-runner stop --port=27018",
-    "vscode:prepublish": "npm run compile",
-    "check": "mongodb-js-precommit './src/**/*{.ts}'"
-  },
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -75,14 +96,14 @@
     "grammars": [
       {
         "language": "mongodb",
-        "path": "./src/syntaxes/mongodb.tmLanguage.json",
+        "path": "./syntaxes/mongodb.tmLanguage.json",
         "scopeName": "source.mongodb"
       }
     ],
     "snippets": [
       {
         "language": "mongodb",
-        "path": "./src/snippets/stage-autocompleter.json"
+        "path": "./snippets/stage-autocompleter.json"
       }
     ],
     "commands": [
@@ -114,16 +135,16 @@
         "command": "mdb.addConnection",
         "title": "Add MongoDB Connection",
         "icon": {
-          "light": "resources/light/plus-circle.svg",
-          "dark": "resources/dark/plus-circle.svg"
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
         }
       },
       {
         "command": "mdb.addConnectionWithURI",
         "title": "Add MongoDB Connection with Connection String...",
         "icon": {
-          "light": "resources/light/plus-circle.svg",
-          "dark": "resources/dark/plus-circle.svg"
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
         }
       },
       {
@@ -138,8 +159,8 @@
         "command": "mdb.addDatabase",
         "title": "Add Database",
         "icon": {
-          "light": "resources/light/plus-circle.svg",
-          "dark": "resources/dark/plus-circle.svg"
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
         }
       },
       {
@@ -170,8 +191,8 @@
         "command": "mdb.addCollection",
         "title": "Add Collection",
         "icon": {
-          "light": "resources/light/plus-circle.svg",
-          "dark": "resources/dark/plus-circle.svg"
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
         }
       },
       {
@@ -336,10 +357,13 @@
       }
     }
   },
-  "dependency-check": {
-    "ignore": [
-      "vscode"
-    ]
+  "dependencies": {
+    "bson": "^4.0.3",
+    "mongodb-connection-model": "^14.6.2",
+    "mongodb-data-service": "^16.5.6",
+    "mongodb-ns": "^2.2.0",
+    "ts-log": "^2.1.4",
+    "uuid": "^7.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.9",
@@ -357,26 +381,24 @@
     "eslint": "^6.8.0",
     "eslint-config-mongodb-js": "^5.0.3",
     "glob": "^7.1.6",
+    "meow": "^6.0.1",
+    "mkdirp": "^1.0.3",
     "mocha": "^7.0.1",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi": "^1.1.3",
     "mongodb-ace-autocompleter": "^0.4.1",
     "mongodb-js-precommit": "^2.2.1",
     "mongodb-runner": "^4.8.0",
+    "ora": "^4.0.3",
     "sinon": "^9.0.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5",
     "vscode-test": "^1.3.0",
     "xvfb-maybe": "^0.2.1"
   },
-  "dependencies": {
-    "@leafygreen-ui/icon": "^4.0.0",
-    "bson": "^4.0.3",
-    "mongodb-connection-model": "^14.5.0",
-    "mongodb-data-service": "^16.5.1",
-    "mongodb-ns": "^2.2.0",
-    "ts-log": "^2.1.4",
-    "uuid": "^7.0.0"
-  },
-  "license": "Apache-2.0"
+  "dependency-check": {
+    "ignore": [
+      "vscode"
+    ]
+  }
 }

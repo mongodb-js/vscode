@@ -71,7 +71,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     if (
       this._connectionController.isConnecting() &&
       this._connectionController.getConnectingInstanceId() ===
-      this.connectionInstanceId
+        this.connectionInstanceId
     ) {
       return 'connecting...';
     }
@@ -141,30 +141,21 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const iconName =
+    const LIGHT = path.join(__dirname, '..', '..', '..', 'images', 'light');
+    const DARK = path.join(__dirname, '..', '..', '..', 'images', 'dark');
+
+    if (
       this._connectionController.getActiveConnectionInstanceId() ===
-        this.connectionInstanceId
-        ? 'active-connection'
-        : 'inactive-connection';
+      this.connectionInstanceId
+    ) {
+      return {
+        light: path.join(LIGHT, 'active-connection.svg'),
+        dark: path.join(DARK, 'active-connection.svg')
+      };
+    }
     return {
-      light: path.join(
-        __filename,
-        '..',
-        '..',
-        '..',
-        'resources',
-        'light',
-        `${iconName}.svg`
-      ),
-      dark: path.join(
-        __filename,
-        '..',
-        '..',
-        '..',
-        'resources',
-        'dark',
-        `${iconName}.svg`
-      )
+      light: path.join(LIGHT, 'inactive-connection.svg'),
+      dark: path.join(DARK, 'inactive-connection.svg')
     };
   }
 
