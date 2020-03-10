@@ -1,6 +1,6 @@
 # :construction: MongoDB VSCode [Work in Progress] :construction:
 
-[![Build Status](https://dev.azure.com/team-compass/team-compass/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/team-compass/_build/latest?definitionId=4&branchName=master)
+[![Build Status](https://dev.azure.com/team-compass/vscode/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/vscode/_build/latest?definitionId=6&branchName=master)
 
 Official MongoDB Visual Studio Code Extension. **Not Yet Released**.
 
