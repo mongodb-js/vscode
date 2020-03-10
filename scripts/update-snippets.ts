@@ -10,7 +10,7 @@ const ora = require('ora');
 
 const { STAGE_OPERATORS } = require('mongodb-ace-autocompleter');
 const config = require(path.join(__dirname, '..', 'package.json'));
-const SNIPPETS_DIR = path.join(__dirname, '..', 'resources', 'snippets');
+const SNIPPETS_DIR = path.join(__dirname, '..', 'snippets');
 
 /**
  * Transforms `mongodb-ace-autocompleter` snippets

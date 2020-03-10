@@ -6,7 +6,7 @@ const ora = require('ora');
 const meow = require('meow');
 const mkdirp = require('mkdirp');
 
-const DEFAULT_DEST = path.join(__dirname, '..', 'resources', 'syntaxes');
+const DEFAULT_DEST = path.join(__dirname, '..', 'syntaxes');
 
 const URL =
   'https://raw.githubusercontent.com/mongodb-js/vscode-mongodb-language/master/syntaxes/mongodb.tmLanguage.json';
@@ -25,7 +25,7 @@ const cli = meow(
 	Examples
 	  $ ./update-grammar.ts
 	  ℹ Downlading latest mongodb.tmLanguage.json
-    ✔ Downloaded to /Users/lucas/vsc/resources/syntaxes/mongodb.tmLanguage.json
+    ✔ Downloaded to /Users/lucas/vsc/syntaxes/mongodb.tmLanguage.json
 `,
   {
     flags: {

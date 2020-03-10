@@ -102,8 +102,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
   get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     return {
-      light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'database.svg'),
-      dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'database.svg')
+      light: path.join(__filename, '..', '..', '..', 'images', 'light', 'database.svg'),
+      dark: path.join(__filename, '..', '..', '..', 'images', 'dark', 'database.svg')
     };
   }
 

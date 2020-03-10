@@ -40,7 +40,9 @@ npm run watch
 #### Code Tour
 
 - `out` compiled extension code
-- `resources` static assets like images that will be copied directly into the extension bundle
+- `images` Icons, logos, etc.
+- `snippets` [Bundled MongoDB Snippets][snippet guide]
+- `syntaxes` [Syntax highlighting for `.mongodb` files][syntax guide]
 - `src`
   - `test/suite` where tests live with files names `*.test.ts`
 - `scripts` project helper scripts
@@ -48,3 +50,6 @@ npm run watch
 ## License
 
 Apache 2.0
+
+[snippet guide]: https://code.visualstudio.com/api/language-extensions/snippet-guide
+[syntax guide]: https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide

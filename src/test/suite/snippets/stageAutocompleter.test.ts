@@ -7,7 +7,7 @@ chai.use(chaiFs);
 chai.use(chaiJsonSchema);
 
 const expect = chai.expect;
-const SNIPPETS_DIR = `${__dirname}/../../../../resources/snippets/`;
+const SNIPPETS_DIR = `${__dirname}/../../../../snippets/`;
 const SNIPPETS_FILE = `${SNIPPETS_DIR}stage-autocompleter.json`;
 
 const STAGE_LABELS = [

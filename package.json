@@ -15,10 +15,6 @@
     "email": "vscode@mongodb.com"
   },
   "publisher": "mongodb",
-  "keywords": [
-    "MongoDB",
-    "Databases"
-  ],
   "categories": [
     "Programming Languages",
     "Snippets",
@@ -28,10 +24,9 @@
     "MongoDB",
     "MongoDB Atlas",
     "MQL",
-    "Database"
+    "Databases"
   ],
-  "preview": true,
-  "icon": "resources/mongodb.png",
+  "icon": "images/mongodb.png",
   "galleryBanner": {
     "color": "#3D4F58",
     "theme": "dark"
@@ -69,39 +64,50 @@
   ],
   "contributes": {
     "viewsContainers": {
-      "activitybar": [{
-        "id": "mongoDB",
-        "title": "MongoDB",
-        "icon": "resources/mongodb.svg"
-      }]
+      "activitybar": [
+        {
+          "id": "mongoDB",
+          "title": "MongoDB",
+          "icon": "images/mongodb.svg"
+        }
+      ]
     },
     "views": {
-      "mongoDB": [{
-        "id": "mongoDB",
-        "name": "MongoDB",
-        "when": "config.mdb.show == true"
-      }]
-    },
-    "languages": [{
-      "id": "mongodb",
-      "aliases": [
-        "MongoDB",
-        "mongodb"
-      ],
-      "extensions": [
-        ".mongodb"
+      "mongoDB": [
+        {
+          "id": "mongoDB",
+          "name": "MongoDB",
+          "when": "config.mdb.show == true"
+        }
       ]
-    }],
-    "grammars": [{
-      "language": "mongodb",
-      "path": "./resources/syntaxes/mongodb.tmLanguage.json",
-      "scopeName": "source.mongodb"
-    }],
-    "snippets": [{
-      "language": "mongodb",
-      "path": "./resources/snippets/stage-autocompleter.json"
-    }],
-    "commands": [{
+    },
+    "languages": [
+      {
+        "id": "mongodb",
+        "aliases": [
+          "MongoDB",
+          "mongodb"
+        ],
+        "extensions": [
+          ".mongodb"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mongodb",
+        "path": "./syntaxes/mongodb.tmLanguage.json",
+        "scopeName": "source.mongodb"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "mongodb",
+        "path": "./snippets/stage-autocompleter.json"
+      }
+    ],
+    "commands": [
+      {
         "command": "mdb.connect",
         "title": "MongoDB: Connect"
       },
@@ -129,16 +135,16 @@
         "command": "mdb.addConnection",
         "title": "Add MongoDB Connection",
         "icon": {
-          "light": "resources/light/plus-circle.svg",
-          "dark": "resources/dark/plus-circle.svg"
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
         }
       },
       {
         "command": "mdb.addConnectionWithURI",
         "title": "Add MongoDB Connection with Connection String...",
         "icon": {
-          "light": "resources/light/plus-circle.svg",
-          "dark": "resources/dark/plus-circle.svg"
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
         }
       },
       {
@@ -153,8 +159,8 @@
         "command": "mdb.addDatabase",
         "title": "Add Database",
         "icon": {
-          "light": "resources/light/plus-circle.svg",
-          "dark": "resources/dark/plus-circle.svg"
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
         }
       },
       {
@@ -173,8 +179,8 @@
         "command": "mdb.addCollection",
         "title": "Add Collection",
         "icon": {
-          "light": "resources/light/plus-circle.svg",
-          "dark": "resources/dark/plus-circle.svg"
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
         }
       },
       {
@@ -191,7 +197,8 @@
       }
     ],
     "menus": {
-      "view/item/context": [{
+      "view/item/context": [
+        {
           "command": "mdb.addConnection",
           "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem",
           "group": "inline"

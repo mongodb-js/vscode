@@ -125,12 +125,12 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     return this._connectionController.getActiveConnectionInstanceId() === this.connectionInstanceId
       ? {
-        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'active-connection.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'active-connection.svg')
+        light: path.join(__filename, '..', '..', '..', 'images', 'light', 'active-connection.svg'),
+        dark: path.join(__filename, '..', '..', '..', 'images', 'dark', 'active-connection.svg')
       }
       : {
-        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'inactive-connection.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'inactive-connection.svg')
+        light: path.join(__filename, '..', '..', '..', 'images', 'light', 'inactive-connection.svg'),
+        dark: path.join(__filename, '..', '..', '..', 'images', 'dark', 'inactive-connection.svg')
       };
   }
 
