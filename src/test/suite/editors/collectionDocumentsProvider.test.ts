@@ -1,5 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import { afterEach } from 'mocha';
+const sinon = require('sinon');
 
 import CollectionDocumentsProvider from '../../../editors/collectionDocumentsProvider';
 import ConnectionController from '../../../connectionController';
@@ -20,6 +22,10 @@ const mockDocumentsAsJsonString = `[
 ]`;
 
 suite('Collection Documents Provider Test Suite', () => {
+  afterEach(function () {
+    sinon.restore();
+  });
+
   test('expected provideTextDocumentContent to parse uri and return documents in the form of a string from a find call', (done) => {
     const mockActiveConnection = {
       find: (namespace, filter, options, callback): void => {
@@ -39,11 +45,18 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const mockExtensionContext = new TestExtensionContext();
     const mockStorageController = new StorageController(mockExtensionContext);
-    const mockConnectionController = new ConnectionController(new StatusView(), mockStorageController);
+    const mockConnectionController = new ConnectionController(
+      new StatusView(mockExtensionContext),
+      mockStorageController
+    );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
+    const testCollectionViewProvider = new CollectionDocumentsProvider(
+      mockConnectionController,
+      testQueryStore,
+      new StatusView(mockExtensionContext)
+    );
 
     const operationId = testQueryStore.createNewOperation();
 
@@ -77,11 +90,18 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const mockExtensionContext = new TestExtensionContext();
     const mockStorageController = new StorageController(mockExtensionContext);
-    const mockConnectionController = new ConnectionController(new StatusView(), mockStorageController);
+    const mockConnectionController = new ConnectionController(
+      new StatusView(mockExtensionContext),
+      mockStorageController
+    );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
+    const testCollectionViewProvider = new CollectionDocumentsProvider(
+      mockConnectionController,
+      testQueryStore,
+      new StatusView(mockExtensionContext)
+    );
 
     const operationId = testQueryStore.createNewOperation();
 
@@ -107,11 +127,19 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const mockExtensionContext = new TestExtensionContext();
     const mockStorageController = new StorageController(mockExtensionContext);
-    const mockConnectionController = new ConnectionController(new StatusView(), mockStorageController);
+    const mockConnectionController = new ConnectionController(
+      new StatusView(mockExtensionContext),
+      mockStorageController
+    );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCollectionViewProvider = new CollectionDocumentsProvider(mockConnectionController, testQueryStore);
+    const testCollectionViewProvider = new CollectionDocumentsProvider(
+      mockConnectionController,
+      testQueryStore,
+      new StatusView(mockExtensionContext)
+
+    );
 
     const operationId = testQueryStore.createNewOperation();
     testQueryStore.operations[operationId].currentLimit = 5;
@@ -135,5 +163,50 @@ suite('Collection Documents Provider Test Suite', () => {
         done();
       }).catch(done);
     });
+  });
+
+  test('provideTextDocumentContent shows a status bar item while it is running then hide it', (done) => {
+    const mockActiveConnection = { find: {} };
+
+    const mockExtensionContext = new TestExtensionContext();
+    const mockStorageController = new StorageController(mockExtensionContext);
+    const mockConnectionController = new ConnectionController(
+      new StatusView(mockExtensionContext),
+      mockStorageController
+    );
+    mockConnectionController.setActiveConnection(mockActiveConnection);
+
+    const textStatusView = new StatusView(mockExtensionContext);
+
+    const testQueryStore = new CollectionDocumentsOperationsStore();
+    const testCollectionViewProvider = new CollectionDocumentsProvider(
+      mockConnectionController,
+      testQueryStore,
+      textStatusView
+    );
+
+    const operationId = testQueryStore.createNewOperation();
+
+    const uri = vscode.Uri.parse(
+      `scheme:Results: filename.json?namespace=aaaaaaaa&operationId=${operationId}`
+    );
+
+    const mockShowMessage = sinon.fake();
+    sinon.replace(textStatusView, 'showMessage', mockShowMessage);
+
+    const mockHideMessage = sinon.fake();
+    sinon.replace(textStatusView, 'hideMessage', mockHideMessage);
+
+    mockActiveConnection.find = (namespace, filter, options, callback): void => {
+      assert(mockShowMessage.called);
+      assert(!mockHideMessage.called);
+      assert(mockShowMessage.firstArg === 'Fetching documents...');
+
+      return callback(null, ['aaaaaaaaaaaaaaaaa']);
+    };
+
+    testCollectionViewProvider.provideTextDocumentContent(uri).then(() => {
+      assert(mockHideMessage.called);
+    }).then(done, done);
   });
 });

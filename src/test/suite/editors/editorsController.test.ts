@@ -7,11 +7,10 @@ suite('Editors Controller Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
   test('getViewCollectionDocumentsUri builds a uri from the namespace and connection info', function () {
-    const testEditorsController = new EditorsController();
     const testOpId = '100011011101110011';
     const testNamespace = 'myFavoriteNamespace';
     const testConnectionId = 'alienSateliteConnection';
-    const testUri = testEditorsController.getViewCollectionDocumentsUri(testOpId, testNamespace, testConnectionId);
+    const testUri = EditorsController.getViewCollectionDocumentsUri(testOpId, testNamespace, testConnectionId);
 
     assert(
       testUri.path === 'Results: myFavoriteNamespace.json',

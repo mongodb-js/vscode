@@ -20,47 +20,37 @@ const log = createLogger('commands');
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
   _connectionController: ConnectionController;
-  _context?: vscode.ExtensionContext;
+  _context: vscode.ExtensionContext;
   _editorsController: EditorsController;
   _explorerController: ExplorerController;
   _statusView: StatusView;
+  _storageController: StorageController;
 
   constructor(
     context: vscode.ExtensionContext,
     connectionController?: ConnectionController
   ) {
-    this._statusView = new StatusView();
-    const storageController = new StorageController(context);
+    this._context = context;
+
+    this._statusView = new StatusView(context);
+    this._storageController = new StorageController(context);
 
     if (connectionController) {
       this._connectionController = connectionController;
     } else {
       this._connectionController = new ConnectionController(
         this._statusView,
-        storageController
+        this._storageController
       );
     }
 
-    this._editorsController = new EditorsController();
-    this._explorerController = new ExplorerController();
+    this._editorsController = new EditorsController(context, this._connectionController);
+    this._explorerController = new ExplorerController(this._connectionController);
   }
 
-  registerCommand = (command, commandHandler: (...args: any[]) => Promise<boolean>): void => {
-    if (!this._context) {
-      // Not yet activated.
-      return;
-    }
-
-    this._context.subscriptions.push(
-      vscode.commands.registerCommand(command, commandHandler)
-    );
-  };
-
-  public activate(context): void {
-    this._context = context;
-    this._connectionController.activate();
-    this._explorerController.activate(this._connectionController);
-    this._editorsController.activate(context, this._connectionController);
+  activate(): void {
+    this._connectionController.loadSavedConnections();
+    this._explorerController.createTreeView();
 
     log.info('Registering commands...');
 
@@ -84,18 +74,17 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommand('mdb.createPlayground', () => this.createPlayground());
 
-    this.registerCommand('mdb.refresh', () =>
-      this._explorerController.refresh()
-    );
-    this.registerCommand('mdb.reload', () =>
-      this._explorerController.refresh()
-    );
-
     this.registerEditorCommands();
     this.registerTreeViewCommands();
 
     log.info('Registered commands.');
   }
+
+  registerCommand = (command, commandHandler: (...args: any[]) => Promise<boolean>): void => {
+    this._context.subscriptions.push(
+      vscode.commands.registerCommand(command, commandHandler)
+    );
+  };
 
   registerEditorCommands(): void {
     this.registerCommand('mdb.codeLens.showMoreDocumentsClicked', (
@@ -119,6 +108,22 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.addConnectionWithURI',
       () => this._connectionController.connectWithURI()
+    );
+    this.registerCommand(
+      'mdb.connectToConnectionTreeItem',
+      (connectionTreeItem: ConnectionTreeItem) => {
+        return this._connectionController.connectWithInstanceId(
+          connectionTreeItem.connectionInstanceId
+        );
+      }
+    );
+    this.registerCommand(
+      'mdb.disconnectFromConnectionTreeItem',
+      () => {
+        // In order for this command to be activated, the connection must
+        // be the active connection, so we can just generally disconnect.
+        return this._connectionController.disconnect();
+      }
     );
     this.registerCommand(
       'mdb.refreshConnection',
@@ -154,31 +159,27 @@ export default class MDBExtensionController implements vscode.Disposable {
       'mdb.addDatabase',
       async (element: ConnectionTreeItem): Promise<boolean> => {
         if (!element) {
-          return Promise.reject(
-            new Error('Please wait for the connection to finish loading before adding a database.')
-          );
+          vscode.window.showErrorMessage('Please wait for the connection to finish loading before adding a database.');
+          return Promise.resolve(false);
         }
 
         if (element.connectionInstanceId !== this._connectionController.getActiveConnectionInstanceId()) {
-          return Promise.reject(
-            new Error('Please connect to this connection before adding a database.')
-          );
+          vscode.window.showErrorMessage('Please connect to this connection before adding a database.');
+          return Promise.resolve(false);
         }
 
         if (this._connectionController.isDisconnecting()) {
-          return Promise.reject(
-            new Error('Unable to add collection: currently disconnecting.')
-          );
+          vscode.window.showErrorMessage('Unable to add database: currently disconnecting.');
+          return Promise.resolve(false);
         }
 
         if (this._connectionController.isConnecting()) {
-          return Promise.reject(
-            new Error('Unable to add collection: currently connecting.')
-          );
+          vscode.window.showErrorMessage('Unable to add database: currently connecting.');
+          return Promise.resolve(false);
         }
 
         return new Promise((resolve, reject) => {
-          element.onAddDatabaseClicked().then(successfullyAddedDatabase => {
+          element.onAddDatabaseClicked(this._context).then(successfullyAddedDatabase => {
             if (successfullyAddedDatabase) {
               vscode.window.showInformationMessage('Database and collection successfully created.');
 
@@ -186,7 +187,7 @@ export default class MDBExtensionController implements vscode.Disposable {
               // to update the explorer view.
               this._explorerController.refresh();
             }
-            resolve();
+            resolve(true);
           }, reject);
         });
       }
@@ -203,8 +204,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
+      'mdb.dropDatabase',
+      (element: DatabaseTreeItem): Promise<boolean> => {
+        return element.onDropDatabaseClicked();
+      }
+    );
+    this.registerCommand(
       'mdb.refreshDatabase',
-      (databaseTreeItem: DatabaseTreeItem) => {
+      (databaseTreeItem: DatabaseTreeItem): Promise<boolean> => {
         databaseTreeItem.resetCache();
         return this._explorerController.refresh();
       }
@@ -213,11 +220,12 @@ export default class MDBExtensionController implements vscode.Disposable {
       'mdb.addCollection',
       async (element: DatabaseTreeItem): Promise<boolean> => {
         if (this._connectionController.isDisconnecting()) {
-          return Promise.reject(new Error('Unable to add collection: currently disconnecting.'));
+          vscode.window.showErrorMessage('Unable to add collection: currently disconnecting.');
+          return Promise.resolve(false);
         }
 
         return new Promise((resolve, reject) => {
-          element.onAddCollectionClicked().then(successfullyAddedCollection => {
+          element.onAddCollectionClicked(this._context).then(successfullyAddedCollection => {
             if (successfullyAddedCollection) {
               vscode.window.showInformationMessage('Collection successfully created.');
 
@@ -225,14 +233,14 @@ export default class MDBExtensionController implements vscode.Disposable {
               // to update the explorer view.
               this._explorerController.refresh();
             }
-            resolve();
+            resolve(true);
           }, reject);
         });
       }
     );
     this.registerCommand(
       'mdb.copyCollectionName',
-      (element: CollectionTreeItem) => {
+      (element: CollectionTreeItem): Promise<boolean> => {
         return new Promise((resolve, reject) => {
           vscode.env.clipboard.writeText(element.collectionName).then(() => {
             vscode.window.showInformationMessage('Copied to clipboard.');
@@ -242,15 +250,21 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
+      'mdb.dropCollection',
+      (element: CollectionTreeItem): Promise<boolean> => {
+        return element.onDropCollectionClicked();
+      }
+    );
+    this.registerCommand(
       'mdb.viewCollectionDocuments',
-      (element: CollectionTreeItem) => {
+      (element: CollectionTreeItem): Promise<boolean> => {
         const namespace = `${element.databaseName}.${element.collectionName}`;
         return this._editorsController.onViewCollectionDocuments(namespace);
       }
     );
     this.registerCommand(
       'mdb.refreshCollection',
-      (collectionTreeItem: CollectionTreeItem) => {
+      (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
         collectionTreeItem.resetCache();
         return this._explorerController.refresh();
       }

@@ -34,7 +34,7 @@ export function run(): Promise<void> {
       mdbTestExtension.testExtensionController = new MDBExtensionController(
         mdbTestExtension.testExtensionContext
       );
-      mdbTestExtension.testExtensionController.activate(mdbTestExtension.testExtensionContext);
+      mdbTestExtension.testExtensionController.activate();
 
       // Disable the dialogue for prompting the user where to store the connection.
       vscode.workspace.getConfiguration('mdb.connectionSaving').update(

@@ -5,10 +5,16 @@ const path = require('path');
 import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
 import TreeItemParent from './treeItemParentInterface';
+import { StatusView } from '../views';
+
+enum ConnectionItemContextValues {
+  disconnected = 'disconnectedConnectionTreeItem',
+  connected = 'connectedConnectionTreeItem'
+}
 
 export default class ConnectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
-  contextValue = 'connectionTreeItem';
+  contextValue = ConnectionItemContextValues.disconnected;
 
   private _childrenCache: { [key: string]: DatabaseTreeItem };
   _childrenCacheIsUpToDate = false;
@@ -26,6 +32,15 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     existingChildrenCache: { [key: string]: DatabaseTreeItem }
   ) {
     super(connectionInstanceId, collapsibleState);
+
+    if (
+      connectionController.getActiveConnectionInstanceId() ===
+      connectionInstanceId &&
+      !connectionController.isDisconnecting() &&
+      !connectionController.isConnecting()
+    ) {
+      this.contextValue = ConnectionItemContextValues.connected;
+    }
 
     this.connectionInstanceId = connectionInstanceId;
     this._connectionController = connectionController;
@@ -184,7 +199,9 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     return this._childrenCache;
   }
 
-  async onAddDatabaseClicked(): Promise<boolean> {
+  async onAddDatabaseClicked(
+    context: vscode.ExtensionContext
+  ): Promise<boolean> {
     let databaseName;
     try {
       databaseName = await vscode.window.showInputBox({
@@ -248,15 +265,21 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve, reject) => {
+    const statusView = new StatusView(context);
+    statusView.showMessage('Creating new database and collection...');
+
+    return new Promise((resolve) => {
       this._connectionController.getActiveConnection().createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
         (err) => {
+          statusView.hideMessage();
+
           if (err) {
-            return reject(
-              new Error(`Create collection failed: ${err.message}`)
+            vscode.window.showErrorMessage(
+              `Create collection failed: ${err.message}`
             );
+            return resolve(false);
           }
 
           this._childrenCacheIsUpToDate = false;

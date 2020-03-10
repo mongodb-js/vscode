@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
 
-export default class MongoDBDocumentTreeItem extends vscode.TreeItem implements vscode.TreeDataProvider<MongoDBDocumentTreeItem> {
+export default class MongoDBDocumentTreeItem extends vscode.TreeItem
+  implements vscode.TreeDataProvider<MongoDBDocumentTreeItem> {
   private _documentLabel: string;
 
-  constructor(
-    document: any,
-    documentIndexInTree: number
-  ) {
+  constructor(document: any, documentIndexInTree: number) {
     // A document can not have a `_id` when it is in a view. In this instance
     // we just show the document's index in the tree.
     super(

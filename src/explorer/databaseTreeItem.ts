@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 const ns = require('mongodb-ns');
 const path = require('path');
+import { StatusView } from '../views';
 
 import CollectionTreeItem, {
   MAX_DOCUMENTS_VISIBLE
@@ -138,7 +139,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return this._childrenCache;
   }
 
-  async onAddCollectionClicked(): Promise<boolean> {
+  async onAddCollectionClicked(
+    context: vscode.ExtensionContext
+  ): Promise<boolean> {
     const databaseName = this.databaseName;
 
     let collectionName;
@@ -167,7 +170,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       });
     } catch (e) {
       return Promise.reject(
-        `An error occured parsing the collection name: ${e}`
+        new Error(`An error occured parsing the collection name: ${e}`)
       );
     }
 
@@ -175,21 +178,73 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve, reject) => {
+    const statusBarItem = new StatusView(context);
+    statusBarItem.showMessage('Creating new collection...');
+
+    return new Promise((resolve) => {
       this._dataService.createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
         (err) => {
+          statusBarItem.hideMessage();
+
           if (err) {
-            return reject(
-              new Error(`Create collection failed: ${err.message}`)
+            vscode.window.showErrorMessage(
+              `Create collection failed: ${err.message}`
             );
+            return resolve(false);
           }
 
           this._childrenCacheIsUpToDate = false;
           return resolve(true);
         }
       );
+    });
+  }
+
+  // Prompt the user to input the database name to confirm the drop, then drop.
+  async onDropDatabaseClicked(): Promise<boolean> {
+    const databaseName = this.databaseName;
+
+    let inputtedDatabaseName;
+    try {
+      inputtedDatabaseName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder: 'e.g. myNewCollection',
+        prompt: `Are you sure you wish to drop this database? Enter the database name '${databaseName}' to confirm.`,
+        validateInput: (inputDatabaseName: any) => {
+          if (
+            inputDatabaseName &&
+            !databaseName.startsWith(inputDatabaseName)
+          ) {
+            return 'Database name does not match';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(
+        new Error(`An error occured parsing the collection name: ${e}`)
+      );
+    }
+
+    if (!inputtedDatabaseName || databaseName !== inputtedDatabaseName) {
+      return Promise.resolve(false);
+    }
+
+    return new Promise((resolve) => {
+      this._dataService.dropDatabase(databaseName, (err) => {
+        if (err) {
+          vscode.window.showErrorMessage(
+            `Drop database failed: ${err.message}`
+          );
+          return resolve(false);
+        }
+
+        this._childrenCacheIsUpToDate = false;
+        return resolve(true);
+      });
     });
   }
 }

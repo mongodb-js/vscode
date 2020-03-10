@@ -16,11 +16,10 @@ export function activate(context: vscode.ExtensionContext): void {
   log.info('activate extension called');
 
   mdbExtension = new MDBExtensionController(context);
+  mdbExtension.activate();
 
   // Add our extension to a list of disposables for when we are deactivated.
   context.subscriptions.push(mdbExtension);
-
-  mdbExtension.activate(context);
 
   log.info('extension activated');
 }

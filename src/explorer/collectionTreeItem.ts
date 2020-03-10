@@ -40,8 +40,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
   // We fetch 1 more than this in order to see if there are more to fetch.
   private _maxDocumentsToShow: number;
 
-  public collectionName: string;
-  public databaseName: string;
+  collectionName: string;
+  databaseName: string;
 
   private _dataService: any;
   private _type: CollectionTypes;
@@ -141,15 +141,13 @@ export default class CollectionTreeItem extends vscode.TreeItem
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
     const LIGHT = path.join(__dirname, '..', '..', '..', 'images', 'light');
     const DARK = path.join(__dirname, '..', '..', '..', 'images', 'dark');
-    if (this._type === CollectionTypes.collection) {
-      return {
-        light: path.join(LIGHT, 'collection.svg'),
-        dark: path.join(DARK, 'collection.svg')
-      };
-    }
+
+    const iconName =
+      this._type === CollectionTypes.collection ? 'collection' : 'view';
+
     return {
-      light: path.join(LIGHT, 'view.svg'),
-      dark: path.join(DARK, 'view.svg')
+      light: path.join(LIGHT, `${iconName}.svg`),
+      dark: path.join(DARK, `${iconName}.svg`)
     };
   }
 
@@ -176,11 +174,59 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this._childrenCacheIsUpToDate = false;
   }
 
-  public getChildrenCache(): vscode.TreeItem[] {
+  getChildrenCache(): vscode.TreeItem[] {
     return this._childrenCache;
   }
 
-  public getMaxDocumentsToShow(): number {
+  getMaxDocumentsToShow(): number {
     return this._maxDocumentsToShow;
+  }
+
+  async onDropCollectionClicked(): Promise<boolean> {
+    const collectionName = this.collectionName;
+
+    let inputtedCollectionName;
+    try {
+      inputtedCollectionName = await vscode.window.showInputBox({
+        value: '',
+        placeHolder: 'e.g. myNewCollection',
+        prompt: `Are you sure you wish to drop this collection? Enter the collection name '${collectionName}' to confirm.`,
+        validateInput: (inputCollectionName: any) => {
+          if (
+            inputCollectionName &&
+            !collectionName.startsWith(inputCollectionName)
+          ) {
+            return 'Collection name does not match';
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(
+        new Error(`An error occured parsing the collection name: ${e}`)
+      );
+    }
+
+    if (!inputtedCollectionName || collectionName !== inputtedCollectionName) {
+      return Promise.resolve(false);
+    }
+
+    return new Promise((resolve) => {
+      this._dataService.dropCollection(
+        `${this.databaseName}.${collectionName}`,
+        (err, successfullyDroppedCollection) => {
+          if (err) {
+            vscode.window.showErrorMessage(
+              `Drop collection failed: ${err.message}`
+            );
+            return resolve(false);
+          }
+
+          this._childrenCacheIsUpToDate = false;
+          return resolve(successfullyDroppedCollection);
+        }
+      );
+    });
   }
 }
