@@ -14,7 +14,7 @@ suite('FieldTreeItem Test Suite', () => {
     await cleanupTestDB();
   });
 
-  test('field name is pulled from the name of a field', function (done) {
+  test('field name is pulled from the name of a field', (done) => {
     seedDataAndCreateDataService('pie', [
       {
         _id: 1,
@@ -52,7 +52,7 @@ suite('FieldTreeItem Test Suite', () => {
     });
   });
 
-  test('it shows dropdowns for nested subdocuments', function (done) {
+  test('it shows dropdowns for nested subdocuments', (done) => {
     seedDataAndCreateDataService('gryffindor', [
       {
         _id: 1,
@@ -124,7 +124,7 @@ suite('FieldTreeItem Test Suite', () => {
     });
   });
 
-  test('it shows dropdowns for arrays', function (done) {
+  test('it shows dropdowns for arrays', (done) => {
     seedDataAndCreateDataService('gryffindor', [
       {
         _id: 1,
@@ -186,7 +186,7 @@ suite('FieldTreeItem Test Suite', () => {
     });
   });
 
-  test('it shows dropdowns and fields for document fields in arrays', function (done) {
+  test('it shows dropdowns and fields for document fields in arrays', (done) => {
     seedDataAndCreateDataService('beach', [
       {
         _id: 1,

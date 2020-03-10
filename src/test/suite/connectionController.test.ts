@@ -33,7 +33,7 @@ suite('Connection Controller Test Suite', () => {
     sinon.restore();
   });
 
-  test('it connects to mongodb', function (done) {
+  test('it connects to mongodb', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -59,7 +59,7 @@ suite('Connection Controller Test Suite', () => {
       .then(done, done);
   });
 
-  test('"disconnect()" disconnects from the active connection', function (done) {
+  test('"disconnect()" disconnects from the active connection', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -98,7 +98,7 @@ suite('Connection Controller Test Suite', () => {
       });
   });
 
-  test('when the extension is deactivated, the active connection is disconnected', function (done) {
+  test('when the extension is deactivated, the active connection is disconnected', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -159,7 +159,7 @@ suite('Connection Controller Test Suite', () => {
       .then(done, done);
   });
 
-  test('when adding a new connection it disconnects from the current connection', function (done) {
+  test('when adding a new connection it disconnects from the current connection', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -183,12 +183,11 @@ suite('Connection Controller Test Suite', () => {
       .then(done, done);
   });
 
-  test('when adding a new connection it disconnects from the current connection', function (done) {
+  test('when adding a new connection it disconnects from the current connection', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
     );
-    this.timeout(2000);
 
     testConnectionController
       .addNewConnectionAndConnect(TEST_DATABASE_URI)
@@ -218,7 +217,7 @@ suite('Connection Controller Test Suite', () => {
       });
   });
 
-  test('"connect()" failed when we are currently connecting', function (done) {
+  test('"connect()" failed when we are currently connecting', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -245,7 +244,7 @@ suite('Connection Controller Test Suite', () => {
       .then(done, done);
   });
 
-  test('"connect()" failed when we are currently disconnecting', function (done) {
+  test('"connect()" failed when we are currently disconnecting', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -272,7 +271,7 @@ suite('Connection Controller Test Suite', () => {
       .then(done, done);
   });
 
-  test('"disconnect()" fails when we are currently connecting', function (done) {
+  test('"disconnect()" fails when we are currently connecting', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -300,7 +299,7 @@ suite('Connection Controller Test Suite', () => {
       .then(done, done);
   });
 
-  test('"disconnect()" fails when we are currently disconnecting', function (done) {
+  test('"disconnect()" fails when we are currently disconnecting', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -328,7 +327,7 @@ suite('Connection Controller Test Suite', () => {
       .then(done, done);
   });
 
-  test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', function (done) {
+  test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -346,7 +345,7 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController
       .addNewConnectionAndConnect(TEST_DATABASE_URI)
       .then(() => {
-        setTimeout(function () {
+        setTimeout(() => {
           assert(
             didFireConnectionEvent === true,
             'Expected connection event to be fired.'
@@ -357,7 +356,7 @@ suite('Connection Controller Test Suite', () => {
   });
 
   const expectedTimesToFire = 3;
-  test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, function (done) {
+  test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, (done) => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
@@ -376,7 +375,7 @@ suite('Connection Controller Test Suite', () => {
       .addNewConnectionAndConnect(TEST_DATABASE_URI)
       .then(() => {
         testConnectionController.disconnect().then(() => {
-          setTimeout(function () {
+          setTimeout(() => {
             assert(
               connectionEventFiredCount === expectedTimesToFire,
               `Expected connection event to be fired ${expectedTimesToFire} times, got ${connectionEventFiredCount}.`
@@ -387,7 +386,7 @@ suite('Connection Controller Test Suite', () => {
       });
   });
 
-  test('when there are no existing connections in the store and the connection controller loads connections', function () {
+  test('when there are no existing connections in the store and the connection controller loads connections', () => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
 
@@ -403,7 +402,7 @@ suite('Connection Controller Test Suite', () => {
     );
   });
 
-  test('The connection model loads both global and workspace stored connection models', function () {
+  test('The connection model loads both global and workspace stored connection models', () => {
     const testExtensionContext = new TestExtensionContext();
     // Set existing connections.
     testExtensionContext.globalState.update(
@@ -450,7 +449,7 @@ suite('Connection Controller Test Suite', () => {
     );
   });
 
-  test('When a connection is added it is saved to the global store', async function () {
+  test('When a connection is added it is saved to the global store', async () => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
 
@@ -492,7 +491,7 @@ suite('Connection Controller Test Suite', () => {
     );
   });
 
-  test('When a connection is added it is saved to the workspace store', async function () {
+  test('When a connection is added it is saved to the workspace store', async () => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
 
@@ -539,7 +538,7 @@ suite('Connection Controller Test Suite', () => {
     );
   });
 
-  test('A saved connection can be loaded and connected to', function (done) {
+  test('A saved connection can be loaded and connected to', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
 
@@ -606,7 +605,7 @@ suite('Connection Controller Test Suite', () => {
       });
   });
 
-  test('"getConnectionStringFromConnectionId" returns the driver uri of a connection', function (done) {
+  test('"getConnectionStringFromConnectionId" returns the driver uri of a connection', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
 
@@ -635,7 +634,7 @@ suite('Connection Controller Test Suite', () => {
       .then(done, done);
   });
 
-  test('When a connection is added and the user has set it to not save on default it is not saved', function (done) {
+  test('When a connection is added and the user has set it to not save on default it is not saved', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
 
@@ -681,7 +680,7 @@ suite('Connection Controller Test Suite', () => {
       }, done);
   });
 
-  test('When a connection is removed it is also removed from workspace storage', function (done) {
+  test('When a connection is removed it is also removed from workspace storage', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
 
@@ -729,7 +728,7 @@ suite('Connection Controller Test Suite', () => {
       });
   });
 
-  test('When a connection is removed it is also removed from global storage', async function () {
+  test('When a connection is removed it is also removed from global storage', async () => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
 

@@ -40,9 +40,9 @@ export default class ConnectionController {
     [key: string]: ConnectionConfigType;
   } = {};
 
-  _currentConnection: DataServiceType | null = null;
-  private _currentConnectionConfig: ConnectionConfigType | null = null;
-  private _currentConnectionInstanceId: string | null = null;
+  _currentConnection: null | DataServiceType = null;
+  private _currentConnectionConfig: null | ConnectionConfigType = null;
+  private _currentConnectionInstanceId: null | string = null;
 
   private _connecting = false;
   private _connectingInstanceId = '';

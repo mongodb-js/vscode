@@ -14,11 +14,11 @@ import {
 } from '../dbTestHelper';
 
 suite('SchemaTreeItem Test Suite', () => {
-  afterEach(function () {
+  afterEach(() => {
     sinon.restore();
   });
 
-  test('when the "show more" click handler function is called it sets the schema to show more fields', function () {
+  test('when the "show more" click handler function is called it sets the schema to show more fields', () => {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
@@ -46,7 +46,7 @@ suite('SchemaTreeItem Test Suite', () => {
     );
   });
 
-  test('it should show a show more item when there are more fields to show', function (done) {
+  test('it should show a show more item when there are more fields to show', (done) => {
     const amountOfFieldsExpected = FIELDS_TO_SHOW;
     const mockDocWithTwentyFields = {};
     for (let i = 0; i < 20; i++) {
@@ -83,7 +83,7 @@ suite('SchemaTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('it should show more fields after the show more click handler is called', function (done) {
+  test('it should show more fields after the show more click handler is called', (done) => {
     const mockDocWithThirtyFields = {};
     for (let i = 0; i < 30; i++) {
       mockDocWithThirtyFields[`${i}`] = 'some value';
@@ -116,7 +116,7 @@ suite('SchemaTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('When schema parsing fails it displays an error message', function (done) {
+  test('When schema parsing fails it displays an error message', (done) => {
     const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
@@ -153,7 +153,7 @@ suite('SchemaTreeItem Test Suite', () => {
       await cleanupTestDB();
     });
 
-    test('when not expanded it has not yet pulled the schema', function (done) {
+    test('when not expanded it has not yet pulled the schema', (done) => {
       seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
         {
           _id: 10,
@@ -183,7 +183,7 @@ suite('SchemaTreeItem Test Suite', () => {
       });
     });
 
-    test('when expanded shows the fields of a schema', function (done) {
+    test('when expanded shows the fields of a schema', (done) => {
       seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
         {
           _id: 1,
@@ -222,7 +222,7 @@ suite('SchemaTreeItem Test Suite', () => {
       });
     });
 
-    test('it only shows a dropdown for fields which are always documents - and not for polymorphic', function (done) {
+    test('it only shows a dropdown for fields which are always documents - and not for polymorphic', (done) => {
       seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
         {
           _id: 1,

@@ -6,7 +6,7 @@ import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import { CollectionTypes } from '../../../explorer/documentListTreeItem';
 
 suite('CollectionTreeItem Test Suite', () => {
-  test('its context value should be in the package json', function () {
+  test('its context value should be in the package json', () => {
     let registeredCommandInPackageJson = false;
 
     const testCollectionTreeItem = new CollectionTreeItem(
@@ -31,7 +31,7 @@ suite('CollectionTreeItem Test Suite', () => {
     );
   });
 
-  test('when expanded shows a documents folder and schema folder', function (done) {
+  test('when expanded shows a documents folder and schema folder', (done) => {
     const testCollectionTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',

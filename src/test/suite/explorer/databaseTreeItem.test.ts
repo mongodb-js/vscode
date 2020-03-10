@@ -7,7 +7,7 @@ import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
 import { CollectionTreeItem } from '../../../explorer';
 
 suite('DatabaseTreeItem Test Suite', () => {
-  test('its context value should be in the package json', function () {
+  test('its context value should be in the package json', () => {
     let databaseRegisteredCommandInPackageJson = false;
 
     const testDatabaseTreeItem = new DatabaseTreeItem(
@@ -29,7 +29,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('when not expanded it does not show collections', function (done) {
+  test('when not expanded it does not show collections', (done) => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -48,7 +48,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('when expanded shows the collections of a database in tree', function (done) {
+  test('when expanded shows the collections of a database in tree', (done) => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -75,7 +75,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('when expanded and collapsed its collections cache their expanded documents', function (done) {
+  test('when expanded and collapsed its collections cache their expanded documents', (done) => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),

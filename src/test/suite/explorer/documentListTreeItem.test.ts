@@ -10,7 +10,7 @@ import DocumentListTreeItem, {
 import { DataServiceStub, mockDocuments } from '../stubs';
 
 suite('DocumentListTreeItem Test Suite', () => {
-  test('its context value should be in the package json', function () {
+  test('its context value should be in the package json', () => {
     let documentListRegisteredCommandInPackageJson = false;
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'collectionName',
@@ -34,7 +34,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     );
   });
 
-  test('when the "show more" click handler function is called it increases the amount of documents to show by 10', function () {
+  test('when the "show more" click handler is called => it increases the amount of documents to show by 10', () => {
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'collectionName',
       'databaseName',
@@ -60,7 +60,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     );
   });
 
-  test('when not expanded it does not show documents', function (done) {
+  test('when not expanded it does not show documents', (done) => {
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'mock_collection_name',
       'mock_db_name',
@@ -82,7 +82,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('when expanded shows the documents of a collection in tree', function (done) {
+  test('when expanded shows the documents of a collection in tree', (done) => {
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'mock_collection_name_1',
       'mock_db_name',
@@ -109,7 +109,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('it should show a show more item when there are more documents to show', function (done) {
+  test('it should show a show more item when there are more documents to show', (done) => {
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'mock_collection_name_2',
       'mock_db_name',
@@ -137,7 +137,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('it should show more documents after the show more click handler is called', function (done) {
+  test('it should show more documents after the show more click handler is called', (done) => {
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'mock_collection_name_3',
       'mock_db_name',
@@ -170,7 +170,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('it should not show a show more item when there not are more documents to show', function (done) {
+  test('it should not show a show more item when there not are more documents to show', (done) => {
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'mock_collection_name_4',
       'mock_db_name',
@@ -202,7 +202,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('a view should show a different icon from a collection', function () {
+  test('a view should show a different icon from a collection', () => {
     const testCollectionViewTreeItem = new DocumentListTreeItem(
       'mock_collection_name_4',
       'mock_db_name',

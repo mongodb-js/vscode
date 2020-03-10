@@ -15,7 +15,7 @@ import { StorageController } from '../../storage';
 const testDatabaseURI = 'mongodb://localhost:27018';
 
 suite('MDBExtensionController Test Suite', () => {
-  afterEach(function () {
+  afterEach(() => {
     sinon.restore();
   });
 

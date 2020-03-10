@@ -22,7 +22,7 @@ const mockDocumentsAsJsonString = `[
 ]`;
 
 suite('Collection Documents Provider Test Suite', () => {
-  afterEach(function () {
+  afterEach(() => {
     sinon.restore();
   });
 
