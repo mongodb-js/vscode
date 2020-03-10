@@ -2,18 +2,15 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 
-import ConnectionController from '../../../connectionController';
 import { DefaultSavingLocations } from '../../../storage/storageController';
-import { StorageController } from '../../../storage';
+
+import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
-const testDatabaseURI = 'mongodb://localhost:27018';
 const testDatabaseURI2WithTimeout =
-  'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=500';
+  'mongodb://shouldfail?connectTimeoutMS=500&serverSelectionTimeoutMS=500';
 
-suite('Explorer Controller Test Suite', function() {
-  vscode.window.showInformationMessage('Starting tests...');
-
+suite('Explorer Controller Test Suite', () => {
   beforeEach(async () => {
     // Don't save connections on default.
     await vscode.workspace
@@ -35,7 +32,7 @@ suite('Explorer Controller Test Suite', function() {
     mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
   });
 
-  test('should have a connections root', function(done) {
+  test('should have a connections root', (done) => {
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
 
@@ -57,7 +54,7 @@ suite('Explorer Controller Test Suite', function() {
       .then(done, done);
   });
 
-  test('it updates the connections to account for a change in the connection controller', function(done) {
+  test('it updates the connections to account for a change in the connection controller', (done) => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
@@ -88,7 +85,7 @@ suite('Explorer Controller Test Suite', function() {
     });
   });
 
-  test('when a connection is added and connected it is added to the tree and expanded', function(done) {
+  test('when a connection is added and connected it is added to the tree and expanded', (done) => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
@@ -97,7 +94,7 @@ suite('Explorer Controller Test Suite', function() {
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
+      .addNewConnectionAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -141,7 +138,7 @@ suite('Explorer Controller Test Suite', function() {
       });
   });
 
-  test('only the active connection is displayed as connected in the tree', function(done) {
+  test('only the active connection is displayed as connected in the tree', (done) => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
@@ -150,7 +147,7 @@ suite('Explorer Controller Test Suite', function() {
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
+      .addNewConnectionAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -170,8 +167,8 @@ suite('Explorer Controller Test Suite', function() {
         testConnectionController
           .addNewConnectionAndConnect(testDatabaseURI2WithTimeout)
           .then(
-            () => {},
-            () => {} /* Silent fail (should fail) */
+            () => { },
+            () => { } /* Silent fail (should fail) */
           );
 
         setTimeout(() => {
@@ -212,7 +209,7 @@ suite('Explorer Controller Test Suite', function() {
       });
   });
 
-  test('shows the databases of connected connection in tree', function(done) {
+  test('shows the databases of connected connection in tree', (done) => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
@@ -221,7 +218,7 @@ suite('Explorer Controller Test Suite', function() {
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
+      .addNewConnectionAndConnect(TEST_DATABASE_URI)
       .then(() => {
         treeController.getChildren().then((treeControllerChildren) => {
           treeControllerChildren[0].getChildren().then((connectionsItems) => {
@@ -248,7 +245,7 @@ suite('Explorer Controller Test Suite', function() {
       });
   });
 
-  test('caches the expanded state of databases in the tree when a connection is expanded or collapsed', function(done) {
+  test('caches the expanded state of databases in the tree when a connection is expanded or collapsed', (done) => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
@@ -257,7 +254,7 @@ suite('Explorer Controller Test Suite', function() {
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
+      .addNewConnectionAndConnect(TEST_DATABASE_URI)
       .then(() => {
         treeController.getChildren().then((rootTreeItem) => {
           const connectionsTreeItem = rootTreeItem[0];

@@ -41,8 +41,6 @@ const STAGE_LABELS = [
 ];
 
 suite('Stage Autocompleter Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
-
   test('checks that stage-autocompleter.json exists and includes JSON with prefix, body and description', () => {
     const properties: any = {};
 

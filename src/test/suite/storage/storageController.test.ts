@@ -1,14 +1,11 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
 
 import StorageController, { StorageVariables, StorageScope } from '../../../storage/storageController';
 
 import { TestExtensionContext } from '../stubs';
 
 suite('Storage Controller Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
-
-  test('getting a variable gets it from the global context store', function () {
+  test('getting a variable gets it from the global context store', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {
       [StorageVariables.GLOBAL_CONNECTION_STRINGS]: 'this_gonna_get_saved'
@@ -23,7 +20,7 @@ suite('Storage Controller Test Suite', () => {
     );
   });
 
-  test('getting a variable from the workspace state gets it from the workspace context store', function () {
+  test('getting a variable from the workspace state gets it from the workspace context store', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._workspaceState = {
       [StorageVariables.WORKSPACE_CONNECTION_STRINGS]: 'i_cant_believe_its_gonna_save_this'
@@ -39,7 +36,7 @@ suite('Storage Controller Test Suite', () => {
     );
   });
 
-  test('addNewConnectionToGlobalStore adds the connection to preexisting connections on the global store', function () {
+  test('addNewConnectionToGlobalStore adds the connection to preexisting connections on the global store', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {
       [StorageVariables.GLOBAL_CONNECTION_STRINGS]: {
@@ -60,7 +57,7 @@ suite('Storage Controller Test Suite', () => {
     assert(updatedGlobalModels.new_conn === 'another_url_that_is_so_saved', 'Expected new connection data to exist.');
   });
 
-  test('addNewConnectionToWorkspaceStore adds the connection to preexisting connections on the workspace store', function () {
+  test('addNewConnectionToWorkspaceStore adds the connection to preexisting connections on the workspace store', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._workspaceState = {
       [StorageVariables.WORKSPACE_CONNECTION_STRINGS]: {

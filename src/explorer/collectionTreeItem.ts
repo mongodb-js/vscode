@@ -1,44 +1,20 @@
 import * as vscode from 'vscode';
-const path = require('path');
 
-import DocumentTreeItem from './documentTreeItem';
+import DocumentListTreeItem, {
+  CollectionTypes,
+  MAX_DOCUMENTS_VISIBLE
+} from './documentListTreeItem';
 import TreeItemParent from './treeItemParentInterface';
-
-// We fetch 1 more than this in order to see if there are more to fetch.
-// Each time `show more` is clicked, the collection item increases the amount
-// of documents shown by this amount.
-export const MAX_DOCUMENTS_VISIBLE = 10;
-
-class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
-  // This is the identifier we use to identify this tree item when a tree item
-  // has been clicked. Activated from the explorer controller `onDidChangeSelection`.
-  public isShowMoreItem = true;
-  public onShowMoreClicked: () => void;
-
-  constructor(namespace: string, showMore: () => void, documentsShown: number) {
-    super('Show more...', vscode.TreeItemCollapsibleState.None);
-
-    // We assign the item a unique id so that when it is selected the selection
-    // resets (de-selects) when the documents are fetched and a new item is shown.
-    this.id = `show-more-${namespace}-${documentsShown}`;
-    this.onShowMoreClicked = showMore;
-  }
-}
-
-export enum CollectionTypes {
-  collection = 'collection',
-  view = 'view'
-}
+import SchemaTreeItem from './schemaTreeItem';
 
 export default class CollectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
-  _childrenCacheIsUpToDate = false;
-  private _childrenCache: vscode.TreeItem[] = [];
-
   contextValue = 'collectionTreeItem';
 
-  // We fetch 1 more than this in order to see if there are more to fetch.
-  private _maxDocumentsToShow: number;
+  private _documentListChild: DocumentListTreeItem;
+  private _schemaChild: SchemaTreeItem;
+
+  isSynchronousResource = true;
 
   collectionName: string;
   databaseName: string;
@@ -53,8 +29,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
     databaseName: string,
     dataService: any,
     isExpanded: boolean,
-    existingChildrenCache: vscode.TreeItem[],
-    maxDocumentsToShow: number
+    existingDocumentListChild?: DocumentListTreeItem,
+    existingSchemaChild?: SchemaTreeItem
   ) {
     super(
       collection.name,
@@ -70,8 +46,27 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
-    this._childrenCache = existingChildrenCache;
-    this._maxDocumentsToShow = maxDocumentsToShow;
+    this._documentListChild = existingDocumentListChild
+      ? existingDocumentListChild
+      : new DocumentListTreeItem(
+        this.collectionName,
+        this.databaseName,
+        this._type,
+        this._dataService,
+        false, // Collapsed.
+        MAX_DOCUMENTS_VISIBLE,
+        null // No existing cache.
+      );
+    this._schemaChild = existingSchemaChild
+      ? existingSchemaChild
+      : new SchemaTreeItem(
+        this.collectionName,
+        this.databaseName,
+        this._dataService,
+        false, // Collapsed.
+        false, // Show more fields has not been clicked.
+        null // No existing cache.
+      );
   }
 
   get tooltip(): string {
@@ -85,101 +80,67 @@ export default class CollectionTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<any[]> {
-    if (!this.isExpanded) {
-      return Promise.resolve([]);
-    }
-
-    if (this._childrenCacheIsUpToDate) {
-      return Promise.resolve(this._childrenCache);
-    }
-
-    return new Promise((resolve, reject) => {
-      const namespace = `${this.databaseName}.${this.collectionName}`;
-
-      this._dataService.find(
-        namespace,
-        {
-          /* No filter */
-        },
-        {
-          // We fetch 1 more than the max documents to show to see if
-          // there are more documents we aren't showing.
-          limit: 1 + this._maxDocumentsToShow
-        },
-        (err: Error, documents: []) => {
-          if (err) {
-            return reject(new Error(`Unable to list documents: ${err}`));
-          }
-
-          this._childrenCacheIsUpToDate = true;
-
-          if (documents) {
-            this._childrenCache = documents.map((document, index) => {
-              if (index === this._maxDocumentsToShow) {
-                return new ShowMoreDocumentsTreeItem(
-                  namespace,
-                  () => this.onShowMoreClicked(),
-                  this._maxDocumentsToShow
-                );
-              }
-
-              return new DocumentTreeItem(document, index);
-            });
-          } else {
-            this._childrenCache = [];
-          }
-
-          return resolve(this._childrenCache);
-        }
-      );
-    });
-  }
-
-  public get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(__dirname, '..', '..', '..', 'images', 'light');
-    const DARK = path.join(__dirname, '..', '..', '..', 'images', 'dark');
-
-    const iconName =
-      this._type === CollectionTypes.collection ? 'collection' : 'view';
-
-    return {
-      light: path.join(LIGHT, `${iconName}.svg`),
-      dark: path.join(DARK, `${iconName}.svg`)
-    };
-  }
-
-  onShowMoreClicked(): void {
-    this._maxDocumentsToShow += MAX_DOCUMENTS_VISIBLE;
-    this._childrenCacheIsUpToDate = false;
+    // We rebuild the children here so their controlled `expanded` state
+    // is ensure to be set by vscode.
+    this._documentListChild = new DocumentListTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._type,
+      this._dataService,
+      this._documentListChild.isExpanded,
+      this._documentListChild.getMaxDocumentsToShow(),
+      this._documentListChild.getChildrenCache()
+    );
+    this._schemaChild = new SchemaTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._dataService,
+      this._schemaChild.isExpanded,
+      this._schemaChild.hasClickedShowMoreFields,
+      this._schemaChild.getChildrenCache()
+    );
+    return Promise.resolve([this._documentListChild, this._schemaChild]);
   }
 
   onDidCollapse(): void {
     this.isExpanded = false;
-    this._childrenCacheIsUpToDate = false;
-    this._maxDocumentsToShow = MAX_DOCUMENTS_VISIBLE;
   }
 
   onDidExpand(): Promise<boolean> {
-    this._childrenCacheIsUpToDate = false;
     this.isExpanded = true;
 
     return Promise.resolve(true);
   }
 
   resetCache(): void {
-    this._childrenCache = [];
-    this._childrenCacheIsUpToDate = false;
+    this._documentListChild = new DocumentListTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._type,
+      this._dataService,
+      false, // Collapsed.
+      MAX_DOCUMENTS_VISIBLE,
+      null // No existing cache.
+    );
+    this._schemaChild = new SchemaTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._dataService,
+      false, // Collapsed.
+      false, // Show more fields has not been clicked.
+      null // No existing cache.
+    );
   }
 
-  getChildrenCache(): vscode.TreeItem[] {
-    return this._childrenCache;
+  getDocumentListChild(): DocumentListTreeItem {
+    return this._documentListChild;
+  }
+  getSchemaChild(): SchemaTreeItem {
+    return this._schemaChild;
   }
 
   getMaxDocumentsToShow(): number {
-    return this._maxDocumentsToShow;
+    return this._documentListChild.getMaxDocumentsToShow();
   }
 
   async onDropCollectionClicked(): Promise<boolean> {
@@ -223,7 +184,6 @@ export default class CollectionTreeItem extends vscode.TreeItem
             return resolve(false);
           }
 
-          this._childrenCacheIsUpToDate = false;
           return resolve(successfullyDroppedCollection);
         }
       );

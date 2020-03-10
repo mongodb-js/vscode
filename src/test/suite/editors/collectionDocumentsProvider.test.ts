@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
-const sinon = require('sinon');
+import * as sinon from 'sinon';
 
 import CollectionDocumentsProvider from '../../../editors/collectionDocumentsProvider';
 import ConnectionController from '../../../connectionController';
@@ -22,7 +22,7 @@ const mockDocumentsAsJsonString = `[
 ]`;
 
 suite('Collection Documents Provider Test Suite', () => {
-  afterEach(function () {
+  afterEach(() => {
     sinon.restore();
   });
 

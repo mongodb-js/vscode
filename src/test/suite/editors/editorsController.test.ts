@@ -1,12 +1,9 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
 
 import { EditorsController } from '../../../editors';
 
 suite('Editors Controller Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
-
-  test('getViewCollectionDocumentsUri builds a uri from the namespace and connection info', function () {
+  test('getViewCollectionDocumentsUri builds a uri from the namespace and connection info', () => {
     const testOpId = '100011011101110011';
     const testNamespace = 'myFavoriteNamespace';
     const testConnectionId = 'alienSateliteConnection';

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-const ns = require('mongodb-ns');
-const path = require('path');
+import ns = require('mongodb-ns');
+import path = require('path');
 
 import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
@@ -11,6 +11,7 @@ enum ConnectionItemContextValues {
   disconnected = 'disconnectedConnectionTreeItem',
   connected = 'connectedConnectionTreeItem'
 }
+export { ConnectionItemContextValues };
 
 export default class ConnectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
