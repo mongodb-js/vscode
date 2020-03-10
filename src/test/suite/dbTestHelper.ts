@@ -1,5 +1,5 @@
-const Connection = require('mongodb-connection-model/lib/model');
-const DataService = require('mongodb-data-service');
+import * as Connection from 'mongodb-connection-model/lib/model';
+import * as DataService from 'mongodb-data-service';
 
 export const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
@@ -65,7 +65,7 @@ export const seedDataAndCreateDataService = (
   });
 };
 
-export const cleanup = (): Promise<void> => {
+export const cleanupTestDB = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     const newConnection = new DataService(testDatabaseConnectionModel);
     newConnection.connect((connectError: Error | undefined) => {

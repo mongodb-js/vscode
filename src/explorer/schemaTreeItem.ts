@@ -122,14 +122,15 @@ export default class SchemaTreeItem extends vscode.TreeItem
           }
 
           parseSchema(documents, (parseError: Error | undefined, schema) => {
+            this._childrenCacheIsUpToDate = true;
+
             if (parseError) {
               vscode.window.showErrorMessage(
                 `Unable to parse schema: ${parseError.message}`
               );
-              return reject(`Unable to parse schema: ${parseError.message}`);
+              return resolve([]);
             }
 
-            this._childrenCacheIsUpToDate = true;
             this._childrenCache = [];
 
             const fieldsToShow = this.hasClickedShowMoreFields

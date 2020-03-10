@@ -1,11 +1,11 @@
 import * as assert from 'assert';
-import path = require('path');
+
+const { contributes } = require('../../../../package.json');
 
 import DatabaseTreeItem from '../../../explorer/databaseTreeItem';
 import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
 import { CollectionTreeItem } from '../../../explorer';
 
-const { contributes } = require(path.resolve(__dirname, '../../../../package.json'));
 
 suite('DatabaseTreeItem Test Suite', () => {
   test('its context value should be in the package json', function () {
@@ -91,9 +91,11 @@ suite('DatabaseTreeItem Test Suite', () => {
       documentListItem.onShowMoreClicked();
 
       documentListItem.getChildren().then((documents: any[]) => {
+        const amountOfDocs = documents.length;
+        const expectedDocs = 21;
         assert(
-          documents.length === 21,
-          `Expected 21 documents, recieved ${documents.length}`
+          expectedDocs === amountOfDocs,
+          `Expected ${expectedDocs} documents, recieved ${amountOfDocs}`
         );
 
         testDatabaseTreeItem.onDidCollapse();
@@ -115,12 +117,15 @@ suite('DatabaseTreeItem Test Suite', () => {
                 );
 
                 newCollectionTreeItems[1]
+                  .getDocumentListChild()
                   .getChildren()
                   .then((documentsPostCollapseExpand) => {
                     // It should cache that we activated show more.
+                    const amountOfCachedDocs = documentsPostCollapseExpand.length;
+                    const expectedCachedDocs = 21;
                     assert(
-                      documentsPostCollapseExpand.length === 21,
-                      `Expected a cached 21 documents to be returned, found ${documents.length}`
+                      amountOfCachedDocs === expectedCachedDocs,
+                      `Expected a cached ${expectedCachedDocs} documents to be returned, found ${amountOfCachedDocs}`
                     );
                   })
                   .then(done, done);

@@ -1,7 +1,6 @@
 import * as assert from 'assert';
-import path = require('path');
 
-const { contributes } = require(path.resolve(__dirname, '../../../../package.json'));
+const { contributes } = require('../../../../package.json');
 
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import { CollectionTypes } from '../../../explorer/documentListTreeItem';

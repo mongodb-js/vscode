@@ -71,11 +71,16 @@ export default class FieldTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<any[]> {
+    console.log('get children of field', this.field.name);
     if (!fieldIsExpandable(this.field)) {
       return Promise.resolve([]);
     }
 
+    console.log('to children of field', this.field.name);
+
     if (this.field.bsonType === FieldTypes.document) {
+      console.log('is bsondoc', this.field.name);
+
       const subDocumentFields = this.field.fields;
       return Promise.resolve(
         subDocumentFields
@@ -83,6 +88,9 @@ export default class FieldTreeItem extends vscode.TreeItem
           : []
       );
     } else if (this.field.type === FieldTypes.document) {
+      console.log('is doc', this.field.name);
+      console.log(' make fields', this.field.types[0].fields);
+
       const subDocumentFields = this.field.types[0].fields;
       return Promise.resolve(
         subDocumentFields
@@ -92,11 +100,16 @@ export default class FieldTreeItem extends vscode.TreeItem
     } else if (
       this.field.type === FieldTypes.array || this.field.bsonType === FieldTypes.array
     ) {
+      console.log('get is array', this.field.name);
+
       const arrayElement = this.field.types[0];
       return Promise.resolve([
         new FieldTreeItem(arrayElement)
       ]);
     }
+
+    console.log('errrorroororororor', this.field.name);
+
 
     return Promise.resolve([]);
   }

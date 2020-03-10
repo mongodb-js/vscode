@@ -1,35 +1,55 @@
 import * as assert from 'assert';
-import path = require('path');
+import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
+import * as sinon from 'sinon';
 
 import SchemaTreeItem from '../../../explorer/schemaTreeItem';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
 import {
   seedDataAndCreateDataService,
-  cleanup,
+  cleanupTestDB,
   TEST_DB_NAME
 } from '../dbTestHelper';
 
-const { contributes } = require(path.resolve(__dirname, '../../../../package.json'));
-
 suite('SchemaTreeItem Test Suite', () => {
-  test('its context value should be in the package json', function () {
-    let schemaRegisteredCommandInPackageJson = false;
-
-    contributes.menus['view/item/context'].forEach(contextItem => {
-      if (contextItem.when.includes(SchemaTreeItem.contextValue)) {
-        schemaRegisteredCommandInPackageJson = true;
-      }
-    });
-
-    assert(
-      schemaRegisteredCommandInPackageJson,
-      'Expected schema tree item to be registered with a command in package json'
-    );
+  afterEach(function () {
+    sinon.restore();
   });
 
-  suite('Schema Tree', () => {
-    afterEach(() => cleanup());
+  // To add: show more fields test.
+
+  test('When schema parsing fails it displays an error message', function (done) {
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    const testSchemaTreeItem = new SchemaTreeItem(
+      'favoritePiesIWantToEatRightNow',
+      TEST_DB_NAME,
+      {
+        find: (ns, filter, options, callback): void => {
+          callback(null, 'invalid schema to parse');
+        }
+      },
+      true,
+      false,
+      null
+    );
+
+    testSchemaTreeItem.getChildren().then(schemaFields => {
+      assert(schemaFields.length === 0);
+      assert(fakeVscodeErrorMessage.called);
+      const expectedMessage = 'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+      assert(
+        fakeVscodeErrorMessage.firstArg === expectedMessage,
+        `Expected error message to be "${expectedMessage}" found "${fakeVscodeErrorMessage.firstArg}"`
+      );
+    }).then(done, done);
+  });
+
+  suite('Live Database Tests', () => {
+    afterEach(async () => {
+      await cleanupTestDB();
+    });
 
     test('when not expanded it has not yet pulled the schema', function (done) {
       seedDataAndCreateDataService(
@@ -50,15 +70,14 @@ suite('SchemaTreeItem Test Suite', () => {
 
         testSchemaTreeItem
           .getChildren()
-          .then(async (schemaFields) => {
-            await dataService.disconnect();
+          .then(schemaFields => {
+            dataService.disconnect();
 
             assert(
               schemaFields.length === 0,
               `Expected no schema tree items to be returned, recieved ${schemaFields.length}`
             );
-          })
-          .then(done, done);
+          }).then(done, done);
       });
     });
 
@@ -83,9 +102,8 @@ suite('SchemaTreeItem Test Suite', () => {
 
         testSchemaTreeItem
           .getChildren()
-          .then(async (schemaFields) => {
-            await dataService.disconnect();
-
+          .then((schemaFields) => {
+            dataService.disconnect();
             assert(
               schemaFields.length === 2,
               `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
@@ -98,12 +116,11 @@ suite('SchemaTreeItem Test Suite', () => {
               schemaFields[1].label === 'nameOfTastyPie',
               `Expected label of schema tree item to be the field name, recieved ${schemaFields[1].label}`
             );
-          })
-          .then(done, done);
+          }).then(done, done);
       });
     });
 
-    test('it only shows a dropdown for fields which are always documents', function (done) {
+    test('it only shows a dropdown for fields which are always documents - and not for polymorphic', function (done) {
       seedDataAndCreateDataService(
         'favoritePiesIWantToEatRightNow',
         [{
@@ -135,9 +152,8 @@ suite('SchemaTreeItem Test Suite', () => {
 
         testSchemaTreeItem
           .getChildren()
-          .then(async (schemaFields) => {
-            await dataService.disconnect();
-
+          .then((schemaFields) => {
+            dataService.disconnect();
             assert(
               schemaFields.length === 3,
               `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}`
@@ -150,12 +166,8 @@ suite('SchemaTreeItem Test Suite', () => {
               fieldIsExpandable(schemaFields[2].field) === false,
               'Expected field to have none expandable state'
             );
-          })
-          .then(done, done);
+          }).then(done, done);
       });
     });
   });
-
-  // to test:
-  // - failing parse schema?
 });

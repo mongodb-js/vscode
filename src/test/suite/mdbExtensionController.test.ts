@@ -60,6 +60,47 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
+  test('mdb.viewCollectionDocuments command should also work with the documents list', (done) => {
+    const mockOpenTextDocument = sinon.fake.resolves('magna carta');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument = sinon.fake.resolves();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    const textCollectionTree = new CollectionTreeItem(
+      {
+        name: 'testColName',
+        type: CollectionTypes.collection
+      },
+      'testDbName',
+      {},
+      false
+    );
+
+    vscode.commands
+      .executeCommand('mdb.viewCollectionDocuments', textCollectionTree)
+      .then(() => {
+        assert(
+          mockOpenTextDocument.firstArg.path.indexOf(
+            'Results: testDbName.testColName'
+          ) === 0
+        );
+        assert(mockOpenTextDocument.firstArg.path.includes('.json'));
+        assert(mockOpenTextDocument.firstArg.scheme === VIEW_COLLECTION_SCHEME);
+        assert(
+          mockOpenTextDocument.firstArg.query.includes(
+            'namespace=testDbName.testColName'
+          )
+        );
+
+        assert(
+          mockShowTextDocument.firstArg === 'magna carta',
+          'Expected it to call vscode to show the returned documents from the provider'
+        );
+      })
+      .then(done, done);
+  });
+
   test('mdb.addConnection command should call addMongoDBConnection on the connection controller', (done) => {
     const mockAddConnection = sinon.fake.resolves();
     sinon.replace(

@@ -290,6 +290,10 @@
           "when": "view == mongoDB && viewItem == collectionTreeItem"
         },
         {
+          "command": "mdb.viewCollectionDocuments",
+          "when": "view == mongoDB && viewItem == documentListTreeItem"
+        },
+        {
           "command": "mdb.dropCollection",
           "when": "view == mongoDB && viewItem == collectionTreeItem"
         },

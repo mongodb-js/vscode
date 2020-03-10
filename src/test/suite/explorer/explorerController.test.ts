@@ -8,7 +8,7 @@ import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 const testDatabaseURI2WithTimeout =
-  'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=500';
+  'mongodb://shouldfail?connectTimeoutMS=500&serverSelectionTimeoutMS=500';
 
 suite('Explorer Controller Test Suite', function () {
   beforeEach(async () => {

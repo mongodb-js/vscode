@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
-const sinon = require('sinon');
+import * as sinon from 'sinon';
 
 import ConnectionController, {
   DataServiceEventTypes
@@ -399,9 +399,7 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController.loadSavedConnections();
     assert(
       Object.keys(testConnectionController.getConnections()).length === 0,
-      `Expected connections to be 0 found ${
-      Object.keys(testConnectionController.getConnections()).length
-      }`
+      `Expected connections to be 0 found ${Object.keys(testConnectionController.getConnections()).length}`
     );
   });
 
@@ -434,9 +432,7 @@ suite('Connection Controller Test Suite', () => {
     const connections = testConnectionController.getConnections();
     assert(
       Object.keys(connections).length === 4,
-      `Expected 4 connection configurations found ${
-      Object.keys(testConnectionController.getConnections()).length
-      }`
+      `Expected 4 connection configurations found ${Object.keys(testConnectionController.getConnections()).length}`
     );
     assert(
       Object.keys(connections).includes('testGlobalConnectionModel2') === true,
@@ -478,9 +474,7 @@ suite('Connection Controller Test Suite', () => {
     );
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected global store connections to have 1 connection found ${
-      Object.keys(globalStoreConnections).length
-      }`
+      `Expected global store connections to have 1 connection found ${Object.keys(globalStoreConnections).length}`
     );
     assert(
       Object.keys(globalStoreConnections).includes(testDatabaseInstanceId),
@@ -527,9 +521,7 @@ suite('Connection Controller Test Suite', () => {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
-      Object.keys(workspaceStoreConnections).length
-      }`
+      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
     );
     assert(
       Object.keys(workspaceStoreConnections).includes(testDatabaseInstanceId),
@@ -574,9 +566,7 @@ suite('Connection Controller Test Suite', () => {
             );
             assert(
               Object.keys(workspaceStoreConnections).length === 1,
-              `Expected workspace store connections to have 1 connection found ${
-              Object.keys(workspaceStoreConnections).length
-              }`
+              `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
             );
 
             testConnectionController.disconnect().then(() => {
@@ -592,9 +582,7 @@ suite('Connection Controller Test Suite', () => {
               assert(
                 testConnectionController.getConnectionInstanceIds().length ===
                 1,
-                `Expected 1 connection config, found ${
-                testConnectionController.getConnectionInstanceIds().length
-                }.`
+                `Expected 1 connection config, found ${testConnectionController.getConnectionInstanceIds().length}.`
               );
 
               testConnectionController
@@ -721,9 +709,7 @@ suite('Connection Controller Test Suite', () => {
 
             assert(
               Object.keys(workspaceStoreConnections).length === 1,
-              `Expected workspace store connections to have 1 connection found ${
-              Object.keys(workspaceStoreConnections).length
-              }`
+              `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
             );
 
             testConnectionController.removeConnectionConfig(
@@ -736,9 +722,7 @@ suite('Connection Controller Test Suite', () => {
             );
             assert(
               Object.keys(postWorkspaceStoreConnections).length === 0,
-              `Expected workspace store connections to have 0 connections found ${
-              Object.keys(postWorkspaceStoreConnections).length
-              }`
+              `Expected workspace store connections to have 0 connections found ${Object.keys(postWorkspaceStoreConnections).length}`
             );
           })
           .then(done, done);
@@ -769,9 +753,7 @@ suite('Connection Controller Test Suite', () => {
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
-      Object.keys(globalStoreConnections).length
-      }`
+      `Expected workspace store connections to have 1 connection found ${Object.keys(globalStoreConnections).length}`
     );
 
     testConnectionController.removeConnectionConfig(testDatabaseInstanceId);
@@ -781,9 +763,7 @@ suite('Connection Controller Test Suite', () => {
     );
     assert(
       Object.keys(postGlobalStoreConnections).length === 0,
-      `Expected global store connections to have 0 connections found ${
-      Object.keys(postGlobalStoreConnections).length
-      }`
+      `Expected global store connections to have 0 connections found ${Object.keys(postGlobalStoreConnections).length}`
     );
   });
 });

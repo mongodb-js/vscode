@@ -1,5 +1,8 @@
-import path = require('path');
 import * as vscode from 'vscode';
+import * as Connection from 'mongodb-connection-model/lib/model';
+import * as DataService from 'mongodb-data-service';
+
+const { name, version } = require('../package.json');
 
 import { ConnectionConfigType } from './connectionConfig';
 import { DataServiceType } from './dataServiceType';
@@ -9,10 +12,7 @@ import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { StorageScope } from './storage/storageController';
 
-const Connection = require('mongodb-connection-model/lib/model');
-const DataService = require('mongodb-data-service');
 const log = createLogger('connection controller');
-const { name, version } = require(path.resolve(__dirname, '../package.json'));
 
 function getConnectWebviewContent(): string {
   return `<!DOCTYPE html>
@@ -156,7 +156,7 @@ export default class ConnectionController {
         placeHolder:
           'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
-        validateInput: (uri: any) => {
+        validateInput: (uri: string) => {
           if (!Connection.isURI(uri)) {
             return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
           }
