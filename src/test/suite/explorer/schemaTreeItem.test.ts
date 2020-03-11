@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
 
+const { contributes } = require('../../../../package.json');
+
 import SchemaTreeItem, {
   FIELDS_TO_SHOW
 } from '../../../explorer/schemaTreeItem';
@@ -17,6 +19,30 @@ suite('SchemaTreeItem Test Suite', () => {
   afterEach(() => {
     sinon.restore();
   });
+
+  test('its context value should be in the package json', () => {
+    let schemaRegisteredCommandInPackageJson = false;
+    const testSchemaTreeItem = new SchemaTreeItem(
+      'cheesePizza',
+      TEST_DB_NAME,
+      {},
+      false,
+      false,
+      null
+    );
+
+    contributes.menus['view/item/context'].forEach((contextItem) => {
+      if (contextItem.when.includes(testSchemaTreeItem.contextValue)) {
+        schemaRegisteredCommandInPackageJson = true;
+      }
+    });
+
+    assert(
+      schemaRegisteredCommandInPackageJson,
+      'Expected schema tree item to be registered with a command in package json'
+    );
+  });
+
 
   test('when the "show more" click handler function is called it sets the schema to show more fields', () => {
     const testSchemaTreeItem = new SchemaTreeItem(

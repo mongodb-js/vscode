@@ -63,9 +63,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
         this.collectionName,
         this.databaseName,
         this._dataService,
-        false, // Collapsed.
-        false, // Show more fields has not been clicked.
-        null // No existing cache.
+        false // Collapsed.
       );
   }
 
@@ -96,8 +94,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this.databaseName,
       this._dataService,
       this._schemaChild.isExpanded,
-      this._schemaChild.hasClickedShowMoreFields,
-      this._schemaChild.getChildrenCache()
+      this._schemaChild
     );
     return Promise.resolve([this._documentListChild, this._schemaChild]);
   }
@@ -126,9 +123,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this.collectionName,
       this.databaseName,
       this._dataService,
-      false, // Collapsed.
-      false, // Show more fields has not been clicked.
-      null // No existing cache.
+      false // Collapsed.
     );
   }
 

@@ -42,6 +42,7 @@ suite('Extension Test Suite', () => {
           'mdb.viewCollectionDocuments',
           'mdb.copyCollectionName',
           'mdb.refreshCollection',
+          'mdb.refreshSchema',
 
           // Editor commands.
           'mdb.codeLens.showMoreDocumentsClicked',
