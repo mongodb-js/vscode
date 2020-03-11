@@ -60,7 +60,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     const uriParams = new URLSearchParams(this.uri.query);
 
     const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER);
-    const connectionInstanceId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
+    const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
 
     if (!operationId) {
@@ -89,7 +89,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
       title: commandTitle,
       tooltip: commandTooltip,
       command: 'mdb.codeLens.showMoreDocumentsClicked',
-      arguments: [operationId, connectionInstanceId, namespace]
+      arguments: [operationId, connectionId, namespace]
     };
 
     return codeLens;
