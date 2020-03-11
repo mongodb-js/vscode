@@ -1,0 +1,101 @@
+const foo = db.lucas_plant_temp_readings.findOne();
+/**
+ * Each document in `lucas_plant_temp_readings` was imported from a .csv:
+ *
+ * @example
+ * ```javascript
+ * {
+ *   "_id": ObjectId("5e679eb3fa895c4caff53af6"),
+ *   "Date": "2019-07-10",
+ *   "Tag 3 Time": "17:51:42",
+ *   "Tag 3 Temp F": "75.2192947387695",
+ *   "Water Sensor 1 Time": "18:03:13",
+ *   "Water Sensor 1 Temp F": "81.1489730834961",
+ *   "Water Sensor 0 Time": "18:55:26",
+ *   "Water Sensor 0 Temp F": "86.4652744293213",
+ *   "Light Sensor 2 Time": "17:52:53",
+ *   "Light Sensor 2 Temp F": "74.8718040466309"
+ * }
+ * ```
+ */
+
+
+/**
+ * Hydrate each source as embedded documents with Date and Double values
+ * for each reading.
+ */
+let HYDRATE = { 
+  $project: { 
+    Date: 1,
+    // Tag 3
+    readings: [
+      {
+        _id: {
+          sensorName: "Tag 3",
+          timestamp: { $toDate: { $concat: [ "$Date", "$Tag 3 Time","Z" ] } },
+        },
+        temperature: { $toDouble: "$Tag 3 Temp F"}
+      },
+      // Water Sensor 1
+      {
+        _id: {
+          sensorName: "Water Sensor 1",
+          timestamp: { $toDate: { $concat: [ "$Date", "$Water Sensor 1 Time","Z" ] } },
+        },
+        temperature: { $toDouble: "$Water Sensor 1 Temp F"}
+      },
+      // Water Sensor 0
+      {
+        _id: {
+          sensorName: "Water Sensor 0",
+          timestamp: { $toDate: { $concat: [ "$Date", "$Water Sensor 1 Time","Z" ] } },
+        },
+        temperature: { $toDouble: "$Water Sensor 1 Temp F"}
+      },
+      // Light Sensor 2
+      {
+        _id: {
+          sensorName: "Light Sensor 2",
+          timestamp: { $toDate: { $concat: [ "$Date", "$Light Sensor 2 Time","Z" ] } },
+        },
+        temperature: { $toDouble: "$Light Sensor 2 Temp F"}
+      }
+    ]
+  }
+};
+db.lucas_plant_temp_readings.aggregate([HYDRATE]);
+
+
+/**
+ * Now I have a super easy to read data frame for temperature in farenheit:
+ * @example
+ * ```javascript
+ * { "_id" : { "sensorName" : "Tag 3", "timestamp" : ISODate("2019-07-10T14:57:26Z") }, "temperature" : 79.8911483764648 }
+ * { "_id" : { "sensorName" : "Water Sensor 1", "timestamp" : ISODate("2019-07-10T14:45:41Z") }, "temperature" : 77.2473949432373 }
+ * { "_id" : { "sensorName" : "Water Sensor 0", "timestamp" : ISODate("2019-07-10T14:45:41Z") }, "temperature" : 77.2473949432373 }
+ * { "_id" : { "sensorName" : "Light Sensor 2", "timestamp" : ISODate("2019-07-10T14:56:57Z") }, "temperature" : 79.3119937896729 }
+ * ```
+ */
+db.lucas_plant_temp_readings.aggregate([
+  HYDRATE,
+  { $unwind: "$readings" },
+  { $project: {
+    _id: "$readings._id",
+    temperature: "$readings.temperature"
+  }}
+]);
+
+/**
+ * I'll save all of these to a readings collection to play around more with.
+ * My `{sensorName, timestamp}` primary key will make it easy to blend in other data
+ * from separate .csv's like Lux/Light Level, pH, cat montion sensor detection hit, etc.
+ */
+db.lucas_plant_temp_readings.aggregate([
+  HYDRATE,
+  { $unwind: "$readings" },
+  { $project: {
+    _id: "$readings._id",
+    temperature: "$readings.temperature"
+  }},
+  { $merge: { into: "readings", on: "_id", whenMatched: "replace", whenNotMatched: "insert" } }
+]);

@@ -363,6 +363,7 @@
   },
   "dependencies": {
     "bson": "^4.0.3",
+    "debug": "^4.1.1",
     "mongodb-connection-model": "^14.6.2",
     "mongodb-data-service": "^16.5.6",
     "mongodb-ns": "^2.2.0",
@@ -374,6 +375,7 @@
     "@types/chai": "^4.2.9",
     "@types/chai-fs": "^2.0.2",
     "@types/chai-json-schema": "^1.4.5",
+    "@types/debug": "^4.1.5",
     "@types/glob": "^7.1.1",
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.1",
