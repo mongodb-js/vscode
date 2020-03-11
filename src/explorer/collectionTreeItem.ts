@@ -49,22 +49,22 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this._documentListChild = existingDocumentListChild
       ? existingDocumentListChild
       : new DocumentListTreeItem(
-        this.collectionName,
-        this.databaseName,
-        this._type,
-        this._dataService,
-        false, // Collapsed.
-        MAX_DOCUMENTS_VISIBLE,
-        null // No existing cache.
-      );
+          this.collectionName,
+          this.databaseName,
+          this._type,
+          this._dataService,
+          false, // Collapsed.
+          MAX_DOCUMENTS_VISIBLE,
+          null // No existing cache.
+        );
     this._schemaChild = existingSchemaChild
       ? existingSchemaChild
       : new SchemaTreeItem(
-        this.collectionName,
-        this.databaseName,
-        this._dataService,
-        false // Collapsed.
-      );
+          this.collectionName,
+          this.databaseName,
+          this._dataService,
+          false // Collapsed.
+        );
   }
 
   get tooltip(): string {

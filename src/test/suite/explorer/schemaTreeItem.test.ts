@@ -26,9 +26,7 @@ suite('SchemaTreeItem Test Suite', () => {
       'cheesePizza',
       TEST_DB_NAME,
       {},
-      false,
-      false,
-      null
+      false
     );
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
@@ -43,28 +41,25 @@ suite('SchemaTreeItem Test Suite', () => {
     );
   });
 
-
   test('when the "show more" click handler function is called it sets the schema to show more fields', () => {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {},
-      false,
-      false,
-      null
+      false
     );
 
     assert(
       !testSchemaTreeItem.hasClickedShowMoreFields,
       'Expected "hasClickedShowMoreFields" to be false by default'
     );
-    testSchemaTreeItem._childrenCacheIsUpToDate = true;
+    testSchemaTreeItem.childrenCacheIsUpToDate = true;
 
     testSchemaTreeItem.onShowMoreClicked();
 
     assert(
-      !testSchemaTreeItem._childrenCacheIsUpToDate,
-      'Expected `_childrenCacheIsUpToDate` to be reset to false'
+      !testSchemaTreeItem.childrenCacheIsUpToDate,
+      'Expected `childrenCacheIsUpToDate` to be reset to false'
     );
     assert(
       testSchemaTreeItem.hasClickedShowMoreFields,
@@ -86,9 +81,7 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, [mockDocWithTwentyFields]);
         }
       },
-      true,
-      false,
-      null
+      true
     );
 
     testSchemaTreeItem
@@ -99,7 +92,7 @@ suite('SchemaTreeItem Test Suite', () => {
         assert(
           schemaFields.length === amountOfFieldsExpected + 1,
           `Expected ${amountOfFieldsExpected +
-          1} documents to be returned, found ${schemaFields.length}`
+            1} documents to be returned, found ${schemaFields.length}`
         );
         assert(
           schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
@@ -122,9 +115,7 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, [mockDocWithThirtyFields]);
         }
       },
-      true,
-      false,
-      null
+      true
     );
 
     testSchemaTreeItem.onShowMoreClicked();
@@ -154,9 +145,7 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, 'invalid schema to parse');
         }
       },
-      true,
-      false,
-      null
+      true
     );
 
     testSchemaTreeItem
@@ -190,9 +179,7 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false,
-          false,
-          null
+          false
         );
 
         testSchemaTreeItem
@@ -220,9 +207,7 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false,
-          false,
-          null
+          false
         );
 
         testSchemaTreeItem.onDidExpand();
@@ -271,9 +256,7 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false,
-          false,
-          null
+          false
         );
 
         testSchemaTreeItem.onDidExpand();

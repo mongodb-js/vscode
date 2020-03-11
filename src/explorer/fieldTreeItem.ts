@@ -56,7 +56,11 @@ export default class FieldTreeItem extends vscode.TreeItem
 
   isExpanded: boolean;
 
-  constructor(field: SchemaFieldType, isExpanded: boolean, existingCache: { [fieldName: string]: FieldTreeItem }) {
+  constructor(
+    field: SchemaFieldType,
+    isExpanded: boolean,
+    existingCache: { [fieldName: string]: FieldTreeItem }
+  ) {
     super(field.name, getCollapsibleStateForField(field, isExpanded));
 
     this.field = field;
@@ -82,7 +86,10 @@ export default class FieldTreeItem extends vscode.TreeItem
     const pastChildrenCache = this._childrenCache;
     this._childrenCache = {};
 
-    if (this.field.bsonType === FieldTypes.document || this.field.type === FieldTypes.document) {
+    if (
+      this.field.bsonType === FieldTypes.document ||
+      this.field.type === FieldTypes.document
+    ) {
       let subDocumentFields;
       if (this.field.type === FieldTypes.document) {
         subDocumentFields = this.field.types[0].fields;
@@ -102,7 +109,7 @@ export default class FieldTreeItem extends vscode.TreeItem
             this._childrenCache[subField.name] = new FieldTreeItem(
               subField,
               false,
-              {},
+              {}
             );
           }
         });
@@ -123,7 +130,7 @@ export default class FieldTreeItem extends vscode.TreeItem
         this._childrenCache[arrayElement.name] = new FieldTreeItem(
           arrayElement,
           false,
-          {},
+          {}
         );
       }
     }

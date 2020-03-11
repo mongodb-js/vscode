@@ -29,7 +29,7 @@ class ShowAllFieldsTreeItem extends vscode.TreeItem {
 export default class SchemaTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<SchemaTreeItem> {
   childrenCacheIsUpToDate: boolean;
-  private childrenCache: { [fieldName: string]: FieldTreeItem };
+  childrenCache: { [fieldName: string]: FieldTreeItem };
 
   contextValue = 'schemaTreeItem';
 
@@ -65,11 +65,13 @@ export default class SchemaTreeItem extends vscode.TreeItem
     this.isExpanded = isExpanded;
 
     if (cachedSchemaTreeItem) {
-      this.hasClickedShowMoreFields = cachedSchemaTreeItem.hasClickedShowMoreFields;
+      this.hasClickedShowMoreFields =
+        cachedSchemaTreeItem.hasClickedShowMoreFields;
       this.hasMoreFieldsToShow = cachedSchemaTreeItem.hasMoreFieldsToShow;
 
       this.childrenCache = cachedSchemaTreeItem.childrenCache;
-      this.childrenCacheIsUpToDate = cachedSchemaTreeItem.childrenCacheIsUpToDate;
+      this.childrenCacheIsUpToDate =
+        cachedSchemaTreeItem.childrenCacheIsUpToDate;
     } else {
       // No existing cache to pull from, default values.
       this.hasClickedShowMoreFields = false;
@@ -94,21 +96,30 @@ export default class SchemaTreeItem extends vscode.TreeItem
     }
 
     if (this.childrenCacheIsUpToDate) {
-      if (
-        !this.hasClickedShowMoreFields &&
-        this.hasMoreFieldsToShow
-      ) {
+      if (!this.hasClickedShowMoreFields && this.hasMoreFieldsToShow) {
         return Promise.resolve([
-          ...Object.values(this.childrenCache).map(fieldItem => new FieldTreeItem(
-            fieldItem.field,
-            fieldItem.isExpanded,
-            fieldItem.getChildrenCache()
-          )),
+          ...Object.values(this.childrenCache).map(
+            (cachedField) =>
+              new FieldTreeItem(
+                cachedField.field,
+                cachedField.isExpanded,
+                cachedField.getChildrenCache()
+              )
+          ),
           new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
         ]);
       }
 
-      return Promise.resolve(Object.values(this.childrenCache));
+      return Promise.resolve(
+        Object.values(this.childrenCache).map(
+          (cachedField) =>
+            new FieldTreeItem(
+              cachedField.field,
+              cachedField.isExpanded,
+              cachedField.getChildrenCache()
+            )
+        )
+      );
     }
 
     return new Promise((resolve, reject) => {
@@ -202,7 +213,9 @@ export default class SchemaTreeItem extends vscode.TreeItem
   }
 
   onShowMoreClicked(): void {
-    log.info(`show more schema fields clicked for namespace ${this.databaseName}.${this.collectionName}`);
+    log.info(
+      `show more schema fields clicked for namespace ${this.databaseName}.${this.collectionName}`
+    );
 
     this.childrenCacheIsUpToDate = false;
     this.hasClickedShowMoreFields = true;
