@@ -157,7 +157,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
             inputCollectionName &&
             !collectionName.startsWith(inputCollectionName)
           ) {
-            return 'Collection name does not match';
+            return 'Collection name does not match.';
           }
 
           return null;

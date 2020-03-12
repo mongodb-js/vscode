@@ -58,8 +58,8 @@ export default class StorageController {
     return Promise.resolve();
   }
 
-  public addNewConnectionToGlobalStore(
-    newConnection: SavedConnection
+  public saveConnectionToGlobalStore(
+    connection: SavedConnection
   ): Thenable<void> {
     // Get the current save connections.
     let globalConnections:
@@ -70,10 +70,10 @@ export default class StorageController {
       globalConnections = {};
     }
 
-    newConnection.storageLocation = StorageScope.GLOBAL;
+    connection.storageLocation = StorageScope.GLOBAL;
 
     // Add the new connection.
-    globalConnections[newConnection.id] = newConnection;
+    globalConnections[connection.id] = connection;
 
     // Update the store.
     return this.update(
@@ -82,8 +82,8 @@ export default class StorageController {
     );
   }
 
-  public addNewConnectionToWorkspaceStore(
-    newConnection: SavedConnection
+  public saveConnectionToWorkspaceStore(
+    connection: SavedConnection
   ): Thenable<void> {
     // Get the current save connections.
     let workspaceConnections:
@@ -96,10 +96,10 @@ export default class StorageController {
       workspaceConnections = {};
     }
 
-    newConnection.storageLocation = StorageScope.GLOBAL;
+    connection.storageLocation = StorageScope.GLOBAL;
 
     // Add the new connection.
-    workspaceConnections[newConnection.id] = newConnection;
+    workspaceConnections[connection.id] = connection;
 
     // Update the store.
     return this.update(
@@ -122,9 +122,9 @@ export default class StorageController {
         .get('defaultConnectionSavingLocation');
 
       if (preferedStorageScope === DefaultSavingLocations.Workspace) {
-        return this.addNewConnectionToWorkspaceStore(newConnection);
+        return this.saveConnectionToGlobalStore(newConnection);
       } else if (preferedStorageScope === DefaultSavingLocations.Global) {
-        return this.addNewConnectionToGlobalStore(newConnection);
+        return this.saveConnectionToGlobalStore(newConnection);
       }
 
       // The user prefers for the connections not to be saved.
@@ -149,11 +149,11 @@ export default class StorageController {
         )
         .then((saveConnectionScope) => {
           if (saveConnectionScope === storeOnWorkspace) {
-            return this.addNewConnectionToWorkspaceStore(newConnection).then(
+            return this.saveConnectionToGlobalStore(newConnection).then(
               resolve
             );
           } else if (saveConnectionScope === storeGlobally) {
-            return this.addNewConnectionToGlobalStore(newConnection).then(
+            return this.saveConnectionToGlobalStore(newConnection).then(
               resolve
             );
           }

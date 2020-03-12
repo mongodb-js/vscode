@@ -48,7 +48,7 @@ suite('Storage Controller Test Suite', () => {
       }
     };
     const testStorageController = new StorageController(testExtensionContext);
-    testStorageController.addNewConnectionToGlobalStore({
+    testStorageController.saveConnectionToGlobalStore({
       driverUrl: 'another_url_that_is_so_saved',
       id: 'new_conn',
       name: 'saved2',
@@ -75,7 +75,7 @@ suite('Storage Controller Test Suite', () => {
       }
     };
     const testStorageController = new StorageController(testExtensionContext);
-    testStorageController.addNewConnectionToWorkspaceStore({
+    testStorageController.saveConnectionToWorkspaceStore({
       driverUrl: 'this_has_been_saved',
       id: 'new_conn',
       name: 'saved2',

@@ -14,6 +14,7 @@ import { StorageController, StorageVariables } from './storage';
 import { StorageScope, SavedConnection } from './storage/storageController';
 
 const log = createLogger('connection controller');
+const MAX_CONNECTION_NAME_LENGTH = 512;
 
 function getConnectWebviewContent(): string {
   return `<!DOCTYPE html>
@@ -460,9 +461,51 @@ export default class ConnectionController {
     return this.removeMongoDBConnection(connectionIdToRemove);
   }
 
-  public renameConnection(connectionId: string): Promise<boolean> {
+  public async renameConnection(connectionId: string): Promise<boolean> {
+    let inputtedConnectionName;
+    try {
+      inputtedConnectionName = await vscode.window.showInputBox({
+        value: this._savedConnections[connectionId].name,
+        placeHolder: 'e.g. My Connection Name',
+        prompt: 'Enter new connection name.',
+        validateInput: (inputConnectionName: any) => {
+          if (
+            inputConnectionName &&
+            inputConnectionName.length > MAX_CONNECTION_NAME_LENGTH
+          ) {
+            return `Connection name too long (Max ${MAX_CONNECTION_NAME_LENGTH} characters).`;
+          }
+
+          return null;
+        }
+      });
+    } catch (e) {
+      return Promise.reject(
+        new Error(`An error occured parsing the connection name: ${e}`)
+      );
+    }
+
+    if (!inputtedConnectionName) {
+      return Promise.resolve(false);
+    }
+
+    this._savedConnections[connectionId].name = inputtedConnectionName;
+
+    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+
     return new Promise((resolve, reject) => {
-      resolve(true);
+      if (this._savedConnections[connectionId].storageLocation === StorageScope.GLOBAL) {
+        return this._storageController
+          .saveConnectionToGlobalStore(this._savedConnections[connectionId])
+          .then(() => resolve(true), reject);
+      } else if (this._savedConnections[connectionId].storageLocation === StorageScope.WORKSPACE) {
+        return this._storageController
+          .saveConnectionToWorkspaceStore(this._savedConnections[connectionId])
+          .then(() => resolve(true), reject);
+      }
+
+      // No storing needed.
+      return resolve(true);
     });
   }
 
