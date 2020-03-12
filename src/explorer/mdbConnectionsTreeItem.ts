@@ -13,15 +13,22 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
   contextValue = 'mdbConnectionsTreeItem';
 
   private _connectionController: ConnectionController;
-  private _connectionTreeItems: { [key: string]: any } = {};
-  private _childrenCacheIsUpToDate = false;
+  private _connectionTreeItems: { [key: string]: ConnectionTreeItem } = {};
 
-  public isExpanded = true;
+  isExpanded = true;
+  needsToRefreshExpansionState = false;
 
-  constructor(connectionController: ConnectionController) {
+  constructor(connectionController: ConnectionController, existingConnectionItemsCache?: { [key: string]: ConnectionTreeItem }) {
     super(rootLabel, vscode.TreeItemCollapsibleState.Expanded);
 
     this._connectionController = connectionController;
+
+    if (existingConnectionItemsCache) {
+      this._connectionTreeItems = existingConnectionItemsCache;
+    }
+
+    // Ensure we refresh the connections when this node is built.
+    this.id = `${Date.now()}`;
   }
 
   get tooltip(): string {
@@ -33,10 +40,6 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<vscode.TreeItem[]> {
-    if (this._childrenCacheIsUpToDate) {
-      return Promise.resolve(Object.values(this._connectionTreeItems));
-    }
-
     const connectionIds = this._connectionController.getSavedConnections();
     const pastConnectionTreeItems = this._connectionTreeItems;
     this._connectionTreeItems = {};
@@ -95,24 +98,33 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
       notYetEstablishConnectionTreeItem.description = 'connecting...';
 
       // When we're connecting to a new connection we add simple node showing the connecting status.
-      this._connectionTreeItems._____connectingTempNode_____ = notYetEstablishConnectionTreeItem;
+      return Promise.resolve([
+        ...Object.values(this._connectionTreeItems),
+        notYetEstablishConnectionTreeItem
+      ]);
     }
 
     return Promise.resolve(Object.values(this._connectionTreeItems));
   }
 
   connectionsDidChange(): void {
-    this._childrenCacheIsUpToDate = false;
+    // When the connections change, like a connection is added or removed,
+    // we want to open the connections dropdown if it's collapsed.
+    if (!this.isExpanded) {
+      this.needsToRefreshExpansionState = true;
+    }
   }
 
   onDidCollapse(): void {
     this.isExpanded = false;
-    this._childrenCacheIsUpToDate = false;
   }
 
   onDidExpand(): Promise<boolean> {
     this.isExpanded = true;
-    this._childrenCacheIsUpToDate = false;
     return Promise.resolve(true);
+  }
+
+  getConnectionItemsCache(): { [key: string]: ConnectionTreeItem } {
+    return this._connectionTreeItems;
   }
 }

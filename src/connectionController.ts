@@ -65,12 +65,13 @@ export default class ConnectionController {
     connectionId: string,
     savedConnection: SavedConnection
   ): void {
-    let loadedSavedConnection;
+    let loadedSavedConnection: SavedConnection;
     try {
       loadedSavedConnection = {
         id: connectionId,
         name: savedConnection.name,
-        driverUrl: savedConnection.driverUrl
+        driverUrl: savedConnection.driverUrl,
+        storageLocation: savedConnection.storageLocation
       };
     } catch (error) {
       // Here we're leniant when loading connections in case their
@@ -183,7 +184,10 @@ export default class ConnectionController {
           const newConnection: SavedConnection = {
             id: uuidv4(),
             name: instanceId,
-            driverUrl
+            driverUrl,
+            // To begin we just store it on the session, the storage controller
+            // handles changing this based on user preference.
+            storageLocation: StorageScope.NONE
           };
           this._savedConnections[newConnection.id] = newConnection;
 
@@ -454,6 +458,12 @@ export default class ConnectionController {
     const connectionIdToRemove = connectionIds[connectionIndexToRemove];
 
     return this.removeMongoDBConnection(connectionIdToRemove);
+  }
+
+  public renameConnection(connectionId: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      resolve(true);
+    });
   }
 
   public getSavedConnections(): SavedConnection[] {

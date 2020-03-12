@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 
-import { DefaultSavingLocations } from '../../../storage/storageController';
+import { DefaultSavingLocations, StorageScope } from '../../../storage/storageController';
 
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -68,7 +68,8 @@ suite('Explorer Controller Test Suite', () => {
       testConnectionId: {
         id: 'testConnectionId',
         name: 'testConnectionName',
-        driverUrl: 'url'
+        driverUrl: 'url',
+        storageLocation: StorageScope.NONE
       }
     };
     testConnectionController.setConnnectingConnectionId(mockConnectionId);

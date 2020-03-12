@@ -8,7 +8,8 @@ export enum StorageVariables {
 // Typically variables default to 'GLOBAL' scope.
 export enum StorageScope {
   GLOBAL = 'GLOBAL',
-  WORKSPACE = 'WORKSPACE'
+  WORKSPACE = 'WORKSPACE',
+  NONE = 'NONE'
 }
 
 // Coupled with the `defaultConnectionSavingLocation` configuration in `package.json`.
@@ -22,6 +23,7 @@ export type SavedConnection = {
   id: string; // uuidv4
   name: string; // Possibly user given name, not unique.
   driverUrl: string;
+  storageLocation: StorageScope;
 };
 
 export default class StorageController {
@@ -68,6 +70,8 @@ export default class StorageController {
       globalConnections = {};
     }
 
+    newConnection.storageLocation = StorageScope.GLOBAL;
+
     // Add the new connection.
     globalConnections[newConnection.id] = newConnection;
 
@@ -91,6 +95,8 @@ export default class StorageController {
     if (!workspaceConnections) {
       workspaceConnections = {};
     }
+
+    newConnection.storageLocation = StorageScope.GLOBAL;
 
     // Add the new connection.
     workspaceConnections[newConnection.id] = newConnection;

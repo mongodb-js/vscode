@@ -158,6 +158,11 @@ export default class MDBExtensionController implements vscode.Disposable {
         this._connectionController.removeMongoDBConnection(element.connectionId)
     );
     this.registerCommand(
+      'mdb.renameConnection',
+      (element: ConnectionTreeItem) =>
+        this._connectionController.renameConnection(element.connectionId)
+    );
+    this.registerCommand(
       'mdb.addDatabase',
       async (element: ConnectionTreeItem): Promise<boolean> => {
         if (!element) {
