@@ -39,7 +39,7 @@ export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
-  private _savedConnections: {
+  _savedConnections: {
     [key: string]: SavedConnection;
   } = {};
 
@@ -351,7 +351,7 @@ export default class ConnectionController {
     });
   }
 
-  public removeConnectionConfig(connectionId: string): void {
+  public removeSavedConnection(connectionId: string): void {
     delete this._savedConnections[connectionId];
     this._storageController.removeConnection(connectionId);
 
@@ -395,7 +395,7 @@ export default class ConnectionController {
       await this.disconnect();
     }
 
-    this.removeConnectionConfig(connectionId);
+    this.removeSavedConnection(connectionId);
 
     vscode.window.showInformationMessage('MongoDB connection removed.');
     return Promise.resolve(true);
@@ -495,7 +495,9 @@ export default class ConnectionController {
   }
 
   public getSavedConnectionName(connectionId: string): string {
-    return this._savedConnections[connectionId].name;
+    return this._savedConnections[connectionId]
+      ? this._savedConnections[connectionId].name
+      : '';
   }
 
   public isConnectionWithIdSaved(connectionId: string | null): boolean {

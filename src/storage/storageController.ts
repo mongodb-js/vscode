@@ -48,10 +48,12 @@ export default class StorageController {
     storageScope?: StorageScope
   ): Thenable<void> {
     if (storageScope === StorageScope.WORKSPACE) {
-      return this._workspaceState.update(variableName, value);
+      this._workspaceState.update(variableName, value);
+      return Promise.resolve();
     }
 
-    return this._globalState.update(variableName, value);
+    this._globalState.update(variableName, value);
+    return Promise.resolve();
   }
 
   public addNewConnectionToGlobalStore(

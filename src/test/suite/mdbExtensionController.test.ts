@@ -439,7 +439,7 @@ suite('MDBExtensionController Test Suite', () => {
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
     let returnedNamespaceArg = '';
-    const mockGetActiveConnection = sinon.fake.returns({
+    const mockGetActiveDataService = sinon.fake.returns({
       createCollection: (namespace, options, callback) => {
         returnedNamespaceArg = namespace;
         callback(null);
@@ -447,13 +447,13 @@ suite('MDBExtensionController Test Suite', () => {
     });
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnection',
-      mockGetActiveConnection
+      'getActiveDataService',
+      mockGetActiveDataService
     );
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionInstanceId',
+      'getActiveConnectionId',
       mockActiveConnectionId
     );
 
@@ -500,7 +500,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionInstanceId',
+      'getActiveConnectionId',
       mockActiveConnectionId
     );
 
@@ -547,7 +547,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionInstanceId',
+      'getActiveConnectionId',
       mockActiveConnectionId
     );
 
@@ -591,7 +591,7 @@ suite('MDBExtensionController Test Suite', () => {
     mockInputBoxResolves.onCall(0).resolves('theDbName');
     mockInputBoxResolves.onCall(1).resolves('theCollectionName');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
-    const mockGetActiveConnection = sinon.fake.returns({
+    const mockGetActiveDataService = sinon.fake.returns({
       createCollection: (namespace, options, callback) => {
         assert(stubShowMessage.called);
         assert(!stubHideMessage.called);
@@ -606,13 +606,13 @@ suite('MDBExtensionController Test Suite', () => {
     });
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnection',
-      mockGetActiveConnection
+      'getActiveDataService',
+      mockGetActiveDataService
     );
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionInstanceId',
+      'getActiveConnectionId',
       mockActiveConnectionId
     );
 
@@ -776,7 +776,7 @@ suite('MDBExtensionController Test Suite', () => {
         const testCollectionTreeItem = new CollectionTreeItem(
           { name: 'doesntExistColName', type: CollectionTypes.collection },
           'doesntExistDBName',
-          testConnectionController.getActiveConnection(),
+          testConnectionController.getActiveDataService(),
           false
         );
 
@@ -892,7 +892,7 @@ suite('MDBExtensionController Test Suite', () => {
       .then(() => {
         const testDatabaseTreeItem = new DatabaseTreeItem(
           'narnia____a',
-          testConnectionController.getActiveConnection(),
+          testConnectionController.getActiveDataService(),
           false,
           {}
         );
