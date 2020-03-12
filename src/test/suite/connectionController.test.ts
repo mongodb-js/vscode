@@ -798,4 +798,73 @@ suite('Connection Controller Test Suite', () => {
       `Expected global store connections to have 0 connections found ${Object.keys(postGlobalStoreConnections).length}`
     );
   });
+
+
+  test('A saved connection can be renamed and loaded', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+
+    const testConnectionController = new ConnectionController(
+      new StatusView(mockExtensionContext),
+      testStorageController
+    );
+
+    testConnectionController.loadSavedConnections();
+
+    vscode.workspace
+      .getConfiguration('mdb.connectionSaving')
+      .update(
+        'defaultConnectionSavingLocation',
+        DefaultSavingLocations.Workspace
+      )
+      .then(() => {
+        testConnectionController
+          .addNewConnectionAndConnect(TEST_DATABASE_URI)
+          .then(() => {
+            const workspaceStoreConnections = testStorageController.get(
+              StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+              StorageScope.WORKSPACE
+            );
+            assert(
+              Object.keys(workspaceStoreConnections).length === 1,
+              `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
+            );
+            const connectionId = testConnectionController.getActiveConnectionId() || 'zz';
+
+            const mockInputBoxResolves = sinon.stub();
+            mockInputBoxResolves.onCall(0).resolves('new connection name');
+            sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+
+            testConnectionController.renameConnection(connectionId).then(renameSuccess => {
+              assert(renameSuccess);
+
+              testConnectionController
+                .disconnect()
+                .then(() => {
+                  testConnectionController.clearAllConnections();
+                  assert(
+                    testConnectionController.getSavedConnections().length ===
+                    0,
+                    'Expected no saved connection.'
+                  );
+
+                  // Activate (which will load the past connection).
+                  testConnectionController.loadSavedConnections();
+                  assert(
+                    testConnectionController.getSavedConnections().length ===
+                    1,
+                    `Expected 1 connection config, found ${testConnectionController.getSavedConnections().length}.`
+                  );
+                  const id = testConnectionController.getSavedConnections()[0].id;
+
+                  const name = testConnectionController._savedConnections[id || 'x'].name;
+                  assert(
+                    name === 'new connection name',
+                    `Expected the active connection name to be 'localhost:27018', found ${name}.`
+                  );
+                }).then(done, done);
+            }, done);
+          }, done);
+      }, done);
+  });
 });

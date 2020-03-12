@@ -122,7 +122,7 @@ export default class StorageController {
         .get('defaultConnectionSavingLocation');
 
       if (preferedStorageScope === DefaultSavingLocations.Workspace) {
-        return this.saveConnectionToGlobalStore(newConnection);
+        return this.saveConnectionToWorkspaceStore(newConnection);
       } else if (preferedStorageScope === DefaultSavingLocations.Global) {
         return this.saveConnectionToGlobalStore(newConnection);
       }
@@ -149,7 +149,7 @@ export default class StorageController {
         )
         .then((saveConnectionScope) => {
           if (saveConnectionScope === storeOnWorkspace) {
-            return this.saveConnectionToGlobalStore(newConnection).then(
+            return this.saveConnectionToWorkspaceStore(newConnection).then(
               resolve
             );
           } else if (saveConnectionScope === storeGlobally) {

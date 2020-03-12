@@ -12,6 +12,7 @@ import { mdbTestExtension } from './stubbableMdbExtension';
 import ConnectionController from '../../connectionController';
 import { StorageController } from '../../storage';
 import SchemaTreeItem from '../../explorer/schemaTreeItem';
+import { StorageScope } from '../../storage/storageController';
 
 const testDatabaseURI = 'mongodb://localhost:27018';
 
@@ -198,7 +199,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-            'craving_for_pancakes_with_maple_syrup',
+          'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })
@@ -968,5 +969,80 @@ suite('MDBExtensionController Test Suite', () => {
         );
       })
       .then(done, done);
+  });
+
+  test('mdb.renameConnection fails when the name input is empty', (done) => {
+    mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon = {
+      id: 'blueBerryPancakesAndTheSmellOfBacon',
+      name: 'NAAAME',
+      driverUrl: '',
+      storageLocation: StorageScope.NONE
+    };
+
+    const mockTreeItem = new ConnectionTreeItem(
+      'blueBerryPancakesAndTheSmellOfBacon',
+      vscode.TreeItemCollapsibleState.None,
+      false,
+      mdbTestExtension.testExtensionController._connectionController,
+      {}
+    );
+
+    const mockInputBoxResolves = sinon.stub();
+    mockInputBoxResolves.onCall(0).resolves(/* Return undefined. */);
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+
+    vscode.commands
+      .executeCommand('mdb.renameConnection', mockTreeItem)
+      .then((successfullyRenamed) => {
+        assert(
+          successfullyRenamed === false,
+          'Expected the rename connection command handler to return a false succeeded response'
+        );
+        assert(
+          mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name === 'NAAAME',
+          'Expected connection not to be ranamed.'
+        );
+        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+      })
+      .then(done, () => {
+        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+        done();
+      });
+  });
+
+  test('mdb.renameConnection updates the name of a connection', (done) => {
+    mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon = {
+      id: 'blueBerryPancakesAndTheSmellOfBacon',
+      name: 'NAAAME',
+      driverUrl: '',
+      storageLocation: StorageScope.NONE
+    };
+
+    const mockTreeItem = new ConnectionTreeItem(
+      'blueBerryPancakesAndTheSmellOfBacon',
+      vscode.TreeItemCollapsibleState.None,
+      false,
+      mdbTestExtension.testExtensionController._connectionController,
+      {}
+    );
+
+    const mockInputBoxResolves = sinon.stub();
+    mockInputBoxResolves.onCall(0).resolves('orange juice');
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+
+    vscode.commands
+      .executeCommand('mdb.renameConnection', mockTreeItem)
+      .then((successfullyRenamed) => {
+        assert(successfullyRenamed);
+        assert(
+          mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name === 'orange juice',
+          'Expected connection to be ranamed.'
+        );
+        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+      })
+      .then(done, () => {
+        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+        done();
+      });
   });
 });
