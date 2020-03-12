@@ -65,12 +65,10 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       Object.keys(updatedGlobalModels).length === 2,
-      `Expected 2 connections, found ${
-        Object.keys(updatedGlobalModels).length
-      }.`
+      `Expected 2 connections, found ${Object.keys(updatedGlobalModels).length}.`
     );
     assert(
-      updatedGlobalModels.conn_1.name === 'so_saved',
+      updatedGlobalModels.conn1.name === 'so_saved',
       'Expected connection data to persist.'
     );
     assert(
@@ -104,16 +102,14 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       Object.keys(updatedWorkspaceModels).length === 2,
-      `Expected 2 connections, found ${
-        Object.keys(updatedWorkspaceModels).length
-      }.`
+      `Expected 2 connections, found ${Object.keys(updatedWorkspaceModels).length}.`
     );
     assert(
-      updatedWorkspaceModels.conn_1.id === 'conn1',
+      updatedWorkspaceModels.conn1.id === 'conn1',
       'Expected connection id data to persist.'
     );
     assert(
-      updatedWorkspaceModels.conn_1.driverUrl === 'very_saved_connection_url',
+      updatedWorkspaceModels.conn1.driverUrl === 'very_saved_connection_url',
       'Expected connection string data to persist.'
     );
     assert(
