@@ -1,6 +1,10 @@
 import * as assert from 'assert';
 
-import StorageController, { StorageVariables, StorageScope, SavedConnection } from '../../../storage/storageController';
+import StorageController, {
+  StorageVariables,
+  StorageScope,
+  SavedConnection
+} from '../../../storage/storageController';
 
 import { TestExtensionContext } from '../stubs';
 
@@ -23,7 +27,8 @@ suite('Storage Controller Test Suite', () => {
   test('getting a variable from the workspace state gets it from the workspace context store', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._workspaceState = {
-      [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: 'i_cant_believe_its_gonna_save_this'
+      [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]:
+        'i_cant_believe_its_gonna_save_this'
     };
     const testStorageController = new StorageController(testExtensionContext);
     const testVal = testStorageController.get(
@@ -40,9 +45,9 @@ suite('Storage Controller Test Suite', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {
       [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
-        'conn_1': {
+        conn1: {
           driverUrl: 'so_saved',
-          id: 'conn_1',
+          id: 'conn1',
           name: 'so_saved'
         }
       }
@@ -58,18 +63,29 @@ suite('Storage Controller Test Suite', () => {
     const updatedGlobalModels = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS
     );
-    assert(Object.keys(updatedGlobalModels).length === 2, `Expected 2 connections, found ${Object.keys(updatedGlobalModels).length}.`);
-    assert(updatedGlobalModels.conn_1.name === 'so_saved', 'Expected connection data to persist.');
-    assert(updatedGlobalModels.new_conn.driverUrl === 'another_url_that_is_so_saved', 'Expected new connection data to exist.');
+    assert(
+      Object.keys(updatedGlobalModels).length === 2,
+      `Expected 2 connections, found ${
+        Object.keys(updatedGlobalModels).length
+      }.`
+    );
+    assert(
+      updatedGlobalModels.conn_1.name === 'so_saved',
+      'Expected connection data to persist.'
+    );
+    assert(
+      updatedGlobalModels.new_conn.driverUrl === 'another_url_that_is_so_saved',
+      'Expected new connection data to exist.'
+    );
   });
 
   test('addNewConnectionToWorkspaceStore adds the connection to preexisting connections on the workspace store', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._workspaceState = {
       [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
-        'conn_1': {
+        conn1: {
           driverUrl: 'very_saved_connection_url',
-          id: 'conn_1',
+          id: 'conn1',
           name: 'saved1'
         }
       }
@@ -86,9 +102,23 @@ suite('Storage Controller Test Suite', () => {
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageScope.WORKSPACE
     );
-    assert(Object.keys(updatedWorkspaceModels).length === 2, `Expected 2 connections, found ${Object.keys(updatedWorkspaceModels).length}.`);
-    assert(updatedWorkspaceModels.conn_1.id === 'conn_1', 'Expected connection id data to persist.');
-    assert(updatedWorkspaceModels.conn_1.driverUrl === 'very_saved_connection_url', 'Expected connection string data to persist.');
-    assert(updatedWorkspaceModels.new_conn.driverUrl === 'this_has_been_saved', 'Expected new connection data to exist.');
+    assert(
+      Object.keys(updatedWorkspaceModels).length === 2,
+      `Expected 2 connections, found ${
+        Object.keys(updatedWorkspaceModels).length
+      }.`
+    );
+    assert(
+      updatedWorkspaceModels.conn_1.id === 'conn1',
+      'Expected connection id data to persist.'
+    );
+    assert(
+      updatedWorkspaceModels.conn_1.driverUrl === 'very_saved_connection_url',
+      'Expected connection string data to persist.'
+    );
+    assert(
+      updatedWorkspaceModels.new_conn.driverUrl === 'this_has_been_saved',
+      'Expected new connection data to exist.'
+    );
   });
 });

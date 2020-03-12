@@ -199,7 +199,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-          'craving_for_pancakes_with_maple_syrup',
+            'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })
@@ -999,7 +999,9 @@ suite('MDBExtensionController Test Suite', () => {
           'Expected the rename connection command handler to return a false succeeded response'
         );
         assert(
-          mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name === 'NAAAME',
+          mdbTestExtension.testExtensionController._connectionController
+            ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
+            'NAAAME',
           'Expected connection not to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
@@ -1035,7 +1037,9 @@ suite('MDBExtensionController Test Suite', () => {
       .then((successfullyRenamed) => {
         assert(successfullyRenamed);
         assert(
-          mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name === 'orange juice',
+          mdbTestExtension.testExtensionController._connectionController
+            ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
+            'orange juice',
           'Expected connection to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();

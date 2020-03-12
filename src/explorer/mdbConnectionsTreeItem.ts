@@ -18,7 +18,10 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
   isExpanded = true;
   needsToRefreshExpansionState = false;
 
-  constructor(connectionController: ConnectionController, existingConnectionItemsCache?: { [key: string]: ConnectionTreeItem }) {
+  constructor(
+    connectionController: ConnectionController,
+    existingConnectionItemsCache?: { [key: string]: ConnectionTreeItem }
+  ) {
     super(rootLabel, vscode.TreeItemCollapsibleState.Expanded);
 
     this._connectionController = connectionController;
@@ -51,7 +54,8 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
         this._connectionController.getActiveConnectionId();
       const isBeingConnectedTo =
         this._connectionController.isConnecting() &&
-        savedConnection.id === this._connectionController.getConnectingConnectionId();
+        savedConnection.id ===
+          this._connectionController.getConnectingConnectionId();
 
       let connectionExpandedState = isActiveConnection
         ? vscode.TreeItemCollapsibleState.Expanded
@@ -86,13 +90,13 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
 
     if (
       this._connectionController.isConnecting() &&
-      !this._connectionController
-        .isConnectionWithIdSaved(
-          this._connectionController.getConnectingConnectionId()
-        )
+      !this._connectionController.isConnectionWithIdSaved(
+        this._connectionController.getConnectingConnectionId()
+      )
     ) {
       const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
-        this._connectionController.getConnectingConnectionName() || 'New Connection'
+        this._connectionController.getConnectingConnectionName() ||
+          'New Connection'
       );
 
       notYetEstablishConnectionTreeItem.description = 'connecting...';

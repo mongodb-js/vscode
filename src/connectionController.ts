@@ -494,11 +494,17 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
     return new Promise((resolve, reject) => {
-      if (this._savedConnections[connectionId].storageLocation === StorageScope.GLOBAL) {
+      if (
+        this._savedConnections[connectionId].storageLocation ===
+        StorageScope.GLOBAL
+      ) {
         return this._storageController
           .saveConnectionToGlobalStore(this._savedConnections[connectionId])
           .then(() => resolve(true), reject);
-      } else if (this._savedConnections[connectionId].storageLocation === StorageScope.WORKSPACE) {
+      } else if (
+        this._savedConnections[connectionId].storageLocation ===
+        StorageScope.WORKSPACE
+      ) {
         return this._storageController
           .saveConnectionToWorkspaceStore(this._savedConnections[connectionId])
           .then(() => resolve(true), reject);
