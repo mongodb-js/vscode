@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 
 class Logger implements ILogger {
   static channel: vscode.OutputChannel = vscode.window.createOutputChannel(
-    'mongodb'
+    'MongoDB'
   );
 
   private name: string;

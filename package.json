@@ -422,7 +422,9 @@
     "mongodb-ns": "^2.2.0",
     "mongodb-schema": "^8.2.5",
     "ts-log": "^2.1.4",
-    "uuid": "^7.0.0"
+    "uuid": "^7.0.0",
+    "vscode-languageclient": "^6.1.1",
+    "vscode-languageserver": "^6.1.1"
   },
   "devDependencies": {
     "@types/chai": "^4.2.9",

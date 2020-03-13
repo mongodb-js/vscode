@@ -16,6 +16,8 @@ import ConnectionTreeItem from './explorer/connectionTreeItem';
 import SchemaTreeItem from './explorer/schemaTreeItem';
 import DocumentTreeItem from './explorer/documentTreeItem';
 
+import LanguageServerController from './language';
+
 const log = createLogger('commands');
 
 // This class is the top-level controller for our extension.
@@ -99,10 +101,17 @@ export default class MDBExtensionController implements vscode.Disposable {
   registerEditorCommands(): void {
     this.registerCommand(
       'mdb.codeLens.showMoreDocumentsClicked',
+<<<<<<< HEAD
       (operationId, connectionId, namespace) => {
         return this._editorsController.onViewMoreCollectionDocuments(
           operationId,
           connectionId,
+=======
+      (operationId, connectionInstanceId, namespace) => {
+        return this._editorsController.onViewMoreCollectionDocuments(
+          operationId,
+          connectionInstanceId,
+>>>>>>> pulled notes together and hacked in basic setup
           namespace
         );
       }
@@ -156,12 +165,18 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.treeItemRemoveConnection',
       (element: ConnectionTreeItem) =>
+<<<<<<< HEAD
         this._connectionController.removeMongoDBConnection(element.connectionId)
     );
     this.registerCommand(
       'mdb.renameConnection',
       (element: ConnectionTreeItem) =>
         this._connectionController.renameConnection(element.connectionId)
+=======
+        this._connectionController.removeMongoDBConnection(
+          element.connectionInstanceId
+        )
+>>>>>>> pulled notes together and hacked in basic setup
     );
     this.registerCommand(
       'mdb.addDatabase',
@@ -174,8 +189,13 @@ export default class MDBExtensionController implements vscode.Disposable {
         }
 
         if (
+<<<<<<< HEAD
           element.connectionId !==
           this._connectionController.getActiveConnectionId()
+=======
+          element.connectionInstanceId !==
+          this._connectionController.getActiveConnectionInstanceId()
+>>>>>>> pulled notes together and hacked in basic setup
         ) {
           vscode.window.showErrorMessage(
             'Please connect to this connection before adding a database.'

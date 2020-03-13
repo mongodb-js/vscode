@@ -2,18 +2,9 @@
 {
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
-  // Insert spaces when pressing Tab.
   "editor.insertSpaces": true,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-  "files.exclude": {
-    "out": false // set this to true to hide the "out" folder with the compiled JS files
-  },
-  "search.exclude": {
-    "out": true // set this to false to include "out" folder in search results
-  },
-  // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
-  "typescript.tsc.autoDetect": "off",
   "prettier.singleQuote": true,
   "prettier.arrowParens": "always",
   // Language server logging for
