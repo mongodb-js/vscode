@@ -18,15 +18,9 @@ export default class PlaygroundController {
   _runtime?: ElectronRuntime;
   _activeDBCodeLensProvider?: ActiveDBCodeLensProvider;
 
-  activate(context: vscode.ExtensionContext, connectionController: ConnectionController): void {
+  constructor(context: vscode.ExtensionContext, connectionController: ConnectionController) {
     this._context = context;
     this._connectionController = connectionController;
-  }
-
-  deactivate(): void {
-    if (this._runtime) {
-      delete this._runtime;
-    }
   }
 
   createPlayground(): Promise<boolean> {

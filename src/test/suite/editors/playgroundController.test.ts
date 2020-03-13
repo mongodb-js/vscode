@@ -19,27 +19,15 @@ suite('Playground Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
 
-  suite('when connection controller is undefined', () => {
-    test('evaluate should throw the missing connection controller error', async () => {
-      const testPlaygroundController = new PlaygroundController();
-
-      expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'No connection controller.');
-    });
-  });
-
   suite('when user is not connected', () => {
     test('evaluate should throw the missing active connection error', async () => {
       const testConnectionController = new ConnectionController(
         new StatusView(mockExtensionContext),
         mockStorageController
       );
-      const testPlaygroundController = new PlaygroundController();
-
-      testPlaygroundController.activate(mockExtensionContext, testConnectionController);
+      const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController);
 
       expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'Please connect to a database before running a playground.');
-
-      testPlaygroundController.deactivate();
     });
   });
 
@@ -54,15 +42,12 @@ suite('Playground Controller Test Suite', () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
-    const testPlaygroundController = new PlaygroundController();
+    const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController);
 
     test('evaluate should sum numbers', async () => {
       testConnectionController.setActiveConnection(mockActiveConnection);
-      testPlaygroundController.activate(mockExtensionContext, testConnectionController);
 
       expect(await testPlaygroundController.evaluate('1 + 1')).to.be.equal('2');
-
-      testPlaygroundController.deactivate();
     });
   });
 });
