@@ -157,15 +157,9 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
     const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
 
-    if (this._type === CollectionTypes.collection) {
-      return {
-        light: path.join(LIGHT, 'collection.svg'),
-        dark: path.join(DARK, 'collection.svg')
-      };
-    }
     return {
-      light: path.join(LIGHT, 'view.svg'),
-      dark: path.join(DARK, 'view.svg')
+      light: path.join(LIGHT, 'documents.svg'),
+      dark: path.join(DARK, 'documents.svg')
     };
   }
 

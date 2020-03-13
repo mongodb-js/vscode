@@ -50,7 +50,11 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   activate(): void {
-    this._connectionController.loadSavedConnections();
+    // TODO: REVERT THIS
+    // REVERT
+    // REVERT
+    // REVERT
+    // this._connectionController.loadSavedConnections();
     this._explorerController.createTreeView();
 
     log.info('Registering commands...');

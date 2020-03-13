@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+const path = require('path');
 
 import DocumentListTreeItem, {
   CollectionTypes,
@@ -78,6 +79,10 @@ export default class CollectionTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<any[]> {
+    if (!this.isExpanded) {
+      return Promise.resolve([]);
+    }
+
     // We rebuild the children here so their controlled `expanded` state
     // is ensure to be set by vscode.
     this._documentListChild = new DocumentListTreeItem(
@@ -183,5 +188,24 @@ export default class CollectionTreeItem extends vscode.TreeItem
         }
       );
     });
+  }
+
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
+    const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
+
+    if (this.isExpanded) {
+      return {
+        light: path.join(LIGHT, 'collection-folder-open.svg'),
+        dark: path.join(DARK, 'collection-folder-open.svg')
+      };
+    }
+    return {
+      light: path.join(LIGHT, 'collection-folder-closed.svg'),
+      dark: path.join(DARK, 'collection-folder-closed.svg')
+    };
   }
 }
