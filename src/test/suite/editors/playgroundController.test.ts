@@ -35,7 +35,7 @@ suite('Playground Controller Test Suite', () => {
       );
       const testPlaygroundController = new PlaygroundController();
 
-      testPlaygroundController.activate(testConnectionController);
+      testPlaygroundController.activate(mockExtensionContext, testConnectionController);
 
       expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'Please connect to a database before running a playground.');
 
@@ -58,7 +58,7 @@ suite('Playground Controller Test Suite', () => {
 
     test('evaluate should sum numbers', async () => {
       testConnectionController.setActiveConnection(mockActiveConnection);
-      testPlaygroundController.activate(testConnectionController);
+      testPlaygroundController.activate(mockExtensionContext, testConnectionController);
 
       expect(await testPlaygroundController.evaluate('1 + 1')).to.be.equal('2');
 

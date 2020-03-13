@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import ConnectionController from '../connectionController';
 import { ElectronRuntime } from 'mongosh/packages/browser-runtime-electron';
 import { CompassServiceProvider } from 'mongosh/packages/service-provider-server';
+import ActiveDBCodeLensProvider from './activeDBCodeLensProvider';
 import formatOutput from '../utils/formatOutput';
 import { createLogger } from '../logging';
 
@@ -12,23 +13,14 @@ const log = createLogger('editors controller');
  * This controller manages playground.
  */
 export default class PlaygroundController {
+  _context?: vscode.ExtensionContext;
   _connectionController?: ConnectionController;
   _runtime?: ElectronRuntime;
+  _activeDBCodeLensProvider?: ActiveDBCodeLensProvider;
 
-  activate(connectionController: ConnectionController): void {
-    log.info('activate playground controller');
-
+  activate(context: vscode.ExtensionContext, connectionController: ConnectionController): void {
+    this._context = context;
     this._connectionController = connectionController;
-
-    const activeConnection = this._connectionController.getActiveConnection();
-
-    if (activeConnection) {
-      const serviceProvider = CompassServiceProvider.fromDataService(
-        activeConnection
-      );
-
-      this._runtime = new ElectronRuntime(serviceProvider);
-    }
   }
 
   deactivate(): void {
@@ -70,6 +62,13 @@ export default class PlaygroundController {
 
     if (!this._runtime) {
       this._runtime = new ElectronRuntime(serviceProvider);
+      this._activeDBCodeLensProvider = new ActiveDBCodeLensProvider(this._connectionController, this._runtime);
+      this._context?.subscriptions.push(vscode.languages.registerCodeLensProvider(
+        {
+          language: 'mongodb'
+        },
+        this._activeDBCodeLensProvider
+      ));
     }
 
     const res = await this._runtime.evaluate(codeToEvaluate);
