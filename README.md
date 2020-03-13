@@ -1,13 +1,12 @@
-# MongoDB  for VS Code [Alpha]
+# MongoDB for VS Code ![PREVIEW](https://img.shields.io/badge/-PREVIEW-orange)
 
-[![Build Status](https://dev.azure.com/team-compass/vscode/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/vscode/_build/latest?definitionId=6&branchName=master)
+[![Build Status][azure_img]][azure_url]
 
 **MongoDB for VS Code** lets you easily work with MongoDB directly from your VS Code environment. Using the MongoDB Extension, you can:
 
-* Connect to a MongoDB instance or cluster
-* Navigate your databases and collections
-* Prototype queries and aggregations
-
+- Connect to a MongoDB instance or cluster
+- Navigate your databases and collections
+- Prototype queries and aggregations
 
 MongoDB for VS Code is still a work in progress and is **not yet released**.
 
@@ -31,40 +30,42 @@ code --install-extension /path/to/mongodb-vscode-x.y.z.vsix
 ```
 
 If you get an error because the `code` command is not found, you need to install it in your `$PATH`.
-Open VS Code, launch the Commmand Palette (⌘+Shift+P on MacOS, Ctrl+Shift+P on Windows and Linux), type `code` and select "Install code command in $PATH".
+Open VS Code, launch the Commmand Palette (⌘+Shift+P on MacOS, Ctrl+Shift+P on Windows and Linux), type `code` and select "Install code command in \$PATH".
 
-## Features
+## :construction: Features
 
 ### MongoDB data explorer
-* Connect to your MongoDB instance, cluster or to your [Atlas deployment](https://www.mongodb.com/cloud/atlas/register)
-* Navigate your database and collections
-* See the documents in your collections
-* Get a quick overview of your schema
+
+- Connect to your MongoDB instance, cluster or to your [Atlas deployment](https://www.mongodb.com/cloud/atlas/register)
+- Navigate your database and collections
+- See the documents in your collections
+- Get a quick overview of your schema
 
 ![Explore data with MongoDB for VS Code](resources/screenshots/explore-data.png)
 
 ### MongoDB Playgrounds
-* Prototype your queries, aggregations and MongoDB commands with MongoDB Syntax Highlighting
-* Run your playgrounds and see the results instantly
-* Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB
-* Build aggregations quickly with our helpful and well commented stage snippets
+
+- Prototype your queries, aggregations and MongoDB commands with MongoDB Syntax Highlighting
+- Run your playgrounds and see the results instantly
+- Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB
+- Build aggregations quickly with our helpful and well commented stage snippets
 
 ![Playgrounds](resources/screenshots/playground.png)
 
-
 ### Quick access to the MongoDB Shell
-* Launch the MongoDB Shell from the command palette to quickly connect to the same cluster you have active in VS Code
+
+- Launch the MongoDB Shell from the command palette to quickly connect to the same cluster you have active in VS Code
 
 ![MongoDB Shell](resources/screenshots/shell-launcher.png)
 
 ## Extension Settings
 
-* `mdb.shell`: The MongoDB shell to use.
-* `mdb.show`: Show or hide the MongoDB view.
-* `mdb.defaultLimit`: The number of documents to fetch when viewing documents from a collection.
-* `mdb.confirmRunAll`: Show a confirmation message before running commands in a playground.
-* `mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections`: When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used.
-* `mdb.connectionSaving.defaultConnectionSavingLocation`: When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved.
+- `mdb.shell`: The MongoDB shell to use.
+- `mdb.show`: Show or hide the MongoDB view.
+- `mdb.defaultLimit`: The number of documents to fetch when viewing documents from a collection.
+- `mdb.confirmRunAll`: Show a confirmation message before running commands in a playground.
+- `mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections`: When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used.
+- `mdb.connectionSaving.defaultConnectionSavingLocation`: When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved.
 
 ![Settings](resources/screenshots/settings.png)
 
@@ -83,3 +84,10 @@ Is there anything else you’d like to see in Compass? Let us know by submitting
 ## License
 
 [Apache 2.0](./LICENSE.txt)
+[snippet guide]: https://code.visualstudio.com/api/language-extensions/snippet-guide
+[syntax guide]: https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide
+[azure_img]: https://dev.azure.com/team-compass/team-compass/_apis/build/status/mongodb-js.vscode?branchName=master
+[azure_url]: https://dev.azure.com/team-compass/team-compass/_build/latest?definitionId=4&branchName=master
+[jira]: https://jira.mongodb.org/browse/VSCODE
+[vscode api]: https://code.visualstudio.com/api
+[nodejs]: https://nodejs.org
