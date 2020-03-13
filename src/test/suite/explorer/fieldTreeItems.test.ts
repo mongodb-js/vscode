@@ -25,9 +25,7 @@ suite('FieldTreeItem Test Suite', () => {
         'pie',
         TEST_DB_NAME,
         dataService,
-        true,
-        false,
-        null
+        true
       );
 
       testSchemaTreeItem
@@ -77,9 +75,7 @@ suite('FieldTreeItem Test Suite', () => {
         'gryffindor',
         TEST_DB_NAME,
         dataService,
-        false,
-        false,
-        null
+        false
       );
 
       testSchemaTreeItem.onDidExpand();
@@ -139,9 +135,7 @@ suite('FieldTreeItem Test Suite', () => {
         'gryffindor',
         TEST_DB_NAME,
         dataService,
-        false,
-        false,
-        null
+        false
       );
 
       testSchemaTreeItem.onDidExpand();
@@ -211,9 +205,7 @@ suite('FieldTreeItem Test Suite', () => {
         'beach',
         TEST_DB_NAME,
         dataService,
-        false,
-        false,
-        null
+        false
       );
 
       testSchemaTreeItem.onDidExpand();

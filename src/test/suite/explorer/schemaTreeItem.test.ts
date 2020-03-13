@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
 
+const { contributes } = require('../../../../package.json');
+
 import SchemaTreeItem, {
   FIELDS_TO_SHOW
 } from '../../../explorer/schemaTreeItem';
@@ -18,27 +20,46 @@ suite('SchemaTreeItem Test Suite', () => {
     sinon.restore();
   });
 
+  test('its context value should be in the package json', () => {
+    let schemaRegisteredCommandInPackageJson = false;
+    const testSchemaTreeItem = new SchemaTreeItem(
+      'cheesePizza',
+      TEST_DB_NAME,
+      {},
+      false
+    );
+
+    contributes.menus['view/item/context'].forEach((contextItem) => {
+      if (contextItem.when.includes(testSchemaTreeItem.contextValue)) {
+        schemaRegisteredCommandInPackageJson = true;
+      }
+    });
+
+    assert(
+      schemaRegisteredCommandInPackageJson,
+      'Expected schema tree item to be registered with a command in package json'
+    );
+  });
+
   test('when the "show more" click handler function is called it sets the schema to show more fields', () => {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {},
-      false,
-      false,
-      null
+      false
     );
 
     assert(
       !testSchemaTreeItem.hasClickedShowMoreFields,
       'Expected "hasClickedShowMoreFields" to be false by default'
     );
-    testSchemaTreeItem._childrenCacheIsUpToDate = true;
+    testSchemaTreeItem.childrenCacheIsUpToDate = true;
 
     testSchemaTreeItem.onShowMoreClicked();
 
     assert(
-      !testSchemaTreeItem._childrenCacheIsUpToDate,
-      'Expected `_childrenCacheIsUpToDate` to be reset to false'
+      !testSchemaTreeItem.childrenCacheIsUpToDate,
+      'Expected `childrenCacheIsUpToDate` to be reset to false'
     );
     assert(
       testSchemaTreeItem.hasClickedShowMoreFields,
@@ -60,9 +81,7 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, [mockDocWithTwentyFields]);
         }
       },
-      true,
-      false,
-      null
+      true
     );
 
     testSchemaTreeItem
@@ -73,7 +92,7 @@ suite('SchemaTreeItem Test Suite', () => {
         assert(
           schemaFields.length === amountOfFieldsExpected + 1,
           `Expected ${amountOfFieldsExpected +
-          1} documents to be returned, found ${schemaFields.length}`
+            1} documents to be returned, found ${schemaFields.length}`
         );
         assert(
           schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
@@ -96,9 +115,7 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, [mockDocWithThirtyFields]);
         }
       },
-      true,
-      false,
-      null
+      true
     );
 
     testSchemaTreeItem.onShowMoreClicked();
@@ -128,9 +145,7 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, 'invalid schema to parse');
         }
       },
-      true,
-      false,
-      null
+      true
     );
 
     testSchemaTreeItem
@@ -164,9 +179,7 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false,
-          false,
-          null
+          false
         );
 
         testSchemaTreeItem
@@ -194,9 +207,7 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false,
-          false,
-          null
+          false
         );
 
         testSchemaTreeItem.onDidExpand();
@@ -245,9 +256,7 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false,
-          false,
-          null
+          false
         );
 
         testSchemaTreeItem.onDidExpand();

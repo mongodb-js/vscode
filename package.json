@@ -56,11 +56,15 @@
   "activationEvents": [
     "onCommand:mdb.connect",
     "onCommand:mdb.connectWithURI",
+    "onCommand:mdb.createPlayground",
+    "onCommand:mdb.addConnection",
+    "onCommand:mdb.addConnectionWithURI",
     "onCommand:mdb.disconnect",
     "onCommand:mdb.removeConnection",
     "onCommand:mdb.openMongoDBShell",
     "onView:mongoDB",
-    "onLanguage:json"
+    "onLanguage:json",
+    "onLanguage:mongodb"
   ],
   "contributes": {
     "viewsContainers": {
@@ -157,7 +161,7 @@
       },
       {
         "command": "mdb.addDatabase",
-        "title": "Add Database",
+        "title": "Add Database...",
         "icon": {
           "light": "images/light/plus-circle.svg",
           "dark": "images/dark/plus-circle.svg"
@@ -189,7 +193,7 @@
       },
       {
         "command": "mdb.addCollection",
-        "title": "Add Collection",
+        "title": "Add Collection...",
         "icon": {
           "light": "images/light/plus-circle.svg",
           "dark": "images/dark/plus-circle.svg"
@@ -210,9 +214,23 @@
       {
         "command": "mdb.refreshCollection",
         "title": "Refresh"
+      },
+      {
+        "command": "mdb.refreshSchema",
+        "title": "Refresh"
       }
     ],
     "menus": {
+      "view/title": [
+        {
+          "command": "mdb.addConnection",
+          "when": "view == mongoDB"
+        },
+        {
+          "command": "mdb.addConnectionWithURI",
+          "when": "view == mongoDB"
+        }
+      ],
       "view/item/context": [
         {
           "command": "mdb.addConnection",
@@ -228,41 +246,49 @@
           "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem"
         },
         {
-          "command": "mdb.connectToConnectionTreeItem",
-          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
-        },
-        {
-          "command": "mdb.disconnectFromConnectionTreeItem",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
-        },
-        {
-          "command": "mdb.treeItemRemoveConnection",
-          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
-        },
-        {
-          "command": "mdb.treeItemRemoveConnection",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
-        },
-        {
-          "command": "mdb.copyConnectionString",
-          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
-        },
-        {
-          "command": "mdb.copyConnectionString",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
-        },
-        {
-          "command": "mdb.refreshConnection",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
-        },
-        {
           "command": "mdb.addDatabase",
           "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
           "group": "inline"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "group": "1@1"
+        },
+        {
+          "command": "mdb.refreshConnection",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "group": "1@2"
+        },
+        {
+          "command": "mdb.copyConnectionString",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "group": "2@1"
+        },
+        {
+          "command": "mdb.disconnectFromConnectionTreeItem",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "group": "3@1"
+        },
+        {
+          "command": "mdb.treeItemRemoveConnection",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "group": "3@2"
+        },
+        {
+          "command": "mdb.connectToConnectionTreeItem",
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
+          "group": "1@1"
+        },
+        {
+          "command": "mdb.copyConnectionString",
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
+          "group": "2@1"
+        },
+        {
+          "command": "mdb.treeItemRemoveConnection",
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
+          "group": "3@1"
         },
         {
           "command": "mdb.addCollection",
@@ -271,39 +297,51 @@
         },
         {
           "command": "mdb.addCollection",
-          "when": "view == mongoDB && viewItem == databaseTreeItem"
-        },
-        {
-          "command": "mdb.dropDatabase",
-          "when": "view == mongoDB && viewItem == databaseTreeItem"
-        },
-        {
-          "command": "mdb.copyDatabaseName",
-          "when": "view == mongoDB && viewItem == databaseTreeItem"
+          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "group": "1@1"
         },
         {
           "command": "mdb.refreshDatabase",
-          "when": "view == mongoDB && viewItem == databaseTreeItem"
+          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "group": "1@2"
+        },
+        {
+          "command": "mdb.copyDatabaseName",
+          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "group": "2@1"
+        },
+        {
+          "command": "mdb.dropDatabase",
+          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "group": "3@1"
         },
         {
           "command": "mdb.viewCollectionDocuments",
-          "when": "view == mongoDB && viewItem == collectionTreeItem"
+          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "group": "1@1"
+        },
+        {
+          "command": "mdb.refreshCollection",
+          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "group": "1@2"
+        },
+        {
+          "command": "mdb.copyCollectionName",
+          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "group": "2@1"
+        },
+        {
+          "command": "mdb.dropCollection",
+          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "group": "3@1"
         },
         {
           "command": "mdb.viewCollectionDocuments",
           "when": "view == mongoDB && viewItem == documentListTreeItem"
         },
         {
-          "command": "mdb.dropCollection",
-          "when": "view == mongoDB && viewItem == collectionTreeItem"
-        },
-        {
-          "command": "mdb.copyCollectionName",
-          "when": "view == mongoDB && viewItem == collectionTreeItem"
-        },
-        {
-          "command": "mdb.refreshCollection",
-          "when": "view == mongoDB && viewItem == collectionTreeItem"
+          "command": "mdb.refreshSchema",
+          "when": "view == mongoDB && viewItem == schemaTreeItem"
         }
       ]
     },

@@ -72,7 +72,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     if (
       this._connectionController.isConnecting() &&
       this._connectionController.getConnectingInstanceId() ===
-        this.connectionInstanceId
+      this.connectionInstanceId
     ) {
       return 'connecting...';
     }
@@ -142,8 +142,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(__dirname, '..', '..', '..', 'images', 'light');
-    const DARK = path.join(__dirname, '..', '..', '..', 'images', 'dark');
+    const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
+    const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
 
     if (
       this._connectionController.getActiveConnectionInstanceId() ===

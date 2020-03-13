@@ -154,15 +154,19 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    return this._type === CollectionTypes.collection
-      ? {
-        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'collection.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'collection.svg')
-      }
-      : {
-        light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'view.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'view.svg')
+    const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
+    const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
+
+    if (this._type === CollectionTypes.collection) {
+      return {
+        light: path.join(LIGHT, 'collection.svg'),
+        dark: path.join(DARK, 'collection.svg')
       };
+    }
+    return {
+      light: path.join(LIGHT, 'view.svg'),
+      dark: path.join(DARK, 'view.svg')
+    };
   }
 
   onShowMoreClicked(): void {

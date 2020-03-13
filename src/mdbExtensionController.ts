@@ -13,6 +13,7 @@ import { createLogger } from './logging';
 import { StorageController } from './storage';
 import DatabaseTreeItem from './explorer/databaseTreeItem';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
+import SchemaTreeItem from './explorer/schemaTreeItem';
 
 const log = createLogger('commands');
 
@@ -266,6 +267,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       'mdb.refreshCollection',
       (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
         collectionTreeItem.resetCache();
+        return this._explorerController.refresh();
+      }
+    );
+    this.registerCommand(
+      'mdb.refreshSchema',
+      (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
+        schemaTreeItem.resetCache();
         return this._explorerController.refresh();
       }
     );

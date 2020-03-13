@@ -11,6 +11,7 @@ import { CollectionTypes } from '../../explorer/documentListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import ConnectionController from '../../connectionController';
 import { StorageController } from '../../storage';
+import SchemaTreeItem from '../../explorer/schemaTreeItem';
 
 const testDatabaseURI = 'mongodb://localhost:27018';
 
@@ -197,7 +198,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-          'craving_for_pancakes_with_maple_syrup',
+            'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })
@@ -352,6 +353,39 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mockTreeItem.getSchemaChild().isExpanded === false,
           'Expected schema on collection tree item to be reset to not expanded.'
+        );
+        assert(
+          mockExplorerControllerRefresh.called === true,
+          'Expected explorer controller refresh to be called.'
+        );
+      })
+      .then(done, done);
+  });
+
+  test('mdb.refreshSchema command should reset its cache and call to refresh the explorer controller', (done) => {
+    const mockTreeItem = new SchemaTreeItem(
+      'zebraWearwolf',
+      'giraffeVampire',
+      {},
+      false
+    );
+
+    // Set cached.
+    mockTreeItem.childrenCacheIsUpToDate = true;
+
+    const mockExplorerControllerRefresh = sinon.fake.resolves();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._explorerController,
+      'refresh',
+      mockExplorerControllerRefresh
+    );
+
+    vscode.commands
+      .executeCommand('mdb.refreshSchema', mockTreeItem)
+      .then(() => {
+        assert(
+          mockTreeItem.childrenCacheIsUpToDate === false,
+          'Expected schema field cache to be not up to date.'
         );
         assert(
           mockExplorerControllerRefresh.called === true,
