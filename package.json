@@ -34,6 +34,8 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./out/extension.js",
   "scripts": {
+    "setup-mongosh": "rm -rf ../.tmp-mongosh && git clone git@github.com:mongodb-js/mongosh.git ../.tmp-mongosh || echo && cd ../.tmp-mongosh && npm run bootstrap",
+    "preinstall": "npm run setup-mongosh",
     "clean": "rimraf ./out/*",
     "lint": "eslint ./src/**/*.ts",
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
@@ -134,6 +136,14 @@
       {
         "command": "mdb.createPlayground",
         "title": "MongoDB: Create MongoDB Playground"
+      },
+      {
+        "command": "mdb.runAllPlaygroundBlocks",
+        "title": "MongoDB: Run All From Playground",
+        "icon": {
+          "light": "images/light/play.svg",
+          "dark": "images/dark/play.svg"
+        }
       },
       {
         "command": "mdb.addConnection",
@@ -357,6 +367,13 @@
           "command": "mdb.refreshSchema",
           "when": "view == mongoDB && viewItem == schemaTreeItem"
         }
+      ],
+      "editor/title": [
+        {
+          "command": "mdb.runAllPlaygroundBlocks",
+          "group": "navigation",
+          "when": "editorLangId == mongodb"
+        }
       ]
     },
     "capabilities": {
@@ -414,6 +431,7 @@
     }
   },
   "dependencies": {
+    "mongosh": "file:../.tmp-mongosh",
     "bson": "^4.0.3",
     "debug": "^4.1.1",
     "mongodb-connection-model": "^14.6.2",
@@ -435,6 +453,7 @@
     "@typescript-eslint/eslint-plugin": "^2.19.2",
     "@typescript-eslint/parser": "^2.19.2",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "chai-fs": "^2.0.0",
     "chai-json-schema": "^1.5.1",
     "eslint": "^6.8.0",
