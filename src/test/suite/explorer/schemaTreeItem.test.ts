@@ -282,4 +282,23 @@ suite('SchemaTreeItem Test Suite', () => {
       });
     });
   });
+
+  test('it should have an icon with the name schema', () => {
+    const testSchemaTreeItem = new SchemaTreeItem(
+      'favoritePiesIWantToEatRightNow',
+      TEST_DB_NAME,
+      {},
+      false
+    );
+
+    const schemaIconPath: any = testSchemaTreeItem.iconPath;
+    assert(
+      schemaIconPath.light.includes('schema.svg'),
+      'Expected icon path to point to an svg by the name "schema" with a light mode'
+    );
+    assert(
+      schemaIconPath.dark.includes('schema.svg'),
+      'Expected icon path to point to an svg by the name "schema" with a light mode'
+    );
+  });
 });

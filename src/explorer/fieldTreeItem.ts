@@ -4,6 +4,7 @@ const path = require('path');
 
 // Loosely based on bson types. These values match with the
 // types returned by `parseSchema` with `mongodb-schema`.
+// We have types for elements we have special handing for (icons).
 // https://docs.mongodb.com/manual/reference/bson-types/
 export enum FieldType {
   array = 'Array',
@@ -28,12 +29,12 @@ export enum FieldType {
 export type SchemaFieldType = {
   name: string;
   probability: number;
-  bsonType: string | undefined;
-  type: string | undefined;
-  types: SchemaFieldType[];
+  bsonType?: string;
+  type?: string;
+  types?: SchemaFieldType[];
 
   // Note: Fields only exist on nested fields in the 'types' array.
-  fields: SchemaFieldType[] | undefined;
+  fields?: SchemaFieldType[];
 };
 
 export const fieldIsExpandable = (field: SchemaFieldType): boolean => {
@@ -60,12 +61,18 @@ const getCollapsibleStateForField = (
 };
 
 // eslint-disable-next-line complexity
-const getIconFileNameForField = (field: SchemaFieldType): null | string => {
+export const getIconFileNameForField = (
+  field: SchemaFieldType
+): null | string => {
   if (field.probability !== 1) {
-    // Field is has polymorphic data.
+    // The field doesn't exist on every document.
     return 'mixed-type';
   }
   const fieldType = field.type || field.bsonType;
+  if (!fieldType) {
+    // The field has polymorphic data types.
+    return 'mixed-type';
+  }
   if (fieldType === FieldType.array) {
     return 'array';
   }
@@ -84,7 +91,11 @@ const getIconFileNameForField = (field: SchemaFieldType): null | string => {
   if (fieldType === FieldType.null) {
     return 'null';
   }
-  if (fieldType === FieldType.int || fieldType === FieldType.long || fieldType === FieldType.number) {
+  if (
+    fieldType === FieldType.int ||
+    fieldType === FieldType.long ||
+    fieldType === FieldType.number
+  ) {
     return 'number';
   }
   if (fieldType === FieldType.object || fieldType === FieldType.document) {
@@ -145,6 +156,7 @@ export default class FieldTreeItem extends vscode.TreeItem
     return element;
   }
 
+  // eslint-disable-next-line complexity
   getChildren(): Thenable<FieldTreeItem[]> {
     if (!fieldIsExpandable(this.field)) {
       return Promise.resolve([]);
@@ -158,7 +170,7 @@ export default class FieldTreeItem extends vscode.TreeItem
       this.field.type === FieldType.document
     ) {
       let subDocumentFields;
-      if (this.field.type === FieldType.document) {
+      if (this.field.type === FieldType.document && this.field.types) {
         subDocumentFields = this.field.types[0].fields;
       } else if (this.field.bsonType === FieldType.document) {
         subDocumentFields = this.field.fields;
@@ -182,8 +194,9 @@ export default class FieldTreeItem extends vscode.TreeItem
         });
       }
     } else if (
-      this.field.type === FieldType.array ||
-      this.field.bsonType === FieldType.array
+      (this.field.type === FieldType.array ||
+        this.field.bsonType === FieldType.array) &&
+      this.field.types
     ) {
       const arrayElement = this.field.types[0];
 
@@ -218,7 +231,6 @@ export default class FieldTreeItem extends vscode.TreeItem
   getChildrenCache(): { [fieldName: string]: FieldTreeItem } {
     return this._childrenCache;
   }
-
 
   get iconPath():
     | string
