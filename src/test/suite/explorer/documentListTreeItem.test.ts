@@ -202,7 +202,27 @@ suite('DocumentListTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('it should have an icon', () => {
+  test('a view should show a different icon from a collection', () => {
+    const testCollectionViewTreeItem = new DocumentListTreeItem(
+      'mock_collection_name_4',
+      'mock_db_name',
+      CollectionTypes.view,
+      new DataServiceStub(),
+      false,
+      MAX_DOCUMENTS_VISIBLE,
+      null
+    );
+
+    const viewIconPath: any = testCollectionViewTreeItem.iconPath;
+    assert(
+      viewIconPath.light.includes('view-documents.svg'),
+      'Expected icon path to point to an svg by the name "view" with a light mode'
+    );
+    assert(
+      viewIconPath.dark.includes('view-documents.svg'),
+      'Expected icon path to point to an svg by the name "view" a dark mode'
+    );
+
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'mock_collection_name_4',
       'mock_db_name',
@@ -215,12 +235,12 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const collectionIconPath: any = testDocumentListTreeItem.iconPath;
     assert(
-      collectionIconPath.light.includes('documents.svg'),
-      'Expected icon path to point to an svg by the name "documents" with a light mode'
+      collectionIconPath.light.includes('collection-documents.svg'),
+      'Expected icon path to point to an svg by the name "collection" with a light mode'
     );
     assert(
-      collectionIconPath.dark.includes('documents.svg'),
-      'Expected icon path to point to an svg by the name "documents" with a light mode'
+      collectionIconPath.dark.includes('collection-documents.svg'),
+      'Expected icon path to point to an svg by the name "collection" with a light mode'
     );
   });
 });

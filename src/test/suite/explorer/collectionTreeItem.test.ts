@@ -42,6 +42,8 @@ suite('CollectionTreeItem Test Suite', () => {
       false
     );
 
+    testCollectionTreeItem.onDidExpand();
+
     testCollectionTreeItem
       .getChildren()
       .then((children) => {
