@@ -150,13 +150,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       this.connectionInstanceId
     ) {
       return {
-        light: path.join(LIGHT, 'active-connection.svg'),
-        dark: path.join(DARK, 'active-connection.svg')
+        light: path.join(LIGHT, 'connection-active.svg'),
+        dark: path.join(DARK, 'connection-active.svg')
       };
     }
     return {
-      light: path.join(LIGHT, 'inactive-connection.svg'),
-      dark: path.join(DARK, 'inactive-connection.svg')
+      light: path.join(LIGHT, 'connection-inactive.svg'),
+      dark: path.join(DARK, 'connection-inactive.svg')
     };
   }
 

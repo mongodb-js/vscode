@@ -215,11 +215,11 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const viewIconPath: any = testCollectionViewTreeItem.iconPath;
     assert(
-      viewIconPath.light.includes('view.svg'),
+      viewIconPath.light.includes('view-documents.svg'),
       'Expected icon path to point to an svg by the name "view" with a light mode'
     );
     assert(
-      viewIconPath.dark.includes('view.svg'),
+      viewIconPath.dark.includes('view-documents.svg'),
       'Expected icon path to point to an svg by the name "view" a dark mode'
     );
 
@@ -235,11 +235,11 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const collectionIconPath: any = testDocumentListTreeItem.iconPath;
     assert(
-      collectionIconPath.light.includes('collection.svg'),
+      collectionIconPath.light.includes('collection-documents.svg'),
       'Expected icon path to point to an svg by the name "collection" with a light mode'
     );
     assert(
-      collectionIconPath.dark.includes('collection.svg'),
+      collectionIconPath.dark.includes('collection-documents.svg'),
       'Expected icon path to point to an svg by the name "collection" with a light mode'
     );
   });

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import parseSchema = require('mongodb-schema');
+const path = require('path');
 
 import { createLogger } from '../logging';
 import TreeItemParent from './treeItemParentInterface';
@@ -236,5 +237,18 @@ export default class SchemaTreeItem extends vscode.TreeItem
   resetCache(): void {
     this.childrenCache = {};
     this.childrenCacheIsUpToDate = false;
+  }
+
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
+    const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
+
+    return {
+      light: path.join(LIGHT, 'schema.svg'),
+      dark: path.join(DARK, 'schema.svg')
+    };
   }
 }
