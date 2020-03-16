@@ -45,6 +45,7 @@ export default class ConnectionController {
   } = {};
 
   _activeDataService: null | DataServiceType = null;
+  _activeConnectionModel: null | ConnectionModelType = null;
   private _currentConnectionId: null | string = null;
 
   private _connecting = false;
@@ -162,6 +163,8 @@ export default class ConnectionController {
     return this.addNewConnectionAndConnect(connectionString);
   }
 
+  // Resolves true when the connection is successfully added.
+  // The connection can fail to connect but be successfully added.
   public addNewConnectionAndConnect(
     connectionString: string
   ): Promise<boolean> {
@@ -192,6 +195,8 @@ export default class ConnectionController {
           };
           this._savedConnections[newConnection.id] = newConnection;
 
+          this._storageController.storeNewConnection(newConnection);
+
           if (error) {
             vscode.window.showErrorMessage(`Unable to connect: ${error}`);
             return resolve(false);
@@ -206,9 +211,7 @@ export default class ConnectionController {
                 return resolve(false);
               }
 
-              this._storageController
-                .storeNewConnection(newConnection)
-                .then(() => resolve(true), reject);
+              resolve(true);
             },
             reject
           );
@@ -219,11 +222,11 @@ export default class ConnectionController {
 
   public async connect(
     connectionId: string,
-    connectionConfig: ConnectionModelType
+    connectionModel: ConnectionModelType
   ): Promise<boolean> {
     log.info(
       'Connect called to connect to instance:',
-      connectionConfig.getAttributes({
+      connectionModel.getAttributes({
         derived: true
       }).instanceId
     );
@@ -250,7 +253,7 @@ export default class ConnectionController {
     this._statusView.showMessage('Connecting to MongoDB...');
 
     return new Promise<boolean>((resolve) => {
-      const newDataService: DataServiceType = new DataService(connectionConfig);
+      const newDataService: DataServiceType = new DataService(connectionModel);
       newDataService.connect((err: Error | undefined) => {
         this._statusView.hideMessage();
 
@@ -266,6 +269,7 @@ export default class ConnectionController {
         vscode.window.showInformationMessage('MongoDB connection successful.');
 
         this._activeDataService = newDataService;
+        this._activeConnectionModel = connectionModel;
         this._currentConnectionId = connectionId;
         this._connecting = false;
         this._connectingConnectionId = null;
@@ -345,6 +349,7 @@ export default class ConnectionController {
 
         this._activeDataService = null;
         this._currentConnectionId = null;
+        this._activeConnectionModel = null;
 
         this._disconnecting = false;
         this._statusView.hideMessage();
@@ -581,15 +586,23 @@ export default class ConnectionController {
     return this._savedConnections[connectionId].driverUrl;
   }
 
+  public isCurrentlyConnected(): boolean {
+    return this._activeDataService !== null;
+  }
+
   public getActiveDataService(): null | DataServiceType {
     return this._activeDataService;
   }
 
-  // Exposed for testing.
+  public getActiveConnectionModel(): null | ConnectionModelType {
+    return this._activeConnectionModel;
+  }
 
+  // Exposed for testing.
   public clearAllConnections(): void {
     this._savedConnections = {};
     this._activeDataService = null;
+    this._activeConnectionModel = null;
     this._currentConnectionId = null;
     this._connecting = false;
     this._disconnecting = false;
