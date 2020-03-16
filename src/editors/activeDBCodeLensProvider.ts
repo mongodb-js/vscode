@@ -26,7 +26,7 @@ export default class ActiveDBCodeLensProvider implements vscode.CodeLensProvider
   }
 
   public provideCodeLenses(): vscode.CodeLens[] {
-    const activeConnection = this._connectionController.getActiveConnection();
+    const activeConnection = this._connectionController.getActiveDataService();
 
     if (!activeConnection) {
       return [];

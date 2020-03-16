@@ -43,7 +43,7 @@ export default class PlaygroundController {
       return Promise.reject(new Error('No connection controller.'));
     }
 
-    const activeConnection = this._connectionController.getActiveConnection();
+    const activeConnection = this._connectionController.getActiveDataService();
 
     if (!activeConnection) {
       return Promise.reject(
