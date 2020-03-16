@@ -16,7 +16,7 @@ import ConnectionTreeItem from './explorer/connectionTreeItem';
 import SchemaTreeItem from './explorer/schemaTreeItem';
 import DocumentTreeItem from './explorer/documentTreeItem';
 
-import LanguageServerController from './language';
+// import LanguageServerController from './language';
 
 const log = createLogger('commands');
 
@@ -29,6 +29,10 @@ export default class MDBExtensionController implements vscode.Disposable {
   _explorerController: ExplorerController;
   _statusView: StatusView;
   _storageController: StorageController;
+  /**
+   * TODO: Hook up the LanguageServer to the main extension controller.
+   */
+  // _languageServerController: LanguageServerController;
 
   constructor(
     context: vscode.ExtensionContext,
