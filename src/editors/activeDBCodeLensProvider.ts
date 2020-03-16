@@ -12,13 +12,17 @@ export default class ActiveDBCodeLensProvider implements vscode.CodeLensProvider
   public readonly onDidChangeCodeLenses: vscode.Event<void> = this
     ._onDidChangeCodeLenses.event;
 
-  constructor(connectionController?: any, runtime?: any) {
+  constructor(connectionController?: any) {
     this._connectionController = connectionController;
-    this._runtime = runtime;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
+  }
+
+  public setActiveDB(activeDB: string): void {
+    this._activeDB = activeDB;
+    this._onDidChangeCodeLenses.fire();
   }
 
   public provideCodeLenses(): vscode.CodeLens[] {

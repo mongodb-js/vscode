@@ -16,6 +16,7 @@ export default class PlaygroundController {
   _context?: vscode.ExtensionContext;
   _connectionController?: ConnectionController;
   _runtime?: ElectronRuntime;
+  _activeDB?: any;
   _activeDBCodeLensProvider?: ActiveDBCodeLensProvider;
 
   constructor(context: vscode.ExtensionContext, connectionController: ConnectionController) {
@@ -56,7 +57,14 @@ export default class PlaygroundController {
 
     if (!this._runtime) {
       this._runtime = new ElectronRuntime(serviceProvider);
-      this._activeDBCodeLensProvider = new ActiveDBCodeLensProvider(this._connectionController, this._runtime);
+    }
+
+    const res = await this._runtime.evaluate(codeToEvaluate);
+    const value = formatOutput(res);
+    const activeDB = await this._runtime.evaluate('db');
+
+    if (!this._activeDBCodeLensProvider) {
+      this._activeDBCodeLensProvider = new ActiveDBCodeLensProvider(this._connectionController);
       this._context?.subscriptions.push(vscode.languages.registerCodeLensProvider(
         {
           language: 'mongodb'
@@ -65,8 +73,7 @@ export default class PlaygroundController {
       ));
     }
 
-    const res = await this._runtime.evaluate(codeToEvaluate);
-    const value = formatOutput(res);
+    this._activeDBCodeLensProvider.setActiveDB(activeDB.value);
 
     return Promise.resolve(value);
   }
