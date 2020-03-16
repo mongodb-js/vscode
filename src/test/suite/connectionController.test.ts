@@ -47,14 +47,27 @@ suite('Connection Controller Test Suite', () => {
           'Expected a successful connection response.'
         );
         assert(
-          Object.keys(testConnectionController.getConnections()).length === 1,
+          testConnectionController.getSavedConnections().length === 1,
           'Expected there to be 1 connection in the connection list.'
         );
-        const instanceId = testConnectionController.getActiveConnectionInstanceId();
+        const connnectionId =
+          testConnectionController.getActiveConnectionId() || '';
+        const name =
+          testConnectionController._savedConnections[connnectionId].name;
         assert(
-          instanceId === 'localhost:27018',
-          `Expected active connection to be 'localhost:27018' found ${instanceId}`
+          name === 'localhost:27018',
+          `Expected active connection to be 'localhost:27018' found ${name}`
         );
+        const connectionModel = testConnectionController.getActiveConnectionModel();
+        assert(connectionModel !== null);
+        assert(
+          connectionModel?.getAttributes({
+            derived: true
+          }).instanceId === 'localhost:27018'
+        );
+        const dataService = testConnectionController.getActiveDataService();
+        assert(dataService !== null);
+        assert(testConnectionController.isCurrentlyConnected());
       })
       .then(done, done);
   });
@@ -81,18 +94,22 @@ suite('Connection Controller Test Suite', () => {
               'Expected a successful (true) disconnect response.'
             );
             // Disconnecting should keep the connection contract, just disconnected.
-            const connectionsCount = Object.keys(
-              testConnectionController.getConnections()
-            ).length;
+            const connectionsCount = testConnectionController.getSavedConnections()
+              .length;
             assert(
               connectionsCount === 1,
               `Expected the amount of connections to be 1 found ${connectionsCount}.`
             );
-            const instanceId = testConnectionController.getActiveConnectionInstanceId();
+            const connnectionId = testConnectionController.getActiveConnectionId();
             assert(
-              instanceId === null,
-              `Expected the active connection instance id to be null, found ${instanceId}`
+              connnectionId === null,
+              `Expected the active connection id to be null, found ${connnectionId}`
             );
+            const connectionModel = testConnectionController.getActiveConnectionModel();
+            assert(connectionModel === null);
+            const dataService = testConnectionController.getActiveDataService();
+            assert(dataService === null);
+            assert(!testConnectionController.isCurrentlyConnected());
           })
           .then(done, done);
       });
@@ -117,15 +134,23 @@ suite('Connection Controller Test Suite', () => {
           'Expected a successful (true) connection response.'
         );
         assert(
-          testConnectionController.getActiveConnection() !== null,
-          'Expected active connection to not be null.'
+          testConnectionController.getActiveDataService() !== null,
+          'Expected active data service to not be null.'
+        );
+        assert(
+          testConnectionController.getActiveConnectionId() !== null,
+          'Expected active connection id to not be null.'
         );
 
         mockMDBExtension.deactivate();
 
         assert(
-          testConnectionController.getActiveConnection() === null,
-          'Expected active connection to be null.'
+          testConnectionController.getActiveDataService() === null,
+          'Expected active data service to be null.'
+        );
+        assert(
+          testConnectionController.getActiveConnectionId() === null,
+          'Expected active connection id to be null.'
         );
       }, done)
       .then(done, done);
@@ -205,11 +230,11 @@ suite('Connection Controller Test Suite', () => {
               'Expected an false succeeded promise response.'
             );
             assert(
-              testConnectionController.getActiveConnection() === null,
+              testConnectionController.getActiveDataService() === null,
               'Expected to current connection to be null (not connected).'
             );
             assert(
-              testConnectionController.getActiveConnectionInstanceId() === null,
+              testConnectionController.getActiveConnectionId() === null,
               'Expected to current connection instanceId to be null (not connected).'
             );
           }, done)
@@ -396,9 +421,11 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController.loadSavedConnections();
+    const connectionsCount = testConnectionController.getSavedConnections()
+      .length;
     assert(
-      Object.keys(testConnectionController.getConnections()).length === 0,
-      `Expected connections to be 0 found ${Object.keys(testConnectionController.getConnections()).length}`
+      connectionsCount === 0,
+      `Expected connections to be 0 found ${connectionsCount}`
     );
   });
 
@@ -406,17 +433,33 @@ suite('Connection Controller Test Suite', () => {
     const testExtensionContext = new TestExtensionContext();
     // Set existing connections.
     testExtensionContext.globalState.update(
-      StorageVariables.GLOBAL_CONNECTION_STRINGS,
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
       {
-        testGlobalConnectionModel: 'testGlobalConnectionModelDriverUrl',
-        testGlobalConnectionModel2: 'testGlobalConnectionModel2DriverUrl'
+        testGlobalConnectionModel: {
+          id: 'testGlobalConnectionModel',
+          name: 'name1',
+          driverUrl: 'testGlobalConnectionModelDriverUrl'
+        },
+        testGlobalConnectionModel2: {
+          id: 'testGlobalConnectionModel2',
+          name: 'name2',
+          driverUrl: 'testGlobalConnectionModel2DriverUrl'
+        }
       }
     );
     testExtensionContext.workspaceState.update(
-      StorageVariables.WORKSPACE_CONNECTION_STRINGS,
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       {
-        testWorkspaceConnectionModel: 'testWorkspaceConnectionModel1DriverUrl',
-        testWorkspaceConnectionModel2: 'testWorkspaceConnectionModel2DriverUrl'
+        testWorkspaceConnectionModel: {
+          id: 'testWorkspaceConnectionModel',
+          name: 'name3',
+          driverUrl: 'testWorkspaceConnectionModel1DriverUrl'
+        },
+        testWorkspaceConnectionModel2: {
+          id: 'testWorkspaceConnectionModel2',
+          name: 'name4',
+          driverUrl: 'testWorkspaceConnectionModel2DriverUrl'
+        }
       }
     );
     const testStorageController = new StorageController(testExtensionContext);
@@ -428,10 +471,12 @@ suite('Connection Controller Test Suite', () => {
 
     testConnectionController.loadSavedConnections();
 
-    const connections = testConnectionController.getConnections();
+    const connections = testConnectionController._savedConnections;
     assert(
       Object.keys(connections).length === 4,
-      `Expected 4 connection configurations found ${Object.keys(testConnectionController.getConnections()).length}`
+      `Expected 4 connection configurations found ${
+        Object.keys(connections).length
+      }`
     );
     assert(
       Object.keys(connections).includes('testGlobalConnectionModel2') === true,
@@ -439,13 +484,17 @@ suite('Connection Controller Test Suite', () => {
     );
     assert(
       Object.keys(connections).includes('testWorkspaceConnectionModel2') ===
-      true,
+        true,
       "Expected connection configurations to include 'testWorkspaceConnectionModel2'"
     );
     assert(
-      connections.testGlobalConnectionModel2.hostname ===
-      'testglobalconnectionmodel2driverurl',
-      "Expected connection configuration to include hostname 'testglobalconnectionmodel2driverurl'"
+      connections.testGlobalConnectionModel2.name === 'name2',
+      "Expected loaded connection to include name 'testglobalconnectionmodel2driverurl'"
+    );
+    assert(
+      connections.testGlobalConnectionModel2.driverUrl ===
+        'testGlobalConnectionModel2DriverUrl',
+      "Expected loaded connection to include driver url 'testGlobalConnectionModel2DriverUrl'"
     );
   });
 
@@ -469,21 +518,22 @@ suite('Connection Controller Test Suite', () => {
     );
 
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_CONNECTION_STRINGS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS
     );
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected global store connections to have 1 connection found ${Object.keys(globalStoreConnections).length}`
+      `Expected global store connections to have 1 connection found ${
+        Object.keys(globalStoreConnections).length
+      }`
     );
+    const id = Object.keys(globalStoreConnections)[0];
     assert(
-      Object.keys(globalStoreConnections).includes(testDatabaseInstanceId),
-      `Expected global store connections to have the new connection '${testDatabaseInstanceId}' found ${Object.keys(
-        globalStoreConnections
-      )}`
+      globalStoreConnections[id].name === testDatabaseInstanceId,
+      `Expected global stored connection to have correct name '${testDatabaseInstanceId}' found ${globalStoreConnections[id].name}`
     );
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_CONNECTION_STRINGS
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS
     );
     assert(
       workspaceStoreConnections === undefined,
@@ -514,23 +564,24 @@ suite('Connection Controller Test Suite', () => {
     );
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_CONNECTION_STRINGS,
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageScope.WORKSPACE
     );
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
+      `Expected workspace store connections to have 1 connection found ${
+        Object.keys(workspaceStoreConnections).length
+      }`
     );
+    const id = Object.keys(workspaceStoreConnections)[0];
     assert(
-      Object.keys(workspaceStoreConnections).includes(testDatabaseInstanceId),
-      `Expected workspace store connections to have the new connection '${testDatabaseInstanceId}' found ${Object.keys(
-        workspaceStoreConnections
-      )}`
+      workspaceStoreConnections[id].name === testDatabaseInstanceId,
+      `Expected workspace stored connection to have correct name '${testDatabaseInstanceId}' found ${workspaceStoreConnections[id].name}`
     );
 
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_CONNECTION_STRINGS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS
     );
     assert(
       globalStoreConnections === undefined,
@@ -560,43 +611,47 @@ suite('Connection Controller Test Suite', () => {
           .addNewConnectionAndConnect(TEST_DATABASE_URI)
           .then(() => {
             const workspaceStoreConnections = testStorageController.get(
-              StorageVariables.WORKSPACE_CONNECTION_STRINGS,
+              StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
               StorageScope.WORKSPACE
             );
             assert(
               Object.keys(workspaceStoreConnections).length === 1,
-              `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
+              `Expected workspace store connections to have 1 connection found ${
+                Object.keys(workspaceStoreConnections).length
+              }`
             );
 
             testConnectionController.disconnect().then(() => {
               testConnectionController.clearAllConnections();
               assert(
-                testConnectionController.getConnectionInstanceIds().length ===
-                0,
+                testConnectionController.getSavedConnections().length === 0,
                 'Expected no connection configs.'
               );
 
               // Activate (which will load the past connection).
               testConnectionController.loadSavedConnections();
               assert(
-                testConnectionController.getConnectionInstanceIds().length ===
-                1,
-                `Expected 1 connection config, found ${testConnectionController.getConnectionInstanceIds().length}.`
+                testConnectionController.getSavedConnections().length === 1,
+                `Expected 1 connection config, found ${
+                  testConnectionController.getSavedConnections().length
+                }.`
               );
+              const id = testConnectionController.getSavedConnections()[0].id;
 
               testConnectionController
-                .connectWithInstanceId(testDatabaseInstanceId)
+                .connectWithConnectionId(id)
                 .then(() => {
-                  const {
-                    instanceId
-                  } = testConnectionController
-                    .getActiveConnectionConfig()
-                    .getAttributes({
-                      derived: true
-                    });
+                  const activeId = testConnectionController.getActiveConnectionId();
+                  const name =
+                    testConnectionController._savedConnections[activeId || '']
+                      .name;
                   assert(
-                    instanceId === 'localhost:27018',
-                    `Expected the active connection to be 'localhost:27018', found ${instanceId}.`
+                    activeId === id,
+                    `Expected the active connection to be '${id}', found ${activeId}.`
+                  );
+                  assert(
+                    name === 'localhost:27018',
+                    `Expected the active connection name to be 'localhost:27018', found ${name}.`
                   );
                 })
                 .then(done, done);
@@ -617,13 +672,18 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController.loadSavedConnections();
 
     const expectedDriverUri =
-      'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.0.1&ssl=false';
+      'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
     testConnectionController
       .addNewConnectionAndConnect(TEST_DATABASE_URI)
       .then(() => {
+        const activeConnectionId = testConnectionController.getActiveConnectionId();
+        assert(
+          activeConnectionId !== null,
+          'Expected active connection to not be null'
+        );
         const testDriverUri = testConnectionController.getConnectionStringFromConnectionId(
-          'localhost:27018'
+          activeConnectionId || ''
         );
 
         assert(
@@ -652,31 +712,35 @@ suite('Connection Controller Test Suite', () => {
         DefaultSavingLocations['Session Only']
       )
       .then(() => {
-        testConnectionController
-          .addNewConnectionAndConnect(TEST_DATABASE_URI)
-          .then(() => {
-            const objectString = JSON.stringify(undefined);
-            const globalStoreConnections = testStorageController.get(
-              StorageVariables.GLOBAL_CONNECTION_STRINGS
-            );
-            assert(
-              JSON.stringify(globalStoreConnections) === objectString,
-              `Expected global store connections to be an empty object found ${globalStoreConnections}`
-            );
+        // Updating a setting sometimes takes a bit on vscode, and it doesnt
+        // return a usable promise. Timeout to ensure it sets.
+        setTimeout(() => {
+          testConnectionController
+            .addNewConnectionAndConnect(TEST_DATABASE_URI)
+            .then(() => {
+              const objectString = JSON.stringify(undefined);
+              const globalStoreConnections = testStorageController.get(
+                StorageVariables.GLOBAL_SAVED_CONNECTIONS
+              );
+              assert(
+                JSON.stringify(globalStoreConnections) === objectString,
+                `Expected global store connections to be an empty object found ${globalStoreConnections}`
+              );
 
-            const workspaceStoreConnections = testStorageController.get(
-              StorageVariables.WORKSPACE_CONNECTION_STRINGS,
-              StorageScope.WORKSPACE
-            );
-            assert(
-              JSON.stringify(workspaceStoreConnections) === objectString,
-              `Expected workspace store connections to be an empty object found ${JSON.stringify(
-                workspaceStoreConnections
-              )}`
-            );
-          })
-          .then(done)
-          .catch(done);
+              const workspaceStoreConnections = testStorageController.get(
+                StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+                StorageScope.WORKSPACE
+              );
+              assert(
+                JSON.stringify(workspaceStoreConnections) === objectString,
+                `Expected workspace store connections to be an empty object found ${JSON.stringify(
+                  workspaceStoreConnections
+                )}`
+              );
+            })
+            .then(done)
+            .catch(done);
+        }, 50);
       }, done);
   });
 
@@ -698,33 +762,41 @@ suite('Connection Controller Test Suite', () => {
         DefaultSavingLocations.Workspace
       )
       .then(() => {
-        testConnectionController
-          .addNewConnectionAndConnect(TEST_DATABASE_URI)
-          .then(() => {
-            const workspaceStoreConnections = testStorageController.get(
-              StorageVariables.WORKSPACE_CONNECTION_STRINGS,
-              StorageScope.WORKSPACE
-            );
+        // Updating a setting sometimes takes a bit on vscode, and it doesnt
+        // return a usable promise. Timeout to ensure it sets.
+        setTimeout(() => {
+          testConnectionController
+            .addNewConnectionAndConnect(TEST_DATABASE_URI)
+            .then(() => {
+              const workspaceStoreConnections = testStorageController.get(
+                StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+                StorageScope.WORKSPACE
+              );
 
-            assert(
-              Object.keys(workspaceStoreConnections).length === 1,
-              `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length}`
-            );
+              assert(
+                Object.keys(workspaceStoreConnections).length === 1,
+                `Expected workspace store connections to have 1 connection found ${
+                  Object.keys(workspaceStoreConnections).length
+                }`
+              );
 
-            testConnectionController.removeConnectionConfig(
-              testDatabaseInstanceId
-            );
+              const connectionId =
+                testConnectionController.getActiveConnectionId() || 'a';
+              testConnectionController.removeSavedConnection(connectionId);
 
-            const postWorkspaceStoreConnections = testStorageController.get(
-              StorageVariables.WORKSPACE_CONNECTION_STRINGS,
-              StorageScope.WORKSPACE
-            );
-            assert(
-              Object.keys(postWorkspaceStoreConnections).length === 0,
-              `Expected workspace store connections to have 0 connections found ${Object.keys(postWorkspaceStoreConnections).length}`
-            );
-          })
-          .then(done, done);
+              const postWorkspaceStoreConnections = testStorageController.get(
+                StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+                StorageScope.WORKSPACE
+              );
+              assert(
+                Object.keys(postWorkspaceStoreConnections).length === 0,
+                `Expected workspace store connections to have 0 connections found ${
+                  Object.keys(postWorkspaceStoreConnections).length
+                }`
+              );
+            })
+            .then(done, done);
+        }, 50);
       });
   });
 
@@ -747,22 +819,115 @@ suite('Connection Controller Test Suite', () => {
       TEST_DATABASE_URI
     );
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_CONNECTION_STRINGS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS
     );
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${Object.keys(globalStoreConnections).length}`
+      `Expected workspace store connections to have 1 connection found ${
+        Object.keys(globalStoreConnections).length
+      }`
     );
 
-    testConnectionController.removeConnectionConfig(testDatabaseInstanceId);
+    const connectionId =
+      testConnectionController.getActiveConnectionId() || 'a';
+    testConnectionController.removeSavedConnection(connectionId);
 
     const postGlobalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_CONNECTION_STRINGS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS
     );
     assert(
       Object.keys(postGlobalStoreConnections).length === 0,
-      `Expected global store connections to have 0 connections found ${Object.keys(postGlobalStoreConnections).length}`
+      `Expected global store connections to have 0 connections found ${
+        Object.keys(postGlobalStoreConnections).length
+      }`
     );
+  });
+
+  test('A saved connection can be renamed and loaded', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+
+    const testConnectionController = new ConnectionController(
+      new StatusView(mockExtensionContext),
+      testStorageController
+    );
+
+    testConnectionController.loadSavedConnections();
+
+    vscode.workspace
+      .getConfiguration('mdb.connectionSaving')
+      .update(
+        'defaultConnectionSavingLocation',
+        DefaultSavingLocations.Workspace
+      )
+      .then(() => {
+        // Updating a setting sometimes takes a bit on vscode, and it doesnt
+        // return a usable promise. Timeout to ensure it sets.
+        setTimeout(() => {
+          testConnectionController
+            .addNewConnectionAndConnect(TEST_DATABASE_URI)
+            .then(() => {
+              const workspaceStoreConnections = testStorageController.get(
+                StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+                StorageScope.WORKSPACE
+              );
+              assert(
+                Object.keys(workspaceStoreConnections).length === 1,
+                `Expected workspace store connections to have 1 connection found ${
+                  Object.keys(workspaceStoreConnections).length
+                }`
+              );
+              const connectionId =
+                testConnectionController.getActiveConnectionId() || 'zz';
+
+              const mockInputBoxResolves = sinon.stub();
+              mockInputBoxResolves.onCall(0).resolves('new connection name');
+              sinon.replace(
+                vscode.window,
+                'showInputBox',
+                mockInputBoxResolves
+              );
+
+              testConnectionController
+                .renameConnection(connectionId)
+                .then((renameSuccess) => {
+                  assert(renameSuccess);
+
+                  testConnectionController
+                    .disconnect()
+                    .then(() => {
+                      testConnectionController.clearAllConnections();
+                      assert(
+                        testConnectionController.getSavedConnections()
+                          .length === 0,
+                        'Expected no saved connection.'
+                      );
+
+                      // Activate (which will load the past connection).
+                      testConnectionController.loadSavedConnections();
+                      assert(
+                        testConnectionController.getSavedConnections()
+                          .length === 1,
+                        `Expected 1 connection config, found ${
+                          testConnectionController.getSavedConnections().length
+                        }.`
+                      );
+                      const id = testConnectionController.getSavedConnections()[0]
+                        .id;
+
+                      const name =
+                        testConnectionController._savedConnections[id || 'x']
+                          .name;
+                      assert(
+                        name === 'new connection name',
+                        `Expected the active connection name to be 'localhost:27018', found ${name}.`
+                      );
+                    })
+                    .then(done, done);
+                }, done);
+            }, done);
+        }, 50);
+      }, done);
   });
 });

@@ -34,7 +34,7 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
     return new Promise((resolve, reject) => {
       const uriParams = new URLSearchParams(uri.query);
       const namespace = String(uriParams.get(NAMESPACE_URI_IDENTIFIER));
-      const connectionInstanceId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
+      const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
       const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
 
       if (!operationId) {
@@ -49,30 +49,40 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
 
       // Ensure we're still connected to the correct connection.
       if (
-        connectionInstanceId !==
-        this._connectionController.getActiveConnectionInstanceId()
+        connectionId !==
+        this._connectionController.getActiveConnectionId()
       ) {
         operation.isCurrentlyFetchingMoreDocuments = false;
         vscode.window.showErrorMessage(
-          `Unable to list documents: no longer connected to ${connectionInstanceId}`
+          `Unable to list documents: no longer connected to ${connectionId}`
         );
         return reject(
           new Error(
-            `Unable to list documents: no longer connected to ${connectionInstanceId}`
+            `Unable to list documents: no longer connected to ${connectionId}`
           )
         );
       }
 
       this._statusView.showMessage('Fetching documents...');
 
-      const dataservice = this._connectionController.getActiveConnection();
+      const dataservice = this._connectionController.getActiveDataService();
+      if (dataservice === null) {
+        vscode.window.showErrorMessage(
+          `Unable to list documents: no longer connected to ${connectionId}`
+        );
+        return reject(
+          new Error(
+            `Unable to list documents: no longer connected to ${connectionId}`
+          )
+        );
+      }
       dataservice.find(
         namespace,
         {}, // No filter.
         {
           limit: documentLimit
         },
-        (err: Error, documents: []) => {
+        (err: Error | undefined, documents: object[]) => {
           operation.isCurrentlyFetchingMoreDocuments = false;
           this._statusView.hideMessage();
 

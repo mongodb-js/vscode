@@ -1,10 +1,9 @@
-
-export type ConnectionAttributes = {
+type ConnectionAttributes = {
   driverUrl: string;
   instanceId: string;
 };
 
-export type ConnectionConfigType = {
+export type ConnectionModelType = {
   appname: string;
 
   getAttributes(options: object): ConnectionAttributes;

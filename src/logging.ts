@@ -14,23 +14,38 @@ class Logger implements ILogger {
   }
 
   public trace(message?: any, ...optionalParams: any[]): void {
-    this.append('TRACE', `${message} ${JSON.stringify(optionalParams)}`);
+    this.append(
+      'TRACE',
+      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+    );
   }
 
   public debug(message?: any, ...optionalParams: any[]): void {
-    this.append('DEBUG', `${message} ${JSON.stringify(optionalParams)}`);
+    this.append(
+      'DEBUG',
+      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+    );
   }
 
   public info(message?: any, ...optionalParams: any[]): void {
-    this.append('INFO ', `${message} ${JSON.stringify(optionalParams)}`);
+    this.append(
+      'INFO ',
+      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+    );
   }
 
   public warn(message?: any, ...optionalParams: any[]): void {
-    this.append('WARN ', `${message} ${JSON.stringify(optionalParams)}`);
+    this.append(
+      'WARN ',
+      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+    );
   }
 
   public error(message?: any, ...optionalParams: any[]): void {
-    this.append('ERROR', `${message} ${JSON.stringify(optionalParams)}`);
+    this.append(
+      'ERROR',
+      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+    );
   }
 
   private append(type: string, message: string) {

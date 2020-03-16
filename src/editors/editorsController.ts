@@ -78,7 +78,7 @@ export default class EditorsController {
     const uri = EditorsController.getViewCollectionDocumentsUri(
       operationId,
       namespace,
-      this._connectionController.getActiveConnectionInstanceId()
+      this._connectionController.getActiveConnectionId()
     );
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(uri).then((doc) => {
@@ -102,7 +102,7 @@ export default class EditorsController {
 
     // Ensure we're still connected to the correct connection.
     if (!this._connectionController
-      || connectionId !== this._connectionController.getActiveConnectionInstanceId()
+      || connectionId !== this._connectionController.getActiveConnectionId()
     ) {
       vscode.window.showErrorMessage(`Unable to view more documents: no longer connected to ${connectionId}`);
       return Promise.resolve(false);

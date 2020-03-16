@@ -156,6 +156,10 @@
         "title": "Copy Connection String"
       },
       {
+        "command": "mdb.renameConnection",
+        "title": "Rename Connection..."
+      },
+      {
         "command": "mdb.treeItemRemoveConnection",
         "title": "Remove Connection..."
       },
@@ -289,6 +293,14 @@
           "command": "mdb.treeItemRemoveConnection",
           "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
           "group": "3@1"
+        },
+        {
+          "command": "mdb.renameConnection",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
+        },
+        {
+          "command": "mdb.renameConnection",
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
         },
         {
           "command": "mdb.addCollection",

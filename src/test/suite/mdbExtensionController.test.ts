@@ -12,6 +12,7 @@ import { mdbTestExtension } from './stubbableMdbExtension';
 import ConnectionController from '../../connectionController';
 import { StorageController } from '../../storage';
 import SchemaTreeItem from '../../explorer/schemaTreeItem';
+import { StorageScope } from '../../storage/storageController';
 
 const testDatabaseURI = 'mongodb://localhost:27018';
 
@@ -439,7 +440,7 @@ suite('MDBExtensionController Test Suite', () => {
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
     let returnedNamespaceArg = '';
-    const mockGetActiveConnection = sinon.fake.returns({
+    const mockGetActiveDataService = sinon.fake.returns({
       createCollection: (namespace, options, callback) => {
         returnedNamespaceArg = namespace;
         callback(null);
@@ -447,13 +448,13 @@ suite('MDBExtensionController Test Suite', () => {
     });
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnection',
-      mockGetActiveConnection
+      'getActiveDataService',
+      mockGetActiveDataService
     );
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionInstanceId',
+      'getActiveConnectionId',
       mockActiveConnectionId
     );
 
@@ -500,7 +501,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionInstanceId',
+      'getActiveConnectionId',
       mockActiveConnectionId
     );
 
@@ -547,7 +548,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionInstanceId',
+      'getActiveConnectionId',
       mockActiveConnectionId
     );
 
@@ -591,7 +592,7 @@ suite('MDBExtensionController Test Suite', () => {
     mockInputBoxResolves.onCall(0).resolves('theDbName');
     mockInputBoxResolves.onCall(1).resolves('theCollectionName');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
-    const mockGetActiveConnection = sinon.fake.returns({
+    const mockGetActiveDataService = sinon.fake.returns({
       createCollection: (namespace, options, callback) => {
         assert(stubShowMessage.called);
         assert(!stubHideMessage.called);
@@ -606,13 +607,13 @@ suite('MDBExtensionController Test Suite', () => {
     });
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnection',
-      mockGetActiveConnection
+      'getActiveDataService',
+      mockGetActiveDataService
     );
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionInstanceId',
+      'getActiveConnectionId',
       mockActiveConnectionId
     );
 
@@ -776,7 +777,7 @@ suite('MDBExtensionController Test Suite', () => {
         const testCollectionTreeItem = new CollectionTreeItem(
           { name: 'doesntExistColName', type: CollectionTypes.collection },
           'doesntExistDBName',
-          testConnectionController.getActiveConnection(),
+          testConnectionController.getActiveDataService(),
           false
         );
 
@@ -892,7 +893,7 @@ suite('MDBExtensionController Test Suite', () => {
       .then(() => {
         const testDatabaseTreeItem = new DatabaseTreeItem(
           'narnia____a',
-          testConnectionController.getActiveConnection(),
+          testConnectionController.getActiveDataService(),
           false,
           {}
         );
@@ -968,5 +969,84 @@ suite('MDBExtensionController Test Suite', () => {
         );
       })
       .then(done, done);
+  });
+
+  test('mdb.renameConnection fails when the name input is empty', (done) => {
+    mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon = {
+      id: 'blueBerryPancakesAndTheSmellOfBacon',
+      name: 'NAAAME',
+      driverUrl: '',
+      storageLocation: StorageScope.NONE
+    };
+
+    const mockTreeItem = new ConnectionTreeItem(
+      'blueBerryPancakesAndTheSmellOfBacon',
+      vscode.TreeItemCollapsibleState.None,
+      false,
+      mdbTestExtension.testExtensionController._connectionController,
+      {}
+    );
+
+    const mockInputBoxResolves = sinon.stub();
+    mockInputBoxResolves.onCall(0).resolves(/* Return undefined. */);
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+
+    vscode.commands
+      .executeCommand('mdb.renameConnection', mockTreeItem)
+      .then((successfullyRenamed) => {
+        assert(
+          successfullyRenamed === false,
+          'Expected the rename connection command handler to return a false succeeded response'
+        );
+        assert(
+          mdbTestExtension.testExtensionController._connectionController
+            ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
+            'NAAAME',
+          'Expected connection not to be ranamed.'
+        );
+        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+      })
+      .then(done, () => {
+        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+        done();
+      });
+  });
+
+  test('mdb.renameConnection updates the name of a connection', (done) => {
+    mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon = {
+      id: 'blueBerryPancakesAndTheSmellOfBacon',
+      name: 'NAAAME',
+      driverUrl: '',
+      storageLocation: StorageScope.NONE
+    };
+
+    const mockTreeItem = new ConnectionTreeItem(
+      'blueBerryPancakesAndTheSmellOfBacon',
+      vscode.TreeItemCollapsibleState.None,
+      false,
+      mdbTestExtension.testExtensionController._connectionController,
+      {}
+    );
+
+    const mockInputBoxResolves = sinon.stub();
+    mockInputBoxResolves.onCall(0).resolves('orange juice');
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+
+    vscode.commands
+      .executeCommand('mdb.renameConnection', mockTreeItem)
+      .then((successfullyRenamed) => {
+        assert(successfullyRenamed);
+        assert(
+          mdbTestExtension.testExtensionController._connectionController
+            ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
+            'orange juice',
+          'Expected connection to be ranamed.'
+        );
+        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+      })
+      .then(done, () => {
+        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+        done();
+      });
   });
 });

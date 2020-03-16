@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 
-import { DefaultSavingLocations } from '../../../storage/storageController';
+import { DefaultSavingLocations, StorageScope } from '../../../storage/storageController';
 
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -62,9 +62,17 @@ suite('Explorer Controller Test Suite', () => {
 
     const treeController = testExplorerController.getTreeController();
 
-    const mockConnectionInstanceId = 'testInstanceId';
+    const mockConnectionId = 'testConnectionId';
 
-    testConnectionController.setConnnectingInstanceId(mockConnectionInstanceId);
+    testConnectionController._savedConnections = {
+      testConnectionId: {
+        id: 'testConnectionId',
+        name: 'testConnectionName',
+        driverUrl: 'url',
+        storageLocation: StorageScope.NONE
+      }
+    };
+    testConnectionController.setConnnectingConnectionId(mockConnectionId);
     testConnectionController.setConnnecting(true);
 
     treeController.getChildren().then((treeControllerChildren) => {
@@ -76,8 +84,8 @@ suite('Explorer Controller Test Suite', () => {
             `Expected there to be 1 connection tree item, found ${connectionsItems.length}`
           );
           assert(
-            connectionsItems[0].label === 'testInstanceId',
-            'There should be a connection tree item with the label "testInstanceId"'
+            connectionsItems[0].label === 'testConnectionName',
+            'There should be a connection tree item with the label "testConnectionName"'
           );
           testExplorerController.deactivate();
         })
@@ -101,13 +109,13 @@ suite('Explorer Controller Test Suite', () => {
           'Expected a successful connection response.'
         );
         assert(
-          Object.keys(testConnectionController.getConnections()).length === 1,
+          Object.keys(testConnectionController._savedConnections).length === 1,
           'Expected there to be 1 connection in the connection list.'
         );
-        const instanceId = testConnectionController.getActiveConnectionInstanceId();
+        const activeId = testConnectionController.getActiveConnectionId();
         assert(
-          instanceId === 'localhost:27018',
-          `Expected active connection to be 'localhost:27018' found ${instanceId}`
+          activeId === Object.keys(testConnectionController._savedConnections)[0],
+          `Expected active connection to be '${Object.keys(testConnectionController._savedConnections)[0]}' found ${activeId}`
         );
 
         treeController.getChildren().then((treeControllerChildren) => {
@@ -154,13 +162,14 @@ suite('Explorer Controller Test Suite', () => {
           'Expected a successful connection response.'
         );
         assert(
-          Object.keys(testConnectionController.getConnections()).length === 1,
+          Object.keys(testConnectionController._savedConnections).length === 1,
           'Expected there to be 1 connection in the connection list.'
         );
-        const instanceId = testConnectionController.getActiveConnectionInstanceId();
+        const connectionId = testConnectionController.getActiveConnectionId() || '';
+        const connectionName = testConnectionController._savedConnections[connectionId].name;
         assert(
-          instanceId === 'localhost:27018',
-          `Expected active connection to be 'localhost:27018' found ${instanceId}`
+          connectionName === 'localhost:27018',
+          `Expected active connection name to be 'localhost:27018' found ${connectionName}`
         );
 
         // This will timeout in 500ms, which is enough time for us to just check.

@@ -21,46 +21,47 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   _childrenCacheIsUpToDate = false;
 
   private _connectionController: ConnectionController;
-  connectionInstanceId: string;
+  connectionId: string;
 
   isExpanded: boolean;
 
   constructor(
-    connectionInstanceId: string,
+    connectionId: string,
     collapsibleState: vscode.TreeItemCollapsibleState,
     isExpanded: boolean,
     connectionController: ConnectionController,
     existingChildrenCache: { [key: string]: DatabaseTreeItem }
   ) {
-    super(connectionInstanceId, collapsibleState);
+    super(
+      connectionController.getSavedConnectionName(connectionId),
+      collapsibleState
+    );
 
     if (
-      connectionController.getActiveConnectionInstanceId() ===
-      connectionInstanceId &&
+      connectionController.getActiveConnectionId() === connectionId &&
       !connectionController.isDisconnecting() &&
       !connectionController.isConnecting()
     ) {
       this.contextValue = ConnectionItemContextValues.connected;
     }
 
-    this.connectionInstanceId = connectionInstanceId;
+    this.connectionId = connectionId;
     this._connectionController = connectionController;
     this.isExpanded = isExpanded;
     this._childrenCache = existingChildrenCache;
 
     // Create a unique id to ensure the tree updates the expanded property.
     // (Without an id it treats this tree item like a previous tree item with the same label).
-    this.id = `${Date.now()}-${connectionInstanceId}`;
+    this.id = `${Date.now()}-${connectionId}`;
   }
 
   get tooltip(): string {
-    return this.connectionInstanceId;
+    return this._connectionController.getSavedConnectionName(this.connectionId);
   }
 
   get description(): string {
     if (
-      this._connectionController.getActiveConnectionInstanceId() ===
-      this.connectionInstanceId
+      this._connectionController.getActiveConnectionId() === this.connectionId
     ) {
       if (this._connectionController.isDisconnecting()) {
         return 'disconnecting...';
@@ -71,8 +72,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
     if (
       this._connectionController.isConnecting() &&
-      this._connectionController.getConnectingInstanceId() ===
-      this.connectionInstanceId
+      this._connectionController.getConnectingConnectionId() ===
+      this.connectionId
     ) {
       return 'connecting...';
     }
@@ -98,7 +99,10 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     }
 
     return new Promise((resolve, reject) => {
-      const dataService = this._connectionController.getActiveConnection();
+      const dataService = this._connectionController.getActiveDataService();
+      if (dataService === null) {
+        return reject(new Error('Not currently connected.'));
+      }
       dataService.listDatabases((err: any, databases: string[]) => {
         if (err) {
           return reject(new Error(`Unable to list databases: ${err.message}`));
@@ -146,8 +150,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
 
     if (
-      this._connectionController.getActiveConnectionInstanceId() ===
-      this.connectionInstanceId
+      this._connectionController.getActiveConnectionId() === this.connectionId
     ) {
       return {
         light: path.join(LIGHT, 'connection-active.svg'),
@@ -170,8 +173,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     this.isExpanded = true;
 
     if (
-      this._connectionController.getActiveConnectionInstanceId() ===
-      this.connectionInstanceId
+      this._connectionController.getActiveConnectionId() === this.connectionId
     ) {
       return Promise.resolve(true);
     }
@@ -179,13 +181,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     // If we aren't the active connection, we reconnect.
     return new Promise((resolve) => {
       this._connectionController
-        .connectWithInstanceId(this.connectionInstanceId)
+        .connectWithConnectionId(this.connectionId)
         .then(
           () => resolve(true),
           (err) => {
             this.isExpanded = false;
             vscode.window.showErrorMessage(err);
-            resolve(false);
+            return resolve(false);
           }
         );
     });
@@ -209,7 +211,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         value: '',
         placeHolder: 'e.g. myNewDB',
         prompt: 'Enter the new database name.',
-        validateInput: (inputDatabaseName: any) => {
+        validateInput: (inputDatabaseName: string) => {
           if (
             inputDatabaseName &&
             inputDatabaseName.length > 0 &&
@@ -238,7 +240,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         placeHolder: 'e.g. myNewCollection',
         prompt:
           'Enter the new collection name. (A database must have a collection to be created.)',
-        validateInput: (inputCollectionName: any) => {
+        validateInput: (inputCollectionName: string) => {
           if (!inputCollectionName) {
             return null;
           }
@@ -270,7 +272,14 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     statusView.showMessage('Creating new database and collection...');
 
     return new Promise((resolve) => {
-      this._connectionController.getActiveConnection().createCollection(
+      const dataService = this._connectionController.getActiveDataService();
+      if (dataService === null) {
+        vscode.window.showErrorMessage(
+          'Unable to create database, not currently connected.'
+        );
+        return Promise.resolve(false);
+      }
+      dataService.createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
         (err) => {

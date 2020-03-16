@@ -121,8 +121,17 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
     | DatabaseTreeItem[]
     | CollectionTreeItem[]
   > {
+    // When no element is present we are at the root.
     if (!element) {
-      // When element is present we are at the root.
+      // We rebuild the connections tree item when we need to reflect
+      // a new expanded state.
+      if (this._mdbConnectionsTreeItem.needsToRefreshExpansionState) {
+        this._mdbConnectionsTreeItem = new MDBConnectionsTreeItem(
+          this._connectionController,
+          this._mdbConnectionsTreeItem.getConnectionItemsCache()
+        );
+      }
+
       return Promise.resolve([this._mdbConnectionsTreeItem]);
     }
 
