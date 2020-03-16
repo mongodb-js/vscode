@@ -14,7 +14,11 @@ export let platformEol: string;
 export async function activate(docUri: vscode.Uri) {
   // The extensionId is `publisher.name` from package.json
   const ext = vscode.extensions.getExtension('mongodb.mongodb-vscode');
+  if (!ext) {
+    throw new Error('Failed to get extension mongodb.mongodb-vscode');
+  }
   await ext.activate();
+
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
