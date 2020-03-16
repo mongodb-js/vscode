@@ -3,9 +3,11 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { getDocUri, activate } from './helper';
 
-describe('Should get diagnostics', () => {
-  const docUri = getDocUri('diagnostics.txt');
-
+describe.skip('Should get diagnostics', () => {
+  let docUri;
+  before(() => {
+    docUri = getDocUri('diagnostics.mongodb');
+  });
   it.skip('Diagnoses uppercase texts', async () => {
     await testDiagnostics(docUri, [
       {

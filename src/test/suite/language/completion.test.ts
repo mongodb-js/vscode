@@ -3,10 +3,13 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { getDocUri, activate } from './helper';
 
-describe('Should do completion', () => {
-  const docUri = getDocUri('test.mongodb');
+describe.skip('Should do completion', () => {
+  let docUri;
+  before(() => {
+    docUri = getDocUri('test.mongodb');
+  });
 
-  it.skip('Completes JS/TS in mongodb file', async () => {
+  it('Completes JS/TS in mongodb file', async () => {
     await testCompletion(docUri, new vscode.Position(0, 0), {
       items: [
         { label: 'JavaScript', kind: vscode.CompletionItemKind.Text },
