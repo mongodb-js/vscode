@@ -48,7 +48,7 @@ export default class ActiveDBCodeLensProvider implements vscode.CodeLensProvider
     codeLens.command = {
       title: `Active db is ${this._activeDB}`,
       tooltip: "Tooltip provided by Active DB CodeLens Provider",
-      command: "mdb.copyConnectionString",
+      command: "mdb.runDBHelpInPlayground",
       arguments: ["Argument 1", { connectionInstanceId: '111111' }]
     };
 

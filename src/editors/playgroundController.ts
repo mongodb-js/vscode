@@ -6,6 +6,7 @@ import { CompassServiceProvider } from 'mongosh/packages/service-provider-server
 import ActiveDBCodeLensProvider from './activeDBCodeLensProvider';
 import formatOutput from '../utils/formatOutput';
 import { createLogger } from '../logging';
+import { OutputChannel } from 'vscode';
 
 const log = createLogger('editors controller');
 
@@ -18,10 +19,14 @@ export default class PlaygroundController {
   _runtime?: ElectronRuntime;
   _activeDB?: any;
   _activeDBCodeLensProvider?: ActiveDBCodeLensProvider;
+  _outputChannel: OutputChannel;
 
   constructor(context: vscode.ExtensionContext, connectionController: ConnectionController) {
     this._context = context;
     this._connectionController = connectionController;
+    this._outputChannel = vscode.window.createOutputChannel(
+      'Playground output'
+    );
   }
 
   createPlayground(): Promise<boolean> {
@@ -35,6 +40,25 @@ export default class PlaygroundController {
           vscode.window.showTextDocument(document);
           resolve(true);
         }, reject);
+    });
+  }
+
+  runDBHelpInPlayground(): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+      let result;
+
+      try {
+        result = await this.evaluate('db.help()');
+      } catch (error) {
+        vscode.window.showErrorMessage(`Unable to run playground: ${error.message}`);
+        return resolve(false);
+      }
+
+      this._outputChannel.clear();
+      this._outputChannel.appendLine(result);
+      this._outputChannel.show(true);
+
+      resolve(true);
     });
   }
 
@@ -82,9 +106,6 @@ export default class PlaygroundController {
     return new Promise(async (resolve, reject) => {
       const activeEditor = vscode.window.activeTextEditor;
       const codeToEvaluate = activeEditor?.document.getText() || '';
-      const outputChannel = vscode.window.createOutputChannel(
-        'Playground output'
-      );
       let result;
 
       try {
@@ -94,8 +115,9 @@ export default class PlaygroundController {
         return resolve(false);
       }
 
-      outputChannel.appendLine(result);
-      outputChannel.show(true);
+      this._outputChannel.clear();
+      this._outputChannel.appendLine(result);
+      this._outputChannel.show(true);
 
       resolve(true);
     });

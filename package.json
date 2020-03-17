@@ -138,6 +138,10 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
+        "command": "mdb.runDBHelpInPlayground",
+        "title": "MongoDB: Run db.help() in Playground"
+      },
+      {
         "command": "mdb.runAllPlaygroundBlocks",
         "title": "MongoDB: Run All From Playground",
         "icon": {
