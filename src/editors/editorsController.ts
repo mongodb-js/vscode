@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { EJSON } from 'bson';
 
 import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
@@ -69,14 +70,18 @@ export default class EditorsController {
     log.info('activated.');
   }
 
-  onViewDocument(namespace: string, documentId: string): Promise<boolean> {
+  onViewDocument(namespace: string, documentId: any): Promise<boolean> {
     log.info('view document in editor', namespace);
 
     const connectionId = this._connectionController.getActiveConnectionId();
     const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
     // Encode the _id field incase the document id is a custom string with
     // special characters.
-    const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${encodeURIComponent(documentId)}`;
+    const documentIdString = EJSON.stringify({
+      value: documentId
+    });
+
+    const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${encodeURIComponent(documentIdString)}`;
     const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
 
     // We attach the current time to ensure a new editor window is opened on
@@ -85,7 +90,7 @@ export default class EditorsController {
 
     // The part of the URI after the scheme and before the query is the file name.
     const textDocumentUri = vscode.Uri.parse(
-      `${VIEW_DOCUMENT_SCHEME}:Document: ${documentId} - ${Date.now()}.json${uriQuery}`
+      `${VIEW_DOCUMENT_SCHEME}:Document: ${JSON.stringify(documentId)} - ${Date.now()}.json${uriQuery}`
     );
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(textDocumentUri).then((doc) => {

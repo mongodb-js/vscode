@@ -1,6 +1,6 @@
 import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
-import { ObjectId } from 'mongodb';
+import { EJSON } from 'bson';
 
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
@@ -30,7 +30,8 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
       const uriParams = new URLSearchParams(uri.query);
       const namespace = String(uriParams.get(NAMESPACE_URI_IDENTIFIER));
       const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
-      const documentId = decodeURIComponent(uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '');
+      const documentIdEJSONString = decodeURIComponent(uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '');
+      const documentId = EJSON.parse(documentIdEJSONString).value;
 
       // Ensure we're still connected to the correct connection.
       if (
@@ -60,10 +61,11 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
           )
         );
       }
+
       dataservice.find(
         namespace,
         {
-          _id: ObjectId(documentId)
+          _id: documentId
         },
         {
           limit: 1

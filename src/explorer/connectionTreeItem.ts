@@ -49,10 +49,6 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     this._connectionController = connectionController;
     this.isExpanded = isExpanded;
     this._childrenCache = existingChildrenCache;
-
-    // Create a unique id to ensure the tree updates the expanded property.
-    // (Without an id it treats this tree item like a previous tree item with the same label).
-    this.id = `${Date.now()}-${connectionId}`;
   }
 
   get tooltip(): string {

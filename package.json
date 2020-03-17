@@ -416,7 +416,6 @@
   "dependencies": {
     "bson": "^4.0.3",
     "debug": "^4.1.1",
-    "mongodb": "^3.5.5",
     "mongodb-connection-model": "^14.6.2",
     "mongodb-data-service": "^16.5.6",
     "mongodb-ns": "^2.2.0",

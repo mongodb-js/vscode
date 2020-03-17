@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { EJSON } from 'bson';
 
 export const DOCUMENT_ITEM = 'documentTreeItem';
 
