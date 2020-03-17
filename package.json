@@ -265,19 +265,24 @@
           "group": "1@2"
         },
         {
-          "command": "mdb.copyConnectionString",
+          "command": "mdb.renameConnection",
           "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
           "group": "2@1"
         },
         {
-          "command": "mdb.disconnectFromConnectionTreeItem",
+          "command": "mdb.copyConnectionString",
           "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
           "group": "3@1"
         },
         {
+          "command": "mdb.disconnectFromConnectionTreeItem",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "group": "4@1"
+        },
+        {
           "command": "mdb.treeItemRemoveConnection",
           "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
-          "group": "3@2"
+          "group": "4@2"
         },
         {
           "command": "mdb.connectToConnectionTreeItem",
@@ -285,22 +290,19 @@
           "group": "1@1"
         },
         {
-          "command": "mdb.copyConnectionString",
+          "command": "mdb.renameConnection",
           "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
           "group": "2@1"
         },
         {
-          "command": "mdb.treeItemRemoveConnection",
+          "command": "mdb.copyConnectionString",
           "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
           "group": "3@1"
         },
         {
-          "command": "mdb.renameConnection",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem"
-        },
-        {
-          "command": "mdb.renameConnection",
-          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem"
+          "command": "mdb.treeItemRemoveConnection",
+          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
+          "group": "4@1"
         },
         {
           "command": "mdb.addCollection",
@@ -414,6 +416,7 @@
   "dependencies": {
     "bson": "^4.0.3",
     "debug": "^4.1.1",
+    "mongodb": "^3.5.5",
     "mongodb-connection-model": "^14.6.2",
     "mongodb-data-service": "^16.5.6",
     "mongodb-ns": "^2.2.0",

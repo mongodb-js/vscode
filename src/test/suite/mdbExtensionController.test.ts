@@ -199,7 +199,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-            'craving_for_pancakes_with_maple_syrup',
+          'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })
@@ -1001,7 +1001,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
-            'NAAAME',
+          'NAAAME',
           'Expected connection not to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
@@ -1039,7 +1039,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
-            'orange juice',
+          'orange juice',
           'Expected connection to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
@@ -1049,4 +1049,12 @@ suite('MDBExtensionController Test Suite', () => {
         done();
       });
   });
+
+  // To test:
+  // Open collection document.
+  // Open view document.
+  // Open document fails.
+  // Open document with weird _id.
+
+  // NOTE: We're using regular json stringify now. For better _id and things.
 });

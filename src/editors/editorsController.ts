@@ -8,6 +8,10 @@ import CollectionDocumentsProvider, {
   NAMESPACE_URI_IDENTIFIER,
   VIEW_COLLECTION_SCHEME
 } from './collectionDocumentsProvider';
+import DocumentProvider, {
+  DOCUMENT_ID_URI_IDENTIFIER,
+  VIEW_DOCUMENT_SCHEME
+} from './documentProvider';
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { StatusView } from '../views';
@@ -19,10 +23,11 @@ const log = createLogger('editors controller');
  * new editors and the data they need. It also manages active editors.
  */
 export default class EditorsController {
-  _connectionController?: ConnectionController;
+  _connectionController: ConnectionController;
   _collectionDocumentsOperationsStore = new CollectionDocumentsOperationsStore();
 
-  _collectionViewProvider?: CollectionDocumentsProvider;
+  _collectionViewProvider: CollectionDocumentsProvider;
+  _documentViewProvider: DocumentProvider;
 
   constructor(context: vscode.ExtensionContext, connectionController: ConnectionController) {
     log.info('activating...');
@@ -49,7 +54,47 @@ export default class EditorsController {
       new CollectionDocumentsCodeLensProvider(this._collectionDocumentsOperationsStore)
     ));
 
+    const documentViewProvider = new DocumentProvider(
+      connectionController,
+      new StatusView(context)
+    );
+
+    context.subscriptions.push(
+      vscode.workspace.registerTextDocumentContentProvider(
+        VIEW_DOCUMENT_SCHEME, documentViewProvider
+      )
+    );
+    this._documentViewProvider = documentViewProvider;
+
     log.info('activated.');
+  }
+
+  onViewDocument(namespace: string, documentId: string): Promise<boolean> {
+    log.info('view document in editor', namespace);
+
+    const connectionId = this._connectionController.getActiveConnectionId();
+    const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
+    // Encode the _id field incase the document id is a custom string with
+    // special characters.
+    const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${encodeURIComponent(documentId)}`;
+    const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
+
+    // We attach the current time to ensure a new editor window is opened on
+    // each document lookup and help the user know when the query started.
+    const uriQuery = `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}`;
+
+    // The part of the URI after the scheme and before the query is the file name.
+    const textDocumentUri = vscode.Uri.parse(
+      `${VIEW_DOCUMENT_SCHEME}:Document: ${documentId} - ${Date.now()}.json${uriQuery}`
+    );
+    return new Promise((resolve, reject) => {
+      vscode.workspace.openTextDocument(textDocumentUri).then((doc) => {
+        vscode.window.showTextDocument(doc, { preview: false }).then(
+          () => resolve(true),
+          reject
+        );
+      }, reject);
+    });
   }
 
   static getViewCollectionDocumentsUri(operationId, namespace, connectionId): vscode.Uri {
@@ -68,10 +113,7 @@ export default class EditorsController {
   }
 
   onViewCollectionDocuments(namespace: string): Promise<boolean> {
-    log.info('view collection documents');
-    if (!this._connectionController) {
-      return Promise.reject(new Error('No connection controller'));
-    }
+    log.info('view collection documents', namespace);
 
     const operationId = this._collectionDocumentsOperationsStore.createNewOperation();
 
@@ -91,7 +133,7 @@ export default class EditorsController {
   }
 
   onViewMoreCollectionDocuments(operationId: string, connectionId: string, namespace: string): Promise<boolean> {
-    log.info('view more collection documents');
+    log.info('view more collection documents', namespace);
 
     // A user might click to fetch more documents multiple times,
     // this ensures it only performs one fetch at a time.
@@ -101,9 +143,7 @@ export default class EditorsController {
     }
 
     // Ensure we're still connected to the correct connection.
-    if (!this._connectionController
-      || connectionId !== this._connectionController.getActiveConnectionId()
-    ) {
+    if (connectionId !== this._connectionController.getActiveConnectionId()) {
       vscode.window.showErrorMessage(`Unable to view more documents: no longer connected to ${connectionId}`);
       return Promise.resolve(false);
     }

@@ -1,10 +1,17 @@
 import * as vscode from 'vscode';
 
-export default class MongoDBDocumentTreeItem extends vscode.TreeItem
-  implements vscode.TreeDataProvider<MongoDBDocumentTreeItem> {
+export const DOCUMENT_ITEM = 'documentTreeItem';
+
+export default class DocumentTreeItem extends vscode.TreeItem
+  implements vscode.TreeDataProvider<DocumentTreeItem> {
+  contextValue = DOCUMENT_ITEM;
+
   private _documentLabel: string;
 
-  constructor(document: any, documentIndexInTree: number) {
+  namespace: string;
+  documentId: string;
+
+  constructor(document: any, namespace: string, documentIndexInTree: number) {
     // A document can not have a `_id` when it is in a view. In this instance
     // we just show the document's index in the tree.
     super(
@@ -17,17 +24,20 @@ export default class MongoDBDocumentTreeItem extends vscode.TreeItem
     this._documentLabel = document._id
       ? JSON.stringify(document._id)
       : `Document ${documentIndexInTree + 1}`;
+
+    this.documentId = document._id;
+    this.namespace = namespace;
   }
 
   get tooltip(): string {
     return this._documentLabel;
   }
 
-  getTreeItem(element: MongoDBDocumentTreeItem): MongoDBDocumentTreeItem {
+  getTreeItem(element: DocumentTreeItem): DocumentTreeItem {
     return element;
   }
 
-  getChildren(): Thenable<MongoDBDocumentTreeItem[]> {
+  getChildren(): Thenable<DocumentTreeItem[]> {
     return Promise.resolve([]);
   }
 }

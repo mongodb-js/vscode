@@ -1,28 +1,24 @@
 import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
+import { ObjectId } from 'mongodb';
 
-import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
+import { CONNECTION_ID_URI_IDENTIFIER, NAMESPACE_URI_IDENTIFIER } from './collectionDocumentsProvider';
 
-export const NAMESPACE_URI_IDENTIFIER = 'namespace';
-export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
-export const CONNECTION_ID_URI_IDENTIFIER = 'connectionId';
+export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
-export const VIEW_COLLECTION_SCHEME = 'VIEW_COLLECTION_SCHEME';
+export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
-export default class CollectionViewProvider implements vscode.TextDocumentContentProvider {
+export default class DocumentViewProvider implements vscode.TextDocumentContentProvider {
   _connectionController: ConnectionController;
-  _operationsStore: CollectionDocumentsOperationsStore;
   _statusView: StatusView;
 
   constructor(
     connectionController: ConnectionController,
-    operationsStore: CollectionDocumentsOperationsStore,
     statusView: StatusView
   ) {
     this._connectionController = connectionController;
-    this._operationsStore = operationsStore;
     this._statusView = statusView;
   }
 
@@ -34,24 +30,13 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
       const uriParams = new URLSearchParams(uri.query);
       const namespace = String(uriParams.get(NAMESPACE_URI_IDENTIFIER));
       const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
-      const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
-
-      if (!operationId) {
-        vscode.window.showErrorMessage(
-          'Unable to list documents: invalid operation'
-        );
-        return reject(new Error('Unable to list documents: invalid operation'));
-      }
-
-      const operation = this._operationsStore.operations[operationId];
-      const documentLimit = operation.currentLimit;
+      const documentId = decodeURIComponent(uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '');
 
       // Ensure we're still connected to the correct connection.
       if (
         connectionId !==
         this._connectionController.getActiveConnectionId()
       ) {
-        operation.isCurrentlyFetchingMoreDocuments = false;
         vscode.window.showErrorMessage(
           `Unable to list documents: no longer connected to ${connectionId}`
         );
@@ -62,43 +47,49 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
         );
       }
 
-      this._statusView.showMessage('Fetching documents...');
+      this._statusView.showMessage('Fetching document...');
 
       const dataservice = this._connectionController.getActiveDataService();
       if (dataservice === null) {
         vscode.window.showErrorMessage(
-          `Unable to list documents: no longer connected to ${connectionId}`
+          `Unable to find document: no longer connected to ${connectionId}`
         );
         return reject(
           new Error(
-            `Unable to list documents: no longer connected to ${connectionId}`
+            `Unable to find document: no longer connected to ${connectionId}`
           )
         );
       }
       dataservice.find(
         namespace,
-        {}, // No filter.
         {
-          limit: documentLimit
+          _id: ObjectId(documentId)
+        },
+        {
+          limit: 1
         },
         (err: Error | undefined, documents: object[]) => {
-          operation.isCurrentlyFetchingMoreDocuments = false;
           this._statusView.hideMessage();
 
           if (err) {
             vscode.window.showErrorMessage(
-              `Unable to list documents: ${err.message}`
+              `Unable to find document: ${err.message}`
             );
             return reject(
-              new Error(`Unable to list documents: ${err.message}`)
+              new Error(`Unable to find document: ${err.message}`)
             );
           }
 
-          if (documents.length !== documentLimit) {
-            operation.hasMoreDocumentsToShow = false;
+          if (!documents || documents.length === 0) {
+            vscode.window.showErrorMessage(
+              `Unable to find document: ${documentId}`
+            );
+            return reject(
+              new Error(`Unable to find document: ${documentId}`)
+            );
           }
 
-          return resolve(JSON.stringify(documents, null, 2));
+          return resolve(JSON.stringify(documents[0], null, 2));
         }
       );
     });
