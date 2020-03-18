@@ -21,9 +21,7 @@ const mockDocumentAsJsonString = `{
 }`;
 
 const docAsString2 = `{
-  "_id": {
-    "$oid": "5e32b4d67bf47f4525f2f8ab"
-  },
+  "_id": "5e32b4d67bf47f4525f2f8ab",
   "bowl": "noodles"
 }`;
 
