@@ -91,7 +91,7 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
             );
           }
 
-          return resolve(JSON.stringify(documents[0], null, 2));
+          return resolve(EJSON.stringify(documents[0], null, 2));
         }
       );
     });

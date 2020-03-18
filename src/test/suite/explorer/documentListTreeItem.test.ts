@@ -94,7 +94,10 @@ suite('DocumentListTreeItem Test Suite', () => {
       null
     );
 
-    assert(testDocumentListTreeItem.collapsibleState === vscode.TreeItemCollapsibleState.None);
+    assert(
+      testDocumentListTreeItem.collapsibleState ===
+        vscode.TreeItemCollapsibleState.None
+    );
   });
 
   test('when expanded shows the documents of a collection in tree', (done) => {

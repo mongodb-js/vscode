@@ -1,5 +1,6 @@
 import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
+import { EJSON } from 'bson';
 
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import ConnectionController from '../connectionController';
@@ -98,7 +99,7 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
             operation.hasMoreDocumentsToShow = false;
           }
 
-          return resolve(JSON.stringify(documents, null, 2));
+          return resolve(EJSON.stringify(documents, null, 2));
         }
       );
     });

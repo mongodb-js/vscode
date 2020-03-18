@@ -36,7 +36,10 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
   }
 }
 
-const getCollapsableStateForDocumentList = (isExpanded: boolean, type: CollectionTypes): vscode.TreeItemCollapsibleState => {
+const getCollapsableStateForDocumentList = (
+  isExpanded: boolean,
+  type: CollectionTypes
+): vscode.TreeItemCollapsibleState => {
   if (type === CollectionTypes.view) {
     return vscode.TreeItemCollapsibleState.None;
   }
@@ -73,10 +76,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     maxDocumentsToShow: number,
     existingCache: vscode.TreeItem[] | null
   ) {
-    super(
-      ITEM_LABEL,
-      getCollapsableStateForDocumentList(isExpanded, type)
-    );
+    super(ITEM_LABEL, getCollapsableStateForDocumentList(isExpanded, type));
 
     this.collectionName = collectionName;
     this.databaseName = databaseName;

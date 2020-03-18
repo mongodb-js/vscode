@@ -21,7 +21,9 @@ const mockDocumentAsJsonString = `{
 }`;
 
 const docAsString2 = `{
-  "_id": "5e32b4d67bf47f4525f2f8ab",
+  "_id": {
+    "$oid": "5e32b4d67bf47f4525f2f8ab"
+  },
   "bowl": "noodles"
 }`;
 
@@ -48,7 +50,7 @@ suite('Document Provider Test Suite', () => {
           `Expected find limit to be 1, found ${options.limit}`
         );
 
-        return callback(null, ['Declaration of Independence']);
+        return callback(null, [{ a: 'Declaration of Independence' }]);
       }
     };
 
@@ -73,20 +75,25 @@ suite('Document Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=fruit.pineapple&documentId=${documentId}`
     );
 
-    testCollectionViewProvider.provideTextDocumentContent(uri).then(document => {
-      assert(
-        document.includes('Declaration of Independence'),
-        `Expected provideTextDocumentContent to return document string, found ${document}`
-      );
-      done();
-    }).catch(done);
+    testCollectionViewProvider
+      .provideTextDocumentContent(uri)
+      .then((document) => {
+        assert(
+          document.includes('Declaration of Independence'),
+          `Expected provideTextDocumentContent to return document string, found ${document}`
+        );
+        done();
+      })
+      .catch(done);
   });
 
   test('expected provideTextDocumentContent to return a json.stringify string', (done) => {
-    const mockDocument = [{
-      _id: 'first_id',
-      field1: 'first_field'
-    }];
+    const mockDocument = [
+      {
+        _id: 'first_id',
+        field1: 'first_field'
+      }
+    ];
 
     const mockActiveConnection = {
       find: (namespace, filter, options, callback): void => {
@@ -115,13 +122,16 @@ suite('Document Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=test.test&documentId=${documentId}`
     );
 
-    testCollectionViewProvider.provideTextDocumentContent(uri).then(document => {
-      assert(
-        document === mockDocumentAsJsonString,
-        `Expected provideTextDocumentContent to return json stringified string, found ${document}`
-      );
-      done();
-    }).catch(done);
+    testCollectionViewProvider
+      .provideTextDocumentContent(uri)
+      .then((document) => {
+        assert(
+          document === mockDocumentAsJsonString,
+          `Expected provideTextDocumentContent to return ejson stringified string, found ${document}`
+        );
+        done();
+      })
+      .catch(done);
   });
 
   test('provideTextDocumentContent shows a status bar item while it is running then hide it', (done) => {
@@ -156,17 +166,25 @@ suite('Document Provider Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(textStatusView, 'hideMessage', mockHideMessage);
 
-    mockActiveConnection.find = (namespace, filter, options, callback): void => {
+    mockActiveConnection.find = (
+      namespace,
+      filter,
+      options,
+      callback
+    ): void => {
       assert(mockShowMessage.called);
       assert(!mockHideMessage.called);
       assert(mockShowMessage.firstArg === 'Fetching document...');
 
-      return callback(null, ['aaaaaaaaaaaaaaaaa']);
+      return callback(null, [{ b: 'aaaaaaaaaaaaaaaaa' }]);
     };
 
-    testCollectionViewProvider.provideTextDocumentContent(uri).then(() => {
-      assert(mockHideMessage.called);
-    }).then(done, done);
+    testCollectionViewProvider
+      .provideTextDocumentContent(uri)
+      .then(() => {
+        assert(mockHideMessage.called);
+      })
+      .then(done, done);
   });
 
   suite('Document Provider with live database', () => {
@@ -180,37 +198,42 @@ suite('Document Provider Test Suite', () => {
         bowl: 'noodles'
       };
 
-      seedDataAndCreateDataService('ramen', [
-        mockDocument
-      ]).then((dataService) => {
-        const mockExtensionContext = new TestExtensionContext();
-        const mockStorageController = new StorageController(mockExtensionContext);
-        const mockConnectionController = new ConnectionController(
-          new StatusView(mockExtensionContext),
-          mockStorageController
-        );
-        mockConnectionController.setActiveConnection(dataService);
-
-        const testCollectionViewProvider = new DocumentProvider(
-          mockConnectionController,
-          new StatusView(mockExtensionContext)
-        );
-
-        const documentId = EJSON.stringify({
-          value: mockDocument._id
-        });
-        const uri = vscode.Uri.parse(
-          `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
-        );
-
-        testCollectionViewProvider.provideTextDocumentContent(uri).then(document => {
-          assert(
-            document === docAsString2,
-            `Expected provideTextDocumentContent to return json stringified string, found ${document}`
+      seedDataAndCreateDataService('ramen', [mockDocument]).then(
+        (dataService) => {
+          const mockExtensionContext = new TestExtensionContext();
+          const mockStorageController = new StorageController(
+            mockExtensionContext
           );
-          done();
-        }).catch(done);
-      });
+          const mockConnectionController = new ConnectionController(
+            new StatusView(mockExtensionContext),
+            mockStorageController
+          );
+          mockConnectionController.setActiveConnection(dataService);
+
+          const testCollectionViewProvider = new DocumentProvider(
+            mockConnectionController,
+            new StatusView(mockExtensionContext)
+          );
+
+          const documentId = EJSON.stringify({
+            value: mockDocument._id
+          });
+          const uri = vscode.Uri.parse(
+            `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
+          );
+
+          testCollectionViewProvider
+            .provideTextDocumentContent(uri)
+            .then((document) => {
+              assert(
+                document === docAsString2,
+                `Expected provideTextDocumentContent to return ejson stringified string, found ${document}`
+              );
+              done();
+            })
+            .catch(done);
+        }
+      );
     });
 
     test('expected provideTextDocumentContent to handle an id that is not an object id', (done) => {
@@ -219,37 +242,42 @@ suite('Document Provider Test Suite', () => {
         bowl: 'noodles'
       };
 
-      seedDataAndCreateDataService('ramen', [
-        mockDocument
-      ]).then((dataService) => {
-        const mockExtensionContext = new TestExtensionContext();
-        const mockStorageController = new StorageController(mockExtensionContext);
-        const mockConnectionController = new ConnectionController(
-          new StatusView(mockExtensionContext),
-          mockStorageController
-        );
-        mockConnectionController.setActiveConnection(dataService);
-
-        const testCollectionViewProvider = new DocumentProvider(
-          mockConnectionController,
-          new StatusView(mockExtensionContext)
-        );
-
-        const documentId = EJSON.stringify({
-          value: mockDocument._id
-        });
-        const uri = vscode.Uri.parse(
-          `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
-        );
-
-        testCollectionViewProvider.provideTextDocumentContent(uri).then(document => {
-          assert(
-            document === docAsString3,
-            `Expected provideTextDocumentContent to return json stringified string, found ${document}`
+      seedDataAndCreateDataService('ramen', [mockDocument]).then(
+        (dataService) => {
+          const mockExtensionContext = new TestExtensionContext();
+          const mockStorageController = new StorageController(
+            mockExtensionContext
           );
-          done();
-        }).catch(done);
-      });
+          const mockConnectionController = new ConnectionController(
+            new StatusView(mockExtensionContext),
+            mockStorageController
+          );
+          mockConnectionController.setActiveConnection(dataService);
+
+          const testCollectionViewProvider = new DocumentProvider(
+            mockConnectionController,
+            new StatusView(mockExtensionContext)
+          );
+
+          const documentId = EJSON.stringify({
+            value: mockDocument._id
+          });
+          const uri = vscode.Uri.parse(
+            `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
+          );
+
+          testCollectionViewProvider
+            .provideTextDocumentContent(uri)
+            .then((document) => {
+              assert(
+                document === docAsString3,
+                `Expected provideTextDocumentContent to return ejson stringified string, found ${document}`
+              );
+              done();
+            })
+            .catch(done);
+        }
+      );
     });
   });
 });

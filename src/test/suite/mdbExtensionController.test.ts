@@ -3,12 +3,8 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 const sinon = require('sinon');
 
-import {
-  VIEW_COLLECTION_SCHEME
-} from '../../editors/collectionDocumentsProvider';
-import {
-  VIEW_DOCUMENT_SCHEME
-} from '../../editors/documentProvider';
+import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
+import { VIEW_DOCUMENT_SCHEME } from '../../editors/documentProvider';
 import {
   CollectionTreeItem,
   CollectionTypes,
@@ -207,7 +203,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-          'craving_for_pancakes_with_maple_syrup',
+            'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })
@@ -1009,7 +1005,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
-          'NAAAME',
+            'NAAAME',
           'Expected connection not to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
@@ -1047,7 +1043,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
-          'orange juice',
+            'orange juice',
           'Expected connection to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
@@ -1089,9 +1085,7 @@ suite('MDBExtensionController Test Suite', () => {
           )
         );
         assert(
-          mockOpenTextDocument.firstArg.query.includes(
-            'namespace=waffle.house'
-          )
+          mockOpenTextDocument.firstArg.query.includes('namespace=waffle.house')
         );
 
         assert(
@@ -1101,11 +1095,4 @@ suite('MDBExtensionController Test Suite', () => {
       })
       .then(done, done);
   });
-
-  // To test:
-  // Open collection document.
-  // Open document fails.
-  // Open document with weird _id.
-
-  // NOTE: We're using regular json stringify now. For better _id and things.
 });

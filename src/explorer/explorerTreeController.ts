@@ -94,11 +94,20 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
         // TODO: Have variables for these commands.
 
         if (selectedItem.contextValue === DOCUMENT_ITEM) {
-          vscode.commands.executeCommand('mdb.viewDocument', event.selection[0]);
+          vscode.commands.executeCommand(
+            'mdb.viewDocument',
+            event.selection[0]
+          );
         }
 
-        if (selectedItem.contextValue === DOCUMENT_LIST_ITEM && selectedItem.type === CollectionTypes.view) {
-          vscode.commands.executeCommand('mdb.viewCollectionDocuments', event.selection[0]);
+        if (
+          selectedItem.contextValue === DOCUMENT_LIST_ITEM &&
+          selectedItem.type === CollectionTypes.view
+        ) {
+          vscode.commands.executeCommand(
+            'mdb.viewCollectionDocuments',
+            event.selection[0]
+          );
         }
       }
     });

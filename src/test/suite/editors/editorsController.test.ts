@@ -7,7 +7,11 @@ suite('Editors Controller Test Suite', () => {
     const testOpId = '100011011101110011';
     const testNamespace = 'myFavoriteNamespace';
     const testConnectionId = 'alienSateliteConnection';
-    const testUri = EditorsController.getViewCollectionDocumentsUri(testOpId, testNamespace, testConnectionId);
+    const testUri = EditorsController.getViewCollectionDocumentsUri(
+      testOpId,
+      testNamespace,
+      testConnectionId
+    );
 
     assert(
       testUri.path === 'Results: myFavoriteNamespace.json',
@@ -18,7 +22,8 @@ suite('Editors Controller Test Suite', () => {
       `Expected uri scheme ${testUri.scheme} to equal 'VIEW_COLLECTION_SCHEME'.`
     );
     assert(
-      testUri.query === 'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
+      testUri.query ===
+        'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
       `Expected uri query ${testUri.query} to equal 'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011'.`
     );
   });
