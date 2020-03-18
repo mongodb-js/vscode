@@ -22,8 +22,7 @@ async function main(): Promise<any> {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [
-        testWorkspace,
-        ' --no-force-async-hooks-checks'
+        testWorkspace
       ]
     });
   } catch (err) {

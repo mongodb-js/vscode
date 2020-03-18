@@ -42,7 +42,7 @@
     "compile": "npm run update-grammar && npm run update-snippets && tsc -p ./",
     "watch": "npm run compile -- -watch",
     "pretest": "npm run compile && mongodb-runner start --port=27018",
-    "test": "xvfb-maybe node ./out/test/runTest.js",
+    "test": "xvfb-maybe node ./out/test/runTest.js --no-force-async-hooks-check ",
     "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run compile",
     "check": "mongodb-js-precommit './src/**/*{.ts}'",
