@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 
 import ConnectionController from '../connectionController';
-import { ElectronRuntime } from 'mongosh/packages/browser-runtime-electron';
-import { CompassServiceProvider } from 'mongosh/packages/service-provider-server';
+import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
+import { CompassServiceProvider } from '@mongosh/service-provider-server';
 import ActiveDBCodeLensProvider from './activeDBCodeLensProvider';
 import formatOutput from '../utils/formatOutput';
 import { createLogger } from '../logging';

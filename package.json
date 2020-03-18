@@ -34,8 +34,6 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./out/extension.js",
   "scripts": {
-    "setup-mongosh": "rm -rf ../.tmp-mongosh && git clone git@github.com:mongodb-js/mongosh.git ../.tmp-mongosh || echo && cd ../.tmp-mongosh && npm run bootstrap",
-    "preinstall": "npm run setup-mongosh",
     "clean": "rimraf ./out/*",
     "lint": "eslint ./src/**/*.ts",
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
@@ -435,7 +433,8 @@
     }
   },
   "dependencies": {
-    "mongosh": "file:../.tmp-mongosh",
+    "@mongosh/browser-runtime-electron": "0.0.1-alpha.3",
+    "@mongosh/service-provider-server": "0.0.1-alpha.3",
     "bson": "^4.0.3",
     "debug": "^4.1.1",
     "mongodb-connection-model": "^14.6.2",
