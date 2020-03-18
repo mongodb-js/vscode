@@ -91,8 +91,6 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
           this.onTreeItemUpdate();
         }
 
-        // TODO: Have variables for these commands.
-
         if (selectedItem.contextValue === DOCUMENT_ITEM) {
           vscode.commands.executeCommand(
             'mdb.viewDocument',
