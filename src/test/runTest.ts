@@ -21,7 +21,10 @@ async function main(): Promise<any> {
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: [testWorkspace]
+      launchArgs: [
+        testWorkspace,
+        ' --no-force-async-hooks-checks'
+      ]
     });
   } catch (err) {
     console.error('Failed to run tests');

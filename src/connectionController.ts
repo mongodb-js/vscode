@@ -25,9 +25,8 @@ function getConnectWebviewContent(): string {
         <title>Connect to MongoDB</title>
     </head>
     <body>
-      <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
       <h1>MongoDB Connection Details Form</h1>
-      <h2>Also try connecting with URI.</h2>
+      <h4>Coming soon :)</h4>
     </body>
   </html>`;
 }

@@ -3,15 +3,23 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 const sinon = require('sinon');
 
-import { CollectionTreeItem } from '../../explorer';
-import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
-import ConnectionTreeItem from '../../explorer/connectionTreeItem';
-import DatabaseTreeItem from '../../explorer/databaseTreeItem';
-import { CollectionTypes } from '../../explorer/documentListTreeItem';
+import {
+  VIEW_COLLECTION_SCHEME
+} from '../../editors/collectionDocumentsProvider';
+import {
+  VIEW_DOCUMENT_SCHEME
+} from '../../editors/documentProvider';
+import {
+  CollectionTreeItem,
+  CollectionTypes,
+  ConnectionTreeItem,
+  DatabaseTreeItem,
+  DocumentTreeItem,
+  SchemaTreeItem
+} from '../../explorer';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import ConnectionController from '../../connectionController';
 import { StorageController } from '../../storage';
-import SchemaTreeItem from '../../explorer/schemaTreeItem';
 import { StorageScope } from '../../storage/storageController';
 
 const testDatabaseURI = 'mongodb://localhost:27018';
@@ -1050,9 +1058,52 @@ suite('MDBExtensionController Test Suite', () => {
       });
   });
 
+  test('mdb.viewDocument opens an editor with the document using its id', (done) => {
+    const mockOpenTextDocument = sinon.fake.resolves('magna carta');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument = sinon.fake.resolves();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    const documentItem = new DocumentTreeItem(
+      {
+        _id: 'pancakes'
+      },
+      'waffle.house',
+      0
+    );
+
+    vscode.commands
+      .executeCommand('mdb.viewDocument', documentItem)
+      .then(() => {
+        assert(
+          mockOpenTextDocument.firstArg.path.includes(
+            'waffle.house: "pancakes"'
+          )
+        );
+        assert(mockOpenTextDocument.firstArg.path.includes('.json'));
+        assert(mockOpenTextDocument.firstArg.scheme === VIEW_DOCUMENT_SCHEME);
+        assert(
+          mockOpenTextDocument.firstArg.query.includes(
+            'documentId={"value":"pancakes"}'
+          )
+        );
+        assert(
+          mockOpenTextDocument.firstArg.query.includes(
+            'namespace=waffle.house'
+          )
+        );
+
+        assert(
+          mockShowTextDocument.firstArg === 'magna carta',
+          'Expected it to call vscode to show the returned document from the provider'
+        );
+      })
+      .then(done, done);
+  });
+
   // To test:
   // Open collection document.
-  // Open view document.
   // Open document fails.
   // Open document with weird _id.
 

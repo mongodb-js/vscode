@@ -90,7 +90,7 @@ export default class EditorsController {
 
     // The part of the URI after the scheme and before the query is the file name.
     const textDocumentUri = vscode.Uri.parse(
-      `${VIEW_DOCUMENT_SCHEME}:Document: ${JSON.stringify(documentId)} - ${Date.now()}.json${uriQuery}`
+      `${VIEW_DOCUMENT_SCHEME}:${namespace}: ${JSON.stringify(documentId)} - ${Date.now()}.json${uriQuery}`
     );
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(textDocumentUri).then((doc) => {
