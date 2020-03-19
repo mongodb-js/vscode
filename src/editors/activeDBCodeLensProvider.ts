@@ -1,4 +1,3 @@
-import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
 
 export default class ActiveDBCodeLensProvider implements vscode.CodeLensProvider {
@@ -32,24 +31,15 @@ export default class ActiveDBCodeLensProvider implements vscode.CodeLensProvider
       return [];
     }
 
-    this._codeLenses = [new vscode.CodeLens(new vscode.Range(
-      new vscode.Position(0, 0),
-      new vscode.Position(0, 0),
-    ))];
+    this._codeLenses = [new vscode.CodeLens(new vscode.Range(0, 0, 0, 0))];
 
     return this._codeLenses;
   }
 
   public resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
-    if (this._runtime) {
-      this._activeDB = this._runtime.openContextRuntime.serviceProvider.nodeTransport.mongoClient.s.options.dbName;
-    }
-
     codeLens.command = {
       title: `Active db is ${this._activeDB}`,
-      tooltip: "Tooltip provided by Active DB CodeLens Provider",
-      command: "mdb.runDBHelpInPlayground",
-      arguments: ["Argument 1", { connectionInstanceId: '111111' }]
+      command: "mdb.runDBHelpInPlayground"
     };
 
     return codeLens;
