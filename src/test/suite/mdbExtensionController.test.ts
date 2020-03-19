@@ -1130,16 +1130,16 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.runDBHelpInPlayground command should call runDBHelpInPlayground on the playground controller', (done) => {
-    const mockRunAllPlaygroundBlocks = sinon.fake.resolves();
+    const mockRunDBHelpInPlayground = sinon.fake.resolves();
     sinon.replace(
       mdbTestExtension.testExtensionController._playgroundController,
       'runDBHelpInPlayground',
-      mockRunAllPlaygroundBlocks
+      mockRunDBHelpInPlayground
     );
 
     vscode.commands.executeCommand('mdb.runDBHelpInPlayground').then(() => {
       assert(
-        mockRunAllPlaygroundBlocks.called,
+        mockRunDBHelpInPlayground.called,
         'Expected "runDBHelpInPlayground" to be called on the playground controller.'
       );
     }).then(done, done);
