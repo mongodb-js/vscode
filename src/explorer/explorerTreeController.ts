@@ -85,6 +85,7 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
     treeView.onDidChangeSelection((event: any) => {
       if (event.selection && event.selection.length === 1) {
         const selectedItem = event.selection[0];
+
         if (selectedItem.isShowMoreItem) {
           selectedItem.onShowMoreClicked();
 
