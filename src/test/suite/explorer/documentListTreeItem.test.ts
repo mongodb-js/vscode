@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import * as assert from 'assert';
 
 const { contributes } = require('../../../../package.json');
@@ -80,6 +81,23 @@ suite('DocumentListTreeItem Test Suite', () => {
         );
       })
       .then(done, done);
+  });
+
+  test('a "view" type of document list does not show a dropdown', () => {
+    const testDocumentListTreeItem = new DocumentListTreeItem(
+      'mock_collection_name',
+      'mock_db_name',
+      CollectionTypes.view,
+      new DataServiceStub(),
+      false,
+      MAX_DOCUMENTS_VISIBLE,
+      null
+    );
+
+    assert(
+      testDocumentListTreeItem.collapsibleState ===
+        vscode.TreeItemCollapsibleState.None
+    );
   });
 
   test('when expanded shows the documents of a collection in tree', (done) => {

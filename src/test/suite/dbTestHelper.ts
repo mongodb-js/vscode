@@ -7,7 +7,7 @@ export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 
 let testDatabaseConnectionModel;
 
-// Note: be sure to disconnect from the dataservice to free up connections.
+// Note: Be sure to disconnect from the dataservice to free up connections.
 export const seedDataAndCreateDataService = (
   collectionName: string,
   documentsArray: any[]

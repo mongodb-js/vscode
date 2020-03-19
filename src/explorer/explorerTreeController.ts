@@ -3,12 +3,14 @@ import * as vscode from 'vscode';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
+import { DOCUMENT_ITEM } from './documentTreeItem';
 import ConnectionTreeItem from './connectionTreeItem';
 import DatabaseTreeItem from './databaseTreeItem';
 import CollectionTreeItem from './collectionTreeItem';
 import MDBConnectionsTreeItem from './mdbConnectionsTreeItem';
 
 import { createLogger } from '../logging';
+import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 
 const log = createLogger('explorer controller');
 
@@ -82,10 +84,29 @@ export default class ExplorerTreeController implements vscode.TreeDataProvider<v
 
     treeView.onDidChangeSelection((event: any) => {
       if (event.selection && event.selection.length === 1) {
-        if (event.selection[0].isShowMoreItem) {
-          event.selection[0].onShowMoreClicked();
+        const selectedItem = event.selection[0];
+
+        if (selectedItem.isShowMoreItem) {
+          selectedItem.onShowMoreClicked();
 
           this.onTreeItemUpdate();
+        }
+
+        if (selectedItem.contextValue === DOCUMENT_ITEM) {
+          vscode.commands.executeCommand(
+            'mdb.viewDocument',
+            event.selection[0]
+          );
+        }
+
+        if (
+          selectedItem.contextValue === DOCUMENT_LIST_ITEM &&
+          selectedItem.type === CollectionTypes.view
+        ) {
+          vscode.commands.executeCommand(
+            'mdb.viewCollectionDocuments',
+            event.selection[0]
+          );
         }
       }
     });

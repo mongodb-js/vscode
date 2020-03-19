@@ -21,7 +21,9 @@ async function main(): Promise<any> {
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: [testWorkspace]
+      launchArgs: [
+        testWorkspace
+      ]
     });
   } catch (err) {
     console.error('Failed to run tests');

@@ -14,6 +14,7 @@ import { StorageController } from './storage';
 import DatabaseTreeItem from './explorer/databaseTreeItem';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
 import SchemaTreeItem from './explorer/schemaTreeItem';
+import DocumentTreeItem from './explorer/documentTreeItem';
 
 const log = createLogger('commands');
 
@@ -281,6 +282,15 @@ export default class MDBExtensionController implements vscode.Disposable {
       'mdb.dropCollection',
       (element: CollectionTreeItem): Promise<boolean> => {
         return element.onDropCollectionClicked();
+      }
+    );
+    this.registerCommand(
+      'mdb.viewDocument',
+      (element: DocumentTreeItem): Promise<boolean> => {
+        return this._editorsController.onViewDocument(
+          element.namespace,
+          element.documentId
+        );
       }
     );
     this.registerCommand(

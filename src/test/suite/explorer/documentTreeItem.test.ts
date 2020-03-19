@@ -8,7 +8,11 @@ suite('DocumentTreeItem Test Suite', () => {
       _id: 'mock_document_id'
     };
 
-    const testCollectionTreeItem = new DocumentTreeItem(mockDocument, 1);
+    const testCollectionTreeItem = new DocumentTreeItem(
+      mockDocument,
+      'namespace',
+      1
+    );
 
     const documentTreeItemLabel = testCollectionTreeItem.label;
     assert(
@@ -27,7 +31,11 @@ suite('DocumentTreeItem Test Suite', () => {
 
     const expectedLabel = JSON.stringify(mockDocument._id);
 
-    const testCollectionTreeItem = new DocumentTreeItem(mockDocument, 1);
+    const testCollectionTreeItem = new DocumentTreeItem(
+      mockDocument,
+      'namespace',
+      1
+    );
 
     const documentTreeItemLabel = testCollectionTreeItem.label;
     assert(
@@ -43,7 +51,11 @@ suite('DocumentTreeItem Test Suite', () => {
 
     const expectedLabel = 'Document 2';
 
-    const testCollectionTreeItem = new DocumentTreeItem(mockDocument, 1);
+    const testCollectionTreeItem = new DocumentTreeItem(
+      mockDocument,
+      'namespace',
+      1
+    );
 
     const documentTreeItemLabel = testCollectionTreeItem.label;
     assert(

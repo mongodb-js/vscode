@@ -12,12 +12,13 @@ const log = createLogger('tree view document list');
 // of documents shown by this amount.
 export const MAX_DOCUMENTS_VISIBLE = 10;
 
-const ITEM_LABEL = 'Documents';
-
+export const DOCUMENT_LIST_ITEM = 'documentListTreeItem';
 export enum CollectionTypes {
   collection = 'collection',
   view = 'view'
 }
+
+const ITEM_LABEL = 'Documents';
 
 class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
   // This is the identifier we use to identify this tree item when a tree item
@@ -35,21 +36,34 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
   }
 }
 
+const getCollapsableStateForDocumentList = (
+  isExpanded: boolean,
+  type: CollectionTypes
+): vscode.TreeItemCollapsibleState => {
+  if (type === CollectionTypes.view) {
+    return vscode.TreeItemCollapsibleState.None;
+  }
+
+  return isExpanded
+    ? vscode.TreeItemCollapsibleState.Expanded
+    : vscode.TreeItemCollapsibleState.Collapsed;
+};
+
 export default class DocumentListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DocumentListTreeItem> {
   _childrenCacheIsUpToDate = false;
   private _childrenCache: vscode.TreeItem[] = [];
 
-  contextValue = 'documentListTreeItem';
+  contextValue = DOCUMENT_LIST_ITEM;
 
   // We fetch 1 more than this in order to see if there are more to fetch.
   private _maxDocumentsToShow: number;
 
   collectionName: string;
   databaseName: string;
+  type: CollectionTypes;
 
   private _dataService: any;
-  private _type: CollectionTypes;
 
   isExpanded: boolean;
 
@@ -62,17 +76,12 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     maxDocumentsToShow: number,
     existingCache: vscode.TreeItem[] | null
   ) {
-    super(
-      ITEM_LABEL,
-      isExpanded
-        ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
-    );
+    super(ITEM_LABEL, getCollapsableStateForDocumentList(isExpanded, type));
 
     this.collectionName = collectionName;
     this.databaseName = databaseName;
 
-    this._type = type; // Type can be `collection` or `view`.
+    this.type = type; // Type can be `collection` or `view`.
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
@@ -95,7 +104,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<any[]> {
-    if (!this.isExpanded) {
+    if (!this.isExpanded || this.type === CollectionTypes.view) {
       return Promise.resolve([]);
     }
 
@@ -138,7 +147,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
                 );
               }
 
-              return new DocumentTreeItem(document, index);
+              return new DocumentTreeItem(document, namespace, index);
             });
           } else {
             this._childrenCache = [];
@@ -157,7 +166,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
     const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
 
-    if (this._type === CollectionTypes.collection) {
+    if (this.type === CollectionTypes.collection) {
       return {
         light: path.join(LIGHT, 'collection-documents.svg'),
         dark: path.join(DARK, 'collection-documents.svg')
