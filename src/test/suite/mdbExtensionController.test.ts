@@ -203,7 +203,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-            'craving_for_pancakes_with_maple_syrup',
+          'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })
@@ -1005,7 +1005,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
-            'NAAAME',
+          'NAAAME',
           'Expected connection not to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
@@ -1043,7 +1043,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
-            'orange juice',
+          'orange juice',
           'Expected connection to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
@@ -1094,5 +1094,54 @@ suite('MDBExtensionController Test Suite', () => {
         );
       })
       .then(done, done);
+  });
+
+  test('mdb.createPlayground should create a MongoDB playground', (done) => {
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument = sinon.fake.resolves();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    vscode.commands.executeCommand('mdb.createPlayground').then(() => {
+      assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+      assert(mockOpenTextDocument.firstArg.content === '// The MongoDB playground');
+      assert(
+        mockShowTextDocument.firstArg === 'untitled',
+        'Expected it to call vscode to show the playground'
+      );
+    }).then(done, done);
+  });
+
+  test('mdb.runAllPlaygroundBlocks command should call runAllPlaygroundBlocks on the playground controller', (done) => {
+    const mockRunAllPlaygroundBlocks = sinon.fake.resolves();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      'runAllPlaygroundBlocks',
+      mockRunAllPlaygroundBlocks
+    );
+
+    vscode.commands.executeCommand('mdb.runAllPlaygroundBlocks').then(() => {
+      assert(
+        mockRunAllPlaygroundBlocks.called,
+        'Expected "runAllPlaygroundBlocks" to be called on the playground controller.'
+      );
+    }).then(done, done);
+  });
+
+  test('mdb.runDBHelpInPlayground command should call runDBHelpInPlayground on the playground controller', (done) => {
+    const mockRunAllPlaygroundBlocks = sinon.fake.resolves();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      'runDBHelpInPlayground',
+      mockRunAllPlaygroundBlocks
+    );
+
+    vscode.commands.executeCommand('mdb.runDBHelpInPlayground').then(() => {
+      assert(
+        mockRunAllPlaygroundBlocks.called,
+        'Expected "runDBHelpInPlayground" to be called on the playground controller.'
+      );
+    }).then(done, done);
   });
 });
