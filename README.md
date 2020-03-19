@@ -11,6 +11,28 @@
 
 MongoDB for VS Code is still a work in progress and is **not yet released**.
 
+## Installing the extension
+
+MongoDB for VS Code can be installed in 2 ways.
+
+You can clone this repository and install the extension in your VS Code with:
+
+```shell
+npm install
+npm run local-install
+```
+
+This will compile and package MongoDB for VS Code into a `.vsix` file and add the extension to your VS Code.
+
+Alternatively, you can download the prebuild `.vsix` package from the [releases page](https://github.com/mongodb-js/vscode/releases) and install it with the following command:
+
+```shell
+code --install-extension /path/to/mongodb-vscode-x.y.z.vsix
+```
+
+If you get an error because the `code` command is not found, you need to install it in your `$PATH`.
+Open VS Code, launch the Commmand Palette (⌘+Shift+P on MacOS, Ctrl+Shift+P on Windows and Linux), type `code` and select "Install code command in $PATH".
+
 ## Features
 
 ### MongoDB data explorer
