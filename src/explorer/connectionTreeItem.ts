@@ -14,6 +14,9 @@ enum ConnectionItemContextValues {
 export { ConnectionItemContextValues };
 
 export default class ConnectionTreeItem extends vscode.TreeItem
+  connectionId(connectionId: any): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
   contextValue = ConnectionItemContextValues.disconnected;
 

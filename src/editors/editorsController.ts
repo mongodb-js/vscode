@@ -19,6 +19,9 @@ import { StatusView } from '../views';
 
 const log = createLogger('editors controller');
 
+  onViewDocument(namespace: any, documentId: any): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
 /**
  * This controller manages when our extension needs to open
  * new editors and the data they need. It also manages active editors.

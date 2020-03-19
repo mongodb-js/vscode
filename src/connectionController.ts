@@ -33,6 +33,18 @@ function getConnectWebviewContent(): string {
   </html>`;
 }
 
+  connectWithConnectionId(connectionId:<any>): void {
+    throw new Error("Method not implemented.");
+  }
+  renameConnection(connectionId:<any>): void {
+    throw new Error("Method not implemented.");
+  }
+  getActiveConnectionId() {
+    throw new Error("Method not implemented.");
+  }
+  getActiveConnectionDriverUrl() {
+    throw new Error("Method not implemented.");
+  }
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE'
 }

@@ -2,6 +2,12 @@ import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 
 export const DOCUMENT_ITEM = 'documentTreeItem';
+  namespace(namespace: <any>, documentId:<any>): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  documentId(namespace: any, documentId: any): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
 
 export default class DocumentTreeItem extends vscode.TreeItem
   implements vscode.TreeDataProvider<DocumentTreeItem> {
