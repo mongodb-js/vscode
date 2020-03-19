@@ -1,7 +1,6 @@
 variables:
   npm_config_cache: $(Pipeline.Workspace)/.npm
   node_version: '12.4.0'
-  MONGODB_VERSION: '4.2.3'
 
 trigger:
   - master
