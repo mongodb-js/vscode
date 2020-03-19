@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 
 import ConnectionController from './connectionController';
-import { EditorsController } from './editors';
+import { EditorsController, PlaygroundController } from './editors';
 import { ExplorerController, CollectionTreeItem } from './explorer';
 import { StatusView } from './views';
 import { createLogger } from './logging';
@@ -24,6 +24,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _connectionController: ConnectionController;
   _context: vscode.ExtensionContext;
   _editorsController: EditorsController;
+  _playgroundController: PlaygroundController;
   _explorerController: ExplorerController;
   _statusView: StatusView;
   _storageController: StorageController;
@@ -53,6 +54,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController = new ExplorerController(
       this._connectionController
     );
+    this._playgroundController = new PlaygroundController(context, this._connectionController);
   }
 
   activate(): void {
@@ -79,7 +81,15 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommand('mdb.openMongoDBShell', () => this.openMongoDBShell());
 
-    this.registerCommand('mdb.createPlayground', () => this.createPlayground());
+    this.registerCommand('mdb.createPlayground', () =>
+      this._playgroundController.createPlayground()
+    );
+    this.registerCommand('mdb.runAllPlaygroundBlocks', () =>
+      this._playgroundController.runAllPlaygroundBlocks()
+    );
+    this.registerCommand('mdb.runDBHelpInPlayground', () =>
+      this._playgroundController.runDBHelpInPlayground()
+    );
 
     this.registerEditorCommands();
     this.registerTreeViewCommands();
@@ -335,20 +345,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     mongoDBShell.show();
 
     return Promise.resolve(true);
-  }
-
-  public createPlayground(): Promise<boolean> {
-    return new Promise((resolve) => {
-      vscode.workspace
-        .openTextDocument({
-          language: 'mongodb',
-          content: '// The MongoDB playground'
-        })
-        .then((document) => {
-          vscode.window.showTextDocument(document);
-          resolve(true);
-        });
-    });
   }
 
   dispose(): void {
