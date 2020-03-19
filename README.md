@@ -1,4 +1,4 @@
-#MongoDB  for VS Code [Alpha]
+# MongoDB  for VS Code [Alpha]
 
 [![Build Status](https://dev.azure.com/team-compass/vscode/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/vscode/_build/latest?definitionId=6&branchName=master)
 
@@ -19,21 +19,31 @@ MongoDB for VS Code is still a work in progress and is **not yet released**.
 * See the documents in your collections
 * Get a quick overview of your schema
 
+![Explore data with MongoDB for VS Code](resources/screenshots/explore-data.png)
+
 ### MongoDB Playgrounds
 * Prototype your queries, aggregations and MongoDB commands with MongoDB Syntax Highlighting
 * Run your playgrounds and see the results instantly
 * Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB
 * Build aggregations quickly with our helpful and well commented stage snippets
 
+![Playgrounds](resources/screenshots/playground.png)
+
 
 ### Quick access to the MongoDB Shell
 * Launch the MongoDB Shell from the command palette to quickly connect to the same cluster you have active in VS Code
 
+![MongoDB Shell](resources/screenshots/shell-launcher.png)
+
 ## Extension Settings
 
-`mdb.show`: Show/Hide the MongoDB extension.
+* `mdb.shell`: The MongoDB shell to use.
+* `mdb.show`: Show or hide the MongoDB view.
+* `mdb.defaultLimit`: The number of documents to fetch when viewing documents from a collection.
+* `mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections`: When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used.
+* `mdb.connectionSaving.defaultConnectionSavingLocation`: When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved."
 
-_See `package.json` `contributes.configuration` for a full list of settings._
+![Settings](resources/screenshots/settings.png)
 
 ## Telemetry
 
@@ -43,7 +53,7 @@ MongoDB for VS Code collects usage data and sends it to MongoDB to help improve 
 
 For issues, please create a ticket in our [JIRA Project](https://jira.mongodb.org/browse/VSCODE).
 
-For contributing, please refer to [CONTRIBUTING.md](./CONTRIBUTING.md).
+For contributing, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Is there anything else you’d like to see in Compass? Let us know by submitting suggestions in our [feedback forum](https://feedback.mongodb.com).
 
