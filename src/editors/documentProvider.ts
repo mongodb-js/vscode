@@ -4,7 +4,10 @@ import { EJSON } from 'bson';
 
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
-import { CONNECTION_ID_URI_IDENTIFIER, NAMESPACE_URI_IDENTIFIER } from './collectionDocumentsProvider';
+import {
+  CONNECTION_ID_URI_IDENTIFIER,
+  NAMESPACE_URI_IDENTIFIER
+} from './collectionDocumentsProvider';
 
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
@@ -30,14 +33,13 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
       const uriParams = new URLSearchParams(uri.query);
       const namespace = String(uriParams.get(NAMESPACE_URI_IDENTIFIER));
       const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
-      const documentIdEJSONString = decodeURIComponent(uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '');
+      const documentIdEJSONString = decodeURIComponent(
+        uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || ''
+      );
       const documentId = EJSON.parse(documentIdEJSONString).value;
 
       // Ensure we're still connected to the correct connection.
-      if (
-        connectionId !==
-        this._connectionController.getActiveConnectionId()
-      ) {
+      if (connectionId !== this._connectionController.getActiveConnectionId()) {
         vscode.window.showErrorMessage(
           `Unable to list documents: no longer connected to ${connectionId}`
         );

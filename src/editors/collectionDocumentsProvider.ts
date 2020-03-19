@@ -47,10 +47,7 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
       const documentLimit = operation.currentLimit;
 
       // Ensure we're still connected to the correct connection.
-      if (
-        connectionId !==
-        this._connectionController.getActiveConnectionId()
-      ) {
+      if (connectionId !== this._connectionController.getActiveConnectionId()) {
         operation.isCurrentlyFetchingMoreDocuments = false;
         vscode.window.showErrorMessage(
           `Unable to list documents: no longer connected to ${connectionId}`
