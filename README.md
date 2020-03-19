@@ -37,6 +37,17 @@ npm run watch
 
 2. Inside of [VS Code Insiders](https://code.visualstudio.com/insiders/) open this directory and press `F5` to begin debugging the extension. This should launch a new VSCode window which is running the extension.
 
+## Installing the extension locally
+
+You can clone this repository and install the extension in your VS Code with:
+
+```shell
+npm install
+npm run local-install
+```
+
+This will compile and package MongoDB for VS Code into a `.vsix` file and add the extension to your VS Code.
+
 #### Code Tour
 
 - `out` compiled extension code
