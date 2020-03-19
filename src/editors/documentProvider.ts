@@ -52,14 +52,9 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
 
       const dataservice = this._connectionController.getActiveDataService();
       if (dataservice === null) {
-        vscode.window.showErrorMessage(
-          `Unable to find document: no longer connected to ${connectionId}`
-        );
-        return reject(
-          new Error(
-            `Unable to find document: no longer connected to ${connectionId}`
-          )
-        );
+        const errorMessage = `Unable to find document: no longer connected to ${connectionId}`;
+        vscode.window.showErrorMessage(errorMessage);
+        return reject(new Error(errorMessage));
       }
 
       dataservice.find(
@@ -74,21 +69,15 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
           this._statusView.hideMessage();
 
           if (err) {
-            vscode.window.showErrorMessage(
-              `Unable to find document: ${err.message}`
-            );
-            return reject(
-              new Error(`Unable to find document: ${err.message}`)
-            );
+            const errorMessage = `Unable to find document: ${err.message}`;
+            vscode.window.showErrorMessage(errorMessage);
+            return reject(new Error(errorMessage));
           }
 
           if (!documents || documents.length === 0) {
-            vscode.window.showErrorMessage(
-              `Unable to find document: ${documentId}`
-            );
-            return reject(
-              new Error(`Unable to find document: ${documentId}`)
-            );
+            const errorMessage = `Unable to find document: ${documentId}`;
+            vscode.window.showErrorMessage(errorMessage);
+            return reject(new Error(errorMessage));
           }
 
           return resolve(JSON.stringify(documents[0], null, 2));

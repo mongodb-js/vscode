@@ -14,6 +14,10 @@ import {
   cleanupTestDB,
   TEST_DB_NAME
 } from '../dbTestHelper';
+import {
+  documentWithAllBSONTypes,
+  documentWithAllBsonTypesJsonified
+} from './documentStringFixtures';
 
 const mockDocumentAsJsonString = `{
   "_id": "first_id",
@@ -188,6 +192,45 @@ suite('Document Provider Test Suite', () => {
   suite('Document Provider with live database', () => {
     afterEach(async () => {
       await cleanupTestDB();
+    });
+
+    test('handles displaying a document with all bson types', (done) => {
+      seedDataAndCreateDataService('ramen', [documentWithAllBSONTypes]).then(
+        (dataService) => {
+          const mockExtensionContext = new TestExtensionContext();
+          const mockStorageController = new StorageController(
+            mockExtensionContext
+          );
+          const mockConnectionController = new ConnectionController(
+            new StatusView(mockExtensionContext),
+            mockStorageController
+          );
+          mockConnectionController.setActiveConnection(dataService);
+
+          const testCollectionViewProvider = new DocumentProvider(
+            mockConnectionController,
+            new StatusView(mockExtensionContext)
+          );
+
+          const documentId = EJSON.stringify({
+            value: documentWithAllBSONTypes._id
+          });
+          const uri = vscode.Uri.parse(
+            `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
+          );
+
+          testCollectionViewProvider
+            .provideTextDocumentContent(uri)
+            .then((document) => {
+              assert(
+                document === documentWithAllBsonTypesJsonified,
+                `Expected provideTextDocumentContent to return ejson stringified string, found ${document}`
+              );
+              done();
+            })
+            .catch(done);
+        }
+      );
     });
 
     test('expected provideTextDocumentContent to handle an id that is an object id', (done) => {

@@ -66,14 +66,9 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
 
       const dataservice = this._connectionController.getActiveDataService();
       if (dataservice === null) {
-        vscode.window.showErrorMessage(
-          `Unable to list documents: no longer connected to ${connectionId}`
-        );
-        return reject(
-          new Error(
-            `Unable to list documents: no longer connected to ${connectionId}`
-          )
-        );
+        const errorMessage = `Unable to list documents: no longer connected to ${connectionId}`;
+        vscode.window.showErrorMessage(errorMessage);
+        return reject(new Error(errorMessage));
       }
       dataservice.find(
         namespace,
@@ -86,12 +81,9 @@ export default class CollectionViewProvider implements vscode.TextDocumentConten
           this._statusView.hideMessage();
 
           if (err) {
-            vscode.window.showErrorMessage(
-              `Unable to list documents: ${err.message}`
-            );
-            return reject(
-              new Error(`Unable to list documents: ${err.message}`)
-            );
+            const errorMessage = `Unable to list documents: ${err.message}`;
+            vscode.window.showErrorMessage(errorMessage);
+            return reject(new Error(errorMessage));
           }
 
           if (documents.length !== documentLimit) {
