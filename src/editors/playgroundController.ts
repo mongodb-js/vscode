@@ -7,7 +7,7 @@ import ActiveDBCodeLensProvider from './activeDBCodeLensProvider';
 import formatOutput from '../utils/formatOutput';
 import { createLogger } from '../logging';
 import { OutputChannel } from 'vscode';
-import playgroundTtemplate from '../templates/playgroundTemplate';
+import playgroundTemplate from '../templates/playgroundTemplate';
 
 const log = createLogger('editors controller');
 
@@ -37,7 +37,7 @@ export default class PlaygroundController {
       vscode.workspace
         .openTextDocument({
           language: 'mongodb',
-          content: useDefaultTemplate ? playgroundTtemplate : ''
+          content: useDefaultTemplate ? playgroundTemplate : ''
         })
         .then((document) => {
           vscode.window.showTextDocument(document);
