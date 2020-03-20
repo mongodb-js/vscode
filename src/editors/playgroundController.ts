@@ -7,7 +7,7 @@ import ActiveDBCodeLensProvider from './activeDBCodeLensProvider';
 import formatOutput from '../utils/formatOutput';
 import { createLogger } from '../logging';
 import { OutputChannel } from 'vscode';
-import { templates } from '../templates/playgroundTemplates';
+import playgroundTtemplate from '../templates/playgroundTemplate';
 
 const log = createLogger('editors controller');
 
@@ -31,13 +31,13 @@ export default class PlaygroundController {
   }
 
   createPlayground(): Promise<boolean> {
-    const templateId: string = vscode.workspace.getConfiguration('mdb').get('playgroundTemplate') || 'default';
+    const useDefaultTemplate: boolean = !!vscode.workspace.getConfiguration('mdb').get('useDefaultTemplateForPlayground');
 
     return new Promise((resolve, reject) => {
       vscode.workspace
         .openTextDocument({
           language: 'mongodb',
-          content: templates[templateId]
+          content: useDefaultTemplate ? playgroundTtemplate : ''
         })
         .then((document) => {
           vscode.window.showTextDocument(document);
