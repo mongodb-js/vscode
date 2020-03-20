@@ -358,13 +358,11 @@
           "when": "view == mongoDB && viewItem == schemaTreeItem"
         }
       ],
-      "editor/title": [
-        {
-          "command": "mdb.runAllPlaygroundBlocks",
-          "group": "navigation",
-          "when": "editorLangId == mongodb"
-        }
-      ]
+      "editor/title": [{
+        "command": "mdb.runAllPlaygroundBlocks",
+        "group": "navigation",
+        "when": "editorLangId == mongodb"
+      }]
     },
     "capabilities": {
       "codeLensProvider": {
@@ -416,6 +414,19 @@
           ],
           "default": "Workspace",
           "description": "When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved."
+        },
+        "mdb.playgroundTemplate": {
+          "type": "string",
+          "enum": [
+            "default",
+            "no template"
+          ],
+          "enumDescriptions": [
+            "Use the default template, with example commands",
+            "Open an empty editor"
+          ],
+          "default": "default",
+          "description": "The template to use for playground files"
         }
       }
     }

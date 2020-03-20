@@ -1103,9 +1103,15 @@ suite('MDBExtensionController Test Suite', () => {
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
+    const mockGetPlaygroundConfiguration = sinon.fake.returns({
+      get: (prop) => prop === 'playgroundTemplate' && 'default'
+    });
+    sinon.replace(vscode.workspace, 'getConfiguration', mockGetPlaygroundConfiguration);
+
     vscode.commands.executeCommand('mdb.createPlayground').then(() => {
       assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-      assert(mockOpenTextDocument.firstArg.content === '// The MongoDB playground');
+      console.log('xxx', mockOpenTextDocument.firstArg.content);
+      assert(mockOpenTextDocument.firstArg.content.startsWith('//select the database to use'));
       assert(
         mockShowTextDocument.firstArg === 'untitled',
         'Expected it to call vscode to show the playground'
