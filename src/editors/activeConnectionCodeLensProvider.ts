@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
 
-export default class ActiveDBCodeLensProvider implements vscode.CodeLensProvider {
+export default class ActiveConnectionCodeLensProvider implements vscode.CodeLensProvider {
   private _codeLenses: vscode.CodeLens[] = [];
   private _connectionController: any;
-  private _runtime: any;
-  private _activeDB?: string;
+  private _activeConnectionName?: string;
   private _onDidChangeCodeLenses: vscode.EventEmitter<
     void
   > = new vscode.EventEmitter<void>();
@@ -19,8 +18,8 @@ export default class ActiveDBCodeLensProvider implements vscode.CodeLensProvider
     });
   }
 
-  public setActiveDB(activeDB: string): void {
-    this._activeDB = activeDB;
+  public setActiveConnectionName(name: string): void {
+    this._activeConnectionName = name;
     this._onDidChangeCodeLenses.fire();
   }
 
@@ -37,9 +36,12 @@ export default class ActiveDBCodeLensProvider implements vscode.CodeLensProvider
   }
 
   public resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
+    const message = `Active connection is ${this._activeConnectionName}`;
+
     codeLens.command = {
-      title: `Active db is ${this._activeDB}`,
-      command: "mdb.runDBHelpInPlayground"
+      title: message,
+      command: "mdb.showActiveConnectionInPlayground",
+      arguments: [message]
     };
 
     return codeLens;

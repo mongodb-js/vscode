@@ -1162,18 +1162,18 @@ suite('MDBExtensionController Test Suite', () => {
     }).then(done, done);
   });
 
-  test('mdb.runDBHelpInPlayground command should call runDBHelpInPlayground on the playground controller', (done) => {
-    const mockRunDBHelpInPlayground = sinon.fake.resolves();
+  test('mdb.showActiveConnectionInPlayground command should call showActiveConnectionInPlayground on the playground controller', (done) => {
+    const mockShowActiveConnectionInPlayground = sinon.fake.resolves();
     sinon.replace(
       mdbTestExtension.testExtensionController._playgroundController,
-      'runDBHelpInPlayground',
-      mockRunDBHelpInPlayground
+      'showActiveConnectionInPlayground',
+      mockShowActiveConnectionInPlayground
     );
 
-    vscode.commands.executeCommand('mdb.runDBHelpInPlayground').then(() => {
+    vscode.commands.executeCommand('mdb.showActiveConnectionInPlayground').then(() => {
       assert(
-        mockRunDBHelpInPlayground.called,
-        'Expected "runDBHelpInPlayground" to be called on the playground controller.'
+        mockShowActiveConnectionInPlayground.called,
+        'Expected "showActiveConnectionInPlayground" to be called on the playground controller.'
       );
     }).then(done, done);
   });

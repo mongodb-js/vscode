@@ -87,8 +87,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.runAllPlaygroundBlocks', () =>
       this._playgroundController.runAllPlaygroundBlocks()
     );
-    this.registerCommand('mdb.runDBHelpInPlayground', () =>
-      this._playgroundController.runDBHelpInPlayground()
+    this.registerCommand('mdb.showActiveConnectionInPlayground', (message: string) =>
+      this._playgroundController.showActiveConnectionInPlayground(message)
     );
 
     this.registerEditorCommands();
@@ -355,5 +355,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     // TODO: Cancel active queries/playgrounds.
     this._connectionController.disconnect();
     this._explorerController.deactivate();
+    this._playgroundController.deactivate();
   }
 }

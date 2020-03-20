@@ -34,7 +34,8 @@ function getConnectWebviewContent(): string {
 }
 
 export enum DataServiceEventTypes {
-  CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE'
+  CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
+  ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED'
 }
 
 export default class ConnectionController {
@@ -275,6 +276,7 @@ export default class ConnectionController {
         this._connecting = false;
         this._connectingConnectionId = null;
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+        this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED, this.getActiveConnectionName());
 
         return resolve(true);
       });
@@ -356,6 +358,7 @@ export default class ConnectionController {
         this._statusView.hideMessage();
 
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+        this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
         return resolve(true);
       });
@@ -498,6 +501,7 @@ export default class ConnectionController {
     this._savedConnections[connectionId].name = inputtedConnectionName;
 
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
     return new Promise((resolve, reject) => {
       if (
@@ -562,6 +566,16 @@ export default class ConnectionController {
   public getSavedConnectionName(connectionId: string): string {
     return this._savedConnections[connectionId]
       ? this._savedConnections[connectionId].name
+      : '';
+  }
+
+  public getActiveConnectionName(): string {
+    if (!this._currentConnectionId) {
+      return '';
+    }
+
+    return this._savedConnections[this._currentConnectionId]
+      ? this._savedConnections[this._currentConnectionId].name
       : '';
   }
 

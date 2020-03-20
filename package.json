@@ -137,8 +137,8 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
-        "command": "mdb.runDBHelpInPlayground",
-        "title": "MongoDB: Run db.help() in Playground"
+        "command": "mdb.showActiveConnectionInPlayground",
+        "title": "MongoDB: Show Active Connection In Playground"
       },
       {
         "command": "mdb.runAllPlaygroundBlocks",
@@ -439,8 +439,8 @@
     }
   },
   "dependencies": {
-    "@mongosh/browser-runtime-electron": "0.0.1-alpha.4",
-    "@mongosh/service-provider-server": "0.0.1-alpha.4",
+    "@mongosh/browser-runtime-electron": "0.0.1-alpha.6",
+    "@mongosh/service-provider-server": "0.0.1-alpha.6",
     "bson": "^4.0.3",
     "debug": "^4.1.1",
     "mongodb-connection-model": "^14.6.2",
