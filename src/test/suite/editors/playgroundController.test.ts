@@ -3,6 +3,11 @@ import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext } from '../stubs';
+import { ObjectId } from 'bson';
+import {
+  seedDataAndCreateDataService,
+  cleanupTestDB
+} from '../dbTestHelper';
 
 const chai = require('chai')
 const expect = chai.expect
@@ -57,6 +62,35 @@ suite('Playground Controller Test Suite', () => {
         var x = 1;
         x + 2
       `)).to.be.equal('3');
+    });
+
+    test('evaluate interaction with a database', (done) => {
+      const mockActiveConnection = { find: {} };
+      const mockDocument = {
+        _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
+        example: 'field'
+      };
+
+      seedDataAndCreateDataService('forest', [mockDocument]).then(
+        async (dataService) => {
+          testConnectionController.setActiveConnection(dataService);
+
+          const actualResult = await testPlaygroundController.evaluate(`
+            use('vscodeTestDatabaseAA');
+            db.forest.find({})
+          `);
+          const expectedResult = '[\n' +
+            '  {\n' +
+            '    _id: 5e32b4d67bf47f4525f2f8ab,\n' +
+            '    example: \'field\'\n' +
+            '  }\n' +
+            ']';
+
+          expect(actualResult).to.be.equal(expectedResult);
+
+          await cleanupTestDB();
+        }
+      ).then(done, done);
     });
   });
 });
