@@ -46,7 +46,8 @@
     "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run compile",
     "check": "mongodb-js-precommit './src/**/*{.ts}'",
-    "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && vsce package"
+    "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && vsce package",
+    "local-install": "npm run package && code --install-extension ./mongodb-vscode-*.vsix"
   },
   "engines": {
     "vscode": "^1.41.0",
@@ -68,50 +69,39 @@
   ],
   "contributes": {
     "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "mongoDB",
-          "title": "MongoDB",
-          "icon": "images/mongodb.svg"
-        }
-      ]
+      "activitybar": [{
+        "id": "mongoDB",
+        "title": "MongoDB",
+        "icon": "images/mongodb.svg"
+      }]
     },
     "views": {
-      "mongoDB": [
-        {
-          "id": "mongoDB",
-          "name": "MongoDB",
-          "when": "config.mdb.show == true"
-        }
-      ]
+      "mongoDB": [{
+        "id": "mongoDB",
+        "name": "MongoDB",
+        "when": "config.mdb.show == true"
+      }]
     },
-    "languages": [
-      {
-        "id": "mongodb",
-        "aliases": [
-          "MongoDB",
-          "mongodb"
-        ],
-        "extensions": [
-          ".mongodb"
-        ]
-      }
-    ],
-    "grammars": [
-      {
-        "language": "mongodb",
-        "path": "./syntaxes/mongodb.tmLanguage.json",
-        "scopeName": "source.mongodb"
-      }
-    ],
-    "snippets": [
-      {
-        "language": "mongodb",
-        "path": "./snippets/stage-autocompleter.json"
-      }
-    ],
-    "commands": [
-      {
+    "languages": [{
+      "id": "mongodb",
+      "aliases": [
+        "MongoDB",
+        "mongodb"
+      ],
+      "extensions": [
+        ".mongodb"
+      ]
+    }],
+    "grammars": [{
+      "language": "mongodb",
+      "path": "./syntaxes/mongodb.tmLanguage.json",
+      "scopeName": "source.mongodb"
+    }],
+    "snippets": [{
+      "language": "mongodb",
+      "path": "./snippets/stage-autocompleter.json"
+    }],
+    "commands": [{
         "command": "mdb.connect",
         "title": "MongoDB: Connect"
       },
@@ -225,8 +215,7 @@
       }
     ],
     "menus": {
-      "view/title": [
-        {
+      "view/title": [{
           "command": "mdb.addConnection",
           "when": "view == mongoDB"
         },
@@ -235,8 +224,7 @@
           "when": "view == mongoDB"
         }
       ],
-      "view/item/context": [
-        {
+      "view/item/context": [{
           "command": "mdb.addConnection",
           "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem",
           "group": "inline"
@@ -450,6 +438,7 @@
     "sinon": "^9.0.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5",
+    "vsce": "^1.74.0",
     "vscode-test": "^1.3.0",
     "xvfb-maybe": "^0.2.1"
   },
