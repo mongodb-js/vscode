@@ -1,12 +1,15 @@
-const template: string = `//select the database to use.
+const template: string = `// Select the database to use
 use('test');
-//run a find command.
-db.my_collection.find({foo: 'bar'});
-//run an aggregation.
+
+// Run a find command
+db.myCollection.find({ foo: 'bar' });
+
+// Run an aggregation
 const agg = [
-  {$match: {foo: 'bar'}}
+  { $match: { foo: 'bar' } }
 ];
-db.my_collection.aggregate(agg);
+
+db.myCollection.aggregate(agg);
 `;
 
 export default template;

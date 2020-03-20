@@ -3,10 +3,11 @@ import * as vscode from 'vscode';
 import ConnectionController from '../connectionController';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CompassServiceProvider } from '@mongosh/service-provider-server';
-import ActiveDBCodeLensProvider from './activeDBCodeLensProvider';
+import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import formatOutput from '../utils/formatOutput';
 import { createLogger } from '../logging';
 import { OutputChannel } from 'vscode';
+import { DataServiceEventTypes } from '../connectionController';
 import playgroundTemplate from '../templates/playgroundTemplate';
 
 const log = createLogger('editors controller');
@@ -17,9 +18,8 @@ const log = createLogger('editors controller');
 export default class PlaygroundController {
   _context?: vscode.ExtensionContext;
   _connectionController?: ConnectionController;
-  _runtime?: ElectronRuntime;
   _activeDB?: any;
-  _activeDBCodeLensProvider?: ActiveDBCodeLensProvider;
+  _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
   _outputChannel: OutputChannel;
 
   constructor(context: vscode.ExtensionContext, connectionController: ConnectionController) {
@@ -28,6 +28,26 @@ export default class PlaygroundController {
     this._outputChannel = vscode.window.createOutputChannel(
       'Playground output'
     );
+    this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(this._connectionController);
+    this._context?.subscriptions.push(vscode.languages.registerCodeLensProvider(
+      {
+        language: 'mongodb'
+      },
+      this._activeConnectionCodeLensProvider
+    ));
+
+    if (this._connectionController) {
+      this._connectionController.addEventListener(
+        DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+        () => {
+          if (this._activeConnectionCodeLensProvider && this._connectionController) {
+            const name = this._connectionController.getActiveConnectionName();
+
+            this._activeConnectionCodeLensProvider.setActiveConnectionName(name);
+          }
+        }
+      );
+    }
   }
 
   createPlayground(): Promise<boolean> {
@@ -46,19 +66,10 @@ export default class PlaygroundController {
     });
   }
 
-  runDBHelpInPlayground(): Promise<boolean> {
+  showActiveConnectionInPlayground(message: string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-      let result;
-
-      try {
-        result = await this.evaluate('db.help()');
-      } catch (error) {
-        vscode.window.showErrorMessage(`Unable to run playground: ${error.message}`);
-        return resolve(false);
-      }
-
       this._outputChannel.clear();
-      this._outputChannel.appendLine(result);
+      this._outputChannel.appendLine(message);
       this._outputChannel.show(true);
 
       resolve(true);
@@ -81,26 +92,9 @@ export default class PlaygroundController {
     const serviceProvider = CompassServiceProvider.fromDataService(
       activeConnection
     );
-
-    if (!this._runtime) {
-      this._runtime = new ElectronRuntime(serviceProvider);
-    }
-
-    const res = await this._runtime.evaluate(codeToEvaluate);
+    const runtime = new ElectronRuntime(serviceProvider);
+    const res = await runtime.evaluate(codeToEvaluate);
     const value = formatOutput(res);
-    const activeDB = await this._runtime.evaluate('db');
-
-    if (!this._activeDBCodeLensProvider) {
-      this._activeDBCodeLensProvider = new ActiveDBCodeLensProvider(this._connectionController);
-      this._context?.subscriptions.push(vscode.languages.registerCodeLensProvider(
-        {
-          language: 'mongodb'
-        },
-        this._activeDBCodeLensProvider
-      ));
-    }
-
-    this._activeDBCodeLensProvider.setActiveDB(activeDB.value);
 
     return Promise.resolve(value);
   }
@@ -124,5 +118,14 @@ export default class PlaygroundController {
 
       resolve(true);
     });
+  }
+
+  public deactivate(): void {
+    if (this._connectionController) {
+      this._connectionController.removeEventListener(
+        DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+        () => { }
+      );
+    }
   }
 }
