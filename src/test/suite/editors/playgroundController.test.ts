@@ -49,5 +49,14 @@ suite('Playground Controller Test Suite', () => {
 
       expect(await testPlaygroundController.evaluate('1 + 1')).to.be.equal('2');
     });
+
+    test('evaluate multiple commands at once', async () => {
+      testConnectionController.setActiveConnection(mockActiveConnection);
+
+      expect(await testPlaygroundController.evaluate(`
+        var x = 1;
+        x + 2
+      `)).to.be.equal('3');
+    });
   });
 });
