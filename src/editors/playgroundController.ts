@@ -124,7 +124,9 @@ export default class PlaygroundController {
     if (this._connectionController) {
       this._connectionController.removeEventListener(
         DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-        () => { }
+        () => {
+          this.showActiveConnectionInPlayground('Playground disconnected');
+        }
       );
     }
   }
