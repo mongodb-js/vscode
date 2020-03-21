@@ -276,7 +276,7 @@ export default class ConnectionController {
         this._connecting = false;
         this._connectingConnectionId = null;
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-        this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED, this.getActiveConnectionName());
+        this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
         return resolve(true);
       });
