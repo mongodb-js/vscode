@@ -1,3 +1,4 @@
+import ConnectFormView from './connectFormView';
 import StatusView from './statusView';
 
-export { StatusView };
+export { ConnectFormView, StatusView };

@@ -66,7 +66,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
     this.registerCommand('mdb.connect', () =>
-      this._connectionController.addMongoDBConnection()
+      this._connectionController.addMongoDBConnection(this._context)
     );
     this.registerCommand('mdb.connectWithURI', () =>
       this._connectionController.connectWithURI()
@@ -121,7 +121,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   registerTreeViewCommands(): void {
     this.registerCommand('mdb.addConnection', () =>
-      this._connectionController.addMongoDBConnection()
+      this._connectionController.addMongoDBConnection(this._context)
     );
     this.registerCommand('mdb.addConnectionWithURI', () =>
       this._connectionController.connectWithURI()
