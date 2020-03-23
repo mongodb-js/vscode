@@ -108,7 +108,10 @@ suite('Playground Controller Test Suite', () => {
 
           await testPlaygroundController.evaluate(codeToEvaluate);
 
-          expect(testPlaygroundController.evaluate(codeToEvaluate)).to.be.not.rejected;
+          const result = await testPlaygroundController.evaluate(codeToEvaluate);
+
+          expect(result).to.be.equal('2');
+
           await cleanupTestDB();
         }
       );
