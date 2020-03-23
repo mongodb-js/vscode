@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 export default class ActiveConnectionCodeLensProvider implements vscode.CodeLensProvider {
   private _codeLenses: vscode.CodeLens[] = [];
   private _connectionController: any;
-  private _activeConnectionName?: string;
   private _onDidChangeCodeLenses: vscode.EventEmitter<
     void
   > = new vscode.EventEmitter<void>();
@@ -18,8 +17,7 @@ export default class ActiveConnectionCodeLensProvider implements vscode.CodeLens
     });
   }
 
-  public setActiveConnectionName(name: string): void {
-    this._activeConnectionName = name;
+  public refresh(): void {
     this._onDidChangeCodeLenses.fire();
   }
 
@@ -36,7 +34,8 @@ export default class ActiveConnectionCodeLensProvider implements vscode.CodeLens
   }
 
   public resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
-    const message = `Active connection is ${this._activeConnectionName}`;
+    const name = this._connectionController.getActiveConnectionName();
+    const message = `Currently connected to ${name}`;
 
     codeLens.command = {
       title: message,

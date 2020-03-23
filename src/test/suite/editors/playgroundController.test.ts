@@ -65,7 +65,6 @@ suite('Playground Controller Test Suite', () => {
     });
 
     test('evaluate interaction with a database', (done) => {
-      const mockActiveConnection = { find: {} };
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
         example: 'field'
@@ -91,6 +90,28 @@ suite('Playground Controller Test Suite', () => {
           await cleanupTestDB();
         }
       ).then(done, done);
+    });
+
+    test('create a new playground instance for each run', () => {
+      const mockDocument = {
+        _id: new ObjectId('5e32b4d67bf47f4525f2f777'),
+        valueOfTheField: 'is not important'
+      };
+      const codeToEvaluate = `
+        const x = 1;
+        x + 1
+      `;
+
+      seedDataAndCreateDataService('forest', [mockDocument]).then(
+        async (dataService) => {
+          testConnectionController.setActiveConnection(dataService);
+
+          await testPlaygroundController.evaluate(codeToEvaluate);
+
+          expect(testPlaygroundController.evaluate(codeToEvaluate)).to.be.not.rejected;
+          await cleanupTestDB();
+        }
+      );
     });
   });
 });

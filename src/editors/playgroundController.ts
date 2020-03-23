@@ -16,8 +16,8 @@ const log = createLogger('editors controller');
  * This controller manages playground.
  */
 export default class PlaygroundController {
-  _context?: vscode.ExtensionContext;
-  _connectionController?: ConnectionController;
+  _context: vscode.ExtensionContext;
+  _connectionController: ConnectionController;
   _activeDB?: any;
   _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
   _outputChannel: OutputChannel;
@@ -29,25 +29,21 @@ export default class PlaygroundController {
       'Playground output'
     );
     this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(this._connectionController);
-    this._context?.subscriptions.push(vscode.languages.registerCodeLensProvider(
+    this._context.subscriptions.push(vscode.languages.registerCodeLensProvider(
       {
         language: 'mongodb'
       },
       this._activeConnectionCodeLensProvider
     ));
 
-    if (this._connectionController) {
-      this._connectionController.addEventListener(
-        DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-        () => {
-          if (this._activeConnectionCodeLensProvider && this._connectionController) {
-            const name = this._connectionController.getActiveConnectionName();
-
-            this._activeConnectionCodeLensProvider.setActiveConnectionName(name);
-          }
+    this._connectionController.addEventListener(
+      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      () => {
+        if (this._activeConnectionCodeLensProvider) {
+          this._activeConnectionCodeLensProvider.refresh();
         }
-      );
-    }
+      }
+    );
   }
 
   createPlayground(): Promise<boolean> {
@@ -77,10 +73,6 @@ export default class PlaygroundController {
   }
 
   async evaluate(codeToEvaluate: string): Promise<any> {
-    if (!this._connectionController) {
-      return Promise.reject(new Error('No connection controller.'));
-    }
-
     const activeConnection = this._connectionController.getActiveDataService();
 
     if (!activeConnection) {
@@ -100,7 +92,7 @@ export default class PlaygroundController {
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
       const activeEditor = vscode.window.activeTextEditor;
       const codeToEvaluate = activeEditor?.document.getText() || '';
       let result;
@@ -121,13 +113,13 @@ export default class PlaygroundController {
   }
 
   public deactivate(): void {
-    if (this._connectionController) {
-      this._connectionController.removeEventListener(
-        DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-        () => {
-          this.showActiveConnectionInPlayground('Playground disconnected');
-        }
-      );
-    }
+    this._connectionController.removeEventListener(
+      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      () => {
+        /**
+         * No action is required after removing the listener.
+         */
+      }
+    );
   }
 }
