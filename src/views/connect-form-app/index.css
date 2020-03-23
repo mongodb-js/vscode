@@ -1,3 +1,4 @@
 body {
-  color: purple;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
 }
