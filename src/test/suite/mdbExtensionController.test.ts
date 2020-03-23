@@ -1113,7 +1113,7 @@ suite('MDBExtensionController Test Suite', () => {
 
     vscode.commands.executeCommand('mdb.createPlayground').then(() => {
       assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-      assert(mockOpenTextDocument.firstArg.content.startsWith('//select the database to use'));
+      assert(mockOpenTextDocument.firstArg.content.startsWith('// Select the database to use'));
       assert(
         mockShowTextDocument.firstArg === 'untitled',
         'Expected it to call vscode to show the playground'
@@ -1121,7 +1121,7 @@ suite('MDBExtensionController Test Suite', () => {
     }).then(done, done);
   });
 
-  test('mdb.createPlayground should create a MongoDB playground with default template', (done) => {
+  test('mdb.createPlayground should create a MongoDB playground without template', (done) => {
     const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
@@ -1162,18 +1162,18 @@ suite('MDBExtensionController Test Suite', () => {
     }).then(done, done);
   });
 
-  test('mdb.runDBHelpInPlayground command should call runDBHelpInPlayground on the playground controller', (done) => {
-    const mockRunDBHelpInPlayground = sinon.fake.resolves();
+  test('mdb.showActiveConnectionInPlayground command should call showActiveConnectionInPlayground on the playground controller', (done) => {
+    const mockShowActiveConnectionInPlayground = sinon.fake.resolves();
     sinon.replace(
       mdbTestExtension.testExtensionController._playgroundController,
-      'runDBHelpInPlayground',
-      mockRunDBHelpInPlayground
+      'showActiveConnectionInPlayground',
+      mockShowActiveConnectionInPlayground
     );
 
-    vscode.commands.executeCommand('mdb.runDBHelpInPlayground').then(() => {
+    vscode.commands.executeCommand('mdb.showActiveConnectionInPlayground').then(() => {
       assert(
-        mockRunDBHelpInPlayground.called,
-        'Expected "runDBHelpInPlayground" to be called on the playground controller.'
+        mockShowActiveConnectionInPlayground.called,
+        'Expected "showActiveConnectionInPlayground" to be called on the playground controller.'
       );
     }).then(done, done);
   });

@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
-import ActiveDBCodeLensProvider from '../../../editors/activeDBCodeLensProvider';
+import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import { TestExtensionContext, mockVSCodeTextDocument } from '../stubs';
 import { StorageController } from '../../../storage';
 
