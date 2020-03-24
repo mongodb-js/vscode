@@ -116,5 +116,9 @@ suite('Storage Controller Test Suite', () => {
       updatedWorkspaceModels.new_conn.driverUrl === 'this_has_been_saved',
       'Expected new connection data to exist.'
     );
+    assert(
+      updatedWorkspaceModels.new_conn.name === 'saved2',
+      'Expected new connection data to exist.'
+    );
   });
 });
