@@ -220,7 +220,7 @@ export default class MDBExtensionController implements vscode.Disposable {
                 // to update the explorer view.
                 this._explorerController.refresh();
               }
-              resolve(true);
+              resolve(successfullyAddedDatabase);
             }, reject);
         });
       }
@@ -239,7 +239,23 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.dropDatabase',
       (element: DatabaseTreeItem): Promise<boolean> => {
-        return element.onDropDatabaseClicked();
+        return new Promise((resolve, reject) => {
+          element
+            .onDropDatabaseClicked()
+            .then((successfullyDroppedDatabase) => {
+              if (successfullyDroppedDatabase) {
+                vscode.window.showInformationMessage(
+                  'Database successfully dropped.'
+                );
+
+                // When we successfully drop a database, we need
+                // to update the explorer view.
+                this._explorerController.refresh();
+              }
+
+              resolve(successfullyDroppedDatabase);
+            }, reject);
+        });
       }
     );
     this.registerCommand(
@@ -291,7 +307,23 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.dropCollection',
       (element: CollectionTreeItem): Promise<boolean> => {
-        return element.onDropCollectionClicked();
+        return new Promise((resolve, reject) => {
+          element
+            .onDropCollectionClicked()
+            .then((successfullyDroppedCollection) => {
+              if (successfullyDroppedCollection) {
+                vscode.window.showInformationMessage(
+                  'Collection successfully dropped.'
+                );
+
+                // When we successfully drop a collection, we need
+                // to update the explorer view.
+                this._explorerController.refresh();
+              }
+
+              resolve(successfullyDroppedCollection);
+            }, reject);
+        });
       }
     );
     this.registerCommand(

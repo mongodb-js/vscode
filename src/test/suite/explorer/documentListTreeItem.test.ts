@@ -96,7 +96,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     assert(
       testDocumentListTreeItem.collapsibleState ===
-        vscode.TreeItemCollapsibleState.None
+      vscode.TreeItemCollapsibleState.None
     );
   });
 
@@ -220,7 +220,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       .then(done, done);
   });
 
-  test('a view should show a different icon from a collection', () => {
+  test('it shows a documents icon', () => {
     const testCollectionViewTreeItem = new DocumentListTreeItem(
       'mock_collection_name_4',
       'mock_db_name',
@@ -233,12 +233,8 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const viewIconPath: any = testCollectionViewTreeItem.iconPath;
     assert(
-      viewIconPath.light.includes('view-documents.svg'),
-      'Expected icon path to point to an svg by the name "view" with a light mode'
-    );
-    assert(
-      viewIconPath.dark.includes('view-documents.svg'),
-      'Expected icon path to point to an svg by the name "view" a dark mode'
+      viewIconPath.dark.includes('documents.svg'),
+      'Expected icon path to point to an svg by the name "documents" a dark mode'
     );
 
     const testDocumentListTreeItem = new DocumentListTreeItem(
@@ -253,12 +249,8 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const collectionIconPath: any = testDocumentListTreeItem.iconPath;
     assert(
-      collectionIconPath.light.includes('collection-documents.svg'),
-      'Expected icon path to point to an svg by the name "collection" with a light mode'
-    );
-    assert(
-      collectionIconPath.dark.includes('collection-documents.svg'),
-      'Expected icon path to point to an svg by the name "collection" with a light mode'
+      collectionIconPath.dark.includes('documents.svg'),
+      'Expected icon path to point to an svg by the name "documents" with a light mode'
     );
   });
 });

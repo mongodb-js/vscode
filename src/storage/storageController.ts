@@ -96,7 +96,7 @@ export default class StorageController {
       workspaceConnections = {};
     }
 
-    connection.storageLocation = StorageScope.GLOBAL;
+    connection.storageLocation = StorageScope.WORKSPACE;
 
     // Add the new connection.
     workspaceConnections[connection.id] = connection;
