@@ -4,4 +4,7 @@ import Welcome from './welcome';
 
 import './index.css';
 
-ReactDOM.render(<Welcome />, document.getElementById('root'));
+ReactDOM.render(
+  <Welcome />,
+  document.getElementById('root')
+);

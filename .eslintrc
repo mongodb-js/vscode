@@ -5,15 +5,15 @@
   },
   "parser": "@typescript-eslint/parser", // Specifies the ESLint parser
   "plugins": [
-    "@typescript-eslint",
-    "plugin:react/recommended"
+    "@typescript-eslint"
   ],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "mongodb-js/node"
+    "mongodb-js/node",
+    "plugin:react/recommended"
   ],
   "parserOptions": {
     "ecmaVersion": 2018,
