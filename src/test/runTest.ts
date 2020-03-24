@@ -22,7 +22,8 @@ async function main(): Promise<any> {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [
-        testWorkspace
+        testWorkspace,
+        '--disable-extensions'
       ]
     });
   } catch (err) {
