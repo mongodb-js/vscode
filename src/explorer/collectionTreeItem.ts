@@ -197,15 +197,21 @@ export default class CollectionTreeItem extends vscode.TreeItem
     const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
     const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
 
-    if (this.isExpanded) {
+    if (this._type === CollectionTypes.collection) {
+      if (this.isExpanded) {
+        return {
+          light: path.join(LIGHT, 'collection-folder-open.svg'),
+          dark: path.join(DARK, 'collection-folder-open.svg')
+        };
+      }
       return {
-        light: path.join(LIGHT, 'collection-folder-open.svg'),
-        dark: path.join(DARK, 'collection-folder-open.svg')
+        light: path.join(LIGHT, 'collection-folder-closed.svg'),
+        dark: path.join(DARK, 'collection-folder-closed.svg')
       };
     }
     return {
-      light: path.join(LIGHT, 'collection-folder-closed.svg'),
-      dark: path.join(DARK, 'collection-folder-closed.svg')
+      light: path.join(LIGHT, 'view-folder.svg'),
+      dark: path.join(DARK, 'view-folder.svg')
     };
   }
 }

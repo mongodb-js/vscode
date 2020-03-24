@@ -62,4 +62,46 @@ suite('CollectionTreeItem Test Suite', () => {
       })
       .then(done, done);
   });
+
+  test('a view should show a different icon from a collection', () => {
+    const testCollectionViewTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_1',
+        type: CollectionTypes.view
+      },
+      'mock_db_name',
+      'imaginary data service',
+      false
+    );
+
+    const viewIconPath: any = testCollectionViewTreeItem.iconPath;
+    assert(
+      viewIconPath.light.includes('view-folder.svg'),
+      'Expected icon path to point to an svg by the name "view" with a light mode'
+    );
+    assert(
+      viewIconPath.dark.includes('view-folder.svg'),
+      'Expected icon path to point to an svg by the name "view" a dark mode'
+    );
+
+    const testCollectionCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_1',
+        type: CollectionTypes.collection
+      },
+      'mock_db_name',
+      'imaginary data service',
+      false
+    );
+
+    const collectionIconPath: any = testCollectionCollectionTreeItem.iconPath;
+    assert(
+      collectionIconPath.light.includes('collection-folder-closed.svg'),
+      'Expected icon path to point to an svg by the name "collection" with a light mode'
+    );
+    assert(
+      collectionIconPath.dark.includes('collection-folder-closed.svg'),
+      'Expected icon path to point to an svg by the name "collection" with a light mode'
+    );
+  });
 });
