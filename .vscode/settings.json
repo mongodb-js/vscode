@@ -15,5 +15,11 @@
   // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
   "typescript.tsc.autoDetect": "off",
   "prettier.singleQuote": true,
-  "prettier.arrowParens": "always"
+  "prettier.arrowParens": "always",
+  // Language server logging for
+  // https://github.com/Microsoft/language-server-protocol-inspector
+  "mongodbLanguageServer.trace.server": {
+    "format": "json",
+    "verbosity": "info"
+  }
 }
