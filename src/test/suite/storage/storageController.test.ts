@@ -75,6 +75,10 @@ suite('Storage Controller Test Suite', () => {
       updatedGlobalModels.new_conn.driverUrl === 'another_url_that_is_so_saved',
       'Expected new connection data to exist.'
     );
+    assert(
+      updatedGlobalModels.new_conn.storageLocation === StorageScope.GLOBAL,
+      'Expected storage scope to be set.'
+    );
   });
 
   test('addNewConnectionToWorkspaceStore adds the connection to preexisting connections on the workspace store', () => {
@@ -119,6 +123,10 @@ suite('Storage Controller Test Suite', () => {
     assert(
       updatedWorkspaceModels.new_conn.name === 'saved2',
       'Expected new connection data to exist.'
+    );
+    assert(
+      updatedWorkspaceModels.new_conn.storageLocation === StorageScope.WORKSPACE,
+      'Expected storage scope to be set.'
     );
   });
 });
