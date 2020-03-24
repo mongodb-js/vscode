@@ -131,7 +131,7 @@ suite('Playground Controller Test Suite', () => {
           testConnectionController.setActiveConnection(dataService);
           testPlaygroundController.runAllPlaygroundBlocks().then(() => {
             const expectedMessage =
-              'Are you sure you with to run this playground against ${name}?';
+              'Are you sure you want to run this playground against ${name}?';
 
             expect(fakeShowInformationMessage).to.have.been.called;
             expect(fakeShowInformationMessage.firstArg).to.be.equal(expectedMessage);
