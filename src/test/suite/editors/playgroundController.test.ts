@@ -47,6 +47,9 @@ suite('Playground Controller Test Suite', () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
+
+    testConnectionController.getActiveConnectionName = () => 'fakeName';
+
     const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController);
 
     test('evaluate should sum numbers', async () => {
@@ -131,9 +134,8 @@ suite('Playground Controller Test Suite', () => {
           testConnectionController.setActiveConnection(dataService);
           testPlaygroundController.runAllPlaygroundBlocks().then(() => {
             const expectedMessage =
-              'Are you sure you want to run this playground against ${name}?';
+              'Are you sure you want to run this playground against fakeName?';
 
-            expect(fakeShowInformationMessage).to.have.been.called;
             expect(fakeShowInformationMessage.firstArg).to.be.equal(expectedMessage);
           }).then(done, done);
 
