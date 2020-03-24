@@ -116,5 +116,30 @@ suite('Playground Controller Test Suite', () => {
         }
       );
     });
+
+    test('show a confirmation message before running commands in a playground', (done) => {
+      const mockDocument = {
+        _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
+        example: 'field'
+      };
+      const fakeShowInformationMessage = sinon.fake();
+
+      sinon.replace(vscode.window, 'showInformationMessage', fakeShowInformationMessage);
+
+      seedDataAndCreateDataService('forest', [mockDocument]).then(
+        async (dataService) => {
+          testConnectionController.setActiveConnection(dataService);
+          testPlaygroundController.runAllPlaygroundBlocks().then(() => {
+            const expectedMessage =
+              'Are you sure you with to run this playground against ${name}?';
+
+            expect(fakeShowInformationMessage).to.have.been.called;
+            expect(fakeShowInformationMessage.firstArg).to.be.equal(expectedMessage);
+          }).then(done, done);
+
+          await cleanupTestDB();
+        }
+      ).then(done, done);
+    });
   });
 });
