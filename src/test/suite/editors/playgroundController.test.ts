@@ -135,7 +135,7 @@ suite('Playground Controller Test Suite', () => {
           await testPlaygroundController.runAllPlaygroundBlocks();
 
           const expectedMessage =
-            'Are you sure you want to run this playground against fakeName?';
+            'Are you sure you want to run this playground against fakeName? This confirmation can be disabled in the extension settings.';
 
           expect(fakeShowInformationMessage.calledOnce).to.be.true;
           expect(fakeShowInformationMessage.calledWith(expectedMessage)).to.be.true;
