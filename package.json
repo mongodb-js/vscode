@@ -410,6 +410,11 @@
           "default": 10,
           "description": "The number of documents to fetch when viewing documents from a collection."
         },
+        "mdb.confirmRunAll": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a confirmation message before running commands in a playground."
+        },
         "mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections": {
           "type": "boolean",
           "default": false,

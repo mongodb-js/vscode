@@ -93,6 +93,24 @@ export default class PlaygroundController {
 
   runAllPlaygroundBlocks(): Promise<boolean> {
     return new Promise(async (resolve) => {
+      const activeConnection = this._connectionController.getActiveDataService();
+      const shouldConfirmRunAll = vscode.workspace
+        .getConfiguration('mdb')
+        .get('confirmRunAll');
+
+      if (activeConnection && shouldConfirmRunAll === true) {
+        const name = this._connectionController.getActiveConnectionName();
+        const confirmRunAll = await vscode.window.showInformationMessage(
+          `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,
+          { modal: true },
+          'Yes'
+        );
+
+        if (confirmRunAll !== 'Yes') {
+          return Promise.resolve(false);
+        }
+      }
+
       const activeEditor = vscode.window.activeTextEditor;
       const codeToEvaluate = activeEditor?.document.getText() || '';
       let result;

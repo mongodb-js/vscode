@@ -47,6 +47,8 @@ suite('Playground Controller Test Suite', () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
+    testConnectionController.getActiveConnectionName = () => 'fakeName';
+
     const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController);
 
     test('evaluate should sum numbers', async () => {
@@ -115,6 +117,59 @@ suite('Playground Controller Test Suite', () => {
           await cleanupTestDB();
         }
       );
+    });
+
+    test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is true', (done) => {
+      const mockDocument = {
+        _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
+        example: 'field'
+      };
+      const fakeShowInformationMessage = sinon.stub(vscode.window, 'showInformationMessage');
+
+      fakeShowInformationMessage.returns('Yes');
+
+      seedDataAndCreateDataService('forest', [mockDocument]).then(
+        async (dataService) => {
+          testConnectionController.setActiveConnection(dataService);
+
+          await testPlaygroundController.runAllPlaygroundBlocks();
+
+          const expectedMessage =
+            'Are you sure you want to run this playground against fakeName? This confirmation can be disabled in the extension settings.';
+
+          expect(fakeShowInformationMessage.calledOnce).to.be.true;
+          expect(fakeShowInformationMessage.calledWith(expectedMessage)).to.be.true;
+          fakeShowInformationMessage.restore();
+
+          await cleanupTestDB();
+        }
+      ).then(done, done);
+    });
+
+    test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is false', (done) => {
+      const mockDocument = {
+        _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
+        example: 'field'
+      };
+      const fakeShowInformationMessage = sinon.stub(vscode.window, 'showInformationMessage');
+
+      fakeShowInformationMessage.returns('Yes');
+
+      seedDataAndCreateDataService('forest', [mockDocument]).then(
+        async (dataService) => {
+          testConnectionController.setActiveConnection(dataService);
+
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('confirmRunAll', false);
+          await testPlaygroundController.runAllPlaygroundBlocks();
+
+          expect(fakeShowInformationMessage.calledOnce).to.be.false;
+          fakeShowInformationMessage.restore();
+
+          await cleanupTestDB();
+        }
+      ).then(done, done);
     });
   });
 });
