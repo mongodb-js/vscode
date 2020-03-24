@@ -1,0 +1,16 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "prettier.singleQuote": true,
+  "prettier.arrowParens": "always",
+  // Language server logging for
+  // https://github.com/Microsoft/language-server-protocol-inspector
+  "mongodbLanguageServer.trace.server": {
+    "format": "json",
+    "verbosity": "verbose"
+  }
+}
