@@ -40,29 +40,6 @@ export default class ConnectFormView {
 
     panel.webview.html = getConnectWebviewContent(reactAppUri);
 
-    // Handle messages from the webview
-    panel.webview.onDidReceiveMessage(
-      (message) => {
-        switch (message.command) {
-          default:
-            vscode.window.showErrorMessage(
-              'Unexpected message from connect dialogue window.'
-            );
-            break;
-          case 'alert':
-            vscode.window.showErrorMessage(message.text);
-            break;
-        }
-      },
-      undefined,
-      context.subscriptions
-    );
-
-    // sunburstViewer.webview.postMessage({
-    //   command: DATBASE_INFO,
-    //   vegaConfig: createVegaSunburstJson(sunburstData)
-    // }).then(resolve, reject);
-
     return Promise.resolve(true);
   }
 }
