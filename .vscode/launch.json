@@ -32,6 +32,22 @@
         "${workspaceFolder}/out/test/**/*.js"
       ],
       "preLaunchTask": "${defaultBuildTask}"
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Language Server",
+      "protocol": "inspector",
+      "port": 6005,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/out/**/*.js"],
+      "preLaunchTask": "${defaultBuildTask}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Extension + Server Inspector",
+      "configurations": ["Run Extension", "Attach to Language Server"]
     }
   ]
 }
