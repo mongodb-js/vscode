@@ -5,7 +5,8 @@
   },
   "parser": "@typescript-eslint/parser", // Specifies the ESLint parser
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "plugin:react/recommended"
   ],
   "extends": [
     "eslint:recommended",
@@ -21,6 +22,9 @@
       "./tsconfig.json",
       "./src/views/connect-form-app/tsconfig.json"
     ]
+  },
+  "globals": {
+    "document": true
   },
   "rules": {
     "camelcase": 1,

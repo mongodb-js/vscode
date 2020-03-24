@@ -101,7 +101,9 @@ export default class ConnectionController {
     }
   }
 
-  public addMongoDBConnection(context: vscode.ExtensionContext): Promise<boolean> {
+  public addMongoDBConnection(
+    context: vscode.ExtensionContext
+  ): Promise<boolean> {
     log.info('mdb.connect command called.');
 
     // Display a message box to the user.

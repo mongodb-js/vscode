@@ -42,10 +42,12 @@ export default class ConnectFormView {
 
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(
-      message => {
+      (message) => {
         switch (message.command) {
           default:
-            vscode.window.showErrorMessage('Unexpected message from connect dialogue window.');
+            vscode.window.showErrorMessage(
+              'Unexpected message from connect dialogue window.'
+            );
             break;
           case 'alert':
             vscode.window.showErrorMessage(message.text);
@@ -64,4 +66,3 @@ export default class ConnectFormView {
     return Promise.resolve(true);
   }
 }
-
