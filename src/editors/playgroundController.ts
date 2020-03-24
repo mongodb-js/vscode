@@ -101,7 +101,7 @@ export default class PlaygroundController {
       if (activeConnection && shouldConfirmRunAll === true) {
         const name = this._connectionController.getActiveConnectionName();
         const confirmRunAll = await vscode.window.showInformationMessage(
-          `Are you sure you with to run this playground against ${name}?`,
+          `Are you sure you want to run this playground against ${name}?`,
           { modal: true },
           'Yes'
         );
