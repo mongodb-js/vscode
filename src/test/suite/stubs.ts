@@ -63,6 +63,29 @@ const mockDatabases = {
         name: 'mock_db_2_collection_2'
       }
     ]
+  },
+  mockDatabase3: {
+    databaseName: 'mockDatabase3',
+    collections: [
+      {
+        name: 'ZZZ'
+      },
+      {
+        name: 'AAA'
+      },
+      {
+        name: '111_abc'
+      },
+      {
+        name: '222_abc'
+      },
+      {
+        name: 'zzz'
+      },
+      {
+        name: 'aaa'
+      }
+    ]
   }
 };
 const mockDatabaseNames = Object.keys(mockDatabases);
