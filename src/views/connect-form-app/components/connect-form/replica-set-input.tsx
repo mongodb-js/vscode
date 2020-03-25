@@ -1,4 +1,4 @@
-import React, { PureComponent, ReactNode } from 'react';
+import * as React from 'react';
 
 import Actions from '../../store/actions';
 import FormInput from './form-input';
@@ -8,7 +8,7 @@ type props = {
   replicaSet: string;
 };
 
-class ReplicaSetInput extends PureComponent<props> {
+class ReplicaSetInput extends React.PureComponent<props> {
   static displayName = 'ReplicaSetInput';
 
   /**
@@ -20,7 +20,7 @@ class ReplicaSetInput extends PureComponent<props> {
     Actions.onReplicaSetChanged(evt.target.value);
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     const {
       replicaSet,
       sshTunnel

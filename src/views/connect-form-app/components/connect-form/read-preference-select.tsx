@@ -1,11 +1,11 @@
-import React, { PureComponent, ReactNode } from 'react';
+import * as React from 'react';
 
 import Actions from '../../store/actions';
 import FormItemSelect from './form-item-select';
 
 type props = { readPreference: string };
 
-class ReadPreferenceSelect extends PureComponent<props> {
+class ReadPreferenceSelect extends React.PureComponent<props> {
   static displayName = 'ReadPreferenceSelect';
 
   /**
@@ -17,7 +17,9 @@ class ReadPreferenceSelect extends PureComponent<props> {
     Actions.onReadPreferenceChanged(evt.target.value);
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
+    const { readPreference } = this.props;
+
     return (
       <FormItemSelect
         label="Read Preference"
@@ -30,7 +32,7 @@ class ReadPreferenceSelect extends PureComponent<props> {
           { 'nearest': 'Nearest' }
         ]}
         changeHandler={this.onReadPreferenceChanged.bind(this)}
-        value={this.props.readPreference}
+        value={readPreference}
       />
     );
   }

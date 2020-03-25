@@ -1,24 +1,21 @@
-import React, { Component, ReactNode } from 'react';
+import * as React from 'react';
 import classnames from 'classnames';
 
 import Actions from '../../store/actions';
 import FormGroup from './form-group';
 
-import styles from '../connect.less';
+import styles from '../../connect.less';
 
 type props = {
   currentConnection: any; // TODO: Connection model type.
-  isValid?: boolean;
-  isConnected?: boolean;
-  errorMessage?: string;
-  syntaxErrorMessage?: string;
-  hasUnsavedChanges?: boolean;
-  viewType?: string;
-  isURIEditable?: boolean;
-  isSavedConnection?: boolean;
+  errorMessage: string;
+  hasUnsavedChanges: boolean;
+  isConnected: boolean;
+  isValid: boolean;
+  syntaxErrorMessage: string;
 };
 
-class FormActions extends Component<props> {
+class FormActions extends React.Component<props> {
   static displayName = 'FormActions';
 
   /**
@@ -110,7 +107,7 @@ class FormActions extends Component<props> {
    *
    * @returns {React.Component}
    */
-  renderUnsavedMessage(): ReactNode {
+  renderUnsavedMessage(): React.ReactNode {
     return (
       <div className={classnames(styles['unsaved-message-actions'])}>
         You have unsaved changes.
@@ -131,7 +128,7 @@ class FormActions extends Component<props> {
    *
    * @returns {React.Component}
    */
-  renderDisconnect = (): ReactNode => {
+  renderDisconnect = (): React.ReactNode => {
     return (
       <button
         type="submit"
@@ -149,7 +146,7 @@ class FormActions extends Component<props> {
    *
    * @returns {React.Component}
    */
-  renderConnect = (): ReactNode => {
+  renderConnect = (): React.ReactNode => {
     const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
 
     return (
@@ -165,58 +162,13 @@ class FormActions extends Component<props> {
   };
 
   /**
-   * Renders the "Edit" button.
-   *
-   * @returns {React.Component}
-   */
-  renderEditURI = (): ReactNode => {
-    if (this.props.viewType === 'connectionString') {
-      return (
-        <button
-          type="submit"
-          name="editUrl"
-          className="btn btn-sm btn-default"
-          onClick={this.onEditURIClicked}
-        >
-          Edit
-        </button>
-      );
-    }
-  };
-
-  /**
-   * Renders the "Hide" button.
-   *
-   * @returns {React.Component}
-   */
-  renderHideURI = () => {
-    if (
-      this.props.isSavedConnection &&
-      !this.props.hasUnsavedChanges &&
-      this.props.viewType === 'connectionString'
-    ) {
-      return (
-        <button
-          type="submit"
-          name="hideUrl"
-          className="btn btn-sm btn-default"
-          onClick={this.onHideURIClicked.bind(this)}
-        >
-          Hide
-        </button>
-      );
-    }
-  };
-
-  /**
    * Renders connect or disconnect button depending on state.
    *
    * @returns {React.Component}
    */
-  renderConnectButtons() {
+  renderConnectButtons(): React.ReactNode {
     return (
       <div className={classnames(styles.buttons)}>
-        {this.props.isURIEditable ? this.renderHideURI() : this.renderEditURI()}
         {this.props.isConnected
           ? this.renderDisconnect()
           : this.renderConnect()}
@@ -229,10 +181,10 @@ class FormActions extends Component<props> {
    *
    * @returns {React.Component}
    */
-  renderMessage(): ReactNode {
+  renderMessage(): React.ReactNode {
     const connection = this.props.currentConnection;
     const server = `${connection.hostname}:${connection.port}`;
-    let message: ReactNode = `Connected to ${server}`;
+    let message: React.ReactNode = `Connected to ${server}`;
     let colorStyle = styles['connection-message-container-success'];
     let hasMessage = false;
 
@@ -240,13 +192,6 @@ class FormActions extends Component<props> {
       hasMessage = true;
       message = this.props.errorMessage;
       colorStyle = styles['connection-message-container-error'];
-    } else if (
-      this.hasSyntaxError() &&
-      this.props.viewType === 'connectionString'
-    ) {
-      hasMessage = true;
-      message = this.props.syntaxErrorMessage;
-      colorStyle = styles['connection-message-container-syntax-error'];
     } else if (this.props.isConnected) {
       hasMessage = true;
     } else if (this.props.hasUnsavedChanges) {
@@ -266,7 +211,7 @@ class FormActions extends Component<props> {
     }
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     return (
       <FormGroup id="favorite">
         {this.renderMessage()}

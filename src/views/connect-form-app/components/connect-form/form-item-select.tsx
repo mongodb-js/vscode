@@ -1,17 +1,17 @@
-import React, { Component, ReactNode } from 'react';
+import * as React from 'react';
 import classnames from 'classnames';
 
-import styles from '../connect.less';
+import styles from '../../connect.less';
 
 type props = {
   label: string;
   name: string;
   options: object[];
-  changeHandler: () => {};
+  changeHandler: (evt: React.ChangeEvent<HTMLSelectElement>) => void;
   value: string;
 };
 
-class FormItemSelect extends Component<props> {
+class FormItemSelect extends React.Component<props> {
   static displayName = 'FormItemSelect';
 
   /**
@@ -21,7 +21,7 @@ class FormItemSelect extends Component<props> {
    *
    * @returns {React.Component}
    */
-  renderOptions(options): ReactNode {
+  renderOptions(options): React.ReactNode {
     return options.map((option, i) => {
       const select = Object.keys(option)[0];
 
@@ -33,7 +33,7 @@ class FormItemSelect extends Component<props> {
     });
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     return (
       <div className={classnames(styles['form-item'])}>
         <label className={classnames(styles['select-label'])}><span>{this.props.label}</span></label>

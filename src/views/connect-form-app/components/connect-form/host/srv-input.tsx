@@ -1,16 +1,16 @@
-import React, { PureComponent, ReactNode } from 'react';
-
-import Actions from '../../../store/actions';
-import Switch from 'react-ios-switch';
+import * as React from 'react';
+// import Switch from 'react-ios-switch';
 import classnames from 'classnames';
 
-import styles from '../connect.less';
+import Actions from '../../../store/actions';
+
+import styles from '../../../connect.less';
 
 type props = {
   isSrvRecord: boolean;
 };
 
-class SRVInput extends PureComponent<props> {
+class SRVInput extends React.PureComponent<props> {
   static displayName = 'SRVInput';
 
   /**
@@ -18,11 +18,11 @@ class SRVInput extends PureComponent<props> {
    *
    * @param {Object} evt - evt.
    */
-  onSRVRecordToggled(): void {
+  onSRVRecordToggled = (): void => {
     Actions.onSRVRecordToggled();
-  }
+  };
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     const {
       isSrvRecord
     } = this.props;
@@ -31,13 +31,20 @@ class SRVInput extends PureComponent<props> {
       <div className={classnames(styles['form-item'])}>
         <label><span>SRV Record</span></label>
         <div className={classnames(styles['form-item-switch-wrapper'])}>
-          <Switch
+          <input
+            className={classnames(styles['form-control-switch'])}
+            name="isSrvRecord"
+            type="checkbox"
+            checked={isSrvRecord}
+            onChange={this.onSRVRecordToggled}
+          />
+          {/* <Switch
             checked={isSrvRecord}
             onChange={this.onSRVRecordToggled.bind(this)}
             className={classnames(styles['form-control-switch'])}
             onColor="rgb(19, 170, 82)"
             style={{ backgroundColor: 'rgb(255,255,255)' }}
-          />
+          /> */}
         </div>
       </div>
     );

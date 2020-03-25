@@ -1,31 +1,16 @@
-import React, { Component, ReactNode } from 'react';
+import * as React from 'react';
 
 import Actions from '../../../store/actions';
-import { SSHTunnelOptions } from '../../../store/store';
+import { SSHTunnelOptions } from '../../../store/ssh-tunnel-options';
 import FormGroup from '../form-group';
 import FormItemSelect from '../form-item-select';
 
-// static propTypes = { currentConnection: PropTypes.object.isRequired };
 type props = {
   sshTunnel: string;
 };
 
-class SSHTunnel extends Component<props> {
+class SSHTunnel extends React.Component<props> {
   static displayName = 'SSHTunnel';
-
-  // constructor(props) {
-  //   super(props);
-  //   this.setupSSHTunnelRoles();
-  //   this.state = { sshTunnel: props.currentConnection.sshTunnel };
-  // }
-
-  // componentWillReceiveProps(nextProps) {
-  //   const sshMethod = nextProps.currentConnection.sshTunnel;
-
-  //   if (sshMethod !== this.state.sshTunnel) {
-  //     this.setState({ sshTunnel: sshMethod });
-  //   }
-  // }
 
   /**
    * Handles SSH tunnel change.
@@ -33,24 +18,15 @@ class SSHTunnel extends Component<props> {
    * @param {Object} evt - evt.
    */
   onSSHTunnelChanged(evt): void {
-    // this.setState({ sshTunnel: evt.target.value });
     Actions.onSSHTunnelChanged(evt.target.value);
   }
-
-  /**
-   * Sets options for an SSH tunnel.
-   */
-  // setupSSHTunnelRoles(): {
-  //   this.roles = global.hadronApp.appRegistry.getRole('Connect.SSHTunnel');
-  //   this.selectOptions = this.roles.map(role => role.selectOption);
-  // }
 
   /**
    * Renders an SSL tunnel.
    *
    * @returns {React.Component}
    */
-  renderSSHTunnel(): ReactNode {
+  renderSSHTunnel(): React.ReactNode {
     // const currentRole = this.roles.find(
     //   role => role.name === this.state.sshTunnel
     // );
@@ -66,7 +42,7 @@ class SSHTunnel extends Component<props> {
     );
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     const {
       sshTunnel
     } = this.props;

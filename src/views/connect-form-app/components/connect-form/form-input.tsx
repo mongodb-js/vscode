@@ -1,14 +1,14 @@
-import React, { PureComponent, ReactNode } from 'react';
+import * as React from 'react';
 import classnames from 'classnames';
 
-import styles from '../connect.less';
+import styles from '../../connect.less';
 
 type props = {
   label: string;
   name: string;
-  changeHandler: () => {};
-  blurHandler?: () => {};
-  linkHandler?: () => {};
+  changeHandler: (evt: React.ChangeEvent) => void;
+  blurHandler?: (evt: React.ChangeEvent) => void;
+  linkHandler?: () => void;
   placeholder?: string;
   value?: string | number;
   type?: string;
@@ -18,7 +18,7 @@ type props = {
 /**
  * Represents an input field within a form.
  */
-class FormInput extends PureComponent<props> {
+class FormInput extends React.PureComponent<props> {
   static displayName = 'FormInput';
 
   /**
@@ -49,7 +49,7 @@ class FormInput extends PureComponent<props> {
    *
    * @returns {React.Component} The info sprinkle.
    */
-  renderInfoSprinkle(): ReactNode {
+  renderInfoSprinkle(): React.ReactNode {
     if (this.props.linkHandler) {
       return (
         <i className={classnames(styles.help)} onClick={this.props.linkHandler} />
@@ -62,7 +62,7 @@ class FormInput extends PureComponent<props> {
    *
    * @returns {React.Component} The input field.
    */
-  render(): ReactNode {
+  render(): React.ReactNode {
     return (
       <div className={this.getClassName()}>
         <label>
@@ -78,7 +78,8 @@ class FormInput extends PureComponent<props> {
           onBlur={this.props.blurHandler}
           value={this.props.value}
           className={classnames(styles['form-control'])}
-          type={this.props.type || 'text'} />
+          type={this.props.type || 'text'}
+        />
       </div>
     );
   }

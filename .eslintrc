@@ -13,7 +13,7 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "mongodb-js/node",
-    "plugin:react/recommended"
+    "mongodb-js/react"
   ],
   "parserOptions": {
     "ecmaVersion": 2018,

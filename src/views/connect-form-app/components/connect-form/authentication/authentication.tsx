@@ -1,30 +1,17 @@
-import React, { Component, ReactNode } from 'react';
+import * as React from 'react';
 
 import Actions from '../../../store/actions';
-import { AUTH_STRATEGY_ID, AuthStrategies } from '../../../store/store';
+import { AUTH_STRATEGY_ID, AuthStrategies } from '../../../store/auth-strategies';
 import FormGroup from '../form-group';
 import FormItemSelect from '../form-item-select';
 
 type props = {
   authStrategy: AUTH_STRATEGY_ID;
-  currentConnection: object;
   isValid: boolean;
 };
 
-// type state = {
-//   authStrategy: props.currentConnection.authStrategy
-// };
-
-class Authentication extends Component<props> {
+class Authentication extends React.Component<props> {
   static displayName = 'Authentication';
-
-  // componentWillReceiveProps(nextProps): void {
-  //   const authStrategy = nextProps.currentConnection.authStrategy;
-
-  //   if (authStrategy !== this.state.authStrategy) {
-  //     this.setState({ authStrategy });
-  //   }
-  // }
 
   /**
    * Changes an authentication strategy.
@@ -40,7 +27,7 @@ class Authentication extends Component<props> {
    *
    * @returns {React.Component}
    */
-  renderAuthStrategy(): ReactNode {
+  renderAuthStrategy(): React.ReactNode {
     // const currentAuthStrategy = AuthStrategies.find(
     //   role => role.id === this.state.authStrategy
     // );
@@ -60,7 +47,7 @@ class Authentication extends Component<props> {
     );
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     const {
       authStrategy
     } = this.props;

@@ -1,4 +1,4 @@
-import React, { Component, ReactNode } from 'react';
+import * as React from 'react';
 import classnames from 'classnames';
 
 import Actions from '../../store/actions';
@@ -13,20 +13,22 @@ import SSLMethod from './ssl/ssl-method';
 import SSHTunnel from './ssh/ssh-tunnel';
 import FormActions from './form-actions';
 
-import styles from '../connect.less';
+import styles from '../../connect.less';
 
 type props = {
   currentConnection: any; // TODO: Connection model type.
-  isHostChanged: boolean; // optional?
-  isPortChanged: boolean; // optional?
+  errorMessage: string;
+  hasUnsavedChanges: boolean;
+  isConnected: boolean;
+  isHostChanged: boolean;
+  isPortChanged: boolean;
   isValid: boolean;
+  syntaxErrorMessage: string;
 };
 type state = { activeTab: number };
 
-class ConnectionForm extends Component<props, state> {
+class ConnectionForm extends React.Component<props, state> {
   static displayName = 'ConnectionForm';
-
-  tabs: string[];
 
   constructor(props) {
     super(props);
@@ -57,17 +59,29 @@ class ConnectionForm extends Component<props, state> {
     this.setState({ activeTab });
   }
 
+  tabs: string[];
+
   /**
    * Renders a port input.
    *
    * @returns {React.Component}
    */
-  renderPort(): ReactNode {
-    if (!this.props.currentConnection.isSrvRecord) {
+  renderPort(): React.ReactNode {
+    const {
+      currentConnection,
+      isPortChanged
+    } = this.props;
+
+    const {
+      isSrvRecord,
+      port
+    } = currentConnection;
+
+    if (!isSrvRecord) {
       return (
         <PortInput
-          port={this.props.currentConnection.port}
-          isPortChanged={this.props.isPortChanged}
+          port={port}
+          isPortChanged={isPortChanged}
         />
       );
     }
@@ -78,7 +92,7 @@ class ConnectionForm extends Component<props, state> {
    *
    * @returns {React.Component}
    */
-  renderTabs(): ReactNode {
+  renderTabs(): React.ReactNode {
     return (
       <div className={classnames(styles['tabs-header'])}>
         <ul className={classnames(styles['tabs-header-items'])}>
@@ -109,68 +123,122 @@ class ConnectionForm extends Component<props, state> {
     );
   }
 
+  renderHostnameTab(): React.ReactNode {
+    const {
+      currentConnection,
+      isHostChanged,
+      isValid
+    } = this.props;
+
+    const {
+      authStrategy,
+      hostname,
+      isSrvRecord
+    } = currentConnection;
+
+    return (
+      <div className={classnames(styles['tabs-view'])}>
+        <div className={classnames(styles['tabs-view-content'])}>
+          <div className={classnames(styles['tabs-view-content-form'])}>
+            <FormGroup id="connection-host-information" separator >
+              <HostInput
+                hostname={hostname}
+                isHostChanged={isHostChanged}
+              />
+              {this.renderPort()}
+              <SRVInput isSrvRecord={isSrvRecord} />
+            </FormGroup>
+            <Authentication
+              authStrategy={authStrategy}
+              isValid={isValid}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  renderConnectionOptionsTab(): React.ReactNode {
+    const {
+      currentConnection
+    } = this.props;
+
+    const {
+      readPreference,
+      replicaSet,
+      sshTunnel,
+      sslMethod
+    } = currentConnection;
+
+    return (
+      <div className={classnames(styles['tabs-view'])}>
+        <div className={classnames(styles['tabs-view-content'])}>
+          <div className={classnames(styles['tabs-view-content-form'])}>
+            <FormGroup id="read-preference" separator>
+              <ReplicaSetInput
+                sshTunnel={sshTunnel}
+                replicaSet={replicaSet}
+              />
+              <ReadPreferenceSelect
+                readPreference={readPreference}
+              />
+            </FormGroup>
+            <SSLMethod
+              sslMethod={sslMethod}
+            />
+            <SSHTunnel
+              sshTunnel={sshTunnel}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   /**
    * Renders views.
    *
    * @returns {React.Component}
    */
-  renderView(): ReactNode {
+  renderView(): React.ReactNode {
     if (this.state.activeTab === 0) {
-      return (
-        <div className={classnames(styles['tabs-view'])}>
-          <div className={classnames(styles['tabs-view-content'])}>
-            <div className={classnames(styles['tabs-view-content-form'])}>
-              <FormGroup separator>
-                <HostInput
-                  hostname={this.props.currentConnection.hostname}
-                  isHostChanged={this.props.isHostChanged}
-                />
-                {this.renderPort()}
-                <SRVInput isSrvRecord={this.props.currentConnection.isSrvRecord} />
-              </FormGroup>
-              <Authentication
-                currentConnection={this.props.currentConnection}
-                isValid={this.props.isValid}
-              />
-            </div>
-          </div>
-        </div>
-      );
+      return this.renderHostnameTab();
     }
 
     if (this.state.activeTab === 1) {
-      return (
-        <div className={classnames(styles['tabs-view'])}>
-          <div className={classnames(styles['tabs-view-content'])}>
-            <div className={classnames(styles['tabs-view-content-form'])}>
-              <FormGroup id="read-preference" separator>
-                <ReplicaSetInput
-                  sshTunnel={this.props.currentConnection.sshTunnel}
-                  replicaSet={this.props.currentConnection.replicaSet} />
-                <ReadPreferenceSelect
-                  readPreference={this.props.currentConnection.readPreference} />
-              </FormGroup>
-              <SSLMethod {...this.props} />
-              <SSHTunnel {...this.props} />
-            </div>
-          </div>
-        </div>
-      );
+      return this.renderConnectionOptionsTab();
     }
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
+    const {
+      currentConnection,
+      errorMessage,
+      hasUnsavedChanges,
+      isConnected,
+      isValid,
+      syntaxErrorMessage
+    } = this.props;
+
     return (
       <form
         onChange={this.onConnectionFormChanged.bind(this)}
-        className={classnames(styles['connect-form'])} >
+        className={classnames(styles['connect-form'])}
+      >
         <div className={classnames(styles.tabs)}>
           <div className={classnames(styles['tabs-container'])}>
             {this.renderTabs()}
             {this.renderView()}
           </div>
         </div>
-        <FormActions {...this.props} />
+        <FormActions
+          currentConnection={currentConnection}
+          errorMessage={errorMessage}
+          hasUnsavedChanges={hasUnsavedChanges}
+          isConnected={isConnected}
+          isValid={isValid}
+          syntaxErrorMessage={syntaxErrorMessage}
+        />
       </form>
     );
   }

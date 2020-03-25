@@ -1,4 +1,4 @@
-import React, { PureComponent, ReactNode } from 'react';
+import * as React from 'react';
 
 import Actions from '../../../store/actions';
 import FormInput from '../form-input';
@@ -8,7 +8,7 @@ type props = {
   isHostChanged: boolean;
 };
 
-class HostInput extends PureComponent<props> {
+class HostInput extends React.PureComponent<props> {
   static displayName = 'HostInput';
 
   /**
@@ -33,7 +33,7 @@ class HostInput extends PureComponent<props> {
     return this.props.hostname;
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     return (
       <FormInput
         label="Hostname"

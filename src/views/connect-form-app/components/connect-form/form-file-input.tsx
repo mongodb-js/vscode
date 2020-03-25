@@ -1,7 +1,7 @@
-import React, { Component, ReactNode } from 'react';
+import * as React from 'react';
 import classnames from 'classnames';
 
-import styles from '../connect.less';
+import styles from '../../connect.less';
 
 const OPEN = 'openFile';
 const HIDDEN = 'showHiddenFiles';
@@ -9,7 +9,7 @@ const MULTI = 'multiSelections';
 
 type props = {
   label: string;
-  changeHandler: (newFilesInputted: any) => {};
+  changeHandler: (newFilesInputted: any) => void;
   id: string;
   values: any[];
   multi: boolean;
@@ -21,7 +21,7 @@ type state = {
   values: any[];
 };
 
-class FormFileInput extends Component<props, state> {
+class FormFileInput extends React.Component<props, state> {
   static displayName = 'FormFileInput';
 
   constructor(initialProps) {
@@ -52,10 +52,13 @@ class FormFileInput extends Component<props, state> {
 
     const options = { properties };
 
-    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), options, (values) => {
-      this.props.changeHandler(values);
-      this.setState({ values });
-    });
+    // eslint-disable-next-line no-undef
+    window.alert('Show file picker.');
+
+    // dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), options, (values) => {
+    //   this.props.changeHandler(values);
+    //   this.setState({ values });
+    // });
   }
 
   /**
@@ -80,14 +83,6 @@ class FormFileInput extends Component<props, state> {
   getErrorId(): string {
     return `form-error-tooltip-${this.props.id}`;
   }
-
-  /**
-   * Opens a tooltip link.
-   */
-  openLink(): void {
-    shell.openExternal(this.props.link);
-  }
-
   /**
    * Renders a button text.
    *
@@ -107,9 +102,16 @@ class FormFileInput extends Component<props, state> {
    * @returns {String}
    */
   getFileNames(): string {
-    const baseFiles = this.state.values.map((file) => path.basename(file));
+    // const baseFiles = this.state.values.map((file) => path.basename(file));
 
-    return baseFiles.join(', ');
+    return ''; // baseFiles.join(', ');
+  }
+
+  /**
+   * Opens a tooltip link.
+   */
+  openLink(): void {
+    // shell.openExternal(this.props.link);
   }
 
   /**
@@ -117,7 +119,7 @@ class FormFileInput extends Component<props, state> {
    *
    * @returns {React.Component}
    */
-  renderInfoSprinkle(): ReactNode {
+  renderInfoSprinkle(): React.ReactNode {
     if (this.props.link) {
       return (
         <i
@@ -128,7 +130,7 @@ class FormFileInput extends Component<props, state> {
     }
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     const buttonClassName = `${classnames(styles['form-item-file-button'])} btn btn-sm btn-default`;
 
     return (

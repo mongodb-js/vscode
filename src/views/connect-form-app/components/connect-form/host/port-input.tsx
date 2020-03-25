@@ -1,4 +1,4 @@
-import React, { PureComponent, ReactNode } from 'react';
+import * as React from 'react';
 
 import Actions from '../../../store/actions';
 import FormInput from '../form-input';
@@ -8,7 +8,7 @@ type props = {
   isPortChanged: boolean;
 };
 
-class PortInput extends PureComponent<props> {
+class PortInput extends React.PureComponent<props> {
   static displayName = 'PortInput';
 
   /**
@@ -33,7 +33,7 @@ class PortInput extends PureComponent<props> {
     return `${this.props.port}`;
   }
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     return (
       <FormInput
         label="Port"

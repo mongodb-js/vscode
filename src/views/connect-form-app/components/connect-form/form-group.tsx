@@ -1,18 +1,18 @@
-import React, { PureComponent, ReactNode } from 'react';
+import * as React from 'react';
 import classnames from 'classnames';
 
-import styles from '../connect.less';
+import styles from '../../connect.less';
 
 type props = {
   id: string;
   separator?: boolean;
-  children: ReactNode;
+  children: React.ReactNode;
 };
 
-class FormGroup extends PureComponent<props> {
+class FormGroup extends React.PureComponent<props> {
   static displayName = 'FormGroup';
 
-  render(): ReactNode {
+  render(): React.ReactNode {
     const {
       children,
       id,

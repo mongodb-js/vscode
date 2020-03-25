@@ -12,7 +12,16 @@ export default class App extends React.Component {
 
 
         <div>
-          <ConnectionForm />
+          <ConnectionForm
+            currentConnection={{}}
+            errorMessage=""
+            hasUnsavedChanges={false}
+            isConnected={false}
+            isHostChanged={false}
+            isPortChanged={false}
+            isValid={false}
+            syntaxErrorMessage=""
+          />
         </div>
       </div>
     );
