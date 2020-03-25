@@ -5,7 +5,7 @@ import styles from '../connect.less';
 
 type props = {
   id: string;
-  separator: boolean;
+  separator?: boolean;
   children: ReactNode;
 };
 

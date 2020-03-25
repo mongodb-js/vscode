@@ -1,106 +1,106 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import Actions from 'actions';
-import FormGroup from './form-group';
+import React, { Component, ReactNode } from 'react';
 import classnames from 'classnames';
+
+import Actions from '../../store/actions';
+import FormGroup from './form-group';
 
 import styles from '../connect.less';
 
-class FormActions extends React.Component {
-  static displayName = 'FormActions';
+type props = {
+  currentConnection: any; // TODO: Connection model type.
+  isValid?: boolean;
+  isConnected?: boolean;
+  errorMessage?: string;
+  syntaxErrorMessage?: string;
+  hasUnsavedChanges?: boolean;
+  viewType?: string;
+  isURIEditable?: boolean;
+  isSavedConnection?: boolean;
+};
 
-  static propTypes = {
-    currentConnection: PropTypes.object.isRequired,
-    isValid: PropTypes.bool,
-    isConnected: PropTypes.bool,
-    errorMessage: PropTypes.string,
-    syntaxErrorMessage: PropTypes.string,
-    hasUnsavedChanges: PropTypes.bool,
-    viewType: PropTypes.string,
-    isURIEditable: PropTypes.bool,
-    isSavedConnection: PropTypes.bool
-  };
+class FormActions extends Component<props> {
+  static displayName = 'FormActions';
 
   /**
    * Handles a connect click.
    *
    * @param {Object} evt - evt.
    */
-  onConnectClicked(evt) {
+  onConnectClicked = (evt): void => {
     evt.preventDefault();
     evt.stopPropagation();
     Actions.onConnectClicked();
-  }
+  };
 
   /**
    * Handles a disconnect click.
    *
    * @param {Object} evt - evt.
    */
-  onDisconnectClicked(evt) {
+  onDisconnectClicked = (evt): void => {
     evt.preventDefault();
     evt.stopPropagation();
     Actions.onDisconnectClicked();
-  }
+  };
 
   /**
    * Discards changes.
    *
    * @param {Object} evt - evt.
    */
-  onChangesDiscarded(evt) {
+  onChangesDiscarded = (evt): void => {
     evt.preventDefault();
     Actions.onChangesDiscarded();
-  }
+  };
 
   /**
    * Shows an editable URI input.
    *
    * @param {Object} evt - evt.
    */
-  onEditURIClicked(evt) {
+  onEditURIClicked = (evt): void => {
     evt.preventDefault();
     evt.stopPropagation();
     Actions.onEditURIClicked();
-  }
+  };
 
   /**
    * Shows a read-only URI.
    *
    * @param {Object} evt - evt.
    */
-  onHideURIClicked(evt) {
+  onHideURIClicked = (evt): void => {
     evt.preventDefault();
     evt.stopPropagation();
     Actions.onHideURIClicked();
-  }
+  };
 
   /**
    * Updates favorite attributes if a favorite already exists.
    *
    * @param {Object} evt - evt.
    */
-  onSaveFavoriteClicked(evt) {
+  onSaveFavoriteClicked = (evt): void => {
     evt.preventDefault();
     Actions.onSaveFavoriteClicked();
-  }
+  };
 
   /**
    * Checks for a syntax error.
    *
    * @returns {Boolean} True in case of a syntax error.
    */
-  hasSyntaxError() {
-    return !this.props.isValid && this.props.syntaxErrorMessage;
-  }
+  hasSyntaxError = (): boolean => {
+    return !this.props.isValid && !!this.props.syntaxErrorMessage;
+  };
 
   /**
    * Checks for an server error.
    *
    * @returns {Boolean} True in case of a server error.
    */
-  hasError() {
-    return !this.props.isValid && this.props.errorMessage;
+  hasError(): boolean {
+    return !this.props.isValid && !!this.props.errorMessage;
   }
 
   /**
@@ -110,7 +110,7 @@ class FormActions extends React.Component {
    *
    * @returns {React.Component}
    */
-  renderUnsavedMessage() {
+  renderUnsavedMessage(): ReactNode {
     return (
       <div className={classnames(styles['unsaved-message-actions'])}>
         You have unsaved changes.
@@ -131,7 +131,7 @@ class FormActions extends React.Component {
    *
    * @returns {React.Component}
    */
-  renderDisconnect = () => {
+  renderDisconnect = (): ReactNode => {
     return (
       <button
         type="submit"
@@ -149,14 +149,14 @@ class FormActions extends React.Component {
    *
    * @returns {React.Component}
    */
-  renderConnect = () => {
+  renderConnect = (): ReactNode => {
+    const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
+
     return (
       <button
         type="submit"
         name="connect"
-        className={`btn btn-sm btn-primary ${
-          this.hasSyntaxError() ? 'disabled' : ''
-          }`}
+        className={`btn btn-sm btn-primary ${syntaxError}`}
         onClick={this.onConnectClicked.bind(this)}
       >
         Connect
@@ -169,14 +169,14 @@ class FormActions extends React.Component {
    *
    * @returns {React.Component}
    */
-  renderEditURI = () => {
+  renderEditURI = (): ReactNode => {
     if (this.props.viewType === 'connectionString') {
       return (
         <button
           type="submit"
           name="editUrl"
           className="btn btn-sm btn-default"
-          onClick={this.onEditURIClicked.bind(this)}
+          onClick={this.onEditURIClicked}
         >
           Edit
         </button>
@@ -229,10 +229,10 @@ class FormActions extends React.Component {
    *
    * @returns {React.Component}
    */
-  renderMessage() {
+  renderMessage(): ReactNode {
     const connection = this.props.currentConnection;
     const server = `${connection.hostname}:${connection.port}`;
-    let message = `Connected to ${server}`;
+    let message: ReactNode = `Connected to ${server}`;
     let colorStyle = styles['connection-message-container-success'];
     let hasMessage = false;
 
@@ -266,7 +266,7 @@ class FormActions extends React.Component {
     }
   }
 
-  render() {
+  render(): ReactNode {
     return (
       <FormGroup id="favorite">
         {this.renderMessage()}

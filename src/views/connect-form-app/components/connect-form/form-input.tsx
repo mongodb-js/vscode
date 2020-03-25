@@ -1,33 +1,32 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { PureComponent, ReactNode } from 'react';
 import classnames from 'classnames';
 
 import styles from '../connect.less';
 
+type props = {
+  label: string;
+  name: string;
+  changeHandler: () => {};
+  blurHandler?: () => {};
+  linkHandler?: () => {};
+  placeholder?: string;
+  value?: string | number;
+  type?: string;
+  error?: boolean;
+};
+
 /**
  * Represents an input field within a form.
  */
-class FormInput extends React.PureComponent {
+class FormInput extends PureComponent<props> {
   static displayName = 'FormInput';
-
-  static propTypes = {
-    label: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    changeHandler: PropTypes.func.isRequired,
-    blurHandler: PropTypes.func,
-    linkHandler: PropTypes.func,
-    placeholder: PropTypes.string,
-    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    type: PropTypes.string,
-    error: PropTypes.bool
-  };
 
   /**
    * Gets the class name for the input wrapper.
    *
    * @returns {String} The class name.
    */
-  getClassName() {
+  getClassName(): string {
     const className = {
       [styles['form-item']]: true,
       [styles['form-item-has-error']]: this.props.error
@@ -41,7 +40,7 @@ class FormInput extends React.PureComponent {
    *
    * @returns {String} The error id.
    */
-  getErrorId() {
+  getErrorId(): string {
     return `form-error-tooltip-${this.props.name}`;
   }
 
@@ -50,7 +49,7 @@ class FormInput extends React.PureComponent {
    *
    * @returns {React.Component} The info sprinkle.
    */
-  renderInfoSprinkle() {
+  renderInfoSprinkle(): ReactNode {
     if (this.props.linkHandler) {
       return (
         <i className={classnames(styles.help)} onClick={this.props.linkHandler} />
@@ -63,7 +62,7 @@ class FormInput extends React.PureComponent {
    *
    * @returns {React.Component} The input field.
    */
-  render() {
+  render(): ReactNode {
     return (
       <div className={this.getClassName()}>
         <label>
