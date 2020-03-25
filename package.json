@@ -99,7 +99,8 @@
         ],
         "extensions": [
           ".mongodb"
-        ]
+        ],
+        "configuration": "./languages/mongodb-language-configuration.json"
       }
     ],
     "grammars": [
