@@ -1,10 +1,10 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import Welcome from './welcome';
+import App from './components/app';
 
 import './index.css';
 
 ReactDOM.render(
-  <Welcome />,
+  <App />,
   document.getElementById('root')
 );
