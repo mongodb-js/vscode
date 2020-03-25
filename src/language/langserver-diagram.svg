@@ -1,0 +1,32 @@
+
+<svg width="872px" height="234px" viewBox="0 0 872 234" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="Rectangle" stroke="#979797" fill="#FFFFFF" x="0.5" y="0.5" width="871" height="233"></rect>
+        <rect id="Rectangle" stroke="#979797" fill="#D8D8D8" x="13.5" y="54.5" width="302" height="157"></rect>
+        <rect id="Rectangle" fill="#13AA52" x="25" y="106" width="280" height="90"></rect>
+        <rect id="Rectangle" stroke="#979797" fill="#D8D8D8" x="555.5" y="54.5" width="302" height="157"></rect>
+        <rect id="Rectangle" fill="#13AA52" x="566" y="106" width="280" height="90"></rect>
+        <text id="Language-Server-Prot" font-family="AkzidenzGroteskStd-Md, Akzidenz-Grotesk Std" font-size="14" font-weight="400" fill="#42494F">
+            <tspan x="359" y="130">Language Server Protocol</tspan>
+        </text>
+        <text id="JSON-RPC-via-IPC" font-family="AkzidenzGroteskStd-Md, Akzidenz-Grotesk Std" font-size="12" font-weight="400" fill="#42494F">
+            <tspan x="392" y="173">JSON RPC via IPC</tspan>
+        </text>
+        <text id="VS-Code" font-family="AkzidenzGroteskStd-Md, Akzidenz-Grotesk Std" font-size="18" font-weight="400" fill="#42494F">
+            <tspan x="406" y="26">VS Code</tspan>
+        </text>
+        <text id="Extension-Host" font-family="AkzidenzGroteskStd-Md, Akzidenz-Grotesk Std" font-size="18" font-weight="400" fill="#42494F">
+            <tspan x="94" y="85">Extension Host</tspan>
+        </text>
+        <text id="node.js-process" font-family="AkzidenzGroteskStd-Md, Akzidenz-Grotesk Std" font-size="18" font-weight="400" fill="#42494F">
+            <tspan x="641" y="85">node.js process</tspan>
+        </text>
+        <text id="MongoDB-Language-Cli" font-family="AkzidenzGroteskStd-Md, Akzidenz-Grotesk Std" font-size="18" font-weight="400" fill="#FFFFFF">
+            <tspan x="57" y="162">MongoDB Language Client</tspan>
+        </text>
+        <path id="Line" d="M323.75,149.5 L547.25,149.5 L547.25,141.5 L566.25,151 L547.25,160.5 L547.25,152.5 L323.75,152.5 L323.75,160.5 L304.75,151 L323.75,141.5 L323.75,149.5 Z" fill="#42494F" fill-rule="nonzero"></path>
+        <text id="MongoDB-Language-Ser" font-family="AkzidenzGroteskStd-Md, Akzidenz-Grotesk Std" font-size="18" font-weight="400" fill="#FFFFFF">
+            <tspan x="596" y="157">MongoDB Language Server</tspan>
+        </text>
+    </g>
+</svg>
