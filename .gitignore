@@ -4,6 +4,5 @@ node_modules
 *.vsix
 .DS_Store
 test-results.xml
-connect-form
 constants.json
 .env
