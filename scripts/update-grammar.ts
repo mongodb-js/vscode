@@ -8,7 +8,7 @@ const mkdirp = require('mkdirp');
 
 const DEFAULT_DEST = path.join(__dirname, '..', 'syntaxes');
 
-const URL =
+const languageURL =
   'https://raw.githubusercontent.com/mongodb-js/vscode-mongodb-language/master/syntaxes/mongodb.tmLanguage.json';
 
 const cli = meow(
@@ -20,7 +20,7 @@ const cli = meow(
 
 	Options
     --dest Directory to download to [Default: ${DEFAULT_DEST}]
-    --src URL of mongodb.tmLanguage.json [Default: ${URL}]
+    --src URL of mongodb.tmLanguage.json [Default: ${languageURL}]
 
 	Examples
 	  $ ./update-grammar.ts
@@ -33,7 +33,7 @@ const cli = meow(
         default: DEFAULT_DEST
       },
       url: {
-        default: URL
+        default: languageURL
       }
     }
   }

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "target": "es6",
+    "outDir": "connect-form",
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "jsx": "react",
+    "sourceMap": true,
+    "rootDir": "..",
+    "strict": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

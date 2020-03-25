@@ -8,30 +8,13 @@ const { name, version } = require('../package.json');
 import { ConnectionModelType } from './connectionModelType';
 import { DataServiceType } from './dataServiceType';
 import { createLogger } from './logging';
-import { StatusView } from './views';
+import { StatusView, ConnectFormView } from './views';
 import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { StorageScope, SavedConnection } from './storage/storageController';
 
 const log = createLogger('connection controller');
 const MAX_CONNECTION_NAME_LENGTH = 512;
-
-function getConnectWebviewContent(): string {
-  return `<!DOCTYPE html>
-  <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Connect to MongoDB</title>
-    </head>
-    <body>
-      <h1>MongoDB Connection Details Form</h1>
-      <h4>Coming soon.</h4>
-      <h4>For now, to connect please use the command palette (Command+Shift+P) and search 'Connect with Connection String' and enter a connection string.</h4>
-      <h4>Alternatively, you can connect by right clicking the 'Connections' item in the explorer and selecting 'Add MongoDB connection with Connection String...'</h4>
-    </body>
-  </html>`;
-}
 
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
@@ -118,22 +101,16 @@ export default class ConnectionController {
     }
   }
 
-  public addMongoDBConnection(): Promise<boolean> {
+  public addMongoDBConnection(
+    context: vscode.ExtensionContext
+  ): Promise<boolean> {
     log.info('mdb.connect command called.');
 
     // Display a message box to the user.
     vscode.window.showInformationMessage('mdb.connect command run.');
 
-    // Create and show a new connect dialogue webview.
-    const panel = vscode.window.createWebviewPanel(
-      'connectDialogueWebview',
-      'Connect to MongoDB', // Title
-      vscode.ViewColumn.One // Editor column to show the webview panel in.
-    );
-
-    panel.webview.html = getConnectWebviewContent();
-
-    return Promise.resolve(true);
+    const connectWebView = new ConnectFormView();
+    return connectWebView.showConnectForm(context);
   }
 
   public async connectWithURI(): Promise<boolean> {
