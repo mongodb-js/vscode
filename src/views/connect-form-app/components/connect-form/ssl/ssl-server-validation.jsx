@@ -5,7 +5,7 @@ import Actions from 'actions';
 import FormFileInput from '../form-file-input';
 import classnames from 'classnames';
 
-import styles from '../connect.less';
+const styles = require('../connect.module.less');
 
 class SSLServerValidation extends React.Component {
   static displayName = 'SSLServerValidation';

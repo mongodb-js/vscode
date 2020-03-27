@@ -2,11 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { isEmpty } from 'lodash';
 import Actions from 'actions';
-import FormInput from './form-input';
+import FormInput from '../form-input';
 import { shell } from 'electron';
 import classnames from 'classnames';
 
-import styles from '../connect.less';
+const styles = require('../connect.module.less');
 
 class ScramSha256 extends React.Component {
   static displayName = 'ScramSha256';

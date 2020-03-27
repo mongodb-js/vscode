@@ -4,12 +4,11 @@ import classnames from 'classnames';
 import Actions from '../../store/actions';
 import FormGroup from './form-group';
 
-import styles from '../../connect.less';
+const styles = require('../../connect.module.less');
 
 type props = {
   currentConnection: any; // TODO: Connection model type.
   errorMessage: string;
-  hasUnsavedChanges: boolean;
   isConnected: boolean;
   isValid: boolean;
   syntaxErrorMessage: string;
@@ -38,16 +37,6 @@ class FormActions extends React.Component<props> {
     evt.preventDefault();
     evt.stopPropagation();
     Actions.onDisconnectClicked();
-  };
-
-  /**
-   * Discards changes.
-   *
-   * @param {Object} evt - evt.
-   */
-  onChangesDiscarded = (evt): void => {
-    evt.preventDefault();
-    Actions.onChangesDiscarded();
   };
 
   /**
@@ -98,29 +87,6 @@ class FormActions extends React.Component<props> {
    */
   hasError(): boolean {
     return !this.props.isValid && !!this.props.errorMessage;
-  }
-
-  /**
-   * Renders a warning that a saved connection was changed and
-   * changes can be saved or discarded. For recents changes
-   * can not be saved, only discarded.
-   *
-   * @returns {React.Component}
-   */
-  renderUnsavedMessage(): React.ReactNode {
-    return (
-      <div className={classnames(styles['unsaved-message-actions'])}>
-        You have unsaved changes.
-        <a id="discardChanges" onClick={this.onChangesDiscarded}>
-          [discard]
-        </a>
-        {this.props.currentConnection.isFavorite ? (
-          <a id="saveChanges" onClick={this.onSaveFavoriteClicked}>
-            [save changes]
-          </a>
-        ) : null}
-      </div>
-    );
   }
 
   /**
@@ -194,10 +160,6 @@ class FormActions extends React.Component<props> {
       colorStyle = styles['connection-message-container-error'];
     } else if (this.props.isConnected) {
       hasMessage = true;
-    } else if (this.props.hasUnsavedChanges) {
-      hasMessage = true;
-      message = this.renderUnsavedMessage();
-      colorStyle = styles['connection-message-container-unsaved-message'];
     }
 
     if (hasMessage === true) {

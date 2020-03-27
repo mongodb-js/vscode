@@ -4,7 +4,7 @@ import classnames from 'classnames';
 
 import Actions from '../../../store/actions';
 
-import styles from '../../../connect.less';
+const styles = require('../../../connect.module.less');
 
 type props = {
   isSrvRecord: boolean;

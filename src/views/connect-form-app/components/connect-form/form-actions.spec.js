@@ -2,7 +2,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 import FormActions from './form-actions';
 
-import styles from '../connect.less';
+const styles = require('../connect.module.less');
 
 describe('FormActions [Component]', () => {
   context('when no error is present', () => {

@@ -2,7 +2,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 import MongoDBAuthentication from './mongodb-authentication';
 
-import styles from '../connect.less';
+const styles = require('../connect.module.less');
 
 describe('MongoDBAuthentication [Component]', () => {
   context('when the form is valid', () => {

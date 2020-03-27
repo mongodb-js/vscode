@@ -13,12 +13,11 @@ import SSLMethod from './ssl/ssl-method';
 import SSHTunnel from './ssh/ssh-tunnel';
 import FormActions from './form-actions';
 
-import styles from '../../connect.less';
+const styles = require('../../connect.module.less');
 
 type props = {
   currentConnection: any; // TODO: Connection model type.
   errorMessage: string;
-  hasUnsavedChanges: boolean;
   isConnected: boolean;
   isHostChanged: boolean;
   isPortChanged: boolean;
@@ -214,7 +213,6 @@ class ConnectionForm extends React.Component<props, state> {
     const {
       currentConnection,
       errorMessage,
-      hasUnsavedChanges,
       isConnected,
       isValid,
       syntaxErrorMessage
@@ -234,7 +232,6 @@ class ConnectionForm extends React.Component<props, state> {
         <FormActions
           currentConnection={currentConnection}
           errorMessage={errorMessage}
-          hasUnsavedChanges={hasUnsavedChanges}
           isConnected={isConnected}
           isValid={isValid}
           syntaxErrorMessage={syntaxErrorMessage}

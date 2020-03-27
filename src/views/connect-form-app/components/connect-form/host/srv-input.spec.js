@@ -2,7 +2,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 import SRVInput from './srv-input';
 
-import styles from '../connect.less';
+const styles = require('../connect.module.less'); ss');
 
 describe('SRVInput [Component]', () => {
   context('when the connection is not an srv record', () => {

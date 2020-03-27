@@ -7,7 +7,7 @@ import { shell } from 'electron';
 import FormFileInput from '../form-file-input';
 import classnames from 'classnames';
 
-import styles from '../connect.less';
+const styles = require('../connect.module.less');
 
 class SSLServerClientValidation extends React.Component {
   static displayName = 'SSLServerClientValidation';

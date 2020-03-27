@@ -4,7 +4,7 @@ import SSHTunnel from './ssh-tunnel';
 import AppRegistry from 'hadron-app-registry';
 import hadronApp from 'hadron-app';
 
-import styles from '../connect.less';
+const styles = require('../connect.module.less');
 
 describe('SSHTunnel [Component]', () => {
   const connection = { sshTunnel: 'NONE' };

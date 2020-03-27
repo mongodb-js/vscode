@@ -2,7 +2,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 import FormGroup from './form-group';
 
-import styles from '../connect.less';
+const styles = require('../connect.module.less');
 
 describe('FormGroup [Component]', () => {
   let component;

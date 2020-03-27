@@ -1,7 +1,7 @@
 import * as React from 'react';
 import classnames from 'classnames';
 
-import styles from '../../connect.less';
+const styles = require('../../connect.module.less');
 
 type props = {
   label: string;
