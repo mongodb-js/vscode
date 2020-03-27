@@ -1,7 +1,4 @@
-# MongoDB Language Server
-
-> NOTE (lucas) This is mostly a regurgitation of the docs so I can think out loud and keep notes. You may find the source material more useful: [programmatic language features](https://code.visualstudio.com/api/language-extensions/programmatic-language-features) and
-> [language server extension guide](https://code.visualstudio.com/api/language-extensions/language-server-extension-guide)
+# MongoDB for VS Code: Language Server
 
 ## Jargon
 
@@ -19,9 +16,13 @@
 
 ## Motivation
 
+All of the User Facing Behaviors are possible with the extension host `vscode` API. However, LSP provides the following benefits:
+
 - Single-source of truth for the brains/semantics of MongoDB
 - Provides performant way to enable UX for potentially intensive processing off the "main UI thread"
-  -Server use other products not javascript eg. golang binary for SQL support with BIC (ex. MS SQL, C#)
+- Support existing mongosh scripts `.js` as well as newly created playgrounds `.mongodb`
+- Differentiates from nights and weekends extensions with polish/pro version
+- Server use other products not javascript eg. golang binary for SQL support with BIC (ex. MS SQL, C#)
 - that could be integrated into other enterprise tools like Compass and mongosh
 - Expand to support external developer tools like Sublime Text, JetBrains/IntelliJ, Atom, vim, emacs, [and more](#other-lsp-clients)
 
@@ -182,6 +183,9 @@ Client Request Methods:
 - rename
 - prepareRename
 - foldingRange
+
+> NOTE (lucas) This is mostly a regurgitation of the docs so I can think out loud and keep notes. You may find the source material more useful: [programmatic language features](https://code.visualstudio.com/api/language-extensions/programmatic-language-features) and
+> [language server extension guide](https://code.visualstudio.com/api/language-extensions/language-server-extension-guide)
 
 ## Development
 
