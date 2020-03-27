@@ -16,15 +16,35 @@
 
 ## Motivation
 
-All of the User Facing Behaviors are possible with the extension host `vscode` API. However, LSP provides the following benefits:
+All of the User Facing Behaviors are possible with the extension host `vscode` API. However, taking an LSP approach early in the project provides the following benefits:
 
-- Single-source of truth for the brains/semantics of MongoDB
+**Short-term**
+
+- Differentiates from nights and weekends extensions with polish/pro version
 - Provides performant way to enable UX for potentially intensive processing off the "main UI thread"
 - Support existing mongosh scripts `.js` as well as newly created playgrounds `.mongodb`
-- Differentiates from nights and weekends extensions with polish/pro version
+
+**Long-term**
+
+- Traditional decoupling benefits of Client/Server
+- Single-source of truth for the brains/semantics of MongoDB
 - Server use other products not javascript eg. golang binary for SQL support with BIC (ex. MS SQL, C#)
 - that could be integrated into other enterprise tools like Compass and mongosh
 - Expand to support external developer tools like Sublime Text, JetBrains/IntelliJ, Atom, vim, emacs, [and more](#other-lsp-clients)
+
+## MVP
+
+> ### Help users to write _correct_ queries and aggregations.
+>
+> &mdash; @max
+
+Language Server has a very large API surface area. To start, we'll limit and prioritize based on the mantra of correctness.
+
+- `signatures` for the SHELL API
+- `completions` for aggregation operators
+-
+
+<kbd>#correctness</kbd> below
 
 ## User Facing Behavior
 
@@ -64,7 +84,7 @@ Some of the LangServer spec and VSCode user functionality can be confusing. Map 
 - Show mini-schema view when hovering over a collection name
 -
 
-* ![](https://user-images.githubusercontent.com/23074/70480573-15c3b300-1aae-11ea-80d5-51461a07839f.png)
+![](https://user-images.githubusercontent.com/23074/70480573-15c3b300-1aae-11ea-80d5-51461a07839f.png)
 
 ![](https://code.visualstudio.com/assets/api/language-extensions/language-support/hovers.gif)
 
@@ -72,12 +92,117 @@ Some of the LangServer spec and VSCode user functionality can be confusing. Map 
 
 [docs][vscode_docs_diagnostics]
 
-- eslint errors/warnings on playground files (red or yellow squiggles)
--
+##### JavaScript/SHELL API linting
 
-> scott 1 day ago
+- "Is `db.turtles.aggregate(**[**{\$match: {species: "box turtle"}})` valid JS and if not why?"
+- "Is `db.turtles.findLots()` a valid shell API call?"
+
+Use an existing JS linting library (eg. eslint) to display JavaScript specific errors/warnings in the playground (red or yellow squiggles) with hack to support invalid JS that is valid playground (ex. `use db;`).
+
+See Language Server Server implementation for `eslint` in [eslintServer](https://github.com/microsoft/vscode-eslint/blob/master/server/src/eslintServer.ts)
+
+<kbd>#correctness</kbd>
+
+##### MQL Best Practices linting
+
+<style>
+
+  /* HT https://jsbin.com/hotugu/edit?html,css,output */
+.holder {
+    position: relative;
+    display: inline-block;
+    /* width: 200px; */
+    height: 50px;
+    top: 25px;
+    font-style: italic;
+    font-family: monospace;
+    font-size: 13px;
+}
+.tinyLine {
+    position: absolute;
+    top: 10px;
+    /* Cuts off the bottom half of the pattern */
+    height: 20px;
+    /* For better cross browser consistency, make it larger with width.  */
+    width: 1000%;
+    /* And then scale it back down with scale, recentering with translateX. */
+    transform: translateX(-45%) scale(0.1);
+}
+
+.tinyLine1 {
+    background: linear-gradient(45deg, transparent, transparent 49%, steelblue 49%, transparent 51%);
+}
+.tinyLine2 {
+    background: linear-gradient(-45deg, transparent, transparent 49%, steelblue 49%, transparent 51%);
+}
+.tinyLine1Error {
+    background: linear-gradient(45deg, transparent, transparent 49%, red 49%, transparent 51%);
+}
+.tinyLine2Error {
+    background: linear-gradient(-45deg, transparent, transparent 49%, red 49%, transparent 51%);
+}
+.tinyLine1Warning {
+    background: linear-gradient(45deg, transparent, transparent 49%, #ffb618 49%, transparent 51%);
+}
+.tinyLine2Warning {
+    background: linear-gradient(-45deg, transparent, transparent 49%, #ffb618 49%, transparent 51%);
+}
+.tinyLine {
+    /* Must be after background definition. */
+    background-size: 40px 40px;
+}
+
+.lintwarning {
+  border: 1px solid #ccc;
+  font-size: 13px;
+  background: #aaa;
+  padding: 4px;
+  font-family: monospace;
+  color: #111;
+  font-weight: 400;
+}
+
+.linterror {
+  border: 1px solid #ccc;
+  font-size: 13px;
+  background: #aaa;
+  padding: 4px;
+  font-family: monospace;
+    color: #111;
+  font-weight: 400;
+}
+</style>
+<!-- <p>
+<div class="holder">Default Squiggle<div class="tinyLine tinyLine1"></div><div class="tinyLine tinyLine2"></div></div>
+</p> -->
+<!-- QuickFix -> db.turtles.update({ name: "donatello" },{ $push: { scores: { $each: [ 90, 92, 85 ] } } }) -->
+<p>
+<div class="holder">db.turtles.update({ name: "donatello" },{ $push: { scores: { $each: [ 90, 92, 85 ] } } })<div class="tinyLine tinyLine1Error"></div><div class="tinyLine tinyLine2WError"></div></div>
+</p>
+<div class="lintwarning">Deprecated: The $pushAll operator is deprecated. Use $push one with the $each modifier.</div>
+<p>
+<div class="holder">db.turtles.remove()<div class="tinyLine tinyLine1Warning"></div><div class="tinyLine tinyLine2Warning"></div></div>
+</p>
+<div class="lintwarning">Warning: This will delete all documents in the turtles collection.</div>
+<p>
+<div class="holder">db.turtles.aggregate()<div class="tinyLine tinyLine1Error"></div><div class="tinyLine tinyLine2WError"></div></div>
+</p>
+<div class="linterror">Error: db.turtles.aggregate() requires an array as its first argument</div>
+
+See [eslint-plugin-mongodb](https://github.com/SebastienElet/eslint-plugin-mongodb#check-insert-calls) [rules/check-deprecated-updates.js](https://github.com/SebastienElet/eslint-plugin-mongodb/blob/master/src/lib/rules/check-deprecated-updates.js)
+
+> @scott 1 day ago
 > Ah I’m glad it’s started well! :slightly_smiling_face: personally I think this is /huge/ when you consider how many developer tools can now leverage all the work the team is doing.
 > and neat to play around with the ejsonShellParser :slightly_smiling_face: if you don’t already know it’ll throw an error with the line/column where it failed to parse which may be useful to show a red-squiggle.
+
+<kbd>#correctness</kbd>
+
+#### Advanced MQL Linting
+
+<kbd>#correctness</kbd>
+
+- Warn: missing index
+- Dan's dream whatIf API
 
 ### definitions
 
