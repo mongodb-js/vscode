@@ -15,7 +15,7 @@
 
 ## Intro
 
-- TODO
+- The Language Server implementation for the official MongoDB extension for Visual Studio Code worthy of its own team scope/design
 
 ## Motivation
 
