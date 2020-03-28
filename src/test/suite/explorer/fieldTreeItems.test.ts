@@ -229,25 +229,11 @@ suite('FieldTreeItem Test Suite', () => {
                 `Expected array field to have 1 field found ${arrayFieldContainer.length}`
               );
               assert(
-                fieldIsExpandable(arrayFieldContainer[0].field),
-                'Expected array field container to be expandable'
+                !fieldIsExpandable(arrayFieldContainer[0].field),
+                'Expected array field container to not be expandable'
               );
-              arrayFieldContainer[0]
-                .getChildren()
-                .then((arrayFields) => {
-                  assert(
-                    arrayFields.length === 1,
-                    `Expected array field fields to have 1 field found ${arrayFields.length}`
-                  );
-                  assert(
-                    !fieldIsExpandable(arrayFields[0].field),
-                    'Expected string field in array not to be expandable'
-                  );
-                })
-                .then(done, done);
-            })
-            .catch(done);
-        });
+            }).then(done, done);
+        }, done);
       });
     });
 
@@ -284,38 +270,32 @@ suite('FieldTreeItem Test Suite', () => {
         testSchemaTreeItem.getChildren().then((schemaFields) => {
           dataService.disconnect();
 
-          schemaFields[1].getChildren().then((arrayFieldContainer) => {
+          schemaFields[1].getChildren().then((nestedSubDocuments) => {
             assert(
-              arrayFieldContainer.length === 1,
-              `Expected array fields to have length 1 found ${arrayFieldContainer.length}`
+              nestedSubDocuments.length === 1,
+              `Expected array field fields to have 1 field found ${nestedSubDocuments.length}`
             );
-            arrayFieldContainer[0].getChildren().then((nestedSubDocuments) => {
-              assert(
-                nestedSubDocuments.length === 1,
-                `Expected array field fields to have 1 field found ${nestedSubDocuments.length}`
-              );
-              assert(
-                fieldIsExpandable(nestedSubDocuments[0].field),
-                'Expected subdocument in array to be expandable'
-              );
-              nestedSubDocuments[0]
-                .getChildren()
-                .then((subdocFields) => {
-                  assert(
-                    subdocFields.length === 2,
-                    `Expected subdocument in array field to have 2 fields found ${subdocFields.length}`
-                  );
-                  assert(
-                    subdocFields[1].label === 'sunset',
-                    'Expected subdocument field to have correct label'
-                  );
-                  assert(
-                    !fieldIsExpandable(subdocFields[1].field),
-                    'Expected subdocument boolean field to not be expandable'
-                  );
-                })
-                .then(done, done);
-            });
+            assert(
+              fieldIsExpandable(nestedSubDocuments[0].field),
+              'Expected subdocument in array to be expandable'
+            );
+            nestedSubDocuments[0]
+              .getChildren()
+              .then((subdocFields) => {
+                assert(
+                  subdocFields.length === 2,
+                  `Expected subdocument in array field to have 2 fields found ${subdocFields.length}`
+                );
+                assert(
+                  subdocFields[1].label === 'sunset',
+                  'Expected subdocument field to have correct label'
+                );
+                assert(
+                  !fieldIsExpandable(subdocFields[1].field),
+                  'Expected subdocument boolean field to not be expandable'
+                );
+              })
+              .then(done, done);
           });
         });
       });

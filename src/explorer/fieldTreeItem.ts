@@ -199,19 +199,24 @@ export default class FieldTreeItem extends vscode.TreeItem
       this.field.types
     ) {
       const arrayElement = this.field.types[0];
+      const arrayElementFields = arrayElement.types;
 
-      if (pastChildrenCache[arrayElement.name]) {
-        this._childrenCache[arrayElement.name] = new FieldTreeItem(
-          arrayElement,
-          pastChildrenCache[arrayElement.name].isExpanded,
-          pastChildrenCache[arrayElement.name].getChildrenCache()
-        );
-      } else {
-        this._childrenCache[arrayElement.name] = new FieldTreeItem(
-          arrayElement,
-          false,
-          {}
-        );
+      if (arrayElementFields) {
+        arrayElementFields.forEach((arrayField) => {
+          if (pastChildrenCache[arrayField.name]) {
+            this._childrenCache[arrayField.name] = new FieldTreeItem(
+              arrayField,
+              pastChildrenCache[arrayField.name].isExpanded,
+              pastChildrenCache[arrayField.name].getChildrenCache()
+            );
+          } else {
+            this._childrenCache[arrayField.name] = new FieldTreeItem(
+              arrayField,
+              false,
+              {}
+            );
+          }
+        });
       }
     }
 
