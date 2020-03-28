@@ -1,18 +1,16 @@
 const Reflux = require('reflux');
-const { omit } = require('lodash');
-
-const DataService = require('mongodb-data-service');
-const Actions = require('actions');
-const Connection = require('mongodb-connection-model');
-const ConnectionCollection = Connection.ConnectionCollection;
+// const DataService = require('mongodb-data-service');
+// const Connection = require('mongodb-connection-model/lib/model');
 const StateMixin = require('reflux-state-mixin');
 // const ipc = require('hadron-ipc');
+
+import Actions from './actions';
 
 /**
  * A default driverUrl.
  */
-const DEFAULT_DRIVER_URL =
-  'mongodb://localhost:27017/?readPreference=primary&ssl=false';
+// const DEFAULT_DRIVER_URL =
+// 'mongodb://localhost:27017/?readPreference=primary&ssl=false';
 
 /**
  * All the authentication strategy related fields on the connection model, with
@@ -51,6 +49,15 @@ const SSH_TUNNEL_FIELDS = [
   'replicaSet'
 ];
 
+class MockConnectionModel {
+  getAttributes(options: any): void {
+    //
+  }
+  set(): void {
+    //
+  }
+}
+
 /**
  * The store that backs the connect plugin.
  */
@@ -67,7 +74,7 @@ const Store = Reflux.createStore({
    */
   getInitialState() {
     return {
-      currentConnection: new Connection(),
+      currentConnection: new MockConnectionModel(),
       // Hash for storing unchanged connections for the discard feature
       connections: {},
       // URL from connection string input
@@ -482,39 +489,40 @@ const Store = Reflux.createStore({
    * @param {Object} connection - The current connection.
    */
   _connect(connection) {
-    this.dataService = new DataService(connection);
-    this.appRegistry.emit('data-service-initialized', this.dataService);
-    this.dataService.connect((error, ds) => {
-      if (error) {
-        this.StatusActions.done();
-        this.setState({
-          isValid: false,
-          errorMessage: error.message,
-          syntaxErrorMessage: null
-        });
-      } else {
-        const currentConnection = this.state.currentConnection;
-        const currentSaved = this.state.connections[currentConnection._id];
+    window.alert('connect');
+    // this.dataService = new DataService(connection);
+    // this.appRegistry.emit('data-service-initialized', this.dataService);
+    // this.dataService.connect((error, ds) => {
+    //   if (error) {
+    //     this.StatusActions.done();
+    //     this.setState({
+    //       isValid: false,
+    //       errorMessage: error.message,
+    //       syntaxErrorMessage: null
+    //     });
+    //   } else {
+    //     const currentConnection = this.state.currentConnection;
+    //     const currentSaved = this.state.connections[currentConnection._id];
 
-        this.state.isValid = true;
-        this.state.isConnected = true;
-        this.state.errorMessage = null;
-        this.state.syntaxErrorMessage = null;
-        this.state.isURIEditable = false;
-        this.state.customUrl = this.state.currentConnection.driverUrl;
+    //     this.state.isValid = true;
+    //     this.state.isConnected = true;
+    //     this.state.errorMessage = null;
+    //     this.state.syntaxErrorMessage = null;
+    //     this.state.isURIEditable = false;
+    //     this.state.customUrl = this.state.currentConnection.driverUrl;
 
-        currentConnection.lastUsed = new Date();
+    //     currentConnection.lastUsed = new Date();
 
-        if (currentSaved) {
-          this._saveConnection(currentConnection);
-        } else {
-          this._saveRecent(currentConnection);
-        }
+    //     if (currentSaved) {
+    //       this._saveConnection(currentConnection);
+    //     } else {
+    //       this._saveRecent(currentConnection);
+    //     }
 
-        // TODO:
-        // this.appRegistry.emit('data-service-connected', error, ds);
-      }
-    });
+    //     // TODO:
+    //     // this.appRegistry.emit('data-service-connected', error, ds);
+    //   }
+    // });
   },
 
   /**
@@ -524,7 +532,7 @@ const Store = Reflux.createStore({
     const isFavorite = this.state.currentConnection.isFavorite;
     const name = this.state.currentConnection.name;
     const color = this.state.currentConnection.color;
-    const connection = new Connection();
+    const connection = new MockConnectionModel();
 
     this.state.currentConnection.set(connection.getAttributes({ props: true }));
     this.state.currentConnection.set({ isFavorite, name, color });
@@ -573,4 +581,4 @@ const Store = Reflux.createStore({
   }
 });
 
-module.exports = Store;
+export default Store;
