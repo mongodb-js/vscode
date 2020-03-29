@@ -135,6 +135,8 @@ class ConnectionForm extends React.Component<props, state> {
       isSrvRecord
     } = currentConnection;
 
+    console.log('renderHostnameTab', hostname);
+
     return (
       <div className={classnames(styles['tabs-view'])}>
         <div className={classnames(styles['tabs-view-content'])}>

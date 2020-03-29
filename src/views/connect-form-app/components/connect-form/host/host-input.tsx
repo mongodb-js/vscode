@@ -16,9 +16,9 @@ class HostInput extends React.PureComponent<props> {
    *
    * @param {Object} evt - evt.
    */
-  onHostnameChanged(evt): void {
+  onHostnameChanged = (evt): void => {
     Actions.onHostnameChanged(evt.target.value);
-  }
+  };
 
   /**
    * Gets a host name.
@@ -39,7 +39,7 @@ class HostInput extends React.PureComponent<props> {
         label="Hostname"
         name="hostname"
         placeholder="localhost"
-        changeHandler={this.onHostnameChanged.bind(this)}
+        changeHandler={this.onHostnameChanged}
         value={this.getHostname()}
       />
     );

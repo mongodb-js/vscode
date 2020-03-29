@@ -1,6 +1,7 @@
 const Reflux = require('reflux');
 // const DataService = require('mongodb-data-service');
 // const Connection = require('mongodb-connection-model/lib/model');
+const Connection = require('../js-connection-model/model');
 const StateMixin = require('reflux-state-mixin');
 // const ipc = require('hadron-ipc');
 
@@ -49,15 +50,6 @@ const SSH_TUNNEL_FIELDS = [
   'replicaSet'
 ];
 
-class MockConnectionModel {
-  getAttributes(options: any): void {
-    //
-  }
-  set(): void {
-    //
-  }
-}
-
 /**
  * The store that backs the connect plugin.
  */
@@ -74,7 +66,7 @@ const Store = Reflux.createStore({
    */
   getInitialState() {
     return {
-      currentConnection: new MockConnectionModel(),
+      currentConnection: new Connection(),
       // Hash for storing unchanged connections for the discard feature
       connections: {},
       // URL from connection string input
@@ -532,7 +524,7 @@ const Store = Reflux.createStore({
     const isFavorite = this.state.currentConnection.isFavorite;
     const name = this.state.currentConnection.name;
     const color = this.state.currentConnection.color;
-    const connection = new MockConnectionModel();
+    const connection = new Connection();
 
     this.state.currentConnection.set(connection.getAttributes({ props: true }));
     this.state.currentConnection.set({ isFavorite, name, color });

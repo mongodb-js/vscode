@@ -4,32 +4,48 @@ import classnames from 'classnames';
 const styles = require('../connect.module.less');
 
 import ConnectionForm from './connect-form/connection-form';
-import Store from '../store/store';
-import StoreConnector from './storeConnector';
 
-export default class App extends React.Component {
+type props = {
+  currentConnection: any;
+  errorMessage: string;
+  isConnected: boolean;
+  isHostChanged: boolean;
+  isPortChanged: boolean;
+  isValid: boolean;
+  syntaxErrorMessage: string;
+};
+
+export default class App extends React.Component<props> {
   render(): React.ReactNode {
-    return (
-      <StoreConnector store={Store}>
-        <div className={classnames(styles.page, styles.connect)}>
-          <div>
-            <h1>Connect to MongoDB</h1>
+    const {
+      currentConnection,
+      errorMessage,
+      isConnected,
+      isHostChanged,
+      isPortChanged,
+      isValid,
+      syntaxErrorMessage
+    } = this.props;
 
-            <ConnectionForm
-              currentConnection={{}}
-              errorMessage=""
-              isConnected={false}
-              isHostChanged={false}
-              isPortChanged={false}
-              isValid={false}
-              syntaxErrorMessage=""
-            />
-          </div>
-          <div>
-            Info about atlas and creating a db.
-          </div>
+    return (
+      <div className={classnames(styles.page, styles.connect)}>
+        <div>
+          <h1>Connect to MongoDB</h1>
+
+          <ConnectionForm
+            currentConnection={currentConnection}
+            errorMessage={errorMessage}
+            isConnected={isConnected}
+            isHostChanged={isHostChanged}
+            isPortChanged={isPortChanged}
+            isValid={isValid}
+            syntaxErrorMessage={syntaxErrorMessage}
+          />
         </div>
-      </StoreConnector>
+        <div>
+          Info Panel - coming soon.
+        </div>
+      </div>
     );
   }
 }
