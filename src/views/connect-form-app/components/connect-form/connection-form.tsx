@@ -71,7 +71,17 @@ class ConnectionForm extends React.Component<props> {
     const {
       authStrategy,
       hostname,
-      isSrvRecord
+      isSrvRecord,
+      kerberosCanonicalizeHostname,
+      kerberosPassword,
+      kerberosPrincipal,
+      kerberosServiceName,
+      ldapPassword,
+      ldapUsername,
+      mongodbDatabaseName,
+      mongodbPassword,
+      mongodbUsername,
+      x509Username
     } = currentConnection;
 
     return (
@@ -87,6 +97,16 @@ class ConnectionForm extends React.Component<props> {
         <Authentication
           authStrategy={authStrategy}
           isValid={isValid}
+          kerberosCanonicalizeHostname={kerberosCanonicalizeHostname}
+          kerberosPassword={kerberosPassword}
+          kerberosPrincipal={kerberosPrincipal}
+          kerberosServiceName={kerberosServiceName}
+          ldapPassword={ldapPassword}
+          ldapUsername={ldapUsername}
+          mongodbDatabaseName={mongodbDatabaseName}
+          mongodbPassword={mongodbPassword}
+          mongodbUsername={mongodbUsername}
+          x509Username={x509Username}
         />
       </div>
     );

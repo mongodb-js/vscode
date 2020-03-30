@@ -4,6 +4,7 @@ import classnames from 'classnames';
 const styles = require('../connect.module.less');
 
 import ConnectionForm from './connect-form/connection-form';
+import HelpPanel from './help-panel/help-panel';
 
 type props = {
   currentConnection: any;
@@ -42,9 +43,7 @@ export default class App extends React.Component<props> {
             syntaxErrorMessage={syntaxErrorMessage}
           />
         </div>
-        <div>
-          Info Panel - coming soon.
-        </div>
+        <HelpPanel />
       </div>
     );
   }

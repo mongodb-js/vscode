@@ -11,7 +11,6 @@ export default Reflux.createActions({
   onEditURICanceled: { sync: true },
   onEditURIClicked: { sync: true },
   onEditURIConfirmed: { sync: true },
-  onExternalLinkClicked: { sync: true },
   onHideURIClicked: { sync: true },
   onHostnameChanged: { sync: true },
   onKerberosCnameToggle: { sync: true },

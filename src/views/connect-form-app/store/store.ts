@@ -7,6 +7,8 @@ const StateMixin = require('reflux-state-mixin');
 
 import Actions from './actions';
 
+const vscode = acquireVsCodeApi();
+
 /**
  * A default driverUrl.
  */
@@ -206,21 +208,6 @@ const Store = Reflux.createStore({
     this.state.customUrl = this.state.currentConnection.driverUrl;
     this.state.isEditURIConfirm = false;
     this.trigger(this.state);
-  },
-
-  /**
-   * Visits external page.
-   *
-   * @param {String} href - A link to external page.
-   * @param {String} event - appRegistry event.
-   */
-  onExternalLinkClicked(href, event) {
-    // TODO: Does vscode allow this:
-    window.open(href, '_new');
-
-    if (event) {
-      this.appRegistry.emit(event);
-    }
   },
 
   /**
@@ -544,39 +531,12 @@ const Store = Reflux.createStore({
    * @param {Object} connection - The current connection.
    */
   _connect(connection) {
-    window.alert('connect');
-    // this.dataService = new DataService(connection);
-    // this.appRegistry.emit('data-service-initialized', this.dataService);
-    // this.dataService.connect((error, ds) => {
-    //   if (error) {
-    //     this.setState({
-    //       isValid: false,
-    //       errorMessage: error.message,
-    //       syntaxErrorMessage: null
-    //     });
-    //   } else {
-    //     const currentConnection = this.state.currentConnection;
-    //     const currentSaved = this.state.connections[currentConnection._id];
+    vscode.postMessage({
+      command: 'connect',
+      driverUrl: connection.driverUrl
+    });
 
-    //     this.state.isValid = true;
-    //     this.state.isConnected = true;
-    //     this.state.errorMessage = null;
-    //     this.state.syntaxErrorMessage = null;
-    //     this.state.isURIEditable = false;
-    //     this.state.customUrl = this.state.currentConnection.driverUrl;
-
-    //     currentConnection.lastUsed = new Date();
-
-    //     if (currentSaved) {
-    //       this._saveConnection(currentConnection);
-    //     } else {
-    //       this._saveRecent(currentConnection);
-    //     }
-
-    //     // TODO:
-    //     // this.appRegistry.emit('data-service-connected', error, ds);
-    //   }
-    // });
+    // TODO: We can do some error handling on connection failure here.
   },
 
   /**

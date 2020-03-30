@@ -110,7 +110,10 @@ export default class ConnectionController {
     vscode.window.showInformationMessage('mdb.connect command run.');
 
     const connectWebView = new ConnectFormView();
-    return connectWebView.showConnectForm(context);
+    return connectWebView.showConnectForm(
+      context,
+      connectionString => this.addNewConnectionAndConnect(connectionString)
+    );
   }
 
   public async connectWithURI(): Promise<boolean> {

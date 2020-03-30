@@ -17,7 +17,10 @@ function getConnectWebviewContent(jsAppFileUrl: vscode.Uri): string {
 }
 
 export default class ConnectFormView {
-  showConnectForm(context: vscode.ExtensionContext): Promise<boolean> {
+  showConnectForm(
+    context: vscode.ExtensionContext,
+    connect: (connectionString: string) => Promise<boolean>
+  ): Promise<boolean> {
     const extensionPath = context.extensionPath;
 
     // Create and show a new connect dialogue webview.
@@ -39,6 +42,22 @@ export default class ConnectFormView {
     const reactAppUri = jsAppFilePath.with({ scheme: 'vscode-resource' });
 
     panel.webview.html = getConnectWebviewContent(reactAppUri);
+
+    // Handle messages from the webview.
+    panel.webview.onDidReceiveMessage(
+      message => {
+        switch (message.command) {
+          case 'connect':
+            connect(message.driverUrl);
+            return;
+          default:
+            vscode.window.showErrorMessage('Unexpected message recieved from connect view.');
+            return;
+        }
+      },
+      undefined,
+      context.subscriptions
+    );
 
     return Promise.resolve(true);
   }

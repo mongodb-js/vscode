@@ -24,7 +24,7 @@
     ]
   },
   "globals": {
-    "document": true
+    "acquireVsCodeApi": true
   },
   "rules": {
     "camelcase": 1,

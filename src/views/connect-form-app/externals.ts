@@ -3,3 +3,5 @@ declare module '*.less' {
   // export = resource;
   export default resource;
 }
+
+declare const acquireVsCodeApi: () => any;

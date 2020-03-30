@@ -1,15 +1,12 @@
 /* eslint complexity: 0 */
 
-// const URL = require('url');
 import { format as toURL } from 'url';
-// const toURL = URL.format;
 const { format } = require('util');
 
 const { assign, defaults, clone, includes } = require('lodash');
 
 const AmpersandModel = require('ampersand-model');
 
-// const { ReadPreference } = require('mongodb');
 const ReadPreference = {
   PRIMARY: 'primary',
   PRIMARY_PREFERRED: 'primaryPreferred',
