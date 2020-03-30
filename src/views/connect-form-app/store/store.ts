@@ -139,7 +139,6 @@ const Store = Reflux.createStore({
         errorMessage: 'The required fields can not be empty'
       });
     } else {
-      this.StatusActions.showIndeterminateProgressBar();
       this._connect(currentConnection);
     }
   },
@@ -486,7 +485,6 @@ const Store = Reflux.createStore({
     // this.appRegistry.emit('data-service-initialized', this.dataService);
     // this.dataService.connect((error, ds) => {
     //   if (error) {
-    //     this.StatusActions.done();
     //     this.setState({
     //       isValid: false,
     //       errorMessage: error.message,

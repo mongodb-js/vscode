@@ -125,20 +125,6 @@ class ConnectionForm extends React.Component<props> {
     );
   }
 
-  /**
-   * Renders views.
-   *
-   * @returns {React.Component}
-   */
-  renderView(): React.ReactNode {
-    return (
-      <div className={styles['fields-view']}>
-        {this.renderHostnameArea()}
-        {this.renderConnectionOptionsArea()}
-      </div>
-    );
-  }
-
   render(): React.ReactNode {
     const {
       currentConnection,
@@ -154,9 +140,8 @@ class ConnectionForm extends React.Component<props> {
         className={classnames(styles['connect-form'])}
       >
         <div className={classnames(styles.fields)}>
-          <div className={classnames(styles['fields-container'])}>
-            {this.renderView()}
-          </div>
+          {this.renderHostnameArea()}
+          {this.renderConnectionOptionsArea()}
         </div>
         <FormActions
           currentConnection={currentConnection}
