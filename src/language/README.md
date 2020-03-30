@@ -1,5 +1,12 @@
 # MongoDB for VS Code: Language Server
 
+## Introduction
+
+The purpose of this document is to lay out the short-term and long-term potential of the MongoDB Language Server as part of the official VS Code extension. Some of the LangServer (LSP) spec and VSCode user functionality can be confusing so a map of LSP request methods to VSCode UX and features the MongoDB extension could add for playgrounds is included.
+
+We can also extend the mongodb language server and client with custom methods to leverage it as a background worker. Because the language server is a separate JSON RPC enabled process, we can add RPC definitions for:
+Language Server also provides an option to handle any processing off the "main UI thread" similar to the existing scope, "[Background Processing in Compass](https://jira.mongodb.org/browse/COMPASS-3935)".
+
 ## Jargon
 
 **LangServer Protocol** The Language Server protocol (LSP) is used between a tool (the client) and a language smartness provider (the server) to integrate features like auto complete, go to definition, find all references and alike into the tool https://microsoft.github.io/language-server-protocol
@@ -9,10 +16,6 @@
 **MongoDB Language Server Client** runs next to UI code in the extension host process and uses [vscode-languageclient](https://github.com/microsoft/vscode-languageserver-node/tree/master/client) for JSON RPC over IPC.
 
 ![](./langserver-diagram.svg)
-
-## Intro
-
-- The Language Server implementation for the official MongoDB extension for Visual Studio Code worthy of its own team scope/design
 
 ## Motivation
 
@@ -32,49 +35,98 @@ All of the User Facing Behaviors are possible with the extension host `vscode` A
 - that could be integrated into other enterprise tools like Compass and mongosh
 - Expand to support external developer tools like Sublime Text, JetBrains/IntelliJ, Atom, vim, emacs, [and more](#other-lsp-clients)
 
-## MVP
+## User Facing Behavior
 
-> ### Help users to write _correct_ queries and aggregations.
+### MVP
+
+> #### Help users to write _correct_ queries and aggregations.
 >
 > &mdash; @max
 
 Language Server has a very large API surface area. To start, we'll limit and prioritize based on the mantra of correctness.
 
 - `signatures` for the SHELL API
-- `completions` for aggregation operators
--
+- `completions` for aggregation operators, SHELL API symbols/methods, and existing snippets
 
-<kbd>#correctness</kbd> below
+#### Schema Analysis
 
-## User Facing Behavior
+- Move treeview over to use language server client/server
+- Make language server connection aware e.g. client includes active connectionId in request -> server uses something like `connectionController.connectWithConnectionId()`
+- Note the LSP work progress API for bonus points
 
-Some of the LangServer spec and VSCode user functionality can be confusing. Map of LSP request methods to VSCode UX along with possible features the MongoDB extension could add for playgrounds MDB Language Server:
+#### Playground eval/execution
 
-- formatting
-- signatures
-- hovers
-- diagnostics
-- definitions
-- completions
-- codeActions
+- Relocate playgroundController.evaluate() to language/server (already a stub handler there for `executeAll`)
+- `playgroundController.runAllPlaygroundBlocks()` uses languageServerController instead
 
-### formatting
+#### completions
 
-[official docs][vscode_docs_formatting]
+> [official docs][vscode_docs_completions] Completions provide context sensitive suggestions to the user as they type
+
+- [ ] mongosh browser-runtime getCompletions()
+- [x] aggregation operators
+- [x] Snippets
+
+![](https://code.visualstudio.com/assets/api/language-extensions/language-support/code-completion.gif)
+
+#### mongosh signatures
+
+> [signatures][vscode_docs_signatures] Display information about the function/method that is being called When the user enters a function or method.
+
+- mongosh browser-runtime getCompletions() but also includes parameters and help description
+
+![](https://code.visualstudio.com/assets/api/language-extensions/language-support/signature-help.gif)
+
+##### JavaScript/SHELL API linting
+
+> [diagnostics][vscode_docs_diagnostics] Diagnostics are a way to indicate issues with the code.
+
+- "Is `db.turtles.aggregate(**[**{\$match: {species: "box turtle"}})` valid JS and if not why?"
+- "Is `db.turtles.findLots()` a valid shell API call?"
+
+Use an existing JS linting library (eg. eslint) to display JavaScript specific errors/warnings in the playground (red or yellow squiggles) with hack to support invalid JS that is valid playground (ex. `use db;`).
+
+See Language Server Server implementation for `eslint` in [eslintServer](https://github.com/microsoft/vscode-eslint/blob/master/server/src/eslintServer.ts)
+
+#### Playground formatting
+
+> [formatting][vscode_docs_formatting] Provide the user with support for formatting whole documents.
 
 - Run prettier on file/selected range
--
 
 ![](https://code.visualstudio.com/assets/api/language-extensions/language-support/format-document.gif)
 
-### signatures
+#### codeActions for method/function name typos
 
-[docs][vscode_docs_signatures]
+> [codeActions][vscode_docs_codeactions] Provide the user with possible corrective actions right next to an error or warning. If actions are available, a light bulb appears next to the error or warning. When the user clicks the light bulb, a list of available Code Actions is presented.
 
-- mongosh function/method parameters and their types with short description
--
+- Auto-fix method/field/operators typos (e.x. "fnd: did you mean find()?")
+- `eslint --fix`
 
-![](https://code.visualstudio.com/assets/api/language-extensions/language-support/signature-help.gif)
+![](https://code.visualstudio.com/assets/api/language-extensions/language-support/quick-fixes.gif)
+
+#### mongosh definitions
+
+> [definitions][vscode_docs_definitions] Allow the user to see the definition of variables/functions/methods right where the variables/functions/methods are being used.
+
+- Link to docs site?
+- Open mongosh source for a given method in a new editor tab
+
+![](https://code.visualstudio.com/assets/api/language-extensions/language-support/goto-definition.gif)
+
+---
+
+TODO: Inlining results instead of just printing to an output channel like skunkworks. See:
+
+- https://marketplace.visualstudio.com/items?itemName=lostfields.nodejs-repl
+- https://marketplace.visualstudio.com/items?itemName=achil.vscode-javascript-repl
+
+### Future
+
+Some of the LangServer spec and VSCode user functionality can be confusing. Map of LSP request methods to VSCode UX along with possible features the MongoDB extension could add for playgrounds MDB Language Server:
+
+- hovers
+- codeActions
 
 ### hovers
 
@@ -87,21 +139,6 @@ Some of the LangServer spec and VSCode user functionality can be confusing. Map 
 ![](https://user-images.githubusercontent.com/23074/70480573-15c3b300-1aae-11ea-80d5-51461a07839f.png)
 
 ![](https://code.visualstudio.com/assets/api/language-extensions/language-support/hovers.gif)
-
-### diagnostics
-
-[docs][vscode_docs_diagnostics]
-
-##### JavaScript/SHELL API linting
-
-- "Is `db.turtles.aggregate(**[**{\$match: {species: "box turtle"}})` valid JS and if not why?"
-- "Is `db.turtles.findLots()` a valid shell API call?"
-
-Use an existing JS linting library (eg. eslint) to display JavaScript specific errors/warnings in the playground (red or yellow squiggles) with hack to support invalid JS that is valid playground (ex. `use db;`).
-
-See Language Server Server implementation for `eslint` in [eslintServer](https://github.com/microsoft/vscode-eslint/blob/master/server/src/eslintServer.ts)
-
-<kbd>#correctness</kbd>
 
 ##### MQL Best Practices linting
 
@@ -153,22 +190,22 @@ See Language Server Server implementation for `eslint` in [eslintServer](https:/
 }
 
 .lintwarning {
-  border: 1px solid #ccc;
-  font-size: 13px;
-  background: #aaa;
-  padding: 4px;
+  border: 1px solid #686553;
+  font-size: 12px;
+  background: #414339;
+  padding: 8px;
   font-family: monospace;
-  color: #111;
+  color: #B5B5B5;
   font-weight: 400;
 }
 
 .linterror {
-  border: 1px solid #ccc;
-  font-size: 13px;
-  background: #aaa;
-  padding: 4px;
+  border: 1px solid #686553;
+  font-size: 12px;
+  background: #414339;
+  padding: 8px;
   font-family: monospace;
-    color: #111;
+  color: #B5B5B5;
   font-weight: 400;
 }
 </style>
@@ -243,12 +280,7 @@ See [eslint-plugin-mongodb](https://github.com/SebastienElet/eslint-plugin-mongo
 [vscode_docs_completions]: https://code.visualstudio.com/api/language-extensions/programmatic-language-features#show-code-completion-proposals
 [vscode_docs_codeactions]: https://code.visualstudio.com/api/language-extensions/programmatic-language-features#possible-actions-on-errors-or-warnings
 
-## Background Processing
-
-We can also extend the mongodb language server and client with custom methods to leverage it as a background worker. Because the language server is a separate JSON RPC enabled process, we can add RPC definitions for:
-
-- Execute playground with mongosh
-- Schema analysis and caching
+---
 
 <a name="other-lsp-clients"></a>
 
