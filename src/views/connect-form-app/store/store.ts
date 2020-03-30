@@ -64,6 +64,7 @@ const Store = Reflux.createStore({
       // URL from connection string input
       customUrl: '',
       isValid: true,
+      isConnecting: false,
       isConnected: false,
       errorMessage: null,
       syntaxErrorMessage: null,
@@ -71,7 +72,6 @@ const Store = Reflux.createStore({
       isPortChanged: false,
       isModalVisible: false,
       isMessageVisible: false,
-      isSavedConnection: false,
       savedMessage: ''
     };
   },
@@ -100,11 +100,12 @@ const Store = Reflux.createStore({
   },
 
   /**
-   * Resests URL validation.
+   * Resets URL validation.
    */
   onConnectionFormChanged() {
     this.setState({
       isValid: true,
+      isConnected: false,
       errorMessage: null,
       syntaxErrorMessage: null
     });
@@ -128,6 +129,17 @@ const Store = Reflux.createStore({
     } else {
       this._connect(currentConnection);
     }
+  },
+
+  onConnectedEvent(connectionSuccess) {
+    this.state.isConnecting = false;
+    this.state.isConnected = connectionSuccess;
+
+    if (!connectionSuccess) {
+      this.state.isValid = false;
+      this.state.errorMessage = 'Unable to connect.';
+    }
+    this.trigger(this.state);
   },
 
   /**
@@ -451,10 +463,22 @@ const Store = Reflux.createStore({
    * @param {Object} connection - The current connection.
    */
   _connect(connection: ConnectionModel) {
+    if (this.state.isConnecting) {
+      this.state.errorMessage = 'Already connecting, please wait.';
+      this.state.isValid = false;
+      this.trigger(this.state);
+      return;
+    }
+    this.state.isConnecting = true;
+    this.state.isConnected = false;
+    this.trigger(this.state);
+
     vscode.postMessage({
       command: 'connect',
       driverUrl: connection.getDriverUrl()
     });
+
+    // vs
 
     // TODO: We can do some error handling on connection failure here.
   },

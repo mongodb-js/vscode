@@ -10,6 +10,7 @@ type props = {
   currentConnection: any;
   errorMessage: string;
   isConnected: boolean;
+  isConnecting: boolean;
   isHostChanged: boolean;
   isPortChanged: boolean;
   isValid: boolean;
@@ -22,6 +23,7 @@ export default class App extends React.Component<props> {
       currentConnection,
       errorMessage,
       isConnected,
+      isConnecting,
       isHostChanged,
       isPortChanged,
       isValid,
@@ -37,6 +39,7 @@ export default class App extends React.Component<props> {
             currentConnection={currentConnection}
             errorMessage={errorMessage}
             isConnected={isConnected}
+            isConnecting={isConnecting}
             isHostChanged={isHostChanged}
             isPortChanged={isPortChanged}
             isValid={isValid}

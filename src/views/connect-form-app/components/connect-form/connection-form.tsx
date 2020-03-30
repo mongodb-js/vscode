@@ -19,6 +19,7 @@ type props = {
   currentConnection: any; // TODO: Connection model type.
   errorMessage: string;
   isConnected: boolean;
+  isConnecting: boolean;
   isHostChanged: boolean;
   isPortChanged: boolean;
   isValid: boolean;
@@ -150,6 +151,7 @@ class ConnectionForm extends React.Component<props> {
       currentConnection,
       errorMessage,
       isConnected,
+      isConnecting,
       isValid,
       syntaxErrorMessage
     } = this.props;
@@ -167,6 +169,7 @@ class ConnectionForm extends React.Component<props> {
           currentConnection={currentConnection}
           errorMessage={errorMessage}
           isConnected={isConnected}
+          isConnecting={isConnecting}
           isValid={isValid}
           syntaxErrorMessage={syntaxErrorMessage}
         />

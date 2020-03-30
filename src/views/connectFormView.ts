@@ -48,10 +48,15 @@ export default class ConnectFormView {
       message => {
         switch (message.command) {
           case 'connect':
-            connect(message.driverUrl);
+            connect(message.driverUrl).then(connectionSuccess => {
+              panel.webview.postMessage({
+                command: 'connectResult',
+                connectionSuccess
+              });
+            });
             return;
           default:
-            vscode.window.showErrorMessage('Unexpected message recieved from connect view.');
+            // no-op.
             return;
         }
       },

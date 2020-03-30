@@ -6,6 +6,7 @@ export default Reflux.createActions({
   onChangeViewClicked: { sync: true },
   onConnectionFormChanged: { sync: true },
   onConnectClicked: { sync: true },
+  onConnectedEvent: { sync: true },
   onHostnameChanged: { sync: true },
   onKerberosCnameToggle: { sync: true },
   onKerberosPasswordChanged: { sync: true },

@@ -10,6 +10,7 @@ type props = {
   currentConnection: any; // TODO: Connection model type.
   errorMessage: string;
   isConnected: boolean;
+  isConnecting: boolean;
   isValid: boolean;
   syntaxErrorMessage: string;
 };
@@ -54,14 +55,27 @@ class FormActions extends React.Component<props> {
   renderConnect = (): React.ReactNode => {
     const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
 
+    const {
+      isConnected,
+      isConnecting
+    } = this.props;
+
+    let connectingText = 'Connect';
+    if (isConnected) {
+      connectingText = 'Success! Connected.';
+    }
+    if (isConnecting) {
+      connectingText = 'Connecting...';
+    }
+
     return (
       <button
         type="submit"
         name="connect"
         className={classnames(styles.btn, syntaxError)}
-        onClick={this.onConnectClicked.bind(this)}
+        onClick={this.onConnectClicked}
       >
-        Connect
+        {connectingText}
       </button>
     );
   };

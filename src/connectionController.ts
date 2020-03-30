@@ -109,7 +109,7 @@ export default class ConnectionController {
     const connectWebView = new ConnectFormView();
     return connectWebView.showConnectForm(
       context,
-      connectionString => this.addNewConnectionAndConnect(connectionString)
+      this.addNewConnectionAndConnect
     );
   }
 
@@ -144,9 +144,9 @@ export default class ConnectionController {
 
   // Resolves true when the connection is successfully added.
   // The connection can fail to connect but be successfully added.
-  public addNewConnectionAndConnect(
+  public addNewConnectionAndConnect = (
     connectionString: string
-  ): Promise<boolean> {
+  ): Promise<boolean> => {
     log.info('Trying to connect to a new connection configuration');
 
     return new Promise<boolean>((resolve, reject) => {
@@ -197,7 +197,7 @@ export default class ConnectionController {
         }
       );
     });
-  }
+  };
 
   public async connect(
     connectionId: string,

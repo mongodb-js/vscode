@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Actions from '../store/actions';
 
 type props = {
   children: React.ReactElement;
@@ -20,6 +21,19 @@ class StoreConnector extends React.Component<props, {}> {
    * Subscribe to changes from the store.
    */
   componentDidMount(): void {
+    window.addEventListener('message', event => {
+      const message = event.data;
+
+      switch (message.command) {
+        default:
+          // No-op.
+          return;
+        case 'connectResult':
+          Actions.onConnectedEvent(message.connectionSuccess);
+          return;
+      }
+    });
+
     this.unsubscribe = this.props.store.listen(this.setState.bind(this));
   }
 
