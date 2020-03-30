@@ -23,38 +23,6 @@ module.exports = {
         options: {}
       },
       {
-        test: /\.css$/,
-        use: [{ loader: 'style-loader' }, { loader: 'css-loader' }]
-      },
-      // For styles that have to be global (see https://github.com/css-modules/css-modules/pull/65)
-      {
-        test: /\.less$/,
-        include: [/global/, /bootstrap/],
-        use: [
-          { loader: 'style-loader' },
-          {
-            loader: 'css-loader',
-            options: {
-              modules: false
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              plugins: function () {
-                return [autoprefixer()];
-              }
-            }
-          },
-          {
-            loader: 'less-loader',
-            options: {
-              noIeCompat: true
-            }
-          }
-        ]
-      },
-      {
         test: /\.less$/,
         exclude: [/\.global/, /bootstrap/, /node_modules/, /global\.less/],
         use: [
@@ -80,22 +48,6 @@ module.exports = {
               noIeCompat: true
             }
           }
-
-
-          // test: /\.less$/,
-          // use: [
-          //   {
-          //     loader: 'style-loader'
-          //   },
-          //   {
-          //     loader: 'css-loader'
-          //   },
-          //   {
-          //     loader: 'less-loader',
-          //     options: {
-          //       noIeCompat: true
-          //     }
-          //   }
         ]
       }
     ]
