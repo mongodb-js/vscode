@@ -31,5 +31,6 @@ export default Reflux.createActions({
   onSSHTunnelIdentityFileChanged: { sync: true },
   onSSHTunnelChanged: { sync: true },
   onSRVRecordToggled: { sync: true },
-  onUsernameChanged: { sync: true }
+  onUsernameChanged: { sync: true },
+  onX509UsernameChanged: { sync: true }
 });

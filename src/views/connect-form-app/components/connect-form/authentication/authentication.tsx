@@ -4,10 +4,25 @@ import Actions from '../../../store/actions';
 import { AUTH_STRATEGY_ID, AuthStrategies } from '../../../store/auth-strategies';
 import FormGroup from '../form-group';
 import FormItemSelect from '../form-item-select';
+import Kerberos from './kerberos';
+import LDAP from './ldap';
+import MongoDBAuth from './mongodb-authentication';
+import ScramSha256 from './scram-sha-256';
+import X509 from './x509';
 
 type props = {
   authStrategy: AUTH_STRATEGY_ID;
   isValid: boolean;
+  kerberosCanonicalizeHostname: boolean;
+  kerberosPassword: string;
+  kerberosPrincipal: string;
+  kerberosServiceName: string;
+  ldapPassword: string;
+  ldapUsername: string;
+  mongodbDatabaseName: string;
+  mongodbPassword: string;
+  mongodbUsername: string;
+  x509Username: string;
 };
 
 class Authentication extends React.Component<props> {
@@ -28,23 +43,84 @@ class Authentication extends React.Component<props> {
    * @returns {React.Component}
    */
   renderAuthStrategy(): React.ReactNode {
-    // const currentAuthStrategy = AuthStrategies.find(
-    //   role => role.id === this.state.authStrategy
-    // );
-
-    // if (currentAuthStrategy.component) {
-    //   return <currentRole.component {...this.props} />;
-    // }
-
     const {
-      authStrategy
+      authStrategy,
+      isValid
     } = this.props;
 
-    return (
-      <div>
-        Todo: Show the {authStrategy} auth component.
-      </div>
-    );
+    if (authStrategy === AUTH_STRATEGY_ID.KERBEROS) {
+      const {
+        kerberosCanonicalizeHostname,
+        kerberosPassword,
+        kerberosPrincipal,
+        kerberosServiceName
+      } = this.props;
+
+      return (
+        <Kerberos
+          isValid={isValid}
+          kerberosCanonicalizeHostname={kerberosCanonicalizeHostname}
+          kerberosPassword={kerberosPassword}
+          kerberosPrincipal={kerberosPrincipal}
+          kerberosServiceName={kerberosServiceName}
+        />
+      );
+    }
+    if (authStrategy === AUTH_STRATEGY_ID.LDAP) {
+      const {
+        ldapPassword,
+        ldapUsername
+      } = this.props;
+
+      return (
+        <LDAP
+          isValid={isValid}
+          ldapPassword={ldapPassword}
+          ldapUsername={ldapUsername}
+        />
+      );
+    }
+    if (authStrategy === AUTH_STRATEGY_ID.MONGODB) {
+      const {
+        mongodbDatabaseName,
+        mongodbPassword,
+        mongodbUsername
+      } = this.props;
+
+      return (
+        <MongoDBAuth
+          isValid={isValid}
+          mongodbDatabaseName={mongodbDatabaseName}
+          mongodbPassword={mongodbPassword}
+          mongodbUsername={mongodbUsername}
+        />
+      );
+    }
+    if (authStrategy === AUTH_STRATEGY_ID['SCRAM-SHA-256']) {
+      const {
+        mongodbDatabaseName,
+        mongodbPassword,
+        mongodbUsername
+      } = this.props;
+
+      return (
+        <ScramSha256
+          isValid={isValid}
+          mongodbDatabaseName={mongodbDatabaseName}
+          mongodbPassword={mongodbPassword}
+          mongodbUsername={mongodbUsername}
+        />
+      );
+    }
+    if (authStrategy === AUTH_STRATEGY_ID.X509) {
+      const { x509Username } = this.props;
+      return (
+        <X509
+          isValid={isValid}
+          x509Username={x509Username}
+        />
+      );
+    }
   }
 
   render(): React.ReactNode {
