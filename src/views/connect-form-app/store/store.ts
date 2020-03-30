@@ -478,8 +478,6 @@ const Store = Reflux.createStore({
       driverUrl: connection.getDriverUrl()
     });
 
-    // vs
-
     // TODO: We can do some error handling on connection failure here.
   },
 

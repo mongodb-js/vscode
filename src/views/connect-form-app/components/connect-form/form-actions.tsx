@@ -3,11 +3,12 @@ import classnames from 'classnames';
 
 import Actions from '../../store/actions';
 import FormGroup from './form-group';
+import ConnectionModel from '../../connection-model/connection-model';
 
 const styles = require('../../connect.module.less');
 
 type props = {
-  currentConnection: any; // TODO: Connection model type.
+  currentConnection: ConnectionModel;
   errorMessage: string;
   isConnected: boolean;
   isConnecting: boolean;

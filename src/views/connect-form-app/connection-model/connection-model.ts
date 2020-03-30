@@ -6,9 +6,7 @@ import READ_PREFERENCES from './constants/read-preferences';
 import SSL_METHODS from './constants/ssl-methods';
 import SSH_TUNNEL_TYPES from './constants/ssh-tunnel-types';
 
-/**
- * Defining default values
- */
+// Defaults.
 const AUTH_STRATEGY_DEFAULT = AUTH_STRATEGIES.NONE;
 const READ_PREFERENCE_DEFAULT = READ_PREFERENCES.PRIMARY;
 const MONGODB_DATABASE_NAME_DEFAULT = 'admin';
@@ -48,7 +46,6 @@ class ConnectionModel {
   mongodbUsername?: string;
   x509Username?: string;
 
-
   /**
    * SSL
    */
@@ -77,7 +74,7 @@ class ConnectionModel {
   // /**
   //  * SSH TUNNEL
   //  */
-  // sshTunnel: SSH_TUNNEL_TYPES = SSH_TUNNEL_DEFAULT;
+  sshTunnel: SSH_TUNNEL_TYPES = SSH_TUNNEL_DEFAULT;
   // // The hostname of the SSH remote host.
   // sshTunnelHostname?: string;
   // // The SSH port of the remote host.

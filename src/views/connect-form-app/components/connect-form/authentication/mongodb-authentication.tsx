@@ -6,9 +6,9 @@ import FormGroup from '../form-group';
 
 type props = {
   isValid: boolean;
-  mongodbDatabaseName: string;
-  mongodbPassword: string;
-  mongodbUsername: string;
+  mongodbDatabaseName?: string;
+  mongodbPassword?: string;
+  mongodbUsername?: string;
 };
 
 class MongoDBAuthentication extends React.Component<props> {

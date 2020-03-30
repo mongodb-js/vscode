@@ -16,15 +16,15 @@ type props = {
   authStrategy: AUTH_STRATEGIES;
   isValid: boolean;
   kerberosCanonicalizeHostname: boolean;
-  kerberosPassword: string;
-  kerberosPrincipal: string;
-  kerberosServiceName: string;
-  ldapPassword: string;
-  ldapUsername: string;
-  mongodbDatabaseName: string;
-  mongodbPassword: string;
-  mongodbUsername: string;
-  x509Username: string;
+  kerberosPassword?: string;
+  kerberosPrincipal?: string;
+  kerberosServiceName?: string;
+  ldapPassword?: string;
+  ldapUsername?: string;
+  mongodbDatabaseName?: string;
+  mongodbPassword?: string;
+  mongodbUsername?: string;
+  x509Username?: string;
 };
 
 class Authentication extends React.Component<props> {

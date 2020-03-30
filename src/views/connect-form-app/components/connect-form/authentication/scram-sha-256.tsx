@@ -8,9 +8,9 @@ const styles = require('../../../connect.module.less');
 
 type props = {
   isValid: boolean;
-  mongodbDatabaseName: string;
-  mongodbPassword: string;
-  mongodbUsername: string;
+  mongodbDatabaseName?: string;
+  mongodbPassword?: string;
+  mongodbUsername?: string;
 };
 
 class ScramSha256 extends React.Component<props> {

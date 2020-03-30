@@ -1,4 +1,4 @@
-// Array of field names associated with each `authStrategy`
+// Array of field names associated with each `authStrategy`.
 export default {
   NONE: [],
   MONGODB: [

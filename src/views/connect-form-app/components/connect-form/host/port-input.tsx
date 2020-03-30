@@ -4,7 +4,7 @@ import Actions from '../../../store/actions';
 import FormInput from '../form-input';
 
 type props = {
-  port: string;
+  port: number;
   isPortChanged: boolean;
 };
 

@@ -1,4 +1,4 @@
-// Allowed values for the `sslMethod` field
+// Allowed values for the `sslMethod` field.
 enum SSL_METHODS {
   /**
    * Do not use SSL for anything.

@@ -1,4 +1,4 @@
-// Allowed values for the `authStrategy` field
+// Allowed values for the `authStrategy` field.
 enum AUTH_STRATEGY_VALUES {
   /**
    * Use no authentication strategy.

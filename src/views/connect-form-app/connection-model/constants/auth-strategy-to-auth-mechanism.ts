@@ -1,4 +1,4 @@
-// Maps `authStrategy` to driver `authMechanism`
+// Maps `authStrategy` to driver `authMechanism`.
 export default {
   NONE: undefined,
   MONGODB: 'DEFAULT',

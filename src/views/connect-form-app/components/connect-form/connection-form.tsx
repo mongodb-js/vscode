@@ -12,11 +12,12 @@ import ReadPreferenceSelect from './read-preference-select';
 // import SSLMethod from './ssl/ssl-method';
 // import SSHTunnel from './ssh/ssh-tunnel';
 import FormActions from './form-actions';
+import ConnectionModel from '../../connection-model/connection-model';
 
 const styles = require('../../connect.module.less');
 
 type props = {
-  currentConnection: any; // TODO: Connection model type.
+  currentConnection: ConnectionModel;
   errorMessage: string;
   isConnected: boolean;
   isConnecting: boolean;

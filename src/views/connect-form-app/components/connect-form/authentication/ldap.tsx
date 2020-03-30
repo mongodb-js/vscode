@@ -5,8 +5,8 @@ import FormInput from '../form-input';
 
 type props = {
   isValid: boolean;
-  ldapPassword: string;
-  ldapUsername: string;
+  ldapPassword?: string;
+  ldapUsername?: string;
 };
 
 /**

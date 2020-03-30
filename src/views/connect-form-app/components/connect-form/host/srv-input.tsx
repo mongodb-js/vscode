@@ -1,6 +1,4 @@
 import * as React from 'react';
-// import Switch from 'react-ios-switch';
-import classnames from 'classnames';
 import Toggle from '@leafygreen-ui/toggle';
 
 import Actions from '../../../store/actions';
@@ -29,12 +27,12 @@ class SRVInput extends React.PureComponent<props> {
     } = this.props;
 
     return (
-      <div className={classnames(styles['form-item'])}>
+      <div className={styles['form-item']}>
         <div>
           <label><span>SRV Record</span></label>
         </div>
         <Toggle
-          className={classnames(styles['form-toggle'])}
+          className={styles['form-toggle']}
           name="isSrvRecord"
           onChange={this.onSRVRecordToggled}
           checked={isSrvRecord}

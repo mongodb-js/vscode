@@ -1,14 +1,17 @@
 import * as React from 'react';
+import Toggle from '@leafygreen-ui/toggle';
 
 import Actions from '../../../store/actions';
 import FormInput from '../form-input';
 
+const styles = require('../../../connect.module.less');
+
 type props = {
   isValid: boolean;
   kerberosCanonicalizeHostname: boolean;
-  kerberosPassword: string;
-  kerberosPrincipal: string;
-  kerberosServiceName: string;
+  kerberosPassword?: string;
+  kerberosPrincipal?: string;
+  kerberosServiceName?: string;
 };
 
 /**
@@ -95,19 +98,19 @@ class Kerberos extends React.Component<props> {
         />
         <div className="form-item">
           <label>
-            <span className="form-item-label">
+            <span>
               Canonicalize Host Name
             </span>
           </label>
-          <div className="form-item-switch-wrapper">
-            <input
-              checked={kerberosCanonicalizeHostname || false}
-              className="form-control-switch"
-              onChange={this.onCnameToggle}
-              name="kerberosCanonicalizeHostname"
-              type="checkbox"
-            />
-          </div>
+          <Toggle
+            className={styles['form-toggle']}
+            name="kerberosCanonicalizeHostname"
+            onChange={this.onCnameToggle}
+            checked={kerberosCanonicalizeHostname || false}
+            size="small"
+            variant="default"
+            disabled={false}
+          />
         </div>
       </div>
     );

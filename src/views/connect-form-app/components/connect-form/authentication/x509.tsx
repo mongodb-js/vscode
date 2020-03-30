@@ -4,8 +4,8 @@ import Actions from '../../../store/actions';
 import FormInput from '../form-input';
 
 type props = {
-  x509Username: string;
   isValid: boolean;
+  x509Username?: string;
 };
 
 /**

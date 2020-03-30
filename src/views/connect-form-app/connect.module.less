@@ -1,20 +1,7 @@
-// Variables that are new:
-@pw: var(--vscode-editor-background);
-@alertRed: orange;
-@warningText: orange;
-@gray1: #21313C; // gray dark3
-/* UI Grays */
-@gray6: #B8C3C2; // gray light1
-@gray9: #AAAAAA;
-@gray10: #E4E4E4;
-@green2: #13AA52; // Primary green
-@compass-sidebar-base-background-color: purple;
-
-// Already existed:
-@compass-sidebar-secondary-text-color: @gray6;
-@compass-sidebar-atlas-background-color: @gray1;
-@compass-sidebar-atlas-background-color: lighten(hsl(204, 29%, 18%), 5%);
-
+@pw: #21313C;
+@alertRed: #CF4A22;
+@warningText: #FFDD49;
+@green2: #13AA52;
 
 .page {
   display: flex;
@@ -25,13 +12,11 @@
 
 .panel {
   border: 1px solid transparent;
-  // box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 form {
   display: block;
   margin-top: 0em;
-  // box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.075);
   padding: 15px 0;
 
   background-color: var(--vscode-editor-background);
@@ -46,40 +31,6 @@ label {
 }
 
 .connect {
-  &-atlas {
-    background: @compass-sidebar-atlas-background-color;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    padding: 9px 0px;
-
-    &-link {
-      font-size: 14px;
-      color: @pw;
-      font-weight: bold;
-      cursor: pointer;
-      text-transform: none;
-      padding-bottom: 2px;
-
-      i {
-        margin: 0px 8px 0px 9px;
-      }
-    }
-
-    &-includes {
-      color: @compass-sidebar-secondary-text-color;
-      font-size: 12px;
-      margin-left: 36px;
-    }
-
-    &-learn-more {
-      color: @compass-sidebar-secondary-text-color;
-      font-size: 12px;
-      margin-left: 36px;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-  }
 
   &-is-connected {
     border: 2px solid green;
@@ -289,12 +240,6 @@ label {
     margin-top: 20px;
   }
 
-  .disabled-uri {
-    background-color: #e9eeec !important;
-    box-shadow: none !important;
-    color: #89989b !important;
-  }
-
   .form-control {
     display: block;
     padding: 6px 10px;
@@ -342,7 +287,6 @@ label {
       }
 
       .help-link {
-        // rgb(28, 125, 67)
         color: @green2;
         margin-left: 3px;
 
@@ -374,19 +318,4 @@ label {
       margin: 0;
     }
   }
-}
-
-.connect-sidebar-connections::-webkit-scrollbar-track {
-  background-color: rgba(0, 0, 0, 0.12);
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.24);
-  }
-}
-
-.connect-sidebar-connections::-webkit-scrollbar-thumb {
-  background-color: @compass-sidebar-base-background-color;
-  border: 1px solid rgba(0, 0, 0, 0.24);
 }
