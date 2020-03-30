@@ -9,8 +9,8 @@ import SRVInput from './host/srv-input';
 import Authentication from './authentication/authentication';
 import ReplicaSetInput from './replica-set-input';
 import ReadPreferenceSelect from './read-preference-select';
-import SSLMethod from './ssl/ssl-method';
-import SSHTunnel from './ssh/ssh-tunnel';
+// import SSLMethod from './ssl/ssl-method';
+// import SSHTunnel from './ssh/ssh-tunnel';
 import FormActions from './form-actions';
 
 const styles = require('../../connect.module.less');
@@ -121,7 +121,7 @@ class ConnectionForm extends React.Component<props> {
       readPreference,
       replicaSet,
       sshTunnel,
-      sslMethod
+      // sslMethod
     } = currentConnection;
 
     return (
@@ -135,12 +135,12 @@ class ConnectionForm extends React.Component<props> {
             readPreference={readPreference}
           />
         </FormGroup>
-        <SSLMethod
+        {/* <SSLMethod
           sslMethod={sslMethod}
         />
         <SSHTunnel
           sshTunnel={sshTunnel}
-        />
+        /> */}
       </div>
     );
   }
