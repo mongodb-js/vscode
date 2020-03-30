@@ -32,9 +32,9 @@ class ConnectionForm extends React.Component<props> {
   /**
    * Resests URL validation if form was changed.
    */
-  onConnectionFormChanged(): void {
+  onConnectionFormChanged = (): void => {
     Actions.onConnectionFormChanged();
-  }
+  };
 
   /**
    * Renders a port input.
@@ -158,9 +158,10 @@ class ConnectionForm extends React.Component<props> {
 
     return (
       <form
-        onChange={this.onConnectionFormChanged.bind(this)}
+        onChange={this.onConnectionFormChanged}
         className={classnames(styles['connect-form'])}
       >
+        <h1>Connect to MongoDB</h1>
         <div className={classnames(styles.fields)}>
           {this.renderHostnameArea()}
           {this.renderConnectionOptionsArea()}

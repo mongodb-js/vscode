@@ -32,20 +32,16 @@ export default class App extends React.Component<props> {
 
     return (
       <div className={classnames(styles.page, styles.connect)}>
-        <div>
-          <h1>Connect to MongoDB</h1>
-
-          <ConnectionForm
-            currentConnection={currentConnection}
-            errorMessage={errorMessage}
-            isConnected={isConnected}
-            isConnecting={isConnecting}
-            isHostChanged={isHostChanged}
-            isPortChanged={isPortChanged}
-            isValid={isValid}
-            syntaxErrorMessage={syntaxErrorMessage}
-          />
-        </div>
+        <ConnectionForm
+          currentConnection={currentConnection}
+          errorMessage={errorMessage}
+          isConnected={isConnected}
+          isConnecting={isConnecting}
+          isHostChanged={isHostChanged}
+          isPortChanged={isPortChanged}
+          isValid={isValid}
+          syntaxErrorMessage={syntaxErrorMessage}
+        />
         <HelpPanel />
       </div>
     );
