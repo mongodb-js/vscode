@@ -106,8 +106,6 @@ class Kerberos extends React.Component<props> {
               onChange={this.onCnameToggle}
               name="kerberosCanonicalizeHostname"
               type="checkbox"
-            // onColor="rgb(19, 170, 82)"
-            // style={{ backgroundColor: 'rgb(255,255,255)'}}
             />
           </div>
         </div>

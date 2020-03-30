@@ -1,5 +1,4 @@
 import * as React from 'react';
-import classnames from 'classnames';
 
 const styles = require('../../connect.module.less');
 
@@ -34,16 +33,24 @@ class FormItemSelect extends React.Component<props> {
   }
 
   render(): React.ReactNode {
+    const {
+      changeHandler,
+      label,
+      name,
+      options,
+      value
+    } = this.props;
+
     return (
-      <div className={classnames(styles['form-item'])}>
-        <label className={classnames(styles['select-label'])}><span>{this.props.label}</span></label>
+      <div className={styles['form-item']}>
+        <label><span>{label}</span></label>
         <select
-          name={this.props.name}
-          onChange={this.props.changeHandler}
-          className={classnames(styles['form-control'])}
-          value={this.props.value}
+          className={styles['form-control']}
+          name={name}
+          onChange={changeHandler}
+          value={value}
         >
-          {this.renderOptions(this.props.options)}
+          {this.renderOptions(options)}
         </select>
       </div>
     );

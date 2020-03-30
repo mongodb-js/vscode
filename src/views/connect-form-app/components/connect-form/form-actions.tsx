@@ -58,7 +58,7 @@ class FormActions extends React.Component<props> {
       <button
         type="submit"
         name="connect"
-        className={`btn btn-sm btn-primary ${syntaxError}`}
+        className={classnames(styles.btn, syntaxError)}
         onClick={this.onConnectClicked.bind(this)}
       >
         Connect

@@ -7,7 +7,6 @@ type props = {
   label: string;
   name: string;
   changeHandler: (evt: React.ChangeEvent) => void;
-  blurHandler?: (evt: React.ChangeEvent) => void;
   linkHandler?: () => void;
   placeholder?: string;
   value?: string | number;
@@ -20,20 +19,6 @@ type props = {
  */
 class FormInput extends React.PureComponent<props> {
   static displayName = 'FormInput';
-
-  /**
-   * Gets the class name for the input wrapper.
-   *
-   * @returns {String} The class name.
-   */
-  getClassName(): string {
-    const className = {
-      [styles['form-item']]: true,
-      [styles['form-item-has-error']]: this.props.error
-    };
-
-    return classnames(className);
-  }
 
   /**
    * Gets the error id for the tooltip.
@@ -63,22 +48,33 @@ class FormInput extends React.PureComponent<props> {
    * @returns {React.Component} The input field.
    */
   render(): React.ReactNode {
+    const {
+      changeHandler,
+      label,
+      name,
+      placeholder,
+      type,
+      value
+    } = this.props;
+
     return (
-      <div className={this.getClassName()}>
+      <div className={classnames({
+        [styles['form-item']]: true,
+        [styles['form-item-has-error']]: this.props.error
+      })}>
         <label>
-          <span className={classnames(styles['form-item-label'])}>
-            {this.props.label}
+          <span className={styles['form-item-label']}>
+            {label}
           </span>
           {this.renderInfoSprinkle()}
         </label>
         <input
-          name={this.props.name}
-          placeholder={this.props.placeholder}
-          onChange={this.props.changeHandler}
-          onBlur={this.props.blurHandler}
-          value={this.props.value}
-          className={classnames(styles['form-control'])}
-          type={this.props.type || 'text'}
+          name={name}
+          placeholder={placeholder}
+          onChange={changeHandler}
+          value={value}
+          className={styles['form-control']}
+          type={type || 'text'}
         />
       </div>
     );

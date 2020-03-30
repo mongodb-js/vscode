@@ -191,7 +191,8 @@ label {
 
   .connect-form {
     margin: 10px;
-    width: 360px;
+    width: 320px;
+    text-align: left;
 
     .fields {
       display: block;
@@ -202,9 +203,16 @@ label {
 
       .form-item {
         margin: 15px auto 15px;
-        overflow: auto;
-        display: flex;
-        justify-content: flex-end;
+        width: 100%;
+
+        .form-toggle {
+          margin-top: 5px;
+
+          div {
+            border: none;
+            background-color: var(--vscode-input-background);
+          }
+        }
 
         &-has-error {
           .form-control {
@@ -229,11 +237,6 @@ label {
         }
 
         label {
-          width: 70%;
-          text-align: right;
-          padding-right: 15px;
-          margin: auto;
-
           i.help {
             display: inline-block;
             font: normal normal normal 14px/1 FontAwesome;
@@ -251,10 +254,6 @@ label {
           i:before {
             content: '\f05a';
           }
-        }
-
-        &-switch-wrapper {
-          width: 100%;
         }
 
         &-file-button {
@@ -289,23 +288,12 @@ label {
 
     .form-group-separator {
       margin-bottom: 20px;
-      border-bottom: 1px solid #eeeeee;
-
-      .select-label {
-        width: 68% !important;
-      }
     }
   }
 
   .buttons {
-    margin: 0 25px 10px;
-    overflow: auto;
-    display: flex;
-    justify-content: flex-end;
-
-    button {
-      margin-left: 5px;
-    }
+    margin: 0;
+    margin-top: 20px;
   }
 
   .disabled-uri {
@@ -316,24 +304,22 @@ label {
 
   .form-control {
     display: block;
-    height: 34px;
-    padding: 6px 12px;
+    padding: 6px 10px;
     font-size: 14px;
-    line-height: 1.42857143;
-    color: #555555;
-    background-color: #fff;
+    height: 32px;
+    line-height: 32px;
+    color: var(--vscode-input-foreground);
+    background-color: var(--vscode-input-background);
     background-image: none;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    border: 1px solid transparent;
     width: 100%;
 
-    &:focus {
-      border: 1px solid #3db1f8;
-    }
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 
-    &-switch {
-      cursor: pointer;
+    &:focus {
+      border: 1px solid var(--vscode-focusBorder);
     }
   }
 
@@ -348,24 +334,28 @@ label {
 
   .help-panel {
     width: 240px;
-    border: 1px solid #4a4a4a;
     margin: 30px;
-    padding: 20px;
-    display: inline-block;
 
-    .help-section {
-      margin: 0;
-      margin-bottom: 10px;
-      padding: 0;
-    }
+    .help-container {
+      border: 1px solid var(--vscode-input-background);
+      display: inline-block;
+      height: auto;
+      padding: 20px;
 
-    .help-link {
-      // rgb(28, 125, 67)
-      color: @green2;
-      margin-left: 3px;
+      .help-section {
+        margin: 0;
+        margin-bottom: 10px;
+        padding: 0;
+      }
 
-      &:visited {
+      .help-link {
+        // rgb(28, 125, 67)
         color: @green2;
+        margin-left: 3px;
+
+        &:visited {
+          color: @green2;
+        }
       }
     }
   }
@@ -373,12 +363,22 @@ label {
   .btn {
     background-color: rgb(0, 120, 41);
     color: white;
-    padding: 20px 10px;
+    padding: 10px 20px;
+    margin: 6px;
     display: inline-block;
     text-decoration: none;
+    cursor: pointer;
+    border: none;
+
+    transition: 200ms all;
+
+    &:hover {
+      box-shadow: 0 3px 6px 0 rgba(60, 66, 87, .1), 0 2px 4px 0 rgba(0, 0, 0, .07);
+    }
 
     &-sm {
       padding: 6px 10px;
+      margin: 0;
     }
   }
 }

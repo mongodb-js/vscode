@@ -106,9 +106,6 @@ export default class ConnectionController {
   ): Promise<boolean> {
     log.info('mdb.connect command called.');
 
-    // Display a message box to the user.
-    vscode.window.showInformationMessage('mdb.connect command run.');
-
     const connectWebView = new ConnectFormView();
     return connectWebView.showConnectForm(
       context,
