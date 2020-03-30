@@ -5,7 +5,6 @@ import App from './components/app';
 import Store from './store/store';
 import StoreConnector from './components/storeConnector';
 
-// import './index.css';
 import './connect.module.less';
 
 ReactDOM.render(
