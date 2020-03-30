@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 const path = require('path');
 
-function getConnectWebviewContent(jsAppFileUrl: vscode.Uri): string {
+export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -14,7 +14,14 @@ function getConnectWebviewContent(jsAppFileUrl: vscode.Uri): string {
       <script src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
-}
+};
+
+export const getReactAppUri = (extensionPath: string): vscode.Uri => {
+  const jsAppFilePath = vscode.Uri.file(
+    path.join(extensionPath, 'connect-form', 'connectForm.js')
+  );
+  return jsAppFilePath.with({ scheme: 'vscode-resource' });
+};
 
 export default class ConnectFormView {
   showConnectForm(
@@ -36,11 +43,7 @@ export default class ConnectFormView {
       }
     );
 
-    const jsAppFilePath = vscode.Uri.file(
-      path.join(extensionPath, 'connect-form', 'connectForm.js')
-    );
-    const reactAppUri = jsAppFilePath.with({ scheme: 'vscode-resource' });
-
+    const reactAppUri = getReactAppUri(extensionPath);
     panel.webview.html = getConnectWebviewContent(reactAppUri);
 
     // Handle messages from the webview.
