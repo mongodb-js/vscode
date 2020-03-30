@@ -241,6 +241,60 @@ const Store = Reflux.createStore({
   },
 
   /**
+   * Handle change of cname param.
+   */
+  onKerberosCnameToggle() {
+    const connection = this.state.currentConnection;
+    connection.kerberosCanonicalizeHostname = !connection.kerberosCanonicalizeHostname;
+    this.trigger(this.state);
+  },
+
+  /**
+   * Change the kerberos password.
+   *
+   * @param {String} password - The password.
+   */
+  onKerberosPasswordChanged(password) {
+    this.state.currentConnection.kerberosPassword = password;
+    this.trigger(this.state);
+  },
+
+  onKerberosPrincipalChanged(principal) {
+    this.state.currentConnection.kerberosPrincipal = principal;
+    this.trigger(this.state);
+  },
+
+  /**
+   * Change the kerberos service name.
+   *
+   * @param {String} name - The service name.
+   */
+  onKerberosServiceNameChanged(name) {
+    this.state.currentConnection.kerberosServiceName = name;
+    this.trigger(this.state);
+  },
+
+  /**
+   * Change the LDAP username.
+   *
+   * @param {String} username - The user name.
+   */
+  onLDAPUsernameChanged(username) {
+    this.state.currentConnection.ldapUsername = username;
+    this.trigger(this.state);
+  },
+
+  /**
+   * Change the LDAP password.
+   *
+   * @param {String} password - The password.
+   */
+  onLDAPPasswordChanged(password) {
+    this.state.currentConnection.ldapPassword = password;
+    this.trigger(this.state);
+  },
+
+  /**
    * Changes the password.
    *
    * @param {String} password - The password.
@@ -419,6 +473,16 @@ const Store = Reflux.createStore({
    */
   onUsernameChanged(username) {
     this.state.currentConnection.mongodbUsername = username;
+    this.trigger(this.state);
+  },
+
+  /**
+   * Change the x509 username
+   *
+   * @param {String} username - The username.
+   */
+  onX509UsernameChanged(username) {
+    this.state.currentConnection.x509Username = username;
     this.trigger(this.state);
   },
 

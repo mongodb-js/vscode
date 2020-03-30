@@ -52,7 +52,7 @@ class Kerberos extends React.Component<props> {
   };
 
   onCnameToggle = (): void => {
-    Actions.onCnameToggle();
+    Actions.onKerberosCnameToggle();
   };
 
   /**
