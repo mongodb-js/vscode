@@ -64,7 +64,8 @@ suite('Connect Form View Test Suite', () => {
     const htmlString = getConnectWebviewContent(appUri);
 
     assert(htmlString.includes('vscode-resource:/connect-form/connectForm.js'));
-    const jsFileString = await readFile(path.resolve(__dirname, '..', '..', '..', '..', 'connect-form/connectForm.js'));
+    const connectFormFileName = (): string => 'connect-form/connectForm.js';
+    const jsFileString = await readFile(path.resolve(__dirname, '..', '..', '..', '..', connectFormFileName()));
     assert(`${jsFileString}`.includes('ConnectionForm'));
   });
 });

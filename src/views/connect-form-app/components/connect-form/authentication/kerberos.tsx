@@ -96,12 +96,10 @@ class Kerberos extends React.Component<props> {
           changeHandler={this.onServiceNameChanged}
           value={kerberosServiceName || ''}
         />
-        <div className="form-item">
-          <label>
-            <span>
-              Canonicalize Host Name
-            </span>
-          </label>
+        <div className={styles['form-item']}>
+          <div>
+            <label><span>Canonicalize Host Name</span></label>
+          </div>
           <Toggle
             className={styles['form-toggle']}
             name="kerberosCanonicalizeHostname"

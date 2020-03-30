@@ -5,7 +5,7 @@ import FormInput from './form-input';
 
 type props = {
   sshTunnel: string;
-  replicaSet: string;
+  replicaSet?: string;
 };
 
 class ReplicaSetInput extends React.PureComponent<props> {
