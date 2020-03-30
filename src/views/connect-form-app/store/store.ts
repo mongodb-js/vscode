@@ -1,23 +1,15 @@
 const Reflux = require('reflux');
-// const DataService = require('mongodb-data-service');
-// const Connection = require('mongodb-connection-model/lib/model');
-const Connection = require('../js-connection-model/model');
 const StateMixin = require('reflux-state-mixin');
-// const ipc = require('hadron-ipc');
 
 import Actions from './actions';
+
+import ConnectionModel, { validateConnectionModel } from '../connection-model/connection-model';
 
 const vscode = acquireVsCodeApi();
 
 /**
- * A default driverUrl.
- */
-// const DEFAULT_DRIVER_URL =
-// 'mongodb://localhost:27017/?readPreference=primary&ssl=false';
-
-/**
- * All the authentication strategy related fields on the connection model, with
- * the exception of the method.
+ * All the authentication strategy related fields on the connection model,
+ * with the exception of the method.
  */
 const AUTH_FIELDS = [
   'mongodbUsername',
@@ -38,8 +30,8 @@ const AUTH_FIELDS = [
 const SSL_FIELDS = ['sslCA', 'sslCert', 'sslKey', 'sslPass'];
 
 /**
- * All the ssh tunnel related fields on the connection model, with the
- * exception of the method.
+ * All the ssh tunnel related fields on the connection model, with
+ * the exception of the method.
  */
 const SSH_TUNNEL_FIELDS = [
   'sshTunnelHostname',
@@ -68,9 +60,7 @@ const Store = Reflux.createStore({
    */
   getInitialState() {
     return {
-      currentConnection: new Connection(),
-      // Hash for storing unchanged connections for the discard feature
-      connections: {},
+      currentConnection: new ConnectionModel(),
       // URL from connection string input
       customUrl: '',
       isValid: true,
@@ -81,10 +71,8 @@ const Store = Reflux.createStore({
       isPortChanged: false,
       isModalVisible: false,
       isMessageVisible: false,
-      isURIEditable: true,
-      isEditURIConfirm: false,
       isSavedConnection: false,
-      savedMessage: 'Saved to favorites'
+      savedMessage: ''
     };
   },
 
@@ -131,83 +119,15 @@ const Store = Reflux.createStore({
   onConnectClicked() {
     const currentConnection = this.state.currentConnection;
 
-    // We replace custom appname with proper appname
-    // to avoid sending malicious value to the server
-    // currentConnection.appname = electron.remote.app.getName();
-
-    if (!currentConnection.isValid()) {
+    const validationError = validateConnectionModel(currentConnection);
+    if (validationError) {
       this.setState({
         isValid: false,
-        errorMessage: 'The required fields can not be empty'
+        errorMessage: 'The required fields can not be empty.'
       });
     } else {
       this._connect(currentConnection);
     }
-  },
-
-  /**
-   * Makes URI read-only again.
-   */
-  onHideURIClicked() {
-    this.state.isURIEditable = false;
-    this.state.customUrl = this.state.currentConnection.safeUrl;
-    this.trigger(this.state);
-  },
-
-  /**
-   * Changes customUrl.
-   *
-   * @param {String} customUrl - A connection string.
-   */
-  onCustomUrlChanged(customUrl) {
-    this.state.errorMessage = null;
-    this.state.syntaxErrorMessage = null;
-    this.state.customUrl = customUrl;
-    this.trigger(this.state);
-  },
-
-  /**
-   * Disconnects the current connection.
-   */
-  onDisconnectClicked() {
-    if (this.dataService) {
-      this.dataService.disconnect(() => {
-        this.appRegistry.emit('data-service-disconnected');
-        this.state.isValid = true;
-        this.state.isConnected = false;
-        this.state.errorMessage = null;
-        this.state.syntaxErrorMessage = null;
-        this._saveConnection(this.state.currentConnection);
-
-        this.dataService = undefined;
-      });
-    }
-  },
-
-  /**
-   * Hides a modal with confirmation to proceed.
-   */
-  onEditURICanceled() {
-    this.state.isEditURIConfirm = false;
-    this.trigger(this.state);
-  },
-
-  /**
-   * Shows a modal with confirmation to proceed.
-   */
-  onEditURIClicked() {
-    this.state.isEditURIConfirm = true;
-    this.trigger(this.state);
-  },
-
-  /**
-   * Makes URI editable.
-   */
-  onEditURIConfirmed() {
-    this.state.isURIEditable = true;
-    this.state.customUrl = this.state.currentConnection.driverUrl;
-    this.state.isEditURIConfirm = false;
-    this.trigger(this.state);
   },
 
   /**
@@ -476,8 +396,8 @@ const Store = Reflux.createStore({
   /** --- Help methods ---  */
 
   /**
-   * Clears authentication fields.
-   */
+     * Clears authentication fields.
+     */
   _clearAuthFields() {
     AUTH_FIELDS.forEach((field) => {
       this.state.currentConnection[field] = undefined;
@@ -530,10 +450,10 @@ const Store = Reflux.createStore({
    *
    * @param {Object} connection - The current connection.
    */
-  _connect(connection) {
+  _connect(connection: ConnectionModel) {
     vscode.postMessage({
       command: 'connect',
-      driverUrl: connection.driverUrl
+      driverUrl: connection.getDriverUrl()
     });
 
     // TODO: We can do some error handling on connection failure here.
@@ -543,13 +463,8 @@ const Store = Reflux.createStore({
    * Clears the current connection.
    */
   _clearConnection() {
-    const isFavorite = this.state.currentConnection.isFavorite;
-    const name = this.state.currentConnection.name;
-    const color = this.state.currentConnection.color;
-    const connection = new Connection();
+    this.state.currentConnection = new ConnectionModel();
 
-    this.state.currentConnection.set(connection.getAttributes({ props: true }));
-    this.state.currentConnection.set({ isFavorite, name, color });
     this.trigger(this.state);
   },
 

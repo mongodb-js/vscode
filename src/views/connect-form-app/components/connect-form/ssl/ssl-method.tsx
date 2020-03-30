@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import Actions from '../../../store/actions';
-import { SSLMethods } from '../../../store/ssl-methods';
+import { SSLMethodOptions } from '../../../connection-model/constants/ssl-methods';
 import FormGroup from '../form-group';
 import FormItemSelect from '../form-item-select';
 
@@ -51,8 +51,8 @@ class SSLMethod extends React.Component<props> {
         <FormItemSelect
           label="SSL"
           name="sslMethod"
-          options={SSLMethods.map(sslMethodOptions => ({
-            [`${sslMethodOptions.id}`]: sslMethodOptions.title
+          options={SSLMethodOptions.map(methodOption => ({
+            [`${methodOption.id}`]: methodOption.title
           }))}
           changeHandler={this.onSSLMethodChanged.bind(this)}
           value={sslMethod}

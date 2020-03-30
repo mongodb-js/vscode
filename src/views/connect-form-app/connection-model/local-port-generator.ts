@@ -8,7 +8,7 @@
  *
  * @returns {Number} Random port
  */
-module.exports = () => {
+export default (): number => {
   const startPort = 29170;
   const endPort = 29899;
   const randomPort = (Math.random() * (endPort - startPort + 1) + startPort).toString();

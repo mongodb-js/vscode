@@ -1,7 +1,9 @@
 import * as React from 'react';
 
 import Actions from '../../../store/actions';
-import { AUTH_STRATEGY_ID, AuthStrategies } from '../../../store/auth-strategies';
+import AUTH_STRATEGIES, {
+  AuthStrategies
+} from '../../../connection-model/constants/auth-strategies';
 import FormGroup from '../form-group';
 import FormItemSelect from '../form-item-select';
 import Kerberos from './kerberos';
@@ -11,7 +13,7 @@ import ScramSha256 from './scram-sha-256';
 import X509 from './x509';
 
 type props = {
-  authStrategy: AUTH_STRATEGY_ID;
+  authStrategy: AUTH_STRATEGIES;
   isValid: boolean;
   kerberosCanonicalizeHostname: boolean;
   kerberosPassword: string;
@@ -48,7 +50,7 @@ class Authentication extends React.Component<props> {
       isValid
     } = this.props;
 
-    if (authStrategy === AUTH_STRATEGY_ID.KERBEROS) {
+    if (authStrategy === AUTH_STRATEGIES.KERBEROS) {
       const {
         kerberosCanonicalizeHostname,
         kerberosPassword,
@@ -66,7 +68,7 @@ class Authentication extends React.Component<props> {
         />
       );
     }
-    if (authStrategy === AUTH_STRATEGY_ID.LDAP) {
+    if (authStrategy === AUTH_STRATEGIES.LDAP) {
       const {
         ldapPassword,
         ldapUsername
@@ -80,7 +82,7 @@ class Authentication extends React.Component<props> {
         />
       );
     }
-    if (authStrategy === AUTH_STRATEGY_ID.MONGODB) {
+    if (authStrategy === AUTH_STRATEGIES.MONGODB) {
       const {
         mongodbDatabaseName,
         mongodbPassword,
@@ -96,7 +98,7 @@ class Authentication extends React.Component<props> {
         />
       );
     }
-    if (authStrategy === AUTH_STRATEGY_ID['SCRAM-SHA-256']) {
+    if (authStrategy === AUTH_STRATEGIES['SCRAM-SHA-256']) {
       const {
         mongodbDatabaseName,
         mongodbPassword,
@@ -112,7 +114,7 @@ class Authentication extends React.Component<props> {
         />
       );
     }
-    if (authStrategy === AUTH_STRATEGY_ID.X509) {
+    if (authStrategy === AUTH_STRATEGIES.X509) {
       const { x509Username } = this.props;
       return (
         <X509

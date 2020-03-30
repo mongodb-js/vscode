@@ -29,49 +29,6 @@ class FormActions extends React.Component<props> {
   };
 
   /**
-   * Handles a disconnect click.
-   *
-   * @param {Object} evt - evt.
-   */
-  onDisconnectClicked = (evt): void => {
-    evt.preventDefault();
-    evt.stopPropagation();
-    Actions.onDisconnectClicked();
-  };
-
-  /**
-   * Shows an editable URI input.
-   *
-   * @param {Object} evt - evt.
-   */
-  onEditURIClicked = (evt): void => {
-    evt.preventDefault();
-    evt.stopPropagation();
-    Actions.onEditURIClicked();
-  };
-
-  /**
-   * Shows a read-only URI.
-   *
-   * @param {Object} evt - evt.
-   */
-  onHideURIClicked = (evt): void => {
-    evt.preventDefault();
-    evt.stopPropagation();
-    Actions.onHideURIClicked();
-  };
-
-  /**
-   * Updates favorite attributes if a favorite already exists.
-   *
-   * @param {Object} evt - evt.
-   */
-  onSaveFavoriteClicked = (evt): void => {
-    evt.preventDefault();
-    Actions.onSaveFavoriteClicked();
-  };
-
-  /**
    * Checks for a syntax error.
    *
    * @returns {Boolean} True in case of a syntax error.
@@ -88,24 +45,6 @@ class FormActions extends React.Component<props> {
   hasError(): boolean {
     return !this.props.isValid && !!this.props.errorMessage;
   }
-
-  /**
-   * Renders "Disconnect" button.
-   *
-   * @returns {React.Component}
-   */
-  renderDisconnect = (): React.ReactNode => {
-    return (
-      <button
-        type="submit"
-        name="disconnect"
-        className="btn btn-sm btn-primary"
-        onClick={this.onDisconnectClicked.bind(this)}
-      >
-        Disconnect
-      </button>
-    );
-  };
 
   /**
    * Renders "Connect" button.
@@ -126,21 +65,6 @@ class FormActions extends React.Component<props> {
       </button>
     );
   };
-
-  /**
-   * Renders connect or disconnect button depending on state.
-   *
-   * @returns {React.Component}
-   */
-  renderConnectButtons(): React.ReactNode {
-    return (
-      <div className={classnames(styles.buttons)}>
-        {this.props.isConnected
-          ? this.renderDisconnect()
-          : this.renderConnect()}
-      </div>
-    );
-  }
 
   /**
    * Renders a component with messages.
@@ -177,7 +101,9 @@ class FormActions extends React.Component<props> {
     return (
       <FormGroup id="favorite">
         {this.renderMessage()}
-        {this.renderConnectButtons()}
+        <div className={classnames(styles.buttons)}>
+          {this.renderConnect()}
+        </div>
       </FormGroup>
     );
   }

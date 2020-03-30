@@ -1,7 +1,9 @@
 import * as React from 'react';
 
 import Actions from '../../../store/actions';
-import { SSHTunnelOptions } from '../../../store/ssh-tunnel-options';
+import {
+  SSHTunnelOptions
+} from '../../../connection-model/constants/ssh-tunnel-types';
 import FormGroup from '../form-group';
 import FormItemSelect from '../form-item-select';
 

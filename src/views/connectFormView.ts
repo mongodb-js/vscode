@@ -48,6 +48,7 @@ export default class ConnectFormView {
       message => {
         switch (message.command) {
           case 'connect':
+            console.log('Connect to driver url:', message.driverUrl);
             connect(message.driverUrl);
             return;
           default:

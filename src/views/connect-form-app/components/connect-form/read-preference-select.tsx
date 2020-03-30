@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import Actions from '../../store/actions';
 import FormItemSelect from './form-item-select';
+import READ_PREFERENCES from '../../connection-model/constants/read-preferences';
 
 type props = { readPreference: string };
 
@@ -25,11 +26,11 @@ class ReadPreferenceSelect extends React.PureComponent<props> {
         label="Read Preference"
         name="readPreference"
         options={[
-          { 'primary': 'Primary' },
-          { 'primaryPreferred': 'Primary Preferred' },
-          { 'secondary': 'Secondary' },
-          { 'secondaryPreferred': 'Secondary Preferred' },
-          { 'nearest': 'Nearest' }
+          { [READ_PREFERENCES.PRIMARY]: 'Primary' },
+          { [READ_PREFERENCES.PRIMARY_PREFERRED]: 'Primary Preferred' },
+          { [READ_PREFERENCES.SECONDARY]: 'Secondary' },
+          { [READ_PREFERENCES.SECONDARY_PREFERRED]: 'Secondary Preferred' },
+          { [READ_PREFERENCES.NEAREST]: 'Nearest' }
         ]}
         changeHandler={this.onReadPreferenceChanged.bind(this)}
         value={readPreference}
