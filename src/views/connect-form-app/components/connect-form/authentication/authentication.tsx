@@ -45,10 +45,7 @@ class Authentication extends React.Component<props> {
    * @returns {React.Component}
    */
   renderAuthStrategy(): React.ReactNode {
-    const {
-      authStrategy,
-      isValid
-    } = this.props;
+    const { authStrategy, isValid } = this.props;
 
     if (authStrategy === AUTH_STRATEGIES.KERBEROS) {
       const {
@@ -69,10 +66,7 @@ class Authentication extends React.Component<props> {
       );
     }
     if (authStrategy === AUTH_STRATEGIES.LDAP) {
-      const {
-        ldapPassword,
-        ldapUsername
-      } = this.props;
+      const { ldapPassword, ldapUsername } = this.props;
 
       return (
         <LDAP
@@ -116,26 +110,19 @@ class Authentication extends React.Component<props> {
     }
     if (authStrategy === AUTH_STRATEGIES.X509) {
       const { x509Username } = this.props;
-      return (
-        <X509
-          isValid={isValid}
-          x509Username={x509Username}
-        />
-      );
+      return <X509 isValid={isValid} x509Username={x509Username} />;
     }
   }
 
   render(): React.ReactNode {
-    const {
-      authStrategy
-    } = this.props;
+    const { authStrategy } = this.props;
 
     return (
       <FormGroup id="authStrategy" separator>
         <FormItemSelect
           label="Authentication"
           name="authStrategy"
-          options={AuthStrategies.map(authStrat => ({
+          options={AuthStrategies.map((authStrat) => ({
             [`${authStrat.id}`]: authStrat.title
           }))}
           changeHandler={this.onAuthStrategyChanged.bind(this)}

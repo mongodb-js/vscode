@@ -21,10 +21,7 @@ class ReplicaSetInput extends React.PureComponent<props> {
   }
 
   render(): React.ReactNode {
-    const {
-      replicaSet,
-      sshTunnel
-    } = this.props;
+    const { replicaSet, sshTunnel } = this.props;
 
     if (sshTunnel === 'NONE' || !sshTunnel) {
       return (
@@ -32,7 +29,8 @@ class ReplicaSetInput extends React.PureComponent<props> {
           label="Replica Set Name"
           name="replicaSet"
           changeHandler={this.onReplicaSetChanged.bind(this)}
-          value={replicaSet || ''} />
+          value={replicaSet || ''}
+        />
       );
     }
 

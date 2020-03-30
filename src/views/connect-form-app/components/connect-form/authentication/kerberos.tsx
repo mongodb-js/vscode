@@ -98,7 +98,9 @@ class Kerberos extends React.Component<props> {
         />
         <div className={styles['form-item']}>
           <div>
-            <label><span>Canonicalize Host Name</span></label>
+            <label>
+              <span>Canonicalize Host Name</span>
+            </label>
           </div>
           <Toggle
             className={styles['form-toggle']}

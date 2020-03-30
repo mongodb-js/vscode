@@ -8,10 +8,8 @@ import StoreConnector from './components/storeConnector';
 import './connect.module.less';
 
 ReactDOM.render(
-  (
-    <StoreConnector store={Store}>
-      <App {...this.props} />
-    </StoreConnector>
-  ),
+  <StoreConnector store={Store}>
+    <App {...this.props} />
+  </StoreConnector>,
   document.getElementById('root')
 );

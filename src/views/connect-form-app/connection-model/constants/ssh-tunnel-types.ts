@@ -19,15 +19,19 @@ type SSHTunnelOption = {
   title: string;
 };
 
-export const SSHTunnelOptions: SSHTunnelOption[] = [{
-  id: SSL_TUNNEL_TYPES.NONE,
-  title: 'None'
-}, {
-  id: SSL_TUNNEL_TYPES.USER_PASSWORD,
-  title: 'Use Password'
-}, {
-  id: SSL_TUNNEL_TYPES.IDENTITY_FILE,
-  title: 'Use Identity File'
-}];
+export const SSHTunnelOptions: SSHTunnelOption[] = [
+  {
+    id: SSL_TUNNEL_TYPES.NONE,
+    title: 'None'
+  },
+  {
+    id: SSL_TUNNEL_TYPES.USER_PASSWORD,
+    title: 'Use Password'
+  },
+  {
+    id: SSL_TUNNEL_TYPES.IDENTITY_FILE,
+    title: 'Use Identity File'
+  }
+];
 
 export default SSL_TUNNEL_TYPES;

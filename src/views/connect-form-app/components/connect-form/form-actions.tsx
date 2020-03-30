@@ -56,10 +56,7 @@ class FormActions extends React.Component<props> {
   renderConnect = (): React.ReactNode => {
     const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
 
-    const {
-      isConnected,
-      isConnecting
-    } = this.props;
+    const { isConnected, isConnecting } = this.props;
 
     let connectingText = 'Connect';
     if (isConnected) {
@@ -116,9 +113,7 @@ class FormActions extends React.Component<props> {
     return (
       <FormGroup id="favorite">
         {this.renderMessage()}
-        <div className={classnames(styles.buttons)}>
-          {this.renderConnect()}
-        </div>
+        <div className={classnames(styles.buttons)}>{this.renderConnect()}</div>
       </FormGroup>
     );
   }

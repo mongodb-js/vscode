@@ -5,7 +5,10 @@ import * as sinon from 'sinon';
 const fs = require('fs');
 const path = require('path');
 
-import ConnectFormView, { getConnectWebviewContent, getReactAppUri } from '../../../views/connectFormView';
+import ConnectFormView, {
+  getConnectWebviewContent,
+  getReactAppUri
+} from '../../../views/connectFormView';
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
@@ -50,7 +53,7 @@ suite('Connect Form View Test Suite', () => {
   test('web view content is rendered with the js form', async () => {
     async function readFile(filePath): Promise<string> {
       return new Promise((resolve, reject) => {
-        fs.readFile(filePath, 'utf8', function (err, data) {
+        fs.readFile(filePath, 'utf8', function(err, data) {
           if (err) {
             reject(err);
           }
@@ -65,7 +68,9 @@ suite('Connect Form View Test Suite', () => {
 
     assert(htmlString.includes('vscode-resource:/connect-form/connectForm.js'));
     const connectFormFileName = (): string => 'connect-form/connectForm.js';
-    const jsFileString = await readFile(path.resolve(__dirname, '..', '..', '..', '..', connectFormFileName()));
+    const jsFileString = await readFile(
+      path.resolve(__dirname, '..', '..', '..', '..', connectFormFileName())
+    );
     assert(`${jsFileString}`.includes('ConnectionForm'));
   });
 });

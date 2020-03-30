@@ -32,24 +32,31 @@ type AuthStrategy = {
   title: string;
 };
 
-export const AuthStrategies: AuthStrategy[] = [{
-  id: AUTH_STRATEGY_VALUES.NONE,
-  title: 'None'
-}, {
-  id: AUTH_STRATEGY_VALUES.MONGODB,
-  title: 'Username / Password'
-}, {
-  id: AUTH_STRATEGY_VALUES['SCRAM-SHA-256'],
-  title: 'SCRAM-SHA-256'
-}, {
-  id: AUTH_STRATEGY_VALUES.KERBEROS,
-  title: 'Kerberos'
-}, {
-  id: AUTH_STRATEGY_VALUES.LDAP,
-  title: 'LDAP'
-}, {
-  id: AUTH_STRATEGY_VALUES.X509,
-  title: 'X.509'
-}];
+export const AuthStrategies: AuthStrategy[] = [
+  {
+    id: AUTH_STRATEGY_VALUES.NONE,
+    title: 'None'
+  },
+  {
+    id: AUTH_STRATEGY_VALUES.MONGODB,
+    title: 'Username / Password'
+  },
+  {
+    id: AUTH_STRATEGY_VALUES['SCRAM-SHA-256'],
+    title: 'SCRAM-SHA-256'
+  },
+  {
+    id: AUTH_STRATEGY_VALUES.KERBEROS,
+    title: 'Kerberos'
+  },
+  {
+    id: AUTH_STRATEGY_VALUES.LDAP,
+    title: 'LDAP'
+  },
+  {
+    id: AUTH_STRATEGY_VALUES.X509,
+    title: 'X.509'
+  }
+];
 
 export default AUTH_STRATEGY_VALUES;

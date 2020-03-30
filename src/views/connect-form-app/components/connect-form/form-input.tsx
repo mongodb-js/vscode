@@ -37,7 +37,10 @@ class FormInput extends React.PureComponent<props> {
   renderInfoSprinkle(): React.ReactNode {
     if (this.props.linkHandler) {
       return (
-        <i className={classnames(styles.help)} onClick={this.props.linkHandler} />
+        <i
+          className={classnames(styles.help)}
+          onClick={this.props.linkHandler}
+        />
       );
     }
   }
@@ -48,24 +51,17 @@ class FormInput extends React.PureComponent<props> {
    * @returns {React.Component} The input field.
    */
   render(): React.ReactNode {
-    const {
-      changeHandler,
-      label,
-      name,
-      placeholder,
-      type,
-      value
-    } = this.props;
+    const { changeHandler, label, name, placeholder, type, value } = this.props;
 
     return (
-      <div className={classnames({
-        [styles['form-item']]: true,
-        [styles['form-item-has-error']]: this.props.error
-      })}>
+      <div
+        className={classnames({
+          [styles['form-item']]: true,
+          [styles['form-item-has-error']]: this.props.error
+        })}
+      >
         <label>
-          <span className={styles['form-item-label']}>
-            {label}
-          </span>
+          <span className={styles['form-item-label']}>{label}</span>
           {this.renderInfoSprinkle()}
         </label>
         <input

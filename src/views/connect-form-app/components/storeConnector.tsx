@@ -21,7 +21,7 @@ class StoreConnector extends React.Component<props, {}> {
    * Subscribe to changes from the store.
    */
   componentDidMount(): void {
-    window.addEventListener('message', event => {
+    window.addEventListener('message', (event) => {
       const message = event.data;
 
       switch (message.command) {

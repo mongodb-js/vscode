@@ -43,32 +43,17 @@ class ConnectionForm extends React.Component<props> {
    * @returns {React.Component}
    */
   renderPort(): React.ReactNode {
-    const {
-      currentConnection,
-      isPortChanged
-    } = this.props;
+    const { currentConnection, isPortChanged } = this.props;
 
-    const {
-      isSrvRecord,
-      port
-    } = currentConnection;
+    const { isSrvRecord, port } = currentConnection;
 
     if (!isSrvRecord) {
-      return (
-        <PortInput
-          port={port}
-          isPortChanged={isPortChanged}
-        />
-      );
+      return <PortInput port={port} isPortChanged={isPortChanged} />;
     }
   }
 
   renderHostnameArea(): React.ReactNode {
-    const {
-      currentConnection,
-      isHostChanged,
-      isValid
-    } = this.props;
+    const { currentConnection, isHostChanged, isValid } = this.props;
 
     const {
       authStrategy,
@@ -88,11 +73,8 @@ class ConnectionForm extends React.Component<props> {
 
     return (
       <div>
-        <FormGroup id="connection-host-information" separator >
-          <HostInput
-            hostname={hostname}
-            isHostChanged={isHostChanged}
-          />
+        <FormGroup id="connection-host-information" separator>
+          <HostInput hostname={hostname} isHostChanged={isHostChanged} />
           {this.renderPort()}
           <SRVInput isSrvRecord={isSrvRecord} />
         </FormGroup>
@@ -115,27 +97,20 @@ class ConnectionForm extends React.Component<props> {
   }
 
   renderConnectionOptionsArea(): React.ReactNode {
-    const {
-      currentConnection
-    } = this.props;
+    const { currentConnection } = this.props;
 
     const {
       readPreference,
       replicaSet,
-      sshTunnel,
+      sshTunnel
       // sslMethod
     } = currentConnection;
 
     return (
       <div>
         <FormGroup id="read-preference" separator>
-          <ReplicaSetInput
-            sshTunnel={sshTunnel}
-            replicaSet={replicaSet}
-          />
-          <ReadPreferenceSelect
-            readPreference={readPreference}
-          />
+          <ReplicaSetInput sshTunnel={sshTunnel} replicaSet={replicaSet} />
+          <ReadPreferenceSelect readPreference={readPreference} />
         </FormGroup>
         {/* <SSLMethod
           sslMethod={sslMethod}

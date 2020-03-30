@@ -9,18 +9,19 @@ class HelpPanel extends React.PureComponent {
       <div className={styles['help-panel']}>
         <div className={styles['help-container']}>
           <div className={styles['help-section']}>
-            <strong>
-              New to MongoDB and don't have a cluster?
-            </strong>
+            <strong>New to MongoDB and don't have a cluster?</strong>
           </div>
           <div className={styles['help-section']}>
-            If you don't already have a cluster you can create one for free using
+            If you don't already have a cluster you can create one for free
+            using
             <a
               className={styles['help-link']}
               target="_blank"
               rel="noopener"
               href="https://cloud.mongodb.com/"
-            >MongoDB Atlas</a>
+            >
+              MongoDB Atlas
+            </a>
           </div>
           <div className={styles['help-section']}>
             <div>
@@ -29,7 +30,9 @@ class HelpPanel extends React.PureComponent {
                 target="_blank"
                 rel="noopener"
                 href="https://cloud.mongodb.com/"
-              >Create Free Cluster</a>
+              >
+                Create Free Cluster
+              </a>
             </div>
           </div>
         </div>

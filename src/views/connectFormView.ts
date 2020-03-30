@@ -48,10 +48,10 @@ export default class ConnectFormView {
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
-      message => {
+      (message) => {
         switch (message.command) {
           case 'connect':
-            connect(message.driverUrl).then(connectionSuccess => {
+            connect(message.driverUrl).then((connectionSuccess) => {
               panel.webview.postMessage({
                 command: 'connectResult',
                 connectionSuccess

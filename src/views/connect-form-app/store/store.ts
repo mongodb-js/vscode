@@ -3,7 +3,9 @@ const StateMixin = require('reflux-state-mixin');
 
 import Actions from './actions';
 
-import ConnectionModel, { validateConnectionModel } from '../connection-model/connection-model';
+import ConnectionModel, {
+  validateConnectionModel
+} from '../connection-model/connection-model';
 
 const vscode = acquireVsCodeApi();
 
@@ -408,8 +410,8 @@ const Store = Reflux.createStore({
   /** --- Help methods ---  */
 
   /**
-     * Clears authentication fields.
-     */
+   * Clears authentication fields.
+   */
   _clearAuthFields() {
     AUTH_FIELDS.forEach((field) => {
       this.state.currentConnection[field] = undefined;

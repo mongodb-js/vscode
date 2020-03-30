@@ -122,7 +122,7 @@ class ConnectionModel {
       req.port = this.port;
     } else {
       req.host = this.hosts
-        .map(item => `${item.host}:${item.port}`)
+        .map((item) => `${item.host}:${item.port}`)
         .join(',');
     }
 
@@ -227,7 +227,6 @@ class ConnectionModel {
   }
 }
 
-
 /**
  * Enforce constraints for SSL.
  * @param {Object} attrs - Incoming attributes.
@@ -235,9 +234,7 @@ class ConnectionModel {
 const validateSsl = (attrs): void => {
   if (
     !attrs.sslMethod ||
-    ['NONE', 'UNVALIDATED', 'IFAVAILABLE', 'SYSTEMCA'].includes(
-      attrs.sslMethod
-    )
+    ['NONE', 'UNVALIDATED', 'IFAVAILABLE', 'SYSTEMCA'].includes(attrs.sslMethod)
   ) {
     return;
   }
@@ -267,14 +264,14 @@ const validateMongodb = (attrs): void => {
     if (!attrs.mongodbUsername) {
       throw new TypeError(
         'The mongodbUsername field is required when ' +
-        'using MONGODB or SCRAM-SHA-256 for authStrategy.'
+          'using MONGODB or SCRAM-SHA-256 for authStrategy.'
       );
     }
 
     if (!attrs.mongodbPassword) {
       throw new TypeError(
         'The mongodbPassword field is required when ' +
-        'using MONGODB or SCRAM-SHA-256 for authStrategy.'
+          'using MONGODB or SCRAM-SHA-256 for authStrategy.'
       );
     }
   }
@@ -390,7 +387,5 @@ const validateConnectionModel = (attrs): Error | undefined => {
   }
 };
 
-export {
-  validateConnectionModel
-};
+export { validateConnectionModel };
 export default ConnectionModel;

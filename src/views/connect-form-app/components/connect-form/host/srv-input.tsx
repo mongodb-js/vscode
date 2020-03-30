@@ -22,14 +22,14 @@ class SRVInput extends React.PureComponent<props> {
   };
 
   render(): React.ReactNode {
-    const {
-      isSrvRecord
-    } = this.props;
+    const { isSrvRecord } = this.props;
 
     return (
       <div className={styles['form-item']}>
         <div>
-          <label><span>SRV Record</span></label>
+          <label>
+            <span>SRV Record</span>
+          </label>
         </div>
         <Toggle
           className={styles['form-toggle']}

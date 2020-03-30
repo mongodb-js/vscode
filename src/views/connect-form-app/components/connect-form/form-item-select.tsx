@@ -33,17 +33,13 @@ class FormItemSelect extends React.Component<props> {
   }
 
   render(): React.ReactNode {
-    const {
-      changeHandler,
-      label,
-      name,
-      options,
-      value
-    } = this.props;
+    const { changeHandler, label, name, options, value } = this.props;
 
     return (
       <div className={styles['form-item']}>
-        <label><span>{label}</span></label>
+        <label>
+          <span>{label}</span>
+        </label>
         <select
           className={styles['form-control']}
           name={name}

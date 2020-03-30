@@ -38,7 +38,8 @@ class X509 extends React.Component<props> {
           name="x509-username"
           error={!isValid && x509Username === undefined}
           changeHandler={this.onUsernameChanged}
-          value={x509Username || ''} />
+          value={x509Username || ''}
+        />
       </div>
     );
   }
