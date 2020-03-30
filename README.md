@@ -66,6 +66,7 @@ Open VS Code, launch the Commmand Palette (⌘+Shift+P on MacOS, Ctrl+Shift+P on
 - `mdb.confirmRunAll`: Show a confirmation message before running commands in a playground.
 - `mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections`: When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used.
 - `mdb.connectionSaving.defaultConnectionSavingLocation`: When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved.
+- `mdb.useDefaultTemplateForPlayground`: Choose wether to use default template for playground files or to start with an empty playground editor.
 
 ![Settings](resources/screenshots/settings.png)
 

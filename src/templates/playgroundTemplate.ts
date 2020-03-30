@@ -1,4 +1,7 @@
-const template: string = `// Select the database to use.
+const template: string = `// MongoDB Playground
+// To disable this template go to Settings | MongoDB | Use Default Template For Playground.
+
+// Select the database to use.
 use("test");
 
 // Insert a few documents.
