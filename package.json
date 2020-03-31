@@ -449,8 +449,8 @@
     }
   },
   "dependencies": {
-    "@mongosh/browser-runtime-electron": "0.0.1-alpha.6",
-    "@mongosh/service-provider-server": "0.0.1-alpha.6",
+    "@mongosh/browser-runtime-electron": "0.0.1-alpha.10",
+    "@mongosh/service-provider-server": "0.0.1-alpha.10",
     "bson": "^4.0.3",
     "debug": "^4.1.1",
     "mongodb-connection-model": "^14.6.2",
