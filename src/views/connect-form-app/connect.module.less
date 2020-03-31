@@ -1,7 +1,8 @@
-@pw: #21313C;
-@alertRed: #CF4A22;
-@warningText: #FFDD49;
-@green2: #13AA52;
+@pw: #21313c;
+@alertRed: #cf4a22;
+@warningText: #ffdd49;
+@green: #13aa52;
+@gray: #5d6c74;
 
 .page {
   display: flex;
@@ -31,7 +32,6 @@ label {
 }
 
 .connect {
-
   &-is-connected {
     border: 2px solid green;
   }
@@ -91,7 +91,7 @@ label {
     }
 
     &-success {
-      background: @green2;
+      background: @green;
       padding: 4px 10px;
       border-radius: 3px;
     }
@@ -249,7 +249,7 @@ label {
     color: var(--vscode-input-foreground);
     background-color: var(--vscode-input-background);
     background-image: none;
-    border: 1px solid transparent;
+    border: 1px solid var(--vscode-searchEditor-textInputBorder, transparent);
     width: 100%;
 
     -webkit-box-sizing: border-box;
@@ -273,9 +273,11 @@ label {
   .help-panel {
     width: 240px;
     margin: 30px;
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
 
     .help-container {
-      border: 1px solid var(--vscode-input-background);
+      border: 1px solid var(--vscode-debugToolBar-border, @gray);
       display: inline-block;
       height: auto;
       padding: 20px;
@@ -287,11 +289,11 @@ label {
       }
 
       .help-link {
-        color: @green2;
+        color: @green;
         margin-left: 3px;
 
         &:visited {
-          color: @green2;
+          color: @green;
         }
       }
     }
@@ -310,7 +312,8 @@ label {
     transition: 200ms all;
 
     &:hover {
-      box-shadow: 0 3px 6px 0 rgba(60, 66, 87, .1), 0 2px 4px 0 rgba(0, 0, 0, .07);
+      box-shadow: 0 3px 6px 0 rgba(60, 66, 87, 0.1),
+        0 2px 4px 0 rgba(0, 0, 0, 0.07);
     }
 
     &-sm {
