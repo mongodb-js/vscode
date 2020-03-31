@@ -64,7 +64,6 @@ const Store = Reflux.createStore({
     return {
       currentConnection: new ConnectionModel(),
       // URL from connection string input
-      customUrl: '',
       isValid: true,
       isConnecting: false,
       isConnected: false,
@@ -500,7 +499,6 @@ const Store = Reflux.createStore({
     this.state.isConnected = false;
     this.state.errorMessage = null;
     this.state.syntaxErrorMessage = null;
-    this.state.customUrl = '';
   },
 
   /**
