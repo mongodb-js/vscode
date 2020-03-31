@@ -19,7 +19,7 @@ db.sales.insertMany([
 // Run a find command to view items sold on April 4th, 2014.
 db.sales.find({ date: { $gte: new Date("2014-04-04"), $lt: new Date("2014-04-05") } });
 
-// to view total sales for each product in 2014.
+// Run an aggregation to view total sales for each product in 2014.
 const aggregation = [
   { $match: { date: { $gte: new Date("2014-01-01"), $lt: new Date("2015-01-01") } } },
   { $group: { _id : "$item", totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } } } }
