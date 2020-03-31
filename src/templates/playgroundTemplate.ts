@@ -4,7 +4,7 @@ const template: string = `// MongoDB Playground
 // Select the database to use.
 use("test");
 
-// Insert a few documents.
+// Insert a few documents into the sales collection.
 db.sales.insertMany([
   { "_id" : 1, "item" : "abc", "price" : 10, "quantity" : 2, "date" : new Date("2014-03-01T08:00:00Z") },
   { "_id" : 2, "item" : "jkl", "price" : 20, "quantity" : 1, "date" : new Date("2014-03-01T09:00:00Z") },
@@ -16,10 +16,10 @@ db.sales.insertMany([
   { "_id" : 8, "item" : "abc", "price" : 10, "quantity" : 5, "date" : new Date("2016-02-06T20:20:13Z") },
 ]);
 
-// Run a find command.
+// Run a find command to view items sold on April 4th, 2014.
 db.sales.find({ date: { $gte: new Date("2014-04-04"), $lt: new Date("2014-04-05") } });
 
-// Run an aggregation.
+// to view total sales for each product in 2014.
 const aggregation = [
   { $match: { date: { $gte: new Date("2014-01-01"), $lt: new Date("2015-01-01") } } },
   { $group: { _id : "$item", totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } } } }
