@@ -135,7 +135,7 @@
       },
       {
         "command": "mdb.openMongoDBShell",
-        "title": "MongoDB: Launch Mongo Shell"
+        "title": "MongoDB: Launch MongoDB Shell"
       },
       {
         "command": "mdb.createPlayground",

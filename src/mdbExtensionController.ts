@@ -366,6 +366,10 @@ export default class MDBExtensionController implements vscode.Disposable {
         ? activeConnectionDriverUrl
         : '';
     }
+    if (!mdbConnectionString) {
+      vscode.window.showErrorMessage('You need to be connected before launching the MongoDB Shell');
+      return Promise.resolve(false);
+    }
     const mongoDBShell = vscode.window.createTerminal({
       name: 'MongoDB Shell',
       env: { MDB_CONNECTION_STRING: mdbConnectionString }
