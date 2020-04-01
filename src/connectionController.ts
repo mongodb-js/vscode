@@ -511,11 +511,11 @@ export default class ConnectionController {
   }
 
   public getActiveConnectionDriverUrl(): string | null {
-    if (!this._connectingConnectionId) {
+    if (!this._currentConnectionId) {
       return null;
     }
 
-    return this._savedConnections[this._connectingConnectionId].driverUrl;
+    return this._savedConnections[this._currentConnectionId].driverUrl;
   }
 
   public addEventListener(
