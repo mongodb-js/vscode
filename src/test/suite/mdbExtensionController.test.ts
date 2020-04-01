@@ -1113,7 +1113,7 @@ suite('MDBExtensionController Test Suite', () => {
 
     vscode.commands.executeCommand('mdb.createPlayground').then(() => {
       assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-      assert(mockOpenTextDocument.firstArg.content.startsWith('// Select the database to use'));
+      assert(mockOpenTextDocument.firstArg.content.startsWith('// MongoDB Playground'));
       assert(
         mockShowTextDocument.firstArg === 'untitled',
         'Expected it to call vscode to show the playground'
