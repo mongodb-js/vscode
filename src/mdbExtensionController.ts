@@ -54,7 +54,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController = new ExplorerController(
       this._connectionController
     );
-    this._playgroundController = new PlaygroundController(context, this._connectionController);
+    this._playgroundController = new PlaygroundController(
+      context,
+      this._connectionController
+    );
   }
 
   activate(): void {
@@ -87,8 +90,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.runAllPlaygroundBlocks', () =>
       this._playgroundController.runAllPlaygroundBlocks()
     );
-    this.registerCommand('mdb.showActiveConnectionInPlayground', (message: string) =>
-      this._playgroundController.showActiveConnectionInPlayground(message)
+    this.registerCommand(
+      'mdb.showActiveConnectionInPlayground',
+      (message: string) =>
+        this._playgroundController.showActiveConnectionInPlayground(message)
     );
 
     this.registerEditorCommands();
@@ -367,7 +372,9 @@ export default class MDBExtensionController implements vscode.Disposable {
         : '';
     }
     if (!mdbConnectionString) {
-      vscode.window.showErrorMessage('You need to be connected before launching the MongoDB Shell');
+      vscode.window.showErrorMessage(
+        'You need to be connected before launching the MongoDB Shell.'
+      );
       return Promise.resolve(false);
     }
     const mongoDBShell = vscode.window.createTerminal({
