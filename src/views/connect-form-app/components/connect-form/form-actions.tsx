@@ -125,7 +125,6 @@ class FormActions extends React.Component<props> {
 }
 
 const mapDispatchToProps: dispatchProps = {
-  // Resets URL validation if form was changed.
   onConnectClicked: (): ConnectAction => ({
     type: ActionTypes.CONNECT
   })

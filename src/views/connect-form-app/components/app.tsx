@@ -45,7 +45,6 @@ class App extends React.Component<props> {
 }
 
 const mapDispatchToProps: props = {
-  // Resets URL validation if form was changed.
   onConnectedEvent: (
     successfullyConnected: boolean,
     connectionMessage: string
