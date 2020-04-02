@@ -470,8 +470,6 @@
     "react-dom": "^16.13.1",
     "react-redux": "^7.2.0",
     "redux": "^4.0.5",
-    "reflux": "^6.4.1",
-    "reflux-state-mixin": "^0.8.0",
     "ts-log": "^2.1.4",
     "uuid": "^7.0.0",
     "vscode-languageclient": "^6.1.1",

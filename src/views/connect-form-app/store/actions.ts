@@ -1,43 +1,6 @@
 import READ_PREFERENCES from '../connection-model/constants/read-preferences';
 import AUTH_STRATEGIES from '../connection-model/constants/auth-strategies';
 
-// const Reflux = require('reflux');
-
-// export default Reflux.createActions({
-//   onAuthSourceChanged: { sync: true },
-//   onAuthStrategyChanged: { sync: true },
-//   onChangeViewClicked: { sync: true },
-//   onConnectionFormChanged: { sync: true },
-//   onConnectClicked: { sync: true },
-//   onConnectedEvent: { sync: true },
-//   onHostnameChanged: { sync: true },
-//   onKerberosCnameToggle: { sync: true },
-//   onKerberosPasswordChanged: { sync: true },
-//   onKerberosPrincipalChanged: { sync: true },
-//   onKerberosServiceNameChanged: { sync: true },
-//   onLDAPUsernameChanged: { sync: true },
-//   onLDAPPasswordChanged: { sync: true },
-//   onPasswordChanged: { sync: true },
-//   onPortChanged: { sync: true },
-//   onReadPreferenceChanged: { sync: true },
-//   onReplicaSetChanged: { sync: true },
-//   onSSLCAChanged: { sync: true },
-//   onSSLCertificateChanged: { sync: true },
-//   onSSLMethodChanged: { sync: true },
-//   onSSLPrivateKeyChanged: { sync: true },
-//   onSSLPrivateKeyPasswordChanged: { sync: true },
-//   onSSHTunnelPasswordChanged: { sync: true },
-//   onSSHTunnelPassphraseChanged: { sync: true },
-//   onSSHTunnelHostnameChanged: { sync: true },
-//   onSSHTunnelUsernameChanged: { sync: true },
-//   onSSHTunnelPortChanged: { sync: true },
-//   onSSHTunnelIdentityFileChanged: { sync: true },
-//   onSSHTunnelChanged: { sync: true },
-//   onSRVRecordToggled: { sync: true },
-//   onUsernameChanged: { sync: true },
-//   onX509UsernameChanged: { sync: true }
-// });
-
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',
   AUTH_STRATEGY_CHANGED = 'AUTH_STRATEGY_CHANGED',
