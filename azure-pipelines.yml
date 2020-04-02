@@ -58,7 +58,7 @@ steps:
   - bash: npm run test
     displayName: 'Run Tests'
     env:
-    SEGMENT_KEY: $SEGMENTKEY
+    SEGMENT_KEY: $(segmentKey)
   - bash: ls -alh
     displayName: 'Post Tests'
 
