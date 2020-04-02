@@ -47,7 +47,7 @@
     "watch:views": "webpack --watch --mode development",
     "watch:extension": "npm run compile:extension -- -watch",
     "pretest": "npm run compile && cross-env MONGODB_VERSION=4.2.3 mongodb-runner start --port=27018",
-    "test": "xvfb-maybe node ./out/test/runTest.js",
+    "test": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run compile",
     "check": "mongodb-js-precommit './src/**/*{.ts}'",

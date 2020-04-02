@@ -59,7 +59,6 @@ steps:
     displayName: 'Run Tests'
     env:
       SEGMENT_KEY: $(segmentKey)
-      NODE_OPTIONS: '--no-force-async-hooks-checks'
   - bash: ls -alh
     displayName: 'Post Tests'
 
