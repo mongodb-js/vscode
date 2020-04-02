@@ -9,10 +9,10 @@ import {
   cleanupTestDB
 } from '../dbTestHelper';
 
-const chai = require('chai')
-const expect = chai.expect
+const chai = require('chai');
+const expect = chai.expect;
 
-chai.use(require('chai-as-promised'))
+chai.use(require('chai-as-promised'));
 
 import { PlaygroundController } from '../../../editors';
 
@@ -92,6 +92,104 @@ suite('Playground Controller Test Suite', () => {
           await cleanupTestDB();
         }
       ).then(done, done);
+    });
+
+    test('convert AggregationCursor shellApiType to aggregation telemetry type', () => {
+      const res = { shellApiType: 'AggregationCursor' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'aggregation' });
+    });
+
+    test('convert BulkWriteResult shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'BulkWriteResult' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'other' });
+    });
+
+    test('convert Collection shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'Collection' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'other' });
+    });
+
+    test('convert Cursor shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'Cursor' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'query' });
+    });
+
+    test('convert Database shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'Database' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'other' });
+    });
+
+    test('convert DeleteResult shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'DeleteResult' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'delete' });
+    });
+
+    test('convert InsertManyResult shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'InsertManyResult' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'insert' });
+    });
+
+    test('convert InsertOneResult shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'InsertOneResult' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'insert' });
+    });
+
+    test('convert ReplicaSet shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'ReplicaSet' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'other' });
+    });
+
+    test('convert Shard shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'Shard' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'other' });
+    });
+
+    test('convert ShellApi shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'ShellApi' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'other' });
+    });
+
+    test('convert UpdateResult shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'UpdateResult' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'update' });
+    });
+
+    test('convert UpdateResult shellApiType to other telemetry type', () => {
+      const res = { shellApiType: 'UpdateResult' };
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'update' });
+    });
+
+    test('return other telemetry type if evaluation returns a string', () => {
+      const res = '2';
+      const type = testPlaygroundController.prepareTelemetry(res);
+
+      expect(type).to.deep.equal({ type: 'other' });
     });
 
     test('create a new playground instance for each run', () => {

@@ -1,10 +1,10 @@
 #! /usr/bin/env ts-node
 
-const path = require('path');
-const download = require('download');
-const ora = require('ora');
-const meow = require('meow');
-const mkdirp = require('mkdirp');
+import path = require('path');
+import mkdirp = require('mkdirp');
+import ora = require('ora');
+import download = require('download');
+import meow = require('meow');
 
 const DEFAULT_DEST = path.join(__dirname, '..', 'syntaxes');
 
@@ -48,7 +48,7 @@ const cli = meow(
   try {
     await download(cli.flags.url, cli.flags.dest);
     ui.succeed(
-      `Downloaded to ${path.join(cli.flags.dest, 'mongodb.tmLanguage.json')}`
+      `Downloaded to ${path.join(cli.flags.dest as string, 'mongodb.tmLanguage.json')}`
     );
   } catch (err) {
     ui.fail(`Download failed: ${err.message}`);

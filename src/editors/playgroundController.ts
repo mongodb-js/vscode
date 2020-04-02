@@ -1,29 +1,28 @@
 import * as vscode from 'vscode';
 
-import ConnectionController from '../connectionController';
+import ConnectionController, { DataServiceEventTypes } from '../connectionController';
+import TelemetryController, { TelemetryEventTypes } from '../telemetry/telemetryController';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CompassServiceProvider } from '@mongosh/service-provider-server';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import formatOutput from '../utils/formatOutput';
-import { createLogger } from '../logging';
 import { OutputChannel } from 'vscode';
-import { DataServiceEventTypes } from '../connectionController';
 import playgroundTemplate from '../templates/playgroundTemplate';
-
-const log = createLogger('editors controller');
 
 /**
  * This controller manages playground.
  */
 export default class PlaygroundController {
   _context: vscode.ExtensionContext;
+  _telemetryController?: TelemetryController;
   _connectionController: ConnectionController;
   _activeDB?: any;
   _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
   _outputChannel: OutputChannel;
 
-  constructor(context: vscode.ExtensionContext, connectionController: ConnectionController) {
+  constructor(context: vscode.ExtensionContext, connectionController: ConnectionController, telemetryController?: TelemetryController) {
     this._context = context;
+    this._telemetryController = telemetryController;
     this._connectionController = connectionController;
     this._outputChannel = vscode.window.createOutputChannel(
       'Playground output'
@@ -72,6 +71,31 @@ export default class PlaygroundController {
     });
   }
 
+  prepareTelemetry(res: any) {
+    let type = 'other';
+
+    if (!res.shellApiType) {
+      return { type };
+    }
+
+    const shellApiType = res.shellApiType.toLocaleLowerCase();
+
+    // See: https://github.com/mongodb-js/mongosh/blob/master/packages/shell-api/src/shell-api.js
+    if (shellApiType.includes('insert')) {
+      type = 'insert';
+    } else if (shellApiType.includes('update')) {
+      type = 'update';
+    } else if (shellApiType.includes('delete')) {
+      type = 'delete';
+    } else if (shellApiType.includes('aggregation')) {
+      type = 'aggregation';
+    } else if (shellApiType.includes('cursor')) {
+      type = 'query';
+    }
+
+    return { type };
+  }
+
   async evaluate(codeToEvaluate: string): Promise<any> {
     const activeConnection = this._connectionController.getActiveDataService();
 
@@ -86,9 +110,15 @@ export default class PlaygroundController {
     );
     const runtime = new ElectronRuntime(serviceProvider);
     const res = await runtime.evaluate(codeToEvaluate);
-    const value = formatOutput(res);
 
-    return Promise.resolve(value);
+    if (res) {
+      this._telemetryController?.track(
+        TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED,
+        this.prepareTelemetry(res)
+      );
+    }
+
+    return Promise.resolve(formatOutput(res));
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
