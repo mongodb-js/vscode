@@ -8,6 +8,7 @@ import * as vscode from 'vscode';
 import ConnectionController from './connectionController';
 import { EditorsController, PlaygroundController } from './editors';
 import { ExplorerController, CollectionTreeItem } from './explorer';
+import { TelemetryController } from './telemetry';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController } from './storage';
@@ -28,6 +29,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _explorerController: ExplorerController;
   _statusView: StatusView;
   _storageController: StorageController;
+  _telemetryController: TelemetryController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -37,6 +39,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this._statusView = new StatusView(context);
     this._storageController = new StorageController(context);
+    this._telemetryController = new TelemetryController(this._storageController);
 
     if (connectionController) {
       this._connectionController = connectionController;
@@ -56,13 +59,15 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this._playgroundController = new PlaygroundController(
       context,
-      this._connectionController
+      this._connectionController,
+      this._telemetryController
     );
   }
 
   activate(): void {
     this._connectionController.loadSavedConnections();
     this._explorerController.createTreeView();
+    this._telemetryController.activate();
 
     log.info('Registering commands...');
 
@@ -399,5 +404,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._connectionController.disconnect();
     this._explorerController.deactivate();
     this._playgroundController.deactivate();
+    this._telemetryController.deactivate();
   }
 }
