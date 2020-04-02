@@ -1,12 +1,17 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
-import Actions from '../../../store/actions';
+import { ActionTypes, X509UsernameChangedAction } from '../../../store/actions';
 import FormInput from '../form-input';
+
+type dispatchProps = {
+  onX509UsernameChanged: (newUsername: string) => void;
+};
 
 type props = {
   isValid: boolean;
   x509Username?: string;
-};
+} & dispatchProps;
 
 /**
  * The kerberos auth role component.
@@ -20,7 +25,7 @@ class X509 extends React.Component<props> {
    * @param {Event} evt - The event.
    */
   onUsernameChanged = (evt): void => {
-    Actions.onX509UsernameChanged(evt.target.value.trim());
+    this.props.onX509UsernameChanged(evt.target.value.trim());
   };
 
   /**
@@ -45,4 +50,11 @@ class X509 extends React.Component<props> {
   }
 }
 
-export default X509;
+const mapDispatchToProps: dispatchProps = {
+  onX509UsernameChanged: (newUsername: string): X509UsernameChangedAction => ({
+    type: ActionTypes.X509_USERNAME_CHANGED,
+    x509Username: newUsername
+  })
+};
+
+export default connect(null, mapDispatchToProps)(X509);

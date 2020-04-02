@@ -1,13 +1,23 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
-import Actions from '../../../store/actions';
+import {
+  ActionTypes,
+  LDAPPasswordChangedAction,
+  LDAPUsernameChangedAction
+} from '../../../store/actions';
 import FormInput from '../form-input';
+
+type dispatchProps = {
+  onLDAPPasswordChanged: (newPassword: string) => void;
+  onLDAPUsernameChanged: (newUsername: string) => void;
+};
 
 type props = {
   isValid: boolean;
   ldapPassword?: string;
   ldapUsername?: string;
-};
+} & dispatchProps;
 
 /**
  * The LDAP auth role component.
@@ -16,21 +26,21 @@ class LDAP extends React.Component<props> {
   static displayName = 'LDAP';
 
   /**
-   * Handle the username change.
-   *
-   * @param {Event} evt - The event.
-   */
-  onUsernameChanged = (evt): void => {
-    Actions.onLDAPUsernameChanged(evt.target.value.trim());
-  };
-
-  /**
    * Handle the password change.
    *
    * @param {Event} evt - The event.
    */
   onPasswordChanged = (evt): void => {
-    Actions.onLDAPPasswordChanged(evt.target.value);
+    this.props.onLDAPPasswordChanged(evt.target.value);
+  };
+
+  /**
+   * Handle the username change.
+   *
+   * @param {Event} evt - The event.
+   */
+  onUsernameChanged = (evt): void => {
+    this.props.onLDAPUsernameChanged(evt.target.value.trim());
   };
 
   /**
@@ -71,4 +81,15 @@ class LDAP extends React.Component<props> {
   }
 }
 
-export default LDAP;
+const mapDispatchToProps: dispatchProps = {
+  onLDAPPasswordChanged: (newPassword): LDAPPasswordChangedAction => ({
+    type: ActionTypes.LDAP_PASSWORD_CHANGED,
+    ldapPassword: newPassword
+  }),
+  onLDAPUsernameChanged: (newPassword): LDAPUsernameChangedAction => ({
+    type: ActionTypes.LDAP_USERNAME_CHANGED,
+    ldapUsername: newPassword
+  })
+};
+
+export default connect(null, mapDispatchToProps)(LDAP);

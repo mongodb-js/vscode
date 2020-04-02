@@ -1,10 +1,19 @@
 import * as React from 'react';
 import Toggle from '@leafygreen-ui/toggle';
+import { connect } from 'react-redux';
 
-import Actions from '../../../store/actions';
+import {
+  ActionTypes,
+  KerberosParameters,
+  KerberosParametersChanged
+} from '../../../store/actions';
 import FormInput from '../form-input';
 
 const styles = require('../../../connect.module.less');
+
+type dispatchProps = {
+  kerberosParametersChanged: (newParams: KerberosParameters) => void;
+};
 
 type props = {
   isValid: boolean;
@@ -12,7 +21,7 @@ type props = {
   kerberosPassword?: string;
   kerberosPrincipal?: string;
   kerberosServiceName?: string;
-};
+} & dispatchProps;
 
 /**
  * The kerberos auth role component.
@@ -26,7 +35,18 @@ class Kerberos extends React.Component<props> {
    * @param {Event} evt - The event.
    */
   onPrincipalChanged = (evt): void => {
-    Actions.onKerberosPrincipalChanged(evt.target.value.trim());
+    const {
+      kerberosCanonicalizeHostname,
+      kerberosPassword,
+      kerberosServiceName
+    } = this.props;
+
+    this.props.kerberosParametersChanged({
+      kerberosCanonicalizeHostname,
+      kerberosPassword,
+      kerberosPrincipal: evt.target.value.trim(),
+      kerberosServiceName
+    });
   };
 
   /**
@@ -35,7 +55,18 @@ class Kerberos extends React.Component<props> {
    * @param {Event} evt - The event.
    */
   onPasswordChanged = (evt): void => {
-    Actions.onKerberosPasswordChanged(evt.target.value);
+    const {
+      kerberosCanonicalizeHostname,
+      kerberosPrincipal,
+      kerberosServiceName
+    } = this.props;
+
+    this.props.kerberosParametersChanged({
+      kerberosCanonicalizeHostname,
+      kerberosPassword: evt.target.value,
+      kerberosPrincipal,
+      kerberosServiceName
+    });
   };
 
   /**
@@ -44,7 +75,18 @@ class Kerberos extends React.Component<props> {
    * @param {Event} evt - The event.
    */
   onServiceNameChanged = (evt): void => {
-    Actions.onKerberosServiceNameChanged(evt.target.value);
+    const {
+      kerberosCanonicalizeHostname,
+      kerberosPassword,
+      kerberosPrincipal
+    } = this.props;
+
+    this.props.kerberosParametersChanged({
+      kerberosCanonicalizeHostname,
+      kerberosPassword,
+      kerberosPrincipal,
+      kerberosServiceName: evt.target.value
+    });
   };
 
   /**
@@ -55,7 +97,19 @@ class Kerberos extends React.Component<props> {
   };
 
   onCnameToggle = (): void => {
-    Actions.onKerberosCnameToggle();
+    const {
+      kerberosCanonicalizeHostname,
+      kerberosPassword,
+      kerberosPrincipal,
+      kerberosServiceName
+    } = this.props;
+
+    this.props.kerberosParametersChanged({
+      kerberosCanonicalizeHostname: !kerberosCanonicalizeHostname,
+      kerberosPassword,
+      kerberosPrincipal,
+      kerberosServiceName
+    });
   };
 
   /**
@@ -117,4 +171,13 @@ class Kerberos extends React.Component<props> {
   }
 }
 
-export default Kerberos;
+const mapDispatchToProps: dispatchProps = {
+  kerberosParametersChanged: (
+    newKerberosParams
+  ): KerberosParametersChanged => ({
+    type: ActionTypes.KERBEROS_PARAMETERS_CHANGED,
+    ...newKerberosParams
+  })
+};
+
+export default connect(null, mapDispatchToProps)(Kerberos);

@@ -1,12 +1,17 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
-import Actions from '../../../store/actions';
+import { ActionTypes, PortChangedAction } from '../../../store/actions';
 import FormInput from '../form-input';
+
+type dispatchProps = {
+  onPortChanged: (newPort: number) => void;
+};
 
 type props = {
   port: number;
   isPortChanged: boolean;
-};
+} & dispatchProps;
 
 class PortInput extends React.PureComponent<props> {
   static displayName = 'PortInput';
@@ -16,9 +21,9 @@ class PortInput extends React.PureComponent<props> {
    *
    * @param {Object} evt - evt.
    */
-  onPortChanged(evt): void {
-    Actions.onPortChanged(evt.target.value);
-  }
+  onPortChanged = (evt): void => {
+    this.props.onPortChanged(evt.target.value.trim());
+  };
 
   /**
    * Gets port.
@@ -39,11 +44,19 @@ class PortInput extends React.PureComponent<props> {
         label="Port"
         name="port"
         placeholder="27017"
-        changeHandler={this.onPortChanged.bind(this)}
+        changeHandler={this.onPortChanged}
         value={this.getPort()}
+        type="number"
       />
     );
   }
 }
 
-export default PortInput;
+const mapDispatchToProps: dispatchProps = {
+  onPortChanged: (newPort: number): PortChangedAction => ({
+    type: ActionTypes.PORT_CHANGED,
+    port: newPort
+  })
+};
+
+export default connect(null, mapDispatchToProps)(PortInput);

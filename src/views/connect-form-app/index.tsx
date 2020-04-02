@@ -1,15 +1,19 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+
 import App from './components/app';
 
-import Store from './store/store';
-import StoreConnector from './components/storeConnector';
+import { initialState, rootReducer } from './store/store';
 
 import './connect.module.less';
 
+const store = createStore(rootReducer, initialState);
+
 ReactDOM.render(
-  <StoreConnector store={Store}>
-    <App {...this.props} />
-  </StoreConnector>,
+  <Provider store={store}>
+    <App />
+  </Provider>,
   document.getElementById('root')
 );

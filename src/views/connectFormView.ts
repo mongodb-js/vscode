@@ -54,7 +54,8 @@ export default class ConnectFormView {
             connect(message.driverUrl).then((connectionSuccess) => {
               panel.webview.postMessage({
                 command: 'connectResult',
-                connectionSuccess
+                connectionSuccess,
+                connectionMessage: 'Unable to connect.'
               });
             });
             return;

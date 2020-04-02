@@ -1,10 +1,14 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
-import Actions from '../../store/actions';
+import { ActionTypes, ReadPreferenceChangedAction } from '../../store/actions';
 import FormItemSelect from './form-item-select';
 import READ_PREFERENCES from '../../connection-model/constants/read-preferences';
 
-type props = { readPreference: string };
+type dispatchProps = {
+  onReadPreferenceChanged: (newReadPreference: READ_PREFERENCES) => void;
+};
+type props = { readPreference: string } & dispatchProps;
 
 class ReadPreferenceSelect extends React.PureComponent<props> {
   static displayName = 'ReadPreferenceSelect';
@@ -15,7 +19,7 @@ class ReadPreferenceSelect extends React.PureComponent<props> {
    * @param {Object} evt - evt.
    */
   onReadPreferenceChanged(evt): void {
-    Actions.onReadPreferenceChanged(evt.target.value);
+    this.props.onReadPreferenceChanged(evt.target.value);
   }
 
   render(): React.ReactNode {
@@ -39,4 +43,13 @@ class ReadPreferenceSelect extends React.PureComponent<props> {
   }
 }
 
-export default ReadPreferenceSelect;
+const mapDispatchToProps: dispatchProps = {
+  onReadPreferenceChanged: (
+    newReadPreference: READ_PREFERENCES
+  ): ReadPreferenceChangedAction => ({
+    type: ActionTypes.READ_PREFERENCE_CHANGED,
+    readPreference: newReadPreference
+  })
+};
+
+export default connect(null, mapDispatchToProps)(ReadPreferenceSelect);

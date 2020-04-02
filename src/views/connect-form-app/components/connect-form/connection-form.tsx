@@ -1,7 +1,8 @@
-import * as React from 'react';
 import classnames from 'classnames';
+import * as React from 'react';
+import { connect } from 'react-redux';
 
-import Actions from '../../store/actions';
+import { ActionTypes, ConnectionFormChangedAction } from '../../store/actions';
 import FormGroup from './form-group';
 import HostInput from './host/host-input';
 import PortInput from './host/port-input';
@@ -13,10 +14,11 @@ import ReadPreferenceSelect from './read-preference-select';
 // import SSHTunnel from './ssh/ssh-tunnel';
 import FormActions from './form-actions';
 import ConnectionModel from '../../connection-model/connection-model';
+import { AppState } from '../../store/store';
 
 const styles = require('../../connect.module.less');
 
-type props = {
+type stateProps = {
   currentConnection: ConnectionModel;
   errorMessage: string;
   isConnected: boolean;
@@ -27,15 +29,14 @@ type props = {
   syntaxErrorMessage: string;
 };
 
+type dispatchProps = {
+  onConnectionFormChanged: () => void;
+};
+
+type props = stateProps & dispatchProps;
+
 class ConnectionForm extends React.Component<props> {
   static displayName = 'ConnectionForm';
-
-  /**
-   * Resests URL validation if form was changed.
-   */
-  onConnectionFormChanged = (): void => {
-    Actions.onConnectionFormChanged();
-  };
 
   /**
    * Renders a port input.
@@ -129,12 +130,13 @@ class ConnectionForm extends React.Component<props> {
       isConnected,
       isConnecting,
       isValid,
+      onConnectionFormChanged,
       syntaxErrorMessage
     } = this.props;
 
     return (
       <form
-        onChange={this.onConnectionFormChanged}
+        onChange={onConnectionFormChanged}
         className={classnames(styles['connect-form'])}
       >
         <h1>Connect to MongoDB</h1>
@@ -155,4 +157,24 @@ class ConnectionForm extends React.Component<props> {
   }
 }
 
-export default ConnectionForm;
+const mapStateToProps = (state: AppState): stateProps => {
+  return {
+    currentConnection: state.currentConnection,
+    errorMessage: state.errorMessage,
+    isConnected: state.isConnected,
+    isConnecting: state.isConnecting,
+    isHostChanged: state.isHostChanged,
+    isPortChanged: state.isPortChanged,
+    isValid: state.isValid,
+    syntaxErrorMessage: state.syntaxErrorMessage
+  };
+};
+
+const mapDispatchToProps: dispatchProps = {
+  // Resets URL validation if form was changed.
+  onConnectionFormChanged: (): ConnectionFormChangedAction => ({
+    type: ActionTypes.CONNECTION_FORM_CHANGED
+  })
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ConnectionForm);

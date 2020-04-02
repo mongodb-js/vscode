@@ -1,13 +1,18 @@
 import * as React from 'react';
 import Toggle from '@leafygreen-ui/toggle';
+import { connect } from 'react-redux';
 
-import Actions from '../../../store/actions';
+import { ActionTypes, IsSrvRecordToggledAction } from '../../../store/actions';
 
 const styles = require('../../../connect.module.less');
 
+type dispatchProps = {
+  onSRVRecordToggled: () => void;
+};
+
 type props = {
   isSrvRecord: boolean;
-};
+} & dispatchProps;
 
 class SRVInput extends React.PureComponent<props> {
   static displayName = 'SRVInput';
@@ -18,7 +23,7 @@ class SRVInput extends React.PureComponent<props> {
    * @param {Object} evt - evt.
    */
   onSRVRecordToggled = (): void => {
-    Actions.onSRVRecordToggled();
+    this.props.onSRVRecordToggled();
   };
 
   render(): React.ReactNode {
@@ -45,4 +50,10 @@ class SRVInput extends React.PureComponent<props> {
   }
 }
 
-export default SRVInput;
+const mapDispatchToProps: dispatchProps = {
+  onSRVRecordToggled: (): IsSrvRecordToggledAction => ({
+    type: ActionTypes.IS_SRV_RECORD_TOGGLED
+  })
+};
+
+export default connect(null, mapDispatchToProps)(SRVInput);

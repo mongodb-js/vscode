@@ -1,11 +1,16 @@
 import * as React from 'react';
 import classnames from 'classnames';
+import { connect } from 'react-redux';
 
-import Actions from '../../store/actions';
+import { ActionTypes, ConnectAction } from '../../store/actions';
 import FormGroup from './form-group';
 import ConnectionModel from '../../connection-model/connection-model';
 
 const styles = require('../../connect.module.less');
+
+type dispatchProps = {
+  onConnectClicked: () => void;
+};
 
 type props = {
   currentConnection: ConnectionModel;
@@ -14,7 +19,7 @@ type props = {
   isConnecting: boolean;
   isValid: boolean;
   syntaxErrorMessage: string;
-};
+} & dispatchProps;
 
 class FormActions extends React.Component<props> {
   static displayName = 'FormActions';
@@ -27,7 +32,7 @@ class FormActions extends React.Component<props> {
   onConnectClicked = (evt): void => {
     evt.preventDefault();
     evt.stopPropagation();
-    Actions.onConnectClicked();
+    this.props.onConnectClicked();
   };
 
   /**
@@ -119,4 +124,11 @@ class FormActions extends React.Component<props> {
   }
 }
 
-export default FormActions;
+const mapDispatchToProps: dispatchProps = {
+  // Resets URL validation if form was changed.
+  onConnectClicked: (): ConnectAction => ({
+    type: ActionTypes.CONNECT
+  })
+};
+
+export default connect(null, mapDispatchToProps)(FormActions);

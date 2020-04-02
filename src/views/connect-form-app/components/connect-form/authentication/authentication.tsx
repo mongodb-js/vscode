@@ -1,6 +1,7 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
-import Actions from '../../../store/actions';
+import { ActionTypes, AuthStrategyChangedAction } from '../../../store/actions';
 import AUTH_STRATEGIES, {
   AuthStrategies
 } from '../../../connection-model/constants/auth-strategies';
@@ -11,6 +12,10 @@ import LDAP from './ldap';
 import MongoDBAuth from './mongodb-authentication';
 import ScramSha256 from './scram-sha-256';
 import X509 from './x509';
+
+type dispatchProps = {
+  onAuthStrategyChanged: (authStrategy: AUTH_STRATEGIES) => void;
+};
 
 type props = {
   authStrategy: AUTH_STRATEGIES;
@@ -25,7 +30,7 @@ type props = {
   mongodbPassword?: string;
   mongodbUsername?: string;
   x509Username?: string;
-};
+} & dispatchProps;
 
 class Authentication extends React.Component<props> {
   static displayName = 'Authentication';
@@ -35,9 +40,9 @@ class Authentication extends React.Component<props> {
    *
    * @param {Object} evt - evt.
    */
-  onAuthStrategyChanged(evt): void {
-    Actions.onAuthStrategyChanged(evt.target.value);
-  }
+  onAuthStrategyChanged = (evt): void => {
+    this.props.onAuthStrategyChanged(evt.target.value);
+  };
 
   /**
    * Renders an authentication strategy component.
@@ -125,7 +130,7 @@ class Authentication extends React.Component<props> {
           options={AuthStrategies.map((authStrat) => ({
             [`${authStrat.id}`]: authStrat.title
           }))}
-          changeHandler={this.onAuthStrategyChanged.bind(this)}
+          changeHandler={this.onAuthStrategyChanged}
           value={authStrategy}
         />
         {this.renderAuthStrategy()}
@@ -134,4 +139,11 @@ class Authentication extends React.Component<props> {
   }
 }
 
-export default Authentication;
+const mapDispatchToProps: dispatchProps = {
+  onAuthStrategyChanged: (newAuthStrategy): AuthStrategyChangedAction => ({
+    type: ActionTypes.AUTH_STRATEGY_CHANGED,
+    authStrategy: newAuthStrategy
+  })
+};
+
+export default connect(null, mapDispatchToProps)(Authentication);

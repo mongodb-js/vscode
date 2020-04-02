@@ -1,17 +1,29 @@
 import * as React from 'react';
 import classnames from 'classnames';
+import { connect } from 'react-redux';
 
-import Actions from '../../../store/actions';
+import {
+  ActionTypes,
+  AuthSourceChangedAction,
+  PasswordChangedAction,
+  UsernameChangedAction
+} from '../../../store/actions';
 import FormInput from '../form-input';
 
 const styles = require('../../../connect.module.less');
+
+type dispatchProps = {
+  onAuthSourceChanged: (newAuthSource: string) => void;
+  onPasswordChanged: (newPassword: string) => void;
+  onUsernameChanged: (newUsername: string) => void;
+};
 
 type props = {
   isValid: boolean;
   mongodbDatabaseName?: string;
   mongodbPassword?: string;
   mongodbUsername?: string;
-};
+} & dispatchProps;
 
 class ScramSha256 extends React.Component<props> {
   static displayName = 'ScramSha256';
@@ -22,7 +34,7 @@ class ScramSha256 extends React.Component<props> {
    * @param {Object} evt - evt.
    */
   onUsernameChanged = (evt): void => {
-    Actions.onUsernameChanged(evt.target.value.trim());
+    this.props.onUsernameChanged(evt.target.value.trim());
   };
 
   /**
@@ -31,7 +43,7 @@ class ScramSha256 extends React.Component<props> {
    * @param {Object} evt - evt.
    */
   onPasswordChanged = (evt): void => {
-    Actions.onPasswordChanged(evt.target.value);
+    this.props.onPasswordChanged(evt.target.value);
   };
 
   /**
@@ -40,7 +52,7 @@ class ScramSha256 extends React.Component<props> {
    * @param {Object} evt - evt.
    */
   onAuthSourceChanged = (evt): void => {
-    Actions.onAuthSourceChanged(evt.target.value);
+    this.props.onAuthSourceChanged(evt.target.value);
   };
 
   /**
@@ -90,4 +102,19 @@ class ScramSha256 extends React.Component<props> {
   }
 }
 
-export default ScramSha256;
+const mapDispatchToProps: dispatchProps = {
+  onAuthSourceChanged: (newAuthSource: string): AuthSourceChangedAction => ({
+    type: ActionTypes.AUTH_SOURCE_CHANGED,
+    mongodbDatabaseName: newAuthSource
+  }),
+  onPasswordChanged: (newPassword: string): PasswordChangedAction => ({
+    type: ActionTypes.PASSWORD_CHANGED,
+    mongodbPassword: newPassword
+  }),
+  onUsernameChanged: (newPassword: string): UsernameChangedAction => ({
+    type: ActionTypes.USERNAME_CHANGED,
+    mongodbUsername: newPassword
+  })
+};
+
+export default connect(null, mapDispatchToProps)(ScramSha256);

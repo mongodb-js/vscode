@@ -1,12 +1,17 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
-import Actions from '../../../store/actions';
+import { ActionTypes, HostnameChangedAction } from '../../../store/actions';
 import FormInput from '../form-input';
+
+type dispatchProps = {
+  onHostnameChanged: (newHostName: string) => void;
+};
 
 type props = {
   hostname: string;
   isHostChanged: boolean;
-};
+} & dispatchProps;
 
 class HostInput extends React.PureComponent<props> {
   static displayName = 'HostInput';
@@ -17,7 +22,7 @@ class HostInput extends React.PureComponent<props> {
    * @param {Object} evt - evt.
    */
   onHostnameChanged = (evt): void => {
-    Actions.onHostnameChanged(evt.target.value);
+    this.props.onHostnameChanged(evt.target.value);
   };
 
   /**
@@ -46,4 +51,11 @@ class HostInput extends React.PureComponent<props> {
   }
 }
 
-export default HostInput;
+const mapDispatchToProps: dispatchProps = {
+  onHostnameChanged: (newHostname: string): HostnameChangedAction => ({
+    type: ActionTypes.HOSTNAME_CHANGED,
+    hostname: newHostname
+  })
+};
+
+export default connect(null, mapDispatchToProps)(HostInput);
