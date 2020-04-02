@@ -424,7 +424,7 @@
         "mdb.sendTelemetry": {
           "type": "boolean",
           "default": true,
-          "description": "Allow to send diagnostic and usage telemetry data."
+          "description": "Allow the sending of diagnostic and usage telemetry data to help improve user experience."
         },
         "mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections": {
           "type": "boolean",

@@ -18,7 +18,7 @@ suite('Telemetry Controller Test Suite', () => {
   const mockStorageController = new StorageController(mockExtensionContext);
 
   test('get segment key from constants keyfile', () => {
-    const testPlaygroundController = new TelemetryController(mockStorageController);
+    const testTelemetryController = new TelemetryController(mockStorageController);
     let segmentKey: string | undefined;
 
     try {
@@ -28,12 +28,12 @@ suite('Telemetry Controller Test Suite', () => {
     }
 
     expect(segmentKey).to.be.equal(process.env.SEGMENT_KEY);
-    expect(testPlaygroundController.segmentKey).to.be.a('string');
+    expect(testTelemetryController.segmentKey).to.be.a('string');
   });
 
   test('get user id from the global storage', () => {
-    const testPlaygroundController = new TelemetryController(mockStorageController);
+    const testTelemetryController = new TelemetryController(mockStorageController);
 
-    expect(testPlaygroundController.segmentUserID).to.be.a('string');
+    expect(testTelemetryController.segmentUserID).to.be.a('string');
   });
 });
