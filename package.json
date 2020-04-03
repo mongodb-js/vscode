@@ -42,11 +42,12 @@
     "compile": "npm-run-all compile:*",
     "compile:views": "webpack --mode development",
     "compile:extension": "npm run update-grammar && npm run update-snippets && tsc -p ./",
+    "compile:keyfile": "ts-node ./scripts/generate-keyfile.ts",
     "watch": "npm-run-all -p watch:*",
     "watch:views": "webpack --watch --mode development",
     "watch:extension": "npm run compile:extension -- -watch",
     "pretest": "npm run compile && cross-env MONGODB_VERSION=4.2.3 mongodb-runner start --port=27018",
-    "test": "xvfb-maybe node ./out/test/runTest.js",
+    "test": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run compile",
     "check": "mongodb-js-precommit './src/**/*{.ts}'",
@@ -420,6 +421,11 @@
           "default": true,
           "description": "Show a confirmation message before running commands in a playground."
         },
+        "mdb.sendTelemetry": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow the sending of diagnostic and usage telemetry data to help improve user experience."
+        },
         "mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections": {
           "type": "boolean",
           "default": false,
@@ -451,6 +457,7 @@
   "dependencies": {
     "@mongosh/browser-runtime-electron": "0.0.1-alpha.10",
     "@mongosh/service-provider-server": "0.0.1-alpha.10",
+    "analytics-node": "^3.4.0-beta.1",
     "bson": "^4.0.3",
     "debug": "^4.1.1",
     "mongodb-connection-model": "^14.6.2",
@@ -483,6 +490,7 @@
     "chai-json-schema": "^1.5.1",
     "cross-env": "^7.0.2",
     "css-loader": "^3.4.2",
+    "dotenv": "^8.2.0",
     "eslint": "^6.8.0",
     "eslint-config-mongodb-js": "^5.0.3",
     "eslint-plugin-react": "^7.19.0",

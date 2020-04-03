@@ -129,4 +129,30 @@ suite('Storage Controller Test Suite', () => {
       'Expected storage scope to be set.'
     );
   });
+
+  test('getUserID adds user uuid to the global store if it does not exist there', () => {
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._globalState = {};
+    const testStorageController = new StorageController(testExtensionContext);
+    testStorageController.getUserID();
+    const userId = testStorageController.get(
+      StorageVariables.GLOBAL_USER_ID
+    );
+    assert(userId);
+  });
+
+  test('getUserID does not update the user id in the global store if it already exist there', () => {
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._globalState = {};
+    const testStorageController = new StorageController(testExtensionContext);
+    testStorageController.getUserID();
+    const userId = testStorageController.get(
+      StorageVariables.GLOBAL_USER_ID
+    );
+    testStorageController.getUserID();
+    const userIdAfterSecondCall = testStorageController.get(
+      StorageVariables.GLOBAL_USER_ID
+    );
+    assert(userId === userIdAfterSecondCall);
+  });
 });

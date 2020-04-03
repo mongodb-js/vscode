@@ -57,6 +57,8 @@ steps:
 
   - bash: npm run test
     displayName: 'Run Tests'
+    env:
+      SEGMENT_KEY: $(segmentKey)
   - bash: ls -alh
     displayName: 'Post Tests'
 
@@ -72,6 +74,8 @@ steps:
       npm i -g vsce;
       vsce package
     displayName: 'Build .vsix'
+    env:
+      SEGMENT_KEY: $(segmentKey)
 
   # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#set-variables-in-scripts
   - bash: |

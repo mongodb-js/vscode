@@ -1,15 +1,13 @@
 #! /usr/bin/env ts-node
 
-const fs = require('fs');
+import path = require('path');
+import mkdirp = require('mkdirp');
+import ora = require('ora');
+import fs = require('fs');
+
 const { promisify } = require('util');
 const writeFile = promisify(fs.writeFile);
-
-const path = require('path');
-const mkdirp = require('mkdirp');
-const ora = require('ora');
-
 const { STAGE_OPERATORS } = require('mongodb-ace-autocompleter');
-const config = require(path.join(__dirname, '..', 'package.json'));
 const SNIPPETS_DIR = path.join(__dirname, '..', 'snippets');
 
 /**
@@ -75,9 +73,9 @@ const snippets = STAGE_OPERATORS.reduce(
 
 (async () => {
   const ui = ora('Update snippets').start();
+
   ui.info(`Create the ${SNIPPETS_DIR} folder`);
   await mkdirp(SNIPPETS_DIR);
-
   await writeFile(
     `${SNIPPETS_DIR}/stage-autocompleter.json`,
     JSON.stringify(snippets, null, 2)

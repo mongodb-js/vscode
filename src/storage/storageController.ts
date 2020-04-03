@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
+import { v4 as uuidv4 } from 'uuid';
 
 export enum StorageVariables {
   GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS', // Only exists on globalState.
+  GLOBAL_USER_ID = 'GLOBAL_USER_ID', // Only exists on globalState.
   WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS' // Only exists on workspaceState.
 }
 
@@ -56,6 +58,19 @@ export default class StorageController {
 
     this._globalState.update(variableName, value);
     return Promise.resolve();
+  }
+
+  public getUserID() {
+    let globalUserId = this.get(StorageVariables.GLOBAL_USER_ID);
+
+    if (globalUserId) {
+      return globalUserId;
+    }
+
+    globalUserId = uuidv4();
+    this.update(StorageVariables.GLOBAL_USER_ID, globalUserId);
+
+    return globalUserId;
   }
 
   public saveConnectionToGlobalStore(
