@@ -34,7 +34,7 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./out/extension.js",
   "scripts": {
-    "clean": "rimraf ./out/* ./connect-form",
+    "clean": "rimraf ./out/* ",
     "lint": "eslint ./src/**/*.ts",
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
     "update-snippets": "ts-node ./scripts/update-snippets.ts",

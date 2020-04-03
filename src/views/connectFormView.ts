@@ -18,7 +18,7 @@ export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
 
 export const getReactAppUri = (extensionPath: string): vscode.Uri => {
   const jsAppFilePath = vscode.Uri.file(
-    path.join(extensionPath, 'connect-form', 'connectForm.js')
+    path.join(extensionPath, 'out', 'connect-form', 'connectForm.js')
   );
   return jsAppFilePath.with({ scheme: 'vscode-resource' });
 };
@@ -38,7 +38,7 @@ export default class ConnectFormView {
       {
         enableScripts: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'connect-form'))
+          vscode.Uri.file(path.join(extensionPath, 'out', 'connect-form'))
         ]
       }
     );

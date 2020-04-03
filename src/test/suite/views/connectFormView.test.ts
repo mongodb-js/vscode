@@ -66,8 +66,10 @@ suite('Connect Form View Test Suite', () => {
     const appUri = getReactAppUri(extensionPath);
     const htmlString = getConnectWebviewContent(appUri);
 
-    assert(htmlString.includes('vscode-resource:/connect-form/connectForm.js'));
-    const connectFormFileName = (): string => 'connect-form/connectForm.js';
+    assert(
+      htmlString.includes('vscode-resource:/out/connect-form/connectForm.js')
+    );
+    const connectFormFileName = (): string => 'out/connect-form/connectForm.js';
     const jsFileString = await readFile(
       path.resolve(__dirname, '..', '..', '..', '..', connectFormFileName())
     );

@@ -8,7 +8,7 @@ module.exports = {
     connectForm: './src/views/connect-form-app/index.tsx'
   },
   output: {
-    path: path.resolve(__dirname, 'connect-form'),
+    path: path.resolve(__dirname, 'out/connect-form'),
     filename: '[name].js'
   },
   devtool: 'eval-source-map',
@@ -37,7 +37,7 @@ module.exports = {
           {
             loader: 'postcss-loader',
             options: {
-              plugins: function () {
+              plugins: function() {
                 return [autoprefixer()];
               }
             }
