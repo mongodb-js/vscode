@@ -73,9 +73,9 @@ const snippets = STAGE_OPERATORS.reduce(
 
 (async () => {
   const ui = ora('Update snippets').start();
+
   ui.info(`Create the ${SNIPPETS_DIR} folder`);
   await mkdirp(SNIPPETS_DIR);
-
   await writeFile(
     `${SNIPPETS_DIR}/stage-autocompleter.json`,
     JSON.stringify(snippets, null, 2)

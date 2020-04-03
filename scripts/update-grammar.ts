@@ -45,6 +45,7 @@ const cli = meow(
   const ui = ora()
     .info('Downlading latest mongodb.tmLanguage.json')
     .start();
+
   try {
     await download(cli.flags.url, cli.flags.dest);
     ui.succeed(
