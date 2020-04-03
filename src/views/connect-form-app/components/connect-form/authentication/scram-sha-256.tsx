@@ -55,15 +55,6 @@ class ScramSha256 extends React.Component<props> {
     this.props.onAuthSourceChanged(evt.target.value);
   };
 
-  /**
-   * Opens "Authentication Database" documentation.
-   */
-  onSourceHelp = (): void => {
-    window.open(
-      'https://docs.mongodb.com/manual/core/security-users/#user-authentication-database'
-    );
-  };
-
   render(): React.ReactNode {
     const {
       isValid,
@@ -95,7 +86,8 @@ class ScramSha256 extends React.Component<props> {
           name="authSource"
           changeHandler={this.onAuthSourceChanged}
           value={mongodbDatabaseName || ''}
-          linkHandler={this.onSourceHelp}
+          // Opens "Authentication Database" documentation.
+          linkTo="https://docs.mongodb.com/manual/core/security-users/#user-authentication-database"
         />
       </div>
     );

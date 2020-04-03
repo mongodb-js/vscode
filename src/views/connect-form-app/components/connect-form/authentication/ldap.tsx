@@ -44,13 +44,6 @@ class LDAP extends React.Component<props> {
   };
 
   /**
-   * Open the help page for LDAP.
-   */
-  onLDAPHelp = (): void => {
-    window.open('https://docs.mongodb.com/manual/core/security-ldap/');
-  };
-
-  /**
    * Render the kerberos component.
    *
    * @returns {React.Component} The component.
@@ -66,7 +59,8 @@ class LDAP extends React.Component<props> {
           error={!isValid && ldapUsername === undefined}
           changeHandler={this.onUsernameChanged}
           value={ldapUsername || ''}
-          linkHandler={this.onLDAPHelp}
+          // Open the help page for LDAP.
+          linkTo="https://docs.mongodb.com/manual/core/security-ldap/"
         />
         <FormInput
           label="Password"

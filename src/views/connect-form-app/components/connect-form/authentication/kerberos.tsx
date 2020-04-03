@@ -89,13 +89,6 @@ class Kerberos extends React.Component<props> {
     });
   };
 
-  /**
-   * Open the help page for the principal.
-   */
-  onPrincipalHelp = (): void => {
-    window.open('https://docs.mongodb.com/manual/core/kerberos/#principals');
-  };
-
   onCnameToggle = (): void => {
     const {
       kerberosCanonicalizeHostname,
@@ -134,7 +127,8 @@ class Kerberos extends React.Component<props> {
           error={!isValid && kerberosPrincipal === undefined}
           changeHandler={this.onPrincipalChanged}
           value={kerberosPrincipal || ''}
-          linkHandler={this.onPrincipalHelp}
+          // Open the help page for the principal.
+          linkTo="https://docs.mongodb.com/manual/core/kerberos/#principals"
         />
         <FormInput
           label="Password"

@@ -53,15 +53,6 @@ class MongoDBAuthentication extends React.Component<props> {
     this.props.onAuthSourceChanged(evt.target.value);
   };
 
-  /**
-   * Opens "Authentication Database" documentation.
-   */
-  onSourceHelp = (): void => {
-    window.open(
-      'https://docs.mongodb.com/manual/core/security-users/#user-authentication-database'
-    );
-  };
-
   render(): React.ReactNode {
     const {
       isValid,
@@ -93,7 +84,8 @@ class MongoDBAuthentication extends React.Component<props> {
           name="auth-source"
           changeHandler={this.onAuthSourceChanged}
           value={mongodbDatabaseName || ''}
-          linkHandler={this.onSourceHelp}
+          // Opens "Authentication Database" documentation.
+          linkTo="https://docs.mongodb.com/manual/core/security-users/#user-authentication-database"
         />
       </FormGroup>
     );

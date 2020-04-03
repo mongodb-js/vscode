@@ -1,5 +1,7 @@
 import * as React from 'react';
 import classnames from 'classnames';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
 const styles = require('../../connect.module.less');
 
@@ -7,7 +9,7 @@ type props = {
   label: string;
   name: string;
   changeHandler: (evt: React.ChangeEvent) => void;
-  linkHandler?: () => void;
+  linkTo?: string;
   placeholder?: string;
   value?: string | number;
   type?: string;
@@ -35,12 +37,14 @@ class FormInput extends React.PureComponent<props> {
    * @returns {React.Component} The info sprinkle.
    */
   renderInfoSprinkle(): React.ReactNode {
-    if (this.props.linkHandler) {
+    if (this.props.linkTo) {
       return (
-        <i
-          className={classnames(styles.help)}
-          onClick={this.props.linkHandler}
-        />
+        <a target="_blank" rel="noopener" href={this.props.linkTo}>
+          <FontAwesomeIcon
+            icon={faInfoCircle}
+            className={classnames(styles['help-icon'])}
+          />
+        </a>
       );
     }
   }

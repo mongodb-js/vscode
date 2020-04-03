@@ -18,7 +18,7 @@ class HelpPanel extends React.PureComponent {
               className={styles['help-link']}
               target="_blank"
               rel="noopener"
-              href="https://cloud.mongodb.com/"
+              href="https://www.mongodb.com/cloud/atlas"
             >
               MongoDB Atlas
             </a>
@@ -29,7 +29,7 @@ class HelpPanel extends React.PureComponent {
                 className={classnames(styles.btn, styles['btn-sm'])}
                 target="_blank"
                 rel="noopener"
-                href="https://cloud.mongodb.com/"
+                href="https://www.mongodb.com/cloud/atlas/lp/general/try?utm_source=vscode_extension&utm_medium=product"
               >
                 Create Free Cluster
               </a>
