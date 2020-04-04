@@ -32,7 +32,9 @@ export default class LanguageServerController {
   async activate(context: ExtensionContext): Promise<LanguageClient> {
     // The server is implemented in node
     const serverModule = context.asAbsolutePath(
-      path.join(process.cwd(), 'out', 'language', 'server.js')
+      context.extensionPath === 'TEST_FOLDER'
+        ? path.join('..', '..', 'out', 'language', 'server.js')
+        : path.join('out', 'language', 'server.js')
     );
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging

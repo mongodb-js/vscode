@@ -36,7 +36,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
         return new Promise<void>(() => { this._globalState[key] = value; });
       }
     };
-    this.extensionPath = '';
+    this.extensionPath = 'TEST_FOLDER';
     this.storagePath = '';
   }
 }
