@@ -19,26 +19,25 @@ const log = createLogger('LanguageServerController');
  */
 export default class LanguageServerController {
   _connectionController?: ConnectionController;
-  client?: LanguageClient;
+  client: LanguageClient;
 
   constructor(
     context: vscode.ExtensionContext,
     connectionController?: ConnectionController
   ) {
     this._connectionController = connectionController;
-    this.activate(context);
-  }
 
-  async activate(context: ExtensionContext): Promise<LanguageClient> {
     // The server is implemented in node
     const serverModule = context.asAbsolutePath(
       context.extensionPath === 'TEST_FOLDER'
         ? path.join('..', '..', 'out', 'language', 'server.js')
         : path.join('out', 'language', 'server.js')
     );
+
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
     const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
+
     // If the extension is launched in debug mode then the debug server options are used
     // Otherwise the run options are used
     const serverOptions: ServerOptions = {
@@ -49,6 +48,7 @@ export default class LanguageServerController {
         options: debugOptions
       }
     };
+
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
       // Register the server for plain text documents
@@ -78,35 +78,22 @@ export default class LanguageServerController {
     // Start the client. This will also launch the server
     this.client.start();
 
-    await this.client.onReady();
-
-    /**
-     * TODO: Notification is for setup docs only.
-     */
-    this.client.onNotification('mongodbNotification', (messsage) => {
-      vscode.window.showInformationMessage(messsage);
+    this.client.onReady().then(() => {
+      /**
+       * TODO: Notification is for setup docs only.
+       */
+      this.client.onNotification('mongodbNotification', (messsage) => {
+        vscode.window.showInformationMessage(messsage);
+      });
     });
-
-    return new Promise((resolve) => resolve(this.client));
   }
 
   deactivate(): Thenable<void> | undefined {
-    if (!this.client) {
-      return undefined;
-    }
     return this.client.stop();
   }
 
   executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Thenable<any> | undefined {
-    if (!this.client) {
-      return undefined;
-    }
-
     return this.client.onReady().then(() => {
-      if (!this.client) {
-        return undefined;
-      }
-
       return this.client.sendRequest('executeAll', { codeToEvaluate, connectionString, connectionOptions });
     });
   }
