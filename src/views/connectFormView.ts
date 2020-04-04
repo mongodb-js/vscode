@@ -51,13 +51,24 @@ export default class ConnectFormView {
       (message) => {
         switch (message.command) {
           case 'connect':
-            connect(message.driverUrl).then((connectionSuccess) => {
-              panel.webview.postMessage({
-                command: 'connectResult',
-                connectionSuccess,
-                connectionMessage: 'Unable to connect.'
-              });
-            });
+            connect(message.driverUrl).then(
+              (connectionSuccess) => {
+                panel.webview.postMessage({
+                  command: 'connectResult',
+                  connectionSuccess,
+                  connectionMessage: connectionSuccess
+                    ? 'Connected.'
+                    : 'Unable to connect.'
+                });
+              },
+              (err: Error) => {
+                panel.webview.postMessage({
+                  command: 'connectResult',
+                  connectionSuccess: false,
+                  connectionMessage: err.message
+                });
+              }
+            );
             return;
           default:
             // no-op.

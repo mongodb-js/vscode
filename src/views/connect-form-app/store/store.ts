@@ -105,7 +105,6 @@ export const rootReducer = (
         };
       }
 
-      // TODO: Maybe move to sagas just for this...
       vscode.postMessage({
         command: 'connect',
         driverUrl: getDriverUrlFromConnectionModel(state.currentConnection)

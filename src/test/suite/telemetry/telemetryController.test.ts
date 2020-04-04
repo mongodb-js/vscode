@@ -18,11 +18,14 @@ suite('Telemetry Controller Test Suite', () => {
   const mockStorageController = new StorageController(mockExtensionContext);
 
   test('get segment key from constants keyfile', () => {
-    const testTelemetryController = new TelemetryController(mockStorageController);
+    const testTelemetryController = new TelemetryController(
+      mockStorageController
+    );
     let segmentKey: string | undefined;
 
     try {
-      segmentKey = require('../../../../constants')?.segmentKey;
+      const segmentKeyFileLocation = '../../../../constants';
+      segmentKey = require(segmentKeyFileLocation)?.segmentKey;
     } catch (error) {
       expect(error).to.be.undefined;
     }
@@ -32,7 +35,9 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('get user id from the global storage', () => {
-    const testTelemetryController = new TelemetryController(mockStorageController);
+    const testTelemetryController = new TelemetryController(
+      mockStorageController
+    );
 
     expect(testTelemetryController.segmentUserID).to.be.a('string');
   });

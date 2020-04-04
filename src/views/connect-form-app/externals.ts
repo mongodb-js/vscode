@@ -4,4 +4,13 @@ declare module '*.less' {
   export default resource;
 }
 
-declare const acquireVsCodeApi: () => any;
+interface WebviewMessage {
+  command: string;
+  driverUrl: string;
+}
+
+interface VSCodeApi {
+  postMessage: (message: WebviewMessage) => void;
+}
+
+declare const acquireVsCodeApi: () => VSCodeApi;
