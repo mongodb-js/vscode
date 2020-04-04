@@ -8,6 +8,7 @@ import * as vscode from 'vscode';
 import ConnectionController from './connectionController';
 import { EditorsController, PlaygroundController } from './editors';
 import { ExplorerController, CollectionTreeItem } from './explorer';
+import { LanguageServerController } from './language';
 import { TelemetryController } from './telemetry';
 import { StatusView } from './views';
 import { createLogger } from './logging';
@@ -30,6 +31,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _statusView: StatusView;
   _storageController: StorageController;
   _telemetryController: TelemetryController;
+  _languageServerController: LanguageServerController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -52,6 +54,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       );
     }
 
+    this._languageServerController = new LanguageServerController(context);
     this._editorsController = new EditorsController(
       context,
       this._connectionController
@@ -62,6 +65,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._playgroundController = new PlaygroundController(
       context,
       this._connectionController,
+      this._languageServerController,
       this._telemetryController
     );
   }

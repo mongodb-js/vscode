@@ -1,4 +1,7 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import { PlaygroundController } from '../../../editors';
+import { LanguageServerController } from '../../../language';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
@@ -9,14 +12,37 @@ import {
   cleanupTestDB
 } from '../dbTestHelper';
 
+const sinon = require('sinon');
 const chai = require('chai');
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
 
-import { PlaygroundController } from '../../../editors';
+let doc: vscode.TextDocument;
+let editor: vscode.TextEditor;
 
-const sinon = require('sinon');
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const getDocUri = (docName: string) => {
+  const docPath = path.resolve(__dirname, '../../../../src/test/fixture', docName);
+
+  return vscode.Uri.file(docPath);
+};
+
+/**
+ * Opens the MongoDB playground
+ */
+export async function openPlayground(docUri: vscode.Uri) {
+  try {
+    doc = await vscode.workspace.openTextDocument(docUri);
+    editor = await vscode.window.showTextDocument(doc);
+    await sleep(2000); // Wait for server activation
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 suite('Playground Controller Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
@@ -30,7 +56,8 @@ suite('Playground Controller Test Suite', () => {
         new StatusView(mockExtensionContext),
         mockStorageController
       );
-      const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController);
+      const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
+      const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
 
       expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'Please connect to a database before running a playground.');
     });
@@ -47,17 +74,27 @@ suite('Playground Controller Test Suite', () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
+    const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
     testConnectionController.getActiveConnectionName = () => 'fakeName';
+    testConnectionController.getActiveConnectionDriverUrl = () => 'mongodb://localhost:27018';
 
-    const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController);
+    const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
 
-    test('evaluate should sum numbers', async () => {
+    test('evaluate should sum numbers', async function () {
+      this.timeout(5000);
+
+      await openPlayground(getDocUri('test.mongodb'));
+
       testConnectionController.setActiveConnection(mockActiveConnection);
 
       expect(await testPlaygroundController.evaluate('1 + 1')).to.be.equal('2');
     });
 
-    test('evaluate multiple commands at once', async () => {
+    test('evaluate multiple commands at once', async function () {
+      this.timeout(3000);
+
+      await openPlayground(getDocUri('test.mongodb'));
+
       testConnectionController.setActiveConnection(mockActiveConnection);
 
       expect(await testPlaygroundController.evaluate(`
@@ -66,7 +103,9 @@ suite('Playground Controller Test Suite', () => {
       `)).to.be.equal('3');
     });
 
-    test('evaluate interaction with a database', (done) => {
+    test('evaluate interaction with a database', function (done) {
+      this.timeout(4000);
+
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
         example: 'field'
@@ -76,13 +115,15 @@ suite('Playground Controller Test Suite', () => {
         async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
 
+          await openPlayground(getDocUri('test.mongodb'));
+
           const actualResult = await testPlaygroundController.evaluate(`
             use('vscodeTestDatabaseAA');
             db.forest.find({})
           `);
           const expectedResult = '[\n' +
             '  {\n' +
-            '    _id: 5e32b4d67bf47f4525f2f8ab,\n' +
+            '    _id: \'5e32b4d67bf47f4525f2f8ab\',\n' +
             '    example: \'field\'\n' +
             '  }\n' +
             ']';

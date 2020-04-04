@@ -20,9 +20,10 @@ const log = createLogger('LanguageServerController');
 export default class LanguageServerController {
   _connectionController?: ConnectionController;
   client?: LanguageClient;
+
   constructor(
     context: vscode.ExtensionContext,
-    connectionController: ConnectionController
+    connectionController?: ConnectionController
   ) {
     this._connectionController = connectionController;
     this.activate(context);
@@ -31,7 +32,7 @@ export default class LanguageServerController {
   async activate(context: ExtensionContext): Promise<LanguageClient> {
     // The server is implemented in node
     const serverModule = context.asAbsolutePath(
-      path.join('out', 'language', 'server.js')
+      path.join(process.cwd(), 'out', 'language', 'server.js')
     );
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
@@ -93,5 +94,13 @@ export default class LanguageServerController {
       return undefined;
     }
     return this.client.stop();
+  }
+
+  executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Thenable<any> | undefined {
+    if (!this.client) {
+      return undefined;
+    }
+
+    return this.client.sendRequest('executeAll', { codeToEvaluate, connectionString, connectionOptions });
   }
 }

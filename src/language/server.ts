@@ -13,6 +13,8 @@ import {
   TextDocumentPositionParams,
   RequestType
 } from 'vscode-languageserver';
+import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
+import { CliServiceProvider } from '@mongosh/service-provider-server';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -275,9 +277,17 @@ connection.onCompletionResolve(
 /**
  * Execute the entire playground script.
  */
-connection.onRequest('executeAll', (event) => {
-  // connection.console.log(`executeAll: ${JSON.stringify(event)}`);
-  return '';
+connection.onRequest('executeAll', async (params) => {
+  try {
+    const connectionOptions = params.connectionOptions || {};
+    const runtime = new ElectronRuntime(
+      await CliServiceProvider.connect(params.connectionString, connectionOptions)
+    );
+
+    return await runtime.evaluate(params.codeToEvaluate);
+  } catch (error) {
+    throw new Error('Unable to connect to MongoDB instance. Make sure it is started correctly.');
+  }
 });
 
 /**
