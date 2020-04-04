@@ -61,6 +61,68 @@ suite('Playground Controller Test Suite', () => {
     });
   });
 
+  suite('test confirmation message', () => {
+    const testConnectionController = new ConnectionController(
+      new StatusView(mockExtensionContext),
+      mockStorageController
+    );
+    const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
+
+    testConnectionController.getActiveConnectionDriverUrl = () => 'mongodb://localhost:27018';
+
+    const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
+    let fakeShowInformationMessage;
+
+    beforeEach(() => {
+      fakeShowInformationMessage = sandbox.stub(vscode.window, 'showInformationMessage').resolves('Yes');
+    });
+
+    afterEach(async () => {
+      sandbox.restore();
+      await cleanupTestDB()
+    });
+
+    test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is true', (done) => {
+      const mockDocument = {
+        _id: new ObjectId('5e32b4d67bf47f4525f2f833'),
+        example: 'field'
+      };
+
+      seedDataAndCreateDataService('forest', [mockDocument]).then(
+        async (dataService) => {
+          testConnectionController.setActiveConnection(dataService);
+
+          await testPlaygroundController.runAllPlaygroundBlocks();
+
+          const expectedMessage =
+            'Are you sure you want to run this playground against fakeName? This confirmation can be disabled in the extension settings.';
+
+          expect(fakeShowInformationMessage.calledOnce).to.be.true;
+        }
+      ).then(done, done);
+    });
+
+    test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is false', (done) => {
+      const mockDocument = {
+        _id: new ObjectId('5e32b4d67bf47f4525f2f844'),
+        example: 'field'
+      };
+
+      seedDataAndCreateDataService('forest', [mockDocument]).then(
+        async (dataService) => {
+          testConnectionController.setActiveConnection(dataService);
+
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('confirmRunAll', false);
+          await testPlaygroundController.runAllPlaygroundBlocks();
+
+          expect(fakeShowInformationMessage.calledOnce).to.be.false;
+        }
+      ).then(done, done);
+    });
+  });
+
   suite('when user is connected', () => {
     afterEach(async () => {
       await cleanupTestDB()
