@@ -38,7 +38,7 @@
       "request": "attach",
       "name": "Attach to Language Server",
       "protocol": "inspector",
-      "port": 6005,
+      "port": 6009,
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"

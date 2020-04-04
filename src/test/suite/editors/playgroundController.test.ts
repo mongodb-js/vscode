@@ -247,7 +247,7 @@ suite('Playground Controller Test Suite', () => {
 
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is true', (done) => {
       const mockDocument = {
-        _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
+        _id: new ObjectId('5e32b4d67bf47f4525f2f811'),
         example: 'field'
       };
       const fakeShowInformationMessage = sandbox.stub(vscode.window, 'showInformationMessage');
@@ -274,7 +274,7 @@ suite('Playground Controller Test Suite', () => {
 
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is false', (done) => {
       const mockDocument = {
-        _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
+        _id: new ObjectId('5e32b4d67bf47f4525f2f822'),
         example: 'field'
       };
       const fakeShowInformationMessage = sandbox.stub(vscode.window, 'showInformationMessage');

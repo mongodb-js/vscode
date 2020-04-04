@@ -37,7 +37,6 @@ export default class LanguageServerController {
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
     const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
-
     // If the extension is launched in debug mode then the debug server options are used
     // Otherwise the run options are used
     const serverOptions: ServerOptions = {
@@ -48,7 +47,6 @@ export default class LanguageServerController {
         options: debugOptions
       }
     };
-
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
       // Register the server for plain text documents
@@ -79,6 +77,7 @@ export default class LanguageServerController {
     this.client.start();
 
     await this.client.onReady();
+
     /**
      * TODO: Notification is for setup docs only.
      */
