@@ -101,6 +101,12 @@ export default class LanguageServerController {
       return undefined;
     }
 
-    return this.client.sendRequest('executeAll', { codeToEvaluate, connectionString, connectionOptions });
+    return this.client.onReady().then(() => {
+      if (!this.client) {
+        return undefined;
+      }
+
+      return this.client.sendRequest('executeAll', { codeToEvaluate, connectionString, connectionOptions });
+    });
   }
 }

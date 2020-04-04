@@ -21,10 +21,6 @@ chai.use(require('chai-as-promised'));
 let doc: vscode.TextDocument;
 let editor: vscode.TextEditor;
 
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 const getDocUri = (docName: string) => {
   const docPath = path.resolve(__dirname, '../../../../src/test/fixture', docName);
 
@@ -38,7 +34,6 @@ export async function openPlayground(docUri: vscode.Uri) {
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
-    await sleep(2000); // Wait for server activation
   } catch (e) {
     console.error(e);
   }
@@ -49,6 +44,8 @@ suite('Playground Controller Test Suite', () => {
 
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
+
+  const sandbox = sinon.createSandbox();
 
   suite('when user is not connected', () => {
     test('evaluate should throw the missing active connection error', async () => {
@@ -81,8 +78,6 @@ suite('Playground Controller Test Suite', () => {
     const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
 
     test('evaluate should sum numbers', async function () {
-      this.timeout(5000);
-
       await openPlayground(getDocUri('test.mongodb'));
 
       testConnectionController.setActiveConnection(mockActiveConnection);
@@ -90,9 +85,7 @@ suite('Playground Controller Test Suite', () => {
       expect(await testPlaygroundController.evaluate('1 + 1')).to.be.equal('2');
     });
 
-    test('evaluate multiple commands at once', async function () {
-      this.timeout(3000);
-
+    test('evaluate multiple commands at once', async () => {
       await openPlayground(getDocUri('test.mongodb'));
 
       testConnectionController.setActiveConnection(mockActiveConnection);
@@ -103,9 +96,7 @@ suite('Playground Controller Test Suite', () => {
       `)).to.be.equal('3');
     });
 
-    test('evaluate interaction with a database', function (done) {
-      this.timeout(4000);
-
+    test('evaluate interaction with a database', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
         example: 'field'
@@ -129,10 +120,8 @@ suite('Playground Controller Test Suite', () => {
             ']';
 
           expect(actualResult).to.be.equal(expectedResult);
-
-          await cleanupTestDB();
         }
-      ).then(done, done);
+      ).then(done, done).finally(async () => { await cleanupTestDB() });
     });
 
     test('convert AggregationCursor shellApiType to aggregation telemetry type', () => {
@@ -233,7 +222,7 @@ suite('Playground Controller Test Suite', () => {
       expect(type).to.deep.equal({ type: 'other' });
     });
 
-    test('create a new playground instance for each run', () => {
+    test('create a new playground instance for each run', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f777'),
         valueOfTheField: 'is not important'
@@ -252,10 +241,8 @@ suite('Playground Controller Test Suite', () => {
           const result = await testPlaygroundController.evaluate(codeToEvaluate);
 
           expect(result).to.be.equal('2');
-
-          await cleanupTestDB();
         }
-      );
+      ).then(done, done).finally(async () => { await cleanupTestDB() });
     });
 
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is true', (done) => {
@@ -263,7 +250,7 @@ suite('Playground Controller Test Suite', () => {
         _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
         example: 'field'
       };
-      const fakeShowInformationMessage = sinon.stub(vscode.window, 'showInformationMessage');
+      const fakeShowInformationMessage = sandbox.stub(vscode.window, 'showInformationMessage');
 
       fakeShowInformationMessage.returns('Yes');
 
@@ -278,11 +265,11 @@ suite('Playground Controller Test Suite', () => {
 
           expect(fakeShowInformationMessage.calledOnce).to.be.true;
           expect(fakeShowInformationMessage.calledWith(expectedMessage)).to.be.true;
-          fakeShowInformationMessage.restore();
-
-          await cleanupTestDB();
         }
-      ).then(done, done);
+      ).then(done, done).finally(async () => {
+        sandbox.restore();
+        await cleanupTestDB()
+      });
     });
 
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is false', (done) => {
@@ -290,7 +277,7 @@ suite('Playground Controller Test Suite', () => {
         _id: new ObjectId('5e32b4d67bf47f4525f2f8ab'),
         example: 'field'
       };
-      const fakeShowInformationMessage = sinon.stub(vscode.window, 'showInformationMessage');
+      const fakeShowInformationMessage = sandbox.stub(vscode.window, 'showInformationMessage');
 
       fakeShowInformationMessage.returns('Yes');
 
@@ -308,7 +295,10 @@ suite('Playground Controller Test Suite', () => {
 
           await cleanupTestDB();
         }
-      ).then(done, done);
+      ).then(done, done).finally(async () => {
+        sandbox.restore();
+        await cleanupTestDB()
+      });
     });
   });
 });
