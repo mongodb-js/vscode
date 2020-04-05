@@ -55,8 +55,6 @@ suite('Playground Controller Test Suite', () => {
       const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
       const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
 
-      testLanguageServerController.activate();
-
       expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'Please connect to a database before running a playground.');
     });
   });
@@ -68,7 +66,6 @@ suite('Playground Controller Test Suite', () => {
     );
     const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
 
-    testLanguageServerController.activate();
     testConnectionController.getActiveConnectionDriverUrl = () => 'mongodb://localhost:27018';
 
     const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
@@ -135,7 +132,6 @@ suite('Playground Controller Test Suite', () => {
     );
     const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
 
-    testLanguageServerController.activate();
     testConnectionController.getActiveConnectionName = () => 'fakeName';
     testConnectionController.getActiveConnectionDriverUrl = () => 'mongodb://localhost:27018';
 
