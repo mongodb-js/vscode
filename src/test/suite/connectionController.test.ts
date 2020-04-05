@@ -231,7 +231,7 @@ suite('Connection Controller Test Suite', () => {
             (error) => {
               const expectedError = 'Failed to connect: getaddrinfo';
               assert(
-                error.message.include(expectedError),
+                error.message.includes(expectedError),
                 `Expected error with message: ${expectedError}, got: ${error.message}`
               );
               assert(
