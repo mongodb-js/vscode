@@ -46,6 +46,8 @@ suite('Playground Controller Test Suite', () => {
 
   const sandbox = sinon.createSandbox();
 
+  mockExtensionContext.extensionPath = 'TEST_FOLDER';
+
   suite('when user is not connected', () => {
     test('evaluate should throw the missing active connection error', async () => {
       const testConnectionController = new ConnectionController(
