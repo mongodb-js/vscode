@@ -74,7 +74,9 @@ export default class LanguageServerController {
       serverOptions,
       clientOptions
     );
+  }
 
+  activate() {
     // Start the client. This will also launch the server
     this.client.start();
     this.client.onReady().then(() => {

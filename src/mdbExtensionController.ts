@@ -74,6 +74,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._connectionController.loadSavedConnections();
     this._explorerController.createTreeView();
     this._telemetryController.activate();
+    this._languageServerController.activate();
 
     log.info('Registering commands...');
 
