@@ -62,7 +62,7 @@ export default class LanguageServerController {
       }
     };
 
-    log.info('Activating MongoDB language server', {
+    log.info('Creating MongoDB Language Server', {
       serverOptions,
       clientOptions
     });
@@ -74,10 +74,11 @@ export default class LanguageServerController {
       serverOptions,
       clientOptions
     );
+  }
 
+  activate() {
     // Start the client. This will also launch the server
     this.client.start();
-
     this.client.onReady().then(() => {
       /**
        * TODO: Notification is for setup docs only.

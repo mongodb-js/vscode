@@ -19,9 +19,6 @@ const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
 
-let doc: vscode.TextDocument;
-let editor: vscode.TextEditor;
-
 const getDocUri = (docName: string) => {
   const docPath = path.resolve(__dirname, '../../../../src/test/fixture', docName);
 
@@ -33,8 +30,9 @@ const getDocUri = (docName: string) => {
  */
 export async function openPlayground(docUri: vscode.Uri) {
   try {
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    const doc = await vscode.workspace.openTextDocument(docUri);
+
+    await vscode.window.showTextDocument(doc);
   } catch (e) {
     console.error(e);
   }
@@ -57,6 +55,8 @@ suite('Playground Controller Test Suite', () => {
       const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
       const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
 
+      testLanguageServerController.activate();
+
       expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'Please connect to a database before running a playground.');
     });
   });
@@ -68,6 +68,7 @@ suite('Playground Controller Test Suite', () => {
     );
     const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
 
+    testLanguageServerController.activate();
     testConnectionController.getActiveConnectionDriverUrl = () => 'mongodb://localhost:27018';
 
     const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
@@ -133,6 +134,8 @@ suite('Playground Controller Test Suite', () => {
       mockStorageController
     );
     const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
+
+    testLanguageServerController.activate();
     testConnectionController.getActiveConnectionName = () => 'fakeName';
     testConnectionController.getActiveConnectionDriverUrl = () => 'mongodb://localhost:27018';
 
