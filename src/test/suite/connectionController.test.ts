@@ -229,10 +229,9 @@ suite('Connection Controller Test Suite', () => {
               assert(false, 'Expected rejected promise, not resolved.');
             },
             (error) => {
-              const expectedError =
-                'Failed to connect: getaddrinfo ENOTFOUND shouldfail';
+              const expectedError = 'Failed to connect: getaddrinfo';
               assert(
-                error.message === expectedError,
+                error.message.include(expectedError),
                 `Expected error with message: ${expectedError}, got: ${error.message}`
               );
               assert(
