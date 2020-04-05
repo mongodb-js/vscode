@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 const path = require('path');
 
-function getConnectWebviewContent(jsAppFileUrl: vscode.Uri): string {
+export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -14,10 +14,20 @@ function getConnectWebviewContent(jsAppFileUrl: vscode.Uri): string {
       <script src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
-}
+};
+
+export const getReactAppUri = (extensionPath: string): vscode.Uri => {
+  const jsAppFilePath = vscode.Uri.file(
+    path.join(extensionPath, 'out', 'connect-form', 'connectForm.js')
+  );
+  return jsAppFilePath.with({ scheme: 'vscode-resource' });
+};
 
 export default class ConnectFormView {
-  showConnectForm(context: vscode.ExtensionContext): Promise<boolean> {
+  showConnectForm(
+    context: vscode.ExtensionContext,
+    connect: (connectionString: string) => Promise<boolean>
+  ): Promise<boolean> {
     const extensionPath = context.extensionPath;
 
     // Create and show a new connect dialogue webview.
@@ -28,17 +38,46 @@ export default class ConnectFormView {
       {
         enableScripts: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'connect-form'))
+          vscode.Uri.file(path.join(extensionPath, 'out', 'connect-form'))
         ]
       }
     );
 
-    const jsAppFilePath = vscode.Uri.file(
-      path.join(extensionPath, 'connect-form', 'connectForm.js')
-    );
-    const reactAppUri = jsAppFilePath.with({ scheme: 'vscode-resource' });
-
+    const reactAppUri = getReactAppUri(extensionPath);
     panel.webview.html = getConnectWebviewContent(reactAppUri);
+
+    // Handle messages from the webview.
+    panel.webview.onDidReceiveMessage(
+      (message) => {
+        switch (message.command) {
+          case 'connect':
+            connect(message.driverUrl).then(
+              (connectionSuccess) => {
+                panel.webview.postMessage({
+                  command: 'connectResult',
+                  connectionSuccess,
+                  connectionMessage: connectionSuccess
+                    ? 'Connected.'
+                    : 'Unable to connect.'
+                });
+              },
+              (err: Error) => {
+                panel.webview.postMessage({
+                  command: 'connectResult',
+                  connectionSuccess: false,
+                  connectionMessage: err.message
+                });
+              }
+            );
+            return;
+          default:
+            // no-op.
+            return;
+        }
+      },
+      undefined,
+      context.subscriptions
+    );
 
     return Promise.resolve(true);
   }

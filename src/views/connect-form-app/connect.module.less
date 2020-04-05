@@ -1,0 +1,319 @@
+@pw: #21313c;
+@alertRed: #cf4a22;
+@warningText: #ffdd49;
+@green: #13aa52;
+@gray: #5d6c74;
+
+.page {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex: 1;
+}
+
+.panel {
+  border: 1px solid transparent;
+}
+
+form {
+  display: block;
+  margin-top: 0em;
+  padding: 15px 0;
+
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+}
+
+label {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.connect {
+  &-is-connected {
+    border: 2px solid green;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+
+    &:horizontal {
+      height: 10px;
+    }
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: none;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.16);
+    }
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.25);
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+  }
+
+  .connection-message-container {
+    width: 100%;
+    padding: 0px;
+    margin-top: 5px;
+    color: @pw;
+    font-size: small;
+    font-weight: bold;
+
+    &-error {
+      background: @alertRed;
+      padding: 4px 10px;
+      border-radius: 3px;
+      background: #fcebe2;
+      border: 1px solid #f9d3c5;
+      word-break: break-all;
+      color: #8f221b;
+      font-size: small;
+      font-weight: bold;
+    }
+
+    &-syntax-error {
+      background: @warningText;
+      padding: 4px 10px;
+      border-radius: 3px;
+      background: #fef7e3;
+      border: 1px solid #fef2c8;
+      word-break: break-all;
+      color: #86681d;
+      font-size: small;
+      font-weight: bold;
+    }
+
+    &-success {
+      background: @green;
+      padding: 4px 10px;
+      border-radius: 3px;
+    }
+  }
+
+  .error {
+    background-color: #ffeaea;
+    border-bottom: 3px solid #ed271c;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 72px;
+    width: 100%;
+
+    p {
+      margin: 26px auto;
+      width: 70%;
+      color: #ed271c;
+      text-align: center;
+      font-weight: bold;
+    }
+  }
+
+  .success {
+    background-color: #90ee90;
+    border-bottom: 3px solid #008000;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 72px;
+    width: 100%;
+
+    p {
+      margin: 26px auto;
+      width: 70%;
+      color: #008000;
+      text-align: center;
+      font-weight: bold;
+    }
+  }
+
+  .connect-form {
+    margin: 10px;
+    width: 320px;
+    text-align: left;
+
+    .fields {
+      display: block;
+    }
+
+    .form-group {
+      display: block;
+
+      .form-item {
+        margin: 15px auto 15px;
+        width: 100%;
+
+        .form-toggle {
+          margin-top: 5px;
+
+          div {
+            border: none;
+            background-color: var(--vscode-input-background);
+          }
+        }
+
+        &-has-error {
+          .form-control {
+            border: 1px solid red;
+
+            &:focus {
+              border: 1px solid red;
+            }
+          }
+
+          label {
+            color: red;
+
+            i {
+              margin-right: 5px;
+            }
+          }
+
+          .form-item-file-button {
+            border: 1px solid red;
+          }
+        }
+
+        label {
+          .help-icon {
+            display: inline-block;
+            font-size: inherit;
+            text-rendering: auto;
+            margin: 0 0 0 5px;
+            cursor: pointer;
+            color: #bfbfbe;
+
+            :hover {
+              color: #fbb129;
+            }
+          }
+        }
+
+        &-file-button {
+          width: 100%;
+
+          i {
+            display: inline-block;
+            font: normal normal normal 14px/1 FontAwesome;
+            font-size: inherit;
+            text-rendering: auto;
+            margin: 0 5px;
+            cursor: pointer;
+            color: #bfbfbe;
+          }
+
+          i.help {
+            display: inline-block;
+            font: normal normal normal 14px/1 FontAwesome;
+            font-size: inherit;
+            text-rendering: auto;
+            margin: 0 0 0 5px;
+            cursor: pointer;
+            color: #bfbfbe;
+
+            :hover {
+              color: #fbb129;
+            }
+          }
+        }
+      }
+    }
+
+    .form-group-separator {
+      margin-bottom: 20px;
+    }
+  }
+
+  .buttons {
+    margin: 0;
+    margin-top: 20px;
+  }
+
+  .form-control {
+    display: block;
+    padding: 6px 10px;
+    font-size: 14px;
+    height: 32px;
+    line-height: 32px;
+    color: var(--vscode-input-foreground);
+    background-color: var(--vscode-input-background);
+    background-image: none;
+    border: 1px solid var(--vscode-searchEditor-textInputBorder, transparent);
+    width: 100%;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+
+    &:focus {
+      border: 1px solid var(--vscode-focusBorder);
+    }
+  }
+
+  .file-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+  }
+
+  .help-panel {
+    width: 240px;
+    margin: 30px;
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+
+    .help-container {
+      border: 1px solid var(--vscode-debugToolBar-border, @gray);
+      display: inline-block;
+      height: auto;
+      padding: 20px;
+
+      .help-section {
+        margin: 0;
+        margin-bottom: 10px;
+        padding: 0;
+      }
+
+      .help-link {
+        color: @green;
+        margin-left: 3px;
+
+        &:visited {
+          color: @green;
+        }
+      }
+    }
+  }
+
+  .btn {
+    background-color: rgb(0, 120, 41);
+    color: white;
+    padding: 10px 20px;
+    margin: 6px;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+
+    transition: 200ms all;
+
+    &:hover {
+      box-shadow: 0 3px 6px 0 rgba(60, 66, 87, 0.1),
+        0 2px 4px 0 rgba(0, 0, 0, 0.07);
+    }
+
+    &-sm {
+      padding: 6px 10px;
+      margin: 0;
+    }
+  }
+}

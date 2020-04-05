@@ -10,7 +10,7 @@ config({ path: resolve(__dirname, '../../.env') });
 const log = createLogger('analytics');
 
 export enum TelemetryEventTypes {
-  PLAYGROUND_CODE_EXECUTED = 'playground code executed',
+  PLAYGROUND_CODE_EXECUTED = 'playground code executed'
 }
 
 /**
@@ -25,7 +25,8 @@ export default class TelemetryController {
     this._segmentUserID = storageController.getUserID();
 
     try {
-      this._segmentKey = require('../../constants')?.segmentKey;
+      const segmentKeyFileLocation = '../../constants';
+      this._segmentKey = require(segmentKeyFileLocation)?.segmentKey;
     } catch (error) {
       this._segmentKey = process.env.SEGMENT_KEY;
       log.error('TELEMETRY file reading', error);
@@ -47,7 +48,7 @@ export default class TelemetryController {
         // The flushAt is a number of messages to enqueue before flushing.
         // For the development mode we want to flush every submitted message.
         // Otherwise, we use 20 that is the default libraries' value.
-        flushAt: (process.env.MODE === 'development') ? 1 : 20,
+        flushAt: process.env.MODE === 'development' ? 1 : 20,
         // The number of milliseconds to wait
         // before flushing the queue automatically.
         flushInterval: 10000 // 10 seconds is the default libraries' value.
@@ -67,23 +68,26 @@ export default class TelemetryController {
       .get('sendTelemetry');
 
     if (shouldSendTelemetry) {
-      this._segmentAnalytics?.track({
-        userId: this._segmentUserID,
-        event: eventType,
-        properties
-      }, (error) => {
-        if (error) {
-          log.error(error);
+      this._segmentAnalytics?.track(
+        {
+          userId: this._segmentUserID,
+          event: eventType,
+          properties
+        },
+        (error) => {
+          if (error) {
+            log.error(error);
+          }
+
+          const analytics = [
+            `The "${eventType}" metric was sent.`,
+            `The user: "${this._segmentUserID}."`,
+            `The props:`
+          ];
+
+          log.info(analytics.join(' '), properties);
         }
-
-        const analytics = [
-          `The "${eventType}" metric was sent.`,
-          `The user: "${this._segmentUserID}."`,
-          `The props:`
-        ];
-
-        log.info(analytics.join(' '), properties);
-      });
+      );
     }
   }
 }

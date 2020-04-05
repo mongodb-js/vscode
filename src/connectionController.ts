@@ -106,11 +106,11 @@ export default class ConnectionController {
   ): Promise<boolean> {
     log.info('mdb.connect command called.');
 
-    // Display a message box to the user.
-    vscode.window.showInformationMessage('mdb.connect command run.');
-
     const connectWebView = new ConnectFormView();
-    return connectWebView.showConnectForm(context);
+    return connectWebView.showConnectForm(
+      context,
+      this.addNewConnectionAndConnect
+    );
   }
 
   public async connectWithURI(): Promise<boolean> {
@@ -139,14 +139,19 @@ export default class ConnectionController {
       return Promise.resolve(false);
     }
 
-    return this.addNewConnectionAndConnect(connectionString);
+    return new Promise((resolve) => {
+      this.addNewConnectionAndConnect(connectionString).then(resolve, (err) => {
+        vscode.window.showErrorMessage(err.message);
+        resolve(false);
+      });
+    });
   }
 
   // Resolves true when the connection is successfully added.
   // The connection can fail to connect but be successfully added.
-  public addNewConnectionAndConnect(
+  public addNewConnectionAndConnect = (
     connectionString: string
-  ): Promise<boolean> {
+  ): Promise<boolean> => {
     log.info('Trying to connect to a new connection configuration');
 
     return new Promise<boolean>((resolve, reject) => {
@@ -154,10 +159,7 @@ export default class ConnectionController {
         connectionString,
         (error: Error | undefined, newConnectionModel: ConnectionModelType) => {
           if (error && !newConnectionModel) {
-            vscode.window.showErrorMessage(
-              `Unable to load connection: ${error}`
-            );
-            return resolve(false);
+            return reject(new Error(`Unable to load connection: ${error}`));
           }
 
           const { driverUrl, instanceId } = newConnectionModel.getAttributes({
@@ -177,8 +179,7 @@ export default class ConnectionController {
           this._storageController.storeNewConnection(newConnection);
 
           if (error) {
-            vscode.window.showErrorMessage(`Unable to connect: ${error}`);
-            return resolve(false);
+            return reject(new Error(`Unable to connect: ${error}`));
           }
 
           // Override the default connection `appname`.
@@ -197,7 +198,7 @@ export default class ConnectionController {
         }
       );
     });
-  }
+  };
 
   public async connect(
     connectionId: string,
@@ -211,13 +212,13 @@ export default class ConnectionController {
     );
 
     if (this._connecting) {
-      vscode.window.showErrorMessage('Unable to connect: already connecting.');
-      return Promise.resolve(false);
-    } else if (this._disconnecting) {
-      vscode.window.showErrorMessage(
-        'Unable to connect: currently disconnecting.'
+      return Promise.reject(
+        new Error('Unable to connect: already connecting.')
       );
-      return Promise.resolve(false);
+    } else if (this._disconnecting) {
+      return Promise.reject(
+        new Error('Unable to connect: currently disconnecting.')
+      );
     }
 
     if (this._activeDataService) {
@@ -231,7 +232,7 @@ export default class ConnectionController {
 
     this._statusView.showMessage('Connecting to MongoDB...');
 
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>((resolve, reject) => {
       const newDataService: DataServiceType = new DataService(connectionModel);
       newDataService.connect((err: Error | undefined) => {
         this._statusView.hideMessage();
@@ -240,8 +241,7 @@ export default class ConnectionController {
           this._connecting = false;
           log.info('Failed to connect');
           this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-          vscode.window.showErrorMessage(`Failed to connect: ${err.message}`);
-          return resolve(false);
+          return reject(new Error(`Failed to connect: ${err.message}`));
         }
 
         log.info('Successfully connected');
@@ -262,7 +262,7 @@ export default class ConnectionController {
 
   public async connectWithConnectionId(connectionId: string): Promise<boolean> {
     if (this._savedConnections[connectionId]) {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         Connection.from(
           this._savedConnections[connectionId].driverUrl,
           (error: Error | undefined, connectionModel: ConnectionModelType) => {
@@ -275,7 +275,10 @@ export default class ConnectionController {
 
             return this.connect(connectionId, connectionModel).then(
               resolve,
-              reject
+              (err: Error) => {
+                vscode.window.showErrorMessage(err.message);
+                return resolve(false);
+              }
             );
           }
         );
@@ -427,13 +430,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._savedConnections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
-      );
+      connectionIds.map(
+        (id, index) => `${index + 1}: ${this._savedConnections[id].name}`
+      ),
+      {
+        placeHolder: 'Choose a connection to remove...'
+      }
+    );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
