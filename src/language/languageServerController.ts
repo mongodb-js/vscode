@@ -28,11 +28,7 @@ export default class LanguageServerController {
     this._connectionController = connectionController;
 
     // The server is implemented in node
-    const serverModule = context.asAbsolutePath(
-      context.extensionPath === 'TEST_FOLDER'
-        ? path.join('..', '..', 'out', 'language', 'server.js')
-        : path.join('out', 'language', 'server.js')
-    );
+    const serverModule = path.join(context.extensionPath, 'out', 'language', 'server.js');
 
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
