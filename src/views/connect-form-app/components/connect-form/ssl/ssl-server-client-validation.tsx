@@ -13,13 +13,13 @@ import {
 } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 
-const styles = require('../connect.module.less');
+const styles = require('../../../connect.module.less');
 
 type stateProps = {
   isValid: boolean;
-  sslCA?: any;
-  sslCert?: any;
-  sslKey?: any;
+  sslCA?: string[];
+  sslCert?: string[];
+  sslKey?: string[];
   sslPass?: string;
 };
 
@@ -65,7 +65,7 @@ class SSLServerClientValidation extends React.Component<props> {
     this.props.sslPrivateKeyPasswordChanged(evt.target.value);
   };
 
-  render() {
+  render(): React.ReactNode {
     const { isValid, sslCA, sslCert, sslKey, sslPass } = this.props;
 
     return (

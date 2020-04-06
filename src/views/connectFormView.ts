@@ -4,14 +4,15 @@ const path = require('path');
 import {
   MESSAGE_TYPES,
   ConnectMessage,
-  FilePickerMessage
+  OpenFilePickerMessage
 } from './connect-form-app/extension-app-message-constants';
 
 const openFileOptions = {
-  canSelectMany: false,
+  canSelectFiles: true,
+  canSelectFolders: false,
+  canSelectMany: false, // Can be overridden.
   openLabel: 'Open',
   filters: {
-    'Text files': ['txt'],
     'All files': ['*']
   }
 };
@@ -36,6 +37,55 @@ export const getReactAppUri = (extensionPath: string): vscode.Uri => {
     path.join(extensionPath, 'out', 'connect-form', 'connectForm.js')
   );
   return jsAppFilePath.with({ scheme: 'vscode-resource' });
+};
+
+const handleWebviewMessage = (
+  message: ConnectMessage | OpenFilePickerMessage,
+  panel: vscode.WebviewPanel,
+  connect: (connectionString: string) => Promise<boolean>
+): void => {
+  switch (message.command) {
+    case MESSAGE_TYPES.CONNECT:
+      connect(message.driverUrl).then(
+        (connectionSuccess) => {
+          panel.webview.postMessage({
+            command: MESSAGE_TYPES.CONNECT_RESULT,
+            connectionSuccess,
+            connectionMessage: connectionSuccess
+              ? 'Connected.'
+              : 'Unable to connect.'
+          });
+        },
+        (err: Error) => {
+          panel.webview.postMessage({
+            command: MESSAGE_TYPES.CONNECT_RESULT,
+            connectionSuccess: false,
+            connectionMessage: err.message
+          });
+        }
+      );
+      return;
+    case MESSAGE_TYPES.OPEN_FILE_PICKER:
+      vscode.window
+        .showOpenDialog({
+          ...openFileOptions,
+          canSelectMany: message.multi
+        })
+        .then((files) => {
+          panel.webview.postMessage({
+            command: MESSAGE_TYPES.FILE_PICKER_RESULTS,
+            action: message.action,
+            files:
+              files && files.length > 0
+                ? files.map((file) => file.path)
+                : undefined
+          });
+        });
+      return;
+    default:
+      // no-op.
+      return;
+  }
 };
 
 export default class ConnectFormView {
@@ -63,47 +113,8 @@ export default class ConnectFormView {
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
-      (message: ConnectMessage | FilePickerMessage) => {
-        switch (message.command) {
-          case MESSAGE_TYPES.CONNECT:
-            connect(message.driverUrl).then(
-              (connectionSuccess) => {
-                panel.webview.postMessage({
-                  command: MESSAGE_TYPES.CONNECT_RESULT,
-                  connectionSuccess,
-                  connectionMessage: connectionSuccess
-                    ? 'Connected.'
-                    : 'Unable to connect.'
-                });
-              },
-              (err: Error) => {
-                panel.webview.postMessage({
-                  command: MESSAGE_TYPES.CONNECT_RESULT,
-                  connectionSuccess: false,
-                  connectionMessage: err.message
-                });
-              }
-            );
-            return;
-          case MESSAGE_TYPES.OPEN_FILE_PICKER:
-            vscode.window
-              .showOpenDialog({
-                ...openFileOptions,
-                canSelectMany: message.multi
-              })
-              .then((files) => {
-                panel.webview.postMessage({
-                  command: MESSAGE_TYPES.FILE_PICKER_RESULTS,
-                  action: message.action,
-                  files
-                });
-              });
-            return;
-          default:
-            // no-op.
-            return;
-        }
-      },
+      (message: ConnectMessage | OpenFilePickerMessage) =>
+        handleWebviewMessage(message, panel, connect),
       undefined,
       context.subscriptions
     );

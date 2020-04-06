@@ -1,4 +1,4 @@
-import { Actions, ActionTypes, FilePickingAction } from './actions';
+import { Actions, ActionTypes, FilePickerActionTypes } from './actions';
 
 import ConnectionModel, {
   validateConnectionModel,
@@ -54,7 +54,10 @@ export const initialState = {
   savedMessage: ''
 };
 
-const showFilePicker = (action: FilePickingAction, multi: boolean): void => {
+const showFilePicker = (
+  action: FilePickerActionTypes,
+  multi: boolean
+): void => {
   vscode.postMessage({
     command: MESSAGE_TYPES.OPEN_FILE_PICKER,
     action,
@@ -210,6 +213,28 @@ export const rootReducer = (
         }
       };
 
+    case ActionTypes.ON_CHANGE_SSL_CERT:
+      showFilePicker(ActionTypes.SSL_CERT_CHANGED, true);
+
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslCert: undefined
+        }
+      };
+
+    case ActionTypes.ON_CHANGE_SSL_KEY:
+      showFilePicker(ActionTypes.SSL_KEY_CHANGED, true);
+
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslKey: undefined
+        }
+      };
+
     case ActionTypes.PASSWORD_CHANGED:
       return {
         ...state,
@@ -247,12 +272,44 @@ export const rootReducer = (
         }
       };
 
+    case ActionTypes.SSL_CA_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslCA: action.files
+        }
+      };
+
+    case ActionTypes.SSL_CERT_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslCert: action.files
+        }
+      };
+
+    case ActionTypes.SSL_KEY_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslKey: action.files
+        }
+      };
+
     case ActionTypes.SSL_METHOD_CHANGED:
       return {
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sslMethod: action.sslMethod
+          sslMethod: action.sslMethod,
+          // Reset the ssl fields:
+          sslCA: undefined,
+          sslCert: undefined,
+          sslKey: undefined,
+          sslPass: undefined
         }
       };
 

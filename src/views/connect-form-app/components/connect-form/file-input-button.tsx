@@ -1,13 +1,9 @@
 import * as React from 'react';
 import classnames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faFileUpload } from '@fortawesome/free-solid-svg-icons';
 
 const styles = require('../../connect.module.less');
-
-// const OPEN = 'openFile';
-// const HIDDEN = 'showHiddenFiles';
-// const MULTI = 'multiSelections';
 
 type props = {
   error: boolean;
@@ -16,7 +12,7 @@ type props = {
   link?: string;
   multi?: boolean;
   onClick: () => void;
-  values: null | string[] | Buffer[];
+  values?: string[];
 };
 
 class FileInputButton extends React.Component<props> {
@@ -32,22 +28,6 @@ class FileInputButton extends React.Component<props> {
     evt.stopPropagation();
 
     this.props.onClick();
-
-    // const properties = [OPEN, HIDDEN];
-
-    // if (this.props.multi) {
-    //   properties.push(MULTI);
-    // }
-
-    // const options = { properties };
-
-    // eslint-disable-next-line no-undef
-    window.alert('Show file picker.');
-
-    // dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), options, (values) => {
-    //   this.props.changeHandler(values);
-    //   this.setState({ values });
-    // });
   };
 
   /**
@@ -69,9 +49,9 @@ class FileInputButton extends React.Component<props> {
    * @returns {String}
    */
   getFileNames(): string {
-    // const baseFiles = this.state.values.map((file) => path.basename(file));
+    const fileNames = this.props.values || [];
 
-    return ''; // baseFiles.join(', ');
+    return fileNames.join(', ');
   }
 
   /**
@@ -96,8 +76,10 @@ class FileInputButton extends React.Component<props> {
     const { id, label } = this.props;
 
     const buttonClassName = `${classnames(
+      styles.btn,
+      styles['btn-sm'],
       styles['form-item-file-button']
-    )} btn btn-sm btn-default`;
+    )}`;
 
     return (
       <div
@@ -111,7 +93,10 @@ class FileInputButton extends React.Component<props> {
           {this.renderInfoSprinkle()}
         </label>
         <button id={id} className={buttonClassName} onClick={this.onClick}>
-          <i className="fa fa-upload" aria-hidden />
+          <FontAwesomeIcon
+            icon={faFileUpload}
+            className={styles['file-icon']}
+          />
           {this.getButtonText()}
         </button>
       </div>
