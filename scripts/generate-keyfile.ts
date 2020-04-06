@@ -25,5 +25,5 @@ config({ path: resolve(__dirname, '../.env') });
   }
 })().catch((error) => {
   ui.fail('Failed to generate constants keyfile');
-  console.log(error);
+  console.log(error.message);
 })

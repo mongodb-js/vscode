@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 
 import ConnectionController, { DataServiceEventTypes } from '../connectionController';
+import { LanguageServerController } from '../language';
 import TelemetryController, { TelemetryEventTypes } from '../telemetry/telemetryController';
-import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
-import { CompassServiceProvider } from '@mongosh/service-provider-server';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import formatOutput from '../utils/formatOutput';
 import { OutputChannel } from 'vscode';
@@ -14,16 +13,23 @@ import playgroundTemplate from '../templates/playgroundTemplate';
  */
 export default class PlaygroundController {
   _context: vscode.ExtensionContext;
-  _telemetryController?: TelemetryController;
   _connectionController: ConnectionController;
+  _languageServerController: LanguageServerController;
+  _telemetryController?: TelemetryController;
   _activeDB?: any;
   _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
   _outputChannel: OutputChannel;
 
-  constructor(context: vscode.ExtensionContext, connectionController: ConnectionController, telemetryController?: TelemetryController) {
+  constructor(
+    context: vscode.ExtensionContext,
+    connectionController: ConnectionController,
+    languageServerController: LanguageServerController,
+    telemetryController?: TelemetryController
+  ) {
     this._context = context;
-    this._telemetryController = telemetryController;
     this._connectionController = connectionController;
+    this._languageServerController = languageServerController;
+    this._telemetryController = telemetryController;
     this._outputChannel = vscode.window.createOutputChannel(
       'Playground output'
     );
@@ -97,19 +103,16 @@ export default class PlaygroundController {
   }
 
   async evaluate(codeToEvaluate: string): Promise<any> {
-    const activeConnection = this._connectionController.getActiveDataService();
+    const activeConnectionString = this._connectionController.getActiveConnectionDriverUrl();
 
-    if (!activeConnection) {
+    if (!activeConnectionString) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
       );
     }
 
-    const serviceProvider = CompassServiceProvider.fromDataService(
-      activeConnection
-    );
-    const runtime = new ElectronRuntime(serviceProvider);
-    const res = await runtime.evaluate(codeToEvaluate);
+    // Run playground as a background process using the Language Server
+    const res = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
 
     if (res) {
       this._telemetryController?.track(
