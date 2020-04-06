@@ -29,7 +29,7 @@ class HelpPanel extends React.PureComponent {
                 className={classnames(styles.btn, styles['btn-sm'])}
                 target="_blank"
                 rel="noopener"
-                href="https://www.mongodb.com/cloud/atlas/lp/general/try?utm_source=vscode_extension&utm_medium=product"
+                href="https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension"
               >
                 Create Free Cluster
               </a>
