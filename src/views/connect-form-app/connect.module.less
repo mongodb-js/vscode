@@ -187,7 +187,7 @@ label {
             text-rendering: auto;
             margin: 0 0 0 5px;
             cursor: pointer;
-            color: #bfbfbe;
+            color: rgba(255, 255, 255, 0.5);
 
             :hover {
               color: #fbb129;
@@ -197,25 +197,25 @@ label {
 
         &-file-button {
           width: 100%;
+          background: var(--vscode-input-background, transparent);
+          border: 1px solid rgba(255, 255, 255, 0.7);
+          border-radius: 3px;
 
-          i {
+          .file-icon {
             display: inline-block;
-            font: normal normal normal 14px/1 FontAwesome;
             font-size: inherit;
             text-rendering: auto;
-            margin: 0 5px;
-            cursor: pointer;
-            color: #bfbfbe;
+            margin: 0 5px 0 0;
+            color: rgba(170, 170, 170, 0.75);
           }
 
           i.help {
             display: inline-block;
-            font: normal normal normal 14px/1 FontAwesome;
             font-size: inherit;
             text-rendering: auto;
             margin: 0 0 0 5px;
             cursor: pointer;
-            color: #bfbfbe;
+            color: rgba(255, 255, 255, 0.5);
 
             :hover {
               color: #fbb129;
@@ -305,6 +305,7 @@ label {
     border: none;
 
     transition: 200ms all;
+    font-size: 0.9em;
 
     &:hover {
       box-shadow: 0 3px 6px 0 rgba(60, 66, 87, 0.1),

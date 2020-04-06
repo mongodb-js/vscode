@@ -54,17 +54,17 @@ class ConnectionModel {
    * Array of valid certificates either as Buffers or Strings
    * (needs to have a mongod server with ssl support, 2.4 or higher).
    */
-  sslCA?: any;
+  sslCA?: string[];
   /**
    * String or buffer containing the certificate we wish to present
    * (needs to have a mongod server with ssl support, 2.4 or higher).
    */
-  sslCert?: any;
+  sslCert?: string[];
   /**
    * String or buffer containing the certificate private key we wish to present
    * (needs to have a mongod server with ssl support, 2.4 or higher).
    */
-  sslKey?: any;
+  sslKey?: string[];
   /**
    * String or buffer containing the certificate password
    * (needs to have a mongod server with ssl support, 2.4 or higher).

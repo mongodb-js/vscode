@@ -29,7 +29,7 @@ export enum ActionTypes {
   X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED'
 }
 
-export type FilePickingAction =
+export type FilePickerActionTypes =
   | ActionTypes.SSL_CA_CHANGED
   | ActionTypes.SSL_CERT_CHANGED
   | ActionTypes.SSL_KEY_CHANGED;
@@ -131,6 +131,21 @@ export interface ReplicaSetChangedAction extends BaseAction {
   replicaSet: string;
 }
 
+export interface SSLCAChangedAction extends BaseAction {
+  type: ActionTypes.SSL_CA_CHANGED;
+  files: string[] | undefined;
+}
+
+export interface SSLCertChangedAction extends BaseAction {
+  type: ActionTypes.SSL_CERT_CHANGED;
+  files: string[] | undefined;
+}
+
+export interface SSLKeyChangedAction extends BaseAction {
+  type: ActionTypes.SSL_KEY_CHANGED;
+  files: string[] | undefined;
+}
+
 export interface SSLMethodChangedAction extends BaseAction {
   type: ActionTypes.SSL_METHOD_CHANGED;
   sslMethod: SSL_METHODS;
@@ -151,6 +166,11 @@ export interface X509UsernameChangedAction extends BaseAction {
   x509Username: string;
 }
 
+export type FilePickerActions =
+  | SSLCAChangedAction
+  | SSLCertChangedAction
+  | SSLKeyChangedAction;
+
 export type Actions =
   | AuthSourceChangedAction
   | AuthStrategyChangedAction
@@ -163,10 +183,15 @@ export type Actions =
   | LDAPPasswordChangedAction
   | LDAPUsernameChangedAction
   | OnChangeSSLCAAction
+  | OnChangeSSLCertAction
+  | OnChangeSSLKeyAction
   | PasswordChangedAction
   | PortChangedAction
   | ReadPreferenceChangedAction
   | ReplicaSetChangedAction
+  | SSLCAChangedAction
+  | SSLCertChangedAction
+  | SSLKeyChangedAction
   | SSLMethodChangedAction
   | SSLPassChangedAction
   | UsernameChangedAction

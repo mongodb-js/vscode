@@ -6,11 +6,11 @@ import FileInputButton from '../file-input-button';
 import { ActionTypes, OnChangeSSLCAAction } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 
-const styles = require('../connect.module.less');
+const styles = require('../../../connect.module.less');
 
 type stateProps = {
   isValid: boolean;
-  sslCA?: any;
+  sslCA?: string[];
 };
 
 type dispatchProps = {
