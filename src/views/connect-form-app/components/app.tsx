@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import ConnectionForm from './connect-form/connection-form';
 import HelpPanel from './help-panel/help-panel';
 import { ActionTypes, ConnectionEventOccuredAction } from '../store/actions';
+import { MESSAGE_TYPES } from '../extension-app-message-constants';
 
 const styles = require('../connect.module.less');
 
@@ -24,7 +25,7 @@ class App extends React.Component<props> {
         default:
           // No-op.
           return;
-        case 'connectResult':
+        case MESSAGE_TYPES.CONNECT_RESULT:
           this.props.onConnectedEvent(
             message.connectionSuccess,
             message.connectionMessage

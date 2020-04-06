@@ -1,6 +1,21 @@
 import * as vscode from 'vscode';
 const path = require('path');
 
+import {
+  MESSAGE_TYPES,
+  ConnectMessage,
+  FilePickerMessage
+} from './connect-form-app/extension-app-message-constants';
+
+const openFileOptions = {
+  canSelectMany: false,
+  openLabel: 'Open',
+  filters: {
+    'Text files': ['txt'],
+    'All files': ['*']
+  }
+};
+
 export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
   return `<!DOCTYPE html>
   <html lang="en">
@@ -48,13 +63,13 @@ export default class ConnectFormView {
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
-      (message) => {
+      (message: ConnectMessage | FilePickerMessage) => {
         switch (message.command) {
-          case 'connect':
+          case MESSAGE_TYPES.CONNECT:
             connect(message.driverUrl).then(
               (connectionSuccess) => {
                 panel.webview.postMessage({
-                  command: 'connectResult',
+                  command: MESSAGE_TYPES.CONNECT_RESULT,
                   connectionSuccess,
                   connectionMessage: connectionSuccess
                     ? 'Connected.'
@@ -63,12 +78,26 @@ export default class ConnectFormView {
               },
               (err: Error) => {
                 panel.webview.postMessage({
-                  command: 'connectResult',
+                  command: MESSAGE_TYPES.CONNECT_RESULT,
                   connectionSuccess: false,
                   connectionMessage: err.message
                 });
               }
             );
+            return;
+          case MESSAGE_TYPES.OPEN_FILE_PICKER:
+            vscode.window
+              .showOpenDialog({
+                ...openFileOptions,
+                canSelectMany: message.multi
+              })
+              .then((files) => {
+                panel.webview.postMessage({
+                  command: MESSAGE_TYPES.FILE_PICKER_RESULTS,
+                  action: message.action,
+                  files
+                });
+              });
             return;
           default:
             // no-op.
