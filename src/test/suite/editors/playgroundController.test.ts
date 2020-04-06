@@ -28,7 +28,7 @@ const getDocUri = (docName: string) => {
 /**
  * Opens the MongoDB playground
  */
-export async function openPlayground(docUri: vscode.Uri) {
+async function openPlayground(docUri: vscode.Uri) {
   try {
     const doc = await vscode.workspace.openTextDocument(docUri);
 

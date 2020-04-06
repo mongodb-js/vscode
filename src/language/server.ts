@@ -278,16 +278,12 @@ connection.onCompletionResolve(
  * Execute the entire playground script.
  */
 connection.onRequest('executeAll', async (params) => {
-  try {
-    const connectionOptions = params.connectionOptions || {};
-    const runtime = new ElectronRuntime(
-      await CliServiceProvider.connect(params.connectionString, connectionOptions)
-    );
+  const connectionOptions = params.connectionOptions || {};
+  const runtime = new ElectronRuntime(
+    await CliServiceProvider.connect(params.connectionString, connectionOptions)
+  );
 
-    return await runtime.evaluate(params.codeToEvaluate);
-  } catch (error) {
-    throw new Error('Unable to connect to MongoDB instance. Make sure it is started correctly.');
-  }
+  return await runtime.evaluate(params.codeToEvaluate);
 });
 
 /**
