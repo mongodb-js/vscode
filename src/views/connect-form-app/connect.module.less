@@ -198,8 +198,10 @@ label {
         &-file-button {
           width: 100%;
           background: var(--vscode-input-background, transparent);
-          border: 1px solid rgba(255, 255, 255, 0.7);
+          border: 1px solid
+            var(--vscode-searchEditor-textInputBorder, rgba(161, 59, 59, 0.5));
           border-radius: 3px;
+          color: var(--vscode-editor-foreground);
 
           .file-icon {
             display: inline-block;
