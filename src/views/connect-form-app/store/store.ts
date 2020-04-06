@@ -1,10 +1,11 @@
-import { Actions, ActionTypes } from './actions';
+import { Actions, ActionTypes, FilePickingAction } from './actions';
 
 import ConnectionModel, {
   validateConnectionModel,
   getDriverUrlFromConnectionModel
 } from '../connection-model/connection-model';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
+import { MESSAGE_TYPES } from '../extension-app-message-constants';
 
 const vscode = acquireVsCodeApi();
 
@@ -51,6 +52,14 @@ export const initialState = {
   isHostChanged: false,
   isPortChanged: false,
   savedMessage: ''
+};
+
+const showFilePicker = (action: FilePickingAction, multi: boolean): void => {
+  vscode.postMessage({
+    command: MESSAGE_TYPES.OPEN_FILE_PICKER,
+    action,
+    multi
+  });
 };
 
 // eslint-disable-next-line complexity
@@ -106,7 +115,7 @@ export const rootReducer = (
       }
 
       vscode.postMessage({
-        command: 'connect',
+        command: MESSAGE_TYPES.CONNECT,
         driverUrl: getDriverUrlFromConnectionModel(state.currentConnection)
       });
 
@@ -190,6 +199,17 @@ export const rootReducer = (
         }
       };
 
+    case ActionTypes.ON_CHANGE_SSL_CA:
+      showFilePicker(ActionTypes.SSL_CA_CHANGED, true);
+
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslCA: undefined
+        }
+      };
+
     case ActionTypes.PASSWORD_CHANGED:
       return {
         ...state,
@@ -224,6 +244,24 @@ export const rootReducer = (
         currentConnection: {
           ...state.currentConnection,
           replicaSet: action.replicaSet
+        }
+      };
+
+    case ActionTypes.SSL_METHOD_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslMethod: action.sslMethod
+        }
+      };
+
+    case ActionTypes.SSL_PASS_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslPass: action.sslPass
         }
       };
 

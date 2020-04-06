@@ -45,7 +45,7 @@ export const SSLMethodOptions: SSLMethod[] = [
     title: 'Server Validation'
   },
   {
-    id: SSL_METHODS.SERVER,
+    id: SSL_METHODS.ALL,
     title: 'Server and Client Validation'
   },
   {

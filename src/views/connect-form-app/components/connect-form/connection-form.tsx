@@ -10,7 +10,7 @@ import SRVInput from './host/srv-input';
 import Authentication from './authentication/authentication';
 import ReplicaSetInput from './replica-set-input';
 import ReadPreferenceSelect from './read-preference-select';
-// import SSLMethod from './ssl/ssl-method';
+import SSLMethod from './ssl/ssl-method';
 // import SSHTunnel from './ssh/ssh-tunnel';
 import FormActions from './form-actions';
 import ConnectionModel from '../../connection-model/connection-model';
@@ -103,8 +103,8 @@ class ConnectionForm extends React.Component<props> {
     const {
       readPreference,
       replicaSet,
-      sshTunnel
-      // sslMethod
+      sshTunnel,
+      sslMethod
     } = currentConnection;
 
     return (
@@ -113,9 +113,8 @@ class ConnectionForm extends React.Component<props> {
           <ReplicaSetInput sshTunnel={sshTunnel} replicaSet={replicaSet} />
           <ReadPreferenceSelect readPreference={readPreference} />
         </FormGroup>
-        {/* <SSLMethod
-          sslMethod={sslMethod}
-        />
+        <SSLMethod sslMethod={sslMethod} />
+        {/*
         <SSHTunnel
           sshTunnel={sshTunnel}
         /> */}
