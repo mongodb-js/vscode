@@ -6,7 +6,8 @@ import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
-  TransportKind
+  TransportKind,
+  CancellationTokenSource
 } from 'vscode-languageclient';
 
 import ConnectionController from '../connectionController';
@@ -19,10 +20,11 @@ const log = createLogger('LanguageServerController');
  */
 export default class LanguageServerController {
   _connectionController?: ConnectionController;
+  _source?: CancellationTokenSource;
   client: LanguageClient;
 
   constructor(
-    context: vscode.ExtensionContext,
+    context: ExtensionContext,
     connectionController?: ConnectionController
   ) {
     this._connectionController = connectionController;
@@ -90,8 +92,19 @@ export default class LanguageServerController {
   }
 
   executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Thenable<any> | undefined {
-    return this.client.onReady().then(() => {
-      return this.client.sendRequest('executeAll', { codeToEvaluate, connectionString, connectionOptions });
+    return this.client.onReady().then(async () => {
+      // Get a new cancellation token for each run of a playground
+      this._source = new CancellationTokenSource();
+
+      return await this.client.sendRequest(
+        'executeAll',
+        { codeToEvaluate, connectionString, connectionOptions },
+        this._source.token
+      );;
     });
+  }
+
+  cancelAll() {
+    this._source?.cancel();
   }
 }

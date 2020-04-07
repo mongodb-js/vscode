@@ -5,7 +5,7 @@ import { LanguageServerController } from '../language';
 import TelemetryController, { TelemetryEventTypes } from '../telemetry/telemetryController';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import formatOutput from '../utils/formatOutput';
-import { OutputChannel } from 'vscode';
+import { OutputChannel, ProgressLocation } from 'vscode';
 import playgroundTemplate from '../templates/playgroundTemplate';
 
 /**
@@ -112,16 +112,18 @@ export default class PlaygroundController {
     }
 
     // Run playground as a background process using the Language Server
-    const res = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
+    let res = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
 
     if (res) {
       this._telemetryController?.track(
         TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED,
         this.prepareTelemetry(res)
       );
+
+      res = formatOutput(res)
     }
 
-    return Promise.resolve(formatOutput(res));
+    return Promise.resolve(res);
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
@@ -148,18 +150,39 @@ export default class PlaygroundController {
       const codeToEvaluate = activeEditor?.document.getText() || '';
       let result;
 
-      try {
-        result = await this.evaluate(codeToEvaluate);
-      } catch (error) {
-        vscode.window.showErrorMessage(`Unable to run playground: ${error.message}`);
-        return resolve(false);
-      }
+      // Show a running progress in the notification area with support for cancellation
+      vscode.window.withProgress({
+        location: ProgressLocation.Notification,
+        title: 'Running a playground...',
+        cancellable: true
+      }, async (progress, token) => {
+        token.onCancellationRequested(async () => {
+          // Cancel running a playground when clicked on the cancel button
+          this._languageServerController.cancelAll();
+          vscode.window.showInformationMessage('User canceled the long running operation');
+          return resolve(false);
+        });
 
-      this._outputChannel.clear();
-      this._outputChannel.appendLine(result);
-      this._outputChannel.show(true);
+        // TODO: Is there a way to show constant loading progress instead of incremental progress?
+        // Currently use magic numbers 0, 10, 70
+        progress.report({ increment: 0 });
 
-      resolve(true);
+        try {
+          progress.report({ increment: 10 });
+          result = await this.evaluate(codeToEvaluate);
+        } catch (error) {
+          vscode.window.showErrorMessage(`Unable to run playground: ${error.message}`);
+          return resolve(false);
+        }
+
+        progress.report({ increment: 70 });
+
+        this._outputChannel.clear();
+        this._outputChannel.appendLine(result);
+        this._outputChannel.show(true);
+
+        return resolve(true);
+      });
     });
   }
 

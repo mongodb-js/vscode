@@ -20,6 +20,10 @@ import { CliServiceProvider } from '@mongosh/service-provider-server';
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // Create a simple text document manager. The text document manager
 // supports full document sync only
 const documentsConfig = {
@@ -277,13 +281,25 @@ connection.onCompletionResolve(
 /**
  * Execute the entire playground script.
  */
-connection.onRequest('executeAll', async (params) => {
+connection.onRequest('executeAll', async (params, token) => {
+  token.onCancellationRequested(() => {
+    if (token.isCancellationRequested) {
+      connection.console.log('Printed 1');
+    }
+
+    connection.console.log('Printed 2');
+  });
+
   const connectionOptions = params.connectionOptions || {};
   const runtime = new ElectronRuntime(
     await CliServiceProvider.connect(params.connectionString, connectionOptions)
   );
+  let result;
 
-  return await runtime.evaluate(params.codeToEvaluate);
+  await sleep(10000); // Wait for server activation to be able to test cancelation
+  result = await runtime.evaluate(params.codeToEvaluate);
+
+  return result;
 });
 
 /**
