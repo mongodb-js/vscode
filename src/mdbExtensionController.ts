@@ -17,6 +17,7 @@ import DatabaseTreeItem from './explorer/databaseTreeItem';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
 import SchemaTreeItem from './explorer/schemaTreeItem';
 import DocumentTreeItem from './explorer/documentTreeItem';
+import WebviewController from './views/webviewController';
 
 const log = createLogger('commands');
 
@@ -32,6 +33,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _storageController: StorageController;
   _telemetryController: TelemetryController;
   _languageServerController: LanguageServerController;
+  _webviewController: WebviewController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -68,6 +70,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._languageServerController,
       this._telemetryController
     );
+    this._webviewController = new WebviewController(this._connectionController);
   }
 
   activate(): void {
@@ -81,7 +84,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
     this.registerCommand('mdb.connect', () =>
-      this._connectionController.addMongoDBConnection(this._context)
+      this._webviewController.showConnectForm(this._context)
     );
     this.registerCommand('mdb.connectWithURI', () =>
       this._connectionController.connectWithURI()
@@ -138,7 +141,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   registerTreeViewCommands(): void {
     this.registerCommand('mdb.addConnection', () =>
-      this._connectionController.addMongoDBConnection(this._context)
+      this._webviewController.showConnectForm(this._context)
     );
     this.registerCommand('mdb.addConnectionWithURI', () =>
       this._connectionController.connectWithURI()

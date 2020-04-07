@@ -10,7 +10,7 @@ interface BasicWebviewMessage {
 
 interface ConnectMessage extends BasicWebviewMessage {
   command: 'CONNECT';
-  driverUrl: string;
+  connectionModel: object;
 }
 
 interface FilePickerMessage {

@@ -8,7 +8,7 @@ const { name, version } = require('../package.json');
 import { ConnectionModelType } from './connectionModelType';
 import { DataServiceType } from './dataServiceType';
 import { createLogger } from './logging';
-import { StatusView, ConnectFormView } from './views';
+import { StatusView } from './views';
 import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { StorageScope, SavedConnection } from './storage/storageController';
@@ -107,18 +107,6 @@ export default class ConnectionController {
     }
   }
 
-  public addMongoDBConnection(
-    context: vscode.ExtensionContext
-  ): Promise<boolean> {
-    log.info('mdb.connect command called.');
-
-    const connectWebView = new ConnectFormView();
-    return connectWebView.showConnectForm(
-      context,
-      this.saveNewConnectionAndConnect
-    );
-  }
-
   public async connectWithURI(): Promise<boolean> {
     log.info('connectWithURI command called');
 
@@ -180,6 +168,23 @@ export default class ConnectionController {
     });
   };
 
+  public parseNewConnectionAndConnect = (
+    newConnectionModel
+  ): Promise<boolean> => {
+    // Here we re-parse the connection, as it can be loaded from storage or
+    // passed by the connection model without the class methods.
+    let connectionModel;
+
+    try {
+      connectionModel = new Connection(newConnectionModel);
+    } catch (error) {
+      vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
+      return Promise.resolve(false);
+    }
+
+    return this.saveNewConnectionAndConnect(connectionModel);
+  };
+
   public saveNewConnectionAndConnect = (
     connectionModel: ConnectionModelType
   ): Promise<boolean> => {
@@ -214,10 +219,10 @@ export default class ConnectionController {
     });
   };
 
-  public async connect(
+  public connect = async (
     connectionId: string,
     connectionModel: ConnectionModelType
-  ): Promise<boolean> {
+  ): Promise<boolean> => {
     log.info(
       'Connect called to connect to instance:',
       connectionModel.getAttributes({
@@ -272,53 +277,39 @@ export default class ConnectionController {
         return resolve(true);
       });
     });
-  }
+  };
 
-  public async connectWithConnectionId(connectionId: string): Promise<boolean> {
+  public connectWithConnectionId = (connectionId: string): Promise<boolean> => {
     if (this._savedConnections[connectionId]) {
       let connectionModel;
 
       try {
+        const savedConnectionModel = this._savedConnections[connectionId]
+          .connectionModel;
+        // Here we rebuild the connection model to ensure it's up to date and
+        // contains the connection model class methods (not just attributes).
         connectionModel = new Connection(
-          this._savedConnections[connectionId].connectionModel
+          savedConnectionModel.getAttributes
+            ? savedConnectionModel.getAttributes({ props: true })
+            : savedConnectionModel
         );
       } catch (error) {
         vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
         return Promise.resolve(false);
       }
       return new Promise((resolve) => {
-        return this.connect(connectionId, connectionModel).then(
+        this.connect(connectionId, connectionModel).then(
           resolve,
           (err: Error) => {
             vscode.window.showErrorMessage(err.message);
             return resolve(false);
           }
         );
-
-        // Connection.from(
-        //   this._savedConnections[connectionId].driverUrl,
-        //   (error: Error | undefined, connectionModel: ConnectionModelType) => {
-        //     if (error && !connectionModel) {
-        //       vscode.window.showErrorMessage(
-        //         `Unable to load connection: ${error}`
-        //       );
-        //       return resolve(false);
-        //     }
-
-        //     return this.connect(connectionId, connectionModel).then(
-        //       resolve,
-        //       (err: Error) => {
-        //         vscode.window.showErrorMessage(err.message);
-        //         return resolve(false);
-        //       }
-        //     );
-        //   }
-        // );
       });
     }
 
     return Promise.reject(new Error('Connection not found.'));
-  }
+  };
 
   public disconnect(): Promise<boolean> {
     log.info(

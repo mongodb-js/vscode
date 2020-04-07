@@ -1,4 +1,4 @@
-import ConnectFormView from './connectFormView';
+import WebviewController from './webviewController';
 import StatusView from './statusView';
 
-export { ConnectFormView, StatusView };
+export { WebviewController, StatusView };
