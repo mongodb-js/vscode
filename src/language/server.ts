@@ -284,9 +284,11 @@ connection.onCompletionResolve(
 connection.onRequest('executeAll', async (params, token) => {
   token.onCancellationRequested(() => {
     if (token.isCancellationRequested) {
+      // How to cancel request to node server? Here?
       connection.console.log('Printed 1');
     }
 
+    // How to cancel request to node server? Or Here?
     connection.console.log('Printed 2');
   });
 
