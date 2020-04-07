@@ -5,10 +5,10 @@ import * as sinon from 'sinon';
 const fs = require('fs');
 const path = require('path');
 
-import ConnectFormView, {
+import WebviewController, {
   getConnectWebviewContent,
   getReactAppUri
-} from '../../../views/connectFormView';
+} from '../../../views/webviewController';
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
@@ -29,23 +29,24 @@ suite('Connect Form View Test Suite', () => {
       onDidReceiveMessage: stubOnDidRecieveMessage
     };
 
-    const fakeVSCodeCreateWebViewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
     });
     sinon.replace(
       vscode.window,
       'createWebviewPanel',
-      fakeVSCodeCreateWebViewPanel
+      fakeVSCodeCreateWebviewPanel
     );
 
-    const testConnectFormView = new ConnectFormView();
-
-    testConnectFormView.showConnectForm(
-      mdbTestExtension.testExtensionContext,
-      () => Promise.resolve(true)
+    const testWebviewController = new WebviewController(
+      mdbTestExtension.testExtensionController._connectionController
     );
 
-    assert(fakeVSCodeCreateWebViewPanel.called);
+    testWebviewController.showConnectForm(
+      mdbTestExtension.testExtensionContext
+    );
+
+    assert(fakeVSCodeCreateWebviewPanel.called);
     assert(fakeWebview.html !== '');
     assert(stubOnDidRecieveMessage.called);
   });
@@ -75,4 +76,39 @@ suite('Connect Form View Test Suite', () => {
     );
     assert(`${jsFileString}`.includes('ConnectionForm'));
   });
+
+  // test('web view listens for a connect message and adds the connection', () => {
+  //   const stubOnDidRecieveMessage = sinon.stub();
+  //   const fakeWebview = {
+  //     html: '',
+  //     onDidReceiveMessage: stubOnDidRecieveMessage
+  //   };
+
+  //   const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+  //     webview: fakeWebview
+  //   });
+  //   sinon.replace(
+  //     vscode.window,
+  //     'createWebviewPanel',
+  //     fakeVSCodeCreateWebviewPanel
+  //   );
+
+  //   const testWebviewController = new WebviewController(mdbTestExtension.testExtensionController._connectionController);
+
+  //   const stubConnectMethod = sinon.stub();
+
+  //   testWebviewController.showConnectForm(
+  //     mdbTestExtension.testExtensionContext,
+  //     () => Promise.resolve(true)
+  //   );
+
+  //   assert(fakeVSCodeCreateWebviewPanel.called);
+  //   assert(fakeWebview.html !== '');
+  //   assert(stubOnDidRecieveMessage.called);
+  // });
+
+  // To test: it recieves a connection model and connects to that connection.
+  // It sends a connected response.
+  // It opens a file viewer.
+  // It sends the file view response.
 });

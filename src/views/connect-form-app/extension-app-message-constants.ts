@@ -14,7 +14,7 @@ interface BasicWebviewMessage {
 // Note: In the app this is tightly coupled with 'externals.ts'.
 export interface ConnectMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT;
-  driverUrl: string;
+  connectionModel: any;
 }
 
 export interface ConnectResultsMessage extends BasicWebviewMessage {

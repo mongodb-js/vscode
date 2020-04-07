@@ -1,19 +1,12 @@
 import { Actions, ActionTypes, FilePickerActionTypes } from './actions';
 
 import ConnectionModel, {
-  validateConnectionModel,
-  getDriverUrlFromConnectionModel
+  validateConnectionModel
 } from '../connection-model/connection-model';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import { MESSAGE_TYPES } from '../extension-app-message-constants';
 
 const vscode = acquireVsCodeApi();
-
-/**
- * All the SSL related fields on the connection model, with the exception
- * of the method.
- */
-// const SSL_FIELDS = ['sslCA', 'sslCert', 'sslKey', 'sslPass'];
 
 /**
  * All the ssh tunnel related fields on the connection model, with
@@ -119,7 +112,7 @@ export const rootReducer = (
 
       vscode.postMessage({
         command: MESSAGE_TYPES.CONNECT,
-        driverUrl: getDriverUrlFromConnectionModel(state.currentConnection)
+        connectionModel: state.currentConnection
       });
 
       return {

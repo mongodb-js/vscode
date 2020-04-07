@@ -108,20 +108,20 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
-  test('mdb.addConnection command should call addMongoDBConnection on the connection controller', (done) => {
-    const mockAddConnection = sinon.fake.resolves();
+  test('mdb.addConnection command should call showConnectForm on the webview controller', (done) => {
+    const mockShowConnectForm = sinon.fake.resolves();
     sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'addMongoDBConnection',
-      mockAddConnection
+      mdbTestExtension.testExtensionController._webviewController,
+      'showConnectForm',
+      mockShowConnectForm
     );
 
     vscode.commands
       .executeCommand('mdb.addConnection')
       .then(() => {
         assert(
-          mockAddConnection.called,
-          'Expected "addMongoDBConnection" to be called on the connection controller.'
+          mockShowConnectForm.called,
+          'Expected "mockShowConnectForm" to be called on the webview controller.'
         );
       })
       .then(done, done);
