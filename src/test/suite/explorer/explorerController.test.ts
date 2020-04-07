@@ -1,8 +1,12 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
+import Connection = require('mongodb-connection-model/lib/model');
 
-import { DefaultSavingLocations, StorageScope } from '../../../storage/storageController';
+import {
+  DefaultSavingLocations,
+  StorageScope
+} from '../../../storage/storageController';
 
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -67,6 +71,7 @@ suite('Explorer Controller Test Suite', () => {
     testConnectionController._savedConnections = {
       testConnectionId: {
         id: 'testConnectionId',
+        connectionModel: new Connection(),
         name: 'testConnectionName',
         driverUrl: 'url',
         storageLocation: StorageScope.NONE
@@ -102,7 +107,7 @@ suite('Explorer Controller Test Suite', () => {
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -114,8 +119,11 @@ suite('Explorer Controller Test Suite', () => {
         );
         const activeId = testConnectionController.getActiveConnectionId();
         assert(
-          activeId === Object.keys(testConnectionController._savedConnections)[0],
-          `Expected active connection to be '${Object.keys(testConnectionController._savedConnections)[0]}' found ${activeId}`
+          activeId ===
+            Object.keys(testConnectionController._savedConnections)[0],
+          `Expected active connection to be '${
+            Object.keys(testConnectionController._savedConnections)[0]
+          }' found ${activeId}`
         );
 
         treeController.getChildren().then((treeControllerChildren) => {
@@ -155,7 +163,7 @@ suite('Explorer Controller Test Suite', () => {
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -165,8 +173,10 @@ suite('Explorer Controller Test Suite', () => {
           Object.keys(testConnectionController._savedConnections).length === 1,
           'Expected there to be 1 connection in the connection list.'
         );
-        const connectionId = testConnectionController.getActiveConnectionId() || '';
-        const connectionName = testConnectionController._savedConnections[connectionId].name;
+        const connectionId =
+          testConnectionController.getActiveConnectionId() || '';
+        const connectionName =
+          testConnectionController._savedConnections[connectionId].name;
         assert(
           connectionName === 'localhost:27018',
           `Expected active connection name to be 'localhost:27018' found ${connectionName}`
@@ -174,10 +184,10 @@ suite('Explorer Controller Test Suite', () => {
 
         // This will timeout in 500ms, which is enough time for us to just check.
         testConnectionController
-          .addNewConnectionAndConnect(testDatabaseURI2WithTimeout)
+          .addNewConnectionStringAndConnect(testDatabaseURI2WithTimeout)
           .then(
-            () => { },
-            () => { } /* Silent fail (should fail) */
+            () => {},
+            () => {} /* Silent fail (should fail) */
           );
 
         setTimeout(() => {
@@ -227,7 +237,7 @@ suite('Explorer Controller Test Suite', () => {
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         treeController.getChildren().then((treeControllerChildren) => {
           treeControllerChildren[0].getChildren().then((connectionsItems) => {
@@ -263,7 +273,7 @@ suite('Explorer Controller Test Suite', () => {
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         treeController.getChildren().then((rootTreeItem) => {
           const connectionsTreeItem = rootTreeItem[0];

@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
+import Connection = require('mongodb-connection-model/lib/model');
 const sinon = require('sinon');
 
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
@@ -203,7 +204,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-          'craving_for_pancakes_with_maple_syrup',
+            'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })
@@ -776,7 +777,7 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
+      .addNewConnectionStringAndConnect(testDatabaseURI)
       .then(() => {
         const testCollectionTreeItem = new CollectionTreeItem(
           { name: 'doesntExistColName', type: CollectionTypes.collection },
@@ -893,7 +894,7 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(testDatabaseURI)
+      .addNewConnectionStringAndConnect(testDatabaseURI)
       .then(() => {
         const testDatabaseTreeItem = new DatabaseTreeItem(
           'narnia____a',
@@ -978,6 +979,7 @@ suite('MDBExtensionController Test Suite', () => {
   test('mdb.renameConnection fails when the name input is empty', (done) => {
     mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon = {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
+      connectionModel: new Connection(),
       name: 'NAAAME',
       driverUrl: '',
       storageLocation: StorageScope.NONE
@@ -1005,7 +1007,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
-          'NAAAME',
+            'NAAAME',
           'Expected connection not to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
@@ -1020,6 +1022,7 @@ suite('MDBExtensionController Test Suite', () => {
     mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon = {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
       name: 'NAAAME',
+      connectionModel: new Connection(),
       driverUrl: '',
       storageLocation: StorageScope.NONE
     };
@@ -1043,7 +1046,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
-          'orange juice',
+            'orange juice',
           'Expected connection to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
@@ -1109,16 +1112,27 @@ suite('MDBExtensionController Test Suite', () => {
         return true;
       }
     });
-    sinon.replace(vscode.workspace, 'getConfiguration', mockGetPlaygroundConfiguration);
+    sinon.replace(
+      vscode.workspace,
+      'getConfiguration',
+      mockGetPlaygroundConfiguration
+    );
 
-    vscode.commands.executeCommand('mdb.createPlayground').then(() => {
-      assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-      assert(mockOpenTextDocument.firstArg.content.startsWith('// MongoDB Playground'));
-      assert(
-        mockShowTextDocument.firstArg === 'untitled',
-        'Expected it to call vscode to show the playground'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.createPlayground')
+      .then(() => {
+        assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+        assert(
+          mockOpenTextDocument.firstArg.content.startsWith(
+            '// MongoDB Playground'
+          )
+        );
+        assert(
+          mockShowTextDocument.firstArg === 'untitled',
+          'Expected it to call vscode to show the playground'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.createPlayground command should create a MongoDB playground without template', (done) => {
@@ -1134,16 +1148,23 @@ suite('MDBExtensionController Test Suite', () => {
         return false;
       }
     });
-    sinon.replace(vscode.workspace, 'getConfiguration', mockGetPlaygroundConfiguration);
+    sinon.replace(
+      vscode.workspace,
+      'getConfiguration',
+      mockGetPlaygroundConfiguration
+    );
 
-    vscode.commands.executeCommand('mdb.createPlayground').then(() => {
-      assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-      assert(mockOpenTextDocument.firstArg.content === '');
-      assert(
-        mockShowTextDocument.firstArg === 'untitled',
-        'Expected it to call vscode to show the playground'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.createPlayground')
+      .then(() => {
+        assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+        assert(mockOpenTextDocument.firstArg.content === '');
+        assert(
+          mockShowTextDocument.firstArg === 'untitled',
+          'Expected it to call vscode to show the playground'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.runAllPlaygroundBlocks command should call runAllPlaygroundBlocks on the playground controller', (done) => {
@@ -1154,12 +1175,15 @@ suite('MDBExtensionController Test Suite', () => {
       mockRunAllPlaygroundBlocks
     );
 
-    vscode.commands.executeCommand('mdb.runAllPlaygroundBlocks').then(() => {
-      assert(
-        mockRunAllPlaygroundBlocks.called,
-        'Expected "runAllPlaygroundBlocks" to be called on the playground controller.'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.runAllPlaygroundBlocks')
+      .then(() => {
+        assert(
+          mockRunAllPlaygroundBlocks.called,
+          'Expected "runAllPlaygroundBlocks" to be called on the playground controller.'
+        );
+      })
+      .then(done, done);
   });
 
   test('mdb.showActiveConnectionInPlayground command should call showActiveConnectionInPlayground on the playground controller', (done) => {
@@ -1170,11 +1194,14 @@ suite('MDBExtensionController Test Suite', () => {
       mockShowActiveConnectionInPlayground
     );
 
-    vscode.commands.executeCommand('mdb.showActiveConnectionInPlayground').then(() => {
-      assert(
-        mockShowActiveConnectionInPlayground.called,
-        'Expected "showActiveConnectionInPlayground" to be called on the playground controller.'
-      );
-    }).then(done, done);
+    vscode.commands
+      .executeCommand('mdb.showActiveConnectionInPlayground')
+      .then(() => {
+        assert(
+          mockShowActiveConnectionInPlayground.called,
+          'Expected "showActiveConnectionInPlayground" to be called on the playground controller.'
+        );
+      })
+      .then(done, done);
   });
 });
