@@ -12,6 +12,7 @@ import {
   cleanupTestDB
 } from '../dbTestHelper';
 import { beforeEach, afterEach } from 'mocha';
+import formatOutput from '../../../utils/formatOutput';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -100,7 +101,7 @@ suite('Playground Controller Test Suite', () => {
           const expectedMessage =
             'Are you sure you want to run this playground against fakeName? This confirmation can be disabled in the extension settings.';
 
-          expect(fakeShowInformationMessage.calledOnce).to.be.true;
+          expect(fakeShowInformationMessage.calledWith(expectedMessage));
         }
       ).then(done, done);
     });
@@ -120,7 +121,7 @@ suite('Playground Controller Test Suite', () => {
             .update('confirmRunAll', false);
           await testPlaygroundController.runAllPlaygroundBlocks();
 
-          expect(fakeShowInformationMessage.calledOnce).to.be.false;
+          expect(fakeShowInformationMessage.called).to.be.false;
         }
       ).then(done, done);
     });
@@ -158,7 +159,7 @@ suite('Playground Controller Test Suite', () => {
 
       testConnectionController.setActiveConnection(mockActiveConnection);
 
-      expect(await testPlaygroundController.evaluate('1 + 1')).to.be.equal('2');
+      expect(await testPlaygroundController.evaluate('1 + 1')).to.be.deep.equal({ value: 2 });
     });
 
     test('evaluate multiple commands at once', async () => {
@@ -179,7 +180,7 @@ suite('Playground Controller Test Suite', () => {
       expect(await testPlaygroundController.evaluate(`
         var x = 1;
         x + 2
-      `)).to.be.equal('3');
+      `)).to.be.deep.equal({ value: 3 });
     });
 
     test('evaluate interaction with a database', (done) => {
@@ -205,7 +206,7 @@ suite('Playground Controller Test Suite', () => {
             '  }\n' +
             ']';
 
-          expect(actualResult).to.be.equal(expectedResult);
+          expect(formatOutput(actualResult)).to.be.equal(expectedResult);
         }
       ).then(done, done);
     });
@@ -326,7 +327,7 @@ suite('Playground Controller Test Suite', () => {
 
           const result = await testPlaygroundController.evaluate(codeToEvaluate);
 
-          expect(result).to.be.equal('2');
+          expect(result).to.be.deep.equal({ value: 2 });
         }
       ).then(done, done);
     });
