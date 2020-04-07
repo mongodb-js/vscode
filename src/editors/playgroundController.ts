@@ -159,7 +159,6 @@ export default class PlaygroundController {
         token.onCancellationRequested(async () => {
           // Cancel running a playground when clicked on the cancel button
           this._languageServerController.cancelAll();
-          vscode.window.showInformationMessage('User canceled the long running operation');
           return resolve(false);
         });
 

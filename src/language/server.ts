@@ -20,10 +20,6 @@ import { CliServiceProvider } from '@mongosh/service-provider-server';
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 // Create a simple text document manager. The text document manager
 // supports full document sync only
 const documentsConfig = {
@@ -282,24 +278,29 @@ connection.onCompletionResolve(
  * Execute the entire playground script.
  */
 connection.onRequest('executeAll', async (params, token) => {
-  token.onCancellationRequested(() => {
-    if (token.isCancellationRequested) {
-      // How to cancel request to node server? Here?
-      connection.console.log('Printed 1');
-    }
-
-    // How to cancel request to node server? Or Here?
-    connection.console.log('Printed 2');
-  });
-
   const connectionOptions = params.connectionOptions || {};
-  const runtime = new ElectronRuntime(
-    await CliServiceProvider.connect(params.connectionString, connectionOptions)
-  );
+  const serviceProvider = await CliServiceProvider.connect(params.connectionString, connectionOptions);
+  const runtime = new ElectronRuntime(serviceProvider);
   let result;
 
-  await sleep(10000); // Wait for server activation to be able to test cancelation
-  result = await runtime.evaluate(params.codeToEvaluate);
+  token.onCancellationRequested(async () => {
+    connection.console.log('Cancellation Requested');
+    await (serviceProvider as any).mongoClient.close(false);
+  });
+
+  try {
+    result = await runtime.evaluate(params.codeToEvaluate);
+    await (serviceProvider as any).mongoClient.close(false);
+  } catch (error) {
+    if (token.isCancellationRequested) {
+      connection.sendNotification(
+        'mongodbNotification',
+        'The long running playground operation was canceled'
+      );
+    } else {
+      throw new Error(error);
+    }
+  }
 
   return result;
 });
