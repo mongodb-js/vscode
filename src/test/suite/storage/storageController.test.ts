@@ -1,9 +1,9 @@
 import * as assert from 'assert';
+import Connection = require('mongodb-connection-model/lib/model');
 
 import StorageController, {
   StorageVariables,
-  StorageScope,
-  SavedConnection
+  StorageScope
 } from '../../../storage/storageController';
 
 import { TestExtensionContext } from '../stubs';
@@ -55,6 +55,7 @@ suite('Storage Controller Test Suite', () => {
     const testStorageController = new StorageController(testExtensionContext);
     testStorageController.saveConnectionToGlobalStore({
       driverUrl: 'another_url_that_is_so_saved',
+      connectionModel: new Connection(),
       id: 'new_conn',
       name: 'saved2',
       storageLocation: StorageScope.NONE
@@ -65,7 +66,9 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       Object.keys(updatedGlobalModels).length === 2,
-      `Expected 2 connections, found ${Object.keys(updatedGlobalModels).length}.`
+      `Expected 2 connections, found ${
+        Object.keys(updatedGlobalModels).length
+      }.`
     );
     assert(
       updatedGlobalModels.conn1.name === 'so_saved',
@@ -94,6 +97,7 @@ suite('Storage Controller Test Suite', () => {
     };
     const testStorageController = new StorageController(testExtensionContext);
     testStorageController.saveConnectionToWorkspaceStore({
+      connectionModel: new Connection(),
       driverUrl: 'this_has_been_saved',
       id: 'new_conn',
       name: 'saved2',
@@ -106,7 +110,9 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       Object.keys(updatedWorkspaceModels).length === 2,
-      `Expected 2 connections, found ${Object.keys(updatedWorkspaceModels).length}.`
+      `Expected 2 connections, found ${
+        Object.keys(updatedWorkspaceModels).length
+      }.`
     );
     assert(
       updatedWorkspaceModels.conn1.id === 'conn1',
@@ -125,7 +131,8 @@ suite('Storage Controller Test Suite', () => {
       'Expected new connection data to exist.'
     );
     assert(
-      updatedWorkspaceModels.new_conn.storageLocation === StorageScope.WORKSPACE,
+      updatedWorkspaceModels.new_conn.storageLocation ===
+        StorageScope.WORKSPACE,
       'Expected storage scope to be set.'
     );
   });
@@ -135,9 +142,7 @@ suite('Storage Controller Test Suite', () => {
     testExtensionContext._globalState = {};
     const testStorageController = new StorageController(testExtensionContext);
     testStorageController.getUserID();
-    const userId = testStorageController.get(
-      StorageVariables.GLOBAL_USER_ID
-    );
+    const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
     assert(userId);
   });
 
@@ -146,9 +151,7 @@ suite('Storage Controller Test Suite', () => {
     testExtensionContext._globalState = {};
     const testStorageController = new StorageController(testExtensionContext);
     testStorageController.getUserID();
-    const userId = testStorageController.get(
-      StorageVariables.GLOBAL_USER_ID
-    );
+    const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
     testStorageController.getUserID();
     const userIdAfterSecondCall = testStorageController.get(
       StorageVariables.GLOBAL_USER_ID

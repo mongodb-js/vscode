@@ -102,7 +102,7 @@ suite('Extension Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,

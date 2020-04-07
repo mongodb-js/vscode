@@ -40,7 +40,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -80,7 +80,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -128,7 +128,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -216,7 +216,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected,
@@ -224,7 +224,7 @@ suite('Connection Controller Test Suite', () => {
         );
 
         testConnectionController
-          .addNewConnectionAndConnect(testDatabaseURI2WithTimeout)
+          .addNewConnectionStringAndConnect(testDatabaseURI2WithTimeout)
           .then(
             () => {
               assert(false, 'Expected rejected promise, not resolved.');
@@ -258,7 +258,7 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController.setConnnecting(true);
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(
         () => {
           assert(false, 'Expected rejected promise, not resolved.');
@@ -283,7 +283,7 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController.setDisconnecting(true);
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(
         () => {
           assert(false, 'Expected rejected promise, not resolved.');
@@ -371,7 +371,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         setTimeout(() => {
           assert(
@@ -400,7 +400,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         testConnectionController.disconnect().then(() => {
           setTimeout(() => {
@@ -516,7 +516,7 @@ suite('Connection Controller Test Suite', () => {
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
 
-    await testConnectionController.addNewConnectionAndConnect(
+    await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
 
@@ -562,7 +562,7 @@ suite('Connection Controller Test Suite', () => {
         DefaultSavingLocations.Workspace
       );
 
-    await testConnectionController.addNewConnectionAndConnect(
+    await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
 
@@ -611,7 +611,7 @@ suite('Connection Controller Test Suite', () => {
       )
       .then(() => {
         testConnectionController
-          .addNewConnectionAndConnect(TEST_DATABASE_URI)
+          .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
           .then(() => {
             const workspaceStoreConnections = testStorageController.get(
               StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -679,7 +679,7 @@ suite('Connection Controller Test Suite', () => {
       'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         const activeConnectionId = testConnectionController.getActiveConnectionId();
         assert(
@@ -720,7 +720,7 @@ suite('Connection Controller Test Suite', () => {
         // return a usable promise. Timeout to ensure it sets.
         setTimeout(() => {
           testConnectionController
-            .addNewConnectionAndConnect(TEST_DATABASE_URI)
+            .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
             .then(() => {
               const objectString = JSON.stringify(undefined);
               const globalStoreConnections = testStorageController.get(
@@ -770,7 +770,7 @@ suite('Connection Controller Test Suite', () => {
         // return a usable promise. Timeout to ensure it sets.
         setTimeout(() => {
           testConnectionController
-            .addNewConnectionAndConnect(TEST_DATABASE_URI)
+            .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
             .then(() => {
               const workspaceStoreConnections = testStorageController.get(
                 StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -819,7 +819,7 @@ suite('Connection Controller Test Suite', () => {
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
 
-    await testConnectionController.addNewConnectionAndConnect(
+    await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
     const globalStoreConnections = testStorageController.get(
@@ -870,7 +870,7 @@ suite('Connection Controller Test Suite', () => {
         // return a usable promise. Timeout to ensure it sets.
         setTimeout(() => {
           testConnectionController
-            .addNewConnectionAndConnect(TEST_DATABASE_URI)
+            .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
             .then(() => {
               const workspaceStoreConnections = testStorageController.get(
                 StorageVariables.WORKSPACE_SAVED_CONNECTIONS,

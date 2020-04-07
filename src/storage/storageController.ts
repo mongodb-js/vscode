@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { v4 as uuidv4 } from 'uuid';
+import { ConnectionModelType } from '../connectionModelType';
 
 export enum StorageVariables {
   GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS', // Only exists on globalState.
@@ -24,6 +25,7 @@ export enum DefaultSavingLocations {
 export type SavedConnection = {
   id: string; // uuidv4
   name: string; // Possibly user given name, not unique.
+  connectionModel: ConnectionModelType;
   driverUrl: string;
   storageLocation: StorageScope;
 };
@@ -60,7 +62,7 @@ export default class StorageController {
     return Promise.resolve();
   }
 
-  public getUserID() {
+  public getUserID(): string {
     let globalUserId = this.get(StorageVariables.GLOBAL_USER_ID);
 
     if (globalUserId) {
@@ -104,9 +106,9 @@ export default class StorageController {
     let workspaceConnections:
       | { [key: string]: SavedConnection }
       | undefined = this.get(
-        StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-        StorageScope.WORKSPACE
-      );
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageScope.WORKSPACE
+    );
     if (!workspaceConnections) {
       workspaceConnections = {};
     }
@@ -196,9 +198,9 @@ export default class StorageController {
     const workspaceStoredConnections:
       | { [key: string]: SavedConnection }
       | undefined = this.get(
-        StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-        StorageScope.WORKSPACE
-      );
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageScope.WORKSPACE
+    );
     if (
       workspaceStoredConnections &&
       workspaceStoredConnections[connectionId]

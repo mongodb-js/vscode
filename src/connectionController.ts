@@ -54,10 +54,16 @@ export default class ConnectionController {
   ): void {
     let loadedSavedConnection: SavedConnection;
     try {
+      if (!savedConnection.connectionModel) {
+        // Ignore empty connections.
+        return;
+      }
+
       loadedSavedConnection = {
         id: connectionId,
-        name: savedConnection.name,
         driverUrl: savedConnection.driverUrl,
+        name: savedConnection.name,
+        connectionModel: savedConnection.connectionModel,
         storageLocation: savedConnection.storageLocation
       };
     } catch (error) {
@@ -109,7 +115,7 @@ export default class ConnectionController {
     const connectWebView = new ConnectFormView();
     return connectWebView.showConnectForm(
       context,
-      this.addNewConnectionAndConnect
+      this.saveNewConnectionAndConnect
     );
   }
 
@@ -140,16 +146,19 @@ export default class ConnectionController {
     }
 
     return new Promise((resolve) => {
-      this.addNewConnectionAndConnect(connectionString).then(resolve, (err) => {
-        vscode.window.showErrorMessage(err.message);
-        resolve(false);
-      });
+      this.addNewConnectionStringAndConnect(connectionString).then(
+        resolve,
+        (err) => {
+          vscode.window.showErrorMessage(err.message);
+          resolve(false);
+        }
+      );
     });
   }
 
   // Resolves true when the connection is successfully added.
   // The connection can fail to connect but be successfully added.
-  public addNewConnectionAndConnect = (
+  public addNewConnectionStringAndConnect = (
     connectionString: string
   ): Promise<boolean> => {
     log.info('Trying to connect to a new connection configuration');
@@ -158,42 +167,45 @@ export default class ConnectionController {
       Connection.from(
         connectionString,
         (error: Error | undefined, newConnectionModel: ConnectionModelType) => {
-          if (error && !newConnectionModel) {
-            return reject(new Error(`Unable to load connection: ${error}`));
-          }
-
-          const { driverUrl, instanceId } = newConnectionModel.getAttributes({
-            derived: true
-          });
-
-          const newConnection: SavedConnection = {
-            id: uuidv4(),
-            name: instanceId,
-            driverUrl,
-            // To begin we just store it on the session, the storage controller
-            // handles changing this based on user preference.
-            storageLocation: StorageScope.NONE
-          };
-          this._savedConnections[newConnection.id] = newConnection;
-
-          this._storageController.storeNewConnection(newConnection);
-
           if (error) {
-            return reject(new Error(`Unable to connect: ${error}`));
+            return reject(new Error(`Unable to create connection: ${error}`));
           }
 
-          this.connect(newConnection.id, newConnectionModel).then(
-            (connectSuccess) => {
-              if (!connectSuccess) {
-                return resolve(false);
-              }
-
-              resolve(true);
-            },
+          return this.saveNewConnectionAndConnect(newConnectionModel).then(
+            resolve,
             reject
           );
         }
       );
+    });
+  };
+
+  public saveNewConnectionAndConnect = (
+    connectionModel: ConnectionModelType
+  ): Promise<boolean> => {
+    const { driverUrl, instanceId } = connectionModel.getAttributes({
+      derived: true
+    });
+
+    const newConnection: SavedConnection = {
+      id: uuidv4(),
+      name: instanceId,
+      connectionModel,
+      driverUrl,
+      // To begin we just store it on the session, the storage controller
+      // handles changing this based on user preference.
+      storageLocation: StorageScope.NONE
+    };
+    this._savedConnections[newConnection.id] = newConnection;
+
+    return new Promise((resolve, reject) => {
+      this.connect(newConnection.id, connectionModel).then((connectSuccess) => {
+        if (!connectSuccess) {
+          return resolve(false);
+        }
+
+        resolve(true);
+      }, reject);
     });
   };
 
@@ -262,26 +274,44 @@ export default class ConnectionController {
 
   public async connectWithConnectionId(connectionId: string): Promise<boolean> {
     if (this._savedConnections[connectionId]) {
-      return new Promise((resolve) => {
-        Connection.from(
-          this._savedConnections[connectionId].driverUrl,
-          (error: Error | undefined, connectionModel: ConnectionModelType) => {
-            if (error && !connectionModel) {
-              vscode.window.showErrorMessage(
-                `Unable to load connection: ${error}`
-              );
-              return resolve(false);
-            }
+      let connectionModel;
 
-            return this.connect(connectionId, connectionModel).then(
-              resolve,
-              (err: Error) => {
-                vscode.window.showErrorMessage(err.message);
-                return resolve(false);
-              }
-            );
+      try {
+        connectionModel = new Connection(
+          this._savedConnections[connectionId].connectionModel
+        );
+      } catch (error) {
+        vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
+        return Promise.resolve(false);
+      }
+      return new Promise((resolve) => {
+        return this.connect(connectionId, connectionModel).then(
+          resolve,
+          (err: Error) => {
+            vscode.window.showErrorMessage(err.message);
+            return resolve(false);
           }
         );
+
+        // Connection.from(
+        //   this._savedConnections[connectionId].driverUrl,
+        //   (error: Error | undefined, connectionModel: ConnectionModelType) => {
+        //     if (error && !connectionModel) {
+        //       vscode.window.showErrorMessage(
+        //         `Unable to load connection: ${error}`
+        //       );
+        //       return resolve(false);
+        //     }
+
+        //     return this.connect(connectionId, connectionModel).then(
+        //       resolve,
+        //       (err: Error) => {
+        //         vscode.window.showErrorMessage(err.message);
+        //         return resolve(false);
+        //       }
+        //     );
+        //   }
+        // );
       });
     }
 

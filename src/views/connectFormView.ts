@@ -6,6 +6,7 @@ import {
   ConnectMessage,
   OpenFilePickerMessage
 } from './connect-form-app/extension-app-message-constants';
+import { ConnectionModelType } from '../connectionModelType';
 
 const openFileOptions = {
   canSelectFiles: true,
@@ -42,11 +43,11 @@ export const getReactAppUri = (extensionPath: string): vscode.Uri => {
 const handleWebviewMessage = (
   message: ConnectMessage | OpenFilePickerMessage,
   panel: vscode.WebviewPanel,
-  connect: (connectionString: string) => Promise<boolean>
+  connect: (connectionModel: ConnectionModelType) => Promise<boolean>
 ): void => {
   switch (message.command) {
     case MESSAGE_TYPES.CONNECT:
-      connect(message.driverUrl).then(
+      connect(message.connectionModel).then(
         (connectionSuccess) => {
           panel.webview.postMessage({
             command: MESSAGE_TYPES.CONNECT_RESULT,
@@ -91,7 +92,7 @@ const handleWebviewMessage = (
 export default class ConnectFormView {
   showConnectForm(
     context: vscode.ExtensionContext,
-    connect: (connectionString: string) => Promise<boolean>
+    connect: (connectionModel: ConnectionModelType) => Promise<boolean>
   ): Promise<boolean> {
     const extensionPath = context.extensionPath;
 
