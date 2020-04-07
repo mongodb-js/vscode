@@ -281,28 +281,26 @@ connection.onRequest('executeAll', async (params, token) => {
   const connectionOptions = params.connectionOptions || {};
   const serviceProvider = await CliServiceProvider.connect(params.connectionString, connectionOptions);
   const runtime = new ElectronRuntime(serviceProvider);
-  let result;
+  let result: any;
 
   token.onCancellationRequested(async () => {
     connection.console.log('Cancellation Requested');
     await (serviceProvider as any).mongoClient.close(false);
+    connection.sendNotification(
+      'mongodbNotification',
+      'The long running playground operation was canceled'
+    );
   });
 
   try {
     result = await runtime.evaluate(params.codeToEvaluate);
     await (serviceProvider as any).mongoClient.close(false);
+    return result;
   } catch (error) {
-    if (token.isCancellationRequested) {
-      connection.sendNotification(
-        'mongodbNotification',
-        'The long running playground operation was canceled'
-      );
-    } else {
+    if (!token.isCancellationRequested) {
       throw new Error(error);
     }
   }
-
-  return result;
 });
 
 /**

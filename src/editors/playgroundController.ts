@@ -112,18 +112,16 @@ export default class PlaygroundController {
     }
 
     // Run playground as a background process using the Language Server
-    let res = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
+    let result = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
 
-    if (res) {
+    if (result) {
       this._telemetryController?.track(
         TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED,
-        this.prepareTelemetry(res)
+        this.prepareTelemetry(result)
       );
-
-      res = formatOutput(res)
     }
 
-    return Promise.resolve(res);
+    return Promise.resolve(result);
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
@@ -151,7 +149,7 @@ export default class PlaygroundController {
       let result;
 
       // Show a running progress in the notification area with support for cancellation
-      vscode.window.withProgress({
+      await vscode.window.withProgress({
         location: ProgressLocation.Notification,
         title: 'Running a playground...',
         cancellable: true
@@ -168,13 +166,17 @@ export default class PlaygroundController {
           vscode.window.showErrorMessage(`Unable to run playground: ${error.message}`);
           return resolve(false);
         }
-
-        this._outputChannel.clear();
-        this._outputChannel.appendLine(result);
-        this._outputChannel.show(true);
-
-        return resolve(true);
       });
+
+      if (!result) {
+        return resolve(false);
+      }
+
+      this._outputChannel.clear();
+      this._outputChannel.appendLine(formatOutput(result));
+      this._outputChannel.show(true);
+
+      return resolve(true);
     });
   }
 
