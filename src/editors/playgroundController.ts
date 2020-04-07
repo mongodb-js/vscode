@@ -163,19 +163,12 @@ export default class PlaygroundController {
           return resolve(false);
         });
 
-        // TODO: Is there a way to show constant loading progress instead of incremental progress?
-        // Currently use magic numbers 0, 10, 70
-        progress.report({ increment: 0 });
-
         try {
-          progress.report({ increment: 10 });
           result = await this.evaluate(codeToEvaluate);
         } catch (error) {
           vscode.window.showErrorMessage(`Unable to run playground: ${error.message}`);
           return resolve(false);
         }
-
-        progress.report({ increment: 70 });
 
         this._outputChannel.clear();
         this._outputChannel.appendLine(result);
