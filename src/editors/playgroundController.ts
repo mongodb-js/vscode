@@ -140,7 +140,7 @@ export default class PlaygroundController {
         );
 
         if (confirmRunAll !== 'Yes') {
-          return Promise.resolve(false);
+          resolve(false);
         }
       }
 
