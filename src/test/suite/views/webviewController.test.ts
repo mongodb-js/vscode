@@ -4,13 +4,20 @@ import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
 const fs = require('fs');
 const path = require('path');
+import Connection = require('mongodb-connection-model/lib/model');
 
+import ConnectionController from '../../../connectionController';
+import { StorageController } from '../../../storage';
 import WebviewController, {
   getConnectWebviewContent,
   getReactAppUri
 } from '../../../views/webviewController';
+import { StatusView } from '../../../views';
+import { MESSAGE_TYPES } from '../../../views/connect-form-app/extension-app-message-constants';
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
+import { TestExtensionContext } from '../stubs';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 suite('Connect Form View Test Suite', () => {
   const disposables: vscode.Disposable[] = [];
@@ -48,7 +55,10 @@ suite('Connect Form View Test Suite', () => {
 
     assert(fakeVSCodeCreateWebviewPanel.called);
     assert(fakeWebview.html !== '');
-    assert(stubOnDidRecieveMessage.called);
+    assert(
+      stubOnDidRecieveMessage.called,
+      'Ensure it starts listening for messages from the webview.'
+    );
   });
 
   test('web view content is rendered with the js form', async () => {
@@ -77,38 +87,246 @@ suite('Connect Form View Test Suite', () => {
     assert(`${jsFileString}`.includes('ConnectionForm'));
   });
 
-  // test('web view listens for a connect message and adds the connection', () => {
-  //   const stubOnDidRecieveMessage = sinon.stub();
-  //   const fakeWebview = {
-  //     html: '',
-  //     onDidReceiveMessage: stubOnDidRecieveMessage
-  //   };
+  test('web view listens for a connect message and adds the connection', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
 
-  //   const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-  //     webview: fakeWebview
-  //   });
-  //   sinon.replace(
-  //     vscode.window,
-  //     'createWebviewPanel',
-  //     fakeVSCodeCreateWebviewPanel
-  //   );
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController
+    );
 
-  //   const testWebviewController = new WebviewController(mdbTestExtension.testExtensionController._connectionController);
+    let messageRecievedSet = false;
+    let messageRecieved;
+    const fakeWebview = {
+      html: '',
+      postMessage: (message: any): void => {
+        assert(testConnectionController.isCurrentlyConnected());
+        assert(
+          testConnectionController.getActiveConnectionName() ===
+            'localhost:27018'
+        );
+        assert(
+          testConnectionController.getActiveConnectionModel()?.port === 27018
+        );
 
-  //   const stubConnectMethod = sinon.stub();
+        testConnectionController.disconnect();
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+        messageRecievedSet = true;
+      }
+    };
 
-  //   testWebviewController.showConnectForm(
-  //     mdbTestExtension.testExtensionContext,
-  //     () => Promise.resolve(true)
-  //   );
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
 
-  //   assert(fakeVSCodeCreateWebviewPanel.called);
-  //   assert(fakeWebview.html !== '');
-  //   assert(stubOnDidRecieveMessage.called);
-  // });
+    const testWebviewController = new WebviewController(
+      testConnectionController
+    );
 
-  // To test: it recieves a connection model and connects to that connection.
-  // It sends a connected response.
-  // It opens a file viewer.
-  // It sends the file view response.
+    testWebviewController.showConnectForm(
+      mdbTestExtension.testExtensionContext
+    );
+
+    assert(
+      messageRecievedSet,
+      'Ensure it starts listening for messages from the webview.'
+    );
+
+    Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
+      if (err) {
+        assert(false);
+      }
+
+      // Mock a connection call.
+      messageRecieved({
+        command: MESSAGE_TYPES.CONNECT,
+        connectionModel: {
+          port: connectionModel.port,
+          hostname: connectionModel.hostname
+        }
+      });
+    });
+  });
+
+  test('web view sends a successful connect result on a successful connection', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController
+    );
+
+    let messageRecievedSet = false;
+    let messageRecieved;
+    const fakeWebview = {
+      html: '',
+      postMessage: (message: any): void => {
+        assert(message.connectionSuccess);
+        assert(message.connectionMessage === 'Connected.');
+
+        testConnectionController.disconnect();
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+        messageRecievedSet = true;
+      }
+    };
+
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const testWebviewController = new WebviewController(
+      testConnectionController
+    );
+
+    testWebviewController.showConnectForm(
+      mdbTestExtension.testExtensionContext
+    );
+
+    assert(
+      messageRecievedSet,
+      'Ensure it starts listening for messages from the webview.'
+    );
+
+    Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
+      if (err) {
+        assert(false);
+      }
+
+      // Mock a connection call.
+      messageRecieved({
+        command: MESSAGE_TYPES.CONNECT,
+        connectionModel: {
+          port: connectionModel.port,
+          hostname: connectionModel.hostname
+        }
+      });
+    });
+  });
+
+  test('web view opens file picker on file picker request', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController
+    );
+
+    const fakeVSCodeOpenDialog = sinon.fake.resolves({
+      path: './somefilepath/test.text'
+    });
+
+    let messageRecieved;
+    const fakeWebview = {
+      html: '',
+      postMessage: (): void => {
+        assert(fakeVSCodeOpenDialog.called);
+        assert(fakeVSCodeOpenDialog.firstArg.canSelectFiles);
+
+        testConnectionController.disconnect();
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+      }
+    };
+
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
+
+    const testWebviewController = new WebviewController(
+      testConnectionController
+    );
+
+    testWebviewController.showConnectForm(
+      mdbTestExtension.testExtensionContext
+    );
+
+    // Mock a connection call.
+    messageRecieved({
+      command: MESSAGE_TYPES.OPEN_FILE_PICKER,
+      action: 'file_action'
+    });
+  });
+
+  test('web view returns file name on file picker request', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController
+    );
+
+    let messageRecieved;
+    const fakeWebview = {
+      html: '',
+      postMessage: (message: any): void => {
+        assert(message.action === 'file_action');
+        assert(message.files[0] === './somefilepath/test.text');
+
+        testConnectionController.disconnect();
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+      }
+    };
+
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const fakeVSCodeOpenDialog = sinon.fake.resolves([
+      {
+        path: './somefilepath/test.text'
+      }
+    ]);
+    sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
+
+    const testWebviewController = new WebviewController(
+      testConnectionController
+    );
+
+    testWebviewController.showConnectForm(
+      mdbTestExtension.testExtensionContext
+    );
+
+    // Mock a connection call.
+    messageRecieved({
+      command: MESSAGE_TYPES.OPEN_FILE_PICKER,
+      action: 'file_action'
+    });
+  });
 });
