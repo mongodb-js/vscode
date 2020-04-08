@@ -274,6 +274,8 @@ connection.onCompletionResolve(
   }
 );
 
+connection.onRequest('checkServerAlive', () => true);
+
 /**
  * Execute the entire playground script.
  */
@@ -290,8 +292,7 @@ connection.onRequest('executeAll', async (params, token) => {
 
   // Create a new instance of the runtime
   const runtime = new ElectronRuntime(serviceProvider);
-  let resultValue: any;
-  let errorValue: any;
+  let result: any;
 
   // The event which fires upon cancellation
   token.onCancellationRequested(async () => {
@@ -310,14 +311,13 @@ connection.onRequest('executeAll', async (params, token) => {
   });
 
   try {
-    resultValue = await runtime.evaluate(params.codeToEvaluate);
+    connection.console.log('Runtime Evaluate Requested');
+    result = await runtime.evaluate(params.codeToEvaluate);
 
     // Close mongoClient after each runtime evaluation
     // to make sure that all resources are free and can be used with a new request
     await (serviceProvider as any).mongoClient.close(false);
   } catch (error) {
-    errorValue = error;
-
     // Return the actual error value if the request wasn't canceled.
     // The onCancellationRequested event handles showing information message
     // in case of cancelation, since the `Topology is closed, please connect`
@@ -328,14 +328,7 @@ connection.onRequest('executeAll', async (params, token) => {
   } finally {
     // If has no errors and wasn't canceled return a value
     if (!token.isCancellationRequested) {
-      return resultValue;
-    }
-
-    // The mongoClient.close won't affect operations
-    // that do not access database eg infinite loops in code.
-    // To handle these use cases we gracefully restart the language server
-    if (!errorValue) {
-      connection.sendNotification('restartNotification');
+      return result;
     }
   }
 });

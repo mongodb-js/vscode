@@ -74,24 +74,25 @@ export default class LanguageServerController {
     );
   }
 
-  restart(): void {
-    // Wait until deactivated and start the language server again
-    this.deactivate().then(() => {
-      this.activate();
-    });
+  async restart(): Promise<any> {
+    console.log('----------------------');
+    console.log('1');
+    console.log('----------------------');
+    await this.deactivate(); // this.client.stop() can't stop a server that stuck with an infinite loop
+    console.log('----------------------');
+    console.log('2');
+    console.log('----------------------');
+    await this.activate(); // Never called
   }
 
-  activate(): void {
+  async activate(): Promise<any> {
     // Start the client. This will also launch the server
     this.client.start();
+
     // Subscribe on notifications from the server when the client is ready
-    this.client.onReady().then(() => {
+    await this.client.onReady().then(() => {
       this.client.onNotification('showInfoNotification', (messsage) => {
         vscode.window.showInformationMessage(messsage);
-      });
-
-      this.client.onNotification('restartNotification', () => {
-        this.restart();
       });
     });
   }
@@ -111,7 +112,7 @@ export default class LanguageServerController {
         'executeAll',
         { codeToEvaluate, connectionString, connectionOptions },
         this._source.token
-      );;
+      );
     });
   }
 
@@ -121,5 +122,17 @@ export default class LanguageServerController {
     // the onCancellationRequested event will be fired,
     // and IsCancellationRequested will return true.
     this._source?.cancel();
+
+    // The mongoClient.close in the language server doesn't stop operations
+    // that do not access database eg. infinite loops in code.
+    // To handle these use cases we gracefully restart the language server
+    Promise.race([
+      new Promise(async (resolve) => resolve(await this.client.sendRequest('checkServerAlive'))),
+      new Promise((resolve) => setTimeout(() => resolve(false), 3000))
+    ]).then((isServerAlive) => {
+      if (!isServerAlive) {
+        this.restart();
+      }
+    });
   }
 }
