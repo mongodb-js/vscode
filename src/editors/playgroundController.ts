@@ -140,7 +140,7 @@ export default class PlaygroundController {
         );
 
         if (confirmRunAll !== 'Yes') {
-          resolve(false);
+          return resolve(false);
         }
       }
 
