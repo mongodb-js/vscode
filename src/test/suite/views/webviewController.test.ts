@@ -323,7 +323,6 @@ suite('Connect Form View Test Suite', () => {
       mdbTestExtension.testExtensionContext
     );
 
-    // Mock a connection call.
     messageRecieved({
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
       action: 'file_action'
