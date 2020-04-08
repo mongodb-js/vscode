@@ -38,7 +38,7 @@ class SSLServerValidation extends React.Component<props> {
         className={classnames(styles['form-group'])}
       >
         <FileInputButton
-          error={!isValid && sslCA !== undefined}
+          error={!isValid && sslCA === undefined}
           id="sslCA"
           label="Certificate Authority"
           link="https://docs.mongodb.com/manual/tutorial/configure-ssl/#certificate-authorities"

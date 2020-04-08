@@ -5,7 +5,7 @@ import { ConnectionModelType } from '../connectionModelType';
 export enum StorageVariables {
   GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS', // Only exists on globalState.
   GLOBAL_USER_ID = 'GLOBAL_USER_ID', // Only exists on globalState.
-  WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS' // Only exists on workspaceState.
+  WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS', // Only exists on workspaceState.
 }
 
 // Typically variables default to 'GLOBAL' scope.
@@ -29,6 +29,8 @@ export type SavedConnection = {
   driverUrl: string;
   storageLocation: StorageScope;
 };
+
+type StoredConnectionsType = { [key: string]: SavedConnection } | undefined;
 
 export default class StorageController {
   _globalState: vscode.Memento;
@@ -103,9 +105,7 @@ export default class StorageController {
     connection: SavedConnection
   ): Thenable<void> {
     // Get the current save connections.
-    let workspaceConnections:
-      | { [key: string]: SavedConnection }
-      | undefined = this.get(
+    let workspaceConnections: StoredConnectionsType = this.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageScope.WORKSPACE
     );
@@ -184,9 +184,9 @@ export default class StorageController {
   public removeConnection(connectionId: string): void {
     // See if the connection exists in the saved global or workspace connections
     // and remove it if it is.
-    const globalStoredConnections:
-      | { [key: string]: SavedConnection }
-      | undefined = this.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS);
+    const globalStoredConnections: StoredConnectionsType = this.get(
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+    );
     if (globalStoredConnections && globalStoredConnections[connectionId]) {
       delete globalStoredConnections[connectionId];
       this.update(
@@ -195,9 +195,7 @@ export default class StorageController {
       );
     }
 
-    const workspaceStoredConnections:
-      | { [key: string]: SavedConnection }
-      | undefined = this.get(
+    const workspaceStoredConnections: StoredConnectionsType = this.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageScope.WORKSPACE
     );
