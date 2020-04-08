@@ -55,13 +55,13 @@ In `.vscode/settings.json`
 From the server:
 
 ```javascript
-connection.sendNotification('mongodbNotification', `Hi, Friend.`);
+connection.sendNotification('showInfoNotification', `Hi, Friend.`);
 ```
 
 From the client:
 
 ```javascript
-client.onNotification('mongodbNotification', (messsage) => {
+client.onNotification('showInfoNotification', (messsage) => {
   vscode.window.showInformationMessage(messsage);
 });
 ```

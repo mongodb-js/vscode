@@ -199,9 +199,9 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // );
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 
-  // const notification = new NotificationType<string>('mongodbNotification');
+  // const notification = new NotificationType<string>('showInfoNotification');
   connection.sendNotification(
-    'mongodbNotification',
+    'showInfoNotification',
     'Enjoy these diagnostics!'
   );
 }
@@ -279,26 +279,63 @@ connection.onCompletionResolve(
  */
 connection.onRequest('executeAll', async (params, token) => {
   const connectionOptions = params.connectionOptions || {};
-  const serviceProvider = await CliServiceProvider.connect(params.connectionString, connectionOptions);
-  const runtime = new ElectronRuntime(serviceProvider);
-  let result: any;
 
+  // Instantiate a data service provider
+  // TODO: update when `mongosh` start support cancellationToken
+  // See: https://github.com/mongodb/node-mongodb-native/commit/2014b7b/#diff-46fff96a6e12b2b0b904456571ce308fR132
+  const serviceProvider = await CliServiceProvider.connect(
+    params.connectionString,
+    connectionOptions
+  );
+
+  // Create a new instance of the runtime
+  const runtime = new ElectronRuntime(serviceProvider);
+  let resultValue: any;
+  let errorValue: any;
+
+  // The event which fires upon cancellation
   token.onCancellationRequested(async () => {
     connection.console.log('Cancellation Requested');
+
+    // Cancel a long-running request to the node driver.
+    // The mongoClient.close method closes the underlying connector,
+    // which in turn closes all open connections.
+    // Once called, this mongodb instance can no longer be used.
     await (serviceProvider as any).mongoClient.close(false);
+
     connection.sendNotification(
-      'mongodbNotification',
+      'showInfoNotification',
       'The long running playground operation was canceled'
     );
   });
 
   try {
-    result = await runtime.evaluate(params.codeToEvaluate);
+    resultValue = await runtime.evaluate(params.codeToEvaluate);
+
+    // Close mongoClient after each runtime evaluation
+    // to make sure that all resources are free and can be used with a new request
     await (serviceProvider as any).mongoClient.close(false);
-    return result;
   } catch (error) {
+    errorValue = error;
+
+    // Return the actual error value if the request wasn't canceled.
+    // The onCancellationRequested event handles showing information message
+    // in case of cancelation, since the `Topology is closed, please connect`
+    // error can be confusing
     if (!token.isCancellationRequested) {
       throw new Error(error);
+    }
+  } finally {
+    // If has no errors and wasn't canceled return a value
+    if (!token.isCancellationRequested) {
+      return resultValue;
+    }
+
+    // The mongoClient.close won't affect operations
+    // that do not access database eg infinite loops in code.
+    // To handle these use cases we gracefully restart the language server
+    if (!errorValue) {
+      connection.sendNotification('restartNotification');
     }
   }
 });

@@ -49,7 +49,7 @@ export default class LanguageServerController {
 
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
-      // Register the server for plain text documents
+      // Register the server for mongodb documents
       documentSelector: [
         { scheme: 'untitled', language: 'mongodb' },
         { scheme: 'file', language: 'mongodb' }
@@ -65,7 +65,7 @@ export default class LanguageServerController {
       clientOptions
     });
 
-    // Create the language client and start the client.
+    // Create the language server client
     this.client = new LanguageClient(
       'mongodbLanguageServer',
       'MongoDB Language Server',
@@ -74,28 +74,39 @@ export default class LanguageServerController {
     );
   }
 
-  activate() {
+  restart(): void {
+    // Wait until deactivated and start the language server again
+    this.deactivate().then(() => {
+      this.activate();
+    });
+  }
+
+  activate(): void {
     // Start the client. This will also launch the server
     this.client.start();
+    // Subscribe on notifications from the server when the client is ready
     this.client.onReady().then(() => {
-      /**
-       * TODO: Notification is for setup docs only.
-       */
-      this.client.onNotification('mongodbNotification', (messsage) => {
+      this.client.onNotification('showInfoNotification', (messsage) => {
         vscode.window.showInformationMessage(messsage);
+      });
+
+      this.client.onNotification('restartNotification', () => {
+        this.restart();
       });
     });
   }
 
-  deactivate(): Thenable<void> | undefined {
-    return this.client.stop();
+  async deactivate(): Promise<any> {
+    await this.client.stop();
   }
 
   executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Thenable<any> | undefined {
     return this.client.onReady().then(async () => {
-      // Get a new cancellation token for each run of a playground
+      // Instantiate a new CancellationTokenSource object
+      // that generates a cancellation token for each run of a playground
       this._source = new CancellationTokenSource();
 
+      // Pass the cancellation token to the server along with other attributes
       return await this.client.sendRequest(
         'executeAll',
         { codeToEvaluate, connectionString, connectionOptions },
@@ -105,6 +116,10 @@ export default class LanguageServerController {
   }
 
   cancelAll() {
+    // Send a request for cancellation. As a result
+    // the associated CancellationToken will be notified of the cancellation,
+    // the onCancellationRequested event will be fired,
+    // and IsCancellationRequested will return true.
     this._source?.cancel();
   }
 }
