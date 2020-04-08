@@ -179,7 +179,7 @@ export default class ConnectionController {
       connectionModel = new Connection(newConnectionModel);
     } catch (error) {
       vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
-      return Promise.resolve(false);
+      return Promise.reject(`Unable to load connection: ${error}`);
     }
 
     return this.saveNewConnectionAndConnect(connectionModel);
