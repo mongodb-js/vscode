@@ -104,7 +104,7 @@ suite('Connect Form View Test Suite', () => {
         assert(testConnectionController.isCurrentlyConnected());
         assert(
           testConnectionController.getActiveConnectionName() ===
-            'localhost:27018'
+          'localhost:27018'
         );
         assert(
           testConnectionController.getActiveConnectionModel()?.port === 27018
@@ -218,6 +218,58 @@ suite('Connect Form View Test Suite', () => {
           hostname: connectionModel.hostname
         }
       });
+    });
+  });
+
+
+  test('web view sends an unsuccessful connect result on an unsuccessful connection', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController
+    );
+
+    let messageRecieved;
+    const fakeWebview = {
+      html: '',
+      postMessage: (message: any): void => {
+        assert(!message.connectionSuccess);
+        assert(message.connectionMessage.includes('Unable to load connection'));
+
+        testConnectionController.disconnect();
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+      }
+    };
+
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const testWebviewController = new WebviewController(
+      testConnectionController
+    );
+
+    testWebviewController.showConnectForm(
+      mdbTestExtension.testExtensionContext
+    );
+
+    // Mock a connection call.
+    messageRecieved({
+      command: MESSAGE_TYPES.CONNECT,
+      connectionModel: {
+        port: 2700002, // Bad port number.
+        hostname: 'localhost'
+      }
     });
   });
 
