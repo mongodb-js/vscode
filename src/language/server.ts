@@ -13,8 +13,13 @@ import {
   TextDocumentPositionParams,
   RequestType
 } from 'vscode-languageserver';
-import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
-import { CliServiceProvider } from '@mongosh/service-provider-server';
+import { Worker as WorkerThreads } from 'worker_threads';
+
+const path = require('path');
+
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -199,9 +204,9 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // );
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 
-  // const notification = new NotificationType<string>('showInfoNotification');
+  // const notification = new NotificationType<string>('showInformationMessage');
   connection.sendNotification(
-    'showInfoNotification',
+    'showInformationMessage',
     'Enjoy these diagnostics!'
   );
 }
@@ -274,63 +279,64 @@ connection.onCompletionResolve(
   }
 );
 
-connection.onRequest('checkServerAlive', () => true);
-
 /**
  * Execute the entire playground script.
  */
-connection.onRequest('executeAll', async (params, token) => {
-  const connectionOptions = params.connectionOptions || {};
+connection.onRequest('executeAll', (params) => {
+  // Use Node worker threads to isolate each run of a playground
+  // to be able to cancel evaluation of infinite loops
+  const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
+    workerData: {
+      codeToEvaluate: params.codeToEvaluate,
+      connectionString: params.connectionString,
+      connectionOptions: params.connectionOptions
+    }
+  });
 
-  // Instantiate a data service provider
-  // TODO: update when `mongosh` start support cancellationToken
-  // See: https://github.com/mongodb/node-mongodb-native/commit/2014b7b/#diff-46fff96a6e12b2b0b904456571ce308fR132
-  const serviceProvider = await CliServiceProvider.connect(
-    params.connectionString,
-    connectionOptions
-  );
+  // Listen for results from the worker thread
+  worker.on('message', (response) => {
+    // Print a debug message to the language server output
+    if (response.message) {
+      connection.console.log(`${response.message}`);
+    }
 
-  // Create a new instance of the runtime
-  const runtime = new ElectronRuntime(serviceProvider);
-  let result: any;
+    // Send error message to the language server client
+    if (response.error) {
+      connection.sendNotification(
+        'showErrorMessage',
+        response.error.message
+      );
+    }
 
-  // The event which fires upon cancellation
-  token.onCancellationRequested(async () => {
-    connection.console.log('Cancellation Requested');
-
-    // Cancel a long-running request to the node driver.
-    // The mongoClient.close method closes the underlying connector,
-    // which in turn closes all open connections.
-    // Once called, this mongodb instance can no longer be used.
-    await (serviceProvider as any).mongoClient.close(false);
-
+    // Send result to the language server client
     connection.sendNotification(
-      'showInfoNotification',
-      'The long running playground operation was canceled'
+      'executeAllDone',
+      response.result
     );
   });
 
-  try {
-    connection.console.log('Runtime Evaluate Requested');
-    result = await runtime.evaluate(params.codeToEvaluate);
+  // Listen for cancellation request from the language server client
+  connection.onRequest('cancelAll', async () => {
+    connection.console.log('Playground cancellation requested');
+    connection.sendNotification(
+      'showInformationMessage',
+      'The long running playground operation was canceled'
+    );
 
-    // Close mongoClient after each runtime evaluation
-    // to make sure that all resources are free and can be used with a new request
-    await (serviceProvider as any).mongoClient.close(false);
-  } catch (error) {
-    // Return the actual error value if the request wasn't canceled.
-    // The onCancellationRequested event handles showing information message
-    // in case of cancelation, since the `Topology is closed, please connect`
-    // error can be confusing
-    if (!token.isCancellationRequested) {
-      throw new Error(error);
-    }
-  } finally {
-    // If has no errors and wasn't canceled return a value
-    if (!token.isCancellationRequested) {
-      return result;
-    }
-  }
+    // Try to close mongoClient to free resources
+    worker.postMessage('terminate');
+
+    // Closing mongoClient...
+    // We can't wait for the actual result from cancelAll() function
+    // because it might never return a result in case of infinite loops
+    await sleep(3000);
+
+    // Stop the worker and all JavaScript execution
+    // in the worker thread as soon as possible
+    worker.terminate().then((status) => {
+      connection.console.log(`Playground canceled with status: ${status}`);
+    });
+  });
 });
 
 /**

@@ -12,7 +12,6 @@ import {
   cleanupTestDB
 } from '../dbTestHelper';
 import { beforeEach, afterEach } from 'mocha';
-import formatOutput from '../../../utils/formatOutput';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -183,7 +182,7 @@ suite('Playground Controller Test Suite', () => {
 
       testConnectionController.setActiveConnection(mockActiveConnection);
 
-      expect(await testPlaygroundController.evaluate('1 + 1')).to.be.deep.equal({ value: 2 });
+      expect(await testPlaygroundController.evaluate('1 + 1')).to.be.equal('2');
     });
 
     test('evaluate multiple commands at once', async () => {
@@ -204,7 +203,7 @@ suite('Playground Controller Test Suite', () => {
       expect(await testPlaygroundController.evaluate(`
         var x = 1;
         x + 2
-      `)).to.be.deep.equal({ value: 3 });
+      `)).to.be.equal('3');
     });
 
     test('evaluate interaction with a database', (done) => {
@@ -225,12 +224,12 @@ suite('Playground Controller Test Suite', () => {
           `);
           const expectedResult = '[\n' +
             '  {\n' +
-            '    _id: \'5e32b4d67bf47f4525f2f811\',\n' +
+            '    _id: 5e32b4d67bf47f4525f2f811,\n' +
             '    example: \'field\'\n' +
             '  }\n' +
             ']';
 
-          expect(formatOutput(actualResult)).to.be.equal(expectedResult);
+          expect(actualResult).to.be.equal(expectedResult);
         }
       ).then(done, done);
     });
@@ -351,7 +350,7 @@ suite('Playground Controller Test Suite', () => {
 
           const result = await testPlaygroundController.evaluate(codeToEvaluate);
 
-          expect(result).to.be.deep.equal({ value: 2 });
+          expect(result).to.be.equal('2');
         }
       ).then(done, done);
     });

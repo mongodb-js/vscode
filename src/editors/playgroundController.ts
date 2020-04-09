@@ -111,10 +111,11 @@ export default class PlaygroundController {
       );
     }
 
-    // Run playground as a background process using the Language Server
-    let result = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
+    // Send a request to the language server to execute scripts from a playground
+    const result = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
 
     if (result) {
+      // Send metrics to Segment
       this._telemetryController?.track(
         TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED,
         this.prepareTelemetry(result)
@@ -154,26 +155,28 @@ export default class PlaygroundController {
         title: 'Running a playground...',
         cancellable: true
       }, async (progress, token) => {
-        token.onCancellationRequested(async () => {
-          // Cancel running a playground when clicked on the cancel button
+        token.onCancellationRequested(() => {
+          // If a user clicked the cancel button terminate all playground scripts
           this._languageServerController.cancelAll();
+          this._outputChannel.clear();
+          this._outputChannel.show(true);
+
           return resolve(false);
         });
 
-        try {
-          result = await this.evaluate(codeToEvaluate);
-        } catch (error) {
-          vscode.window.showErrorMessage(`Unable to run playground: ${error.message}`);
-          return resolve(false);
-        }
+        // Run all playground scripts
+        result = await this.evaluate(codeToEvaluate);
       });
 
       if (!result) {
+        this._outputChannel.clear();
+        this._outputChannel.show(true);
+
         return resolve(false);
       }
 
       this._outputChannel.clear();
-      this._outputChannel.appendLine(formatOutput(result));
+      this._outputChannel.appendLine(result);
       this._outputChannel.show(true);
 
       return resolve(true);

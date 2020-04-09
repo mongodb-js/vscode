@@ -55,13 +55,13 @@ In `.vscode/settings.json`
 From the server:
 
 ```javascript
-connection.sendNotification('showInfoNotification', `Hi, Friend.`);
+connection.sendNotification('showInformationMessage', `Hi, Friend.`);
 ```
 
 From the client:
 
 ```javascript
-client.onNotification('showInfoNotification', (messsage) => {
+client.onNotification('showInformationMessage', (messsage) => {
   vscode.window.showInformationMessage(messsage);
 });
 ```
