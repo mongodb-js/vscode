@@ -141,7 +141,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
             vscode.window.showErrorMessage(
               `Unable to list documents: ${findError}`
             );
-            return reject(`Unable to list documents: ${findError}`);
+            return reject(new Error(`Unable to list documents: ${findError}`));
           }
 
           if (!documents || documents.length === 0) {

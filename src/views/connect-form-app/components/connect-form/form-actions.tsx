@@ -61,12 +61,9 @@ class FormActions extends React.Component<props> {
   renderConnect = (): React.ReactNode => {
     const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
 
-    const { isConnected, isConnecting } = this.props;
+    const { isConnecting } = this.props;
 
     let connectingText = 'Connect';
-    if (isConnected) {
-      connectingText = 'Success! Connected.';
-    }
     if (isConnecting) {
       connectingText = 'Connecting...';
     }
@@ -91,7 +88,7 @@ class FormActions extends React.Component<props> {
   renderMessage(): React.ReactNode {
     const connection = this.props.currentConnection;
     const server = `${connection.hostname}:${connection.port}`;
-    let message: React.ReactNode = `Connected to ${server}`;
+    let message: React.ReactNode = `Success! Connected to ${server}. You may now close this window.`;
     let colorStyle = styles['connection-message-container-success'];
     let hasMessage = false;
 

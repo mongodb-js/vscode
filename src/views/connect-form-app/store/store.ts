@@ -117,6 +117,8 @@ export const rootReducer = (
 
       return {
         ...state,
+        // The form may be displaying a previous error message from a failed connect.
+        isValid: true,
         isConnecting: true,
         isConnected: false
       };
@@ -131,12 +133,10 @@ export const rootReducer = (
       };
 
     case ActionTypes.CONNECTION_EVENT_OCCURED:
-      // TODO: We can do some error handling on connection failure here.
-
       return {
         ...state,
         isConnecting: false,
-        isConnected: false,
+        isConnected: action.successfullyConnected,
         isValid: action.successfullyConnected ? state.isValid : false,
         errorMessage: action.successfullyConnected
           ? state.errorMessage
