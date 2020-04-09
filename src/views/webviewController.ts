@@ -118,6 +118,10 @@ export default class WebviewController {
       }
     );
 
+    panel.iconPath = vscode.Uri.file(
+      path.join(extensionPath, 'images', 'leaf.svg')
+    );
+
     const reactAppUri = getReactAppUri(extensionPath);
     panel.webview.html = getConnectWebviewContent(reactAppUri);
 
