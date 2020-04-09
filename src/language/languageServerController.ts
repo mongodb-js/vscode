@@ -93,7 +93,7 @@ export default class LanguageServerController {
     this.client.stop();
   }
 
-  executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Thenable<any> | undefined {
+  executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Promise<any> {
     return new Promise((resolve) => {
       this.client.onReady().then(() => {
         // Send a request to the language server server to execute scripts from a playground.

@@ -51,6 +51,7 @@ function cancelAll() {
   return { message: 'The call to the Node driver was cancelled', result: null };
 }
 
+// parentPort allows communication with the parent thread
 (async () => {
   parentPort?.once('message', async (message) => {
     if (message === 'terminate') {
@@ -58,6 +59,7 @@ function cancelAll() {
     }
   });
 
+  // Send data back to the parent thread
   parentPort?.postMessage(
     await executeAll(
       workerData.codeToEvaluate,

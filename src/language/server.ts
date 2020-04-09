@@ -284,8 +284,17 @@ connection.onCompletionResolve(
  */
 connection.onRequest('executeAll', (params) => {
   // Use Node worker threads to isolate each run of a playground
-  // to be able to cancel evaluation of infinite loops
+  // to be able to cancel evaluation of infinite loops.
+  //
+  // There is an issue with support for `.ts` files.
+  // Trying to run a `.ts` file in a worker thread results in error:
+  // `The worker script extension must be “.js” or “.mjs”. Received “.ts”`
+  // As a workaround require `.js` file from the out folder.
+  //
+  // TODO: After webpackifying the extension replace
+  // the workaround with some similar 3rd-party plugin
   const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
+    // The workerData parameter sends data to the created worker
     workerData: {
       codeToEvaluate: params.codeToEvaluate,
       connectionString: params.connectionString,
