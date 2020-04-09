@@ -22,6 +22,8 @@ form {
 
   background-color: var(--vscode-editor-background);
   color: var(--vscode-editor-foreground);
+  font-size: 14px;
+  line-height: 20px;
 }
 
 label {
@@ -202,13 +204,15 @@ label {
             var(--vscode-searchEditor-textInputBorder, rgba(161, 161, 161, 0.5));
           border-radius: 3px;
           color: var(--vscode-editor-foreground);
+          padding: 8px 4px 9px;
+          margin: 0;
 
           .file-icon {
             display: inline-block;
             font-size: inherit;
             text-rendering: auto;
             margin: 0 5px 0 0;
-            color: rgba(170, 170, 170, 0.75);
+            color: var(--vscode-editor-foreground);
           }
 
           i.help {
@@ -248,6 +252,7 @@ label {
     background-image: none;
     border: 1px solid var(--vscode-searchEditor-textInputBorder, transparent);
     width: 100%;
+    border-radius: 3px;
 
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -255,6 +260,10 @@ label {
 
     &:focus {
       border: 1px solid var(--vscode-focusBorder);
+    }
+
+    ::placeholder {
+      color: var(--vscode-input-placeholderForeground);
     }
   }
 
@@ -268,16 +277,25 @@ label {
   }
 
   .help-panel {
-    width: 240px;
+    width: 300px;
     margin: 30px;
     background-color: var(--vscode-editor-background);
-    color: var(--vscode-editor-foreground);
+    color: var(--vscode-badge-foreground);
+    font-size: 14px;
+    line-height: 20px;
 
     .help-container {
-      border: 1px solid var(--vscode-debugToolBar-border, @gray);
       display: inline-block;
       height: auto;
       padding: 20px;
+      background-color: var(--vscode-badge-background);
+      border-radius: 3px;
+
+      .btn {
+        background-color: var(--vscode-input-background);
+        border: none;
+        color: var(--vscode-badge-foreground);
+      }
 
       .help-section {
         margin: 0;
@@ -286,37 +304,33 @@ label {
       }
 
       .help-link {
-        color: @green;
+        color: var(--vscode-notificationLink-foreground);
+        text-decoration: underline;
         margin-left: 3px;
 
         &:visited {
-          color: @green;
+          color: var(--vscode-badge-foreground);
+          text-decoration: underline;
         }
       }
     }
   }
 
   .btn {
-    background-color: rgb(0, 120, 41);
+    background-color: #13aa52;
     color: white;
-    padding: 10px 20px;
-    margin: 6px;
+    padding: 9px 20px 11px;
+    margin: 6px 0 0 0;
     display: inline-block;
     text-decoration: none;
     cursor: pointer;
     border: none;
-
+    border-radius: 3px;
     transition: 200ms all;
-    font-size: 0.9em;
+    font-size: 14px;
 
     &:hover {
-      box-shadow: 0 3px 6px 0 rgba(60, 66, 87, 0.1),
-        0 2px 4px 0 rgba(0, 0, 0, 0.07);
-    }
-
-    &-sm {
-      padding: 6px 10px;
-      margin: 0;
+      background-color: #109648;
     }
   }
 }
