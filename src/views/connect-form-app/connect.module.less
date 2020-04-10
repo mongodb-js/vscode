@@ -277,30 +277,45 @@ label {
   }
 
   .help-panel {
-    width: 300px;
+    width: 240px;
     margin: 30px;
     background-color: var(--vscode-editor-background);
-    color: var(--vscode-badge-foreground);
+    color: @pw;
     font-size: 14px;
     line-height: 20px;
 
     .help-container {
       display: inline-block;
       height: auto;
-      padding: 20px;
-      background-color: var(--vscode-badge-background);
+      padding: 80px 20px 20px;
+      background-color: #ffffff;
       border-radius: 3px;
+      border: 1px solid rgb(231, 238, 236);
+      box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 10px -4px;
 
       .btn {
-        background-color: var(--vscode-input-background);
-        border: none;
-        color: var(--vscode-badge-foreground);
+        background-color: #ffffff;
+        background-image: none;
+        border: 1px solid @green;
+        box-shadow: none;
+        color: @green;
+        padding: 5px 12px 6px;
+        margin: 0 auto;
+        display: inline-block;
+
+        &:hover {
+          background-color: #109648;
+          background-image: linear-gradient(#129f4c, #148040);
+          color: #ffffff;
+          border: 1px solid rgb(21, 130, 66);
+          box-shadow: rgb(21, 130, 66) 0px -1px 0px inset;
+        }
       }
 
       .help-section {
         margin: 0;
-        margin-bottom: 10px;
         padding: 0;
+        text-align: center;
       }
 
       .help-link {
@@ -317,9 +332,9 @@ label {
   }
 
   .btn {
-    background-color: #13aa52;
+    background-color: @green;
     color: white;
-    padding: 9px 20px 11px;
+    padding: 9px 12px 11px;
     margin: 6px 0 0 0;
     display: inline-block;
     text-decoration: none;
@@ -328,9 +343,18 @@ label {
     border-radius: 3px;
     transition: 200ms all;
     font-size: 14px;
+    background-color: rgb(19, 170, 82);
+    background-image: linear-gradient(rgb(19, 170, 82), rgb(24, 150, 76));
+    border-radius: 3px;
+    text-decoration: none;
+    transition: all 120ms ease 0s;
+    overflow: hidden;
+    border: 1px solid rgb(21, 130, 66);
+    box-shadow: rgb(21, 130, 66) 0px -1px 0px inset;
 
     &:hover {
       background-color: #109648;
+      background-image: linear-gradient(#129f4c, #148040);
     }
   }
 }
