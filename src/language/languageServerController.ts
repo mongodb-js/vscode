@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { workspace, ExtensionContext } from 'vscode';
-
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
-  TransportKind
+  TransportKind,
+  CancellationTokenSource
 } from 'vscode-languageclient';
 
 import ConnectionController from '../connectionController';
@@ -19,6 +19,7 @@ const log = createLogger('LanguageServerController');
  */
 export default class LanguageServerController {
   _connectionController?: ConnectionController;
+  _source?: CancellationTokenSource;
   client: LanguageClient;
 
   constructor(
@@ -94,26 +95,31 @@ export default class LanguageServerController {
   }
 
   executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Promise<any> {
-    return new Promise((resolve) => {
-      this.client.onReady().then(() => {
-        // Send a request to the language server server to execute scripts from a playground.
-        // We do not wait for results here since the evaluation happens in worker threads
-        // and the process can be killed at some point
-        this.client.sendRequest(
-          'executeAll',
-          { codeToEvaluate, connectionString, connectionOptions }
-        );
-        // Listen for playground evaluation results form the language server server
-        // and return results to the playground controller
-        return this.client.onNotification('executeAllDone', (data) => {
-          return resolve(data)
-        });
-      });
+    return this.client.onReady().then(async () => {
+      // Instantiate a new CancellationTokenSource object
+      // that generates a cancellation token for each run of a playground
+      this._source = new CancellationTokenSource();
+
+      // Send a request with a cancellation token
+      // to the language server server to execute scripts from a playground
+      // and return results to the playground controller when ready
+      return this.client.sendRequest(
+        'executeAll',
+        { codeToEvaluate, connectionString, connectionOptions },
+        this._source.token
+      );
     });
   }
 
-  cancelAll(): Promise<any> {
-    // Send a request to the language server server to cancel all playground scripts
-    return this.client.sendRequest('cancelAll');
+  cancelAll() {
+    return new Promise((resolve) => {
+      // Send a request for cancellation. As a result
+      // the associated CancellationToken will be notified of the cancellation,
+      // the onCancellationRequested event will be fired,
+      // and IsCancellationRequested will return true.
+      this._source?.cancel();
+
+      return resolve(true);
+    });
   }
 }

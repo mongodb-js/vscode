@@ -62,6 +62,7 @@ export default class PlaygroundController {
         })
         .then((document) => {
           vscode.window.showTextDocument(document);
+          this._outputChannel.show(true);
           resolve(true);
         }, reject);
     });

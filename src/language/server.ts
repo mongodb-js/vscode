@@ -14,6 +14,7 @@ import {
   RequestType
 } from 'vscode-languageserver';
 import { Worker as WorkerThreads } from 'worker_threads';
+import { resolve } from 'dns';
 
 const path = require('path');
 
@@ -282,68 +283,67 @@ connection.onCompletionResolve(
 /**
  * Execute the entire playground script.
  */
-connection.onRequest('executeAll', (params) => {
-  // Use Node worker threads to isolate each run of a playground
-  // to be able to cancel evaluation of infinite loops.
-  //
-  // There is an issue with support for `.ts` files.
-  // Trying to run a `.ts` file in a worker thread results in error:
-  // `The worker script extension must be “.js” or “.mjs”. Received “.ts”`
-  // As a workaround require `.js` file from the out folder.
-  //
-  // TODO: After webpackifying the extension replace
-  // the workaround with some similar 3rd-party plugin
-  const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
-    // The workerData parameter sends data to the created worker
-    workerData: {
-      codeToEvaluate: params.codeToEvaluate,
-      connectionString: params.connectionString,
-      connectionOptions: params.connectionOptions
-    }
-  });
+connection.onRequest('executeAll', (params, token) => {
+  return new Promise((resolve) => {
+    // Use Node worker threads to isolate each run of a playground
+    // to be able to cancel evaluation of infinite loops.
+    //
+    // There is an issue with support for `.ts` files.
+    // Trying to run a `.ts` file in a worker thread results in error:
+    // `The worker script extension must be “.js” or “.mjs”. Received “.ts”`
+    // As a workaround require `.js` file from the out folder.
+    //
+    // TODO: After webpackifying the extension replace
+    // the workaround with some similar 3rd-party plugin
+    const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
+      // The workerData parameter sends data to the created worker
+      workerData: {
+        codeToEvaluate: params.codeToEvaluate,
+        connectionString: params.connectionString,
+        connectionOptions: params.connectionOptions
+      }
+    });
 
-  // Listen for results from the worker thread
-  worker.on('message', (response) => {
-    // Print a debug message to the language server output
-    if (response.message) {
-      connection.console.log(`${response.message}`);
-    }
+    // Listen for results from the worker thread
+    worker.on('message', (response) => {
+      // Print a debug message to the language server output
+      if (response.message) {
+        connection.console.log(`${response.message}`);
+      }
 
-    // Send error message to the language server client
-    if (response.error) {
+      // Send error message to the language server client
+      if (response.error) {
+        connection.sendNotification(
+          'showErrorMessage',
+          response.error.message
+        );
+      }
+
+      // Return results to the language server client
+      return resolve(response.result);
+    });
+
+    // Listen for cancellation request from the language server client
+    token.onCancellationRequested(async () => {
+      connection.console.log('Playground cancellation requested');
       connection.sendNotification(
-        'showErrorMessage',
-        response.error.message
+        'showInformationMessage',
+        'The long running playground operation was canceled'
       );
-    }
 
-    // Send result to the language server client
-    connection.sendNotification(
-      'executeAllDone',
-      response.result
-    );
-  });
+      // Try to close mongoClient to free resources
+      worker.postMessage('terminate');
 
-  // Listen for cancellation request from the language server client
-  connection.onRequest('cancelAll', async () => {
-    connection.console.log('Playground cancellation requested');
-    connection.sendNotification(
-      'showInformationMessage',
-      'The long running playground operation was canceled'
-    );
+      // Closing mongoClient...
+      // We can't wait for the actual result from cancelAll() function
+      // because it might never return a result in case of infinite loops
+      await sleep(3000);
 
-    // Try to close mongoClient to free resources
-    worker.postMessage('terminate');
-
-    // Closing mongoClient...
-    // We can't wait for the actual result from cancelAll() function
-    // because it might never return a result in case of infinite loops
-    await sleep(3000);
-
-    // Stop the worker and all JavaScript execution
-    // in the worker thread as soon as possible
-    worker.terminate().then((status) => {
-      connection.console.log(`Playground canceled with status: ${status}`);
+      // Stop the worker and all JavaScript execution
+      // in the worker thread as soon as possible
+      worker.terminate().then((status) => {
+        connection.console.log(`Playground canceled with status: ${status}`);
+      });
     });
   });
 });
