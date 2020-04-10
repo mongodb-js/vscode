@@ -15,8 +15,8 @@ let serviceProvider: CliServiceProvider;
 // The mongoClient.close method closes the underlying connector,
 // which in turn closes all open connections.
 // Once called, this mongodb instance can no longer be used.
-const cancelAll = (): void => {
-  (serviceProvider as any).mongoClient.close(false);
+const closeMongoClient = (): void => {
+  (serviceProvider as any)?.mongoClient.close(false);
   console.log('The call to the Node driver was cancelled');
 }
 
@@ -40,16 +40,16 @@ const executeAll = async (
     const result: EvaluationResult | string = await runtime.evaluate(codeToEvaluate);
 
     if (result) {
-      return { result: formatOutput(result) };
+      return [null, formatOutput(result)];
     }
 
-    return {};
+    return [null];
   } catch (error) {
     console.log(error);
 
-    return { error };
+    return [error];
   } finally {
-    cancelAll();
+    closeMongoClient();
   }
 }
 
@@ -58,7 +58,7 @@ const executeAll = async (
   // Close mongo client
   parentPort?.on('message', (message) => {
     if (message === 'terminate') {
-      parentPort?.postMessage(cancelAll());
+      parentPort?.postMessage(closeMongoClient());
     }
   });
 

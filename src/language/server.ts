@@ -304,17 +304,15 @@ connection.onRequest('executeAll', (params, token) => {
     });
 
     // Listen for results from the worker thread
-    worker.on('message', (response) => {
-      // Send error message to the language server client
-      if (response.error) {
+    worker.on('message', ([error, result]) => {
+      if (error) {
         connection.sendNotification(
           'showErrorMessage',
-          response.error.message
+          error.message
         );
       }
 
-      // Return results to the language server client
-      return resolve(response.result);
+      return resolve(result);
     });
 
     // Listen for cancellation request from the language server client
