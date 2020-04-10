@@ -14,7 +14,6 @@ import {
   RequestType
 } from 'vscode-languageserver';
 import { Worker as WorkerThreads } from 'worker_threads';
-import { resolve } from 'dns';
 
 const path = require('path');
 
@@ -306,11 +305,6 @@ connection.onRequest('executeAll', (params, token) => {
 
     // Listen for results from the worker thread
     worker.on('message', (response) => {
-      // Print a debug message to the language server output
-      if (response.message) {
-        connection.console.log(`${response.message}`);
-      }
-
       // Send error message to the language server client
       if (response.error) {
         connection.sendNotification(

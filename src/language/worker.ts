@@ -1,6 +1,6 @@
 import { parentPort, workerData } from 'worker_threads';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
-import { CliServiceProvider } from '@mongosh/service-provider-server';
+import { CliServiceProvider, NodeOptions } from '@mongosh/service-provider-server';
 import formatOutput from '../utils/formatOutput';
 
 type EvaluationResult = {
@@ -8,9 +8,23 @@ type EvaluationResult = {
   type?: string;
 };
 
-let serviceProvider;
+let serviceProvider: CliServiceProvider;
 
-const executeAll = async (codeToEvaluate, connectionString, connectionOptions = {}) => {
+// Close mongoClient after each runtime evaluation
+// to make sure that all resources are free and can be used with a new request.
+// The mongoClient.close method closes the underlying connector,
+// which in turn closes all open connections.
+// Once called, this mongodb instance can no longer be used.
+const cancelAll = (): void => {
+  (serviceProvider as any).mongoClient.close(false);
+  console.log('The call to the Node driver was cancelled');
+}
+
+const executeAll = async (
+  codeToEvaluate: string,
+  connectionString: string,
+  connectionOptions: NodeOptions = {}
+) => {
   try {
     // Instantiate a data service provider
     //
@@ -22,15 +36,8 @@ const executeAll = async (codeToEvaluate, connectionString, connectionOptions = 
     );
 
     // Create a new instance of the runtime and run scripts
-    const runtime = new ElectronRuntime(serviceProvider);
+    const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
     const result: EvaluationResult | string = await runtime.evaluate(codeToEvaluate);
-
-    // Close mongoClient after each runtime evaluation
-    // to make sure that all resources are free and can be used with a new request.
-    // The mongoClient.close method closes the underlying connector,
-    // which in turn closes all open connections.
-    // Once called, this mongodb instance can no longer be used.
-    (serviceProvider as any).mongoClient.close(false);
 
     if (result) {
       return { result: formatOutput(result) };
@@ -41,21 +48,17 @@ const executeAll = async (codeToEvaluate, connectionString, connectionOptions = 
     console.log(error);
 
     return { error };
+  } finally {
+    cancelAll();
   }
-}
-
-function cancelAll() {
-  // Close mongoClient to free resources
-  (serviceProvider as any).mongoClient.close(false);
-
-  return { message: 'The call to the Node driver was cancelled', result: null };
 }
 
 // parentPort allows communication with the parent thread
 (async () => {
-  parentPort?.once('message', async (message) => {
+  // Close mongo client
+  parentPort?.on('message', (message) => {
     if (message === 'terminate') {
-      parentPort?.postMessage(await cancelAll());
+      parentPort?.postMessage(cancelAll());
     }
   });
 
