@@ -8,18 +8,6 @@ type EvaluationResult = {
   type?: string;
 };
 
-let serviceProvider: CliServiceProvider;
-
-// Close mongoClient after each runtime evaluation
-// to make sure that all resources are free and can be used with a new request.
-// The mongoClient.close method closes the underlying connector,
-// which in turn closes all open connections.
-// Once called, this mongodb instance can no longer be used.
-const closeMongoClient = (): void => {
-  (serviceProvider as any)?.mongoClient.close(false);
-  console.log('The call to the Node driver was cancelled');
-}
-
 const executeAll = async (
   codeToEvaluate: string,
   connectionString: string,
@@ -28,9 +16,9 @@ const executeAll = async (
   try {
     // Instantiate a data service provider
     //
-    // TODO: update when `mongosh` start support cancellationToken
+    // TODO: update when `mongosh` will start to support cancellationToken
     // See: https://github.com/mongodb/node-mongodb-native/commit/2014b7b/#diff-46fff96a6e12b2b0b904456571ce308fR132
-    serviceProvider = await CliServiceProvider.connect(
+    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
       connectionString,
       connectionOptions
     );
@@ -39,30 +27,16 @@ const executeAll = async (
     const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
     const result: EvaluationResult | string = await runtime.evaluate(codeToEvaluate);
 
-    if (result) {
-      return [null, formatOutput(result)];
-    }
-
-    return [null];
+    return [null, result ? formatOutput(result) : null];
   } catch (error) {
     console.log(error);
 
     return [error];
-  } finally {
-    closeMongoClient();
   }
 }
 
 // parentPort allows communication with the parent thread
 (async () => {
-  // Close mongo client
-  parentPort?.on('message', (message) => {
-    if (message === 'terminate') {
-      parentPort?.postMessage(closeMongoClient());
-    }
-  });
-
-  // Send data back to the parent thread
   parentPort?.postMessage(
     await executeAll(
       workerData.codeToEvaluate,

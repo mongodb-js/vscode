@@ -312,6 +312,8 @@ connection.onRequest('executeAll', (params, token) => {
         );
       }
 
+      worker.terminate(); // Close the worker thread
+
       return resolve(result);
     });
 
@@ -323,13 +325,18 @@ connection.onRequest('executeAll', (params, token) => {
         'The long running playground operation was canceled'
       );
 
-      // Try to close mongoClient to free resources
-      worker.postMessage('terminate');
-
-      // Closing mongoClient...
-      // We can't wait for the actual result from cancelAll() function
-      // because it might never return a result in case of infinite loops
-      await sleep(3000);
+      // If there is a situation that mongoClient is unresponsive,
+      // try to close mongoClient after each runtime evaluation
+      // and after the cancelation of the runtime
+      // to make sure that all resources are free and can be used with a new request.
+      //
+      // (serviceProvider as any)?.mongoClient.close(false);
+      //
+      // The mongoClient.close method closes the underlying connector,
+      // which in turn closes all open connections.
+      // Once called, this mongodb instance can no longer be used.
+      //
+      // See: https://github.com/mongodb-js/vscode/pull/54
 
       // Stop the worker and all JavaScript execution
       // in the worker thread as soon as possible
