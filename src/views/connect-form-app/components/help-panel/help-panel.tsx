@@ -9,6 +9,9 @@ class HelpPanel extends React.PureComponent {
       <div className={styles['help-panel']}>
         <div className={styles['help-container']}>
           <div className={styles['help-section']}>
+            Atlas Icon
+          </div>
+          <div className={styles['help-section']}>
             <p>
               <strong>New to MongoDB and don't have a cluster?</strong>
             </p>
@@ -19,9 +22,9 @@ class HelpPanel extends React.PureComponent {
               using
               <a
                 className={styles['help-link']}
-                target='_blank'
-                rel='noopener'
-                href='https://www.mongodb.com/cloud/atlas'
+                target="_blank"
+                rel="noopener"
+                href="https://www.mongodb.com/cloud/atlas"
               >
                 MongoDB Atlas
               </a>
@@ -31,9 +34,9 @@ class HelpPanel extends React.PureComponent {
             <div>
               <a
                 className={classnames(styles.btn, styles['btn-sm'])}
-                target='_blank'
-                rel='noopener'
-                href='https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension'
+                target="_blank"
+                rel="noopener"
+                href="https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension"
               >
                 Create Free Cluster
               </a>
