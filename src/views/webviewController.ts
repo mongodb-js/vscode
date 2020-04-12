@@ -112,8 +112,10 @@ export default class WebviewController {
       vscode.ViewColumn.One, // Editor column to show the webview panel in.
       {
         enableScripts: true,
+        retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'out', 'connect-form'))
+          vscode.Uri.file(path.join(extensionPath, 'out', 'connect-form')),
+          vscode.Uri.file(path.join(extensionPath, 'images', 'connect-form'))
         ]
       }
     );
