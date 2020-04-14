@@ -203,6 +203,8 @@ export default class ConnectionController {
     };
     this._savedConnections[newConnection.id] = newConnection;
 
+    this._storageController.storeNewConnection(newConnection);
+
     return new Promise((resolve, reject) => {
       this.connect(newConnection.id, connectionModel).then((connectSuccess) => {
         if (!connectSuccess) {
