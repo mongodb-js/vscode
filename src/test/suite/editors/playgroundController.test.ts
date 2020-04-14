@@ -19,10 +19,6 @@ const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
 
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 const getDocUri = (docName: string) => {
   const docPath = path.resolve(__dirname, '../../../../src/test/fixture', docName);
 
@@ -376,9 +372,7 @@ suite('Playground Controller Test Suite', () => {
           await openPlayground(getDocUri('test.mongodb'));
 
           testLanguageServerController.executeAll('while (1===1) {}', 'mongodb://localhost');
-
-          await sleep(500);
-          await testLanguageServerController.cancelAll();
+          testLanguageServerController.cancelAll();
 
           const result = await testLanguageServerController.executeAll('4 + 4', 'mongodb://localhost');
 
