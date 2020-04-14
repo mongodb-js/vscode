@@ -377,7 +377,7 @@ suite('Playground Controller Test Suite', () => {
 
           testLanguageServerController.executeAll('while (1===1) {}', 'mongodb://localhost');
 
-          await sleep(150);
+          await sleep(500);
           await testLanguageServerController.cancelAll();
 
           const result = await testLanguageServerController.executeAll('4 + 4', 'mongodb://localhost');
