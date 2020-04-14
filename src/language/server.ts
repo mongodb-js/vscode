@@ -17,10 +17,6 @@ import { Worker as WorkerThreads } from 'worker_threads';
 
 const path = require('path');
 
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
@@ -124,7 +120,7 @@ connection.onDidChangeConfiguration((change) => {
   } else {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     globalSettings = <ExampleSettings>(
-      (change.settings.languageServerExample || defaultSettings)
+      (change.settings.mongodbLanguageServer || defaultSettings)
     );
   }
 

@@ -19,6 +19,10 @@ const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
 
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const getDocUri = (docName: string) => {
   const docPath = path.resolve(__dirname, '../../../../src/test/fixture', docName);
 
@@ -351,6 +355,34 @@ suite('Playground Controller Test Suite', () => {
           const result = await testPlaygroundController.evaluate(codeToEvaluate);
 
           expect(result).to.be.equal('2');
+        }
+      ).then(done, done);
+    });
+
+    test('cancel a playground', (done) => {
+      const mockDocument = {
+        _id: new ObjectId('5e32b4d67bf47f4525f2f811'),
+        example: 'field'
+      };
+
+      seedDataAndCreateDataService('forest', [mockDocument]).then(
+        async (dataService) => {
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('confirmRunAll', false);
+
+          testConnectionController.setActiveConnection(dataService);
+
+          await openPlayground(getDocUri('test.mongodb'));
+
+          testLanguageServerController.executeAll('while (1===1) {}', 'mongodb://localhost');
+
+          await sleep(150);
+          await testLanguageServerController.cancelAll();
+
+          const result = await testLanguageServerController.executeAll('4 + 4', 'mongodb://localhost');
+
+          expect(result).to.be.equal('8');
         }
       ).then(done, done);
     });

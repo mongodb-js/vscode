@@ -4,7 +4,6 @@ import ConnectionController, { DataServiceEventTypes } from '../connectionContro
 import { LanguageServerController } from '../language';
 import TelemetryController, { TelemetryEventTypes } from '../telemetry/telemetryController';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import formatOutput from '../utils/formatOutput';
 import { OutputChannel, ProgressLocation } from 'vscode';
 import playgroundTemplate from '../templates/playgroundTemplate';
 
