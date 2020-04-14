@@ -182,9 +182,6 @@ export default class ConnectionController {
             return reject(new Error(`Unable to connect: ${error}`));
           }
 
-          // Override the default connection `appname`.
-          newConnectionModel.appname = `${name} ${version}`;
-
           this.connect(newConnection.id, newConnectionModel).then(
             (connectSuccess) => {
               if (!connectSuccess) {
@@ -233,6 +230,9 @@ export default class ConnectionController {
     this._statusView.showMessage('Connecting to MongoDB...');
 
     return new Promise<boolean>((resolve, reject) => {
+      // Override the default connection `appname`.
+      connectionModel.appname = `${name} ${version}`;
+
       const newDataService: DataServiceType = new DataService(connectionModel);
       newDataService.connect((err: Error | undefined) => {
         this._statusView.hideMessage();
@@ -430,13 +430,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-      connectionIds.map(
-        (id, index) => `${index + 1}: ${this._savedConnections[id].name}`
-      ),
-      {
-        placeHolder: 'Choose a connection to remove...'
-      }
-    );
+        connectionIds.map(
+          (id, index) => `${index + 1}: ${this._savedConnections[id].name}`
+        ),
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
