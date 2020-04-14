@@ -357,24 +357,19 @@ suite('Playground Controller Test Suite', () => {
 
     test('cancel a playground', (done) => {
       const mockDocument = {
-        _id: new ObjectId('5e32b4d67bf47f4525f2f811'),
-        example: 'field'
+        _id: new ObjectId('5e32b4d67bf47f4525f2f729'),
+        field: 'sample'
       };
 
       seedDataAndCreateDataService('forest', [mockDocument]).then(
         async (dataService) => {
-          await vscode.workspace
-            .getConfiguration('mdb')
-            .update('confirmRunAll', false);
-
           testConnectionController.setActiveConnection(dataService);
 
-          await openPlayground(getDocUri('test.mongodb'));
+          testLanguageServerController.executeAll('while (1===1) {}', 'mongodb://localhost:27018');
 
-          testLanguageServerController.executeAll('while (1===1) {}', 'mongodb://localhost');
-          testLanguageServerController.cancelAll();
+          await testLanguageServerController.cancelAll();
 
-          const result = await testLanguageServerController.executeAll('4 + 4', 'mongodb://localhost');
+          const result = await testLanguageServerController.executeAll('4 + 4', 'mongodb://localhost:27018');
 
           expect(result).to.be.equal('8');
         }
