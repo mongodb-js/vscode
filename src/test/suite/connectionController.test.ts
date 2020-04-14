@@ -67,6 +67,7 @@ suite('Connection Controller Test Suite', () => {
         );
         const dataService = testConnectionController.getActiveDataService();
         assert(dataService !== null);
+        assert(testConnectionController._activeConnectionModel?.appname.startsWith('mongodb-vscode'));
         assert(testConnectionController.isCurrentlyConnected());
       })
       .then(done, done);
@@ -477,7 +478,7 @@ suite('Connection Controller Test Suite', () => {
     assert(
       Object.keys(connections).length === 4,
       `Expected 4 connection configurations found ${
-        Object.keys(connections).length
+      Object.keys(connections).length
       }`
     );
     assert(
@@ -486,7 +487,7 @@ suite('Connection Controller Test Suite', () => {
     );
     assert(
       Object.keys(connections).includes('testWorkspaceConnectionModel2') ===
-        true,
+      true,
       "Expected connection configurations to include 'testWorkspaceConnectionModel2'"
     );
     assert(
@@ -495,7 +496,7 @@ suite('Connection Controller Test Suite', () => {
     );
     assert(
       connections.testGlobalConnectionModel2.driverUrl ===
-        'testGlobalConnectionModel2DriverUrl',
+      'testGlobalConnectionModel2DriverUrl',
       "Expected loaded connection to include driver url 'testGlobalConnectionModel2DriverUrl'"
     );
   });
@@ -525,7 +526,7 @@ suite('Connection Controller Test Suite', () => {
     assert(
       Object.keys(globalStoreConnections).length === 1,
       `Expected global store connections to have 1 connection found ${
-        Object.keys(globalStoreConnections).length
+      Object.keys(globalStoreConnections).length
       }`
     );
     const id = Object.keys(globalStoreConnections)[0];
@@ -573,7 +574,7 @@ suite('Connection Controller Test Suite', () => {
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
       `Expected workspace store connections to have 1 connection found ${
-        Object.keys(workspaceStoreConnections).length
+      Object.keys(workspaceStoreConnections).length
       }`
     );
     const id = Object.keys(workspaceStoreConnections)[0];
@@ -619,7 +620,7 @@ suite('Connection Controller Test Suite', () => {
             assert(
               Object.keys(workspaceStoreConnections).length === 1,
               `Expected workspace store connections to have 1 connection found ${
-                Object.keys(workspaceStoreConnections).length
+              Object.keys(workspaceStoreConnections).length
               }`
             );
 
@@ -635,7 +636,7 @@ suite('Connection Controller Test Suite', () => {
               assert(
                 testConnectionController.getSavedConnections().length === 1,
                 `Expected 1 connection config, found ${
-                  testConnectionController.getSavedConnections().length
+                testConnectionController.getSavedConnections().length
                 }.`
               );
               const id = testConnectionController.getSavedConnections()[0].id;
@@ -655,6 +656,7 @@ suite('Connection Controller Test Suite', () => {
                     name === 'localhost:27018',
                     `Expected the active connection name to be 'localhost:27018', found ${name}.`
                   );
+                  assert(testConnectionController._activeConnectionModel?.appname.startsWith('mongodb-vscode'));
                 })
                 .then(done, done);
             });
@@ -778,7 +780,7 @@ suite('Connection Controller Test Suite', () => {
               assert(
                 Object.keys(workspaceStoreConnections).length === 1,
                 `Expected workspace store connections to have 1 connection found ${
-                  Object.keys(workspaceStoreConnections).length
+                Object.keys(workspaceStoreConnections).length
                 }`
               );
 
@@ -793,7 +795,7 @@ suite('Connection Controller Test Suite', () => {
               assert(
                 Object.keys(postWorkspaceStoreConnections).length === 0,
                 `Expected workspace store connections to have 0 connections found ${
-                  Object.keys(postWorkspaceStoreConnections).length
+                Object.keys(postWorkspaceStoreConnections).length
                 }`
               );
             })
@@ -827,7 +829,7 @@ suite('Connection Controller Test Suite', () => {
     assert(
       Object.keys(globalStoreConnections).length === 1,
       `Expected workspace store connections to have 1 connection found ${
-        Object.keys(globalStoreConnections).length
+      Object.keys(globalStoreConnections).length
       }`
     );
 
@@ -841,7 +843,7 @@ suite('Connection Controller Test Suite', () => {
     assert(
       Object.keys(postGlobalStoreConnections).length === 0,
       `Expected global store connections to have 0 connections found ${
-        Object.keys(postGlobalStoreConnections).length
+      Object.keys(postGlobalStoreConnections).length
       }`
     );
   });
@@ -877,7 +879,7 @@ suite('Connection Controller Test Suite', () => {
               assert(
                 Object.keys(workspaceStoreConnections).length === 1,
                 `Expected workspace store connections to have 1 connection found ${
-                  Object.keys(workspaceStoreConnections).length
+                Object.keys(workspaceStoreConnections).length
                 }`
               );
               const connectionId =
@@ -912,7 +914,7 @@ suite('Connection Controller Test Suite', () => {
                         testConnectionController.getSavedConnections()
                           .length === 1,
                         `Expected 1 connection config, found ${
-                          testConnectionController.getSavedConnections().length
+                        testConnectionController.getSavedConnections().length
                         }.`
                       );
                       const id = testConnectionController.getSavedConnections()[0]
