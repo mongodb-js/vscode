@@ -1,18 +1,12 @@
-import { Actions, ActionTypes } from './actions';
+import { Actions, ActionTypes, FilePickerActionTypes } from './actions';
 
 import ConnectionModel, {
-  validateConnectionModel,
-  getDriverUrlFromConnectionModel
+  validateConnectionModel
 } from '../connection-model/connection-model';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
+import { MESSAGE_TYPES } from '../extension-app-message-constants';
 
 const vscode = acquireVsCodeApi();
-
-/**
- * All the SSL related fields on the connection model, with the exception
- * of the method.
- */
-// const SSL_FIELDS = ['sslCA', 'sslCert', 'sslKey', 'sslPass'];
 
 /**
  * All the ssh tunnel related fields on the connection model, with
@@ -51,6 +45,17 @@ export const initialState = {
   isHostChanged: false,
   isPortChanged: false,
   savedMessage: ''
+};
+
+const showFilePicker = (
+  action: FilePickerActionTypes,
+  multi: boolean
+): void => {
+  vscode.postMessage({
+    command: MESSAGE_TYPES.OPEN_FILE_PICKER,
+    action,
+    multi
+  });
 };
 
 // eslint-disable-next-line complexity
@@ -106,12 +111,14 @@ export const rootReducer = (
       }
 
       vscode.postMessage({
-        command: 'connect',
-        driverUrl: getDriverUrlFromConnectionModel(state.currentConnection)
+        command: MESSAGE_TYPES.CONNECT,
+        connectionModel: state.currentConnection
       });
 
       return {
         ...state,
+        // The form may be displaying a previous error message from a failed connect.
+        isValid: true,
         isConnecting: true,
         isConnected: false
       };
@@ -126,12 +133,10 @@ export const rootReducer = (
       };
 
     case ActionTypes.CONNECTION_EVENT_OCCURED:
-      // TODO: We can do some error handling on connection failure here.
-
       return {
         ...state,
         isConnecting: false,
-        isConnected: false,
+        isConnected: action.successfullyConnected,
         isValid: action.successfullyConnected ? state.isValid : false,
         errorMessage: action.successfullyConnected
           ? state.errorMessage
@@ -190,6 +195,39 @@ export const rootReducer = (
         }
       };
 
+    case ActionTypes.ON_CHANGE_SSL_CA:
+      showFilePicker(ActionTypes.SSL_CA_CHANGED, true);
+
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslCA: undefined
+        }
+      };
+
+    case ActionTypes.ON_CHANGE_SSL_CERT:
+      showFilePicker(ActionTypes.SSL_CERT_CHANGED, true);
+
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslCert: undefined
+        }
+      };
+
+    case ActionTypes.ON_CHANGE_SSL_KEY:
+      showFilePicker(ActionTypes.SSL_KEY_CHANGED, true);
+
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslKey: undefined
+        }
+      };
+
     case ActionTypes.PASSWORD_CHANGED:
       return {
         ...state,
@@ -224,6 +262,56 @@ export const rootReducer = (
         currentConnection: {
           ...state.currentConnection,
           replicaSet: action.replicaSet
+        }
+      };
+
+    case ActionTypes.SSL_CA_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslCA: action.files
+        }
+      };
+
+    case ActionTypes.SSL_CERT_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslCert: action.files
+        }
+      };
+
+    case ActionTypes.SSL_KEY_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslKey: action.files
+        }
+      };
+
+    case ActionTypes.SSL_METHOD_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslMethod: action.sslMethod,
+          // Reset the ssl fields:
+          sslCA: undefined,
+          sslCert: undefined,
+          sslKey: undefined,
+          sslPass: undefined
+        }
+      };
+
+    case ActionTypes.SSL_PASS_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          sslPass: action.sslPass
         }
       };
 

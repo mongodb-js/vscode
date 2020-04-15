@@ -45,10 +45,11 @@ export const AuthStrategies: AuthStrategy[] = [
     id: AUTH_STRATEGY_VALUES['SCRAM-SHA-256'],
     title: 'SCRAM-SHA-256'
   },
-  {
-    id: AUTH_STRATEGY_VALUES.KERBEROS,
-    title: 'Kerberos'
-  },
+  // Currently disabled.
+  // {
+  //   id: AUTH_STRATEGY_VALUES.KERBEROS,
+  //   title: 'Kerberos'
+  // },
   {
     id: AUTH_STRATEGY_VALUES.LDAP,
     title: 'LDAP'

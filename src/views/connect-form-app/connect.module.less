@@ -22,6 +22,8 @@ form {
 
   background-color: var(--vscode-editor-background);
   color: var(--vscode-editor-foreground);
+  font-size: 14px;
+  line-height: 20px;
 }
 
 label {
@@ -154,7 +156,7 @@ label {
 
           div {
             border: none;
-            background-color: var(--vscode-input-background);
+            background-color: var(--vscode-searchEditor-textInputBorder, rgba(161, 161, 161, 0.5));
           }
         }
 
@@ -176,7 +178,7 @@ label {
           }
 
           .form-item-file-button {
-            border: 1px solid red;
+            border-color: red;
           }
         }
 
@@ -187,7 +189,7 @@ label {
             text-rendering: auto;
             margin: 0 0 0 5px;
             cursor: pointer;
-            color: #bfbfbe;
+            color: rgba(255, 255, 255, 0.5);
 
             :hover {
               color: #fbb129;
@@ -197,25 +199,28 @@ label {
 
         &-file-button {
           width: 100%;
+          background: var(--vscode-input-background, transparent);
+          border: 1px solid var(--vscode-searchEditor-textInputBorder, rgba(161, 161, 161, 0.5));
+          border-radius: 3px;
+          color: var(--vscode-editor-foreground);
+          padding: 8px 4px 9px;
+          margin: 0;
 
-          i {
+          .file-icon {
             display: inline-block;
-            font: normal normal normal 14px/1 FontAwesome;
             font-size: inherit;
             text-rendering: auto;
-            margin: 0 5px;
-            cursor: pointer;
-            color: #bfbfbe;
+            margin: 0 5px 0 0;
+            color: var(--vscode-editor-foreground);
           }
 
           i.help {
             display: inline-block;
-            font: normal normal normal 14px/1 FontAwesome;
             font-size: inherit;
             text-rendering: auto;
             margin: 0 0 0 5px;
             cursor: pointer;
-            color: #bfbfbe;
+            color: rgba(255, 255, 255, 0.5);
 
             :hover {
               color: #fbb129;
@@ -246,6 +251,7 @@ label {
     background-image: none;
     border: 1px solid var(--vscode-searchEditor-textInputBorder, transparent);
     width: 100%;
+    border-radius: 3px;
 
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -253,6 +259,10 @@ label {
 
     &:focus {
       border: 1px solid var(--vscode-focusBorder);
+    }
+
+    ::placeholder {
+      color: var(--vscode-input-placeholderForeground);
     }
   }
 
@@ -269,51 +279,81 @@ label {
     width: 240px;
     margin: 30px;
     background-color: var(--vscode-editor-background);
-    color: var(--vscode-editor-foreground);
+    color: @pw;
+    font-size: 14px;
+    line-height: 20px;
 
     .help-container {
-      border: 1px solid var(--vscode-debugToolBar-border, @gray);
       display: inline-block;
       height: auto;
-      padding: 20px;
+      padding: 80px 20px 20px;
+      background-color: #ffffff;
+      border-radius: 3px;
+      border: 1px solid rgb(231, 238, 236);
+      box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 10px -4px;
+
+      .btn {
+        background-color: #ffffff;
+        background-image: none;
+        border: 1px solid @green;
+        box-shadow: none;
+        color: @green;
+        padding: 5px 12px 6px;
+        margin: 0 auto;
+        display: inline-block;
+
+        &:hover {
+          background-color: #109648;
+          background-image: linear-gradient(#129f4c, #148040);
+          color: #ffffff;
+          border: 1px solid rgb(21, 130, 66);
+          box-shadow: rgb(21, 130, 66) 0px -1px 0px inset;
+        }
+      }
 
       .help-section {
         margin: 0;
-        margin-bottom: 10px;
         padding: 0;
+        text-align: center;
       }
 
       .help-link {
-        color: @green;
+        color: var(--vscode-notificationLink-foreground);
+        text-decoration: underline;
         margin-left: 3px;
 
         &:visited {
-          color: @green;
+          color: var(--vscode-badge-foreground);
+          text-decoration: underline;
         }
       }
     }
   }
 
   .btn {
-    background-color: rgb(0, 120, 41);
+    background-color: @green;
     color: white;
-    padding: 10px 20px;
-    margin: 6px;
+    padding: 9px 12px 10px;
+    margin: 6px 0 0 0;
     display: inline-block;
     text-decoration: none;
     cursor: pointer;
     border: none;
-
+    border-radius: 3px;
     transition: 200ms all;
+    font-size: 14px;
+    background-color: rgb(19, 170, 82);
+    background-image: linear-gradient(rgb(19, 170, 82), rgb(24, 150, 76));
+    border-radius: 3px;
+    text-decoration: none;
+    transition: all 120ms ease 0s;
+    overflow: hidden;
+    border: 1px solid rgb(21, 130, 66);
+    box-shadow: rgb(21, 130, 66) 0px -1px 0px inset;
 
     &:hover {
-      box-shadow: 0 3px 6px 0 rgba(60, 66, 87, 0.1),
-        0 2px 4px 0 rgba(0, 0, 0, 0.07);
-    }
-
-    &-sm {
-      padding: 6px 10px;
-      margin: 0;
+      background-color: #109648;
+      background-image: linear-gradient(#129f4c, #148040);
     }
   }
 }

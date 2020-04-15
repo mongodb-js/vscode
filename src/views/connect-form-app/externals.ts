@@ -4,10 +4,22 @@ declare module '*.less' {
   export default resource;
 }
 
-interface WebviewMessage {
+interface BasicWebviewMessage {
   command: string;
-  driverUrl: string;
 }
+
+interface ConnectMessage extends BasicWebviewMessage {
+  command: 'CONNECT';
+  connectionModel: object;
+}
+
+interface FilePickerMessage {
+  command: 'OPEN_FILE_PICKER';
+  action: string;
+  multi: boolean;
+}
+
+type WebviewMessage = ConnectMessage | FilePickerMessage;
 
 interface VSCodeApi {
   postMessage: (message: WebviewMessage) => void;

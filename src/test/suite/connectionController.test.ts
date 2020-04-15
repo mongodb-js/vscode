@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
+import Connection = require('mongodb-connection-model/lib/model');
 
 import ConnectionController, {
   DataServiceEventTypes
@@ -40,7 +41,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -80,7 +81,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -128,7 +129,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected === true,
@@ -216,7 +217,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
         assert(
           succesfullyConnected,
@@ -224,7 +225,7 @@ suite('Connection Controller Test Suite', () => {
         );
 
         testConnectionController
-          .addNewConnectionAndConnect(testDatabaseURI2WithTimeout)
+          .addNewConnectionStringAndConnect(testDatabaseURI2WithTimeout)
           .then(
             () => {
               assert(false, 'Expected rejected promise, not resolved.');
@@ -258,7 +259,7 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController.setConnnecting(true);
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(
         () => {
           assert(false, 'Expected rejected promise, not resolved.');
@@ -283,7 +284,7 @@ suite('Connection Controller Test Suite', () => {
     testConnectionController.setDisconnecting(true);
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(
         () => {
           assert(false, 'Expected rejected promise, not resolved.');
@@ -371,7 +372,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         setTimeout(() => {
           assert(
@@ -400,7 +401,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         testConnectionController.disconnect().then(() => {
           setTimeout(() => {
@@ -441,11 +442,13 @@ suite('Connection Controller Test Suite', () => {
         testGlobalConnectionModel: {
           id: 'testGlobalConnectionModel',
           name: 'name1',
+          connectionModel: new Connection({ port: 29999 }),
           driverUrl: 'testGlobalConnectionModelDriverUrl'
         },
         testGlobalConnectionModel2: {
           id: 'testGlobalConnectionModel2',
           name: 'name2',
+          connectionModel: new Connection({ port: 30000 }),
           driverUrl: 'testGlobalConnectionModel2DriverUrl'
         }
       }
@@ -456,11 +459,14 @@ suite('Connection Controller Test Suite', () => {
         testWorkspaceConnectionModel: {
           id: 'testWorkspaceConnectionModel',
           name: 'name3',
+          connectionModel: new Connection({ port: 29999 }),
+
           driverUrl: 'testWorkspaceConnectionModel1DriverUrl'
         },
         testWorkspaceConnectionModel2: {
           id: 'testWorkspaceConnectionModel2',
           name: 'name4',
+          connectionModel: new Connection({ port: 22345 }),
           driverUrl: 'testWorkspaceConnectionModel2DriverUrl'
         }
       }
@@ -499,6 +505,14 @@ suite('Connection Controller Test Suite', () => {
       'testGlobalConnectionModel2DriverUrl',
       "Expected loaded connection to include driver url 'testGlobalConnectionModel2DriverUrl'"
     );
+    assert(
+      connections.testWorkspaceConnectionModel2.connectionModel.port === 22345,
+      `Expected loaded connection to include port number 30000, found ${connections.testWorkspaceConnectionModel2.connectionModel.port}`
+    );
+    assert(
+      connections.testGlobalConnectionModel2.connectionModel.port === 30000,
+      `Expected loaded connection to include port number 30000, found ${connections.testGlobalConnectionModel2.connectionModel.port}`
+    );
   });
 
   test('When a connection is added it is saved to the global store', async () => {
@@ -516,7 +530,7 @@ suite('Connection Controller Test Suite', () => {
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
 
-    await testConnectionController.addNewConnectionAndConnect(
+    await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
 
@@ -562,7 +576,7 @@ suite('Connection Controller Test Suite', () => {
         DefaultSavingLocations.Workspace
       );
 
-    await testConnectionController.addNewConnectionAndConnect(
+    await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
 
@@ -592,6 +606,41 @@ suite('Connection Controller Test Suite', () => {
     );
   });
 
+  test('A connection can be connected to by id', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+    const testConnectionController = new ConnectionController(
+      new StatusView(mockExtensionContext),
+      testStorageController
+    );
+
+    Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
+      if (err) {
+        assert(false);
+      }
+
+      testConnectionController._savedConnections = {
+        '25': {
+          id: '25',
+          driverUrl: TEST_DATABASE_URI,
+          name: 'tester',
+          connectionModel,
+          storageLocation: StorageScope.NONE
+        }
+      };
+
+      testConnectionController
+        .connectWithConnectionId('25')
+        .then((successfulConnection) => {
+          assert(successfulConnection);
+          assert(testConnectionController.getActiveConnectionId() === '25');
+          testConnectionController.disconnect();
+
+          done();
+        });
+    });
+  });
+
   test('A saved connection can be loaded and connected to', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
@@ -611,7 +660,7 @@ suite('Connection Controller Test Suite', () => {
       )
       .then(() => {
         testConnectionController
-          .addNewConnectionAndConnect(TEST_DATABASE_URI)
+          .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
           .then(() => {
             const workspaceStoreConnections = testStorageController.get(
               StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -624,43 +673,53 @@ suite('Connection Controller Test Suite', () => {
               }`
             );
 
-            testConnectionController.disconnect().then(() => {
-              testConnectionController.clearAllConnections();
-              assert(
-                testConnectionController.getSavedConnections().length === 0,
-                'Expected no connection configs.'
-              );
+            testConnectionController
+              .disconnect()
+              .then(() => {
+                testConnectionController.clearAllConnections();
+                assert(
+                  testConnectionController.getSavedConnections().length === 0,
+                  'Expected no connection configs.'
+                );
 
-              // Activate (which will load the past connection).
-              testConnectionController.loadSavedConnections();
-              assert(
-                testConnectionController.getSavedConnections().length === 1,
-                `Expected 1 connection config, found ${
-                testConnectionController.getSavedConnections().length
-                }.`
-              );
-              const id = testConnectionController.getSavedConnections()[0].id;
+                // Activate (which will load the past connection).
+                testConnectionController.loadSavedConnections();
+                assert(
+                  testConnectionController.getSavedConnections().length === 1,
+                  `Expected 1 connection config, found ${
+                  testConnectionController.getSavedConnections().length
+                  }.`
+                );
+                const id = testConnectionController.getSavedConnections()[0].id;
 
-              testConnectionController
-                .connectWithConnectionId(id)
-                .then(() => {
-                  const activeId = testConnectionController.getActiveConnectionId();
-                  const name =
-                    testConnectionController._savedConnections[activeId || '']
-                      .name;
-                  assert(
-                    activeId === id,
-                    `Expected the active connection to be '${id}', found ${activeId}.`
-                  );
-                  assert(
-                    name === 'localhost:27018',
-                    `Expected the active connection name to be 'localhost:27018', found ${name}.`
-                  );
-                  assert(testConnectionController._activeConnectionModel?.appname.startsWith('mongodb-vscode'));
-                })
-                .then(done, done);
-            });
-          });
+                testConnectionController
+                  .connectWithConnectionId(id)
+                  .then(() => {
+                    const activeId = testConnectionController.getActiveConnectionId();
+                    const name =
+                      testConnectionController._savedConnections[activeId || '']
+                        .name;
+                    assert(
+                      activeId === id,
+                      `Expected the active connection to be '${id}', found ${activeId}.`
+                    );
+                    assert(
+                      name === 'localhost:27018',
+                      `Expected the active connection name to be 'localhost:27018', found ${name}.`
+                    );
+                    const port =
+                      testConnectionController._savedConnections[activeId || '']
+                        .connectionModel.port;
+                    assert(
+                      port === 27018,
+                      `Expected the active connection port to be '27018', found ${port}.`
+                    );
+                  }, done)
+                  .then(done, done);
+              })
+              .then(null, done);
+          })
+          .then(null, done);
       });
   });
 
@@ -679,7 +738,7 @@ suite('Connection Controller Test Suite', () => {
       'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
     testConnectionController
-      .addNewConnectionAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         const activeConnectionId = testConnectionController.getActiveConnectionId();
         assert(
@@ -720,7 +779,7 @@ suite('Connection Controller Test Suite', () => {
         // return a usable promise. Timeout to ensure it sets.
         setTimeout(() => {
           testConnectionController
-            .addNewConnectionAndConnect(TEST_DATABASE_URI)
+            .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
             .then(() => {
               const objectString = JSON.stringify(undefined);
               const globalStoreConnections = testStorageController.get(
@@ -770,7 +829,7 @@ suite('Connection Controller Test Suite', () => {
         // return a usable promise. Timeout to ensure it sets.
         setTimeout(() => {
           testConnectionController
-            .addNewConnectionAndConnect(TEST_DATABASE_URI)
+            .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
             .then(() => {
               const workspaceStoreConnections = testStorageController.get(
                 StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -786,6 +845,7 @@ suite('Connection Controller Test Suite', () => {
 
               const connectionId =
                 testConnectionController.getActiveConnectionId() || 'a';
+              testConnectionController.disconnect();
               testConnectionController.removeSavedConnection(connectionId);
 
               const postWorkspaceStoreConnections = testStorageController.get(
@@ -819,7 +879,7 @@ suite('Connection Controller Test Suite', () => {
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
 
-    await testConnectionController.addNewConnectionAndConnect(
+    await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
     const globalStoreConnections = testStorageController.get(
@@ -870,7 +930,7 @@ suite('Connection Controller Test Suite', () => {
         // return a usable promise. Timeout to ensure it sets.
         setTimeout(() => {
           testConnectionController
-            .addNewConnectionAndConnect(TEST_DATABASE_URI)
+            .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
             .then(() => {
               const workspaceStoreConnections = testStorageController.get(
                 StorageVariables.WORKSPACE_SAVED_CONNECTIONS,

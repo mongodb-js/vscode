@@ -8,7 +8,7 @@ const { name, version } = require('../package.json');
 import { ConnectionModelType } from './connectionModelType';
 import { DataServiceType } from './dataServiceType';
 import { createLogger } from './logging';
-import { StatusView, ConnectFormView } from './views';
+import { StatusView } from './views';
 import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { StorageScope, SavedConnection } from './storage/storageController';
@@ -54,10 +54,16 @@ export default class ConnectionController {
   ): void {
     let loadedSavedConnection: SavedConnection;
     try {
+      if (!savedConnection.connectionModel) {
+        // Ignore empty connections.
+        return;
+      }
+
       loadedSavedConnection = {
         id: connectionId,
-        name: savedConnection.name,
         driverUrl: savedConnection.driverUrl,
+        name: savedConnection.name,
+        connectionModel: savedConnection.connectionModel,
         storageLocation: savedConnection.storageLocation
       };
     } catch (error) {
@@ -101,18 +107,6 @@ export default class ConnectionController {
     }
   }
 
-  public addMongoDBConnection(
-    context: vscode.ExtensionContext
-  ): Promise<boolean> {
-    log.info('mdb.connect command called.');
-
-    const connectWebView = new ConnectFormView();
-    return connectWebView.showConnectForm(
-      context,
-      this.addNewConnectionAndConnect
-    );
-  }
-
   public async connectWithURI(): Promise<boolean> {
     log.info('connectWithURI command called');
 
@@ -140,16 +134,19 @@ export default class ConnectionController {
     }
 
     return new Promise((resolve) => {
-      this.addNewConnectionAndConnect(connectionString).then(resolve, (err) => {
-        vscode.window.showErrorMessage(err.message);
-        resolve(false);
-      });
+      this.addNewConnectionStringAndConnect(connectionString).then(
+        resolve,
+        (err) => {
+          vscode.window.showErrorMessage(err.message);
+          resolve(false);
+        }
+      );
     });
   }
 
   // Resolves true when the connection is successfully added.
   // The connection can fail to connect but be successfully added.
-  public addNewConnectionAndConnect = (
+  public addNewConnectionStringAndConnect = (
     connectionString: string
   ): Promise<boolean> => {
     log.info('Trying to connect to a new connection configuration');
@@ -158,38 +155,12 @@ export default class ConnectionController {
       Connection.from(
         connectionString,
         (error: Error | undefined, newConnectionModel: ConnectionModelType) => {
-          if (error && !newConnectionModel) {
-            return reject(new Error(`Unable to load connection: ${error}`));
-          }
-
-          const { driverUrl, instanceId } = newConnectionModel.getAttributes({
-            derived: true
-          });
-
-          const newConnection: SavedConnection = {
-            id: uuidv4(),
-            name: instanceId,
-            driverUrl,
-            // To begin we just store it on the session, the storage controller
-            // handles changing this based on user preference.
-            storageLocation: StorageScope.NONE
-          };
-          this._savedConnections[newConnection.id] = newConnection;
-
-          this._storageController.storeNewConnection(newConnection);
-
           if (error) {
-            return reject(new Error(`Unable to connect: ${error}`));
+            return reject(new Error(`Unable to create connection: ${error}`));
           }
 
-          this.connect(newConnection.id, newConnectionModel).then(
-            (connectSuccess) => {
-              if (!connectSuccess) {
-                return resolve(false);
-              }
-
-              resolve(true);
-            },
+          return this.saveNewConnectionAndConnect(newConnectionModel).then(
+            resolve,
             reject
           );
         }
@@ -197,10 +168,58 @@ export default class ConnectionController {
     });
   };
 
-  public async connect(
+  public parseNewConnectionAndConnect = (
+    newConnectionModel
+  ): Promise<boolean> => {
+    // Here we re-parse the connection, as it can be loaded from storage or
+    // passed by the connection model without the class methods.
+    let connectionModel;
+
+    try {
+      connectionModel = new Connection(newConnectionModel);
+    } catch (error) {
+      vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
+      return Promise.reject(new Error(`Unable to load connection: ${error}`));
+    }
+
+    return this.saveNewConnectionAndConnect(connectionModel);
+  };
+
+  public saveNewConnectionAndConnect = (
+    connectionModel: ConnectionModelType
+  ): Promise<boolean> => {
+    const { driverUrl, instanceId } = connectionModel.getAttributes({
+      derived: true
+    });
+
+    const newConnection: SavedConnection = {
+      id: uuidv4(),
+      name: instanceId,
+      connectionModel,
+      driverUrl,
+      // To begin we just store it on the session, the storage controller
+      // handles changing this based on user preference.
+      storageLocation: StorageScope.NONE
+    };
+    this._savedConnections[newConnection.id] = newConnection;
+
+    this._storageController.storeNewConnection(newConnection);
+
+    return new Promise((resolve, reject) => {
+      this.connect(newConnection.id, connectionModel).then((connectSuccess) => {
+        if (!connectSuccess) {
+          return resolve(false);
+        }
+
+        resolve(true);
+      }, reject);
+    });
+  };
+
+  public connect = async (
     connectionId: string,
     connectionModel: ConnectionModelType
-  ): Promise<boolean> {
+  ): Promise<boolean> => {
     log.info(
       'Connect called to connect to instance:',
       connectionModel.getAttributes({
@@ -258,35 +277,39 @@ export default class ConnectionController {
         return resolve(true);
       });
     });
-  }
+  };
 
-  public async connectWithConnectionId(connectionId: string): Promise<boolean> {
+  public connectWithConnectionId = (connectionId: string): Promise<boolean> => {
     if (this._savedConnections[connectionId]) {
-      return new Promise((resolve) => {
-        Connection.from(
-          this._savedConnections[connectionId].driverUrl,
-          (error: Error | undefined, connectionModel: ConnectionModelType) => {
-            if (error && !connectionModel) {
-              vscode.window.showErrorMessage(
-                `Unable to load connection: ${error}`
-              );
-              return resolve(false);
-            }
+      let connectionModel;
 
-            return this.connect(connectionId, connectionModel).then(
-              resolve,
-              (err: Error) => {
-                vscode.window.showErrorMessage(err.message);
-                return resolve(false);
-              }
-            );
+      try {
+        const savedConnectionModel = this._savedConnections[connectionId]
+          .connectionModel;
+        // Here we rebuild the connection model to ensure it's up to date and
+        // contains the connection model class methods (not just attributes).
+        connectionModel = new Connection(
+          savedConnectionModel.getAttributes
+            ? savedConnectionModel.getAttributes({ props: true })
+            : savedConnectionModel
+        );
+      } catch (error) {
+        vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
+        return Promise.resolve(false);
+      }
+      return new Promise((resolve) => {
+        this.connect(connectionId, connectionModel).then(
+          resolve,
+          (err: Error) => {
+            vscode.window.showErrorMessage(err.message);
+            return resolve(false);
           }
         );
       });
     }
 
     return Promise.reject(new Error('Connection not found.'));
-  }
+  };
 
   public disconnect(): Promise<boolean> {
     log.info(
