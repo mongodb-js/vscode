@@ -45,6 +45,7 @@ export const AuthStrategies: AuthStrategy[] = [
     id: AUTH_STRATEGY_VALUES['SCRAM-SHA-256'],
     title: 'SCRAM-SHA-256'
   },
+  // Currently disabled.
   // {
   //   id: AUTH_STRATEGY_VALUES.KERBEROS,
   //   title: 'Kerberos'
