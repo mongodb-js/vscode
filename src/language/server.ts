@@ -318,7 +318,7 @@ connection.onRequest('executeAll', (params, token) => {
       connection.console.log('Playground cancellation requested');
       connection.sendNotification(
         'showInformationMessage',
-        'The long running playground operation was canceled'
+        'The running playground operation was canceled.'
       );
 
       // If there is a situation that mongoClient is unresponsive,

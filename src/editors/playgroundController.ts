@@ -158,7 +158,7 @@ export default class PlaygroundController {
       // Show a running progress in the notification area with support for cancellation
       await vscode.window.withProgress({
         location: ProgressLocation.Notification,
-        title: 'Running a playground...',
+        title: 'Running MongoDB playground...',
         cancellable: true
       }, async (progress, token) => {
         token.onCancellationRequested(() => {
