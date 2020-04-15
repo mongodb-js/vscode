@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { workspace, ExtensionContext } from 'vscode';
+import { workspace, ExtensionContext, OutputChannel } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -8,11 +8,13 @@ import {
   TransportKind,
   CancellationTokenSource
 } from 'vscode-languageclient';
+import * as WebSocket from 'ws';
 
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 
 const log = createLogger('LanguageServerController');
+let socket: WebSocket | null;
 
 /**
  * This controller manages the language server and client.
@@ -46,6 +48,33 @@ export default class LanguageServerController {
       }
     };
 
+    // Hijacks all LSP logs and redirect them to a specific port through WebSocket connection
+    const channel = vscode.window.createOutputChannel('MongoDB Language Server');
+    let logInspector = '';
+
+    const websocketOutputChannel: OutputChannel = {
+      name: 'websocket',
+      // Only append the logs but send them later
+      append(value: string) {
+        logInspector += value;
+      },
+      appendLine(value: string) {
+        logInspector += value;
+        channel.appendLine(logInspector);
+
+        // Don't send logs until WebSocket initialization
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(logInspector);
+        }
+
+        logInspector = '';
+      },
+      clear() { },
+      show() { },
+      hide() { },
+      dispose() { }
+    };
+
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
       // Register the server for mongodb documents
@@ -54,9 +83,11 @@ export default class LanguageServerController {
         { scheme: 'file', language: 'mongodb' }
       ],
       synchronize: {
-        // Notify the server about file changes to '.clientrc files contained in the workspace
+        // Notify the server about file changes in the workspace
         fileEvents: workspace.createFileSystemWatcher('**/*')
-      }
+      },
+      // Attach WebSocket OutputChannel
+      outputChannel: websocketOutputChannel
     };
 
     log.info('Creating MongoDB Language Server', {
@@ -109,6 +140,14 @@ export default class LanguageServerController {
         this._source.token
       );
     });
+  }
+
+  startStreamLanguageServerLogs() {
+    const socketPort = workspace.getConfiguration('languageServerExample').get('port', 7000);
+
+    socket = new WebSocket(`ws://localhost:${socketPort}`);
+
+    return Promise.resolve(true);
   }
 
   cancelAll() {

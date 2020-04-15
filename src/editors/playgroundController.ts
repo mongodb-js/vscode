@@ -132,7 +132,13 @@ export default class PlaygroundController {
         .getConfiguration('mdb')
         .get('confirmRunAll');
 
-      if (activeConnection && shouldConfirmRunAll === true) {
+      if (!activeConnection) {
+        vscode.window.showErrorMessage('Please connect to a database before running a playground.');
+
+        return resolve(false);
+      }
+
+      if (shouldConfirmRunAll === true) {
         const name = this._connectionController.getActiveConnectionName();
         const confirmRunAll = await vscode.window.showInformationMessage(
           `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,

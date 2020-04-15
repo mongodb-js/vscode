@@ -241,6 +241,10 @@
       {
         "command": "mdb.refreshSchema",
         "title": "Refresh"
+      },
+      {
+        "command": "mdb.startStreamLanguageServerLogs",
+        "title": "LSP Inspector: Start Stream LSP Logs"
       }
     ],
     "menus": {
@@ -393,6 +397,37 @@
     "configuration": {
       "title": "MongoDB",
       "properties": {
+        "mongodbLanguageServer.maxNumberOfProblems": {
+          "scope": "resource",
+          "type": "number",
+          "default": 100,
+          "description": "Controls the maximum number of problems produced by the server."
+        },
+        "mongodbLanguageServer.trace.server": {
+          "scope": "window",
+          "type": "object",
+          "properties": {
+            "verbosity": {
+              "type": "string",
+              "enum": [
+                "off",
+                "messages",
+                "verbose"
+              ],
+              "default": "off",
+              "description": "Controls the verbosity of the trace."
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "text",
+                "json"
+              ],
+              "default": "text",
+              "description": "Controls the output format of the trace."
+            }
+          }
+        },
         "mdb.shell": {
           "type": "string",
           "enum": [
@@ -477,7 +512,8 @@
     "ts-log": "^2.1.4",
     "uuid": "^7.0.0",
     "vscode-languageclient": "^6.1.3",
-    "vscode-languageserver": "^6.1.1"
+    "vscode-languageserver": "^6.1.1",
+    "ws": "^7.2.3"
   },
   "devDependencies": {
     "@types/chai": "^4.2.9",
@@ -490,6 +526,7 @@
     "@types/react": "^16.9.25",
     "@types/react-dom": "^16.9.5",
     "@types/vscode": "^1.41.0",
+    "@types/ws": "^7.2.4",
     "@typescript-eslint/eslint-plugin": "^2.19.2",
     "@typescript-eslint/parser": "^2.19.2",
     "autoprefixer": "^9.7.5",
