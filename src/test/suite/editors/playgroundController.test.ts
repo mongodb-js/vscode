@@ -61,6 +61,23 @@ suite('Playground Controller Test Suite', () => {
 
       expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'Please connect to a database before running a playground.');
     });
+
+    test('runAllPlaygroundBlocks should throw the missing active connection error', async () => {
+      const testConnectionController = new ConnectionController(
+        new StatusView(mockExtensionContext),
+        mockStorageController
+      );
+      const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
+      const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
+      const fakeVscodeErrorMessage = sinon.fake();
+
+      sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+      testLanguageServerController.activate();
+      await openPlayground(getDocUri('test.mongodb'));
+      await testPlaygroundController.runAllPlaygroundBlocks();
+
+      expect(fakeVscodeErrorMessage.firstArg).to.be.equal('Please connect to a database before running a playground.');
+    });
   });
 
   suite('test confirmation message', () => {
@@ -85,7 +102,7 @@ suite('Playground Controller Test Suite', () => {
 
     afterEach(async () => {
       sandbox.restore();
-      await cleanupTestDB()
+      await cleanupTestDB();
     });
 
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is true', (done) => {
