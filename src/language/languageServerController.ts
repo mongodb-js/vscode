@@ -1,28 +1,31 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { workspace, ExtensionContext } from 'vscode';
-
+import { workspace, ExtensionContext, OutputChannel } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
-  TransportKind
+  TransportKind,
+  CancellationTokenSource
 } from 'vscode-languageclient';
+import * as WebSocket from 'ws';
 
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 
 const log = createLogger('LanguageServerController');
+let socket: WebSocket | null;
 
 /**
  * This controller manages the language server and client.
  */
 export default class LanguageServerController {
   _connectionController?: ConnectionController;
+  _source?: CancellationTokenSource;
   client: LanguageClient;
 
   constructor(
-    context: vscode.ExtensionContext,
+    context: ExtensionContext,
     connectionController?: ConnectionController
   ) {
     this._connectionController = connectionController;
@@ -45,17 +48,46 @@ export default class LanguageServerController {
       }
     };
 
+    // Hijacks all LSP logs and redirect them to a specific port through WebSocket connection
+    const channel = vscode.window.createOutputChannel('MongoDB Language Server');
+    let logInspector = '';
+
+    const websocketOutputChannel: OutputChannel = {
+      name: 'websocket',
+      // Only append the logs but send them later
+      append(value: string) {
+        logInspector += value;
+      },
+      appendLine(value: string) {
+        logInspector += value;
+        channel.appendLine(logInspector);
+
+        // Don't send logs until WebSocket initialization
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(logInspector);
+        }
+
+        logInspector = '';
+      },
+      clear() { },
+      show() { },
+      hide() { },
+      dispose() { }
+    };
+
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
-      // Register the server for plain text documents
+      // Register the server for mongodb documents
       documentSelector: [
         { scheme: 'untitled', language: 'mongodb' },
         { scheme: 'file', language: 'mongodb' }
       ],
       synchronize: {
-        // Notify the server about file changes to '.clientrc files contained in the workspace
+        // Notify the server about file changes in the workspace
         fileEvents: workspace.createFileSystemWatcher('**/*')
-      }
+      },
+      // Attach WebSocket OutputChannel
+      outputChannel: websocketOutputChannel
     };
 
     log.info('Creating MongoDB Language Server', {
@@ -63,7 +95,7 @@ export default class LanguageServerController {
       clientOptions
     });
 
-    // Create the language client and start the client.
+    // Create the language server client
     this.client = new LanguageClient(
       'mongodbLanguageServer',
       'MongoDB Language Server',
@@ -72,26 +104,61 @@ export default class LanguageServerController {
     );
   }
 
-  activate() {
+  async activate(): Promise<any> {
     // Start the client. This will also launch the server
     this.client.start();
-    this.client.onReady().then(() => {
-      /**
-       * TODO: Notification is for setup docs only.
-       */
-      this.client.onNotification('mongodbNotification', (messsage) => {
+
+    // Subscribe on notifications from the server when the client is ready
+    await this.client.onReady().then(() => {
+      this.client.onNotification('showInformationMessage', (messsage) => {
         vscode.window.showInformationMessage(messsage);
+      });
+
+      this.client.onNotification('showErrorMessage', (messsage) => {
+        vscode.window.showErrorMessage(messsage);
       });
     });
   }
 
-  deactivate(): Thenable<void> | undefined {
-    return this.client.stop();
+  deactivate(): void {
+    // Stop the language server
+    this.client.stop();
   }
 
-  executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Thenable<any> | undefined {
-    return this.client.onReady().then(() => {
-      return this.client.sendRequest('executeAll', { codeToEvaluate, connectionString, connectionOptions });
+  executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Promise<any> {
+    return this.client.onReady().then(async () => {
+      // Instantiate a new CancellationTokenSource object
+      // that generates a cancellation token for each run of a playground
+      this._source = new CancellationTokenSource();
+
+      // Send a request with a cancellation token
+      // to the language server server to execute scripts from a playground
+      // and return results to the playground controller when ready
+      return this.client.sendRequest(
+        'executeAll',
+        { codeToEvaluate, connectionString, connectionOptions },
+        this._source.token
+      );
+    });
+  }
+
+  startStreamLanguageServerLogs() {
+    const socketPort = workspace.getConfiguration('languageServerExample').get('port', 7000);
+
+    socket = new WebSocket(`ws://localhost:${socketPort}`);
+
+    return Promise.resolve(true);
+  }
+
+  cancelAll() {
+    return new Promise((resolve) => {
+      // Send a request for cancellation. As a result
+      // the associated CancellationToken will be notified of the cancellation,
+      // the onCancellationRequested event will be fired,
+      // and IsCancellationRequested will return true.
+      this._source?.cancel();
+
+      return resolve(true);
     });
   }
 }

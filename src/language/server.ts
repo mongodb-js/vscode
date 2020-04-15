@@ -13,8 +13,9 @@ import {
   TextDocumentPositionParams,
   RequestType
 } from 'vscode-languageserver';
-import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
-import { CliServiceProvider } from '@mongosh/service-provider-server';
+import { Worker as WorkerThreads } from 'worker_threads';
+
+const path = require('path');
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -119,7 +120,7 @@ connection.onDidChangeConfiguration((change) => {
   } else {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     globalSettings = <ExampleSettings>(
-      (change.settings.languageServerExample || defaultSettings)
+      (change.settings.mongodbLanguageServer || defaultSettings)
     );
   }
 
@@ -199,9 +200,9 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // );
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 
-  // const notification = new NotificationType<string>('mongodbNotification');
+  // const notification = new NotificationType<string>('showInformationMessage');
   connection.sendNotification(
-    'mongodbNotification',
+    'showInformationMessage',
     'Enjoy these diagnostics!'
   );
 }
@@ -277,13 +278,69 @@ connection.onCompletionResolve(
 /**
  * Execute the entire playground script.
  */
-connection.onRequest('executeAll', async (params) => {
-  const connectionOptions = params.connectionOptions || {};
-  const runtime = new ElectronRuntime(
-    await CliServiceProvider.connect(params.connectionString, connectionOptions)
-  );
+connection.onRequest('executeAll', (params, token) => {
+  return new Promise((resolve) => {
+    // Use Node worker threads to isolate each run of a playground
+    // to be able to cancel evaluation of infinite loops.
+    //
+    // There is an issue with support for `.ts` files.
+    // Trying to run a `.ts` file in a worker thread results in error:
+    // `The worker script extension must be “.js” or “.mjs”. Received “.ts”`
+    // As a workaround require `.js` file from the out folder.
+    //
+    // TODO: After webpackifying the extension replace
+    // the workaround with some similar 3rd-party plugin
+    const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
+      // The workerData parameter sends data to the created worker
+      workerData: {
+        codeToEvaluate: params.codeToEvaluate,
+        connectionString: params.connectionString,
+        connectionOptions: params.connectionOptions
+      }
+    });
 
-  return await runtime.evaluate(params.codeToEvaluate);
+    // Listen for results from the worker thread
+    worker.on('message', ([error, result]) => {
+      if (error) {
+        connection.sendNotification(
+          'showErrorMessage',
+          error.message
+        );
+      }
+
+      worker.terminate(); // Close the worker thread
+
+      return resolve(result);
+    });
+
+    // Listen for cancellation request from the language server client
+    token.onCancellationRequested(async () => {
+      connection.console.log('Playground cancellation requested');
+      connection.sendNotification(
+        'showInformationMessage',
+        'The running playground operation was canceled.'
+      );
+
+      // If there is a situation that mongoClient is unresponsive,
+      // try to close mongoClient after each runtime evaluation
+      // and after the cancelation of the runtime
+      // to make sure that all resources are free and can be used with a new request.
+      //
+      // (serviceProvider as any)?.mongoClient.close(false);
+      //
+      // The mongoClient.close method closes the underlying connector,
+      // which in turn closes all open connections.
+      // Once called, this mongodb instance can no longer be used.
+      //
+      // See: https://github.com/mongodb-js/vscode/pull/54
+
+      // Stop the worker and all JavaScript execution
+      // in the worker thread as soon as possible
+      worker.terminate().then((status) => {
+        connection.console.log(`Playground canceled with status: ${status}`);
+      });
+    });
+  });
 });
 
 /**

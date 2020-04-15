@@ -4,8 +4,7 @@ import ConnectionController, { DataServiceEventTypes } from '../connectionContro
 import { LanguageServerController } from '../language';
 import TelemetryController, { TelemetryEventTypes } from '../telemetry/telemetryController';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import formatOutput from '../utils/formatOutput';
-import { OutputChannel } from 'vscode';
+import { OutputChannel, ProgressLocation } from 'vscode';
 import playgroundTemplate from '../templates/playgroundTemplate';
 
 /**
@@ -62,6 +61,7 @@ export default class PlaygroundController {
         })
         .then((document) => {
           vscode.window.showTextDocument(document);
+          this._outputChannel.show(true);
           resolve(true);
         }, reject);
     });
@@ -111,17 +111,18 @@ export default class PlaygroundController {
       );
     }
 
-    // Run playground as a background process using the Language Server
-    const res = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
+    // Send a request to the language server to execute scripts from a playground
+    const result = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
 
-    if (res) {
+    if (result) {
+      // Send metrics to Segment
       this._telemetryController?.track(
         TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED,
-        this.prepareTelemetry(res)
+        this.prepareTelemetry(result)
       );
     }
 
-    return Promise.resolve(formatOutput(res));
+    return Promise.resolve(result);
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
@@ -131,7 +132,13 @@ export default class PlaygroundController {
         .getConfiguration('mdb')
         .get('confirmRunAll');
 
-      if (activeConnection && shouldConfirmRunAll === true) {
+      if (!activeConnection) {
+        vscode.window.showErrorMessage('Please connect to a database before running a playground.');
+
+        return resolve(false);
+      }
+
+      if (shouldConfirmRunAll === true) {
         const name = this._connectionController.getActiveConnectionName();
         const confirmRunAll = await vscode.window.showInformationMessage(
           `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,
@@ -140,7 +147,7 @@ export default class PlaygroundController {
         );
 
         if (confirmRunAll !== 'Yes') {
-          return Promise.resolve(false);
+          return resolve(false);
         }
       }
 
@@ -148,10 +155,29 @@ export default class PlaygroundController {
       const codeToEvaluate = activeEditor?.document.getText() || '';
       let result;
 
-      try {
+      // Show a running progress in the notification area with support for cancellation
+      await vscode.window.withProgress({
+        location: ProgressLocation.Notification,
+        title: 'Running MongoDB playground...',
+        cancellable: true
+      }, async (progress, token) => {
+        token.onCancellationRequested(() => {
+          // If a user clicked the cancel button terminate all playground scripts
+          this._languageServerController.cancelAll();
+          this._outputChannel.clear();
+          this._outputChannel.show(true);
+
+          return resolve(false);
+        });
+
+        // Run all playground scripts
         result = await this.evaluate(codeToEvaluate);
-      } catch (error) {
-        vscode.window.showErrorMessage(`Unable to run playground: ${error.message}`);
+      });
+
+      if (!result) {
+        this._outputChannel.clear();
+        this._outputChannel.show(true);
+
         return resolve(false);
       }
 
@@ -159,7 +185,7 @@ export default class PlaygroundController {
       this._outputChannel.appendLine(result);
       this._outputChannel.show(true);
 
-      resolve(true);
+      return resolve(true);
     });
   }
 
