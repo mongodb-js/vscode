@@ -28,20 +28,21 @@ We can also extend the mongodb language server and client with custom methods to
 
 ### Debugging
 
-#### Output Channel
+#### Client
 
-`MongoDB Language Server`
+Debugging the client code is as easy as debugging a normal extension. Set a breakpoint in the client code and debug the extension by pressing `F5`. Use `console.log()` for printing debug information in the Debug Console of the extension.
 
-From server side: `connection.console.log(<string>)`
+#### Server
+
+Since the server is started by the `LanguageClient` running separately, we need to attach a debugger to the running server. To do so, switch to the Run view and select the launch configuration `Extension + Server Inspector` and press `F5`. This will run both the extension and the Server Inspector.
+
+Use `connection.console.log()` for printing debug information in the `MongoDB Language Server` Output Channel of the server.
 
 ![MongoDB Language Server output channel](https://user-images.githubusercontent.com/23074/76441349-a489e980-6395-11ea-8247-50cfe9b3ff61.png)
 
-#### Log Streaming + LSP Inspector
+### Logging Support
 
-https://github.com/microsoft/vscode-extension-samples/tree/master/lsp-log-streaming-sample
-https://microsoft.github.io/language-server-protocol/inspector/
-
-In `.vscode/settings.json`
+In `.vscode/settings.json` specify a `mongodbLanguageServer.trace.server` setting that instructs the Client to log communications between Language Client/Server to a channel of the Language Client's name.
 
 ```json
 "mongodbLanguageServer.trace.server": {
@@ -49,6 +50,30 @@ In `.vscode/settings.json`
   "verbosity": "verbose"
 },
 ```
+
+You can also configure logging from VSCode setting interface.
+
+![MongoDB Language Server log settings](./lsp-trace-server.png)
+
+The logs will be printed in the `MongoDB Language Server` Output Channel.
+
+These logs are useful for developing and testing the Language Server, but they can be lengthy and hard to read. To visualize Cleint/Server logs use the [Language Server Protocol Inspector](https://github.com/Microsoft/language-server-protocol-inspector).
+
+#### Strem Logs To LSP Inspector
+
+- Install the [Language Server Protocol Inspector](https://marketplace.visualstudio.com/items?itemName=octref.lsp-inspector-webview) webview extension.
+- Run the MongoDB extension.
+- Activate the extension using any activation command.
+- Open a playground.
+- Check `mongodbLanguageServer.trace.server` settings.
+- Run command "LSP Inspector: Start LSP Inspector" to open the LSP inspector webview.
+- Run command "LSP Inspector: Start Stream LSP Logs" to start streaming logs to the LSP inspector port specified by the `languageServerExample.port` setting (The default value is 7000).
+
+![MongoDB Language Server log settings](./lsp-stream-logs.png)
+
+https://github.com/microsoft/vscode-extension-samples/tree/master/lsp-log-streaming-sample
+https://github.com/microsoft/vscode-extension-samples/tree/master/lsp-sample
+
 
 #### LSP Notifications
 
