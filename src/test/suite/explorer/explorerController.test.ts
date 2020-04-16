@@ -6,7 +6,7 @@ import * as sinon from 'sinon';
 
 import {
   DefaultSavingLocations,
-  StorageScope,
+  StorageScope
 } from '../../../storage/storageController';
 
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -76,8 +76,8 @@ suite('Explorer Controller Test Suite', () => {
         connectionModel: new Connection(),
         name: 'testConnectionName',
         driverUrl: 'url',
-        storageLocation: StorageScope.NONE,
-      },
+        storageLocation: StorageScope.NONE
+      }
     };
     testConnectionController.setConnnectingConnectionId(mockConnectionId);
     testConnectionController.setConnnecting(true);

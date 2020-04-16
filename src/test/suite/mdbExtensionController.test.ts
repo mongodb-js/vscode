@@ -12,7 +12,7 @@ import {
   ConnectionTreeItem,
   DatabaseTreeItem,
   DocumentTreeItem,
-  SchemaTreeItem,
+  SchemaTreeItem
 } from '../../explorer';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import ConnectionController from '../../connectionController';
@@ -36,7 +36,7 @@ suite('MDBExtensionController Test Suite', () => {
     const textCollectionTree = new CollectionTreeItem(
       {
         name: 'testColName',
-        type: CollectionTypes.collection,
+        type: CollectionTypes.collection
       },
       'testDbName',
       {},
@@ -77,7 +77,7 @@ suite('MDBExtensionController Test Suite', () => {
     const textCollectionTree = new CollectionTreeItem(
       {
         name: 'testColName',
-        type: CollectionTypes.collection,
+        type: CollectionTypes.collection
       },
       'testDbName',
       {},
@@ -275,7 +275,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockTreeItem = new CollectionTreeItem(
       {
         name: 'waterBuffalo',
-        type: CollectionTypes.collection,
+        type: CollectionTypes.collection
       },
       'airZebra',
       {},
@@ -331,7 +331,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockTreeItem = new CollectionTreeItem(
       {
         name: 'iSawACatThatLookedLikeALionToday',
-        type: CollectionTypes.collection,
+        type: CollectionTypes.collection
       },
       'airZebra',
       {},
@@ -449,7 +449,7 @@ suite('MDBExtensionController Test Suite', () => {
       createCollection: (namespace, options, callback) => {
         returnedNamespaceArg = namespace;
         callback(null);
-      },
+      }
     });
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
@@ -580,7 +580,7 @@ suite('MDBExtensionController Test Suite', () => {
     const testStatusViewObject = {
       show: stubShowMessage,
       hide: stubHideMessage,
-      text: '',
+      text: ''
     };
     const mockSatusBarItem = sinon.fake.returns(testStatusViewObject);
     sinon.replace(vscode.window, 'createStatusBarItem', mockSatusBarItem);
@@ -608,7 +608,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
 
         callback(null);
-      },
+      }
     });
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
@@ -638,7 +638,7 @@ suite('MDBExtensionController Test Suite', () => {
         createCollection: (namespace, options, callback): void => {
           returnedNamespaceArg = namespace;
           callback(null);
-        },
+        }
       },
       false,
       {}
@@ -705,7 +705,7 @@ suite('MDBExtensionController Test Suite', () => {
     const testStatusViewObject = {
       show: stubShowMessage,
       hide: stubHideMessage,
-      text: '',
+      text: ''
     };
     const mockSatusBarItem = sinon.fake.returns(testStatusViewObject);
     sinon.replace(vscode.window, 'createStatusBarItem', mockSatusBarItem);
@@ -723,7 +723,7 @@ suite('MDBExtensionController Test Suite', () => {
           );
 
           callback(null);
-        },
+        }
       },
       false,
       {}
@@ -752,7 +752,7 @@ suite('MDBExtensionController Test Suite', () => {
         dropCollection: (namespace, callback): void => {
           calledNamespace = namespace;
           callback(null, true);
-        },
+        }
       },
       false
     );
@@ -868,7 +868,7 @@ suite('MDBExtensionController Test Suite', () => {
         dropDatabase: (dbName, callback): void => {
           calledDatabaseName = dbName;
           callback(null, true);
-        },
+        }
       },
       false,
       {}
@@ -982,7 +982,7 @@ suite('MDBExtensionController Test Suite', () => {
       connectionModel: new Connection(),
       name: 'NAAAME',
       driverUrl: '',
-      storageLocation: StorageScope.NONE,
+      storageLocation: StorageScope.NONE
     };
 
     const mockTreeItem = new ConnectionTreeItem(
@@ -1024,7 +1024,7 @@ suite('MDBExtensionController Test Suite', () => {
       name: 'NAAAME',
       connectionModel: new Connection(),
       driverUrl: '',
-      storageLocation: StorageScope.NONE,
+      storageLocation: StorageScope.NONE
     };
 
     const mockTreeItem = new ConnectionTreeItem(
@@ -1066,7 +1066,7 @@ suite('MDBExtensionController Test Suite', () => {
 
     const documentItem = new DocumentTreeItem(
       {
-        _id: 'pancakes',
+        _id: 'pancakes'
       },
       'waffle.house',
       0
@@ -1110,7 +1110,7 @@ suite('MDBExtensionController Test Suite', () => {
       get: (prop) => {
         assert(prop === 'useDefaultTemplateForPlayground');
         return true;
-      },
+      }
     });
     sinon.replace(
       vscode.workspace,
@@ -1146,7 +1146,7 @@ suite('MDBExtensionController Test Suite', () => {
       get: (prop) => {
         assert(prop === 'useDefaultTemplateForPlayground');
         return false;
-      },
+      }
     });
     sinon.replace(
       vscode.workspace,
