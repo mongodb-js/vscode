@@ -1,6 +1,7 @@
 import READ_PREFERENCES from '../connection-model/constants/read-preferences';
 import AUTH_STRATEGIES from '../connection-model/constants/auth-strategies';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
+import SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
 
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',
@@ -13,6 +14,7 @@ export enum ActionTypes {
   KERBEROS_PARAMETERS_CHANGED = 'KERBEROS_PARAMETERS_CHANGED',
   LDAP_PASSWORD_CHANGED = 'LDAP_PASSWORD_CHANGED',
   LDAP_USERNAME_CHANGED = 'LDAP_USERNAME_CHANGED',
+  ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE = 'ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE',
   ON_CHANGE_SSL_CA = 'ON_CHANGE_SSL_CA',
   ON_CHANGE_SSL_CERT = 'ON_CHANGE_SSL_CERT',
   ON_CHANGE_SSL_KEY = 'ON_CHANGE_SSL_KEY',
@@ -20,16 +22,24 @@ export enum ActionTypes {
   PORT_CHANGED = 'PORT_CHANGED',
   READ_PREFERENCE_CHANGED = 'READ_PREFERENCE_CHANGED',
   REPLICA_SET_CHANGED = 'REPLICA_SET_CHANGED',
+  SSH_TUNNEL_CHANGED = 'SSH_TUNNEL_CHANGED',
+  SSH_TUNNEL_IDENTITY_FILE_CHANGED = 'SSH_TUNNEL_IDENTITY_FILE_CHANGED',
+  SSH_TUNNEL_HOSTNAME_CHANGED = 'SSH_TUNNEL_HOSTNAME_CHANGED',
+  SSH_TUNNEL_PASSPHRASE_CHANGED = 'SSH_TUNNEL_PASSPHRASE_CHANGED',
+  SSH_TUNNEL_PASSWORD_CHANGED = 'SSH_TUNNEL_PASSWORD_CHANGED',
+  SSH_TUNNEL_PORT_CHANGED = 'SSH_TUNNEL_PORT_CHANGED',
+  SSH_TUNNEL_USERNAME_CHANGED = 'SSH_TUNNEL_USERNAME_CHANGED',
   SSL_CA_CHANGED = 'SSL_CA_CHANGED',
   SSL_CERT_CHANGED = 'SSL_CERT_CHANGED',
   SSL_KEY_CHANGED = 'SSL_KEY_CHANGED',
   SSL_METHOD_CHANGED = 'SSL_METHOD_CHANGED',
   SSL_PASS_CHANGED = 'SSL_PASS_CHANGED',
   USERNAME_CHANGED = 'USERNAME_CHANGED',
-  X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED'
+  X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED',
 }
 
 export type FilePickerActionTypes =
+  | ActionTypes.SSH_TUNNEL_IDENTITY_FILE_CHANGED
   | ActionTypes.SSL_CA_CHANGED
   | ActionTypes.SSL_CERT_CHANGED
   | ActionTypes.SSL_KEY_CHANGED;
@@ -99,6 +109,10 @@ export interface LDAPUsernameChangedAction extends BaseAction {
   ldapUsername: string;
 }
 
+export interface OnChangeSSHTunnelIdentityFileAction extends BaseAction {
+  type: ActionTypes.ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE;
+}
+
 export interface OnChangeSSLCAAction extends BaseAction {
   type: ActionTypes.ON_CHANGE_SSL_CA;
 }
@@ -129,6 +143,41 @@ export interface ReadPreferenceChangedAction extends BaseAction {
 export interface ReplicaSetChangedAction extends BaseAction {
   type: ActionTypes.REPLICA_SET_CHANGED;
   replicaSet: string;
+}
+
+export interface SSHTunnelChangedAction extends BaseAction {
+  type: ActionTypes.SSH_TUNNEL_CHANGED;
+  sshTunnel: SSH_TUNNEL_TYPES;
+}
+
+export interface SSHTunnelHostnameChangedAction extends BaseAction {
+  type: ActionTypes.SSH_TUNNEL_HOSTNAME_CHANGED;
+  sshTunnelHostname: string;
+}
+
+export interface SSHTunnelIdentityFileChangedAction extends BaseAction {
+  type: ActionTypes.SSH_TUNNEL_IDENTITY_FILE_CHANGED;
+  files: string[] | undefined;
+}
+
+export interface SSHTunnelPassphraseChangedAction extends BaseAction {
+  type: ActionTypes.SSH_TUNNEL_PASSPHRASE_CHANGED;
+  sshTunnelPassphrase: string;
+}
+
+export interface SSHTunnelPasswordChangedAction extends BaseAction {
+  type: ActionTypes.SSH_TUNNEL_PASSWORD_CHANGED;
+  sshTunnelPassword: string;
+}
+
+export interface SSHTunnelPortChangedAction extends BaseAction {
+  type: ActionTypes.SSH_TUNNEL_PORT_CHANGED;
+  sshTunnelPort: number;
+}
+
+export interface SSHTunnelUsernameChangedAction extends BaseAction {
+  type: ActionTypes.SSH_TUNNEL_USERNAME_CHANGED;
+  sshTunnelUsername: string;
 }
 
 export interface SSLCAChangedAction extends BaseAction {
@@ -167,6 +216,7 @@ export interface X509UsernameChangedAction extends BaseAction {
 }
 
 export type FilePickerActions =
+  | SSHTunnelIdentityFileChangedAction
   | SSLCAChangedAction
   | SSLCertChangedAction
   | SSLKeyChangedAction;
@@ -182,6 +232,7 @@ export type Actions =
   | KerberosParametersChanged
   | LDAPPasswordChangedAction
   | LDAPUsernameChangedAction
+  | OnChangeSSHTunnelIdentityFileAction
   | OnChangeSSLCAAction
   | OnChangeSSLCertAction
   | OnChangeSSLKeyAction
@@ -189,6 +240,13 @@ export type Actions =
   | PortChangedAction
   | ReadPreferenceChangedAction
   | ReplicaSetChangedAction
+  | SSHTunnelChangedAction
+  | SSHTunnelHostnameChangedAction
+  | SSHTunnelIdentityFileChangedAction
+  | SSHTunnelPassphraseChangedAction
+  | SSHTunnelPasswordChangedAction
+  | SSHTunnelPortChangedAction
+  | SSHTunnelUsernameChangedAction
   | SSLCAChangedAction
   | SSLCertChangedAction
   | SSLKeyChangedAction

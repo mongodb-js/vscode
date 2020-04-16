@@ -4,12 +4,17 @@
     "moduleResolution": "node",
     "noImplicitAny": false,
     "target": "es6",
-    "outDir": "out/connect-form",
-    "lib": ["es6", "dom"],
+    "outDir": "out/webview-app",
+    "lib": [
+      "es6",
+      "dom"
+    ],
     "jsx": "react",
     "sourceMap": true,
     "rootDir": "..",
     "strict": true
   },
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

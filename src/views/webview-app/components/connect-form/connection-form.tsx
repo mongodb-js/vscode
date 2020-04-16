@@ -11,7 +11,7 @@ import Authentication from './authentication/authentication';
 import ReplicaSetInput from './replica-set-input';
 import ReadPreferenceSelect from './read-preference-select';
 import SSLMethod from './ssl/ssl-method';
-// import SSHTunnel from './ssh/ssh-tunnel';
+import SSHTunnel from './ssh/ssh-tunnel';
 import FormActions from './form-actions';
 import ConnectionModel from '../../connection-model/connection-model';
 import { AppState } from '../../store/store';
@@ -69,7 +69,7 @@ class ConnectionForm extends React.Component<props> {
       mongodbDatabaseName,
       mongodbPassword,
       mongodbUsername,
-      x509Username
+      x509Username,
     } = currentConnection;
 
     return (
@@ -104,7 +104,7 @@ class ConnectionForm extends React.Component<props> {
       readPreference,
       replicaSet,
       sshTunnel,
-      sslMethod
+      sslMethod,
     } = currentConnection;
 
     return (
@@ -114,10 +114,7 @@ class ConnectionForm extends React.Component<props> {
           <ReadPreferenceSelect readPreference={readPreference} />
         </FormGroup>
         <SSLMethod sslMethod={sslMethod} />
-        {/*
-        <SSHTunnel
-          sshTunnel={sshTunnel}
-        /> */}
+        <SSHTunnel sshTunnel={sshTunnel} />
       </div>
     );
   }
@@ -130,7 +127,7 @@ class ConnectionForm extends React.Component<props> {
       isConnecting,
       isValid,
       onConnectionFormChanged,
-      syntaxErrorMessage
+      syntaxErrorMessage,
     } = this.props;
 
     return (
@@ -165,15 +162,15 @@ const mapStateToProps = (state: AppState): stateProps => {
     isHostChanged: state.isHostChanged,
     isPortChanged: state.isPortChanged,
     isValid: state.isValid,
-    syntaxErrorMessage: state.syntaxErrorMessage
+    syntaxErrorMessage: state.syntaxErrorMessage,
   };
 };
 
 const mapDispatchToProps: dispatchProps = {
   // Resets URL validation if form was changed.
   onConnectionFormChanged: (): ConnectionFormChangedAction => ({
-    type: ActionTypes.CONNECTION_FORM_CHANGED
-  })
+    type: ActionTypes.CONNECTION_FORM_CHANGED,
+  }),
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ConnectionForm);

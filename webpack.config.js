@@ -5,10 +5,10 @@ const autoprefixer = require('autoprefixer');
 
 module.exports = {
   entry: {
-    connectForm: './src/views/connect-form-app/index.tsx'
+    webviewApp: './src/views/webview-app/index.tsx'
   },
   output: {
-    path: path.resolve(__dirname, 'out/connect-form'),
+    path: path.resolve(__dirname, 'out/webview-app'),
     filename: '[name].js'
   },
   devtool: 'eval-source-map',

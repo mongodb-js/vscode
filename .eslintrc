@@ -20,7 +20,7 @@
     "sourceType": "module",
     "project": [
       "./tsconfig.json",
-      "./src/views/connect-form-app/tsconfig.json"
+      "./src/views/webview-app/tsconfig.json"
     ]
   },
   "globals": {

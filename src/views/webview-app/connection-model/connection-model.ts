@@ -71,24 +71,24 @@ class ConnectionModel {
    */
   sslPass?: string;
 
-  // /**
-  //  * SSH TUNNEL
-  //  */
+  /**
+   * SSH TUNNEL
+   */
   sshTunnel: SSH_TUNNEL_TYPES = SSH_TUNNEL_DEFAULT;
-  // // The hostname of the SSH remote host.
-  // sshTunnelHostname?: string;
-  // // The SSH port of the remote host.
-  // sshTunnelPort: port = 22;
-  // // Bind the localhost endpoint of the SSH Tunnel to this port.
-  // sshTunnelBindToLocalPort?: port;
-  // // The optional SSH username for the remote host.
-  // sshTunnelUsername?: string;
-  // // The optional SSH password for the remote host.
-  // sshTunnelPassword?: string;
-  // // The optional path to the SSH identity file for the remote host.
-  // sshTunnelIdentityFile?: any;
-  // // The optional passphrase for `sshTunnelIdentityFile`.
-  // sshTunnelPassphrase?: string;
+  // The hostname of the SSH remote host.
+  sshTunnelHostname?: string;
+  // The SSH port of the remote host.
+  sshTunnelPort: port = 22;
+  // Bind the localhost endpoint of the SSH Tunnel to this port.
+  sshTunnelBindToLocalPort?: port;
+  // The optional SSH username for the remote host.
+  sshTunnelUsername?: string;
+  // The optional SSH password for the remote host.
+  sshTunnelPassword?: string;
+  // The optional path to the SSH identity file for the remote host.
+  sshTunnelIdentityFile?: string[];
+  // The optional passphrase for `sshTunnelIdentityFile`.
+  sshTunnelPassphrase?: string;
 }
 
 const getDriverAuthMechanism = (
@@ -106,7 +106,7 @@ const getBaseUrlFromConnectionModel = (
     port: null,
     slashes: true,
     pathname: '/',
-    query: {}
+    query: {},
   };
 
   // In the `mongodb+srv` protocol the comma separated list of host names is
@@ -169,7 +169,7 @@ const getBaseUrlFromConnectionModel = (
   }
 
   const reqClone = {
-    ...req
+    ...req,
   };
 
   return toURL(reqClone);
@@ -237,7 +237,7 @@ export const getDriverUrlFromConnectionModel = (
  * Enforce constraints for SSL.
  * @param {Object} attrs - Incoming attributes.
  */
-const validateSsl = (attrs): void => {
+const validateSsl = (attrs: ConnectionModel): void => {
   if (
     !attrs.sslMethod ||
     ['NONE', 'UNVALIDATED', 'IFAVAILABLE', 'SYSTEMCA'].includes(attrs.sslMethod)
@@ -262,7 +262,7 @@ const validateSsl = (attrs): void => {
   }
 };
 
-const validateMongodb = (attrs): void => {
+const validateMongodb = (attrs: ConnectionModel): void => {
   if (
     attrs.authStrategy === 'MONGODB' ||
     attrs.authStrategy === 'SCRAM-SHA-256'
@@ -287,7 +287,7 @@ const validateMongodb = (attrs): void => {
  * Enforce constraints for Kerberos.
  * @param {Object} attrs - Incoming attributes.
  */
-const validateKerberos = (attrs): void => {
+const validateKerberos = (attrs: ConnectionModel): void => {
   if (attrs.authStrategy !== 'KERBEROS') {
     if (attrs.kerberosServiceName) {
       throw new TypeError(
@@ -311,7 +311,7 @@ const validateKerberos = (attrs): void => {
   }
 };
 
-const validateX509 = (attrs): void => {
+const validateX509 = (attrs: ConnectionModel): void => {
   if (attrs.authStrategy === 'X509') {
     if (!attrs.x509Username) {
       throw new TypeError(
@@ -321,7 +321,7 @@ const validateX509 = (attrs): void => {
   }
 };
 
-const validateLdap = (attrs): void => {
+const validateLdap = (attrs: ConnectionModel): void => {
   if (attrs.authStrategy === 'LDAP') {
     if (!attrs.ldapUsername) {
       throw new TypeError(
@@ -336,7 +336,7 @@ const validateLdap = (attrs): void => {
   }
 };
 
-const validateStandardSshTunnelOptions = (attrs): void => {
+const validateStandardSshTunnelOptions = (attrs: ConnectionModel): void => {
   if (!attrs.sshTunnelUsername) {
     throw new TypeError(
       'sslTunnelUsername is required when sshTunnel is not NONE.'
@@ -356,12 +356,12 @@ const validateStandardSshTunnelOptions = (attrs): void => {
   }
 };
 
-const validateSshTunnel = (attrs): void => {
+const validateSshTunnel = (attrs: ConnectionModel): void => {
   if (!attrs.sshTunnel || attrs.sshTunnel === SSH_TUNNEL_DEFAULT) {
     return;
   }
 
-  if (attrs.sshTunnel === 'USER_PASSWORD') {
+  if (attrs.sshTunnel === SSH_TUNNEL_TYPES.USER_PASSWORD) {
     validateStandardSshTunnelOptions(attrs);
 
     if (!attrs.sshTunnelPassword) {
@@ -369,7 +369,7 @@ const validateSshTunnel = (attrs): void => {
         'sslTunnelPassword is required when sshTunnel is USER_PASSWORD.'
       );
     }
-  } else if (attrs.sshTunnel === 'IDENTITY_FILE') {
+  } else if (attrs.sshTunnel === SSH_TUNNEL_TYPES.IDENTITY_FILE) {
     validateStandardSshTunnelOptions(attrs);
 
     if (!attrs.sshTunnelIdentityFile) {
@@ -380,7 +380,7 @@ const validateSshTunnel = (attrs): void => {
   }
 };
 
-const validateConnectionModel = (attrs): Error | undefined => {
+const validateConnectionModel = (attrs: ConnectionModel): Error | undefined => {
   try {
     validateSsl(attrs);
     validateMongodb(attrs);

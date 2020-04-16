@@ -13,7 +13,7 @@ import WebviewController, {
   getReactAppUri
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
-import { MESSAGE_TYPES } from '../../../views/connect-form-app/extension-app-message-constants';
+import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
@@ -78,11 +78,11 @@ suite('Connect Form View Test Suite', () => {
     const htmlString = getConnectWebviewContent(appUri);
 
     assert(
-      htmlString.includes('vscode-resource:/out/connect-form/connectForm.js')
+      htmlString.includes('vscode-resource:/out/webview-app/webviewApp.js')
     );
-    const connectFormFileName = (): string => 'out/connect-form/connectForm.js';
+    const webviewAppFileName = (): string => 'out/webview-app/webviewApp.js';
     const jsFileString = await readFile(
-      path.resolve(__dirname, '..', '..', '..', '..', connectFormFileName())
+      path.resolve(__dirname, '..', '..', '..', '..', webviewAppFileName())
     );
     assert(`${jsFileString}`.includes('ConnectionForm'));
   });

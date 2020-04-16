@@ -6,7 +6,7 @@ import {
   MESSAGE_TYPES,
   ConnectMessage,
   OpenFilePickerMessage
-} from './connect-form-app/extension-app-message-constants';
+} from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
 
 const log = createLogger('webviewController');
@@ -38,7 +38,7 @@ export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
 
 export const getReactAppUri = (extensionPath: string): vscode.Uri => {
   const jsAppFilePath = vscode.Uri.file(
-    path.join(extensionPath, 'out', 'connect-form', 'connectForm.js')
+    path.join(extensionPath, 'out', 'webview-app', 'webviewApp.js')
   );
   return jsAppFilePath.with({ scheme: 'vscode-resource' });
 };
@@ -114,8 +114,8 @@ export default class WebviewController {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'out', 'connect-form')),
-          vscode.Uri.file(path.join(extensionPath, 'images', 'connect-form'))
+          vscode.Uri.file(path.join(extensionPath, 'out', 'webview')),
+          vscode.Uri.file(path.join(extensionPath, 'images', 'webview'))
         ]
       }
     );
