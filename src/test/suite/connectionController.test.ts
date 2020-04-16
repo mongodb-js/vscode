@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { afterEach, beforeEach } from 'mocha';
 import * as sinon from 'sinon';
 import Connection = require('mongodb-connection-model/lib/model');
 
@@ -26,6 +26,11 @@ suite('Connection Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
 
+  beforeEach(() => {
+    // Here we stub the showInformationMessage process because it is too much
+    // for the render process and leads to crashes while testing.
+    sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
+  });
   afterEach(() => {
     // Reset our mock extension's state.
     mockExtensionContext._workspaceState = {};
