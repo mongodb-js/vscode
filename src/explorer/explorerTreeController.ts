@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import ConnectionController, {
-  DataServiceEventTypes,
+  DataServiceEventTypes
 } from '../connectionController';
 import { DOCUMENT_ITEM } from './documentTreeItem';
 import ConnectionTreeItem from './connectionTreeItem';
@@ -15,7 +15,7 @@ import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 const log = createLogger('explorer controller');
 
 export default class ExplorerTreeController
-  implements vscode.TreeDataProvider<vscode.TreeItem> {
+implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _mdbConnectionsTreeItem: MDBConnectionsTreeItem;
 

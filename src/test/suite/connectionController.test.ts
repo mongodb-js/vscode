@@ -5,12 +5,12 @@ import * as sinon from 'sinon';
 import Connection = require('mongodb-connection-model/lib/model');
 
 import ConnectionController, {
-  DataServiceEventTypes,
+  DataServiceEventTypes
 } from '../../connectionController';
 import { StorageController, StorageVariables } from '../../storage';
 import {
   StorageScope,
-  DefaultSavingLocations,
+  DefaultSavingLocations
 } from '../../storage/storageController';
 import { StatusView } from '../../views';
 import MDBExtensionController from '../../mdbExtensionController';
@@ -63,7 +63,7 @@ suite('Connection Controller Test Suite', () => {
         assert(connectionModel !== null);
         assert(
           connectionModel?.getAttributes({
-            derived: true,
+            derived: true
           }).instanceId === 'localhost:27018'
         );
         const dataService = testConnectionController.getActiveDataService();
@@ -447,14 +447,14 @@ suite('Connection Controller Test Suite', () => {
           id: 'testGlobalConnectionModel',
           name: 'name1',
           connectionModel: new Connection({ port: 29999 }),
-          driverUrl: 'testGlobalConnectionModelDriverUrl',
+          driverUrl: 'testGlobalConnectionModelDriverUrl'
         },
         testGlobalConnectionModel2: {
           id: 'testGlobalConnectionModel2',
           name: 'name2',
           connectionModel: new Connection({ port: 30000 }),
-          driverUrl: 'testGlobalConnectionModel2DriverUrl',
-        },
+          driverUrl: 'testGlobalConnectionModel2DriverUrl'
+        }
       }
     );
     testExtensionContext.workspaceState.update(
@@ -465,14 +465,14 @@ suite('Connection Controller Test Suite', () => {
           name: 'name3',
           connectionModel: new Connection({ port: 29999 }),
 
-          driverUrl: 'testWorkspaceConnectionModel1DriverUrl',
+          driverUrl: 'testWorkspaceConnectionModel1DriverUrl'
         },
         testWorkspaceConnectionModel2: {
           id: 'testWorkspaceConnectionModel2',
           name: 'name4',
           connectionModel: new Connection({ port: 22345 }),
-          driverUrl: 'testWorkspaceConnectionModel2DriverUrl',
-        },
+          driverUrl: 'testWorkspaceConnectionModel2DriverUrl'
+        }
       }
     );
     const testStorageController = new StorageController(testExtensionContext);
@@ -629,8 +629,8 @@ suite('Connection Controller Test Suite', () => {
           driverUrl: TEST_DATABASE_URI,
           name: 'tester',
           connectionModel,
-          storageLocation: StorageScope.NONE,
-        },
+          storageLocation: StorageScope.NONE
+        }
       };
 
       testConnectionController
