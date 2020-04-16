@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { afterEach, beforeEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
 const sinon = require('sinon');
 
@@ -22,6 +22,11 @@ import { StorageScope } from '../../storage/storageController';
 const testDatabaseURI = 'mongodb://localhost:27018';
 
 suite('MDBExtensionController Test Suite', () => {
+  beforeEach(() => {
+    // Here we stub the showInformationMessage process because it is too much
+    // for the render process and leads to crashes while testing.
+    sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
+  });
   afterEach(() => {
     sinon.restore();
   });
