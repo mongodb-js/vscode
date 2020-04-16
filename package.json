@@ -91,6 +91,12 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "mongoDB",
+        "contents": "No connections found.\n[Add Connection](command:mdb.connectWithURI)"
+      }
+    ],
     "languages": [
       {
         "id": "mongodb",

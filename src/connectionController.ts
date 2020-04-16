@@ -18,7 +18,7 @@ const MAX_CONNECTION_NAME_LENGTH = 512;
 
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
-  ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED'
+  ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
 }
 
 export default class ConnectionController {
@@ -64,7 +64,7 @@ export default class ConnectionController {
         driverUrl: savedConnection.driverUrl,
         name: savedConnection.name,
         connectionModel: savedConnection.connectionModel,
-        storageLocation: savedConnection.storageLocation
+        storageLocation: savedConnection.storageLocation,
       };
     } catch (error) {
       // Here we're leniant when loading connections in case their
@@ -123,7 +123,7 @@ export default class ConnectionController {
           }
 
           return null;
-        }
+        },
       });
     } catch (e) {
       return Promise.resolve(false);
@@ -189,7 +189,7 @@ export default class ConnectionController {
     connectionModel: ConnectionModelType
   ): Promise<boolean> => {
     const { driverUrl, instanceId } = connectionModel.getAttributes({
-      derived: true
+      derived: true,
     });
 
     const newConnection: SavedConnection = {
@@ -199,7 +199,7 @@ export default class ConnectionController {
       driverUrl,
       // To begin we just store it on the session, the storage controller
       // handles changing this based on user preference.
-      storageLocation: StorageScope.NONE
+      storageLocation: StorageScope.NONE,
     };
     this._savedConnections[newConnection.id] = newConnection;
 
@@ -223,7 +223,7 @@ export default class ConnectionController {
     log.info(
       'Connect called to connect to instance:',
       connectionModel.getAttributes({
-        derived: true
+        derived: true,
       }).instanceId
     );
 
@@ -453,13 +453,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._savedConnections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
-      );
+      connectionIds.map(
+        (id, index) => `${index + 1}: ${this._savedConnections[id].name}`
+      ),
+      {
+        placeHolder: 'Choose a connection to remove...',
+      }
+    );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
@@ -489,7 +489,7 @@ export default class ConnectionController {
           }
 
           return null;
-        }
+        },
       });
     } catch (e) {
       return Promise.reject(
