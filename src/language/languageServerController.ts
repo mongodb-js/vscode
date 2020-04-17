@@ -125,7 +125,7 @@ export default class LanguageServerController {
     this.client.stop();
   }
 
-  executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Promise<any> {
+  executeAll(codeToEvaluate: string): Promise<any> {
     return this.client.onReady().then(async () => {
       // Instantiate a new CancellationTokenSource object
       // that generates a cancellation token for each run of a playground
@@ -136,13 +136,22 @@ export default class LanguageServerController {
       // and return results to the playground controller when ready
       return this.client.sendRequest(
         'executeAll',
-        { codeToEvaluate, connectionString, connectionOptions },
+        { codeToEvaluate },
         this._source.token
       );
     });
   }
 
-  startStreamLanguageServerLogs() {
+  connect(connectionString: string | null, connectionOptions?: any): Promise<any> {
+    return this.client.onReady().then(async () => {
+      return this.client.sendRequest(
+        'connect',
+        { connectionString, connectionOptions }
+      );
+    });
+  }
+
+  startStreamLanguageServerLogs(): Promise<boolean> {
     const socketPort = workspace.getConfiguration('languageServerExample').get('port', 7000);
 
     socket = new WebSocket(`ws://localhost:${socketPort}`);
@@ -150,7 +159,7 @@ export default class LanguageServerController {
     return Promise.resolve(true);
   }
 
-  cancelAll() {
+  cancelAll(): Promise<boolean> {
     return new Promise((resolve) => {
       // Send a request for cancellation. As a result
       // the associated CancellationToken will be notified of the cancellation,

@@ -111,7 +111,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         this._playgroundController.showActiveConnectionInPlayground(message)
     );
 
-    this.registerCommand('mdb.startStreamLanguageServerLogs', () =>
+    this.registerCommand('lspInspector.startStreamLanguageServerLogs', () =>
       this._languageServerController.startStreamLanguageServerLogs()
     );
 

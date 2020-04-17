@@ -46,12 +46,18 @@ export default class PlaygroundController {
         if (this._activeConnectionCodeLensProvider) {
           this._activeConnectionCodeLensProvider.refresh();
         }
+
+        const activeConnectionString = this._connectionController.getActiveConnectionDriverUrl();
+
+        this._languageServerController.connect(activeConnectionString);
       }
     );
   }
 
   createPlayground(): Promise<boolean> {
-    const useDefaultTemplate: boolean = !!vscode.workspace.getConfiguration('mdb').get('useDefaultTemplateForPlayground');
+    const useDefaultTemplate: boolean = !!vscode.workspace
+      .getConfiguration('mdb')
+      .get('useDefaultTemplateForPlayground');
 
     return new Promise((resolve, reject) => {
       vscode.workspace
@@ -112,7 +118,7 @@ export default class PlaygroundController {
     }
 
     // Send a request to the language server to execute scripts from a playground
-    const result = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
+    const result = await this._languageServerController.executeAll(codeToEvaluate);
 
     if (result) {
       // Send metrics to Segment

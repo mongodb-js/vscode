@@ -1,8 +1,6 @@
 import {
   createConnection,
   TextDocuments,
-  TextDocumentsConfiguration,
-  TextDocument,
   Diagnostic,
   DiagnosticSeverity,
   ProposedFeatures,
@@ -11,41 +9,28 @@ import {
   CompletionItem,
   CompletionItemKind,
   TextDocumentPositionParams,
-  RequestType
+  RequestType,
+  TextDocumentSyncKind,
 } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Worker as WorkerThreads } from 'worker_threads';
 
 const path = require('path');
+const esprima = require('esprima');
+
+let connectionString = 'mongodb://localhost';
+let connectionOptions = {};
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 
+console.log = connection.console.log.bind(connection.console);
+console.error = connection.console.error.bind(connection.console);
+
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-const documentsConfig = {
-  create(uri: string, languageId: string, version: number, content: string) {
-    // connection.console.log(
-    //   `documentsConfig.create: ${JSON.stringify({
-    //     uri,
-    //     languageId,
-    //     version,
-    //     content
-    //   })}`
-    // );
-  },
-  update(document: any, changes: any[], version: number) {
-    // connection.console.log(
-    //   `documentsConfig.update: ${JSON.stringify({
-    //     document,
-    //     changes,
-    //     version
-    //   })}`
-    // );
-  }
-} as TextDocumentsConfiguration<any>;
-
-const documents: TextDocuments<any> = new TextDocuments(documentsConfig);
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
@@ -70,17 +55,21 @@ connection.onInitialize((params: InitializeParams) => {
 
   return {
     capabilities: {
-      textDocumentSync: (documents as any).syncKind,
+      textDocumentSync: {
+        openClose: true,
+        change: TextDocumentSyncKind.Incremental,
+      },
       // Tell the client that the server supports code completion
       completionProvider: {
-        resolveProvider: true
-      }
+        resolveProvider: true,
+        triggerCharacters: ['.'],
+      },
       // documentFormattingProvider: true,
       // documentRangeFormattingProvider: true,
       // codeLensProvider: {
       //   resolveProvider: true
       // }
-    }
+    },
   };
 });
 
@@ -92,9 +81,10 @@ connection.onInitialized(() => {
       undefined
     );
   }
+
   // if (hasWorkspaceFolderCapability) {
   //   connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-  //     connection.console.log('Workspace folder change event received.');
+  //     console.log('Workspace folder change event received.');
   //   });
   // }
 });
@@ -129,88 +119,97 @@ connection.onDidChangeConfiguration((change) => {
   documents.all().forEach(validateTextDocument);
 });
 
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
+const getDocumentSettings = (resource: string): Thenable<ExampleSettings> => {
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
+
   let result = documentSettings.get(resource);
+
   if (!result) {
     result = connection.workspace.getConfiguration({
       scopeUri: resource,
-      section: 'mongodbLanguageServer'
+      section: 'mongodbLanguageServer',
     });
     documentSettings.set(resource, result);
   }
+
   return result;
-}
+};
 
 // Only keep settings for open documents
 documents.onDidClose((e) => {
-  // connection.console.log(`documents.onDidClose: ${JSON.stringify(e)}`);
+  // console.log(`documents.onDidClose: ${JSON.stringify(e)}`);
+
   documentSettings.delete(e.document.uri);
 });
 
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+const validateTextDocument = async (
+  textDocument: TextDocument
+): Promise<void> => {
   // In this simple example we get the settings for every validate run.
   const settings = await getDocumentSettings(textDocument.uri);
 
   // The validator creates diagnostics for all uppercase words length 2 and more
   const text = textDocument.getText();
   const pattern = /\b[A-Z]{2,}\b/g;
-  let m: RegExpExecArray | null;
-
-  let problems = 0;
   const diagnostics: Diagnostic[] = [];
+  let m: RegExpExecArray | null;
+  let problems = 0;
+
   // eslint-disable-next-line no-cond-assign
   while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
     problems++;
+
     const diagnostic: Diagnostic = {
       severity: DiagnosticSeverity.Warning,
       range: {
         start: textDocument.positionAt(m.index),
-        end: textDocument.positionAt(m.index + m[0].length)
+        end: textDocument.positionAt(m.index + m[0].length),
       },
       message: `${m[0]} is all uppercase.`,
-      source: 'ex'
+      source: 'ex',
     };
+
     if (hasDiagnosticRelatedInformationCapability) {
       diagnostic.relatedInformation = [
         {
           location: {
             uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range)
+            range: Object.assign({}, diagnostic.range),
           },
-          message: 'Spelling matters'
+          message: 'Spelling matters',
         },
         {
           location: {
             uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range)
+            range: Object.assign({}, diagnostic.range),
           },
-          message: 'Particularly for names'
-        }
+          message: 'Particularly for names',
+        },
       ];
     }
+
     diagnostics.push(diagnostic);
   }
 
   // Send the computed diagnostics to VSCode.
-  // connection.console.log(
+  // console.log(
   //   `sendDiagnostics: ${JSON.stringify({ uri: textDocument.uri, diagnostics })}`
   // );
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 
   // const notification = new NotificationType<string>('showInformationMessage');
-  connection.sendNotification(
-    'showInformationMessage',
-    'Enjoy these diagnostics!'
-  );
-}
+  // connection.sendNotification(
+  //   'showInformationMessage',
+  //   'Enjoy these diagnostics!'
+  // );
+};
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent((change) => {
-  // connection.console.log(
+  // console.log(
   //   `documents.onDidChangeContent: ${JSON.stringify(change)}`
   // );
 
@@ -220,7 +219,7 @@ documents.onDidChangeContent((change) => {
 });
 
 connection.onRequest(new RequestType('textDocument/codeLens'), (event) => {
-  // connection.console.log(
+  // console.log(
   //   `documents.onDidChangeContent: ${JSON.stringify(event)}`
   // );
   // const text = documents.get(event.textDocument.uri).getText();
@@ -230,40 +229,156 @@ connection.onRequest(new RequestType('textDocument/codeLens'), (event) => {
 
 connection.onDidChangeWatchedFiles((_change) => {
   // Monitored files have change in VSCode
-  // connection.console.log(
+  // console.log(
   //   `We received an file change event: ${JSON.stringify(_change)}`
   // );
 });
 
-// This handler provides the initial list of the completion items.
-connection.onCompletion(
-  (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    // The pass parameter contains the position of the text document in
-    // which code complete got requested. For the example we ignore this
-    // info and always provide the same completion items.
-    // connection.console.log(
-    //   `onCompletion: ${JSON.stringify({ _textDocumentPosition })}`
-    // );
-    return [
-      {
-        label: 'TypeScript',
-        kind: CompletionItemKind.Text,
-        data: 1
-      },
-      {
-        label: 'JavaScript',
-        kind: CompletionItemKind.Text,
-        data: 2
+connection.onRequest('connect', (params) => {
+  connectionString = params.connectionString;
+  connectionOptions = params.connectionOptions ? params.connectionOptions : {};
+});
+
+// Check if the current node is an object property and
+// get the current value and the collection name
+const getObjectProperty = (body, currentPosition) => {
+  return body
+    .slice(0) // Make a copy of the original array to prevent mutation
+    .reduce((accumulate, expressionStatement, i, arr) => {
+      switch (expressionStatement.type) {
+        case esprima.Syntax.ExpressionStatement:
+          if (
+            expressionStatement.expression &&
+            expressionStatement.expression.type === esprima.Syntax.CallExpression &&
+            expressionStatement.expression.arguments &&
+            expressionStatement.expression.arguments[0].type === esprima.Syntax.ObjectExpression &&
+            expressionStatement.expression.arguments[0].properties &&
+            expressionStatement.expression.arguments[0].properties[0].type === esprima.Syntax.Property &&
+            expressionStatement.expression.arguments[0].properties[0].key &&
+            expressionStatement.expression.arguments[0].properties[0].key.type === esprima.Syntax.Identifier
+          ) {
+            const objectKey = expressionStatement.expression.arguments[0].properties[0].key;
+            const collectionName = expressionStatement.expression.callee.object.property.name;
+
+            if (
+              currentPosition.line === objectKey.loc.end.line - 1 &&
+              currentPosition.character === objectKey.loc.end.column
+            ) {
+              accumulate = { objectKey, collectionName: collectionName || 'test' };
+              arr.splice(1); // Terminate the reduce function
+            }
+          }
+          break;
       }
-    ];
-  }
-);
+
+      return accumulate;
+    }, null);
+};
+
+// Request the completion items from `mongosh` based on the current input.
+const provideCompletionItems = (
+  params: TextDocumentPositionParams
+): Promise<any> => {
+  return new Promise((resolve) => {
+    const CompletionItems: any[] = [];
+
+    // We use textToComplete to get text from the editor till the current character
+    // to pass it to `mongosh` parser. We use `mongosh` parser
+    // to complete shell API symbols/methods
+    const textToComplete = documents.get(params.textDocument.uri)?.getText({
+      start: { line: 0, character: 0 },
+      end: params.position,
+    });
+
+    if (!textToComplete) {
+      return resolve(CompletionItems);
+    }
+
+    // We use fieldsToComplete to get all text from the editor
+    // to pass it to `esprima` parser. We use `esprima` parser
+    // to complete fields from the active collection
+    const fieldsToComplete = documents.get(params.textDocument.uri)?.getText();
+
+    try {
+      const ast = esprima.parseScript(fieldsToComplete, { range: true, loc: true });
+      const objectProperty = getObjectProperty(ast.body, params.position);
+
+      if (objectProperty) {
+        CompletionItems.push({
+          label: objectProperty.collectionName,
+          kind: CompletionItemKind.Text,
+        });
+      }
+
+      // console.log(`'params.position: ${JSON.stringify(params.position)}'`);
+      // console.log(`'objectProps: ${JSON.stringify(objectProps)}'`);
+    } catch (error) {
+      console.log(`'Esprima error: ${error}'`);
+    }
+
+    // console.log(`'textToComplete: ${textToComplete}'`);
+
+    const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
+      // The workerData parameter sends data to the created worker
+      workerData: {
+        textToComplete,
+        connectionString,
+        connectionOptions,
+      },
+    });
+
+    worker.postMessage('getCompletions');
+
+    // Listen for results from the worker thread
+    worker.on('message', ([error, result]) => {
+      if (error) {
+        connection.sendNotification('showErrorMessage', error.message);
+      }
+
+      console.log(`'Result: ${JSON.stringify(result)}'`);
+      console.log(`'CompletionItems: ${JSON.stringify(CompletionItems)}'`);
+
+      if (!result || !Array.isArray(result) || !textToComplete || result.length === 0) {
+        return resolve(CompletionItems);
+      }
+
+      // Convert Completion[] format returned by `mongosh`
+      // to CompletionItem[] format required by VSCode
+      result = result.map((item) => {
+        // The runtime.getCompletions() function returns complitions including the user input.
+        // Slice the user input and show only suggested keywords to complete the query.
+        const index = item.completion.indexOf(textToComplete);
+        const label =
+          index === -1
+            ? item.completion
+            : `${item.completion.slice(0, index)}${item.completion.slice(
+              index + textToComplete.length
+            )}`;
+
+        return {
+          label,
+          kind: CompletionItemKind.Text,
+        };
+      });
+
+      worker.terminate();
+
+      return resolve(result);
+    });
+  });
+};
+
+// This handler provides the list of the completion items.
+connection.onCompletion((params: TextDocumentPositionParams) => {
+  return provideCompletionItems(params);
+});
 
 // This handler resolves additional information for the item selected in
 // the completion list.
 connection.onCompletionResolve(
   (item: CompletionItem): CompletionItem => {
-    // connection.console.log(`onCompletionResolve: ${JSON.stringify(item)}`);
+    // console.log(`onCompletionResolve: ${JSON.stringify(item)}`);
+
     if (item.data === 1) {
       item.detail = 'TypeScript details';
       item.documentation = 'TypeScript documentation';
@@ -271,6 +386,7 @@ connection.onCompletionResolve(
       item.detail = 'JavaScript details';
       item.documentation = 'JavaScript documentation';
     }
+
     return item;
   }
 );
@@ -294,18 +410,18 @@ connection.onRequest('executeAll', (params, token) => {
       // The workerData parameter sends data to the created worker
       workerData: {
         codeToEvaluate: params.codeToEvaluate,
-        connectionString: params.connectionString,
-        connectionOptions: params.connectionOptions
-      }
+        connectionString,
+        connectionOptions,
+      },
     });
+
+    // Evaluate runtime in the worker thread
+    worker.postMessage('executeAll');
 
     // Listen for results from the worker thread
     worker.on('message', ([error, result]) => {
       if (error) {
-        connection.sendNotification(
-          'showErrorMessage',
-          error.message
-        );
+        connection.sendNotification('showErrorMessage', error.message);
       }
 
       worker.terminate(); // Close the worker thread
@@ -315,7 +431,7 @@ connection.onRequest('executeAll', (params, token) => {
 
     // Listen for cancellation request from the language server client
     token.onCancellationRequested(async () => {
-      connection.console.log('Playground cancellation requested');
+      console.log('Playground cancellation requested');
       connection.sendNotification(
         'showInformationMessage',
         'The running playground operation was canceled.'
@@ -337,7 +453,7 @@ connection.onRequest('executeAll', (params, token) => {
       // Stop the worker and all JavaScript execution
       // in the worker thread as soon as possible
       worker.terminate().then((status) => {
-        connection.console.log(`Playground canceled with status: ${status}`);
+        console.log(`Playground canceled with status: ${status}`);
       });
     });
   });
@@ -347,33 +463,37 @@ connection.onRequest('executeAll', (params, token) => {
  * Execute a single block of code in the playground.
  */
 connection.onRequest('executeRange', (event) => {
-  // connection.console.log(`executeRange: ${JSON.stringify(event)}`);
+  // console.log(`executeRange: ${JSON.stringify(event)}`);
+
   return '';
 });
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {
-  // connection.console.log(
+  // console.log(
   //   `textDocument/rangeFormatting: ${JSON.stringify({ event })}`
   // );
-  const text = documents.get(event.textDocument.uri).getText(event.range);
+
+  const text = documents?.get(event?.textDocument?.uri)?.getText(event.range);
 
   return text;
 });
 
 connection.onRequest('textDocument/formatting', (event) => {
   const document = documents.get(event.textDocument.uri);
-  const text = document.getText();
+  const text = document?.getText();
   const range = {
     start: { line: 0, character: 0 },
-    end: { line: document.lineCount, character: 0 }
+    end: { line: document?.lineCount, character: 0 },
   };
-  // connection.console.log(
+
+  // console.log(
   //   `textDocument/formatting: ${JSON.stringify({
   //     text,
   //     options: event.options,
   //     range
   //   })}`
   // );
+
   return text;
 });
 
@@ -381,13 +501,13 @@ connection.onDidOpenTextDocument((params) => {
   // A text document got opened in VSCode.
   // params.textDocument.uri uniquely identifies the document. For documents store on disk this is a file URI.
   // params.textDocument.text the initial full content of the document.
-  // connection.console.log(`${params.textDocument.uri} opened.`);
+  // console.log(`${params.textDocument.uri} opened.`);
 });
 connection.onDidChangeTextDocument((params) => {
   // The content of a text document did change in VSCode.
   // params.textDocument.uri uniquely identifies the document.
   // params.contentChanges describe the content changes to the document.
-  // connection.console.log(
+  // console.log(
   //   `${params.textDocument.uri} changed: ${JSON.stringify(
   //     params.contentChanges
   //   )}`
@@ -396,7 +516,7 @@ connection.onDidChangeTextDocument((params) => {
 connection.onDidCloseTextDocument((params) => {
   // A text document got closed in VSCode.
   // params.textDocument.uri uniquely identifies the document.
-  // connection.console.log(`${params.textDocument.uri} closed.`);
+  // console.log(`${params.textDocument.uri} closed.`);
 });
 
 // Make the text document manager listen on the connection

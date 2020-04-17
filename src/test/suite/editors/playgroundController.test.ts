@@ -382,11 +382,13 @@ suite('Playground Controller Test Suite', () => {
         async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
 
-          testLanguageServerController.executeAll('while (1===1) {}', 'mongodb://localhost:27018');
+          await testLanguageServerController.connect('mongodb://localhost:27018');
+
+          testLanguageServerController.executeAll('while (1===1) {}');
 
           await testLanguageServerController.cancelAll();
 
-          const result = await testLanguageServerController.executeAll('4 + 4', 'mongodb://localhost:27018');
+          const result = await testLanguageServerController.executeAll('4 + 4');
 
           expect(result).to.be.equal('8');
         }
