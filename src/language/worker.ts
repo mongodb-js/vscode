@@ -46,7 +46,12 @@ const getCompletions = async (
   connectionOptions: NodeOptions
 ): Promise<[WorkerError, WorkerResult?]> => {
   try {
-
+    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
+      connectionString,
+      connectionOptions
+    );
+    const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
+    const result = await runtime.getCompletions(textToComplete);
 
     return [null, result];
   } catch (error) {
