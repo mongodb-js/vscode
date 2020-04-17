@@ -4,9 +4,7 @@
     "es6": true
   },
   "parser": "@typescript-eslint/parser", // Specifies the ESLint parser
-  "plugins": [
-    "@typescript-eslint"
-  ],
+  "plugins": ["@typescript-eslint"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
@@ -18,10 +16,7 @@
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module",
-    "project": [
-      "./tsconfig.json",
-      "./src/views/webview-app/tsconfig.json"
-    ]
+    "project": ["./tsconfig.json", "./src/views/webview-app/tsconfig.json"]
   },
   "globals": {
     "acquireVsCodeApi": true
@@ -33,22 +28,17 @@
     "space-before-function-paren": 0,
     "no-async-promise-executor": 0,
     "no-extra-semi": "off",
-    "@typescript-eslint/no-extra-semi": [
-      "error"
-    ],
+    "@typescript-eslint/no-extra-semi": ["error"],
     "semi": "off",
-    "@typescript-eslint/semi": [
-      "error"
-    ],
+    "@typescript-eslint/semi": ["error"],
     "no-empty-function": "off",
     "@typescript-eslint/no-empty-function": [
       "error",
       {
-        "allow": [
-          "arrowFunctions"
-        ]
+        "allow": ["arrowFunctions"]
       }
     ],
+    "comma-dangle": ["error", "never"],
     "no-misused-promises": "off",
     "@typescript-eslint/no-misused-promises": "off",
     "no-var-requires": "off",

@@ -5,7 +5,7 @@ const autoprefixer = require('autoprefixer');
 
 module.exports = {
   entry: {
-    webviewApp: './src/views/webview-app/index.tsx'
+    webviewApp: path.resolve(__dirname, 'src/views/webview-app/index.tsx')
   },
   output: {
     path: path.resolve(__dirname, 'out/webview-app'),
@@ -37,7 +37,7 @@ module.exports = {
           {
             loader: 'postcss-loader',
             options: {
-              plugins: function() {
+              plugins: function () {
                 return [autoprefixer()];
               }
             }

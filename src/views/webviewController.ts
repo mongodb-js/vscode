@@ -114,8 +114,7 @@ export default class WebviewController {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'out', 'webview')),
-          vscode.Uri.file(path.join(extensionPath, 'images', 'webview'))
+          vscode.Uri.file(path.join(extensionPath, 'out', 'webview'))
         ]
       }
     );
