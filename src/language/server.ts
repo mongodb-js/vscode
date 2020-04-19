@@ -24,7 +24,7 @@ const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 // MongoDB Playground Service Manager.
-let mongoDBService = new MongoDBService(connection);
+const mongoDBService = new MongoDBService(connection);
 
 let hasConfigurationCapability = false;
 // let hasWorkspaceFolderCapability = false;

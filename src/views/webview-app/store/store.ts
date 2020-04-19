@@ -6,6 +6,7 @@ import ConnectionModel, {
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import { MESSAGE_TYPES } from '../extension-app-message-constants';
 
+declare var acquireVsCodeApi: any;
 const vscode = acquireVsCodeApi();
 
 export interface AppState {

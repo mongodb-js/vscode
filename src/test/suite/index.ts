@@ -10,7 +10,7 @@ import { mdbTestExtension } from './stubbableMdbExtension';
 export function run(): Promise<void> {
   const reporterOptions = {
     spec: '-',
-    'mocha-junit-reporter': path.resolve(__dirname, './test-results.xml')
+    'mocha-junit-reporter': path.join(__dirname, './test-results.xml')
   };
 
   // Create the mocha tester.
@@ -21,7 +21,7 @@ export function run(): Promise<void> {
   });
   mocha.useColors(true);
 
-  const testsRoot = path.resolve(__dirname, '..');
+  const testsRoot = path.join(__dirname, '..');
 
   return new Promise((c, e) => {
     glob('**/**.test.js', { cwd: testsRoot }, (err, files) => {

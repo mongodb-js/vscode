@@ -26,12 +26,11 @@ export default class LanguageServerController {
   constructor(context: ExtensionContext) {
     this._context = context;
 
-    // The server is implemented in node
+    // The server is implemented in node.
     const serverModule = path.join(
       context.extensionPath,
-      'out',
-      'language',
-      'server.js'
+      'dist',
+      'languageServer.js'
     );
 
     // The debug options for the server
@@ -106,7 +105,7 @@ export default class LanguageServerController {
 
   activate(): void {
     // Start the client. This will also launch the server
-    let disposable = this.client.start();
+    const disposable = this.client.start();
 
     // Push the disposable to the context's subscriptions so that the
     // client can be deactivated on extension deactivation

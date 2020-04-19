@@ -39,7 +39,7 @@ export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
 
 export const getReactAppUri = (extensionPath: string): vscode.Uri => {
   const jsAppFilePath = vscode.Uri.file(
-    path.join(extensionPath, 'out', 'webview-app', 'webviewApp.js')
+    path.join(extensionPath, 'dist', 'webviewApp.js')
   );
   return jsAppFilePath.with({ scheme: 'vscode-resource' });
 };
@@ -124,7 +124,7 @@ export default class WebviewController {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'out', 'webview-app'))
+          vscode.Uri.file(path.join(extensionPath, 'dist'))
         ]
       }
     );
