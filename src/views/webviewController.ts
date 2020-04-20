@@ -5,7 +5,8 @@ import ConnectionController from '../connectionController';
 import {
   MESSAGE_TYPES,
   ConnectMessage,
-  OpenFilePickerMessage
+  OpenFilePickerMessage,
+  OpenConnectionStringInputMessage
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
 
@@ -51,7 +52,10 @@ export default class WebviewController {
   }
 
   handleWebviewMessage = (
-    message: ConnectMessage | OpenFilePickerMessage,
+    message:
+      | ConnectMessage
+      | OpenFilePickerMessage
+      | OpenConnectionStringInputMessage,
     panel: vscode.WebviewPanel
   ): void => {
     switch (message.command) {
@@ -93,6 +97,12 @@ export default class WebviewController {
                   : undefined
             });
           });
+        return;
+      case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
+        vscode.commands.executeCommand(
+          'mdb.connectWithURI'
+        );
+
         return;
       default:
         // no-op.

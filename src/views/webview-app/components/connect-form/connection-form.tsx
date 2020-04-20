@@ -2,7 +2,11 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, ConnectionFormChangedAction } from '../../store/actions';
+import {
+  ActionTypes,
+  ConnectionFormChangedAction,
+  OpenConnectionStringInputAction
+} from '../../store/actions';
 import FormGroup from './form-group';
 import HostInput from './host/host-input';
 import PortInput from './host/port-input';
@@ -31,12 +35,17 @@ type stateProps = {
 
 type dispatchProps = {
   onConnectionFormChanged: () => void;
+  onOpenConnectionStringInput: () => void;
 };
 
 type props = stateProps & dispatchProps;
 
 class ConnectionForm extends React.Component<props> {
   static displayName = 'ConnectionForm';
+
+  onConnectWithConnectionStringClicked = (): void => {
+    this.props.onOpenConnectionStringInput();
+  };
 
   /**
    * Renders a port input.
@@ -136,6 +145,12 @@ class ConnectionForm extends React.Component<props> {
         className={classnames(styles['connect-form'])}
       >
         <h1>Connect to MongoDB</h1>
+        <div>
+          Enter your connection details below, or{' '}
+          <a href="#" onClick={this.onConnectWithConnectionStringClicked}>
+            connect with a connection string
+          </a>
+        </div>
         <div className={classnames(styles.fields)}>
           {this.renderHostnameArea()}
           {this.renderConnectionOptionsArea()}
@@ -170,6 +185,9 @@ const mapDispatchToProps: dispatchProps = {
   // Resets URL validation if form was changed.
   onConnectionFormChanged: (): ConnectionFormChangedAction => ({
     type: ActionTypes.CONNECTION_FORM_CHANGED
+  }),
+  onOpenConnectionStringInput: (): OpenConnectionStringInputAction => ({
+    type: ActionTypes.OPEN_CONNECTION_STRING_INPUT
   })
 };
 

@@ -1,7 +1,7 @@
 import { Actions, ActionTypes, FilePickerActionTypes } from './actions';
 
 import ConnectionModel, {
-  validateConnectionModel,
+  validateConnectionModel
 } from '../connection-model/connection-model';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import { MESSAGE_TYPES } from '../extension-app-message-constants';
@@ -29,7 +29,7 @@ export const initialState = {
   syntaxErrorMessage: '',
   isHostChanged: false,
   isPortChanged: false,
-  savedMessage: '',
+  savedMessage: ''
 };
 
 const showFilePicker = (
@@ -39,7 +39,7 @@ const showFilePicker = (
   vscode.postMessage({
     command: MESSAGE_TYPES.OPEN_FILE_PICKER,
     action,
-    multi,
+    multi
   });
 };
 
@@ -54,8 +54,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          mongodbDatabaseName: action.mongodbDatabaseName,
-        },
+          mongodbDatabaseName: action.mongodbDatabaseName
+        }
       };
 
     case ActionTypes.AUTH_STRATEGY_CHANGED:
@@ -74,8 +74,8 @@ export const rootReducer = (
           kerberosServiceName: undefined,
           x509Username: undefined,
           ldapUsername: undefined,
-          ldapPassword: undefined,
-        },
+          ldapPassword: undefined
+        }
       };
 
     case ActionTypes.CONNECT:
@@ -83,7 +83,7 @@ export const rootReducer = (
         return {
           ...state,
           isValid: false,
-          errorMessage: 'The required fields can not be empty.',
+          errorMessage: 'The required fields can not be empty.'
         };
       }
 
@@ -91,13 +91,13 @@ export const rootReducer = (
         return {
           ...state,
           errorMessage: 'Already connecting, please wait.',
-          isValid: false,
+          isValid: false
         };
       }
 
       vscode.postMessage({
         command: MESSAGE_TYPES.CONNECT,
-        connectionModel: state.currentConnection,
+        connectionModel: state.currentConnection
       });
 
       return {
@@ -105,7 +105,7 @@ export const rootReducer = (
         // The form may be displaying a previous error message from a failed connect.
         isValid: true,
         isConnecting: true,
-        isConnected: false,
+        isConnected: false
       };
 
     case ActionTypes.CONNECTION_FORM_CHANGED:
@@ -114,7 +114,7 @@ export const rootReducer = (
         isValid: true,
         isConnected: false,
         errorMessage: '',
-        syntaxErrorMessage: '',
+        syntaxErrorMessage: ''
       };
 
     case ActionTypes.CONNECTION_EVENT_OCCURED:
@@ -125,7 +125,7 @@ export const rootReducer = (
         isValid: action.successfullyConnected ? state.isValid : false,
         errorMessage: action.successfullyConnected
           ? state.errorMessage
-          : action.connectionMessage,
+          : action.connectionMessage
       };
 
     case ActionTypes.HOSTNAME_CHANGED:
@@ -137,8 +137,8 @@ export const rootReducer = (
           hostname: action.hostname.trim(),
           sslMethod: /mongodb\.net/i.exec(action.hostname)
             ? SSL_METHODS.SYSTEMCA
-            : state.currentConnection.sslMethod,
-        },
+            : state.currentConnection.sslMethod
+        }
       };
 
     case ActionTypes.IS_SRV_RECORD_TOGGLED:
@@ -146,8 +146,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          isSrvRecord: !state.currentConnection.isSrvRecord,
-        },
+          isSrvRecord: !state.currentConnection.isSrvRecord
+        }
       };
 
     case ActionTypes.KERBEROS_PARAMETERS_CHANGED:
@@ -158,8 +158,8 @@ export const rootReducer = (
           kerberosCanonicalizeHostname: action.kerberosCanonicalizeHostname,
           kerberosPassword: action.kerberosPassword,
           kerberosPrincipal: action.kerberosPrincipal,
-          kerberosServiceName: action.kerberosServiceName,
-        },
+          kerberosServiceName: action.kerberosServiceName
+        }
       };
 
     case ActionTypes.LDAP_PASSWORD_CHANGED:
@@ -167,8 +167,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          ldapPassword: action.ldapPassword,
-        },
+          ldapPassword: action.ldapPassword
+        }
       };
 
     case ActionTypes.LDAP_USERNAME_CHANGED:
@@ -176,8 +176,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          ldapUsername: action.ldapUsername,
-        },
+          ldapUsername: action.ldapUsername
+        }
       };
 
     case ActionTypes.ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE:
@@ -187,8 +187,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sshTunnelIdentityFile: undefined,
-        },
+          sshTunnelIdentityFile: undefined
+        }
       };
 
     case ActionTypes.ON_CHANGE_SSL_CA:
@@ -198,8 +198,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sslCA: undefined,
-        },
+          sslCA: undefined
+        }
       };
 
     case ActionTypes.ON_CHANGE_SSL_CERT:
@@ -209,8 +209,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sslCert: undefined,
-        },
+          sslCert: undefined
+        }
       };
 
     case ActionTypes.ON_CHANGE_SSL_KEY:
@@ -220,8 +220,17 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sslKey: undefined,
-        },
+          sslKey: undefined
+        }
+      };
+
+    case ActionTypes.OPEN_CONNECTION_STRING_INPUT:
+      vscode.postMessage({
+        command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT
+      });
+
+      return {
+        ...state
       };
 
     case ActionTypes.PASSWORD_CHANGED:
@@ -229,8 +238,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          mongodbPassword: action.mongodbPassword,
-        },
+          mongodbPassword: action.mongodbPassword
+        }
       };
 
     case ActionTypes.PORT_CHANGED:
@@ -239,8 +248,8 @@ export const rootReducer = (
         isPortChanged: true,
         currentConnection: {
           ...state.currentConnection,
-          port: action.port,
-        },
+          port: action.port
+        }
       };
 
     case ActionTypes.READ_PREFERENCE_CHANGED:
@@ -248,8 +257,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          readPreference: action.readPreference,
-        },
+          readPreference: action.readPreference
+        }
       };
 
     case ActionTypes.REPLICA_SET_CHANGED:
@@ -257,8 +266,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          replicaSet: action.replicaSet,
-        },
+          replicaSet: action.replicaSet
+        }
       };
 
     case ActionTypes.SSH_TUNNEL_CHANGED:
@@ -274,8 +283,8 @@ export const rootReducer = (
           sshTunnelPassword: undefined,
           sshTunnelIdentityFile: undefined,
           sshTunnelPassphrase: undefined,
-          replicaSet: undefined,
-        },
+          replicaSet: undefined
+        }
       };
 
     case ActionTypes.SSH_TUNNEL_HOSTNAME_CHANGED:
@@ -283,8 +292,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sshTunnelHostname: action.sshTunnelHostname,
-        },
+          sshTunnelHostname: action.sshTunnelHostname
+        }
       };
 
     case ActionTypes.SSH_TUNNEL_IDENTITY_FILE_CHANGED:
@@ -292,8 +301,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sshTunnelIdentityFile: action.files,
-        },
+          sshTunnelIdentityFile: action.files
+        }
       };
 
     case ActionTypes.SSH_TUNNEL_PASSPHRASE_CHANGED:
@@ -301,8 +310,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sshTunnelPassphrase: action.sshTunnelPassphrase,
-        },
+          sshTunnelPassphrase: action.sshTunnelPassphrase
+        }
       };
 
     case ActionTypes.SSH_TUNNEL_PASSWORD_CHANGED:
@@ -310,8 +319,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sshTunnelPassword: action.sshTunnelPassword,
-        },
+          sshTunnelPassword: action.sshTunnelPassword
+        }
       };
 
     case ActionTypes.SSH_TUNNEL_PORT_CHANGED:
@@ -319,8 +328,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sshTunnelPort: action.sshTunnelPort,
-        },
+          sshTunnelPort: action.sshTunnelPort
+        }
       };
 
     case ActionTypes.SSH_TUNNEL_USERNAME_CHANGED:
@@ -328,8 +337,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sshTunnelUsername: action.sshTunnelUsername,
-        },
+          sshTunnelUsername: action.sshTunnelUsername
+        }
       };
 
     case ActionTypes.SSL_CA_CHANGED:
@@ -337,8 +346,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sslCA: action.files,
-        },
+          sslCA: action.files
+        }
       };
 
     case ActionTypes.SSL_CERT_CHANGED:
@@ -346,8 +355,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sslCert: action.files,
-        },
+          sslCert: action.files
+        }
       };
 
     case ActionTypes.SSL_KEY_CHANGED:
@@ -355,8 +364,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sslKey: action.files,
-        },
+          sslKey: action.files
+        }
       };
 
     case ActionTypes.SSL_METHOD_CHANGED:
@@ -369,8 +378,8 @@ export const rootReducer = (
           sslCA: undefined,
           sslCert: undefined,
           sslKey: undefined,
-          sslPass: undefined,
-        },
+          sslPass: undefined
+        }
       };
 
     case ActionTypes.SSL_PASS_CHANGED:
@@ -378,8 +387,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sslPass: action.sslPass,
-        },
+          sslPass: action.sslPass
+        }
       };
 
     case ActionTypes.USERNAME_CHANGED:
@@ -387,8 +396,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          mongodbUsername: action.mongodbUsername,
-        },
+          mongodbUsername: action.mongodbUsername
+        }
       };
 
     case ActionTypes.X509_USERNAME_CHANGED:
@@ -396,8 +405,8 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          x509Username: action.x509Username,
-        },
+          x509Username: action.x509Username
+        }
       };
 
     default:

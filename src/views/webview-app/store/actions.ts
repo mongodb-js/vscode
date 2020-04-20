@@ -18,6 +18,7 @@ export enum ActionTypes {
   ON_CHANGE_SSL_CA = 'ON_CHANGE_SSL_CA',
   ON_CHANGE_SSL_CERT = 'ON_CHANGE_SSL_CERT',
   ON_CHANGE_SSL_KEY = 'ON_CHANGE_SSL_KEY',
+  OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
   PASSWORD_CHANGED = 'PASSWORD_CHANGED',
   PORT_CHANGED = 'PORT_CHANGED',
   READ_PREFERENCE_CHANGED = 'READ_PREFERENCE_CHANGED',
@@ -123,6 +124,10 @@ export interface OnChangeSSLCertAction extends BaseAction {
 
 export interface OnChangeSSLKeyAction extends BaseAction {
   type: ActionTypes.ON_CHANGE_SSL_KEY;
+}
+
+export interface OpenConnectionStringInputAction extends BaseAction {
+  type: ActionTypes.OPEN_CONNECTION_STRING_INPUT;
 }
 
 export interface PasswordChangedAction extends BaseAction {
@@ -236,6 +241,7 @@ export type Actions =
   | OnChangeSSLCAAction
   | OnChangeSSLCertAction
   | OnChangeSSLKeyAction
+  | OpenConnectionStringInputAction
   | PasswordChangedAction
   | PortChangedAction
   | ReadPreferenceChangedAction
