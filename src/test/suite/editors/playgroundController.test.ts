@@ -401,22 +401,22 @@ suite('Playground Controller Test Suite', () => {
         _id: new ObjectId('5e32b4d67bf47f4525f2f722'),
         valueOfTheField: 'is not important',
       };
-      const codeToEvaluate = `
-        const x = 1;
-        x + 1
-      `;
 
       seedDataAndCreateDataService('forest', [mockDocument])
         .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
 
-          await testPlaygroundController.evaluate(codeToEvaluate);
-
-          const result = await testPlaygroundController.evaluate(
-            codeToEvaluate
+          const firstEvalResult = await testPlaygroundController.evaluate(
+            'const x = 1 + 1; x'
           );
 
-          expect(result).to.be.equal('2');
+          expect(firstEvalResult).to.be.equal('2');
+
+          const secondEvalResult = await testPlaygroundController.evaluate(
+            'const x = 2 + 1; x'
+          );
+
+          expect(secondEvalResult).to.be.equal('3');
         })
         .then(done, done);
     });
@@ -432,14 +432,14 @@ suite('Playground Controller Test Suite', () => {
           testConnectionController.setActiveConnection(dataService);
           testLanguageServerController.executeAll({
             codeToEvaluate: 'while (1===1) {}',
-            connectionString: TEST_CONNECTION_STRING
+            connectionString: TEST_CONNECTION_STRING,
           });
 
           await testLanguageServerController.cancelAll();
 
           const result = await testLanguageServerController.executeAll({
             codeToEvaluate: '4 + 4',
-            connectionString: TEST_CONNECTION_STRING
+            connectionString: TEST_CONNECTION_STRING,
           });
 
           expect(result).to.be.equal('8');

@@ -42,12 +42,15 @@ export default class MongoDBService {
     }
   }
 
-  executeAll(params: {
-    codeToEvaluate: string,
-    connectionString: string,
-    connectionOptions: any
-  }, token: CancellationToken): Promise<any> {
-    return new Promise((resolve) => {
+  executeAll(
+    params: {
+      codeToEvaluate: string;
+      connectionString: string;
+      connectionOptions: any;
+    },
+    token: CancellationToken
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
       // Use Node worker threads to isolate each run of a playground
       // to be able to cancel evaluation of infinite loops.
       //
@@ -74,6 +77,8 @@ export default class MongoDBService {
       worker.on('message', ([error, result]) => {
         if (error) {
           this._connection.sendNotification('showErrorMessage', error.message);
+
+          return reject(error);
         }
 
         worker.terminate(); // Close the worker thread
