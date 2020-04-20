@@ -144,7 +144,7 @@ suite('Playground Controller Test Suite', () => {
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is true', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f833'),
-        example: 'field',
+        example: 'field'
       };
 
       fakeShowInformationMessage.resolves('Yes');
@@ -164,7 +164,7 @@ suite('Playground Controller Test Suite', () => {
     test('do not run a playground if user selected No in the confirmation message', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f833'),
-        example: 'field',
+        example: 'field'
       };
 
       fakeShowInformationMessage.resolves('No');
@@ -184,7 +184,7 @@ suite('Playground Controller Test Suite', () => {
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is false', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f844'),
-        example: 'field',
+        example: 'field'
       };
 
       seedDataAndCreateDataService('forest', [mockDocument])
@@ -235,8 +235,8 @@ suite('Playground Controller Test Suite', () => {
         },
         client: {
           _id: new ObjectId('5e32b4d67bf47f4525f2f841'),
-          example: 'field',
-        },
+          example: 'field'
+        }
       };
 
       await openPlayground(getDocUri('test.mongodb'));
@@ -253,8 +253,8 @@ suite('Playground Controller Test Suite', () => {
         },
         client: {
           _id: new ObjectId('5e32b4d67bf47f4525f2f842'),
-          example: 'field',
-        },
+          example: 'field'
+        }
       };
 
       await openPlayground(getDocUri('test.mongodb'));
@@ -272,14 +272,14 @@ suite('Playground Controller Test Suite', () => {
     test('evaluate interaction with a database', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f811'),
-        example: 'field',
+        example: 'field'
       };
 
       seedDataAndCreateDataService('forest', [mockDocument])
         .then(async (dataService) => {
-          testConnectionController.setActiveConnection(dataService);
-
           await openPlayground(getDocUri('test.mongodb'));
+
+          testConnectionController.setActiveConnection(dataService);
 
           const actualResult = await testPlaygroundController.evaluate(`
             use('vscodeTestDatabaseAA');
@@ -399,12 +399,14 @@ suite('Playground Controller Test Suite', () => {
     test('create a new playground instance for each run', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f722'),
-        valueOfTheField: 'is not important',
+        valueOfTheField: 'is not important'
       };
 
       seedDataAndCreateDataService('forest', [mockDocument])
         .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
+
+          await openPlayground(getDocUri('test.mongodb'));
 
           const firstEvalResult = await testPlaygroundController.evaluate(
             'const x = 1 + 1; x'
@@ -424,7 +426,7 @@ suite('Playground Controller Test Suite', () => {
     test('cancel a playground', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f729'),
-        field: 'sample',
+        field: 'sample'
       };
 
       seedDataAndCreateDataService('forest', [mockDocument])
@@ -432,14 +434,14 @@ suite('Playground Controller Test Suite', () => {
           testConnectionController.setActiveConnection(dataService);
           testLanguageServerController.executeAll({
             codeToEvaluate: 'while (1===1) {}',
-            connectionString: TEST_CONNECTION_STRING,
+            connectionString: TEST_CONNECTION_STRING
           });
 
           await testLanguageServerController.cancelAll();
 
           const result = await testLanguageServerController.executeAll({
             codeToEvaluate: '4 + 4',
-            connectionString: TEST_CONNECTION_STRING,
+            connectionString: TEST_CONNECTION_STRING
           });
 
           expect(result).to.be.equal('8');
