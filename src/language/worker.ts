@@ -5,6 +5,7 @@ import {
   NodeOptions,
 } from '@mongosh/service-provider-server';
 import formatOutput from '../utils/formatOutput';
+import parseSchema = require('mongodb-schema');
 
 type EvaluationResult = {
   value: any;
@@ -12,6 +13,66 @@ type EvaluationResult = {
 };
 type WorkerResult = any;
 type WorkerError = string | null;
+
+const findAndParse = (
+  serviceProvider: CliServiceProvider,
+  databaseName: string,
+  collectionName: string
+): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    serviceProvider.find(
+      databaseName,
+      collectionName,
+      {},
+      (findError: Error | undefined, data: []) => {
+        if (findError) {
+          return reject(findError);
+        }
+
+        parseSchema(data, (parseError: Error | undefined, schema) => {
+          if (parseError) {
+            return reject(parseError);
+          }
+
+          if (!schema || !schema.fields) {
+            return resolve([]);
+          }
+
+          const fields = schema.fields.map((item) => ({
+            label: item.name,
+            kind: 1,
+          }));
+
+          return resolve(fields);
+        });
+      }
+    );
+  });
+};
+
+const getFieldsFromSchema = async (
+  connectionString,
+  connectionOptions,
+  databaseName,
+  collectionName
+): Promise<any> => {
+  try {
+    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
+      connectionString,
+      connectionOptions
+    );
+
+    const result = await findAndParse(
+      serviceProvider,
+      databaseName,
+      collectionName
+    );
+
+    return [null, result];
+  } catch (error) {
+    return [error];
+  }
+};
 
 const executeAll = async (
   codeToEvaluate: string,
@@ -40,25 +101,6 @@ const executeAll = async (
   }
 };
 
-const getCompletions = async (
-  textToComplete: string,
-  connectionString: string,
-  connectionOptions: NodeOptions
-): Promise<[WorkerError, WorkerResult?]> => {
-  try {
-    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
-      connectionString,
-      connectionOptions
-    );
-    const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
-    const result = await runtime.getCompletions(textToComplete);
-
-    return [null, result];
-  } catch (error) {
-    return [error];
-  }
-};
-
 // parentPort allows communication with the parent thread
 parentPort?.once(
   'message',
@@ -73,12 +115,13 @@ parentPort?.once(
       );
     }
 
-    if (message === 'getCompletions') {
+    if (message === 'getFieldsFromSchema') {
       parentPort?.postMessage(
-        await getCompletions(
-          workerData.textToComplete,
+        await getFieldsFromSchema(
           workerData.connectionString,
-          workerData.connectionOptions
+          workerData.connectionOptions,
+          workerData.databaseName,
+          workerData.collectionName
         )
       );
     }

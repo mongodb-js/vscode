@@ -10,14 +10,14 @@ config({ path: resolve(__dirname, '../../.env') });
 const log = createLogger('analytics');
 
 export enum TelemetryEventTypes {
-  PLAYGROUND_CODE_EXECUTED = 'playground code executed'
+  PLAYGROUND_CODE_EXECUTED = 'playground code executed',
 }
 
 /**
  * This controller manages telemetry.
  */
 export default class TelemetryController {
-  private _segmentAnalytics: any;
+  private _segmentAnalytics: SegmentAnalytics;
   private _segmentUserID: string | undefined; // The user uuid from the global storage.
   private _segmentKey: string | undefined; // The segment API write key.
 
@@ -41,7 +41,7 @@ export default class TelemetryController {
     return this._segmentKey;
   }
 
-  public activate() {
+  public activate(): void {
     if (this._segmentKey) {
       this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
         // Segment batches messages and flushes asynchronously to the server.
@@ -51,13 +51,13 @@ export default class TelemetryController {
         flushAt: process.env.MODE === 'development' ? 1 : 20,
         // The number of milliseconds to wait
         // before flushing the queue automatically.
-        flushInterval: 10000 // 10 seconds is the default libraries' value.
+        flushInterval: 10000, // 10 seconds is the default libraries' value.
       });
       this._segmentAnalytics.identify({ userId: this._segmentUserID });
     }
   }
 
-  public deactivate() {
+  public deactivate(): void {
     // Flush on demand to make sure that nothing is left in the queue.
     this._segmentAnalytics?.flush();
   }
@@ -72,7 +72,7 @@ export default class TelemetryController {
         {
           userId: this._segmentUserID,
           event: eventType,
-          properties
+          properties,
         },
         (error) => {
           if (error) {
@@ -82,7 +82,7 @@ export default class TelemetryController {
           const analytics = [
             `The "${eventType}" metric was sent.`,
             `The user: "${this._segmentUserID}."`,
-            `The props:`
+            'The props:',
           ];
 
           log.info(analytics.join(' '), properties);

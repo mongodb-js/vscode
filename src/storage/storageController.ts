@@ -3,23 +3,26 @@ import { v4 as uuidv4 } from 'uuid';
 import { ConnectionModelType } from '../connectionModelType';
 
 export enum StorageVariables {
-  GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS', // Only exists on globalState.
-  GLOBAL_USER_ID = 'GLOBAL_USER_ID', // Only exists on globalState.
-  WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS', // Only exists on workspaceState.
+  // Only exists on globalState.
+  GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS',
+  GLOBAL_USER_ID = 'GLOBAL_USER_ID',
+  GLOBAL_FIELDS = 'GLOBAL_FIELDS',
+  // Only exists on workspaceState.
+  WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS',
 }
 
 // Typically variables default to 'GLOBAL' scope.
 export enum StorageScope {
   GLOBAL = 'GLOBAL',
   WORKSPACE = 'WORKSPACE',
-  NONE = 'NONE'
+  NONE = 'NONE',
 }
 
 // Coupled with the `defaultConnectionSavingLocation` configuration in `package.json`.
 export enum DefaultSavingLocations {
   'Workspace' = 'Workspace',
   'Global' = 'Global',
-  'Session Only' = 'Session Only'
+  'Session Only' = 'Session Only',
 }
 
 export type SavedConnection = {
@@ -75,6 +78,27 @@ export default class StorageController {
     this.update(StorageVariables.GLOBAL_USER_ID, globalUserId);
 
     return globalUserId;
+  }
+
+  public getCachedFields(connectionId): any {
+    const globalFields = this.get(StorageVariables.GLOBAL_FIELDS);
+
+    return globalFields[connectionId];
+  }
+
+  public addCacheFields(props): void {
+    let globalFields = this.get(StorageVariables.GLOBAL_FIELDS);
+
+    if (!globalFields) {
+      globalFields = {};
+    }
+
+    if (!globalFields[props.connectionId]) {
+      globalFields[props.connectionId] = {};
+    }
+
+    globalFields[props.connectionId][props.namespace] = props.fields;
+    this.update(StorageVariables.GLOBAL_FIELDS, globalFields);
   }
 
   public saveConnectionToGlobalStore(
@@ -157,11 +181,11 @@ export default class StorageController {
           [
             storeOnWorkspace,
             storeGlobally,
-            "Don't save this connection (it will be lost when the session is closed)"
+            "Don't save this connection (it will be lost when the session is closed)",
           ],
           {
             placeHolder:
-              'Where would you like to save this new connection? (This message can be disabled in the extension settings.)'
+              'Where would you like to save this new connection? (This message can be disabled in the extension settings.)',
           }
         )
         .then((saveConnectionScope) => {

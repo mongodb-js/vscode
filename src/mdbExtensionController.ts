@@ -56,7 +56,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       );
     }
 
-    this._languageServerController = new LanguageServerController(context);
+    this._languageServerController = new LanguageServerController(
+      context,
+      this._storageController
+    );
     this._editorsController = new EditorsController(
       context,
       this._connectionController

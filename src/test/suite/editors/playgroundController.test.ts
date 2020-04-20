@@ -7,10 +7,7 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext } from '../stubs';
 import { ObjectId } from 'bson';
-import {
-  seedDataAndCreateDataService,
-  cleanupTestDB
-} from '../dbTestHelper';
+import { seedDataAndCreateDataService, cleanupTestDB } from '../dbTestHelper';
 import { beforeEach, afterEach } from 'mocha';
 
 const sinon = require('sinon');
@@ -19,22 +16,24 @@ const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
 
-const getDocUri = (docName: string) => {
-  const docPath = path.resolve(__dirname, '../../../../src/test/fixture', docName);
+const getDocUri = (docName: string): vscode.Uri => {
+  const docPath = path.resolve(
+    __dirname,
+    '../../../../src/test/fixture',
+    docName
+  );
 
   return vscode.Uri.file(docPath);
 };
 
-/**
- * Opens the MongoDB playground
- */
-async function openPlayground(docUri: vscode.Uri) {
+// Opens the MongoDB playground.
+async function openPlayground(docUri: vscode.Uri): Promise<any> {
   try {
     const doc = await vscode.workspace.openTextDocument(docUri);
 
     await vscode.window.showTextDocument(doc);
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    expect(error).to.be.equal(null);
   }
 }
 
@@ -49,17 +48,26 @@ suite('Playground Controller Test Suite', () => {
   mockExtensionContext.extensionPath = '../../';
 
   suite('when user is not connected', () => {
-    test('evaluate should throw the missing active connection error', async () => {
+    test('evaluate should throw the missing active connection error', () => {
       const testConnectionController = new ConnectionController(
         new StatusView(mockExtensionContext),
         mockStorageController
       );
-      const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
-      const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
+      const testLanguageServerController = new LanguageServerController(
+        mockExtensionContext
+      );
+      const testPlaygroundController = new PlaygroundController(
+        mockExtensionContext,
+        testConnectionController,
+        testLanguageServerController
+      );
 
       testLanguageServerController.activate();
 
-      expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(Error, 'Please connect to a database before running a playground.');
+      expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(
+        Error,
+        'Please connect to a database before running a playground.'
+      );
     });
 
     test('runAllPlaygroundBlocks should throw the missing active connection error', async () => {
@@ -67,8 +75,14 @@ suite('Playground Controller Test Suite', () => {
         new StatusView(mockExtensionContext),
         mockStorageController
       );
-      const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
-      const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
+      const testLanguageServerController = new LanguageServerController(
+        mockExtensionContext
+      );
+      const testPlaygroundController = new PlaygroundController(
+        mockExtensionContext,
+        testConnectionController,
+        testLanguageServerController
+      );
       const fakeVscodeErrorMessage = sinon.fake();
 
       sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
@@ -76,7 +90,9 @@ suite('Playground Controller Test Suite', () => {
       await openPlayground(getDocUri('test.mongodb'));
       await testPlaygroundController.runAllPlaygroundBlocks();
 
-      expect(fakeVscodeErrorMessage.firstArg).to.be.equal('Please connect to a database before running a playground.');
+      expect(fakeVscodeErrorMessage.firstArg).to.be.equal(
+        'Please connect to a database before running a playground.'
+      );
     });
   });
 
@@ -85,19 +101,33 @@ suite('Playground Controller Test Suite', () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
-    const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
+    const testLanguageServerController = new LanguageServerController(
+      mockExtensionContext
+    );
 
-    testLanguageServerController.cancelAll = () => { return Promise.resolve(false) };
-    testLanguageServerController.executeAll = () => { return Promise.resolve(true) };
+    testLanguageServerController.cancelAll = (): Promise<boolean> => {
+      return Promise.resolve(false);
+    };
+    testLanguageServerController.executeAll = (): Promise<boolean> => {
+      return Promise.resolve(true);
+    };
     testLanguageServerController.activate();
-    testConnectionController.getActiveConnectionName = () => 'fakeName';
-    testConnectionController.getActiveConnectionDriverUrl = () => 'mongodb://localhost:27018';
+    testConnectionController.getActiveConnectionName = (): string => 'fakeName';
+    testConnectionController.getActiveConnectionDriverUrl = (): string =>
+      'mongodb://localhost:27018';
 
-    const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
+    const testPlaygroundController = new PlaygroundController(
+      mockExtensionContext,
+      testConnectionController,
+      testLanguageServerController
+    );
     let fakeShowInformationMessage;
 
     beforeEach(() => {
-      fakeShowInformationMessage = sandbox.stub(vscode.window, 'showInformationMessage');
+      fakeShowInformationMessage = sandbox.stub(
+        vscode.window,
+        'showInformationMessage'
+      );
     });
 
     afterEach(async () => {
@@ -108,51 +138,51 @@ suite('Playground Controller Test Suite', () => {
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is true', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f833'),
-        example: 'field'
+        example: 'field',
       };
 
       fakeShowInformationMessage.resolves('Yes');
 
-      seedDataAndCreateDataService('forest', [mockDocument]).then(
-        async (dataService) => {
+      seedDataAndCreateDataService('forest', [mockDocument])
+        .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
           await openPlayground(getDocUri('test.mongodb'));
 
           const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
           expect(result).to.be.true;
-        }
-      ).then(done, done);
+        })
+        .then(done, done);
     });
 
     test('do not run a playground if user selected No in the confirmation message', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f833'),
-        example: 'field'
+        example: 'field',
       };
 
       fakeShowInformationMessage.resolves('No');
 
-      seedDataAndCreateDataService('forest', [mockDocument]).then(
-        async (dataService) => {
+      seedDataAndCreateDataService('forest', [mockDocument])
+        .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
           await openPlayground(getDocUri('test.mongodb'));
 
           const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
           expect(result).to.be.false;
-        }
-      ).then(done, done);
+        })
+        .then(done, done);
     });
 
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is false', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f844'),
-        example: 'field'
+        example: 'field',
       };
 
-      seedDataAndCreateDataService('forest', [mockDocument]).then(
-        async (dataService) => {
+      seedDataAndCreateDataService('forest', [mockDocument])
+        .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
           await vscode.workspace
             .getConfiguration('mdb')
@@ -162,27 +192,34 @@ suite('Playground Controller Test Suite', () => {
           const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
           expect(result).to.be.true;
-        }
-      ).then(done, done);
+        })
+        .then(done, done);
     });
   });
 
   suite('when user is connected', () => {
     afterEach(async () => {
-      await cleanupTestDB()
+      await cleanupTestDB();
     });
 
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController
     );
-    const testLanguageServerController = new LanguageServerController(mockExtensionContext, testConnectionController);
+    const testLanguageServerController = new LanguageServerController(
+      mockExtensionContext
+    );
 
     testLanguageServerController.activate();
-    testConnectionController.getActiveConnectionName = () => 'fakeName';
-    testConnectionController.getActiveConnectionDriverUrl = () => 'mongodb://localhost:27018';
+    testConnectionController.getActiveConnectionName = (): string => 'fakeName';
+    testConnectionController.getActiveConnectionDriverUrl = (): string =>
+      'mongodb://localhost:27018';
 
-    const testPlaygroundController = new PlaygroundController(mockExtensionContext, testConnectionController, testLanguageServerController);
+    const testPlaygroundController = new PlaygroundController(
+      mockExtensionContext,
+      testConnectionController,
+      testLanguageServerController
+    );
 
     test('evaluate should sum numbers', async function () {
       const mockActiveConnection = {
@@ -191,8 +228,8 @@ suite('Playground Controller Test Suite', () => {
         },
         client: {
           _id: new ObjectId('5e32b4d67bf47f4525f2f841'),
-          example: 'field'
-        }
+          example: 'field',
+        },
       };
 
       await openPlayground(getDocUri('test.mongodb'));
@@ -209,28 +246,30 @@ suite('Playground Controller Test Suite', () => {
         },
         client: {
           _id: new ObjectId('5e32b4d67bf47f4525f2f842'),
-          example: 'field'
-        }
+          example: 'field',
+        },
       };
 
       await openPlayground(getDocUri('test.mongodb'));
 
       testConnectionController.setActiveConnection(mockActiveConnection);
 
-      expect(await testPlaygroundController.evaluate(`
+      expect(
+        await testPlaygroundController.evaluate(`
         var x = 1;
         x + 2
-      `)).to.be.equal('3');
+      `)
+      ).to.be.equal('3');
     });
 
     test('evaluate interaction with a database', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f811'),
-        example: 'field'
+        example: 'field',
       };
 
-      seedDataAndCreateDataService('forest', [mockDocument]).then(
-        async (dataService) => {
+      seedDataAndCreateDataService('forest', [mockDocument])
+        .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
 
           await openPlayground(getDocUri('test.mongodb'));
@@ -239,16 +278,17 @@ suite('Playground Controller Test Suite', () => {
             use('vscodeTestDatabaseAA');
             db.forest.find({})
           `);
-          const expectedResult = '[\n' +
+          const expectedResult =
+            '[\n' +
             '  {\n' +
             '    _id: 5e32b4d67bf47f4525f2f811,\n' +
-            '    example: \'field\'\n' +
+            "    example: 'field'\n" +
             '  }\n' +
             ']';
 
           expect(actualResult).to.be.equal(expectedResult);
-        }
-      ).then(done, done);
+        })
+        .then(done, done);
     });
 
     test('convert AggregationCursor shellApiType to aggregation telemetry type', () => {
@@ -352,37 +392,41 @@ suite('Playground Controller Test Suite', () => {
     test('create a new playground instance for each run', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f722'),
-        valueOfTheField: 'is not important'
+        valueOfTheField: 'is not important',
       };
       const codeToEvaluate = `
         const x = 1;
         x + 1
       `;
 
-      seedDataAndCreateDataService('forest', [mockDocument]).then(
-        async (dataService) => {
+      seedDataAndCreateDataService('forest', [mockDocument])
+        .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
 
           await testPlaygroundController.evaluate(codeToEvaluate);
 
-          const result = await testPlaygroundController.evaluate(codeToEvaluate);
+          const result = await testPlaygroundController.evaluate(
+            codeToEvaluate
+          );
 
           expect(result).to.be.equal('2');
-        }
-      ).then(done, done);
+        })
+        .then(done, done);
     });
 
     test('cancel a playground', (done) => {
       const mockDocument = {
         _id: new ObjectId('5e32b4d67bf47f4525f2f729'),
-        field: 'sample'
+        field: 'sample',
       };
 
-      seedDataAndCreateDataService('forest', [mockDocument]).then(
-        async (dataService) => {
+      seedDataAndCreateDataService('forest', [mockDocument])
+        .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
 
-          await testLanguageServerController.connect('mongodb://localhost:27018');
+          await testLanguageServerController.connect({
+            connectionString: 'mongodb://localhost:27018',
+          });
 
           testLanguageServerController.executeAll('while (1===1) {}');
 
@@ -391,8 +435,8 @@ suite('Playground Controller Test Suite', () => {
           const result = await testLanguageServerController.executeAll('4 + 4');
 
           expect(result).to.be.equal('8');
-        }
-      ).then(done, done);
+        })
+        .then(done, done);
     });
   });
 });

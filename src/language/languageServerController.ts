@@ -1,12 +1,13 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { StorageController } from '../storage';
 import { workspace, ExtensionContext, OutputChannel } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind,
-  CancellationTokenSource
+  CancellationTokenSource,
 } from 'vscode-languageclient';
 import * as WebSocket from 'ws';
 
@@ -22,16 +23,22 @@ let socket: WebSocket | null;
 export default class LanguageServerController {
   _connectionController?: ConnectionController;
   _source?: CancellationTokenSource;
+  _storageController?: StorageController;
   client: LanguageClient;
 
   constructor(
     context: ExtensionContext,
-    connectionController?: ConnectionController
+    storageController?: StorageController
   ) {
-    this._connectionController = connectionController;
+    this._storageController = storageController;
 
     // The server is implemented in node
-    const serverModule = path.join(context.extensionPath, 'out', 'language', 'server.js');
+    const serverModule = path.join(
+      context.extensionPath,
+      'out',
+      'language',
+      'server.js'
+    );
 
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
@@ -44,15 +51,17 @@ export default class LanguageServerController {
       debug: {
         module: serverModule,
         transport: TransportKind.ipc,
-        options: debugOptions
-      }
+        options: debugOptions,
+      },
     };
 
     // Hijacks all LSP logs and redirect them to a specific port through WebSocket connection
-    const channel = vscode.window.createOutputChannel('MongoDB Language Server');
+    const channel = vscode.window.createOutputChannel(
+      'MongoDB Language Server'
+    );
     let logInspector = '';
 
-    const websocketOutputChannel: OutputChannel = {
+    const websocketOutputChannel = {
       name: 'websocket',
       // Only append the logs but send them later
       append(value: string) {
@@ -69,30 +78,26 @@ export default class LanguageServerController {
 
         logInspector = '';
       },
-      clear() { },
-      show() { },
-      hide() { },
-      dispose() { }
-    };
+    } as OutputChannel;
 
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
       // Register the server for mongodb documents
       documentSelector: [
         { scheme: 'untitled', language: 'mongodb' },
-        { scheme: 'file', language: 'mongodb' }
+        { scheme: 'file', language: 'mongodb' },
       ],
       synchronize: {
         // Notify the server about file changes in the workspace
-        fileEvents: workspace.createFileSystemWatcher('**/*')
+        fileEvents: workspace.createFileSystemWatcher('**/*'),
       },
       // Attach WebSocket OutputChannel
-      outputChannel: websocketOutputChannel
+      outputChannel: websocketOutputChannel,
     };
 
     log.info('Creating MongoDB Language Server', {
       serverOptions,
-      clientOptions
+      clientOptions,
     });
 
     // Create the language server client
@@ -110,6 +115,10 @@ export default class LanguageServerController {
 
     // Subscribe on notifications from the server when the client is ready
     await this.client.onReady().then(() => {
+      this.client.onNotification('addCacheFields', (props) =>
+        this._storageController?.addCacheFields(props)
+      );
+
       this.client.onNotification('showInformationMessage', (messsage) => {
         vscode.window.showInformationMessage(messsage);
       });
@@ -136,23 +145,30 @@ export default class LanguageServerController {
       // and return results to the playground controller when ready
       return this.client.sendRequest(
         'executeAll',
-        { codeToEvaluate },
+        codeToEvaluate,
         this._source.token
       );
     });
   }
 
-  connect(connectionString: string | null, connectionOptions?: any): Promise<any> {
+  connect(params: {
+    connectionString?: string | null;
+    connectionOptions?: any;
+    connectionId?: string | null;
+  }): Promise<any> {
+    const fields = this._storageController?.getCachedFields(
+      params.connectionId
+    );
+
     return this.client.onReady().then(async () => {
-      return this.client.sendRequest(
-        'connect',
-        { connectionString, connectionOptions }
-      );
+      return this.client.sendRequest('connect', { ...params, fields });
     });
   }
 
   startStreamLanguageServerLogs(): Promise<boolean> {
-    const socketPort = workspace.getConfiguration('languageServerExample').get('port', 7000);
+    const socketPort = workspace
+      .getConfiguration('languageServerExample')
+      .get('port', 7000);
 
     socket = new WebSocket(`ws://localhost:${socketPort}`);
 
