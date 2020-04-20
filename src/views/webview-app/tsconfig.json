@@ -4,7 +4,7 @@
     "moduleResolution": "node",
     "noImplicitAny": false,
     "target": "es6",
-    "outDir": "out/connect-form",
+    "outDir": "out/webview-app",
     "lib": ["es6", "dom"],
     "jsx": "react",
     "sourceMap": true,

@@ -11,7 +11,7 @@ import Authentication from './authentication/authentication';
 import ReplicaSetInput from './replica-set-input';
 import ReadPreferenceSelect from './read-preference-select';
 import SSLMethod from './ssl/ssl-method';
-// import SSHTunnel from './ssh/ssh-tunnel';
+import SSHTunnel from './ssh/ssh-tunnel';
 import FormActions from './form-actions';
 import ConnectionModel from '../../connection-model/connection-model';
 import { AppState } from '../../store/store';
@@ -114,10 +114,7 @@ class ConnectionForm extends React.Component<props> {
           <ReadPreferenceSelect readPreference={readPreference} />
         </FormGroup>
         <SSLMethod sslMethod={sslMethod} />
-        {/*
-        <SSHTunnel
-          sshTunnel={sshTunnel}
-        /> */}
+        <SSHTunnel sshTunnel={sshTunnel} />
       </div>
     );
   }
