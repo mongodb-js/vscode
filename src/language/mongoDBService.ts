@@ -77,13 +77,11 @@ export default class MongoDBService {
       worker.on('message', ([error, result]) => {
         if (error) {
           this._connection.sendNotification('showErrorMessage', error.message);
-
-          return reject(error);
         }
 
-        worker.terminate(); // Close the worker thread
-
-        return resolve(result);
+        worker.terminate().then(() => {
+          return resolve(result);
+        });
       });
 
       // Listen for cancellation request from the language server client

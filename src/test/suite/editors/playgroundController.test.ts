@@ -9,6 +9,7 @@ import { TestExtensionContext } from '../stubs';
 import { ObjectId } from 'bson';
 import { seedDataAndCreateDataService, cleanupTestDB } from '../dbTestHelper';
 import { beforeEach, afterEach } from 'mocha';
+import TelemetryController from '../../../telemetry/telemetryController';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -48,6 +49,10 @@ suite('Playground Controller Test Suite', () => {
   mockExtensionContext.extensionPath = '../../';
 
   suite('when user is not connected', function () {
+    afterEach(() => {
+      sinon.restore();
+    });
+
     test('evaluate should throw the missing active connection error', async () => {
       const testConnectionController = new ConnectionController(
         new StatusView(mockExtensionContext),
@@ -163,7 +168,7 @@ suite('Playground Controller Test Suite', () => {
 
     test('do not run a playground if user selected No in the confirmation message', (done) => {
       const mockDocument = {
-        _id: new ObjectId('5e32b4d67bf47f4525f2f833'),
+        _id: new ObjectId('5e32b4d67bf47f4525f2f756'),
         example: 'field'
       };
 

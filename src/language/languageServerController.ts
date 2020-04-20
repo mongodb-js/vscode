@@ -9,8 +9,6 @@ import {
   CancellationTokenSource
 } from 'vscode-languageclient';
 import * as WebSocket from 'ws';
-
-import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 
 const log = createLogger('LanguageServerController');
@@ -123,7 +121,7 @@ export default class LanguageServerController {
   }
 
   executeAll(params): Promise<any> {
-    return this.client.onReady().then(async () => {
+    return this.client.onReady().then(() => {
       // Instantiate a new CancellationTokenSource object
       // that generates a cancellation token for each run of a playground
       this._source = new CancellationTokenSource();
@@ -131,20 +129,16 @@ export default class LanguageServerController {
       // Send a request with a cancellation token
       // to the language server server to execute scripts from a playground
       // and return results to the playground controller when ready
-      return this.client.sendRequest(
-        'executeAll',
-        params,
-        this._source.token
-      );
+      return this.client.sendRequest('executeAll', params, this._source.token);
     });
   }
 
   connect(params: {
     connectionString?: string | null;
     connectionOptions?: any;
-  }): Promise<any> {
-    return this.client.onReady().then(async () => {
-      return this.client.sendRequest('connect', params);
+  }): void {
+    this.client.onReady().then(async () => {
+      this.client.sendRequest('connect', params);
     });
   }
 
