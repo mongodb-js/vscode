@@ -4,10 +4,7 @@
     "noImplicitAny": false,
     "target": "es6",
     "outDir": "out",
-    "lib": [
-      "es6",
-      "dom"
-    ],
+    "lib": ["es6", "dom"],
     "jsx": "react",
     "sourceMap": true,
     "rootDir": "src",
@@ -19,6 +16,8 @@
   },
   "exclude": [
     "node_modules",
+    "dist",
+    "out",
     ".vscode-test",
     "scripts",
     "src/views/webview-app"

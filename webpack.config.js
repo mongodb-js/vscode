@@ -2,14 +2,9 @@
 const path = require('path');
 
 const autoprefixer = require('autoprefixer');
+const outputPath = path.join(__dirname, 'dist');
 
 const baseConfig = {
-  output: {
-    path: path.join(__dirname, 'dist'),
-    filename: '[name].js',
-    libraryTarget: 'commonjs2',
-    devtoolModuleFilenameTemplate: '../[resource-path]'
-  },
   devtool: 'source-map'
   // performance: {
   //   hints: false
@@ -18,6 +13,12 @@ const baseConfig = {
 
 const extensionConfig = {
   ...baseConfig,
+  output: {
+    path: outputPath,
+    filename: '[name].js',
+    libraryTarget: 'commonjs2',
+    devtoolModuleFilenameTemplate: '../[resource-path]'
+  },
   target: 'node',
   entry: {
     extension: './src/extension.ts'
@@ -27,10 +28,10 @@ const extensionConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
+    vscode: 'commonjs vscode'
     // We just define electron as an external because it's a conditional dependency
     // in /Users/rhys/Documents/mongodb/vscode/node_modules/hadron-ipc/lib but we don't use it.
-    electron: 'electron'
+    // electron: 'electron'
   },
   module: {
     rules: [
@@ -50,6 +51,11 @@ const extensionConfig = {
 
 const languageServerConfig = {
   ...baseConfig,
+  output: {
+    path: outputPath,
+    filename: '[name].js',
+    devtoolModuleFilenameTemplate: '../[resource-path]'
+  },
   target: 'node',
   entry: {
     languageServer: './src/language/server.ts'
@@ -79,6 +85,11 @@ const languageServerConfig = {
 
 const languageServerWorkerConfig = {
   ...baseConfig,
+  output: {
+    path: outputPath,
+    filename: '[name].js',
+    devtoolModuleFilenameTemplate: '../[resource-path]'
+  },
   target: 'node',
   entry: {
     languageServerWorker: './src/language/worker.ts'
@@ -108,6 +119,11 @@ const languageServerWorkerConfig = {
 
 const webviewConfig = {
   ...baseConfig,
+  output: {
+    path: outputPath,
+    filename: '[name].js',
+    devtoolModuleFilenameTemplate: '../[resource-path]'
+  },
   target: 'web',
   entry: {
     webviewApp: './src/views/webview-app/index.tsx'
