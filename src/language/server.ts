@@ -230,13 +230,7 @@ connection.onRequest('connect', (params) => {
     documents,
   });
 
-  return mongoDBService
-    .connectToCliServiceProvider()
-    .then(() => mongoDBService.updateGlobalFieldsByConnectionId());
-});
-
-connection.onRequest('updateCachedFields', (fields) => {
-  return mongoDBService.updatedCachedFields(fields);
+  return mongoDBService.connectToCliServiceProvider();
 });
 
 // This handler provides the list of the completion items.

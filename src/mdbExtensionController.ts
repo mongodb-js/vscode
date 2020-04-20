@@ -56,10 +56,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       );
     }
 
-    this._languageServerController = new LanguageServerController(
-      context,
-      this._storageController
-    );
+    this._languageServerController = new LanguageServerController(context);
     this._editorsController = new EditorsController(
       context,
       this._connectionController
@@ -401,7 +398,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
     const mongoDBShell = vscode.window.createTerminal({
       name: 'MongoDB Shell',
-      env: { MDB_CONNECTION_STRING: mdbConnectionString }
+      env: { MDB_CONNECTION_STRING: mdbConnectionString },
     });
     const shellCommand = vscode.workspace.getConfiguration('mdb').get('shell');
     mongoDBShell.sendText(

@@ -55,11 +55,9 @@ export default class PlaygroundController {
         }
 
         const connectionString = this._connectionController.getActiveConnectionDriverUrl();
-        const connectionId = this._connectionController.getActiveConnectionId();
 
         this._languageServerController.connect({
           connectionString,
-          connectionId,
         });
       }
     );
