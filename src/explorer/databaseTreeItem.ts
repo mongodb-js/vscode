@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
 const ns = require('mongodb-ns');
 const path = require('path');
+
 import { StatusView } from '../views';
 
 import CollectionTreeItem from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
+import { getImagesPath } from '../extensionConstants';
 
 export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
@@ -73,33 +75,35 @@ export default class DatabaseTreeItem extends vscode.TreeItem
             this._childrenCache = {};
             // Create new collection tree items, using previously cached items
             // where possible.
-            collections.sort((collectionA: any, collectionB: any) => {
-              if (collectionA.name < collectionB.name) {
-                return -1;
-              }
-              if (collectionA.name > collectionB.name) {
-                return 1;
-              }
-              return 0;
-            }).forEach((collection: any) => {
-              if (pastChildrenCache[collection.name]) {
-                this._childrenCache[collection.name] = new CollectionTreeItem(
-                  collection,
-                  this.databaseName,
-                  this._dataService,
-                  pastChildrenCache[collection.name].isExpanded,
-                  pastChildrenCache[collection.name].getDocumentListChild(),
-                  pastChildrenCache[collection.name].getSchemaChild()
-                );
-              } else {
-                this._childrenCache[collection.name] = new CollectionTreeItem(
-                  collection,
-                  this.databaseName,
-                  this._dataService,
-                  false // Not expanded.
-                );
-              }
-            });
+            collections
+              .sort((collectionA: any, collectionB: any) => {
+                if (collectionA.name < collectionB.name) {
+                  return -1;
+                }
+                if (collectionA.name > collectionB.name) {
+                  return 1;
+                }
+                return 0;
+              })
+              .forEach((collection: any) => {
+                if (pastChildrenCache[collection.name]) {
+                  this._childrenCache[collection.name] = new CollectionTreeItem(
+                    collection,
+                    this.databaseName,
+                    this._dataService,
+                    pastChildrenCache[collection.name].isExpanded,
+                    pastChildrenCache[collection.name].getDocumentListChild(),
+                    pastChildrenCache[collection.name].getSchemaChild()
+                  );
+                } else {
+                  this._childrenCache[collection.name] = new CollectionTreeItem(
+                    collection,
+                    this.databaseName,
+                    this._dataService,
+                    false // Not expanded.
+                  );
+                }
+              });
           } else {
             this._childrenCache = {};
           }
@@ -114,8 +118,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
-    const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
+    const LIGHT = path.join(getImagesPath(), 'light');
+    const DARK = path.join(getImagesPath(), 'dark');
 
     return {
       light: path.join(LIGHT, 'database.svg'),
@@ -189,7 +193,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       this._dataService.createCollection(
         `${databaseName}.${collectionName}`,
         {}, // No options.
-        err => {
+        (err) => {
           statusBarItem.hideMessage();
 
           if (err) {

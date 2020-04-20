@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
-import TreeItemParentInterface from './treeItemParentInterface';
 const path = require('path');
+
+import { getImagesPath } from '../extensionConstants';
+import TreeItemParentInterface from './treeItemParentInterface';
 
 // Loosely based on bson types. These values match with the
 // types returned by `parseSchema` with `mongodb-schema`.
@@ -241,8 +243,8 @@ export default class FieldTreeItem extends vscode.TreeItem
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
-    const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
+    const LIGHT = path.join(getImagesPath(), 'light');
+    const DARK = path.join(getImagesPath(), 'dark');
 
     const iconFileName = getIconFileNameForField(this.field);
 

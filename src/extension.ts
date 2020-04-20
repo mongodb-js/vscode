@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
+import { ext } from './extensionConstants';
 import { createLogger } from './logging';
 const log = createLogger('extension.ts');
 
@@ -22,6 +23,7 @@ let mdbExtension: MDBExtensionController;
 export function activate(context: vscode.ExtensionContext): void {
   log.info('activate extension called');
 
+  ext.context = context;
   mdbExtension = new MDBExtensionController(context);
   mdbExtension.activate();
 

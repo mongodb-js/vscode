@@ -16,7 +16,11 @@
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module",
+<<<<<<< HEAD
     "project": ["./tsconfig.json", "./src/views/webview-app/tsconfig.json"]
+=======
+    "project": ["./tsconfig.json", "./src/views/connect-form-app/tsconfig.json"]
+>>>>>>> Use extension file pathing
   },
   "globals": {
     "acquireVsCodeApi": true

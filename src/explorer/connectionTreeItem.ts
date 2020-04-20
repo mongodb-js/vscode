@@ -6,10 +6,11 @@ import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
 import TreeItemParent from './treeItemParentInterface';
 import { StatusView } from '../views';
+import { getImagesPath } from '../extensionConstants';
 
 enum ConnectionItemContextValues {
   disconnected = 'disconnectedConnectionTreeItem',
-  connected = 'connectedConnectionTreeItem'
+  connected = 'connectedConnectionTreeItem',
 }
 export { ConnectionItemContextValues };
 
@@ -73,7 +74,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     if (
       this._connectionController.isConnecting() &&
       this._connectionController.getConnectingConnectionId() ===
-      this.connectionId
+        this.connectionId
     ) {
       return 'connecting...';
     }
@@ -146,8 +147,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
-    const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
+    const LIGHT = path.join(getImagesPath(), 'light');
+    const DARK = path.join(getImagesPath(), 'dark');
 
     if (
       this._connectionController.getActiveConnectionId() === this.connectionId

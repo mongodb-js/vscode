@@ -6,7 +6,7 @@ import {
   MESSAGE_TYPES,
   ConnectMessage,
   OpenFilePickerMessage,
-  OpenConnectionStringInputMessage
+  OpenConnectionStringInputMessage,
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
 
@@ -18,8 +18,8 @@ const openFileOptions = {
   canSelectMany: false, // Can be overridden.
   openLabel: 'Open',
   filters: {
-    'All files': ['*']
-  }
+    'All files': ['*'],
+  },
 };
 
 export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
@@ -69,14 +69,14 @@ export default class WebviewController {
                 connectionSuccess,
                 connectionMessage: connectionSuccess
                   ? 'Connected.'
-                  : 'Unable to connect.'
+                  : 'Unable to connect.',
               });
             },
             (err: Error) => {
               panel.webview.postMessage({
                 command: MESSAGE_TYPES.CONNECT_RESULT,
                 connectionSuccess: false,
-                connectionMessage: err.message
+                connectionMessage: err.message,
               });
             }
           );
@@ -85,7 +85,7 @@ export default class WebviewController {
         vscode.window
           .showOpenDialog({
             ...openFileOptions,
-            canSelectMany: message.multi
+            canSelectMany: message.multi,
           })
           .then((files) => {
             panel.webview.postMessage({
@@ -94,14 +94,12 @@ export default class WebviewController {
               files:
                 files && files.length > 0
                   ? files.map((file) => file.path)
-                  : undefined
+                  : undefined,
             });
           });
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
-        vscode.commands.executeCommand(
-          'mdb.connectWithURI'
-        );
+        vscode.commands.executeCommand('mdb.connectWithURI');
 
         return;
       default:
@@ -123,9 +121,7 @@ export default class WebviewController {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'dist'))
-        ]
+        localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'dist'))],
       }
     );
 

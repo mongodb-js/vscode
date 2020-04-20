@@ -9,7 +9,7 @@ import {
   CompletionItem,
   TextDocumentPositionParams,
   RequestType,
-  TextDocumentSyncKind
+  TextDocumentSyncKind,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import MongoDBService from './mongoDBService';
@@ -53,14 +53,14 @@ connection.onInitialize((params: InitializeParams) => {
       // Tell the client that the server supports code completion
       completionProvider: {
         resolveProvider: true,
-        triggerCharacters: ['.']
-      }
+        triggerCharacters: ['.'],
+      },
       // documentFormattingProvider: true,
       // documentRangeFormattingProvider: true,
       // codeLensProvider: {
       //   resolveProvider: true
       // }
-    }
+    },
   };
 });
 
@@ -120,7 +120,7 @@ const getDocumentSettings = (resource: string): Thenable<ExampleSettings> => {
   if (!result) {
     result = connection.workspace.getConfiguration({
       scopeUri: resource,
-      section: 'mongodbLanguageServer'
+      section: 'mongodbLanguageServer',
     });
     documentSettings.set(resource, result);
   }
@@ -156,10 +156,10 @@ const validateTextDocument = async (
       severity: DiagnosticSeverity.Warning,
       range: {
         start: textDocument.positionAt(m.index),
-        end: textDocument.positionAt(m.index + m[0].length)
+        end: textDocument.positionAt(m.index + m[0].length),
       },
       message: `${m[0]} is all uppercase.`,
-      source: 'ex'
+      source: 'ex',
     };
 
     if (hasDiagnosticRelatedInformationCapability) {
@@ -167,17 +167,17 @@ const validateTextDocument = async (
         {
           location: {
             uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range)
+            range: Object.assign({}, diagnostic.range),
           },
-          message: 'Spelling matters'
+          message: 'Spelling matters',
         },
         {
           location: {
             uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range)
+            range: Object.assign({}, diagnostic.range),
           },
-          message: 'Particularly for names'
-        }
+          message: 'Particularly for names',
+        },
       ];
     }
 
