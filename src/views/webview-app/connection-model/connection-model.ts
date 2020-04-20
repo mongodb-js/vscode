@@ -106,7 +106,7 @@ const getBaseUrlFromConnectionModel = (
     port: null,
     slashes: true,
     pathname: '/',
-    query: {},
+    query: {}
   };
 
   // In the `mongodb+srv` protocol the comma separated list of host names is
@@ -169,7 +169,7 @@ const getBaseUrlFromConnectionModel = (
   }
 
   const reqClone = {
-    ...req,
+    ...req
   };
 
   return toURL(reqClone);
