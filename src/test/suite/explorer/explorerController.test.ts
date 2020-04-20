@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
+import * as sinon from 'sinon';
 
 import {
   DefaultSavingLocations,
@@ -34,6 +35,7 @@ suite('Explorer Controller Test Suite', () => {
       );
     // Reset our connections.
     mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+    sinon.restore();
   });
 
   test('should have a connections root', (done) => {
@@ -324,5 +326,37 @@ suite('Explorer Controller Test Suite', () => {
           });
         });
       });
+  });
+
+  test('tree view should be not created by default (shows welcome view)', () => {
+    const testExplorerController =
+      mdbTestExtension.testExtensionController._explorerController;
+
+    assert(testExplorerController.getTreeView() === undefined);
+  });
+
+  test('tree view should call create tree view after a "CONNECTIONS_DID_CHANGE" event', (done) => {
+    const testExplorerController =
+      mdbTestExtension.testExtensionController._explorerController;
+
+    testExplorerController.activateTreeView();
+
+    const treeControllerStub = sinon.stub().returns();
+    sinon.replace(
+      testExplorerController.getTreeController(),
+      'activateTreeViewEventHandlers',
+      treeControllerStub
+    );
+
+    const vscodeCreateTreeViewStub = sinon.stub().returns('');
+    sinon.replace(vscode.window, 'createTreeView', vscodeCreateTreeViewStub);
+
+    mdbTestExtension.testExtensionController._connectionController
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
+      .then(() => {
+        mdbTestExtension.testExtensionController._connectionController.disconnect();
+        assert(vscodeCreateTreeViewStub.called);
+      })
+      .then(done);
   });
 });

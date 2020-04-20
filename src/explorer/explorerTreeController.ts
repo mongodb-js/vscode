@@ -14,7 +14,8 @@ import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 
 const log = createLogger('explorer controller');
 
-export default class ExplorerTreeController implements vscode.TreeDataProvider<vscode.TreeItem> {
+export default class ExplorerTreeController
+implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _mdbConnectionsTreeItem: MDBConnectionsTreeItem;
 

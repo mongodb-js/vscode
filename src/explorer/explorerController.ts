@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 
-import ConnectionController from '../connectionController';
+import ConnectionController, {
+  DataServiceEventTypes,
+} from '../connectionController';
 import ExplorerTreeController from './explorerTreeController';
 
 import { createLogger } from '../logging';
@@ -8,21 +10,40 @@ import { createLogger } from '../logging';
 const log = createLogger('explorer controller');
 
 export default class ExplorerController {
+  private _connectionController: ConnectionController;
   private _treeController: ExplorerTreeController;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
   constructor(connectionController: ConnectionController) {
     log.info('activate explorer controller');
 
+    this._connectionController = connectionController;
     this._treeController = new ExplorerTreeController(connectionController);
   }
 
-  createTreeView(): void {
-    this._treeView = vscode.window.createTreeView('mongoDB', {
-      treeDataProvider: this._treeController
-    });
+  createTreeView = (): void => {
+    // Remove the listener that called this function.
+    this._connectionController.removeEventListener(
+      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      this.createTreeView
+    );
 
-    this._treeController.activateTreeViewEventHandlers(this._treeView);
+    if (!this._treeView) {
+      this._treeView = vscode.window.createTreeView('mongoDB', {
+        treeDataProvider: this._treeController,
+      });
+
+      this._treeController.activateTreeViewEventHandlers(this._treeView);
+    }
+  };
+
+  activateTreeView(): void {
+    // Listen for a change in connections to occur before we create the tree
+    // so that we show the `viewsWelcome` before any connections are added.
+    this._connectionController.addEventListener(
+      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      this.createTreeView
+    );
   }
 
   deactivate(): void {

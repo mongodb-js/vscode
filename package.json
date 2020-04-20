@@ -91,6 +91,12 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "mongoDB",
+        "contents": "No connections found.\n[Add Connection](command:mdb.connect)"
+      }
+    ],
     "languages": [
       {
         "id": "mongodb",
@@ -249,6 +255,10 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "mdb.createPlayground",
+          "when": "view == mongoDB"
+        },
         {
           "command": "mdb.addConnection",
           "when": "view == mongoDB"
