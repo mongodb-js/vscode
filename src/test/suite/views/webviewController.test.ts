@@ -104,7 +104,7 @@ suite('Connect Form View Test Suite', () => {
         assert(testConnectionController.isCurrentlyConnected());
         assert(
           testConnectionController.getActiveConnectionName() ===
-          'localhost:27018'
+            'localhost:27018'
         );
         assert(
           testConnectionController.getActiveConnectionModel()?.port === 27018
@@ -220,7 +220,6 @@ suite('Connect Form View Test Suite', () => {
       });
     });
   });
-
 
   test('web view sends an unsuccessful connect result on an unsuccessful connection', (done) => {
     const testExtensionContext = new TestExtensionContext();
@@ -379,5 +378,54 @@ suite('Connect Form View Test Suite', () => {
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
       action: 'file_action'
     });
+  });
+
+  test('web view runs the "connectWithURI" command when open connection string input is recieved', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController
+    );
+
+    let messageRecieved;
+    const fakeWebview = {
+      html: '',
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+      }
+    };
+
+    const fakeVSCodeExecuteCommand = sinon.fake();
+    sinon.replace(vscode.commands, 'executeCommand', fakeVSCodeExecuteCommand);
+
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const testWebviewController = new WebviewController(
+      testConnectionController
+    );
+
+    testWebviewController.showConnectForm(
+      mdbTestExtension.testExtensionContext
+    );
+
+    messageRecieved({
+      command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT
+    });
+
+    setTimeout(() => {
+      assert(fakeVSCodeExecuteCommand.called);
+      assert(fakeVSCodeExecuteCommand.firstArg === 'mdb.connectWithURI');
+
+      done();
+    }, 50);
   });
 });

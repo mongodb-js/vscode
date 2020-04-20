@@ -13,13 +13,20 @@ interface ConnectMessage extends BasicWebviewMessage {
   connectionModel: object;
 }
 
+interface OpenConnectionStringInputMessage extends BasicWebviewMessage {
+  command: 'OPEN_CONNECTION_STRING_INPUT';
+}
+
 interface FilePickerMessage {
   command: 'OPEN_FILE_PICKER';
   action: string;
   multi: boolean;
 }
 
-type WebviewMessage = ConnectMessage | FilePickerMessage;
+type WebviewMessage =
+  | ConnectMessage
+  | FilePickerMessage
+  | OpenConnectionStringInputMessage;
 
 interface VSCodeApi {
   postMessage: (message: WebviewMessage) => void;
