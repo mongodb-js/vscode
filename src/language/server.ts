@@ -1,21 +1,18 @@
 import {
   createConnection,
   TextDocuments,
-  TextDocumentsConfiguration,
-  TextDocument,
   Diagnostic,
   DiagnosticSeverity,
   ProposedFeatures,
   InitializeParams,
   DidChangeConfigurationNotification,
   CompletionItem,
-  CompletionItemKind,
   TextDocumentPositionParams,
-  RequestType
+  RequestType,
+  TextDocumentSyncKind
 } from 'vscode-languageserver';
-import { Worker as WorkerThreads } from 'worker_threads';
-
-const path = require('path');
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import MongoDBService from './mongoDBService';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -23,32 +20,15 @@ const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-const documentsConfig = {
-  create(uri: string, languageId: string, version: number, content: string) {
-    // connection.console.log(
-    //   `documentsConfig.create: ${JSON.stringify({
-    //     uri,
-    //     languageId,
-    //     version,
-    //     content
-    //   })}`
-    // );
-  },
-  update(document: any, changes: any[], version: number) {
-    // connection.console.log(
-    //   `documentsConfig.update: ${JSON.stringify({
-    //     document,
-    //     changes,
-    //     version
-    //   })}`
-    // );
-  }
-} as TextDocumentsConfiguration<any>;
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-const documents: TextDocuments<any> = new TextDocuments(documentsConfig);
+let mongoDBService = new MongoDBService({
+  connection,
+  documents
+});
 
 let hasConfigurationCapability = false;
-let hasWorkspaceFolderCapability = false;
+// let hasWorkspaceFolderCapability = false;
 let hasDiagnosticRelatedInformationCapability = false;
 
 connection.onInitialize((params: InitializeParams) => {
@@ -59,9 +39,9 @@ connection.onInitialize((params: InitializeParams) => {
   hasConfigurationCapability = !!(
     capabilities.workspace && !!capabilities.workspace.configuration
   );
-  hasWorkspaceFolderCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
+  // hasWorkspaceFolderCapability = !!(
+  //   capabilities.workspace && !!capabilities.workspace.workspaceFolders
+  // );
   hasDiagnosticRelatedInformationCapability = !!(
     capabilities.textDocument &&
     capabilities.textDocument.publishDiagnostics &&
@@ -70,10 +50,11 @@ connection.onInitialize((params: InitializeParams) => {
 
   return {
     capabilities: {
-      textDocumentSync: (documents as any).syncKind,
+      textDocumentSync: TextDocumentSyncKind.Incremental,
       // Tell the client that the server supports code completion
       completionProvider: {
-        resolveProvider: true
+        resolveProvider: true,
+        triggerCharacters: ['.']
       }
       // documentFormattingProvider: true,
       // documentRangeFormattingProvider: true,
@@ -92,6 +73,7 @@ connection.onInitialized(() => {
       undefined
     );
   }
+
   // if (hasWorkspaceFolderCapability) {
   //   connection.workspace.onDidChangeWorkspaceFolders((_event) => {
   //     connection.console.log('Workspace folder change event received.');
@@ -129,11 +111,13 @@ connection.onDidChangeConfiguration((change) => {
   documents.all().forEach(validateTextDocument);
 });
 
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
+const getDocumentSettings = (resource: string): Thenable<ExampleSettings> => {
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
+
   let result = documentSettings.get(resource);
+
   if (!result) {
     result = connection.workspace.getConfiguration({
       scopeUri: resource,
@@ -141,29 +125,34 @@ function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
     });
     documentSettings.set(resource, result);
   }
+
   return result;
-}
+};
 
 // Only keep settings for open documents
 documents.onDidClose((e) => {
   // connection.console.log(`documents.onDidClose: ${JSON.stringify(e)}`);
+
   documentSettings.delete(e.document.uri);
 });
 
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+const validateTextDocument = async (
+  textDocument: TextDocument
+): Promise<void> => {
   // In this simple example we get the settings for every validate run.
   const settings = await getDocumentSettings(textDocument.uri);
 
   // The validator creates diagnostics for all uppercase words length 2 and more
   const text = textDocument.getText();
   const pattern = /\b[A-Z]{2,}\b/g;
-  let m: RegExpExecArray | null;
-
-  let problems = 0;
   const diagnostics: Diagnostic[] = [];
+  let m: RegExpExecArray | null;
+  let problems = 0;
+
   // eslint-disable-next-line no-cond-assign
   while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
     problems++;
+
     const diagnostic: Diagnostic = {
       severity: DiagnosticSeverity.Warning,
       range: {
@@ -173,6 +162,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
       message: `${m[0]} is all uppercase.`,
       source: 'ex'
     };
+
     if (hasDiagnosticRelatedInformationCapability) {
       diagnostic.relatedInformation = [
         {
@@ -191,6 +181,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         }
       ];
     }
+
     diagnostics.push(diagnostic);
   }
 
@@ -201,11 +192,11 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 
   // const notification = new NotificationType<string>('showInformationMessage');
-  connection.sendNotification(
-    'showInformationMessage',
-    'Enjoy these diagnostics!'
-  );
-}
+  // connection.sendNotification(
+  //   'showInformationMessage',
+  //   'Enjoy these diagnostics!'
+  // );
+};
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
@@ -235,42 +226,31 @@ connection.onDidChangeWatchedFiles((_change) => {
   // );
 });
 
-// This handler provides the initial list of the completion items.
-connection.onCompletion(
-  (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    // The pass parameter contains the position of the text document in
-    // which code complete got requested. For the example we ignore this
-    // info and always provide the same completion items.
-    // connection.console.log(
-    //   `onCompletion: ${JSON.stringify({ _textDocumentPosition })}`
-    // );
-    return [
-      {
-        label: 'TypeScript',
-        kind: CompletionItemKind.Text,
-        data: 1
-      },
-      {
-        label: 'JavaScript',
-        kind: CompletionItemKind.Text,
-        data: 2
-      }
-    ];
-  }
-);
+connection.onRequest('connect', (params) => {
+  return mongoDBService.connectToCliServiceProvider(params);
+});
+
+// This handler provides the list of the completion items.
+connection.onCompletion((params: TextDocumentPositionParams) => {
+  const textDocument = documents.get(params.textDocument.uri);
+
+  return mongoDBService.provideCompletionItems(params, textDocument);
+});
 
 // This handler resolves additional information for the item selected in
 // the completion list.
 connection.onCompletionResolve(
   (item: CompletionItem): CompletionItem => {
     // connection.console.log(`onCompletionResolve: ${JSON.stringify(item)}`);
-    if (item.data === 1) {
-      item.detail = 'TypeScript details';
-      item.documentation = 'TypeScript documentation';
-    } else if (item.data === 2) {
-      item.detail = 'JavaScript details';
-      item.documentation = 'JavaScript documentation';
-    }
+
+    // if (item.data === 1) {
+    //   item.detail = 'TypeScript details';
+    //   item.documentation = 'TypeScript documentation';
+    // } else if (item.data === 2) {
+    //   item.detail = 'JavaScript details';
+    //   item.documentation = 'JavaScript documentation';
+    // }
+
     return item;
   }
 );
@@ -279,68 +259,7 @@ connection.onCompletionResolve(
  * Execute the entire playground script.
  */
 connection.onRequest('executeAll', (params, token) => {
-  return new Promise((resolve) => {
-    // Use Node worker threads to isolate each run of a playground
-    // to be able to cancel evaluation of infinite loops.
-    //
-    // There is an issue with support for `.ts` files.
-    // Trying to run a `.ts` file in a worker thread results in error:
-    // `The worker script extension must be “.js” or “.mjs”. Received “.ts”`
-    // As a workaround require `.js` file from the out folder.
-    //
-    // TODO: After webpackifying the extension replace
-    // the workaround with some similar 3rd-party plugin
-    const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
-      // The workerData parameter sends data to the created worker
-      workerData: {
-        codeToEvaluate: params.codeToEvaluate,
-        connectionString: params.connectionString,
-        connectionOptions: params.connectionOptions
-      }
-    });
-
-    // Listen for results from the worker thread
-    worker.on('message', ([error, result]) => {
-      if (error) {
-        connection.sendNotification(
-          'showErrorMessage',
-          error.message
-        );
-      }
-
-      worker.terminate(); // Close the worker thread
-
-      return resolve(result);
-    });
-
-    // Listen for cancellation request from the language server client
-    token.onCancellationRequested(async () => {
-      connection.console.log('Playground cancellation requested');
-      connection.sendNotification(
-        'showInformationMessage',
-        'The running playground operation was canceled.'
-      );
-
-      // If there is a situation that mongoClient is unresponsive,
-      // try to close mongoClient after each runtime evaluation
-      // and after the cancelation of the runtime
-      // to make sure that all resources are free and can be used with a new request.
-      //
-      // (serviceProvider as any)?.mongoClient.close(false);
-      //
-      // The mongoClient.close method closes the underlying connector,
-      // which in turn closes all open connections.
-      // Once called, this mongodb instance can no longer be used.
-      //
-      // See: https://github.com/mongodb-js/vscode/pull/54
-
-      // Stop the worker and all JavaScript execution
-      // in the worker thread as soon as possible
-      worker.terminate().then((status) => {
-        connection.console.log(`Playground canceled with status: ${status}`);
-      });
-    });
-  });
+  return mongoDBService.executeAll(params, token);
 });
 
 /**
@@ -348,6 +267,7 @@ connection.onRequest('executeAll', (params, token) => {
  */
 connection.onRequest('executeRange', (event) => {
   // connection.console.log(`executeRange: ${JSON.stringify(event)}`);
+
   return '';
 });
 
@@ -355,18 +275,20 @@ connection.onRequest('textDocument/rangeFormatting', (event) => {
   // connection.console.log(
   //   `textDocument/rangeFormatting: ${JSON.stringify({ event })}`
   // );
-  const text = documents.get(event.textDocument.uri).getText(event.range);
+
+  const text = documents?.get(event?.textDocument?.uri)?.getText(event.range);
 
   return text;
 });
 
 connection.onRequest('textDocument/formatting', (event) => {
   const document = documents.get(event.textDocument.uri);
-  const text = document.getText();
-  const range = {
-    start: { line: 0, character: 0 },
-    end: { line: document.lineCount, character: 0 }
-  };
+  const text = document?.getText();
+  // const range = {
+  //   start: { line: 0, character: 0 },
+  //   end: { line: document?.lineCount, character: 0 },
+  // };
+
   // connection.console.log(
   //   `textDocument/formatting: ${JSON.stringify({
   //     text,
@@ -374,6 +296,7 @@ connection.onRequest('textDocument/formatting', (event) => {
   //     range
   //   })}`
   // );
+
   return text;
 });
 

@@ -20,18 +20,17 @@ let socket: WebSocket | null;
  * This controller manages the language server and client.
  */
 export default class LanguageServerController {
-  _connectionController?: ConnectionController;
   _source?: CancellationTokenSource;
   client: LanguageClient;
 
-  constructor(
-    context: ExtensionContext,
-    connectionController?: ConnectionController
-  ) {
-    this._connectionController = connectionController;
-
+  constructor(context: ExtensionContext) {
     // The server is implemented in node
-    const serverModule = path.join(context.extensionPath, 'out', 'language', 'server.js');
+    const serverModule = path.join(
+      context.extensionPath,
+      'out',
+      'language',
+      'server.js'
+    );
 
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
@@ -49,10 +48,12 @@ export default class LanguageServerController {
     };
 
     // Hijacks all LSP logs and redirect them to a specific port through WebSocket connection
-    const channel = vscode.window.createOutputChannel('MongoDB Language Server');
+    const channel = vscode.window.createOutputChannel(
+      'MongoDB Language Server'
+    );
     let logInspector = '';
 
-    const websocketOutputChannel: OutputChannel = {
+    const websocketOutputChannel = {
       name: 'websocket',
       // Only append the logs but send them later
       append(value: string) {
@@ -68,12 +69,8 @@ export default class LanguageServerController {
         }
 
         logInspector = '';
-      },
-      clear() { },
-      show() { },
-      hide() { },
-      dispose() { }
-    };
+      }
+    } as OutputChannel;
 
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
@@ -104,12 +101,12 @@ export default class LanguageServerController {
     );
   }
 
-  async activate(): Promise<any> {
+  activate(): void {
     // Start the client. This will also launch the server
     this.client.start();
 
     // Subscribe on notifications from the server when the client is ready
-    await this.client.onReady().then(() => {
+    this.client.onReady().then(() => {
       this.client.onNotification('showInformationMessage', (messsage) => {
         vscode.window.showInformationMessage(messsage);
       });
@@ -125,7 +122,7 @@ export default class LanguageServerController {
     this.client.stop();
   }
 
-  executeAll(codeToEvaluate: string, connectionString: string, connectionOptions: any = {}): Promise<any> {
+  executeAll(params): Promise<any> {
     return this.client.onReady().then(async () => {
       // Instantiate a new CancellationTokenSource object
       // that generates a cancellation token for each run of a playground
@@ -136,21 +133,32 @@ export default class LanguageServerController {
       // and return results to the playground controller when ready
       return this.client.sendRequest(
         'executeAll',
-        { codeToEvaluate, connectionString, connectionOptions },
+        params,
         this._source.token
       );
     });
   }
 
-  startStreamLanguageServerLogs() {
-    const socketPort = workspace.getConfiguration('languageServerExample').get('port', 7000);
+  connect(params: {
+    connectionString?: string | null;
+    connectionOptions?: any;
+  }): Promise<any> {
+    return this.client.onReady().then(async () => {
+      return this.client.sendRequest('connect', params);
+    });
+  }
+
+  startStreamLanguageServerLogs(): Promise<boolean> {
+    const socketPort = workspace
+      .getConfiguration('languageServerExample')
+      .get('port', 7000);
 
     socket = new WebSocket(`ws://localhost:${socketPort}`);
 
     return Promise.resolve(true);
   }
 
-  cancelAll() {
+  cancelAll(): Promise<boolean> {
     return new Promise((resolve) => {
       // Send a request for cancellation. As a result
       // the associated CancellationToken will be notified of the cancellation,

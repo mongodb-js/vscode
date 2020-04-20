@@ -1,25 +1,12 @@
 # MongoDB Language Server
 
-> NOTE (lucas) This is mostly a regurgitation of the docs so I can think out loud and keep notes. You may find the source material more useful: [programmatic language features](https://code.visualstudio.com/api/language-extensions/programmatic-language-features) and
-> [language server extension guide](https://code.visualstudio.com/api/language-extensions/language-server-extension-guide)
-
 **MongoDB Language Server** runs as a separate node.js process using [vscode-languageserver](https://github.com/microsoft/vscode-languageserver-node/tree/master/server)
 
 **MongoDB Language Client** runs next to UI code and uses [vscode-languageclient](https://github.com/microsoft/vscode-languageserver-node/tree/master/client) for JSON RPC over IPC.
 
 ![](./langserver-diagram.svg)
 
-VS Code's integration of the [Language Server Protocol](https://microsoft.github.io/language-server-protocol) provides the potential to implement the following user facing features:
-
-| What                                                                                                                                            | Example Behavior                                                                                      |
-| :---------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
-| **[completions](https://code.visualstudio.com/api/language-extensions/programmatic-language-features#show-code-completion-proposals)**          | ex. mongodb-ace-mode autocompletion                                                                   |
-| **[diagnostics](https://code.visualstudio.com/api/language-extensions/programmatic-language-features#provide-diagnostics)**                     | ex. eslint errors/warnings on .mongodb files                                                          | \  |
-| **[formatting](https://code.visualstudio.com/api/language-extensions/programmatic-language-features#format-source-code-in-an-editor)**          | ex. prettier on .mongodb files                                                                        |
-| **[hovers](https://code.visualstudio.com/api/language-extensions/programmatic-language-features#show-hovers)**                                  | ex. show mini-schema view when hovering over a collection name, docs description for an agg operator. |
-| **[signatures](https://code.visualstudio.com/api/language-extensions/programmatic-language-features#help-with-function-and-method-signatures)** | ex. what are the types and shape of args an agg operator or SHELL API method takes                    |
-| **[definitions](https://code.visualstudio.com/api/language-extensions/programmatic-language-features#show-definitions-of-a-symbol)**            | ex. view mongosh source for a SHELL API method                                                        |
-| **[codeActions](https://code.visualstudio.com/api/language-extensions/programmatic-language-features#possible-actions-on-errors-or-warnings)**  | ex. field name mispelled                                                                              |
+The language server protocol [(LSP)](https://microsoft.github.io/language-server-protocol/specification) is mainly used as a tool between the editor (the client) and a language smartness provider (the server) to integrate features like autocomplete, go to definition, find all references, list document symbols, signature help and much more. You can find the complete list of supported features in [the official documentation](https://code.visualstudio.com/api/language-extensions/language-server-extension-guide).
 
 We can also extend the mongodb language server and client with custom methods to leverage it as a background worker. Because the language server is a separate JSON RPC enabled process, we can add RPC definitions for:
 
@@ -30,13 +17,11 @@ We can also extend the mongodb language server and client with custom methods to
 
 #### Client
 
-Debugging the client code is as easy as debugging a normal extension. Set a breakpoint in the client code and debug the extension by pressing `F5`. Use `console.log()` for printing debug information in the Debug Console of the extension.
+Debugging the client code is as easy as debugging a normal extension. Set a breakpoint in the client code and debug the extension by pressing `F5`.
 
 #### Server
 
 Since the server is started by the `LanguageClient` running separately, we need to attach a debugger to the running server. To do so, switch to the Run view and select the launch configuration `Extension + Server Inspector` and press `F5`. This will run both the extension and the Server Inspector.
-
-Use `connection.console.log()` for printing debug information in the `MongoDB Language Server` Output Channel of the server.
 
 ![MongoDB Language Server output channel](https://user-images.githubusercontent.com/23074/76441349-a489e980-6395-11ea-8247-50cfe9b3ff61.png)
 
@@ -73,7 +58,6 @@ These logs are useful for developing and testing the Language Server, but they c
 
 https://github.com/microsoft/vscode-extension-samples/tree/master/lsp-log-streaming-sample
 https://github.com/microsoft/vscode-extension-samples/tree/master/lsp-sample
-
 
 #### LSP Notifications
 
