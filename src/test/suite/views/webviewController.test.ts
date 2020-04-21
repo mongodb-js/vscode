@@ -10,7 +10,7 @@ import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import WebviewController, {
   getConnectWebviewContent,
-  getReactAppUri,
+  getReactAppUri
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
 import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
@@ -33,11 +33,11 @@ suite('Connect Form View Test Suite', () => {
     const stubOnDidRecieveMessage = sinon.stub();
     const fakeWebview = {
       html: '',
-      onDidReceiveMessage: stubOnDidRecieveMessage,
+      onDidReceiveMessage: stubOnDidRecieveMessage
     };
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview,
+      webview: fakeWebview
     });
     sinon.replace(
       vscode.window,
@@ -114,11 +114,11 @@ suite('Connect Form View Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
         messageRecievedSet = true;
-      },
+      }
     };
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview,
+      webview: fakeWebview
     });
     sinon.replace(
       vscode.window,
@@ -149,8 +149,8 @@ suite('Connect Form View Test Suite', () => {
         command: MESSAGE_TYPES.CONNECT,
         connectionModel: {
           port: connectionModel.port,
-          hostname: connectionModel.hostname,
-        },
+          hostname: connectionModel.hostname
+        }
       });
     });
   });
@@ -178,11 +178,11 @@ suite('Connect Form View Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
         messageRecievedSet = true;
-      },
+      }
     };
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview,
+      webview: fakeWebview
     });
     sinon.replace(
       vscode.window,
@@ -213,8 +213,8 @@ suite('Connect Form View Test Suite', () => {
         command: MESSAGE_TYPES.CONNECT,
         connectionModel: {
           port: connectionModel.port,
-          hostname: connectionModel.hostname,
-        },
+          hostname: connectionModel.hostname
+        }
       });
     });
   });
@@ -240,11 +240,11 @@ suite('Connect Form View Test Suite', () => {
       },
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
-      },
+      }
     };
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview,
+      webview: fakeWebview
     });
     sinon.replace(
       vscode.window,
@@ -265,8 +265,8 @@ suite('Connect Form View Test Suite', () => {
       command: MESSAGE_TYPES.CONNECT,
       connectionModel: {
         port: 2700002, // Bad port number.
-        hostname: 'localhost',
-      },
+        hostname: 'localhost'
+      }
     });
   });
 
@@ -280,7 +280,7 @@ suite('Connect Form View Test Suite', () => {
     );
 
     const fakeVSCodeOpenDialog = sinon.fake.resolves({
-      path: './somefilepath/test.text',
+      path: './somefilepath/test.text'
     });
 
     let messageRecieved;
@@ -295,11 +295,11 @@ suite('Connect Form View Test Suite', () => {
       },
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
-      },
+      }
     };
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview,
+      webview: fakeWebview
     });
     sinon.replace(
       vscode.window,
@@ -320,7 +320,7 @@ suite('Connect Form View Test Suite', () => {
     // Mock a connection call.
     messageRecieved({
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
-      action: 'file_action',
+      action: 'file_action'
     });
   });
 
@@ -345,11 +345,11 @@ suite('Connect Form View Test Suite', () => {
       },
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
-      },
+      }
     };
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview,
+      webview: fakeWebview
     });
     sinon.replace(
       vscode.window,
@@ -359,8 +359,8 @@ suite('Connect Form View Test Suite', () => {
 
     const fakeVSCodeOpenDialog = sinon.fake.resolves([
       {
-        path: './somefilepath/test.text',
-      },
+        path: './somefilepath/test.text'
+      }
     ]);
     sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
 
@@ -374,7 +374,7 @@ suite('Connect Form View Test Suite', () => {
 
     messageRecieved({
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
-      action: 'file_action',
+      action: 'file_action'
     });
   });
 
@@ -392,14 +392,14 @@ suite('Connect Form View Test Suite', () => {
       html: '',
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
-      },
+      }
     };
 
     const fakeVSCodeExecuteCommand = sinon.fake();
     sinon.replace(vscode.commands, 'executeCommand', fakeVSCodeExecuteCommand);
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview,
+      webview: fakeWebview
     });
     sinon.replace(
       vscode.window,
@@ -416,7 +416,7 @@ suite('Connect Form View Test Suite', () => {
     );
 
     messageRecieved({
-      command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT,
+      command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT
     });
 
     setTimeout(() => {
