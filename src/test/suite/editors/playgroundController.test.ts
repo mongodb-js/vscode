@@ -9,7 +9,6 @@ import { TestExtensionContext } from '../stubs';
 import { ObjectId } from 'bson';
 import { seedDataAndCreateDataService, cleanupTestDB } from '../dbTestHelper';
 import { beforeEach, afterEach } from 'mocha';
-import TelemetryController from '../../../telemetry/telemetryController';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -40,7 +39,7 @@ async function openPlayground(docUri: vscode.Uri): Promise<any> {
   }
 }
 
-suite('Playground Controller Test Suite', () => {
+suite('Playground Controller Test Suite', async () => {
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
 
@@ -48,31 +47,11 @@ suite('Playground Controller Test Suite', () => {
 
   mockExtensionContext.extensionPath = '../../';
 
+  await openPlayground(getDocUri('test.mongodb'));
+
   suite('when user is not connected', function () {
     afterEach(() => {
       sinon.restore();
-    });
-
-    test('evaluate should throw the missing active connection error', async () => {
-      const testConnectionController = new ConnectionController(
-        new StatusView(mockExtensionContext),
-        mockStorageController
-      );
-      const testLanguageServerController = new LanguageServerController(
-        mockExtensionContext
-      );
-      const testPlaygroundController = new PlaygroundController(
-        mockExtensionContext,
-        testConnectionController,
-        testLanguageServerController
-      );
-
-      testLanguageServerController.activate();
-
-      expect(testPlaygroundController.evaluate('1 + 1')).to.be.rejectedWith(
-        Error,
-        'Please connect to a database before running a playground.'
-      );
     });
 
     test('runAllPlaygroundBlocks should throw the missing active connection error', async () => {
@@ -97,7 +76,6 @@ suite('Playground Controller Test Suite', () => {
 
       sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
-      await openPlayground(getDocUri('test.mongodb'));
       await testPlaygroundController.runAllPlaygroundBlocks();
 
       expect(fakeVscodeErrorMessage.firstArg).to.be.equal(
@@ -157,7 +135,6 @@ suite('Playground Controller Test Suite', () => {
       seedDataAndCreateDataService('forest', [mockDocument])
         .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
-          await openPlayground(getDocUri('test.mongodb'));
 
           const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
@@ -177,7 +154,6 @@ suite('Playground Controller Test Suite', () => {
       seedDataAndCreateDataService('forest', [mockDocument])
         .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
-          await openPlayground(getDocUri('test.mongodb'));
 
           const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
@@ -198,7 +174,6 @@ suite('Playground Controller Test Suite', () => {
           await vscode.workspace
             .getConfiguration('mdb')
             .update('confirmRunAll', false);
-          await openPlayground(getDocUri('test.mongodb'));
 
           const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
@@ -244,8 +219,6 @@ suite('Playground Controller Test Suite', () => {
         }
       };
 
-      await openPlayground(getDocUri('test.mongodb'));
-
       testConnectionController.setActiveConnection(mockActiveConnection);
 
       expect(await testPlaygroundController.evaluate('1 + 1')).to.be.equal('2');
@@ -261,8 +234,6 @@ suite('Playground Controller Test Suite', () => {
           example: 'field'
         }
       };
-
-      await openPlayground(getDocUri('test.mongodb'));
 
       testConnectionController.setActiveConnection(mockActiveConnection);
 
@@ -282,8 +253,6 @@ suite('Playground Controller Test Suite', () => {
 
       seedDataAndCreateDataService('forest', [mockDocument])
         .then(async (dataService) => {
-          await openPlayground(getDocUri('test.mongodb'));
-
           testConnectionController.setActiveConnection(dataService);
 
           const actualResult = await testPlaygroundController.evaluate(`
@@ -410,8 +379,6 @@ suite('Playground Controller Test Suite', () => {
       seedDataAndCreateDataService('forest', [mockDocument])
         .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
-
-          await openPlayground(getDocUri('test.mongodb'));
 
           const firstEvalResult = await testPlaygroundController.evaluate(
             'const x = 1 + 1; x'
