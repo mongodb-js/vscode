@@ -10,12 +10,8 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/out/**/*.js"
-      ],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}"
     },
     {
@@ -28,9 +24,7 @@
         "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
         "${workspaceRoot}/src/test/fixture"
       ],
-      "outFiles": [
-        "${workspaceFolder}/out/test/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}"
     },
     {
@@ -40,19 +34,14 @@
       "protocol": "inspector",
       "port": 6009,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}"
     }
   ],
   "compounds": [
     {
       "name": "Extension + Server Inspector",
-      "configurations": [
-        "Run Extension",
-        "Attach to Language Server"
-      ]
+      "configurations": ["Run Extension", "Attach to Language Server"]
     }
   ]
 }

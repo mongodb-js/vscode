@@ -44,7 +44,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._statusView = new StatusView(context);
     this._storageController = new StorageController(context);
     this._telemetryController = new TelemetryController(
-      this._storageController
+      this._storageController,
+      context
     );
 
     if (connectionController) {

@@ -6,7 +6,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
   TransportKind,
-  CancellationTokenSource,
+  CancellationTokenSource
 } from 'vscode-languageclient';
 import * as WebSocket from 'ws';
 import { createLogger } from '../logging';
@@ -33,6 +33,7 @@ export default class LanguageServerController {
       'languageServer.js'
     );
 
+    console.log('About to run language server...');
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode
     // so VS Code can attach to the server for debugging
@@ -45,8 +46,8 @@ export default class LanguageServerController {
       debug: {
         module: serverModule,
         transport: TransportKind.ipc,
-        options: debugOptions,
-      },
+        options: debugOptions
+      }
     };
 
     // Hijacks all LSP logs and redirect them to a specific port through WebSocket connection
@@ -71,7 +72,7 @@ export default class LanguageServerController {
         }
 
         logInspector = '';
-      },
+      }
     } as OutputChannel;
 
     // Options to control the language client
@@ -79,19 +80,19 @@ export default class LanguageServerController {
       // Register the server for mongodb documents
       documentSelector: [
         { scheme: 'untitled', language: 'mongodb' },
-        { scheme: 'file', language: 'mongodb' },
+        { scheme: 'file', language: 'mongodb' }
       ],
       synchronize: {
         // Notify the server about file changes in the workspace
-        fileEvents: workspace.createFileSystemWatcher('**/*'),
+        fileEvents: workspace.createFileSystemWatcher('**/*')
       },
       // Attach WebSocket OutputChannel
-      outputChannel: websocketOutputChannel,
+      outputChannel: websocketOutputChannel
     };
 
     log.info('Creating MongoDB Language Server', {
       serverOptions,
-      clientOptions,
+      clientOptions
     });
 
     // Create the language server client

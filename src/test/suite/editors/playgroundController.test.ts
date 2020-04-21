@@ -16,7 +16,7 @@ chai.use(require('chai-as-promised'));
 
 const CONNECTION = {
   driverUrl: 'mongodb://localhost:27018',
-  driverOptions: {},
+  driverOptions: {}
 };
 
 suite('Playground Controller Test Suite', () => {
@@ -55,7 +55,7 @@ suite('Playground Controller Test Suite', () => {
   });
 
   suite('user is not connected', () => {
-    before(async () => {
+    before(() => {
       testConnectionController.getActiveConnectionName = sinon.fake.returns('');
       testConnectionController.getActiveConnectionModel = sinon.fake.returns(
         null
@@ -87,7 +87,7 @@ suite('Playground Controller Test Suite', () => {
         appname: 'VSCode Playground Tests',
         port: 27018,
         disconnect: () => {},
-        getAttributes: () => CONNECTION,
+        getAttributes: () => CONNECTION
       });
 
       await testPlaygroundController.connectToServiceProvider();

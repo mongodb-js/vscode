@@ -153,19 +153,26 @@ export default class ConnectionController {
     log.info('Trying to connect to a new connection configuration');
 
     return new Promise<boolean>((resolve, reject) => {
-      Connection.from(
-        connectionString,
-        (error: Error | undefined, newConnectionModel: ConnectionModelType) => {
-          if (error) {
-            return reject(new Error(`Unable to create connection: ${error}`));
-          }
+      try {
+        Connection.from(
+          connectionString,
+          (
+            error: Error | undefined,
+            newConnectionModel: ConnectionModelType
+          ) => {
+            if (error) {
+              return reject(new Error(`Unable to create connection: ${error}`));
+            }
 
-          return this.saveNewConnectionAndConnect(newConnectionModel).then(
-            resolve,
-            reject
-          );
-        }
-      );
+            return this.saveNewConnectionAndConnect(newConnectionModel).then(
+              resolve,
+              reject
+            );
+          }
+        );
+      } catch (e) {
+        reject(e.message);
+      }
     });
   };
 

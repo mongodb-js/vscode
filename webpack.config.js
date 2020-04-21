@@ -28,10 +28,11 @@ const extensionConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode'
-    // We just define electron as an external because it's a conditional dependency
-    // in /Users/rhys/Documents/mongodb/vscode/node_modules/hadron-ipc/lib but we don't use it.
-    // electron: 'electron'
+    vscode: 'commonjs vscode',
+    // Currently connection-model has a keytar dependency, vscode provides its
+    // own keytar dependency. Here we are telling it to use vscode's keytar.
+    keytar: 'keytar',
+    electron: 'electron'
   },
   module: {
     rules: [
@@ -54,6 +55,7 @@ const languageServerConfig = {
   output: {
     path: outputPath,
     filename: '[name].js',
+    libraryTarget: 'commonjs2',
     devtoolModuleFilenameTemplate: '../[resource-path]'
   },
   target: 'node',
@@ -88,6 +90,7 @@ const languageServerWorkerConfig = {
   output: {
     path: outputPath,
     filename: '[name].js',
+    libraryTarget: 'commonjs2',
     devtoolModuleFilenameTemplate: '../[resource-path]'
   },
   target: 'node',
