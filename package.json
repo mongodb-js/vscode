@@ -579,7 +579,8 @@
   },
   "dependency-check": {
     "ignore": [
-      "vscode"
+      "vscode",
+      "keytar"
     ]
   }
 }
