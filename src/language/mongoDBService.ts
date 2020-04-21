@@ -14,66 +14,59 @@ export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
   _runtime?: ElectronRuntime;
   _connection: any;
-  _connectionId = null;
-  _connectionString = '';
-  _connectionOptions = {};
-  _cachedFields = {};
+  _connectionString?: string;
+  _connectionOptions?: any;
+  _cachedFields: any;
 
-  constructor(params) {
-    this._connectionId = params.connectionId;
-    this._connectionString = params.connectionString;
-    this._connectionOptions = params.connectionOptions
-      ? params.connectionOptions
-      : {};
-    this._connection = params.connection;
+  constructor(connection) {
+    this._connection = connection;
+    this._cachedFields = {};
   }
 
   async connectToCliServiceProvider(params): Promise<any> {
+    this._connectionString = params.connectionString;
+    this._connectionOptions = params.connectionOptions;
+
     try {
       this._serviceProvider = await CliServiceProvider.connect(
         params.connectionString,
         params.connectionOptions
       );
       this._runtime = new ElectronRuntime(this._serviceProvider);
-
-      return Promise.resolve(true);
     } catch (error) {
-      return Promise.reject(error);
+      this._connection.console.log(error);
     }
   }
 
-  executeAll(
-    params: {
-      codeToEvaluate: string;
-      connectionString: string;
-      connectionOptions: any;
-    },
-    token: CancellationToken
-  ): Promise<any> {
+  disconnectFromCliServiceProvider(): void {
+    this._connectionString = undefined;
+    this._connectionOptions = undefined;
+  }
+
+  executeAll(codeToEvaluate, token: CancellationToken): Promise<any> {
     return new Promise((resolve, reject) => {
-      // Use Node worker threads to isolate each run of a playground
-      // to be able to cancel evaluation of infinite loops.
+      // Use Node worker threads to run a playground to be able to cancel infinite loops.
       //
       // There is an issue with support for `.ts` files.
-      // Trying to run a `.ts` file in a worker thread results in error:
+      // Trying to run a `.ts` file in a worker thread returns the error:
       // `The worker script extension must be “.js” or “.mjs”. Received “.ts”`
       // As a workaround require `.js` file from the out folder.
       //
       // TODO: After webpackifying the extension replace
-      // the workaround with some similar 3rd-party plugin
+      // the workaround with some similar 3rd-party plugin.
       const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
-        // The workerData parameter sends data to the created worker
+        // The workerData parameter sends data to the created worker.
         workerData: {
-          codeToEvaluate: params.codeToEvaluate,
-          connectionString: params.connectionString,
-          connectionOptions: params.connectionOptions
+          codeToEvaluate: codeToEvaluate,
+          connectionString: this._connectionString,
+          connectionOptions: this._connectionOptions
         }
       });
 
-      // Evaluate runtime in the worker thread
+      // Evaluate runtime in the worker thread.
       worker.postMessage('executeAll');
 
-      // Listen for results from the worker thread
+      // Listen for results from the worker thread.
       worker.on('message', ([error, result]) => {
         if (error) {
           this._connection.sendNotification('showErrorMessage', error.message);
@@ -84,7 +77,7 @@ export default class MongoDBService {
         });
       });
 
-      // Listen for cancellation request from the language server client
+      // Listen for cancellation request from the language server client.
       token.onCancellationRequested(() => {
         this._connection.console.log('Playground cancellation requested');
         this._connection.sendNotification(
@@ -106,11 +99,13 @@ export default class MongoDBService {
         // See: https://github.com/mongodb-js/vscode/pull/54
 
         // Stop the worker and all JavaScript execution
-        // in the worker thread as soon as possible
+        // in the worker thread as soon as possible.
         worker.terminate().then((status) => {
           this._connection.console.log(
             `Playground canceled with status: ${status}`
           );
+
+          return resolve([]);
         });
       });
     });
@@ -122,20 +117,18 @@ export default class MongoDBService {
     textDocument?: TextDocument
   ): Promise<[]> {
     return new Promise(async (resolve) => {
-      // Use the `textBeforeCurrentSymbol` variable for the `mongosh` parser
-      // since it requires only left-hand side text
-      // We use `mongosh` parser for shell API symbols/methods completion
+      // Use mongosh parser for shell API symbols/methods completion.
+      // The parser requires the text before the current character.
+      // Not the whole text from the editor.
       const textBeforeCurrentSymbol = textDocument?.getText({
         start: { line: 0, character: 0 },
         end: params.position
       });
+      let mongoshCompletions: any;
 
       if (!textBeforeCurrentSymbol) {
         return resolve([]);
       }
-
-      // If the current node is not object key, try to get shell symbols
-      let mongoshCompletions: any;
 
       try {
         mongoshCompletions = await this._runtime?.getCompletions(
@@ -151,7 +144,7 @@ export default class MongoDBService {
         mongoshCompletions.length > 0
       ) {
         // Convert Completion[] format returned by `mongosh`
-        // to CompletionItem[] format required by VSCode
+        // to CompletionItem[] format required by VSCode.
         mongoshCompletions = mongoshCompletions.map((item) => {
           // The runtime.getCompletions() function returns complitions including the user input.
           // Slice the user input and show only suggested keywords to complete the query.

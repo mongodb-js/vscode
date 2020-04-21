@@ -18,14 +18,12 @@ import MongoDBService from './mongoDBService';
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 
-// Create a simple text document manager. The text document manager
-// supports full document sync only
+// Create a simple text document manager.
+// The text document manager supports full document sync only.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-let mongoDBService = new MongoDBService({
-  connection,
-  documents
-});
+// MongoDB Playground Service Manager.
+let mongoDBService = new MongoDBService(connection);
 
 let hasConfigurationCapability = false;
 // let hasWorkspaceFolderCapability = false;
@@ -35,7 +33,7 @@ connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities;
 
   // Does the client support the `workspace/configuration` request?
-  // If not, we will fall back using global settings
+  // If not, we will fall back using global settings.
   hasConfigurationCapability = !!(
     capabilities.workspace && !!capabilities.workspace.configuration
   );
@@ -92,12 +90,12 @@ interface ExampleSettings {
 const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
 let globalSettings: ExampleSettings = defaultSettings;
 
-// Cache the settings of all open documents
+// Cache the settings of all open documents.
 const documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
 
 connection.onDidChangeConfiguration((change) => {
   if (hasConfigurationCapability) {
-    // Reset all cached document settings
+    // Reset all cached document settings.
     documentSettings.clear();
   } else {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -106,7 +104,7 @@ connection.onDidChangeConfiguration((change) => {
     );
   }
 
-  // Revalidate all open text documents
+  // Revalidate all open text documents.
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   documents.all().forEach(validateTextDocument);
 });
@@ -129,7 +127,7 @@ const getDocumentSettings = (resource: string): Thenable<ExampleSettings> => {
   return result;
 };
 
-// Only keep settings for open documents
+// Only keep settings for open documents.
 documents.onDidClose((e) => {
   // connection.console.log(`documents.onDidClose: ${JSON.stringify(e)}`);
 
@@ -142,7 +140,7 @@ const validateTextDocument = async (
   // In this simple example we get the settings for every validate run.
   const settings = await getDocumentSettings(textDocument.uri);
 
-  // The validator creates diagnostics for all uppercase words length 2 and more
+  // The validator creates diagnostics for all uppercase words length 2 and more.
   const text = textDocument.getText();
   const pattern = /\b[A-Z]{2,}\b/g;
   const diagnostics: Diagnostic[] = [];
@@ -189,6 +187,7 @@ const validateTextDocument = async (
   // connection.console.log(
   //   `sendDiagnostics: ${JSON.stringify({ uri: textDocument.uri, diagnostics })}`
   // );
+
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 
   // const notification = new NotificationType<string>('showInformationMessage');
@@ -220,14 +219,21 @@ connection.onRequest(new RequestType('textDocument/codeLens'), (event) => {
 });
 
 connection.onDidChangeWatchedFiles((_change) => {
-  // Monitored files have change in VSCode
+  // Monitored files have change in VSCode.
   // connection.console.log(
   //   `We received an file change event: ${JSON.stringify(_change)}`
   // );
 });
 
+// Connect to CliServiceProvider to enable shell completions.
 connection.onRequest('connect', (params) => {
   return mongoDBService.connectToCliServiceProvider(params);
+});
+
+// Clear connectionString and connectionOptions values
+// when there is no active connection.
+connection.onNotification('disconnect', () => {
+  mongoDBService.disconnectFromCliServiceProvider();
 });
 
 // This handler provides the list of the completion items.
@@ -255,16 +261,12 @@ connection.onCompletionResolve(
   }
 );
 
-/**
- * Execute the entire playground script.
- */
-connection.onRequest('executeAll', (params, token) => {
-  return mongoDBService.executeAll(params, token);
+// Execute the entire playground script.
+connection.onRequest('executeAll', (codeToEvaluate, token) => {
+  return mongoDBService.executeAll(codeToEvaluate, token);
 });
 
-/**
- * Execute a single block of code in the playground.
- */
+// Execute a single block of code in the playground.
 connection.onRequest('executeRange', (event) => {
   // connection.console.log(`executeRange: ${JSON.stringify(event)}`);
 

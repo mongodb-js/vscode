@@ -21,6 +21,8 @@ export default class PlaygroundController {
   _telemetryController?: TelemetryController;
   _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
   _outputChannel: OutputChannel;
+  _connectionString?: string;
+  _connectionOptions?: any;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -44,6 +46,7 @@ export default class PlaygroundController {
         this._activeConnectionCodeLensProvider
       )
     );
+    this.connectToServiceProvider();
 
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
@@ -52,16 +55,26 @@ export default class PlaygroundController {
           this._activeConnectionCodeLensProvider.refresh();
         }
 
-        const connectionString = this._connectionController.getActiveConnectionDriverUrl();
-
-        if (connectionString) {
-          this._languageServerController.connect({
-            connectionString,
-            connectionOptions: {} // TODO: How to get connection options
-          });
-        }
+        this.connectToServiceProvider();
       }
     );
+  }
+
+  connectToServiceProvider(): void {
+    const model = this._connectionController
+      .getActiveConnectionModel()
+      ?.getAttributes({ derived: true });
+
+    if (model && model.driverUrl) {
+      this._connectionString = model.driverUrl;
+      this._connectionOptions = model.driverOptions ? model.driverOptions : {};
+      this._languageServerController.connectToServiceProvider({
+        connectionString: this._connectionString,
+        connectionOptions: this._connectionOptions
+      });
+    } else {
+      this._languageServerController.disconnectFromCliServiceProvider();
+    }
   }
 
   createPlayground(): Promise<boolean> {
@@ -119,20 +132,16 @@ export default class PlaygroundController {
   }
 
   async evaluate(codeToEvaluate: string): Promise<any> {
-    const activeConnectionString = this._connectionController.getActiveConnectionDriverUrl();
-
-    if (!activeConnectionString) {
+    if (!this._connectionString) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
       );
     }
 
     // Send a request to the language server to execute scripts from a playground
-    const result = await this._languageServerController.executeAll({
-      codeToEvaluate,
-      connectionString: activeConnectionString,
-      connectionOptions: {} // TODO: How to get connection options
-    });
+    const result = await this._languageServerController.executeAll(
+      codeToEvaluate
+    );
 
     if (result) {
       // Send metrics to Segment
@@ -147,12 +156,11 @@ export default class PlaygroundController {
 
   runAllPlaygroundBlocks(): Promise<boolean> {
     return new Promise(async (resolve) => {
-      const name = this._connectionController.getActiveConnectionName();
       const shouldConfirmRunAll = vscode.workspace
         .getConfiguration('mdb')
         .get('confirmRunAll');
 
-      if (!name) {
+      if (!this._connectionString) {
         vscode.window.showErrorMessage(
           'Please connect to a database before running a playground.'
         );
@@ -161,6 +169,7 @@ export default class PlaygroundController {
       }
 
       if (shouldConfirmRunAll === true) {
+        const name = this._connectionController.getActiveConnectionName();
         const confirmRunAll = await vscode.window.showInformationMessage(
           `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,
           { modal: true },

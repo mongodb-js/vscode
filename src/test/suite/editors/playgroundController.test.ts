@@ -9,14 +9,13 @@ import { TestExtensionContext } from '../stubs';
 import { ObjectId } from 'bson';
 import { seedDataAndCreateDataService, cleanupTestDB } from '../dbTestHelper';
 import { beforeEach, afterEach } from 'mocha';
+import { ConnectionModelType } from '../../../connectionModelType';
 
 const sinon = require('sinon');
 const chai = require('chai');
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
-
-const TEST_CONNECTION_STRING = 'mongodb://localhost:27018';
 
 const getDocUri = (docName: string): vscode.Uri => {
   const docPath = path.resolve(
@@ -59,12 +58,14 @@ suite('Playground Controller Test Suite', async () => {
         new StatusView(mockExtensionContext),
         mockStorageController
       );
+
+      testConnectionController.getActiveConnectionName = (): string => '';
+      testConnectionController.getActiveConnectionModel = (): ConnectionModelType | null =>
+        null;
+
       const testLanguageServerController = new LanguageServerController(
         mockExtensionContext
       );
-
-      testConnectionController.getActiveConnectionName = (): string => '';
-
       const testPlaygroundController = new PlaygroundController(
         mockExtensionContext,
         testConnectionController,
@@ -89,6 +90,19 @@ suite('Playground Controller Test Suite', async () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
+
+    testConnectionController.getActiveConnectionName = (): string => 'fakeName';
+    testConnectionController.getActiveConnectionModel = (): ConnectionModelType => ({
+      appname: 'VSCode Playground Tests',
+      port: 27018,
+      disconnect: () => {},
+      getAttributes: () => ({
+        driverUrl: 'mongodb://localhost:27018',
+        driverOptions: {},
+        instanceId: 'localhost:27018'
+      })
+    });
+
     const testLanguageServerController = new LanguageServerController(
       mockExtensionContext
     );
@@ -100,10 +114,6 @@ suite('Playground Controller Test Suite', async () => {
       return Promise.resolve(true);
     };
     testLanguageServerController.activate();
-
-    testConnectionController.getActiveConnectionName = (): string => 'fakeName';
-    testConnectionController.getActiveConnectionDriverUrl = (): string =>
-      TEST_CONNECTION_STRING;
 
     const testPlaygroundController = new PlaygroundController(
       mockExtensionContext,
@@ -192,13 +202,22 @@ suite('Playground Controller Test Suite', async () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
+
+    testConnectionController.getActiveConnectionName = (): string => 'fakeName';
+    testConnectionController.getActiveConnectionModel = (): ConnectionModelType | null => ({
+      appname: 'VSCode Playground Tests',
+      port: 27018,
+      disconnect: () => {},
+      getAttributes: () => ({
+        driverUrl: 'mongodb://localhost:27018',
+        driverOptions: {},
+        instanceId: 'localhost:27018'
+      })
+    });
+
     const testLanguageServerController = new LanguageServerController(
       mockExtensionContext
     );
-
-    testConnectionController.getActiveConnectionName = (): string => 'fakeName';
-    testConnectionController.getActiveConnectionDriverUrl = (): string =>
-      TEST_CONNECTION_STRING;
 
     testLanguageServerController.activate();
 
@@ -404,17 +423,11 @@ suite('Playground Controller Test Suite', async () => {
       seedDataAndCreateDataService('forest', [mockDocument])
         .then(async (dataService) => {
           testConnectionController.setActiveConnection(dataService);
-          testLanguageServerController.executeAll({
-            codeToEvaluate: 'while (1===1) {}',
-            connectionString: TEST_CONNECTION_STRING
-          });
+          testLanguageServerController.executeAll('while (1===1) {}');
 
           await testLanguageServerController.cancelAll();
 
-          const result = await testLanguageServerController.executeAll({
-            codeToEvaluate: '4 + 4',
-            connectionString: TEST_CONNECTION_STRING
-          });
+          const result = await testLanguageServerController.executeAll('4 + 4');
 
           expect(result).to.be.equal('8');
         })
