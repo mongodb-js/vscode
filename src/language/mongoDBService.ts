@@ -18,6 +18,14 @@ export default class MongoDBService {
     this._cachedFields = {};
   }
 
+  get connectionString() {
+    return this._connectionString;
+  }
+
+  get connectionOptions() {
+    return this._connectionOptions;
+  }
+
   async connectToCliServiceProvider(params): Promise<any> {
     this._connectionString = params.connectionString;
     this._connectionOptions = params.connectionOptions;
