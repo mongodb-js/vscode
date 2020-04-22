@@ -24,12 +24,19 @@ suite('Playground Controller Test Suite', () => {
     new StatusView(mockExtensionContext),
     mockStorageController
   );
+  const testLanguageServerController = new LanguageServerController(
+    mockExtensionContext
+  );
+  const testPlaygroundController = new PlaygroundController(
+    mockExtensionContext,
+    testConnectionController,
+    testLanguageServerController
+  );
+  const sandbox = sinon.createSandbox();
   let fakeShowInformationMessage: any;
   let fakeShowErrorMessage: any;
-  let sandbox: any;
 
   before(async () => {
-    sandbox = sinon.createSandbox();
     fakeShowInformationMessage = sandbox.stub(
       vscode.window,
       'showInformationMessage'
@@ -37,6 +44,7 @@ suite('Playground Controller Test Suite', () => {
     fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
 
     await openPlayground(getDocUri('test.mongodb'));
+    await testLanguageServerController.activate();
   });
 
   after(() => {
@@ -44,20 +52,7 @@ suite('Playground Controller Test Suite', () => {
   });
 
   suite('user is not connected', () => {
-    const testLanguageServerController = new LanguageServerController(
-      mockExtensionContext
-    );
-    const testPlaygroundController = new PlaygroundController(
-      mockExtensionContext,
-      testConnectionController,
-      testLanguageServerController
-    );
-
-    before(async function () {
-      this.timeout(3000);
-
-      await testLanguageServerController.activate();
-
+    before(async () => {
       testConnectionController.getActiveConnectionName = sinon.fake.returns('');
       testConnectionController.getActiveConnectionModel = sinon.fake.returns(
         null
@@ -81,20 +76,7 @@ suite('Playground Controller Test Suite', () => {
   });
 
   suite('user is connected and gets confirmation message', () => {
-    const testLanguageServerController = new LanguageServerController(
-      mockExtensionContext
-    );
-    const testPlaygroundController = new PlaygroundController(
-      mockExtensionContext,
-      testConnectionController,
-      testLanguageServerController
-    );
-
-    before(async function () {
-      this.timeout(3000);
-
-      await testLanguageServerController.activate();
-
+    before(async () => {
       testConnectionController.getActiveConnectionName = sinon.fake.returns(
         'fakeName'
       );
@@ -108,8 +90,6 @@ suite('Playground Controller Test Suite', () => {
           instanceId: 'localhost:27018'
         })
       });
-      testLanguageServerController.cancelAll = sinon.fake.resolves(false);
-      testLanguageServerController.executeAll = sinon.fake.resolves(true);
 
       await testPlaygroundController.connectToServiceProvider();
     });

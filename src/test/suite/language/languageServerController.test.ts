@@ -24,40 +24,22 @@ suite('Language Server Controller Test Suite', () => {
     new StatusView(mockExtensionContext),
     mockStorageController
   );
-  let fakeShowInformationMessage: any;
-  let fakeShowErrorMessage: any;
-  let sandbox: any;
+  const testLanguageServerController = new LanguageServerController(
+    mockExtensionContext
+  );
+  const testPlaygroundController = new PlaygroundController(
+    mockExtensionContext,
+    testConnectionController,
+    testLanguageServerController
+  );
 
   before(async () => {
-    sandbox = sinon.createSandbox();
-    fakeShowInformationMessage = sandbox.stub(
-      vscode.window,
-      'showInformationMessage'
-    );
-    fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
-
     await openPlayground(getDocUri('test.mongodb'));
-  });
-
-  after(() => {
-    sandbox.restore();
+    await testLanguageServerController.activate();
   });
 
   suite('user is connected and runs math operations in playground', () => {
-    const testLanguageServerController = new LanguageServerController(
-      mockExtensionContext
-    );
-    const testPlaygroundController = new PlaygroundController(
-      mockExtensionContext,
-      testConnectionController,
-      testLanguageServerController
-    );
-
-    before(async function () {
-      this.timeout(3000);
-
-      await testLanguageServerController.activate();
-
+    before(async () => {
       testConnectionController.getActiveConnectionName = sinon.fake.returns(
         'fakeName'
       );
