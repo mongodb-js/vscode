@@ -2,6 +2,7 @@ import { CompletionItemKind, CancellationToken } from 'vscode-languageserver';
 import { Worker as WorkerThreads } from 'worker_threads';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
+import * as util from 'util';
 
 const path = require('path');
 
@@ -26,7 +27,7 @@ export default class MongoDBService {
     return this._connectionOptions;
   }
 
-  async connectToCliServiceProvider(params): Promise<any> {
+  async connectToServiceProvider(params): Promise<any> {
     this._connectionString = params.connectionString;
     this._connectionOptions = params.connectionOptions;
 
@@ -36,16 +37,21 @@ export default class MongoDBService {
         params.connectionOptions
       );
       this._runtime = new ElectronRuntime(this._serviceProvider);
-    } catch (error) {
-      this._connection.console.log(error);
-    }
 
-    return Promise.resolve(true);
+      return Promise.resolve(true);
+    } catch (error) {
+      this._connection.console.log(`MONGOSH connect: ${util.inspect(error)}`);
+
+      return Promise.resolve(false);
+    }
   }
 
-  disconnectFromCliServiceProvider(): void {
+  async disconnectFromServiceProvider(): Promise<any> {
     this._connectionString = undefined;
     this._connectionOptions = undefined;
+    this._runtime = undefined;
+
+    return Promise.resolve(false);
   }
 
   executeAll(codeToEvaluate, token: CancellationToken): Promise<any> {
@@ -74,6 +80,12 @@ export default class MongoDBService {
       // Listen for results from the worker thread.
       worker.on('message', ([error, result]) => {
         if (error) {
+          this._connection.console.log(
+            `MONGOSH execute all body: ${codeToEvaluate}`
+          );
+          this._connection.console.log(
+            `MONGOSH execute all response: ${util.inspect(error)}`
+          );
           this._connection.sendNotification('showErrorMessage', error.message);
         }
 
@@ -123,7 +135,7 @@ export default class MongoDBService {
     return new Promise(async (resolve) => {
       let mongoshCompletions: any;
 
-      if (!textBeforeCurrentSymbol) {
+      if (!textBeforeCurrentSymbol || !this._runtime) {
         return resolve([]);
       }
 
@@ -132,35 +144,41 @@ export default class MongoDBService {
           textBeforeCurrentSymbol
         );
       } catch (error) {
-        this._connection.console.log(`'MongoDB Shell Runtime: ${error}'`);
+        this._connection.console.log(
+          `MONGOSH completion: ${util.inspect(error)}`
+        );
+
+        return resolve([]);
       }
 
       if (
-        mongoshCompletions &&
-        Array.isArray(mongoshCompletions) &&
-        mongoshCompletions.length > 0
+        !mongoshCompletions ||
+        !Array.isArray(mongoshCompletions) ||
+        mongoshCompletions.length === 0
       ) {
-        // Convert Completion[] format returned by `mongosh`
-        // to CompletionItem[] format required by VSCode.
-        mongoshCompletions = mongoshCompletions.map((item) => {
-          // The runtime.getCompletions() function returns complitions including the user input.
-          // Slice the user input and show only suggested keywords to complete the query.
-          const index = item.completion.indexOf(textBeforeCurrentSymbol);
-          const newTextToComplete = `${item.completion.slice(
-            0,
-            index
-          )}${item.completion.slice(index + textBeforeCurrentSymbol.length)}`;
-          const label: string =
-            index === -1 ? item.completion : newTextToComplete;
-
-          return {
-            label,
-            kind: CompletionItemKind.Text
-          };
-        });
-
-        return resolve(mongoshCompletions);
+        return resolve([]);
       }
+
+      // Convert Completion[] format returned by `mongosh`
+      // to CompletionItem[] format required by VSCode.
+      mongoshCompletions = mongoshCompletions.map((item) => {
+        // The runtime.getCompletions() function returns complitions including the user input.
+        // Slice the user input and show only suggested keywords to complete the query.
+        const index = item.completion.indexOf(textBeforeCurrentSymbol);
+        const newTextToComplete = `${item.completion.slice(
+          0,
+          index
+        )}${item.completion.slice(index + textBeforeCurrentSymbol.length)}`;
+        const label: string =
+          index === -1 ? item.completion : newTextToComplete;
+
+        return {
+          label,
+          kind: CompletionItemKind.Text
+        };
+      });
+
+      return resolve(mongoshCompletions);
     });
   }
 }

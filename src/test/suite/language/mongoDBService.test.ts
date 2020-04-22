@@ -8,7 +8,7 @@ suite('MongoDBService Test Suite', () => {
     const connection = { console: { log: () => {} } };
     const testMongoDBService = new MongoDBService(connection);
 
-    await testMongoDBService.connectToCliServiceProvider({
+    await testMongoDBService.connectToServiceProvider({
       connectionString: 'mongodb://localhost:27018',
       connectionOptions: {}
     });
@@ -26,7 +26,7 @@ suite('MongoDBService Test Suite', () => {
     const connection = { console: { log: () => {} } };
     const testMongoDBService = new MongoDBService(connection);
 
-    await testMongoDBService.connectToCliServiceProvider({
+    await testMongoDBService.connectToServiceProvider({
       connectionString: 'mongodb://localhost:27018',
       connectionOptions: {}
     });
@@ -36,9 +36,29 @@ suite('MongoDBService Test Suite', () => {
     );
     expect(testMongoDBService.connectionOptions).to.be.deep.equal({});
 
-    testMongoDBService.disconnectFromCliServiceProvider();
+    await testMongoDBService.disconnectFromServiceProvider();
 
     expect(testMongoDBService.connectionString).to.be.undefined;
     expect(testMongoDBService.connectionOptions).to.be.undefined;
+  });
+
+  test('do not provide shell completion when disconnected', async () => {
+    const connection = { console: { log: () => {} } };
+    const testMongoDBService = new MongoDBService(connection);
+
+    await testMongoDBService.connectToServiceProvider({
+      connectionString: 'mongodb://localhost:27018',
+      connectionOptions: {}
+    });
+    await testMongoDBService.disconnectFromServiceProvider();
+
+    const result = await testMongoDBService.provideCompletionItems('db.test.');
+    const findCompletion = result.find(
+      (itme: { label: string; kind: number }) => itme.label === 'find'
+    );
+
+    expect(testMongoDBService.connectionString).to.be.undefined;
+    expect(testMongoDBService.connectionOptions).to.be.undefined;
+    expect(findCompletion).to.be.undefined;
   });
 });

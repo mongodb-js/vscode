@@ -50,6 +50,13 @@ export default class PlaygroundController {
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       async () => {
+        await this.disconnectFromServiceProvider();
+      }
+    );
+
+    this._connectionController.addEventListener(
+      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      async () => {
         await this.connectToServiceProvider();
 
         if (this._activeConnectionCodeLensProvider) {
@@ -59,7 +66,11 @@ export default class PlaygroundController {
     );
   }
 
-  connectToServiceProvider(): void {
+  disconnectFromServiceProvider(): Promise<boolean> {
+    return this._languageServerController.disconnectFromServiceProvider();
+  }
+
+  connectToServiceProvider(): Promise<boolean> {
     const model = this._connectionController
       .getActiveConnectionModel()
       ?.getAttributes({ derived: true });
@@ -67,12 +78,12 @@ export default class PlaygroundController {
     if (model && model.driverUrl) {
       this._connectionString = model.driverUrl;
       this._connectionOptions = model.driverOptions ? model.driverOptions : {};
-      this._languageServerController.connectToServiceProvider({
+      return this._languageServerController.connectToServiceProvider({
         connectionString: this._connectionString,
         connectionOptions: this._connectionOptions
       });
     } else {
-      this._languageServerController.disconnectFromCliServiceProvider();
+      return this._languageServerController.disconnectFromServiceProvider();
     }
   }
 

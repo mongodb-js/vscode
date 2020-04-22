@@ -153,18 +153,18 @@ export default class LanguageServerController {
     });
   }
 
-  async connectToServiceProvider(params: {
+  connectToServiceProvider(params: {
     connectionString?: string | null;
     connectionOptions?: any;
   }): Promise<any> {
     return this.client.onReady().then(async () => {
-      return this.client.sendRequest('connect', params);
+      return this.client.sendRequest('connectToServiceProvider', params);
     });
   }
 
-  disconnectFromCliServiceProvider(): void {
-    this.client.onReady().then(async () => {
-      this.client.sendNotification('disconnect');
+  disconnectFromServiceProvider(): Promise<any> {
+    return this.client.onReady().then(async () => {
+      return this.client.sendRequest('disconnectFromServiceProvider');
     });
   }
 

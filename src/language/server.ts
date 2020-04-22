@@ -226,14 +226,14 @@ connection.onDidChangeWatchedFiles((_change) => {
 });
 
 // Connect to CliServiceProvider to enable shell completions.
-connection.onRequest('connect', (params) => {
-  return mongoDBService.connectToCliServiceProvider(params);
+connection.onRequest('connectToServiceProvider', (params) => {
+  return mongoDBService.connectToServiceProvider(params);
 });
 
 // Clear connectionString and connectionOptions values
 // when there is no active connection.
-connection.onNotification('disconnect', () => {
-  mongoDBService.disconnectFromCliServiceProvider();
+connection.onRequest('disconnectFromServiceProvider', () => {
+  return mongoDBService.disconnectFromServiceProvider();
 });
 
 // This handler provides the list of the completion items.
