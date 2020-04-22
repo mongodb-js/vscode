@@ -5,7 +5,7 @@ import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext } from '../stubs';
-import { before, after, beforeEach, afterEach } from 'mocha';
+import { before, after } from 'mocha';
 import { openPlayground, getDocUri } from '../utils/playgroundHelper';
 
 const sinon = require('sinon');
@@ -24,23 +24,23 @@ suite('Playground Controller Test Suite', () => {
     new StatusView(mockExtensionContext),
     mockStorageController
   );
-  let fakeShowInformationMessage;
+  let fakeShowInformationMessage: any;
+  let fakeShowErrorMessage: any;
   let sandbox: any;
 
-  before(() => {
+  before(async () => {
     sandbox = sinon.createSandbox();
     fakeShowInformationMessage = sandbox.stub(
       vscode.window,
       'showInformationMessage'
     );
+    fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
+
+    await openPlayground(getDocUri('test.mongodb'));
   });
 
   after(() => {
     sandbox.restore();
-  });
-
-  beforeEach(async () => {
-    await openPlayground(getDocUri('test.mongodb'));
   });
 
   suite('user is not connected', () => {
@@ -52,7 +52,6 @@ suite('Playground Controller Test Suite', () => {
       testConnectionController,
       testLanguageServerController
     );
-    let fakeVscodeErrorMessage: any;
 
     before(async () => {
       await testLanguageServerController.activate();
@@ -61,8 +60,6 @@ suite('Playground Controller Test Suite', () => {
       testConnectionController.getActiveConnectionModel = sinon.fake.returns(
         null
       );
-      fakeVscodeErrorMessage = sinon.fake();
-      sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
     });
 
     after(() => {
@@ -70,11 +67,14 @@ suite('Playground Controller Test Suite', () => {
     });
 
     test('runAllPlaygroundBlocks should throw the missing active connection error', async () => {
+      const errorMessage =
+        'Please connect to a database before running a playground.';
+
+      fakeShowErrorMessage.resolves(errorMessage);
+
       await testPlaygroundController.runAllPlaygroundBlocks();
 
-      expect(fakeVscodeErrorMessage.firstArg).to.be.equal(
-        'Please connect to a database before running a playground.'
-      );
+      expect(fakeShowErrorMessage.called).to.be.true;
     });
   });
 

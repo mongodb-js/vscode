@@ -18,8 +18,8 @@ let socket: WebSocket | null;
  * This controller manages the language server and client.
  */
 export default class LanguageServerController {
-  _source?: CancellationTokenSource;
   _context: ExtensionContext;
+  _source?: CancellationTokenSource;
   client: LanguageClient;
 
   constructor(context: ExtensionContext) {
