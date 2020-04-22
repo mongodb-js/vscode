@@ -126,15 +126,6 @@ suite('Playground Controller Test Suite', () => {
   });
 
   suite('prepare telemetry types', () => {
-    const testLanguageServerController = new LanguageServerController(
-      mockExtensionContext
-    );
-    const testPlaygroundController = new PlaygroundController(
-      mockExtensionContext,
-      testConnectionController,
-      testLanguageServerController
-    );
-
     test('convert AggregationCursor shellApiType to aggregation telemetry type', () => {
       const res = { shellApiType: 'AggregationCursor' };
       const type = testPlaygroundController.prepareTelemetry(res);
