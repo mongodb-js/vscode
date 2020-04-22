@@ -580,7 +580,8 @@
   "dependency-check": {
     "ignore": [
       "vscode",
-      "keytar"
+      "keytar",
+      "electron"
     ]
   }
 }

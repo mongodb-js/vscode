@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import path = require('path');
 
 // Bare mock of the extension context for vscode.
 class TestExtensionContext implements vscode.ExtensionContext {
@@ -36,7 +37,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
         return new Promise<void>(() => { this._globalState[key] = value; });
       }
     };
-    this.extensionPath = '';
+    this.extensionPath = path.join(__dirname, '..', '..', '..');
     this.storagePath = '';
   }
 }
@@ -98,15 +99,15 @@ for (let i = 0; i < numberOfDocumentsToMock; i++) {
 }
 
 class DataServiceStub {
-  listDatabases(callback: any) {
+  listDatabases(callback: any): void {
     callback(null, mockDatabaseNames);
   }
 
-  listCollections(databaseName: string, filter: object, callback: any) {
+  listCollections(databaseName: string, filter: object, callback: any): void {
     callback(null, mockDatabases[databaseName].collections);
   }
 
-  find(namespace: string, filter: any, options: any, callback: any) {
+  find(namespace: string, filter: any, options: any, callback: any): void {
     callback(null, mockDocuments.slice(0, options.limit));
   }
 }
