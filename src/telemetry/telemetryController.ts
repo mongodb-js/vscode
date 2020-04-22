@@ -17,7 +17,7 @@ export enum TelemetryEventTypes {
  * This controller manages telemetry.
  */
 export default class TelemetryController {
-  private _segmentAnalytics: any;
+  private _segmentAnalytics: SegmentAnalytics;
   private _segmentUserID: string | undefined; // The user uuid from the global storage.
   private _segmentKey: string | undefined; // The segment API write key.
 
@@ -41,7 +41,7 @@ export default class TelemetryController {
     return this._segmentKey;
   }
 
-  public activate() {
+  public activate(): void {
     if (this._segmentKey) {
       this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
         // Segment batches messages and flushes asynchronously to the server.
@@ -57,7 +57,7 @@ export default class TelemetryController {
     }
   }
 
-  public deactivate() {
+  public deactivate(): void {
     // Flush on demand to make sure that nothing is left in the queue.
     this._segmentAnalytics?.flush();
   }
@@ -82,7 +82,7 @@ export default class TelemetryController {
           const analytics = [
             `The "${eventType}" metric was sent.`,
             `The user: "${this._segmentUserID}."`,
-            `The props:`
+            'The props:'
           ];
 
           log.info(analytics.join(' '), properties);

@@ -1,8 +1,12 @@
 import * as vscode from 'vscode';
 
-import ConnectionController, { DataServiceEventTypes } from '../connectionController';
+import ConnectionController, {
+  DataServiceEventTypes
+} from '../connectionController';
 import { LanguageServerController } from '../language';
-import TelemetryController, { TelemetryEventTypes } from '../telemetry/telemetryController';
+import TelemetryController, {
+  TelemetryEventTypes
+} from '../telemetry/telemetryController';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import { OutputChannel, ProgressLocation } from 'vscode';
 import playgroundTemplate from '../templates/playgroundTemplate';
@@ -15,9 +19,10 @@ export default class PlaygroundController {
   _connectionController: ConnectionController;
   _languageServerController: LanguageServerController;
   _telemetryController?: TelemetryController;
-  _activeDB?: any;
   _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
   _outputChannel: OutputChannel;
+  _connectionString?: string;
+  _connectionOptions?: any;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -32,17 +37,28 @@ export default class PlaygroundController {
     this._outputChannel = vscode.window.createOutputChannel(
       'Playground output'
     );
-    this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(this._connectionController);
-    this._context.subscriptions.push(vscode.languages.registerCodeLensProvider(
-      {
-        language: 'mongodb'
-      },
-      this._activeConnectionCodeLensProvider
-    ));
+    this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(
+      this._connectionController
+    );
+    this._context.subscriptions.push(
+      vscode.languages.registerCodeLensProvider(
+        { language: 'mongodb' },
+        this._activeConnectionCodeLensProvider
+      )
+    );
 
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      () => {
+      async () => {
+        await this.disconnectFromServiceProvider();
+      }
+    );
+
+    this._connectionController.addEventListener(
+      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      async () => {
+        await this.connectToServiceProvider();
+
         if (this._activeConnectionCodeLensProvider) {
           this._activeConnectionCodeLensProvider.refresh();
         }
@@ -50,8 +66,31 @@ export default class PlaygroundController {
     );
   }
 
+  disconnectFromServiceProvider(): Promise<boolean> {
+    return this._languageServerController.disconnectFromServiceProvider();
+  }
+
+  connectToServiceProvider(): Promise<boolean> {
+    const model = this._connectionController
+      .getActiveConnectionModel()
+      ?.getAttributes({ derived: true });
+
+    if (model && model.driverUrl) {
+      this._connectionString = model.driverUrl;
+      this._connectionOptions = model.driverOptions ? model.driverOptions : {};
+      return this._languageServerController.connectToServiceProvider({
+        connectionString: this._connectionString,
+        connectionOptions: this._connectionOptions
+      });
+    } else {
+      return this._languageServerController.disconnectFromServiceProvider();
+    }
+  }
+
   createPlayground(): Promise<boolean> {
-    const useDefaultTemplate: boolean = !!vscode.workspace.getConfiguration('mdb').get('useDefaultTemplateForPlayground');
+    const useDefaultTemplate = !!vscode.workspace
+      .getConfiguration('mdb')
+      .get('useDefaultTemplateForPlayground');
 
     return new Promise((resolve, reject) => {
       vscode.workspace
@@ -68,7 +107,7 @@ export default class PlaygroundController {
   }
 
   showActiveConnectionInPlayground(message: string): Promise<boolean> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve) => {
       this._outputChannel.clear();
       this._outputChannel.appendLine(message);
       this._outputChannel.show(true);
@@ -77,7 +116,7 @@ export default class PlaygroundController {
     });
   }
 
-  prepareTelemetry(res: any) {
+  prepareTelemetry(res: any): { type: string } {
     let type = 'other';
 
     if (!res.shellApiType) {
@@ -103,16 +142,16 @@ export default class PlaygroundController {
   }
 
   async evaluate(codeToEvaluate: string): Promise<any> {
-    const activeConnectionString = this._connectionController.getActiveConnectionDriverUrl();
-
-    if (!activeConnectionString) {
+    if (!this._connectionString) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
       );
     }
 
     // Send a request to the language server to execute scripts from a playground
-    const result = await this._languageServerController.executeAll(codeToEvaluate, activeConnectionString);
+    const result = await this._languageServerController.executeAll(
+      codeToEvaluate
+    );
 
     if (result) {
       // Send metrics to Segment
@@ -127,13 +166,14 @@ export default class PlaygroundController {
 
   runAllPlaygroundBlocks(): Promise<boolean> {
     return new Promise(async (resolve) => {
-      const activeConnection = this._connectionController.getActiveDataService();
       const shouldConfirmRunAll = vscode.workspace
         .getConfiguration('mdb')
         .get('confirmRunAll');
 
-      if (!activeConnection) {
-        vscode.window.showErrorMessage('Please connect to a database before running a playground.');
+      if (!this._connectionString) {
+        vscode.window.showErrorMessage(
+          'Please connect to a database before running a playground.'
+        );
 
         return resolve(false);
       }
@@ -156,23 +196,26 @@ export default class PlaygroundController {
       let result;
 
       // Show a running progress in the notification area with support for cancellation
-      await vscode.window.withProgress({
-        location: ProgressLocation.Notification,
-        title: 'Running MongoDB playground...',
-        cancellable: true
-      }, async (progress, token) => {
-        token.onCancellationRequested(() => {
-          // If a user clicked the cancel button terminate all playground scripts
-          this._languageServerController.cancelAll();
-          this._outputChannel.clear();
-          this._outputChannel.show(true);
+      await vscode.window.withProgress(
+        {
+          location: ProgressLocation.Notification,
+          title: 'Running MongoDB playground...',
+          cancellable: true
+        },
+        async (progress, token) => {
+          token.onCancellationRequested(() => {
+            // If a user clicked the cancel button terminate all playground scripts
+            this._languageServerController.cancelAll();
+            this._outputChannel.clear();
+            this._outputChannel.show(true);
 
-          return resolve(false);
-        });
+            return resolve(false);
+          });
 
-        // Run all playground scripts
-        result = await this.evaluate(codeToEvaluate);
-      });
+          // Run all playground scripts
+          result = await this.evaluate(codeToEvaluate);
+        }
+      );
 
       if (!result) {
         this._outputChannel.clear();

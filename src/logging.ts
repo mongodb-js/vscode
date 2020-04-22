@@ -1,5 +1,6 @@
 import { Logger as ILogger } from 'ts-log';
 import * as vscode from 'vscode';
+import * as util from 'util';
 
 class Logger implements ILogger {
   static channel: vscode.OutputChannel = vscode.window.createOutputChannel(
@@ -16,35 +17,35 @@ class Logger implements ILogger {
   public trace(message?: any, ...optionalParams: any[]): void {
     this.append(
       'TRACE',
-      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
     );
   }
 
   public debug(message?: any, ...optionalParams: any[]): void {
     this.append(
       'DEBUG',
-      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
     );
   }
 
   public info(message?: any, ...optionalParams: any[]): void {
     this.append(
       'INFO ',
-      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
     );
   }
 
   public warn(message?: any, ...optionalParams: any[]): void {
     this.append(
       'WARN ',
-      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
     );
   }
 
   public error(message?: any, ...optionalParams: any[]): void {
     this.append(
       'ERROR',
-      `${message} ${optionalParams ? JSON.stringify(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
     );
   }
 

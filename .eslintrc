@@ -42,6 +42,8 @@
     "no-misused-promises": "off",
     "@typescript-eslint/no-misused-promises": "off",
     "no-var-requires": "off",
-    "@typescript-eslint/no-var-requires": "off"
+    "@typescript-eslint/no-var-requires": "off",
+    "chai-friendly/no-unused-expressions": "off",
+    "@typescript-eslint/unbound-method": "off"
   }
 }

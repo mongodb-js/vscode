@@ -19,6 +19,7 @@ const MAX_CONNECTION_NAME_LENGTH = 512;
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
   ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
+  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING'
 }
 
 export default class ConnectionController {
@@ -245,6 +246,7 @@ export default class ConnectionController {
     this._connectingConnectionId = connectionId;
 
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGING);
 
     this._statusView.showMessage('Connecting to MongoDB...');
 
@@ -453,13 +455,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._savedConnections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
-      );
+      connectionIds.map(
+        (id, index) => `${index + 1}: ${this._savedConnections[id].name}`
+      ),
+      {
+        placeHolder: 'Choose a connection to remove...'
+      }
+    );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
