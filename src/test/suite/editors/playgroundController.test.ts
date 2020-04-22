@@ -24,10 +24,22 @@ suite('Playground Controller Test Suite', () => {
     new StatusView(mockExtensionContext),
     mockStorageController
   );
+  let fakeShowInformationMessage;
   let sandbox: any;
 
-  beforeEach(async () => {
+  before(() => {
     sandbox = sinon.createSandbox();
+    fakeShowInformationMessage = sandbox.stub(
+      vscode.window,
+      'showInformationMessage'
+    );
+  });
+
+  after(() => {
+    sandbox.restore();
+  });
+
+  beforeEach(async () => {
     await openPlayground(getDocUri('test.mongodb'));
   });
 
@@ -75,7 +87,6 @@ suite('Playground Controller Test Suite', () => {
       testConnectionController,
       testLanguageServerController
     );
-    let fakeShowInformationMessage;
 
     before(async () => {
       await testLanguageServerController.activate();
@@ -101,17 +112,6 @@ suite('Playground Controller Test Suite', () => {
 
     after(() => {
       sinon.restore();
-    });
-
-    beforeEach(() => {
-      fakeShowInformationMessage = sandbox.stub(
-        vscode.window,
-        'showInformationMessage'
-      );
-    });
-
-    afterEach(() => {
-      sandbox.restore();
     });
 
     test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is true', async () => {
