@@ -121,9 +121,9 @@ export default class LanguageServerController {
         this.client.onNotification('showErrorMessage', (messsage) => {
           vscode.window.showErrorMessage(messsage);
         });
-
-        return resolve(true);
       });
+
+      return resolve(true);
     });
   }
 
