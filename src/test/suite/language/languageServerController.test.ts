@@ -53,7 +53,9 @@ suite('Language Server Controller Test Suite', () => {
       testLanguageServerController
     );
 
-    before(async () => {
+    before(async function () {
+      this.timeout(3000);
+
       await testLanguageServerController.activate();
 
       testConnectionController.getActiveConnectionName = sinon.fake.returns(
