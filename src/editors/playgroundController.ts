@@ -46,16 +46,15 @@ export default class PlaygroundController {
         this._activeConnectionCodeLensProvider
       )
     );
-    this.connectToServiceProvider();
 
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      () => {
+      async () => {
+        await this.connectToServiceProvider();
+
         if (this._activeConnectionCodeLensProvider) {
           this._activeConnectionCodeLensProvider.refresh();
         }
-
-        this.connectToServiceProvider();
       }
     );
   }

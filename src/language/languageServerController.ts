@@ -19,9 +19,12 @@ let socket: WebSocket | null;
  */
 export default class LanguageServerController {
   _source?: CancellationTokenSource;
+  _context: ExtensionContext;
   client: LanguageClient;
 
   constructor(context: ExtensionContext) {
+    this._context = context;
+
     // The server is implemented in node
     const serverModule = path.join(
       context.extensionPath,
@@ -99,23 +102,35 @@ export default class LanguageServerController {
     );
   }
 
-  activate(): void {
-    // Start the client. This will also launch the server
-    this.client.start();
+  async activate(): Promise<boolean> {
+    return new Promise((resolve) => {
+      // Start the client. This will also launch the server
+      let disposable = this.client.start();
 
-    // Subscribe on notifications from the server when the client is ready
-    this.client.onReady().then(() => {
-      this.client.onNotification('showInformationMessage', (messsage) => {
-        vscode.window.showInformationMessage(messsage);
-      });
+      // Push the disposable to the context's subscriptions so that the
+      // client can be deactivated on extension deactivation
+      this._context.subscriptions.push(disposable);
 
-      this.client.onNotification('showErrorMessage', (messsage) => {
-        vscode.window.showErrorMessage(messsage);
+      // Subscribe on notifications from the server when the client is ready
+      this.client.onReady().then(() => {
+        this.client.onNotification('showInformationMessage', (messsage) => {
+          vscode.window.showInformationMessage(messsage);
+        });
+
+        this.client.onNotification('showErrorMessage', (messsage) => {
+          vscode.window.showErrorMessage(messsage);
+        });
+
+        return resolve(true);
       });
     });
   }
 
   deactivate(): void {
+    if (!this.client) {
+      return undefined;
+    }
+
     // Stop the language server
     this.client.stop();
   }
@@ -137,12 +152,12 @@ export default class LanguageServerController {
     });
   }
 
-  connectToServiceProvider(params: {
+  async connectToServiceProvider(params: {
     connectionString?: string | null;
     connectionOptions?: any;
-  }): void {
-    this.client.onReady().then(async () => {
-      this.client.sendRequest('connect', params);
+  }): Promise<any> {
+    return this.client.onReady().then(async () => {
+      return this.client.sendRequest('connect', params);
     });
   }
 

@@ -240,7 +240,17 @@ connection.onNotification('disconnect', () => {
 connection.onCompletion((params: TextDocumentPositionParams) => {
   const textDocument = documents.get(params.textDocument.uri);
 
-  return mongoDBService.provideCompletionItems(params, textDocument);
+  // Get text before the current symbol.
+  let textBeforeCurrentSymbol = textDocument?.getText({
+    start: { line: 0, character: 0 },
+    end: params.position
+  });
+
+  textBeforeCurrentSymbol = textBeforeCurrentSymbol
+    ? textBeforeCurrentSymbol
+    : '';
+
+  return mongoDBService.provideCompletionItems(textBeforeCurrentSymbol);
 });
 
 // This handler resolves additional information for the item selected in

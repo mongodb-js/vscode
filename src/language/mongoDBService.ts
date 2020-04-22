@@ -1,9 +1,4 @@
-import {
-  CompletionItemKind,
-  TextDocumentPositionParams,
-  CancellationToken,
-  TextDocument
-} from 'vscode-languageserver';
+import { CompletionItemKind, CancellationToken } from 'vscode-languageserver';
 import { Worker as WorkerThreads } from 'worker_threads';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
@@ -36,6 +31,8 @@ export default class MongoDBService {
     } catch (error) {
       this._connection.console.log(error);
     }
+
+    return Promise.resolve(true);
   }
 
   disconnectFromCliServiceProvider(): void {
@@ -111,19 +108,11 @@ export default class MongoDBService {
     });
   }
 
-  // Request the completion items from `mongosh` based on the current input.
-  provideCompletionItems(
-    params: TextDocumentPositionParams,
-    textDocument?: TextDocument
-  ): Promise<[]> {
+  // Use mongosh parser for shell API symbols/methods completion.
+  // The parser requires the text before the current character.
+  // Not the whole text from the editor.
+  provideCompletionItems(textBeforeCurrentSymbol: string): Promise<[]> {
     return new Promise(async (resolve) => {
-      // Use mongosh parser for shell API symbols/methods completion.
-      // The parser requires the text before the current character.
-      // Not the whole text from the editor.
-      const textBeforeCurrentSymbol = textDocument?.getText({
-        start: { line: 0, character: 0 },
-        end: params.position
-      });
       let mongoshCompletions: any;
 
       if (!textBeforeCurrentSymbol) {
@@ -153,7 +142,8 @@ export default class MongoDBService {
             0,
             index
           )}${item.completion.slice(index + textBeforeCurrentSymbol.length)}`;
-          const label = index === -1 ? item.completion : newTextToComplete;
+          const label: string =
+            index === -1 ? item.completion : newTextToComplete;
 
           return {
             label,
