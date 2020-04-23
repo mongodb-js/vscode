@@ -4,16 +4,16 @@ const chai = require('chai');
 const expect = chai.expect;
 
 suite('MongoDBService Test Suite', () => {
-  test('provide shell API symbols/methods completion if global scope', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
+  const connection = { console: { log: () => {}, sendRequest: () => {} } };
+  const params = {
+    connection: {
+      instanceId: 'localhost:27018',
+      connectionString: 'mongodb://localhost:27018'
+    }
+  };
+  const testMongoDBService = new MongoDBService(connection);
 
+  test('provide shell API symbols/methods completion if global scope', async () => {
     await testMongoDBService.connectToServiceProvider(params);
 
     const result = await testMongoDBService.getShellCompletionItems('db.test.');
@@ -26,15 +26,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('provide shell API symbols/methods completion if function scope', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
-
     await testMongoDBService.connectToServiceProvider(params);
 
     const result = await testMongoDBService.getShellCompletionItems(
@@ -49,15 +40,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('provide fields completion if has db, connection and is object key', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
-
     await testMongoDBService.connectToServiceProvider(params);
 
     testMongoDBService.updatedCurrentSessionFields({
@@ -81,15 +63,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('provide fields completion for proper db', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
-
     await testMongoDBService.connectToServiceProvider(params);
 
     testMongoDBService.updatedCurrentSessionFields({
@@ -124,15 +97,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('provide fields completion if function scope', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
-
     await testMongoDBService.connectToServiceProvider(params);
 
     testMongoDBService.updatedCurrentSessionFields({
@@ -157,15 +121,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('do not provide fields completion if has not db', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
-
     await testMongoDBService.connectToServiceProvider(params);
 
     testMongoDBService.updatedCurrentSessionFields({
@@ -195,7 +150,6 @@ suite('MongoDBService Test Suite', () => {
         connectionString: 'mongodb://localhost:27018'
       }
     };
-    const connection = { console: { log: () => {} } };
     const testMongoDBService = new MongoDBService(connection);
 
     await testMongoDBService.connectToServiceProvider(params);
@@ -221,15 +175,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('do not provide fields completion if has wrong collection', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
-
     await testMongoDBService.connectToServiceProvider(params);
 
     testMongoDBService.updatedCurrentSessionFields({
@@ -253,15 +198,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('do not provide fields completion if not object id', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
-
     await testMongoDBService.connectToServiceProvider(params);
 
     testMongoDBService.updatedCurrentSessionFields({
@@ -285,15 +221,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('do not provide fields completion if a first symbol does not exist', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
-
     await testMongoDBService.connectToServiceProvider(params);
 
     testMongoDBService.updatedCurrentSessionFields({
@@ -314,14 +241,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('connect and disconnect from cli service provider', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018',
-        connectionOptions: {}
-      }
-    };
-    const connection = { console: { log: () => {} } };
     const testMongoDBService = new MongoDBService(connection);
 
     await testMongoDBService.connectToServiceProvider(params);
@@ -329,7 +248,6 @@ suite('MongoDBService Test Suite', () => {
     expect(testMongoDBService.connectionString).to.be.equal(
       'mongodb://localhost:27018'
     );
-    expect(testMongoDBService.connectionOptions).to.be.deep.equal({});
 
     await testMongoDBService.disconnectFromServiceProvider();
 
@@ -339,15 +257,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('do not provide shell completion if disconnected', async () => {
-    const params = {
-      connection: {
-        instanceId: 'localhost:27018',
-        connectionString: 'mongodb://localhost:27018'
-      }
-    };
-    const connection = { console: { log: () => {} } };
-    const testMongoDBService = new MongoDBService(connection);
-
     await testMongoDBService.connectToServiceProvider(params);
     await testMongoDBService.disconnectFromServiceProvider();
 

@@ -125,8 +125,8 @@ export default class LanguageServerController {
           vscode.window.showErrorMessage(messsage);
         });
 
-        this.client.onRequest('addCacheFields', (props) =>
-          this._storageController?.addCacheFields(props)
+        this.client.onRequest('addCachedFields', (props) =>
+          this._storageController?.addCachedFields(props)
         );
       });
 

@@ -386,7 +386,7 @@ export default class MongoDBService {
 
       if (fields && (!this._cachedFields[namespace] || forseUpdate)) {
         this._cachedFields[namespace] = fields;
-        this._connection.sendRequest('addCacheFields', {
+        this._connection.sendRequest('addCachedFields', {
           instanceId: this._instanceId,
           namespace,
           fields

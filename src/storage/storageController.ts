@@ -88,7 +88,7 @@ export default class StorageController {
       : {};
   }
 
-  public addCacheFields(props): void {
+  public addCachedFields(props): void {
     let globalFields = this.get(StorageVariables.GLOBAL_FIELDS);
 
     if (!globalFields) {
