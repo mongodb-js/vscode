@@ -1,5 +1,6 @@
 import MongoDBService from '../../../language/mongoDBService';
 import { CancellationTokenSource } from 'vscode-languageclient';
+import { before } from 'mocha';
 
 const chai = require('chai');
 const expect = chai.expect;
@@ -14,9 +15,9 @@ suite('MongoDBService Test Suite', () => {
     connection: {
       instanceId: 'localhost:27018',
       connectionString: 'mongodb://localhost:27018'
-    }
+    },
+    shouldUpdate: false
   };
-  const testMongoDBService = new MongoDBService(connection);
 
   suite('Connect', () => {
     test('connect and disconnect from cli service provider', async () => {
@@ -37,9 +38,15 @@ suite('MongoDBService Test Suite', () => {
   });
 
   suite('Complete', () => {
-    test('provide shell API symbols/methods completion if global scope', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
+    let testMongoDBService: MongoDBService;
 
+    before(async () => {
+      testMongoDBService = new MongoDBService(connection);
+
+      await testMongoDBService.connectToServiceProvider(params);
+    });
+
+    test('provide shell API symbols/methods completion if global scope', async () => {
       const result = await testMongoDBService.getShellCompletionItems(
         'db.test.'
       );
@@ -52,8 +59,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide shell API symbols/methods completion if function scope', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
-
       const result = await testMongoDBService.getShellCompletionItems(
         'conat name = () => { db.test.'
       );
@@ -66,8 +71,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion if has db, connection and is object key', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
-
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [
           {
@@ -89,8 +92,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion for proper db', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
-
       testMongoDBService.updatedCurrentSessionFields({
         'first.collection': [
           {
@@ -123,8 +124,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion if function scope', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
-
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [
           {
@@ -147,8 +146,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide fields completion if has not db', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
-
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [
           {
@@ -176,9 +173,6 @@ suite('MongoDBService Test Suite', () => {
           connectionString: 'mongodb://localhost:27018'
         }
       };
-      const testMongoDBService = new MongoDBService(connection);
-
-      await testMongoDBService.connectToServiceProvider(params);
 
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [
@@ -201,8 +195,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide fields completion if has wrong collection', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
-
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [
           {
@@ -224,8 +216,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide fields completion if not object id', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
-
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [
           {
@@ -247,8 +237,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide fields completion if a first symbol does not exist', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
-
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [
           {
@@ -267,7 +255,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide shell completion if disconnected', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
       await testMongoDBService.disconnectFromServiceProvider();
 
       const result = await testMongoDBService.getShellCompletionItems(
@@ -284,11 +271,27 @@ suite('MongoDBService Test Suite', () => {
   });
 
   suite('Evaluate', () => {
-    test('evaluate multiple commands at once', async () => {
-      const source = new CancellationTokenSource();
+    let testMongoDBService: MongoDBService;
+
+    before(async () => {
+      testMongoDBService = new MongoDBService(connection);
 
       await testMongoDBService.connectToServiceProvider(params);
+    });
 
+    test('evaluate should sum numbers', async function () {
+      this.timeout(3000);
+
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll('1 + 1', source.token);
+
+      expect(result).to.be.equal('2');
+    });
+
+    test('evaluate multiple commands at once', async function () {
+      this.timeout(3000);
+
+      const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         'const x = 1; x + 2',
         source.token
@@ -297,21 +300,10 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.be.equal('3');
     });
 
-    test('evaluate should sum numbers', async () => {
+    test('create each time a new runtime', async function () {
+      this.timeout(3000);
+
       const source = new CancellationTokenSource();
-
-      await testMongoDBService.connectToServiceProvider(params);
-
-      const result = await testMongoDBService.executeAll('1 + 1', source.token);
-
-      expect(result).to.be.equal('2');
-    });
-
-    test('create each time a new runtime', async () => {
-      const source = new CancellationTokenSource();
-
-      await testMongoDBService.connectToServiceProvider(params);
-
       const firstEvalResult = await testMongoDBService.executeAll(
         'const x = 1 + 1; x',
         source.token
@@ -327,11 +319,11 @@ suite('MongoDBService Test Suite', () => {
       expect(secondEvalResult).to.be.equal('3');
     });
 
-    test('cancel a playground', async () => {
+    test('cancel a playground', async function () {
+      this.timeout(3000);
+
       const sourceFirstRun = new CancellationTokenSource();
       const sourceSecondRun = new CancellationTokenSource();
-
-      await testMongoDBService.connectToServiceProvider(params);
 
       testMongoDBService.executeAll('while (1===1) {}', sourceFirstRun.token);
       sourceFirstRun.cancel();

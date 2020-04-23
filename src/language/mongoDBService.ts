@@ -39,6 +39,8 @@ export default class MongoDBService {
     this._connectionString = params.connection.connectionString;
     this._connectionOptions = params.connection.connectionOptions;
 
+    const shouldUpdate = params.shouldUpdate ? params.shouldUpdate : true;
+
     if (!this._connectionString) {
       await this.disconnectFromServiceProvider();
 
@@ -52,7 +54,7 @@ export default class MongoDBService {
       );
       this._runtime = new ElectronRuntime(this._serviceProvider);
       this.updatedCurrentSessionFields(params.fields);
-      this.updateGlobalFieldsByInstanceId();
+      this.updateGlobalFieldsByInstanceId(shouldUpdate);
 
       return Promise.resolve(true);
     } catch (error) {
@@ -216,7 +218,7 @@ export default class MongoDBService {
       if (databaseName && collectionName) {
         const namespace = `${databaseName}.${collectionName}`;
 
-        this.updateGlobalFieldsByNamespace(databaseName, collectionName);
+        this.updateGlobalFieldsByNamespace(databaseName, collectionName, true);
 
         if (isObjectKey && this._cachedFields[namespace]) {
           return resolve(this._cachedFields[namespace]);
@@ -333,15 +335,14 @@ export default class MongoDBService {
     return { databaseName, collectionName, isObjectKey };
   }
 
-  updateGlobalFieldsByInstanceId(): void {
+  updateGlobalFieldsByInstanceId(shouldUpdate: boolean): void {
     Object.keys(this._cachedFields).forEach((namespace) => {
       const [databaseName, collectionName] = namespace.split('.');
-      const forseUpdate = true;
 
       this.updateGlobalFieldsByNamespace(
         databaseName,
         collectionName,
-        forseUpdate
+        shouldUpdate
       );
     });
   }
@@ -353,7 +354,7 @@ export default class MongoDBService {
   updateGlobalFieldsByNamespace(
     databaseName: string,
     collectionName: string,
-    forseUpdate?: boolean
+    shouldUpdate: boolean
   ): void {
     const namespace = `${databaseName}.${collectionName}`;
     const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
@@ -384,7 +385,7 @@ export default class MongoDBService {
 
       worker.terminate(); // Close the worker thread
 
-      if (fields && (!this._cachedFields[namespace] || forseUpdate)) {
+      if (fields && (!this._cachedFields[namespace] || shouldUpdate)) {
         this._cachedFields[namespace] = fields;
         this._connection.sendRequest('addCachedFields', {
           instanceId: this._instanceId,
