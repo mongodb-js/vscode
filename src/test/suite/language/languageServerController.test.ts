@@ -43,61 +43,47 @@ suite('Language Server Controller Test Suite', () => {
     testLanguageServerController
   );
 
-  suite('user is connected and runs math operations in playground', () => {
-    before(async () => {
-      testConnectionController.getActiveConnectionName = sinon.fake.returns(
-        'fakeName'
-      );
-      testConnectionController.getActiveConnectionModel = sinon.fake.returns({
-        appname: 'VSCode Playground Tests',
-        port: 27018,
-        disconnect: () => {},
-        getAttributes: () => CONNECTION
+  before(async () => {
+    testConnectionController.getActiveConnectionName = sinon.fake.returns(
+      'fakeName'
+    );
+    testConnectionController.getActiveConnectionModel = sinon.fake.returns({
+      appname: 'VSCode Playground Tests',
+      port: 27018,
+      disconnect: () => {},
+      getAttributes: () => CONNECTION
+    });
+
+    await testPlaygroundController.connectToServiceProvider();
+  });
+
+  after(() => {
+    sinon.restore();
+  });
+
+  test('cancel a long-running script', async () => {
+    testLanguageServerController.executeAll(`
+      const names = [
+        "flour",
+        "butter",
+        "water",
+        "salt",
+        "onions",
+        "leek"
+      ];
+      let currentName = '';
+      names.forEach((name) => {
+        setTimeout(() => {
+          currentName = name;
+        }, 500);
       });
+      currentName
+    `);
 
-      await testPlaygroundController.connectToServiceProvider();
-    });
+    await testLanguageServerController.cancelAll();
 
-    after(() => {
-      sinon.restore();
-    });
+    const result = await testLanguageServerController.executeAll('4 + 4');
 
-    test('evaluate should sum numbers', async () => {
-      const result = await testLanguageServerController.executeAll('1 + 1');
-
-      expect(result).to.be.equal('2');
-    });
-
-    test('evaluate multiple commands at once', async () => {
-      const result = await testLanguageServerController.executeAll(
-        'const x = 1; x + 2'
-      );
-
-      expect(result).to.be.equal('3');
-    });
-
-    test('create a new playground instance for each run', async () => {
-      const firstEvalResult = await testLanguageServerController.executeAll(
-        'const x = 1 + 1; x'
-      );
-
-      expect(firstEvalResult).to.be.equal('2');
-
-      const secondEvalResult = await testLanguageServerController.executeAll(
-        'const x = 2 + 1; x'
-      );
-
-      expect(secondEvalResult).to.be.equal('3');
-    });
-
-    test('cancel a playground', async () => {
-      testLanguageServerController.executeAll('while (1===1) {}');
-
-      await testLanguageServerController.cancelAll();
-
-      const result = await testLanguageServerController.executeAll('4 + 4');
-
-      expect(result).to.be.equal('8');
-    });
+    expect(result).to.be.equal('8');
   });
 });
