@@ -4,7 +4,10 @@ const chai = require('chai');
 const expect = chai.expect;
 
 suite('MongoDBService Test Suite', () => {
-  const connection = { console: { log: () => {}, sendRequest: () => {} } };
+  const connection = {
+    console: { log: () => {} },
+    sendRequest: () => {}
+  };
   const params = {
     connection: {
       instanceId: 'localhost:27018',
