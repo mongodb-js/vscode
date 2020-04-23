@@ -10,6 +10,7 @@ import {
 } from 'vscode-languageclient';
 import * as WebSocket from 'ws';
 import { createLogger } from '../logging';
+import { StorageController } from '../storage';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -19,11 +20,13 @@ let socket: WebSocket | null;
  */
 export default class LanguageServerController {
   _context: ExtensionContext;
+  _storageController?: StorageController;
   _source?: CancellationTokenSource;
   client: LanguageClient;
 
-  constructor(context: ExtensionContext) {
+  constructor(context: ExtensionContext, storageController: StorageController) {
     this._context = context;
+    this._storageController = storageController;
 
     // The server is implemented in node
     const serverModule = path.join(
@@ -121,6 +124,10 @@ export default class LanguageServerController {
         this.client.onNotification('showErrorMessage', (messsage) => {
           vscode.window.showErrorMessage(messsage);
         });
+
+        this.client.onRequest('addCacheFields', (props) =>
+          this._storageController?.addCacheFields(props)
+        );
       });
 
       return resolve(true);
@@ -154,11 +161,17 @@ export default class LanguageServerController {
   }
 
   connectToServiceProvider(params: {
+    instanceId: string;
     connectionString?: string | null;
     connectionOptions?: any;
   }): Promise<any> {
+    const fields = this._storageController?.getCachedFields(params.instanceId);
+
     return this.client.onReady().then(async () => {
-      return this.client.sendRequest('connectToServiceProvider', params);
+      return this.client.sendRequest('connectToServiceProvider', {
+        connection: params,
+        fields
+      });
     });
   }
 

@@ -5,15 +5,19 @@ const expect = chai.expect;
 
 suite('MongoDBService Test Suite', () => {
   test('provide shell API symbols/methods completion', async () => {
+    const params = {
+      connection: {
+        instanceId: 'localhost:27018',
+        connectionString: 'mongodb://localhost:27018'
+      }
+    };
     const connection = { console: { log: () => {} } };
     const testMongoDBService = new MongoDBService(connection);
 
-    await testMongoDBService.connectToServiceProvider({
-      connectionString: 'mongodb://localhost:27018',
-      connectionOptions: {}
-    });
+    await testMongoDBService.connectToServiceProvider(params);
 
-    const result = await testMongoDBService.provideCompletionItems('db.test.');
+    const result = await testMongoDBService.getShellCompletionItems('db.test.');
+
     const findCompletion = result.find(
       (itme: { label: string; kind: number }) => itme.label === 'find'
     );
@@ -23,13 +27,17 @@ suite('MongoDBService Test Suite', () => {
   });
 
   test('connect and disconnect from cli service provider', async () => {
+    const params = {
+      connection: {
+        instanceId: 'localhost:27018',
+        connectionString: 'mongodb://localhost:27018',
+        connectionOptions: {}
+      }
+    };
     const connection = { console: { log: () => {} } };
     const testMongoDBService = new MongoDBService(connection);
 
-    await testMongoDBService.connectToServiceProvider({
-      connectionString: 'mongodb://localhost:27018',
-      connectionOptions: {}
-    });
+    await testMongoDBService.connectToServiceProvider(params);
 
     expect(testMongoDBService.connectionString).to.be.equal(
       'mongodb://localhost:27018'
@@ -38,21 +46,25 @@ suite('MongoDBService Test Suite', () => {
 
     await testMongoDBService.disconnectFromServiceProvider();
 
+    expect(testMongoDBService.instanceId).to.be.undefined;
     expect(testMongoDBService.connectionString).to.be.undefined;
     expect(testMongoDBService.connectionOptions).to.be.undefined;
   });
 
-  test('do not provide shell completion when disconnected', async () => {
+  test('do not provide shell completion if disconnected', async () => {
+    const params = {
+      connection: {
+        instanceId: 'localhost:27018',
+        connectionString: 'mongodb://localhost:27018'
+      }
+    };
     const connection = { console: { log: () => {} } };
     const testMongoDBService = new MongoDBService(connection);
 
-    await testMongoDBService.connectToServiceProvider({
-      connectionString: 'mongodb://localhost:27018',
-      connectionOptions: {}
-    });
+    await testMongoDBService.connectToServiceProvider(params);
     await testMongoDBService.disconnectFromServiceProvider();
 
-    const result = await testMongoDBService.provideCompletionItems('db.test.');
+    const result = await testMongoDBService.getShellCompletionItems('db.test.');
     const findCompletion = result.find(
       (itme: { label: string; kind: number }) => itme.label === 'find'
     );

@@ -14,6 +14,12 @@ const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
 
+const CONNECTION = {
+  instanceId: 'localhost:27018',
+  driverUrl: 'mongodb://localhost:27018',
+  driverOptions: {}
+};
+
 suite('Playground Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
 
@@ -25,7 +31,8 @@ suite('Playground Controller Test Suite', () => {
     mockStorageController
   );
   const testLanguageServerController = new LanguageServerController(
-    mockExtensionContext
+    mockExtensionContext,
+    mockStorageController
   );
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
@@ -84,11 +91,7 @@ suite('Playground Controller Test Suite', () => {
         appname: 'VSCode Playground Tests',
         port: 27018,
         disconnect: () => {},
-        getAttributes: () => ({
-          driverUrl: 'mongodb://localhost:27018',
-          driverOptions: {},
-          instanceId: 'localhost:27018'
-        })
+        getAttributes: () => CONNECTION
       });
 
       await testPlaygroundController.connectToServiceProvider();

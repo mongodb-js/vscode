@@ -5,11 +5,14 @@ import { CliServiceProvider } from '@mongosh/service-provider-server';
 import * as util from 'util';
 
 const path = require('path');
+const esprima = require('esprima');
+const estraverse = require('estraverse');
 
 export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
   _runtime?: ElectronRuntime;
   _connection: any;
+  _instanceId?: string;
   _connectionString?: string;
   _connectionOptions?: any;
   _cachedFields: any;
@@ -17,6 +20,10 @@ export default class MongoDBService {
   constructor(connection) {
     this._connection = connection;
     this._cachedFields = {};
+  }
+
+  get instanceId() {
+    return this._instanceId;
   }
 
   get connectionString() {
@@ -28,15 +35,24 @@ export default class MongoDBService {
   }
 
   async connectToServiceProvider(params): Promise<any> {
-    this._connectionString = params.connectionString;
-    this._connectionOptions = params.connectionOptions;
+    this._instanceId = params.connection.instanceId;
+    this._connectionString = params.connection.connectionString;
+    this._connectionOptions = params.connection.connectionOptions;
+
+    if (!this._connectionString) {
+      await this.disconnectFromServiceProvider();
+
+      return Promise.resolve([]);
+    }
 
     try {
       this._serviceProvider = await CliServiceProvider.connect(
-        params.connectionString,
-        params.connectionOptions
+        this._connectionString,
+        this._connectionOptions
       );
       this._runtime = new ElectronRuntime(this._serviceProvider);
+      this.updatedCurrentSessionFields(params.fields);
+      this.updateGlobalFieldsByInstanceId();
 
       return Promise.resolve(true);
     } catch (error) {
@@ -47,6 +63,7 @@ export default class MongoDBService {
   }
 
   async disconnectFromServiceProvider(): Promise<any> {
+    this._instanceId = undefined;
     this._connectionString = undefined;
     this._connectionOptions = undefined;
     this._runtime = undefined;
@@ -74,15 +91,16 @@ export default class MongoDBService {
         }
       });
 
+      this._connection.console.log(
+        `MONGOSH execute all body: ${codeToEvaluate}`
+      );
+
       // Evaluate runtime in the worker thread.
       worker.postMessage('executeAll');
 
       // Listen for results from the worker thread.
       worker.on('message', ([error, result]) => {
         if (error) {
-          this._connection.console.log(
-            `MONGOSH execute all body: ${codeToEvaluate}`
-          );
           this._connection.console.log(
             `MONGOSH execute all response: ${util.inspect(error)}`
           );
@@ -131,7 +149,7 @@ export default class MongoDBService {
   // Use mongosh parser for shell API symbols/methods completion.
   // The parser requires the text before the current character.
   // Not the whole text from the editor.
-  provideCompletionItems(textBeforeCurrentSymbol: string): Promise<[]> {
+  getShellCompletionItems(textBeforeCurrentSymbol: string): Promise<[]> {
     return new Promise(async (resolve) => {
       let mongoshCompletions: any;
 
@@ -140,12 +158,15 @@ export default class MongoDBService {
       }
 
       try {
+        this._connection.console.log(
+          `MONGOSH completion body: ${textBeforeCurrentSymbol}`
+        );
         mongoshCompletions = await this._runtime?.getCompletions(
           textBeforeCurrentSymbol
         );
       } catch (error) {
         this._connection.console.log(
-          `MONGOSH completion: ${util.inspect(error)}`
+          `MONGOSH completion response: ${util.inspect(error)}`
         );
 
         return resolve([]);
@@ -179,6 +200,195 @@ export default class MongoDBService {
       });
 
       return resolve(mongoshCompletions);
+    });
+  }
+
+  // Use esprima parser for fields completion.
+  // The parser requires the all text from the editor to build AST.
+  // Not the current character as for mongosh parser.
+  getFieldsCompletionItems(textAll: string, position): Promise<[]> {
+    return new Promise(async (resolve) => {
+      const dataFromAST = this.parseAST(textAll, position);
+      const databaseName = dataFromAST.databaseName;
+      const collectionName = dataFromAST.collectionName;
+      const isObjectKey = dataFromAST.isObjectKey;
+
+      if (databaseName && collectionName) {
+        const namespace = `${databaseName}.${collectionName}`;
+
+        this.updateGlobalFieldsByNamespace(databaseName, collectionName);
+
+        if (isObjectKey && this._cachedFields[namespace]) {
+          return resolve(this._cachedFields[namespace]);
+        }
+      }
+
+      return resolve([]);
+    });
+  }
+
+  checkIsDatabaseName(
+    node: any,
+    currentPosition: { line: number; character: number }
+  ): boolean {
+    if (
+      node.callee.name === 'use' &&
+      node.arguments &&
+      node.arguments.length === 1 &&
+      node.arguments[0].type === esprima.Syntax.Literal &&
+      (currentPosition.line >= node.loc.start.line ||
+        (currentPosition.line === node.loc.start.line - 1 &&
+          currentPosition.character > node.loc.end.column))
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  checkIsCollectionName(
+    node: any,
+    currentPosition: { line: number; character: number }
+  ): boolean {
+    if (
+      node.object.name === 'db' &&
+      (currentPosition.line >= node.loc.start.line ||
+        (currentPosition.line === node.loc.start.line - 1 &&
+          currentPosition.character > node.loc.end.column))
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  checkIsObjectKey(
+    node: any,
+    currentPosition: { line: number; character: number }
+  ): boolean {
+    if (
+      currentPosition.line === node.loc.end.line - 1 &&
+      currentPosition.character === node.loc.end.column - 1
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  parseAST(
+    textAll,
+    position
+  ): {
+    databaseName: string | null;
+    collectionName: string | null;
+    isObjectKey: boolean;
+  } {
+    let databaseName = null;
+    let collectionName = null;
+    let isObjectKey = false;
+
+    try {
+      this._connection.console.log(`MONGOSH completion body: ${textAll}`);
+
+      const ast = esprima.parseScript(textAll, { loc: true });
+
+      estraverse.traverse(ast, {
+        enter: (node) => {
+          if (
+            node.type === esprima.Syntax.CallExpression &&
+            this.checkIsDatabaseName(node, position)
+          ) {
+            databaseName = node.arguments[0].value;
+          }
+
+          if (
+            node.type === esprima.Syntax.MemberExpression &&
+            this.checkIsCollectionName(node, position)
+          ) {
+            collectionName = node.property.name;
+          }
+
+          if (
+            node.type === esprima.Syntax.ObjectExpression &&
+            this.checkIsObjectKey(node, position)
+          ) {
+            isObjectKey = true;
+          }
+        }
+      });
+    } catch (error) {
+      this._connection.console.log(
+        `MONGOSH completion body: ${util.inspect(error)}`
+      );
+    }
+
+    // this._connection.console.log(`'databaseName: ${databaseName}'`);
+    // this._connection.console.log(`'collectionName: ${collectionName}'`);
+    // this._connection.console.log(`'isObjectKey: ${isObjectKey}'`);
+
+    return { databaseName, collectionName, isObjectKey };
+  }
+
+  updateGlobalFieldsByInstanceId(): void {
+    Object.keys(this._cachedFields).forEach((namespace) => {
+      const [databaseName, collectionName] = namespace.split('.');
+      const forseUpdate = true;
+
+      this.updateGlobalFieldsByNamespace(
+        databaseName,
+        collectionName,
+        forseUpdate
+      );
+    });
+  }
+
+  updatedCurrentSessionFields(fields): void {
+    this._cachedFields = fields ? fields : {};
+  }
+
+  updateGlobalFieldsByNamespace(
+    databaseName: string,
+    collectionName: string,
+    forseUpdate?: boolean
+  ): void {
+    const namespace = `${databaseName}.${collectionName}`;
+    const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
+      // The workerData parameter sends data to the created worker
+      workerData: {
+        connectionString: this._connectionString,
+        connectionOptions: this._connectionOptions,
+        databaseName,
+        collectionName
+      }
+    });
+
+    // Evaluate runtime in the worker thread
+    worker.postMessage('getFieldsFromSchema');
+
+    // Listen for results from the worker thread
+    worker.on('message', ([error, fields]) => {
+      if (error) {
+        this._connection.console.log(`Error: ${error.message}`);
+      }
+
+      this._connection.console.log(
+        `this._cachedFields: ${util.inspect(this._cachedFields)}`
+      );
+      this._connection.console.log(`fields: ${util.inspect(fields)}`);
+      this._connection.console.log(`namespace: ${namespace}`);
+      this._connection.console.log(`this._instanceId: ${this._instanceId}`);
+
+      worker.terminate(); // Close the worker thread
+
+      if (fields && (!this._cachedFields[namespace] || forseUpdate)) {
+        this._cachedFields[namespace] = fields;
+        this._connection.sendRequest('addCacheFields', {
+          instanceId: this._instanceId,
+          namespace,
+          fields
+        });
+      }
     });
   }
 }

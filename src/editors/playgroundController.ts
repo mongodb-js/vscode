@@ -21,6 +21,7 @@ export default class PlaygroundController {
   _telemetryController?: TelemetryController;
   _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
   _outputChannel: OutputChannel;
+  _instanceId?: string;
   _connectionString?: string;
   _connectionOptions?: any;
 
@@ -76,13 +77,20 @@ export default class PlaygroundController {
       ?.getAttributes({ derived: true });
 
     if (model && model.driverUrl) {
+      this._instanceId = model.instanceId;
       this._connectionString = model.driverUrl;
       this._connectionOptions = model.driverOptions ? model.driverOptions : {};
+
       return this._languageServerController.connectToServiceProvider({
+        instanceId: this._instanceId,
         connectionString: this._connectionString,
         connectionOptions: this._connectionOptions
       });
     } else {
+      this._instanceId = undefined;
+      this._connectionString = undefined;
+      this._connectionOptions = undefined;
+
       return this._languageServerController.disconnectFromServiceProvider();
     }
   }

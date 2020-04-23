@@ -225,6 +225,22 @@ connection.onDidChangeWatchedFiles((_change) => {
   // );
 });
 
+// Execute the entire playground script.
+connection.onRequest('executeAll', (codeToEvaluate, token) => {
+  return mongoDBService.executeAll(codeToEvaluate, token);
+});
+
+// Execute a single block of code in the playground.
+connection.onRequest('executeRange', (event) => {
+  // connection.console.log(`executeRange: ${JSON.stringify(event)}`);
+
+  return '';
+});
+
+connection.onRequest('updateCachedFields', (fields) => {
+  return mongoDBService.updatedCurrentSessionFields(fields);
+});
+
 // Connect to CliServiceProvider to enable shell completions.
 connection.onRequest('connectToServiceProvider', (params) => {
   return mongoDBService.connectToServiceProvider(params);
@@ -236,8 +252,18 @@ connection.onRequest('disconnectFromServiceProvider', () => {
   return mongoDBService.disconnectFromServiceProvider();
 });
 
-// This handler provides the list of the completion items.
-connection.onCompletion((params: TextDocumentPositionParams) => {
+const provideFieldsCompletionItems = (params: TextDocumentPositionParams) => {
+  const textDocument = documents.get(params.textDocument.uri);
+
+  // Get all text from the editor.
+  let textAll = textDocument?.getText();
+
+  textAll = textAll ? textAll : '';
+
+  return mongoDBService.getFieldsCompletionItems(textAll, params.position);
+};
+
+const provideShellCompletionItems = (params: TextDocumentPositionParams) => {
   const textDocument = documents.get(params.textDocument.uri);
 
   // Get text before the current symbol.
@@ -250,7 +276,22 @@ connection.onCompletion((params: TextDocumentPositionParams) => {
     ? textBeforeCurrentSymbol
     : '';
 
-  return mongoDBService.provideCompletionItems(textBeforeCurrentSymbol);
+  return mongoDBService.getShellCompletionItems(textBeforeCurrentSymbol);
+};
+
+// This handler provides the list of the completion items.
+connection.onCompletion(async (params: TextDocumentPositionParams) => {
+  let completion = await provideFieldsCompletionItems(params);
+
+  if (completion.length === 0) {
+    completion = await provideShellCompletionItems(params);
+  }
+
+  if (completion.length === 0) {
+    completion = [];
+  }
+
+  return completion;
 });
 
 // This handler resolves additional information for the item selected in
@@ -270,18 +311,6 @@ connection.onCompletionResolve(
     return item;
   }
 );
-
-// Execute the entire playground script.
-connection.onRequest('executeAll', (codeToEvaluate, token) => {
-  return mongoDBService.executeAll(codeToEvaluate, token);
-});
-
-// Execute a single block of code in the playground.
-connection.onRequest('executeRange', (event) => {
-  // connection.console.log(`executeRange: ${JSON.stringify(event)}`);
-
-  return '';
-});
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {
   // connection.console.log(
