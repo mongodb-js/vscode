@@ -6,7 +6,6 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext } from '../stubs';
 import { before, after } from 'mocha';
-import { openPlayground, getDocUri } from '../utils/playgroundHelper';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -43,10 +42,6 @@ suite('Language Server Controller Test Suite', () => {
     testConnectionController,
     testLanguageServerController
   );
-
-  before(async () => {
-    await openPlayground(getDocUri('test.mongodb'));
-  });
 
   suite('user is connected and runs math operations in playground', () => {
     before(async () => {

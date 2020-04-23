@@ -6,7 +6,7 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext } from '../stubs';
 import { before, after } from 'mocha';
-import { openPlayground, getDocUri } from '../utils/playgroundHelper';
+import { MockLanguageServerController } from '../../helper/playgroundHelper';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -26,21 +26,18 @@ suite('Playground Controller Test Suite', () => {
   mockExtensionContext.extensionPath = '../../';
 
   const mockStorageController = new StorageController(mockExtensionContext);
-  const testLanguageServerController = new LanguageServerController(
-    mockExtensionContext,
-    mockStorageController
-  );
-
-  testLanguageServerController.activate();
-
   const testConnectionController = new ConnectionController(
     new StatusView(mockExtensionContext),
+    mockStorageController
+  );
+  const mockLanguageServerController = new MockLanguageServerController(
+    mockExtensionContext,
     mockStorageController
   );
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
-    testLanguageServerController
+    mockLanguageServerController as LanguageServerController
   );
   const sandbox = sinon.createSandbox();
   let fakeShowInformationMessage: any;
@@ -52,8 +49,6 @@ suite('Playground Controller Test Suite', () => {
       'showInformationMessage'
     );
     fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
-
-    await openPlayground(getDocUri('test.mongodb'));
   });
 
   after(() => {
