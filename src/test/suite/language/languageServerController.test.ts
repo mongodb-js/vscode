@@ -26,14 +26,18 @@ suite('Language Server Controller Test Suite', () => {
   mockExtensionContext.extensionPath = '../../';
 
   const mockStorageController = new StorageController(mockExtensionContext);
-  const testConnectionController = new ConnectionController(
-    new StatusView(mockExtensionContext),
-    mockStorageController
-  );
   const testLanguageServerController = new LanguageServerController(
     mockExtensionContext,
     mockStorageController
   );
+
+  testLanguageServerController.activate();
+
+  const testConnectionController = new ConnectionController(
+    new StatusView(mockExtensionContext),
+    mockStorageController
+  );
+
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
@@ -42,7 +46,6 @@ suite('Language Server Controller Test Suite', () => {
 
   before(async () => {
     await openPlayground(getDocUri('test.mongodb'));
-    await testLanguageServerController.activate();
   });
 
   suite('user is connected and runs math operations in playground', () => {

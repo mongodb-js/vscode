@@ -106,31 +106,27 @@ export default class LanguageServerController {
     );
   }
 
-  async activate(): Promise<boolean> {
-    return new Promise((resolve) => {
-      // Start the client. This will also launch the server
-      let disposable = this.client.start();
+  activate(): void {
+    // Start the client. This will also launch the server
+    let disposable = this.client.start();
 
-      // Push the disposable to the context's subscriptions so that the
-      // client can be deactivated on extension deactivation
-      this._context.subscriptions.push(disposable);
+    // Push the disposable to the context's subscriptions so that the
+    // client can be deactivated on extension deactivation
+    this._context.subscriptions.push(disposable);
 
-      // Subscribe on notifications from the server when the client is ready
-      this.client.onReady().then(() => {
-        this.client.onNotification('showInformationMessage', (messsage) => {
-          vscode.window.showInformationMessage(messsage);
-        });
-
-        this.client.onNotification('showErrorMessage', (messsage) => {
-          vscode.window.showErrorMessage(messsage);
-        });
-
-        this.client.onRequest('addCachedFields', (props) =>
-          this._storageController?.addCachedFields(props)
-        );
+    // Subscribe on notifications from the server when the client is ready
+    this.client.onReady().then(() => {
+      this.client.onNotification('showInformationMessage', (messsage) => {
+        vscode.window.showInformationMessage(messsage);
       });
 
-      return resolve(true);
+      this.client.onNotification('showErrorMessage', (messsage) => {
+        vscode.window.showErrorMessage(messsage);
+      });
+
+      this.client.onRequest('addCachedFields', (props) =>
+        this._storageController?.addCachedFields(props)
+      );
     });
   }
 

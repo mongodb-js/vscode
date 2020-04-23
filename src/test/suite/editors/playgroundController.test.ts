@@ -26,12 +26,15 @@ suite('Playground Controller Test Suite', () => {
   mockExtensionContext.extensionPath = '../../';
 
   const mockStorageController = new StorageController(mockExtensionContext);
-  const testConnectionController = new ConnectionController(
-    new StatusView(mockExtensionContext),
-    mockStorageController
-  );
   const testLanguageServerController = new LanguageServerController(
     mockExtensionContext,
+    mockStorageController
+  );
+
+  testLanguageServerController.activate();
+
+  const testConnectionController = new ConnectionController(
+    new StatusView(mockExtensionContext),
     mockStorageController
   );
   const testPlaygroundController = new PlaygroundController(
@@ -51,7 +54,6 @@ suite('Playground Controller Test Suite', () => {
     fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
 
     await openPlayground(getDocUri('test.mongodb'));
-    await testLanguageServerController.activate();
   });
 
   after(() => {
