@@ -44,8 +44,9 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide shell API symbols/methods completion if global scope', async () => {
-      const result = await testMongoDBService.getShellCompletionItems(
-        'db.test.'
+      const result = await testMongoDBService.provideCompletionItems(
+        'db.test.',
+        { line: 0, character: 8 }
       );
 
       const findCompletion = result.find(
@@ -56,8 +57,9 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide shell API symbols/methods completion if function scope', async () => {
-      const result = await testMongoDBService.getShellCompletionItems(
-        'conat name = () => { db.test.'
+      const result = await testMongoDBService.provideCompletionItems(
+        'const name = () => { db.test. }',
+        { line: 0, character: 29 }
       );
 
       const findCompletion = result.find(
@@ -77,7 +79,7 @@ suite('MongoDBService Test Suite', () => {
         ]
       });
 
-      const result = await testMongoDBService.getFieldsCompletionItems(
+      const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection.find({ j});',
         { line: 0, character: 35 }
       );
@@ -104,7 +106,7 @@ suite('MongoDBService Test Suite', () => {
         ]
       });
 
-      const result = await testMongoDBService.getFieldsCompletionItems(
+      const result = await testMongoDBService.provideCompletionItems(
         'use("first"); use("second"); db.collection.find({ t});',
         { line: 0, character: 51 }
       );
@@ -130,7 +132,7 @@ suite('MongoDBService Test Suite', () => {
         ]
       });
 
-      const result = await testMongoDBService.getFieldsCompletionItems(
+      const result = await testMongoDBService.provideCompletionItems(
         'use("test"); const name = () => { db.collection.find({ j}); }',
         { line: 0, character: 56 }
       );
@@ -152,7 +154,7 @@ suite('MongoDBService Test Suite', () => {
         ]
       });
 
-      const result = await testMongoDBService.getFieldsCompletionItems(
+      const result = await testMongoDBService.provideCompletionItems(
         'db.collection.find({ j});',
         { line: 0, character: 22 }
       );
@@ -173,7 +175,7 @@ suite('MongoDBService Test Suite', () => {
         ]
       });
 
-      const result = await testMongoDBService.getFieldsCompletionItems(
+      const result = await testMongoDBService.provideCompletionItems(
         'use("other"); db.collection.find({ j});',
         { line: 0, character: 36 }
       );
@@ -194,7 +196,7 @@ suite('MongoDBService Test Suite', () => {
         ]
       });
 
-      const result = await testMongoDBService.getFieldsCompletionItems(
+      const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.test.find({ j});',
         { line: 0, character: 29 }
       );
@@ -215,7 +217,7 @@ suite('MongoDBService Test Suite', () => {
         ]
       });
 
-      const result = await testMongoDBService.getFieldsCompletionItems(
+      const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection(j);',
         { line: 0, character: 28 }
       );
@@ -236,7 +238,7 @@ suite('MongoDBService Test Suite', () => {
         ]
       });
 
-      const result = await testMongoDBService.getFieldsCompletionItems(
+      const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection({ k});',
         { line: 0, character: 28 }
       );
@@ -247,8 +249,9 @@ suite('MongoDBService Test Suite', () => {
     test('do not provide shell completion if disconnected', async () => {
       await testMongoDBService.disconnectFromServiceProvider();
 
-      const result = await testMongoDBService.getShellCompletionItems(
-        'db.test.'
+      const result = await testMongoDBService.provideCompletionItems(
+        'db.test.',
+        { line: 0, character: 8 }
       );
       const findCompletion = result.find(
         (itme: { label: string; kind: number }) => itme.label === 'find'

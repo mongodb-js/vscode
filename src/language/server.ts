@@ -248,46 +248,14 @@ connection.onRequest('disconnectFromServiceProvider', () => {
   return mongoDBService.disconnectFromServiceProvider();
 });
 
-const provideFieldsCompletionItems = (params: TextDocumentPositionParams) => {
-  const textDocument = documents.get(params.textDocument.uri);
-
-  // Get all text from the editor.
-  let textAll = textDocument?.getText();
-
-  textAll = textAll ? textAll : '';
-
-  return mongoDBService.getFieldsCompletionItems(textAll, params.position);
-};
-
-const provideShellCompletionItems = (params: TextDocumentPositionParams) => {
-  const textDocument = documents.get(params.textDocument.uri);
-
-  // Get text before the current symbol.
-  let textBeforeCurrentSymbol = textDocument?.getText({
-    start: { line: 0, character: 0 },
-    end: params.position
-  });
-
-  textBeforeCurrentSymbol = textBeforeCurrentSymbol
-    ? textBeforeCurrentSymbol
-    : '';
-
-  return mongoDBService.getShellCompletionItems(textBeforeCurrentSymbol);
-};
-
 // This handler provides the list of the completion items.
 connection.onCompletion(async (params: TextDocumentPositionParams) => {
-  let completion = await provideFieldsCompletionItems(params);
+  let textFromEditor = documents.get(params.textDocument.uri)?.getText();
 
-  if (completion.length === 0) {
-    completion = await provideShellCompletionItems(params);
-  }
-
-  if (completion.length === 0) {
-    completion = [];
-  }
-
-  return completion;
+  return mongoDBService.provideCompletionItems(
+    textFromEditor ? textFromEditor : '',
+    params.position
+  );
 });
 
 // This handler resolves additional information for the item selected in

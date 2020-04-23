@@ -49,7 +49,7 @@ export class MockLanguageServerController implements LanguageServerController {
   }
 
   connectToServiceProvider(params: {
-    connectionString?: string | null;
+    connectionString?: string;
     connectionOptions?: any;
   }): Promise<any> {
     return Promise.resolve(true);

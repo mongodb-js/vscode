@@ -13,23 +13,26 @@ export default class MongoDBService {
   _runtime?: ElectronRuntime;
   _connection: any;
   _connectionString?: string;
-  _connectionOptions?: any;
-  _cachedFields: any;
+  _connectionOptions?: object;
+  _cachedFields: object;
 
   constructor(connection) {
     this._connection = connection;
     this._cachedFields = {};
   }
 
-  get connectionString() {
+  public get connectionString(): string | undefined {
     return this._connectionString;
   }
 
-  get connectionOptions() {
+  public get connectionOptions(): object | undefined {
     return this._connectionOptions;
   }
 
-  async connectToServiceProvider(params): Promise<any> {
+  public async connectToServiceProvider(params: {
+    connectionString?: string;
+    connectionOptions?: any;
+  }): Promise<boolean> {
     this._serviceProvider = undefined;
     this._runtime = undefined;
     this._connectionString = params.connectionString;
@@ -56,7 +59,7 @@ export default class MongoDBService {
     }
   }
 
-  async disconnectFromServiceProvider(): Promise<any> {
+  public async disconnectFromServiceProvider(): Promise<boolean> {
     this._connectionString = undefined;
     this._connectionOptions = undefined;
     this._runtime = undefined;
@@ -64,7 +67,11 @@ export default class MongoDBService {
     return Promise.resolve(false);
   }
 
-  executeAll(codeToEvaluate, token: CancellationToken): Promise<any> {
+  // Run playground scripts.
+  public executeAll(
+    codeToEvaluate: string,
+    token: CancellationToken
+  ): Promise<any> {
     this._cachedFields = {};
 
     return new Promise((resolve) => {
@@ -141,24 +148,20 @@ export default class MongoDBService {
     });
   }
 
-  // Use mongosh parser for shell API symbols/methods completion.
-  // The parser requires the text before the current character.
-  // Not the whole text from the editor.
-  getShellCompletionItems(textBeforeCurrentSymbol: string): Promise<[]> {
+  // Get shell API symbols/methods completion from mongosh.
+  protected getShellCompletionItems(expression: string): Promise<[]> {
     return new Promise(async (resolve) => {
       let mongoshCompletions: any;
 
-      if (!textBeforeCurrentSymbol || !this._runtime) {
+      if (!this._runtime) {
         return resolve([]);
       }
 
       try {
         this._connection.console.log(
-          `MONGOSH completion body: "${textBeforeCurrentSymbol}"`
+          `MONGOSH completion body: "${expression}"`
         );
-        mongoshCompletions = await this._runtime?.getCompletions(
-          textBeforeCurrentSymbol
-        );
+        mongoshCompletions = await this._runtime?.getCompletions(expression);
       } catch (error) {
         this._connection.console.log(
           `MONGOSH completion error: ${util.inspect(error)}`
@@ -180,11 +183,11 @@ export default class MongoDBService {
       mongoshCompletions = mongoshCompletions.map((item) => {
         // The runtime.getCompletions() function returns complitions including the user input.
         // Slice the user input and show only suggested keywords to complete the query.
-        const index = item.completion.indexOf(textBeforeCurrentSymbol);
+        const index = item.completion.indexOf(expression);
         const newTextToComplete = `${item.completion.slice(
           0,
           index
-        )}${item.completion.slice(index + textBeforeCurrentSymbol.length)}`;
+        )}${item.completion.slice(index + expression.length)}`;
         const label: string =
           index === -1 ? item.completion : newTextToComplete;
 
@@ -198,36 +201,81 @@ export default class MongoDBService {
     });
   }
 
-  // Use esprima parser for fields completion.
-  // The parser requires the all text from the editor to build AST.
-  // Not the current character as for mongosh parser.
-  getFieldsCompletionItems(textAll: string, position): Promise<[]> {
+  private removeSymbolByIndex = (text: string, index: number): string => {
+    if (index === 0) {
+      return text.slice(1);
+    }
+
+    return `${text.slice(0, index - 1)}${text.slice(index)}`;
+  };
+
+  // Esprima parser requires finished blocks of code to build AST.
+  // In this case, the `db.collection.` text will throw a parsing error.
+  // Find and remove trigger dots from the text before sending it to esprima
+  private findAndRemoveTriggerDot = (
+    textFromEditor: string,
+    position: { line: number; character: number }
+  ): string => {
+    const textForEsprima: Array<string> = [];
+
+    textFromEditor.split('\n').forEach((line, index) => {
+      if (index === position.line) {
+        const currentSymbol = line[position.character - 1];
+
+        textForEsprima.push(
+          currentSymbol === '.'
+            ? this.removeSymbolByIndex(line, position.character)
+            : line
+        );
+      } else {
+        textForEsprima.push(line);
+      }
+    });
+
+    return textForEsprima.join('\n');
+  };
+
+  public provideCompletionItems(
+    textFromEditor: string,
+    position: { line: number; character: number }
+  ): Promise<[]> {
     return new Promise(async (resolve) => {
-      const dataFromAST = this.parseAST(textAll, position);
+      const textForEsprima = this.findAndRemoveTriggerDot(
+        textFromEditor,
+        position
+      );
+      const dataFromAST = this.parseAST(textForEsprima, position);
       const databaseName = dataFromAST.databaseName;
       const collectionName = dataFromAST.collectionName;
       const isObjectKey = dataFromAST.isObjectKey;
+      const isMemberExpression = dataFromAST.isMemberExpression;
 
-      if (databaseName && collectionName) {
+      if (isObjectKey && databaseName && collectionName) {
         const namespace = `${databaseName}.${collectionName}`;
 
-        if (isObjectKey) {
-          if (!this._cachedFields[namespace]) {
-            this._cachedFields[namespace] = await this.getFieldsFromSchema(
-              databaseName,
-              collectionName
-            );
-          }
-
-          return resolve(this._cachedFields[namespace]);
+        if (!this._cachedFields[namespace]) {
+          this._cachedFields[namespace] = await this.getFieldsFromSchema(
+            databaseName,
+            collectionName
+          );
         }
+
+        return resolve(this._cachedFields[namespace]);
+      }
+
+      if (isMemberExpression && collectionName) {
+        const shellCompletion = await this.getShellCompletionItems(
+          `db.${collectionName}.`
+        );
+
+        return resolve(shellCompletion);
       }
 
       return resolve([]);
     });
   }
 
-  checkHasDatabaseName(
+  private checkHasDatabaseName(
     node: any,
     currentPosition: { line: number; character: number }
   ): boolean {
@@ -246,7 +294,7 @@ export default class MongoDBService {
     return false;
   }
 
-  checkHasCollectionName(
+  private checkHasCollectionName(
     node: any,
     currentPosition: { line: number; character: number }
   ): boolean {
@@ -262,7 +310,7 @@ export default class MongoDBService {
     return false;
   }
 
-  checkIsObjectKey(
+  private checkIsCurrentNode(
     node: any,
     currentPosition: { line: number; character: number }
   ): boolean {
@@ -276,25 +324,27 @@ export default class MongoDBService {
     return false;
   }
 
-  parseAST(
-    textAll,
-    position
+  private parseAST(
+    text: string,
+    position: { line: number; character: number }
   ): {
     databaseName: string | null;
     collectionName: string | null;
     isObjectKey: boolean;
+    isMemberExpression: boolean;
   } {
     let databaseName = null;
     let collectionName = null;
     let isObjectKey = false;
+    let isMemberExpression = false;
 
     try {
       this._connection.console.log(
         `ESPRIMA symbol position: ${util.inspect(position)}`
       );
-      this._connection.console.log(`ESPRIMA completion body: "${textAll}"`);
+      this._connection.console.log(`ESPRIMA completion body: "${text}"`);
 
-      const ast = esprima.parseScript(textAll, { loc: true });
+      const ast = esprima.parseScript(text, { loc: true });
 
       estraverse.traverse(ast, {
         enter: (node) => {
@@ -310,11 +360,20 @@ export default class MongoDBService {
             this.checkHasCollectionName(node, position)
           ) {
             collectionName = node.property.name;
+
+            if (
+              this.checkIsCurrentNode(node, {
+                line: position.line,
+                character: position.character - 2
+              })
+            ) {
+              isMemberExpression = true;
+            }
           }
 
           if (
             node.type === esprima.Syntax.ObjectExpression &&
-            this.checkIsObjectKey(node, position)
+            this.checkIsCurrentNode(node, position)
           ) {
             isObjectKey = true;
           }
@@ -324,21 +383,19 @@ export default class MongoDBService {
       this._connection.console.log(`ESPRIMA error: ${util.inspect(error)}`);
     }
 
-    // this._connection.console.log(`'databaseName: ${databaseName}'`);
-    // this._connection.console.log(`'collectionName: ${collectionName}'`);
-    // this._connection.console.log(`'isObjectKey: ${isObjectKey}'`);
-
-    return { databaseName, collectionName, isObjectKey };
+    return { databaseName, collectionName, isObjectKey, isMemberExpression };
   }
 
-  updatedCurrentSessionFields(fields): void {
+  public updatedCurrentSessionFields(fields: {
+    [key: string]: [{ label: string; kind: number }];
+  }): void {
     this._cachedFields = fields ? fields : {};
   }
 
-  getFieldsFromSchema(
+  private getFieldsFromSchema(
     databaseName: string,
     collectionName: string
-  ): Promise<any> {
+  ): Promise<[]> {
     return new Promise((resolve) => {
       const namespace = `${databaseName}.${collectionName}`;
       const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
@@ -358,8 +415,6 @@ export default class MongoDBService {
 
       // Listen for results from the worker thread
       worker.on('message', ([error, fields]) => {
-        let result = [];
-
         if (error) {
           this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
         } else {

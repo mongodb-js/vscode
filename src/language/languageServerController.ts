@@ -153,7 +153,7 @@ export default class LanguageServerController {
   }
 
   connectToServiceProvider(params: {
-    connectionString?: string | null;
+    connectionString?: string;
     connectionOptions?: any;
   }): Promise<any> {
     return this.client.onReady().then(async () => {
