@@ -74,7 +74,7 @@ export default class MongoDBService {
   }
 
   executeAll(codeToEvaluate, token: CancellationToken): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       // Use Node worker threads to run a playground to be able to cancel infinite loops.
       //
       // There is an issue with support for `.ts` files.
