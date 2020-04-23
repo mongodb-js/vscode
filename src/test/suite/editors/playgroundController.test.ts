@@ -15,7 +15,6 @@ const expect = chai.expect;
 chai.use(require('chai-as-promised'));
 
 const CONNECTION = {
-  instanceId: 'localhost:27018',
   driverUrl: 'mongodb://localhost:27018',
   driverOptions: {}
 };

@@ -5,7 +5,7 @@ import { CancellationTokenSource } from 'vscode-languageclient';
 import { LanguageServerController } from '../../language';
 import { StorageController } from '../../storage';
 
-// Gets a test document from fixtures.
+// Get a test document from fixtures.
 export const getDocUri = (docName: string): vscode.Uri => {
   const docPath = path.resolve(
     __dirname,
@@ -16,7 +16,7 @@ export const getDocUri = (docName: string): vscode.Uri => {
   return vscode.Uri.file(docPath);
 };
 
-// // Opens the MongoDB playground.
+// // Open the MongoDB playground.
 // export async function openPlayground(docUri: vscode.Uri): Promise<any> {
 //   try {
 //     const doc = await vscode.workspace.openTextDocument(docUri);
@@ -27,7 +27,7 @@ export const getDocUri = (docName: string): vscode.Uri => {
 //   }
 // }
 
-// Mocks the language client.
+// Mock the language client.
 export class MockLanguageServerController implements LanguageServerController {
   _context: ExtensionContext;
   _storageController?: StorageController;
