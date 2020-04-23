@@ -35,6 +35,8 @@ export default class MongoDBService {
   }
 
   async connectToServiceProvider(params): Promise<any> {
+    this._serviceProvider = undefined;
+    this._runtime = undefined;
     this._instanceId = params.connection.instanceId;
     this._connectionString = params.connection.connectionString;
     this._connectionOptions = params.connection.connectionOptions;
@@ -42,9 +44,7 @@ export default class MongoDBService {
     const shouldUpdate = params.shouldUpdate ? params.shouldUpdate : true;
 
     if (!this._connectionString) {
-      await this.disconnectFromServiceProvider();
-
-      return Promise.resolve([]);
+      return Promise.resolve(false);
     }
 
     try {

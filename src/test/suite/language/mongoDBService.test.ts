@@ -7,7 +7,7 @@ const expect = chai.expect;
 
 const INCREASED_TEST_TIMEOUT = 5000;
 
-suite.only('MongoDBService Test Suite', () => {
+suite('MongoDBService Test Suite', () => {
   const connection = {
     console: { log: () => {} },
     sendRequest: () => {},
@@ -275,7 +275,9 @@ suite.only('MongoDBService Test Suite', () => {
   suite('Evaluate', () => {
     let testMongoDBService: MongoDBService;
 
-    before(async () => {
+    before(async function () {
+      this.timeout(INCREASED_TEST_TIMEOUT);
+
       testMongoDBService = new MongoDBService(connection);
 
       await testMongoDBService.connectToServiceProvider(params);
