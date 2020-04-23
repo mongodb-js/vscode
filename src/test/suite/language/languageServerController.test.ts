@@ -25,8 +25,7 @@ suite('Language Server Controller Test Suite', () => {
 
   const mockStorageController = new StorageController(mockExtensionContext);
   const testLanguageServerController = new LanguageServerController(
-    mockExtensionContext,
-    mockStorageController
+    mockExtensionContext
   );
 
   testLanguageServerController.activate();

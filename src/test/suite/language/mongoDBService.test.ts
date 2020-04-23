@@ -90,6 +90,53 @@ suite('MongoDBService Test Suite', () => {
       expect(findCompletion).to.have.property('kind', 1);
     });
 
+    test('provide fields completion if text not formatted', async () => {
+      testMongoDBService.updatedCurrentSessionFields({
+        'test.collection': [
+          {
+            label: 'JavaScript',
+            kind: 1
+          }
+        ]
+      });
+
+      const result = await testMongoDBService.provideCompletionItems(
+        'use("test");db.collection.find({j});',
+        { line: 0, character: 33 }
+      );
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
+      );
+
+      expect(findCompletion).to.have.property('kind', 1);
+    });
+
+    test('provide fields completion if text is multi-lined', async () => {
+      testMongoDBService.updatedCurrentSessionFields({
+        'test.collection': [
+          {
+            label: 'JavaScript',
+            kind: 1
+          }
+        ]
+      });
+
+      const result = await testMongoDBService.provideCompletionItems(
+        [
+          'use("test");',
+          'const name = () => {',
+          '  db.collection.find({ j});',
+          '}'
+        ].join('\n'),
+        { line: 2, character: 24 }
+      );
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
+      );
+
+      expect(findCompletion).to.have.property('kind', 1);
+    });
+
     test('provide fields completion for proper db', async () => {
       testMongoDBService.updatedCurrentSessionFields({
         'first.collection': [

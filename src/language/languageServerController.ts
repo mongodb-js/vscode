@@ -10,7 +10,6 @@ import {
 } from 'vscode-languageclient';
 import * as WebSocket from 'ws';
 import { createLogger } from '../logging';
-import { StorageController } from '../storage';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -20,13 +19,11 @@ let socket: WebSocket | null;
  */
 export default class LanguageServerController {
   _context: ExtensionContext;
-  _storageController?: StorageController;
   _source?: CancellationTokenSource;
   client: LanguageClient;
 
-  constructor(context: ExtensionContext, storageController: StorageController) {
+  constructor(context: ExtensionContext) {
     this._context = context;
-    this._storageController = storageController;
 
     // The server is implemented in node
     const serverModule = path.join(
