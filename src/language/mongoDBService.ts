@@ -227,7 +227,7 @@ export default class MongoDBService {
     });
   }
 
-  checkIsDatabaseName(
+  checkHasDatabaseName(
     node: any,
     currentPosition: { line: number; character: number }
   ): boolean {
@@ -246,7 +246,7 @@ export default class MongoDBService {
     return false;
   }
 
-  checkIsCollectionName(
+  checkHasCollectionName(
     node: any,
     currentPosition: { line: number; character: number }
   ): boolean {
@@ -289,6 +289,9 @@ export default class MongoDBService {
     let isObjectKey = false;
 
     try {
+      this._connection.console.log(
+        `MONGOSH symbol position: ${util.inspect(position)}`
+      );
       this._connection.console.log(`MONGOSH completion body: ${textAll}`);
 
       const ast = esprima.parseScript(textAll, { loc: true });
@@ -297,14 +300,14 @@ export default class MongoDBService {
         enter: (node) => {
           if (
             node.type === esprima.Syntax.CallExpression &&
-            this.checkIsDatabaseName(node, position)
+            this.checkHasDatabaseName(node, position)
           ) {
             databaseName = node.arguments[0].value;
           }
 
           if (
             node.type === esprima.Syntax.MemberExpression &&
-            this.checkIsCollectionName(node, position)
+            this.checkHasCollectionName(node, position)
           ) {
             collectionName = node.property.name;
           }
