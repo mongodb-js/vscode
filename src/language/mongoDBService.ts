@@ -5,6 +5,8 @@ import { CliServiceProvider } from '@mongosh/service-provider-server';
 import * as util from 'util';
 import { ServerCommands } from './serverCommands';
 
+import { PlaygroundRunParameters } from './playgroundRunParametersType';
+
 const path = require('path');
 const esprima = require('esprima');
 const estraverse = require('estraverse');
@@ -70,7 +72,7 @@ export default class MongoDBService {
 
   // Run playground scripts.
   public executeAll(
-    codeToEvaluate: string,
+    executionParameters: PlaygroundRunParameters,
     token: CancellationToken
   ): Promise<any> {
     this._cachedFields = {};
@@ -85,17 +87,24 @@ export default class MongoDBService {
       //
       // TODO: After webpackifying the extension replace
       // the workaround with some similar 3rd-party plugin.
-      const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
-        // The workerData parameter sends data to the created worker.
-        workerData: {
-          codeToEvaluate: codeToEvaluate,
-          connectionString: this._connectionString,
-          connectionOptions: this._connectionOptions
+      const worker = new WorkerThreads(
+        path.resolve(
+          executionParameters.extensionPath,
+          'dist',
+          'languageServerWorker.js'
+        ),
+        {
+          // The workerData parameter sends data to the created worker.
+          workerData: {
+            codeToEvaluate: executionParameters.codeToEvaluate,
+            connectionString: this._connectionString,
+            connectionOptions: this._connectionOptions
+          }
         }
-      });
+      );
 
       this._connection.console.log(
-        `MONGOSH execute all body: "${codeToEvaluate}"`
+        `MONGOSH execute all body: "${executionParameters.codeToEvaluate}"`
       );
 
       // Evaluate runtime in the worker thread.

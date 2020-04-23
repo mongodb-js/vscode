@@ -12,8 +12,10 @@ import {
   TextDocumentSyncKind
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+
 import MongoDBService from './mongoDBService';
 import { ServerCommands } from './serverCommands';
+import { PlaygroundRunParameters } from './playgroundRunParametersType';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -229,8 +231,8 @@ connection.onDidChangeWatchedFiles((_change) => {
 // Execute the entire playground script.
 connection.onRequest(
   ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
-  (codeToEvaluate, token) => {
-    return mongoDBService.executeAll(codeToEvaluate, token);
+  (executionParameters: PlaygroundRunParameters, token) => {
+    return mongoDBService.executeAll(executionParameters, token);
   }
 );
 

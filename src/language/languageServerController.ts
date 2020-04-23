@@ -9,8 +9,10 @@ import {
   CancellationTokenSource
 } from 'vscode-languageclient';
 import * as WebSocket from 'ws';
+
 import { createLogger } from '../logging';
 import { ServerCommands } from './serverCommands';
+import { PlaygroundRunParameters } from './playgroundRunParametersType';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -33,7 +35,6 @@ export default class LanguageServerController {
       'languageServer.js'
     );
 
-    console.log('About to run language server...');
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode
     // so VS Code can attach to the server for debugging
@@ -144,7 +145,10 @@ export default class LanguageServerController {
       // and return results to the playground controller when ready
       return this.client.sendRequest(
         ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
-        codeToEvaluate,
+        {
+          codeToEvaluate,
+          extensionPath: this._context.extensionPath
+        } as PlaygroundRunParameters,
         this._source.token
       );
     });
