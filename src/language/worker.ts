@@ -12,7 +12,7 @@ type EvaluationResult = {
   type?: string;
 };
 type WorkerResult = any;
-type WorkerError = string | null;
+type WorkerError = any | null;
 
 const executeAll = async (
   codeToEvaluate: string,
@@ -46,34 +46,42 @@ const findAndParse = (
   databaseName: string,
   collectionName: string
 ): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    serviceProvider.find(
-      databaseName,
-      collectionName,
-      {},
-      (findError: Error | undefined, data: []) => {
-        if (findError) {
-          return reject(findError);
-        }
+  return new Promise(async (resolve, reject) => {
+    let documents;
 
-        parseSchema(data, (parseError: Error | undefined, schema) => {
-          if (parseError) {
-            return reject(parseError);
-          }
+    try {
+      documents = await serviceProvider
+        .find(
+          databaseName,
+          collectionName,
+          {},
+          { limit: 1, projection: { _id: 0 } }
+        )
+        .toArray();
+    } catch (error) {
+      return reject(error);
+    }
 
-          if (!schema || !schema.fields) {
-            return resolve([]);
-          }
+    if (documents.length === 0) {
+      return resolve([]);
+    }
 
-          const fields = schema.fields.map((item) => ({
-            label: item.name,
-            kind: 1
-          }));
-
-          return resolve(fields);
-        });
+    parseSchema(documents, (error: Error | undefined, schema) => {
+      if (error) {
+        return reject(documents);
       }
-    );
+
+      if (!schema || !schema.fields) {
+        return resolve([]);
+      }
+
+      const fields = schema.fields.map((item) => ({
+        label: item.name,
+        kind: 1
+      }));
+
+      return resolve(fields);
+    });
   });
 };
 

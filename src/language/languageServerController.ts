@@ -123,10 +123,6 @@ export default class LanguageServerController {
       this.client.onNotification('showErrorMessage', (messsage) => {
         vscode.window.showErrorMessage(messsage);
       });
-
-      this.client.onRequest('addCachedFields', (props) =>
-        this._storageController?.addCachedFields(props)
-      );
     });
   }
 
@@ -157,17 +153,11 @@ export default class LanguageServerController {
   }
 
   connectToServiceProvider(params: {
-    instanceId: string;
     connectionString?: string | null;
     connectionOptions?: any;
   }): Promise<any> {
-    const fields = this._storageController?.getCachedFields(params.instanceId);
-
     return this.client.onReady().then(async () => {
-      return this.client.sendRequest('connectToServiceProvider', {
-        connection: params,
-        fields
-      });
+      return this.client.sendRequest('connectToServiceProvider', params);
     });
   }
 

@@ -237,10 +237,6 @@ connection.onRequest('executeRange', (event) => {
   return '';
 });
 
-connection.onRequest('updateCachedFields', (fields) => {
-  return mongoDBService.updatedCurrentSessionFields(fields);
-});
-
 // Connect to CliServiceProvider to enable shell completions.
 connection.onRequest('connectToServiceProvider', (params) => {
   return mongoDBService.connectToServiceProvider(params);

@@ -12,7 +12,6 @@ export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
   _runtime?: ElectronRuntime;
   _connection: any;
-  _instanceId?: string;
   _connectionString?: string;
   _connectionOptions?: any;
   _cachedFields: any;
@@ -20,10 +19,6 @@ export default class MongoDBService {
   constructor(connection) {
     this._connection = connection;
     this._cachedFields = {};
-  }
-
-  get instanceId() {
-    return this._instanceId;
   }
 
   get connectionString() {
@@ -37,11 +32,8 @@ export default class MongoDBService {
   async connectToServiceProvider(params): Promise<any> {
     this._serviceProvider = undefined;
     this._runtime = undefined;
-    this._instanceId = params.connection.instanceId;
-    this._connectionString = params.connection.connectionString;
-    this._connectionOptions = params.connection.connectionOptions;
-
-    const shouldUpdate = params.shouldUpdate ? params.shouldUpdate : true;
+    this._connectionString = params.connectionString;
+    this._connectionOptions = params.connectionOptions;
 
     if (!this._connectionString) {
       return Promise.resolve(false);
@@ -53,19 +45,18 @@ export default class MongoDBService {
         this._connectionOptions
       );
       this._runtime = new ElectronRuntime(this._serviceProvider);
-      this.updatedCurrentSessionFields(params.fields);
-      this.updateGlobalFieldsByInstanceId(shouldUpdate);
 
       return Promise.resolve(true);
     } catch (error) {
-      this._connection.console.log(`MONGOSH connect: ${util.inspect(error)}`);
+      this._connection.console.log(
+        `MONGOSH connect error: ${util.inspect(error)}`
+      );
 
       return Promise.resolve(false);
     }
   }
 
   async disconnectFromServiceProvider(): Promise<any> {
-    this._instanceId = undefined;
     this._connectionString = undefined;
     this._connectionOptions = undefined;
     this._runtime = undefined;
@@ -74,6 +65,8 @@ export default class MongoDBService {
   }
 
   executeAll(codeToEvaluate, token: CancellationToken): Promise<any> {
+    this._cachedFields = {};
+
     return new Promise((resolve) => {
       // Use Node worker threads to run a playground to be able to cancel infinite loops.
       //
@@ -94,7 +87,7 @@ export default class MongoDBService {
       });
 
       this._connection.console.log(
-        `MONGOSH execute all body: ${codeToEvaluate}`
+        `MONGOSH execute all body: "${codeToEvaluate}"`
       );
 
       // Evaluate runtime in the worker thread.
@@ -104,7 +97,7 @@ export default class MongoDBService {
       worker.on('message', ([error, result]) => {
         if (error) {
           this._connection.console.log(
-            `MONGOSH execute all response: ${util.inspect(error)}`
+            `MONGOSH execute all error: ${util.inspect(error)}`
           );
           this._connection.sendNotification('showErrorMessage', error.message);
         }
@@ -116,7 +109,7 @@ export default class MongoDBService {
 
       // Listen for cancellation request from the language server client.
       token.onCancellationRequested(() => {
-        this._connection.console.log('Playground cancellation requested');
+        this._connection.console.log('PLAYGROUND cancellation requested');
         this._connection.sendNotification(
           'showInformationMessage',
           'The running playground operation was canceled.'
@@ -139,7 +132,7 @@ export default class MongoDBService {
         // in the worker thread as soon as possible.
         worker.terminate().then((status) => {
           this._connection.console.log(
-            `Playground canceled with status: ${status}`
+            `PLAYGROUND canceled with status: ${status}`
           );
 
           return resolve([]);
@@ -161,14 +154,14 @@ export default class MongoDBService {
 
       try {
         this._connection.console.log(
-          `MONGOSH completion body: ${textBeforeCurrentSymbol}`
+          `MONGOSH completion body: "${textBeforeCurrentSymbol}"`
         );
         mongoshCompletions = await this._runtime?.getCompletions(
           textBeforeCurrentSymbol
         );
       } catch (error) {
         this._connection.console.log(
-          `MONGOSH completion response: ${util.inspect(error)}`
+          `MONGOSH completion error: ${util.inspect(error)}`
         );
 
         return resolve([]);
@@ -218,9 +211,14 @@ export default class MongoDBService {
       if (databaseName && collectionName) {
         const namespace = `${databaseName}.${collectionName}`;
 
-        this.updateGlobalFieldsByNamespace(databaseName, collectionName, true);
+        if (isObjectKey) {
+          if (!this._cachedFields[namespace]) {
+            this._cachedFields[namespace] = await this.getFieldsFromSchema(
+              databaseName,
+              collectionName
+            );
+          }
 
-        if (isObjectKey && this._cachedFields[namespace]) {
           return resolve(this._cachedFields[namespace]);
         }
       }
@@ -292,9 +290,9 @@ export default class MongoDBService {
 
     try {
       this._connection.console.log(
-        `MONGOSH symbol position: ${util.inspect(position)}`
+        `ESPRIMA symbol position: ${util.inspect(position)}`
       );
-      this._connection.console.log(`MONGOSH completion body: ${textAll}`);
+      this._connection.console.log(`ESPRIMA completion body: "${textAll}"`);
 
       const ast = esprima.parseScript(textAll, { loc: true });
 
@@ -323,9 +321,7 @@ export default class MongoDBService {
         }
       });
     } catch (error) {
-      this._connection.console.log(
-        `MONGOSH completion body: ${util.inspect(error)}`
-      );
+      this._connection.console.log(`ESPRIMA error: ${util.inspect(error)}`);
     }
 
     // this._connection.console.log(`'databaseName: ${databaseName}'`);
@@ -335,64 +331,47 @@ export default class MongoDBService {
     return { databaseName, collectionName, isObjectKey };
   }
 
-  updateGlobalFieldsByInstanceId(shouldUpdate: boolean): void {
-    Object.keys(this._cachedFields).forEach((namespace) => {
-      const [databaseName, collectionName] = namespace.split('.');
-
-      this.updateGlobalFieldsByNamespace(
-        databaseName,
-        collectionName,
-        shouldUpdate
-      );
-    });
-  }
-
   updatedCurrentSessionFields(fields): void {
     this._cachedFields = fields ? fields : {};
   }
 
-  updateGlobalFieldsByNamespace(
+  getFieldsFromSchema(
     databaseName: string,
-    collectionName: string,
-    shouldUpdate: boolean
-  ): void {
-    const namespace = `${databaseName}.${collectionName}`;
-    const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
-      // The workerData parameter sends data to the created worker
-      workerData: {
-        connectionString: this._connectionString,
-        connectionOptions: this._connectionOptions,
-        databaseName,
-        collectionName
-      }
-    });
+    collectionName: string
+  ): Promise<any> {
+    return new Promise((resolve) => {
+      const namespace = `${databaseName}.${collectionName}`;
+      const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
+        // The workerData parameter sends data to the created worker
+        workerData: {
+          connectionString: this._connectionString,
+          connectionOptions: this._connectionOptions,
+          databaseName,
+          collectionName
+        }
+      });
 
-    // Evaluate runtime in the worker thread
-    worker.postMessage('getFieldsFromSchema');
+      this._connection.console.log(`SCHEMA for namespace: ${namespace}`);
 
-    // Listen for results from the worker thread
-    worker.on('message', ([error, fields]) => {
-      if (error) {
-        this._connection.console.log(`Error: ${error.message}`);
-      }
+      // Evaluate runtime in the worker thread
+      worker.postMessage('getFieldsFromSchema');
 
-      this._connection.console.log(
-        `this._cachedFields: ${util.inspect(this._cachedFields)}`
-      );
-      this._connection.console.log(`fields: ${util.inspect(fields)}`);
-      this._connection.console.log(`namespace: ${namespace}`);
-      this._connection.console.log(`this._instanceId: ${this._instanceId}`);
+      // Listen for results from the worker thread
+      worker.on('message', ([error, fields]) => {
+        let result = [];
 
-      worker.terminate(); // Close the worker thread
+        if (error) {
+          this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
+        } else {
+          this._connection.console.log(
+            `SCHEMA response: ${util.inspect(fields)}`
+          );
+        }
 
-      if (fields && (!this._cachedFields[namespace] || shouldUpdate)) {
-        this._cachedFields[namespace] = fields;
-        this._connection.sendRequest('addCachedFields', {
-          instanceId: this._instanceId,
-          namespace,
-          fields
+        worker.terminate().then(() => {
+          return resolve(fields ? fields : []);
         });
-      }
+      });
     });
   }
 }

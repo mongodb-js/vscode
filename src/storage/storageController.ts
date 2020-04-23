@@ -6,7 +6,6 @@ export enum StorageVariables {
   // Only exists on globalState.
   GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS',
   GLOBAL_USER_ID = 'GLOBAL_USER_ID',
-  GLOBAL_FIELDS = 'GLOBAL_FIELDS',
   // Only exists on workspaceState.
   WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS'
 }
@@ -78,29 +77,6 @@ export default class StorageController {
     this.update(StorageVariables.GLOBAL_USER_ID, globalUserId);
 
     return globalUserId;
-  }
-
-  public getCachedFields(instanceId): any {
-    const globalFields = this.get(StorageVariables.GLOBAL_FIELDS);
-
-    return globalFields && globalFields[instanceId]
-      ? globalFields[instanceId]
-      : {};
-  }
-
-  public addCachedFields(props): void {
-    let globalFields = this.get(StorageVariables.GLOBAL_FIELDS);
-
-    if (!globalFields) {
-      globalFields = {};
-    }
-
-    if (!globalFields[props.connectionId]) {
-      globalFields[props.connectionId] = {};
-    }
-
-    globalFields[props.connectionId][props.namespace] = props.fields;
-    this.update(StorageVariables.GLOBAL_FIELDS, globalFields);
   }
 
   public saveConnectionToGlobalStore(

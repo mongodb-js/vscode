@@ -49,7 +49,6 @@ export class MockLanguageServerController implements LanguageServerController {
   }
 
   connectToServiceProvider(params: {
-    instanceId: string;
     connectionString?: string | null;
     connectionOptions?: any;
   }): Promise<any> {

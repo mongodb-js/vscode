@@ -14,11 +14,7 @@ suite('MongoDBService Test Suite', () => {
     sendNotification: () => {}
   };
   const params = {
-    connection: {
-      instanceId: 'localhost:27018',
-      connectionString: 'mongodb://localhost:27018'
-    },
-    shouldUpdate: false
+    connectionString: 'mongodb://localhost:27018'
   };
 
   suite('Connect', () => {
@@ -33,7 +29,6 @@ suite('MongoDBService Test Suite', () => {
 
       await testMongoDBService.disconnectFromServiceProvider();
 
-      expect(testMongoDBService.instanceId).to.be.undefined;
       expect(testMongoDBService.connectionString).to.be.undefined;
       expect(testMongoDBService.connectionOptions).to.be.undefined;
     });
@@ -169,13 +164,6 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide fields completion if has wrong db', async () => {
-      const params = {
-        connection: {
-          instanceId: 'localhost:27018',
-          connectionString: 'mongodb://localhost:27018'
-        }
-      };
-
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [
           {
