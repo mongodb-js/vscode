@@ -284,16 +284,6 @@ suite('MongoDBService Test Suite', () => {
   });
 
   suite('Evaluate', () => {
-    test('evaluate should sum numbers', async () => {
-      const source = new CancellationTokenSource();
-
-      await testMongoDBService.connectToServiceProvider(params);
-
-      const result = await testMongoDBService.executeAll('1 + 1', source.token);
-
-      expect(result).to.be.equal('2');
-    });
-
     test('evaluate multiple commands at once', async () => {
       const source = new CancellationTokenSource();
 
@@ -305,6 +295,16 @@ suite('MongoDBService Test Suite', () => {
       );
 
       expect(result).to.be.equal('3');
+    });
+
+    test('evaluate should sum numbers', async () => {
+      const source = new CancellationTokenSource();
+
+      await testMongoDBService.connectToServiceProvider(params);
+
+      const result = await testMongoDBService.executeAll('1 + 1', source.token);
+
+      expect(result).to.be.equal('2');
     });
 
     test('create each time a new runtime', async () => {
