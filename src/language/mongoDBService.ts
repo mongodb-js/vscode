@@ -314,9 +314,19 @@ export default class MongoDBService {
     node: any,
     currentPosition: { line: number; character: number }
   ): boolean {
+    // Esprima counts lines from 1, when vscode counts position starting from 0
+    const nodeStartLine = node.loc.start.line - 1;
+    const nodeStartCharacter = node.loc.start.column;
+    const nodeEndLine = node.loc.end.line - 1;
+    const nodeEndCharacter = node.loc.start.column;
+
     if (
-      currentPosition.line === node.loc.end.line - 1 &&
-      currentPosition.character === node.loc.end.column - 1
+      (currentPosition.line > nodeStartLine &&
+        currentPosition.line < nodeEndLine) ||
+      (currentPosition.line === nodeStartLine &&
+        currentPosition.character >= nodeStartCharacter) ||
+      (currentPosition.line === nodeEndLine &&
+        currentPosition.character <= nodeEndCharacter)
     ) {
       return true;
     }

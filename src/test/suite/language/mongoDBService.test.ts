@@ -111,7 +111,7 @@ suite('MongoDBService Test Suite', () => {
       expect(findCompletion).to.have.property('kind', 1);
     });
 
-    test('provide fields completion if text is multi-lined', async () => {
+    test('provide fields completion if functions are multi-lined', async () => {
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [
           {
@@ -129,6 +129,48 @@ suite('MongoDBService Test Suite', () => {
           '}'
         ].join('\n'),
         { line: 2, character: 24 }
+      );
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
+      );
+
+      expect(findCompletion).to.have.property('kind', 1);
+    });
+
+    test('provide fields completion if object is multi-lined', async () => {
+      testMongoDBService.updatedCurrentSessionFields({
+        'test.collection': [
+          {
+            label: 'JavaScript',
+            kind: 1
+          }
+        ]
+      });
+
+      const result = await testMongoDBService.provideCompletionItems(
+        ['use("test");', '', 'db.collection.find({', '  j', '});'].join('\n'),
+        { line: 3, character: 3 }
+      );
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
+      );
+
+      expect(findCompletion).to.have.property('kind', 1);
+    });
+
+    test('provide fields completion if object key is surrounded by spaces', async () => {
+      testMongoDBService.updatedCurrentSessionFields({
+        'test.collection': [
+          {
+            label: 'JavaScript',
+            kind: 1
+          }
+        ]
+      });
+
+      const result = await testMongoDBService.provideCompletionItems(
+        'use("test"); db.collection.find({ j });',
+        { line: 0, character: 35 }
       );
       const findCompletion = result.find(
         (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
@@ -273,24 +315,6 @@ suite('MongoDBService Test Suite', () => {
       );
 
       expect(findCompletion).to.be.undefined;
-    });
-
-    test('do not provide fields completion if a first symbol does not exist', async () => {
-      testMongoDBService.updatedCurrentSessionFields({
-        'test.collection': [
-          {
-            label: 'JavaScript',
-            kind: 1
-          }
-        ]
-      });
-
-      const result = await testMongoDBService.provideCompletionItems(
-        'use("test"); db.collection({ k});',
-        { line: 0, character: 28 }
-      );
-
-      expect(result).to.be.deep.equal([]);
     });
 
     test('do not provide shell completion if disconnected', async () => {
