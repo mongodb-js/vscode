@@ -69,6 +69,32 @@ suite('MongoDBService Test Suite', () => {
       expect(findCompletion).to.have.property('kind', 1);
     });
 
+    test('provide shell API symbols/methods completion if object is written as literal', async () => {
+      const result = await testMongoDBService.provideCompletionItems(
+        ['use("test");', 'db["test"].'].join('\n'),
+        { line: 1, character: 11 }
+      );
+
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) => itme.label === 'find'
+      );
+
+      expect(findCompletion).to.have.property('kind', 1);
+    });
+
+    test('provide shell API symbols/methods completion if single quotes', async () => {
+      const result = await testMongoDBService.provideCompletionItems(
+        ["use('test');", "db['test']."].join('\n'),
+        { line: 1, character: 11 }
+      );
+
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) => itme.label === 'find'
+      );
+
+      expect(findCompletion).to.have.property('kind', 1);
+    });
+
     test('provide fields completion if has db, connection and is object key', async () => {
       testMongoDBService.updatedCurrentSessionFields({
         'test.collection': [

@@ -369,7 +369,9 @@ export default class MongoDBService {
             node.type === esprima.Syntax.MemberExpression &&
             this.checkHasCollectionName(node, position)
           ) {
-            collectionName = node.property.name;
+            collectionName = node.property.name
+              ? node.property.name
+              : node.property.value;
 
             if (
               this.checkIsCurrentNode(node, {
