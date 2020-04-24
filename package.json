@@ -32,7 +32,7 @@
     "theme": "dark"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "scripts": {
     "clean": "rimraf ./out/* ./dist/* ",
     "lint": "eslint ./src/**/*.ts",
