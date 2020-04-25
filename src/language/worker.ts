@@ -5,13 +5,16 @@ import {
   NodeOptions
 } from '@mongosh/service-provider-server';
 import formatOutput from '../utils/formatOutput';
+import parseSchema = require('mongodb-schema');
+import { ServerCommands } from './serverCommands';
+import { CompletionItemKind } from 'vscode-languageserver';
 
 type EvaluationResult = {
   value: any;
   type?: string;
 };
 type WorkerResult = any;
-type WorkerError = string | null;
+type WorkerError = any | null;
 
 const executeAll = async (
   codeToEvaluate: string,
@@ -40,16 +43,90 @@ const executeAll = async (
   }
 };
 
+const findAndParse = (
+  serviceProvider: CliServiceProvider,
+  databaseName: string,
+  collectionName: string
+): Promise<any> => {
+  return new Promise(async (resolve, reject) => {
+    let documents;
+
+    try {
+      documents = await serviceProvider
+        .find(databaseName, collectionName, {}, { limit: 1 })
+        .toArray();
+    } catch (error) {
+      return reject(error);
+    }
+
+    if (documents.length === 0) {
+      return resolve([]);
+    }
+
+    parseSchema(documents, (error: Error | undefined, schema) => {
+      if (error) {
+        return reject(documents);
+      }
+
+      if (!schema || !schema.fields) {
+        return resolve([]);
+      }
+
+      const fields = schema.fields.map((item) => ({
+        label: item.name,
+        kind: CompletionItemKind.Field
+      }));
+
+      return resolve(fields);
+    });
+  });
+};
+
+const getFieldsFromSchema = async (
+  connectionString,
+  connectionOptions,
+  databaseName,
+  collectionName
+): Promise<any> => {
+  try {
+    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
+      connectionString,
+      connectionOptions
+    );
+
+    const result = await findAndParse(
+      serviceProvider,
+      databaseName,
+      collectionName
+    );
+
+    return [null, result];
+  } catch (error) {
+    return [error];
+  }
+};
+
 // parentPort allows communication with the parent thread.
 parentPort?.once(
   'message',
   async (message: string): Promise<any> => {
-    if (message === 'executeAll') {
+    if (message === ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND) {
       parentPort?.postMessage(
         await executeAll(
           workerData.codeToEvaluate,
           workerData.connectionString,
           workerData.connectionOptions
+        )
+      );
+    }
+
+    if (message === ServerCommands.GET_FIELDS_FROM_SCHEMA) {
+      parentPort?.postMessage(
+        await getFieldsFromSchema(
+          workerData.connectionString,
+          workerData.connectionOptions,
+          workerData.databaseName,
+          workerData.collectionName
         )
       );
     }

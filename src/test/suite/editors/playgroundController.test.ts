@@ -6,13 +6,18 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext } from '../stubs';
 import { before, after } from 'mocha';
-import { openPlayground, getDocUri } from '../utils/playgroundHelper';
+import { MockLanguageServerController } from '../../helper/playgroundHelper';
 
 const sinon = require('sinon');
 const chai = require('chai');
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
+
+const CONNECTION = {
+  driverUrl: 'mongodb://localhost:27018',
+  driverOptions: {}
+};
 
 suite('Playground Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
@@ -24,13 +29,14 @@ suite('Playground Controller Test Suite', () => {
     new StatusView(mockExtensionContext),
     mockStorageController
   );
-  const testLanguageServerController = new LanguageServerController(
-    mockExtensionContext
+  const mockLanguageServerController = new MockLanguageServerController(
+    mockExtensionContext,
+    mockStorageController
   );
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
-    testLanguageServerController
+    mockLanguageServerController as LanguageServerController
   );
   const sandbox = sinon.createSandbox();
   let fakeShowInformationMessage: any;
@@ -42,9 +48,6 @@ suite('Playground Controller Test Suite', () => {
       'showInformationMessage'
     );
     fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
-
-    await openPlayground(getDocUri('test.mongodb'));
-    await testLanguageServerController.activate();
   });
 
   after(() => {
@@ -84,11 +87,7 @@ suite('Playground Controller Test Suite', () => {
         appname: 'VSCode Playground Tests',
         port: 27018,
         disconnect: () => {},
-        getAttributes: () => ({
-          driverUrl: 'mongodb://localhost:27018',
-          driverOptions: {},
-          instanceId: 'localhost:27018'
-        })
+        getAttributes: () => CONNECTION
       });
 
       await testPlaygroundController.connectToServiceProvider();

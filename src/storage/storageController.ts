@@ -3,9 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { ConnectionModelType } from '../connectionModelType';
 
 export enum StorageVariables {
-  GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS', // Only exists on globalState.
-  GLOBAL_USER_ID = 'GLOBAL_USER_ID', // Only exists on globalState.
-  WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS', // Only exists on workspaceState.
+  // Only exists on globalState.
+  GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS',
+  GLOBAL_USER_ID = 'GLOBAL_USER_ID',
+  // Only exists on workspaceState.
+  WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS'
 }
 
 // Typically variables default to 'GLOBAL' scope.

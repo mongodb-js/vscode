@@ -10,6 +10,7 @@ import {
 } from 'vscode-languageclient';
 import * as WebSocket from 'ws';
 import { createLogger } from '../logging';
+import { ServerCommands } from './serverCommands';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -103,27 +104,23 @@ export default class LanguageServerController {
     );
   }
 
-  async activate(): Promise<boolean> {
-    return new Promise((resolve) => {
-      // Start the client. This will also launch the server
-      let disposable = this.client.start();
+  activate(): void {
+    // Start the client. This will also launch the server
+    let disposable = this.client.start();
 
-      // Push the disposable to the context's subscriptions so that the
-      // client can be deactivated on extension deactivation
-      this._context.subscriptions.push(disposable);
+    // Push the disposable to the context's subscriptions so that the
+    // client can be deactivated on extension deactivation
+    this._context.subscriptions.push(disposable);
 
-      // Subscribe on notifications from the server when the client is ready
-      this.client.onReady().then(() => {
-        this.client.onNotification('showInformationMessage', (messsage) => {
-          vscode.window.showInformationMessage(messsage);
-        });
-
-        this.client.onNotification('showErrorMessage', (messsage) => {
-          vscode.window.showErrorMessage(messsage);
-        });
+    // Subscribe on notifications from the server when the client is ready
+    this.client.onReady().then(() => {
+      this.client.onNotification('showInformationMessage', (messsage) => {
+        vscode.window.showInformationMessage(messsage);
       });
 
-      return resolve(true);
+      this.client.onNotification('showErrorMessage', (messsage) => {
+        vscode.window.showErrorMessage(messsage);
+      });
     });
   }
 
@@ -146,7 +143,7 @@ export default class LanguageServerController {
       // to the language server server to execute scripts from a playground
       // and return results to the playground controller when ready
       return this.client.sendRequest(
-        'executeAll',
+        ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
         codeToEvaluate,
         this._source.token
       );
@@ -154,17 +151,22 @@ export default class LanguageServerController {
   }
 
   connectToServiceProvider(params: {
-    connectionString?: string | null;
+    connectionString?: string;
     connectionOptions?: any;
   }): Promise<any> {
     return this.client.onReady().then(async () => {
-      return this.client.sendRequest('connectToServiceProvider', params);
+      return this.client.sendRequest(
+        ServerCommands.CONNECT_TO_SERVICE_PROVIDER,
+        params
+      );
     });
   }
 
   disconnectFromServiceProvider(): Promise<any> {
     return this.client.onReady().then(async () => {
-      return this.client.sendRequest('disconnectFromServiceProvider');
+      return this.client.sendRequest(
+        ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER
+      );
     });
   }
 

@@ -13,6 +13,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import MongoDBService from './mongoDBService';
+import { ServerCommands } from './serverCommands';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -225,32 +226,40 @@ connection.onDidChangeWatchedFiles((_change) => {
   // );
 });
 
+// Execute the entire playground script.
+connection.onRequest(
+  ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
+  (codeToEvaluate, token) => {
+    return mongoDBService.executeAll(codeToEvaluate, token);
+  }
+);
+
+// Execute a single block of code in the playground.
+connection.onRequest(ServerCommands.EXECUTE_RANGE_FROM_PLAYGROUND, (event) => {
+  // connection.console.log(`executeRange: ${JSON.stringify(event)}`);
+
+  return '';
+});
+
 // Connect to CliServiceProvider to enable shell completions.
-connection.onRequest('connectToServiceProvider', (params) => {
+connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
   return mongoDBService.connectToServiceProvider(params);
 });
 
 // Clear connectionString and connectionOptions values
 // when there is no active connection.
-connection.onRequest('disconnectFromServiceProvider', () => {
+connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
   return mongoDBService.disconnectFromServiceProvider();
 });
 
 // This handler provides the list of the completion items.
-connection.onCompletion((params: TextDocumentPositionParams) => {
-  const textDocument = documents.get(params.textDocument.uri);
+connection.onCompletion(async (params: TextDocumentPositionParams) => {
+  let textFromEditor = documents.get(params.textDocument.uri)?.getText();
 
-  // Get text before the current symbol.
-  let textBeforeCurrentSymbol = textDocument?.getText({
-    start: { line: 0, character: 0 },
-    end: params.position
-  });
-
-  textBeforeCurrentSymbol = textBeforeCurrentSymbol
-    ? textBeforeCurrentSymbol
-    : '';
-
-  return mongoDBService.provideCompletionItems(textBeforeCurrentSymbol);
+  return mongoDBService.provideCompletionItems(
+    textFromEditor ? textFromEditor : '',
+    params.position
+  );
 });
 
 // This handler resolves additional information for the item selected in
@@ -270,18 +279,6 @@ connection.onCompletionResolve(
     return item;
   }
 );
-
-// Execute the entire playground script.
-connection.onRequest('executeAll', (codeToEvaluate, token) => {
-  return mongoDBService.executeAll(codeToEvaluate, token);
-});
-
-// Execute a single block of code in the playground.
-connection.onRequest('executeRange', (event) => {
-  // connection.console.log(`executeRange: ${JSON.stringify(event)}`);
-
-  return '';
-});
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {
   // connection.console.log(

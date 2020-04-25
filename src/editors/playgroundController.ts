@@ -78,11 +78,15 @@ export default class PlaygroundController {
     if (model && model.driverUrl) {
       this._connectionString = model.driverUrl;
       this._connectionOptions = model.driverOptions ? model.driverOptions : {};
+
       return this._languageServerController.connectToServiceProvider({
         connectionString: this._connectionString,
         connectionOptions: this._connectionOptions
       });
     } else {
+      this._connectionString = undefined;
+      this._connectionOptions = undefined;
+
       return this._languageServerController.disconnectFromServiceProvider();
     }
   }
