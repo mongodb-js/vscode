@@ -13,6 +13,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import MongoDBService from './mongoDBService';
+import { ServerCommands } from './serverCommands';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -226,25 +227,28 @@ connection.onDidChangeWatchedFiles((_change) => {
 });
 
 // Execute the entire playground script.
-connection.onRequest('executeAll', (codeToEvaluate, token) => {
-  return mongoDBService.executeAll(codeToEvaluate, token);
-});
+connection.onRequest(
+  ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
+  (codeToEvaluate, token) => {
+    return mongoDBService.executeAll(codeToEvaluate, token);
+  }
+);
 
 // Execute a single block of code in the playground.
-connection.onRequest('executeRange', (event) => {
+connection.onRequest(ServerCommands.EXECUTE_RANGE_FROM_PLAYGROUND, (event) => {
   // connection.console.log(`executeRange: ${JSON.stringify(event)}`);
 
   return '';
 });
 
 // Connect to CliServiceProvider to enable shell completions.
-connection.onRequest('connectToServiceProvider', (params) => {
+connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
   return mongoDBService.connectToServiceProvider(params);
 });
 
 // Clear connectionString and connectionOptions values
 // when there is no active connection.
-connection.onRequest('disconnectFromServiceProvider', () => {
+connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
   return mongoDBService.disconnectFromServiceProvider();
 });
 

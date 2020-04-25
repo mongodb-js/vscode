@@ -6,6 +6,8 @@ import {
 } from '@mongosh/service-provider-server';
 import formatOutput from '../utils/formatOutput';
 import parseSchema = require('mongodb-schema');
+import { ServerCommands } from './serverCommands';
+import { CompletionItemKind } from 'vscode-languageserver';
 
 type EvaluationResult = {
   value: any;
@@ -77,7 +79,7 @@ const findAndParse = (
 
       const fields = schema.fields.map((item) => ({
         label: item.name,
-        kind: 1
+        kind: CompletionItemKind.Field
       }));
 
       return resolve(fields);
@@ -113,7 +115,7 @@ const getFieldsFromSchema = async (
 parentPort?.once(
   'message',
   async (message: string): Promise<any> => {
-    if (message === 'executeAll') {
+    if (message === ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND) {
       parentPort?.postMessage(
         await executeAll(
           workerData.codeToEvaluate,
@@ -123,7 +125,7 @@ parentPort?.once(
       );
     }
 
-    if (message === 'getFieldsFromSchema') {
+    if (message === ServerCommands.GET_FIELDS_FROM_SCHEMA) {
       parentPort?.postMessage(
         await getFieldsFromSchema(
           workerData.connectionString,

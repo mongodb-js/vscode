@@ -1,11 +1,15 @@
 import MongoDBService from '../../../language/mongoDBService';
-import { CancellationTokenSource } from 'vscode-languageclient';
+import {
+  CancellationTokenSource,
+  CompletionItemKind
+} from 'vscode-languageclient';
 import { before } from 'mocha';
 
 const chai = require('chai');
 const expect = chai.expect;
 
 const INCREASED_TEST_TIMEOUT = 5000;
+const FIELD_TYPE = CompletionItemKind.Field;
 
 suite('MongoDBService Test Suite', () => {
   const connection = {
@@ -53,7 +57,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'find'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide shell API symbols/methods completion if function scope', async () => {
@@ -66,7 +70,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'find'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide shell API symbols/methods completion if object is written as literal', async () => {
@@ -79,7 +83,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'find'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide shell API symbols/methods completion if single quotes', async () => {
@@ -92,7 +96,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'find'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide fields completion if has db, connection and is object key', async () => {
@@ -100,7 +104,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -113,7 +117,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide fields completion if text not formatted', async () => {
@@ -121,7 +125,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -134,7 +138,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide fields completion if functions are multi-lined', async () => {
@@ -142,7 +146,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -160,7 +164,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide fields completion if object is multi-lined', async () => {
@@ -168,7 +172,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -181,7 +185,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide fields completion if object key is surrounded by spaces', async () => {
@@ -189,7 +193,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -202,7 +206,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide fields completion for proper db', async () => {
@@ -210,13 +214,13 @@ suite('MongoDBService Test Suite', () => {
         'first.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ],
         'second.collection': [
           {
             label: 'TypeScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -234,7 +238,7 @@ suite('MongoDBService Test Suite', () => {
       );
 
       expect(jsCompletion).to.be.undefined;
-      expect(tsCompletion).to.have.property('kind', 1);
+      expect(tsCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('provide fields completion if function scope', async () => {
@@ -242,7 +246,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -256,7 +260,7 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
       );
 
-      expect(findCompletion).to.have.property('kind', 1);
+      expect(findCompletion).to.have.property('kind', FIELD_TYPE);
     });
 
     test('do not provide fields completion if has not db', async () => {
@@ -264,7 +268,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -285,7 +289,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -306,7 +310,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });
@@ -320,6 +324,7 @@ suite('MongoDBService Test Suite', () => {
       );
 
       expect(findCompletion).to.be.undefined;
+      expect(result).to.be.deep.equal([]);
     });
 
     test('do not provide fields completion if not object id', async () => {
@@ -327,7 +332,7 @@ suite('MongoDBService Test Suite', () => {
         'test.collection': [
           {
             label: 'JavaScript',
-            kind: 1
+            kind: FIELD_TYPE
           }
         ]
       });

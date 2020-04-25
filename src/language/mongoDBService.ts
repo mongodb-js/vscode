@@ -3,6 +3,7 @@ import { Worker as WorkerThreads } from 'worker_threads';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
 import * as util from 'util';
+import { ServerCommands } from './serverCommands';
 
 const path = require('path');
 const esprima = require('esprima');
@@ -98,7 +99,7 @@ export default class MongoDBService {
       );
 
       // Evaluate runtime in the worker thread.
-      worker.postMessage('executeAll');
+      worker.postMessage(ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND);
 
       // Listen for results from the worker thread.
       worker.on('message', ([error, result]) => {
@@ -193,7 +194,7 @@ export default class MongoDBService {
 
         return {
           label,
-          kind: CompletionItemKind.Text
+          kind: CompletionItemKind.Field
         };
       });
 
@@ -240,6 +241,10 @@ export default class MongoDBService {
     position: { line: number; character: number }
   ): Promise<[]> {
     return new Promise(async (resolve) => {
+      this._connection.console.log(
+        `LS current symbol position: ${util.inspect(position)}`
+      );
+
       const textForEsprima = this.findAndRemoveTriggerDot(
         textFromEditor,
         position
@@ -251,6 +256,10 @@ export default class MongoDBService {
       const isMemberExpression = dataFromAST.isMemberExpression;
 
       if (isObjectKey && databaseName && collectionName) {
+        this._connection.console.log(
+          'ESPRIMA response: "Found ObjectExpression"'
+        );
+
         const namespace = `${databaseName}.${collectionName}`;
 
         if (!this._cachedFields[namespace]) {
@@ -264,12 +273,18 @@ export default class MongoDBService {
       }
 
       if (isMemberExpression && collectionName) {
+        this._connection.console.log(
+          'ESPRIMA response: "Found MemberExpression"'
+        );
+
         const shellCompletion = await this.getShellCompletionItems(
           `db.${collectionName}.`
         );
 
         return resolve(shellCompletion);
       }
+
+      this._connection.console.log('ESPRIMA response: "No completion"');
 
       return resolve([]);
     });
@@ -349,9 +364,6 @@ export default class MongoDBService {
     let isMemberExpression = false;
 
     try {
-      this._connection.console.log(
-        `ESPRIMA symbol position: ${util.inspect(position)}`
-      );
       this._connection.console.log(`ESPRIMA completion body: "${text}"`);
 
       const ast = esprima.parseScript(text, { loc: true });
@@ -420,10 +432,10 @@ export default class MongoDBService {
         }
       });
 
-      this._connection.console.log(`SCHEMA for namespace: ${namespace}`);
+      this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
 
       // Evaluate runtime in the worker thread
-      worker.postMessage('getFieldsFromSchema');
+      worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
       // Listen for results from the worker thread
       worker.on('message', ([error, fields]) => {
@@ -431,7 +443,7 @@ export default class MongoDBService {
           this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
         } else {
           this._connection.console.log(
-            `SCHEMA response: ${util.inspect(fields)}`
+            `SCHEMA response: "Found ${fields.length} fields"`
           );
         }
 

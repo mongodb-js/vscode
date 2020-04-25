@@ -10,6 +10,7 @@ import {
 } from 'vscode-languageclient';
 import * as WebSocket from 'ws';
 import { createLogger } from '../logging';
+import { ServerCommands } from './serverCommands';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -142,7 +143,7 @@ export default class LanguageServerController {
       // to the language server server to execute scripts from a playground
       // and return results to the playground controller when ready
       return this.client.sendRequest(
-        'executeAll',
+        ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
         codeToEvaluate,
         this._source.token
       );
@@ -154,13 +155,18 @@ export default class LanguageServerController {
     connectionOptions?: any;
   }): Promise<any> {
     return this.client.onReady().then(async () => {
-      return this.client.sendRequest('connectToServiceProvider', params);
+      return this.client.sendRequest(
+        ServerCommands.CONNECT_TO_SERVICE_PROVIDER,
+        params
+      );
     });
   }
 
   disconnectFromServiceProvider(): Promise<any> {
     return this.client.onReady().then(async () => {
-      return this.client.sendRequest('disconnectFromServiceProvider');
+      return this.client.sendRequest(
+        ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER
+      );
     });
   }
 
