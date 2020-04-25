@@ -53,12 +53,7 @@ const findAndParse = (
 
     try {
       documents = await serviceProvider
-        .find(
-          databaseName,
-          collectionName,
-          {},
-          { limit: 1, projection: { _id: 0 } }
-        )
+        .find(databaseName, collectionName, {}, { limit: 1 })
         .toArray();
     } catch (error) {
       return reject(error);

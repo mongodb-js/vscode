@@ -194,7 +194,7 @@ export default class MongoDBService {
 
         return {
           label,
-          kind: CompletionItemKind.Field
+          kind: CompletionItemKind.Method
         };
       });
 
