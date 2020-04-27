@@ -32,24 +32,26 @@
     "theme": "dark"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "scripts": {
-    "clean": "rimraf ./out/* ",
+    "clean": "rimraf ./out/* ./dist/* ",
     "lint": "eslint ./src/**/*.ts",
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
     "update-snippets": "ts-node ./scripts/update-snippets.ts",
+    "webpack-prod": "webpack --mode production",
+    "webpack-dev": "webpack --mode development",
     "precompile": "npm run clean",
     "compile": "npm-run-all compile:*",
-    "compile:views": "webpack --mode development",
-    "compile:extension": "npm run update-grammar && npm run update-snippets && tsc -p ./",
     "compile:keyfile": "ts-node ./scripts/generate-keyfile.ts",
+    "compile:resources": "npm run update-grammar && npm run update-snippets",
+    "compile:extension": "tsc -p ./",
     "watch": "npm-run-all -p watch:*",
-    "watch:views": "webpack --watch --mode development",
     "watch:extension": "npm run compile:extension -- -watch",
-    "pretest": "npm run compile && cross-env MONGODB_VERSION=4.2.3 mongodb-runner start --port=27018",
+    "watch:extension-bundles": "webpack --mode development --info-verbosity verbose --watch",
+    "pretest": "npm run compile && npm run webpack-dev && cross-env MONGODB_VERSION=4.2.3 mongodb-runner start --port=27018",
     "test": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "posttest": "mongodb-runner stop --port=27018",
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run clean && npm run compile && webpack --mode production",
     "check": "mongodb-js-precommit './src/**/*{.ts}'",
     "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && vsce package",
     "local-install": "npm run package && code --install-extension ./mongodb-vscode-*.vsix"
@@ -522,7 +524,7 @@
     "react-redux": "^7.2.0",
     "redux": "^4.0.5",
     "ts-log": "^2.1.4",
-    "uuid": "^7.0.0",
+    "uuid": "^7.0.3",
     "vscode-languageclient": "^6.1.3",
     "vscode-languageserver": "^6.1.1",
     "vscode-languageserver-textdocument": "^1.0.1",
@@ -556,13 +558,14 @@
     "less": "^3.11.1",
     "less-loader": "^5.0.0",
     "meow": "^6.0.1",
-    "mkdirp": "^1.0.3",
+    "mkdirp": "^1.0.4",
     "mocha": "^7.0.1",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi": "^1.1.3",
     "mongodb-ace-autocompleter": "^0.4.1",
     "mongodb-js-precommit": "^2.2.1",
     "mongodb-runner": "^4.8.0",
+    "node-loader": "^0.6.0",
     "npm-run-all": "^4.1.5",
     "ora": "^4.0.3",
     "postcss-loader": "^3.0.0",
@@ -579,7 +582,9 @@
   },
   "dependency-check": {
     "ignore": [
-      "vscode"
+      "vscode",
+      "keytar",
+      "electron"
     ]
   }
 }

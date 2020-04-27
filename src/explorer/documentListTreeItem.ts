@@ -4,6 +4,7 @@ const path = require('path');
 import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
 import TreeItemParent from './treeItemParentInterface';
+import { getImagesPath } from '../extensionConstants';
 
 const log = createLogger('tree view document list');
 
@@ -163,8 +164,8 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
-    const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
+    const LIGHT = path.join(getImagesPath(), 'light');
+    const DARK = path.join(getImagesPath(), 'dark');
 
     return {
       light: path.join(LIGHT, 'documents.svg'),

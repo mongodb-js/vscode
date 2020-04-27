@@ -39,7 +39,7 @@ export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
 
 export const getReactAppUri = (extensionPath: string): vscode.Uri => {
   const jsAppFilePath = vscode.Uri.file(
-    path.join(extensionPath, 'out', 'webview-app', 'webviewApp.js')
+    path.join(extensionPath, 'dist', 'webviewApp.js')
   );
   return jsAppFilePath.with({ scheme: 'vscode-resource' });
 };
@@ -99,9 +99,7 @@ export default class WebviewController {
           });
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
-        vscode.commands.executeCommand(
-          'mdb.connectWithURI'
-        );
+        vscode.commands.executeCommand('mdb.connectWithURI');
 
         return;
       default:
@@ -123,9 +121,7 @@ export default class WebviewController {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'out', 'webview-app'))
-        ]
+        localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'dist'))]
       }
     );
 

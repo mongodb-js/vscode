@@ -12,8 +12,10 @@ import {
   TextDocumentSyncKind
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+
 import MongoDBService from './mongoDBService';
 import { ServerCommands } from './serverCommands';
+import { PlaygroundRunParameters } from './playgroundRunParametersType';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -24,7 +26,7 @@ const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 // MongoDB Playground Service Manager.
-let mongoDBService = new MongoDBService(connection);
+const mongoDBService = new MongoDBService(connection);
 
 let hasConfigurationCapability = false;
 // let hasWorkspaceFolderCapability = false;
@@ -229,8 +231,8 @@ connection.onDidChangeWatchedFiles((_change) => {
 // Execute the entire playground script.
 connection.onRequest(
   ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
-  (codeToEvaluate, token) => {
-    return mongoDBService.executeAll(codeToEvaluate, token);
+  (executionParameters: PlaygroundRunParameters, token) => {
+    return mongoDBService.executeAll(executionParameters, token);
   }
 );
 
@@ -254,7 +256,7 @@ connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
 
 // This handler provides the list of the completion items.
 connection.onCompletion(async (params: TextDocumentPositionParams) => {
-  let textFromEditor = documents.get(params.textDocument.uri)?.getText();
+  const textFromEditor = documents.get(params.textDocument.uri)?.getText();
 
   return mongoDBService.provideCompletionItems(
     textFromEditor ? textFromEditor : '',

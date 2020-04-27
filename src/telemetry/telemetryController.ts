@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
 import { createLogger } from '../logging';
 import SegmentAnalytics = require('analytics-node');
-import { resolve } from 'path';
+import * as path from 'path';
 import { config } from 'dotenv';
 import { StorageController } from '../storage';
-
-config({ path: resolve(__dirname, '../../.env') });
 
 const log = createLogger('analytics');
 
@@ -21,8 +19,13 @@ export default class TelemetryController {
   private _segmentUserID: string | undefined; // The user uuid from the global storage.
   private _segmentKey: string | undefined; // The segment API write key.
 
-  constructor(storageController: StorageController) {
+  constructor(
+    storageController: StorageController,
+    context: vscode.ExtensionContext
+  ) {
     this._segmentUserID = storageController.getUserID();
+
+    config({ path: path.join(context.extensionPath, '.env') });
 
     try {
       const segmentKeyFileLocation = '../../constants';

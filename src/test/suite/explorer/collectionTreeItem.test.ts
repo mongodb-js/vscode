@@ -4,6 +4,9 @@ const { contributes } = require('../../../../package.json');
 
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import { CollectionTypes } from '../../../explorer/documentListTreeItem';
+import { ext } from '../../../extensionConstants';
+
+import { TestExtensionContext } from '../stubs';
 
 suite('CollectionTreeItem Test Suite', () => {
   test('its context value should be in the package json', () => {
@@ -64,6 +67,8 @@ suite('CollectionTreeItem Test Suite', () => {
   });
 
   test('a view should show a different icon from a collection', () => {
+    ext.context = new TestExtensionContext();
+
     const testCollectionViewTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',

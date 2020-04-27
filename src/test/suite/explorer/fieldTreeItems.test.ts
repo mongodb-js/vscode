@@ -1,19 +1,24 @@
 import * as assert from 'assert';
 import { afterEach } from 'mocha';
 
-import {
-  seedDataAndCreateDataService,
-  cleanupTestDB,
-  TEST_DB_NAME
-} from '../dbTestHelper';
 import FieldTreeItem, {
   fieldIsExpandable,
   getIconFileNameForField
 } from '../../../explorer/fieldTreeItem';
 import SchemaTreeItem from '../../../explorer/schemaTreeItem';
+import { ext } from '../../../extensionConstants';
+
+import {
+  seedDataAndCreateDataService,
+  cleanupTestDB,
+  TEST_DB_NAME
+} from '../dbTestHelper';
+import { TestExtensionContext } from '../stubs';
 
 suite('FieldTreeItem Test Suite', () => {
   test('it should have a different icon depending on the field type', () => {
+    ext.context = new TestExtensionContext();
+
     const stringField = new FieldTreeItem(
       {
         name: 'test',

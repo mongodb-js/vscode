@@ -77,12 +77,11 @@ suite('Connect Form View Test Suite', () => {
     const appUri = getReactAppUri(extensionPath);
     const htmlString = getConnectWebviewContent(appUri);
 
-    assert(
-      htmlString.includes('vscode-resource:/out/webview-app/webviewApp.js')
-    );
-    const webviewAppFileName = (): string => 'out/webview-app/webviewApp.js';
+    assert(htmlString.includes('vscode-resource:/'));
+    assert(htmlString.includes('dist/webviewApp.js'));
+    const webviewAppFileName = (): string => 'dist/webviewApp.js';
     const jsFileString = await readFile(
-      path.resolve(__dirname, '..', '..', '..', '..', webviewAppFileName())
+      path.join(extensionPath, webviewAppFileName())
     );
     assert(`${jsFileString}`.includes('ConnectionForm'));
   });

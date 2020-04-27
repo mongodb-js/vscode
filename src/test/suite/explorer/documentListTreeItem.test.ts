@@ -7,8 +7,9 @@ import DocumentListTreeItem, {
   CollectionTypes,
   MAX_DOCUMENTS_VISIBLE
 } from '../../../explorer/documentListTreeItem';
+import { ext } from '../../../extensionConstants';
 
-import { DataServiceStub, mockDocuments } from '../stubs';
+import { DataServiceStub, TestExtensionContext, mockDocuments } from '../stubs';
 
 suite('DocumentListTreeItem Test Suite', () => {
   test('its context value should be in the package json', () => {
@@ -221,6 +222,8 @@ suite('DocumentListTreeItem Test Suite', () => {
   });
 
   test('it shows a documents icon', () => {
+    ext.context = new TestExtensionContext();
+
     const testCollectionViewTreeItem = new DocumentListTreeItem(
       'mock_collection_name_4',
       'mock_db_name',

@@ -155,7 +155,10 @@ export default class ConnectionController {
     return new Promise<boolean>((resolve, reject) => {
       Connection.from(
         connectionString,
-        (error: Error | undefined, newConnectionModel: ConnectionModelType) => {
+        (
+          error: Error | undefined,
+          newConnectionModel: ConnectionModelType
+        ) => {
           if (error) {
             return reject(new Error(`Unable to create connection: ${error}`));
           }

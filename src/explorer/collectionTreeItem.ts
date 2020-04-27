@@ -7,6 +7,7 @@ import DocumentListTreeItem, {
 } from './documentListTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
+import { getImagesPath } from '../extensionConstants';
 
 export default class CollectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
@@ -194,8 +195,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
     | string
     | vscode.Uri
     | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(__dirname, '..', '..', 'images', 'light');
-    const DARK = path.join(__dirname, '..', '..', 'images', 'dark');
+    const LIGHT = path.join(getImagesPath(), 'light');
+    const DARK = path.join(getImagesPath(), 'dark');
 
     if (this._type === CollectionTypes.collection) {
       if (this.isExpanded) {

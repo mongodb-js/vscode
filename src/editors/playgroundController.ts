@@ -83,12 +83,12 @@ export default class PlaygroundController {
         connectionString: this._connectionString,
         connectionOptions: this._connectionOptions
       });
-    } else {
-      this._connectionString = undefined;
-      this._connectionOptions = undefined;
-
-      return this._languageServerController.disconnectFromServiceProvider();
     }
+
+    this._connectionString = undefined;
+    this._connectionOptions = undefined;
+
+    return this._languageServerController.disconnectFromServiceProvider();
   }
 
   createPlayground(): Promise<boolean> {
