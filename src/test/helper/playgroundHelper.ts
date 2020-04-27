@@ -51,6 +51,7 @@ export class MockLanguageServerController implements LanguageServerController {
   connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: any;
+    extensionPath: string;
   }): Promise<any> {
     return Promise.resolve(true);
   }

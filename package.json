@@ -45,7 +45,7 @@
     "compile:keyfile": "ts-node ./scripts/generate-keyfile.ts",
     "compile:resources": "npm run update-grammar && npm run update-snippets",
     "compile:extension": "tsc -p ./",
-    "watch": "npm-run-all -p watch:*",
+    "watch": "npm run clean && npm run webpack-dev && npm-run-all -p watch:*",
     "watch:extension": "npm run compile:extension -- -watch",
     "watch:extension-bundles": "webpack --mode development --info-verbosity verbose --watch",
     "pretest": "npm run compile && npm run webpack-dev && cross-env MONGODB_VERSION=4.2.3 mongodb-runner start --port=27018",

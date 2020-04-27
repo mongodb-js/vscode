@@ -157,6 +157,7 @@ export default class LanguageServerController {
   connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: any;
+    extensionPath: string;
   }): Promise<any> {
     return this.client.onReady().then(async () => {
       return this.client.sendRequest(
