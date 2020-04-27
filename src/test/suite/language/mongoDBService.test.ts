@@ -21,7 +21,8 @@ suite('MongoDBService Test Suite', () => {
     sendNotification: () => {}
   };
   const params = {
-    connectionString: 'mongodb://localhost:27018'
+    connectionString: 'mongodb://localhost:27018',
+    extensionPath: mdbTestExtension.testExtensionContext.extensionPath
   };
 
   suite('Connect', () => {

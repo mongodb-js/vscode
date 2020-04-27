@@ -11,6 +11,8 @@ const path = require('path');
 const esprima = require('esprima');
 const estraverse = require('estraverse');
 
+const languageServerWorkerFileName = 'languageServerWorker.js';
+
 export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
   _runtime?: ElectronRuntime;
@@ -18,6 +20,7 @@ export default class MongoDBService {
   _connectionString?: string;
   _connectionOptions?: object;
   _cachedFields: object;
+  _extensionPath?: string;
 
   constructor(connection) {
     this._connection = connection;
@@ -35,11 +38,13 @@ export default class MongoDBService {
   public async connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: any;
+    extensionPath: string;
   }): Promise<boolean> {
     this._serviceProvider = undefined;
     this._runtime = undefined;
     this._connectionString = params.connectionString;
     this._connectionOptions = params.connectionOptions;
+    this._extensionPath = params.extensionPath;
 
     if (!this._connectionString) {
       return Promise.resolve(false);
@@ -89,9 +94,9 @@ export default class MongoDBService {
       // the workaround with some similar 3rd-party plugin.
       const worker = new WorkerThreads(
         path.resolve(
-          executionParameters.extensionPath,
+          this._extensionPath,
           'dist',
-          'languageServerWorker.js'
+          languageServerWorkerFileName
         ),
         {
           // The workerData parameter sends data to the created worker.
@@ -431,15 +436,18 @@ export default class MongoDBService {
   ): Promise<[]> {
     return new Promise((resolve) => {
       const namespace = `${databaseName}.${collectionName}`;
-      const worker = new WorkerThreads(path.resolve(__dirname, 'worker.js'), {
-        // The workerData parameter sends data to the created worker
-        workerData: {
-          connectionString: this._connectionString,
-          connectionOptions: this._connectionOptions,
-          databaseName,
-          collectionName
+      const worker = new WorkerThreads(
+        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+        {
+          // The workerData parameter sends data to the created worker
+          workerData: {
+            connectionString: this._connectionString,
+            connectionOptions: this._connectionOptions,
+            databaseName,
+            collectionName
+          }
         }
-      });
+      );
 
       this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
 
