@@ -1,4 +1,3 @@
-import MongoDBService from '../../../language/mongoDBService';
 import {
   CancellationTokenSource,
   CompletionItemKind
@@ -6,6 +5,11 @@ import {
 import { before } from 'mocha';
 
 const chai = require('chai');
+
+import MongoDBService from '../../../language/mongoDBService';
+
+import { mdbTestExtension } from '../stubbableMdbExtension';
+
 const expect = chai.expect;
 
 const INCREASED_TEST_TIMEOUT = 5000;
@@ -391,7 +395,10 @@ suite('MongoDBService Test Suite', () => {
       this.timeout(INCREASED_TEST_TIMEOUT);
 
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.executeAll('1 + 1', source.token);
+      const result = await testMongoDBService.executeAll({
+        codeToEvaluate: '1 + 1',
+        extensionPath: mdbTestExtension.testExtensionContext.extensionPath
+      }, source.token);
 
       expect(result).to.be.equal('2');
     });
@@ -400,10 +407,10 @@ suite('MongoDBService Test Suite', () => {
       this.timeout(INCREASED_TEST_TIMEOUT);
 
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.executeAll(
-        'const x = 1; x + 2',
-        source.token
-      );
+      const result = await testMongoDBService.executeAll( {
+        codeToEvaluate: 'const x = 1; x + 2',
+        extensionPath: mdbTestExtension.testExtensionContext.extensionPath
+      }, source.token);
 
       expect(result).to.be.equal('3');
     });
@@ -412,17 +419,17 @@ suite('MongoDBService Test Suite', () => {
       this.timeout(INCREASED_TEST_TIMEOUT);
 
       const source = new CancellationTokenSource();
-      const firstEvalResult = await testMongoDBService.executeAll(
-        'const x = 1 + 1; x',
-        source.token
-      );
+      const firstEvalResult = await testMongoDBService.executeAll( {
+        codeToEvaluate: 'const x = 1 + 1; x',
+        extensionPath: mdbTestExtension.testExtensionContext.extensionPath
+      }, source.token);
 
       expect(firstEvalResult).to.be.equal('2');
 
-      const secondEvalResult = await testMongoDBService.executeAll(
-        'const x = 2 + 1; x',
-        source.token
-      );
+      const secondEvalResult = await testMongoDBService.executeAll( {
+        codeToEvaluate: 'const x = 2 + 1; x',
+        extensionPath: mdbTestExtension.testExtensionContext.extensionPath
+      }, source.token);
 
       expect(secondEvalResult).to.be.equal('3');
     });
