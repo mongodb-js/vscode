@@ -365,8 +365,6 @@ export default class MongoDBService {
       }
 
       if (databaseName && !this._cachedCollections[databaseName]) {
-        let collections = this._cachedCollections[databaseName];
-
         this.getCollectionsCompletionItems(databaseName);
       }
 
