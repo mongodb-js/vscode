@@ -58,7 +58,6 @@ export default class MongoDBService {
         this._connection.console.log(
           `MONGOSH get list databases error: ${util.inspect(error)}`
         );
-        this._connection.sendNotification('showErrorMessage', error.message);
       }
 
       worker.terminate().then(() => {
@@ -70,34 +69,39 @@ export default class MongoDBService {
     });
   }
 
-  private getCollectionsCompletionItems(databaseName: string): void {
-    const worker = new WorkerThreads(
-      path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
-      {
-        workerData: {
-          connectionString: this._connectionString,
-          connectionOptions: this._connectionOptions,
-          databaseName
+  private getCollectionsCompletionItems(
+    databaseName: string
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      const worker = new WorkerThreads(
+        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+        {
+          workerData: {
+            connectionString: this._connectionString,
+            connectionOptions: this._connectionOptions,
+            databaseName
+          }
         }
-      }
-    );
+      );
 
-    this._connection.console.log('MONGOSH get list collections...');
-    worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
+      this._connection.console.log('MONGOSH get list collections...');
+      worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
 
-    worker.on('message', ([error, result]) => {
-      if (error) {
-        this._connection.console.log(
-          `MONGOSH get list collections error: ${util.inspect(error)}`
-        );
-        this._connection.sendNotification('showErrorMessage', error.message);
-      }
+      worker.on('message', ([error, result]) => {
+        if (error) {
+          this._connection.console.log(
+            `MONGOSH get list collections error: ${util.inspect(error)}`
+          );
+        }
 
-      worker.terminate().then(() => {
-        this._connection.console.log(
-          `MONGOSH found ${result.length} collections`
-        );
-        this.updateCurrentSessionCollections(databaseName, result);
+        worker.terminate().then(() => {
+          this._connection.console.log(
+            `MONGOSH found ${result.length} collections`
+          );
+          this.updateCurrentSessionCollections(databaseName, result);
+
+          return resolve(true);
+        });
       });
     });
   }
@@ -340,14 +344,14 @@ export default class MongoDBService {
       const isDbCallExpression = dataFromAST.isDbCallExpression;
 
       if (databaseName && !this._cachedCollections[databaseName]) {
-        this.getCollectionsCompletionItems(databaseName);
+        await this.getCollectionsCompletionItems(databaseName);
       }
 
       if (databaseName && collectionName) {
         const namespace = `${databaseName}.${collectionName}`;
 
         if (!this._cachedFields[namespace]) {
-          this.getFieldsFromSchema(databaseName, collectionName);
+          await this.getFieldsFromSchema(databaseName, collectionName);
         }
 
         if (isObjectKey) {
@@ -607,32 +611,35 @@ export default class MongoDBService {
   private getFieldsFromSchema(
     databaseName: string,
     collectionName: string
-  ): void {
-    const namespace = `${databaseName}.${collectionName}`;
-    const worker = new WorkerThreads(
-      path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
-      {
-        workerData: {
-          connectionString: this._connectionString,
-          connectionOptions: this._connectionOptions,
-          databaseName,
-          collectionName
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      const namespace = `${databaseName}.${collectionName}`;
+      const worker = new WorkerThreads(
+        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+        {
+          workerData: {
+            connectionString: this._connectionString,
+            connectionOptions: this._connectionOptions,
+            databaseName,
+            collectionName
+          }
         }
-      }
-    );
+      );
 
-    this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
-    worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
+      this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
+      worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
-    worker.on('message', ([error, fields]) => {
-      if (error) {
-        this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
-      } else {
-        this._connection.console.log(`SCHEMA found ${fields.length} fields`);
-      }
+      worker.on('message', ([error, fields]) => {
+        if (error) {
+          this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
+        }
 
-      worker.terminate().then(() => {
-        this.updateCurrentSessionFields(namespace, fields);
+        worker.terminate().then(() => {
+          this._connection.console.log(`SCHEMA found ${fields.length} fields`);
+          this.updateCurrentSessionFields(namespace, fields);
+
+          return resolve(true);
+        });
       });
     });
   }
