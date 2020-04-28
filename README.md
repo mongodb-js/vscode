@@ -74,7 +74,7 @@ Open VS Code, launch the Commmand Palette (⌘+Shift+P on MacOS, Ctrl+Shift+P on
 
 ## Additional Settings
 
-> These settings affect not only MongoDB extension but all installed extensions. If you don't want to change default settings, you can force VS Code to trigger suggestions by clicking `Ctrl+Space` inside a snippet.
+> These settings affect not only MongoDB extension but all installed extensions. If you don't want to change default settings, you can force VS Code to trigger suggestions by clicking `Ctrl+Space` inside a snippet or string literal.
 
 `editor.suggest.snippetsPreventQuickSuggestions`: By default, VS Code prevents code completion in the snippet mode (editing placeholders in inserted code). Setting this option to `false` stops that and allows for the `db.collection.aggregate()` expression having both snippets completion (eg. `$match`, `$addFields`) and fields completion based on the document schema.
 
