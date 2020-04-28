@@ -20,11 +20,15 @@ export default class MongoDBService {
   _connectionString?: string;
   _connectionOptions?: object;
   _cachedFields: object;
+  _cachedDatabases: [];
+  _cachedCollections: object;
   _extensionPath?: string;
 
   constructor(connection) {
     this._connection = connection;
     this._cachedFields = {};
+    this._cachedDatabases = [];
+    this._cachedCollections = [];
   }
 
   public get connectionString(): string | undefined {
@@ -33,6 +37,72 @@ export default class MongoDBService {
 
   public get connectionOptions(): object | undefined {
     return this._connectionOptions;
+  }
+
+  private getDatabasesCompletionItems(): void {
+    const worker = new WorkerThreads(
+      path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+      {
+        workerData: {
+          connectionString: this._connectionString,
+          connectionOptions: this._connectionOptions
+        }
+      }
+    );
+
+    this._connection.console.log('MONGOSH get list databases...');
+    worker.postMessage(ServerCommands.GET_LIST_DATABASES);
+
+    worker.on('message', ([error, result]) => {
+      if (error) {
+        this._connection.console.log(
+          `MONGOSH get list databases error: ${util.inspect(error)}`
+        );
+        this._connection.sendNotification('showErrorMessage', error.message);
+      }
+
+      worker.terminate().then(() => {
+        this._connection.console.log(
+          `MONGOSH found ${result.length} databases`
+        );
+        this._cachedDatabases = result ? result : [];
+      });
+    });
+  }
+
+  private getCollectionsCompletionItems(databaseName: string): Promise<[]> {
+    return new Promise((resolve) => {
+      const worker = new WorkerThreads(
+        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+        {
+          workerData: {
+            connectionString: this._connectionString,
+            connectionOptions: this._connectionOptions,
+            databaseName
+          }
+        }
+      );
+
+      this._connection.console.log('MONGOSH get list collections...');
+      worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
+
+      worker.on('message', ([error, result]) => {
+        if (error) {
+          this._connection.console.log(
+            `MONGOSH get list collections error: ${util.inspect(error)}`
+          );
+          this._connection.sendNotification('showErrorMessage', error.message);
+        }
+
+        worker.terminate().then(() => {
+          this._connection.console.log(
+            `MONGOSH found ${result.length} collections`
+          );
+
+          return resolve(result ? result : []);
+        });
+      });
+    });
   }
 
   public async connectToServiceProvider(params: {
@@ -45,6 +115,9 @@ export default class MongoDBService {
     this._connectionString = params.connectionString;
     this._connectionOptions = params.connectionOptions;
     this._extensionPath = params.extensionPath;
+    this._cachedFields = {};
+    this._cachedDatabases = [];
+    this._cachedCollections = [];
 
     if (!this._connectionString) {
       return Promise.resolve(false);
@@ -56,6 +129,7 @@ export default class MongoDBService {
         this._connectionOptions
       );
       this._runtime = new ElectronRuntime(this._serviceProvider);
+      this.getDatabasesCompletionItems();
 
       return Promise.resolve(true);
     } catch (error) {
@@ -93,11 +167,7 @@ export default class MongoDBService {
       // TODO: After webpackifying the extension replace
       // the workaround with some similar 3rd-party plugin.
       const worker = new WorkerThreads(
-        path.resolve(
-          this._extensionPath,
-          'dist',
-          languageServerWorkerFileName
-        ),
+        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
         {
           // The workerData parameter sends data to the created worker.
           workerData: {
@@ -268,11 +338,11 @@ export default class MongoDBService {
       const collectionName = dataFromAST.collectionName;
       const isObjectKey = dataFromAST.isObjectKey;
       const isMemberExpression = dataFromAST.isMemberExpression;
+      const isUseCallExpression = dataFromAST.isUseCallExpression;
+      const isDbCallExpression = dataFromAST.isDbCallExpression;
 
       if (isObjectKey && databaseName && collectionName) {
-        this._connection.console.log(
-          'ESPRIMA response: "Found ObjectExpression"'
-        );
+        this._connection.console.log('ESPRIMA found field completion');
 
         const namespace = `${databaseName}.${collectionName}`;
 
@@ -287,9 +357,7 @@ export default class MongoDBService {
       }
 
       if (isMemberExpression && collectionName) {
-        this._connection.console.log(
-          'ESPRIMA response: "Found MemberExpression"'
-        );
+        this._connection.console.log('ESPRIMA found shell completion');
 
         const shellCompletion = await this.getShellCompletionItems(
           `db.${collectionName}.`
@@ -298,10 +366,51 @@ export default class MongoDBService {
         return resolve(shellCompletion);
       }
 
-      this._connection.console.log('ESPRIMA response: "No completion"');
+      if (isDbCallExpression && databaseName) {
+        this._connection.console.log(
+          'ESPRIMA found collection names completion'
+        );
+
+        if (!this._cachedCollections[databaseName]) {
+          this._cachedCollections[
+            databaseName
+          ] = await this.getCollectionsCompletionItems(databaseName);
+        }
+
+        return resolve(this._cachedCollections[databaseName]);
+      }
+
+      if (isUseCallExpression) {
+        this._connection.console.log('ESPRIMA found database names completion');
+
+        return resolve(this._cachedDatabases);
+      }
+
+      this._connection.console.log('ESPRIMA no completions');
 
       return resolve([]);
     });
+  }
+
+  private checkIsUseCall(node: any): boolean {
+    if (
+      node.callee.name === 'use' &&
+      node.arguments &&
+      node.arguments.length === 1 &&
+      node.arguments[0].type === esprima.Syntax.Literal
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private checkIsDbCall(node: any): boolean {
+    if (node.expression.name === 'db') {
+      return true;
+    }
+
+    return false;
   }
 
   private checkHasDatabaseName(
@@ -371,11 +480,15 @@ export default class MongoDBService {
     collectionName: string | null;
     isObjectKey: boolean;
     isMemberExpression: boolean;
+    isUseCallExpression: boolean;
+    isDbCallExpression: boolean;
   } {
     let databaseName = null;
     let collectionName = null;
     let isObjectKey = false;
     let isMemberExpression = false;
+    let isUseCallExpression = false;
+    let isDbCallExpression = false;
 
     try {
       this._connection.console.log(`ESPRIMA completion body: "${text}"`);
@@ -384,11 +497,20 @@ export default class MongoDBService {
 
       estraverse.traverse(ast, {
         enter: (node) => {
-          if (
-            node.type === esprima.Syntax.CallExpression &&
-            this.checkHasDatabaseName(node, position)
-          ) {
-            databaseName = node.arguments[0].value;
+          this._connection.console.log(`node: "${util.inspect(node)}"`);
+
+          if (node.type === esprima.Syntax.CallExpression) {
+            if (
+              this.checkIsUseCall(node) &&
+              this.checkIsCurrentNode(node, {
+                line: position.line,
+                character: position.character - 2
+              })
+            ) {
+              isUseCallExpression = true;
+            } else if (this.checkHasDatabaseName(node, position)) {
+              databaseName = node.arguments[0].value;
+            }
           }
 
           if (
@@ -409,6 +531,18 @@ export default class MongoDBService {
             }
           }
 
+          if (node.type === esprima.Syntax.ExpressionStatement) {
+            if (
+              this.checkIsDbCall(node) &&
+              this.checkIsCurrentNode(node, {
+                line: position.line,
+                character: position.character - 2
+              })
+            ) {
+              isDbCallExpression = true;
+            }
+          }
+
           if (
             node.type === esprima.Syntax.ObjectExpression &&
             this.checkIsCurrentNode(node, position)
@@ -421,7 +555,14 @@ export default class MongoDBService {
       this._connection.console.log(`ESPRIMA error: ${util.inspect(error)}`);
     }
 
-    return { databaseName, collectionName, isObjectKey, isMemberExpression };
+    return {
+      databaseName,
+      collectionName,
+      isObjectKey,
+      isMemberExpression,
+      isUseCallExpression,
+      isDbCallExpression
+    };
   }
 
   public updatedCurrentSessionFields(fields: {
@@ -439,7 +580,6 @@ export default class MongoDBService {
       const worker = new WorkerThreads(
         path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
         {
-          // The workerData parameter sends data to the created worker
           workerData: {
             connectionString: this._connectionString,
             connectionOptions: this._connectionOptions,
@@ -450,18 +590,13 @@ export default class MongoDBService {
       );
 
       this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
-
-      // Evaluate runtime in the worker thread
       worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
-      // Listen for results from the worker thread
       worker.on('message', ([error, fields]) => {
         if (error) {
           this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
         } else {
-          this._connection.console.log(
-            `SCHEMA response: "Found ${fields.length} fields"`
-          );
+          this._connection.console.log(`SCHEMA found ${fields.length} fields`);
         }
 
         worker.terminate().then(() => {

@@ -83,10 +83,10 @@ const findAndParse = (
 };
 
 const getFieldsFromSchema = async (
-  connectionString,
-  connectionOptions,
-  databaseName,
-  collectionName
+  connectionString: string,
+  connectionOptions: any,
+  databaseName: string,
+  collectionName: string
 ): Promise<any> => {
   try {
     const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
@@ -101,6 +101,58 @@ const getFieldsFromSchema = async (
     );
 
     return [null, result];
+  } catch (error) {
+    return [error];
+  }
+};
+
+const getListDatabases = async (
+  connectionString: string,
+  connectionOptions: any
+) => {
+  try {
+    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
+      connectionString,
+      connectionOptions
+    );
+
+    // TODO: There is a mistake in the service provider interface
+    // Use `admin` as arguments to get list of dbs
+    // and remove it later when `mongosh` will merge a fix
+    const result = await serviceProvider.listDatabases('admin');
+    const databases = result
+      ? result.databases.map((item) => ({
+          label: item.name,
+          kind: CompletionItemKind.Value
+        }))
+      : [];
+
+    return [null, databases];
+  } catch (error) {
+    return [error];
+  }
+};
+
+const getListCollections = async (
+  connectionString: string,
+  connectionOptions: any,
+  databaseName: string
+) => {
+  try {
+    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
+      connectionString,
+      connectionOptions
+    );
+
+    const result = await serviceProvider.listCollections(databaseName);
+    const collections = result
+      ? result.map((item) => ({
+          label: item.name,
+          kind: CompletionItemKind.Value
+        }))
+      : [];
+
+    return [null, collections];
   } catch (error) {
     return [error];
   }
@@ -127,6 +179,25 @@ parentPort?.once(
           workerData.connectionOptions,
           workerData.databaseName,
           workerData.collectionName
+        )
+      );
+    }
+
+    if (message === ServerCommands.GET_LIST_DATABASES) {
+      parentPort?.postMessage(
+        await getListDatabases(
+          workerData.connectionString,
+          workerData.connectionOptions
+        )
+      );
+    }
+
+    if (message === ServerCommands.GET_LIST_COLLECTIONS) {
+      parentPort?.postMessage(
+        await getListCollections(
+          workerData.connectionString,
+          workerData.connectionOptions,
+          workerData.databaseName
         )
       );
     }

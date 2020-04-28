@@ -43,7 +43,7 @@ const snippetTemplate = (
   // but the variable is not known.
   // The solution is to escape this symbol before building the stage body.
   body = comment
-    ? [...comment.replace(re, '\\$').split('\n'), ...body]
+    ? [...comment.trim().replace(re, '\\$').split('\n'), ...body]
     : [...body];
 
   return { prefix, body, description };
