@@ -146,8 +146,7 @@ export default class LanguageServerController {
       return this.client.sendRequest(
         ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
         {
-          codeToEvaluate,
-          extensionPath: this._context.extensionPath
+          codeToEvaluate
         } as PlaygroundRunParameters,
         this._source.token
       );

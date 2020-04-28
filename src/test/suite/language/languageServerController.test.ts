@@ -1,17 +1,20 @@
-import * as vscode from 'vscode';
-import { PlaygroundController } from '../../../editors';
-import { LanguageServerController } from '../../../language';
-import ConnectionController from '../../../connectionController';
-import { StatusView } from '../../../views';
-import { StorageController } from '../../../storage';
-import { TestExtensionContext } from '../stubs';
 import { before, after } from 'mocha';
-
+const path = require('path');
+const fs = require('fs');
 const sinon = require('sinon');
 const chai = require('chai');
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
+
+import { PlaygroundController } from '../../../editors';
+import { LanguageServerController } from '../../../language';
+import ConnectionController from '../../../connectionController';
+import { StatusView } from '../../../views';
+import { StorageController } from '../../../storage';
+
+import { TestExtensionContext } from '../stubs';
+import { mdbTestExtension } from '../stubbableMdbExtension';
 
 const CONNECTION = {
   driverUrl: 'mongodb://localhost:27018',
@@ -83,5 +86,18 @@ suite('Language Server Controller Test Suite', () => {
     const result = await testLanguageServerController.executeAll('4 + 4');
 
     expect(result).to.be.equal('8');
+  });
+
+  test('the language server dependency bundle exists', () => {
+    const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
+
+    const languageServerModuleBundlePath = path.join(
+      extensionPath,
+      'dist',
+      'languageServer.js'
+    );
+
+    // eslint-disable-next-line no-sync
+    expect(fs.existsSync(languageServerModuleBundlePath)).to.equal(true);
   });
 });

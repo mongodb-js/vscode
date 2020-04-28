@@ -12,7 +12,7 @@ const path = require('path');
 const esprima = require('esprima');
 const estraverse = require('estraverse');
 
-const languageServerWorkerFileName = 'languageServerWorker.js';
+export const languageServerWorkerFileName = 'languageServerWorker.js';
 
 export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
