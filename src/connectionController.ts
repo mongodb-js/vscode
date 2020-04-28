@@ -71,7 +71,6 @@ export default class ConnectionController {
     savedConnection: SavedConnection
   ): Promise<void> => {
     if (!this._keytar) {
-      console.log('Keytar not yet loaded!!');
       return;
     }
 
@@ -114,9 +113,8 @@ export default class ConnectionController {
     Promise.resolve();
   };
 
-  loadSavedConnections(): void {
+  loadSavedConnections = async (): Promise<void> => {
     if (!this._keytar) {
-      console.log('Keytar not yet loaded!!');
       return;
     }
 
@@ -127,10 +125,12 @@ export default class ConnectionController {
 
     if (Object.keys(existingGlobalConnections).length > 0) {
       // Try to pull in the connections previously saved globally on vscode.
-      Object.keys(existingGlobalConnections).forEach((connectionId) =>
-        this._loadSavedConnection(
-          connectionId,
-          existingGlobalConnections[connectionId]
+      await Promise.all(
+        Object.keys(existingGlobalConnections).map((connectionId) =>
+          this._loadSavedConnection(
+            connectionId,
+            existingGlobalConnections[connectionId]
+          )
         )
       );
     }
@@ -142,14 +142,16 @@ export default class ConnectionController {
       ) || {};
     if (Object.keys(existingWorkspaceConnections).length > 0) {
       // Try to pull in the connections previously saved on the workspace.
-      Object.keys(existingWorkspaceConnections).forEach((connectionId) =>
-        this._loadSavedConnection(
-          connectionId,
-          existingWorkspaceConnections[connectionId]
+      await Promise.all(
+        Object.keys(existingWorkspaceConnections).map((connectionId) =>
+          this._loadSavedConnection(
+            connectionId,
+            existingWorkspaceConnections[connectionId]
+          )
         )
       );
     }
-  }
+  };
 
   public async connectWithURI(): Promise<boolean> {
     log.info('connectWithURI command called');
@@ -248,10 +250,11 @@ export default class ConnectionController {
       // handles changing this based on user preference.
       storageLocation: StorageScope.NONE
     };
-    this._connections[connectionId] = {
+    const newLoadedConnection = {
       ...savedConnection,
       ...connectionInformation
     };
+    this._connections[connectionId] = newLoadedConnection;
 
     if (this._keytar) {
       const connectionInfoAsString = JSON.stringify(connectionInformation);
@@ -261,7 +264,7 @@ export default class ConnectionController {
         connectionId,
         connectionInfoAsString
       );
-      this._storageController.storeNewConnection(savedConnection);
+      this._storageController.storeNewConnection(newLoadedConnection);
     }
 
     return new Promise((resolve, reject) => {

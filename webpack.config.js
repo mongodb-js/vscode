@@ -31,7 +31,7 @@ const extensionConfig = {
     vscode: 'commonjs vscode',
     // Currently connection-model has a keytar dependency, vscode provides its
     // own keytar dependency. Here we are telling it to use vscode's keytar.
-    keytar: 'keytar',
+    // keytar: 'keytar',
     electron: 'electron'
   },
   module: {

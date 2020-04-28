@@ -76,10 +76,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   activate(): void {
     this._explorerController.activateTreeView();
-    setTimeout(() => {
-      console.log('delayed keytar');
-      this._connectionController.loadSavedConnections();
-    }, 1000);
+    this._connectionController.loadSavedConnections();
     this._telemetryController.activate();
     this._languageServerController.activate();
 

@@ -7,14 +7,12 @@ export function getNodeModule<T>(moduleName: string): T | undefined {
   try {
     return r(`${vscode.env.appRoot}/node_modules.asar/${moduleName}`);
   } catch (err) {
-    console.log('aa');
     // Not in ASAR.
   }
 
   try {
     return r(`${vscode.env.appRoot}/node_modules/${moduleName}`);
   } catch (err) {
-    console.log('bb');
     // Not available.
   }
 

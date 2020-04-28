@@ -86,7 +86,6 @@ suite('Storage Controller Test Suite', () => {
     testExtensionContext._workspaceState = {
       [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
         conn1: {
-          driverUrl: 'very_saved_connection_url',
           id: 'conn1',
           name: 'saved1'
         }
