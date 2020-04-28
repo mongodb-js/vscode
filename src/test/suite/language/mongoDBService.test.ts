@@ -285,6 +285,32 @@ suite('MongoDBService Test Suite', () => {
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
 
+    test('provide fields completion for proper collection', async () => {
+      testMongoDBService.updateCurrentSessionFields('test.firstCollection', [
+        {
+          label: 'JavaScript First',
+          kind: CompletionItemKind.Field
+        }
+      ]);
+      testMongoDBService.updateCurrentSessionFields('test.secondCollection', [
+        {
+          label: 'JavaScript Second',
+          kind: CompletionItemKind.Field
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        'use("test"); db.firstCollection.find({ j});',
+        { line: 0, character: 40 }
+      );
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) =>
+          itme.label === 'JavaScript First'
+      );
+
+      expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
+    });
+
     test('do not provide fields completion if has not db', async () => {
       testMongoDBService.updateCurrentSessionFields('test.collection', [
         {
@@ -302,45 +328,6 @@ suite('MongoDBService Test Suite', () => {
       );
 
       expect(findCompletion).to.be.undefined;
-    });
-
-    test('do not provide fields completion if has wrong db', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
-      ]);
-
-      const result = await testMongoDBService.provideCompletionItems(
-        'use("other"); db.collection.find({ j});',
-        { line: 0, character: 36 }
-      );
-      const findCompletion = result.find(
-        (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
-      );
-
-      expect(findCompletion).to.be.undefined;
-    });
-
-    test('do not provide fields completion if has wrong collection', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
-      ]);
-
-      const result = await testMongoDBService.provideCompletionItems(
-        'use("test"); db.test.find({ j});',
-        { line: 0, character: 29 }
-      );
-      const findCompletion = result.find(
-        (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
-      );
-
-      expect(findCompletion).to.be.undefined;
-      expect(result).to.be.deep.equal([]);
     });
 
     test('do not provide fields completion if not object id', async () => {
