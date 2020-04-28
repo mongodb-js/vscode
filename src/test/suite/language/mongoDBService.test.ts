@@ -366,7 +366,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide db names completion', async () => {
-      testMongoDBService.updateCurrentSessionDatabaseList([
+      testMongoDBService.updateCurrentSessionDatabases([
         {
           label: 'admin',
           kind: CompletionItemKind.Value
@@ -387,7 +387,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion', async () => {
-      testMongoDBService.updateCurrentSessionCollectionList('test', [
+      testMongoDBService.updateCurrentSessionCollections('test', [
         {
           label: 'empty',
           kind: CompletionItemKind.Method

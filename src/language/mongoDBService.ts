@@ -65,7 +65,7 @@ export default class MongoDBService {
         this._connection.console.log(
           `MONGOSH found ${result.length} databases`
         );
-        this.updateCurrentSessionDatabaseList(result);
+        this.updateCurrentSessionDatabases(result);
       });
     });
   }
@@ -98,7 +98,7 @@ export default class MongoDBService {
           `MONGOSH found ${result.length} collections`
         );
 
-        this.updateCurrentSessionCollectionList(databaseName, result);
+        this.updateCurrentSessionCollections(databaseName, result);
       });
     });
   }
@@ -115,8 +115,8 @@ export default class MongoDBService {
     this._extensionPath = params.extensionPath;
 
     this.clearCurrentSessionFields();
-    this.clearCurrentSessionDatabaseList();
-    this.clearCurrentSessionCollectionList();
+    this.clearCurrentSessionDatabases();
+    this.clearCurrentSessionCollections();
 
     if (!this._connectionString) {
       return Promise.resolve(false);
@@ -580,19 +580,19 @@ export default class MongoDBService {
     return this._cachedFields[namespace];
   }
 
-  public clearCurrentSessionDatabaseList(): void {
+  public clearCurrentSessionDatabases(): void {
     this._cachedDatabases = [];
   }
 
-  public updateCurrentSessionDatabaseList(databases: any): void {
+  public updateCurrentSessionDatabases(databases: any): void {
     this._cachedDatabases = databases ? databases : [];
   }
 
-  public clearCurrentSessionCollectionList(): void {
+  public clearCurrentSessionCollections(): void {
     this._cachedCollections = {};
   }
 
-  public updateCurrentSessionCollectionList(
+  public updateCurrentSessionCollections(
     database: string,
     collections: [{ label: string; kind: number }]
   ): [] {
