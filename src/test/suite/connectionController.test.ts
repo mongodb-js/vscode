@@ -59,7 +59,7 @@ suite('Connection Controller Test Suite', () => {
         const connnectionId =
           testConnectionController.getActiveConnectionId() || '';
         const name =
-          testConnectionController._savedConnections[connnectionId].name;
+          testConnectionController._connections[connnectionId].name;
         assert(
           name === 'localhost:27018',
           `Expected active connection to be 'localhost:27018' found ${name}`
@@ -489,7 +489,7 @@ suite('Connection Controller Test Suite', () => {
 
     testConnectionController.loadSavedConnections();
 
-    const connections = testConnectionController._savedConnections;
+    const connections = testConnectionController._connections;
     assert(
       Object.keys(connections).length === 4,
       `Expected 4 connection configurations found ${
@@ -628,7 +628,7 @@ suite('Connection Controller Test Suite', () => {
         assert(false);
       }
 
-      testConnectionController._savedConnections = {
+      testConnectionController._connections = {
         '25': {
           id: '25',
           driverUrl: TEST_DATABASE_URI,
@@ -706,7 +706,7 @@ suite('Connection Controller Test Suite', () => {
                   .then(() => {
                     const activeId = testConnectionController.getActiveConnectionId();
                     const name =
-                      testConnectionController._savedConnections[activeId || '']
+                      testConnectionController._connections[activeId || '']
                         .name;
                     assert(
                       activeId === id,
@@ -717,7 +717,7 @@ suite('Connection Controller Test Suite', () => {
                       `Expected the active connection name to be 'localhost:27018', found ${name}.`
                     );
                     const port =
-                      testConnectionController._savedConnections[activeId || '']
+                      testConnectionController._connections[activeId || '']
                         .connectionModel.port;
                     assert(
                       port === 27018,
@@ -839,7 +839,7 @@ suite('Connection Controller Test Suite', () => {
         setTimeout(() => {
           testConnectionController
             .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
-            .then(() => {
+            .then(async () => {
               const workspaceStoreConnections = testStorageController.get(
                 StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
                 StorageScope.WORKSPACE
@@ -855,7 +855,7 @@ suite('Connection Controller Test Suite', () => {
               const connectionId =
                 testConnectionController.getActiveConnectionId() || 'a';
               testConnectionController.disconnect();
-              testConnectionController.removeSavedConnection(connectionId);
+              await testConnectionController.removeSavedConnection(connectionId);
 
               const postWorkspaceStoreConnections = testStorageController.get(
                 StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -904,7 +904,7 @@ suite('Connection Controller Test Suite', () => {
 
     const connectionId =
       testConnectionController.getActiveConnectionId() || 'a';
-    testConnectionController.removeSavedConnection(connectionId);
+    await testConnectionController.removeSavedConnection(connectionId);
 
     const postGlobalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS
@@ -990,7 +990,7 @@ suite('Connection Controller Test Suite', () => {
                         .id;
 
                       const name =
-                        testConnectionController._savedConnections[id || 'x']
+                        testConnectionController._connections[id || 'x']
                           .name;
                       assert(
                         name === 'new connection name',

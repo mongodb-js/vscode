@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import Connection = require('mongodb-connection-model/lib/model');
 
 import StorageController, {
   StorageVariables,
@@ -54,8 +53,6 @@ suite('Storage Controller Test Suite', () => {
     };
     const testStorageController = new StorageController(testExtensionContext);
     testStorageController.saveConnectionToGlobalStore({
-      driverUrl: 'another_url_that_is_so_saved',
-      connectionModel: new Connection(),
       id: 'new_conn',
       name: 'saved2',
       storageLocation: StorageScope.NONE
@@ -75,8 +72,8 @@ suite('Storage Controller Test Suite', () => {
       'Expected connection data to persist.'
     );
     assert(
-      updatedGlobalModels.new_conn.driverUrl === 'another_url_that_is_so_saved',
-      'Expected new connection data to exist.'
+      !updatedGlobalModels.new_conn.driverUrl,
+      'Expected new connection data to not exist on the saved connection.'
     );
     assert(
       updatedGlobalModels.new_conn.storageLocation === StorageScope.GLOBAL,
@@ -97,8 +94,6 @@ suite('Storage Controller Test Suite', () => {
     };
     const testStorageController = new StorageController(testExtensionContext);
     testStorageController.saveConnectionToWorkspaceStore({
-      connectionModel: new Connection(),
-      driverUrl: 'this_has_been_saved',
       id: 'new_conn',
       name: 'saved2',
       storageLocation: StorageScope.NONE
@@ -119,12 +114,12 @@ suite('Storage Controller Test Suite', () => {
       'Expected connection id data to persist.'
     );
     assert(
-      updatedWorkspaceModels.conn1.driverUrl === 'very_saved_connection_url',
-      'Expected connection string data to persist.'
+      !updatedWorkspaceModels.conn1.driverUrl,
+      'Expected connection string data to not persist.'
     );
     assert(
-      updatedWorkspaceModels.new_conn.driverUrl === 'this_has_been_saved',
-      'Expected new connection data to exist.'
+      !updatedWorkspaceModels.new_conn.driverUrl,
+      'Expected new connection data to not exist.'
     );
     assert(
       updatedWorkspaceModels.new_conn.name === 'saved2',

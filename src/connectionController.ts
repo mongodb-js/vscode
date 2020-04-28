@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as vscode from 'vscode';
 import Connection = require('mongodb-connection-model/lib/model');
 import DataService = require('mongodb-data-service');
+import * as keytarType from 'keytar';
 
 const { name, version } = require('../package.json');
 
@@ -11,24 +12,38 @@ import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
-import { StorageScope, SavedConnection } from './storage/storageController';
+import { SavedConnection, StorageScope } from './storage/storageController';
+import { getNodeModule } from './utils/getNodeModule';
 
 const log = createLogger('connection controller');
 const MAX_CONNECTION_NAME_LENGTH = 512;
 
+type KeyTar = typeof keytarType;
+
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
   ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
-  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING'
+  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING',
 }
+
+export type SavedConnectionInformation = {
+  connectionModel: ConnectionModelType;
+  driverUrl: string;
+};
+
+// A loaded connection contains connection information.
+export type LoadedConnection = SavedConnection & SavedConnectionInformation;
 
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
-  _savedConnections: {
-    [key: string]: SavedConnection;
+  _connections: {
+    [key: string]: LoadedConnection;
   } = {};
+
+  private readonly _serviceName = 'mdb.vscode.savedConnections';
+  private _keytar: KeyTar | undefined;
 
   _activeDataService: null | DataServiceType = null;
   _activeConnectionModel: null | ConnectionModelType = null;
@@ -47,36 +62,64 @@ export default class ConnectionController {
   constructor(_statusView: StatusView, storageController: StorageController) {
     this._statusView = _statusView;
     this._storageController = storageController;
+
+    this._keytar = getNodeModule<typeof keytarType>('keytar');
   }
 
-  _loadSavedConnection(
+  _loadSavedConnection = async (
     connectionId: string,
     savedConnection: SavedConnection
-  ): void {
-    let loadedSavedConnection: SavedConnection;
+  ): Promise<void> => {
+    if (!this._keytar) {
+      console.log('Keytar not yet loaded!!');
+      return;
+    }
+
+    let loadedSavedConnection: LoadedConnection;
     try {
-      if (!savedConnection.connectionModel) {
+      const unparsedConnectionInformation = await this._keytar.getPassword(
+        this._serviceName,
+        connectionId
+      );
+
+      if (!unparsedConnectionInformation) {
         // Ignore empty connections.
-        return;
+        return Promise.resolve();
+      }
+
+      const connectionInformation: SavedConnectionInformation = JSON.parse(
+        unparsedConnectionInformation
+      );
+
+      if (!connectionInformation.connectionModel) {
+        // Ignore empty connections.
+        return Promise.resolve();
       }
 
       loadedSavedConnection = {
         id: connectionId,
-        driverUrl: savedConnection.driverUrl,
+        driverUrl: connectionInformation.driverUrl,
         name: savedConnection.name,
-        connectionModel: savedConnection.connectionModel,
+        connectionModel: connectionInformation.connectionModel,
         storageLocation: savedConnection.storageLocation
       };
     } catch (error) {
       // Here we're leniant when loading connections in case their
       // connections have become corrupted.
-      return;
+      return Promise.resolve();
     }
-    this._savedConnections[connectionId] = loadedSavedConnection;
+    this._connections[connectionId] = loadedSavedConnection;
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-  }
+
+    Promise.resolve();
+  };
 
   loadSavedConnections(): void {
+    if (!this._keytar) {
+      console.log('Keytar not yet loaded!!');
+      return;
+    }
+
     // Load saved connections from storage.
     const existingGlobalConnections: SavedConnection[] =
       this._storageController.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS) ||
@@ -155,10 +198,7 @@ export default class ConnectionController {
     return new Promise<boolean>((resolve, reject) => {
       Connection.from(
         connectionString,
-        (
-          error: Error | undefined,
-          newConnectionModel: ConnectionModelType
-        ) => {
+        (error: Error | undefined, newConnectionModel: ConnectionModelType) => {
           if (error) {
             return reject(new Error(`Unable to create connection: ${error}`));
           }
@@ -189,28 +229,43 @@ export default class ConnectionController {
     return this.saveNewConnectionAndConnect(connectionModel);
   };
 
-  public saveNewConnectionAndConnect = (
+  public saveNewConnectionAndConnect = async (
     connectionModel: ConnectionModelType
   ): Promise<boolean> => {
     const { driverUrl, instanceId } = connectionModel.getAttributes({
       derived: true
     });
 
-    const newConnection: SavedConnection = {
-      id: uuidv4(),
-      name: instanceId,
+    const connectionId = uuidv4();
+    const connectionInformation: SavedConnectionInformation = {
       connectionModel,
-      driverUrl,
+      driverUrl
+    };
+    const savedConnection: SavedConnection = {
+      id: connectionId,
+      name: instanceId,
       // To begin we just store it on the session, the storage controller
       // handles changing this based on user preference.
       storageLocation: StorageScope.NONE
     };
-    this._savedConnections[newConnection.id] = newConnection;
+    this._connections[connectionId] = {
+      ...savedConnection,
+      ...connectionInformation
+    };
 
-    this._storageController.storeNewConnection(newConnection);
+    if (this._keytar) {
+      const connectionInfoAsString = JSON.stringify(connectionInformation);
+
+      await this._keytar.setPassword(
+        this._serviceName,
+        connectionId,
+        connectionInfoAsString
+      );
+      this._storageController.storeNewConnection(savedConnection);
+    }
 
     return new Promise((resolve, reject) => {
-      this.connect(newConnection.id, connectionModel).then((connectSuccess) => {
+      this.connect(connectionId, connectionModel).then((connectSuccess) => {
         if (!connectSuccess) {
           return resolve(false);
         }
@@ -285,11 +340,11 @@ export default class ConnectionController {
   };
 
   public connectWithConnectionId = (connectionId: string): Promise<boolean> => {
-    if (this._savedConnections[connectionId]) {
+    if (this._connections[connectionId]) {
       let connectionModel;
 
       try {
-        const savedConnectionModel = this._savedConnections[connectionId]
+        const savedConnectionModel = this._connections[connectionId]
           .connectionModel;
         // Here we rebuild the connection model to ensure it's up to date and
         // contains the connection model class methods (not just attributes).
@@ -373,12 +428,21 @@ export default class ConnectionController {
     });
   }
 
-  public removeSavedConnection(connectionId: string): void {
-    delete this._savedConnections[connectionId];
-    this._storageController.removeConnection(connectionId);
+  public removeSavedConnection = async (
+    connectionId: string
+  ): Promise<void> => {
+    delete this._connections[connectionId];
+    if (this._keytar) {
+      await this._keytar.deletePassword(this._serviceName, connectionId);
+      // We only remove the connection from the saved connections if we
+      // have deleted the connection information with keytar.
+      this._storageController.removeConnection(connectionId);
+    }
 
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-  }
+
+    return Promise.resolve();
+  };
 
   // Prompts the user to remove the connection then removes it on affirmation.
   public async removeMongoDBConnection(connectionId: string): Promise<boolean> {
@@ -397,14 +461,14 @@ export default class ConnectionController {
       return Promise.resolve(false);
     }
 
-    if (!this._savedConnections[connectionId]) {
+    if (!this._connections[connectionId]) {
       // No active connection(s) to remove.
       vscode.window.showErrorMessage('Connection does not exist.');
       return Promise.resolve(false);
     }
 
     const removeConfirmationResponse = await vscode.window.showInformationMessage(
-      `Are you sure to want to remove connection ${this._savedConnections[connectionId].name}?`,
+      `Are you sure to want to remove connection ${this._connections[connectionId].name}?`,
       { modal: true },
       'Yes'
     );
@@ -417,7 +481,7 @@ export default class ConnectionController {
       await this.disconnect();
     }
 
-    this.removeSavedConnection(connectionId);
+    await this.removeSavedConnection(connectionId);
 
     vscode.window.showInformationMessage('MongoDB connection removed.');
     return Promise.resolve(true);
@@ -441,7 +505,7 @@ export default class ConnectionController {
       return Promise.resolve(false);
     }
 
-    const connectionIds = Object.keys(this._savedConnections);
+    const connectionIds = Object.keys(this._connections);
 
     if (connectionIds.length === 0) {
       // No active connection(s) to remove.
@@ -458,13 +522,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-      connectionIds.map(
-        (id, index) => `${index + 1}: ${this._savedConnections[id].name}`
-      ),
-      {
-        placeHolder: 'Choose a connection to remove...'
-      }
-    );
+        connectionIds.map(
+          (id, index) => `${index + 1}: ${this._connections[id].name}`
+        ),
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
@@ -482,7 +546,7 @@ export default class ConnectionController {
     let inputtedConnectionName;
     try {
       inputtedConnectionName = await vscode.window.showInputBox({
-        value: this._savedConnections[connectionId].name,
+        value: this._connections[connectionId].name,
         placeHolder: 'e.g. My Connection Name',
         prompt: 'Enter new connection name.',
         validateInput: (inputConnectionName: any) => {
@@ -506,25 +570,24 @@ export default class ConnectionController {
       return Promise.resolve(false);
     }
 
-    this._savedConnections[connectionId].name = inputtedConnectionName;
+    this._connections[connectionId].name = inputtedConnectionName;
 
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
     return new Promise((resolve, reject) => {
       if (
-        this._savedConnections[connectionId].storageLocation ===
-        StorageScope.GLOBAL
+        this._connections[connectionId].storageLocation === StorageScope.GLOBAL
       ) {
         return this._storageController
-          .saveConnectionToGlobalStore(this._savedConnections[connectionId])
+          .saveConnectionToGlobalStore(this._connections[connectionId])
           .then(() => resolve(true), reject);
       } else if (
-        this._savedConnections[connectionId].storageLocation ===
+        this._connections[connectionId].storageLocation ===
         StorageScope.WORKSPACE
       ) {
         return this._storageController
-          .saveConnectionToWorkspaceStore(this._savedConnections[connectionId])
+          .saveConnectionToWorkspaceStore(this._connections[connectionId])
           .then(() => resolve(true), reject);
       }
 
@@ -534,7 +597,7 @@ export default class ConnectionController {
   }
 
   public getSavedConnections(): SavedConnection[] {
-    return Object.values(this._savedConnections);
+    return Object.values(this._connections);
   }
 
   public getActiveConnectionId(): string | null {
@@ -546,7 +609,7 @@ export default class ConnectionController {
       return null;
     }
 
-    return this._savedConnections[this._currentConnectionId].driverUrl;
+    return this._connections[this._currentConnectionId].driverUrl;
   }
 
   public addEventListener(
@@ -572,8 +635,8 @@ export default class ConnectionController {
   }
 
   public getSavedConnectionName(connectionId: string): string {
-    return this._savedConnections[connectionId]
-      ? this._savedConnections[connectionId].name
+    return this._connections[connectionId]
+      ? this._connections[connectionId].name
       : '';
   }
 
@@ -582,8 +645,8 @@ export default class ConnectionController {
       return '';
     }
 
-    return this._savedConnections[this._currentConnectionId]
-      ? this._savedConnections[this._currentConnectionId].name
+    return this._connections[this._currentConnectionId]
+      ? this._connections[this._currentConnectionId].name
       : '';
   }
 
@@ -592,21 +655,21 @@ export default class ConnectionController {
       return false;
     }
 
-    return !!this._savedConnections[connectionId];
+    return !!this._connections[connectionId];
   }
   public getConnectingConnectionName(): string | null {
     if (this._connectingConnectionId === null) {
       return null;
     }
 
-    return this._savedConnections[this._connectingConnectionId].name;
+    return this._connections[this._connectingConnectionId].name;
   }
   public getConnectingConnectionId(): string | null {
     return this._connectingConnectionId;
   }
 
   public getConnectionStringFromConnectionId(connectionId: string): string {
-    return this._savedConnections[connectionId].driverUrl;
+    return this._connections[connectionId].driverUrl;
   }
 
   public isCurrentlyConnected(): boolean {
@@ -623,7 +686,7 @@ export default class ConnectionController {
 
   // Exposed for testing.
   public clearAllConnections(): void {
-    this._savedConnections = {};
+    this._connections = {};
     this._activeDataService = null;
     this._activeConnectionModel = null;
     this._currentConnectionId = null;
