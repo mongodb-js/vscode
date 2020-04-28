@@ -143,7 +143,6 @@ const getListCollections = async (
       connectionString,
       connectionOptions
     );
-
     const result = await serviceProvider.listCollections(databaseName);
     const collections = result
       ? result.map((item) => ({

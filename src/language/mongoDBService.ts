@@ -97,7 +97,6 @@ export default class MongoDBService {
         this._connection.console.log(
           `MONGOSH found ${result.length} collections`
         );
-
         this.updateCurrentSessionCollections(databaseName, result);
       });
     });
@@ -340,18 +339,22 @@ export default class MongoDBService {
       const isUseCallExpression = dataFromAST.isUseCallExpression;
       const isDbCallExpression = dataFromAST.isDbCallExpression;
 
-      if (isObjectKey && databaseName && collectionName) {
-        this._connection.console.log('ESPRIMA found field completion');
+      if (databaseName && !this._cachedCollections[databaseName]) {
+        this.getCollectionsCompletionItems(databaseName);
+      }
 
+      if (databaseName && collectionName) {
         const namespace = `${databaseName}.${collectionName}`;
-        let fields = this._cachedFields[namespace];
 
-        if (!fields) {
-          fields = await this.getFieldsFromSchema(databaseName, collectionName);
-          fields = this.updateCurrentSessionFields(namespace, fields);
+        if (!this._cachedFields[namespace]) {
+          this.getFieldsFromSchema(databaseName, collectionName);
         }
 
-        return resolve(fields);
+        if (isObjectKey) {
+          this._connection.console.log('ESPRIMA found field completion');
+
+          return resolve(this._cachedFields[namespace]);
+        }
       }
 
       if (isMemberExpression && collectionName) {
@@ -362,10 +365,6 @@ export default class MongoDBService {
         );
 
         return resolve(shellCompletion);
-      }
-
-      if (databaseName && !this._cachedCollections[databaseName]) {
-        this.getCollectionsCompletionItems(databaseName);
       }
 
       if (isDbCallExpression && databaseName) {
@@ -608,34 +607,32 @@ export default class MongoDBService {
   private getFieldsFromSchema(
     databaseName: string,
     collectionName: string
-  ): Promise<[]> {
-    return new Promise((resolve) => {
-      const namespace = `${databaseName}.${collectionName}`;
-      const worker = new WorkerThreads(
-        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
-        {
-          workerData: {
-            connectionString: this._connectionString,
-            connectionOptions: this._connectionOptions,
-            databaseName,
-            collectionName
-          }
+  ): void {
+    const namespace = `${databaseName}.${collectionName}`;
+    const worker = new WorkerThreads(
+      path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+      {
+        workerData: {
+          connectionString: this._connectionString,
+          connectionOptions: this._connectionOptions,
+          databaseName,
+          collectionName
         }
-      );
+      }
+    );
 
-      this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
-      worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
+    this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
+    worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
-      worker.on('message', ([error, fields]) => {
-        if (error) {
-          this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
-        } else {
-          this._connection.console.log(`SCHEMA found ${fields.length} fields`);
-        }
+    worker.on('message', ([error, fields]) => {
+      if (error) {
+        this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
+      } else {
+        this._connection.console.log(`SCHEMA found ${fields.length} fields`);
+      }
 
-        worker.terminate().then(() => {
-          return resolve(fields ? fields : []);
-        });
+      worker.terminate().then(() => {
+        this.updateCurrentSessionFields(namespace, fields);
       });
     });
   }
