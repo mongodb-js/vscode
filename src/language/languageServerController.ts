@@ -11,8 +11,7 @@ import {
 import * as WebSocket from 'ws';
 
 import { createLogger } from '../logging';
-import { ServerCommands } from './serverCommands';
-import { PlaygroundRunParameters } from './playgroundRunParametersType';
+import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;

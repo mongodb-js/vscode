@@ -1140,6 +1140,25 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
+  test('mdb.createNewPlaygroundFromViewAction should create a MongoDB playground', (done) => {
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument = sinon.fake.resolves();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    vscode.commands
+      .executeCommand('mdb.createPlayground')
+      .then(() => {
+        assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+        assert(
+          mockShowTextDocument.firstArg === 'untitled',
+          'Expected it to call vscode to show the playground'
+        );
+      })
+      .then(done, done);
+  });
+
   test('mdb.createPlayground command should create a MongoDB playground without template', (done) => {
     const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
