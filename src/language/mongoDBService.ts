@@ -65,42 +65,40 @@ export default class MongoDBService {
         this._connection.console.log(
           `MONGOSH found ${result.length} databases`
         );
-        this._cachedDatabases = result ? result : [];
+        this.updateCurrentSessionDatabaseList(result);
       });
     });
   }
 
-  private getCollectionsCompletionItems(databaseName: string): Promise<[]> {
-    return new Promise((resolve) => {
-      const worker = new WorkerThreads(
-        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
-        {
-          workerData: {
-            connectionString: this._connectionString,
-            connectionOptions: this._connectionOptions,
-            databaseName
-          }
+  private getCollectionsCompletionItems(databaseName: string): void {
+    const worker = new WorkerThreads(
+      path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+      {
+        workerData: {
+          connectionString: this._connectionString,
+          connectionOptions: this._connectionOptions,
+          databaseName
         }
-      );
+      }
+    );
 
-      this._connection.console.log('MONGOSH get list collections...');
-      worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
+    this._connection.console.log('MONGOSH get list collections...');
+    worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
 
-      worker.on('message', ([error, result]) => {
-        if (error) {
-          this._connection.console.log(
-            `MONGOSH get list collections error: ${util.inspect(error)}`
-          );
-          this._connection.sendNotification('showErrorMessage', error.message);
-        }
+    worker.on('message', ([error, result]) => {
+      if (error) {
+        this._connection.console.log(
+          `MONGOSH get list collections error: ${util.inspect(error)}`
+        );
+        this._connection.sendNotification('showErrorMessage', error.message);
+      }
 
-        worker.terminate().then(() => {
-          this._connection.console.log(
-            `MONGOSH found ${result.length} collections`
-          );
+      worker.terminate().then(() => {
+        this._connection.console.log(
+          `MONGOSH found ${result.length} collections`
+        );
 
-          return resolve(result ? result : []);
-        });
+        this.updateCurrentSessionCollectionList(databaseName, result);
       });
     });
   }
@@ -115,9 +113,10 @@ export default class MongoDBService {
     this._connectionString = params.connectionString;
     this._connectionOptions = params.connectionOptions;
     this._extensionPath = params.extensionPath;
-    this._cachedFields = {};
-    this._cachedDatabases = [];
-    this._cachedCollections = [];
+
+    this.clearCurrentSessionFields();
+    this.clearCurrentSessionDatabaseList();
+    this.clearCurrentSessionCollectionList();
 
     if (!this._connectionString) {
       return Promise.resolve(false);
@@ -154,7 +153,7 @@ export default class MongoDBService {
     executionParameters: PlaygroundRunParameters,
     token: CancellationToken
   ): Promise<any> {
-    this._cachedFields = {};
+    this.clearCurrentSessionFields();
 
     return new Promise((resolve) => {
       // Use Node worker threads to run a playground to be able to cancel infinite loops.
@@ -345,15 +344,14 @@ export default class MongoDBService {
         this._connection.console.log('ESPRIMA found field completion');
 
         const namespace = `${databaseName}.${collectionName}`;
+        let fields = this._cachedFields[namespace];
 
-        if (!this._cachedFields[namespace]) {
-          this._cachedFields[namespace] = await this.getFieldsFromSchema(
-            databaseName,
-            collectionName
-          );
+        if (!fields) {
+          fields = await this.getFieldsFromSchema(databaseName, collectionName);
+          fields = this.updateCurrentSessionFields(namespace, fields);
         }
 
-        return resolve(this._cachedFields[namespace]);
+        return resolve(fields);
       }
 
       if (isMemberExpression && collectionName) {
@@ -366,16 +364,16 @@ export default class MongoDBService {
         return resolve(shellCompletion);
       }
 
+      if (databaseName && !this._cachedCollections[databaseName]) {
+        let collections = this._cachedCollections[databaseName];
+
+        this.getCollectionsCompletionItems(databaseName);
+      }
+
       if (isDbCallExpression && databaseName) {
         this._connection.console.log(
           'ESPRIMA found collection names completion'
         );
-
-        if (!this._cachedCollections[databaseName]) {
-          this._cachedCollections[
-            databaseName
-          ] = await this.getCollectionsCompletionItems(databaseName);
-        }
 
         return resolve(this._cachedCollections[databaseName]);
       }
@@ -508,7 +506,9 @@ export default class MongoDBService {
               })
             ) {
               isUseCallExpression = true;
-            } else if (this.checkHasDatabaseName(node, position)) {
+            }
+
+            if (this.checkHasDatabaseName(node, position)) {
               databaseName = node.arguments[0].value;
             }
           }
@@ -565,10 +565,46 @@ export default class MongoDBService {
     };
   }
 
-  public updatedCurrentSessionFields(fields: {
-    [key: string]: [{ label: string; kind: number }];
-  }): void {
-    this._cachedFields = fields ? fields : {};
+  public clearCurrentSessionFields(): void {
+    this._cachedFields = {};
+  }
+
+  public updateCurrentSessionFields(
+    namespace: string,
+    fields: [{ label: string; kind: number }]
+  ): [] {
+    if (!this._cachedFields[namespace]) {
+      this._cachedFields[namespace] = {};
+    }
+
+    this._cachedFields[namespace] = fields;
+
+    return this._cachedFields[namespace];
+  }
+
+  public clearCurrentSessionDatabaseList(): void {
+    this._cachedDatabases = [];
+  }
+
+  public updateCurrentSessionDatabaseList(databases: any): void {
+    this._cachedDatabases = databases ? databases : [];
+  }
+
+  public clearCurrentSessionCollectionList(): void {
+    this._cachedCollections = {};
+  }
+
+  public updateCurrentSessionCollectionList(
+    database: string,
+    collections: [{ label: string; kind: number }]
+  ): [] {
+    if (database) {
+      this._cachedCollections[database] = collections;
+
+      return this._cachedFields[database];
+    }
+
+    return [];
   }
 
   private getFieldsFromSchema(
