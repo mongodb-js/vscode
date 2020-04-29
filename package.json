@@ -48,7 +48,7 @@
     "watch": "npm run clean && npm run webpack-dev && npm-run-all -p watch:*",
     "watch:extension": "npm run compile:extension -- -watch",
     "watch:extension-bundles": "webpack --mode development --info-verbosity verbose --watch",
-    "pretest": "npm run compile && npm run webpack-dev && cross-env MONGODB_VERSION=4.2.3 mongodb-runner start --port=27018",
+    "pretest": "npm run clean && npm run compile && npm run webpack-dev && cross-env MONGODB_VERSION=4.2.3 mongodb-runner start --port=27018",
     "test": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run clean && npm run compile && webpack --mode production",
