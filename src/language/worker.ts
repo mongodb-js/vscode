@@ -16,6 +16,11 @@ type EvaluationResult = {
 type WorkerResult = any;
 type WorkerError = any | null;
 
+// Check if str is a valid property name
+const validName = (str) => {
+  return /^(?![0-9])[a-zA-Z0-9$_]+$/.test(str);
+};
+
 const executeAll = async (
   codeToEvaluate: string,
   connectionString: string,
@@ -147,7 +152,8 @@ const getListCollections = async (
     const collections = result
       ? result.map((item) => ({
           label: item.name,
-          kind: CompletionItemKind.Value
+          kind: CompletionItemKind.Value,
+          insertText: validName(item.name) ? item.name : `['${item.name}']`
         }))
       : [];
 
