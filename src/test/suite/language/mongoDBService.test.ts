@@ -455,25 +455,76 @@ suite('MongoDBService Test Suite', () => {
       expect(db).to.have.property('kind', CompletionItemKind.Value);
     });
 
-    test('provide collection names completion', async () => {
+    test('provide collection names completion for valid object names', async () => {
       testMongoDBService.updateCurrentSessionCollections('test', [
-        {
-          label: 'empty',
-          kind: CompletionItemKind.Method
-        }
+        { name: 'empty' }
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.',
         { line: 0, character: 16 }
       );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'empty'
+      );
 
-      expect(result.length).to.be.equal(1);
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Property
+      );
+    });
 
-      const collection = result.shift();
+    test('provide collection names completion for object names with dashes', async () => {
+      testMongoDBService.updateCurrentSessionCollections('berlin', [
+        {
+          name: 'coll-name'
+        }
+      ]);
 
-      expect(collection).to.have.property('label', 'empty');
-      expect(collection).to.have.property('kind', CompletionItemKind.Method);
+      const result = await testMongoDBService.provideCompletionItems(
+        "use('berlin'); db.",
+        { line: 0, character: 18 }
+      );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'coll-name'
+      );
+
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Property
+      );
+
+      expect(findCollectionCompletion)
+        .to.have.property('textEdit')
+        .that.has.property('newText', "db['coll-name']");
+    });
+
+    test('provide collection names and shell db symbol completion', async () => {
+      testMongoDBService.updateCurrentSessionCollections('berlin', [
+        {
+          name: 'coll-name'
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        "use('berlin'); db.",
+        { line: 0, character: 18 }
+      );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'coll-name'
+      );
+      const findShellCompletion = result.find(
+        (itme: any) => itme.label === 'getCollectionNames'
+      );
+
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Property
+      );
+      expect(findShellCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Method
+      );
     });
   });
 

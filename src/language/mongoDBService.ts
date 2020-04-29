@@ -288,6 +288,49 @@ export default class MongoDBService {
     return textForEsprima.join('\n');
   };
 
+  // Check if string is a valid property name
+  private validPropertyName(str) {
+    return /^(?![0-9])[a-zA-Z0-9$_]+$/.test(str);
+  }
+
+  private provideCollectionsItems(
+    collections: Array<any>,
+    dbCallPosition: { line: number; character: number }
+  ): any {
+    return collections.map((item) => {
+      const line = dbCallPosition.line;
+      const startCharacter = dbCallPosition.character - 3;
+      const endCharacter = dbCallPosition.character;
+
+      if (this.validPropertyName(item.name)) {
+        return {
+          label: item.name,
+          kind: CompletionItemKind.Property
+        };
+      }
+
+      return {
+        label: item.name,
+        kind: CompletionItemKind.Property,
+        filterText: `db.`,
+        insertTextFormat: 2,
+        textEdit: {
+          range: {
+            start: {
+              line,
+              character: startCharacter
+            },
+            end: {
+              line,
+              character: endCharacter
+            }
+          },
+          newText: `db['${item.name}']`
+        }
+      };
+    });
+  }
+
   public provideCompletionItems(
     textFromEditor: string,
     position: { line: number; character: number }
@@ -308,6 +351,7 @@ export default class MongoDBService {
       const isMemberExpression = dataFromAST.isMemberExpression;
       const isUseCallExpression = dataFromAST.isUseCallExpression;
       const isDbCallExpression = dataFromAST.isDbCallExpression;
+      const dbCallPosition = dataFromAST.dbCallPosition;
       const isAggregationCursor = dataFromAST.isAggregationCursor;
       const isFindCursor = dataFromAST.isFindCursor;
 
@@ -347,18 +391,25 @@ export default class MongoDBService {
         return resolve(this._cachedShellSymbols['Collection']);
       }
 
-      if (isDbCallExpression && databaseName) {
-        this._connection.console.log(
-          'ESPRIMA found collection names completion'
-        );
-
-        return resolve(this._cachedCollections[databaseName]);
-      }
-
       if (isDbCallExpression) {
         this._connection.console.log('ESPRIMA found collection db symbol');
 
-        return resolve(this._cachedShellSymbols['Database']);
+        let dbCompletions: any = [...this._cachedShellSymbols['Database']];
+
+        if (databaseName) {
+          this._connection.console.log(
+            'ESPRIMA found collection names completion'
+          );
+
+          const collectionCompletions = this.provideCollectionsItems(
+            this._cachedCollections[databaseName],
+            dbCallPosition
+          );
+
+          dbCompletions = dbCompletions.concat(collectionCompletions);
+        }
+
+        return resolve(dbCompletions);
       }
 
       if (isUseCallExpression) {
@@ -480,6 +531,7 @@ export default class MongoDBService {
     isMemberExpression: boolean;
     isUseCallExpression: boolean;
     isDbCallExpression: boolean;
+    dbCallPosition: { line: number; character: number };
     isAggregationCursor: boolean;
     isFindCursor: boolean;
   } {
@@ -491,6 +543,7 @@ export default class MongoDBService {
     let isDbCallExpression = false;
     let isAggregationCursor = false;
     let isFindCursor = false;
+    let dbCallPosition = { line: 0, character: 0 };
 
     try {
       this._connection.console.log(`ESPRIMA completion body: "${text}"`);
@@ -552,6 +605,7 @@ export default class MongoDBService {
 
             if (this.checkIsDbCall(node) && isCurrentNode) {
               isDbCallExpression = true;
+              dbCallPosition = position;
             }
           }
 
@@ -579,7 +633,8 @@ export default class MongoDBService {
       isUseCallExpression,
       isDbCallExpression,
       isAggregationCursor,
-      isFindCursor
+      isFindCursor,
+      dbCallPosition
     };
   }
 
@@ -614,7 +669,7 @@ export default class MongoDBService {
 
   public updateCurrentSessionCollections(
     database: string,
-    collections: [{ label: string; kind: number }]
+    collections: any
   ): [] {
     if (database) {
       this._cachedCollections[database] = collections;
