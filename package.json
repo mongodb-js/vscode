@@ -475,7 +475,7 @@
         },
         "mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used."
         },
         "mdb.connectionSaving.defaultConnectionSavingLocation": {
@@ -490,7 +490,7 @@
             "Save new connections to the active workspace.",
             "Don't save new connections (connections are lost when the session is closed)."
           ],
-          "default": "Workspace",
+          "default": "Global",
           "description": "When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved."
         },
         "mdb.useDefaultTemplateForPlayground": {
