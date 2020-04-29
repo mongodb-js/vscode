@@ -2,6 +2,12 @@ import * as vscode from 'vscode';
 
 export function getNodeModule<T>(moduleName: string): T | undefined {
   try {
+    return require(`${moduleName}`);
+  } catch (err) {
+    // Not available.
+  }
+
+  try {
     return require(`${vscode.env.appRoot}/node_modules.asar/${moduleName}`);
   } catch (err) {
     // Not in ASAR.
