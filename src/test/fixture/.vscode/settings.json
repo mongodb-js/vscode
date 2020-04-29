@@ -12,5 +12,11 @@
   "mongodbLanguageServer.trace.server": {
     "format": "json",
     "verbosity": "verbose"
+  },
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
   }
 }

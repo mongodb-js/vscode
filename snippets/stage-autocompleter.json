@@ -6,7 +6,6 @@
       " * newField: The new field name.",
       " * expression: The new field expression.",
       " */",
-      "",
       "\\$addFields: {",
       "  ${1:newField}: ${2:expression}, ${3:...}",
       "}"
@@ -24,7 +23,6 @@
       " *    outputN: Optional. The output object may contain a single or numerous field names used to accumulate values per bucket.",
       " * }",
       " */",
-      "",
       "\\$bucket: {",
       "  groupBy: ${1:expression},",
       "  boundaries: [ ${2:lowerbound}, ${3:...} ],",
@@ -47,7 +45,6 @@
       " * }",
       " * granularity: Optional number series",
       " */",
-      "",
       "\\$bucketAuto: {",
       "  groupBy: ${1:expression},",
       "  buckets: ${2:number},",
@@ -66,7 +63,6 @@
       " * histograms: Optional latency histograms.",
       " * storageStats: Optional storage stats.",
       "*/",
-      "",
       "\\$collStats: {",
       "  latencyStats: {",
       "    histograms: ${1:boolean}",
@@ -82,7 +78,6 @@
       "/**",
       " * Provide the field name for the count.",
       " */",
-      "",
       "\\$count: '${1:string}'"
     ],
     "description": "Returns a count of the number of documents at this stage of the aggregation pipeline."
@@ -94,7 +89,6 @@
       " * outputFieldN: The first output field.",
       " * stageN: The first aggregation stage.",
       " */",
-      "",
       "\\$facet: {",
       "  ${1:outputFieldN}: [ ${2:stageN}, ${3:...} ]",
       "}"
@@ -107,7 +101,6 @@
       "/**",
       " * options: The geo query options.",
       " */",
-      "",
       "\\$geoNear: {",
       "  near: The point to search near.",
       "  distanceField: The calculated distance.",
@@ -133,7 +126,6 @@
       " * depthField: Optional Name of the depth field.",
       " * restrictSearchWithMatch: Optional query.",
       " */",
-      "",
       "\\$graphLookup: {",
       "  from: '${1:string}',",
       "  startWith: ${2:expression},",
@@ -154,7 +146,6 @@
       " * _id: The id of the group.",
       " * fieldN: The first field name.",
       " */",
-      "",
       "\\$group: {",
       "  _id: ${1:expression},",
       "  ${2:fieldN}: {",
@@ -170,7 +161,6 @@
       "/**",
       " * No parameters.",
       " */",
-      "",
       "\\$indexStats: {}"
     ],
     "description": "Returns statistics regarding the use of each index for the collection."
@@ -181,7 +171,6 @@
       "/**",
       " * Provide the number of documents to limit.",
       " */",
-      "",
       "\\$limit: ${1:number}"
     ],
     "description": "Limits the number of documents that flow into subsequent stages."
@@ -197,7 +186,6 @@
       " * pipeline: The pipeline to run on the joined collection.",
       " * let: Optional variables to use in the pipeline field stages.",
       " */",
-      "",
       "\\$lookup: {",
       "  from: '${1:string}',",
       "  localField: '${2:string}',",
@@ -213,7 +201,6 @@
       "/**",
       " * query: The query in MQL.",
       " */",
-      "",
       "\\$match: {",
       "  ${1:query}",
       "}"
@@ -230,7 +217,6 @@
       " * whenMatched: Action for matching docs.",
       " * whenNotMatched: Action for non-matching docs.",
       " */",
-      "",
       "\\$merge: {",
       "  into: '${1:string}',",
       "  on: '${2:string}',",
@@ -247,7 +233,6 @@
       "/**",
       " * Provide the name of the output collection.",
       " */",
-      "",
       "\\$out: '${1:string}'"
     ],
     "description": "Writes the result of a pipeline to a new or existing collection."
@@ -259,7 +244,6 @@
       " * specifications: The fields to",
       " *   include or exclude.",
       " */",
-      "",
       "\\$project: {",
       "  ${1:specification(s)}",
       "}"
@@ -273,7 +257,6 @@
       " * expression: Any valid expression that",
       " *   evaluates to \\$\\$DESCEND, \\$\\$PRUNE, or \\$\\$KEEP.",
       " */",
-      "",
       "\\$redact: {",
       "  ${1:expression}",
       "}"
@@ -286,7 +269,6 @@
       "/**",
       " * replacementDocument: A document or string.",
       " */",
-      "",
       "\\$replaceWith: {",
       "  newWith: ${1:replacementDocument}",
       "}"
@@ -299,7 +281,6 @@
       "/**",
       " * replacementDocument: A document or string.",
       " */",
-      "",
       "\\$replaceRoot: {",
       "  newRoot: ${1:replacementDocument}",
       "}"
@@ -312,7 +293,6 @@
       "/**",
       " * size: The number of documents to sample.",
       " */",
-      "",
       "\\$sample: {",
       "  size: ${1:number}",
       "}"
@@ -327,7 +307,6 @@
       " * search: The search spec.",
       " * highlight: Search with highlights.",
       " */",
-      "",
       "\\$searchBeta: {",
       "  index: '${1:string}',",
       "  search: '${2:specification}',",
@@ -343,7 +322,6 @@
       " * field: The field name",
       " * expression: The expression.",
       " */",
-      "",
       "\\$set: {",
       "  ${1:field}: ${2:expression}",
       "}"
@@ -356,7 +334,6 @@
       "/**",
       " * Provide the number of documents to skip.",
       " */",
-      "",
       "\\$skip: ${1:number}"
     ],
     "description": "Skips a specified number of documents before advancing to the next stage."
@@ -367,7 +344,6 @@
       "/**",
       " * Provide any number of field/order pairs.",
       " */",
-      "",
       "\\$sort: {",
       "  ${1:field1}: ${2:sortOrder}",
       "}"
@@ -380,7 +356,6 @@
       "/**",
       " * expression: Grouping expression or string.",
       " */",
-      "",
       "\\$sortByCount: {",
       "  ${1:expression}",
       "}"
@@ -393,7 +368,6 @@
       "/**",
       " * fields: The field name(s).",
       " */",
-      "",
       "\\$unset: {",
       "  ${1:field}",
       "}"
@@ -409,7 +383,6 @@
       " * preserveNullAndEmptyArrays: Optional",
       " *   toggle to unwind null and empty values.",
       " */",
-      "",
       "\\$unwind: {",
       "  path: ${1:path},",
       "  includeArrayIndex: '${2:string}',",

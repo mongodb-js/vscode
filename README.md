@@ -52,6 +52,8 @@ Open VS Code, launch the Commmand Palette (⌘+Shift+P on MacOS, Ctrl+Shift+P on
 
 ![Playgrounds](resources/screenshots/playground.png)
 
+> Make sure you are connected to a cluster before using a playground. You can't run a playground and you won't get completions if you are not connected.
+
 ### Quick access to the MongoDB Shell
 
 - Launch the MongoDB Shell from the command palette to quickly connect to the same cluster you have active in VS Code
@@ -69,6 +71,22 @@ Open VS Code, launch the Commmand Palette (⌘+Shift+P on MacOS, Ctrl+Shift+P on
 - `mdb.useDefaultTemplateForPlayground`: Choose wether to use default template for playground files or to start with an empty playground editor.
 
 ![Settings](resources/screenshots/settings.png)
+
+## Additional Settings
+
+> These settings affect not only MongoDB extension but all installed extensions. If you don't want to change default settings, you can force VS Code to trigger suggestions by clicking `Ctrl+Space` inside a snippet or string literal.
+
+`editor.suggest.snippetsPreventQuickSuggestions`: By default, VS Code prevents code completion in the snippet mode (editing placeholders in inserted code). Setting this option to `false` stops that and allows for the `db.collection.aggregate()` expression having both snippets completion (eg. `$match`, `$addFields`) and fields completion based on the document schema.
+
+`editor.quickSuggestions`: By default, VS Code prevents code completion inside string literals. To enable database names completions for `use('')` expression use the following setting:
+
+```
+"editor.quickSuggestions": {
+  "other": true,
+  "comments": false,
+  "strings": true
+}
+```
 
 ## Telemetry
 

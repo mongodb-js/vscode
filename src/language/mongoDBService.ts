@@ -2,6 +2,7 @@ import { CompletionItemKind, CancellationToken } from 'vscode-languageserver';
 import { Worker as WorkerThreads } from 'worker_threads';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
+import { signatures } from '@mongosh/shell-api';
 import * as util from 'util';
 import { ServerCommands } from './serverCommands';
 
@@ -20,11 +21,17 @@ export default class MongoDBService {
   _connectionString?: string;
   _connectionOptions?: object;
   _cachedFields: object;
+  _cachedDatabases: [];
+  _cachedCollections: object;
+  _cachedShellSymbols: object;
   _extensionPath?: string;
 
   constructor(connection) {
     this._connection = connection;
     this._cachedFields = {};
+    this._cachedDatabases = [];
+    this._cachedCollections = [];
+    this._cachedShellSymbols = this.getShellCompletionItems();
   }
 
   public get connectionString(): string | undefined {
@@ -33,6 +40,73 @@ export default class MongoDBService {
 
   public get connectionOptions(): object | undefined {
     return this._connectionOptions;
+  }
+
+  private getDatabasesCompletionItems(): void {
+    const worker = new WorkerThreads(
+      path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+      {
+        workerData: {
+          connectionString: this._connectionString,
+          connectionOptions: this._connectionOptions
+        }
+      }
+    );
+
+    this._connection.console.log('MONGOSH get list databases...');
+    worker.postMessage(ServerCommands.GET_LIST_DATABASES);
+
+    worker.on('message', ([error, result]) => {
+      if (error) {
+        this._connection.console.log(
+          `MONGOSH get list databases error: ${util.inspect(error)}`
+        );
+      }
+
+      worker.terminate().then(() => {
+        this._connection.console.log(
+          `MONGOSH found ${result.length} databases`
+        );
+        this.updateCurrentSessionDatabases(result);
+      });
+    });
+  }
+
+  private getCollectionsCompletionItems(
+    databaseName: string
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      const worker = new WorkerThreads(
+        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+        {
+          workerData: {
+            connectionString: this._connectionString,
+            connectionOptions: this._connectionOptions,
+            databaseName
+          }
+        }
+      );
+
+      this._connection.console.log('MONGOSH get list collections...');
+      worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
+
+      worker.on('message', ([error, result]) => {
+        if (error) {
+          this._connection.console.log(
+            `MONGOSH get list collections error: ${util.inspect(error)}`
+          );
+        }
+
+        worker.terminate().then(() => {
+          this._connection.console.log(
+            `MONGOSH found ${result.length} collections`
+          );
+          this.updateCurrentSessionCollections(databaseName, result);
+
+          return resolve(true);
+        });
+      });
+    });
   }
 
   public async connectToServiceProvider(params: {
@@ -46,6 +120,10 @@ export default class MongoDBService {
     this._connectionOptions = params.connectionOptions;
     this._extensionPath = params.extensionPath;
 
+    this.clearCurrentSessionFields();
+    this.clearCurrentSessionDatabases();
+    this.clearCurrentSessionCollections();
+
     if (!this._connectionString) {
       return Promise.resolve(false);
     }
@@ -56,6 +134,7 @@ export default class MongoDBService {
         this._connectionOptions
       );
       this._runtime = new ElectronRuntime(this._serviceProvider);
+      this.getDatabasesCompletionItems();
 
       return Promise.resolve(true);
     } catch (error) {
@@ -80,7 +159,7 @@ export default class MongoDBService {
     executionParameters: PlaygroundRunParameters,
     token: CancellationToken
   ): Promise<any> {
-    this._cachedFields = {};
+    this.clearCurrentSessionFields();
 
     return new Promise((resolve) => {
       // Use Node worker threads to run a playground to be able to cancel infinite loops.
@@ -93,11 +172,7 @@ export default class MongoDBService {
       // TODO: After webpackifying the extension replace
       // the workaround with some similar 3rd-party plugin.
       const worker = new WorkerThreads(
-        path.resolve(
-          this._extensionPath,
-          'dist',
-          languageServerWorkerFileName
-        ),
+        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
         {
           // The workerData parameter sends data to the created worker.
           workerData: {
@@ -164,56 +239,19 @@ export default class MongoDBService {
   }
 
   // Get shell API symbols/methods completion from mongosh.
-  protected getShellCompletionItems(expression: string): Promise<[]> {
-    return new Promise(async (resolve) => {
-      let mongoshCompletions: any;
+  private getShellCompletionItems(): object {
+    const shellSymbols = {};
 
-      if (!this._runtime) {
-        return resolve([]);
-      }
-
-      try {
-        this._connection.console.log(
-          `MONGOSH completion body: "${expression}"`
-        );
-        mongoshCompletions = await this._runtime?.getCompletions(expression);
-      } catch (error) {
-        this._connection.console.log(
-          `MONGOSH completion error: ${util.inspect(error)}`
-        );
-
-        return resolve([]);
-      }
-
-      if (
-        !mongoshCompletions ||
-        !Array.isArray(mongoshCompletions) ||
-        mongoshCompletions.length === 0
-      ) {
-        return resolve([]);
-      }
-
-      // Convert Completion[] format returned by `mongosh`
-      // to CompletionItem[] format required by VSCode.
-      mongoshCompletions = mongoshCompletions.map((item) => {
-        // The runtime.getCompletions() function returns complitions including the user input.
-        // Slice the user input and show only suggested keywords to complete the query.
-        const index = item.completion.indexOf(expression);
-        const newTextToComplete = `${item.completion.slice(
-          0,
-          index
-        )}${item.completion.slice(index + expression.length)}`;
-        const label: string =
-          index === -1 ? item.completion : newTextToComplete;
-
-        return {
-          label,
+    Object.keys(signatures).map((symbol) => {
+      shellSymbols[symbol] = Object.keys(signatures[symbol].attributes).map(
+        (item) => ({
+          label: item,
           kind: CompletionItemKind.Method
-        };
-      });
-
-      return resolve(mongoshCompletions);
+        })
+      );
     });
+
+    return shellSymbols;
   }
 
   private removeSymbolByIndex = (text: string, index: number): string => {
@@ -250,6 +288,49 @@ export default class MongoDBService {
     return textForEsprima.join('\n');
   };
 
+  // Check if string is a valid property name
+  private validPropertyName(str) {
+    return /^(?![0-9])[a-zA-Z0-9$_]+$/.test(str);
+  }
+
+  private provideCollectionsItems(
+    collections: Array<any>,
+    dbCallPosition: { line: number; character: number }
+  ): any {
+    return collections.map((item) => {
+      const line = dbCallPosition.line;
+      const startCharacter = dbCallPosition.character - 3;
+      const endCharacter = dbCallPosition.character;
+
+      if (this.validPropertyName(item.name)) {
+        return {
+          label: item.name,
+          kind: CompletionItemKind.Property
+        };
+      }
+
+      return {
+        label: item.name,
+        kind: CompletionItemKind.Property,
+        filterText: `db.`,
+        insertTextFormat: 2,
+        textEdit: {
+          range: {
+            start: {
+              line,
+              character: startCharacter
+            },
+            end: {
+              line,
+              character: endCharacter
+            }
+          },
+          newText: `db['${item.name}']`
+        }
+      };
+    });
+  }
+
   public provideCompletionItems(
     textFromEditor: string,
     position: { line: number; character: number }
@@ -268,40 +349,116 @@ export default class MongoDBService {
       const collectionName = dataFromAST.collectionName;
       const isObjectKey = dataFromAST.isObjectKey;
       const isMemberExpression = dataFromAST.isMemberExpression;
+      const isUseCallExpression = dataFromAST.isUseCallExpression;
+      const isDbCallExpression = dataFromAST.isDbCallExpression;
+      const dbCallPosition = dataFromAST.dbCallPosition;
+      const isAggregationCursor = dataFromAST.isAggregationCursor;
+      const isFindCursor = dataFromAST.isFindCursor;
 
-      if (isObjectKey && databaseName && collectionName) {
-        this._connection.console.log(
-          'ESPRIMA response: "Found ObjectExpression"'
-        );
+      if (databaseName && !this._cachedCollections[databaseName]) {
+        await this.getCollectionsCompletionItems(databaseName);
+      }
 
+      if (databaseName && collectionName) {
         const namespace = `${databaseName}.${collectionName}`;
 
         if (!this._cachedFields[namespace]) {
-          this._cachedFields[namespace] = await this.getFieldsFromSchema(
-            databaseName,
-            collectionName
-          );
+          await this.getFieldsFromSchema(databaseName, collectionName);
         }
 
-        return resolve(this._cachedFields[namespace]);
+        if (isObjectKey) {
+          this._connection.console.log('ESPRIMA found field completion');
+
+          return resolve(this._cachedFields[namespace]);
+        }
+      }
+
+      if (isAggregationCursor) {
+        this._connection.console.log('ESPRIMA found aggregation cursor');
+
+        return resolve(this._cachedShellSymbols['AggregationCursor']);
+      }
+
+      if (isFindCursor) {
+        this._connection.console.log('ESPRIMA found cursor');
+
+        return resolve(this._cachedShellSymbols['Cursor']);
       }
 
       if (isMemberExpression && collectionName) {
-        this._connection.console.log(
-          'ESPRIMA response: "Found MemberExpression"'
-        );
+        this._connection.console.log('ESPRIMA found shell completion');
 
-        const shellCompletion = await this.getShellCompletionItems(
-          `db.${collectionName}.`
-        );
-
-        return resolve(shellCompletion);
+        return resolve(this._cachedShellSymbols['Collection']);
       }
 
-      this._connection.console.log('ESPRIMA response: "No completion"');
+      if (isDbCallExpression) {
+        this._connection.console.log('ESPRIMA found collection db symbol');
+
+        let dbCompletions: any = [...this._cachedShellSymbols['Database']];
+
+        if (databaseName) {
+          this._connection.console.log(
+            'ESPRIMA found collection names completion'
+          );
+
+          const collectionCompletions = this.provideCollectionsItems(
+            this._cachedCollections[databaseName],
+            dbCallPosition
+          );
+
+          dbCompletions = dbCompletions.concat(collectionCompletions);
+        }
+
+        return resolve(dbCompletions);
+      }
+
+      if (isUseCallExpression) {
+        this._connection.console.log('ESPRIMA found database names completion');
+
+        return resolve(this._cachedDatabases);
+      }
+
+      this._connection.console.log('ESPRIMA no completions');
 
       return resolve([]);
     });
+  }
+
+  private checkIsUseCall(node: any): boolean {
+    if (
+      node.callee.name === 'use' &&
+      node.arguments &&
+      node.arguments.length === 1 &&
+      node.arguments[0].type === esprima.Syntax.Literal
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private checkIsDbCall(node: any): boolean {
+    if (node.expression.name === 'db') {
+      return true;
+    }
+
+    return false;
+  }
+
+  private checkHasAggregationCall(node: any): boolean {
+    if (node.property.name === 'aggregate') {
+      return true;
+    }
+
+    return false;
+  }
+
+  private checkHasFindCall(node: any): boolean {
+    if (node.property.name === 'find') {
+      return true;
+    }
+
+    return false;
   }
 
   private checkHasDatabaseName(
@@ -345,17 +502,18 @@ export default class MongoDBService {
   ): boolean {
     // Esprima counts lines from 1, when vscode counts position starting from 0
     const nodeStartLine = node.loc.start.line - 1;
-    const nodeStartCharacter = node.loc.start.column;
     const nodeEndLine = node.loc.end.line - 1;
-    const nodeEndCharacter = node.loc.start.column;
+    // Do not count brackets
+    const nodeStartCharacter = node.loc.start.column + 1;
+    const nodeEndCharacter = node.loc.end.column - 1;
+    const cursorLine = currentPosition.line;
+    const cursorCharacter = currentPosition.character;
 
     if (
-      (currentPosition.line > nodeStartLine &&
-        currentPosition.line < nodeEndLine) ||
-      (currentPosition.line === nodeStartLine &&
-        currentPosition.character >= nodeStartCharacter) ||
-      (currentPosition.line === nodeEndLine &&
-        currentPosition.character <= nodeEndCharacter)
+      (cursorLine > nodeStartLine && cursorLine < nodeEndLine) ||
+      (cursorLine === nodeStartLine &&
+        cursorCharacter >= nodeStartCharacter &&
+        cursorCharacter <= nodeEndCharacter)
     ) {
       return true;
     }
@@ -371,11 +529,21 @@ export default class MongoDBService {
     collectionName: string | null;
     isObjectKey: boolean;
     isMemberExpression: boolean;
+    isUseCallExpression: boolean;
+    isDbCallExpression: boolean;
+    dbCallPosition: { line: number; character: number };
+    isAggregationCursor: boolean;
+    isFindCursor: boolean;
   } {
     let databaseName = null;
     let collectionName = null;
     let isObjectKey = false;
     let isMemberExpression = false;
+    let isUseCallExpression = false;
+    let isDbCallExpression = false;
+    let isAggregationCursor = false;
+    let isFindCursor = false;
+    let dbCallPosition = { line: 0, character: 0 };
 
     try {
       this._connection.console.log(`ESPRIMA completion body: "${text}"`);
@@ -384,36 +552,72 @@ export default class MongoDBService {
 
       estraverse.traverse(ast, {
         enter: (node) => {
-          if (
-            node.type === esprima.Syntax.CallExpression &&
-            this.checkHasDatabaseName(node, position)
-          ) {
-            databaseName = node.arguments[0].value;
-          }
+          if (node.type === esprima.Syntax.CallExpression) {
+            const isCurrentNode = this.checkIsCurrentNode(node, {
+              line: position.line,
+              character: position.character
+            });
 
-          if (
-            node.type === esprima.Syntax.MemberExpression &&
-            this.checkHasCollectionName(node, position)
-          ) {
-            collectionName = node.property.name
-              ? node.property.name
-              : node.property.value;
+            if (this.checkIsUseCall(node) && isCurrentNode) {
+              isUseCallExpression = true;
+            }
 
-            if (
-              this.checkIsCurrentNode(node, {
-                line: position.line,
-                character: position.character - 2
-              })
-            ) {
-              isMemberExpression = true;
+            if (this.checkHasDatabaseName(node, position)) {
+              databaseName = node.arguments[0].value;
             }
           }
 
-          if (
-            node.type === esprima.Syntax.ObjectExpression &&
-            this.checkIsCurrentNode(node, position)
-          ) {
-            isObjectKey = true;
+          if (node.type === esprima.Syntax.MemberExpression) {
+            if (node.object.type === esprima.Syntax.MemberExpression) {
+              if (this.checkHasAggregationCall(node)) {
+                isAggregationCursor = true;
+              }
+
+              if (this.checkHasFindCall(node)) {
+                isFindCursor = true;
+              }
+            }
+
+            if (
+              node.object.type === esprima.Syntax.Identifier &&
+              this.checkHasCollectionName(node, position)
+            ) {
+              const isCurrentNode = this.checkIsCurrentNode(node, {
+                line: position.line,
+                character: position.character - 3
+              });
+
+              collectionName = node.property.name
+                ? node.property.name
+                : node.property.value;
+
+              if (isCurrentNode) {
+                isMemberExpression = true;
+              }
+            }
+          }
+
+          if (node.type === esprima.Syntax.ExpressionStatement) {
+            const isCurrentNode = this.checkIsCurrentNode(node, {
+              line: position.line,
+              character: position.character - 2
+            });
+
+            if (this.checkIsDbCall(node) && isCurrentNode) {
+              isDbCallExpression = true;
+              dbCallPosition = position;
+            }
+          }
+
+          if (node.type === esprima.Syntax.ObjectExpression) {
+            const isCurrentNode = this.checkIsCurrentNode(node, {
+              line: position.line,
+              character: position.character - 1
+            });
+
+            if (isCurrentNode) {
+              isObjectKey = true;
+            }
           }
         }
       });
@@ -421,25 +625,70 @@ export default class MongoDBService {
       this._connection.console.log(`ESPRIMA error: ${util.inspect(error)}`);
     }
 
-    return { databaseName, collectionName, isObjectKey, isMemberExpression };
+    return {
+      databaseName,
+      collectionName,
+      isObjectKey,
+      isMemberExpression,
+      isUseCallExpression,
+      isDbCallExpression,
+      isAggregationCursor,
+      isFindCursor,
+      dbCallPosition
+    };
   }
 
-  public updatedCurrentSessionFields(fields: {
-    [key: string]: [{ label: string; kind: number }];
-  }): void {
-    this._cachedFields = fields ? fields : {};
+  public clearCurrentSessionFields(): void {
+    this._cachedFields = {};
+  }
+
+  public updateCurrentSessionFields(
+    namespace: string,
+    fields: [{ label: string; kind: number }]
+  ): [] {
+    if (!this._cachedFields[namespace]) {
+      this._cachedFields[namespace] = {};
+    }
+
+    this._cachedFields[namespace] = fields;
+
+    return this._cachedFields[namespace];
+  }
+
+  public clearCurrentSessionDatabases(): void {
+    this._cachedDatabases = [];
+  }
+
+  public updateCurrentSessionDatabases(databases: any): void {
+    this._cachedDatabases = databases ? databases : [];
+  }
+
+  public clearCurrentSessionCollections(): void {
+    this._cachedCollections = {};
+  }
+
+  public updateCurrentSessionCollections(
+    database: string,
+    collections: any
+  ): [] {
+    if (database) {
+      this._cachedCollections[database] = collections;
+
+      return this._cachedFields[database];
+    }
+
+    return [];
   }
 
   private getFieldsFromSchema(
     databaseName: string,
     collectionName: string
-  ): Promise<[]> {
+  ): Promise<boolean> {
     return new Promise((resolve) => {
       const namespace = `${databaseName}.${collectionName}`;
       const worker = new WorkerThreads(
         path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
         {
-          // The workerData parameter sends data to the created worker
           workerData: {
             connectionString: this._connectionString,
             connectionOptions: this._connectionOptions,
@@ -450,22 +699,18 @@ export default class MongoDBService {
       );
 
       this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
-
-      // Evaluate runtime in the worker thread
       worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
-      // Listen for results from the worker thread
       worker.on('message', ([error, fields]) => {
         if (error) {
           this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
-        } else {
-          this._connection.console.log(
-            `SCHEMA response: "Found ${fields.length} fields"`
-          );
         }
 
         worker.terminate().then(() => {
-          return resolve(fields ? fields : []);
+          this._connection.console.log(`SCHEMA found ${fields.length} fields`);
+          this.updateCurrentSessionFields(namespace, fields);
+
+          return resolve(true);
         });
       });
     });
