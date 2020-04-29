@@ -2,6 +2,7 @@ import { CompletionItemKind, CancellationToken } from 'vscode-languageserver';
 import { Worker as WorkerThreads } from 'worker_threads';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
+import { signatures } from '@mongosh/shell-api';
 import * as util from 'util';
 import { ServerCommands } from './serverCommands';
 
@@ -22,6 +23,7 @@ export default class MongoDBService {
   _cachedFields: object;
   _cachedDatabases: [];
   _cachedCollections: object;
+  _cachedShellSymbols: object;
   _extensionPath?: string;
 
   constructor(connection) {
@@ -29,6 +31,7 @@ export default class MongoDBService {
     this._cachedFields = {};
     this._cachedDatabases = [];
     this._cachedCollections = [];
+    this._cachedShellSymbols = this.getShellCompletionItems();
   }
 
   public get connectionString(): string | undefined {
@@ -236,56 +239,19 @@ export default class MongoDBService {
   }
 
   // Get shell API symbols/methods completion from mongosh.
-  protected getShellCompletionItems(expression: string): Promise<[]> {
-    return new Promise(async (resolve) => {
-      let mongoshCompletions: any;
+  private getShellCompletionItems(): object {
+    const shellSymbols = {};
 
-      if (!this._runtime) {
-        return resolve([]);
-      }
-
-      try {
-        this._connection.console.log(
-          `MONGOSH completion body: "${expression}"`
-        );
-        mongoshCompletions = await this._runtime?.getCompletions(expression);
-      } catch (error) {
-        this._connection.console.log(
-          `MONGOSH completion error: ${util.inspect(error)}`
-        );
-
-        return resolve([]);
-      }
-
-      if (
-        !mongoshCompletions ||
-        !Array.isArray(mongoshCompletions) ||
-        mongoshCompletions.length === 0
-      ) {
-        return resolve([]);
-      }
-
-      // Convert Completion[] format returned by `mongosh`
-      // to CompletionItem[] format required by VSCode.
-      mongoshCompletions = mongoshCompletions.map((item) => {
-        // The runtime.getCompletions() function returns complitions including the user input.
-        // Slice the user input and show only suggested keywords to complete the query.
-        const index = item.completion.indexOf(expression);
-        const newTextToComplete = `${item.completion.slice(
-          0,
-          index
-        )}${item.completion.slice(index + expression.length)}`;
-        const label: string =
-          index === -1 ? item.completion : newTextToComplete;
-
-        return {
-          label,
+    Object.keys(signatures).map((symbol) => {
+      shellSymbols[symbol] = Object.keys(signatures[symbol].attributes).map(
+        (item) => ({
+          label: item,
           kind: CompletionItemKind.Method
-        };
-      });
-
-      return resolve(mongoshCompletions);
+        })
+      );
     });
+
+    return shellSymbols;
   }
 
   private removeSymbolByIndex = (text: string, index: number): string => {
@@ -342,6 +308,8 @@ export default class MongoDBService {
       const isMemberExpression = dataFromAST.isMemberExpression;
       const isUseCallExpression = dataFromAST.isUseCallExpression;
       const isDbCallExpression = dataFromAST.isDbCallExpression;
+      const isAggregationCursor = dataFromAST.isAggregationCursor;
+      const isFindCursor = dataFromAST.isFindCursor;
 
       if (databaseName && !this._cachedCollections[databaseName]) {
         await this.getCollectionsCompletionItems(databaseName);
@@ -361,14 +329,22 @@ export default class MongoDBService {
         }
       }
 
+      if (isAggregationCursor) {
+        this._connection.console.log('ESPRIMA found aggregation cursor');
+
+        return resolve(this._cachedShellSymbols['AggregationCursor']);
+      }
+
+      if (isFindCursor) {
+        this._connection.console.log('ESPRIMA found cursor');
+
+        return resolve(this._cachedShellSymbols['Cursor']);
+      }
+
       if (isMemberExpression && collectionName) {
         this._connection.console.log('ESPRIMA found shell completion');
 
-        const shellCompletion = await this.getShellCompletionItems(
-          `db.${collectionName}.`
-        );
-
-        return resolve(shellCompletion);
+        return resolve(this._cachedShellSymbols['Collection']);
       }
 
       if (isDbCallExpression && databaseName) {
@@ -377,6 +353,12 @@ export default class MongoDBService {
         );
 
         return resolve(this._cachedCollections[databaseName]);
+      }
+
+      if (isDbCallExpression) {
+        this._connection.console.log('ESPRIMA found collection db symbol');
+
+        return resolve(this._cachedShellSymbols['Database']);
       }
 
       if (isUseCallExpression) {
@@ -406,6 +388,22 @@ export default class MongoDBService {
 
   private checkIsDbCall(node: any): boolean {
     if (node.expression.name === 'db') {
+      return true;
+    }
+
+    return false;
+  }
+
+  private checkHasAggregationCall(node: any): boolean {
+    if (node.property.name === 'aggregate') {
+      return true;
+    }
+
+    return false;
+  }
+
+  private checkHasFindCall(node: any): boolean {
+    if (node.property.name === 'find') {
       return true;
     }
 
@@ -453,17 +451,18 @@ export default class MongoDBService {
   ): boolean {
     // Esprima counts lines from 1, when vscode counts position starting from 0
     const nodeStartLine = node.loc.start.line - 1;
-    const nodeStartCharacter = node.loc.start.column;
     const nodeEndLine = node.loc.end.line - 1;
-    const nodeEndCharacter = node.loc.start.column;
+    // Do not count brackets
+    const nodeStartCharacter = node.loc.start.column + 1;
+    const nodeEndCharacter = node.loc.end.column - 1;
+    const cursorLine = currentPosition.line;
+    const cursorCharacter = currentPosition.character;
 
     if (
-      (currentPosition.line > nodeStartLine &&
-        currentPosition.line < nodeEndLine) ||
-      (currentPosition.line === nodeStartLine &&
-        currentPosition.character >= nodeStartCharacter) ||
-      (currentPosition.line === nodeEndLine &&
-        currentPosition.character <= nodeEndCharacter)
+      (cursorLine > nodeStartLine && cursorLine < nodeEndLine) ||
+      (cursorLine === nodeStartLine &&
+        cursorCharacter >= nodeStartCharacter &&
+        cursorCharacter <= nodeEndCharacter)
     ) {
       return true;
     }
@@ -481,6 +480,8 @@ export default class MongoDBService {
     isMemberExpression: boolean;
     isUseCallExpression: boolean;
     isDbCallExpression: boolean;
+    isAggregationCursor: boolean;
+    isFindCursor: boolean;
   } {
     let databaseName = null;
     let collectionName = null;
@@ -488,6 +489,8 @@ export default class MongoDBService {
     let isMemberExpression = false;
     let isUseCallExpression = false;
     let isDbCallExpression = false;
+    let isAggregationCursor = false;
+    let isFindCursor = false;
 
     try {
       this._connection.console.log(`ESPRIMA completion body: "${text}"`);
@@ -496,16 +499,13 @@ export default class MongoDBService {
 
       estraverse.traverse(ast, {
         enter: (node) => {
-          this._connection.console.log(`node: "${util.inspect(node)}"`);
-
           if (node.type === esprima.Syntax.CallExpression) {
-            if (
-              this.checkIsUseCall(node) &&
-              this.checkIsCurrentNode(node, {
-                line: position.line,
-                character: position.character - 2
-              })
-            ) {
+            const isCurrentNode = this.checkIsCurrentNode(node, {
+              line: position.line,
+              character: position.character
+            });
+
+            if (this.checkIsUseCall(node) && isCurrentNode) {
               isUseCallExpression = true;
             }
 
@@ -514,41 +514,56 @@ export default class MongoDBService {
             }
           }
 
-          if (
-            node.type === esprima.Syntax.MemberExpression &&
-            this.checkHasCollectionName(node, position)
-          ) {
-            collectionName = node.property.name
-              ? node.property.name
-              : node.property.value;
+          if (node.type === esprima.Syntax.MemberExpression) {
+            if (node.object.type === esprima.Syntax.MemberExpression) {
+              if (this.checkHasAggregationCall(node)) {
+                isAggregationCursor = true;
+              }
+
+              if (this.checkHasFindCall(node)) {
+                isFindCursor = true;
+              }
+            }
 
             if (
-              this.checkIsCurrentNode(node, {
-                line: position.line,
-                character: position.character - 2
-              })
+              node.object.type === esprima.Syntax.Identifier &&
+              this.checkHasCollectionName(node, position)
             ) {
-              isMemberExpression = true;
+              const isCurrentNode = this.checkIsCurrentNode(node, {
+                line: position.line,
+                character: position.character - 3
+              });
+
+              collectionName = node.property.name
+                ? node.property.name
+                : node.property.value;
+
+              if (isCurrentNode) {
+                isMemberExpression = true;
+              }
             }
           }
 
           if (node.type === esprima.Syntax.ExpressionStatement) {
-            if (
-              this.checkIsDbCall(node) &&
-              this.checkIsCurrentNode(node, {
-                line: position.line,
-                character: position.character - 2
-              })
-            ) {
+            const isCurrentNode = this.checkIsCurrentNode(node, {
+              line: position.line,
+              character: position.character - 2
+            });
+
+            if (this.checkIsDbCall(node) && isCurrentNode) {
               isDbCallExpression = true;
             }
           }
 
-          if (
-            node.type === esprima.Syntax.ObjectExpression &&
-            this.checkIsCurrentNode(node, position)
-          ) {
-            isObjectKey = true;
+          if (node.type === esprima.Syntax.ObjectExpression) {
+            const isCurrentNode = this.checkIsCurrentNode(node, {
+              line: position.line,
+              character: position.character - 1
+            });
+
+            if (isCurrentNode) {
+              isObjectKey = true;
+            }
           }
         }
       });
@@ -562,7 +577,9 @@ export default class MongoDBService {
       isObjectKey,
       isMemberExpression,
       isUseCallExpression,
-      isDbCallExpression
+      isDbCallExpression,
+      isAggregationCursor,
+      isFindCursor
     };
   }
 

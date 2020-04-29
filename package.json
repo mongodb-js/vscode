@@ -508,6 +508,7 @@
     "@leafygreen-ui/toggle": "^3.0.0",
     "@mongosh/browser-runtime-electron": "0.0.1-alpha.12",
     "@mongosh/service-provider-server": "0.0.1-alpha.12",
+    "@mongosh/shell-api": "0.0.1-alpha.12",
     "analytics-node": "^3.4.0-beta.1",
     "bson": "^4.0.3",
     "classnames": "^2.2.6",

@@ -56,7 +56,6 @@ suite('MongoDBService Test Suite', () => {
         'db.test.',
         { line: 0, character: 8 }
       );
-
       const findCompletion = result.find(
         (itme: { label: string; kind: number }) => itme.label === 'find'
       );
@@ -72,7 +71,6 @@ suite('MongoDBService Test Suite', () => {
         'const name = () => { db.test. }',
         { line: 0, character: 29 }
       );
-
       const findCompletion = result.find(
         (itme: { label: string; kind: number }) => itme.label === 'find'
       );
@@ -88,7 +86,6 @@ suite('MongoDBService Test Suite', () => {
         ['use("test");', 'db["test"].'].join('\n'),
         { line: 1, character: 11 }
       );
-
       const findCompletion = result.find(
         (itme: { label: string; kind: number }) => itme.label === 'find'
       );
@@ -104,9 +101,97 @@ suite('MongoDBService Test Suite', () => {
         ["use('test');", "db['test']."].join('\n'),
         { line: 1, character: 11 }
       );
-
       const findCompletion = result.find(
         (itme: { label: string; kind: number }) => itme.label === 'find'
+      );
+
+      expect(findCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Method
+      );
+    });
+
+    test('provide shell API symbols/methods completion if db symbol', async () => {
+      const result = await testMongoDBService.provideCompletionItems('db.', {
+        line: 0,
+        character: 3
+      });
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) =>
+          itme.label === 'getCollectionNames'
+      );
+
+      expect(findCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Method
+      );
+    });
+
+    test('provide shell API symbols/methods completion if aggregation cursor', async () => {
+      const result = await testMongoDBService.provideCompletionItems(
+        'db.collection.aggregate().',
+        { line: 0, character: 26 }
+      );
+      const aggCompletion = result.find(
+        (itme: { label: string; kind: number }) => itme.label === 'toArray'
+      );
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) =>
+          itme.label === 'allowPartialResults'
+      );
+
+      expect(aggCompletion).to.have.property('kind', CompletionItemKind.Method);
+      expect(findCompletion).to.be.undefined;
+    });
+
+    test('provide shell API symbols/methods completion if find cursor without args', async () => {
+      const result = await testMongoDBService.provideCompletionItems(
+        'db.collection.find().',
+        { line: 0, character: 21 }
+      );
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) =>
+          itme.label === 'allowPartialResults'
+      );
+
+      expect(findCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Method
+      );
+    });
+
+    test('provide shell API symbols/methods completion if find cursor with args at the same line', async () => {
+      const result = await testMongoDBService.provideCompletionItems(
+        ['use("companies");', '', 'db.companies.find({ blog_feed_url}).'].join(
+          '\n'
+        ),
+        { line: 2, character: 36 }
+      );
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) =>
+          itme.label === 'allowPartialResults'
+      );
+
+      expect(findCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Method
+      );
+    });
+
+    test('provide shell API symbols/methods completion if find cursor with args below', async () => {
+      const result = await testMongoDBService.provideCompletionItems(
+        [
+          'use("companies");',
+          '',
+          'const name = () => { db.companies.find({',
+          '  blog_feed_url',
+          '}).}'
+        ].join('\n'),
+        { line: 4, character: 3 }
+      );
+      const findCompletion = result.find(
+        (itme: { label: string; kind: number }) =>
+          itme.label === 'allowPartialResults'
       );
 
       expect(findCompletion).to.have.property(
@@ -346,22 +431,6 @@ suite('MongoDBService Test Suite', () => {
         (itme: { label: string; kind: number }) => itme.label === 'JavaScript'
       );
 
-      expect(findCompletion).to.be.undefined;
-    });
-
-    test('do not provide shell completion if disconnected', async () => {
-      await testMongoDBService.disconnectFromServiceProvider();
-
-      const result = await testMongoDBService.provideCompletionItems(
-        'db.test.',
-        { line: 0, character: 8 }
-      );
-      const findCompletion = result.find(
-        (itme: { label: string; kind: number }) => itme.label === 'find'
-      );
-
-      expect(testMongoDBService.connectionString).to.be.undefined;
-      expect(testMongoDBService.connectionOptions).to.be.undefined;
       expect(findCompletion).to.be.undefined;
     });
 
