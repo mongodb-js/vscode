@@ -7,6 +7,19 @@ import { StorageController } from '../storage';
 
 const log = createLogger('analytics');
 
+type PlaygroundTelemetryEventProperties = {
+  type: string;
+};
+
+type LinkClickedTelemetryEventProperties = {
+  screen: string;
+  linkId: string;
+};
+
+export type TelemetryEventProperties =
+  | PlaygroundTelemetryEventProperties
+  | LinkClickedTelemetryEventProperties;
+
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'playground code executed',
   LINK_CLICKED = 'link clicked'
@@ -66,7 +79,10 @@ export default class TelemetryController {
     this._segmentAnalytics?.flush();
   }
 
-  public track(eventType: TelemetryEventTypes, properties: object): void {
+  public track(
+    eventType: TelemetryEventTypes,
+    properties: TelemetryEventProperties
+  ): void {
     const shouldSendTelemetry = vscode.workspace
       .getConfiguration('mdb')
       .get('sendTelemetry');
