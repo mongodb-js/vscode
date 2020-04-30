@@ -11,8 +11,7 @@ import {
 import * as WebSocket from 'ws';
 
 import { createLogger } from '../logging';
-import { ServerCommands } from './serverCommands';
-import { PlaygroundRunParameters } from './playgroundRunParametersType';
+import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -146,8 +145,7 @@ export default class LanguageServerController {
       return this.client.sendRequest(
         ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
         {
-          codeToEvaluate,
-          extensionPath: this._context.extensionPath
+          codeToEvaluate
         } as PlaygroundRunParameters,
         this._source.token
       );

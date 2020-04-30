@@ -4,15 +4,14 @@ import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { signatures } from '@mongosh/shell-api';
 import * as util from 'util';
-import { ServerCommands } from './serverCommands';
 
-import { PlaygroundRunParameters } from './playgroundRunParametersType';
+import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const path = require('path');
 const esprima = require('esprima');
 const estraverse = require('estraverse');
 
-const languageServerWorkerFileName = 'languageServerWorker.js';
+export const languageServerWorkerFileName = 'languageServerWorker.js';
 
 export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;

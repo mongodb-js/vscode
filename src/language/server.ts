@@ -14,8 +14,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
-import { ServerCommands } from './serverCommands';
-import { PlaygroundRunParameters } from './playgroundRunParametersType';
+import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.

@@ -48,7 +48,7 @@
     "watch": "npm run clean && npm run webpack-dev && npm-run-all -p watch:*",
     "watch:extension": "npm run compile:extension -- -watch",
     "watch:extension-bundles": "webpack --mode development --info-verbosity verbose --watch",
-    "pretest": "npm run compile && npm run webpack-dev && cross-env MONGODB_VERSION=4.2.3 mongodb-runner start --port=27018",
+    "pretest": "npm run clean && npm run compile && npm run webpack-dev && cross-env MONGODB_VERSION=4.2.3 mongodb-runner start --port=27018",
     "test": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run clean && npm run compile && webpack --mode production",
@@ -149,6 +149,10 @@
       {
         "command": "mdb.createPlayground",
         "title": "MongoDB: Create MongoDB Playground"
+      },
+      {
+        "command": "mdb.createNewPlaygroundFromViewAction",
+        "title": "Create MongoDB Playground"
       },
       {
         "command": "mdb.showActiveConnectionInPlayground",
@@ -258,7 +262,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "mdb.createPlayground",
+          "command": "mdb.createNewPlaygroundFromViewAction",
           "when": "view == mongoDB"
         },
         {
@@ -398,6 +402,76 @@
           "command": "mdb.runAllPlaygroundBlocks",
           "group": "navigation",
           "when": "editorLangId == mongodb"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "mdb.createNewPlaygroundFromViewAction",
+          "when": "false"
+        },
+        {
+          "command": "mdb.copyConnectionString",
+          "when": "false"
+        },
+        {
+          "command": "mdb.renameConnection",
+          "when": "false"
+        },
+        {
+          "command": "mdb.treeItemRemoveConnection",
+          "when": "false"
+        },
+        {
+          "command": "mdb.addDatabase",
+          "when": "false"
+        },
+        {
+          "command": "mdb.connectToConnectionTreeItem",
+          "when": "false"
+        },
+        {
+          "command": "mdb.disconnectFromConnectionTreeItem",
+          "when": "false"
+        },
+        {
+          "command": "mdb.refreshConnection",
+          "when": "false"
+        },
+        {
+          "command": "mdb.copyDatabaseName",
+          "when": "false"
+        },
+        {
+          "command": "mdb.dropDatabase",
+          "when": "false"
+        },
+        {
+          "command": "mdb.refreshDatabase",
+          "when": "false"
+        },
+        {
+          "command": "mdb.addCollection",
+          "when": "false"
+        },
+        {
+          "command": "mdb.viewCollectionDocuments",
+          "when": "false"
+        },
+        {
+          "command": "mdb.copyCollectionName",
+          "when": "false"
+        },
+        {
+          "command": "mdb.dropCollection",
+          "when": "false"
+        },
+        {
+          "command": "mdb.refreshCollection",
+          "when": "false"
+        },
+        {
+          "command": "mdb.refreshSchema",
+          "when": "false"
         }
       ]
     },

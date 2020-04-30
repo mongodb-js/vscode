@@ -5,8 +5,10 @@ import {
 import { before } from 'mocha';
 
 const chai = require('chai');
+const path = require('path');
+const fs = require('fs');
 
-import MongoDBService from '../../../language/mongoDBService';
+import MongoDBService, { languageServerWorkerFileName } from '../../../language/mongoDBService';
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
@@ -16,14 +18,25 @@ const INCREASED_TEST_TIMEOUT = 5000;
 
 suite('MongoDBService Test Suite', () => {
   const connection = {
-    console: { log: () => {} },
-    sendRequest: () => {},
-    sendNotification: () => {}
+    console: { log: (): void => {} },
+    sendRequest: (): void => {},
+    sendNotification: (): void => {}
   };
   const params = {
     connectionString: 'mongodb://localhost:27018',
     extensionPath: mdbTestExtension.testExtensionContext.extensionPath
   };
+
+  test('the language server worker dependency bundle exists', () => {
+    const languageServerModuleBundlePath = path.join(
+      mdbTestExtension.testExtensionContext.extensionPath,
+      'dist',
+      languageServerWorkerFileName
+    );
+
+    // eslint-disable-next-line no-sync
+    expect(fs.existsSync(languageServerModuleBundlePath)).to.equal(true);
+  });
 
   suite('Connect', () => {
     test('connect and disconnect from cli service provider', async () => {
@@ -545,8 +558,7 @@ suite('MongoDBService Test Suite', () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
-          codeToEvaluate: '1 + 1',
-          extensionPath: mdbTestExtension.testExtensionContext.extensionPath
+          codeToEvaluate: '1 + 1'
         },
         source.token
       );
@@ -560,8 +572,7 @@ suite('MongoDBService Test Suite', () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
-          codeToEvaluate: 'const x = 1; x + 2',
-          extensionPath: mdbTestExtension.testExtensionContext.extensionPath
+          codeToEvaluate: 'const x = 1; x + 2'
         },
         source.token
       );
@@ -575,8 +586,7 @@ suite('MongoDBService Test Suite', () => {
       const source = new CancellationTokenSource();
       const firstEvalResult = await testMongoDBService.executeAll(
         {
-          codeToEvaluate: 'const x = 1 + 1; x',
-          extensionPath: mdbTestExtension.testExtensionContext.extensionPath
+          codeToEvaluate: 'const x = 1 + 1; x'
         },
         source.token
       );
@@ -585,8 +595,7 @@ suite('MongoDBService Test Suite', () => {
 
       const secondEvalResult = await testMongoDBService.executeAll(
         {
-          codeToEvaluate: 'const x = 2 + 1; x',
-          extensionPath: mdbTestExtension.testExtensionContext.extensionPath
+          codeToEvaluate: 'const x = 2 + 1; x'
         },
         source.token
       );

@@ -7,3 +7,7 @@ export enum ServerCommands {
   GET_LIST_DATABASES = 'GET_LIST_DATABASES',
   GET_LIST_COLLECTIONS = 'GET_LIST_COLLECTIONS'
 }
+
+export type PlaygroundRunParameters = {
+  codeToEvaluate: string;
+};
