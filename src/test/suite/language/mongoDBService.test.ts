@@ -8,7 +8,9 @@ const chai = require('chai');
 const path = require('path');
 const fs = require('fs');
 
-import MongoDBService, { languageServerWorkerFileName } from '../../../language/mongoDBService';
+import MongoDBService, {
+  languageServerWorkerFileName
+} from '../../../language/mongoDBService';
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
