@@ -42,7 +42,7 @@ export default class ConnectionController {
     [key: string]: LoadedConnection;
   } = {};
 
-  private readonly _serviceName = 'vscode.mongoDB.savedConnections';
+  private readonly _serviceName = 'mdb.vscode.savedConnections';
   private _keytar: KeyTar | undefined;
 
   _activeDataService: null | DataServiceType = null;

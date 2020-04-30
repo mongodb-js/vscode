@@ -45,7 +45,7 @@ export function run(): Promise<void> {
         // We require keytar in runtime because it is a vscode provided
         // native node module.
         const keytar: typeof keytarType = require('keytar');
-        const existingCredentials = await keytar.findCredentials('vscode.mongoDB.savedConnections');
+        const existingCredentials = await keytar.findCredentials('mdb.vscode.savedConnections');
 
         // Add files to the test suite.
         files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
@@ -54,11 +54,11 @@ export function run(): Promise<void> {
           mocha.run(async (failures) => {
             // After tests are run we clear any passwords added
             // to local secure storage.
-            const postRunCredentials = await keytar.findCredentials('vscode.mongoDB.savedConnections');
+            const postRunCredentials = await keytar.findCredentials('mdb.vscode.savedConnections');
             postRunCredentials.forEach(credential => {
               if (!existingCredentials.find(existingCredential => existingCredential.account === credential.account)) {
               // If the credential is newly added, we remove it.
-                keytar.deletePassword('vscode.mongoDB.savedConnections', credential.account);
+                keytar.deletePassword('mdb.vscode.savedConnections', credential.account);
               }
             });
 
