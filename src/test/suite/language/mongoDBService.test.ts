@@ -61,6 +61,12 @@ suite('MongoDBService Test Suite', () => {
     before(async () => {
       testMongoDBService = new MongoDBService(connection);
 
+      testMongoDBService.getDatabasesCompletionItems = (): void => {};
+      testMongoDBService.getCollectionsCompletionItems = (): Promise<boolean> =>
+        Promise.resolve(true);
+      testMongoDBService.getFieldsCompletionItems = (): Promise<boolean> =>
+        Promise.resolve(true);
+
       await testMongoDBService.connectToServiceProvider(params);
     });
 

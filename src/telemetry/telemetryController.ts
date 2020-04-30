@@ -8,7 +8,8 @@ import { StorageController } from '../storage';
 const log = createLogger('analytics');
 
 export enum TelemetryEventTypes {
-  PLAYGROUND_CODE_EXECUTED = 'playground code executed'
+  PLAYGROUND_CODE_EXECUTED = 'playground code executed',
+  LINK_CLICKED = 'link clicked'
 }
 
 /**

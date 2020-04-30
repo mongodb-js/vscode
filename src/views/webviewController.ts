@@ -2,11 +2,15 @@ import * as vscode from 'vscode';
 const path = require('path');
 
 import ConnectionController from '../connectionController';
+import TelemetryController, {
+  TelemetryEventTypes
+} from '../telemetry/telemetryController';
 import {
   MESSAGE_TYPES,
   ConnectMessage,
   OpenFilePickerMessage,
-  OpenConnectionStringInputMessage
+  OpenConnectionStringInputMessage,
+  LinkClickedMessage
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
 
@@ -46,15 +50,21 @@ export const getReactAppUri = (extensionPath: string): vscode.Uri => {
 
 export default class WebviewController {
   _connectionController: ConnectionController;
+  _telemetryController?: TelemetryController;
 
-  constructor(connectionController: ConnectionController) {
+  constructor(
+    connectionController: ConnectionController,
+    telemetryController?: TelemetryController
+  ) {
     this._connectionController = connectionController;
+    this._telemetryController = telemetryController;
   }
 
   handleWebviewMessage = (
     message:
       | ConnectMessage
       | OpenFilePickerMessage
+      | LinkClickedMessage
       | OpenConnectionStringInputMessage,
     panel: vscode.WebviewPanel
   ): void => {
@@ -100,6 +110,15 @@ export default class WebviewController {
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
         vscode.commands.executeCommand('mdb.connectWithURI');
+
+        return;
+      case MESSAGE_TYPES.LINK_CLICKED:
+        log.info('Telemetry', message.screen, message.linkId);
+
+        this._telemetryController?.track(TelemetryEventTypes.LINK_CLICKED, {
+          screen: message.screen,
+          linkId: message.linkId
+        });
 
         return;
       default:
