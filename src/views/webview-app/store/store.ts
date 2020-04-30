@@ -109,6 +109,15 @@ export const rootReducer = (
         isConnected: false
       };
 
+    case ActionTypes.LINK_CLICKED:
+      vscode.postMessage({
+        command: MESSAGE_TYPES.LINK_CLICKED,
+        screen: action.screen,
+        linkId: action.linkId
+      });
+
+      return { ...state };
+
     case ActionTypes.CONNECTION_FORM_CHANGED:
       return {
         ...state,

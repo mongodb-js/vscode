@@ -5,7 +5,8 @@ import ConnectionController, {
 } from '../connectionController';
 import { LanguageServerController } from '../language';
 import TelemetryController, {
-  TelemetryEventTypes
+  TelemetryEventTypes,
+  TelemetryEventProperties
 } from '../telemetry/telemetryController';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import { OutputChannel, ProgressLocation } from 'vscode';
@@ -121,7 +122,7 @@ export default class PlaygroundController {
     });
   }
 
-  prepareTelemetry(res: any): { type: string } {
+  prepareTelemetry(res: any): TelemetryEventProperties {
     let type = 'other';
 
     if (!res.shellApiType) {

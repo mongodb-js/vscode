@@ -71,7 +71,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._languageServerController,
       this._telemetryController
     );
-    this._webviewController = new WebviewController(this._connectionController);
+    this._webviewController = new WebviewController(
+      this._connectionController,
+      this._telemetryController
+    );
   }
 
   activate(): void {

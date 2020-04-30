@@ -8,7 +8,9 @@ const chai = require('chai');
 const path = require('path');
 const fs = require('fs');
 
-import MongoDBService, { languageServerWorkerFileName } from '../../../language/mongoDBService';
+import MongoDBService, {
+  languageServerWorkerFileName
+} from '../../../language/mongoDBService';
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
@@ -60,6 +62,12 @@ suite('MongoDBService Test Suite', () => {
 
     before(async () => {
       testMongoDBService = new MongoDBService(connection);
+
+      testMongoDBService.getDatabasesCompletionItems = (): void => {};
+      testMongoDBService.getCollectionsCompletionItems = (): Promise<boolean> =>
+        Promise.resolve(true);
+      testMongoDBService.getFieldsCompletionItems = (): Promise<boolean> =>
+        Promise.resolve(true);
 
       await testMongoDBService.connectToServiceProvider(params);
     });

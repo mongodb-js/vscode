@@ -5,7 +5,8 @@ export enum MESSAGE_TYPES {
   CONNECT_RESULT = 'CONNECT_RESULT',
   OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
-  FILE_PICKER_RESULTS = 'FILE_PICKER_RESULTS'
+  FILE_PICKER_RESULTS = 'FILE_PICKER_RESULTS',
+  LINK_CLICKED = 'LINK_CLICKED'
 }
 
 interface BasicWebviewMessage {
@@ -39,4 +40,10 @@ export interface FilePickerResultsMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.FILE_PICKER_RESULTS;
   action: FilePickerActionTypes;
   files: string[] | undefined;
+}
+
+export interface LinkClickedMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.LINK_CLICKED;
+  screen: string;
+  linkId: string;
 }

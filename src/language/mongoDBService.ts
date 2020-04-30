@@ -4,12 +4,12 @@ import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { signatures } from '@mongosh/shell-api';
 import * as util from 'util';
+import { Visitor, CompletionNodes } from './visitor';
 
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const path = require('path');
 const esprima = require('esprima');
-const estraverse = require('estraverse');
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
@@ -24,6 +24,7 @@ export default class MongoDBService {
   _cachedCollections: object;
   _cachedShellSymbols: object;
   _extensionPath?: string;
+  _visitor: Visitor;
 
   constructor(connection) {
     this._connection = connection;
@@ -31,81 +32,16 @@ export default class MongoDBService {
     this._cachedDatabases = [];
     this._cachedCollections = [];
     this._cachedShellSymbols = this.getShellCompletionItems();
+    this._visitor = new Visitor();
   }
 
+  // ------ CONNECTION ------ //
   public get connectionString(): string | undefined {
     return this._connectionString;
   }
 
   public get connectionOptions(): object | undefined {
     return this._connectionOptions;
-  }
-
-  private getDatabasesCompletionItems(): void {
-    const worker = new WorkerThreads(
-      path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
-      {
-        workerData: {
-          connectionString: this._connectionString,
-          connectionOptions: this._connectionOptions
-        }
-      }
-    );
-
-    this._connection.console.log('MONGOSH get list databases...');
-    worker.postMessage(ServerCommands.GET_LIST_DATABASES);
-
-    worker.on('message', ([error, result]) => {
-      if (error) {
-        this._connection.console.log(
-          `MONGOSH get list databases error: ${util.inspect(error)}`
-        );
-      }
-
-      worker.terminate().then(() => {
-        this._connection.console.log(
-          `MONGOSH found ${result.length} databases`
-        );
-        this.updateCurrentSessionDatabases(result);
-      });
-    });
-  }
-
-  private getCollectionsCompletionItems(
-    databaseName: string
-  ): Promise<boolean> {
-    return new Promise((resolve) => {
-      const worker = new WorkerThreads(
-        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
-        {
-          workerData: {
-            connectionString: this._connectionString,
-            connectionOptions: this._connectionOptions,
-            databaseName
-          }
-        }
-      );
-
-      this._connection.console.log('MONGOSH get list collections...');
-      worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
-
-      worker.on('message', ([error, result]) => {
-        if (error) {
-          this._connection.console.log(
-            `MONGOSH get list collections error: ${util.inspect(error)}`
-          );
-        }
-
-        worker.terminate().then(() => {
-          this._connection.console.log(
-            `MONGOSH found ${result.length} collections`
-          );
-          this.updateCurrentSessionCollections(databaseName, result);
-
-          return resolve(true);
-        });
-      });
-    });
   }
 
   public async connectToServiceProvider(params: {
@@ -153,7 +89,7 @@ export default class MongoDBService {
     return Promise.resolve(false);
   }
 
-  // Run playground scripts.
+  // ------ EXECUTION ------ //
   public executeAll(
     executionParameters: PlaygroundRunParameters,
     token: CancellationToken
@@ -237,6 +173,108 @@ export default class MongoDBService {
     });
   }
 
+  // ------ GET DATA FOR COMPLETION ------ //
+  public getDatabasesCompletionItems(): void {
+    const worker = new WorkerThreads(
+      path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+      {
+        workerData: {
+          connectionString: this._connectionString,
+          connectionOptions: this._connectionOptions
+        }
+      }
+    );
+
+    this._connection.console.log('MONGOSH get list databases...');
+    worker.postMessage(ServerCommands.GET_LIST_DATABASES);
+
+    worker.on('message', ([error, result]) => {
+      if (error) {
+        this._connection.console.log(
+          `MONGOSH get list databases error: ${util.inspect(error)}`
+        );
+      }
+
+      worker.terminate().then(() => {
+        this._connection.console.log(
+          `MONGOSH found ${result.length} databases`
+        );
+        this.updateCurrentSessionDatabases(result);
+      });
+    });
+  }
+
+  public getCollectionsCompletionItems(databaseName: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const worker = new WorkerThreads(
+        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+        {
+          workerData: {
+            connectionString: this._connectionString,
+            connectionOptions: this._connectionOptions,
+            databaseName
+          }
+        }
+      );
+
+      this._connection.console.log('MONGOSH get list collections...');
+      worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
+
+      worker.on('message', ([error, result]) => {
+        if (error) {
+          this._connection.console.log(
+            `MONGOSH get list collections error: ${util.inspect(error)}`
+          );
+        }
+
+        worker.terminate().then(() => {
+          this._connection.console.log(
+            `MONGOSH found ${result.length} collections`
+          );
+          this.updateCurrentSessionCollections(databaseName, result);
+
+          return resolve(true);
+        });
+      });
+    });
+  }
+
+  public getFieldsCompletionItems(
+    databaseName: string,
+    collectionName: string
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      const namespace = `${databaseName}.${collectionName}`;
+      const worker = new WorkerThreads(
+        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+        {
+          workerData: {
+            connectionString: this._connectionString,
+            connectionOptions: this._connectionOptions,
+            databaseName,
+            collectionName
+          }
+        }
+      );
+
+      this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
+      worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
+
+      worker.on('message', ([error, fields]) => {
+        if (error) {
+          this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
+        }
+
+        worker.terminate().then(() => {
+          this._connection.console.log(`SCHEMA found ${fields.length} fields`);
+          this.updateCurrentSessionFields(namespace, fields);
+
+          return resolve(true);
+        });
+      });
+    });
+  }
+
   // Get shell API symbols/methods completion from mongosh.
   private getShellCompletionItems(): object {
     const shellSymbols = {};
@@ -253,6 +291,7 @@ export default class MongoDBService {
     return shellSymbols;
   }
 
+  // ------ COMPLETION ------ //
   private removeSymbolByIndex = (text: string, index: number): string => {
     if (index === 0) {
       return text.slice(1);
@@ -288,11 +327,11 @@ export default class MongoDBService {
   };
 
   // Check if string is a valid property name
-  private validPropertyName(str) {
+  private isValidPropertyName(str) {
     return /^(?![0-9])[a-zA-Z0-9$_]+$/.test(str);
   }
 
-  private provideCollectionsItems(
+  private prepareCollectionsItems(
     collections: Array<any>,
     dbCallPosition: { line: number; character: number }
   ): any {
@@ -301,7 +340,7 @@ export default class MongoDBService {
       const startCharacter = dbCallPosition.character - 3;
       const endCharacter = dbCallPosition.character;
 
-      if (this.validPropertyName(item.name)) {
+      if (this.isValidPropertyName(item.name)) {
         return {
           label: item.name,
           kind: CompletionItemKind.Property
@@ -362,7 +401,7 @@ export default class MongoDBService {
         const namespace = `${databaseName}.${collectionName}`;
 
         if (!this._cachedFields[namespace]) {
-          await this.getFieldsFromSchema(databaseName, collectionName);
+          await this.getFieldsCompletionItems(databaseName, collectionName);
         }
 
         if (isObjectKey) {
@@ -400,7 +439,7 @@ export default class MongoDBService {
             'ESPRIMA found collection names completion'
           );
 
-          const collectionCompletions = this.provideCollectionsItems(
+          const collectionCompletions = this.prepareCollectionsItems(
             this._cachedCollections[databaseName],
             dbCallPosition
           );
@@ -423,220 +462,26 @@ export default class MongoDBService {
     });
   }
 
-  private checkIsUseCall(node: any): boolean {
-    if (
-      node.callee.name === 'use' &&
-      node.arguments &&
-      node.arguments.length === 1 &&
-      node.arguments[0].type === esprima.Syntax.Literal
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  private checkIsDbCall(node: any): boolean {
-    if (node.expression.name === 'db') {
-      return true;
-    }
-
-    return false;
-  }
-
-  private checkHasAggregationCall(node: any): boolean {
-    if (node.property.name === 'aggregate') {
-      return true;
-    }
-
-    return false;
-  }
-
-  private checkHasFindCall(node: any): boolean {
-    if (node.property.name === 'find') {
-      return true;
-    }
-
-    return false;
-  }
-
-  private checkHasDatabaseName(
-    node: any,
-    currentPosition: { line: number; character: number }
-  ): boolean {
-    if (
-      node.callee.name === 'use' &&
-      node.arguments &&
-      node.arguments.length === 1 &&
-      node.arguments[0].type === esprima.Syntax.Literal &&
-      (currentPosition.line >= node.loc.start.line ||
-        (currentPosition.line === node.loc.start.line - 1 &&
-          currentPosition.character > node.loc.end.column))
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  private checkHasCollectionName(
-    node: any,
-    currentPosition: { line: number; character: number }
-  ): boolean {
-    if (
-      node.object.name === 'db' &&
-      (currentPosition.line >= node.loc.start.line ||
-        (currentPosition.line === node.loc.start.line - 1 &&
-          currentPosition.character > node.loc.end.column))
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  private checkIsCurrentNode(
-    node: any,
-    currentPosition: { line: number; character: number }
-  ): boolean {
-    // Esprima counts lines from 1, when vscode counts position starting from 0
-    const nodeStartLine = node.loc.start.line - 1;
-    const nodeEndLine = node.loc.end.line - 1;
-    // Do not count brackets
-    const nodeStartCharacter = node.loc.start.column + 1;
-    const nodeEndCharacter = node.loc.end.column - 1;
-    const cursorLine = currentPosition.line;
-    const cursorCharacter = currentPosition.character;
-
-    if (
-      (cursorLine > nodeStartLine && cursorLine < nodeEndLine) ||
-      (cursorLine === nodeStartLine &&
-        cursorCharacter >= nodeStartCharacter &&
-        cursorCharacter <= nodeEndCharacter)
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
   private parseAST(
     text: string,
     position: { line: number; character: number }
-  ): {
-    databaseName: string | null;
-    collectionName: string | null;
-    isObjectKey: boolean;
-    isMemberExpression: boolean;
-    isUseCallExpression: boolean;
-    isDbCallExpression: boolean;
-    dbCallPosition: { line: number; character: number };
-    isAggregationCursor: boolean;
-    isFindCursor: boolean;
-  } {
-    let databaseName = null;
-    let collectionName = null;
-    let isObjectKey = false;
-    let isMemberExpression = false;
-    let isUseCallExpression = false;
-    let isDbCallExpression = false;
-    let isAggregationCursor = false;
-    let isFindCursor = false;
-    let dbCallPosition = { line: 0, character: 0 };
+  ): CompletionNodes {
+    let nodes: CompletionNodes = this._visitor.getDefaultNodesValues();
 
     try {
       this._connection.console.log(`ESPRIMA completion body: "${text}"`);
 
       const ast = esprima.parseScript(text, { loc: true });
 
-      estraverse.traverse(ast, {
-        enter: (node) => {
-          if (node.type === esprima.Syntax.CallExpression) {
-            const isCurrentNode = this.checkIsCurrentNode(node, {
-              line: position.line,
-              character: position.character
-            });
-
-            if (this.checkIsUseCall(node) && isCurrentNode) {
-              isUseCallExpression = true;
-            }
-
-            if (this.checkHasDatabaseName(node, position)) {
-              databaseName = node.arguments[0].value;
-            }
-          }
-
-          if (node.type === esprima.Syntax.MemberExpression) {
-            if (node.object.type === esprima.Syntax.MemberExpression) {
-              if (this.checkHasAggregationCall(node)) {
-                isAggregationCursor = true;
-              }
-
-              if (this.checkHasFindCall(node)) {
-                isFindCursor = true;
-              }
-            }
-
-            if (
-              node.object.type === esprima.Syntax.Identifier &&
-              this.checkHasCollectionName(node, position)
-            ) {
-              const isCurrentNode = this.checkIsCurrentNode(node, {
-                line: position.line,
-                character: position.character - 3
-              });
-
-              collectionName = node.property.name
-                ? node.property.name
-                : node.property.value;
-
-              if (isCurrentNode) {
-                isMemberExpression = true;
-              }
-            }
-          }
-
-          if (node.type === esprima.Syntax.ExpressionStatement) {
-            const isCurrentNode = this.checkIsCurrentNode(node, {
-              line: position.line,
-              character: position.character - 2
-            });
-
-            if (this.checkIsDbCall(node) && isCurrentNode) {
-              isDbCallExpression = true;
-              dbCallPosition = position;
-            }
-          }
-
-          if (node.type === esprima.Syntax.ObjectExpression) {
-            const isCurrentNode = this.checkIsCurrentNode(node, {
-              line: position.line,
-              character: position.character - 1
-            });
-
-            if (isCurrentNode) {
-              isObjectKey = true;
-            }
-          }
-        }
-      });
+      nodes = this._visitor.visitAST(ast, position);
     } catch (error) {
       this._connection.console.log(`ESPRIMA error: ${util.inspect(error)}`);
     }
 
-    return {
-      databaseName,
-      collectionName,
-      isObjectKey,
-      isMemberExpression,
-      isUseCallExpression,
-      isDbCallExpression,
-      isAggregationCursor,
-      isFindCursor,
-      dbCallPosition
-    };
+    return nodes;
   }
 
+  // ------ CURRENT SESSION ------ //
   public clearCurrentSessionFields(): void {
     this._cachedFields = {};
   }
@@ -677,41 +522,5 @@ export default class MongoDBService {
     }
 
     return [];
-  }
-
-  private getFieldsFromSchema(
-    databaseName: string,
-    collectionName: string
-  ): Promise<boolean> {
-    return new Promise((resolve) => {
-      const namespace = `${databaseName}.${collectionName}`;
-      const worker = new WorkerThreads(
-        path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
-        {
-          workerData: {
-            connectionString: this._connectionString,
-            connectionOptions: this._connectionOptions,
-            databaseName,
-            collectionName
-          }
-        }
-      );
-
-      this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
-      worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
-
-      worker.on('message', ([error, fields]) => {
-        if (error) {
-          this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
-        }
-
-        worker.terminate().then(() => {
-          this._connection.console.log(`SCHEMA found ${fields.length} fields`);
-          this.updateCurrentSessionFields(namespace, fields);
-
-          return resolve(true);
-        });
-      });
-    });
   }
 }

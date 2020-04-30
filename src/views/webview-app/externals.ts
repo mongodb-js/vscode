@@ -17,6 +17,10 @@ interface OpenConnectionStringInputMessage extends BasicWebviewMessage {
   command: 'OPEN_CONNECTION_STRING_INPUT';
 }
 
+interface LinkClickedMessage extends BasicWebviewMessage {
+  command: 'LINK_CLICKED';
+}
+
 interface FilePickerMessage {
   command: 'OPEN_FILE_PICKER';
   action: string;
@@ -26,6 +30,7 @@ interface FilePickerMessage {
 type WebviewMessage =
   | ConnectMessage
   | FilePickerMessage
+  | LinkClickedMessage
   | OpenConnectionStringInputMessage;
 
 interface VSCodeApi {

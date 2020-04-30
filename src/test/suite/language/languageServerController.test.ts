@@ -81,11 +81,9 @@ suite('Language Server Controller Test Suite', () => {
       currentName
     `);
 
-    await testLanguageServerController.cancelAll();
+    const isDone = await testLanguageServerController.cancelAll();
 
-    const result = await testLanguageServerController.executeAll('4 + 4');
-
-    expect(result).to.be.equal('8');
+    expect(isDone).to.be.equal(true);
   });
 
   test('the language server dependency bundle exists', () => {

@@ -37,6 +37,7 @@ export enum ActionTypes {
   SSL_PASS_CHANGED = 'SSL_PASS_CHANGED',
   USERNAME_CHANGED = 'USERNAME_CHANGED',
   X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED',
+  LINK_CLICKED = 'LINK_CLICKED'
 }
 
 export type FilePickerActionTypes =
@@ -47,6 +48,12 @@ export type FilePickerActionTypes =
 
 export interface BaseAction {
   type: ActionTypes;
+}
+
+export interface LinkClickedAction extends BaseAction {
+  type: ActionTypes.LINK_CLICKED;
+  screen: string;
+  linkId: string;
 }
 
 export interface AuthSourceChangedAction extends BaseAction {
@@ -237,6 +244,7 @@ export type Actions =
   | KerberosParametersChanged
   | LDAPPasswordChangedAction
   | LDAPUsernameChangedAction
+  | LinkClickedAction
   | OnChangeSSHTunnelIdentityFileAction
   | OnChangeSSLCAAction
   | OnChangeSSLCertAction

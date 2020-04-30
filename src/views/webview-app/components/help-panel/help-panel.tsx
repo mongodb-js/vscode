@@ -1,9 +1,21 @@
 import * as React from 'react';
 import classnames from 'classnames';
+import { connect } from 'react-redux';
+import { ActionTypes, LinkClickedAction } from '../../store/actions';
 
 const styles = require('../../connect.module.less');
 
-class HelpPanel extends React.PureComponent {
+type dispatchProps = {
+  onLinkClicked: (screen: string, linkId: string) => void;
+};
+
+type props = dispatchProps;
+
+class HelpPanel extends React.Component<props> {
+  onLinkClicked = (screen: string, linkId: string): void => {
+    this.props.onLinkClicked(screen, linkId);
+  };
+
   renderAtlasSvg(): React.ReactNode {
     return (
       <svg width="36px" height="36px" viewBox="0 0 36 36" version="1.1">
@@ -125,6 +137,11 @@ class HelpPanel extends React.PureComponent {
                 target="_blank"
                 rel="noopener"
                 href="https://www.mongodb.com/cloud/atlas"
+                onClick={this.onLinkClicked.bind(
+                  this,
+                  'connectScreen',
+                  'atlasLanding'
+                )}
               >
                 MongoDB Atlas
               </a>
@@ -137,6 +154,11 @@ class HelpPanel extends React.PureComponent {
                 target="_blank"
                 rel="noopener"
                 href="https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension"
+                onClick={this.onLinkClicked.bind(
+                  this,
+                  'connectScreen',
+                  'freeClusterCTA'
+                )}
               >
                 Create Free Cluster
               </a>
@@ -148,4 +170,12 @@ class HelpPanel extends React.PureComponent {
   }
 }
 
-export default HelpPanel;
+const mapDispatchToProps: dispatchProps = {
+  onLinkClicked: (screen, linkId): LinkClickedAction => ({
+    type: ActionTypes.LINK_CLICKED,
+    screen,
+    linkId
+  })
+};
+
+export default connect(() => ({}), mapDispatchToProps)(HelpPanel);
