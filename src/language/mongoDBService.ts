@@ -32,7 +32,7 @@ export default class MongoDBService {
     this._cachedDatabases = [];
     this._cachedCollections = [];
     this._cachedShellSymbols = this.getShellCompletionItems();
-    this._visitor = new Visitor();
+    this._visitor = new Visitor(connection);
   }
 
   // ------ CONNECTION ------ //
@@ -332,38 +332,44 @@ export default class MongoDBService {
   }
 
   private prepareCollectionsItems(
+    textFromEditor: string,
     collections: Array<any>,
-    dbCallPosition: { line: number; character: number }
+    position: { line: number; character: number }
   ): any {
     return collections.map((item) => {
-      const line = dbCallPosition.line;
-      const startCharacter = dbCallPosition.character - 3;
-      const endCharacter = dbCallPosition.character;
+      const line = position.line;
+      const character = position.character;
 
       if (this.isValidPropertyName(item.name)) {
         return {
           label: item.name,
-          kind: CompletionItemKind.Property
+          kind: CompletionItemKind.Folder
         };
       }
 
+      const filterText = textFromEditor.split('\n')[line];
+
       return {
         label: item.name,
-        kind: CompletionItemKind.Property,
-        filterText: `db.`,
-        insertTextFormat: 2,
+        kind: CompletionItemKind.Folder,
+        filterText: [
+          filterText.slice(0, character),
+          `.${item.name}`,
+          filterText.slice(character, filterText.length)
+        ].join(''),
         textEdit: {
           range: {
-            start: {
-              line,
-              character: startCharacter
-            },
+            start: { line, character: 0 },
             end: {
               line,
-              character: endCharacter
+              character: filterText.length
             }
           },
-          newText: `db['${item.name}']`
+          newText: [
+            filterText.slice(0, character - 1),
+            `['${item.name}']`,
+            filterText.slice(character, filterText.length)
+          ].join('')
         }
       };
     });
@@ -389,7 +395,7 @@ export default class MongoDBService {
       const isMemberExpression = dataFromAST.isMemberExpression;
       const isUseCallExpression = dataFromAST.isUseCallExpression;
       const isDbCallExpression = dataFromAST.isDbCallExpression;
-      const dbCallPosition = dataFromAST.dbCallPosition;
+      const hasDbCallExpression = dataFromAST.hasDbCallExpression;
       const isAggregationCursor = dataFromAST.isAggregationCursor;
       const isFindCursor = dataFromAST.isFindCursor;
 
@@ -440,14 +446,29 @@ export default class MongoDBService {
           );
 
           const collectionCompletions = this.prepareCollectionsItems(
+            textFromEditor,
             this._cachedCollections[databaseName],
-            dbCallPosition
+            position
           );
 
           dbCompletions = dbCompletions.concat(collectionCompletions);
         }
 
         return resolve(dbCompletions);
+      }
+
+      if (hasDbCallExpression && databaseName) {
+        this._connection.console.log(
+          'ESPRIMA found collection names completion'
+        );
+
+        const collectionCompletions = this.prepareCollectionsItems(
+          textFromEditor,
+          this._cachedCollections[databaseName],
+          position
+        );
+
+        return resolve(collectionCompletions);
       }
 
       if (isUseCallExpression) {

@@ -491,7 +491,7 @@ suite('MongoDBService Test Suite', () => {
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
-        CompletionItemKind.Property
+        CompletionItemKind.Folder
       );
     });
 
@@ -512,15 +512,15 @@ suite('MongoDBService Test Suite', () => {
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
-        CompletionItemKind.Property
+        CompletionItemKind.Folder
       );
 
       expect(findCollectionCompletion)
         .to.have.property('textEdit')
-        .that.has.property('newText', "db['coll-name']");
+        .that.has.property('newText', "use('berlin'); db['coll-name']");
     });
 
-    test('provide collection names and shell db symbol completion', async () => {
+    test('provide collection names and shell db symbol completion for db symbol', async () => {
       testMongoDBService.updateCurrentSessionCollections('berlin', [
         {
           name: 'coll-name'
@@ -540,12 +540,61 @@ suite('MongoDBService Test Suite', () => {
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
-        CompletionItemKind.Property
+        CompletionItemKind.Folder
       );
       expect(findShellCompletion).to.have.property(
         'kind',
         CompletionItemKind.Method
       );
+    });
+
+    test('provide only collection names completion in the middle of expression', async () => {
+      testMongoDBService.updateCurrentSessionCollections('berlin', [
+        {
+          name: 'cocktails'
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        "use('berlin'); db..find().close()",
+        { line: 0, character: 18 }
+      );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'cocktails'
+      );
+      const findShellCompletion = result.find(
+        (itme: any) => itme.label === 'getCollectionNames'
+      );
+      const findCursorCompletion = result.find(
+        (itme: any) => itme.label === 'close'
+      );
+
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Folder
+      );
+      expect(findShellCompletion).to.be.undefined;
+      expect(findCursorCompletion).to.be.undefined;
+    });
+
+    test('provide collection names with dashes completion in the middle of expression', async () => {
+      testMongoDBService.updateCurrentSessionCollections('berlin', [
+        {
+          name: 'coll-name'
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        "use('berlin'); db..find()",
+        { line: 0, character: 18 }
+      );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'coll-name'
+      );
+
+      expect(findCollectionCompletion)
+        .to.have.property('textEdit')
+        .that.has.property('newText', "use('berlin'); db['coll-name'].find()");
     });
   });
 
