@@ -4,7 +4,7 @@ import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { signatures } from '@mongosh/shell-api';
 import * as util from 'util';
-import { Visitor, CompletionNodes } from './visitor';
+import { Visitor, CompletionState } from './visitor';
 
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
@@ -49,15 +49,14 @@ export default class MongoDBService {
     connectionOptions?: any;
     extensionPath: string;
   }): Promise<boolean> {
-    this._serviceProvider = undefined;
-    this._runtime = undefined;
-    this._connectionString = params.connectionString;
-    this._connectionOptions = params.connectionOptions;
-    this._extensionPath = params.extensionPath;
-
+    this.clearCurrentSessionConnection();
     this.clearCurrentSessionFields();
     this.clearCurrentSessionDatabases();
     this.clearCurrentSessionCollections();
+
+    this._connectionString = params.connectionString;
+    this._connectionOptions = params.connectionOptions;
+    this._extensionPath = params.extensionPath;
 
     if (!this._connectionString) {
       return Promise.resolve(false);
@@ -82,9 +81,10 @@ export default class MongoDBService {
   }
 
   public async disconnectFromServiceProvider(): Promise<boolean> {
-    this._connectionString = undefined;
-    this._connectionOptions = undefined;
-    this._runtime = undefined;
+    this.clearCurrentSessionConnection();
+    this.clearCurrentSessionFields();
+    this.clearCurrentSessionDatabases();
+    this.clearCurrentSessionCollections();
 
     return Promise.resolve(false);
   }
@@ -388,66 +388,60 @@ export default class MongoDBService {
         textFromEditor,
         position
       );
-      const dataFromAST = this.parseAST(textForEsprima, position);
-      const databaseName = dataFromAST.databaseName;
-      const collectionName = dataFromAST.collectionName;
-      const isObjectKey = dataFromAST.isObjectKey;
-      const isMemberExpression = dataFromAST.isMemberExpression;
-      const isUseCallExpression = dataFromAST.isUseCallExpression;
-      const isDbCallExpression = dataFromAST.isDbCallExpression;
-      const hasDbCallExpression = dataFromAST.hasDbCallExpression;
-      const isAggregationCursor = dataFromAST.isAggregationCursor;
-      const isFindCursor = dataFromAST.isFindCursor;
+      const state = this.parseAST(textForEsprima, position);
 
-      if (databaseName && !this._cachedCollections[databaseName]) {
-        await this.getCollectionsCompletionItems(databaseName);
+      if (state.databaseName && !this._cachedCollections[state.databaseName]) {
+        await this.getCollectionsCompletionItems(state.databaseName);
       }
 
-      if (databaseName && collectionName) {
-        const namespace = `${databaseName}.${collectionName}`;
+      if (state.databaseName && state.collectionName) {
+        const namespace = `${state.databaseName}.${state.collectionName}`;
 
         if (!this._cachedFields[namespace]) {
-          await this.getFieldsCompletionItems(databaseName, collectionName);
+          await this.getFieldsCompletionItems(
+            state.databaseName,
+            state.collectionName
+          );
         }
 
-        if (isObjectKey) {
+        if (state.isObjectKey) {
           this._connection.console.log('ESPRIMA found field completion');
 
           return resolve(this._cachedFields[namespace]);
         }
       }
 
-      if (isAggregationCursor) {
+      if (state.isAggregationCursor) {
         this._connection.console.log('ESPRIMA found aggregation cursor');
 
         return resolve(this._cachedShellSymbols['AggregationCursor']);
       }
 
-      if (isFindCursor) {
+      if (state.isFindCursor) {
         this._connection.console.log('ESPRIMA found cursor');
 
         return resolve(this._cachedShellSymbols['Cursor']);
       }
 
-      if (isMemberExpression && collectionName) {
+      if (state.isMemberExpression && state.collectionName) {
         this._connection.console.log('ESPRIMA found shell completion');
 
         return resolve(this._cachedShellSymbols['Collection']);
       }
 
-      if (isDbCallExpression) {
+      if (state.isDbCallExpression) {
         this._connection.console.log('ESPRIMA found collection db symbol');
 
         let dbCompletions: any = [...this._cachedShellSymbols['Database']];
 
-        if (databaseName) {
+        if (state.databaseName) {
           this._connection.console.log(
             'ESPRIMA found collection names completion'
           );
 
           const collectionCompletions = this.prepareCollectionsItems(
             textFromEditor,
-            this._cachedCollections[databaseName],
+            this._cachedCollections[state.databaseName],
             position
           );
 
@@ -457,21 +451,21 @@ export default class MongoDBService {
         return resolve(dbCompletions);
       }
 
-      if (hasDbCallExpression && databaseName) {
+      if (state.hasDbCallExpression && state.databaseName) {
         this._connection.console.log(
           'ESPRIMA found collection names completion'
         );
 
         const collectionCompletions = this.prepareCollectionsItems(
           textFromEditor,
-          this._cachedCollections[databaseName],
+          this._cachedCollections[state.databaseName],
           position
         );
 
         return resolve(collectionCompletions);
       }
 
-      if (isUseCallExpression) {
+      if (state.isUseCallExpression) {
         this._connection.console.log('ESPRIMA found database names completion');
 
         return resolve(this._cachedDatabases);
@@ -486,8 +480,8 @@ export default class MongoDBService {
   private parseAST(
     text: string,
     position: { line: number; character: number }
-  ): CompletionNodes {
-    let nodes: CompletionNodes = this._visitor.getDefaultNodesValues();
+  ): CompletionState {
+    let nodes: CompletionState = this._visitor.getDefaultNodesValues();
 
     try {
       this._connection.console.log(`ESPRIMA completion body: "${text}"`);
@@ -543,5 +537,12 @@ export default class MongoDBService {
     }
 
     return [];
+  }
+
+  public clearCurrentSessionConnection() {
+    this._serviceProvider = undefined;
+    this._runtime = undefined;
+    this._connectionString = undefined;
+    this._connectionOptions = undefined;
   }
 }

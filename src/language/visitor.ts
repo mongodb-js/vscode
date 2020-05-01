@@ -3,7 +3,7 @@ import * as util from 'util';
 const estraverse = require('estraverse');
 const esprima = require('esprima');
 
-export type CompletionNodes = {
+export type CompletionState = {
   databaseName: string | null;
   collectionName: string | null;
   isObjectKey: boolean;
@@ -17,16 +17,97 @@ export type CompletionNodes = {
 
 export class Visitor {
   _connection: any;
+  _state: CompletionState;
+  _position: { line: number; character: number };
 
   constructor(connection: any) {
     this._connection = connection;
+    this._state = this.getDefaultNodesValues();
+    this._position = { line: 0, character: 0 };
+  }
+
+  private visitCallExpression(node: any): void {
+    const isCurrentNode = this.checkIsCurrentNode(node, {
+      line: this._position.line,
+      character: this._position.character
+    });
+
+    if (this.checkIsUseCall(node) && isCurrentNode) {
+      this._state.isUseCallExpression = true;
+    }
+
+    if (this.checkHasDatabaseName(node)) {
+      this._state.databaseName = node.arguments[0].value;
+    }
+  }
+
+  private visitMemberExpression(node: any): void {
+    const isCurrentNode = this.checkIsCurrentNode(node, {
+      line: this._position.line,
+      character: this._position.character - 2 // Prev character without `)`
+    });
+
+    if (this.checkHasDbCall(node) && isCurrentNode) {
+      this._state.hasDbCallExpression = true;
+    }
+
+    if (node.object.type === esprima.Syntax.MemberExpression) {
+      if (this.checkHasAggregationCall(node, this._position)) {
+        this._state.isAggregationCursor = true;
+      }
+
+      if (this.checkHasFindCall(node)) {
+        this._state.isFindCursor = true;
+      }
+    }
+
+    if (
+      node.object.type === esprima.Syntax.Identifier &&
+      this.checkHasCollectionName(node)
+    ) {
+      const isCurrentNode = this.checkIsCurrentNode(node, {
+        line: this._position.line,
+        character: this._position.character - 3 // Prev character without `.(`
+      });
+
+      if (isCurrentNode) {
+        this._state.isMemberExpression = true;
+      }
+
+      this._state.collectionName = node.property.name
+        ? node.property.name
+        : node.property.value;
+    }
+  }
+
+  private visitExpressionStatement(node: any): void {
+    const isCurrentNode = this.checkIsCurrentNode(node, {
+      line: this._position.line,
+      character: this._position.character - 2 // Prev character without `.`
+    });
+
+    if (this.checkIsDbCall(node) && isCurrentNode) {
+      this._state.isDbCallExpression = true;
+    }
+  }
+
+  private visitObjectExpression(node: any): void {
+    const isCurrentNode = this.checkIsCurrentNode(node, {
+      line: this._position.line,
+      character: this._position.character - 1 // Prev character
+    });
+
+    if (isCurrentNode) {
+      this._state.isObjectKey = true;
+    }
   }
 
   public visitAST(
     ast: object,
     position: { line: number; character: number }
-  ): CompletionNodes {
-    const nodes = this.getDefaultNodesValues();
+  ): CompletionState {
+    this._state = this.getDefaultNodesValues();
+    this._position = position;
 
     estraverse.traverse(ast, {
       enter: (node: any) => {
@@ -34,85 +115,24 @@ export class Visitor {
           `ESPRIMA visit node ${util.inspect(node.type)}`
         );
 
-        if (node.type === esprima.Syntax.CallExpression) {
-          const isCurrentNode = this.checkIsCurrentNode(node, {
-            line: position.line,
-            character: position.character
-          });
-
-          if (this.checkIsUseCall(node) && isCurrentNode) {
-            nodes.isUseCallExpression = true;
-          }
-
-          if (this.checkHasDatabaseName(node, position)) {
-            nodes.databaseName = node.arguments[0].value;
-          }
-        }
-
-        if (node.type === esprima.Syntax.MemberExpression) {
-          const isCurrentNode = this.checkIsCurrentNode(node, {
-            line: position.line,
-            character: position.character - 2
-          });
-
-          if (this.checkHasDbCall(node) && isCurrentNode) {
-            nodes.hasDbCallExpression = true;
-          }
-
-          if (node.object.type === esprima.Syntax.MemberExpression) {
-            if (this.checkHasAggregationCall(node, position)) {
-              nodes.isAggregationCursor = true;
-            }
-
-            if (this.checkHasFindCall(node, position)) {
-              nodes.isFindCursor = true;
-            }
-          }
-
-          if (
-            node.object.type === esprima.Syntax.Identifier &&
-            this.checkHasCollectionName(node, position)
-          ) {
-            const isCurrentNode = this.checkIsCurrentNode(node, {
-              line: position.line,
-              character: position.character - 3
-            });
-
-            nodes.collectionName = node.property.name
-              ? node.property.name
-              : node.property.value;
-
-            if (isCurrentNode) {
-              nodes.isMemberExpression = true;
-            }
-          }
-        }
-
-        if (node.type === esprima.Syntax.ExpressionStatement) {
-          const isCurrentNode = this.checkIsCurrentNode(node, {
-            line: position.line,
-            character: position.character - 2
-          });
-
-          if (this.checkIsDbCall(node) && isCurrentNode) {
-            nodes.isDbCallExpression = true;
-          }
-        }
-
-        if (node.type === esprima.Syntax.ObjectExpression) {
-          const isCurrentNode = this.checkIsCurrentNode(node, {
-            line: position.line,
-            character: position.character - 1
-          });
-
-          if (isCurrentNode) {
-            nodes.isObjectKey = true;
-          }
+        switch (node.type) {
+          case esprima.Syntax.CallExpression:
+            this.visitCallExpression(node);
+            break;
+          case esprima.Syntax.MemberExpression:
+            this.visitMemberExpression(node);
+            break;
+          case esprima.Syntax.ExpressionStatement:
+            this.visitExpressionStatement(node);
+            break;
+          case esprima.Syntax.ObjectExpression:
+            this.visitObjectExpression(node);
+            break;
         }
       }
     });
 
-    return nodes;
+    return this._state;
   }
 
   public getDefaultNodesValues() {
@@ -174,15 +194,12 @@ export class Visitor {
     return false;
   }
 
-  private checkHasFindCall(
-    node: any,
-    currentPosition: { line: number; character: number }
-  ): boolean {
+  private checkHasFindCall(node: any): boolean {
     if (
       node.property.name === 'find' &&
-      (currentPosition.line >= node.loc.start.line ||
-        (currentPosition.line === node.loc.start.line - 1 &&
-          currentPosition.character > node.loc.end.column))
+      (this._position.line >= node.loc.start.line ||
+        (this._position.line === node.loc.start.line - 1 &&
+          this._position.character > node.loc.end.column))
     ) {
       return true;
     }
@@ -190,18 +207,15 @@ export class Visitor {
     return false;
   }
 
-  private checkHasDatabaseName(
-    node: any,
-    currentPosition: { line: number; character: number }
-  ): boolean {
+  private checkHasDatabaseName(node: any): boolean {
     if (
       node.callee.name === 'use' &&
       node.arguments &&
       node.arguments.length === 1 &&
       node.arguments[0].type === esprima.Syntax.Literal &&
-      (currentPosition.line >= node.loc.start.line ||
-        (currentPosition.line === node.loc.start.line - 1 &&
-          currentPosition.character > node.loc.end.column))
+      (this._position.line >= node.loc.start.line ||
+        (this._position.line === node.loc.start.line - 1 &&
+          this._position.character > node.loc.end.column))
     ) {
       return true;
     }
@@ -209,15 +223,12 @@ export class Visitor {
     return false;
   }
 
-  private checkHasCollectionName(
-    node: any,
-    currentPosition: { line: number; character: number }
-  ): boolean {
+  private checkHasCollectionName(node: any): boolean {
     if (
       node.object.name === 'db' &&
-      (currentPosition.line >= node.loc.start.line ||
-        (currentPosition.line === node.loc.start.line - 1 &&
-          currentPosition.character > node.loc.end.column))
+      (this._position.line >= node.loc.start.line ||
+        (this._position.line === node.loc.start.line - 1 &&
+          this._position.character > node.loc.end.column))
     ) {
       return true;
     }
@@ -235,14 +246,14 @@ export class Visitor {
     // Do not count brackets
     const nodeStartCharacter = node.loc.start.column + 1;
     const nodeEndCharacter = node.loc.end.column - 1;
-    const cursorLine = currentPosition.line;
-    const cursorCharacter = currentPosition.character;
+    const currentLine = currentPosition.line;
+    const currentCharacter = currentPosition.character;
 
     if (
-      (cursorLine > nodeStartLine && cursorLine < nodeEndLine) ||
-      (cursorLine === nodeStartLine &&
-        cursorCharacter >= nodeStartCharacter &&
-        cursorCharacter <= nodeEndCharacter)
+      (currentLine > nodeStartLine && currentLine < nodeEndLine) ||
+      (currentLine === nodeStartLine &&
+        currentCharacter >= nodeStartCharacter &&
+        currentCharacter <= nodeEndCharacter)
     ) {
       return true;
     }
