@@ -409,32 +409,40 @@ export default class MongoDBService {
         }
 
         if (state.isObjectKey) {
-          this._connection.console.log('ESPRIMA found field completion');
+          this._connection.console.log('ESPRIMA found field names completion');
 
           return resolve(this._cachedFields[namespace]);
         }
       }
 
       if (state.isShellMethod && state.collectionName) {
-        this._connection.console.log('ESPRIMA found shell completion');
+        this._connection.console.log(
+          'ESPRIMA found shell collection methods completion'
+        );
 
         return resolve(this._cachedShellSymbols['Collection']);
       }
 
       if (state.isAggregationCursor) {
-        this._connection.console.log('ESPRIMA found aggregation cursor');
+        this._connection.console.log(
+          'ESPRIMA found shell aggregation cursor methods completion'
+        );
 
         return resolve(this._cachedShellSymbols['AggregationCursor']);
       }
 
       if (state.isFindCursor) {
-        this._connection.console.log('ESPRIMA found cursor');
+        this._connection.console.log(
+          'ESPRIMA found shell cursor methods completion'
+        );
 
         return resolve(this._cachedShellSymbols['Cursor']);
       }
 
       if (state.isDbCallExpression) {
-        this._connection.console.log('ESPRIMA found collection db symbol');
+        this._connection.console.log(
+          'ESPRIMA found shell db methods completion'
+        );
 
         let dbCompletions: any = [...this._cachedShellSymbols['Database']];
 
