@@ -336,6 +336,10 @@ export default class MongoDBService {
     collections: Array<any>,
     position: { line: number; character: number }
   ): any {
+    if (!collections) {
+      return [];
+    }
+
     return collections.map((item) => {
       const line = position.line;
       const character = position.character;
@@ -411,6 +415,12 @@ export default class MongoDBService {
         }
       }
 
+      if (state.isShellMethod && state.collectionName) {
+        this._connection.console.log('ESPRIMA found shell completion');
+
+        return resolve(this._cachedShellSymbols['Collection']);
+      }
+
       if (state.isAggregationCursor) {
         this._connection.console.log('ESPRIMA found aggregation cursor');
 
@@ -421,12 +431,6 @@ export default class MongoDBService {
         this._connection.console.log('ESPRIMA found cursor');
 
         return resolve(this._cachedShellSymbols['Cursor']);
-      }
-
-      if (state.isMemberExpression && state.collectionName) {
-        this._connection.console.log('ESPRIMA found shell completion');
-
-        return resolve(this._cachedShellSymbols['Collection']);
       }
 
       if (state.isDbCallExpression) {
@@ -451,7 +455,7 @@ export default class MongoDBService {
         return resolve(dbCompletions);
       }
 
-      if (state.hasDbCallExpression && state.databaseName) {
+      if (state.isCollectionName && state.databaseName) {
         this._connection.console.log(
           'ESPRIMA found collection names completion'
         );

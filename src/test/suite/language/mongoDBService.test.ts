@@ -455,7 +455,7 @@ suite('MongoDBService Test Suite', () => {
       expect(findCompletion).to.be.undefined;
     });
 
-    test('provide db names completion', async () => {
+    test('provide db names completion for literal', async () => {
       testMongoDBService.updateCurrentSessionDatabases([
         {
           label: 'admin',
@@ -466,6 +466,69 @@ suite('MongoDBService Test Suite', () => {
       const result = await testMongoDBService.provideCompletionItems(
         'use("a");',
         { line: 0, character: 6 }
+      );
+
+      expect(result.length).to.be.equal(1);
+
+      const db = result.shift();
+
+      expect(db).to.have.property('label', 'admin');
+      expect(db).to.have.property('kind', CompletionItemKind.Value);
+    });
+
+    test('provide db names completion for template start line', async () => {
+      testMongoDBService.updateCurrentSessionDatabases([
+        {
+          label: 'admin',
+          kind: CompletionItemKind.Value
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        ['use(`', '', '`);'].join('\n'),
+        { line: 0, character: 5 }
+      );
+
+      expect(result.length).to.be.equal(1);
+
+      const db = result.shift();
+
+      expect(db).to.have.property('label', 'admin');
+      expect(db).to.have.property('kind', CompletionItemKind.Value);
+    });
+
+    test('provide db names completion for template middle line', async () => {
+      testMongoDBService.updateCurrentSessionDatabases([
+        {
+          label: 'admin',
+          kind: CompletionItemKind.Value
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        ['use(`', '', '`);'].join('\n'),
+        { line: 1, character: 0 }
+      );
+
+      expect(result.length).to.be.equal(1);
+
+      const db = result.shift();
+
+      expect(db).to.have.property('label', 'admin');
+      expect(db).to.have.property('kind', CompletionItemKind.Value);
+    });
+
+    test('provide db names completion for template end line', async () => {
+      testMongoDBService.updateCurrentSessionDatabases([
+        {
+          label: 'admin',
+          kind: CompletionItemKind.Value
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        ['use(`', '', '`);'].join('\n'),
+        { line: 2, character: 0 }
       );
 
       expect(result.length).to.be.equal(1);
@@ -520,6 +583,29 @@ suite('MongoDBService Test Suite', () => {
         .that.has.property('newText', "use('berlin'); db['coll-name']");
     });
 
+    test('provide collection names completion in variable declarations', async () => {
+      testMongoDBService.updateCurrentSessionCollections('berlin', [
+        { name: 'cocktailbars' }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        ["use('berlin');", '', 'let a = db.'].join('\n'),
+        { line: 2, character: 11 }
+      );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'cocktailbars'
+      );
+
+      expect(findCollectionCompletion).to.have.property(
+        'label',
+        'cocktailbars'
+      );
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Folder
+      );
+    });
+
     test('provide collection names and shell db symbol completion for db symbol', async () => {
       testMongoDBService.updateCurrentSessionCollections('berlin', [
         {
@@ -546,6 +632,44 @@ suite('MongoDBService Test Suite', () => {
         'kind',
         CompletionItemKind.Method
       );
+    });
+
+    test('provide only collection names and shell db symbol completion after cursor', async () => {
+      testMongoDBService.updateCurrentSessionCollections('berlin', [
+        {
+          name: 'cocktailbars'
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        [
+          "use('berlin');",
+          '',
+          'let a = db.cocktailbars.find({}).toArray();',
+          '',
+          'db.'
+        ].join('\n'),
+        { line: 4, character: 3 }
+      );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'cocktailbars'
+      );
+      const findShellCompletion = result.find(
+        (itme: any) => itme.label === 'getCollectionNames'
+      );
+      const findCursorCompletion = result.find(
+        (itme: any) => itme.label === 'toArray'
+      );
+
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Folder
+      );
+      expect(findShellCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Method
+      );
+      expect(findCursorCompletion).to.be.undefined;
     });
 
     test('provide only collection names completion in the middle of expression', async () => {
