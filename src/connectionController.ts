@@ -63,7 +63,18 @@ export default class ConnectionController {
     this._statusView = _statusView;
     this._storageController = storageController;
 
-    this._keytar = getNodeModule<typeof keytarType>('keytar');
+    try {
+      // We load keytar in two different ways. This is because when the
+      // extension is webpacked it requires the vscode external keytar dependency
+      // differently then our testing development environment.
+      this._keytar = require('keytar');
+
+      if (!this._keytar) {
+        this._keytar = getNodeModule<typeof keytarType>('keytar');
+      }
+    } catch (err) {
+      // Couldn't load keytar, proceed without storing & loading connections.
+    }
   }
 
   _loadSavedConnection = async (
