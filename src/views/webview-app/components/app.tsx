@@ -94,7 +94,7 @@ const mapDispatchToProps: props = {
   onUriConnectedEvent: (
     successfullyConnected: boolean,
     connectionMessage: string
-  ): URIConnectionEventOccuredAction => ({
+  ): UriConnectionEventOccuredAction => ({
     type: ActionTypes.URI_CONNECTION_EVENT_OCCURED,
     successfullyConnected,
     connectionMessage
