@@ -12,6 +12,7 @@ export enum ActionTypes {
   HOSTNAME_CHANGED = 'HOSTNAME_CHANGED',
   IS_SRV_RECORD_TOGGLED = 'IS_SRV_RECORD_TOGGLED',
   KERBEROS_PARAMETERS_CHANGED = 'KERBEROS_PARAMETERS_CHANGED',
+  LINK_CLICKED = 'LINK_CLICKED',
   LDAP_PASSWORD_CHANGED = 'LDAP_PASSWORD_CHANGED',
   LDAP_USERNAME_CHANGED = 'LDAP_USERNAME_CHANGED',
   ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE = 'ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE',
@@ -35,9 +36,9 @@ export enum ActionTypes {
   SSL_KEY_CHANGED = 'SSL_KEY_CHANGED',
   SSL_METHOD_CHANGED = 'SSL_METHOD_CHANGED',
   SSL_PASS_CHANGED = 'SSL_PASS_CHANGED',
+  URI_CONNECTION_EVENT_OCCURED = 'URI_CONNECTION_EVENT_OCCURED',
   USERNAME_CHANGED = 'USERNAME_CHANGED',
-  X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED',
-  LINK_CLICKED = 'LINK_CLICKED'
+  X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED'
 }
 
 export type FilePickerActionTypes =
@@ -217,6 +218,12 @@ export interface SSLPassChangedAction extends BaseAction {
   sslPass: string;
 }
 
+export interface UriConnectionEventOccuredAction extends BaseAction {
+  type: ActionTypes.URI_CONNECTION_EVENT_OCCURED;
+  successfullyConnected: boolean;
+  connectionMessage: string;
+}
+
 export interface UsernameChangedAction extends BaseAction {
   type: ActionTypes.USERNAME_CHANGED;
   mongodbUsername: string;
@@ -266,5 +273,6 @@ export type Actions =
   | SSLKeyChangedAction
   | SSLMethodChangedAction
   | SSLPassChangedAction
+  | UriConnectionEventOccuredAction
   | UsernameChangedAction
   | X509UsernameChangedAction;

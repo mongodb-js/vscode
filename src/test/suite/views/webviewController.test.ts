@@ -171,7 +171,7 @@ suite('Connect Form View Test Suite', () => {
       html: '',
       postMessage: (message: any): void => {
         assert(message.connectionSuccess);
-        assert(message.connectionMessage === 'Connected.');
+        assert(message.connectionMessage === 'Successfully connected.');
 
         testConnectionController.disconnect();
         done();
@@ -396,7 +396,7 @@ suite('Connect Form View Test Suite', () => {
       }
     };
 
-    const fakeVSCodeExecuteCommand = sinon.fake();
+    const fakeVSCodeExecuteCommand = sinon.fake.resolves(false);
     sinon.replace(vscode.commands, 'executeCommand', fakeVSCodeExecuteCommand);
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({

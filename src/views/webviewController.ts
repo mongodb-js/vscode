@@ -78,7 +78,7 @@ export default class WebviewController {
                 command: MESSAGE_TYPES.CONNECT_RESULT,
                 connectionSuccess,
                 connectionMessage: connectionSuccess
-                  ? 'Connected.'
+                  ? 'Successfully connected.'
                   : 'Unable to connect.'
               });
             },
@@ -109,7 +109,16 @@ export default class WebviewController {
           });
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
-        vscode.commands.executeCommand('mdb.connectWithURI');
+        vscode.commands.executeCommand('mdb.connectWithURI').then(connectionSuccess => {
+          if (connectionSuccess) {
+            panel.webview.postMessage({
+              command: MESSAGE_TYPES.CONNECT_RESULT,
+              connectionSuccess: true,
+              connectionMessage: 'Successfully connected.',
+              isUriConnection: true
+            });
+          }
+        });
 
         return;
       case MESSAGE_TYPES.LINK_CLICKED:

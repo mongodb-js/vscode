@@ -6,6 +6,7 @@ import ConnectionModel, {
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import { MESSAGE_TYPES } from '../extension-app-message-constants';
 
+// eslint-disable-next-line no-var
 declare var acquireVsCodeApi: any;
 const vscode = acquireVsCodeApi();
 
@@ -14,11 +15,13 @@ export interface AppState {
   isValid: boolean;
   isConnecting: boolean;
   isConnected: boolean;
+  isUriConnected: boolean;
   errorMessage: string;
   syntaxErrorMessage: string;
   isHostChanged: boolean;
   isPortChanged: boolean;
   savedMessage: string;
+  uriConnectionMessage: string;
 }
 
 export const initialState = {
@@ -26,11 +29,13 @@ export const initialState = {
   isValid: true,
   isConnecting: false,
   isConnected: false,
+  isUriConnected: false,
   errorMessage: '',
   syntaxErrorMessage: '',
   isHostChanged: false,
   isPortChanged: false,
-  savedMessage: ''
+  savedMessage: '',
+  uriConnectionMessage: ''
 };
 
 const showFilePicker = (
@@ -123,6 +128,7 @@ export const rootReducer = (
         ...state,
         isValid: true,
         isConnected: false,
+        isUriConnected: false,
         errorMessage: '',
         syntaxErrorMessage: ''
       };
@@ -240,7 +246,8 @@ export const rootReducer = (
       });
 
       return {
-        ...state
+        ...state,
+        isUriConnected: false
       };
 
     case ActionTypes.PASSWORD_CHANGED:
@@ -399,6 +406,13 @@ export const rootReducer = (
           ...state.currentConnection,
           sslPass: action.sslPass
         }
+      };
+
+    case ActionTypes.URI_CONNECTION_EVENT_OCCURED:
+      return {
+        ...state,
+        isUriConnected: action.successfullyConnected,
+        uriConnectionMessage: action.connectionMessage
       };
 
     case ActionTypes.USERNAME_CHANGED:
