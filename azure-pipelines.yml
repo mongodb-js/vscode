@@ -31,7 +31,7 @@ steps:
       sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
 
       # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev;
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring;
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
