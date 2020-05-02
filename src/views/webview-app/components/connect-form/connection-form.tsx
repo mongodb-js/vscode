@@ -27,10 +27,12 @@ type stateProps = {
   errorMessage: string;
   isConnected: boolean;
   isConnecting: boolean;
+  isUriConnected: boolean;
   isHostChanged: boolean;
   isPortChanged: boolean;
   isValid: boolean;
   syntaxErrorMessage: string;
+  uriConnectionMessage: string;
 };
 
 type dispatchProps = {
@@ -128,6 +130,28 @@ class ConnectionForm extends React.Component<props> {
     );
   }
 
+  /**
+   * Renders a component with messages.
+   *
+   * @returns {React.Component}
+   */
+  renderURIConnectionMessage(): React.ReactNode {
+    const {
+      isUriConnected,
+      uriConnectionMessage
+    } = this.props;
+
+    if (isUriConnected) {
+      return (
+        <div className={styles['connection-message-container']}>
+          <div className={styles['connection-message-container-success']}>
+            <div className={styles['connection-message']}>{`${uriConnectionMessage} You may now close this window.`}</div>
+          </div>
+        </div>
+      );
+    }
+  }
+
   render(): React.ReactNode {
     const {
       currentConnection,
@@ -151,6 +175,7 @@ class ConnectionForm extends React.Component<props> {
             connect with a connection string
           </a>
         </div>
+        {this.renderURIConnectionMessage()}
         <div className={classnames(styles.fields)}>
           {this.renderHostnameArea()}
           {this.renderConnectionOptionsArea()}
@@ -174,10 +199,12 @@ const mapStateToProps = (state: AppState): stateProps => {
     errorMessage: state.errorMessage,
     isConnected: state.isConnected,
     isConnecting: state.isConnecting,
+    isUriConnected: state.isUriConnected,
     isHostChanged: state.isHostChanged,
     isPortChanged: state.isPortChanged,
     isValid: state.isValid,
-    syntaxErrorMessage: state.syntaxErrorMessage
+    syntaxErrorMessage: state.syntaxErrorMessage,
+    uriConnectionMessage: state.uriConnectionMessage
   };
 };
 
