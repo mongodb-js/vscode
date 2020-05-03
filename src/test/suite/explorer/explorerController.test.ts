@@ -226,7 +226,7 @@ suite('Explorer Controller Test Suite', () => {
               })
               .then(done, done);
           });
-        }, 100);
+        }, 250);
       });
   });
 
