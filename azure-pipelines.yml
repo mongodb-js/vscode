@@ -35,6 +35,7 @@ steps:
 
       # Set up keytar
       export NO_AT_BRIDGE=1
+      export DISPLAY=:99.0;
       eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
       eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
       /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
