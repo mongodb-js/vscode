@@ -18,12 +18,12 @@ export type CompletionState = {
 export class Visitor {
   _connection: any;
   _state: CompletionState;
-  _position: { line: number; character: number };
+  _absoluteCharacter: number;
 
   constructor(connection: any) {
     this._connection = connection;
     this._state = this.getDefaultNodesValues();
-    this._position = { line: 0, character: 0 };
+    this._absoluteCharacter = 0;
   }
 
   private visitCallExpression(node: any): void {
@@ -78,12 +78,9 @@ export class Visitor {
     }
   }
 
-  public visitAST(
-    ast: object,
-    position: { line: number; character: number }
-  ): CompletionState {
+  public visitAST(ast: object, absoluteCharacter: number): CompletionState {
     this._state = this.getDefaultNodesValues();
-    this._position = position;
+    this._absoluteCharacter = absoluteCharacter;
 
     estraverse.traverse(ast, {
       enter: (node: any) => {
@@ -137,17 +134,10 @@ export class Visitor {
       node.callee.name === 'use' &&
       node.arguments &&
       node.arguments.length === 1 &&
-      ((node.arguments[0].type === esprima.Syntax.Literal &&
-        this._position.line === node.loc.start.line - 1 &&
-        this._position.character >= node.loc.start.column &&
-        this._position.character <= node.loc.end.column) ||
-        (node.arguments[0].type === esprima.Syntax.TemplateLiteral &&
-          ((this._position.line > node.loc.start.line - 1 &&
-            this._position.line < node.loc.end.line - 1) ||
-            (this._position.line === node.loc.start.line - 1 &&
-              this._position.character >= node.loc.start.column) ||
-            (this._position.line === node.loc.end.line - 1 &&
-              this._position.character <= node.loc.end.column))))
+      (node.arguments[0].type === esprima.Syntax.Literal ||
+        node.arguments[0].type === esprima.Syntax.TemplateLiteral) &&
+      this._absoluteCharacter >= node.loc.start.column &&
+      this._absoluteCharacter <= node.loc.end.column
     ) {
       return true;
     }
@@ -158,8 +148,7 @@ export class Visitor {
   private checkIsDbCall(node: any): boolean {
     if (
       (node.expression?.name === 'db' || node.init?.name === 'db') &&
-      this._position.line === node.loc.end.line - 1 &&
-      this._position.character === node.loc.end.column + 1
+      this._absoluteCharacter === node.loc.end.column + 1
     ) {
       return true;
     }
@@ -169,11 +158,8 @@ export class Visitor {
 
   private checkIsObjectKey(node: any): boolean {
     if (
-      (this._position.line > node.loc.start.line - 1 &&
-        this._position.line < node.loc.end.line - 1) ||
-      (this._position.line === node.loc.start.line - 1 &&
-        this._position.character > node.loc.start.column + 1 &&
-        this._position.character < node.loc.end.column)
+      this._absoluteCharacter > node.loc.start.column + 1 &&
+      this._absoluteCharacter < node.loc.end.column
     ) {
       return true;
     }
@@ -184,9 +170,7 @@ export class Visitor {
   private checkIsCollectionName(node: any): boolean {
     if (
       node.object?.name === 'db' &&
-      this._position.line === node.loc.start.line - 1 &&
-      (this._position.character >= node.loc.start.column ||
-        this._position.character <= node.loc.end.column)
+      this._absoluteCharacter === node.loc.start.column + 3
     ) {
       return true;
     }
@@ -202,8 +186,7 @@ export class Visitor {
       node.callee.object.object.name === 'db' &&
       node.callee.property &&
       node.callee.property.name === 'aggregate' &&
-      this._position.line >= node.loc.start.line - 1 &&
-      this._position.character >= node.loc.end.column + 1
+      this._absoluteCharacter === node.loc.end.column + 1
     ) {
       return true;
     }
@@ -219,8 +202,7 @@ export class Visitor {
       node.callee.object.object.name === 'db' &&
       node.callee.property &&
       node.callee.property.name === 'find' &&
-      this._position.line >= node.loc.start.line - 1 &&
-      this._position.character >= node.loc.end.column + 1
+      this._absoluteCharacter === node.loc.end.column + 1
     ) {
       return true;
     }
@@ -235,9 +217,7 @@ export class Visitor {
       node.arguments &&
       node.arguments.length === 1 &&
       node.arguments[0].type === esprima.Syntax.Literal &&
-      (this._position.line >= node.loc.start.line ||
-        (this._position.line === node.loc.start.line - 1 &&
-          this._position.character > node.loc.end.column))
+      this._absoluteCharacter > node.loc.end.column
     ) {
       return true;
     }
@@ -250,9 +230,7 @@ export class Visitor {
       node.object.type === esprima.Syntax.Identifier &&
       node.object &&
       node.object.name === 'db' &&
-      (this._position.line >= node.loc.start.line ||
-        (this._position.line === node.loc.start.line - 1 &&
-          this._position.character > node.loc.end.column))
+      this._absoluteCharacter > node.loc.end.column
     ) {
       return true;
     }
@@ -266,8 +244,7 @@ export class Visitor {
       node.object.name === 'db' &&
       node.property &&
       (node.property.name || node.property.value) &&
-      this._position.line === node.loc.start.line - 1 &&
-      this._position.character === node.loc.end.column + 1
+      this._absoluteCharacter === node.loc.end.column + 1
     ) {
       return true;
     }

@@ -302,28 +302,76 @@ export default class MongoDBService {
 
   // Esprima parser requires finished blocks of code to build AST.
   // In this case, the `db.collection.` text will throw a parsing error.
-  // Find and remove trigger dots from the text before sending it to esprima
-  private findAndRemoveTriggerDot = (
+  // Find and remove trigger dots from the text before sending it to esprima.
+  // Also, minify the text with semicolons instead of new lines
+  // what will help with nodes identification
+  private prepareTextForEsprima = (
     textFromEditor: string,
     position: { line: number; character: number }
-  ): string => {
+  ): { minifiedText: string; absoluteCharacter: number } => {
     const textForEsprima: Array<string> = [];
+    const textLines = textFromEditor.split('\n');
+    let absoluteCharacter = 0; // The position of the current character in the minified text
 
-    textFromEditor.split('\n').forEach((line, index) => {
+    textLines.forEach((line, index) => {
       if (index === position.line) {
         const currentSymbol = line[position.character - 1];
+        let minifiedLine = '';
 
-        textForEsprima.push(
-          currentSymbol === '.'
-            ? this.removeSymbolByIndex(line, position.character)
-            : line
-        );
+        // Remove trigger dot
+        if (currentSymbol === '.') {
+          minifiedLine = this.removeSymbolByIndex(
+            line,
+            position.character
+          ).trim();
+          absoluteCharacter += 1; // Count trigger dot despite the removal
+        } else {
+          minifiedLine = line.trim();
+        }
+
+        // Calculate the current position after line modification
+        const offset = line.length - minifiedLine.length;
+
+        absoluteCharacter += position.character - offset;
+        textForEsprima.push(minifiedLine);
       } else {
-        textForEsprima.push(line);
+        // Remove end of line comments
+        let minifiedLine = line
+          .replace(/\[\s\S]\/|([^:]|^)\/\/.*/gm, '')
+          .trim();
+
+        // Remove block comments
+        if (minifiedLine[0] !== '/' && minifiedLine[0] !== '*') {
+          const offset = line.length - minifiedLine.length;
+
+          // Calculate the current position after line modification
+          // only before the current character
+          if (index < position.line) {
+            absoluteCharacter += line.length - offset;
+          }
+
+          // Add semicolons to ensure a valid js code after minification
+          if (
+            minifiedLine !== '' &&
+            (minifiedLine[minifiedLine.length - 1] === ')' ||
+              minifiedLine[minifiedLine.length - 1] === '}')
+          ) {
+            minifiedLine = `${minifiedLine};`;
+
+            if (index < position.line) {
+              absoluteCharacter += 1;
+            }
+          }
+
+          textForEsprima.push(minifiedLine);
+        }
       }
     });
 
-    return textForEsprima.join('\n');
+    return {
+      minifiedText: textForEsprima.join(''),
+      absoluteCharacter
+    };
   };
 
   // Check if string is a valid property name
@@ -351,11 +399,13 @@ export default class MongoDBService {
         };
       }
 
+      // Convert invalid property names to array-like format
       const filterText = textFromEditor.split('\n')[line];
 
       return {
         label: item.name,
         kind: CompletionItemKind.Folder,
+        // Find the line with invalid property name
         filterText: [
           filterText.slice(0, character),
           `.${item.name}`,
@@ -369,6 +419,7 @@ export default class MongoDBService {
               character: filterText.length
             }
           },
+          // Replace with array-like format
           newText: [
             filterText.slice(0, character - 1),
             `['${item.name}']`,
@@ -388,11 +439,10 @@ export default class MongoDBService {
         `LS current symbol position: ${util.inspect(position)}`
       );
 
-      const textForEsprima = this.findAndRemoveTriggerDot(
-        textFromEditor,
-        position
-      );
-      const state = this.parseAST(textForEsprima, position);
+      const data = this.prepareTextForEsprima(textFromEditor, position);
+      const textForEsprima = data.minifiedText;
+      const absoluteCharacter = data.absoluteCharacter;
+      const state = this.parseAST(textForEsprima, absoluteCharacter);
 
       if (state.databaseName && !this._cachedCollections[state.databaseName]) {
         await this.getCollectionsCompletionItems(state.databaseName);
@@ -440,15 +490,11 @@ export default class MongoDBService {
       }
 
       if (state.isDbCallExpression) {
-        this._connection.console.log(
-          'ESPRIMA found shell db methods completion'
-        );
-
         let dbCompletions: any = [...this._cachedShellSymbols['Database']];
 
         if (state.databaseName) {
           this._connection.console.log(
-            'ESPRIMA found collection names completion'
+            'ESPRIMA found shell db methods and collection names completion'
           );
 
           const collectionCompletions = this.prepareCollectionsItems(
@@ -458,6 +504,10 @@ export default class MongoDBService {
           );
 
           dbCompletions = dbCompletions.concat(collectionCompletions);
+        } else {
+          this._connection.console.log(
+            'ESPRIMA found shell db methods completion'
+          );
         }
 
         return resolve(dbCompletions);
@@ -489,18 +539,18 @@ export default class MongoDBService {
     });
   }
 
-  private parseAST(
-    text: string,
-    position: { line: number; character: number }
-  ): CompletionState {
+  private parseAST(text: string, absoluteCharacter: number): CompletionState {
     let nodes: CompletionState = this._visitor.getDefaultNodesValues();
 
     try {
       this._connection.console.log(`ESPRIMA completion body: "${text}"`);
+      this._connection.console.log(
+        `ESPRIMA absolute position: { line: 0, character: ${absoluteCharacter} }`
+      );
 
       const ast = esprima.parseScript(text, { loc: true });
 
-      nodes = this._visitor.visitAST(ast, position);
+      nodes = this._visitor.visitAST(ast, absoluteCharacter);
     } catch (error) {
       this._connection.console.log(`ESPRIMA error: ${util.inspect(error)}`);
     }
