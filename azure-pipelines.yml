@@ -31,7 +31,15 @@ steps:
       sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
 
       # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring;
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring python-gnomekeyring;
+
+      # Set up keytar
+      export NO_AT_BRIDGE=1
+      export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; sleep 3;
+      eval $(dbus-launch --sh-syntax);
+      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
+      eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
+      /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
