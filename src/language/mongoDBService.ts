@@ -292,80 +292,94 @@ export default class MongoDBService {
   }
 
   // ------ COMPLETION ------ //
-  private removeSymbolByIndex = (text: string, index: number): string => {
-    if (index === 0) {
-      return text.slice(1);
-    }
-
-    return `${text.slice(0, index - 1)}${text.slice(index)}`;
-  };
 
   // Esprima parser requires finished blocks of code to build AST.
-  // In this case, the `db.collection.` text will throw a parsing error.
+  // It means the `db.collection.` text will throw a parsing error.
   // Find and remove trigger dots from the text before sending it to esprima.
-  // Also, minify the text with semicolons instead of new lines
-  // what will help with nodes identification
+  // Also, minify the text and with adding missing semicolons
+  // to know the exact location of nodes despite the user's formatting
   private prepareTextForEsprima = (
     textFromEditor: string,
     position: { line: number; character: number }
   ): { minifiedText: string; absoluteCharacter: number } => {
+    // Format the text line by line to track the current position changes
     const textForEsprima: Array<string> = [];
     const textLines = textFromEditor.split('\n');
     let absoluteCharacter = 0; // The position of the current character in the minified text
+    let isBlockComment = false;
+
+    const regexpEndLineComment = new RegExp(
+      /\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*/,
+      'g'
+    );
+    const regexpBeginBlockComment = new RegExp(/([^:]|^)\/\*.*/, 'g');
+    const regexpEndBlockComment = new RegExp(/(^.*\*\/([^:\w]|^)*)/, 'g');
 
     textLines.forEach((line, index) => {
+      // Remove single line comments
+      let minifiedLine = line.replace(regexpEndLineComment, '');
+
+      // Remove block comments
+      let offset = 0; // The length of the deleted comment
+
+      if (minifiedLine.match(regexpBeginBlockComment)) {
+        // Remove `/*` part of block comment
+        minifiedLine = minifiedLine.replace(regexpBeginBlockComment, '');
+        isBlockComment = true;
+      } else {
+        const endBlockComment = minifiedLine.match(regexpEndBlockComment);
+
+        if (isBlockComment && endBlockComment) {
+          // Remove `*/` part of block comment
+          minifiedLine = minifiedLine.replace(regexpEndBlockComment, '');
+          isBlockComment = false;
+          offset += endBlockComment[0].length;
+        } else if (isBlockComment) {
+          // Remove `*` part of block comment
+          minifiedLine = '';
+        }
+      }
+
       if (index === position.line) {
-        const currentSymbol = line[position.character - 1];
-        let minifiedLine = '';
+        let fixPosition = position.character - offset;
+        const currentSymbol = minifiedLine[fixPosition - 1];
 
         // Remove trigger dot
         if (currentSymbol === '.') {
-          minifiedLine = this.removeSymbolByIndex(
-            line,
-            position.character
-          ).trim();
-          absoluteCharacter += 1; // Count trigger dot despite the removal
-        } else {
-          minifiedLine = line.trim();
+          fixPosition -= 1;
+          absoluteCharacter += 1;
         }
 
-        // Calculate the current position after line modification
-        const offset = line.length - minifiedLine.length;
+        // Text before the current character
+        const prefix =
+          fixPosition === 0 ? '' : minifiedLine.slice(0, fixPosition).trim();
+        // Text after the current character
+        const postfix =
+          fixPosition === 0
+            ? minifiedLine.slice(currentSymbol === '.' ? 1 : 0)
+            : minifiedLine.slice(position.character - offset).trim();
 
-        absoluteCharacter += position.character - offset;
-        textForEsprima.push(minifiedLine);
-      } else {
-        // Remove end of line comments
-        let minifiedLine = line
-          .replace(/\[\s\S]\/|([^:]|^)\/\/.*/gm, '')
-          .trim();
+        absoluteCharacter += prefix.length;
+        minifiedLine = `${prefix}${postfix}`;
+      } else if (index < position.line) {
+        minifiedLine = minifiedLine.trim();
+        absoluteCharacter += minifiedLine.length;
+      }
 
-        // Remove block comments
-        if (minifiedLine[0] !== '/' && minifiedLine[0] !== '*') {
-          const offset = line.length - minifiedLine.length;
+      // Add semicolons to ensure a valid js code after minification
+      if (
+        minifiedLine !== '' &&
+        (minifiedLine[minifiedLine.length - 1] === ')' ||
+          minifiedLine[minifiedLine.length - 1] === '}')
+      ) {
+        minifiedLine = `${minifiedLine};`;
 
-          // Calculate the current position after line modification
-          // only before the current character
-          if (index < position.line) {
-            absoluteCharacter += line.length - offset;
-          }
-
-          // Add semicolons to ensure a valid js code after minification
-          if (
-            minifiedLine !== '' &&
-            (minifiedLine[minifiedLine.length - 1] === ')' ||
-              minifiedLine[minifiedLine.length - 1] === '}')
-          ) {
-            minifiedLine = `${minifiedLine};`;
-
-            if (index < position.line) {
-              absoluteCharacter += 1;
-            }
-          }
-
-          textForEsprima.push(minifiedLine);
+        if (index < position.line) {
+          absoluteCharacter += 1;
         }
       }
+
+      textForEsprima.push(minifiedLine);
     });
 
     return {

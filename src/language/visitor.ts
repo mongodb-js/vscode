@@ -84,10 +84,6 @@ export class Visitor {
 
     estraverse.traverse(ast, {
       enter: (node: any) => {
-        this._connection.console.log(
-          `ESPRIMA visit node ${util.inspect(node.type)}`
-        );
-
         switch (node.type) {
           case esprima.Syntax.CallExpression:
             this.visitCallExpression(node);

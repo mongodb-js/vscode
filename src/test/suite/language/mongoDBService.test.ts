@@ -882,6 +882,72 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
+    test('provide collection names completion at the same line block comment starts', async () => {
+      testMongoDBService.updateCurrentSessionCollections('test', [
+        {
+          name: 'collection'
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        ["use('test');", '', 'db. /*', '* Comment', '*/'].join('\n'),
+        { line: 2, character: 3 }
+      );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'collection'
+      );
+
+      expect(findCollectionCompletion).to.have.property('label', 'collection');
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Folder
+      );
+    });
+
+    test('provide collection names completion at the same line block comment ends', async () => {
+      testMongoDBService.updateCurrentSessionCollections('test', [
+        {
+          name: 'collection'
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        ["use('test')", '', '/*', '  * Comment', '*/ db.'].join('\n'),
+        { line: 4, character: 6 }
+      );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'collection'
+      );
+
+      expect(findCollectionCompletion).to.have.property('label', 'collection');
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Folder
+      );
+    });
+
+    test('provide collection names completion at the same line with end line comment', async () => {
+      testMongoDBService.updateCurrentSessionCollections('test', [
+        {
+          name: 'collection'
+        }
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        ["use('test')", '', 'db. // Comment'].join('\n'),
+        { line: 2, character: 3 }
+      );
+      const findCollectionCompletion = result.find(
+        (itme: any) => itme.label === 'collection'
+      );
+
+      expect(findCollectionCompletion).to.have.property('label', 'collection');
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Folder
+      );
+    });
+
     test('provide collection names completion if code without a semicolon', async () => {
       testMongoDBService.updateCurrentSessionCollections('test', [
         {
