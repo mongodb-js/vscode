@@ -45,12 +45,12 @@ export class Visitor {
   }
 
   private visitMemberExpression(node: any): void {
-    if (this.checkIsCollectionName(node)) {
-      this._state.isCollectionName = true;
-    }
-
     if (this.checkIsShellMethod(node)) {
       this._state.isShellMethod = true;
+    }
+
+    if (this.checkIsCollectionName(node)) {
+      this._state.isCollectionName = true;
     }
 
     if (this.checkHasCollectionName(node)) {
@@ -63,6 +63,16 @@ export class Visitor {
   private visitExpressionStatement(node: any): void {
     if (this.checkIsDbCall(node)) {
       this._state.isDbCallExpression = true;
+    }
+  }
+
+  private visitSequenceExpression(node: any): void {
+    if (this.checkIsDbCall(node)) {
+      this._state.isDbCallExpression = true;
+    }
+
+    if (this.checkIsCollectionName(node)) {
+      this._state.isCollectionName = true;
     }
   }
 
@@ -93,6 +103,9 @@ export class Visitor {
             break;
           case esprima.Syntax.ExpressionStatement:
             this.visitExpressionStatement(node);
+            break;
+          case esprima.Syntax.SequenceExpression:
+            this.visitSequenceExpression(node);
             break;
           case esprima.Syntax.ObjectExpression:
             this.visitObjectExpression(node);
@@ -143,8 +156,15 @@ export class Visitor {
 
   private checkIsDbCall(node: any): boolean {
     if (
-      (node.expression?.name === 'db' || node.init?.name === 'db') &&
-      this._absoluteCharacter === node.loc.end.column + 1
+      (node.expressions &&
+        Array.isArray(node.expressions) &&
+        node.expressions.find((item) => item.name === 'db') &&
+        this._absoluteCharacter >= node.loc.start.column &&
+        this._absoluteCharacter <= node.loc.end.column) ||
+      (node.expression?.name === 'db' &&
+        this._absoluteCharacter === node.loc.end.column - 1) ||
+      (node.init?.name === 'db' &&
+        this._absoluteCharacter === node.loc.end.column)
     ) {
       return true;
     }
@@ -154,7 +174,7 @@ export class Visitor {
 
   private checkIsObjectKey(node: any): boolean {
     if (
-      this._absoluteCharacter > node.loc.start.column + 1 &&
+      this._absoluteCharacter > node.loc.start.column &&
       this._absoluteCharacter < node.loc.end.column
     ) {
       return true;
@@ -165,8 +185,12 @@ export class Visitor {
 
   private checkIsCollectionName(node: any): boolean {
     if (
-      node.object?.name === 'db' &&
-      this._absoluteCharacter === node.loc.start.column + 3
+      ((node.expressions &&
+        Array.isArray(node.expressions) &&
+        node.expressions.find((item) => item.name === 'db')) ||
+        node.object?.name === 'db') &&
+      this._absoluteCharacter >= node.loc.start.column &&
+      this._absoluteCharacter <= node.loc.end.column
     ) {
       return true;
     }
@@ -182,7 +206,7 @@ export class Visitor {
       node.callee.object.object.name === 'db' &&
       node.callee.property &&
       node.callee.property.name === 'aggregate' &&
-      this._absoluteCharacter === node.loc.end.column + 1
+      this._absoluteCharacter === node.loc.end.column
     ) {
       return true;
     }
@@ -198,7 +222,7 @@ export class Visitor {
       node.callee.object.object.name === 'db' &&
       node.callee.property &&
       node.callee.property.name === 'find' &&
-      this._absoluteCharacter === node.loc.end.column + 1
+      this._absoluteCharacter === node.loc.end.column
     ) {
       return true;
     }
@@ -240,7 +264,7 @@ export class Visitor {
       node.object.name === 'db' &&
       node.property &&
       (node.property.name || node.property.value) &&
-      this._absoluteCharacter === node.loc.end.column + 1
+      this._absoluteCharacter === node.loc.end.column
     ) {
       return true;
     }

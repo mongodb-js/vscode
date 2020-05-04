@@ -584,6 +584,7 @@
     "@mongosh/service-provider-server": "0.0.1-alpha.13",
     "@mongosh/shell-api": "0.0.1-alpha.13",
     "analytics-node": "^3.4.0-beta.1",
+    "babel-minify": "^0.5.1",
     "bson": "^4.0.3",
     "classnames": "^2.2.6",
     "debug": "^4.1.1",

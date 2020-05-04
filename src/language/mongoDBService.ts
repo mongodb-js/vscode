@@ -10,6 +10,7 @@ import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const path = require('path');
 const esprima = require('esprima');
+const minify = require('babel-minify');
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
@@ -296,94 +297,66 @@ export default class MongoDBService {
   // Esprima parser requires finished blocks of code to build AST.
   // It means the `db.collection.` text will throw a parsing error.
   // Find and remove trigger dots from the text before sending it to esprima.
-  // Also, minify the text and with adding missing semicolons
-  // to know the exact location of nodes despite the user's formatting
+  // The valid text would be `db.collection` without a dot at the end.
+  // Also, minify to get the exact location of node despite the user's formatting
   private prepareTextForEsprima = (
     textFromEditor: string,
     position: { line: number; character: number }
   ): { minifiedText: string; absoluteCharacter: number } => {
-    // Format the text line by line to track the current position changes
-    const textForEsprima: Array<string> = [];
     const textLines = textFromEditor.split('\n');
-    let absoluteCharacter = 0; // The position of the current character in the minified text
-    let isBlockComment = false;
+    // The current character
+    const currentCharacter = textLines[position.line][position.character - 1];
+    // Text before the current character
+    const prefix =
+      position.character === 0
+        ? ''
+        : textLines[position.line].slice(0, position.character);
+    // Text after the current character
+    const postfix =
+      position.character === 0
+        ? textLines[position.line]
+        : textLines[position.line].slice(position.character);
+    // Use a placeholder for trigger dot
+    // to get a valid string and keep tracking of the current character position
+    let triggerCharacter = 'TRIGGER_CHARACTER';
 
-    const regexpEndLineComment = new RegExp(
-      /\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*/,
-      'g'
-    );
-    const regexpBeginBlockComment = new RegExp(/([^:]|^)\/\*.*/, 'g');
-    const regexpEndBlockComment = new RegExp(/(^.*\*\/([^:\w]|^)*)/, 'g');
+    if (currentCharacter === '.') {
+      triggerCharacter = `.${triggerCharacter}`;
+    }
 
-    textLines.forEach((line, index) => {
-      // Remove single line comments
-      let minifiedLine = line.replace(regexpEndLineComment, '');
+    textLines[position.line] = `${prefix}TRIGGER_CHARACTER${postfix}`;
 
-      // Remove block comments
-      let offset = 0; // The length of the deleted comment
+    // Minify string templates to ensure a single-line text
+    const textToMinify: Array<string> = [];
+    let stringTemplate: Array<string> = [];
 
-      if (minifiedLine.match(regexpBeginBlockComment)) {
-        // Remove `/*` part of block comment
-        minifiedLine = minifiedLine.replace(regexpBeginBlockComment, '');
-        isBlockComment = true;
+    textLines.forEach((item) => {
+      if (item.includes('(`') && item.includes('`)')) {
+        textToMinify.push(item);
+      } else if (item.includes('(`')) {
+        stringTemplate.push(item);
+      } else if (item.includes('`)') && stringTemplate.length > 0) {
+        stringTemplate.push(item);
+        textToMinify.push(stringTemplate.join(''));
+        stringTemplate = [];
+      } else if (stringTemplate.length > 0) {
+        stringTemplate.push(item);
       } else {
-        const endBlockComment = minifiedLine.match(regexpEndBlockComment);
-
-        if (isBlockComment && endBlockComment) {
-          // Remove `*/` part of block comment
-          minifiedLine = minifiedLine.replace(regexpEndBlockComment, '');
-          isBlockComment = false;
-          offset += endBlockComment[0].length;
-        } else if (isBlockComment) {
-          // Remove `*` part of block comment
-          minifiedLine = '';
-        }
+        textToMinify.push(item);
       }
-
-      if (index === position.line) {
-        let fixPosition = position.character - offset;
-        const currentSymbol = minifiedLine[fixPosition - 1];
-
-        // Remove trigger dot
-        if (currentSymbol === '.') {
-          fixPosition -= 1;
-          absoluteCharacter += 1;
-        }
-
-        // Text before the current character
-        const prefix =
-          fixPosition === 0 ? '' : minifiedLine.slice(0, fixPosition).trim();
-        // Text after the current character
-        const postfix =
-          fixPosition === 0
-            ? minifiedLine.slice(currentSymbol === '.' ? 1 : 0)
-            : minifiedLine.slice(position.character - offset).trim();
-
-        absoluteCharacter += prefix.length;
-        minifiedLine = `${prefix}${postfix}`;
-      } else if (index < position.line) {
-        minifiedLine = minifiedLine.trim();
-        absoluteCharacter += minifiedLine.length;
-      }
-
-      // Add semicolons to ensure a valid js code after minification
-      if (
-        minifiedLine !== '' &&
-        (minifiedLine[minifiedLine.length - 1] === ')' ||
-          minifiedLine[minifiedLine.length - 1] === '}')
-      ) {
-        minifiedLine = `${minifiedLine};`;
-
-        if (index < position.line) {
-          absoluteCharacter += 1;
-        }
-      }
-
-      textForEsprima.push(minifiedLine);
     });
 
+    // Minify text using Babel
+    let minifiedText = minify(textToMinify.join('\n')).code;
+
+    // Get the current character position in the minified text
+    let absoluteCharacter = minifiedText.indexOf(triggerCharacter);
+
+    // Remove the placeholder from the minified text
+    minifiedText = minifiedText.replace(triggerCharacter, '');
+
     return {
-      minifiedText: textForEsprima.join(''),
+      minifiedText,
       absoluteCharacter
     };
   };
@@ -479,7 +452,7 @@ export default class MongoDBService {
         }
       }
 
-      if (state.isShellMethod && state.collectionName) {
+      if (state.isShellMethod) {
         this._connection.console.log(
           'ESPRIMA found shell collection methods completion'
         );
