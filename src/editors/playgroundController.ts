@@ -9,8 +9,11 @@ import TelemetryController, {
   TelemetryEventProperties
 } from '../telemetry/telemetryController';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import { OutputChannel, ProgressLocation } from 'vscode';
+import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundTemplate from '../templates/playgroundTemplate';
+import { createLogger } from '../logging';
+
+const log = createLogger('playground controller');
 
 /**
  * This controller manages playground.
@@ -24,6 +27,7 @@ export default class PlaygroundController {
   _outputChannel: OutputChannel;
   _connectionString?: string;
   _connectionOptions?: any;
+  _activeTextEditor?: TextEditor;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -65,13 +69,24 @@ export default class PlaygroundController {
         }
       }
     );
+
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (
+        editor &&
+        editor.document &&
+        !editor.document.uri.path.includes('extension-output')
+      ) {
+        this._activeTextEditor = editor;
+        log.info('Active editor uri', editor.document.uri.path);
+      }
+    });
   }
 
-  disconnectFromServiceProvider(): Promise<boolean> {
+  public disconnectFromServiceProvider(): Promise<boolean> {
     return this._languageServerController.disconnectFromServiceProvider();
   }
 
-  connectToServiceProvider(): Promise<boolean> {
+  public connectToServiceProvider(): Promise<boolean> {
     const model = this._connectionController
       .getActiveConnectionModel()
       ?.getAttributes({ derived: true });
@@ -93,7 +108,7 @@ export default class PlaygroundController {
     return this._languageServerController.disconnectFromServiceProvider();
   }
 
-  createPlayground(): Promise<boolean> {
+  public createPlayground(): Promise<boolean> {
     const useDefaultTemplate = !!vscode.workspace
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
@@ -105,24 +120,24 @@ export default class PlaygroundController {
           content: useDefaultTemplate ? playgroundTemplate : ''
         })
         .then((document) => {
-          vscode.window.showTextDocument(document);
           this._outputChannel.show(true);
+          vscode.window.showTextDocument(document);
           resolve(true);
         }, reject);
     });
   }
 
-  showActiveConnectionInPlayground(message: string): Promise<boolean> {
+  public showActiveConnectionInPlayground(message: string): Promise<boolean> {
     return new Promise((resolve) => {
       this._outputChannel.clear();
-      this._outputChannel.appendLine(message);
+      this._outputChannel.append(message);
       this._outputChannel.show(true);
 
       resolve(true);
     });
   }
 
-  prepareTelemetry(res: any): TelemetryEventProperties {
+  public prepareTelemetry(res: any): TelemetryEventProperties {
     let type = 'other';
 
     if (!res.shellApiType) {
@@ -147,7 +162,7 @@ export default class PlaygroundController {
     return { type };
   }
 
-  async evaluate(codeToEvaluate: string): Promise<any> {
+  private async evaluate(codeToEvaluate: string): Promise<any> {
     if (!this._connectionString) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
@@ -170,7 +185,7 @@ export default class PlaygroundController {
     return Promise.resolve(result);
   }
 
-  runAllPlaygroundBlocks(): Promise<boolean> {
+  public runAllPlaygroundBlocks(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const shouldConfirmRunAll = vscode.workspace
         .getConfiguration('mdb')
@@ -197,9 +212,8 @@ export default class PlaygroundController {
         }
       }
 
-      const activeEditor = vscode.window.activeTextEditor;
-      const codeToEvaluate = activeEditor?.document.getText() || '';
-      let result;
+      const codeToEvaluate = this._activeTextEditor?.document.getText() || '';
+      let result: any;
 
       // Show a running progress in the notification area with support for cancellation
       await vscode.window.withProgress(
@@ -231,7 +245,7 @@ export default class PlaygroundController {
       }
 
       this._outputChannel.clear();
-      this._outputChannel.appendLine(result);
+      this._outputChannel.append(result);
       this._outputChannel.show(true);
 
       return resolve(true);
@@ -242,9 +256,7 @@ export default class PlaygroundController {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       () => {
-        /**
-         * No action is required after removing the listener.
-         */
+        // No action is required after removing the listener.
       }
     );
   }

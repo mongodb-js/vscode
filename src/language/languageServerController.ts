@@ -104,7 +104,7 @@ export default class LanguageServerController {
     );
   }
 
-  activate(): void {
+  public activate(): void {
     // Start the client. This will also launch the server
     const disposable = this.client.start();
 
@@ -124,7 +124,7 @@ export default class LanguageServerController {
     });
   }
 
-  deactivate(): void {
+  public deactivate(): void {
     if (!this.client) {
       return undefined;
     }
@@ -133,7 +133,7 @@ export default class LanguageServerController {
     this.client.stop();
   }
 
-  executeAll(codeToEvaluate): Promise<any> {
+  public executeAll(codeToEvaluate: string): Promise<any> {
     return this.client.onReady().then(() => {
       // Instantiate a new CancellationTokenSource object
       // that generates a cancellation token for each run of a playground
@@ -152,7 +152,7 @@ export default class LanguageServerController {
     });
   }
 
-  connectToServiceProvider(params: {
+  public connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: any;
     extensionPath: string;
@@ -165,7 +165,7 @@ export default class LanguageServerController {
     });
   }
 
-  disconnectFromServiceProvider(): Promise<any> {
+  public disconnectFromServiceProvider(): Promise<any> {
     return this.client.onReady().then(async () => {
       return this.client.sendRequest(
         ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER
@@ -173,7 +173,7 @@ export default class LanguageServerController {
     });
   }
 
-  startStreamLanguageServerLogs(): Promise<boolean> {
+  public startStreamLanguageServerLogs(): Promise<boolean> {
     const socketPort = workspace
       .getConfiguration('languageServerExample')
       .get('port', 7000);
@@ -183,7 +183,7 @@ export default class LanguageServerController {
     return Promise.resolve(true);
   }
 
-  cancelAll(): Promise<boolean> {
+  public cancelAll(): Promise<boolean> {
     return new Promise((resolve) => {
       // Send a request for cancellation. As a result
       // the associated CancellationToken will be notified of the cancellation,
