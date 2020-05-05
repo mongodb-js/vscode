@@ -4,7 +4,7 @@ const template: string = `// MongoDB Playground
 // Use Ctrl+Space inside a snippet or string literal to trigger completions.
 
 // Select the database to use.
-use('test');
+use('mongodbVSCodePlaygroundDB');
 
 // The drop() command destroys all data from the "test.sales" collection.
 // Make sure you run it agains the proper database and collection.
