@@ -28,12 +28,11 @@ steps:
       sudo apt-get update
 
       # Electron linux reqs
-      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
+      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0 xorg-x11-server-Xvfb;
 
       # Keytar and Kerberos
       sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring;
 
-      sleep 3;
       # Set up keytar
       export NO_AT_BRIDGE=1
       export DISPLAY=:99.0; /usr/bin/xvfb start; sleep 3;
