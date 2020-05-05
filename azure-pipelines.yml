@@ -34,11 +34,11 @@ steps:
       sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring;
 
       # Set up keytar
-      export NO_AT_BRIDGE=1
-      export DISPLAY=:99.0; sleep 3;
-      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-      /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
+      # export NO_AT_BRIDGE=1
+      # export DISPLAY=:99.0; sleep 3;
+      # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
+      # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
+      # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
