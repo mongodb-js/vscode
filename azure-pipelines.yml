@@ -28,14 +28,14 @@ steps:
       sudo apt-get update
 
       # Electron linux reqs
-      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0 xorg-x11-server-Xvfb;
+      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
 
       # Keytar and Kerberos
       sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring;
 
       # Set up keytar
       export NO_AT_BRIDGE=1
-      export DISPLAY=:99.0; /usr/bin/xvfb start; sleep 3;
+      export DISPLAY=:99.0; sleep 3;
       eval $(dbus-launch --sh-syntax);
       eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
       eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
