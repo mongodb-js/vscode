@@ -4,12 +4,11 @@ import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { signatures } from '@mongosh/shell-api';
 import * as util from 'util';
-import { Visitor, CompletionNodes } from './visitor';
+import { Visitor } from './visitor';
 
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const path = require('path');
-const esprima = require('esprima');
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
@@ -49,15 +48,14 @@ export default class MongoDBService {
     connectionOptions?: any;
     extensionPath: string;
   }): Promise<boolean> {
-    this._serviceProvider = undefined;
-    this._runtime = undefined;
-    this._connectionString = params.connectionString;
-    this._connectionOptions = params.connectionOptions;
-    this._extensionPath = params.extensionPath;
-
+    this.clearCurrentSessionConnection();
     this.clearCurrentSessionFields();
     this.clearCurrentSessionDatabases();
     this.clearCurrentSessionCollections();
+
+    this._connectionString = params.connectionString;
+    this._connectionOptions = params.connectionOptions;
+    this._extensionPath = params.extensionPath;
 
     if (!this._connectionString) {
       return Promise.resolve(false);
@@ -82,9 +80,10 @@ export default class MongoDBService {
   }
 
   public async disconnectFromServiceProvider(): Promise<boolean> {
-    this._connectionString = undefined;
-    this._connectionOptions = undefined;
-    this._runtime = undefined;
+    this.clearCurrentSessionConnection();
+    this.clearCurrentSessionFields();
+    this.clearCurrentSessionDatabases();
+    this.clearCurrentSessionCollections();
 
     return Promise.resolve(false);
   }
@@ -292,39 +291,6 @@ export default class MongoDBService {
   }
 
   // ------ COMPLETION ------ //
-  private removeSymbolByIndex = (text: string, index: number): string => {
-    if (index === 0) {
-      return text.slice(1);
-    }
-
-    return `${text.slice(0, index - 1)}${text.slice(index)}`;
-  };
-
-  // Esprima parser requires finished blocks of code to build AST.
-  // In this case, the `db.collection.` text will throw a parsing error.
-  // Find and remove trigger dots from the text before sending it to esprima
-  private findAndRemoveTriggerDot = (
-    textFromEditor: string,
-    position: { line: number; character: number }
-  ): string => {
-    const textForEsprima: Array<string> = [];
-
-    textFromEditor.split('\n').forEach((line, index) => {
-      if (index === position.line) {
-        const currentSymbol = line[position.character - 1];
-
-        textForEsprima.push(
-          currentSymbol === '.'
-            ? this.removeSymbolByIndex(line, position.character)
-            : line
-        );
-      } else {
-        textForEsprima.push(line);
-      }
-    });
-
-    return textForEsprima.join('\n');
-  };
 
   // Check if string is a valid property name
   private isValidPropertyName(str) {
@@ -332,38 +298,48 @@ export default class MongoDBService {
   }
 
   private prepareCollectionsItems(
+    textFromEditor: string,
     collections: Array<any>,
-    dbCallPosition: { line: number; character: number }
+    position: { line: number; character: number }
   ): any {
-    return collections.map((item) => {
-      const line = dbCallPosition.line;
-      const startCharacter = dbCallPosition.character - 3;
-      const endCharacter = dbCallPosition.character;
+    if (!collections) {
+      return [];
+    }
 
+    return collections.map((item) => {
       if (this.isValidPropertyName(item.name)) {
         return {
           label: item.name,
-          kind: CompletionItemKind.Property
+          kind: CompletionItemKind.Folder
         };
       }
 
+      // Convert invalid property names to array-like format
+      const filterText = textFromEditor.split('\n')[position.line];
+
       return {
         label: item.name,
-        kind: CompletionItemKind.Property,
-        filterText: `db.`,
-        insertTextFormat: 2,
+        kind: CompletionItemKind.Folder,
+        // Find the line with invalid property name
+        filterText: [
+          filterText.slice(0, position.character),
+          `.${item.name}`,
+          filterText.slice(position.character, filterText.length)
+        ].join(''),
         textEdit: {
           range: {
-            start: {
-              line,
-              character: startCharacter
-            },
+            start: { line: position.line, character: 0 },
             end: {
-              line,
-              character: endCharacter
+              line: position.line,
+              character: filterText.length
             }
           },
-          newText: `db['${item.name}']`
+          // Replace with array-like format
+          newText: [
+            filterText.slice(0, position.character - 1),
+            `['${item.name}']`,
+            filterText.slice(position.character, filterText.length)
+          ].join('')
         }
       };
     });
@@ -375,110 +351,111 @@ export default class MongoDBService {
   ): Promise<[]> {
     return new Promise(async (resolve) => {
       this._connection.console.log(
+        `LS text from editor: ${util.inspect(textFromEditor)}`
+      );
+      this._connection.console.log(
         `LS current symbol position: ${util.inspect(position)}`
       );
 
-      const textForEsprima = this.findAndRemoveTriggerDot(
-        textFromEditor,
-        position
-      );
-      const dataFromAST = this.parseAST(textForEsprima, position);
-      const databaseName = dataFromAST.databaseName;
-      const collectionName = dataFromAST.collectionName;
-      const isObjectKey = dataFromAST.isObjectKey;
-      const isMemberExpression = dataFromAST.isMemberExpression;
-      const isUseCallExpression = dataFromAST.isUseCallExpression;
-      const isDbCallExpression = dataFromAST.isDbCallExpression;
-      const dbCallPosition = dataFromAST.dbCallPosition;
-      const isAggregationCursor = dataFromAST.isAggregationCursor;
-      const isFindCursor = dataFromAST.isFindCursor;
+      const state = this._visitor.parseAST(textFromEditor, position);
 
-      if (databaseName && !this._cachedCollections[databaseName]) {
-        await this.getCollectionsCompletionItems(databaseName);
+      this._connection.console.log(
+        `VISITOR completion state: ${util.inspect(state)}`
+      );
+
+      if (state.databaseName && !this._cachedCollections[state.databaseName]) {
+        await this.getCollectionsCompletionItems(state.databaseName);
       }
 
-      if (databaseName && collectionName) {
-        const namespace = `${databaseName}.${collectionName}`;
+      if (state.databaseName && state.collectionName) {
+        const namespace = `${state.databaseName}.${state.collectionName}`;
 
         if (!this._cachedFields[namespace]) {
-          await this.getFieldsCompletionItems(databaseName, collectionName);
+          await this.getFieldsCompletionItems(
+            state.databaseName,
+            state.collectionName
+          );
         }
 
-        if (isObjectKey) {
-          this._connection.console.log('ESPRIMA found field completion');
+        if (state.isObjectKey) {
+          this._connection.console.log('VISITOR found field names completion');
 
           return resolve(this._cachedFields[namespace]);
         }
       }
 
-      if (isAggregationCursor) {
-        this._connection.console.log('ESPRIMA found aggregation cursor');
-
-        return resolve(this._cachedShellSymbols['AggregationCursor']);
-      }
-
-      if (isFindCursor) {
-        this._connection.console.log('ESPRIMA found cursor');
-
-        return resolve(this._cachedShellSymbols['Cursor']);
-      }
-
-      if (isMemberExpression && collectionName) {
-        this._connection.console.log('ESPRIMA found shell completion');
+      if (state.isShellMethod) {
+        this._connection.console.log(
+          'VISITOR found shell collection methods completion'
+        );
 
         return resolve(this._cachedShellSymbols['Collection']);
       }
 
-      if (isDbCallExpression) {
-        this._connection.console.log('ESPRIMA found collection db symbol');
+      if (state.isAggregationCursor) {
+        this._connection.console.log(
+          'VISITOR found shell aggregation cursor methods completion'
+        );
 
+        return resolve(this._cachedShellSymbols['AggregationCursor']);
+      }
+
+      if (state.isFindCursor) {
+        this._connection.console.log(
+          'VISITOR found shell cursor methods completion'
+        );
+
+        return resolve(this._cachedShellSymbols['Cursor']);
+      }
+
+      if (state.isDbCallExpression) {
         let dbCompletions: any = [...this._cachedShellSymbols['Database']];
 
-        if (databaseName) {
+        if (state.databaseName) {
           this._connection.console.log(
-            'ESPRIMA found collection names completion'
+            'VISITOR found shell db methods and collection names completion'
           );
 
           const collectionCompletions = this.prepareCollectionsItems(
-            this._cachedCollections[databaseName],
-            dbCallPosition
+            textFromEditor,
+            this._cachedCollections[state.databaseName],
+            position
           );
 
           dbCompletions = dbCompletions.concat(collectionCompletions);
+        } else {
+          this._connection.console.log(
+            'VISITOR found shell db methods completion'
+          );
         }
 
         return resolve(dbCompletions);
       }
 
-      if (isUseCallExpression) {
-        this._connection.console.log('ESPRIMA found database names completion');
+      if (state.isCollectionName && state.databaseName) {
+        this._connection.console.log(
+          'VISITOR found collection names completion'
+        );
+
+        const collectionCompletions = this.prepareCollectionsItems(
+          textFromEditor,
+          this._cachedCollections[state.databaseName],
+          position
+        );
+
+        return resolve(collectionCompletions);
+      }
+
+      if (state.isUseCallExpression) {
+        this._connection.console.log('VISITOR found database names completion');
 
         return resolve(this._cachedDatabases);
       }
 
-      this._connection.console.log('ESPRIMA no completions');
+      this._connection.console.log('VISITOR no completions');
 
       return resolve([]);
     });
-  }
-
-  private parseAST(
-    text: string,
-    position: { line: number; character: number }
-  ): CompletionNodes {
-    let nodes: CompletionNodes = this._visitor.getDefaultNodesValues();
-
-    try {
-      this._connection.console.log(`ESPRIMA completion body: "${text}"`);
-
-      const ast = esprima.parseScript(text, { loc: true });
-
-      nodes = this._visitor.visitAST(ast, position);
-    } catch (error) {
-      this._connection.console.log(`ESPRIMA error: ${util.inspect(error)}`);
-    }
-
-    return nodes;
   }
 
   // ------ CURRENT SESSION ------ //
@@ -522,5 +499,12 @@ export default class MongoDBService {
     }
 
     return [];
+  }
+
+  public clearCurrentSessionConnection() {
+    this._serviceProvider = undefined;
+    this._runtime = undefined;
+    this._connectionString = undefined;
+    this._connectionOptions = undefined;
   }
 }
