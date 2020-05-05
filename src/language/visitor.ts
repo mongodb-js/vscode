@@ -1,6 +1,8 @@
 import * as parser from '@babel/parser';
 import traverse from '@babel/traverse';
 
+const PLACEHOLDER = 'TRIGGER_CHARACTER';
+
 export type CompletionState = {
   databaseName: string | null;
   collectionName: string | null;
@@ -17,12 +19,10 @@ export class Visitor {
   _connection: any;
   _state: CompletionState;
   _position: { line: number; character: number };
-  _placeholder: string;
 
   constructor() {
     this._state = this.getDefaultNodesValues();
     this._position = { line: 0, character: 0 };
-    this._placeholder = 'TRIGGER_CHARACTER';
   }
 
   private visitCallExpression(node: any): void {
@@ -92,7 +92,7 @@ export class Visitor {
     // Use a placeholder to handle a trigger dot
     // and track of the current character position
     // TODO: check the absolute character position
-    textLines[position.line] = `${prefix}${this._placeholder}${postfix}`;
+    textLines[position.line] = `${prefix}${PLACEHOLDER}${postfix}`;
 
     return textLines.join('\n');
   }
@@ -165,7 +165,7 @@ export class Visitor {
         node.arguments[0] &&
         node.arguments[0].type === 'StringLiteral' &&
         node.arguments[0].value &&
-        node.arguments[0].value.includes(this._placeholder)) ||
+        node.arguments[0].value.includes(PLACEHOLDER)) ||
       (node.arguments &&
         node.arguments.length === 1 &&
         node.arguments[0] &&
@@ -173,7 +173,7 @@ export class Visitor {
         node.arguments[0].quasis &&
         node.arguments[0].quasis.length === 1 &&
         node.arguments[0].quasis[0].value?.raw &&
-        node.arguments[0].quasis[0].value?.raw.includes(this._placeholder))
+        node.arguments[0].quasis[0].value?.raw.includes(PLACEHOLDER))
     ) {
       return true;
     }
@@ -196,7 +196,7 @@ export class Visitor {
   private checkIsObjectKey(node: any): boolean {
     if (
       node.properties.find(
-        (item) => item.key.name && item.key.name.includes(this._placeholder)
+        (item) => item.key.name && item.key.name.includes(PLACEHOLDER)
       )
     ) {
       return true;
@@ -211,13 +211,13 @@ export class Visitor {
         node.object.name === 'db' &&
         node.property &&
         node.property.name &&
-        node.property.name.includes(this._placeholder)) ||
+        node.property.name.includes(PLACEHOLDER)) ||
       (node.callee &&
         node.callee.object &&
         node.callee.object.object &&
         node.callee.object.object.name === 'db' &&
         node.callee.object.property.name &&
-        node.callee.object.property.name.includes(this._placeholder) &&
+        node.callee.object.property.name.includes(PLACEHOLDER) &&
         node.callee.property)
     ) {
       return true;
@@ -231,7 +231,7 @@ export class Visitor {
       node.object &&
       node.object.type === 'CallExpression' &&
       node.property.name &&
-      node.property.name.includes(this._placeholder) &&
+      node.property.name.includes(PLACEHOLDER) &&
       node.object.callee &&
       node.object.callee.property.name === 'aggregate'
     ) {
@@ -246,7 +246,7 @@ export class Visitor {
       node.object &&
       node.object.type === 'CallExpression' &&
       node.property.name &&
-      node.property.name.includes(this._placeholder) &&
+      node.property.name.includes(PLACEHOLDER) &&
       node.object.callee &&
       node.object.callee.property.name === 'find'
     ) {
@@ -291,7 +291,7 @@ export class Visitor {
       node.object.object &&
       node.object.object.name === 'db' &&
       node.property.name &&
-      node.property.name.includes(this._placeholder)
+      node.property.name.includes(PLACEHOLDER)
     ) {
       return true;
     }
