@@ -1,13 +1,13 @@
 const template: string = `// MongoDB Playground
 // To disable this template go to Settings | MongoDB | Use Default Template For Playground.
 // Make sure you are connected to enable completions and to be able to run a playground.
-// Use Ctrl+Space inside a snippet or string literal to trigger completions.
+// Use Ctrl+Space inside of a snippet or a string literal to trigger completions.
 
 // Select the database to use.
 use('mongodbVSCodePlaygroundDB');
 
 // The drop() command destroys all data from a collection.
-// Make sure you run it agains the proper database and collection.
+// Make sure you run it against proper database and collection.
 db.sales.drop();
 
 // Insert a few documents into the sales collection.
