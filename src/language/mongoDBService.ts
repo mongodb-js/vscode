@@ -4,13 +4,11 @@ import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { signatures } from '@mongosh/shell-api';
 import * as util from 'util';
-import { Visitor, CompletionState } from './visitor';
+import { Visitor } from './visitor';
 
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const path = require('path');
-const esprima = require('esprima');
-const minify = require('babel-minify');
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
@@ -33,7 +31,7 @@ export default class MongoDBService {
     this._cachedDatabases = [];
     this._cachedCollections = [];
     this._cachedShellSymbols = this.getShellCompletionItems();
-    this._visitor = new Visitor(connection);
+    this._visitor = new Visitor();
   }
 
   // ------ CONNECTION ------ //
@@ -294,73 +292,6 @@ export default class MongoDBService {
 
   // ------ COMPLETION ------ //
 
-  // Esprima parser requires finished blocks of code to build AST.
-  // It means the `db.collection.` text will throw a parsing error.
-  // Find and remove trigger dots from the text before sending it to esprima.
-  // The valid text would be `db.collection` without a dot at the end.
-  // Also, minify to get the exact location of node despite the user's formatting
-  private prepareTextForEsprima = (
-    textFromEditor: string,
-    position: { line: number; character: number }
-  ): { minifiedText: string; absoluteCharacter: number } => {
-    const textLines = textFromEditor.split('\n');
-    // The current character
-    const currentCharacter = textLines[position.line][position.character - 1];
-    // Text before the current character
-    const prefix =
-      position.character === 0
-        ? ''
-        : textLines[position.line].slice(0, position.character);
-    // Text after the current character
-    const postfix =
-      position.character === 0
-        ? textLines[position.line]
-        : textLines[position.line].slice(position.character);
-    // Use a placeholder for trigger dot
-    // to get a valid string and keep tracking of the current character position
-    let triggerCharacter = 'TRIGGER_CHARACTER';
-
-    if (currentCharacter === '.') {
-      triggerCharacter = `.${triggerCharacter}`;
-    }
-
-    textLines[position.line] = `${prefix}TRIGGER_CHARACTER${postfix}`;
-
-    // Minify string templates to ensure a single-line text
-    const textToMinify: Array<string> = [];
-    let stringTemplate: Array<string> = [];
-
-    textLines.forEach((item) => {
-      if (item.includes('(`') && item.includes('`)')) {
-        textToMinify.push(item);
-      } else if (item.includes('(`')) {
-        stringTemplate.push(item);
-      } else if (item.includes('`)') && stringTemplate.length > 0) {
-        stringTemplate.push(item);
-        textToMinify.push(stringTemplate.join(''));
-        stringTemplate = [];
-      } else if (stringTemplate.length > 0) {
-        stringTemplate.push(item);
-      } else {
-        textToMinify.push(item);
-      }
-    });
-
-    // Minify text using Babel
-    let minifiedText = minify(textToMinify.join('\n')).code;
-
-    // Get the current character position in the minified text
-    let absoluteCharacter = minifiedText.indexOf(triggerCharacter);
-
-    // Remove the placeholder from the minified text
-    minifiedText = minifiedText.replace(triggerCharacter, '');
-
-    return {
-      minifiedText,
-      absoluteCharacter
-    };
-  };
-
   // Check if string is a valid property name
   private isValidPropertyName(str) {
     return /^(?![0-9])[a-zA-Z0-9$_]+$/.test(str);
@@ -423,13 +354,13 @@ export default class MongoDBService {
   ): Promise<[]> {
     return new Promise(async (resolve) => {
       this._connection.console.log(
+        `LS text from editor: ${util.inspect(textFromEditor)}`
+      );
+      this._connection.console.log(
         `LS current symbol position: ${util.inspect(position)}`
       );
 
-      const data = this.prepareTextForEsprima(textFromEditor, position);
-      const textForEsprima = data.minifiedText;
-      const absoluteCharacter = data.absoluteCharacter;
-      const state = this.parseAST(textForEsprima, absoluteCharacter);
+      const state = this._visitor.parseAST(textFromEditor, position);
 
       if (state.databaseName && !this._cachedCollections[state.databaseName]) {
         await this.getCollectionsCompletionItems(state.databaseName);
@@ -524,25 +455,6 @@ export default class MongoDBService {
 
       return resolve([]);
     });
-  }
-
-  private parseAST(text: string, absoluteCharacter: number): CompletionState {
-    let nodes: CompletionState = this._visitor.getDefaultNodesValues();
-
-    try {
-      this._connection.console.log(`ESPRIMA completion body: "${text}"`);
-      this._connection.console.log(
-        `ESPRIMA absolute position: { line: 0, character: ${absoluteCharacter} }`
-      );
-
-      const ast = esprima.parseScript(text, { loc: true });
-
-      nodes = this._visitor.visitAST(ast, absoluteCharacter);
-    } catch (error) {
-      this._connection.console.log(`ESPRIMA error: ${util.inspect(error)}`);
-    }
-
-    return nodes;
   }
 
   // ------ CURRENT SESSION ------ //

@@ -1,7 +1,7 @@
 import * as util from 'util';
 
-const estraverse = require('estraverse');
-const esprima = require('esprima');
+import * as parser from '@babel/parser';
+import traverse from '@babel/traverse';
 
 export type CompletionState = {
   databaseName: string | null;
@@ -18,25 +18,22 @@ export type CompletionState = {
 export class Visitor {
   _connection: any;
   _state: CompletionState;
-  _absoluteCharacter: number;
+  _position: { line: number; character: number };
+  _placeholder: string;
 
-  constructor(connection: any) {
-    this._connection = connection;
+  constructor() {
     this._state = this.getDefaultNodesValues();
-    this._absoluteCharacter = 0;
+    this._position = { line: 0, character: 0 };
+    this._placeholder = 'TRIGGER_CHARACTER';
   }
 
   private visitCallExpression(node: any): void {
-    if (this.checkHasAggregationCall(node)) {
-      this._state.isAggregationCursor = true;
-    }
-
-    if (this.checkHasFindCall(node)) {
-      this._state.isFindCursor = true;
-    }
-
     if (this.checkIsUseCall(node)) {
       this._state.isUseCallExpression = true;
+    }
+
+    if (this.checkIsCollectionName(node)) {
+      this._state.isCollectionName = true;
     }
 
     if (this.checkHasDatabaseName(node)) {
@@ -45,6 +42,14 @@ export class Visitor {
   }
 
   private visitMemberExpression(node: any): void {
+    if (this.checkHasAggregationCall(node)) {
+      this._state.isAggregationCursor = true;
+    }
+
+    if (this.checkHasFindCall(node)) {
+      this._state.isFindCursor = true;
+    }
+
     if (this.checkIsShellMethod(node)) {
       this._state.isShellMethod = true;
     }
@@ -54,9 +59,7 @@ export class Visitor {
     }
 
     if (this.checkHasCollectionName(node)) {
-      this._state.collectionName = node.property.name
-        ? node.property.name
-        : node.property.value;
+      this._state.collectionName = node.object.property.name;
     }
   }
 
@@ -82,44 +85,83 @@ export class Visitor {
     }
   }
 
-  private visitVariableDeclarator(node: any): void {
+  private visitVariableDeclaration(node: any): void {
     if (this.checkIsDbCall(node)) {
       this._state.isDbCallExpression = true;
     }
   }
 
-  public visitAST(ast: object, absoluteCharacter: number): CompletionState {
-    this._state = this.getDefaultNodesValues();
-    this._absoluteCharacter = absoluteCharacter;
+  private handleTriggerCharacter(
+    textFromEditor: string,
+    position: { line: number; character: number }
+  ): string {
+    const textLines = textFromEditor.split('\n');
 
-    estraverse.traverse(ast, {
-      enter: (node: any) => {
-        switch (node.type) {
-          case esprima.Syntax.CallExpression:
-            this.visitCallExpression(node);
+    // Text before the current character
+    const prefix =
+      position.character === 0
+        ? ''
+        : textLines[position.line].slice(0, position.character);
+    // Text after the current character
+    const postfix =
+      position.character === 0
+        ? textLines[position.line]
+        : textLines[position.line].slice(position.character);
+
+    // Use a placeholder to handle a trigger dot
+    // and track of the current character position
+    // TODO: check the absolute character position
+    textLines[position.line] = `${prefix}${this._placeholder}${postfix}`;
+
+    return textLines.join('\n');
+  }
+
+  public parseAST(
+    textFromEditor: string,
+    position: { line: number; character: number }
+  ): CompletionState {
+    this._state = this.getDefaultNodesValues();
+    this._position = position;
+
+    const textWithPlaceholder = this.handleTriggerCharacter(
+      textFromEditor,
+      position
+    );
+    const ast = parser.parse(textWithPlaceholder, {
+      // Parse in strict mode and allow module declarations
+      sourceType: 'module'
+    });
+
+    const self = this;
+
+    traverse(ast, {
+      enter(path) {
+        // console.log(`node: ${util.inspect(path.node)}`);
+
+        switch (path.node.type) {
+          case 'CallExpression':
+            self.visitCallExpression(path.node);
             break;
-          case esprima.Syntax.MemberExpression:
-            this.visitMemberExpression(node);
+          case 'MemberExpression':
+            self.visitMemberExpression(path.node);
             break;
-          case esprima.Syntax.ExpressionStatement:
-            this.visitExpressionStatement(node);
+          case 'ExpressionStatement':
+            self.visitExpressionStatement(path.node);
             break;
-          case esprima.Syntax.SequenceExpression:
-            this.visitSequenceExpression(node);
+          case 'SequenceExpression':
+            self.visitSequenceExpression(path.node);
             break;
-          case esprima.Syntax.ObjectExpression:
-            this.visitObjectExpression(node);
+          case 'ObjectExpression':
+            self.visitObjectExpression(path.node);
             break;
-          case esprima.Syntax.VariableDeclarator:
-            this.visitVariableDeclarator(node);
+          case 'VariableDeclaration':
+            self.visitVariableDeclaration(path.node);
             break;
         }
       }
     });
 
-    this._connection.console.log(
-      `Completion state: ${util.inspect(this._state)}`
-    );
+    // console.log(`BABEL completion state: ${util.inspect(this._state)}`);
 
     return this._state;
   }
@@ -140,13 +182,21 @@ export class Visitor {
 
   private checkIsUseCall(node: any): boolean {
     if (
-      node.callee.name === 'use' &&
-      node.arguments &&
-      node.arguments.length === 1 &&
-      (node.arguments[0].type === esprima.Syntax.Literal ||
-        node.arguments[0].type === esprima.Syntax.TemplateLiteral) &&
-      this._absoluteCharacter >= node.loc.start.column &&
-      this._absoluteCharacter <= node.loc.end.column
+      (node.callee.name === 'use' &&
+        node.arguments &&
+        node.arguments.length === 1 &&
+        node.arguments[0] &&
+        node.arguments[0].type === 'StringLiteral' &&
+        node.arguments[0].value &&
+        node.arguments[0].value.includes(this._placeholder)) ||
+      (node.arguments &&
+        node.arguments.length === 1 &&
+        node.arguments[0] &&
+        node.arguments[0].type === 'TemplateLiteral' &&
+        node.arguments[0].quasis &&
+        node.arguments[0].quasis.length === 1 &&
+        node.arguments[0].quasis[0].value?.raw &&
+        node.arguments[0].quasis[0].value?.raw.includes(this._placeholder))
     ) {
       return true;
     }
@@ -156,15 +206,9 @@ export class Visitor {
 
   private checkIsDbCall(node: any): boolean {
     if (
-      (node.expressions &&
-        Array.isArray(node.expressions) &&
-        node.expressions.find((item) => item.name === 'db') &&
-        this._absoluteCharacter >= node.loc.start.column &&
-        this._absoluteCharacter <= node.loc.end.column) ||
-      (node.expression?.name === 'db' &&
-        this._absoluteCharacter === node.loc.end.column - 1) ||
-      (node.init?.name === 'db' &&
-        this._absoluteCharacter === node.loc.end.column)
+      node.expression &&
+      node.expression.object &&
+      node.expression.object.name === 'db'
     ) {
       return true;
     }
@@ -174,8 +218,9 @@ export class Visitor {
 
   private checkIsObjectKey(node: any): boolean {
     if (
-      this._absoluteCharacter > node.loc.start.column &&
-      this._absoluteCharacter < node.loc.end.column
+      node.properties.find(
+        (item) => item.key.name && item.key.name.includes(this._placeholder)
+      )
     ) {
       return true;
     }
@@ -185,12 +230,18 @@ export class Visitor {
 
   private checkIsCollectionName(node: any): boolean {
     if (
-      ((node.expressions &&
-        Array.isArray(node.expressions) &&
-        node.expressions.find((item) => item.name === 'db')) ||
-        node.object?.name === 'db') &&
-      this._absoluteCharacter >= node.loc.start.column &&
-      this._absoluteCharacter <= node.loc.end.column
+      (node.object &&
+        node.object.name === 'db' &&
+        node.property &&
+        node.property.name &&
+        node.property.name.includes(this._placeholder)) ||
+      (node.callee &&
+        node.callee.object &&
+        node.callee.object.object &&
+        node.callee.object.object.name === 'db' &&
+        node.callee.object.property.name &&
+        node.callee.object.property.name.includes(this._placeholder) &&
+        node.callee.property)
     ) {
       return true;
     }
@@ -200,13 +251,12 @@ export class Visitor {
 
   private checkHasAggregationCall(node: any): boolean {
     if (
-      node.callee &&
-      node.callee.object &&
-      node.callee.object.object &&
-      node.callee.object.object.name === 'db' &&
-      node.callee.property &&
-      node.callee.property.name === 'aggregate' &&
-      this._absoluteCharacter === node.loc.end.column
+      node.object &&
+      node.object.type === 'CallExpression' &&
+      node.property.name &&
+      node.property.name.includes(this._placeholder) &&
+      node.object.callee &&
+      node.object.callee.property.name === 'aggregate'
     ) {
       return true;
     }
@@ -216,13 +266,12 @@ export class Visitor {
 
   private checkHasFindCall(node: any): boolean {
     if (
-      node.callee &&
-      node.callee.object &&
-      node.callee.object.object &&
-      node.callee.object.object.name === 'db' &&
-      node.callee.property &&
-      node.callee.property.name === 'find' &&
-      this._absoluteCharacter === node.loc.end.column
+      node.object &&
+      node.object.type === 'CallExpression' &&
+      node.property.name &&
+      node.property.name.includes(this._placeholder) &&
+      node.object.callee &&
+      node.object.callee.property.name === 'find'
     ) {
       return true;
     }
@@ -236,8 +285,11 @@ export class Visitor {
       node.callee.name === 'use' &&
       node.arguments &&
       node.arguments.length === 1 &&
-      node.arguments[0].type === esprima.Syntax.Literal &&
-      this._absoluteCharacter > node.loc.end.column
+      node.arguments[0] &&
+      node.arguments[0].type === 'StringLiteral' &&
+      (this._position.line > node.loc.end.line - 1 ||
+        (this._position.line === node.loc.end.line - 1 &&
+          this._position.character >= node.loc.end.column))
     ) {
       return true;
     }
@@ -247,10 +299,9 @@ export class Visitor {
 
   private checkHasCollectionName(node: any): boolean {
     if (
-      node.object.type === esprima.Syntax.Identifier &&
-      node.object &&
-      node.object.name === 'db' &&
-      this._absoluteCharacter > node.loc.end.column
+      node.object.object &&
+      node.object.object.name === 'db' &&
+      node.object.property
     ) {
       return true;
     }
@@ -260,11 +311,10 @@ export class Visitor {
 
   private checkIsShellMethod(node: any): boolean {
     if (
-      node.object &&
-      node.object.name === 'db' &&
-      node.property &&
-      (node.property.name || node.property.value) &&
-      this._absoluteCharacter === node.loc.end.column
+      node.object.object &&
+      node.object.object.name === 'db' &&
+      node.property.name &&
+      node.property.name.includes(this._placeholder)
     ) {
       return true;
     }
