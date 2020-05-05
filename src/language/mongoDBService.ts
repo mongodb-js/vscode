@@ -307,9 +307,6 @@ export default class MongoDBService {
     }
 
     return collections.map((item) => {
-      const line = position.line;
-      const character = position.character;
-
       if (this.isValidPropertyName(item.name)) {
         return {
           label: item.name,
@@ -318,30 +315,30 @@ export default class MongoDBService {
       }
 
       // Convert invalid property names to array-like format
-      const filterText = textFromEditor.split('\n')[line];
+      const filterText = textFromEditor.split('\n')[position.line];
 
       return {
         label: item.name,
         kind: CompletionItemKind.Folder,
         // Find the line with invalid property name
         filterText: [
-          filterText.slice(0, character),
+          filterText.slice(0, position.character),
           `.${item.name}`,
-          filterText.slice(character, filterText.length)
+          filterText.slice(position.character, filterText.length)
         ].join(''),
         textEdit: {
           range: {
-            start: { line, character: 0 },
+            start: { line: position.line, character: 0 },
             end: {
-              line,
+              line: position.line,
               character: filterText.length
             }
           },
           // Replace with array-like format
           newText: [
-            filterText.slice(0, character - 1),
+            filterText.slice(0, position.character - 1),
             `['${item.name}']`,
-            filterText.slice(character, filterText.length)
+            filterText.slice(position.character, filterText.length)
           ].join('')
         }
       };
@@ -362,6 +359,10 @@ export default class MongoDBService {
 
       const state = this._visitor.parseAST(textFromEditor, position);
 
+      this._connection.console.log(
+        `VISITOR completion state: ${util.inspect(state)}`
+      );
+
       if (state.databaseName && !this._cachedCollections[state.databaseName]) {
         await this.getCollectionsCompletionItems(state.databaseName);
       }
@@ -377,7 +378,7 @@ export default class MongoDBService {
         }
 
         if (state.isObjectKey) {
-          this._connection.console.log('ESPRIMA found field names completion');
+          this._connection.console.log('VISITOR found field names completion');
 
           return resolve(this._cachedFields[namespace]);
         }
@@ -385,7 +386,7 @@ export default class MongoDBService {
 
       if (state.isShellMethod) {
         this._connection.console.log(
-          'ESPRIMA found shell collection methods completion'
+          'VISITOR found shell collection methods completion'
         );
 
         return resolve(this._cachedShellSymbols['Collection']);
@@ -393,7 +394,7 @@ export default class MongoDBService {
 
       if (state.isAggregationCursor) {
         this._connection.console.log(
-          'ESPRIMA found shell aggregation cursor methods completion'
+          'VISITOR found shell aggregation cursor methods completion'
         );
 
         return resolve(this._cachedShellSymbols['AggregationCursor']);
@@ -401,7 +402,7 @@ export default class MongoDBService {
 
       if (state.isFindCursor) {
         this._connection.console.log(
-          'ESPRIMA found shell cursor methods completion'
+          'VISITOR found shell cursor methods completion'
         );
 
         return resolve(this._cachedShellSymbols['Cursor']);
@@ -412,7 +413,7 @@ export default class MongoDBService {
 
         if (state.databaseName) {
           this._connection.console.log(
-            'ESPRIMA found shell db methods and collection names completion'
+            'VISITOR found shell db methods and collection names completion'
           );
 
           const collectionCompletions = this.prepareCollectionsItems(
@@ -424,7 +425,7 @@ export default class MongoDBService {
           dbCompletions = dbCompletions.concat(collectionCompletions);
         } else {
           this._connection.console.log(
-            'ESPRIMA found shell db methods completion'
+            'VISITOR found shell db methods completion'
           );
         }
 
@@ -433,7 +434,7 @@ export default class MongoDBService {
 
       if (state.isCollectionName && state.databaseName) {
         this._connection.console.log(
-          'ESPRIMA found collection names completion'
+          'VISITOR found collection names completion'
         );
 
         const collectionCompletions = this.prepareCollectionsItems(
@@ -446,12 +447,12 @@ export default class MongoDBService {
       }
 
       if (state.isUseCallExpression) {
-        this._connection.console.log('ESPRIMA found database names completion');
+        this._connection.console.log('VISITOR found database names completion');
 
         return resolve(this._cachedDatabases);
       }
 
-      this._connection.console.log('ESPRIMA no completions');
+      this._connection.console.log('VISITOR no completions');
 
       return resolve([]);
     });

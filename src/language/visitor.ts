@@ -1,5 +1,3 @@
-import * as util from 'util';
-
 import * as parser from '@babel/parser';
 import traverse from '@babel/traverse';
 
@@ -69,25 +67,9 @@ export class Visitor {
     }
   }
 
-  private visitSequenceExpression(node: any): void {
-    if (this.checkIsDbCall(node)) {
-      this._state.isDbCallExpression = true;
-    }
-
-    if (this.checkIsCollectionName(node)) {
-      this._state.isCollectionName = true;
-    }
-  }
-
   private visitObjectExpression(node: any): void {
     if (this.checkIsObjectKey(node)) {
       this._state.isObjectKey = true;
-    }
-  }
-
-  private visitVariableDeclaration(node: any): void {
-    if (this.checkIsDbCall(node)) {
-      this._state.isDbCallExpression = true;
     }
   }
 
@@ -96,7 +78,6 @@ export class Visitor {
     position: { line: number; character: number }
   ): string {
     const textLines = textFromEditor.split('\n');
-
     // Text before the current character
     const prefix =
       position.character === 0
@@ -142,8 +123,6 @@ export class Visitor {
 
     traverse(ast, {
       enter(path) {
-        // console.log(`node: ${util.inspect(path.node)}`);
-
         switch (path.node.type) {
           case 'CallExpression':
             self.visitCallExpression(path.node);
@@ -154,20 +133,12 @@ export class Visitor {
           case 'ExpressionStatement':
             self.visitExpressionStatement(path.node);
             break;
-          case 'SequenceExpression':
-            self.visitSequenceExpression(path.node);
-            break;
           case 'ObjectExpression':
             self.visitObjectExpression(path.node);
-            break;
-          case 'VariableDeclaration':
-            self.visitVariableDeclaration(path.node);
             break;
         }
       }
     });
-
-    // console.log(`BABEL completion state: ${util.inspect(this._state)}`);
 
     return this._state;
   }
