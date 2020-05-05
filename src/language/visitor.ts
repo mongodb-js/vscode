@@ -127,10 +127,16 @@ export class Visitor {
       textFromEditor,
       position
     );
-    const ast = parser.parse(textWithPlaceholder, {
-      // Parse in strict mode and allow module declarations
-      sourceType: 'module'
-    });
+    let ast: any;
+
+    try {
+      ast = parser.parse(textWithPlaceholder, {
+        // Parse in strict mode and allow module declarations
+        sourceType: 'module'
+      });
+    } catch (error) {
+      return this._state;
+    }
 
     const self = this;
 
