@@ -28,7 +28,7 @@ steps:
       sudo apt-get update
 
       # Electron linux reqs
-      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
+      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0;
 
       # Keytar and Kerberos
       sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring;
@@ -41,10 +41,10 @@ steps:
       # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
 
       export NO_AT_BRIDGE=1
-      # eval $(dbus-launch --sh-syntax)
+      eval $(dbus-launch --sh-syntax)
       export DBUS_SESSION_BUS_PID
       export DBUS_SESSION_BUS_WINDOWID
-      # dbus-launch
+      dbus-launch
       gnome-keyring-daemon --start --daemonize --components=secrets
       echo '' | gnome-keyring-daemon -r -d --unlock
       # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
