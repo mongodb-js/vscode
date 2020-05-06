@@ -80,17 +80,17 @@ steps:
       # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
-  - script: |
-      # export NO_AT_BRIDGE=1
-      # export DISPLAY=:99.0; xvfb-run --auto-servernum start; sleep 3;
-      # eval $(dbus-launch --sh-syntax);
-      # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-      # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
+  # - script: |
+  # export NO_AT_BRIDGE=1
+  # export DISPLAY=:99.0; xvfb-run --auto-servernum start; sleep 3;
+  # eval $(dbus-launch --sh-syntax);
+  # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
+  # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
+  # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
 
-      DISPLAY: :10 # Only necessary for linux tests
-    displayName: 'Set up credential storage environment'
-    condition: in(variables['agent.os'], 'Linux')
+  # DISPLAY: :10 # Only necessary for linux tests
+  # displayName: 'Set up credential storage environment'
+  # condition: in(variables['agent.os'], 'Linux')
   - script: |
       sudo cp .scripts/xvfb.init /etc/init.d/xvfb
       sudo chmod +x /etc/init.d/xvfb
@@ -123,6 +123,7 @@ steps:
     displayName: 'Run Tests'
     env:
       SEGMENT_KEY: $(segmentKey)
+      DISPLAY: :10 # Only necessary for linux tests
   - bash: ls -alh
     displayName: 'Post Tests'
 
