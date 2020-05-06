@@ -124,8 +124,6 @@ export default class WebviewController {
 
         return;
       case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
-        log.info('Telemetry', message.screen, message.linkId);
-
         this._telemetryController?.track(
           TelemetryEventTypes.EXTENSION_LINK_CLICKED,
           {

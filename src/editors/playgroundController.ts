@@ -162,13 +162,7 @@ export default class PlaygroundController {
     return { type };
   }
 
-  private async evaluate(codeToEvaluate: string): Promise<any> {
-    if (!this._connectionString) {
-      return Promise.reject(
-        new Error('Please connect to a database before running a playground.')
-      );
-    }
-
+  public async evaluate(codeToEvaluate: string): Promise<any> {
     // Send a request to the language server to execute scripts from a playground
     const result = await this._languageServerController.executeAll(
       codeToEvaluate
@@ -186,6 +180,12 @@ export default class PlaygroundController {
   }
 
   private evaluateWithCancelModal(): Promise<any> {
+    if (!this._connectionString) {
+      return Promise.reject(
+        new Error('Please connect to a database before running a playground.')
+      );
+    }
+
     return new Promise((resolve) => {
       vscode.window
         .withProgress(

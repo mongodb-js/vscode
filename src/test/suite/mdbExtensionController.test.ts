@@ -2,8 +2,6 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
-const sinon = require('sinon');
-
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import { VIEW_DOCUMENT_SCHEME } from '../../editors/documentProvider';
 import {
@@ -19,6 +17,7 @@ import ConnectionController from '../../connectionController';
 import { StorageController } from '../../storage';
 import { StorageScope } from '../../storage/storageController';
 
+const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
 
 suite('MDBExtensionController Test Suite', () => {
@@ -26,6 +25,11 @@ suite('MDBExtensionController Test Suite', () => {
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.
     sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryController,
+      'track',
+      () => {}
+    );
   });
   afterEach(() => {
     sinon.restore();
