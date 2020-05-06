@@ -9,16 +9,17 @@ trigger:
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops
 strategy:
   matrix:
-    linux:
-      imageName: 'ubuntu-16.04'
-    # mac:
-    #   imageName: 'macos-latest'
-    # windows:
-    #   # NOTE (lucas): Also blocked on Windows 2019 by
-    #   # https://jira.mongodb.org/browse/NODE-2465
-    #   # imageName: 'windows-latest'
-    #   imageName: 'vs2017-win2016'
-
+    # # Linux testing is currently disabled because of issues with
+    # # headless linux & keytar. Tracked: VSCODE-110
+    # linux:
+    #   imageName: 'ubuntu-latest'
+    mac:
+      imageName: 'macos-latest'
+    windows:
+      # NOTE (lucas): Also blocked on Windows 2019 by
+      # https://jira.mongodb.org/browse/NODE-2465
+      # imageName: 'windows-latest'
+      imageName: 'vs2017-win2016'
 pool:
   vmImage: $(imageName)
 
@@ -27,96 +28,8 @@ steps:
       set -e
       sudo apt-get update
 
-      # Electron linux reqs
-      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0 libgconf-2-4;
-
-      # # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev libsecret-tools gnupg2 pass libsecret-1-0 libglib2.0-dev libgnome-keyring-dev python-gnomekeyring;
-
-      #  python-gnomekeyring
-      # Keytar and Kerberos
-      # sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring python-gnomekeyring;
-
-      # export NO_AT_BRIDGE=1;
-      # export DISPLAY=:99.0;
-      # eval $(dbus-launch --sh-syntax);
-      # sleep 3;
-      # mkdir -p ~/.cache
-      # mkdir -p ~/.local/share/keyrings # where the automatic keyring is created
-
-      # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-
-      # eval $(echo -n "" | secret-tool store --label=Unlocker type unlock-keyring);
-      # eval $(secret-tool lookup type unlock-keyring);
-
-      # eval "$(dbus-launch --sh-syntax)"
-
-      # mkdir -p ~/.cache
-      # mkdir -p ~/.local/share/keyrings # where the automatic keyring is created
-
-      # # 1. Create the keyring manually with a dummy password in stdin
-      # eval "$(printf '\n' | gnome-keyring-daemon --unlock)"
-
-      # # 2. Start the daemon, using the password to unlock the just-created keyring:
-      # eval "$(printf '\n' | /usr/bin/gnome-keyring-daemon --start)"
-
-
-      # cc gkey-unlock.c -o gkey-unlock -Wall -I/usr/include/gnome-keyring -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgnome-keyring -lglib-2.0
-
-      # ./gkey-unlock
-
-      # Set up keytar
-
-      # sudo apt-get install -y gnome-keyring
-
-      # export DISPLAY=:10;
-      export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
-
-      sudo cp ./scripts/xvfb.init /etc/init.d/xvfb;
-      sudo chmod +x /etc/init.d/xvfb;
-      sudo update-rc.d xvfb defaults;
-      sudo service xvfb start;
-      sleep 3;
-
-      # sh -e /etc/init.d/xvfb start;
-      # sleep 3;
-
-      export NO_AT_BRIDGE=1
-      eval $(dbus-launch --sh-syntax);
-      # export $(gnome-keyring-daemon --start);
-      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-      /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
-
-      ## ## add install  dbus-python python3-venv
-      # export NO_AT_BRIDGE=1
-      # eval $(dbus-launch --sh-syntax)
-      # export DBUS_SESSION_BUS_PID
-      # export DBUS_SESSION_BUS_WINDOWID
-      # dbus-launch
-      # gnome-keyring-daemon --start --daemonize --components=secrets
-      # echo '' | gnome-keyring-daemon -r -d --unlock
-      # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-      # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
-  # - script: |
-  # export NO_AT_BRIDGE=1
-  # export DISPLAY=:99.0; xvfb-run --auto-servernum start; sleep 3;
-  # eval $(dbus-launch --sh-syntax);
-  # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-  # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-  # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
-
-  # DISPLAY: :10 # Only necessary for linux tests
-  # displayName: 'Set up credential storage environment'
-  # condition: in(variables['agent.os'], 'Linux')
-  # - script: |
-
-  #   displayName: 'Start X Virtual Frame Buffer'
-  #   condition: eq(variables['Agent.OS'], 'Linux')
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
@@ -142,7 +55,6 @@ steps:
     displayName: 'Run Tests'
     env:
       SEGMENT_KEY: $(segmentKey)
-      DISPLAY: :99 # Only necessary for linux tests
   - bash: ls -alh
     displayName: 'Post Tests'
 
