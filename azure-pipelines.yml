@@ -27,19 +27,14 @@ steps:
       set -e
       sudo apt-get update
 
-      # # Electron linux reqs
-      # sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0;
-
       # Electron linux reqs
-      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
+      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0 libgconf-2-4;
 
       # # Keytar and Kerberos
       sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring python-gnomekeyring libdbus-glib-1-dev libsecret-tools gnupg2 pass libsecret-1-0 libglib2.0-dev libgnome-keyring-dev;
 
       # Keytar and Kerberos
       # sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring python-gnomekeyring;
-
-      echo "Setting up keyring for credential storing..."
 
       # export NO_AT_BRIDGE=1;
       # export DISPLAY=:99.0;
@@ -71,12 +66,6 @@ steps:
       # ./gkey-unlock
 
       # Set up keytar
-      export NO_AT_BRIDGE=1
-      export DISPLAY=:99.0; sh -e xvfb-run start; sleep 3;
-      eval $(dbus-launch --sh-syntax);
-      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-      /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
 
       ## ## add install  dbus-python python3-venv
       # export NO_AT_BRIDGE=1
@@ -89,9 +78,16 @@ steps:
       # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
       # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
       # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
-
-      echo "Done setting up keyring for credential storing."
     displayName: 'Install native Linux dependencies'
+    condition: in(variables['agent.os'], 'Linux')
+  - script: |
+      export NO_AT_BRIDGE=1
+      export DISPLAY=:99.0; sh -e xvfb-run start; sleep 3;
+      eval $(dbus-launch --sh-syntax);
+      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
+      eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
+      /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
+    displayName: 'Set up credential storage environment'
     condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
     inputs:
