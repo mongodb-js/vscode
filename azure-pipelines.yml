@@ -28,10 +28,10 @@ steps:
       sudo apt-get update
 
       # Electron linux reqs
-      # sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0 libgconf-2-4;
+      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0 libgconf-2-4;
 
       # # Keytar and Kerberos
-      # sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring python-gnomekeyring libdbus-glib-1-dev libsecret-tools gnupg2 pass libsecret-1-0 libglib2.0-dev libgnome-keyring-dev;
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring python-gnomekeyring libdbus-glib-1-dev libsecret-tools gnupg2 pass libsecret-1-0 libglib2.0-dev libgnome-keyring-dev;
 
       # Keytar and Kerberos
       # sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring python-gnomekeyring;
@@ -66,6 +66,8 @@ steps:
       # ./gkey-unlock
 
       # Set up keytar
+
+      # sudo apt-get install -y gnome-keyring
 
       export DISPLAY=:10;
 
