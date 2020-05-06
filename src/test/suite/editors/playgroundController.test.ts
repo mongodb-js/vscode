@@ -82,7 +82,7 @@ suite('Playground Controller Test Suite', () => {
 
       await testPlaygroundController.runAllPlaygroundBlocks();
 
-      expect(fakeShowErrorMessage.called).to.be.true;
+      sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
     });
   });
 
