@@ -31,7 +31,7 @@ steps:
       sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0;
 
       # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring dbus-python python3-venv libdbus-glib-1-dev;
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev;
 
       eval "$(dbus-launch --sh-syntax)"
 
@@ -52,6 +52,7 @@ steps:
       # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
       # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
 
+      ## ## add install  dbus-python python3-venv
       # export NO_AT_BRIDGE=1
       # eval $(dbus-launch --sh-syntax)
       # export DBUS_SESSION_BUS_PID
