@@ -35,6 +35,11 @@ steps:
 
       echo "Setting up keyring for credential storing..."
 
+      export NO_AT_BRIDGE=1;
+      export DISPLAY=:99.0;
+      eval $(dbus-launch --sh-syntax);
+      sleep 3;
+
       eval $(echo -n "" | secret-tool store --label=Unlocker type unlock-keyring)
       eval $(secret-tool lookup type unlock-keyring)
 
@@ -54,8 +59,6 @@ steps:
       # cc gkey-unlock.c -o gkey-unlock -Wall -I/usr/include/gnome-keyring -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgnome-keyring -lglib-2.0
 
       # ./gkey-unlock
-
-      echo "Done with other setup"
 
       # Set up keytar
       # export NO_AT_BRIDGE=1
