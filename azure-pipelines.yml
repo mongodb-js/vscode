@@ -70,13 +70,17 @@ steps:
 
       # sudo apt-get install -y gnome-keyring
 
-      export DISPLAY=:10;
+      # export DISPLAY=:10;
+      export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
 
       sudo cp ./scripts/xvfb.init /etc/init.d/xvfb;
       sudo chmod +x /etc/init.d/xvfb;
       sudo update-rc.d xvfb defaults;
       sudo service xvfb start;
       sleep 3;
+
+      # sh -e /etc/init.d/xvfb start;
+      # sleep 3;
 
       export NO_AT_BRIDGE=1
       eval $(dbus-launch --sh-syntax);
@@ -138,7 +142,7 @@ steps:
     displayName: 'Run Tests'
     env:
       SEGMENT_KEY: $(segmentKey)
-      DISPLAY: :10 # Only necessary for linux tests
+      DISPLAY: :99 # Only necessary for linux tests
   - bash: ls -alh
     displayName: 'Post Tests'
 
