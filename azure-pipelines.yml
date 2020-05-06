@@ -72,7 +72,7 @@ steps:
 
       # Set up keytar
       export NO_AT_BRIDGE=1
-      export DISPLAY=:99.0; sh -e /etc/init.d/xvfb-run start; sleep 3;
+      export DISPLAY=:99.0; sh -e xvfb-run start; sleep 3;
       eval $(dbus-launch --sh-syntax);
       eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
       eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
