@@ -982,7 +982,7 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.renameConnection fails when the name input is empty', (done) => {
-    mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon = {
+    mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon = {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
       connectionModel: new Connection(),
       name: 'NAAAME',
@@ -1011,7 +1011,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mdbTestExtension.testExtensionController._connectionController
-            ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
+            ._connections.blueBerryPancakesAndTheSmellOfBacon.name ===
             'NAAAME',
           'Expected connection not to be ranamed.'
         );
@@ -1024,7 +1024,7 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.renameConnection updates the name of a connection', (done) => {
-    mdbTestExtension.testExtensionController._connectionController._savedConnections.blueBerryPancakesAndTheSmellOfBacon = {
+    mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon = {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
       name: 'NAAAME',
       connectionModel: new Connection(),
@@ -1050,7 +1050,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(successfullyRenamed);
         assert(
           mdbTestExtension.testExtensionController._connectionController
-            ._savedConnections.blueBerryPancakesAndTheSmellOfBacon.name ===
+            ._connections.blueBerryPancakesAndTheSmellOfBacon.name ===
             'orange juice',
           'Expected connection to be ranamed.'
         );

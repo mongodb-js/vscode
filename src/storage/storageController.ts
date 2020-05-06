@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { v4 as uuidv4 } from 'uuid';
-import { ConnectionModelType } from '../connectionModelType';
 
 export enum StorageVariables {
   // Only exists on globalState.
@@ -24,11 +23,11 @@ export enum DefaultSavingLocations {
   'Session Only' = 'Session Only'
 }
 
+// A saved connection does not contain the connection information,
+// just metadata about the connection and an id for referencing secure storage.
 export type SavedConnection = {
   id: string; // uuidv4
   name: string; // Possibly user given name, not unique.
-  connectionModel: ConnectionModelType;
-  driverUrl: string;
   storageLocation: StorageScope;
 };
 

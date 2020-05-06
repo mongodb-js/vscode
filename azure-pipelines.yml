@@ -9,8 +9,10 @@ trigger:
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops
 strategy:
   matrix:
-    linux:
-      imageName: 'ubuntu-latest'
+    # # Linux testing is currently disabled because of issues with
+    # # headless linux & keytar. Tracked: VSCODE-110
+    # linux:
+    #   imageName: 'ubuntu-latest'
     mac:
       imageName: 'macos-latest'
     windows:
@@ -18,7 +20,6 @@ strategy:
       # https://jira.mongodb.org/browse/NODE-2465
       # imageName: 'windows-latest'
       imageName: 'vs2017-win2016'
-
 pool:
   vmImage: $(imageName)
 
@@ -27,11 +28,6 @@ steps:
       set -e
       sudo apt-get update
 
-      # Electron linux reqs
-      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
-
-      # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev;
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0

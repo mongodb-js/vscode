@@ -70,7 +70,7 @@ suite('Explorer Controller Test Suite', () => {
 
     const mockConnectionId = 'testConnectionId';
 
-    testConnectionController._savedConnections = {
+    testConnectionController._connections = {
       testConnectionId: {
         id: 'testConnectionId',
         connectionModel: new Connection(),
@@ -116,15 +116,15 @@ suite('Explorer Controller Test Suite', () => {
           'Expected a successful connection response.'
         );
         assert(
-          Object.keys(testConnectionController._savedConnections).length === 1,
+          Object.keys(testConnectionController._connections).length === 1,
           'Expected there to be 1 connection in the connection list.'
         );
         const activeId = testConnectionController.getActiveConnectionId();
         assert(
           activeId ===
-            Object.keys(testConnectionController._savedConnections)[0],
+            Object.keys(testConnectionController._connections)[0],
           `Expected active connection to be '${
-            Object.keys(testConnectionController._savedConnections)[0]
+            Object.keys(testConnectionController._connections)[0]
           }' found ${activeId}`
         );
 
@@ -172,13 +172,13 @@ suite('Explorer Controller Test Suite', () => {
           'Expected a successful connection response.'
         );
         assert(
-          Object.keys(testConnectionController._savedConnections).length === 1,
+          Object.keys(testConnectionController._connections).length === 1,
           'Expected there to be 1 connection in the connection list.'
         );
         const connectionId =
           testConnectionController.getActiveConnectionId() || '';
         const connectionName =
-          testConnectionController._savedConnections[connectionId].name;
+          testConnectionController._connections[connectionId].name;
         assert(
           connectionName === 'localhost:27018',
           `Expected active connection name to be 'localhost:27018' found ${connectionName}`
@@ -207,7 +207,7 @@ suite('Explorer Controller Test Suite', () => {
                 );
                 assert(
                   connectionsItems[0].description === '',
-                  'Expected the first connection to have no description.'
+                  `Expected the first connection to have no description, found ${connectionsItems[0].description}.`
                 );
                 assert(
                   connectionsItems[0].isExpanded === false,
@@ -226,7 +226,7 @@ suite('Explorer Controller Test Suite', () => {
               })
               .then(done, done);
           });
-        }, 100);
+        }, 500);
       });
   });
 
