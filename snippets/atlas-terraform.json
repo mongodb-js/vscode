@@ -111,6 +111,11 @@
       "      project_id = mongodbatlas_project.my_project.id",
       "      ip_address = local.mongodb_atlas_whitelistip",
       "      comment    = \"My IP Address\"",
+      "}",
+      "",
+      "# Use terraform output to display connection strings.",
+      "output \"connection_strings\" {",
+        "value = [\"${mongodbatlas_cluster.my_cluster.connection_strings}\"]",
       "}"
     ],
     "description": "Bootstraps Atlas configuration for Terraform"
