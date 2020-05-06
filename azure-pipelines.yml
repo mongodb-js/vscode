@@ -39,11 +39,14 @@ steps:
       export DISPLAY=:99.0;
       eval $(dbus-launch --sh-syntax);
       sleep 3;
+      mkdir -p ~/.cache
+      mkdir -p ~/.local/share/keyrings # where the automatic keyring is created
 
-      eval $(/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh)
+      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
+      eval $(/usr/bin/gnome-keyring-daemon --start);
 
-      eval $(echo -n "" | secret-tool store --label=Unlocker type unlock-keyring)
-      eval $(secret-tool lookup type unlock-keyring)
+      eval $(echo -n "" | secret-tool store --label=Unlocker type unlock-keyring);
+      eval $(secret-tool lookup type unlock-keyring);
 
       # eval "$(dbus-launch --sh-syntax)"
 
