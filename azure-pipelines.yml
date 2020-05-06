@@ -40,6 +40,8 @@ steps:
       eval $(dbus-launch --sh-syntax);
       sleep 3;
 
+      eval $(/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh)
+
       eval $(echo -n "" | secret-tool store --label=Unlocker type unlock-keyring)
       eval $(secret-tool lookup type unlock-keyring)
 
