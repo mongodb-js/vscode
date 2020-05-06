@@ -31,7 +31,7 @@ steps:
       sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0;
 
       # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev libsecret-tools gnupg2 pass;
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev libsecret-tools gnupg2 pass libsecret-1-0 libglib2.0-dev libgnome-keyring-dev;
 
       echo "Setting up keyring for credential storing..."
 
