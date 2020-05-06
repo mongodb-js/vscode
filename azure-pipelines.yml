@@ -67,9 +67,19 @@ steps:
 
       # Set up keytar
 
-      export DISPLAY=:10
-      export $(dbus-launch)
-      export $(gnome-keyring-daemon --start)
+      export DISPLAY=:10;
+
+      sudo cp ./scripts/xvfb.init /etc/init.d/xvfb;
+      sudo chmod +x /etc/init.d/xvfb;
+      sudo update-rc.d xvfb defaults;
+      sudo service xvfb start;
+      sleep 3;
+
+      export NO_AT_BRIDGE=1
+      eval $(dbus-launch --sh-syntax);
+      # export $(gnome-keyring-daemon --start);
+      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
+      eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
 
       ## ## add install  dbus-python python3-venv
       # export NO_AT_BRIDGE=1
@@ -95,13 +105,10 @@ steps:
   # DISPLAY: :10 # Only necessary for linux tests
   # displayName: 'Set up credential storage environment'
   # condition: in(variables['agent.os'], 'Linux')
-  - script: |
-      sudo cp ./scripts/xvfb.init /etc/init.d/xvfb
-      sudo chmod +x /etc/init.d/xvfb
-      sudo update-rc.d xvfb defaults
-      sudo service xvfb start
-    displayName: 'Start X Virtual Frame Buffer'
-    condition: eq(variables['Agent.OS'], 'Linux')
+  # - script: |
+
+  #   displayName: 'Start X Virtual Frame Buffer'
+  #   condition: eq(variables['Agent.OS'], 'Linux')
   - task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
