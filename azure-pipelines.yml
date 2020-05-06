@@ -48,7 +48,7 @@ steps:
 
       echo "Done setting up keyring for credential storing."
 
-      cc gkey-unlock.c -o gkey-unlock -Wall -I/usr/include/gnome-keyring-1 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgnome-keyring -lglib-2.0
+      cc gkey-unlock.c -o gkey-unlock -Wall -I/usr/include/gnome-keyring -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgnome-keyring -lglib-2.0
 
       ./gkey-unlock
 
