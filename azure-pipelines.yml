@@ -11,13 +11,13 @@ strategy:
   matrix:
     linux:
       imageName: 'ubuntu-latest'
-    mac:
-      imageName: 'macos-latest'
-    windows:
-      # NOTE (lucas): Also blocked on Windows 2019 by
-      # https://jira.mongodb.org/browse/NODE-2465
-      # imageName: 'windows-latest'
-      imageName: 'vs2017-win2016'
+    # mac:
+    #   imageName: 'macos-latest'
+    # windows:
+    #   # NOTE (lucas): Also blocked on Windows 2019 by
+    #   # https://jira.mongodb.org/browse/NODE-2465
+    #   # imageName: 'windows-latest'
+    #   imageName: 'vs2017-win2016'
 
 pool:
   vmImage: $(imageName)
@@ -92,7 +92,7 @@ steps:
   # displayName: 'Set up credential storage environment'
   # condition: in(variables['agent.os'], 'Linux')
   - script: |
-      sudo cp .scripts/xvfb.init /etc/init.d/xvfb
+      sudo cp ./scripts/xvfb.init /etc/init.d/xvfb
       sudo chmod +x /etc/init.d/xvfb
       sudo update-rc.d xvfb defaults
       sudo service xvfb start
