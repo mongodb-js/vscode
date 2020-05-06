@@ -207,7 +207,7 @@ suite('Explorer Controller Test Suite', () => {
                 );
                 assert(
                   connectionsItems[0].description === '',
-                  'Expected the first connection to have no description.'
+                  `Expected the first connection to have no description, found ${connectionsItems[0].description}.`
                 );
                 assert(
                   connectionsItems[0].isExpanded === false,
@@ -226,7 +226,7 @@ suite('Explorer Controller Test Suite', () => {
               })
               .then(done, done);
           });
-        }, 250);
+        }, 500);
       });
   });
 
