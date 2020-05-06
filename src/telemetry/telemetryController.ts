@@ -53,9 +53,10 @@ export default class TelemetryController {
         './constants'
       );
       this._segmentKey = require(segmentKeyFileLocation)?.segmentKey;
+      log.info('TELEMETRY key received');
     } catch (error) {
       this._segmentKey = process.env.SEGMENT_KEY;
-      log.error('TELEMETRY file reading', error);
+      log.error('TELEMETRY key error', error);
     }
   }
 
@@ -96,6 +97,12 @@ export default class TelemetryController {
       .getConfiguration('mdb')
       .get('sendTelemetry');
 
+    log.info('TELEMETRY track', {
+      eventType,
+      segmentUserID: this._segmentUserID,
+      properties
+    });
+
     if (shouldSendTelemetry) {
       this._segmentAnalytics?.track(
         {
@@ -105,16 +112,10 @@ export default class TelemetryController {
         },
         (error) => {
           if (error) {
-            log.error(error);
+            log.error('TELEMETRY track error', error);
           }
 
-          const analytics = [
-            `The "${eventType}" metric was sent.`,
-            `The user: "${this._segmentUserID}."`,
-            'The props:'
-          ];
-
-          log.info(analytics.join(' '), properties);
+          log.info('TELEMETRY track done');
         }
       );
     }
