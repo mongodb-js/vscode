@@ -4,10 +4,8 @@ import { LanguageServerController } from '../../../language';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-
-import { TestExtensionContext } from '../stubs';
-import { before, after } from 'mocha';
-import { MockLanguageServerController } from '../../helper/playgroundHelper';
+import { TestExtensionContext, MockLanguageServerController } from '../stubs';
+import { before, after, beforeEach, afterEach } from 'mocha';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -43,7 +41,7 @@ suite('Playground Controller Test Suite', () => {
   let fakeShowInformationMessage: any;
   let fakeShowErrorMessage: any;
 
-  before(async () => {
+  before(() => {
     fakeShowInformationMessage = sandbox.stub(
       vscode.window,
       'showInformationMessage'
@@ -57,9 +55,18 @@ suite('Playground Controller Test Suite', () => {
 
   suite('user is not connected', () => {
     before(() => {
-      testConnectionController.getActiveConnectionName = sinon.fake.returns('');
-      testConnectionController.getActiveConnectionModel = sinon.fake.returns(
-        null
+      const mockGetActiveConnectionName = sinon.fake.returns('');
+      const mockGetActiveConnectionModel = sinon.fake.returns(null);
+
+      sinon.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionName',
+        mockGetActiveConnectionName
+      );
+      sinon.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionModel',
+        mockGetActiveConnectionModel
       );
     });
 
@@ -67,7 +74,7 @@ suite('Playground Controller Test Suite', () => {
       sinon.restore();
     });
 
-    test('runAllPlaygroundBlocks should throw the missing active connection error', async () => {
+    test('run all playground blocks should throw the error', async () => {
       const errorMessage =
         'Please connect to a database before running a playground.';
 
@@ -79,26 +86,35 @@ suite('Playground Controller Test Suite', () => {
     });
   });
 
-  suite('user is connected and gets confirmation message', () => {
-    before(async () => {
-      testConnectionController.getActiveConnectionName = sinon.fake.returns(
-        'fakeName'
-      );
-      testConnectionController.getActiveConnectionModel = sinon.fake.returns({
+  suite('user is connected', () => {
+    beforeEach(async () => {
+      const mockGetActiveConnectionName = sinon.fake.returns('fakeName');
+      const mockGetActiveConnectionModel = sinon.fake.returns({
         appname: 'VSCode Playground Tests',
         port: 27018,
         disconnect: () => {},
         getAttributes: () => CONNECTION
       });
 
+      sinon.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionName',
+        mockGetActiveConnectionName
+      );
+      sinon.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionModel',
+        mockGetActiveConnectionModel
+      );
+
       await testPlaygroundController.connectToServiceProvider();
     });
 
-    after(() => {
+    afterEach(() => {
       sinon.restore();
     });
 
-    test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is true', async () => {
+    test('show a confirmation message if mdb.confirmRunAll is true', async () => {
       fakeShowInformationMessage.resolves('Yes');
 
       const result = await testPlaygroundController.runAllPlaygroundBlocks();
@@ -106,15 +122,7 @@ suite('Playground Controller Test Suite', () => {
       expect(result).to.be.true;
     });
 
-    test('do not run a playground if user selected No in the confirmation message', async () => {
-      fakeShowInformationMessage.resolves('No');
-
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
-
-      expect(result).to.be.false;
-    });
-
-    test('show a confirmation message before running commands in a playground if mdb.confirmRunAll is false', async () => {
+    test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
       await vscode.workspace
         .getConfiguration('mdb')
         .update('confirmRunAll', false);
@@ -122,6 +130,26 @@ suite('Playground Controller Test Suite', () => {
       const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
       expect(result).to.be.true;
+    });
+
+    test('do not run a playground if user selected No in the confirmation message', async () => {
+      await vscode.workspace
+        .getConfiguration('mdb')
+        .update('confirmRunAll', true);
+
+      fakeShowInformationMessage.resolves('No');
+
+      const result = await testPlaygroundController.runAllPlaygroundBlocks();
+
+      expect(result).to.be.false;
+    });
+
+    test('close cancelation modal when a playground is canceled', async () => {
+      sinon.replace(testPlaygroundController, 'evaluate', sinon.fake.rejects());
+
+      const result = await testPlaygroundController.evaluateWithCancelModal();
+
+      expect(result).to.be.equal(null);
     });
   });
 

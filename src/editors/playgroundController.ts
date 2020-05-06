@@ -179,7 +179,7 @@ export default class PlaygroundController {
     return Promise.resolve(result);
   }
 
-  private evaluateWithCancelModal(): Promise<any> {
+  public evaluateWithCancelModal(): Promise<any> {
     if (!this._connectionString) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')

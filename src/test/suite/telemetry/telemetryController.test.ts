@@ -70,10 +70,10 @@ suite('Telemetry Controller Test Suite', () => {
 
   test('track command run event', (done) => {
     vscode.commands
-      .executeCommand('mdb.createPlayground')
+      .executeCommand('mdb.showActiveConnectionInPlayground', 'Test')
       .then(() => {
         sinon.assert.calledWith(mockTelemetryTrackMethod, 'command run', {
-          command: 'mdb.createPlayground'
+          command: 'mdb.showActiveConnectionInPlayground'
         });
       })
       .then(done, done);
