@@ -9,7 +9,9 @@ import ConnectionController from './connectionController';
 import { EditorsController, PlaygroundController } from './editors';
 import { ExplorerController, CollectionTreeItem } from './explorer';
 import { LanguageServerController } from './language';
-import { TelemetryController } from './telemetry';
+import TelemetryController, {
+  TelemetryEventTypes
+} from './telemetry/telemetryController';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController } from './storage';
@@ -129,11 +131,23 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   registerCommand = (
-    command,
+    command: string,
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
+    const commandHandlerWithTelemetry = () => {
+      // Send metrics to Segment
+      this._telemetryController?.track(
+        TelemetryEventTypes.EXTENSION_COMMAND_RUN,
+        {
+          command
+        }
+      );
+
+      return commandHandler();
+    };
+
     this._context.subscriptions.push(
-      vscode.commands.registerCommand(command, commandHandler)
+      vscode.commands.registerCommand(command, commandHandlerWithTelemetry)
     );
   };
 

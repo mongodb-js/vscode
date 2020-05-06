@@ -114,9 +114,9 @@ export const rootReducer = (
         isConnected: false
       };
 
-    case ActionTypes.LINK_CLICKED:
+    case ActionTypes.EXTENSION_LINK_CLICKED:
       vscode.postMessage({
-        command: MESSAGE_TYPES.LINK_CLICKED,
+        command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED,
         screen: action.screen,
         linkId: action.linkId
       });

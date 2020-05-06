@@ -49,7 +49,7 @@ const findAndParse = (
   collectionName: string
 ): Promise<any> => {
   return new Promise(async (resolve, reject) => {
-    let documents;
+    let documents: Array<any>;
 
     try {
       documents = await serviceProvider

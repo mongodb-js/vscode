@@ -16,13 +16,19 @@ type LinkClickedTelemetryEventProperties = {
   linkId: string;
 };
 
+type ExtensionCommandRunTelemetryEventProperties = {
+  command: string;
+};
+
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
-  | LinkClickedTelemetryEventProperties;
+  | LinkClickedTelemetryEventProperties
+  | ExtensionCommandRunTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'playground code executed',
-  LINK_CLICKED = 'link clicked'
+  EXTENSION_LINK_CLICKED = 'link clicked',
+  EXTENSION_COMMAND_RUN = 'command run'
 }
 
 /**
@@ -42,7 +48,10 @@ export default class TelemetryController {
     config({ path: path.join(context.extensionPath, '.env') });
 
     try {
-      const segmentKeyFileLocation = '../../constants';
+      const segmentKeyFileLocation = path.join(
+        context.extensionPath,
+        './constants'
+      );
       this._segmentKey = require(segmentKeyFileLocation)?.segmentKey;
     } catch (error) {
       this._segmentKey = process.env.SEGMENT_KEY;

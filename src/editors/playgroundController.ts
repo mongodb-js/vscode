@@ -185,6 +185,41 @@ export default class PlaygroundController {
     return Promise.resolve(result);
   }
 
+  private evaluateWithCancelModal(): Promise<any> {
+    return new Promise((resolve) => {
+      vscode.window
+        .withProgress(
+          {
+            location: ProgressLocation.Notification,
+            title: 'Running MongoDB playground...',
+            cancellable: true
+          },
+          async (progress, token) => {
+            token.onCancellationRequested(async () => {
+              // If a user clicked the cancel button terminate all playground scripts
+              this._languageServerController.cancelAll();
+              this._outputChannel.clear();
+              this._outputChannel.show(true);
+
+              return resolve(null);
+            });
+
+            const codeToEvaluate =
+              this._activeTextEditor?.document.getText() || '';
+            // Run all playground scripts
+            const result = await this.evaluate(codeToEvaluate);
+
+            return resolve(result);
+          }
+        )
+        .then(undefined, (error) => {
+          log.error('Evaluate playground with cancel modal error', error);
+
+          return resolve(null);
+        });
+    });
+  }
+
   public runAllPlaygroundBlocks(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const shouldConfirmRunAll = vscode.workspace
@@ -212,30 +247,7 @@ export default class PlaygroundController {
         }
       }
 
-      const codeToEvaluate = this._activeTextEditor?.document.getText() || '';
-      let result: any;
-
-      // Show a running progress in the notification area with support for cancellation
-      await vscode.window.withProgress(
-        {
-          location: ProgressLocation.Notification,
-          title: 'Running MongoDB playground...',
-          cancellable: true
-        },
-        async (progress, token) => {
-          token.onCancellationRequested(() => {
-            // If a user clicked the cancel button terminate all playground scripts
-            this._languageServerController.cancelAll();
-            this._outputChannel.clear();
-            this._outputChannel.show(true);
-
-            return resolve(false);
-          });
-
-          // Run all playground scripts
-          result = await this.evaluate(codeToEvaluate);
-        }
-      );
+      const result = await this.evaluateWithCancelModal();
 
       if (!result) {
         this._outputChannel.clear();
