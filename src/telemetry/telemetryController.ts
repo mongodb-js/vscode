@@ -56,7 +56,7 @@ export default class TelemetryController {
       const constants = fs.readFileSync(segmentKeyFileLocation);
 
       this._segmentKey = JSON.parse(constants)?.segmentKey;
-      log.info('TELEMETRY key received');
+      log.info('TELEMETRY key received', typeof this._segmentKey);
     } catch (error) {
       log.error('TELEMETRY key error', error);
     }
