@@ -31,26 +31,29 @@ steps:
       sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0;
 
       # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev;
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev libsecret-tools;
 
       echo "Setting up keyring for credential storing..."
 
-      eval "$(dbus-launch --sh-syntax)"
+      eval $(echo -n "" | secret-tool store --label=Unlocker type unlock-keyring)
+      eval $(secret-tool lookup type unlock-keyring)
 
-      mkdir -p ~/.cache
-      mkdir -p ~/.local/share/keyrings # where the automatic keyring is created
+      # eval "$(dbus-launch --sh-syntax)"
 
-      # 1. Create the keyring manually with a dummy password in stdin
-      eval "$(printf '\n' | gnome-keyring-daemon --unlock)"
+      # mkdir -p ~/.cache
+      # mkdir -p ~/.local/share/keyrings # where the automatic keyring is created
 
-      # 2. Start the daemon, using the password to unlock the just-created keyring:
-      eval "$(printf '\n' | /usr/bin/gnome-keyring-daemon --start)"
+      # # 1. Create the keyring manually with a dummy password in stdin
+      # eval "$(printf '\n' | gnome-keyring-daemon --unlock)"
+
+      # # 2. Start the daemon, using the password to unlock the just-created keyring:
+      # eval "$(printf '\n' | /usr/bin/gnome-keyring-daemon --start)"
 
       echo "Done setting up keyring for credential storing."
 
-      cc gkey-unlock.c -o gkey-unlock -Wall -I/usr/include/gnome-keyring -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgnome-keyring -lglib-2.0
+      # cc gkey-unlock.c -o gkey-unlock -Wall -I/usr/include/gnome-keyring -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgnome-keyring -lglib-2.0
 
-      ./gkey-unlock
+      # ./gkey-unlock
 
       echo "Done with other setup"
 
