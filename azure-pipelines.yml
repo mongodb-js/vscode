@@ -10,7 +10,7 @@ trigger:
 strategy:
   matrix:
     linux:
-      imageName: 'ubuntu-latest'
+      imageName: 'ubuntu-16.04'
     # mac:
     #   imageName: 'macos-latest'
     # windows:
@@ -31,7 +31,7 @@ steps:
       sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0 libgconf-2-4;
 
       # # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev libsecret-tools gnupg2 pass libsecret-1-0 libglib2.0-dev libgnome-keyring-dev;
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev libsecret-tools gnupg2 pass libsecret-1-0 libglib2.0-dev libgnome-keyring-dev python-gnomekeyring;
 
       #  python-gnomekeyring
       # Keytar and Kerberos
@@ -83,6 +83,7 @@ steps:
       # export $(gnome-keyring-daemon --start);
       eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
       eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
+      /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
 
       ## ## add install  dbus-python python3-venv
       # export NO_AT_BRIDGE=1
