@@ -67,6 +67,10 @@ steps:
 
       # Set up keytar
 
+      export DISPLAY=:10
+      export $(dbus-launch)
+      export $(gnome-keyring-daemon --start)
+
       ## ## add install  dbus-python python3-venv
       # export NO_AT_BRIDGE=1
       # eval $(dbus-launch --sh-syntax)
