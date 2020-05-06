@@ -33,6 +33,8 @@ steps:
       # Keytar and Kerberos
       sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev;
 
+      echo "Setting up keyring for credential storing..."
+
       eval "$(dbus-launch --sh-syntax)"
 
       mkdir -p ~/.cache
@@ -43,6 +45,14 @@ steps:
 
       # 2. Start the daemon, using the password to unlock the just-created keyring:
       eval "$(printf '\n' | /usr/bin/gnome-keyring-daemon --start)"
+
+      echo "Done setting up keyring for credential storing."
+
+      cc gkey-unlock.c -o gkey-unlock -Wall -I/usr/include/gnome-keyring-1 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgnome-keyring -lglib-2.0
+
+      ./gkey-unlock
+
+      echo "Done with other setup"
 
       # Set up keytar
       # export NO_AT_BRIDGE=1
