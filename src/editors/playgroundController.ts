@@ -162,13 +162,7 @@ export default class PlaygroundController {
     return { type };
   }
 
-  private async evaluate(codeToEvaluate: string): Promise<any> {
-    if (!this._connectionString) {
-      return Promise.reject(
-        new Error('Please connect to a database before running a playground.')
-      );
-    }
-
+  public async evaluate(codeToEvaluate: string): Promise<any> {
     // Send a request to the language server to execute scripts from a playground
     const result = await this._languageServerController.executeAll(
       codeToEvaluate
@@ -183,6 +177,47 @@ export default class PlaygroundController {
     }
 
     return Promise.resolve(result);
+  }
+
+  public evaluateWithCancelModal(): Promise<any> {
+    if (!this._connectionString) {
+      return Promise.reject(
+        new Error('Please connect to a database before running a playground.')
+      );
+    }
+
+    return new Promise((resolve) => {
+      vscode.window
+        .withProgress(
+          {
+            location: ProgressLocation.Notification,
+            title: 'Running MongoDB playground...',
+            cancellable: true
+          },
+          async (progress, token) => {
+            token.onCancellationRequested(async () => {
+              // If a user clicked the cancel button terminate all playground scripts
+              this._languageServerController.cancelAll();
+              this._outputChannel.clear();
+              this._outputChannel.show(true);
+
+              return resolve(null);
+            });
+
+            const codeToEvaluate =
+              this._activeTextEditor?.document.getText() || '';
+            // Run all playground scripts
+            const result = await this.evaluate(codeToEvaluate);
+
+            return resolve(result);
+          }
+        )
+        .then(undefined, (error) => {
+          log.error('Evaluate playground with cancel modal error', error);
+
+          return resolve(null);
+        });
+    });
   }
 
   public runAllPlaygroundBlocks(): Promise<boolean> {
@@ -212,30 +247,7 @@ export default class PlaygroundController {
         }
       }
 
-      const codeToEvaluate = this._activeTextEditor?.document.getText() || '';
-      let result: any;
-
-      // Show a running progress in the notification area with support for cancellation
-      await vscode.window.withProgress(
-        {
-          location: ProgressLocation.Notification,
-          title: 'Running MongoDB playground...',
-          cancellable: true
-        },
-        async (progress, token) => {
-          token.onCancellationRequested(() => {
-            // If a user clicked the cancel button terminate all playground scripts
-            this._languageServerController.cancelAll();
-            this._outputChannel.clear();
-            this._outputChannel.show(true);
-
-            return resolve(false);
-          });
-
-          // Run all playground scripts
-          result = await this.evaluate(codeToEvaluate);
-        }
-      );
+      const result = await this.evaluateWithCancelModal();
 
       if (!result) {
         this._outputChannel.clear();

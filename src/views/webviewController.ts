@@ -109,25 +109,28 @@ export default class WebviewController {
           });
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
-        vscode.commands.executeCommand('mdb.connectWithURI').then(connectionSuccess => {
-          if (connectionSuccess) {
-            panel.webview.postMessage({
-              command: MESSAGE_TYPES.CONNECT_RESULT,
-              connectionSuccess: true,
-              connectionMessage: 'Successfully connected.',
-              isUriConnection: true
-            });
-          }
-        });
+        vscode.commands
+          .executeCommand('mdb.connectWithURI')
+          .then((connectionSuccess) => {
+            if (connectionSuccess) {
+              panel.webview.postMessage({
+                command: MESSAGE_TYPES.CONNECT_RESULT,
+                connectionSuccess: true,
+                connectionMessage: 'Successfully connected.',
+                isUriConnection: true
+              });
+            }
+          });
 
         return;
-      case MESSAGE_TYPES.LINK_CLICKED:
-        log.info('Telemetry', message.screen, message.linkId);
-
-        this._telemetryController?.track(TelemetryEventTypes.LINK_CLICKED, {
-          screen: message.screen,
-          linkId: message.linkId
-        });
+      case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
+        this._telemetryController?.track(
+          TelemetryEventTypes.EXTENSION_LINK_CLICKED,
+          {
+            screen: message.screen,
+            linkId: message.linkId
+          }
+        );
 
         return;
       default:

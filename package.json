@@ -76,40 +76,61 @@
   ],
   "contributes": {
     "viewsContainers": {
-      "activitybar": [{
-        "id": "mongoDB",
-        "title": "MongoDB",
-        "icon": "images/sidebar-leaf.svg"
-      }]
+      "activitybar": [
+        {
+          "id": "mongoDB",
+          "title": "MongoDB",
+          "icon": "images/sidebar-leaf.svg"
+        }
+      ]
     },
     "views": {
-      "mongoDB": [{
-        "id": "mongoDB",
-        "name": "MongoDB",
-        "when": "config.mdb.show == true"
-      }]
+      "mongoDB": [
+        {
+          "id": "mongoDB",
+          "name": "MongoDB",
+          "when": "config.mdb.show == true"
+        }
+      ]
     },
-    "viewsWelcome": [{
-      "view": "mongoDB",
-      "contents": "No connections found.\n[Add Connection](command:mdb.connect)"
-    }],
-    "languages": [{
-      "id": "mongodb",
-      "aliases": [
-        "MongoDB",
-        "mongodb"
-      ],
-      "extensions": [
-        ".mongodb"
-      ],
-      "configuration": "./languages/mongodb-language-configuration.json"
-    }],
-    "grammars": [{
-      "language": "mongodb",
-      "path": "./syntaxes/mongodb.tmLanguage.json",
-      "scopeName": "source.mongodb"
-    }],
-    "snippets": [{
+    "viewsWelcome": [
+      {
+        "view": "mongoDB",
+        "contents": "No connections found.\n[Add Connection](command:mdb.connect)"
+      }
+    ],
+    "languages": [
+      {
+        "id": "mongodb",
+        "aliases": [
+          "MongoDB",
+          "mongodb"
+        ],
+        "extensions": [
+          ".mongodb"
+        ],
+        "configuration": "./languages/mongodb-language-configuration.json"
+      },
+      {
+        "id": "terraform",
+        "aliases": [
+          "Terraform",
+          "terraform"
+        ],
+        "extensions": [
+          ".tf"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mongodb",
+        "path": "./syntaxes/mongodb.tmLanguage.json",
+        "scopeName": "source.mongodb"
+      }
+    ],
+    "snippets": [
+      {
         "language": "mongodb",
         "path": "./snippets/stage-autocompleter.json"
       },
@@ -118,7 +139,8 @@
         "path": "./snippets/atlas-terraform.json"
       }
     ],
-    "commands": [{
+    "commands": [
+      {
         "command": "mdb.connect",
         "title": "MongoDB: Connect"
       },
@@ -252,7 +274,8 @@
       }
     ],
     "menus": {
-      "view/title": [{
+      "view/title": [
+        {
           "command": "mdb.createNewPlaygroundFromViewAction",
           "when": "view == mongoDB"
         },
@@ -265,7 +288,8 @@
           "when": "view == mongoDB"
         }
       ],
-      "view/item/context": [{
+      "view/item/context": [
+        {
           "command": "mdb.addConnection",
           "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem",
           "group": "inline"
@@ -387,12 +411,15 @@
           "when": "view == mongoDB && viewItem == schemaTreeItem"
         }
       ],
-      "editor/title": [{
-        "command": "mdb.runAllPlaygroundBlocks",
-        "group": "navigation",
-        "when": "editorLangId == mongodb"
-      }],
-      "commandPalette": [{
+      "editor/title": [
+        {
+          "command": "mdb.runAllPlaygroundBlocks",
+          "group": "navigation",
+          "when": "editorLangId == mongodb"
+        }
+      ],
+      "commandPalette": [
+        {
           "command": "mdb.createNewPlaygroundFromViewAction",
           "when": "false"
         },

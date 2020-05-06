@@ -6,6 +6,7 @@ import { config } from 'dotenv';
 import { StorageController } from '../storage';
 
 const log = createLogger('analytics');
+const fs = require('fs');
 
 type PlaygroundTelemetryEventProperties = {
   type: string;
@@ -16,13 +17,19 @@ type LinkClickedTelemetryEventProperties = {
   linkId: string;
 };
 
+type ExtensionCommandRunTelemetryEventProperties = {
+  command: string;
+};
+
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
-  | LinkClickedTelemetryEventProperties;
+  | LinkClickedTelemetryEventProperties
+  | ExtensionCommandRunTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'playground code executed',
-  LINK_CLICKED = 'link clicked'
+  EXTENSION_LINK_CLICKED = 'link clicked',
+  EXTENSION_COMMAND_RUN = 'command run'
 }
 
 /**
@@ -42,11 +49,16 @@ export default class TelemetryController {
     config({ path: path.join(context.extensionPath, '.env') });
 
     try {
-      const segmentKeyFileLocation = '../../constants';
-      this._segmentKey = require(segmentKeyFileLocation)?.segmentKey;
+      const segmentKeyFileLocation = path.join(
+        context.extensionPath,
+        './constants.json'
+      );
+      const constants = fs.readFileSync(segmentKeyFileLocation);
+
+      this._segmentKey = JSON.parse(constants)?.segmentKey;
+      log.info('TELEMETRY key received', typeof this._segmentKey);
     } catch (error) {
-      this._segmentKey = process.env.SEGMENT_KEY;
-      log.error('TELEMETRY file reading', error);
+      log.error('TELEMETRY key error', error);
     }
   }
 
@@ -87,6 +99,12 @@ export default class TelemetryController {
       .getConfiguration('mdb')
       .get('sendTelemetry');
 
+    log.info('TELEMETRY track', {
+      eventType,
+      segmentUserID: this._segmentUserID,
+      properties
+    });
+
     if (shouldSendTelemetry) {
       this._segmentAnalytics?.track(
         {
@@ -96,16 +114,10 @@ export default class TelemetryController {
         },
         (error) => {
           if (error) {
-            log.error(error);
+            log.error('TELEMETRY track error', error);
           }
 
-          const analytics = [
-            `The "${eventType}" metric was sent.`,
-            `The user: "${this._segmentUserID}."`,
-            'The props:'
-          ];
-
-          log.info(analytics.join(' '), properties);
+          log.info('TELEMETRY track done');
         }
       );
     }

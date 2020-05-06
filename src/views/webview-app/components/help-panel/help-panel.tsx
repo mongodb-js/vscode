@@ -172,7 +172,7 @@ class HelpPanel extends React.Component<props> {
 
 const mapDispatchToProps: dispatchProps = {
   onLinkClicked: (screen, linkId): LinkClickedAction => ({
-    type: ActionTypes.LINK_CLICKED,
+    type: ActionTypes.EXTENSION_LINK_CLICKED,
     screen,
     linkId
   })

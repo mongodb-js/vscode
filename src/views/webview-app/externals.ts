@@ -18,7 +18,7 @@ interface OpenConnectionStringInputMessage extends BasicWebviewMessage {
 }
 
 interface LinkClickedMessage extends BasicWebviewMessage {
-  command: 'LINK_CLICKED';
+  command: 'EXTENSION_LINK_CLICKED';
 }
 
 interface FilePickerMessage {

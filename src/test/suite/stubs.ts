@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import path = require('path');
 
+import { CancellationTokenSource } from 'vscode-languageclient';
+import { StorageController } from '../../storage';
+
 // Bare mock of the extension context for vscode.
 class TestExtensionContext implements vscode.ExtensionContext {
   globalStoragePath: string;
@@ -26,7 +29,9 @@ class TestExtensionContext implements vscode.ExtensionContext {
         return this._workspaceState[key];
       },
       update: (key: string, value: any): Thenable<void> => {
-        return new Promise<void>(() => { this._workspaceState[key] = value; });
+        return new Promise<void>(() => {
+          this._workspaceState[key] = value;
+        });
       }
     };
     this.globalState = {
@@ -34,7 +39,9 @@ class TestExtensionContext implements vscode.ExtensionContext {
         return this._globalState[key];
       },
       update: (key: string, value: any): Thenable<void> => {
-        return new Promise<void>(() => { this._globalState[key] = value; });
+        return new Promise<void>(() => {
+          this._globalState[key] = value;
+        });
       }
     };
     this.extensionPath = path.join(__dirname, '..', '..', '..');
@@ -112,9 +119,7 @@ class DataServiceStub {
   }
 }
 
-const mockPosition = new vscode.Position(
-  0, 0
-);
+const mockPosition = new vscode.Position(0, 0);
 
 const mockRange = new vscode.Range(mockPosition, mockPosition);
 
@@ -145,11 +150,56 @@ const mockVSCodeTextDocument = {
   positionAt: (offset: number): vscode.Position => mockPosition,
   getText: (range?: vscode.Range): string => '',
 
-  getWordRangeAtPosition: (position: vscode.Position, regex?: RegExp) => undefined,
+  getWordRangeAtPosition: (position: vscode.Position, regex?: RegExp) =>
+    undefined,
   validateRange: (range: vscode.Range): vscode.Range => mockRange,
 
   validatePosition: (position: vscode.Position): vscode.Position => mockPosition
 };
+
+class MockLanguageServerController {
+  _context: TestExtensionContext;
+  _storageController?: StorageController;
+  _source?: CancellationTokenSource;
+  client: any;
+
+  constructor(
+    context: TestExtensionContext,
+    storageController: StorageController
+  ) {
+    this._context = context;
+    this._storageController = storageController;
+    this.client = null;
+  }
+
+  activate(): void {}
+
+  deactivate(): void {}
+
+  executeAll(codeToEvaluate): Promise<any> {
+    return Promise.resolve(true);
+  }
+
+  connectToServiceProvider(params: {
+    connectionString?: string;
+    connectionOptions?: any;
+    extensionPath: string;
+  }): Promise<any> {
+    return Promise.resolve(true);
+  }
+
+  disconnectFromServiceProvider(): Promise<any> {
+    return Promise.resolve(false);
+  }
+
+  startStreamLanguageServerLogs(): Promise<boolean> {
+    return Promise.resolve(true);
+  }
+
+  cancelAll(): Promise<boolean> {
+    return Promise.resolve(true);
+  }
+}
 
 export {
   mockDocuments,
@@ -157,5 +207,6 @@ export {
   mockDatabases,
   mockVSCodeTextDocument,
   DataServiceStub,
-  TestExtensionContext
+  TestExtensionContext,
+  MockLanguageServerController
 };

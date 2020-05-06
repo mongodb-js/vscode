@@ -6,7 +6,7 @@ export enum MESSAGE_TYPES {
   OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
   FILE_PICKER_RESULTS = 'FILE_PICKER_RESULTS',
-  LINK_CLICKED = 'LINK_CLICKED'
+  EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED'
 }
 
 interface BasicWebviewMessage {
@@ -44,7 +44,7 @@ export interface FilePickerResultsMessage extends BasicWebviewMessage {
 }
 
 export interface LinkClickedMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.LINK_CLICKED;
+  command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED;
   screen: string;
   linkId: string;
 }
