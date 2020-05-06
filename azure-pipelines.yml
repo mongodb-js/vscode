@@ -10,7 +10,7 @@ trigger:
 strategy:
   matrix:
     linux:
-      imageName: 'ubuntu-latest'
+      imageName: 'ubuntu-16.04'
     mac:
       imageName: 'macos-latest'
     windows:
@@ -27,26 +27,33 @@ steps:
       set -e
       sudo apt-get update
 
+      # # Electron linux reqs
+      # sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0;
+
+      # # Keytar and Kerberos
+      # sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev libsecret-tools gnupg2 pass libsecret-1-0 libglib2.0-dev libgnome-keyring-dev;
+
+
       # Electron linux reqs
-      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0;
+      sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus xvfb libgtk-3-0;
 
       # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring libdbus-glib-1-dev libsecret-tools gnupg2 pass libsecret-1-0 libglib2.0-dev libgnome-keyring-dev;
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring python-gnomekeyring;
 
       echo "Setting up keyring for credential storing..."
 
-      export NO_AT_BRIDGE=1;
-      export DISPLAY=:99.0;
-      eval $(dbus-launch --sh-syntax);
-      sleep 3;
-      mkdir -p ~/.cache
-      mkdir -p ~/.local/share/keyrings # where the automatic keyring is created
+      # export NO_AT_BRIDGE=1;
+      # export DISPLAY=:99.0;
+      # eval $(dbus-launch --sh-syntax);
+      # sleep 3;
+      # mkdir -p ~/.cache
+      # mkdir -p ~/.local/share/keyrings # where the automatic keyring is created
 
-      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      eval $(/usr/bin/gnome-keyring-daemon --start);
+      # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
+      # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
 
-      eval $(echo -n "" | secret-tool store --label=Unlocker type unlock-keyring);
-      eval $(secret-tool lookup type unlock-keyring);
+      # eval $(echo -n "" | secret-tool store --label=Unlocker type unlock-keyring);
+      # eval $(secret-tool lookup type unlock-keyring);
 
       # eval "$(dbus-launch --sh-syntax)"
 
@@ -59,19 +66,18 @@ steps:
       # # 2. Start the daemon, using the password to unlock the just-created keyring:
       # eval "$(printf '\n' | /usr/bin/gnome-keyring-daemon --start)"
 
-      echo "Done setting up keyring for credential storing."
 
       # cc gkey-unlock.c -o gkey-unlock -Wall -I/usr/include/gnome-keyring -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgnome-keyring -lglib-2.0
 
       # ./gkey-unlock
 
       # Set up keytar
-      # export NO_AT_BRIDGE=1
-      # export DISPLAY=:99.0; sleep 3;
-      # eval $(dbus-launch --sh-syntax);
-      # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-      # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
+      export NO_AT_BRIDGE=1
+      export DISPLAY=:99.0; sleep 3;
+      eval $(dbus-launch --sh-syntax);
+      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
+      eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
+      /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
 
       ## ## add install  dbus-python python3-venv
       # export NO_AT_BRIDGE=1
@@ -84,6 +90,8 @@ steps:
       # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
       # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
       # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
+
+      echo "Done setting up keyring for credential storing."
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
