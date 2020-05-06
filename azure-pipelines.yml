@@ -31,15 +31,26 @@ steps:
       sudo apt-get install -y libxkbfile-dev pkg-config libxss1 dbus dbus-x11 xvfb libgtk-3-0;
 
       # Keytar and Kerberos
-      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring python-gnomekeyring;
+      sudo apt-get install -y libsecret-1-dev libkrb5-dev gnome-keyring dbus-python python3-venv libdbus-glib-1-dev;
+
+      eval "$(dbus-launch --sh-syntax)"
+
+      mkdir -p ~/.cache
+      mkdir -p ~/.local/share/keyrings # where the automatic keyring is created
+
+      # 1. Create the keyring manually with a dummy password in stdin
+      eval "$(printf '\n' | gnome-keyring-daemon --unlock)"
+
+      # 2. Start the daemon, using the password to unlock the just-created keyring:
+      eval "$(printf '\n' | /usr/bin/gnome-keyring-daemon --start)"
 
       # Set up keytar
-      export NO_AT_BRIDGE=1
-      export DISPLAY=:99.0; sleep 3;
-      eval $(dbus-launch --sh-syntax);
-      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-      /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
+      # export NO_AT_BRIDGE=1
+      # export DISPLAY=:99.0; sleep 3;
+      # eval $(dbus-launch --sh-syntax);
+      # eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
+      # eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
+      # /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
 
       # export NO_AT_BRIDGE=1
       # eval $(dbus-launch --sh-syntax)
