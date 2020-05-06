@@ -6,6 +6,7 @@ import { config } from 'dotenv';
 import { StorageController } from '../storage';
 
 const log = createLogger('analytics');
+const fs = require('fs');
 
 type PlaygroundTelemetryEventProperties = {
   type: string;
@@ -50,12 +51,13 @@ export default class TelemetryController {
     try {
       const segmentKeyFileLocation = path.join(
         context.extensionPath,
-        './constants'
+        './constants.json'
       );
-      this._segmentKey = require(segmentKeyFileLocation)?.segmentKey;
+      const constants = fs.readFileSync(segmentKeyFileLocation);
+
+      this._segmentKey = JSON.parse(constants)?.segmentKey;
       log.info('TELEMETRY key received');
     } catch (error) {
-      this._segmentKey = process.env.SEGMENT_KEY;
       log.error('TELEMETRY key error', error);
     }
   }
