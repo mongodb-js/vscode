@@ -93,6 +93,13 @@ npm install
 npm run local-install
 ```
 
+To install this locally on windows:
+```shell
+npm install
+.\node_modules\.bin\vsce.cmd package
+code --install-extension ./mongodb-vscode-*.vsix
+```
+
 This will compile and package MongoDB for VS Code into a `.vsix` file and add the extension to your VS Code.
 
 If you get an error because the `code` command is not found, you need to install it in your `$PATH`.
