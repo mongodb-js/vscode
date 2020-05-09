@@ -9,17 +9,15 @@ trigger:
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops
 strategy:
   matrix:
-    # # Linux testing is currently disabled because of issues with
-    # # headless linux & keytar. Tracked: VSCODE-110
-    # linux:
-    #   imageName: 'ubuntu-latest'
-    mac:
-      imageName: 'macos-latest'
-    windows:
-      # NOTE (lucas): Also blocked on Windows 2019 by
-      # https://jira.mongodb.org/browse/NODE-2465
-      # imageName: 'windows-latest'
-      imageName: 'vs2017-win2016'
+    linux:
+      imageName: 'ubuntu-latest'
+    # mac:
+    #   imageName: 'macos-latest'
+    # windows:
+    #   # NOTE (lucas): Also blocked on Windows 2019 by
+    #   # https://jira.mongodb.org/browse/NODE-2465
+    #   # imageName: 'windows-latest'
+    #   imageName: 'vs2017-win2016'
 pool:
   vmImage: $(imageName)
 
@@ -27,6 +25,12 @@ steps:
   - script: |
       set -e
       sudo apt-get update
+
+      sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libxss1 dbus xvfb libgtk-3-0
+      sudo cp scripts/xvfb.init /etc/init.d/xvfb
+      sudo chmod +x /etc/init.d/xvfb
+      sudo update-rc.d xvfb defaults
+      sudo service xvfb start
 
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
@@ -51,7 +55,7 @@ steps:
       npm ci;
     displayName: 'Install dependencies from npm'
 
-  - bash: npm run test
+  - bash: DISPLAY=:10 npm run test
     displayName: 'Run Tests'
     env:
       SEGMENT_KEY: $(segmentKey)
