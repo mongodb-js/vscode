@@ -2,17 +2,12 @@
 
 [![Build Status](https://dev.azure.com/team-compass/vscode/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/vscode/_build/latest?definitionId=6&branchName=master)
 
-**MongoDB for VS Code** lets you easily work with MongoDB directly from your VS Code environment. Using the MongoDB Extension, you can:
-
-- Connect to a MongoDB instance or cluster
-- Navigate your databases and collections
-- Prototype queries and aggregations
+MongoDB for VS Code makes it easy to work with MongoDB, whether your own instance or in [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register)
 
 ## Features
 
 ### Navigate your MongoDB Data
 
-- Connect to your MongoDB instance, cluster or to your [Atlas deployment](https://www.mongodb.com/cloud/atlas/register)
 - Navigate your database, collections and read-only views
 - See the documents in your collections
 - Get a quick overview of your schema
@@ -74,7 +69,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 
 ## Telemetry
 
-MongoDB for VS Code collects usage data and sends it to MongoDB to help improve our products and services. Read our [privacy policy](https://www.mongodb.com/legal/privacy-policy) to learn more. If you don’t wish to send usage data to MongoDB, you can opt out in the extension's settings.
+MongoDB for VS Code collects usage data and sends it to MongoDB to help improve our products and services. Read our [privacy policy](https://www.mongodb.com/legal/privacy-policy) to learn more. If you don’t wish to send usage data to MongoDB, you can opt-out by setting `mdb.sendTelemetry` to `false` in the extension settings.
 
 ## Contributing
 
@@ -84,14 +79,16 @@ For contributing, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Is there anything else you’d like to see in MongoDB for VS Code? Let us know by submitting suggestions in our [feedback forum](https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code).
 
-## Installing the extension from sources
+## Building and Installing from Source
 
-You can clone this repository and install the extension in your VS Code with:
+You can clone this [repository](https://github.com/mongodb-js/vscode) and install the extension in your VS Code with:
 
 ```shell
 npm install
 npm run local-install
 ```
+
+This will compile and package MongoDB for VS Code into a `.vsix` file and add the extension to your VS Code.
 
 To install this locally on windows:
 ```shell
@@ -103,6 +100,7 @@ code --install-extension ./mongodb-vscode-*.vsix
 This will compile and package MongoDB for VS Code into a `.vsix` file and add the extension to your VS Code.
 
 If you get an error because the `code` command is not found, you need to install it in your `$PATH`.
+
 Open VS Code, launch the Commmand Palette (⌘+Shift+P on MacOS, Ctrl+Shift+P on Windows and Linux), type `code` and select "Install code command in \$PATH".
 
 ## License

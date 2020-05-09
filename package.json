@@ -420,6 +420,14 @@
       ],
       "commandPalette": [
         {
+          "command": "mdb.addConnection",
+          "when": "false"
+        },
+        {
+          "command": "mdb.addConnectionWithURI",
+          "when": "false"
+        },
+        {
           "command": "mdb.createNewPlaygroundFromViewAction",
           "when": "false"
         },
