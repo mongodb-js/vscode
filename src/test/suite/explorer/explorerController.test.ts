@@ -17,6 +17,11 @@ const testDatabaseURI2WithTimeout =
 
 suite('Explorer Controller Test Suite', () => {
   beforeEach(async () => {
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      '_telemetryController',
+      {}
+    );
     // Don't save connections on default.
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -121,8 +126,7 @@ suite('Explorer Controller Test Suite', () => {
         );
         const activeId = testConnectionController.getActiveConnectionId();
         assert(
-          activeId ===
-            Object.keys(testConnectionController._connections)[0],
+          activeId === Object.keys(testConnectionController._connections)[0],
           `Expected active connection to be '${
             Object.keys(testConnectionController._connections)[0]
           }' found ${activeId}`

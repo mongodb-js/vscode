@@ -3,13 +3,18 @@ import { StorageController } from '../../../storage';
 import { TestExtensionContext } from '../stubs';
 import { resolve } from 'path';
 import { config } from 'dotenv';
-import { TelemetryController } from '../../../telemetry';
+import TelemetryController, {
+  TelemetryEventTypes
+} from '../../../telemetry/telemetryController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { afterEach, beforeEach } from 'mocha';
 
 const sinon = require('sinon');
 const chai = require('chai');
+const sinonChai = require('sinon-chai');
 const expect = chai.expect;
+
+chai.use(sinonChai);
 
 config({ path: resolve(__dirname, '../../../../.env') });
 
@@ -20,6 +25,7 @@ suite('Telemetry Controller Test Suite', () => {
   const mockStorageController = new StorageController(mockExtensionContext);
   let mockTelemetryTrackMethod: void;
   let mockExecuteAllMethod: Promise<any>;
+  let mockGetCloudInfoFromDataService: Promise<any>;
 
   beforeEach(() => {
     mockTelemetryTrackMethod = sinon.fake.resolves();
@@ -36,7 +42,17 @@ suite('Telemetry Controller Test Suite', () => {
       'executeAll',
       mockExecuteAllMethod
     );
+    mockGetCloudInfoFromDataService = sinon.fake.resolves({
+      isPublicCloud: false,
+      publicCloudName: null
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getCloudInfoFromDataService',
+      mockGetCloudInfoFromDataService
+    );
   });
+
   afterEach(() => {
     sinon.restore();
   });
@@ -72,9 +88,13 @@ suite('Telemetry Controller Test Suite', () => {
     vscode.commands
       .executeCommand('mdb.showActiveConnectionInPlayground', 'Test')
       .then(() => {
-        sinon.assert.calledWith(mockTelemetryTrackMethod, 'command run', {
-          command: 'mdb.showActiveConnectionInPlayground'
-        });
+        sinon.assert.calledWith(
+          mockTelemetryTrackMethod,
+          TelemetryEventTypes.EXTENSION_COMMAND_RUN,
+          {
+            command: 'mdb.showActiveConnectionInPlayground'
+          }
+        );
       })
       .then(done, done);
   });
@@ -86,7 +106,7 @@ suite('Telemetry Controller Test Suite', () => {
 
     sinon.assert.calledWith(
       mockTelemetryTrackMethod,
-      'playground code executed',
+      TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED,
       {
         type: 'other'
       }

@@ -136,16 +136,15 @@ class ConnectionForm extends React.Component<props> {
    * @returns {React.Component}
    */
   renderURIConnectionMessage(): React.ReactNode {
-    const {
-      isUriConnected,
-      uriConnectionMessage
-    } = this.props;
+    const { isUriConnected, uriConnectionMessage } = this.props;
 
     if (isUriConnected) {
       return (
         <div className={styles['connection-message-container']}>
           <div className={styles['connection-message-container-success']}>
-            <div className={styles['connection-message']}>{`${uriConnectionMessage} You may now close this window.`}</div>
+            <div
+              className={styles['connection-message']}
+            >{`${uriConnectionMessage} You may now close this window.`}</div>
           </div>
         </div>
       );

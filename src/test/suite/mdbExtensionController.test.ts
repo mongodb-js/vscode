@@ -16,20 +16,21 @@ import { mdbTestExtension } from './stubbableMdbExtension';
 import ConnectionController from '../../connectionController';
 import { StorageController } from '../../storage';
 import { StorageScope } from '../../storage/storageController';
+import TelemetryController from '../../telemetry/telemetryController';
 
 const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
 
 suite('MDBExtensionController Test Suite', () => {
   beforeEach(() => {
-    // Here we stub the showInformationMessage process because it is too much
-    // for the render process and leads to crashes while testing.
-    sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryController,
       'track',
       () => {}
     );
+    // Here we stub the showInformationMessage process because it is too much
+    // for the render process and leads to crashes while testing.
+    sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
   });
   afterEach(() => {
     sinon.restore();
@@ -780,10 +781,19 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.dropCollection fails when a collection doesnt exist', (done) => {
+    const mockExtensionContext = mdbTestExtension.testExtensionContext;
+    const mockStorageController = new StorageController(mockExtensionContext);
+    const mockTelemetryController = new TelemetryController(
+      mockStorageController,
+      mockExtensionContext
+    );
     const testConnectionController = new ConnectionController(
       mdbTestExtension.testExtensionController._statusView,
-      new StorageController(mdbTestExtension.testExtensionContext)
+      mockStorageController,
+      mockTelemetryController
     );
+
+    mockTelemetryController.track = () => {};
 
     testConnectionController
       .addNewConnectionStringAndConnect(testDatabaseURI)
@@ -897,10 +907,19 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.dropDatabase succeeds even when a database doesnt exist (mdb behavior)', (done) => {
+    const mockExtensionContext = mdbTestExtension.testExtensionContext;
+    const mockStorageController = new StorageController(mockExtensionContext);
+    const mockTelemetryController = new TelemetryController(
+      mockStorageController,
+      mockExtensionContext
+    );
     const testConnectionController = new ConnectionController(
       mdbTestExtension.testExtensionController._statusView,
-      new StorageController(mdbTestExtension.testExtensionContext)
+      mockStorageController,
+      mockTelemetryController
     );
+
+    mockTelemetryController.track = () => {};
 
     testConnectionController
       .addNewConnectionStringAndConnect(testDatabaseURI)
@@ -1015,8 +1034,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mdbTestExtension.testExtensionController._connectionController
-            ._connections.blueBerryPancakesAndTheSmellOfBacon.name ===
-            'NAAAME',
+            ._connections.blueBerryPancakesAndTheSmellOfBacon.name === 'NAAAME',
           'Expected connection not to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();

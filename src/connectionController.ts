@@ -3,9 +3,6 @@ import * as vscode from 'vscode';
 import Connection = require('mongodb-connection-model/lib/model');
 import DataService = require('mongodb-data-service');
 import * as keytarType from 'keytar';
-
-const { name, version } = require('../package.json');
-
 import { ConnectionModelType } from './connectionModelType';
 import { DataServiceType } from './dataServiceType';
 import { createLogger } from './logging';
@@ -14,16 +11,29 @@ import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { SavedConnection, StorageScope } from './storage/storageController';
 import { getNodeModule } from './utils/getNodeModule';
+import TelemetryController, {
+  TelemetryEventTypes
+} from './telemetry/telemetryController';
+import { getCloudInfo } from 'mongodb-cloud-info';
 
+const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
 const MAX_CONNECTION_NAME_LENGTH = 512;
+const ATLAS_REGEX = /mongodb.net[:/]/i;
+const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
 
 type KeyTar = typeof keytarType;
 
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
   ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
-  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING',
+  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING'
+}
+
+export enum ConnectionTypes {
+  CONNECTION_FORM = 'CONNECTION_FORM',
+  CONNECTION_STRING = 'CONNECTION_STRING',
+  CONNECTION_ID = 'CONNECTION_ID'
 }
 
 export type SavedConnectionInformation = {
@@ -55,13 +65,19 @@ export default class ConnectionController {
 
   private _statusView: StatusView;
   private _storageController: StorageController;
+  public _telemetryController?: TelemetryController;
 
   // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();
 
-  constructor(_statusView: StatusView, storageController: StorageController) {
+  constructor(
+    _statusView: StatusView,
+    storageController: StorageController,
+    telemetryController?: TelemetryController
+  ) {
     this._statusView = _statusView;
     this._storageController = storageController;
+    this._telemetryController = telemetryController;
 
     try {
       // We load keytar in two different ways. This is because when the
@@ -216,21 +232,21 @@ export default class ConnectionController {
             return reject(new Error(`Unable to create connection: ${error}`));
           }
 
-          return this.saveNewConnectionAndConnect(newConnectionModel).then(
-            resolve,
-            reject
-          );
+          return this.saveNewConnectionAndConnect(
+            newConnectionModel,
+            ConnectionTypes.CONNECTION_STRING
+          ).then(resolve, reject);
         }
       );
     });
   };
 
   public parseNewConnectionAndConnect = (
-    newConnectionModel
+    newConnectionModel: ConnectionModelType
   ): Promise<boolean> => {
     // Here we re-parse the connection, as it can be loaded from storage or
     // passed by the connection model without the class methods.
-    let connectionModel;
+    let connectionModel: ConnectionModelType;
 
     try {
       connectionModel = new Connection(newConnectionModel);
@@ -239,11 +255,15 @@ export default class ConnectionController {
       return Promise.reject(new Error(`Unable to load connection: ${error}`));
     }
 
-    return this.saveNewConnectionAndConnect(connectionModel);
+    return this.saveNewConnectionAndConnect(
+      connectionModel,
+      ConnectionTypes.CONNECTION_FORM
+    );
   };
 
   public saveNewConnectionAndConnect = async (
-    connectionModel: ConnectionModelType
+    connectionModel: ConnectionModelType,
+    connectionType: ConnectionTypes
   ): Promise<boolean> => {
     const { driverUrl, instanceId } = connectionModel.getAttributes({
       derived: true
@@ -279,19 +299,91 @@ export default class ConnectionController {
     }
 
     return new Promise((resolve, reject) => {
-      this.connect(connectionId, connectionModel).then((connectSuccess) => {
-        if (!connectSuccess) {
-          return resolve(false);
-        }
+      this.connect(connectionId, connectionModel, connectionType).then(
+        (connectSuccess) => {
+          if (!connectSuccess) {
+            return resolve(false);
+          }
 
-        resolve(true);
-      }, reject);
+          resolve(true);
+        },
+        reject
+      );
     });
   };
 
+  public async getCloudInfoFromDataService(firstServerHostname) {
+    const cloudInfo = await getCloudInfo(firstServerHostname);
+    let isPublicCloud = false;
+    let publicCloudName: string | null = null;
+
+    if (cloudInfo.isAws) {
+      isPublicCloud = true;
+      publicCloudName = 'aws';
+    } else if (cloudInfo.isGcp) {
+      isPublicCloud = true;
+      publicCloudName = 'gcp';
+    } else if (cloudInfo.isAzure) {
+      isPublicCloud = true;
+      publicCloudName = 'azure';
+    }
+
+    return { isPublicCloud, publicCloudName };
+  }
+
+  private async sendTelemetry(
+    dataService: DataServiceType,
+    connectionType: ConnectionTypes
+  ): Promise<void> {
+    dataService.instance({}, async (error: any, data: any) => {
+      if (error) {
+        log.error('TELEMETRY data service error', error);
+      }
+      if (data) {
+        try {
+          const firstServerHostname = dataService.client.model.hosts[0].host;
+          const cloudInfo = await this.getCloudInfoFromDataService(
+            firstServerHostname
+          );
+          const nonGenuineServerName = data.genuineMongoDB.isGenuine
+            ? null
+            : data.genuineMongoDB.dbType;
+          const telemetryData = {
+            isAtlas: !!data.client.s.url.match(ATLAS_REGEX),
+            isLocalhost: !!data.client.s.url.match(LOCALHOST_REGEX),
+            isDataLake: data.dataLake.isDataLake,
+            isEnterprise: data.build.enterprise_module,
+            isPublicCloud: cloudInfo.isPublicCloud,
+            publicCloudName: cloudInfo.publicCloudName,
+            isGenuine: data.genuineMongoDB.isGenuine,
+            nonGenuineServerName,
+            serverVersion: data.build.version,
+            serverArch: data.build.raw.buildEnvironment.target_arch,
+            serverOS: data.build.raw.buildEnvironment.target_os,
+            isUsedConnectScreen:
+              connectionType === ConnectionTypes.CONNECTION_FORM,
+            isUsedCommandPalette:
+              connectionType === ConnectionTypes.CONNECTION_STRING,
+            isUsedSavedConnection:
+              connectionType === ConnectionTypes.CONNECTION_ID
+          };
+
+          // Send metrics to Segment
+          this._telemetryController?.track(
+            TelemetryEventTypes.NEW_CONNECTION,
+            telemetryData
+          );
+        } catch (error) {
+          log.error('TELEMETRY cloud info error', error);
+        }
+      }
+    });
+  }
+
   public connect = async (
     connectionId: string,
-    connectionModel: ConnectionModelType
+    connectionModel: ConnectionModelType,
+    connectionType: ConnectionTypes
   ): Promise<boolean> => {
     log.info(
       'Connect called to connect to instance:',
@@ -327,6 +419,7 @@ export default class ConnectionController {
       connectionModel.appname = `${name} ${version}`;
 
       const newDataService: DataServiceType = new DataService(connectionModel);
+
       newDataService.connect((err: Error | undefined) => {
         this._statusView.hideMessage();
 
@@ -347,6 +440,10 @@ export default class ConnectionController {
         this._connectingConnectionId = null;
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
         this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+
+        if (this._telemetryController) {
+          this.sendTelemetry(newDataService, connectionType);
+        }
 
         return resolve(true);
       });
@@ -372,13 +469,14 @@ export default class ConnectionController {
         return Promise.resolve(false);
       }
       return new Promise((resolve) => {
-        this.connect(connectionId, connectionModel).then(
-          resolve,
-          (err: Error) => {
-            vscode.window.showErrorMessage(err.message);
-            return resolve(false);
-          }
-        );
+        this.connect(
+          connectionId,
+          connectionModel,
+          ConnectionTypes.CONNECTION_ID
+        ).then(resolve, (err: Error) => {
+          vscode.window.showErrorMessage(err.message);
+          return resolve(false);
+        });
       });
     }
 
@@ -536,13 +634,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._connections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
-      );
+      connectionIds.map(
+        (id, index) => `${index + 1}: ${this._connections[id].name}`
+      ),
+      {
+        placeHolder: 'Choose a connection to remove...'
+      }
+    );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);

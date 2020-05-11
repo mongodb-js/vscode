@@ -19,5 +19,7 @@ export type DataServiceType = {
     callback: (error: Error | undefined, documents: object[]) => void
   ): void;
 
+  instance(opts: any, callback: any): any;
+
   client: any;
 };

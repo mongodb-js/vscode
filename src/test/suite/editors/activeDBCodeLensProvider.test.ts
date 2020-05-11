@@ -16,7 +16,9 @@ suite('Active DB CodeLens Provider Test Suite', () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
-    const testCodeLensProvider = new ActiveDBCodeLensProvider(testConnectionController);
+    const testCodeLensProvider = new ActiveDBCodeLensProvider(
+      testConnectionController
+    );
     const codeLens = testCodeLensProvider.provideCodeLenses();
 
     assert(!!codeLens);
@@ -28,7 +30,9 @@ suite('Active DB CodeLens Provider Test Suite', () => {
       new StatusView(mockExtensionContext),
       mockStorageController
     );
-    const testCodeLensProvider = new ActiveDBCodeLensProvider(testConnectionController);
+    const testCodeLensProvider = new ActiveDBCodeLensProvider(
+      testConnectionController
+    );
     const mockActiveConnection = {
       find: (namespace, filter, options, callback): void => {
         return callback(null, ['Text message']);
@@ -43,8 +47,14 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     assert(codeLens.length === 1);
     const range = codeLens[0].range;
     const expectedStartLine = 0;
-    assert(range.start.line === expectedStartLine, `Expected a codeLens position to be at line ${expectedStartLine}, found ${range.start.line}`);
+    assert(
+      range.start.line === expectedStartLine,
+      `Expected a codeLens position to be at line ${expectedStartLine}, found ${range.start.line}`
+    );
     const expectedEnd = 0;
-    assert(range.end.line === expectedEnd, `Expected a codeLens position to be at line ${expectedEnd}, found ${range.end.line}`);
+    assert(
+      range.end.line === expectedEnd,
+      `Expected a codeLens position to be at line ${expectedEnd}, found ${range.end.line}`
+    );
   });
 });

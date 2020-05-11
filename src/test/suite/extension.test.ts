@@ -96,10 +96,19 @@ suite('Extension Test Suite', () => {
     const testConnectionController = mockMDBExtension._connectionController;
 
     const fakeVscodeInfoMessage = sinon.fake();
+
     sinon.replace(
       vscode.window,
       'showInformationMessage',
       fakeVscodeInfoMessage
+    );
+    sinon.replace(
+      testConnectionController._telemetryController,
+      'track',
+      () => {}
+    );
+    sinon.replace(testConnectionController, 'getCloudInfoFromDataService', () =>
+      Promise.resolve()
     );
 
     testConnectionController
