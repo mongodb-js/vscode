@@ -619,7 +619,7 @@
     "encoding": "^0.1.12",
     "mongodb-cloud-info": "^1.1.2",
     "mongodb-connection-model": "^16.0.1",
-    "mongodb-data-service": "^16.6.5",
+    "mongodb-data-service": "^16.6.6",
     "mongodb-ns": "^2.2.0",
     "mongodb-schema": "^8.2.5",
     "react": "^16.13.1",
