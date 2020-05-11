@@ -41,11 +41,11 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
       // Ensure we're still connected to the correct connection.
       if (connectionId !== this._connectionController.getActiveConnectionId()) {
         vscode.window.showErrorMessage(
-          `Unable to list documents: no longer connected to ${connectionId}`
+          `Unable to fetch document: no longer connected to ${connectionId}`
         );
         return reject(
           new Error(
-            `Unable to list documents: no longer connected to ${connectionId}`
+            `Unable to fetch document: no longer connected to ${connectionId}`
           )
         );
       }

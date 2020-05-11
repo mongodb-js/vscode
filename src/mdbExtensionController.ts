@@ -154,7 +154,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   registerEditorCommands(): void {
     this.registerCommand(
       'mdb.codeLens.showMoreDocumentsClicked',
-      (operationId, connectionId, namespace) => {
+      ({ operationId, connectionId, namespace }) => {
         return this._editorsController.onViewMoreCollectionDocuments(
           operationId,
           connectionId,
