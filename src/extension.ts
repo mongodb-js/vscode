@@ -13,6 +13,7 @@ const log = createLogger('extension.ts');
 import debug from 'debug';
 debug.enable('INFO');
 debug.enable('ERROR');
+debug.enable('WARN');
 debug.log = log.debug.bind(log);
 
 import MDBExtensionController from './mdbExtensionController';
