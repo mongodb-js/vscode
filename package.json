@@ -432,6 +432,10 @@
           "when": "false"
         },
         {
+          "command": "mdb.showActiveConnectionInPlayground",
+          "when": "false"
+        },
+        {
           "command": "mdb.copyConnectionString",
           "when": "false"
         },
