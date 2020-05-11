@@ -11,7 +11,9 @@ const log = createLogger('extension.ts');
  * etc. and write them to the extension's log output channel too.
  */
 import debug from 'debug';
-debug.enable('*');
+debug.enable('INFO');
+debug.enable('ERROR');
+debug.enable('WARN');
 debug.log = log.debug.bind(log);
 
 import MDBExtensionController from './mdbExtensionController';
