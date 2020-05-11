@@ -58,8 +58,7 @@ suite('Connection Controller Test Suite', () => {
         );
         const connnectionId =
           testConnectionController.getActiveConnectionId() || '';
-        const name =
-          testConnectionController._connections[connnectionId].name;
+        const name = testConnectionController._connections[connnectionId].name;
         assert(
           name === 'localhost:27018',
           `Expected active connection to be 'localhost:27018' found ${name}`
@@ -465,7 +464,10 @@ suite('Connection Controller Test Suite', () => {
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Workspace);
+      .update(
+        'defaultConnectionSavingLocation',
+        DefaultSavingLocations.Workspace
+      );
 
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
@@ -496,7 +498,9 @@ suite('Connection Controller Test Suite', () => {
 
     assert(
       connections[Object.keys(connections)[2]].driverUrl === expectedDriverUri,
-      `Expected loaded connection to include driver url '${expectedDriverUri}' found '${connections[Object.keys(connections)[2]].driverUrl}'`
+      `Expected loaded connection to include driver url '${expectedDriverUri}' found '${
+        connections[Object.keys(connections)[2]].driverUrl
+      }'`
     );
   });
 
@@ -669,12 +673,14 @@ suite('Connection Controller Test Suite', () => {
                   // Activate (which will load the past connection).
                   testConnectionController.loadSavedConnections().then(() => {
                     assert(
-                      testConnectionController.getSavedConnections().length === 1,
+                      testConnectionController.getSavedConnections().length ===
+                        1,
                       `Expected 1 connection config, found ${
                         testConnectionController.getSavedConnections().length
                       }.`
                     );
-                    const id = testConnectionController.getSavedConnections()[0].id;
+                    const id = testConnectionController.getSavedConnections()[0]
+                      .id;
 
                     testConnectionController
                       .connectWithConnectionId(id)
@@ -753,7 +759,7 @@ suite('Connection Controller Test Suite', () => {
     );
 
     testConnectionController.loadSavedConnections().then(() => {
-    // Don't save connections on default.
+      // Don't save connections on default.
       vscode.workspace
         .getConfiguration('mdb.connectionSaving')
         .update(
@@ -761,8 +767,8 @@ suite('Connection Controller Test Suite', () => {
           DefaultSavingLocations['Session Only']
         )
         .then(() => {
-        // Updating a setting sometimes takes a bit on vscode, and it doesnt
-        // return a usable promise. Timeout to ensure it sets.
+          // Updating a setting sometimes takes a bit on vscode, and it doesnt
+          // return a usable promise. Timeout to ensure it sets.
           setTimeout(() => {
             testConnectionController
               .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
@@ -811,8 +817,8 @@ suite('Connection Controller Test Suite', () => {
           DefaultSavingLocations.Workspace
         )
         .then(() => {
-        // Updating a setting sometimes takes a bit on vscode, and it doesnt
-        // return a usable promise. Timeout to ensure it sets.
+          // Updating a setting sometimes takes a bit on vscode, and it doesnt
+          // return a usable promise. Timeout to ensure it sets.
           setTimeout(() => {
             testConnectionController
               .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
@@ -830,9 +836,11 @@ suite('Connection Controller Test Suite', () => {
                 );
 
                 const connectionId =
-                testConnectionController.getActiveConnectionId() || 'a';
+                  testConnectionController.getActiveConnectionId() || 'a';
                 testConnectionController.disconnect();
-                await testConnectionController.removeSavedConnection(connectionId);
+                await testConnectionController.removeSavedConnection(
+                  connectionId
+                );
 
                 const postWorkspaceStoreConnections = testStorageController.get(
                   StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -944,23 +952,24 @@ suite('Connection Controller Test Suite', () => {
                   .then((renameSuccess) => {
                     assert(renameSuccess);
 
-                    testConnectionController
-                      .disconnect()
-                      .then(() => {
-                        testConnectionController.clearAllConnections();
-                        assert(
-                          testConnectionController.getSavedConnections()
-                            .length === 0,
-                          'Expected no saved connection.'
-                        );
+                    testConnectionController.disconnect().then(() => {
+                      testConnectionController.clearAllConnections();
+                      assert(
+                        testConnectionController.getSavedConnections()
+                          .length === 0,
+                        'Expected no saved connection.'
+                      );
 
-                        // Activate (which will load the past connection).
-                        testConnectionController.loadSavedConnections().then(() => {
+                      // Activate (which will load the past connection).
+                      testConnectionController
+                        .loadSavedConnections()
+                        .then(() => {
                           assert(
                             testConnectionController.getSavedConnections()
                               .length === 1,
                             `Expected 1 connection config, found ${
-                              testConnectionController.getSavedConnections().length
+                              testConnectionController.getSavedConnections()
+                                .length
                             }.`
                           );
                           const id = testConnectionController.getSavedConnections()[0]
@@ -973,8 +982,9 @@ suite('Connection Controller Test Suite', () => {
                             name === 'new connection name',
                             `Expected the active connection name to be 'new connection name', found '${name}'.`
                           );
-                        }).then(done, done);
-                      }, done);
+                        })
+                        .then(done, done);
+                    }, done);
                   }, done);
               }, done);
           }, 50);

@@ -5,7 +5,7 @@ import * as path from 'path';
 import { config } from 'dotenv';
 import { StorageController } from '../storage';
 
-const log = createLogger('analytics');
+const log = createLogger('telemetry');
 const fs = require('fs');
 
 type PlaygroundTelemetryEventProperties = {
@@ -21,15 +21,34 @@ type ExtensionCommandRunTelemetryEventProperties = {
   command: string;
 };
 
+type NewConnectionTelemetryEventProperties = {
+  isAtlas: boolean;
+  isLocalhost: boolean;
+  isDataLake: boolean;
+  isEnterprise: boolean;
+  isPublicCloud: boolean;
+  publicCloudName: string | null;
+  isGenuine: boolean;
+  nonGenuineServerName: string | null;
+  serverVersion: string;
+  serverArch: string;
+  serverOS: string;
+  isUsedConnectScreen: boolean;
+  isUsedCommandPalette: boolean;
+  isUsedSavedConnection: boolean;
+};
+
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
   | LinkClickedTelemetryEventProperties
-  | ExtensionCommandRunTelemetryEventProperties;
+  | ExtensionCommandRunTelemetryEventProperties
+  | NewConnectionTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'playground code executed',
   EXTENSION_LINK_CLICKED = 'link clicked',
-  EXTENSION_COMMAND_RUN = 'command run'
+  EXTENSION_COMMAND_RUN = 'command run',
+  NEW_CONNECTION = 'new connection'
 }
 
 /**
