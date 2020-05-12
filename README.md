@@ -2,7 +2,7 @@
 
 [![Build Status](https://dev.azure.com/team-compass/vscode/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/vscode/_build/latest?definitionId=6&branchName=master)
 
-MongoDB for VS Code makes it easy to work with MongoDB, whether your own instance or in [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register)
+MongoDB for VS Code makes it easy to work with MongoDB, whether your own instance or in [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register).
 
 ## Features
 
@@ -18,10 +18,10 @@ MongoDB for VS Code makes it easy to work with MongoDB, whether your own instanc
 
 MongoDB Playgrounds are the most convenient way to prototype and execute CRUD operations and other MongoDB commands directly inside VS Code.
 
-- Prototype your queries, aggregations and MongoDB commands with MongoDB syntax highlighting and intelligent autcomplete for MongoDB shell API, MongoDB operators, and for database, collection, and field names.
+- Prototype your queries, aggregations, and MongoDB commands with MongoDB syntax highlighting and intelligent autocomplete for MongoDB shell API, MongoDB operators, and for database, collection, and field names.
 - Run your playgrounds and see the results instantly
 - Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB
-- Build aggregations quickly with helpful and well commented stage snippets
+- Build aggregations quickly with helpful and well-commented stage snippets
 
 ![Playgrounds](resources/screenshots/playground.png)
 
@@ -47,14 +47,14 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 - `mdb.confirmRunAll`: Show a confirmation message before running commands in a playground.
 - `mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections`: When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used.
 - `mdb.connectionSaving.defaultConnectionSavingLocation`: When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved.
-- `mdb.useDefaultTemplateForPlayground`: Choose wether to use default template for playground files or to start with an empty playground editor.
+- `mdb.useDefaultTemplateForPlayground`: Choose whether to use the default template for playground files or to start with an empty playground editor.
 - `mdb.sendTelemetry`: Opt-in and opt-out for diagnostic and telemetry collection.
 
 ![Settings](resources/screenshots/settings.png)
 
 ## Additional Settings
 
-*These global settings affect how MongoDB for VS Code provide intelligent autocomplete inside snippets and string literals (off by default). Changing the default configuration may affect the behavior and performance of other extensions and of VS Code itself. If you do not change the default settings, you can still trigger intelligent autcomplete inside a snippet or string literal with `Ctrl+Space`.*
+*These global settings affect how MongoDB for VS Code provides intelligent autocomplete inside snippets and string literals (off by default). Changing the default configuration may affect the behavior and performance of other extensions and of VS Code itself. If you do not change the default settings, you can still trigger intelligent autocomplete inside a snippet or string literal with `Ctrl+Space`.*
 
 - `editor.suggest.snippetsPreventQuickSuggestions`: By default, VS Code prevents code completion in snippet mode (editing placeholders in inserted code). Setting this to `false` allows snippet (eg. `$match`, `$addFields`) and field completion based on the document schema for the `db.collection.aggregate()` expressions.
 - `editor.quickSuggestions`: By default, VS Code prevents code completion inside string literals. To enable database names completions for `use('dbName')` expression use this configuration:

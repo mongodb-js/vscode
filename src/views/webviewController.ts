@@ -128,7 +128,7 @@ export default class WebviewController {
           TelemetryEventTypes.EXTENSION_LINK_CLICKED,
           {
             screen: message.screen,
-            linkId: message.linkId
+            link_id: message.linkId
           }
         );
 

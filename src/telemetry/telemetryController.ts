@@ -14,7 +14,7 @@ type PlaygroundTelemetryEventProperties = {
 
 type LinkClickedTelemetryEventProperties = {
   screen: string;
-  linkId: string;
+  link_id: string;
 };
 
 type ExtensionCommandRunTelemetryEventProperties = {
@@ -22,20 +22,20 @@ type ExtensionCommandRunTelemetryEventProperties = {
 };
 
 type NewConnectionTelemetryEventProperties = {
-  isAtlas: boolean;
-  isLocalhost: boolean;
-  isDataLake: boolean;
-  isEnterprise: boolean;
-  isPublicCloud: boolean;
-  publicCloudName: string | null;
-  isGenuine: boolean;
-  nonGenuineServerName: string | null;
-  serverVersion: string;
-  serverArch: string;
-  serverOS: string;
-  isUsedConnectScreen: boolean;
-  isUsedCommandPalette: boolean;
-  isUsedSavedConnection: boolean;
+  is_atlas: boolean;
+  is_localhost: boolean;
+  is_data_lake: boolean;
+  is_enterprise: boolean;
+  is_public_cloud: boolean;
+  public_cloud_name: string | null;
+  is_genuine: boolean;
+  non_genuine_server_name: string | null;
+  server_version: string;
+  server_arch: string;
+  server_os: string;
+  is_used_connect_screen: boolean;
+  is_used_command_palette: boolean;
+  is_used_saved_connection: boolean;
 };
 
 export type TelemetryEventProperties =
@@ -45,10 +45,10 @@ export type TelemetryEventProperties =
   | NewConnectionTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
-  PLAYGROUND_CODE_EXECUTED = 'playground code executed',
-  EXTENSION_LINK_CLICKED = 'link clicked',
-  EXTENSION_COMMAND_RUN = 'command run',
-  NEW_CONNECTION = 'new connection'
+  PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
+  EXTENSION_LINK_CLICKED = 'Link Clicked',
+  EXTENSION_COMMAND_RUN = 'Command Run',
+  NEW_CONNECTION = 'New Connection'
 }
 
 /**
