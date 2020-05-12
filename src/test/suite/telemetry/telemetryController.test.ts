@@ -33,6 +33,7 @@ suite('Telemetry Controller Test Suite', () => {
   let mockTelemetryTrackMethod: void;
   let mockExecuteAllMethod: Promise<any>;
   let mockGetCloudInfoFromDataService: Promise<any>;
+  let mockSendTelemetry: Promise<any>;
 
   beforeEach(async () => {
     await vscode.workspace
@@ -46,6 +47,7 @@ suite('Telemetry Controller Test Suite', () => {
       isPublicCloud: false,
       publicCloudName: null
     });
+    mockSendTelemetry = sinon.fake.resolves({});
 
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryController,
@@ -61,6 +63,11 @@ suite('Telemetry Controller Test Suite', () => {
       mdbTestExtension.testExtensionController._connectionController,
       'getCloudInfoFromDataService',
       mockGetCloudInfoFromDataService
+    );
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'sendTelemetry',
+      mockSendTelemetry
     );
   });
 
@@ -113,40 +120,32 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('test new connection event when connecting via connection string', (done) => {
+  test('test new connection event when connecting via connection string', async () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    mockConnectionController
-      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
-      .then(() => {
-        setTimeout(() => {
-          sinon.assert.called(mockTelemetryTrackMethod);
-          done();
-        }, 500);
-      });
+    await mockConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
+
+    sinon.assert.called(mockSendTelemetry);
   });
 
-  test('test new connection event when connecting via connection form', (done) => {
+  test('test new connection event when connecting via connection form', async () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    mockConnectionController
-      .parseNewConnectionAndConnect(
-        new Connection({
-          hostname: 'localhost',
-          port: 27018
-        })
-      )
-      .then(() => {
-        setTimeout(() => {
-          sinon.assert.called(mockTelemetryTrackMethod);
-          done();
-        }, 500);
-      });
+    await mockConnectionController.parseNewConnectionAndConnect(
+      new Connection({
+        hostname: 'localhost',
+        port: 27018
+      })
+    );
+
+    sinon.assert.called(mockSendTelemetry);
   });
 
-  test('test new connection event when connecting via saved connection', (done) => {
+  test('test new connection event when connecting via saved connection', async () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
@@ -163,11 +162,8 @@ suite('Telemetry Controller Test Suite', () => {
       }
     };
 
-    mockConnectionController.connectWithConnectionId('25').then(() => {
-      setTimeout(() => {
-        sinon.assert.called(mockTelemetryTrackMethod);
-        done();
-      }, 500);
-    });
+    await mockConnectionController.connectWithConnectionId('25');
+
+    sinon.assert.called(mockSendTelemetry);
   });
 });
