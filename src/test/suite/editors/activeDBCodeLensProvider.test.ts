@@ -1,20 +1,24 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
-
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import { TestExtensionContext, mockVSCodeTextDocument } from '../stubs';
 import { StorageController } from '../../../storage';
+import TelemetryController from '../../../telemetry/telemetryController';
 
 suite('Active DB CodeLens Provider Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
+  const testTelemetryController = new TelemetryController(
+    mockStorageController,
+    mockExtensionContext
+  );
 
   test('expected provideCodeLenses to return empty array when user is not connected', () => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
-      mockStorageController
+      mockStorageController,
+      testTelemetryController
     );
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController
@@ -28,7 +32,8 @@ suite('Active DB CodeLens Provider Test Suite', () => {
   test('expected provideCodeLenses to return a code lens with positions at the first line of the document', () => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
-      mockStorageController
+      mockStorageController,
+      testTelemetryController
     );
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController

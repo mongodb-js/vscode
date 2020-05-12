@@ -1,4 +1,6 @@
 import { before, after } from 'mocha';
+import TelemetryController from '../../../telemetry/telemetryController';
+
 const path = require('path');
 const fs = require('fs');
 const sinon = require('sinon');
@@ -30,18 +32,24 @@ suite('Language Server Controller Test Suite', () => {
   const testLanguageServerController = new LanguageServerController(
     mockExtensionContext
   );
+  const testTelemetryController = new TelemetryController(
+    mockStorageController,
+    mockExtensionContext
+  );
 
   testLanguageServerController.activate();
 
   const testConnectionController = new ConnectionController(
     new StatusView(mockExtensionContext),
-    mockStorageController
+    mockStorageController,
+    testTelemetryController
   );
 
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
-    testLanguageServerController
+    testLanguageServerController,
+    testTelemetryController
   );
 
   before(async () => {

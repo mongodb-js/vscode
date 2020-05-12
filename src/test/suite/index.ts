@@ -37,41 +37,56 @@ export function run(): Promise<void> {
       );
       mdbTestExtension.testExtensionController.activate();
 
-      // Disable the dialogue for prompting the user where to store the connection.
-      vscode.workspace.getConfiguration('mdb.connectionSaving').update(
-        'hideOptionToChooseWhereToSaveNewConnections',
-        true
-      ).then(async () => {
-        // We require keytar in runtime because it is a vscode provided
-        // native node module.
-        const keytar: typeof keytarType = require('keytar');
-        const existingCredentials = await keytar.findCredentials('mdb.vscode.savedConnections');
+      // Disable metrics.
+      vscode.workspace.getConfiguration('mdb').update('sendTelemetry', false);
 
-        // Add files to the test suite.
-        files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
-        try {
-          // Run the mocha test.
-          mocha.run(async (failures) => {
-            // After tests are run we clear any passwords added
-            // to local secure storage.
-            const postRunCredentials = await keytar.findCredentials('mdb.vscode.savedConnections');
-            postRunCredentials.forEach(credential => {
-              if (!existingCredentials.find(existingCredential => existingCredential.account === credential.account)) {
-              // If the credential is newly added, we remove it.
-                keytar.deletePassword('mdb.vscode.savedConnections', credential.account);
+      // Disable the dialogue for prompting the user where to store the connection.
+      vscode.workspace
+        .getConfiguration('mdb.connectionSaving')
+        .update('hideOptionToChooseWhereToSaveNewConnections', true)
+        .then(async () => {
+          // We require keytar in runtime because it is a vscode provided
+          // native node module.
+          const keytar: typeof keytarType = require('keytar');
+          const existingCredentials = await keytar.findCredentials(
+            'mdb.vscode.savedConnections'
+          );
+
+          // Add files to the test suite.
+          files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+          try {
+            // Run the mocha test.
+            mocha.run(async (failures) => {
+              // After tests are run we clear any passwords added
+              // to local secure storage.
+              const postRunCredentials = await keytar.findCredentials(
+                'mdb.vscode.savedConnections'
+              );
+              postRunCredentials.forEach((credential) => {
+                if (
+                  !existingCredentials.find(
+                    (existingCredential) =>
+                      existingCredential.account === credential.account
+                  )
+                ) {
+                  // If the credential is newly added, we remove it.
+                  keytar.deletePassword(
+                    'mdb.vscode.savedConnections',
+                    credential.account
+                  );
+                }
+              });
+
+              if (failures > 0) {
+                e(new Error(`${failures} tests failed.`));
+              } else {
+                c();
               }
             });
-
-            if (failures > 0) {
-              e(new Error(`${failures} tests failed.`));
-            } else {
-              c();
-            }
-          });
-        } catch (mochaRunErr) {
-          e(mochaRunErr);
-        }
-      });
+          } catch (mochaRunErr) {
+            e(mochaRunErr);
+          }
+        });
     });
   });
 }

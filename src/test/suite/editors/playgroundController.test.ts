@@ -6,6 +6,7 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
 import { before, after, beforeEach, afterEach } from 'mocha';
+import TelemetryController from '../../../telemetry/telemetryController';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -24,9 +25,14 @@ suite('Playground Controller Test Suite', () => {
   mockExtensionContext.extensionPath = '../../';
 
   const mockStorageController = new StorageController(mockExtensionContext);
+  const testTelemetryController = new TelemetryController(
+    mockStorageController,
+    mockExtensionContext
+  );
   const testConnectionController = new ConnectionController(
     new StatusView(mockExtensionContext),
-    mockStorageController
+    mockStorageController,
+    testTelemetryController
   );
   const mockLanguageServerController = new MockLanguageServerController(
     mockExtensionContext,
@@ -35,7 +41,8 @@ suite('Playground Controller Test Suite', () => {
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
-    mockLanguageServerController as LanguageServerController
+    mockLanguageServerController as LanguageServerController,
+    testTelemetryController
   );
   const sandbox = sinon.createSandbox();
   let fakeShowInformationMessage: any;

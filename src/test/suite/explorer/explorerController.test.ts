@@ -17,11 +17,6 @@ const testDatabaseURI2WithTimeout =
 
 suite('Explorer Controller Test Suite', () => {
   beforeEach(async () => {
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      '_telemetryController',
-      {}
-    );
     // Don't save connections on default.
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -30,6 +25,7 @@ suite('Explorer Controller Test Suite', () => {
         DefaultSavingLocations['Session Only']
       );
   });
+
   afterEach(async () => {
     // Unset the variable we set in `beforeEach`.
     await vscode.workspace
@@ -46,7 +42,6 @@ suite('Explorer Controller Test Suite', () => {
   test('should have a connections root', (done) => {
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
-
     const treeController = testExplorerController.getTreeController();
 
     assert(!!treeController, 'Tree controller should not be undefined');
@@ -70,9 +65,7 @@ suite('Explorer Controller Test Suite', () => {
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
-
     const treeController = testExplorerController.getTreeController();
-
     const mockConnectionId = 'testConnectionId';
 
     testConnectionController._connections = {
@@ -110,7 +103,6 @@ suite('Explorer Controller Test Suite', () => {
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
-
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
@@ -165,7 +157,6 @@ suite('Explorer Controller Test Suite', () => {
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
-
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
@@ -239,7 +230,6 @@ suite('Explorer Controller Test Suite', () => {
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
-
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController
@@ -275,7 +265,6 @@ suite('Explorer Controller Test Suite', () => {
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
-
     const treeController = testExplorerController.getTreeController();
 
     testConnectionController

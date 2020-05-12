@@ -13,21 +13,13 @@ import {
   SchemaTreeItem
 } from '../../explorer';
 import { mdbTestExtension } from './stubbableMdbExtension';
-import ConnectionController from '../../connectionController';
-import { StorageController } from '../../storage';
 import { StorageScope } from '../../storage/storageController';
-import TelemetryController from '../../telemetry/telemetryController';
 
 const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
 
 suite('MDBExtensionController Test Suite', () => {
   beforeEach(() => {
-    sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
-      'track',
-      () => {}
-    );
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.
     sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
@@ -781,19 +773,8 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.dropCollection fails when a collection doesnt exist', (done) => {
-    const mockExtensionContext = mdbTestExtension.testExtensionContext;
-    const mockStorageController = new StorageController(mockExtensionContext);
-    const mockTelemetryController = new TelemetryController(
-      mockStorageController,
-      mockExtensionContext
-    );
-    const testConnectionController = new ConnectionController(
-      mdbTestExtension.testExtensionController._statusView,
-      mockStorageController,
-      mockTelemetryController
-    );
-
-    mockTelemetryController.track = () => {};
+    const testConnectionController =
+      mdbTestExtension.testExtensionController._connectionController;
 
     testConnectionController
       .addNewConnectionStringAndConnect(testDatabaseURI)
@@ -907,19 +888,8 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.dropDatabase succeeds even when a database doesnt exist (mdb behavior)', (done) => {
-    const mockExtensionContext = mdbTestExtension.testExtensionContext;
-    const mockStorageController = new StorageController(mockExtensionContext);
-    const mockTelemetryController = new TelemetryController(
-      mockStorageController,
-      mockExtensionContext
-    );
-    const testConnectionController = new ConnectionController(
-      mdbTestExtension.testExtensionController._statusView,
-      mockStorageController,
-      mockTelemetryController
-    );
-
-    mockTelemetryController.track = () => {};
+    const testConnectionController =
+      mdbTestExtension.testExtensionController._connectionController;
 
     testConnectionController
       .addNewConnectionStringAndConnect(testDatabaseURI)
@@ -1126,40 +1096,26 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
-  test('mdb.createPlayground should create a MongoDB playground with default template', (done) => {
+  test('mdb.createPlayground should create a MongoDB playground with default template', async () => {
     const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    const mockGetPlaygroundConfiguration = sinon.fake.returns({
-      get: (prop) => {
-        assert(prop === 'useDefaultTemplateForPlayground');
-        return true;
-      }
-    });
-    sinon.replace(
-      vscode.workspace,
-      'getConfiguration',
-      mockGetPlaygroundConfiguration
-    );
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update('useDefaultTemplateForPlayground', true);
+    await vscode.commands.executeCommand('mdb.createPlayground');
 
-    vscode.commands
-      .executeCommand('mdb.createPlayground')
-      .then(() => {
-        assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-        assert(
-          mockOpenTextDocument.firstArg.content.startsWith(
-            '// MongoDB Playground'
-          )
-        );
-        assert(
-          mockShowTextDocument.firstArg === 'untitled',
-          'Expected it to call vscode to show the playground'
-        );
-      })
-      .then(done, done);
+    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(
+      mockOpenTextDocument.firstArg.content.startsWith('// MongoDB Playground')
+    );
+    assert(
+      mockShowTextDocument.firstArg === 'untitled',
+      'Expected it to call vscode to show the playground'
+    );
   });
 
   test('mdb.createNewPlaygroundFromViewAction should create a MongoDB playground', (done) => {
@@ -1181,36 +1137,24 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
-  test('mdb.createPlayground command should create a MongoDB playground without template', (done) => {
+  test('mdb.createPlayground command should create a MongoDB playground without template', async () => {
     const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    const mockGetPlaygroundConfiguration = sinon.fake.returns({
-      get: (prop) => {
-        assert(prop === 'useDefaultTemplateForPlayground');
-        return false;
-      }
-    });
-    sinon.replace(
-      vscode.workspace,
-      'getConfiguration',
-      mockGetPlaygroundConfiguration
-    );
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update('useDefaultTemplateForPlayground', false);
+    await vscode.commands.executeCommand('mdb.createPlayground');
 
-    vscode.commands
-      .executeCommand('mdb.createPlayground')
-      .then(() => {
-        assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-        assert(mockOpenTextDocument.firstArg.content === '');
-        assert(
-          mockShowTextDocument.firstArg === 'untitled',
-          'Expected it to call vscode to show the playground'
-        );
-      })
-      .then(done, done);
+    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(mockOpenTextDocument.firstArg.content === '');
+    assert(
+      mockShowTextDocument.firstArg === 'untitled',
+      'Expected it to call vscode to show the playground'
+    );
   });
 
   test('mdb.runAllPlaygroundBlocks command should call runAllPlaygroundBlocks on the playground controller', (done) => {

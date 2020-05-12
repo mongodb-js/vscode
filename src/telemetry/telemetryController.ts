@@ -110,21 +110,21 @@ export default class TelemetryController {
     this._segmentAnalytics?.flush();
   }
 
+  public needTelemetry() {
+    return vscode.workspace.getConfiguration('mdb').get('sendTelemetry');
+  }
+
   public track(
     eventType: TelemetryEventTypes,
     properties: TelemetryEventProperties
   ): void {
-    const shouldSendTelemetry = vscode.workspace
-      .getConfiguration('mdb')
-      .get('sendTelemetry');
+    if (this.needTelemetry()) {
+      log.info('TELEMETRY track', {
+        eventType,
+        segmentUserID: this._segmentUserID,
+        properties
+      });
 
-    log.info('TELEMETRY track', {
-      eventType,
-      segmentUserID: this._segmentUserID,
-      properties
-    });
-
-    if (shouldSendTelemetry) {
       this._segmentAnalytics?.track(
         {
           userId: this._segmentUserID,
