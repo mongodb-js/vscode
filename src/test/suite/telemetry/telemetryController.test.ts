@@ -11,7 +11,7 @@ import { afterEach, beforeEach } from 'mocha';
 import { TEST_DATABASE_URI } from './../dbTestHelper';
 import Connection = require('mongodb-connection-model/lib/model');
 import { StorageScope } from '../../../storage/storageController';
-
+import { ConnectionTypes } from '../../../connectionController';
 const sinon = require('sinon');
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
@@ -127,7 +127,12 @@ suite('Telemetry Controller Test Suite', () => {
     mockConnectionController
       .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
-        sinon.assert.called(mockConnect);
+        sinon.assert.calledWith(
+          mockConnect,
+          sinon.match.any,
+          sinon.match.any,
+          sinon.match(ConnectionTypes.CONNECTION_STRING)
+        );
         done();
       });
   });
@@ -144,7 +149,12 @@ suite('Telemetry Controller Test Suite', () => {
         })
       )
       .then(() => {
-        sinon.assert.called(mockConnect);
+        sinon.assert.calledWith(
+          mockConnect,
+          sinon.match.any,
+          sinon.match.any,
+          sinon.match(ConnectionTypes.CONNECTION_FORM)
+        );
         done();
       });
   });
@@ -167,7 +177,12 @@ suite('Telemetry Controller Test Suite', () => {
     };
 
     mockConnectionController.connectWithConnectionId('25').then(() => {
-      sinon.assert.called(mockConnect);
+      sinon.assert.calledWith(
+        mockConnect,
+        sinon.match.any,
+        sinon.match.any,
+        sinon.match(ConnectionTypes.CONNECTION_ID)
+      );
       done();
     });
   });
