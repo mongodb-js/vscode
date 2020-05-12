@@ -1,23 +1,42 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { before, after } from 'mocha';
 import * as sinon from 'sinon';
 
 import MDBExtensionController from '../../mdbExtensionController';
 
 import { TestExtensionContext } from './stubs';
 import { TEST_DATABASE_URI } from './dbTestHelper';
+import ConnectionController from '../../connectionController';
+import { StorageController } from '../../storage';
+import { StatusView } from '../../views';
 
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
   const disposables: vscode.Disposable[] = [];
+  const mockExtensionContext = new TestExtensionContext();
+  const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
+  const mockStorageController = new StorageController(mockExtensionContext);
+  const testConnectionController = new ConnectionController(
+    new StatusView(mockExtensionContext),
+    mockStorageController
+  );
+  const sandbox = sinon.createSandbox();
+  let fakeShowErrorMessage: any;
 
-  afterEach(() => {
+  before(async () => {
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update('sendTelemetry', false);
+    sandbox.stub(vscode.window, 'showInformationMessage');
+    fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
+  });
+
+  after(() => {
     disposables.forEach((d) => d.dispose());
     disposables.length = 0;
-
-    sinon.restore();
+    sandbox.restore();
   });
 
   test('commands are registered in vscode', (done) => {
@@ -70,47 +89,21 @@ suite('Extension Test Suite', () => {
   });
 
   test('openMongoDBShell should display an error message when not connected', (done) => {
-    const mockExtensionContext = new TestExtensionContext();
+    const errorMessage =
+      'You need to be connected before launching the MongoDB Shell.';
 
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
-    const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
+    fakeShowErrorMessage.resolves(errorMessage);
 
     mockMDBExtension
       .openMongoDBShell()
       .then((didOpenShell) => {
         assert(didOpenShell === false);
-        assert(
-          fakeVscodeErrorMessage.firstArg ===
-            'You need to be connected before launching the MongoDB Shell.'
-        );
+        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
       })
       .then(done, done);
   });
 
   test('openMongoDBShell should open a terminal with the active connection driver url', (done) => {
-    const mockExtensionContext = new TestExtensionContext();
-
-    const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
-    const testConnectionController = mockMDBExtension._connectionController;
-
-    const fakeVscodeInfoMessage = sinon.fake();
-
-    sinon.replace(
-      vscode.window,
-      'showInformationMessage',
-      fakeVscodeInfoMessage
-    );
-    sinon.replace(
-      testConnectionController._telemetryController,
-      'track',
-      () => {}
-    );
-    sinon.replace(testConnectionController, 'getCloudInfoFromDataService', () =>
-      Promise.resolve()
-    );
-
     testConnectionController
       .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then((succesfullyConnected) => {
@@ -119,38 +112,45 @@ suite('Extension Test Suite', () => {
           'Expected a successful connection response.'
         );
 
-        const spyActiveConnectionDriverUrl = sinon.spy(
-          testConnectionController,
-          'getActiveConnectionDriverUrl'
-        );
-        const createTerminalSpy = sinon.spy(vscode.window, 'createTerminal');
+        mockMDBExtension
+          .openMongoDBShell()
+          .then(() => {
+            const spyActiveConnectionDriverUrl = sinon.spy(
+              testConnectionController,
+              'getActiveConnectionDriverUrl'
+            );
+            const createTerminalSpy = sinon.spy(
+              vscode.window,
+              'createTerminal'
+            );
 
-        disposables.push(
-          vscode.window.onDidOpenTerminal(() => {
-            testConnectionController.disconnect();
+            disposables.push(
+              vscode.window.onDidOpenTerminal(() => {
+                testConnectionController.disconnect();
 
-            try {
-              assert(spyActiveConnectionDriverUrl.called);
-              assert(createTerminalSpy.called);
-              const expectedUri =
-                'mongodb://localhost:27018/?readPreference=primary&ssl=false';
-              assert(
-                createTerminalSpy.getCall(0).args[0].env
-                  .MDB_CONNECTION_STRING === expectedUri,
-                `Expected open terminal to set env var 'MDB_CONNECTION_STRING' to ${expectedUri} found ${
-                  createTerminalSpy.getCall(0).args[0].env.MDB_CONNECTION_STRING
-                }`
-              );
-            } catch (e) {
-              done(e);
-              return;
-            }
+                try {
+                  assert(spyActiveConnectionDriverUrl.called);
+                  assert(createTerminalSpy.called);
+                  const expectedUri =
+                    'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+                  assert(
+                    createTerminalSpy.getCall(0).args[0].env
+                      .MDB_CONNECTION_STRING === expectedUri,
+                    `Expected open terminal to set env var 'MDB_CONNECTION_STRING' to ${expectedUri} found ${
+                      createTerminalSpy.getCall(0).args[0].env
+                        .MDB_CONNECTION_STRING
+                    }`
+                  );
+                } catch (e) {
+                  done(e);
+                  return;
+                }
 
-            done();
+                done();
+              })
+            );
           })
-        );
-
-        mockMDBExtension.openMongoDBShell();
+          .then(done, done);
       });
   });
 });

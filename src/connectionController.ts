@@ -441,7 +441,7 @@ export default class ConnectionController {
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
         this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
-        if (this._telemetryController) {
+        if (this._telemetryController?.needTelemetry()) {
           this.sendTelemetry(newDataService, connectionType);
         }
 

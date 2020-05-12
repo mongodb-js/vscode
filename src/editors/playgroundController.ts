@@ -168,9 +168,9 @@ export default class PlaygroundController {
       codeToEvaluate
     );
 
-    if (result) {
+    if (result && this._telemetryController?.needTelemetry()) {
       // Send metrics to Segment
-      this._telemetryController?.track(
+      this._telemetryController.track(
         TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED,
         this.prepareTelemetry(result)
       );

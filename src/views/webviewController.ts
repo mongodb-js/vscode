@@ -124,13 +124,15 @@ export default class WebviewController {
 
         return;
       case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
-        this._telemetryController?.track(
-          TelemetryEventTypes.EXTENSION_LINK_CLICKED,
-          {
-            screen: message.screen,
-            linkId: message.linkId
-          }
-        );
+        if (this._telemetryController?.needTelemetry()) {
+          this._telemetryController.track(
+            TelemetryEventTypes.EXTENSION_LINK_CLICKED,
+            {
+              screen: message.screen,
+              linkId: message.linkId
+            }
+          );
+        }
 
         return;
       default:
