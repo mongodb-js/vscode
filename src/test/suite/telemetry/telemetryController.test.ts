@@ -120,32 +120,36 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('test new connection event when connecting via connection string', async () => {
+  test('test new connection event when connecting via connection string', (done) => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    await mockConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
-
-    sinon.assert.called(mockSendTelemetry);
+    mockConnectionController
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
+      .then(() => {
+        sinon.assert.called(mockSendTelemetry);
+        done();
+      });
   });
 
-  test('test new connection event when connecting via connection form', async () => {
+  test('test new connection event when connecting via connection form', (done) => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    await mockConnectionController.parseNewConnectionAndConnect(
-      new Connection({
-        hostname: 'localhost',
-        port: 27018
-      })
-    );
-
-    sinon.assert.called(mockSendTelemetry);
+    mockConnectionController
+      .parseNewConnectionAndConnect(
+        new Connection({
+          hostname: 'localhost',
+          port: 27018
+        })
+      )
+      .then(() => {
+        sinon.assert.called(mockSendTelemetry);
+        done();
+      });
   });
 
-  test('test new connection event when connecting via saved connection', async () => {
+  test('test new connection event when connecting via saved connection', (done) => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
@@ -162,8 +166,9 @@ suite('Telemetry Controller Test Suite', () => {
       }
     };
 
-    await mockConnectionController.connectWithConnectionId('25');
-
-    sinon.assert.called(mockSendTelemetry);
+    mockConnectionController.connectWithConnectionId('25').then(() => {
+      sinon.assert.called(mockSendTelemetry);
+      done();
+    });
   });
 });
