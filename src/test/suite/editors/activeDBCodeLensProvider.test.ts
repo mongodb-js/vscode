@@ -1,6 +1,4 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
-import { beforeEach } from 'mocha';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
@@ -15,12 +13,6 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     mockStorageController,
     mockExtensionContext
   );
-
-  beforeEach(async () => {
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('sendTelemetry', false);
-  });
 
   test('expected provideCodeLenses to return empty array when user is not connected', () => {
     const testConnectionController = new ConnectionController(

@@ -37,6 +37,9 @@ export function run(): Promise<void> {
       );
       mdbTestExtension.testExtensionController.activate();
 
+      // Disable metrics.
+      vscode.workspace.getConfiguration('mdb').update('sendTelemetry', false);
+
       // Disable the dialogue for prompting the user where to store the connection.
       vscode.workspace
         .getConfiguration('mdb.connectionSaving')

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { beforeEach, afterEach } from 'mocha';
+import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
 import Connection = require('mongodb-connection-model/lib/model');
 import TelemetryController from '../../../telemetry/telemetryController';
@@ -21,12 +21,6 @@ const path = require('path');
 
 suite('Connect Form View Test Suite', () => {
   const disposables: vscode.Disposable[] = [];
-
-  beforeEach(async () => {
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('sendTelemetry', false);
-  });
 
   afterEach(() => {
     disposables.forEach((d) => d.dispose());

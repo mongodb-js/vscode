@@ -19,10 +19,7 @@ const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
 
 suite('MDBExtensionController Test Suite', () => {
-  beforeEach(async () => {
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('sendTelemetry', false);
+  beforeEach(() => {
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.
     sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());

@@ -31,10 +31,7 @@ suite('Extension Test Suite', () => {
   const sandbox = sinon.createSandbox();
   let fakeShowErrorMessage: any;
 
-  before(async () => {
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('sendTelemetry', false);
+  before(() => {
     sandbox.stub(vscode.window, 'showInformationMessage');
     fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
   });

@@ -316,7 +316,7 @@ export default class ConnectionController {
     });
   };
 
-  public async getCloudInfoFromDataService(firstServerHostname) {
+  public async getCloudInfoFromDataService(firstServerHostname: string) {
     const cloudInfo = await getCloudInfo(firstServerHostname);
     let isPublicCloud = false;
     let publicCloudName: string | null = null;

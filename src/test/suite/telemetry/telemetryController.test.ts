@@ -71,7 +71,10 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update('sendTelemetry', false);
     sinon.restore();
   });
 

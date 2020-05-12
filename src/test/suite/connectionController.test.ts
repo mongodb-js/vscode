@@ -25,10 +25,7 @@ suite('Connection Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
 
-  beforeEach(async () => {
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('sendTelemetry', false);
+  beforeEach(() => {
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.
     sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());

@@ -17,9 +17,6 @@ const testDatabaseURI2WithTimeout =
 
 suite('Explorer Controller Test Suite', () => {
   beforeEach(async () => {
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('sendTelemetry', false);
     // Don't save connections on default.
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
