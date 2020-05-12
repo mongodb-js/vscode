@@ -354,22 +354,22 @@ export default class ConnectionController {
             ? null
             : data.genuineMongoDB.dbType;
           const telemetryData = {
-            isAtlas: !!data.client.s.url.match(ATLAS_REGEX),
-            isLocalhost: !!data.client.s.url.match(LOCALHOST_REGEX),
-            isDataLake: data.dataLake.isDataLake,
-            isEnterprise: data.build.enterprise_module,
-            isPublicCloud: cloudInfo.isPublicCloud,
-            publicCloudName: cloudInfo.publicCloudName,
-            isGenuine: data.genuineMongoDB.isGenuine,
-            nonGenuineServerName,
-            serverVersion: data.build.version,
-            serverArch: data.build.raw.buildEnvironment.target_arch,
-            serverOS: data.build.raw.buildEnvironment.target_os,
-            isUsedConnectScreen:
+            is_atlas: !!data.client.s.url.match(ATLAS_REGEX),
+            is_localhost: !!data.client.s.url.match(LOCALHOST_REGEX),
+            is_data_lake: data.dataLake.isDataLake,
+            is_enterprise: data.build.enterprise_module,
+            is_public_cloud: cloudInfo.isPublicCloud,
+            public_cloud_name: cloudInfo.publicCloudName,
+            is_genuine: data.genuineMongoDB.isGenuine,
+            non_genuine_server_name: nonGenuineServerName,
+            server_version: data.build.version,
+            server_arch: data.build.raw.buildEnvironment.target_arch,
+            server_os: data.build.raw.buildEnvironment.target_os,
+            is_used_connect_screen:
               connectionType === ConnectionTypes.CONNECTION_FORM,
-            isUsedCommandPalette:
+            is_used_command_palette:
               connectionType === ConnectionTypes.CONNECTION_STRING,
-            isUsedSavedConnection:
+            is_used_saved_connection:
               connectionType === ConnectionTypes.CONNECTION_ID
           };
 
@@ -659,13 +659,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-      connectionIds.map(
-        (id, index) => `${index + 1}: ${this._connections[id].name}`
-      ),
-      {
-        placeHolder: 'Choose a connection to remove...'
-      }
-    );
+        connectionIds.map(
+          (id, index) => `${index + 1}: ${this._connections[id].name}`
+        ),
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
