@@ -1,11 +1,9 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { beforeEach, afterEach } from 'mocha';
 import * as sinon from 'sinon';
-const fs = require('fs');
-const path = require('path');
 import Connection = require('mongodb-connection-model/lib/model');
-
+import TelemetryController from '../../../telemetry/telemetryController';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import WebviewController, {
@@ -14,13 +12,21 @@ import WebviewController, {
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
 import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
-
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 
+const fs = require('fs');
+const path = require('path');
+
 suite('Connect Form View Test Suite', () => {
   const disposables: vscode.Disposable[] = [];
+
+  beforeEach(async () => {
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update('sendTelemetry', false);
+  });
 
   afterEach(() => {
     disposables.forEach((d) => d.dispose());
@@ -35,10 +41,10 @@ suite('Connect Form View Test Suite', () => {
       html: '',
       onDidReceiveMessage: stubOnDidRecieveMessage
     };
-
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
     });
+
     sinon.replace(
       vscode.window,
       'createWebviewPanel',
@@ -46,7 +52,8 @@ suite('Connect Form View Test Suite', () => {
     );
 
     const testWebviewController = new WebviewController(
-      mdbTestExtension.testExtensionController._connectionController
+      mdbTestExtension.testExtensionController._connectionController,
+      mdbTestExtension.testExtensionController._telemetryController
     );
 
     testWebviewController.showConnectForm(
@@ -79,24 +86,29 @@ suite('Connect Form View Test Suite', () => {
 
     assert(htmlString.includes('vscode-resource:/'));
     assert(htmlString.includes('dist/webviewApp.js'));
+
     const webviewAppFileName = (): string => 'dist/webviewApp.js';
     const jsFileString = await readFile(
       path.join(extensionPath, webviewAppFileName())
     );
+
     assert(`${jsFileString}`.includes('ConnectionForm'));
   });
 
   test('web view listens for a connect message and adds the connection', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
-      testStorageController
+      testStorageController,
+      testTelemetryController
     );
-
     let messageRecievedSet = false;
-    let messageRecieved;
+    let messageRecieved: any;
     const fakeWebview = {
       html: '',
       postMessage: (message: any): void => {
@@ -117,10 +129,10 @@ suite('Connect Form View Test Suite', () => {
         messageRecievedSet = true;
       }
     };
-
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
     });
+
     sinon.replace(
       vscode.window,
       'createWebviewPanel',
@@ -128,7 +140,8 @@ suite('Connect Form View Test Suite', () => {
     );
 
     const testWebviewController = new WebviewController(
-      testConnectionController
+      testConnectionController,
+      testTelemetryController
     );
 
     testWebviewController.showConnectForm(
@@ -159,14 +172,17 @@ suite('Connect Form View Test Suite', () => {
   test('web view sends a successful connect result on a successful connection', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
-      testStorageController
+      testStorageController,
+      testTelemetryController
     );
-
     let messageRecievedSet = false;
-    let messageRecieved;
+    let messageRecieved: any;
     const fakeWebview = {
       html: '',
       postMessage: (message: any): void => {
@@ -181,10 +197,10 @@ suite('Connect Form View Test Suite', () => {
         messageRecievedSet = true;
       }
     };
-
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
     });
+
     sinon.replace(
       vscode.window,
       'createWebviewPanel',
@@ -192,7 +208,8 @@ suite('Connect Form View Test Suite', () => {
     );
 
     const testWebviewController = new WebviewController(
-      testConnectionController
+      testConnectionController,
+      testTelemetryController
     );
 
     testWebviewController.showConnectForm(
@@ -223,13 +240,16 @@ suite('Connect Form View Test Suite', () => {
   test('web view sends an unsuccessful connect result on an unsuccessful connection', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
-      testStorageController
+      testStorageController,
+      testTelemetryController
     );
-
-    let messageRecieved;
+    let messageRecieved: any;
     const fakeWebview = {
       html: '',
       postMessage: (message: any): void => {
@@ -243,10 +263,10 @@ suite('Connect Form View Test Suite', () => {
         messageRecieved = callback;
       }
     };
-
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
     });
+
     sinon.replace(
       vscode.window,
       'createWebviewPanel',
@@ -254,7 +274,8 @@ suite('Connect Form View Test Suite', () => {
     );
 
     const testWebviewController = new WebviewController(
-      testConnectionController
+      testConnectionController,
+      testTelemetryController
     );
 
     testWebviewController.showConnectForm(
@@ -274,12 +295,15 @@ suite('Connect Form View Test Suite', () => {
   test('web view opens file picker on file picker request', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
-      testStorageController
+      testStorageController,
+      testTelemetryController
     );
-
     const fakeVSCodeOpenDialog = sinon.fake.resolves({
       path: './somefilepath/test.text'
     });
@@ -311,7 +335,8 @@ suite('Connect Form View Test Suite', () => {
     sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
 
     const testWebviewController = new WebviewController(
-      testConnectionController
+      testConnectionController,
+      testTelemetryController
     );
 
     testWebviewController.showConnectForm(
@@ -328,13 +353,16 @@ suite('Connect Form View Test Suite', () => {
   test('web view returns file name on file picker request', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
-      testStorageController
+      testStorageController,
+      testTelemetryController
     );
-
-    let messageRecieved;
+    let messageRecieved: any;
     const fakeWebview = {
       html: '',
       postMessage: (message: any): void => {
@@ -348,10 +376,10 @@ suite('Connect Form View Test Suite', () => {
         messageRecieved = callback;
       }
     };
-
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
     });
+
     sinon.replace(
       vscode.window,
       'createWebviewPanel',
@@ -363,10 +391,12 @@ suite('Connect Form View Test Suite', () => {
         path: './somefilepath/test.text'
       }
     ]);
+
     sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
 
     const testWebviewController = new WebviewController(
-      testConnectionController
+      testConnectionController,
+      testTelemetryController
     );
 
     testWebviewController.showConnectForm(
@@ -382,26 +412,30 @@ suite('Connect Form View Test Suite', () => {
   test('web view runs the "connectWithURI" command when open connection string input is recieved', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
-      testStorageController
+      testStorageController,
+      testTelemetryController
     );
-
-    let messageRecieved;
+    let messageRecieved: any;
     const fakeWebview = {
       html: '',
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
       }
     };
-
     const fakeVSCodeExecuteCommand = sinon.fake.resolves(false);
+
     sinon.replace(vscode.commands, 'executeCommand', fakeVSCodeExecuteCommand);
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
     });
+
     sinon.replace(
       vscode.window,
       'createWebviewPanel',
@@ -409,7 +443,8 @@ suite('Connect Form View Test Suite', () => {
     );
 
     const testWebviewController = new WebviewController(
-      testConnectionController
+      testConnectionController,
+      testTelemetryController
     );
 
     testWebviewController.showConnectForm(

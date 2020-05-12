@@ -22,7 +22,7 @@ export default class PlaygroundController {
   _context: vscode.ExtensionContext;
   _connectionController: ConnectionController;
   _languageServerController: LanguageServerController;
-  _telemetryController?: TelemetryController;
+  _telemetryController: TelemetryController;
   _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
   _outputChannel: OutputChannel;
   _connectionString?: string;
@@ -33,7 +33,7 @@ export default class PlaygroundController {
     context: vscode.ExtensionContext,
     connectionController: ConnectionController,
     languageServerController: LanguageServerController,
-    telemetryController?: TelemetryController
+    telemetryController: TelemetryController
   ) {
     this._context = context;
     this._connectionController = connectionController;
@@ -168,7 +168,7 @@ export default class PlaygroundController {
       codeToEvaluate
     );
 
-    if (result && this._telemetryController?.needTelemetry()) {
+    if (result) {
       // Send metrics to Segment
       this._telemetryController.track(
         TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED,

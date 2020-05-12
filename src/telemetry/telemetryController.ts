@@ -118,13 +118,13 @@ export default class TelemetryController {
     eventType: TelemetryEventTypes,
     properties: TelemetryEventProperties
   ): void {
-    log.info('TELEMETRY track', {
-      eventType,
-      segmentUserID: this._segmentUserID,
-      properties
-    });
-
     if (this.needTelemetry()) {
+      log.info('TELEMETRY track', {
+        eventType,
+        segmentUserID: this._segmentUserID,
+        properties
+      });
+
       this._segmentAnalytics?.track(
         {
           userId: this._segmentUserID,

@@ -65,7 +65,7 @@ export default class ConnectionController {
 
   private _statusView: StatusView;
   private _storageController: StorageController;
-  public _telemetryController?: TelemetryController;
+  private _telemetryController: TelemetryController;
 
   // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();
@@ -73,7 +73,7 @@ export default class ConnectionController {
   constructor(
     _statusView: StatusView,
     storageController: StorageController,
-    telemetryController?: TelemetryController
+    telemetryController: TelemetryController
   ) {
     this._statusView = _statusView;
     this._storageController = storageController;
@@ -102,6 +102,7 @@ export default class ConnectionController {
     }
 
     let loadedSavedConnection: LoadedConnection;
+
     try {
       const unparsedConnectionInformation = await this._keytar.getPassword(
         this._serviceName,
@@ -134,6 +135,7 @@ export default class ConnectionController {
       // connections have become corrupted.
       return Promise.resolve();
     }
+
     this._connections[connectionId] = loadedSavedConnection;
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
@@ -167,6 +169,7 @@ export default class ConnectionController {
         StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
         StorageScope.WORKSPACE
       ) || {};
+
     if (Object.keys(existingWorkspaceConnections).length > 0) {
       // Try to pull in the connections previously saved on the workspace.
       await Promise.all(
@@ -181,9 +184,10 @@ export default class ConnectionController {
   };
 
   public async connectWithURI(): Promise<boolean> {
+    let connectionString: any;
+
     log.info('connectWithURI command called');
 
-    let connectionString;
     try {
       connectionString = await vscode.window.showInputBox({
         value: '',
@@ -268,7 +272,6 @@ export default class ConnectionController {
     const { driverUrl, instanceId } = connectionModel.getAttributes({
       derived: true
     });
-
     const connectionId = uuidv4();
     const connectionInformation: SavedConnectionInformation = {
       connectionModel,
@@ -285,6 +288,7 @@ export default class ConnectionController {
       ...savedConnection,
       ...connectionInformation
     };
+
     this._connections[connectionId] = newLoadedConnection;
 
     if (this._keytar) {
@@ -339,6 +343,7 @@ export default class ConnectionController {
       if (error) {
         log.error('TELEMETRY data service error', error);
       }
+
       if (data) {
         try {
           const firstServerHostname = dataService.client.model.hosts[0].host;
@@ -369,7 +374,7 @@ export default class ConnectionController {
           };
 
           // Send metrics to Segment
-          this._telemetryController?.track(
+          this._telemetryController.track(
             TelemetryEventTypes.NEW_CONNECTION,
             telemetryData
           );
@@ -396,7 +401,9 @@ export default class ConnectionController {
       return Promise.reject(
         new Error('Unable to connect: already connecting.')
       );
-    } else if (this._disconnecting) {
+    }
+
+    if (this._disconnecting) {
       return Promise.reject(
         new Error('Unable to connect: currently disconnecting.')
       );
@@ -427,6 +434,7 @@ export default class ConnectionController {
           this._connecting = false;
           log.info('Failed to connect');
           this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+
           return reject(new Error(`Failed to connect: ${err.message}`));
         }
 
@@ -441,7 +449,7 @@ export default class ConnectionController {
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
         this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
-        if (this._telemetryController?.needTelemetry()) {
+        if (this._telemetryController.needTelemetry()) {
           this.sendTelemetry(newDataService, connectionType);
         }
 
@@ -452,11 +460,12 @@ export default class ConnectionController {
 
   public connectWithConnectionId = (connectionId: string): Promise<boolean> => {
     if (this._connections[connectionId]) {
-      let connectionModel;
+      let connectionModel: any;
 
       try {
         const savedConnectionModel = this._connections[connectionId]
           .connectionModel;
+
         // Here we rebuild the connection model to ensure it's up to date and
         // contains the connection model class methods (not just attributes).
         connectionModel = new Connection(
@@ -466,8 +475,10 @@ export default class ConnectionController {
         );
       } catch (error) {
         vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
+
         return Promise.resolve(false);
       }
+
       return new Promise((resolve) => {
         this.connect(
           connectionId,
@@ -475,6 +486,7 @@ export default class ConnectionController {
           ConnectionTypes.CONNECTION_ID
         ).then(resolve, (err: Error) => {
           vscode.window.showErrorMessage(err.message);
+
           return resolve(false);
         });
       });
@@ -493,6 +505,7 @@ export default class ConnectionController {
       vscode.window.showErrorMessage(
         'Unable to disconnect: already disconnecting from an instance.'
       );
+
       return Promise.resolve(false);
     }
 
@@ -501,6 +514,7 @@ export default class ConnectionController {
       vscode.window.showErrorMessage(
         'Unable to disconnect: currently connecting to an instance.'
       );
+
       return Promise.resolve(false);
     }
 
@@ -510,6 +524,7 @@ export default class ConnectionController {
         vscode.window.showErrorMessage(
           'Unable to disconnect: no active connection.'
         );
+
         return resolve(false);
       }
 
@@ -544,6 +559,7 @@ export default class ConnectionController {
     connectionId: string
   ): Promise<void> => {
     delete this._connections[connectionId];
+
     if (this._keytar) {
       await this._keytar.deletePassword(this._serviceName, connectionId);
       // We only remove the connection from the saved connections if we
@@ -563,19 +579,23 @@ export default class ConnectionController {
       vscode.window.showErrorMessage(
         'Unable to remove connection: currently connecting.'
       );
+
       return Promise.resolve(false);
     }
+
     // Ensure we aren't currently disconnecting.
     if (this._disconnecting) {
       vscode.window.showErrorMessage(
         'Unable to remove connection: currently disconnecting.'
       );
+
       return Promise.resolve(false);
     }
 
     if (!this._connections[connectionId]) {
       // No active connection(s) to remove.
       vscode.window.showErrorMessage('Connection does not exist.');
+
       return Promise.resolve(false);
     }
 
@@ -596,6 +616,7 @@ export default class ConnectionController {
     await this.removeSavedConnection(connectionId);
 
     vscode.window.showInformationMessage('MongoDB connection removed.');
+
     return Promise.resolve(true);
   }
 
@@ -607,13 +628,16 @@ export default class ConnectionController {
       vscode.window.showErrorMessage(
         'Unable to remove connection: currently connecting.'
       );
+
       return Promise.resolve(false);
     }
+
     // Ensure we aren't currently disconnecting.
     if (this._disconnecting) {
       vscode.window.showErrorMessage(
         'Unable to remove connection: currently disconnecting.'
       );
+
       return Promise.resolve(false);
     }
 
@@ -622,6 +646,7 @@ export default class ConnectionController {
     if (connectionIds.length === 0) {
       // No active connection(s) to remove.
       vscode.window.showErrorMessage('No connections to remove.');
+
       return Promise.resolve(false);
     }
 
@@ -655,7 +680,8 @@ export default class ConnectionController {
   }
 
   public async renameConnection(connectionId: string): Promise<boolean> {
-    let inputtedConnectionName;
+    let inputtedConnectionName: any;
+
     try {
       inputtedConnectionName = await vscode.window.showInputBox({
         value: this._connections[connectionId].name,
@@ -694,7 +720,9 @@ export default class ConnectionController {
         return this._storageController
           .saveConnectionToGlobalStore(this._connections[connectionId])
           .then(() => resolve(true), reject);
-      } else if (
+      }
+
+      if (
         this._connections[connectionId].storageLocation ===
         StorageScope.WORKSPACE
       ) {
@@ -806,15 +834,19 @@ export default class ConnectionController {
     this._disconnecting = false;
     this._connectingConnectionId = '';
   }
+
   public setActiveConnection(newActiveConnection: any): void {
     this._activeDataService = newActiveConnection;
   }
+
   public setConnnecting(connecting: boolean): void {
     this._connecting = connecting;
   }
+
   public setConnnectingConnectionId(connectingConnectionId: string): void {
     this._connectingConnectionId = connectingConnectionId;
   }
+
   public setDisconnecting(disconnecting: boolean): void {
     this._disconnecting = disconnecting;
   }

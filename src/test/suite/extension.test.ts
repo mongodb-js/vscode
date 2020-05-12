@@ -10,6 +10,7 @@ import { TEST_DATABASE_URI } from './dbTestHelper';
 import ConnectionController from '../../connectionController';
 import { StorageController } from '../../storage';
 import { StatusView } from '../../views';
+import TelemetryController from '../../telemetry/telemetryController';
 
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
@@ -18,9 +19,14 @@ suite('Extension Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
   const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
   const mockStorageController = new StorageController(mockExtensionContext);
+  const testTelemetryController = new TelemetryController(
+    mockStorageController,
+    mockExtensionContext
+  );
   const testConnectionController = new ConnectionController(
     new StatusView(mockExtensionContext),
-    mockStorageController
+    mockStorageController,
+    testTelemetryController
   );
   const sandbox = sinon.createSandbox();
   let fakeShowErrorMessage: any;

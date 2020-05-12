@@ -50,11 +50,11 @@ export const getReactAppUri = (extensionPath: string): vscode.Uri => {
 
 export default class WebviewController {
   _connectionController: ConnectionController;
-  _telemetryController?: TelemetryController;
+  _telemetryController: TelemetryController;
 
   constructor(
     connectionController: ConnectionController,
-    telemetryController?: TelemetryController
+    telemetryController: TelemetryController
   ) {
     this._connectionController = connectionController;
     this._telemetryController = telemetryController;
@@ -124,15 +124,13 @@ export default class WebviewController {
 
         return;
       case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
-        if (this._telemetryController?.needTelemetry()) {
-          this._telemetryController.track(
-            TelemetryEventTypes.EXTENSION_LINK_CLICKED,
-            {
-              screen: message.screen,
-              linkId: message.linkId
-            }
-          );
-        }
+        this._telemetryController.track(
+          TelemetryEventTypes.EXTENSION_LINK_CLICKED,
+          {
+            screen: message.screen,
+            linkId: message.linkId
+          }
+        );
 
         return;
       default:
