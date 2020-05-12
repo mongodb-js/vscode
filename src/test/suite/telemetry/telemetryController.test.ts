@@ -33,7 +33,7 @@ suite('Telemetry Controller Test Suite', () => {
   let mockTelemetryTrackMethod: void;
   let mockExecuteAllMethod: Promise<any>;
   let mockGetCloudInfoFromDataService: Promise<any>;
-  let mockSendTelemetry: Promise<any>;
+  let mockConnect: Promise<any>;
 
   beforeEach(async () => {
     await vscode.workspace
@@ -47,7 +47,7 @@ suite('Telemetry Controller Test Suite', () => {
       isPublicCloud: false,
       publicCloudName: null
     });
-    mockSendTelemetry = sinon.fake.resolves({});
+    mockConnect = sinon.fake.resolves(true);
 
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryController,
@@ -66,8 +66,8 @@ suite('Telemetry Controller Test Suite', () => {
     );
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'sendTelemetry',
-      mockSendTelemetry
+      'connect',
+      mockConnect
     );
   });
 
@@ -127,7 +127,7 @@ suite('Telemetry Controller Test Suite', () => {
     mockConnectionController
       .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
-        sinon.assert.called(mockSendTelemetry);
+        sinon.assert.called(mockConnect);
         done();
       });
   });
@@ -144,7 +144,7 @@ suite('Telemetry Controller Test Suite', () => {
         })
       )
       .then(() => {
-        sinon.assert.called(mockSendTelemetry);
+        sinon.assert.called(mockConnect);
         done();
       });
   });
@@ -167,7 +167,7 @@ suite('Telemetry Controller Test Suite', () => {
     };
 
     mockConnectionController.connectWithConnectionId('25').then(() => {
-      sinon.assert.called(mockSendTelemetry);
+      sinon.assert.called(mockConnect);
       done();
     });
   });
