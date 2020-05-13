@@ -547,7 +547,7 @@
             "mongosh"
           ],
           "enumDescriptions": [
-            "Use the legacy mongosh",
+            "Use the legacy mongo shell",
             "Use the new mongosh"
           ],
           "default": "mongo",

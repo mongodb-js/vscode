@@ -33,6 +33,8 @@ Launch the MongoDB Shell from the command palette to quickly connect to the same
 
 ![MongoDB Shell](resources/screenshots/shell-launcher.png)
 
+*The shell binary needs to be in your `$PATH`. This functionality has some issues on Windows, we'll release an update with a fix soon.*
+
 ### Terraform snippet for MongoDB Atlas
 
 If you use Terraform to manage your infrastructure, MongoDB for VS Code helps you get started with the [MongoDB Atlas Provider](https://www.terraform.io/docs/providers/mongodbatlas/index.html). Just open a Terraform file, type `atlas` and you are good to go.
