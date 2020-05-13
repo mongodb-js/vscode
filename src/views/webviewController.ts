@@ -1,10 +1,6 @@
 import * as vscode from 'vscode';
-const path = require('path');
-
 import ConnectionController from '../connectionController';
-import TelemetryController, {
-  TelemetryEventTypes
-} from '../telemetry/telemetryController';
+import TelemetryController from '../telemetry/telemetryController';
 import {
   MESSAGE_TYPES,
   ConnectMessage,
@@ -14,6 +10,7 @@ import {
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
 
+const path = require('path');
 const log = createLogger('webviewController');
 
 const openFileOptions = {
@@ -124,12 +121,9 @@ export default class WebviewController {
 
         return;
       case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
-        this._telemetryController.track(
-          TelemetryEventTypes.EXTENSION_LINK_CLICKED,
-          {
-            screen: message.screen,
-            link_id: message.linkId
-          }
+        this._telemetryController.trackLinkClicked(
+          message.screen,
+          message.linkId
         );
 
         return;
