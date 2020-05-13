@@ -5,7 +5,7 @@
   "description": "Connect to MongoDB and Atlas and directly from your VS Code environment, navigate your databases and collections, inspect your schema and use playgrounds to prototype queries and aggregations.",
   "version": "0.0.1",
   "homepage": "https://github.com/mongodb-js/vscode",
-  "qna": "https://community.mongodb.com/c/vscode/",
+  "qna": "https://developer.mongodb.com/community/forums/",
   "repository": {
     "type": "git",
     "url": "https://github.com/mongodb-js/vscode"
