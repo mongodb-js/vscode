@@ -133,7 +133,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
     const commandHandlerWithTelemetry = (args: any[]) => {
-      // Send metrics to Segment
+      // Send metrics to Segment.
       this._telemetryController.trackCommandRun(command);
 
       return commandHandler(args);
