@@ -196,6 +196,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         return new Promise((resolve, reject) => {
           vscode.env.clipboard.writeText(connectionString).then(() => {
             vscode.window.showInformationMessage('Copied to clipboard.');
+
             return resolve(true);
           }, reject);
         });
