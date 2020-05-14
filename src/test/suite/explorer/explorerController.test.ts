@@ -41,13 +41,13 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('should have a connections root', async () => {
+    const testExplorerController =
+      mdbTestExtension.testExtensionController._explorerController;
+    const treeController = testExplorerController.getTreeController();
+
+    assert(!!treeController, 'Tree controller should not be undefined');
+
     try {
-      const testExplorerController =
-        mdbTestExtension.testExtensionController._explorerController;
-      const treeController = testExplorerController.getTreeController();
-
-      assert(!!treeController, 'Tree controller should not be undefined');
-
       const treeControllerChildren = await treeController.getChildren();
 
       assert(
@@ -64,14 +64,14 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('it updates the connections to account for a change in the connection controller', async () => {
-    try {
-      const testConnectionController =
-        mdbTestExtension.testExtensionController._connectionController;
-      const testExplorerController =
-        mdbTestExtension.testExtensionController._explorerController;
-      const treeController = testExplorerController.getTreeController();
-      const mockConnectionId = 'testConnectionId';
+    const testConnectionController =
+      mdbTestExtension.testExtensionController._connectionController;
+    const testExplorerController =
+      mdbTestExtension.testExtensionController._explorerController;
+    const treeController = testExplorerController.getTreeController();
+    const mockConnectionId = 'testConnectionId';
 
+    try {
       testConnectionController._connections = {
         testConnectionId: {
           id: 'testConnectionId',
@@ -113,13 +113,13 @@ suite('Explorer Controller Test Suite', function () {
   });
 
   test('when a connection is added and connected it is added to the tree and expanded', async () => {
-    try {
-      const testConnectionController =
-        mdbTestExtension.testExtensionController._connectionController;
-      const testExplorerController =
-        mdbTestExtension.testExtensionController._explorerController;
-      const treeController = testExplorerController.getTreeController();
+    const testConnectionController =
+      mdbTestExtension.testExtensionController._connectionController;
+    const testExplorerController =
+      mdbTestExtension.testExtensionController._explorerController;
+    const treeController = testExplorerController.getTreeController();
 
+    try {
       const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
       );
@@ -161,8 +161,6 @@ suite('Explorer Controller Test Suite', function () {
         connectionsItems[0].isExpanded,
         'Expected the connection tree item to be expanded'
       );
-
-      testExplorerController.deactivate();
     } catch (error) {
       assert(false);
     }

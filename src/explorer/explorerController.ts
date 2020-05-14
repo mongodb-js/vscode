@@ -32,7 +32,6 @@ export default class ExplorerController {
       this._treeView = vscode.window.createTreeView('mongoDB', {
         treeDataProvider: this._treeController
       });
-
       this._treeController.activateTreeViewEventHandlers(this._treeView);
     }
   };
@@ -61,6 +60,7 @@ export default class ExplorerController {
     if (this._treeController) {
       return this._treeController.refresh();
     }
+
     return Promise.reject(new Error('No tree to refresh.'));
   }
 
@@ -68,6 +68,7 @@ export default class ExplorerController {
   public getTreeView(): vscode.TreeView<vscode.TreeItem> | undefined {
     return this._treeView;
   }
+
   public getTreeController(): ExplorerTreeController {
     return this._treeController;
   }

@@ -87,9 +87,11 @@ suite('Playground Controller Test Suite', () => {
 
       fakeShowErrorMessage.resolves(errorMessage);
 
-      await testPlaygroundController.runAllPlaygroundBlocks();
-
-      sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+      try {
+        await testPlaygroundController.runAllPlaygroundBlocks();
+      } catch (error) {
+        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+      }
     });
   });
 
@@ -122,41 +124,65 @@ suite('Playground Controller Test Suite', () => {
     });
 
     test('show a confirmation message if mdb.confirmRunAll is true', async () => {
+      let result: any;
+
       fakeShowInformationMessage.resolves('Yes');
 
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
+      try {
+        result = await testPlaygroundController.runAllPlaygroundBlocks();
+      } catch (error) {
+        // No action.
+      }
 
       expect(result).to.be.true;
     });
 
     test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
+      let result: any;
+
       await vscode.workspace
         .getConfiguration('mdb')
         .update('confirmRunAll', false);
 
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
+      try {
+        result = await testPlaygroundController.runAllPlaygroundBlocks();
+      } catch (error) {
+        // No action.
+      }
 
       expect(result).to.be.true;
     });
 
     test('do not run a playground if user selected No in the confirmation message', async () => {
+      let result: any;
+
       await vscode.workspace
         .getConfiguration('mdb')
         .update('confirmRunAll', true);
 
       fakeShowInformationMessage.resolves('No');
 
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
+      try {
+        result = await testPlaygroundController.runAllPlaygroundBlocks();
+      } catch (error) {
+        // No action.
+      }
 
       expect(result).to.be.false;
     });
 
     test('close cancelation modal when a playground is canceled', async () => {
+      let result: any;
+
       sinon.replace(testPlaygroundController, 'evaluate', sinon.fake.rejects());
 
-      const result = await testPlaygroundController.evaluateWithCancelModal();
+      try {
+        result = await testPlaygroundController.evaluateWithCancelModal();
+      } catch (error) {
+        // No action.
+      }
 
-      expect(result).to.be.equal(null);
+      expect(result).to.be.null;
     });
   });
 });
