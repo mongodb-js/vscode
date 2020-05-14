@@ -240,6 +240,17 @@ export default class ConnectionController {
     });
   };
 
+  public sendTelemetry(
+    newDataService: DataServiceType,
+    connectionType: ConnectionTypes
+  ) {
+    // Send metrics to Segment
+    this._telemetryController.trackNewConnection(
+      newDataService,
+      connectionType
+    );
+  }
+
   public parseNewConnectionAndConnect = (
     newConnectionModel: ConnectionModelType
   ): Promise<boolean> => {
@@ -304,7 +315,7 @@ export default class ConnectionController {
             return resolve(false);
           }
 
-          resolve(true);
+          return resolve(true);
         },
         reject
       );
@@ -376,10 +387,7 @@ export default class ConnectionController {
         this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
         // Send metrics to Segment
-        this._telemetryController.trackNewConnection(
-          newDataService,
-          connectionType
-        );
+        this.sendTelemetry(newDataService, connectionType);
 
         return resolve(true);
       });

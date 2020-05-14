@@ -11,6 +11,7 @@ import Connection = require('mongodb-connection-model/lib/model');
 import { StorageScope } from '../../../storage/storageController';
 import { ConnectionTypes } from '../../../connectionController';
 import { getDocUri, loadAndSavePlayground } from '../editorTestHelper';
+import DataService = require('mongodb-data-service');
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -24,6 +25,12 @@ config({ path: resolve(__dirname, '../../../../.env') });
 suite('Telemetry Controller Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
+  const dataService = new DataService(
+    new Connection({
+      hostname: 'localhost',
+      port: 27018
+    })
+  );
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
   const testTelemetryController = new TelemetryController(
@@ -78,9 +85,6 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   afterEach(() => {
-    // Reset our mock extension's state.
-    mockExtensionContext._workspaceState = {};
-    mockExtensionContext._globalState = {};
     sinon.restore();
   });
 
@@ -111,68 +115,52 @@ suite('Telemetry Controller Test Suite', () => {
       .then(done, done);
   });
 
-  test('track new connection event when connecting via connection string', (done) => {
+  test('track new connection event when connecting via connection string', () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    mockConnectionController
-      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
-      .then(() => {
-        sinon.assert.calledWith(
-          mockTrackNewConnection,
-          sinon.match.any,
-          sinon.match(ConnectionTypes.CONNECTION_STRING)
-        );
-        done();
-      });
+    mockConnectionController.sendTelemetry(
+      dataService,
+      ConnectionTypes.CONNECTION_STRING
+    );
+
+    sinon.assert.calledWith(
+      mockTrackNewConnection,
+      sinon.match.any,
+      sinon.match(ConnectionTypes.CONNECTION_STRING)
+    );
   });
 
-  test('track new connection event when connecting via connection form', (done) => {
+  test('track new connection event when connecting via connection form', () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    mockConnectionController
-      .parseNewConnectionAndConnect(
-        new Connection({
-          hostname: 'localhost',
-          port: 27018
-        })
-      )
-      .then(() => {
-        sinon.assert.calledWith(
-          mockTrackNewConnection,
-          sinon.match.any,
-          sinon.match(ConnectionTypes.CONNECTION_FORM)
-        );
-        done();
-      });
+    mockConnectionController.sendTelemetry(
+      dataService,
+      ConnectionTypes.CONNECTION_FORM
+    );
+
+    sinon.assert.calledWith(
+      mockTrackNewConnection,
+      sinon.match.any,
+      sinon.match(ConnectionTypes.CONNECTION_FORM)
+    );
   });
 
-  test('track new connection event when connecting via saved connection', (done) => {
+  test('track new connection event when connecting via saved connection', () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    mockConnectionController._connections = {
-      '25': {
-        id: '25',
-        driverUrl: TEST_DATABASE_URI,
-        name: 'tester',
-        connectionModel: new Connection({
-          hostname: 'localhost',
-          port: 27018
-        }),
-        storageLocation: StorageScope.NONE
-      }
-    };
+    mockConnectionController.sendTelemetry(
+      dataService,
+      ConnectionTypes.CONNECTION_ID
+    );
 
-    mockConnectionController.connectWithConnectionId('25').then(() => {
-      sinon.assert.calledWith(
-        mockTrackNewConnection,
-        sinon.match.any,
-        sinon.match(ConnectionTypes.CONNECTION_ID)
-      );
-      done();
-    });
+    sinon.assert.calledWith(
+      mockTrackNewConnection,
+      sinon.match.any,
+      sinon.match(ConnectionTypes.CONNECTION_ID)
+    );
   });
 
   test('track playground code executed event', async () => {

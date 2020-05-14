@@ -42,118 +42,112 @@ suite('Extension Test Suite', () => {
     sandbox.restore();
   });
 
-  test('commands are registered in vscode', (done) => {
-    vscode.commands
-      .getCommands()
-      .then((registeredCommands) => {
-        const expectedCommands = [
-          // General / connection commands.
-          'mdb.connect',
-          'mdb.connectWithURI',
-          'mdb.disconnect',
-          'mdb.removeConnection',
-          'mdb.openMongoDBShell',
-          'mdb.createPlayground',
-          'mdb.createNewPlaygroundFromViewAction',
+  test('commands are registered in vscode', async () => {
+    const registeredCommands = await vscode.commands.getCommands();
 
-          // Tree view commands.
-          'mdb.addConnection',
-          'mdb.addConnectionWithURI',
-          'mdb.copyConnectionString',
-          'mdb.treeItemRemoveConnection',
-          'mdb.addDatabase',
-          'mdb.refreshConnection',
-          'mdb.copyDatabaseName',
-          'mdb.refreshDatabase',
-          'mdb.addCollection',
-          'mdb.viewCollectionDocuments',
-          'mdb.copyCollectionName',
-          'mdb.refreshCollection',
-          'mdb.refreshSchema',
+    const expectedCommands = [
+      // General / connection commands.
+      'mdb.connect',
+      'mdb.connectWithURI',
+      'mdb.disconnect',
+      'mdb.removeConnection',
+      'mdb.openMongoDBShell',
+      'mdb.createPlayground',
+      'mdb.createNewPlaygroundFromViewAction',
 
-          // Editor commands.
-          'mdb.codeLens.showMoreDocumentsClicked'
-        ];
+      // Tree view commands.
+      'mdb.addConnection',
+      'mdb.addConnectionWithURI',
+      'mdb.copyConnectionString',
+      'mdb.treeItemRemoveConnection',
+      'mdb.addDatabase',
+      'mdb.refreshConnection',
+      'mdb.copyDatabaseName',
+      'mdb.refreshDatabase',
+      'mdb.addCollection',
+      'mdb.viewCollectionDocuments',
+      'mdb.copyCollectionName',
+      'mdb.refreshCollection',
+      'mdb.refreshSchema',
 
-        for (let i = 0; i < expectedCommands.length; i++) {
-          try {
-            assert.notEqual(
-              registeredCommands.indexOf(expectedCommands[i]),
-              -1,
-              `command ${expectedCommands[i]} not registered and was expected`
-            );
-          } catch (e) {
-            done(e);
-            return;
-          }
-        }
-      })
-      .then(() => done(), done);
+      // Editor commands.
+      'mdb.codeLens.showMoreDocumentsClicked'
+    ];
+
+    for (let i = 0; i < expectedCommands.length; i++) {
+      try {
+        assert.notEqual(
+          registeredCommands.indexOf(expectedCommands[i]),
+          -1,
+          `command ${expectedCommands[i]} not registered and was expected`
+        );
+      } catch (e) {
+        assert(false);
+        return;
+      }
+    }
   });
 
-  test('openMongoDBShell should display an error message when not connected', (done) => {
+  test('openMongoDBShell should display an error message when not connected', async () => {
     const errorMessage =
       'You need to be connected before launching the MongoDB Shell.';
 
     fakeShowErrorMessage.resolves(errorMessage);
 
-    mockMDBExtension
-      .openMongoDBShell()
-      .then((didOpenShell) => {
-        assert(didOpenShell === false);
-        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
-      })
-      .then(done, done);
+    try {
+      await mockMDBExtension.openMongoDBShell();
+    } catch (error) {
+      sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+    }
   });
 
-  test('openMongoDBShell should open a terminal with the active connection driver url', (done) => {
-    testConnectionController
-      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
-      .then((succesfullyConnected) => {
-        assert(
-          succesfullyConnected === true,
-          'Expected a successful connection response.'
-        );
+  test('openMongoDBShell should open a terminal with the active connection driver url', async () => {
+    try {
+      const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
 
-        mockMDBExtension
-          .openMongoDBShell()
-          .then(() => {
-            const spyActiveConnectionDriverUrl = sinon.spy(
-              testConnectionController,
-              'getActiveConnectionDriverUrl'
-            );
-            const createTerminalSpy = sinon.spy(
-              vscode.window,
-              'createTerminal'
-            );
+      assert(
+        succesfullyConnected === true,
+        'Expected a successful connection response.'
+      );
 
-            disposables.push(
-              vscode.window.onDidOpenTerminal(() => {
-                testConnectionController.disconnect();
+      await mockMDBExtension.openMongoDBShell();
 
-                try {
-                  assert(spyActiveConnectionDriverUrl.called);
-                  assert(createTerminalSpy.called);
-                  const expectedUri =
-                    'mongodb://localhost:27018/?readPreference=primary&ssl=false';
-                  assert(
-                    createTerminalSpy.getCall(0).args[0].env
-                      .MDB_CONNECTION_STRING === expectedUri,
-                    `Expected open terminal to set env var 'MDB_CONNECTION_STRING' to ${expectedUri} found ${
-                      createTerminalSpy.getCall(0).args[0].env
-                        .MDB_CONNECTION_STRING
-                    }`
-                  );
-                } catch (e) {
-                  done(e);
-                  return;
-                }
+      const spyActiveConnectionDriverUrl = sinon.spy(
+        testConnectionController,
+        'getActiveConnectionDriverUrl'
+      );
+      const createTerminalSpy = sinon.spy(vscode.window, 'createTerminal');
 
-                done();
-              })
-            );
-          })
-          .then(done, done);
-      });
+      const checkResult = async () => {
+        await testConnectionController.disconnect();
+
+        try {
+          assert(spyActiveConnectionDriverUrl.called);
+          assert(createTerminalSpy.called);
+
+          const expectedUri =
+            'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+
+          assert(
+            createTerminalSpy.getCall(0).args[0].env.MDB_CONNECTION_STRING ===
+              expectedUri,
+            `Expected open terminal to set env var 'MDB_CONNECTION_STRING' to ${expectedUri} found ${
+              createTerminalSpy.getCall(0).args[0].env.MDB_CONNECTION_STRING
+            }`
+          );
+
+          testConnectionController.clearAllConnections();
+        } catch (e) {
+          assert(false);
+          return;
+        }
+      };
+
+      disposables.push(vscode.window.onDidOpenTerminal(checkResult));
+    } catch (error) {
+      assert(false);
+    }
   });
 });

@@ -102,8 +102,8 @@ export default class TelemetryController {
     vscode.workspace.onDidOpenTextDocument((document) => {
       if (
         document &&
-        document.uri.scheme === 'file' &&
-        document.languageId === 'mongodb'
+        document.languageId === 'mongodb' &&
+        document.uri.scheme === 'file'
       ) {
         // Send metrics to Segment.
         this.trackPlaygroundLoaded();
@@ -111,7 +111,7 @@ export default class TelemetryController {
     });
 
     vscode.workspace.onDidSaveTextDocument((document) => {
-      if (document.languageId === 'mongodb') {
+      if (document && document.languageId === 'mongodb') {
         // Send metrics to Segment.
         this.trackPlaygroundSaved();
       }
@@ -148,10 +148,7 @@ export default class TelemetryController {
   }
 
   public needTelemetry() {
-    return (
-      vscode.workspace.getConfiguration('mdb').get('sendTelemetry') &&
-      this._segmentUserID
-    );
+    return vscode.workspace.getConfiguration('mdb').get('sendTelemetry');
   }
 
   public track(
