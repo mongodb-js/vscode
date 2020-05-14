@@ -1,13 +1,9 @@
 import * as vscode from 'vscode';
-
 import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
 import { LanguageServerController } from '../language';
-import TelemetryController, {
-  TelemetryEventTypes,
-  TelemetryEventProperties
-} from '../telemetry/telemetryController';
+import TelemetryController from '../telemetry/telemetryController';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundTemplate from '../templates/playgroundTemplate';
@@ -137,43 +133,15 @@ export default class PlaygroundController {
     });
   }
 
-  public prepareTelemetry(res: any): TelemetryEventProperties {
-    let type = 'other';
-
-    if (!res.shellApiType) {
-      return { type };
-    }
-
-    const shellApiType = res.shellApiType.toLocaleLowerCase();
-
-    // See: https://github.com/mongodb-js/mongosh/blob/master/packages/shell-api/src/shell-api.js
-    if (shellApiType.includes('insert')) {
-      type = 'insert';
-    } else if (shellApiType.includes('update')) {
-      type = 'update';
-    } else if (shellApiType.includes('delete')) {
-      type = 'delete';
-    } else if (shellApiType.includes('aggregation')) {
-      type = 'aggregation';
-    } else if (shellApiType.includes('cursor')) {
-      type = 'query';
-    }
-
-    return { type };
-  }
-
   public async evaluate(codeToEvaluate: string): Promise<any> {
-    // Send a request to the language server to execute scripts from a playground
+    // Send a request to the language server to execute scripts from a playground.
     const result = await this._languageServerController.executeAll(
       codeToEvaluate
     );
 
-    if (result && this._telemetryController.needTelemetry()) {
-      // Send metrics to Segment
-      this._telemetryController.track(
-        TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED,
-        this.prepareTelemetry(result)
-      );
+    // Send metrics to Segment.
+    if (result) {
+      this._telemetryController.trackPlaygroundCodeExecuted(result);
     }
 
     return Promise.resolve(result);
@@ -196,7 +164,7 @@ export default class PlaygroundController {
           },
           async (progress, token) => {
             token.onCancellationRequested(async () => {
-              // If a user clicked the cancel button terminate all playground scripts
+              // If a user clicked the cancel button terminate all playground scripts.
               this._languageServerController.cancelAll();
               this._outputChannel.clear();
               this._outputChannel.show(true);
@@ -206,7 +174,7 @@ export default class PlaygroundController {
 
             const codeToEvaluate =
               this._activeTextEditor?.document.getText() || '';
-            // Run all playground scripts
+            // Run all playground scripts.
             const result = await this.evaluate(codeToEvaluate);
 
             return resolve(result);

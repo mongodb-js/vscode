@@ -87,9 +87,11 @@ suite('Playground Controller Test Suite', () => {
 
       fakeShowErrorMessage.resolves(errorMessage);
 
-      await testPlaygroundController.runAllPlaygroundBlocks();
-
-      sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+      try {
+        await testPlaygroundController.runAllPlaygroundBlocks();
+      } catch (error) {
+        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+      }
     });
   });
 
@@ -122,141 +124,65 @@ suite('Playground Controller Test Suite', () => {
     });
 
     test('show a confirmation message if mdb.confirmRunAll is true', async () => {
+      let result: any;
+
       fakeShowInformationMessage.resolves('Yes');
 
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
+      try {
+        result = await testPlaygroundController.runAllPlaygroundBlocks();
+      } catch (error) {
+        // No action.
+      }
 
       expect(result).to.be.true;
     });
 
     test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
+      let result: any;
+
       await vscode.workspace
         .getConfiguration('mdb')
         .update('confirmRunAll', false);
 
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
+      try {
+        result = await testPlaygroundController.runAllPlaygroundBlocks();
+      } catch (error) {
+        // No action.
+      }
 
       expect(result).to.be.true;
     });
 
     test('do not run a playground if user selected No in the confirmation message', async () => {
+      let result: any;
+
       await vscode.workspace
         .getConfiguration('mdb')
         .update('confirmRunAll', true);
 
       fakeShowInformationMessage.resolves('No');
 
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
+      try {
+        result = await testPlaygroundController.runAllPlaygroundBlocks();
+      } catch (error) {
+        // No action.
+      }
 
       expect(result).to.be.false;
     });
 
     test('close cancelation modal when a playground is canceled', async () => {
+      let result: any;
+
       sinon.replace(testPlaygroundController, 'evaluate', sinon.fake.rejects());
 
-      const result = await testPlaygroundController.evaluateWithCancelModal();
+      try {
+        result = await testPlaygroundController.evaluateWithCancelModal();
+      } catch (error) {
+        // No action.
+      }
 
-      expect(result).to.be.equal(null);
-    });
-  });
-
-  suite('prepare telemetry types', () => {
-    test('convert AggregationCursor shellApiType to aggregation telemetry type', () => {
-      const res = { shellApiType: 'AggregationCursor' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'aggregation' });
-    });
-
-    test('convert BulkWriteResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'BulkWriteResult' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'other' });
-    });
-
-    test('convert Collection shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'Collection' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'other' });
-    });
-
-    test('convert Cursor shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'Cursor' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'query' });
-    });
-
-    test('convert Database shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'Database' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'other' });
-    });
-
-    test('convert DeleteResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'DeleteResult' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'delete' });
-    });
-
-    test('convert InsertManyResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'InsertManyResult' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'insert' });
-    });
-
-    test('convert InsertOneResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'InsertOneResult' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'insert' });
-    });
-
-    test('convert ReplicaSet shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'ReplicaSet' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'other' });
-    });
-
-    test('convert Shard shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'Shard' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'other' });
-    });
-
-    test('convert ShellApi shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'ShellApi' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'other' });
-    });
-
-    test('convert UpdateResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'UpdateResult' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'update' });
-    });
-
-    test('convert UpdateResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'UpdateResult' };
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'update' });
-    });
-
-    test('return other telemetry type if evaluation returns a string', () => {
-      const res = '2';
-      const type = testPlaygroundController.prepareTelemetry(res);
-
-      expect(type).to.deep.equal({ type: 'other' });
+      expect(result).to.be.null;
     });
   });
 });

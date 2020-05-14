@@ -4,12 +4,29 @@ import SegmentAnalytics = require('analytics-node');
 import * as path from 'path';
 import { config } from 'dotenv';
 import { StorageController } from '../storage';
+import { ConnectionTypes } from '../connectionController';
+import { getCloudInfo } from 'mongodb-cloud-info';
+import { DataServiceType } from '../dataServiceType';
 
 const log = createLogger('telemetry');
 const fs = require('fs');
 
+const ATLAS_REGEX = /mongodb.net[:/]/i;
+const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
+
 type PlaygroundTelemetryEventProperties = {
   type: string;
+};
+
+type SegmentProperties = {
+  event: string;
+  userId?: string;
+  properties?: any;
+};
+
+type CloudInfo = {
+  isPublicCloud?: boolean;
+  publicCloudName?: string | null;
 };
 
 type LinkClickedTelemetryEventProperties = {
@@ -26,8 +43,8 @@ type NewConnectionTelemetryEventProperties = {
   is_localhost: boolean;
   is_data_lake: boolean;
   is_enterprise: boolean;
-  is_public_cloud: boolean;
-  public_cloud_name: string | null;
+  is_public_cloud?: boolean;
+  public_cloud_name?: string | null;
   is_genuine: boolean;
   non_genuine_server_name: string | null;
   server_version: string;
@@ -48,7 +65,9 @@ export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
   EXTENSION_LINK_CLICKED = 'Link Clicked',
   EXTENSION_COMMAND_RUN = 'Command Run',
-  NEW_CONNECTION = 'New Connection'
+  NEW_CONNECTION = 'New Connection',
+  PLAYGROUND_SAVED = 'Playground Saved',
+  PLAYGROUND_LOADED = 'Playground Loaded'
 }
 
 /**
@@ -79,6 +98,24 @@ export default class TelemetryController {
     } catch (error) {
       log.error('TELEMETRY key error', error);
     }
+
+    vscode.workspace.onDidOpenTextDocument((document) => {
+      if (
+        document &&
+        document.languageId === 'mongodb' &&
+        document.uri.scheme === 'file'
+      ) {
+        // Send metrics to Segment.
+        this.trackPlaygroundLoaded();
+      }
+    });
+
+    vscode.workspace.onDidSaveTextDocument((document) => {
+      if (document && document.languageId === 'mongodb') {
+        // Send metrics to Segment.
+        this.trackPlaygroundSaved();
+      }
+    });
   }
 
   get segmentUserID(): string | undefined {
@@ -116,29 +153,161 @@ export default class TelemetryController {
 
   public track(
     eventType: TelemetryEventTypes,
-    properties: TelemetryEventProperties
+    properties?: TelemetryEventProperties
   ): void {
     if (this.needTelemetry()) {
-      log.info('TELEMETRY track', {
-        eventType,
-        segmentUserID: this._segmentUserID,
-        properties
-      });
+      const segmentProperties: SegmentProperties = {
+        event: eventType,
+        userId: this._segmentUserID
+      };
 
-      this._segmentAnalytics?.track(
-        {
-          userId: this._segmentUserID,
-          event: eventType,
-          properties
-        },
-        (error) => {
-          if (error) {
-            log.error('TELEMETRY track error', error);
-          }
+      if (properties) {
+        segmentProperties.properties = properties;
+      }
 
-          log.info('TELEMETRY track done');
+      log.info('TELEMETRY track', segmentProperties);
+
+      this._segmentAnalytics?.track(segmentProperties, (error: any) => {
+        if (error) {
+          log.error('TELEMETRY track error', error);
         }
-      );
+
+        log.info('TELEMETRY track done');
+      });
     }
+  }
+
+  private async getCloudInfoFromDataService(
+    firstServerHostname: string
+  ): Promise<CloudInfo> {
+    if (!this.needTelemetry()) {
+      return {};
+    }
+
+    try {
+      const cloudInfo = await getCloudInfo(firstServerHostname);
+
+      if (cloudInfo.isAws) {
+        return {
+          isPublicCloud: true,
+          publicCloudName: 'aws'
+        };
+      }
+      if (cloudInfo.isGcp) {
+        return {
+          isPublicCloud: true,
+          publicCloudName: 'gcp'
+        };
+      }
+      if (cloudInfo.isAzure) {
+        return {
+          isPublicCloud: true,
+          publicCloudName: 'azure'
+        };
+      }
+
+      return {
+        isPublicCloud: false,
+        publicCloudName: null
+      };
+    } catch (error) {
+      log.error('TELEMETRY cloud info error', error);
+
+      return {};
+    }
+  }
+
+  public async trackNewConnection(
+    dataService: DataServiceType,
+    connectionType: ConnectionTypes
+  ): Promise<void> {
+    dataService.instance({}, async (error: any, data: any) => {
+      if (error) {
+        log.error('TELEMETRY data service error', error);
+      }
+
+      if (data) {
+        const firstServerHostname = dataService.client.model.hosts[0].host;
+        const cloudInfo = await this.getCloudInfoFromDataService(
+          firstServerHostname
+        );
+        const nonGenuineServerName = data.genuineMongoDB.isGenuine
+          ? null
+          : data.genuineMongoDB.dbType;
+        const preparedProperties = {
+          is_atlas: !!data.client.s.url.match(ATLAS_REGEX),
+          is_localhost: !!data.client.s.url.match(LOCALHOST_REGEX),
+          is_data_lake: data.dataLake.isDataLake,
+          is_enterprise: data.build.enterprise_module,
+          is_public_cloud: cloudInfo.isPublicCloud,
+          public_cloud_name: cloudInfo.publicCloudName,
+          is_genuine: data.genuineMongoDB.isGenuine,
+          non_genuine_server_name: nonGenuineServerName,
+          server_version: data.build.version,
+          server_arch: data.build.raw.buildEnvironment.target_arch,
+          server_os: data.build.raw.buildEnvironment.target_os,
+          is_used_connect_screen:
+            connectionType === ConnectionTypes.CONNECTION_FORM,
+          is_used_command_palette:
+            connectionType === ConnectionTypes.CONNECTION_STRING,
+          is_used_saved_connection:
+            connectionType === ConnectionTypes.CONNECTION_ID
+        };
+
+        this.track(TelemetryEventTypes.NEW_CONNECTION, preparedProperties);
+      }
+    });
+  }
+
+  public async trackCommandRun(command: string): Promise<void> {
+    this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
+  }
+
+  public getPlaygroundResultType(res: any): string {
+    if (!res.shellApiType) {
+      return 'other';
+    }
+
+    const shellApiType = res.shellApiType.toLocaleLowerCase();
+
+    // See: https://github.com/mongodb-js/mongosh/blob/master/packages/shell-api/src/shell-api.js
+    if (shellApiType.includes('insert')) {
+      return 'insert';
+    }
+    if (shellApiType.includes('update')) {
+      return 'update';
+    }
+    if (shellApiType.includes('delete')) {
+      return 'delete';
+    }
+    if (shellApiType.includes('aggregation')) {
+      return 'aggregation';
+    }
+    if (shellApiType.includes('cursor')) {
+      return 'query';
+    }
+
+    return 'other';
+  }
+
+  public async trackPlaygroundCodeExecuted(result: any): Promise<void> {
+    this.track(TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED, {
+      type: this.getPlaygroundResultType(result)
+    });
+  }
+
+  public async trackLinkClicked(screen: string, linkId: string): Promise<void> {
+    this.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED, {
+      screen,
+      link_id: linkId
+    });
+  }
+
+  public async trackPlaygroundLoaded(): Promise<void> {
+    this.track(TelemetryEventTypes.PLAYGROUND_LOADED);
+  }
+
+  public async trackPlaygroundSaved(): Promise<void> {
+    this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
   }
 }

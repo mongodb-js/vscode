@@ -11,16 +11,11 @@ import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { SavedConnection, StorageScope } from './storage/storageController';
 import { getNodeModule } from './utils/getNodeModule';
-import TelemetryController, {
-  TelemetryEventTypes
-} from './telemetry/telemetryController';
-import { getCloudInfo } from 'mongodb-cloud-info';
+import TelemetryController from './telemetry/telemetryController';
 
 const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
 const MAX_CONNECTION_NAME_LENGTH = 512;
-const ATLAS_REGEX = /mongodb.net[:/]/i;
-const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
 
 type KeyTar = typeof keytarType;
 
@@ -245,6 +240,17 @@ export default class ConnectionController {
     });
   };
 
+  public sendTelemetry(
+    newDataService: DataServiceType,
+    connectionType: ConnectionTypes
+  ) {
+    // Send metrics to Segment
+    this._telemetryController.trackNewConnection(
+      newDataService,
+      connectionType
+    );
+  }
+
   public parseNewConnectionAndConnect = (
     newConnectionModel: ConnectionModelType
   ): Promise<boolean> => {
@@ -309,81 +315,12 @@ export default class ConnectionController {
             return resolve(false);
           }
 
-          resolve(true);
+          return resolve(true);
         },
         reject
       );
     });
   };
-
-  public async getCloudInfoFromDataService(firstServerHostname: string) {
-    const cloudInfo = await getCloudInfo(firstServerHostname);
-    let isPublicCloud = false;
-    let publicCloudName: string | null = null;
-
-    if (cloudInfo.isAws) {
-      isPublicCloud = true;
-      publicCloudName = 'aws';
-    } else if (cloudInfo.isGcp) {
-      isPublicCloud = true;
-      publicCloudName = 'gcp';
-    } else if (cloudInfo.isAzure) {
-      isPublicCloud = true;
-      publicCloudName = 'azure';
-    }
-
-    return { isPublicCloud, publicCloudName };
-  }
-
-  private async sendTelemetry(
-    dataService: DataServiceType,
-    connectionType: ConnectionTypes
-  ): Promise<void> {
-    dataService.instance({}, async (error: any, data: any) => {
-      if (error) {
-        log.error('TELEMETRY data service error', error);
-      }
-
-      if (data) {
-        try {
-          const firstServerHostname = dataService.client.model.hosts[0].host;
-          const cloudInfo = await this.getCloudInfoFromDataService(
-            firstServerHostname
-          );
-          const nonGenuineServerName = data.genuineMongoDB.isGenuine
-            ? null
-            : data.genuineMongoDB.dbType;
-          const telemetryData = {
-            is_atlas: !!data.client.s.url.match(ATLAS_REGEX),
-            is_localhost: !!data.client.s.url.match(LOCALHOST_REGEX),
-            is_data_lake: data.dataLake.isDataLake,
-            is_enterprise: data.build.enterprise_module,
-            is_public_cloud: cloudInfo.isPublicCloud,
-            public_cloud_name: cloudInfo.publicCloudName,
-            is_genuine: data.genuineMongoDB.isGenuine,
-            non_genuine_server_name: nonGenuineServerName,
-            server_version: data.build.version,
-            server_arch: data.build.raw.buildEnvironment.target_arch,
-            server_os: data.build.raw.buildEnvironment.target_os,
-            is_used_connect_screen:
-              connectionType === ConnectionTypes.CONNECTION_FORM,
-            is_used_command_palette:
-              connectionType === ConnectionTypes.CONNECTION_STRING,
-            is_used_saved_connection:
-              connectionType === ConnectionTypes.CONNECTION_ID
-          };
-
-          // Send metrics to Segment
-          this._telemetryController.track(
-            TelemetryEventTypes.NEW_CONNECTION,
-            telemetryData
-          );
-        } catch (error) {
-          log.error('TELEMETRY cloud info error', error);
-        }
-      }
-    });
-  }
 
   public connect = async (
     connectionId: string,
@@ -449,9 +386,8 @@ export default class ConnectionController {
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
         this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
-        if (this._telemetryController.needTelemetry()) {
-          this.sendTelemetry(newDataService, connectionType);
-        }
+        // Send metrics to Segment
+        this.sendTelemetry(newDataService, connectionType);
 
         return resolve(true);
       });
@@ -659,13 +595,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._connections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
-      );
+      connectionIds.map(
+        (id, index) => `${index + 1}: ${this._connections[id].name}`
+      ),
+      {
+        placeHolder: 'Choose a connection to remove...'
+      }
+    );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);

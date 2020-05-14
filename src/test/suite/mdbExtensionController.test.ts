@@ -799,7 +799,7 @@ suite('MDBExtensionController Test Suite', () => {
 
         vscode.commands
           .executeCommand('mdb.dropCollection', testCollectionTreeItem)
-          .then((successfullyDropped) => {
+          .then(async (successfullyDropped) => {
             assert(
               successfullyDropped === false,
               'Expected the drop collection command handler to return a false succeeded response'
@@ -809,6 +809,9 @@ suite('MDBExtensionController Test Suite', () => {
               fakeVscodeErrorMessage.firstArg === expectedMessage,
               `Expected "${expectedMessage}" when dropping a collection that doesn't exist, recieved "${fakeVscodeErrorMessage.firstArg}"`
             );
+
+            await testConnectionController.disconnect();
+            testConnectionController.clearAllConnections();
           })
           .then(done, done);
       });
@@ -1009,10 +1012,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
       })
-      .then(done, () => {
-        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
-        done();
-      });
+      .then(done, done);
   });
 
   test('mdb.renameConnection updates the name of a connection', (done) => {
@@ -1048,10 +1048,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
       })
-      .then(done, () => {
-        mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
-        done();
-      });
+      .then(done, done);
   });
 
   test('mdb.viewDocument opens an editor with the document using its id', (done) => {

@@ -9,9 +9,7 @@ import ConnectionController from './connectionController';
 import { EditorsController, PlaygroundController } from './editors';
 import { ExplorerController, CollectionTreeItem } from './explorer';
 import { LanguageServerController } from './language';
-import TelemetryController, {
-  TelemetryEventTypes
-} from './telemetry/telemetryController';
+import TelemetryController from './telemetry/telemetryController';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController } from './storage';
@@ -42,7 +40,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     connectionController?: ConnectionController
   ) {
     this._context = context;
-
     this._statusView = new StatusView(context);
     this._storageController = new StorageController(context);
     this._telemetryController = new TelemetryController(
@@ -136,13 +133,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
     const commandHandlerWithTelemetry = (args: any[]) => {
-      // Send metrics to Segment
-      this._telemetryController.track(
-        TelemetryEventTypes.EXTENSION_COMMAND_RUN,
-        {
-          command
-        }
-      );
+      // Send metrics to Segment.
+      this._telemetryController.trackCommandRun(command);
 
       return commandHandler(args);
     };
@@ -204,6 +196,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         return new Promise((resolve, reject) => {
           vscode.env.clipboard.writeText(connectionString).then(() => {
             vscode.window.showInformationMessage('Copied to clipboard.');
+
             return resolve(true);
           }, reject);
         });

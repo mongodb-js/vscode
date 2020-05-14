@@ -176,8 +176,8 @@ class MockLanguageServerController {
 
   deactivate(): void {}
 
-  executeAll(codeToEvaluate): Promise<any> {
-    return Promise.resolve(true);
+  executeAll(codeToEvaluate: string): Promise<any> {
+    return Promise.resolve('Result');
   }
 
   connectToServiceProvider(params: {
