@@ -19,7 +19,7 @@ MongoDB for VS Code makes it easy to work with MongoDB, whether your own instanc
 MongoDB Playgrounds are the most convenient way to prototype and execute CRUD operations and other MongoDB commands directly inside VS Code.
 
 - Prototype your queries, aggregations, and MongoDB commands with MongoDB syntax highlighting and intelligent autocomplete for MongoDB shell API, MongoDB operators, and for database, collection, and field names.
-- Run your playgrounds and see the results instantly
+- Run your playgrounds and see the results instantly. Click the play button in the tab bar to see the output.
 - Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB
 - Build aggregations quickly with helpful and well-commented stage snippets
 
