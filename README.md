@@ -1,6 +1,6 @@
 # MongoDB for VS Code ![PREVIEW](https://img.shields.io/badge/-PREVIEW-orange)
 
-[![Build Status](<https://dev.azure.com/team-compass/vscode/_apis/build/status/mongodb-js.vscode%20(1)?branchName=master>)](https://dev.azure.com/team-compass/vscode/_build/latest?definitionId=10&branchName=master)
+[![Build Status](https://dev.azure.com/team-compass/vscode/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/vscode/_build/latest?definitionId=10&branchName=master)
 
 MongoDB for VS Code makes it easy to work with MongoDB, whether your own instance or in [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register).
 
