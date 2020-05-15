@@ -130,11 +130,13 @@ suite('Extension Test Suite', () => {
           const expectedUri =
             'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
+          const terminalOptions: vscode.TerminalOptions = createTerminalSpy.firstCall.args[0];
+
           assert(
-            createTerminalSpy.getCall(0).args[0].env.MDB_CONNECTION_STRING ===
+            terminalOptions.env?.MDB_CONNECTION_STRING ===
               expectedUri,
             `Expected open terminal to set env var 'MDB_CONNECTION_STRING' to ${expectedUri} found ${
-              createTerminalSpy.getCall(0).args[0].env.MDB_CONNECTION_STRING
+              terminalOptions.env?.MDB_CONNECTION_STRING
             }`
           );
 

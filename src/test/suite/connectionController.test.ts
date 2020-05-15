@@ -42,7 +42,11 @@ suite('Connection Controller Test Suite', function () {
   beforeEach(() => {
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.
-    sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
+    sinon.replace(
+      vscode.window,
+      'showInformationMessage',
+      sinon.fake.resolves(true)
+    );
   });
 
   afterEach(async () => {
@@ -155,8 +159,8 @@ suite('Connection Controller Test Suite', function () {
       await testConnectionController.disconnect();
 
       assert(
-        fakeVscodeErrorMessage.firstArg === expectedMessage,
-        `Expected error message "${expectedMessage}" when disconnecting with no active connection, recieved "${fakeVscodeErrorMessage.firstArg}"`
+        fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+        `Expected error message "${expectedMessage}" when disconnecting with no active connection, recieved "${fakeVscodeErrorMessage.firstCall.args[0]}"`
       );
     } catch (error) {
       assert(!!error, 'Expected an error disconnect response.');
@@ -245,8 +249,8 @@ suite('Connection Controller Test Suite', function () {
       await testConnectionController.disconnect();
 
       assert(
-        fakeVscodeErrorMessage.firstArg === expectedMessage,
-        `Expected "${expectedMessage}" when disconnecting while connecting, recieved "${fakeVscodeErrorMessage.firstArg}"`
+        fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+        `Expected "${expectedMessage}" when disconnecting while connecting, recieved "${fakeVscodeErrorMessage.firstCall.args[0]}"`
       );
     } catch (error) {
       assert(!!error, 'Expected an error disconnect response.');
@@ -265,8 +269,8 @@ suite('Connection Controller Test Suite', function () {
       await testConnectionController.disconnect();
 
       assert(
-        fakeVscodeErrorMessage.firstArg === expectedMessage,
-        `Expected "${expectedMessage}" when disconnecting while already disconnecting, recieved "${fakeVscodeErrorMessage.firstArg}"`
+        fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+        `Expected "${expectedMessage}" when disconnecting while already disconnecting, recieved "${fakeVscodeErrorMessage.firstCall.args[0]}"`
       );
     } catch (error) {
       assert(!!error, 'Expected an error disconnect response.');
@@ -486,9 +490,9 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('a connection can be connected to by id', async () => {
-    const getConnection = (TEST_DATABASE_URI): Promise<any> =>
+    const getConnection = (dbUri): Promise<any> =>
       new Promise((resolve, reject) => {
-        Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
+        Connection.from(dbUri, (err, connectionModel) => {
           if (err) {
             return reject(err);
           }
