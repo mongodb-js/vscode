@@ -70,10 +70,10 @@ export default class PlaygroundController {
       if (
         editor &&
         editor.document &&
-        !editor.document.uri.path.includes('extension-output')
+        editor.document.languageId === 'mongodb'
       ) {
         this._activeTextEditor = editor;
-        log.info('Active editor uri', editor.document.uri.path);
+        log.info('Active editor path', editor.document.uri?.path);
       }
     });
   }
@@ -172,8 +172,12 @@ export default class PlaygroundController {
               return resolve(null);
             });
 
-            const codeToEvaluate =
-              this._activeTextEditor?.document.getText() || '';
+            let codeToEvaluate = '';
+
+            if (this._activeTextEditor && this._activeTextEditor.document) {
+              codeToEvaluate = this._activeTextEditor.document.getText() || '';
+            }
+
             // Run all playground scripts.
             const result = await this.evaluate(codeToEvaluate);
 
