@@ -15,7 +15,7 @@ const expect = chai.expect;
 chai.use(require('chai-as-promised'));
 
 const CONNECTION = {
-  driverUrl: 'mongodb://localhost:27018',
+  driverUrlWithSsh: 'mongodb://localhost:27018',
   driverOptions: {}
 };
 

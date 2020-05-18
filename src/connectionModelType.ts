@@ -1,5 +1,6 @@
 type ConnectionAttributes = {
   driverUrl: string;
+  driverUrlWithSsh: string;
   driverOptions: any;
   instanceId: string;
 };

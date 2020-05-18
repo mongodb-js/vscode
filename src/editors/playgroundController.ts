@@ -87,8 +87,8 @@ export default class PlaygroundController {
       .getActiveConnectionModel()
       ?.getAttributes({ derived: true });
 
-    if (model && model.driverUrl) {
-      this._connectionString = model.driverUrl;
+    if (model && model.driverUrlWithSsh) {
+      this._connectionString = model.driverUrlWithSsh;
       this._connectionOptions = model.driverOptions ? model.driverOptions : {};
 
       return this._languageServerController.connectToServiceProvider({

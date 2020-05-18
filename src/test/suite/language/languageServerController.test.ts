@@ -19,7 +19,7 @@ import { TestExtensionContext } from '../stubs';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 const CONNECTION = {
-  driverUrl: 'mongodb://localhost:27018',
+  driverUrlWithSsh: 'mongodb://localhost:27018',
   driverOptions: {}
 };
 
