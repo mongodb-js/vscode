@@ -32,17 +32,6 @@ steps:
       sudo chmod +x /etc/init.d/xvfb
       sudo update-rc.d xvfb defaults
       sudo service xvfb start
-
-      # Give xvfb a moment to start.
-      sleep 3;
-
-      # Login our credential store to avoid timeout when storing and retrieving.
-      sudo apt-get install -y gnome-keyring python-gnomekeyring
-      eval $(dbus-launch --sh-syntax);
-      eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-      eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
-      /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
-
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
