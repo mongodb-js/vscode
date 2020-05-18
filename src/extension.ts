@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 
 import { ext } from './extensionConstants';
-import { tryToCreateKeytar } from './utils/keytar';
+import { createKeytar } from './utils/keytar';
 import { createLogger } from './logging';
 const log = createLogger('extension.ts');
 
@@ -29,7 +29,7 @@ export function activate(context: vscode.ExtensionContext): void {
   ext.context = context;
 
   try {
-    ext.keytarModule = tryToCreateKeytar();
+    ext.keytarModule = createKeytar();
   } catch (err) {
     // Couldn't load keytar, proceed without storing & loading connections.
   }

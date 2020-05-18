@@ -22,7 +22,11 @@ export interface KeytarInterface {
    *
    * @returns A promise for the set password completion.
    */
-  setPassword(service: string, account: string, password: string): Promise<void>;
+  setPassword(
+    service: string,
+    account: string,
+    password: string
+  ): Promise<void>;
 
   /**
    * Delete the stored password for the service and account.
@@ -35,7 +39,7 @@ export interface KeytarInterface {
   deletePassword(service: string, account: string): Promise<boolean>;
 }
 
-export const tryToCreateKeytar = (): KeytarInterface | undefined => {
+export const createKeytar = (): KeytarInterface | undefined => {
   // We load keytar in two different ways. This is because when the
   // extension is webpacked it requires the vscode external keytar dependency
   // differently then our development environment.
