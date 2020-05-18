@@ -25,6 +25,7 @@ steps:
   - script: |
       set -e
       sudo apt-get update
+
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
