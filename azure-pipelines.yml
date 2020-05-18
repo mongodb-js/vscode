@@ -10,14 +10,14 @@ trigger:
 strategy:
   matrix:
     linux:
-      imageName: 'ubuntu-16.04'
-    # mac:
-    #   imageName: 'macos-latest'
-    # windows:
-    #   # NOTE (lucas): Also blocked on Windows 2019 by
-    #   # https://jira.mongodb.org/browse/NODE-2465
-    #   # imageName: 'windows-latest'
-    #   imageName: 'vs2017-win2016'
+      imageName: 'ubuntu-latest'
+    mac:
+      imageName: 'macos-latest'
+    windows:
+      # NOTE (lucas): Also blocked on Windows 2019 by
+      # https://jira.mongodb.org/browse/NODE-2465
+      # imageName: 'windows-latest'
+      imageName: 'vs2017-win2016'
 pool:
   vmImage: $(imageName)
 
@@ -25,13 +25,6 @@ steps:
   - script: |
       set -e
       sudo apt-get update
-
-      # Start xvfb running.
-      sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libxss1 dbus xvfb libgtk-3-0
-      sudo cp scripts/xvfb.init /etc/init.d/xvfb
-      sudo chmod +x /etc/init.d/xvfb
-      sudo update-rc.d xvfb defaults
-      sudo service xvfb start
     displayName: 'Install native Linux dependencies'
     condition: in(variables['agent.os'], 'Linux')
   - task: NodeTool@0
@@ -55,11 +48,10 @@ steps:
       npm ci;
     displayName: 'Install dependencies from npm'
 
-  - bash: DISPLAY=:10 npm run test
+  - bash: npm run test
     displayName: 'Run Tests'
     env:
       SEGMENT_KEY: $(segmentKey)
-      DISPLAY: :10
   - bash: ls -alh
     displayName: 'Post Tests'
 
