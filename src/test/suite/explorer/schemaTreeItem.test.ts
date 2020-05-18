@@ -156,8 +156,8 @@ suite('SchemaTreeItem Test Suite', () => {
         const expectedMessage =
           'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
         assert(
-          fakeVscodeErrorMessage.firstArg === expectedMessage,
-          `Expected error message to be "${expectedMessage}" found "${fakeVscodeErrorMessage.firstArg}"`
+          fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+          `Expected error message to be "${expectedMessage}" found "${fakeVscodeErrorMessage.firstCall.args[0]}"`
         );
       })
       .then(done, done);

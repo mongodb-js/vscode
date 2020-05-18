@@ -307,7 +307,7 @@ suite('Connect Form View Test Suite', () => {
       html: '',
       postMessage: (): void => {
         assert(fakeVSCodeOpenDialog.called);
-        assert(fakeVSCodeOpenDialog.firstArg.canSelectFiles);
+        assert(fakeVSCodeOpenDialog.firstCall.args[0].canSelectFiles);
 
         testConnectionController.disconnect();
         done();
@@ -451,7 +451,7 @@ suite('Connect Form View Test Suite', () => {
 
     setTimeout(() => {
       assert(fakeVSCodeExecuteCommand.called);
-      assert(fakeVSCodeExecuteCommand.firstArg === 'mdb.connectWithURI');
+      assert(fakeVSCodeExecuteCommand.firstCall.args[0] === 'mdb.connectWithURI');
 
       done();
     }, 50);

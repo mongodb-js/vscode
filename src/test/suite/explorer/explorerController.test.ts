@@ -346,7 +346,7 @@ suite('Explorer Controller Test Suite', function () {
 
     testExplorerController.activateTreeView();
 
-    const treeControllerStub = sinon.stub().returns();
+    const treeControllerStub = sinon.stub().returns(null);
 
     sinon.replace(
       testExplorerController.getTreeController(),

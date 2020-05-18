@@ -26,11 +26,13 @@ const log = createLogger('editors controller');
 export default class EditorsController {
   _connectionController: ConnectionController;
   _collectionDocumentsOperationsStore = new CollectionDocumentsOperationsStore();
-
   _collectionViewProvider: CollectionDocumentsProvider;
   _documentViewProvider: DocumentProvider;
 
-  constructor(context: vscode.ExtensionContext, connectionController: ConnectionController) {
+  constructor(
+    context: vscode.ExtensionContext,
+    connectionController: ConnectionController
+  ) {
     log.info('activating...');
     this._connectionController = connectionController;
 
@@ -42,18 +44,23 @@ export default class EditorsController {
 
     context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
-        VIEW_COLLECTION_SCHEME, collectionViewProvider
+        VIEW_COLLECTION_SCHEME,
+        collectionViewProvider
       )
     );
     this._collectionViewProvider = collectionViewProvider;
 
-    context.subscriptions.push(vscode.languages.registerCodeLensProvider(
-      {
-        scheme: VIEW_COLLECTION_SCHEME,
-        language: 'json'
-      },
-      new CollectionDocumentsCodeLensProvider(this._collectionDocumentsOperationsStore)
-    ));
+    context.subscriptions.push(
+      vscode.languages.registerCodeLensProvider(
+        {
+          scheme: VIEW_COLLECTION_SCHEME,
+          language: 'json'
+        },
+        new CollectionDocumentsCodeLensProvider(
+          this._collectionDocumentsOperationsStore
+        )
+      )
+    );
 
     const documentViewProvider = new DocumentProvider(
       connectionController,
@@ -62,7 +69,8 @@ export default class EditorsController {
 
     context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
-        VIEW_DOCUMENT_SCHEME, documentViewProvider
+        VIEW_DOCUMENT_SCHEME,
+        documentViewProvider
       )
     );
     this._documentViewProvider = documentViewProvider;
@@ -81,7 +89,9 @@ export default class EditorsController {
       value: documentId
     });
 
-    const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${encodeURIComponent(documentIdString)}`;
+    const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${encodeURIComponent(
+      documentIdString
+    )}`;
     const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
 
     // We attach the current time to ensure a new editor window is opened on
@@ -90,19 +100,24 @@ export default class EditorsController {
 
     // The part of the URI after the scheme and before the query is the file name.
     const textDocumentUri = vscode.Uri.parse(
-      `${VIEW_DOCUMENT_SCHEME}:${namespace}: ${JSON.stringify(documentId)} - ${Date.now()}.json${uriQuery}`
+      `${VIEW_DOCUMENT_SCHEME}:${namespace}: ${JSON.stringify(
+        documentId
+      )} - ${Date.now()}.json${uriQuery}`
     );
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(textDocumentUri).then((doc) => {
-        vscode.window.showTextDocument(doc, { preview: false }).then(
-          () => resolve(true),
-          reject
-        );
+        vscode.window
+          .showTextDocument(doc, { preview: false })
+          .then(() => resolve(true), reject);
       }, reject);
     });
   }
 
-  static getViewCollectionDocumentsUri(operationId, namespace, connectionId): vscode.Uri {
+  static getViewCollectionDocumentsUri(
+    operationId,
+    namespace,
+    connectionId
+  ): vscode.Uri {
     // We attach a unique id to the query so that it creates a new file in
     // the editor and so that we can virtually manage the amount of docs shown.
     const operationIdUriQuery = `${OPERATION_ID_URI_IDENTIFIER}=${operationId}`;
@@ -129,32 +144,42 @@ export default class EditorsController {
     );
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(uri).then((doc) => {
-        vscode.window.showTextDocument(doc, { preview: false }).then(
-          () => resolve(true),
-          reject
-        );
+        vscode.window
+          .showTextDocument(doc, { preview: false })
+          .then(() => resolve(true), reject);
       }, reject);
     });
   }
 
-  onViewMoreCollectionDocuments(operationId: string, connectionId: string, namespace: string): Promise<boolean> {
+  onViewMoreCollectionDocuments(
+    operationId: string,
+    connectionId: string,
+    namespace: string
+  ): Promise<boolean> {
     log.info('view more collection documents', namespace);
 
     // A user might click to fetch more documents multiple times,
     // this ensures it only performs one fetch at a time.
-    if (this._collectionDocumentsOperationsStore.operations[operationId].isCurrentlyFetchingMoreDocuments) {
+    if (
+      this._collectionDocumentsOperationsStore.operations[operationId]
+        .isCurrentlyFetchingMoreDocuments
+    ) {
       vscode.window.showErrorMessage('Already fetching more documents...');
       return Promise.resolve(false);
     }
 
     // Ensure we're still connected to the correct connection.
     if (connectionId !== this._connectionController.getActiveConnectionId()) {
-      vscode.window.showErrorMessage(`Unable to view more documents: no longer connected to ${connectionId}`);
+      vscode.window.showErrorMessage(
+        `Unable to view more documents: no longer connected to ${connectionId}`
+      );
       return Promise.resolve(false);
     }
 
     if (!this._collectionViewProvider) {
-      return Promise.reject(new Error('No registered collection view provider.'));
+      return Promise.reject(
+        new Error('No registered collection view provider.')
+      );
     }
 
     const uri = EditorsController.getViewCollectionDocumentsUri(
@@ -163,7 +188,9 @@ export default class EditorsController {
       connectionId
     );
 
-    this._collectionDocumentsOperationsStore.increaseOperationDocumentLimit(operationId);
+    this._collectionDocumentsOperationsStore.increaseOperationDocumentLimit(
+      operationId
+    );
 
     // Notify the document provider to update with the new document limit.
     this._collectionViewProvider.onDidChangeEmitter.fire(uri);

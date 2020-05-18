@@ -240,7 +240,7 @@ suite('Collection Documents Provider Test Suite', () => {
     ): void => {
       assert(mockShowMessage.called);
       assert(!mockHideMessage.called);
-      assert(mockShowMessage.firstArg === 'Fetching documents...');
+      assert(mockShowMessage.firstCall.args[0] === 'Fetching documents...');
 
       return callback(null, ['aaaaaaaaaaaaaaaaa']);
     };

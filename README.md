@@ -1,6 +1,6 @@
 # MongoDB for VS Code ![PREVIEW](https://img.shields.io/badge/-PREVIEW-orange)
 
-[![Build Status](https://dev.azure.com/team-compass/vscode/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/vscode/_build/latest?definitionId=6&branchName=master)
+[![Build Status](https://dev.azure.com/team-compass/vscode/_apis/build/status/mongodb-js.vscode?branchName=master)](https://dev.azure.com/team-compass/vscode/_build/latest?definitionId=10&branchName=master)
 
 MongoDB for VS Code makes it easy to work with MongoDB, whether your own instance or in [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register).
 
@@ -25,7 +25,7 @@ MongoDB Playgrounds are the most convenient way to prototype and execute CRUD op
 
 ![Playgrounds](resources/screenshots/playground.png)
 
-*Make sure you are connected to a server or cluster before using a playground. You can't run a playground and you won't get completions if you are not connected.*
+_Make sure you are connected to a server or cluster before using a playground. You can't run a playground and you won't get completions if you are not connected._
 
 ### Quick access to the MongoDB Shell
 
@@ -33,7 +33,7 @@ Launch the MongoDB Shell from the command palette to quickly connect to the same
 
 ![MongoDB Shell](resources/screenshots/shell-launcher.png)
 
-*The shell binary needs to be in your `$PATH`. This functionality has some issues on Windows, we'll release an update with a fix soon.*
+_The shell binary needs to be in your `$PATH`. This functionality has some issues on Windows, we'll release an update with a fix soon._
 
 ### Terraform snippet for MongoDB Atlas
 
@@ -56,7 +56,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 
 ## Additional Settings
 
-*These global settings affect how MongoDB for VS Code provides intelligent autocomplete inside snippets and string literals (off by default). Changing the default configuration may affect the behavior and performance of other extensions and of VS Code itself. If you do not change the default settings, you can still trigger intelligent autocomplete inside a snippet or string literal with `Ctrl+Space`.*
+_These global settings affect how MongoDB for VS Code provides intelligent autocomplete inside snippets and string literals (off by default). Changing the default configuration may affect the behavior and performance of other extensions and of VS Code itself. If you do not change the default settings, you can still trigger intelligent autocomplete inside a snippet or string literal with `Ctrl+Space`._
 
 - `editor.suggest.snippetsPreventQuickSuggestions`: By default, VS Code prevents code completion in snippet mode (editing placeholders in inserted code). Setting this to `false` allows snippet (eg. `$match`, `$addFields`) and field completion based on the document schema for the `db.collection.aggregate()` expressions.
 - `editor.quickSuggestions`: By default, VS Code prevents code completion inside string literals. To enable database names completions for `use('dbName')` expression use this configuration:
@@ -93,6 +93,7 @@ npm run local-install
 This will compile and package MongoDB for VS Code into a `.vsix` file and add the extension to your VS Code.
 
 To install this locally on windows:
+
 ```shell
 npm install
 .\node_modules\.bin\vsce.cmd package
