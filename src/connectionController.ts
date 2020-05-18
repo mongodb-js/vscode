@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as vscode from 'vscode';
 import Connection = require('mongodb-connection-model/lib/model');
 import DataService = require('mongodb-data-service');
-import * as keytarType from 'keytar';
+
 import { ConnectionModelType } from './connectionModelType';
 import { DataServiceType } from './dataServiceType';
 import { createLogger } from './logging';
@@ -10,25 +10,23 @@ import { StatusView } from './views';
 import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { SavedConnection, StorageScope } from './storage/storageController';
-import { getNodeModule } from './utils/getNodeModule';
 import TelemetryController from './telemetry/telemetryController';
+import { ext } from './extensionConstants';
 
 const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
 const MAX_CONNECTION_NAME_LENGTH = 512;
 
-type KeyTar = typeof keytarType;
-
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
   ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
-  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING'
+  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING',
 }
 
 export enum ConnectionTypes {
   CONNECTION_FORM = 'CONNECTION_FORM',
   CONNECTION_STRING = 'CONNECTION_STRING',
-  CONNECTION_ID = 'CONNECTION_ID'
+  CONNECTION_ID = 'CONNECTION_ID',
 }
 
 export type SavedConnectionInformation = {
@@ -48,8 +46,6 @@ export default class ConnectionController {
   } = {};
 
   private readonly _serviceName = 'mdb.vscode.savedConnections';
-  private _keytar: KeyTar | undefined;
-
   _activeDataService: null | DataServiceType = null;
   _activeConnectionModel: null | ConnectionModelType = null;
   private _currentConnectionId: null | string = null;
@@ -73,33 +69,20 @@ export default class ConnectionController {
     this._statusView = _statusView;
     this._storageController = storageController;
     this._telemetryController = telemetryController;
-
-    try {
-      // We load keytar in two different ways. This is because when the
-      // extension is webpacked it requires the vscode external keytar dependency
-      // differently then our testing development environment.
-      this._keytar = require('keytar');
-
-      if (!this._keytar) {
-        this._keytar = getNodeModule<typeof keytarType>('keytar');
-      }
-    } catch (err) {
-      // Couldn't load keytar, proceed without storing & loading connections.
-    }
   }
 
   _loadSavedConnection = async (
     connectionId: string,
     savedConnection: SavedConnection
   ): Promise<void> => {
-    if (!this._keytar) {
+    if (!ext.keytarModule) {
       return;
     }
 
     let loadedSavedConnection: LoadedConnection;
 
     try {
-      const unparsedConnectionInformation = await this._keytar.getPassword(
+      const unparsedConnectionInformation = await ext.keytarModule.getPassword(
         this._serviceName,
         connectionId
       );
@@ -138,7 +121,7 @@ export default class ConnectionController {
   };
 
   loadSavedConnections = async (): Promise<void> => {
-    if (!this._keytar) {
+    if (!ext.keytarModule) {
       return;
     }
 
@@ -297,10 +280,10 @@ export default class ConnectionController {
 
     this._connections[connectionId] = newLoadedConnection;
 
-    if (this._keytar) {
+    if (ext.keytarModule) {
       const connectionInfoAsString = JSON.stringify(connectionInformation);
 
-      await this._keytar.setPassword(
+      await ext.keytarModule.setPassword(
         this._serviceName,
         connectionId,
         connectionInfoAsString
@@ -496,8 +479,8 @@ export default class ConnectionController {
   ): Promise<void> => {
     delete this._connections[connectionId];
 
-    if (this._keytar) {
-      await this._keytar.deletePassword(this._serviceName, connectionId);
+    if (ext.keytarModule) {
+      await ext.keytarModule.deletePassword(this._serviceName, connectionId);
       // We only remove the connection from the saved connections if we
       // have deleted the connection information with keytar.
       this._storageController.removeConnection(connectionId);
@@ -595,13 +578,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-      connectionIds.map(
-        (id, index) => `${index + 1}: ${this._connections[id].name}`
-      ),
-      {
-        placeHolder: 'Choose a connection to remove...'
-      }
-    );
+        connectionIds.map(
+          (id, index) => `${index + 1}: ${this._connections[id].name}`
+        ),
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
