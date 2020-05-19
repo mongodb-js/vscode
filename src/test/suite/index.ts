@@ -5,8 +5,12 @@ import path = require('path');
 import * as keytarType from 'keytar';
 
 import MDBExtensionController from '../../mdbExtensionController';
+import { ext } from '../../extensionConstants';
+import KeytarStub from './keytarStub';
 import { TestExtensionContext } from './stubs';
 import { mdbTestExtension } from './stubbableMdbExtension';
+
+type KeyTar = typeof keytarType;
 
 export function run(): Promise<void> {
   const reporterOptions = {
@@ -37,6 +41,12 @@ export function run(): Promise<void> {
       );
       mdbTestExtension.testExtensionController.activate();
 
+      // We avoid using the user's credential store when running tests
+      // in order to ensure we're not polluting the credential store
+      // and because its tough to get the credential store running on
+      // headless linux.
+      ext.keytarModule = new KeytarStub();
+
       // Disable metrics.
       vscode.workspace.getConfiguration('mdb').update('sendTelemetry', false);
 
@@ -44,39 +54,12 @@ export function run(): Promise<void> {
       vscode.workspace
         .getConfiguration('mdb.connectionSaving')
         .update('hideOptionToChooseWhereToSaveNewConnections', true)
-        .then(async () => {
-          // We require keytar in runtime because it is a vscode provided
-          // native node module.
-          const keytar: typeof keytarType = require('keytar');
-          const existingCredentials = await keytar.findCredentials(
-            'mdb.vscode.savedConnections'
-          );
-
+        .then(() => {
           // Add files to the test suite.
           files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
           try {
             // Run the mocha test.
-            mocha.run(async (failures) => {
-              // After tests are run we clear any passwords added
-              // to local secure storage.
-              const postRunCredentials = await keytar.findCredentials(
-                'mdb.vscode.savedConnections'
-              );
-              postRunCredentials.forEach((credential) => {
-                if (
-                  !existingCredentials.find(
-                    (existingCredential) =>
-                      existingCredential.account === credential.account
-                  )
-                ) {
-                  // If the credential is newly added, we remove it.
-                  keytar.deletePassword(
-                    'mdb.vscode.savedConnections',
-                    credential.account
-                  );
-                }
-              });
-
+            mocha.run((failures) => {
               if (failures > 0) {
                 e(new Error(`${failures} tests failed.`));
               } else {

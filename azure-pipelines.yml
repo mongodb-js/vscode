@@ -9,10 +9,8 @@ trigger:
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops
 strategy:
   matrix:
-    # # Linux testing is currently disabled because of issues with
-    # # headless linux & keytar. Tracked: VSCODE-110
-    # linux:
-    #   imageName: 'ubuntu-latest'
+    linux:
+      imageName: 'ubuntu-latest'
     mac:
       imageName: 'macos-latest'
     windows:
