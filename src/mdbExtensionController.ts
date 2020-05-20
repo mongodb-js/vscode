@@ -399,23 +399,31 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   public openMongoDBShell(): Promise<boolean> {
     let mdbConnectionString;
+
     if (this._connectionController) {
-      const activeConnectionDriverUrl = this._connectionController.getActiveConnectionDriverUrl();
-      mdbConnectionString = activeConnectionDriverUrl
-        ? activeConnectionDriverUrl
+      const activeConnectionModel = this._connectionController
+        .getActiveConnectionModel()
+        ?.getAttributes({ derived: true });
+
+      mdbConnectionString = activeConnectionModel
+        ? activeConnectionModel.driverUrlWithSsh
         : '';
     }
+
     if (!mdbConnectionString) {
       vscode.window.showErrorMessage(
         'You need to be connected before launching the MongoDB Shell.'
       );
+
       return Promise.resolve(false);
     }
+
     const mongoDBShell = vscode.window.createTerminal({
       name: 'MongoDB Shell',
       env: { MDB_CONNECTION_STRING: mdbConnectionString }
     });
     const shellCommand = vscode.workspace.getConfiguration('mdb').get('shell');
+
     mongoDBShell.sendText(
       `${shellCommand} $MDB_CONNECTION_STRING; unset MDB_CONNECTION_STRING`
     );
