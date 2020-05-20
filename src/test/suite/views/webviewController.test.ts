@@ -361,7 +361,7 @@ suite('Connect Form View Test Suite', () => {
       html: '',
       postMessage: (message: any): void => {
         assert(message.action === 'file_action');
-        assert(message.files[0] === './somefilepath/test.text');
+        assert(message.files[0] === 'somefilepath/test.text');
 
         testConnectionController.disconnect();
         done();
@@ -382,7 +382,7 @@ suite('Connect Form View Test Suite', () => {
 
     const fakeVSCodeOpenDialog = sinon.fake.resolves([
       {
-        path: './somefilepath/test.text'
+        path: '/somefilepath/test.text'
       }
     ]);
 
@@ -451,7 +451,9 @@ suite('Connect Form View Test Suite', () => {
 
     setTimeout(() => {
       assert(fakeVSCodeExecuteCommand.called);
-      assert(fakeVSCodeExecuteCommand.firstCall.args[0] === 'mdb.connectWithURI');
+      assert(
+        fakeVSCodeExecuteCommand.firstCall.args[0] === 'mdb.connectWithURI'
+      );
 
       done();
     }, 50);
