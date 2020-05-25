@@ -3,6 +3,7 @@ type ConnectionAttributes = {
   driverUrlWithSsh: string;
   driverOptions: any;
   instanceId: string;
+  sshTunnelOptions: any;
 };
 
 export type ConnectionModelType = {

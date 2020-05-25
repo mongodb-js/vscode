@@ -172,7 +172,8 @@ suite('Telemetry Controller Test Suite', () => {
     sinon.assert.called(mockTrackPlaygroundCodeExecuted);
   });
 
-  test('track playground loaded and saved events', async () => {
+  test('track playground loaded and saved events', async function () {
+    this.timeout(3000);
     await loadAndSavePlayground(getDocUri('test.mongodb'));
 
     sinon.assert.called(mockTrackPlaygroundLoadedMethod);
