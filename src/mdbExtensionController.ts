@@ -408,7 +408,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   public openMongoDBShell(): Promise<boolean> {
     let mdbConnectionString: any;
-    let mdbSslOptionsString = '';
+    let mdbTlsOptionsString = '';
 
     if (!this._connectionController) {
       vscode.window.showErrorMessage(
@@ -434,32 +434,35 @@ export default class MDBExtensionController implements vscode.Disposable {
       return Promise.resolve(false);
     }
 
-    if (this.isSslConnection(activeConnectionModel)) {
-      mdbSslOptionsString = '--tls --tlsAllowInvalidCertificates';
-
-      if (activeConnectionModel?.driverOptions.sslCA) {
-        mdbSslOptionsString = `${mdbSslOptionsString} --tlsCAFile /${activeConnectionModel?.driverOptions.sslCA}`;
-      }
-
-      if (activeConnectionModel?.driverOptions.sslCert) {
-        mdbSslOptionsString = `${mdbSslOptionsString} --tlsCertificateKeyFile /${activeConnectionModel?.driverOptions.sslCert}`;
-      } else if (activeConnectionModel?.driverOptions.sslKey) {
-        mdbSslOptionsString = `${mdbSslOptionsString} --tlsCertificateKeyFile /${activeConnectionModel?.driverOptions.sslKey}`;
-      }
-
-      if (activeConnectionModel?.driverOptions.sslPass) {
-        mdbSslOptionsString = `${mdbSslOptionsString} --tlsCertificateKeyFilePassword /${activeConnectionModel?.driverOptions.sslPass}`;
-      }
-    }
-
     const mongoDBShell = vscode.window.createTerminal({
       name: 'MongoDB Shell',
       env: { MDB_CONNECTION_STRING: mdbConnectionString }
     });
+
+    if (this.isSslConnection(activeConnectionModel)) {
+      mdbTlsOptionsString = '--tls';
+
+      if (activeConnectionModel?.driverOptions.sslCA) {
+        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCAFile /${activeConnectionModel?.driverOptions.sslCA}`;
+      }
+
+      if (activeConnectionModel?.driverOptions.sslCert) {
+        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFile /${activeConnectionModel?.driverOptions.sslCert}`;
+      } else if (activeConnectionModel?.driverOptions.sslKey) {
+        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFile /${activeConnectionModel?.driverOptions.sslKey}`;
+      }
+
+      if (activeConnectionModel?.driverOptions.sslPass) {
+        mongoDBShell['MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD'] =
+          activeConnectionModel?.driverOptions.sslPass;
+        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFilePassword $MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD`;
+      }
+    }
+
     const shellCommand = vscode.workspace.getConfiguration('mdb').get('shell');
 
     mongoDBShell.sendText(
-      `${shellCommand} ${mdbSslOptionsString} $MDB_CONNECTION_STRING; unset MDB_CONNECTION_STRING`
+      `${shellCommand} ${mdbTlsOptionsString} $MDB_CONNECTION_STRING; unset MDB_CONNECTION_STRING; unset MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD`
     );
     mongoDBShell.show();
 
