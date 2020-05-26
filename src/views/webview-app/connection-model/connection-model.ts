@@ -105,10 +105,6 @@ const validateSsl = (attrs: ConnectionModel): void => {
       throw new TypeError('sslCA is required when ssl is ALL.');
     }
 
-    if (!attrs.sslKey) {
-      throw new TypeError('sslKey is required when ssl is ALL.');
-    }
-
     if (!attrs.sslCert) {
       throw new TypeError('sslCert is required when ssl is ALL.');
     }

@@ -18,7 +18,6 @@ export enum ActionTypes {
   ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE = 'ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE',
   ON_CHANGE_SSL_CA = 'ON_CHANGE_SSL_CA',
   ON_CHANGE_SSL_CERT = 'ON_CHANGE_SSL_CERT',
-  ON_CHANGE_SSL_KEY = 'ON_CHANGE_SSL_KEY',
   OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
   PASSWORD_CHANGED = 'PASSWORD_CHANGED',
   PORT_CHANGED = 'PORT_CHANGED',
@@ -33,7 +32,6 @@ export enum ActionTypes {
   SSH_TUNNEL_USERNAME_CHANGED = 'SSH_TUNNEL_USERNAME_CHANGED',
   SSL_CA_CHANGED = 'SSL_CA_CHANGED',
   SSL_CERT_CHANGED = 'SSL_CERT_CHANGED',
-  SSL_KEY_CHANGED = 'SSL_KEY_CHANGED',
   SSL_METHOD_CHANGED = 'SSL_METHOD_CHANGED',
   SSL_PASS_CHANGED = 'SSL_PASS_CHANGED',
   URI_CONNECTION_EVENT_OCCURED = 'URI_CONNECTION_EVENT_OCCURED',
@@ -44,8 +42,7 @@ export enum ActionTypes {
 export type FilePickerActionTypes =
   | ActionTypes.SSH_TUNNEL_IDENTITY_FILE_CHANGED
   | ActionTypes.SSL_CA_CHANGED
-  | ActionTypes.SSL_CERT_CHANGED
-  | ActionTypes.SSL_KEY_CHANGED;
+  | ActionTypes.SSL_CERT_CHANGED;
 
 export interface BaseAction {
   type: ActionTypes;
@@ -130,10 +127,6 @@ export interface OnChangeSSLCertAction extends BaseAction {
   type: ActionTypes.ON_CHANGE_SSL_CERT;
 }
 
-export interface OnChangeSSLKeyAction extends BaseAction {
-  type: ActionTypes.ON_CHANGE_SSL_KEY;
-}
-
 export interface OpenConnectionStringInputAction extends BaseAction {
   type: ActionTypes.OPEN_CONNECTION_STRING_INPUT;
 }
@@ -203,11 +196,6 @@ export interface SSLCertChangedAction extends BaseAction {
   files: string[] | undefined;
 }
 
-export interface SSLKeyChangedAction extends BaseAction {
-  type: ActionTypes.SSL_KEY_CHANGED;
-  files: string[] | undefined;
-}
-
 export interface SSLMethodChangedAction extends BaseAction {
   type: ActionTypes.SSL_METHOD_CHANGED;
   sslMethod: SSL_METHODS;
@@ -237,8 +225,7 @@ export interface X509UsernameChangedAction extends BaseAction {
 export type FilePickerActions =
   | SSHTunnelIdentityFileChangedAction
   | SSLCAChangedAction
-  | SSLCertChangedAction
-  | SSLKeyChangedAction;
+  | SSLCertChangedAction;
 
 export type Actions =
   | AuthSourceChangedAction
@@ -255,7 +242,6 @@ export type Actions =
   | OnChangeSSHTunnelIdentityFileAction
   | OnChangeSSLCAAction
   | OnChangeSSLCertAction
-  | OnChangeSSLKeyAction
   | OpenConnectionStringInputAction
   | PasswordChangedAction
   | PortChangedAction
@@ -270,7 +256,6 @@ export type Actions =
   | SSHTunnelUsernameChangedAction
   | SSLCAChangedAction
   | SSLCertChangedAction
-  | SSLKeyChangedAction
   | SSLMethodChangedAction
   | SSLPassChangedAction
   | UriConnectionEventOccuredAction

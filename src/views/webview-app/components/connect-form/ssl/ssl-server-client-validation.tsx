@@ -8,7 +8,6 @@ import {
   ActionTypes,
   OnChangeSSLCAAction,
   OnChangeSSLCertAction,
-  OnChangeSSLKeyAction,
   SSLPassChangedAction
 } from '../../../store/actions';
 import { AppState } from '../../../store/store';
@@ -19,14 +18,12 @@ type stateProps = {
   isValid: boolean;
   sslCA?: string[];
   sslCert?: string[];
-  sslKey?: string[];
   sslPass?: string;
 };
 
 type dispatchProps = {
   onChangeSSLCA: () => void;
   onChangeSSLCertificate: () => void;
-  onChangeSSLPrivateKey: () => void;
   sslPrivateKeyPasswordChanged: (newSSLPass: string) => void;
 };
 
@@ -50,13 +47,6 @@ class SSLServerClientValidation extends React.Component<props> {
   };
 
   /**
-   * Handles sslKey change.
-   */
-  onClientPrivateKeyChanged = (): void => {
-    this.props.onChangeSSLPrivateKey();
-  };
-
-  /**
    * Handles sslPass change.
    *
    * @param {Object} evt - evt.
@@ -66,7 +56,7 @@ class SSLServerClientValidation extends React.Component<props> {
   };
 
   render(): React.ReactNode {
-    const { isValid, sslCA, sslCert, sslKey, sslPass } = this.props;
+    const { isValid, sslCA, sslCert, sslPass } = this.props;
 
     return (
       <div
@@ -90,14 +80,6 @@ class SSLServerClientValidation extends React.Component<props> {
           values={sslCert}
           link="https://docs.mongodb.com/manual/tutorial/configure-ssl/#pem-file"
         />
-        <FileInputButton
-          label="Client Private Key"
-          id="sslKey"
-          error={!isValid && sslKey === undefined}
-          onClick={this.onClientPrivateKeyChanged}
-          values={sslKey}
-          link="https://docs.mongodb.com/manual/tutorial/configure-ssl/#pem-file"
-        />
         <FormInput
           label="Client Key Password"
           name="sslPass"
@@ -117,7 +99,6 @@ const mapStateToProps = (state: AppState): stateProps => {
     isValid: state.isValid,
     sslCA: state.currentConnection.sslCA,
     sslCert: state.currentConnection.sslCert,
-    sslKey: state.currentConnection.sslKey,
     sslPass: state.currentConnection.sslPass
   };
 };
@@ -128,9 +109,6 @@ const mapDispatchToProps: dispatchProps = {
   }),
   onChangeSSLCertificate: (): OnChangeSSLCertAction => ({
     type: ActionTypes.ON_CHANGE_SSL_CERT
-  }),
-  onChangeSSLPrivateKey: (): OnChangeSSLKeyAction => ({
-    type: ActionTypes.ON_CHANGE_SSL_KEY
   }),
   sslPrivateKeyPasswordChanged: (newSSLPass: string): SSLPassChangedAction => ({
     type: ActionTypes.SSL_PASS_CHANGED,

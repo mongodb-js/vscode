@@ -229,17 +229,6 @@ export const rootReducer = (
         }
       };
 
-    case ActionTypes.ON_CHANGE_SSL_KEY:
-      showFilePicker(ActionTypes.SSL_KEY_CHANGED, true);
-
-      return {
-        ...state,
-        currentConnection: {
-          ...state.currentConnection,
-          sslKey: undefined
-        }
-      };
-
     case ActionTypes.OPEN_CONNECTION_STRING_INPUT:
       vscode.postMessage({
         command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT
@@ -372,15 +361,7 @@ export const rootReducer = (
         ...state,
         currentConnection: {
           ...state.currentConnection,
-          sslCert: action.files
-        }
-      };
-
-    case ActionTypes.SSL_KEY_CHANGED:
-      return {
-        ...state,
-        currentConnection: {
-          ...state.currentConnection,
+          sslCert: action.files,
           sslKey: action.files
         }
       };

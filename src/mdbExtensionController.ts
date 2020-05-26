@@ -440,7 +440,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
 
     if (this.isSslConnection(activeConnectionModel)) {
-      mdbTlsOptionsString = '--tls';
+      mdbTlsOptionsString =
+        '--tls --tlsAllowInvalidCertificates --tlsAllowInvalidHostnames';
 
       if (activeConnectionModel?.driverOptions.sslCA) {
         mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCAFile /${activeConnectionModel?.driverOptions.sslCA}`;
@@ -448,8 +449,6 @@ export default class MDBExtensionController implements vscode.Disposable {
 
       if (activeConnectionModel?.driverOptions.sslCert) {
         mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFile /${activeConnectionModel?.driverOptions.sslCert}`;
-      } else if (activeConnectionModel?.driverOptions.sslKey) {
-        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFile /${activeConnectionModel?.driverOptions.sslKey}`;
       }
 
       if (activeConnectionModel?.driverOptions.sslPass) {
