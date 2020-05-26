@@ -25,8 +25,15 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Changed
 
+- Marketplace preview release
 - Marketplace README copy tweaks
 
-## [0.0.1]
+## [0.0.1] - 2020-04-20
 
-- Preview release.
+- Internal preview release.
+
+### Added
+
+- MongoDB data explorer
+- MongoDB Playgrounds
+- Quick access to the MongoDB Shell
