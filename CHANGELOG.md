@@ -8,14 +8,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Added
 
-- `require` support in playgrounds.
+- Added `require` support in playgrounds
 
 ### Fixed
 
-- Fixed an issue with file pathing on SSL and SSH connections on windows.
-- Fixed an issue with connecting to mongodb through the shell while using SSH.
-- Fixed a connectivity issue with playgrounds and SSH connections.
-- Fixed an issue with having a babel config in a workspace root.
+- Fixed an issue with file pathing on SSL and SSH connections on windows
+- Fixed an issue with connecting to mongodb through the shell while using SSH
+- Fixed a connectivity issue with playgrounds and SSH connections
+- Fixed an issue with having a babel config in a workspace root
 
 ### Changed
 
@@ -30,7 +30,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [0.0.1] - 2020-04-20
 
-- Internal preview release.
+- Internal preview release
 
 ### Added
 
