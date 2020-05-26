@@ -231,11 +231,20 @@
     "prefix": "$out",
     "body": [
       "/**",
-      " * Provide the name of the output collection.",
+      " * s3Url: A S3 URL to save the data.",
+      " * atlas: Parameters to save to Atlas.",
       " */",
-      "\\$out: '${1:string}'"
+      "\\$out: {",
+      "  s3: '${1:s3url}'",
+      "  atlas: {",
+      "    db: '${2:db}',",
+      "    coll: '${3:coll}',",
+      "    projectId: '${4:projectId}',",
+      "    clusterName: '${5:clusterName}'",
+      "  }",
+      "}"
     ],
-    "description": "Writes the result of a pipeline to a new or existing collection."
+    "description": "Writes the result of a pipeline to an Atlas cluster or S3 bucket."
   },
   "MongoDB Aggregations $project": {
     "prefix": "$project",
@@ -299,18 +308,23 @@
     ],
     "description": "Randomly selects the specified number of documents from its input."
   },
-  "MongoDB Aggregations $searchBeta": {
-    "prefix": "$searchBeta",
+  "MongoDB Aggregations $search": {
+    "prefix": "$search",
     "body": [
       "/**",
-      " * index: The index name.",
-      " * search: The search spec.",
-      " * highlight: Search with highlights.",
+      " * search: Analyzed search.",
+      " * term: Unanalyzed search.",
+      " * compound: Combines ops.",
+      " * span: Find in text field regions.",
+      " * exists: Test for presence of a field.",
+      " * near: Find near number or date.",
+      " * range: Find in numeric or date range.",
       " */",
-      "\\$searchBeta: {",
-      "  index: '${1:string}',",
-      "  search: '${2:specification}',",
-      "  highlight: '${3:specification}'",
+      "\\$search: {",
+      "  text: {",
+      "    query: '${1:string}',",
+      "    path: '${2:string}'",
+      "  }",
       "}"
     ],
     "description": "Performs a full-text search on the specified field(s)."
@@ -361,6 +375,36 @@
       "}"
     ],
     "description": "Groups incoming documents based on the value of a specified expression, then computes the count of documents in each distinct group."
+  },
+  "MongoDB Aggregations $sql": {
+    "prefix": "$sql",
+    "body": [
+      "/**",
+      " * statement: The SQL statement.",
+      " * format: The SQL format.",
+      " * formatVersion: The format version.",
+      " */",
+      "\\$sql: {",
+      "  statement: '${1:statement}',",
+      "  format: '${2:format}',",
+      "  formatVersion: ${3:formatVersion}",
+      "}"
+    ],
+    "description": "Executes a SQL statement against Atlas Data Lake."
+  },
+  "MongoDB Aggregations $unionWith": {
+    "prefix": "$unionWith",
+    "body": [
+      "/**",
+      " * coll: The collection name.",
+      " * pipeline: The pipeline on the other collection.",
+      " */",
+      "\\$unionWith: {",
+      "  coll: '${1:coll}',",
+      "  pipeline: [${2:pipeline}]",
+      "}"
+    ],
+    "description": "Perform a union with a pipeline on another collection."
   },
   "MongoDB Aggregations $unset": {
     "prefix": "$unset",
