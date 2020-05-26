@@ -9,8 +9,15 @@ import { Visitor } from './visitor';
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const path = require('path');
+const fs = require('fs');
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
+
+type SslFileOptions = {
+  sslCA?: string;
+  sslKey?: string;
+  sslCert?: string;
+};
 
 export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
@@ -43,6 +50,30 @@ export default class MongoDBService {
     return this._connectionOptions;
   }
 
+  private isSslConnection(connectionOptions: any): boolean {
+    return !!(
+      connectionOptions.sslCA ||
+      connectionOptions.sslCert ||
+      connectionOptions.sslPass
+    );
+  }
+
+  private loadSslOptionsFromFile(connectionOptions): SslFileOptions {
+    const sslOptions: SslFileOptions = {};
+
+    if (connectionOptions.sslCA) {
+      sslOptions.sslCA = fs.readFileSync(`/${connectionOptions.sslCA[0]}`);
+    }
+    if (connectionOptions.sslKey) {
+      sslOptions.sslKey = fs.readFileSync(`/${connectionOptions.sslKey[0]}`);
+    }
+    if (connectionOptions.sslCert) {
+      sslOptions.sslCert = fs.readFileSync(`/${connectionOptions.sslCert[0]}`);
+    }
+
+    return sslOptions;
+  }
+
   public async connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: any;
@@ -59,6 +90,13 @@ export default class MongoDBService {
 
     if (!this._connectionString) {
       return Promise.resolve(false);
+    }
+
+    if (this.isSslConnection(this._connectionOptions)) {
+      this._connectionOptions = {
+        ...this._connectionOptions,
+        ...this.loadSslOptionsFromFile(this._connectionOptions)
+      };
     }
 
     try {
