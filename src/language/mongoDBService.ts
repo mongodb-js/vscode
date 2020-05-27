@@ -24,7 +24,7 @@ export default class MongoDBService {
   _runtime?: ElectronRuntime;
   _connection: any;
   _connectionString?: string;
-  _connectionOptions?: object;
+  _connectionOptions?: any;
   _cachedFields: object;
   _cachedDatabases: [];
   _cachedCollections: object;
@@ -59,20 +59,30 @@ export default class MongoDBService {
     );
   }
 
-  private loadSslOptionsFromFile(connectionOptions: any): SslFileOptions {
-    const sslOptions: SslFileOptions = {};
+  private readSslFileSync(sslOption?: string | string[]): any {
+    if (sslOption) {
+      if (Array.isArray(sslOption)) {
+        return fs.readFileSync(sslOption[0]);
+      }
 
-    if (connectionOptions.sslCA) {
-      sslOptions.sslCA = fs.readFileSync(connectionOptions.sslCA[0]);
-    }
-    if (connectionOptions.sslKey) {
-      sslOptions.sslKey = fs.readFileSync(connectionOptions.sslKey[0]);
-    }
-    if (connectionOptions.sslCert) {
-      sslOptions.sslCert = fs.readFileSync(connectionOptions.sslCert[0]);
-    }
+      if (typeof sslOption !== 'string') {
+        return;
+      }
 
-    return sslOptions;
+      return fs.readFileSync(sslOption);
+    }
+  }
+
+  private loadSslBinaries(): void {
+    this._connectionOptions.sslCA = this.readSslFileSync(
+      this._connectionOptions.sslCA
+    );
+    this._connectionOptions.sslKey = this.readSslFileSync(
+      this._connectionOptions.sslKey
+    );
+    this._connectionOptions.sslCert = this.readSslFileSync(
+      this._connectionOptions.sslCert
+    );
   }
 
   public async connectToServiceProvider(params: {
@@ -86,7 +96,7 @@ export default class MongoDBService {
     this.clearCurrentSessionCollections();
 
     this._connectionString = params.connectionString;
-    this._connectionOptions = params.connectionOptions;
+    this._connectionOptions = params.connectionOptions || {};
     this._extensionPath = params.extensionPath;
 
     if (!this._connectionString) {
@@ -94,10 +104,15 @@ export default class MongoDBService {
     }
 
     if (this.isSslConnection(this._connectionOptions)) {
-      this._connectionOptions = {
-        ...this._connectionOptions,
-        ...this.loadSslOptionsFromFile(this._connectionOptions)
-      };
+      try {
+        this.loadSslBinaries();
+      } catch (error) {
+        this._connection.console.log(
+          `SSL FILES read error: ${util.inspect(error)}`
+        );
+
+        return Promise.resolve(false);
+      }
     }
 
     try {

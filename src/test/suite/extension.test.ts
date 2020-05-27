@@ -15,6 +15,7 @@ suite('Extension Test Suite', () => {
 
   let fakeShowErrorMessage: any;
   let fakeGetActiveConnectionModel: any;
+  let fakeIsCurrentlyConnected: any;
   let createTerminalSpy: any;
 
   beforeEach(() => {
@@ -24,6 +25,10 @@ suite('Extension Test Suite', () => {
     fakeGetActiveConnectionModel = sandbox.stub(
       mockMDBExtension._connectionController,
       'getActiveConnectionModel'
+    );
+    fakeIsCurrentlyConnected = sandbox.stub(
+      mockMDBExtension._connectionController,
+      'isCurrentlyConnected'
     );
 
     createTerminalSpy = sinon.spy(vscode.window, 'createTerminal');
@@ -103,6 +108,7 @@ suite('Extension Test Suite', () => {
         port: 27018
       })
     );
+    fakeIsCurrentlyConnected.returns(true);
 
     try {
       await mockMDBExtension.openMongoDBShell();
@@ -138,6 +144,7 @@ suite('Extension Test Suite', () => {
         sshTunnelPassword: 'password'
       })
     );
+    fakeIsCurrentlyConnected.returns(true);
 
     try {
       await mockMDBExtension.openMongoDBShell();

@@ -397,7 +397,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
   }
 
-  isSslConnection(activeConnectionModel: any): boolean {
+  private isSslConnection(activeConnectionModel: any): boolean {
     return !!(
       activeConnectionModel &&
       activeConnectionModel.driverOptions &&
@@ -407,11 +407,40 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
   }
 
+  private getTlsOptionsString(driverOptions: any): string {
+    let mdbTlsOptionsString = '--tls';
+
+    if (!driverOptions.checkServerIdentity) {
+      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsAllowInvalidHostnames`;
+    }
+
+    if (!driverOptions.sslValidate) {
+      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsAllowInvalidCertificates`;
+    }
+
+    if (driverOptions.sslCA) {
+      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCAFile ${driverOptions.sslCA}`;
+    }
+
+    if (driverOptions.sslCert) {
+      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFile ${driverOptions.sslCert}`;
+    }
+
+    if (driverOptions.sslPass) {
+      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFilePassword $MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD`;
+    }
+
+    return mdbTlsOptionsString;
+  }
+
   public openMongoDBShell(): Promise<boolean> {
-    let mdbConnectionString: any;
+    const mongoDBShellEnv: any = {};
     let mdbTlsOptionsString = '';
 
-    if (!this._connectionController) {
+    if (
+      !this._connectionController ||
+      !this._connectionController.isCurrentlyConnected()
+    ) {
       vscode.window.showErrorMessage(
         'You need to be connected before launching the MongoDB Shell.'
       );
@@ -423,42 +452,26 @@ export default class MDBExtensionController implements vscode.Disposable {
       .getActiveConnectionModel()
       ?.getAttributes({ derived: true });
 
-    mdbConnectionString = activeConnectionModel
+    mongoDBShellEnv['MDB_CONNECTION_STRING'] = activeConnectionModel
       ? activeConnectionModel.driverUrlWithSsh
       : '';
 
-    const mongoDBShell = vscode.window.createTerminal({
-      name: 'MongoDB Shell',
-      env: { MDB_CONNECTION_STRING: mdbConnectionString }
-    });
+    if (activeConnectionModel && this.isSslConnection(activeConnectionModel)) {
+      mdbTlsOptionsString = this.getTlsOptionsString(
+        activeConnectionModel.driverOptions
+      );
 
-    if (this.isSslConnection(activeConnectionModel)) {
-      mdbTlsOptionsString = '--tls';
-
-      if (!activeConnectionModel?.driverOptions.checkServerIdentity) {
-        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsAllowInvalidHostnames`;
-      }
-
-      if (!activeConnectionModel?.driverOptions.sslValidate) {
-        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsAllowInvalidCertificates`;
-      }
-
-      if (activeConnectionModel?.driverOptions.sslCA) {
-        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCAFile ${activeConnectionModel?.driverOptions.sslCA}`;
-      }
-
-      if (activeConnectionModel?.driverOptions.sslCert) {
-        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFile ${activeConnectionModel?.driverOptions.sslCert}`;
-      }
-
-      if (activeConnectionModel?.driverOptions.sslPass) {
-        mongoDBShell['MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD'] =
-          activeConnectionModel?.driverOptions.sslPass;
-        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFilePassword $MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD`;
+      if (activeConnectionModel.driverOptions.sslPass) {
+        mongoDBShellEnv['MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD'] =
+          activeConnectionModel.driverOptions.sslPass;
       }
     }
 
     const shellCommand = vscode.workspace.getConfiguration('mdb').get('shell');
+    const mongoDBShell = vscode.window.createTerminal({
+      name: 'MongoDB Shell',
+      env: mongoDBShellEnv
+    });
 
     mongoDBShell.sendText(
       `${shellCommand} ${mdbTlsOptionsString} $MDB_CONNECTION_STRING; unset MDB_CONNECTION_STRING; unset MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD`
