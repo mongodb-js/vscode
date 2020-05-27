@@ -59,30 +59,36 @@ export default class MongoDBService {
     );
   }
 
-  private readSslFileSync(sslOption?: string | string[]): any {
-    if (sslOption) {
-      if (Array.isArray(sslOption)) {
-        return fs.readFileSync(sslOption[0]);
-      }
-
-      if (typeof sslOption !== 'string') {
-        return;
-      }
-
-      return fs.readFileSync(sslOption);
+  private readSslFileSync(sslOption: string | string[]): any {
+    if (Array.isArray(sslOption)) {
+      return fs.readFileSync(sslOption[0]);
     }
+
+    if (typeof sslOption !== 'string') {
+      return;
+    }
+
+    return fs.readFileSync(sslOption);
   }
 
   private loadSslBinaries(): void {
-    this._connectionOptions.sslCA = this.readSslFileSync(
-      this._connectionOptions.sslCA
-    );
-    this._connectionOptions.sslKey = this.readSslFileSync(
-      this._connectionOptions.sslKey
-    );
-    this._connectionOptions.sslCert = this.readSslFileSync(
-      this._connectionOptions.sslCert
-    );
+    if (this._connectionOptions.sslCA) {
+      this._connectionOptions.sslCA = this.readSslFileSync(
+        this._connectionOptions.sslCA
+      );
+    }
+
+    if (this._connectionOptions.sslKey) {
+      this._connectionOptions.sslKey = this.readSslFileSync(
+        this._connectionOptions.sslKey
+      );
+    }
+
+    if (this._connectionOptions.sslCert) {
+      this._connectionOptions.sslCert = this.readSslFileSync(
+        this._connectionOptions.sslCert
+      );
+    }
   }
 
   public async connectToServiceProvider(params: {
