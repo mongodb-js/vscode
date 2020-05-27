@@ -399,9 +399,11 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   isSslConnection(activeConnectionModel: any): boolean {
     return !!(
-      activeConnectionModel?.driverOptions.sslCA ||
-      activeConnectionModel?.driverOptions.sslCert ||
-      activeConnectionModel?.driverOptions.sslPass
+      activeConnectionModel &&
+      activeConnectionModel.driverOptions &&
+      (activeConnectionModel.driverOptions.sslCA ||
+        activeConnectionModel.driverOptions.sslCert ||
+        activeConnectionModel.driverOptions.sslPass)
     );
   }
 
