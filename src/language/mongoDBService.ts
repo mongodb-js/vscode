@@ -52,23 +52,24 @@ export default class MongoDBService {
 
   private isSslConnection(connectionOptions: any): boolean {
     return !!(
-      connectionOptions.sslCA ||
-      connectionOptions.sslCert ||
-      connectionOptions.sslPass
+      connectionOptions &&
+      (connectionOptions.sslCA ||
+        connectionOptions.sslCert ||
+        connectionOptions.sslPass)
     );
   }
 
-  private loadSslOptionsFromFile(connectionOptions): SslFileOptions {
+  private loadSslOptionsFromFile(connectionOptions: any): SslFileOptions {
     const sslOptions: SslFileOptions = {};
 
     if (connectionOptions.sslCA) {
-      sslOptions.sslCA = fs.readFileSync(`/${connectionOptions.sslCA[0]}`);
+      sslOptions.sslCA = fs.readFileSync(connectionOptions.sslCA[0]);
     }
     if (connectionOptions.sslKey) {
-      sslOptions.sslKey = fs.readFileSync(`/${connectionOptions.sslKey[0]}`);
+      sslOptions.sslKey = fs.readFileSync(connectionOptions.sslKey[0]);
     }
     if (connectionOptions.sslCert) {
-      sslOptions.sslCert = fs.readFileSync(`/${connectionOptions.sslCert[0]}`);
+      sslOptions.sslCert = fs.readFileSync(connectionOptions.sslCert[0]);
     }
 
     return sslOptions;

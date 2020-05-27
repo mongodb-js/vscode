@@ -442,11 +442,11 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
 
       if (activeConnectionModel?.driverOptions.sslCA) {
-        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCAFile /${activeConnectionModel?.driverOptions.sslCA}`;
+        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCAFile ${activeConnectionModel?.driverOptions.sslCA}`;
       }
 
       if (activeConnectionModel?.driverOptions.sslCert) {
-        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFile /${activeConnectionModel?.driverOptions.sslCert}`;
+        mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFile ${activeConnectionModel?.driverOptions.sslCert}`;
       }
 
       if (activeConnectionModel?.driverOptions.sslPass) {

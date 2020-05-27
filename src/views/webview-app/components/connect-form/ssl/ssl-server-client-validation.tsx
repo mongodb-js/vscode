@@ -70,10 +70,9 @@ class SSLServerClientValidation extends React.Component<props> {
           onClick={this.onCertificateAuthorityChanged}
           values={sslCA}
           link="https://docs.mongodb.com/manual/tutorial/configure-ssl/#certificate-authorities"
-          multi
         />
         <FileInputButton
-          label="Client Certificate"
+          label="Client Certificate and Key"
           id="sslCert"
           error={!isValid && sslCert === undefined}
           onClick={this.onClientCertificateChanged}
