@@ -20,7 +20,7 @@ https://jira.mongodb.org/projects/COMPASS/summary
 
 <!--- Any code, gist links, or repo links you have available that would be helpful for debugging -->
 
-#### Expected behavior/code
+#### Expected Behavior/Code
 
 <!--- A clear and concise description of what you expected to happen (or code). -->
 
@@ -38,6 +38,6 @@ https://jira.mongodb.org/projects/COMPASS/summary
 
 <!--- Only if you have suggestions on a fix for the bug -->
 
-#### Additional context/Screenshots
+#### Additional Context/Screenshots
 
 <!--- Add any other context about the problem here. If applicable, add screenshots to help explain. -->
