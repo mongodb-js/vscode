@@ -407,35 +407,35 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
   }
 
-  private getTlsOptionsString(driverOptions: any): string {
-    let mdbTlsOptionsString = '--tls';
+  private getSslOptionsString(driverOptions: any): string {
+    let mdbSslOptionsString = '--ssl';
 
     if (!driverOptions.checkServerIdentity) {
-      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsAllowInvalidHostnames`;
+      mdbSslOptionsString = `${mdbSslOptionsString} --sslAllowInvalidHostnames`;
     }
 
     if (!driverOptions.sslValidate) {
-      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsAllowInvalidCertificates`;
+      mdbSslOptionsString = `${mdbSslOptionsString} --sslAllowInvalidCertificates`;
     }
 
     if (driverOptions.sslCA) {
-      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCAFile ${driverOptions.sslCA}`;
+      mdbSslOptionsString = `${mdbSslOptionsString} --sslCAFile ${driverOptions.sslCA}`;
     }
 
     if (driverOptions.sslCert) {
-      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFile ${driverOptions.sslCert}`;
+      mdbSslOptionsString = `${mdbSslOptionsString} --sslPEMKeyFile ${driverOptions.sslCert}`;
     }
 
     if (driverOptions.sslPass) {
-      mdbTlsOptionsString = `${mdbTlsOptionsString} --tlsCertificateKeyFilePassword $MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD`;
+      mdbSslOptionsString = `${mdbSslOptionsString} --sslPEMKeyPassword $MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD`;
     }
 
-    return mdbTlsOptionsString;
+    return mdbSslOptionsString;
   }
 
   public openMongoDBShell(): Promise<boolean> {
     const mongoDBShellEnv: any = {};
-    let mdbTlsOptionsString = '';
+    let mdbSslOptionsString = '';
 
     if (
       !this._connectionController ||
@@ -457,12 +457,12 @@ export default class MDBExtensionController implements vscode.Disposable {
       : '';
 
     if (activeConnectionModel && this.isSslConnection(activeConnectionModel)) {
-      mdbTlsOptionsString = this.getTlsOptionsString(
+      mdbSslOptionsString = this.getSslOptionsString(
         activeConnectionModel.driverOptions
       );
 
       if (activeConnectionModel.driverOptions.sslPass) {
-        mongoDBShellEnv['MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD'] =
+        mongoDBShellEnv['MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD'] =
           activeConnectionModel.driverOptions.sslPass;
       }
     }
@@ -474,7 +474,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
 
     mongoDBShell.sendText(
-      `${shellCommand} ${mdbTlsOptionsString} $MDB_CONNECTION_STRING; unset MDB_CONNECTION_STRING; unset MDB_TLS_CERTIFICATE_KEY_FILE_PASSWORD`
+      `${shellCommand} ${mdbSslOptionsString} $MDB_CONNECTION_STRING; unset MDB_CONNECTION_STRING; unset MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD`
     );
     mongoDBShell.show();
 
