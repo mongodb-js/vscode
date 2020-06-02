@@ -8,6 +8,15 @@ import { SavedConnection } from '../storage/storageController';
 const rootLabel = 'Connections';
 const rootTooltip = 'Your MongoDB connections';
 
+function sortTreeItemsByLabel(treeItems: vscode.TreeItem[]): vscode.TreeItem[] {
+  return treeItems.sort(
+    (
+      a: vscode.TreeItem,
+      b: vscode.TreeItem
+    ) => (a.label || '').localeCompare(b.label || '')
+  );
+}
+
 export default class MDBConnectionsTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   contextValue = 'mdbConnectionsTreeItem';
@@ -102,13 +111,17 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
       notYetEstablishConnectionTreeItem.description = 'connecting...';
 
       // When we're connecting to a new connection we add simple node showing the connecting status.
-      return Promise.resolve([
-        ...Object.values(this._connectionTreeItems),
-        notYetEstablishConnectionTreeItem
-      ]);
+      return Promise.resolve(
+        sortTreeItemsByLabel([
+          ...Object.values(this._connectionTreeItems),
+          notYetEstablishConnectionTreeItem
+        ])
+      );
     }
 
-    return Promise.resolve(Object.values(this._connectionTreeItems));
+    return Promise.resolve(
+      sortTreeItemsByLabel(Object.values(this._connectionTreeItems))
+    );
   }
 
   connectionsDidChange(): void {
