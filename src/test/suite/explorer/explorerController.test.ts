@@ -235,6 +235,71 @@ suite('Explorer Controller Test Suite', function () {
     }
   });
 
+  test('shows connection names sorted alphabetically in the tree', async () => {
+    const testConnectionController =
+      mdbTestExtension.testExtensionController._connectionController;
+    const testExplorerController =
+      mdbTestExtension.testExtensionController._explorerController;
+    const treeController = testExplorerController.getTreeController();
+
+    try {
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
+    } catch (error) {
+      assert(false);
+    }
+
+    const connectionId =
+      testConnectionController.getActiveConnectionId() || '';
+
+    testConnectionController._connections.aaa = {
+      connectionModel: testConnectionController._connections[connectionId].connectionModel,
+      driverUrl: '',
+      name: 'aaa',
+      id: 'aaa',
+      storageLocation: StorageScope.WORKSPACE
+    };
+
+    testConnectionController._connections.zzz = {
+      connectionModel: testConnectionController._connections[connectionId].connectionModel,
+      driverUrl: '',
+      name: 'zzz',
+      id: 'zzz',
+      storageLocation: StorageScope.WORKSPACE
+    };
+
+    try {
+      const treeControllerChildren = await treeController.getChildren();
+      const connectionsItems = await treeControllerChildren[0].getChildren();
+
+      assert(
+        connectionsItems.length === 3,
+        `Expected there be 3 connection tree item, found ${connectionsItems.length}`
+      );
+      assert(
+        connectionsItems[0].label === 'aaa',
+        `First connection tree item should have label "aaa" found ${connectionsItems[0].label}`
+      );
+      assert(
+        connectionsItems[2].label === 'zzz',
+        `First connection tree item should have label "zzz" found ${connectionsItems[0].label}`
+      );
+
+      testConnectionController._connections.zzz.name = '111';
+
+      const afterAdditionConnectionsItems = await treeControllerChildren[0].getChildren();
+      assert(
+        afterAdditionConnectionsItems[0].label === '111',
+        `First connection tree item should have label "111" found ${afterAdditionConnectionsItems[0].label}`
+      );
+
+      testExplorerController.deactivate();
+    } catch (error) {
+      assert(false, error);
+    }
+  });
+
   test('shows the databases of connected connection in tree', async () => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
