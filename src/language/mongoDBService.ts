@@ -9,15 +9,22 @@ import { Visitor } from './visitor';
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const path = require('path');
+const fs = require('fs');
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
+
+type SslFileOptions = {
+  sslCA?: string;
+  sslKey?: string;
+  sslCert?: string;
+};
 
 export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
   _runtime?: ElectronRuntime;
   _connection: any;
   _connectionString?: string;
-  _connectionOptions?: object;
+  _connectionOptions?: any;
   _cachedFields: object;
   _cachedDatabases: [];
   _cachedCollections: object;
@@ -43,6 +50,47 @@ export default class MongoDBService {
     return this._connectionOptions;
   }
 
+  private isSslConnection(connectionOptions: any): boolean {
+    return !!(
+      connectionOptions &&
+      (connectionOptions.sslCA ||
+        connectionOptions.sslCert ||
+        connectionOptions.sslPass)
+    );
+  }
+
+  private readSslFileSync(sslOption: string | string[]): any {
+    if (Array.isArray(sslOption)) {
+      return fs.readFileSync(sslOption[0]);
+    }
+
+    if (typeof sslOption !== 'string') {
+      return;
+    }
+
+    return fs.readFileSync(sslOption);
+  }
+
+  private loadSslBinaries(): void {
+    if (this._connectionOptions.sslCA) {
+      this._connectionOptions.sslCA = this.readSslFileSync(
+        this._connectionOptions.sslCA
+      );
+    }
+
+    if (this._connectionOptions.sslKey) {
+      this._connectionOptions.sslKey = this.readSslFileSync(
+        this._connectionOptions.sslKey
+      );
+    }
+
+    if (this._connectionOptions.sslCert) {
+      this._connectionOptions.sslCert = this.readSslFileSync(
+        this._connectionOptions.sslCert
+      );
+    }
+  }
+
   public async connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: any;
@@ -54,11 +102,23 @@ export default class MongoDBService {
     this.clearCurrentSessionCollections();
 
     this._connectionString = params.connectionString;
-    this._connectionOptions = params.connectionOptions;
+    this._connectionOptions = params.connectionOptions || {};
     this._extensionPath = params.extensionPath;
 
     if (!this._connectionString) {
       return Promise.resolve(false);
+    }
+
+    if (this.isSslConnection(this._connectionOptions)) {
+      try {
+        this.loadSslBinaries();
+      } catch (error) {
+        this._connection.console.log(
+          `SSL FILES read error: ${util.inspect(error)}`
+        );
+
+        return Promise.resolve(false);
+      }
     }
 
     try {
