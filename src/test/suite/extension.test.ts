@@ -204,10 +204,17 @@ suite('Extension Test Suite', () => {
       `Expected open terminal to set shell arg as driver url with ssl injected "${driverUri}" found "${shellArgs[0]}"`
     );
 
-    const expectedSSL = '--ssl --sslAllowInvalidHostnames --sslCAFile ./path_to_some_file';
     assert(
-      shellArgs[1] === expectedSSL,
-      `Expected open terminal to set ssl args as "${expectedSSL}" found "${shellArgs[1]}"`
+      shellArgs[1] === '--ssl',
+      `Expected open terminal to set ssl arg "--ssl" found "${shellArgs[1]}"`
+    );
+    assert(
+      shellArgs[2] === '--sslAllowInvalidHostnames',
+      `Expected open terminal to set ssl arg "--sslAllowInvalidHostnames" found "${shellArgs[2]}"`
+    );
+    assert(
+      shellArgs[3] === '--sslCAFile=./path_to_some_file',
+      `Expected open terminal to set sslCAFile arg "--sslCAFile=./path_to_some_file" found "${shellArgs[3]}"`
     );
 
     await mockMDBExtension._connectionController.disconnect();
