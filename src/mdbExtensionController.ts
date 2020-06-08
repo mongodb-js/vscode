@@ -1,7 +1,7 @@
 /**
  * Top-level controller for our extension.
  *
- * Activated from ./src/extension.ts
+ * Activated from `./src/extension.ts`
  */
 import * as vscode from 'vscode';
 
@@ -22,7 +22,7 @@ import WebviewController from './views/webviewController';
 const log = createLogger('commands');
 
 // This class is the top-level controller for our extension.
-// Commands which the extensions handles are defined in the function activate.
+// Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
   _connectionController: ConnectionController;
   _context: vscode.ExtensionContext;
