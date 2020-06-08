@@ -1,7 +1,7 @@
 /**
  * Top-level controller for our extension.
  *
- * Activated from `./src/extension.ts`
+ * Activated from ./src/extension.ts
  */
 import * as vscode from 'vscode';
 
@@ -22,7 +22,7 @@ import WebviewController from './views/webviewController';
 const log = createLogger('commands');
 
 // This class is the top-level controller for our extension.
-// Commands which the extensions handles are defined in the function `activate`.
+// Commands which the extensions handles are defined in the function activate.
 export default class MDBExtensionController implements vscode.Disposable {
   _connectionController: ConnectionController;
   _context: vscode.ExtensionContext;
@@ -407,35 +407,35 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
   }
 
-  private getSslOptionsString(driverOptions: any): string {
-    let mdbSslOptionsString = '--ssl';
+  private getSslOptions(driverOptions: any): string[] {
+    const sslOptions = ['--ssl'];
 
     if (!driverOptions.checkServerIdentity) {
-      mdbSslOptionsString = `${mdbSslOptionsString} --sslAllowInvalidHostnames`;
+      sslOptions.push('--sslAllowInvalidHostnames');
     }
 
     if (!driverOptions.sslValidate) {
-      mdbSslOptionsString = `${mdbSslOptionsString} --sslAllowInvalidCertificates`;
+      sslOptions.push('--sslAllowInvalidCertificates');
     }
 
     if (driverOptions.sslCA) {
-      mdbSslOptionsString = `${mdbSslOptionsString} --sslCAFile ${driverOptions.sslCA}`;
+      sslOptions.push(`--sslCAFile=${driverOptions.sslCA}`);
     }
 
     if (driverOptions.sslCert) {
-      mdbSslOptionsString = `${mdbSslOptionsString} --sslPEMKeyFile ${driverOptions.sslCert}`;
+      sslOptions.push(`--sslPEMKeyFile=${driverOptions.sslCert}`);
     }
 
     if (driverOptions.sslPass) {
-      mdbSslOptionsString = `${mdbSslOptionsString} --sslPEMKeyPassword $MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD`;
+      sslOptions.push('--sslPEMKeyPassword=$MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD');
     }
 
-    return mdbSslOptionsString;
+    return sslOptions;
   }
 
   public openMongoDBShell(): Promise<boolean> {
     const mongoDBShellEnv: any = {};
-    const shellArgs: string[] = [];
+    let shellArgs: string[] = [];
 
     if (
       !this._connectionController ||
@@ -458,9 +458,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     shellArgs.push(mdbConnectionString);
 
     if (activeConnectionModel && this.isSslConnection(activeConnectionModel)) {
-      shellArgs.push(this.getSslOptionsString(
-        activeConnectionModel.driverOptions
-      ));
+      shellArgs = [
+        ...shellArgs,
+        ...this.getSslOptions(activeConnectionModel.driverOptions)
+      ];
 
       if (activeConnectionModel.driverOptions.sslPass) {
         mongoDBShellEnv.MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD =
