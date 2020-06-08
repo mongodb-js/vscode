@@ -435,7 +435,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   public openMongoDBShell(): Promise<boolean> {
     const mongoDBShellEnv: any = {};
-    let mdbSslOptionsString = '';
+    const shellArgs: string[] = [];
 
     if (
       !this._connectionController ||
@@ -452,30 +452,36 @@ export default class MDBExtensionController implements vscode.Disposable {
       .getActiveConnectionModel()
       ?.getAttributes({ derived: true });
 
-    mongoDBShellEnv['MDB_CONNECTION_STRING'] = activeConnectionModel
+    const mdbConnectionString = activeConnectionModel
       ? activeConnectionModel.driverUrlWithSsh
       : '';
+    shellArgs.push(mdbConnectionString);
 
     if (activeConnectionModel && this.isSslConnection(activeConnectionModel)) {
-      mdbSslOptionsString = this.getSslOptionsString(
+      shellArgs.push(this.getSslOptionsString(
         activeConnectionModel.driverOptions
-      );
+      ));
 
       if (activeConnectionModel.driverOptions.sslPass) {
-        mongoDBShellEnv['MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD'] =
+        mongoDBShellEnv.MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD =
           activeConnectionModel.driverOptions.sslPass;
       }
     }
 
-    const shellCommand = vscode.workspace.getConfiguration('mdb').get('shell');
+    const shellCommand: string | undefined = vscode.workspace.getConfiguration('mdb').get('shell');
+    if (!shellCommand) {
+      vscode.window.showErrorMessage(
+        'Please set the shell command in the MongoDB extension settings.'
+      );
+      return Promise.resolve(false);
+    }
+
     const mongoDBShell = vscode.window.createTerminal({
       name: 'MongoDB Shell',
+      shellPath: shellCommand,
+      shellArgs,
       env: mongoDBShellEnv
     });
-
-    mongoDBShell.sendText(
-      `${shellCommand} ${mdbSslOptionsString} $MDB_CONNECTION_STRING; unset MDB_CONNECTION_STRING; unset MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD`
-    );
     mongoDBShell.show();
 
     return Promise.resolve(true);

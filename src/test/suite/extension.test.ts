@@ -110,25 +110,27 @@ suite('Extension Test Suite', () => {
     );
     fakeIsCurrentlyConnected.returns(true);
 
-    try {
-      await mockMDBExtension.openMongoDBShell();
+    await mockMDBExtension.openMongoDBShell();
 
-      assert(createTerminalSpy.called);
+    assert(createTerminalSpy.called);
 
-      const terminalOptions: vscode.TerminalOptions =
-        createTerminalSpy.firstCall.args[0];
+    const terminalOptions: vscode.TerminalOptions =
+      createTerminalSpy.firstCall.args[0];
 
-      assert(
-        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
-        `Expected open terminal to set env var 'MDB_CONNECTION_STRING' to ${driverUri} found ${terminalOptions.env?.MDB_CONNECTION_STRING}`
-      );
+    let shellArgs = terminalOptions.shellArgs;
+    assert(
+      shellArgs !== undefined,
+      'Expected shell arguments to exist'
+    );
+    shellArgs = shellArgs || [];
 
-      await mockMDBExtension._connectionController.disconnect();
-      mockMDBExtension._connectionController.clearAllConnections();
-    } catch (e) {
-      assert(false);
-      return;
-    }
+    assert(
+      shellArgs[0] === driverUri,
+      `Expected open terminal to set shell arg as driver url "${driverUri}" found "${shellArgs[0]}"`
+    );
+
+    await mockMDBExtension._connectionController.disconnect();
+    mockMDBExtension._connectionController.clearAllConnections();
   });
 
   test('openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
@@ -146,24 +148,69 @@ suite('Extension Test Suite', () => {
     );
     fakeIsCurrentlyConnected.returns(true);
 
-    try {
-      await mockMDBExtension.openMongoDBShell();
+    await mockMDBExtension.openMongoDBShell();
 
-      assert(createTerminalSpy.called);
+    assert(createTerminalSpy.called);
 
-      const terminalOptions: vscode.TerminalOptions =
-        createTerminalSpy.firstCall.args[0];
+    const terminalOptions: vscode.TerminalOptions =
+      createTerminalSpy.firstCall.args[0];
 
-      assert(
-        terminalOptions.env?.MDB_CONNECTION_STRING !== driverUri,
-        `Expected open terminal to set env var 'MDB_CONNECTION_STRING' to driver url with ssh tunnel port injected found ${terminalOptions.env?.MDB_CONNECTION_STRING}`
-      );
+    let shellArgs = terminalOptions.shellArgs;
+    assert(
+      shellArgs !== undefined,
+      'Expected shell arguments to exist'
+    );
+    shellArgs = shellArgs || [];
 
-      await mockMDBExtension._connectionController.disconnect();
-      mockMDBExtension._connectionController.clearAllConnections();
-    } catch (e) {
-      assert(false);
-      return;
-    }
+    assert(
+      shellArgs[0].includes('mongodb://127.0.0.1') && shellArgs[0].includes('/?readPreference=primary&ssl=false'),
+      `Expected open terminal to set shell arg as driver url with ssh tunnel port injected found "${shellArgs[0]}"`
+    );
+
+    await mockMDBExtension._connectionController.disconnect();
+    mockMDBExtension._connectionController.clearAllConnections();
+  });
+
+  test('openMongoDBShell should open a terminal with ssl config injected', async () => {
+    const driverUri =
+      'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
+
+    fakeGetActiveConnectionModel.returns(
+      new Connection({
+        hostname: '127.0.0.1',
+        ssl: true,
+        sslMethod: 'SERVER',
+        sslCA: './path_to_some_file'
+      })
+    );
+    fakeIsCurrentlyConnected.returns(true);
+
+    await mockMDBExtension.openMongoDBShell();
+
+    assert(createTerminalSpy.called);
+
+    const terminalOptions: vscode.TerminalOptions =
+      createTerminalSpy.firstCall.args[0];
+
+    let shellArgs = terminalOptions.shellArgs;
+    assert(
+      shellArgs !== undefined,
+      'Expected shell arguments to exist'
+    );
+    shellArgs = shellArgs || [];
+
+    assert(
+      shellArgs[0] === driverUri,
+      `Expected open terminal to set shell arg as driver url with ssl injected "${driverUri}" found "${shellArgs[0]}"`
+    );
+
+    const expectedSSL = '--ssl --sslAllowInvalidHostnames --sslCAFile ./path_to_some_file';
+    assert(
+      shellArgs[1] === expectedSSL,
+      `Expected open terminal to set ssl args as "${expectedSSL}" found "${shellArgs[1]}"`
+    );
+
+    await mockMDBExtension._connectionController.disconnect();
+    mockMDBExtension._connectionController.clearAllConnections();
   });
 });
