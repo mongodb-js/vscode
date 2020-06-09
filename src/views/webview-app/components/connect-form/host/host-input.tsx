@@ -10,7 +10,6 @@ type dispatchProps = {
 
 type props = {
   hostname: string;
-  isHostChanged: boolean;
 } & dispatchProps;
 
 class HostInput extends React.PureComponent<props> {
@@ -31,10 +30,6 @@ class HostInput extends React.PureComponent<props> {
    * @returns {String} hostname.
    */
   getHostname(): string {
-    if (this.props.isHostChanged === false) {
-      return '';
-    }
-
     return this.props.hostname;
   }
 
