@@ -12,7 +12,7 @@ function isSslConnection(activeConnectionModel: any): boolean {
   );
 }
 
-function getSslOptions(driverOptions: any, isWindowsBasedShell: boolean): string[] {
+function getSslOptions(driverOptions: any): string[] {
   const mdbSslOptions = [ '--ssl' ];
 
   if (!driverOptions.checkServerIdentity) {
@@ -32,14 +32,13 @@ function getSslOptions(driverOptions: any, isWindowsBasedShell: boolean): string
   }
 
   if (driverOptions.sslPass) {
-    mdbSslOptions.push(`--sslPEMKeyPassword=${isWindowsBasedShell ? '%MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD%' : '$MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD'}`);
+    mdbSslOptions.push(`--sslPEMKeyPassword=${driverOptions.sslPass}`);
   }
 
   return mdbSslOptions;
 }
 
 export default function openMongoDBShell(connectionController: ConnectionController): Promise<boolean> {
-  const mongoDBShellEnv: any = {};
   let mdbSslOptions: string[] = [];
 
   if (
@@ -70,8 +69,6 @@ export default function openMongoDBShell(connectionController: ConnectionControl
     return Promise.resolve(false);
   }
 
-  const isWindowsBasedShell = userShell.includes('cmd.exe') || userShell.includes('powershell.exe');
-
   const activeConnectionModel = connectionController
     .getActiveConnectionModel()
     ?.getAttributes({ derived: true });
@@ -81,23 +78,16 @@ export default function openMongoDBShell(connectionController: ConnectionControl
     : '';
 
   if (activeConnectionModel && isSslConnection(activeConnectionModel)) {
-    mdbSslOptions = getSslOptions(
-      activeConnectionModel.driverOptions,
-      isWindowsBasedShell
-    );
-
-    if (activeConnectionModel.driverOptions.sslPass) {
-      mongoDBShellEnv.MDB_SSL_CERTIFICATE_KEY_FILE_PASSWORD =
-        activeConnectionModel.driverOptions.sslPass;
-    }
+    mdbSslOptions = getSslOptions(activeConnectionModel.driverOptions);
   }
 
+  const isWindowsBasedShell = userShell.includes('cmd.exe') || userShell.includes('powershell.exe');
   if (isWindowsBasedShell) {
-    mongoDBShellEnv.MDB_CONNECTION_STRING = mdbConnectionString;
-
     const mongoDBShell = vscode.window.createTerminal({
       name: 'MongoDB Shell',
-      env: mongoDBShellEnv
+      env: {
+        MDB_CONNECTION_STRING: mdbConnectionString
+      }
     });
 
     const mdbSslOptionsString = mdbSslOptions.length > 0
@@ -114,7 +104,6 @@ export default function openMongoDBShell(connectionController: ConnectionControl
     const mongoDBShell = vscode.window.createTerminal({
       name: 'MongoDB Shell',
       shellPath: shellCommand,
-      env: mongoDBShellEnv,
       shellArgs: [
         mdbConnectionString,
         ...mdbSslOptions
