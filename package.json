@@ -319,7 +319,7 @@
         {
           "command": "mdb.refreshConnection",
           "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
-          "group": "1@3"
+          "group": "1@2"
         },
         {
           "command": "mdb.treeViewOpenMongoDBShell",
