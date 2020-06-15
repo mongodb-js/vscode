@@ -100,7 +100,7 @@ export default class WebviewController {
               action: message.action,
               files:
                 files && files.length > 0
-                  ? files.map((file) => path.toNamespacedPath(file.path))
+                  ? files.map((file) => path.resolve(file.path.substr(1)))
                   : undefined
             });
           });

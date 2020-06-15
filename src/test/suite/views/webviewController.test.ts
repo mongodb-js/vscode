@@ -361,7 +361,7 @@ suite('Connect Form View Test Suite', () => {
       html: '',
       postMessage: (message: any): void => {
         assert(message.action === 'file_action');
-        assert(message.files[0] === path.resolve('/somefilepath/test.text'));
+        assert(message.files[0] === path.resolve('somefilepath/test.text'));
 
         testConnectionController.disconnect();
         done();
