@@ -18,7 +18,7 @@ suite('Extension Test Suite', () => {
 
     createTerminalStub.returns({
       sendText: fakeSendTerminalText,
-      show: () => {}
+      show: () => {},
     });
     sandbox.replace(vscode.window, 'createTerminal', createTerminalStub);
   });
@@ -46,6 +46,7 @@ suite('Extension Test Suite', () => {
       'mdb.addConnectionWithURI',
       'mdb.copyConnectionString',
       'mdb.treeItemRemoveConnection',
+      'mdb.treeViewOpenMongoDBShell',
       'mdb.addDatabase',
       'mdb.refreshConnection',
       'mdb.copyDatabaseName',
@@ -57,7 +58,7 @@ suite('Extension Test Suite', () => {
       'mdb.refreshSchema',
 
       // Editor commands.
-      'mdb.codeLens.showMoreDocumentsClicked'
+      'mdb.codeLens.showMoreDocumentsClicked',
     ];
 
     for (let i = 0; i < expectedCommands.length; i++) {

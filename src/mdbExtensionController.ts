@@ -102,7 +102,12 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController.onRemoveMongoDBConnection()
     );
 
-    this.registerCommand('mdb.openMongoDBShell', () => launchMongoShell(this._connectionController));
+    this.registerCommand('mdb.openMongoDBShell', () =>
+      launchMongoShell(this._connectionController)
+    );
+    this.registerCommand('mdb.treeViewOpenMongoDBShell', () =>
+      launchMongoShell(this._connectionController)
+    );
 
     this.registerCommand('mdb.createPlayground', () =>
       this._playgroundController.createPlayground()
