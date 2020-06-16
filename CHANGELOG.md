@@ -8,7 +8,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Added
 
-- Added `Launch MongoDB Shell` right click action for connected connection in tree view
+- Added `Launch MongoDB Shell` right click action for the active connection in the tree view
 
 ### Fixed
 
