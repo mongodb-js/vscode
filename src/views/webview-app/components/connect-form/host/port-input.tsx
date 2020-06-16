@@ -10,7 +10,6 @@ type dispatchProps = {
 
 type props = {
   port: number;
-  isPortChanged: boolean;
 } & dispatchProps;
 
 class PortInput extends React.PureComponent<props> {
@@ -31,10 +30,6 @@ class PortInput extends React.PureComponent<props> {
    * @returns {String} port.
    */
   getPort(): string {
-    if (this.props.isPortChanged === false) {
-      return '';
-    }
-
     return `${this.props.port}`;
   }
 

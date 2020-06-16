@@ -28,8 +28,6 @@ type stateProps = {
   isConnected: boolean;
   isConnecting: boolean;
   isUriConnected: boolean;
-  isHostChanged: boolean;
-  isPortChanged: boolean;
   isValid: boolean;
   syntaxErrorMessage: string;
   uriConnectionMessage: string;
@@ -55,17 +53,17 @@ class ConnectionForm extends React.Component<props> {
    * @returns {React.Component}
    */
   renderPort(): React.ReactNode {
-    const { currentConnection, isPortChanged } = this.props;
+    const { currentConnection } = this.props;
 
     const { isSrvRecord, port } = currentConnection;
 
     if (!isSrvRecord) {
-      return <PortInput port={port} isPortChanged={isPortChanged} />;
+      return <PortInput port={port} />;
     }
   }
 
   renderHostnameArea(): React.ReactNode {
-    const { currentConnection, isHostChanged, isValid } = this.props;
+    const { currentConnection, isValid } = this.props;
 
     const {
       authStrategy,
@@ -86,7 +84,7 @@ class ConnectionForm extends React.Component<props> {
     return (
       <div>
         <FormGroup id="connection-host-information" separator>
-          <HostInput hostname={hostname} isHostChanged={isHostChanged} />
+          <HostInput hostname={hostname} />
           {this.renderPort()}
           <SRVInput isSrvRecord={isSrvRecord} />
         </FormGroup>
@@ -199,8 +197,6 @@ const mapStateToProps = (state: AppState): stateProps => {
     isConnected: state.isConnected,
     isConnecting: state.isConnecting,
     isUriConnected: state.isUriConnected,
-    isHostChanged: state.isHostChanged,
-    isPortChanged: state.isPortChanged,
     isValid: state.isValid,
     syntaxErrorMessage: state.syntaxErrorMessage,
     uriConnectionMessage: state.uriConnectionMessage

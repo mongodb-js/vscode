@@ -18,8 +18,6 @@ export interface AppState {
   isUriConnected: boolean;
   errorMessage: string;
   syntaxErrorMessage: string;
-  isHostChanged: boolean;
-  isPortChanged: boolean;
   savedMessage: string;
   uriConnectionMessage: string;
 }
@@ -32,8 +30,6 @@ export const initialState = {
   isUriConnected: false,
   errorMessage: '',
   syntaxErrorMessage: '',
-  isHostChanged: false,
-  isPortChanged: false,
   savedMessage: '',
   uriConnectionMessage: ''
 };
@@ -147,7 +143,6 @@ export const rootReducer = (
     case ActionTypes.HOSTNAME_CHANGED:
       return {
         ...state,
-        isHostChanged: true,
         currentConnection: {
           ...state.currentConnection,
           hostname: action.hostname.trim(),
@@ -251,7 +246,6 @@ export const rootReducer = (
     case ActionTypes.PORT_CHANGED:
       return {
         ...state,
-        isPortChanged: true,
         currentConnection: {
           ...state.currentConnection,
           port: action.port
