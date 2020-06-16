@@ -4,6 +4,23 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.4] - 2020-06-16
+
+### Added
+
+- Added `Launch MongoDB Shell` right click action for connected connection in tree view
+
+### Fixed
+
+- Fixed an issue with connecting to ssl with the launch shell command
+- Fixed an issue with the launch shell command on windows
+- Fixed playgrounds not being able to run in WSL environments
+- Updated our connection model dependency to pull in a fix for connection strings with `readPreferenceTags`
+
+### Changed
+
+- Connections in the tree view are now alphabetically sorted
+
 ## [0.0.3] - 2020-05-26
 
 ### Added
