@@ -74,7 +74,7 @@ steps:
     displayName: 'Set extension_version variable from package.json version'
   - bash: |
       vsixFilename=./mongodb-vscode-$(extension_version).vsix
-      maxsize=5000000 # 5MB
+      maxsize=3000000 # 5MB
       filesize=$(stat -c%s "$vsixFilename")
 
       echo "Size of $vsixFilename = $filesize bytes."
@@ -94,7 +94,7 @@ steps:
     condition: in(variables['agent.os'], 'Linux')
   - task: PublishPipelineArtifact@1
     inputs:
+      PathtoPublish: '$(build.artifactstagingdirectory)'
       ArtifactName: vsix
-      PathtoPublish: $(Build.ArtifactStagingDirectory)
     displayName: 'Publish .vsix artifact'
     condition: in(variables['agent.os'], 'Linux')
