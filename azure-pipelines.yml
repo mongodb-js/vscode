@@ -73,7 +73,16 @@ steps:
       echo "##vso[task.setvariable variable=extension_version]`npx json -f package.json version`"
     displayName: 'Set extension_version variable from package.json version'
   - bash: |
-      ls -alh mongodb-vscode-$(extension_version).vsix
+      vsixFilename=./mongodb-vscode-$(extension_version).vsix
+      maxsize=5000000 # 5MB
+      filesize=$(stat -c%s "$vsixFilename")
+
+      echo "Size of $vsixFilename = $filesize bytes."
+
+      if (( filesize > maxsize )); then
+        echo "File is over 5MB."
+        exit 1
+      fi
     displayName: 'Check .vsix filesize'
 
   # On linux create and publish a .vsix artifact for the build.
@@ -85,7 +94,7 @@ steps:
     condition: in(variables['agent.os'], 'Linux')
   - task: PublishPipelineArtifact@1
     inputs:
-      artifact: mongodb-vscode
-      targetPath: $(Build.ArtifactStagingDirectory)
+      ArtifactName: vsix
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
     displayName: 'Publish .vsix artifact'
     condition: in(variables['agent.os'], 'Linux')
