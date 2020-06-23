@@ -90,11 +90,11 @@ steps:
     displayName: 'Copy vsix to staging directory'
     inputs:
       Contents: '**/*.vsix'
-      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      TargetFolder: '$(build.artifactstagingdirectory)'
     condition: in(variables['agent.os'], 'Linux')
   - task: PublishPipelineArtifact@1
+    displayName: 'Publish vsix artifact'
     inputs:
       PathtoPublish: '$(build.artifactstagingdirectory)'
       ArtifactName: vsix
-    displayName: 'Publish .vsix artifact'
     condition: in(variables['agent.os'], 'Linux')
