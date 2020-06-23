@@ -14,10 +14,7 @@ strategy:
     mac:
       imageName: 'macos-latest'
     windows:
-      # NOTE (lucas): Also blocked on Windows 2019 by
-      # https://jira.mongodb.org/browse/NODE-2465
-      # imageName: 'windows-latest'
-      imageName: 'vs2017-win2016'
+      imageName: 'windows-latest'
 pool:
   vmImage: $(imageName)
 
@@ -78,3 +75,17 @@ steps:
   - bash: |
       ls -alh mongodb-vscode-$(extension_version).vsix
     displayName: 'Check .vsix filesize'
+
+  # On linux create and publish a .vsix artifact for the build.
+  - task: CopyFiles@2
+    displayName: 'Copy vsix to staging directory'
+    inputs:
+      Contents: '**/*.vsix'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    condition: in(variables['agent.os'], 'Linux')
+  - task: PublishPipelineArtifact@1
+    inputs:
+      artifact: mongodb-vscode
+      targetPath: $(Build.ArtifactStagingDirectory)
+    displayName: 'Publish .vsix artifact'
+    condition: in(variables['agent.os'], 'Linux')
