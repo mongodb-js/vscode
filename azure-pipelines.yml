@@ -92,7 +92,7 @@ steps:
       Contents: '**/*.vsix'
       TargetFolder: '$(build.artifactstagingdirectory)'
     condition: in(variables['agent.os'], 'Linux')
-  - task: PublishPipelineArtifact@1
+  - task: PublishBuildArtifacts@1
     displayName: 'Publish vsix artifact'
     inputs:
       PathtoPublish: '$(build.artifactstagingdirectory)'
