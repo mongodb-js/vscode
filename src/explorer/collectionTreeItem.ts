@@ -5,6 +5,7 @@ import DocumentListTreeItem, {
   CollectionTypes,
   MAX_DOCUMENTS_VISIBLE
 } from './documentListTreeItem';
+import IndexListTreeItem from './indexListTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
 import { getImagesPath } from '../extensionConstants';
@@ -15,6 +16,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
   private _documentListChild: DocumentListTreeItem;
   private _schemaChild: SchemaTreeItem;
+  private _indexListChild: IndexListTreeItem;
 
   isSynchronousResource = true;
 
@@ -32,7 +34,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
     dataService: any,
     isExpanded: boolean,
     existingDocumentListChild?: DocumentListTreeItem,
-    existingSchemaChild?: SchemaTreeItem
+    existingSchemaChild?: SchemaTreeItem,
+    existingIndexListChild?: IndexListTreeItem
   ) {
     super(
       collection.name,
@@ -66,6 +69,15 @@ export default class CollectionTreeItem extends vscode.TreeItem
         this.databaseName,
         this._dataService,
         false // Collapsed.
+      );
+    this._indexListChild = existingIndexListChild
+      ? existingIndexListChild
+      : new IndexListTreeItem(
+        this.collectionName,
+        this.databaseName,
+        this._dataService,
+        false, // Collapsed.
+        null // No existing cache.
       );
   }
 
@@ -102,7 +114,19 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this._schemaChild.isExpanded,
       this._schemaChild
     );
-    return Promise.resolve([this._documentListChild, this._schemaChild]);
+    this._indexListChild = new IndexListTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._dataService,
+      this._indexListChild.isExpanded,
+      this._indexListChild.getChildrenCache()
+    );
+
+    return Promise.resolve([
+      this._documentListChild,
+      this._schemaChild,
+      this._indexListChild
+    ]);
   }
 
   onDidCollapse(): void {
@@ -138,6 +162,9 @@ export default class CollectionTreeItem extends vscode.TreeItem
   }
   getSchemaChild(): SchemaTreeItem {
     return this._schemaChild;
+  }
+  getIndexListChild(): IndexListTreeItem {
+    return this._indexListChild;
   }
 
   getMaxDocumentsToShow(): number {

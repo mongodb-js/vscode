@@ -93,7 +93,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
                     this._dataService,
                     pastChildrenCache[collection.name].isExpanded,
                     pastChildrenCache[collection.name].getDocumentListChild(),
-                    pastChildrenCache[collection.name].getSchemaChild()
+                    pastChildrenCache[collection.name].getSchemaChild(),
+                    pastChildrenCache[collection.name].getIndexListChild()
                   );
                 } else {
                   this._childrenCache[collection.name] = new CollectionTreeItem(

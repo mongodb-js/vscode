@@ -4,18 +4,10 @@ import ConnectionController from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { SavedConnection } from '../storage/storageController';
+import { sortTreeItemsByLabel } from './treeItemUtils';
 
 const rootLabel = 'Connections';
 const rootTooltip = 'Your MongoDB connections';
-
-function sortTreeItemsByLabel(treeItems: vscode.TreeItem[]): vscode.TreeItem[] {
-  return treeItems.sort(
-    (
-      a: vscode.TreeItem,
-      b: vscode.TreeItem
-    ) => (a.label || '').localeCompare(b.label || '')
-  );
-}
 
 export default class MDBConnectionsTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
