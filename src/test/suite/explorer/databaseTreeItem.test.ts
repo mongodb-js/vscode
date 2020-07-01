@@ -77,7 +77,7 @@ suite('DatabaseTreeItem Test Suite', () => {
           collections[1].label ===
           mockDatabases[mockDatabaseNames[1]].collections[1].name,
           `Expected a tree item child with the label collection name ${
-          mockDatabases[mockDatabaseNames[1]].collections[1].name
+            mockDatabases[mockDatabaseNames[1]].collections[1].name
           } found ${collections[1].label}`
         );
       })
@@ -104,6 +104,10 @@ suite('DatabaseTreeItem Test Suite', () => {
 
         collectionTreeItems[1].onDidExpand();
         const documentListItem = collectionTreeItems[1].getDocumentListChild();
+        if (!documentListItem) {
+          assert(false, 'No document list tree item found on collection.');
+          return;
+        }
         documentListItem.onDidExpand();
         documentListItem.onShowMoreClicked();
 
@@ -168,7 +172,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       .then((collectionTreeItems: CollectionTreeItem[]) => {
         assert.deepEqual(
           collectionTreeItems.map(({ collectionName }) => collectionName).join(), expectedCollectionsOrder.join(),
-          `Expected collections to be in alphanumerical order but they were not`
+          'Expected collections to be in alphanumerical order but they were not'
         );
       })
       .then(done, done);
@@ -210,6 +214,10 @@ suite('DatabaseTreeItem Test Suite', () => {
 
             collectionTreeItems[0].onDidExpand();
             const schemaTreeItem = collectionTreeItems[0].getSchemaChild();
+            if (!schemaTreeItem) {
+              assert(false, 'No schema tree item found on collection.');
+              return;
+            }
             schemaTreeItem.onDidExpand();
             schemaTreeItem.onShowMoreClicked();
 

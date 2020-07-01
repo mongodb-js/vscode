@@ -94,7 +94,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
 
   getChildren(): Thenable<any[]> {
     if (!this.isExpanded) {
-      return Promise.resolve([] as vscode.TreeItem[]);
+      return Promise.resolve([]);
     }
 
     if (this.childrenCacheIsUpToDate) {

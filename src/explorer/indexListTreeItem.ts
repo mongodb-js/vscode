@@ -111,19 +111,6 @@ export default class IndexListTreeItem extends vscode.TreeItem
     });
   }
 
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    return {
-      light: path.join(LIGHT, 'documents.svg'),
-      dark: path.join(DARK, 'documents.svg')
-    };
-  }
-
   onDidCollapse(): void {
     this.isExpanded = false;
     this._childrenCacheIsUpToDate = false;
