@@ -225,11 +225,9 @@ export default class SchemaTreeItem extends vscode.TreeItem
 
   onDidCollapse(): void {
     this.isExpanded = false;
-    this.childrenCacheIsUpToDate = false;
   }
 
   onDidExpand(): Promise<boolean> {
-    this.childrenCacheIsUpToDate = false;
     this.isExpanded = true;
 
     return Promise.resolve(true);

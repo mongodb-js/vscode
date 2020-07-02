@@ -11,7 +11,7 @@ enum IndexKeyType {
 }
 
 type IndexModel = {
-  v: string;
+  v: number;
   key: {
     [key: string]: IndexKeyType;
   };

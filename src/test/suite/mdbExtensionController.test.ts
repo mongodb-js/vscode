@@ -42,6 +42,7 @@ suite('MDBExtensionController Test Suite', () => {
       },
       'testDbName',
       {},
+      false,
       false
     );
 
@@ -83,6 +84,7 @@ suite('MDBExtensionController Test Suite', () => {
       },
       'testDbName',
       {},
+      false,
       false
     );
 
@@ -281,6 +283,7 @@ suite('MDBExtensionController Test Suite', () => {
       },
       'airZebra',
       {},
+      false,
       false
     );
 
@@ -337,8 +340,11 @@ suite('MDBExtensionController Test Suite', () => {
       },
       'airZebra',
       {},
+      false,
       false
     );
+
+    mockTreeItem.isExpanded = true;
 
     // Set expanded.
     mockTreeItem.getSchemaChild().isExpanded = true;
@@ -355,12 +361,8 @@ suite('MDBExtensionController Test Suite', () => {
       .executeCommand('mdb.refreshCollection', mockTreeItem)
       .then(() => {
         assert(
-          mockTreeItem.getDocumentListChild().isExpanded === false,
-          'Expected document list on collection tree item to be reset to not expanded.'
-        );
-        assert(
-          mockTreeItem.getSchemaChild().isExpanded === false,
-          'Expected schema on collection tree item to be reset to not expanded.'
+          mockTreeItem.isExpanded === false,
+          'Expected collection tree item to be reset to not expanded.'
         );
         assert(
           mockExplorerControllerRefresh.called === true,
@@ -756,6 +758,7 @@ suite('MDBExtensionController Test Suite', () => {
           callback(null, true);
         }
       },
+      false,
       false
     );
 
@@ -783,6 +786,7 @@ suite('MDBExtensionController Test Suite', () => {
           { name: 'doesntExistColName', type: CollectionTypes.collection },
           'doesntExistDBName',
           testConnectionController.getActiveDataService(),
+          false,
           false
         );
 
@@ -822,6 +826,7 @@ suite('MDBExtensionController Test Suite', () => {
       { name: 'orange', type: CollectionTypes.collection },
       'fruitsThatAreTasty',
       {},
+      false,
       false
     );
 
@@ -845,6 +850,7 @@ suite('MDBExtensionController Test Suite', () => {
       { name: 'orange', type: CollectionTypes.view },
       'fruitsThatAreTasty',
       {},
+      false,
       false
     );
 

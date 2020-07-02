@@ -19,6 +19,7 @@ suite('CollectionTreeItem Test Suite', () => {
       },
       'mock_db_name',
       'imaginary data service',
+      false,
       false
     );
 
@@ -42,6 +43,7 @@ suite('CollectionTreeItem Test Suite', () => {
       },
       'mock_db_name',
       'imaginary data service',
+      false,
       false
     );
 
@@ -51,8 +53,8 @@ suite('CollectionTreeItem Test Suite', () => {
       .getChildren()
       .then((children) => {
         assert(
-          children.length === 2,
-          `Expected 2 children to be returned, found ${children.length}`
+          children.length === 3,
+          `Expected 3 children to be returned, found ${children.length}`
         );
         assert(
           children[0].label === 'Documents',
@@ -61,6 +63,10 @@ suite('CollectionTreeItem Test Suite', () => {
         assert(
           children[1].label === 'Schema',
           `Expected the second child tree item to be named Schema found ${children[1].label}`
+        );
+        assert(
+          children[2].label === 'Indexes',
+          `Expected the second child tree item to be named Indexes found ${children[2].label}`
         );
       })
       .then(done, done);
@@ -76,6 +82,7 @@ suite('CollectionTreeItem Test Suite', () => {
       },
       'mock_db_name',
       'imaginary data service',
+      false,
       false
     );
 
@@ -96,6 +103,7 @@ suite('CollectionTreeItem Test Suite', () => {
       },
       'mock_db_name',
       'imaginary data service',
+      false,
       false
     );
 

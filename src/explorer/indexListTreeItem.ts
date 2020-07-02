@@ -4,8 +4,8 @@ const path = require('path');
 import { createLogger } from '../logging';
 import IndexTreeItem from './indexTreeItem';
 import TreeItemParent from './treeItemParentInterface';
-import { getImagesPath } from '../extensionConstants';
 import { sortTreeItemsByLabel } from './treeItemUtils';
+import { getImagesPath } from '../extensionConstants';
 
 const log = createLogger('tree view indexes list');
 
@@ -134,5 +134,18 @@ export default class IndexListTreeItem extends vscode.TreeItem
     }
 
     return null;
+  }
+
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const LIGHT = path.join(getImagesPath(), 'light');
+    const DARK = path.join(getImagesPath(), 'dark');
+
+    return {
+      light: path.join(LIGHT, 'indexes.svg'),
+      dark: path.join(DARK, 'indexes.svg')
+    };
   }
 }

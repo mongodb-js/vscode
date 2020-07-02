@@ -14,9 +14,9 @@ export default class CollectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
   contextValue = 'collectionTreeItem';
 
-  private _documentListChild: DocumentListTreeItem | undefined;
-  private _schemaChild: SchemaTreeItem | undefined;
-  private _indexListChild: IndexListTreeItem | undefined;
+  private _documentListChild: DocumentListTreeItem;
+  private _schemaChild: SchemaTreeItem;
+  private _indexListChild: IndexListTreeItem;
 
   collectionName: string;
   databaseName: string;
@@ -33,6 +33,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     databaseName: string,
     dataService: any,
     isExpanded: boolean,
+    cacheIsUpToDate: boolean,
     existingDocumentListChild?: DocumentListTreeItem,
     existingSchemaChild?: SchemaTreeItem,
     existingIndexListChild?: IndexListTreeItem
@@ -51,11 +52,37 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
-    // this._childrenCache = existingChildrenCache;
 
-    this._documentListChild = existingDocumentListChild;
-    this._schemaChild = existingSchemaChild;
-    this._indexListChild = existingIndexListChild;
+    this._childrenCacheIsUpToDate = cacheIsUpToDate;
+
+    this._documentListChild =
+      existingDocumentListChild ||
+      new DocumentListTreeItem(
+        this.collectionName,
+        this.databaseName,
+        this._type,
+        this._dataService,
+        false,
+        MAX_DOCUMENTS_VISIBLE,
+        null
+      );
+    this._schemaChild =
+      existingSchemaChild ||
+      new SchemaTreeItem(
+        this.collectionName,
+        this.databaseName,
+        this._dataService,
+        false
+      );
+    this._indexListChild =
+      existingIndexListChild ||
+      new IndexListTreeItem(
+        this.collectionName,
+        this.databaseName,
+        this._dataService,
+        false,
+        null
+      );
   }
 
   get tooltip(): string {
@@ -68,9 +95,34 @@ export default class CollectionTreeItem extends vscode.TreeItem
     return element;
   }
 
+  // eslint-disable-next-line complexity
   getChildren(): Thenable<any[]> {
     if (!this.isExpanded) {
       return Promise.resolve([]);
+    }
+
+    // Update cache if one of the children has been expanded/collapsed.
+    if (
+      (this._documentListChild.isExpanded &&
+        this._documentListChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Expanded) ||
+      (!this._documentListChild.isExpanded &&
+        this._documentListChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Collapsed) ||
+      (this._schemaChild.isExpanded &&
+        this._schemaChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Expanded) ||
+      (!this._schemaChild.isExpanded &&
+        this._schemaChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Collapsed) ||
+      (this._indexListChild.isExpanded &&
+        this._indexListChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Expanded) ||
+      (!this._indexListChild.isExpanded &&
+        this._indexListChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Collapsed)
+    ) {
+      this._childrenCacheIsUpToDate = false;
     }
 
     if (this._childrenCacheIsUpToDate) {
@@ -91,8 +143,12 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this._type,
       this._dataService,
       this._documentListChild ? this._documentListChild.isExpanded : false,
-      this._documentListChild ? this._documentListChild.getMaxDocumentsToShow() : MAX_DOCUMENTS_VISIBLE,
-      this._documentListChild ? this._documentListChild.getChildrenCache() : null
+      this._documentListChild
+        ? this._documentListChild.getMaxDocumentsToShow()
+        : MAX_DOCUMENTS_VISIBLE,
+      this._documentListChild
+        ? this._documentListChild.getChildrenCache()
+        : null
     );
 
     this._schemaChild = new SchemaTreeItem(
@@ -130,15 +186,16 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
   resetCache(): void {
     this._childrenCacheIsUpToDate = false;
+    this.isExpanded = false;
   }
 
-  getDocumentListChild(): DocumentListTreeItem | undefined {
+  getDocumentListChild(): DocumentListTreeItem {
     return this._documentListChild;
   }
-  getSchemaChild(): SchemaTreeItem | undefined {
+  getSchemaChild(): SchemaTreeItem {
     return this._schemaChild;
   }
-  getIndexListChild(): IndexListTreeItem | undefined {
+  getIndexListChild(): IndexListTreeItem {
     return this._indexListChild;
   }
 

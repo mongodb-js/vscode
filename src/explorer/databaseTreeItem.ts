@@ -92,6 +92,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
                     this.databaseName,
                     this._dataService,
                     pastChildrenCache[collection.name].isExpanded,
+                    pastChildrenCache[collection.name]._childrenCacheIsUpToDate,
                     pastChildrenCache[collection.name].getDocumentListChild(),
                     pastChildrenCache[collection.name].getSchemaChild(),
                     pastChildrenCache[collection.name].getIndexListChild()
@@ -101,7 +102,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
                     collection,
                     this.databaseName,
                     this._dataService,
-                    false // Not expanded.
+                    false, // Not expanded.
+                    false // No cache.
                   );
                 }
               });

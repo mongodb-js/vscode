@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 const path = require('path');
 
 import { getImagesPath } from '../extensionConstants';
-import TreeItemParentInterface from './treeItemParentInterface';
+import TreeItemParent from './treeItemParentInterface';
 
 // Loosely based on bson types. These values match with the
 // types returned by `parseSchema` with `mongodb-schema`.
@@ -121,7 +121,7 @@ export const getIconFileNameForField = (
 };
 
 export default class FieldTreeItem extends vscode.TreeItem
-  implements vscode.TreeDataProvider<FieldTreeItem>, TreeItemParentInterface {
+  implements vscode.TreeDataProvider<FieldTreeItem>, TreeItemParent {
   // This is a flag which notes that when this tree element is updated,
   // the tree view does not have to fully update like it does with
   // asynchronous resources.
@@ -239,23 +239,23 @@ export default class FieldTreeItem extends vscode.TreeItem
     return this._childrenCache;
   }
 
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
+  // get iconPath():
+  //   | string
+  //   | vscode.Uri
+  //   | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  //   const LIGHT = path.join(getImagesPath(), 'light');
+  //   const DARK = path.join(getImagesPath(), 'dark');
 
-    const iconFileName = getIconFileNameForField(this.field);
+  //   const iconFileName =  ? 'boolean';// getIconFileNameForField(this.field);
 
-    if (iconFileName === null) {
-      // No icon.
-      return '';
-    }
+  //   if (iconFileName === null) {
+  //     // No icon.
+  //     return '';
+  //   }
 
-    return {
-      light: path.join(LIGHT, 'schema', `${iconFileName}.svg`),
-      dark: path.join(DARK, 'schema', `${iconFileName}.svg`)
-    };
-  }
+  //   return {
+  //     light: path.join(LIGHT, 'schema', `${iconFileName}.svg`),
+  //     dark: path.join(DARK, 'schema', `${iconFileName}.svg`)
+  //   };
+  // }
 }
