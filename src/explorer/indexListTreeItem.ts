@@ -49,9 +49,6 @@ export default class IndexListTreeItem extends vscode.TreeItem
     if (existingCache !== null) {
       this._childrenCache = existingCache;
       this._childrenCacheIsUpToDate = true;
-
-      // Show the count of indexes next to the item label.
-      this.description = `${existingCache.length}`;
     }
   }
 
@@ -93,9 +90,6 @@ export default class IndexListTreeItem extends vscode.TreeItem
           this._childrenCacheIsUpToDate = true;
 
           if (indexes) {
-            // Show the count of indexes next to the item label.
-            this.description = `${indexes.length}`;
-
             this._childrenCache = sortTreeItemsByLabel(
               indexes.map(index => {
                 return new IndexTreeItem(index, namespace);
@@ -113,7 +107,6 @@ export default class IndexListTreeItem extends vscode.TreeItem
 
   onDidCollapse(): void {
     this.isExpanded = false;
-    this._childrenCacheIsUpToDate = false;
   }
 
   onDidExpand(): Promise<boolean> {

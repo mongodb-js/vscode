@@ -239,23 +239,23 @@ export default class FieldTreeItem extends vscode.TreeItem
     return this._childrenCache;
   }
 
-  // get iconPath():
-  //   | string
-  //   | vscode.Uri
-  //   | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-  //   const LIGHT = path.join(getImagesPath(), 'light');
-  //   const DARK = path.join(getImagesPath(), 'dark');
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const LIGHT = path.join(getImagesPath(), 'light');
+    const DARK = path.join(getImagesPath(), 'dark');
 
-  //   const iconFileName =  ? 'boolean';// getIconFileNameForField(this.field);
+    const iconFileName = getIconFileNameForField(this.field);
 
-  //   if (iconFileName === null) {
-  //     // No icon.
-  //     return '';
-  //   }
+    if (iconFileName === null) {
+      // No icon.
+      return '';
+    }
 
-  //   return {
-  //     light: path.join(LIGHT, 'schema', `${iconFileName}.svg`),
-  //     dark: path.join(DARK, 'schema', `${iconFileName}.svg`)
-  //   };
-  // }
+    return {
+      light: path.join(LIGHT, 'schema', `${iconFileName}.svg`),
+      dark: path.join(DARK, 'schema', `${iconFileName}.svg`)
+    };
+  }
 }

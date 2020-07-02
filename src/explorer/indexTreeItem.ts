@@ -47,14 +47,12 @@ function getDisplayNameForIndexKeyType(indexKeyType: IndexKeyType): string {
   return '';
 }
 
-class IndexFieldTreeItem extends vscode.TreeItem implements vscode.TreeDataProvider<IndexFieldTreeItem> {
+class IndexFieldTreeItem extends vscode.TreeItem
+  implements vscode.TreeDataProvider<IndexFieldTreeItem> {
   indexKey: string;
 
   constructor(indexKey: string, indexKeyType: IndexKeyType) {
-    super(
-      indexKey,
-      vscode.TreeItemCollapsibleState.None
-    );
+    super(indexKey, vscode.TreeItemCollapsibleState.None);
 
     this.indexKey = indexKey;
 
@@ -82,15 +80,19 @@ export default class IndexTreeItem extends vscode.TreeItem
 
   namespace: string;
 
+  // This is a flag which notes that when this tree element is updated,
+  // the tree view does not have to fully update like it does with
+  // asynchronous resources.
+  doesNotRequireTreeUpdate = true;
+
   constructor(index: IndexModel, namespace: string) {
-    super(
-      index.name,
-      vscode.TreeItemCollapsibleState.Collapsed
-    );
+    super(index.name, vscode.TreeItemCollapsibleState.Collapsed);
 
     this.index = index;
 
     this.namespace = namespace;
+
+    this.id = `${index.name}-${namespace}`;
   }
 
   get tooltip(): string {
@@ -106,8 +108,10 @@ export default class IndexTreeItem extends vscode.TreeItem
       return Promise.resolve([]);
     }
 
-    return Promise.resolve(Object.keys(this.index.key).map(
-      indexKey => new IndexFieldTreeItem(indexKey, this.index.key[indexKey])
-    ));
+    return Promise.resolve(
+      Object.keys(this.index.key).map(
+        (indexKey) => new IndexFieldTreeItem(indexKey, this.index.key[indexKey])
+      )
+    );
   }
 }
