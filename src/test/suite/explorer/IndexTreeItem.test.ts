@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 
-import IndexTreeItem from '../../../explorer/IndexTreeItem';
+import IndexTreeItem from '../../../explorer/indexTreeItem';
 
 suite('IndexListTreeItem Test Suite', () => {
   test('it has tree items for each key in the index', (done) => {
