@@ -200,19 +200,14 @@ export default class SchemaTreeItem extends vscode.TreeItem
               !this.hasClickedShowMoreFields &&
               schema.fields.length > FIELDS_TO_SHOW
             ) {
-              // this.hasMoreFieldsToShow = true;
-              // return resolve([
-              //   ...Object.values(this.childrenCache),
-              //   new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
-              // ]);
+              this.hasMoreFieldsToShow = true;
+              return resolve([
+                ...Object.values(this.childrenCache),
+                new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
+              ]);
             }
 
-            // return resolve(Object.values(this.childrenCache));
-            // return new Promise((resolve, reject) => {
-            setTimeout(() => {
-              resolve(Object.values(this.childrenCache));
-            }, 1000);
-            // });
+            return resolve(Object.values(this.childrenCache));
           });
         }
       );

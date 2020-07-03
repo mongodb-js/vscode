@@ -55,9 +55,9 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
     this._childrenCacheIsUpToDate = cacheIsUpToDate;
 
-    this._documentListChild =
-      existingDocumentListChild ||
-      new DocumentListTreeItem(
+    this._documentListChild = existingDocumentListChild
+      ? existingDocumentListChild
+      : new DocumentListTreeItem(
         this.collectionName,
         this.databaseName,
         this._type,
@@ -66,17 +66,17 @@ export default class CollectionTreeItem extends vscode.TreeItem
         MAX_DOCUMENTS_VISIBLE,
         null
       );
-    this._schemaChild =
-      existingSchemaChild ||
-      new SchemaTreeItem(
+    this._schemaChild = existingSchemaChild
+      ? existingSchemaChild
+      : new SchemaTreeItem(
         this.collectionName,
         this.databaseName,
         this._dataService,
         false
       );
-    this._indexListChild =
-      existingIndexListChild ||
-      new IndexListTreeItem(
+    this._indexListChild = existingIndexListChild
+      ? existingIndexListChild
+      : new IndexListTreeItem(
         this.collectionName,
         this.databaseName,
         this._dataService,
