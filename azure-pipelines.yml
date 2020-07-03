@@ -14,7 +14,10 @@ strategy:
     mac:
       imageName: 'macos-latest'
     windows:
-      imageName: 'windows-latest'
+      # NOTE (lucas): Also blocked on Windows 2019 by
+      # https://jira.mongodb.org/browse/NODE-2465
+      # imageName: 'windows-latest'
+      imageName: 'vs2017-win2016'
 pool:
   vmImage: $(imageName)
 
