@@ -36,7 +36,6 @@ steps:
       key: 'npm | "$(Agent.OS)" | package-lock.json'
       restoreKeys: |
         npm | "$(Agent.OS)"
-        npm
       path: $(npm_config_cache)
     displayName: Cache npm
   # TODO (lucas): Caching `./.vscode-test` in the future would be nice
