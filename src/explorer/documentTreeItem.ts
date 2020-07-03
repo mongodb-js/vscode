@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
-const path = require('path');
 
-import { getImagesPath } from '../extensionConstants';
 export const DOCUMENT_ITEM = 'documentTreeItem';
 
 export default class DocumentTreeItem extends vscode.TreeItem
@@ -41,25 +39,5 @@ export default class DocumentTreeItem extends vscode.TreeItem
 
   getChildren(): Thenable<DocumentTreeItem[]> {
     return Promise.resolve([]);
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    const iconFileName = 'boolean';
-
-    if (iconFileName === null) {
-      // No icon.
-      return '';
-    }
-
-    return {
-      light: path.join(LIGHT, 'schema', `${iconFileName}.svg`),
-      dark: path.join(DARK, 'schema', `${iconFileName}.svg`)
-    };
   }
 }
