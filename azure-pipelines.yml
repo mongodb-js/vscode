@@ -43,6 +43,8 @@ steps:
   - bash: |
       npm i -g npm@6.13.4;
       npm ci;
+      npm cache clean --force;
+      npm i;
     displayName: 'Install dependencies from npm'
 
   - bash: npm run test
