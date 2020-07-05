@@ -20,13 +20,13 @@ const MAX_CONNECTION_NAME_LENGTH = 512;
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
   ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
-  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING'
+  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING',
 }
 
 export enum ConnectionTypes {
   CONNECTION_FORM = 'CONNECTION_FORM',
   CONNECTION_STRING = 'CONNECTION_STRING',
-  CONNECTION_ID = 'CONNECTION_ID'
+  CONNECTION_ID = 'CONNECTION_ID',
 }
 
 export type SavedConnectionInformation = {
@@ -270,13 +270,13 @@ export default class ConnectionController {
       connectionModel,
       driverUrl
     };
-    const name =
+    const connectionName =
       sshTunnelOptions.host && sshTunnelOptions.port
         ? `${sshTunnelOptions.host}:${sshTunnelOptions.port}`
         : instanceId;
     const savedConnection: SavedConnection = {
       id: connectionId,
-      name,
+      name: connectionName,
       // To begin we just store it on the session, the storage controller
       // handles changing this based on user preference.
       storageLocation: StorageScope.NONE
@@ -586,13 +586,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-      connectionIds.map(
-        (id, index) => `${index + 1}: ${this._connections[id].name}`
-      ),
-      {
-        placeHolder: 'Choose a connection to remove...'
-      }
-    );
+        connectionIds.map(
+          (id, index) => `${index + 1}: ${this._connections[id].name}`
+        ),
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
