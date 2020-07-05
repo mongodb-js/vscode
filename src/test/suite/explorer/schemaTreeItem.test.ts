@@ -53,13 +53,13 @@ suite('SchemaTreeItem Test Suite', () => {
       !testSchemaTreeItem.hasClickedShowMoreFields,
       'Expected "hasClickedShowMoreFields" to be false by default'
     );
-    testSchemaTreeItem.childrenCacheIsUpToDate = true;
+    testSchemaTreeItem.cacheIsUpToDate = true;
 
     testSchemaTreeItem.onShowMoreClicked();
 
     assert(
-      !testSchemaTreeItem.childrenCacheIsUpToDate,
-      'Expected `childrenCacheIsUpToDate` to be reset to false'
+      !testSchemaTreeItem.cacheIsUpToDate,
+      'Expected `cacheIsUpToDate` to be reset to false'
     );
     assert(
       testSchemaTreeItem.hasClickedShowMoreFields,

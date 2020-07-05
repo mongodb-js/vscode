@@ -127,6 +127,7 @@ export default class FieldTreeItem extends vscode.TreeItem
   // asynchronous resources.
   doesNotRequireTreeUpdate = true;
 
+  cacheIsUpToDate = true; // Unused because this is a synchronous resource.
   private _childrenCache: { [fieldName: string]: FieldTreeItem } = {};
 
   field: SchemaFieldType;

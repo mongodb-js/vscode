@@ -30,7 +30,7 @@ class ShowAllFieldsTreeItem extends vscode.TreeItem {
 
 export default class SchemaTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<SchemaTreeItem> {
-  childrenCacheIsUpToDate: boolean;
+  cacheIsUpToDate: boolean;
   childrenCache: { [fieldName: string]: FieldTreeItem };
 
   contextValue = 'schemaTreeItem';
@@ -72,15 +72,15 @@ export default class SchemaTreeItem extends vscode.TreeItem
       this.hasMoreFieldsToShow = cachedSchemaTreeItem.hasMoreFieldsToShow;
 
       this.childrenCache = cachedSchemaTreeItem.childrenCache;
-      this.childrenCacheIsUpToDate =
-        cachedSchemaTreeItem.childrenCacheIsUpToDate;
+      this.cacheIsUpToDate =
+        cachedSchemaTreeItem.cacheIsUpToDate;
     } else {
       // No existing cache to pull from, default values.
       this.hasClickedShowMoreFields = false;
       this.hasMoreFieldsToShow = false;
 
       this.childrenCache = {};
-      this.childrenCacheIsUpToDate = false;
+      this.cacheIsUpToDate = false;
     }
   }
 
@@ -97,31 +97,27 @@ export default class SchemaTreeItem extends vscode.TreeItem
       return Promise.resolve([]);
     }
 
-    if (this.childrenCacheIsUpToDate) {
+    if (this.cacheIsUpToDate) {
+      const pastChildrenCache = this.childrenCache;
+      this.childrenCache = {};
+
+      // We manually rebuild each node to ensure we update the expanded state.
+      Object.keys(pastChildrenCache).forEach(fieldName => {
+        this.childrenCache[fieldName] = new FieldTreeItem(
+          pastChildrenCache[fieldName].field,
+          pastChildrenCache[fieldName].isExpanded,
+          pastChildrenCache[fieldName].getChildrenCache()
+        );
+      });
+
       if (!this.hasClickedShowMoreFields && this.hasMoreFieldsToShow) {
         return Promise.resolve([
-          ...Object.values(this.childrenCache).map(
-            (cachedField) =>
-              new FieldTreeItem(
-                cachedField.field,
-                cachedField.isExpanded,
-                cachedField.getChildrenCache()
-              )
-          ),
+          ...Object.values(this.childrenCache),
           new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
         ]);
       }
 
-      return Promise.resolve(
-        Object.values(this.childrenCache).map(
-          (cachedField) =>
-            new FieldTreeItem(
-              cachedField.field,
-              cachedField.isExpanded,
-              cachedField.getChildrenCache()
-            )
-        )
-      );
+      return Promise.resolve(Object.values(this.childrenCache));
     }
 
     return new Promise((resolve, reject) => {
@@ -149,14 +145,12 @@ export default class SchemaTreeItem extends vscode.TreeItem
             vscode.window.showInformationMessage(
               'No documents were found when attempting to parse schema.'
             );
-            this.childrenCacheIsUpToDate = true;
+            this.cacheIsUpToDate = true;
             this.childrenCache = {};
             return resolve([]);
           }
 
           parseSchema(documents, (parseError: Error | undefined, schema) => {
-            this.childrenCacheIsUpToDate = true;
-
             if (parseError) {
               vscode.window.showErrorMessage(
                 `Unable to parse schema: ${parseError.message}`
@@ -164,6 +158,8 @@ export default class SchemaTreeItem extends vscode.TreeItem
               this.childrenCache = {};
               return resolve([]);
             }
+
+            this.cacheIsUpToDate = true;
 
             if (!schema) {
               this.childrenCache = {};
@@ -219,23 +215,25 @@ export default class SchemaTreeItem extends vscode.TreeItem
       `show more schema fields clicked for namespace ${this.databaseName}.${this.collectionName}`
     );
 
-    this.childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
     this.hasClickedShowMoreFields = true;
   }
 
   onDidCollapse(): void {
     this.isExpanded = false;
+    this.cacheIsUpToDate = false;
   }
 
   onDidExpand(): Promise<boolean> {
     this.isExpanded = true;
+    this.cacheIsUpToDate = false;
 
     return Promise.resolve(true);
   }
 
   resetCache(): void {
     this.childrenCache = {};
-    this.childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
   }
 
   get iconPath():

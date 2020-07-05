@@ -156,10 +156,11 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 
-    mockTreeItem._childrenCacheIsUpToDate = true;
+    mockTreeItem.cacheIsUpToDate = true;
 
     const mockExplorerControllerRefresh = sinon.fake.resolves();
     sinon.replace(
@@ -172,7 +173,7 @@ suite('MDBExtensionController Test Suite', () => {
       .executeCommand('mdb.refreshConnection', mockTreeItem)
       .then(() => {
         assert(
-          mockTreeItem._childrenCacheIsUpToDate === false,
+          mockTreeItem.cacheIsUpToDate === false,
           'Expected cache on tree item to be set to not up to date.'
         );
         assert(
@@ -189,6 +190,7 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 
@@ -221,6 +223,7 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 
@@ -253,6 +256,7 @@ suite('MDBExtensionController Test Suite', () => {
     const mockTreeItem = new DatabaseTreeItem(
       'isClubMateTheBestDrinkEver',
       {},
+      false,
       false,
       {}
     );
@@ -306,9 +310,15 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.refreshDatabase command should reset the cache on the database tree item', (done) => {
-    const mockTreeItem = new DatabaseTreeItem('pinkLemonade', {}, false, {});
+    const mockTreeItem = new DatabaseTreeItem(
+      'pinkLemonade',
+      {},
+      false,
+      false,
+      {}
+    );
 
-    mockTreeItem._childrenCacheIsUpToDate = true;
+    mockTreeItem.cacheIsUpToDate = true;
 
     const mockExplorerControllerRefresh = sinon.fake.resolves();
     sinon.replace(
@@ -321,7 +331,7 @@ suite('MDBExtensionController Test Suite', () => {
       .executeCommand('mdb.refreshDatabase', mockTreeItem)
       .then(() => {
         assert(
-          mockTreeItem._childrenCacheIsUpToDate === false,
+          mockTreeItem.cacheIsUpToDate === false,
           'Expected cache on tree item to be set to not up to date.'
         );
         assert(
@@ -381,7 +391,7 @@ suite('MDBExtensionController Test Suite', () => {
     );
 
     // Set cached.
-    mockTreeItem.childrenCacheIsUpToDate = true;
+    mockTreeItem.cacheIsUpToDate = true;
 
     const mockExplorerControllerRefresh = sinon.fake.resolves();
     sinon.replace(
@@ -394,7 +404,7 @@ suite('MDBExtensionController Test Suite', () => {
       .executeCommand('mdb.refreshSchema', mockTreeItem)
       .then(() => {
         assert(
-          mockTreeItem.childrenCacheIsUpToDate === false,
+          mockTreeItem.cacheIsUpToDate === false,
           'Expected schema field cache to be not up to date.'
         );
         assert(
@@ -411,6 +421,7 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 
@@ -440,6 +451,7 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 
@@ -489,6 +501,7 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 
@@ -537,6 +550,7 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 
@@ -594,6 +608,7 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 
@@ -645,6 +660,7 @@ suite('MDBExtensionController Test Suite', () => {
         }
       },
       false,
+      false,
       {}
     );
 
@@ -669,7 +685,13 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.addCollection command fails when disconnecting', (done) => {
-    const mockTreeItem = new DatabaseTreeItem('iceCreamDB', {}, false, {});
+    const mockTreeItem = new DatabaseTreeItem(
+      'iceCreamDB',
+      {},
+      false,
+      false,
+      {}
+    );
 
     const mockInputBoxResolves = sinon.stub();
     mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
@@ -730,6 +752,7 @@ suite('MDBExtensionController Test Suite', () => {
         }
       },
       false,
+      false,
       {}
     );
 
@@ -750,7 +773,7 @@ suite('MDBExtensionController Test Suite', () => {
   test('mdb.dropCollection calls dataservice to drop the collection after inputting the collection name', (done) => {
     let calledNamespace = '';
     const testCollectionTreeItem = new CollectionTreeItem(
-      { name: 'testColName' },
+      { name: 'testColName', type: CollectionTypes.collection },
       'testDbName',
       {
         dropCollection: (namespace, callback): void => {
@@ -880,6 +903,7 @@ suite('MDBExtensionController Test Suite', () => {
         }
       },
       false,
+      false,
       {}
     );
 
@@ -906,6 +930,7 @@ suite('MDBExtensionController Test Suite', () => {
         const testDatabaseTreeItem = new DatabaseTreeItem(
           'narnia____a',
           testConnectionController.getActiveDataService(),
+          false,
           false,
           {}
         );
@@ -942,6 +967,7 @@ suite('MDBExtensionController Test Suite', () => {
       'cinnamonToastCrunch',
       {},
       false,
+      false,
       {}
     );
 
@@ -964,6 +990,7 @@ suite('MDBExtensionController Test Suite', () => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       'blueBerryPancakesAndTheSmellOfBacon',
       {},
+      false,
       false,
       {}
     );
@@ -997,6 +1024,7 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 
@@ -1035,6 +1063,7 @@ suite('MDBExtensionController Test Suite', () => {
       vscode.TreeItemCollapsibleState.None,
       false,
       mdbTestExtension.testExtensionController._connectionController,
+      false,
       {}
     );
 

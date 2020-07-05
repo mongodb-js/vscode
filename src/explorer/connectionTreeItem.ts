@@ -19,7 +19,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   contextValue = ConnectionItemContextValues.disconnected;
 
   private _childrenCache: { [key: string]: DatabaseTreeItem };
-  _childrenCacheIsUpToDate = false;
+  cacheIsUpToDate: boolean;
 
   private _connectionController: ConnectionController;
   connectionId: string;
@@ -31,6 +31,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     collapsibleState: vscode.TreeItemCollapsibleState,
     isExpanded: boolean,
     connectionController: ConnectionController,
+    cacheIsUpToDate: boolean,
     existingChildrenCache: { [key: string]: DatabaseTreeItem }
   ) {
     super(
@@ -50,10 +51,11 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     this._connectionController = connectionController;
     this.isExpanded = isExpanded;
     this._childrenCache = existingChildrenCache;
+    this.cacheIsUpToDate = cacheIsUpToDate;
 
     // Create a unique id to ensure the tree updates the expanded property.
     // (Without an id it treats this tree item like a previous tree item with the same label).
-    this.id = `${Date.now()}-${connectionId}`;
+    this.id = `${connectionId}-${Date.now()}`;
   }
 
   get tooltip(): string {
@@ -95,21 +97,37 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return Promise.resolve([]);
     }
 
-    if (this._childrenCacheIsUpToDate) {
+    const dataService = this._connectionController.getActiveDataService();
+    if (dataService === null) {
+      return Promise.reject(new Error('Not currently connected.'));
+    }
+
+    if (this.cacheIsUpToDate) {
+      const pastChildrenCache = this._childrenCache;
+      this._childrenCache = {};
+
+      // We create a new database tree item here instead of reusing the
+      // cached one in order to ensure the expanded state is set.
+      Object.keys(pastChildrenCache).forEach(databaseName => {
+        this._childrenCache[databaseName] = new DatabaseTreeItem(
+          databaseName,
+          dataService,
+          pastChildrenCache[databaseName].isExpanded,
+          pastChildrenCache[databaseName].cacheIsUpToDate,
+          pastChildrenCache[databaseName].getChildrenCache()
+        );
+      });
+
       return Promise.resolve(Object.values(this._childrenCache));
     }
 
     return new Promise((resolve, reject) => {
-      const dataService = this._connectionController.getActiveDataService();
-      if (dataService === null) {
-        return reject(new Error('Not currently connected.'));
-      }
-      dataService.listDatabases((err: any, databases: string[]) => {
+      dataService.listDatabases((err: Error | undefined, databases: any[]) => {
         if (err) {
           return reject(new Error(`Unable to list databases: ${err.message}`));
         }
 
-        this._childrenCacheIsUpToDate = true;
+        this.cacheIsUpToDate = true;
 
         if (databases) {
           const pastChildrenCache = this._childrenCache;
@@ -123,6 +141,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
                 name,
                 dataService,
                 pastChildrenCache[name].isExpanded,
+                pastChildrenCache[name].cacheIsUpToDate,
                 pastChildrenCache[name].getChildrenCache()
               );
             } else {
@@ -130,6 +149,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
                 name,
                 dataService,
                 false, // Collapsed.
+                false, // Cache is not up to date (no cache).
                 {} // No existing cache.
               );
             }
@@ -166,11 +186,11 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
   onDidCollapse(): void {
     this.isExpanded = false;
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
   }
 
   onDidExpand(): Promise<boolean> {
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
     this.isExpanded = true;
 
     if (
@@ -196,7 +216,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
   resetCache(): void {
     this._childrenCache = {};
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
   }
 
   getChildrenCache(): { [key: string]: DatabaseTreeItem } {
@@ -293,7 +313,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
             return resolve(false);
           }
 
-          this._childrenCacheIsUpToDate = false;
+          this.cacheIsUpToDate = false;
           return resolve(true);
         }
       );

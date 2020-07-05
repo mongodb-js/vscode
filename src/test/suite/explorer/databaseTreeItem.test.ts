@@ -21,6 +21,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       mockDatabaseNames[1],
       new DataServiceStub(),
       false,
+      false,
       {}
     );
 
@@ -41,6 +42,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       mockDatabaseNames[1],
       new DataServiceStub(),
       false,
+      false,
       {}
     );
 
@@ -59,6 +61,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
+      false,
       false,
       {}
     );
@@ -88,6 +91,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
+      false,
       false,
       {}
     );
@@ -162,6 +166,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       mockDatabaseNames[2],
       new DataServiceStub(),
       true,
+      false,
       {}
     );
 
@@ -201,6 +206,7 @@ suite('DatabaseTreeItem Test Suite', () => {
           TEST_DB_NAME,
           dataService,
           true,
+          false,
           {}
         );
 

@@ -13,7 +13,7 @@ const ITEM_LABEL = 'Indexes';
 
 export default class IndexListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<IndexListTreeItem> {
-  _childrenCacheIsUpToDate = false;
+  cacheIsUpToDate = false;
   private _childrenCache: vscode.TreeItem[] = [];
 
   contextValue = 'indexListTreeItem';
@@ -30,7 +30,8 @@ export default class IndexListTreeItem extends vscode.TreeItem
     databaseName: string,
     dataService: any,
     isExpanded: boolean,
-    existingCache: vscode.TreeItem[] | null
+    cacheIsUpToDate: boolean,
+    existingCache: vscode.TreeItem[]
   ) {
     super(
       ITEM_LABEL,
@@ -46,10 +47,8 @@ export default class IndexListTreeItem extends vscode.TreeItem
 
     this.isExpanded = isExpanded;
 
-    if (existingCache !== null) {
-      this._childrenCache = existingCache;
-      this._childrenCacheIsUpToDate = true;
-    }
+    this._childrenCache = existingCache;
+    this.cacheIsUpToDate = cacheIsUpToDate;
   }
 
   get tooltip(): string {
@@ -65,16 +64,14 @@ export default class IndexListTreeItem extends vscode.TreeItem
       return Promise.resolve([]);
     }
 
-    if (this._childrenCacheIsUpToDate) {
+    if (this.cacheIsUpToDate) {
       return Promise.resolve(this._childrenCache);
     }
 
     return new Promise((resolve, reject) => {
       const namespace = `${this.databaseName}.${this.collectionName}`;
 
-      log.info(
-        `fetching indexes from namespace ${namespace}`
-      );
+      log.info(`fetching indexes from namespace ${namespace}`);
 
       this._dataService.indexes(
         namespace,
@@ -87,11 +84,11 @@ export default class IndexListTreeItem extends vscode.TreeItem
             return reject();
           }
 
-          this._childrenCacheIsUpToDate = true;
+          this.cacheIsUpToDate = true;
 
           if (indexes) {
             this._childrenCache = sortTreeItemsByLabel(
-              indexes.map(index => {
+              indexes.map((index) => {
                 return new IndexTreeItem(index, namespace);
               })
             );
@@ -107,26 +104,22 @@ export default class IndexListTreeItem extends vscode.TreeItem
 
   onDidCollapse(): void {
     this.isExpanded = false;
+    this.cacheIsUpToDate = false;
   }
 
   onDidExpand(): Promise<boolean> {
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
     this.isExpanded = true;
 
     return Promise.resolve(true);
   }
 
-  resetCache(): void {
-    this._childrenCache = [];
-    this._childrenCacheIsUpToDate = false;
-  }
-
-  getChildrenCache(): vscode.TreeItem[] | null {
-    if (this._childrenCacheIsUpToDate) {
+  getChildrenCache(): vscode.TreeItem[] {
+    if (this.cacheIsUpToDate) {
       return this._childrenCache;
     }
 
-    return null;
+    return [];
   }
 
   get iconPath():

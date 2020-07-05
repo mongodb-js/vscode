@@ -52,7 +52,7 @@ const getCollapsableStateForDocumentList = (
 
 export default class DocumentListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DocumentListTreeItem> {
-  _childrenCacheIsUpToDate = false;
+  cacheIsUpToDate = false;
   private _childrenCache: vscode.TreeItem[] = [];
 
   contextValue = DOCUMENT_LIST_ITEM;
@@ -91,7 +91,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
     if (existingCache !== null) {
       this._childrenCache = existingCache;
-      this._childrenCacheIsUpToDate = true;
+      this.cacheIsUpToDate = true;
     }
   }
 
@@ -109,7 +109,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
       return Promise.resolve([]);
     }
 
-    if (this._childrenCacheIsUpToDate) {
+    if (this.cacheIsUpToDate) {
       return Promise.resolve(this._childrenCache);
     }
 
@@ -136,7 +136,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
             return reject();
           }
 
-          this._childrenCacheIsUpToDate = true;
+          this.cacheIsUpToDate = true;
 
           if (documents) {
             this._childrenCache = documents.map((document, index) => {
@@ -177,17 +177,17 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     log.info('show more clicked');
 
     this._maxDocumentsToShow += MAX_DOCUMENTS_VISIBLE;
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
   }
 
   onDidCollapse(): void {
     this.isExpanded = false;
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
     this._maxDocumentsToShow = MAX_DOCUMENTS_VISIBLE;
   }
 
   onDidExpand(): Promise<boolean> {
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
     this.isExpanded = true;
 
     return Promise.resolve(true);
@@ -195,11 +195,11 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
   resetCache(): void {
     this._childrenCache = [];
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
   }
 
   getChildrenCache(): vscode.TreeItem[] | null {
-    if (this._childrenCacheIsUpToDate) {
+    if (this.cacheIsUpToDate) {
       return this._childrenCache;
     }
 

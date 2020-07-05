@@ -12,7 +12,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
   contextValue = 'databaseTreeItem';
 
-  _childrenCacheIsUpToDate = false;
+  cacheIsUpToDate: boolean;
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };
 
   private _dataService: any;
@@ -24,6 +24,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     databaseName: string,
     dataService: any,
     isExpanded: boolean,
+    cacheIsUpToDate: boolean,
     existingChildrenCache: { [key: string]: CollectionTreeItem }
   ) {
     super(
@@ -37,6 +38,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
+    this.cacheIsUpToDate = cacheIsUpToDate;
     this._childrenCache = existingChildrenCache;
   }
 
@@ -53,7 +55,24 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       return Promise.resolve([]);
     }
 
-    if (this._childrenCacheIsUpToDate) {
+    if (this.cacheIsUpToDate) {
+      const pastChildrenCache = this._childrenCache;
+      this._childrenCache = {};
+
+      // We manually rebuild each node to ensure we update the expanded state.
+      Object.keys(pastChildrenCache).forEach(collectionName => {
+        this._childrenCache[collectionName] = new CollectionTreeItem(
+          pastChildrenCache[collectionName].collection,
+          this.databaseName,
+          this._dataService,
+          pastChildrenCache[collectionName].isExpanded,
+          pastChildrenCache[collectionName].cacheIsUpToDate,
+          pastChildrenCache[collectionName].getDocumentListChild(),
+          pastChildrenCache[collectionName].getSchemaChild(),
+          pastChildrenCache[collectionName].getIndexListChild()
+        );
+      });
+
       return Promise.resolve(Object.values(this._childrenCache));
     }
 
@@ -68,7 +87,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
             );
           }
 
-          this._childrenCacheIsUpToDate = true;
+          this.cacheIsUpToDate = true;
 
           if (collections) {
             const pastChildrenCache = this._childrenCache;
@@ -92,7 +111,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
                     this.databaseName,
                     this._dataService,
                     pastChildrenCache[collection.name].isExpanded,
-                    pastChildrenCache[collection.name]._childrenCacheIsUpToDate,
+                    pastChildrenCache[collection.name].cacheIsUpToDate,
                     pastChildrenCache[collection.name].getDocumentListChild(),
                     pastChildrenCache[collection.name].getSchemaChild(),
                     pastChildrenCache[collection.name].getIndexListChild()
@@ -130,20 +149,20 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     };
   }
 
-  onDidCollapse(): void {
+  onDidCollapse (): void {
     this.isExpanded = false;
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
   }
 
   onDidExpand(): Promise<boolean> {
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
     this.isExpanded = true;
     return Promise.resolve(true);
   }
 
   resetCache(): void {
     this._childrenCache = {};
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
   }
 
   getChildrenCache(): { [key: string]: CollectionTreeItem } {
@@ -206,7 +225,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
             return resolve(false);
           }
 
-          this._childrenCacheIsUpToDate = false;
+          this.cacheIsUpToDate = false;
           return resolve(true);
         }
       );
@@ -253,7 +272,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           return resolve(false);
         }
 
-        this._childrenCacheIsUpToDate = false;
+        this.cacheIsUpToDate = false;
         return resolve(true);
       });
     });

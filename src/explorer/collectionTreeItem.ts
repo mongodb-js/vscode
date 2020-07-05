@@ -10,6 +10,11 @@ import TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
 import { getImagesPath } from '../extensionConstants';
 
+type CollectionModelType = {
+  name: string;
+  type: CollectionTypes;
+};
+
 export default class CollectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
   contextValue = 'collectionTreeItem';
@@ -18,6 +23,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
   private _schemaChild: SchemaTreeItem;
   private _indexListChild: IndexListTreeItem;
 
+  collection: CollectionModelType;
   collectionName: string;
   databaseName: string;
 
@@ -26,10 +32,10 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
   isExpanded: boolean;
 
-  _childrenCacheIsUpToDate = false;
+  cacheIsUpToDate = false;
 
   constructor(
-    collection: any,
+    collection: CollectionModelType,
     databaseName: string,
     dataService: any,
     isExpanded: boolean,
@@ -45,6 +51,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
         : vscode.TreeItemCollapsibleState.Collapsed
     );
 
+    this.collection = collection;
     this.collectionName = collection.name;
     this.databaseName = databaseName;
 
@@ -53,7 +60,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
     this.isExpanded = isExpanded;
 
-    this._childrenCacheIsUpToDate = cacheIsUpToDate;
+    this.cacheIsUpToDate = cacheIsUpToDate;
 
     this._documentListChild = existingDocumentListChild
       ? existingDocumentListChild
@@ -81,7 +88,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
         this.databaseName,
         this._dataService,
         false,
-        null
+        false,
+        []
       );
   }
 
@@ -95,37 +103,17 @@ export default class CollectionTreeItem extends vscode.TreeItem
     return element;
   }
 
-  // eslint-disable-next-line complexity
   getChildren(): Thenable<any[]> {
     if (!this.isExpanded) {
       return Promise.resolve([]);
     }
 
     // Update cache if one of the children has been expanded/collapsed.
-    if (
-      (this._documentListChild.isExpanded &&
-        this._documentListChild.collapsibleState !==
-          vscode.TreeItemCollapsibleState.Expanded) ||
-      (!this._documentListChild.isExpanded &&
-        this._documentListChild.collapsibleState !==
-          vscode.TreeItemCollapsibleState.Collapsed) ||
-      (this._schemaChild.isExpanded &&
-        this._schemaChild.collapsibleState !==
-          vscode.TreeItemCollapsibleState.Expanded) ||
-      (!this._schemaChild.isExpanded &&
-        this._schemaChild.collapsibleState !==
-          vscode.TreeItemCollapsibleState.Collapsed) ||
-      (this._indexListChild.isExpanded &&
-        this._indexListChild.collapsibleState !==
-          vscode.TreeItemCollapsibleState.Expanded) ||
-      (!this._indexListChild.isExpanded &&
-        this._indexListChild.collapsibleState !==
-          vscode.TreeItemCollapsibleState.Collapsed)
-    ) {
-      this._childrenCacheIsUpToDate = false;
+    if (this.needsToUpdateCache()) {
+      this.cacheIsUpToDate = false;
     }
 
-    if (this._childrenCacheIsUpToDate) {
+    if (this.cacheIsUpToDate) {
       return Promise.resolve([
         this._documentListChild,
         this._schemaChild,
@@ -133,7 +121,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
       ]);
     }
 
-    this._childrenCacheIsUpToDate = true;
+    this.cacheIsUpToDate = true;
 
     // We rebuild the children here so their controlled `expanded` state
     // is ensure to be set by vscode.
@@ -164,7 +152,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this.databaseName,
       this._dataService,
       this._indexListChild ? this._indexListChild.isExpanded : false,
-      this._indexListChild ? this._indexListChild.getChildrenCache() : null
+      this._indexListChild ? this._indexListChild.cacheIsUpToDate : false,
+      this._indexListChild ? this._indexListChild.getChildrenCache() : []
     );
 
     return Promise.resolve([
@@ -174,18 +163,44 @@ export default class CollectionTreeItem extends vscode.TreeItem
     ]);
   }
 
+  // eslint-disable-next-line complexity
+  needsToUpdateCache(): boolean {
+    return (
+      (this._documentListChild.isExpanded &&
+        this._documentListChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Expanded) ||
+      (!this._documentListChild.isExpanded &&
+        this._documentListChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Collapsed) ||
+      (this._schemaChild.isExpanded &&
+        this._schemaChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Expanded) ||
+      (!this._schemaChild.isExpanded &&
+        this._schemaChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Collapsed) ||
+      (this._indexListChild.isExpanded &&
+        this._indexListChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Expanded) ||
+      (!this._indexListChild.isExpanded &&
+        this._indexListChild.collapsibleState !==
+          vscode.TreeItemCollapsibleState.Collapsed)
+    );
+  }
+
   onDidCollapse(): void {
     this.isExpanded = false;
+    this.cacheIsUpToDate = false;
   }
 
   onDidExpand(): Promise<boolean> {
     this.isExpanded = true;
+    this.cacheIsUpToDate = false;
 
     return Promise.resolve(true);
   }
 
   resetCache(): void {
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
     this.isExpanded = false;
   }
 

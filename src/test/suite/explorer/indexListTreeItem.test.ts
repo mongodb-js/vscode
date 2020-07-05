@@ -36,7 +36,8 @@ suite('IndexListTreeItem Test Suite', () => {
         }
       },
       false,
-      null
+      false,
+      []
     );
 
     await testIndexListTreeItem.onDidExpand();
@@ -71,7 +72,8 @@ suite('IndexListTreeItem Test Suite', () => {
       'tasty_fruits',
       'fake data service',
       false,
-      null
+      false,
+      []
     );
 
     const indexesIconPath: any = testIndexListTreeItem.iconPath;
