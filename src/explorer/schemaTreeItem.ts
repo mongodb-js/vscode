@@ -50,7 +50,10 @@ export default class SchemaTreeItem extends vscode.TreeItem
     databaseName: string,
     dataService: any,
     isExpanded: boolean,
-    cachedSchemaTreeItem?: SchemaTreeItem
+    hasClickedShowMoreFields: boolean,
+    hasMoreFieldsToShow: boolean,
+    cacheIsUpToDate: boolean,
+    childrenCache: { [fieldName: string]: FieldTreeItem }
   ) {
     super(
       ITEM_LABEL,
@@ -66,22 +69,10 @@ export default class SchemaTreeItem extends vscode.TreeItem
 
     this.isExpanded = isExpanded;
 
-    if (cachedSchemaTreeItem) {
-      this.hasClickedShowMoreFields =
-        cachedSchemaTreeItem.hasClickedShowMoreFields;
-      this.hasMoreFieldsToShow = cachedSchemaTreeItem.hasMoreFieldsToShow;
-
-      this.childrenCache = cachedSchemaTreeItem.childrenCache;
-      this.cacheIsUpToDate =
-        cachedSchemaTreeItem.cacheIsUpToDate;
-    } else {
-      // No existing cache to pull from, default values.
-      this.hasClickedShowMoreFields = false;
-      this.hasMoreFieldsToShow = false;
-
-      this.childrenCache = {};
-      this.cacheIsUpToDate = false;
-    }
+    this.hasClickedShowMoreFields = hasClickedShowMoreFields;
+    this.hasMoreFieldsToShow = hasMoreFieldsToShow;
+    this.childrenCache = childrenCache;
+    this.cacheIsUpToDate = cacheIsUpToDate;
   }
 
   get tooltip(): string {
@@ -102,7 +93,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
       this.childrenCache = {};
 
       // We manually rebuild each node to ensure we update the expanded state.
-      Object.keys(pastChildrenCache).forEach(fieldName => {
+      Object.keys(pastChildrenCache).forEach((fieldName) => {
         this.childrenCache[fieldName] = new FieldTreeItem(
           pastChildrenCache[fieldName].field,
           pastChildrenCache[fieldName].isExpanded,
