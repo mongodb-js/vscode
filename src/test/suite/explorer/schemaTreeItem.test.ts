@@ -26,7 +26,11 @@ suite('SchemaTreeItem Test Suite', () => {
       'cheesePizza',
       TEST_DB_NAME,
       {},
-      false
+      false,
+      false,
+      false,
+      false,
+      {}
     );
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
@@ -46,7 +50,11 @@ suite('SchemaTreeItem Test Suite', () => {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {},
-      false
+      false,
+      false,
+      false,
+      false,
+      {}
     );
 
     assert(
@@ -81,7 +89,11 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, [mockDocWithTwentyFields]);
         }
       },
-      true
+      true,
+      false,
+      false,
+      false,
+      {}
     );
 
     testSchemaTreeItem
@@ -91,8 +103,9 @@ suite('SchemaTreeItem Test Suite', () => {
 
         assert(
           schemaFields.length === amountOfFieldsExpected + 1,
-          `Expected ${amountOfFieldsExpected +
-            1} documents to be returned, found ${schemaFields.length}`
+          `Expected ${
+            amountOfFieldsExpected + 1
+          } documents to be returned, found ${schemaFields.length}`
         );
         assert(
           schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
@@ -115,7 +128,11 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, [mockDocWithThirtyFields]);
         }
       },
-      true
+      true,
+      false,
+      false,
+      false,
+      {}
     );
 
     testSchemaTreeItem.onShowMoreClicked();
@@ -145,7 +162,11 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, 'invalid schema to parse');
         }
       },
-      true
+      true,
+      false,
+      false,
+      false,
+      {}
     );
 
     testSchemaTreeItem
@@ -179,7 +200,11 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false
+          false,
+          false,
+          false,
+          false,
+          {}
         );
 
         testSchemaTreeItem
@@ -207,7 +232,11 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false
+          false,
+          false,
+          false,
+          false,
+          {}
         );
 
         testSchemaTreeItem.onDidExpand();
@@ -256,7 +285,11 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false
+          false,
+          false,
+          false,
+          false,
+          {}
         );
 
         testSchemaTreeItem.onDidExpand();
@@ -288,7 +321,11 @@ suite('SchemaTreeItem Test Suite', () => {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {},
-      false
+      false,
+      false,
+      false,
+      false,
+      {}
     );
 
     const schemaIconPath: any = testSchemaTreeItem.iconPath;

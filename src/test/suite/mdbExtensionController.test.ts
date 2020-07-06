@@ -387,7 +387,11 @@ suite('MDBExtensionController Test Suite', () => {
       'zebraWearwolf',
       'giraffeVampire',
       {},
-      false
+      false,
+      false,
+      false,
+      false,
+      {}
     );
 
     // Set cached.
