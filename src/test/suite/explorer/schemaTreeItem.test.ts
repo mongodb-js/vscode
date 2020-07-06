@@ -151,9 +151,6 @@ suite('SchemaTreeItem Test Suite', () => {
   });
 
   test('When schema parsing fails it displays an error message', (done) => {
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
@@ -171,14 +168,15 @@ suite('SchemaTreeItem Test Suite', () => {
 
     testSchemaTreeItem
       .getChildren()
-      .then((schemaFields) => {
-        assert(schemaFields.length === 0);
-        assert(fakeVscodeErrorMessage.called);
+      .then(() => {
+        assert(false, 'Didnt expect to succeed.');
+      }, error => {
         const expectedMessage =
           'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+
         assert(
-          fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
-          `Expected error message to be "${expectedMessage}" found "${fakeVscodeErrorMessage.firstCall.args[0]}"`
+          error.message === expectedMessage,
+          `Expected error message to be "${expectedMessage}" found "${error.message}"`
         );
       })
       .then(done, done);

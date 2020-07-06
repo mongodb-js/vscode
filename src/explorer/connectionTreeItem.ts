@@ -88,7 +88,24 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     return element;
   }
 
-  getChildren(): Thenable<any[]> {
+  async listDatabases(): Promise<any[]> {
+    const dataService = this._connectionController.getActiveDataService();
+    if (dataService === null) {
+      return Promise.reject(new Error('Not currently connected.'));
+    }
+
+    return new Promise((resolve, reject) => {
+      dataService.listDatabases((err: Error | undefined, databases: any[]) => {
+        if (err) {
+          return reject(new Error(`Unable to list databases: ${err.message}`));
+        }
+
+        return resolve(databases);
+      });
+    });
+  }
+
+  async getChildren(): Promise<any[]> {
     if (
       !this.isExpanded ||
       this._connectionController.isDisconnecting() ||
@@ -108,7 +125,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
       // We create a new database tree item here instead of reusing the
       // cached one in order to ensure the expanded state is set.
-      Object.keys(pastChildrenCache).forEach(databaseName => {
+      Object.keys(pastChildrenCache).forEach((databaseName) => {
         this._childrenCache[databaseName] = new DatabaseTreeItem(
           databaseName,
           dataService,
@@ -121,46 +138,44 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return Promise.resolve(Object.values(this._childrenCache));
     }
 
-    return new Promise((resolve, reject) => {
-      dataService.listDatabases((err: Error | undefined, databases: any[]) => {
-        if (err) {
-          return reject(new Error(`Unable to list databases: ${err.message}`));
-        }
+    let databases;
+    try {
+      databases = await this.listDatabases();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    this.cacheIsUpToDate = true;
 
-        this.cacheIsUpToDate = true;
+    if (databases) {
+      const pastChildrenCache = this._childrenCache;
+      this._childrenCache = {};
 
-        if (databases) {
-          const pastChildrenCache = this._childrenCache;
-          this._childrenCache = {};
-
-          databases.forEach(({ name }: any) => {
-            if (pastChildrenCache[name]) {
-              // We create a new element here instead of reusing the cached one
-              // in order to ensure the expanded state is set.
-              this._childrenCache[name] = new DatabaseTreeItem(
-                name,
-                dataService,
-                pastChildrenCache[name].isExpanded,
-                pastChildrenCache[name].cacheIsUpToDate,
-                pastChildrenCache[name].getChildrenCache()
-              );
-            } else {
-              this._childrenCache[name] = new DatabaseTreeItem(
-                name,
-                dataService,
-                false, // Collapsed.
-                false, // Cache is not up to date (no cache).
-                {} // No existing cache.
-              );
-            }
-          });
+      databases.forEach(({ name }: any) => {
+        if (pastChildrenCache[name]) {
+          // We create a new element here instead of reusing the cached one
+          // in order to ensure the expanded state is set.
+          this._childrenCache[name] = new DatabaseTreeItem(
+            name,
+            dataService,
+            pastChildrenCache[name].isExpanded,
+            pastChildrenCache[name].cacheIsUpToDate,
+            pastChildrenCache[name].getChildrenCache()
+          );
         } else {
-          this._childrenCache = {};
+          this._childrenCache[name] = new DatabaseTreeItem(
+            name,
+            dataService,
+            false, // Collapsed.
+            false, // Cache is not up to date (no cache).
+            {} // No existing cache.
+          );
         }
-
-        return resolve(Object.values(this._childrenCache));
       });
-    });
+    } else {
+      this._childrenCache = {};
+    }
+
+    return Promise.resolve(Object.values(this._childrenCache));
   }
 
   get iconPath():

@@ -83,7 +83,88 @@ export default class SchemaTreeItem extends vscode.TreeItem
     return element;
   }
 
-  getChildren(): Thenable<any[]> {
+  async fetchDocumentsForSchema(): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      const namespace = `${this.databaseName}.${this.collectionName}`;
+
+      this._dataService.find(
+        namespace,
+        {
+          /* No filter */
+        },
+        {
+          limit: MAX_DOCUMENTS_VISIBLE
+        },
+        (findError: Error | undefined, documents: any[]) => {
+          if (findError) {
+            return reject(new Error(`Unable to list documents: ${findError}`));
+          }
+
+          return resolve(documents);
+        }
+      );
+    });
+  }
+
+  async getSchema(): Promise<any[]> {
+    let documents;
+    try {
+      documents = await this.fetchDocumentsForSchema();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+
+    return new Promise((resolve, reject) => {
+      const namespace = `${this.databaseName}.${this.collectionName}`;
+
+      log.info(`parsing schema for namespace ${namespace}`);
+      if (!documents || documents.length === 0) {
+        return resolve([]);
+      }
+
+      parseSchema(documents, (parseError: Error | undefined, schema) => {
+        if (parseError) {
+          return reject(
+            new Error(`Unable to parse schema: ${parseError.message}`)
+          );
+        }
+
+        return resolve(schema);
+      });
+    });
+  }
+
+  buildFieldTreeItemsFromSchema(schema: any): any {
+    const currentCache = this.childrenCache;
+    const newFieldTreeItems = {};
+
+    const fieldsToShow = this.hasClickedShowMoreFields
+      ? schema.fields.length
+      : Math.min(FIELDS_TO_SHOW, schema.fields.length);
+
+    for (let i = 0; i < fieldsToShow; i++) {
+      if (currentCache[schema.fields[i].name]) {
+        // Use the past cached field item.
+        newFieldTreeItems[schema.fields[i].name] = new FieldTreeItem(
+          schema.fields[i],
+          currentCache[schema.fields[i].name].isExpanded,
+          currentCache[schema.fields[i].name].getChildrenCache()
+        );
+      } else {
+        newFieldTreeItems[schema.fields[i].name] = new FieldTreeItem(
+          schema.fields[i],
+          false, // Not expanded.
+          {} // No past cache.
+        );
+      }
+    }
+
+    return newFieldTreeItems;
+  }
+
+  // Returns an array of FieldTreeItem which are the fields in the
+  // collection's schema
+  async getChildren(): Promise<any[]> {
     if (!this.isExpanded) {
       return Promise.resolve([]);
     }
@@ -111,94 +192,40 @@ export default class SchemaTreeItem extends vscode.TreeItem
       return Promise.resolve(Object.values(this.childrenCache));
     }
 
-    return new Promise((resolve, reject) => {
-      const namespace = `${this.databaseName}.${this.collectionName}`;
+    let schema;
 
-      log.info(`parsing schema for namespace ${namespace}`);
+    try {
+      schema = await this.getSchema();
+    } catch (err) {
+      return Promise.reject(err);
+    }
 
-      this._dataService.find(
-        namespace,
-        {
-          /* No filter */
-        },
-        {
-          limit: MAX_DOCUMENTS_VISIBLE
-        },
-        (findError: Error | undefined, documents: []) => {
-          if (findError) {
-            vscode.window.showErrorMessage(
-              `Unable to list documents: ${findError}`
-            );
-            return reject(new Error(`Unable to list documents: ${findError}`));
-          }
+    this.cacheIsUpToDate = true;
 
-          if (!documents || documents.length === 0) {
-            vscode.window.showInformationMessage(
-              'No documents were found when attempting to parse schema.'
-            );
-            this.cacheIsUpToDate = true;
-            this.childrenCache = {};
-            return resolve([]);
-          }
-
-          parseSchema(documents, (parseError: Error | undefined, schema) => {
-            if (parseError) {
-              vscode.window.showErrorMessage(
-                `Unable to parse schema: ${parseError.message}`
-              );
-              this.childrenCache = {};
-              return resolve([]);
-            }
-
-            this.cacheIsUpToDate = true;
-
-            if (!schema) {
-              this.childrenCache = {};
-              return resolve([]);
-            }
-
-            const pastChildrenCache = this.childrenCache;
-            this.childrenCache = {};
-
-            const fieldsToShow = this.hasClickedShowMoreFields
-              ? schema.fields.length
-              : Math.min(FIELDS_TO_SHOW, schema.fields.length);
-
-            for (let i = 0; i < fieldsToShow; i++) {
-              if (pastChildrenCache[schema.fields[i].name]) {
-                // Use the past cached field item.
-                this.childrenCache[schema.fields[i].name] = new FieldTreeItem(
-                  schema.fields[i],
-                  pastChildrenCache[schema.fields[i].name].isExpanded,
-                  pastChildrenCache[schema.fields[i].name].getChildrenCache()
-                );
-              } else {
-                this.childrenCache[schema.fields[i].name] = new FieldTreeItem(
-                  schema.fields[i],
-                  false, // Not expanded.
-                  {} // No past cache.
-                );
-              }
-            }
-
-            // Add a clickable show more option when a schema has more
-            // fields than the default amount we show.
-            if (
-              !this.hasClickedShowMoreFields &&
-              schema.fields.length > FIELDS_TO_SHOW
-            ) {
-              this.hasMoreFieldsToShow = true;
-              return resolve([
-                ...Object.values(this.childrenCache),
-                new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
-              ]);
-            }
-
-            return resolve(Object.values(this.childrenCache));
-          });
-        }
+    if (!schema) {
+      vscode.window.showInformationMessage(
+        'No documents were found when attempting to parse schema.'
       );
-    });
+      this.childrenCache = {};
+      return Promise.resolve([]);
+    }
+
+    this.childrenCache = this.buildFieldTreeItemsFromSchema(schema);
+
+    // Add a clickable show more option when a schema has more
+    // fields than the default amount we show.
+    if (
+      !this.hasClickedShowMoreFields &&
+      schema.fields.length > FIELDS_TO_SHOW
+    ) {
+      this.hasMoreFieldsToShow = true;
+      return Promise.resolve([
+        ...Object.values(this.childrenCache),
+        new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
+      ]);
+    }
+
+    return Promise.resolve(Object.values(this.childrenCache));
   }
 
   onShowMoreClicked(): void {

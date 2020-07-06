@@ -53,7 +53,7 @@ const getCollapsableStateForDocumentList = (
 export default class DocumentListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DocumentListTreeItem> {
   cacheIsUpToDate = false;
-  private _childrenCache: vscode.TreeItem[] = [];
+  private _childrenCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> = [];
 
   contextValue = DOCUMENT_LIST_ITEM;
 
@@ -79,7 +79,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     maxDocumentsToShow: number,
     hasMoreDocumentsToShow: boolean,
     cacheIsUpToDate: boolean,
-    existingCache: vscode.TreeItem[]
+    existingCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem>
   ) {
     super(ITEM_LABEL, getCollapsableStateForDocumentList(isExpanded, type));
 
@@ -108,31 +108,12 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     return element;
   }
 
-  getChildren(): Thenable<any[]> {
-    if (!this.isExpanded || this.type === CollectionTypes.view) {
-      return Promise.resolve([]);
-    }
-
-    if (this.cacheIsUpToDate) {
-      if (this.hasMoreDocumentsToShow) {
-        return Promise.resolve([
-          ...this._childrenCache,
-          new ShowMoreDocumentsTreeItem(
-            this.namespace,
-            () => this.onShowMoreClicked(),
-            this._maxDocumentsToShow
-          )
-        ]);
-      }
-
-      return Promise.resolve(this._childrenCache);
-    }
+  async getDocuments(): Promise<[]> {
+    log.info(
+      `fetching ${this._maxDocumentsToShow} documents from namespace ${this.namespace}`
+    );
 
     return new Promise((resolve, reject) => {
-      log.info(
-        `fetching ${this._maxDocumentsToShow} documents from namespace ${this.namespace}`
-      );
-
       this._dataService.find(
         this.namespace,
         {
@@ -146,43 +127,89 @@ export default class DocumentListTreeItem extends vscode.TreeItem
         (err: Error, documents: []) => {
           if (err) {
             vscode.window.showErrorMessage(`Unable to list documents: ${err}`);
-            return reject();
+            return reject(err);
           }
 
-          this.cacheIsUpToDate = true;
-          this.hasMoreDocumentsToShow = false;
-
-          if (documents) {
-            this._childrenCache = [];
-            documents.forEach((document, index) => {
-              if (index === this._maxDocumentsToShow) {
-                this.hasMoreDocumentsToShow = true;
-                return;
-              }
-
-              this._childrenCache.push(
-                new DocumentTreeItem(document, this.namespace, index)
-              );
-            });
-          } else {
-            this._childrenCache = [];
-          }
-
-          if (this.hasMoreDocumentsToShow) {
-            return resolve([
-              ...this._childrenCache,
-              new ShowMoreDocumentsTreeItem(
-                this.namespace,
-                () => this.onShowMoreClicked(),
-                this._maxDocumentsToShow
-              )
-            ]);
-          }
-
-          return resolve(this._childrenCache);
+          resolve(documents);
         }
       );
     });
+  }
+
+  async getChildren(): Promise<any[]> {
+    if (!this.isExpanded || this.type === CollectionTypes.view) {
+      return Promise.resolve([]);
+    }
+
+    if (this.cacheIsUpToDate) {
+      const pastChildrenCache = this._childrenCache;
+      this._childrenCache = [];
+
+      pastChildrenCache.forEach((pastTreeItem, index) => {
+        this._childrenCache.push(
+          new DocumentTreeItem(
+            ( pastTreeItem as DocumentTreeItem).document,
+            this.namespace,
+            index
+          )
+        );
+      });
+
+      if (this.hasMoreDocumentsToShow) {
+        return Promise.resolve([
+          ...this._childrenCache,
+          // Add a `Show more...` item when there are more documents to show.
+          new ShowMoreDocumentsTreeItem(
+            this.namespace,
+            () => this.onShowMoreClicked(),
+            this._maxDocumentsToShow
+          )
+        ]);
+      }
+
+      return Promise.resolve(this._childrenCache);
+    }
+
+    let documents;
+    try {
+      documents = await this.getDocuments();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+
+    this.cacheIsUpToDate = true;
+    this.hasMoreDocumentsToShow = false;
+
+    if (documents) {
+      this._childrenCache = [];
+      documents.forEach((document, index) => {
+        // We fetch 1 more than the max documents to see if
+        // there are more documents we aren't showing.
+        if (index === this._maxDocumentsToShow) {
+          this.hasMoreDocumentsToShow = true;
+          return;
+        }
+
+        this._childrenCache.push(
+          new DocumentTreeItem(document, this.namespace, index)
+        );
+      });
+    } else {
+      this._childrenCache = [];
+    }
+
+    if (this.hasMoreDocumentsToShow) {
+      return Promise.resolve([
+        ...this._childrenCache,
+        new ShowMoreDocumentsTreeItem(
+          this.namespace,
+          () => this.onShowMoreClicked(),
+          this._maxDocumentsToShow
+        )
+      ]);
+    }
+
+    return Promise.resolve(this._childrenCache);
   }
 
   get iconPath():
@@ -225,7 +252,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     this.hasMoreDocumentsToShow = false;
   }
 
-  getChildrenCache(): vscode.TreeItem[] {
+  getChildrenCache(): Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> {
     return this._childrenCache;
   }
 
