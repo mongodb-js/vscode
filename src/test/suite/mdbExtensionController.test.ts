@@ -371,8 +371,8 @@ suite('MDBExtensionController Test Suite', () => {
       .executeCommand('mdb.refreshCollection', mockTreeItem)
       .then(() => {
         assert(
-          mockTreeItem.isExpanded === false,
-          'Expected collection tree item to be reset to not expanded.'
+          mockTreeItem.getSchemaChild().isExpanded === false,
+          'Expected collection tree item child to be reset to not expanded.'
         );
         assert(
           mockExplorerControllerRefresh.called === true,

@@ -156,19 +156,11 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this.databaseName,
       this._type,
       this._dataService,
-      this._documentListChild ? this._documentListChild.isExpanded : false,
-      this._documentListChild
-        ? this._documentListChild.getMaxDocumentsToShow()
-        : MAX_DOCUMENTS_VISIBLE,
-      this._documentListChild
-        ? this._documentListChild.hasMoreDocumentsToShow
-        : false,
-      this._documentListChild
-        ? this._documentListChild.cacheIsUpToDate
-        : false,
-      this._documentListChild
-        ? this._documentListChild.getChildrenCache()
-        : []
+      this._documentListChild.isExpanded,
+      this._documentListChild.getMaxDocumentsToShow(),
+      this._documentListChild.hasMoreDocumentsToShow,
+      this._documentListChild.cacheIsUpToDate,
+      this._documentListChild.getChildrenCache()
     );
   }
 
@@ -177,11 +169,11 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this.collectionName,
       this.databaseName,
       this._dataService,
-      this._schemaChild ? this._schemaChild.isExpanded : false,
-      this._schemaChild ? this._schemaChild.hasClickedShowMoreFields : false,
-      this._schemaChild ? this._schemaChild.hasMoreFieldsToShow : false,
-      this._schemaChild ? this._schemaChild.cacheIsUpToDate : false,
-      this._schemaChild ? this._schemaChild.childrenCache : {}
+      this._schemaChild.isExpanded,
+      this._schemaChild.hasClickedShowMoreFields,
+      this._schemaChild.hasMoreFieldsToShow,
+      this._schemaChild.cacheIsUpToDate,
+      this._schemaChild.childrenCache
     );
   }
 
@@ -190,9 +182,9 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this.collectionName,
       this.databaseName,
       this._dataService,
-      this._indexListChild ? this._indexListChild.isExpanded : false,
-      this._indexListChild ? this._indexListChild.cacheIsUpToDate : false,
-      this._indexListChild ? this._indexListChild.getChildrenCache() : []
+      this._indexListChild.isExpanded,
+      this._indexListChild.cacheIsUpToDate,
+      this._indexListChild.getChildrenCache()
     );
   }
 
@@ -226,7 +218,36 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
   resetCache(): void {
     this.cacheIsUpToDate = false;
-    this.isExpanded = false;
+
+    this._documentListChild = new DocumentListTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._type,
+      this._dataService,
+      false,
+      MAX_DOCUMENTS_VISIBLE,
+      false,
+      false,
+      []
+    );
+    this._schemaChild = new SchemaTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._dataService,
+      false,
+      false,
+      false,
+      false,
+      {}
+    );
+    this._indexListChild = new IndexListTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._dataService,
+      false,
+      false,
+      []
+    );
   }
 
   getDocumentListChild(): DocumentListTreeItem {
