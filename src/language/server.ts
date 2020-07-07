@@ -235,13 +235,6 @@ connection.onRequest(
   }
 );
 
-// Execute a single block of code in the playground.
-connection.onRequest(ServerCommands.EXECUTE_RANGE_FROM_PLAYGROUND, (event) => {
-  // connection.console.log(`executeRange: ${JSON.stringify(event)}`);
-
-  return '';
-});
-
 // Connect to CliServiceProvider to enable shell completions.
 connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
   return mongoDBService.connectToServiceProvider(params);
