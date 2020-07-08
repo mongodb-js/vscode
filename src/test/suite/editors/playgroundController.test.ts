@@ -55,9 +55,6 @@ suite('Playground Controller Test Suite', () => {
       'showInformationMessage'
     );
     fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
-    testPlaygroundController._activeTextEditor = await loadPlayground(
-      getDocUri('testCodeLens.mongodb')
-    );
   });
 
   after(() => {
@@ -189,7 +186,13 @@ suite('Playground Controller Test Suite', () => {
       expect(result).to.be.null;
     });
 
-    test('do not show code lens if a part of a line is selected', async () => {
+    test('do not show code lens if a part of a line is selected', async function () {
+      this.timeout(3000);
+
+      testPlaygroundController._activeTextEditor = await loadPlayground(
+        getDocUri('testCodeLens.mongodb')
+      );
+
       testPlaygroundController.showCodeLensForSelection(
         new vscode.Range(0, 5, 0, 11)
       );
@@ -199,7 +202,13 @@ suite('Playground Controller Test Suite', () => {
       expect(codeLens?.length).to.be.equal(0);
     });
 
-    test('show code lens if whole line is selected', async () => {
+    test('show code lens if whole line is selected', async function () {
+      this.timeout(3000);
+
+      testPlaygroundController._activeTextEditor = await loadPlayground(
+        getDocUri('testCodeLens.mongodb')
+      );
+
       testPlaygroundController.showCodeLensForSelection(
         new vscode.Range(0, 0, 0, 14)
       );
