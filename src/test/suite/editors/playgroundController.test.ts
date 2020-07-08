@@ -51,15 +51,12 @@ suite('Playground Controller Test Suite', function () {
   let fakeShowInformationMessage: any;
   let fakeShowErrorMessage: any;
 
-  before(async () => {
+  before(() => {
     fakeShowInformationMessage = sandbox.stub(
       vscode.window,
       'showInformationMessage'
     );
     fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
-    testPlaygroundController._activeTextEditor = await loadPlayground(
-      getDocUri('testCodeLens.mongodb')
-    );
   });
 
   after(() => {
@@ -192,6 +189,10 @@ suite('Playground Controller Test Suite', function () {
     });
 
     test('do not show code lens if a part of a line is selected', async () => {
+      testPlaygroundController._activeTextEditor = await loadPlayground(
+        getDocUri('testCodeLens.mongodb')
+      );
+
       testPlaygroundController.showCodeLensForSelection(
         new vscode.Range(0, 5, 0, 11)
       );
@@ -202,6 +203,10 @@ suite('Playground Controller Test Suite', function () {
     });
 
     test('show code lens if whole line is selected', async () => {
+      testPlaygroundController._activeTextEditor = await loadPlayground(
+        getDocUri('testCodeLens.mongodb')
+      );
+
       testPlaygroundController.showCodeLensForSelection(
         new vscode.Range(0, 0, 0, 14)
       );
