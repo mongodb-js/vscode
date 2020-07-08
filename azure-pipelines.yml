@@ -84,15 +84,16 @@ steps:
         exit 1
       fi
     displayName: 'Check .vsix filesize'
+    condition: in(variables['agent.os'], 'Linux')
 
   # On linux create and publish a .vsix artifact for the build.
-  - script: CopyFiles@2
+  - task: CopyFiles@2
     displayName: 'Copy vsix to staging directory'
     inputs:
       Contents: '**/*.vsix'
       TargetFolder: '$(build.artifactstagingdirectory)'
     condition: in(variables['agent.os'], 'Linux')
-  - script: PublishBuildArtifacts@1
+  - task: PublishBuildArtifacts@1
     displayName: 'Publish vsix artifact'
     inputs:
       PathtoPublish: '$(build.artifactstagingdirectory)'
