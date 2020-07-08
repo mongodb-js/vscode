@@ -17,15 +17,15 @@ const log = createLogger('playground controller');
  */
 export default class PlaygroundController {
   public _connectionController: ConnectionController;
+  public _activeTextEditor?: TextEditor;
+  public _partialExecutionCodeLensProvider?: PartialExecutionCodeLensProvider;
   private _context: vscode.ExtensionContext;
   private _languageServerController: LanguageServerController;
   private _telemetryController: TelemetryController;
   private _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
-  private _partialExecutionCodeLensProvider?: PartialExecutionCodeLensProvider;
   private _outputChannel: OutputChannel;
   private _connectionString?: string;
   private _connectionOptions?: any;
-  private _activeTextEditor?: TextEditor;
   private _selection?: string;
   private _codeToEvaluate: string;
 
