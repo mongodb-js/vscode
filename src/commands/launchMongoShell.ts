@@ -55,7 +55,7 @@ function launchMongoDBShellOnPowershell(
     : '';
 
   mongoDBShell.sendText(
-    `${shellCommand} ${mdbSslOptionsString}"$MDB_CONNECTION_STRING";`
+    `${shellCommand} ${mdbSslOptionsString}$Env:MDB_CONNECTION_STRING;`
   );
   mongoDBShell.show();
 }
