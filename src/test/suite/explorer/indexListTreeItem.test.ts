@@ -82,4 +82,30 @@ suite('IndexListTreeItem Test Suite', () => {
       'Expected icon path to point to an svg by the name "indexes" with a dark mode'
     );
   });
+
+  test('when theres an error fetching indexes, the error is thrown in the caller (no timeout)', async () => {
+    const expectedErrorMessage = 'Some error message indexes could throw';
+    const testIndexListTreeItem = new IndexListTreeItem(
+      'pineapple',
+      'tasty_fruits',
+      {
+        indexes: (ns, opts, cb) => {
+          cb(new Error(expectedErrorMessage));
+        }
+      },
+      false,
+      false,
+      []
+    );
+
+    await testIndexListTreeItem.onDidExpand();
+
+    try {
+      await testIndexListTreeItem.getChildren();
+
+      assert(false, 'Expected an error to be thrown');
+    } catch (err) {
+      assert(err.message === expectedErrorMessage, `Expected error message to be '${expectedErrorMessage}' found '${err.message}'`);
+    }
+  });
 });

@@ -16,7 +16,7 @@ export const MAX_DOCUMENTS_VISIBLE = 10;
 export const DOCUMENT_LIST_ITEM = 'documentListTreeItem';
 export enum CollectionTypes {
   collection = 'collection',
-  view = 'view'
+  view = 'view',
 }
 
 const ITEM_LABEL = 'Documents';
@@ -53,7 +53,9 @@ const getCollapsableStateForDocumentList = (
 export default class DocumentListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DocumentListTreeItem> {
   cacheIsUpToDate = false;
-  private _childrenCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> = [];
+  private _childrenCache: Array<
+    DocumentTreeItem | ShowMoreDocumentsTreeItem
+  > = [];
 
   contextValue = DOCUMENT_LIST_ITEM;
 
@@ -138,7 +140,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
   async getChildren(): Promise<any[]> {
     if (!this.isExpanded || this.type === CollectionTypes.view) {
-      return Promise.resolve([]);
+      return [];
     }
 
     if (this.cacheIsUpToDate) {
@@ -148,7 +150,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
       pastChildrenCache.forEach((pastTreeItem, index) => {
         this._childrenCache.push(
           new DocumentTreeItem(
-            ( pastTreeItem as DocumentTreeItem).document,
+            (pastTreeItem as DocumentTreeItem).document,
             this.namespace,
             index
           )
@@ -156,7 +158,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
       });
 
       if (this.hasMoreDocumentsToShow) {
-        return Promise.resolve([
+        return [
           ...this._childrenCache,
           // Add a `Show more...` item when there are more documents to show.
           new ShowMoreDocumentsTreeItem(
@@ -164,10 +166,10 @@ export default class DocumentListTreeItem extends vscode.TreeItem
             () => this.onShowMoreClicked(),
             this._maxDocumentsToShow
           )
-        ]);
+        ];
       }
 
-      return Promise.resolve(this._childrenCache);
+      return this._childrenCache;
     }
 
     let documents;
@@ -199,17 +201,17 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     }
 
     if (this.hasMoreDocumentsToShow) {
-      return Promise.resolve([
+      return [
         ...this._childrenCache,
         new ShowMoreDocumentsTreeItem(
           this.namespace,
           () => this.onShowMoreClicked(),
           this._maxDocumentsToShow
         )
-      ]);
+      ];
     }
 
-    return Promise.resolve(this._childrenCache);
+    return this._childrenCache;
   }
 
   get iconPath():

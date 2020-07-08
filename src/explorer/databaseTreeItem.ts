@@ -70,7 +70,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
   async getChildren(): Promise<any[]> {
     if (!this.isExpanded) {
-      return Promise.resolve([]);
+      return [];
     }
 
     if (this.cacheIsUpToDate) {
@@ -91,16 +91,11 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         );
       });
 
-      return Promise.resolve(Object.values(this._childrenCache));
+      return Object.values(this._childrenCache);
     }
 
-    let collections;
     // List collections and build tree items.
-    try {
-      collections = await this.listCollections();
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    const collections = await this.listCollections();
 
     this.cacheIsUpToDate = true;
 
@@ -145,7 +140,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       this._childrenCache = {};
     }
 
-    return Promise.resolve(Object.values(this._childrenCache));
+    return Object.values(this._childrenCache);
   }
 
   get iconPath():

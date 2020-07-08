@@ -166,7 +166,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
   // collection's schema
   async getChildren(): Promise<any[]> {
     if (!this.isExpanded) {
-      return Promise.resolve([]);
+      return [];
     }
 
     if (this.cacheIsUpToDate) {
@@ -183,13 +183,13 @@ export default class SchemaTreeItem extends vscode.TreeItem
       });
 
       if (!this.hasClickedShowMoreFields && this.hasMoreFieldsToShow) {
-        return Promise.resolve([
+        return [
           ...Object.values(this.childrenCache),
           new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
-        ]);
+        ];
       }
 
-      return Promise.resolve(Object.values(this.childrenCache));
+      return Object.values(this.childrenCache);
     }
 
     let schema;
@@ -202,12 +202,12 @@ export default class SchemaTreeItem extends vscode.TreeItem
 
     this.cacheIsUpToDate = true;
 
-    if (!schema) {
+    if (!schema || !schema.fields || schema.fields.length < 1) {
       vscode.window.showInformationMessage(
         'No documents were found when attempting to parse schema.'
       );
       this.childrenCache = {};
-      return Promise.resolve([]);
+      return [];
     }
 
     this.childrenCache = this.buildFieldTreeItemsFromSchema(schema);
@@ -219,13 +219,13 @@ export default class SchemaTreeItem extends vscode.TreeItem
       schema.fields.length > FIELDS_TO_SHOW
     ) {
       this.hasMoreFieldsToShow = true;
-      return Promise.resolve([
+      return [
         ...Object.values(this.childrenCache),
         new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
-      ]);
+      ];
     }
 
-    return Promise.resolve(Object.values(this.childrenCache));
+    return Object.values(this.childrenCache);
   }
 
   onShowMoreClicked(): void {

@@ -91,7 +91,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   async listDatabases(): Promise<any[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (dataService === null) {
-      return Promise.reject(new Error('Not currently connected.'));
+      throw new Error('Not currently connected.');
     }
 
     return new Promise((resolve, reject) => {
@@ -111,12 +111,12 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       this._connectionController.isDisconnecting() ||
       this._connectionController.isConnecting()
     ) {
-      return Promise.resolve([]);
+      return [];
     }
 
     const dataService = this._connectionController.getActiveDataService();
     if (dataService === null) {
-      return Promise.reject(new Error('Not currently connected.'));
+      throw new Error('Not currently connected.');
     }
 
     if (this.cacheIsUpToDate) {
@@ -135,15 +135,11 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         );
       });
 
-      return Promise.resolve(Object.values(this._childrenCache));
+      return Object.values(this._childrenCache);
     }
 
-    let databases;
-    try {
-      databases = await this.listDatabases();
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    const databases = await this.listDatabases();
+
     this.cacheIsUpToDate = true;
 
     if (databases) {
@@ -175,7 +171,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       this._childrenCache = {};
     }
 
-    return Promise.resolve(Object.values(this._childrenCache));
+    return Object.values(this._childrenCache);
   }
 
   get iconPath():

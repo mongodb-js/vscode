@@ -85,19 +85,14 @@ export default class IndexListTreeItem extends vscode.TreeItem
 
   async getChildren(): Promise<any[]> {
     if (!this.isExpanded) {
-      return Promise.resolve([]);
+      return [];
     }
 
     if (this.cacheIsUpToDate) {
-      return Promise.resolve(this._childrenCache);
+      return this._childrenCache;
     }
 
-    let indexes;
-    try {
-      indexes = await this.getIndexes();
-    } catch (err) {
-      Promise.reject(err);
-    }
+    const indexes = await this.getIndexes();
 
     this.cacheIsUpToDate = true;
 
@@ -113,7 +108,7 @@ export default class IndexListTreeItem extends vscode.TreeItem
       this._childrenCache = [];
     }
 
-    return Promise.resolve(this._childrenCache);
+    return this._childrenCache;
   }
 
   onDidCollapse(): void {

@@ -75,6 +75,42 @@ suite('SchemaTreeItem Test Suite', () => {
     );
   });
 
+  test('when there are no documents in the schema it should show a message', async () => {
+    const expectedMessage = 'No documents were found when attempting to parse schema.';
+
+    const testSchemaTreeItem = new SchemaTreeItem(
+      'peanutButter',
+      TEST_DB_NAME,
+      {
+        find: (ns, filter, options, callback): void => {
+          callback(null, []);
+        }
+      },
+      true,
+      false,
+      false,
+      false,
+      {}
+    );
+
+    const fakeShowInformationMessage = sinon.stub(
+      vscode.window,
+      'showInformationMessage'
+    );
+
+    const schemaFields = await testSchemaTreeItem.getChildren();
+
+    assert(
+      schemaFields.length === 0,
+      `Expected ${0} documents to be returned, found ${schemaFields.length}`
+    );
+
+    assert(
+      fakeShowInformationMessage.firstCall.args[0] === expectedMessage,
+      `Expected message to be '${expectedMessage}' found ${fakeShowInformationMessage.firstCall.args[0]}`
+    );
+  });
+
   test('it should show a show more item when there are more fields to show', (done) => {
     const amountOfFieldsExpected = FIELDS_TO_SHOW;
     const mockDocWithTwentyFields = {};
@@ -168,17 +204,20 @@ suite('SchemaTreeItem Test Suite', () => {
 
     testSchemaTreeItem
       .getChildren()
-      .then(() => {
-        assert(false, 'Didnt expect to succeed.');
-      }, error => {
-        const expectedMessage =
-          'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+      .then(
+        () => {
+          assert(false, 'Didnt expect to succeed.');
+        },
+        (error) => {
+          const expectedMessage =
+            'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
 
-        assert(
-          error.message === expectedMessage,
-          `Expected error message to be "${expectedMessage}" found "${error.message}"`
-        );
-      })
+          assert(
+            error.message === expectedMessage,
+            `Expected error message to be "${expectedMessage}" found "${error.message}"`
+          );
+        }
+      )
       .then(done, done);
   });
 

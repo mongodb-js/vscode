@@ -79,11 +79,11 @@ export default class CollectionTreeItem extends vscode.TreeItem
         this.databaseName,
         this._type,
         this._dataService,
-        false,
+        false, // Collapsed.
         MAX_DOCUMENTS_VISIBLE,
-        false,
-        false,
-        []
+        false, // No more documents to show.
+        false, // Cache is not up to date.
+        [] // Empty cache.
       );
     this._schemaChild = existingSchemaChild
       ? existingSchemaChild
@@ -91,11 +91,11 @@ export default class CollectionTreeItem extends vscode.TreeItem
         this.collectionName,
         this.databaseName,
         this._dataService,
-        false,
-        false,
-        false,
-        false,
-        {}
+        false, // Collapsed.
+        false, // Hasn't been clicked to show more documents.
+        false, // No more fields to show.
+        false, // Cached is not up to date.
+        {} // Empty cache.
       );
     this._indexListChild = existingIndexListChild
       ? existingIndexListChild
@@ -103,9 +103,9 @@ export default class CollectionTreeItem extends vscode.TreeItem
         this.collectionName,
         this.databaseName,
         this._dataService,
-        false,
-        false,
-        []
+        false, // Collapsed.
+        false, // Cache is not up to date.
+        [] // Empty cache.
       );
   }
 
@@ -224,29 +224,29 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this.databaseName,
       this._type,
       this._dataService,
-      false,
+      false, // Collapsed.
       MAX_DOCUMENTS_VISIBLE,
-      false,
-      false,
-      []
+      false, // No more documents to show.
+      false, // Cache is not up to date.
+      [] // Empty cache.
     );
     this._schemaChild = new SchemaTreeItem(
       this.collectionName,
       this.databaseName,
       this._dataService,
-      false,
-      false,
-      false,
-      false,
-      {}
+      false, // Collapsed.
+      false, // Hasn't been clicked to show more documents.
+      false, // No more fields to show.
+      false, // Cached is not up to date.
+      {} // Empty cache.
     );
     this._indexListChild = new IndexListTreeItem(
       this.collectionName,
       this.databaseName,
       this._dataService,
-      false,
-      false,
-      []
+      false, // Collapsed.
+      false, // Cache is not up to date.
+      [] // Empty cache.
     );
   }
 
