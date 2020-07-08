@@ -84,7 +84,6 @@ steps:
         exit 1
       fi
     displayName: 'Check .vsix filesize'
-    condition: in(variables['agent.os'], 'Linux')
 
   # On linux create and publish a .vsix artifact for the build.
   - task: CopyFiles@2
