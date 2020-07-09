@@ -6,9 +6,7 @@ import { config } from 'dotenv';
 import TelemetryController from '../../../telemetry/telemetryController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { afterEach, beforeEach } from 'mocha';
-import { TEST_DATABASE_URI } from './../dbTestHelper';
 import Connection = require('mongodb-connection-model/lib/model');
-import { StorageScope } from '../../../storage/storageController';
 import { ConnectionTypes } from '../../../connectionController';
 import { getDocUri, loadAndSavePlayground } from '../editorTestHelper';
 import DataService = require('mongodb-data-service');
@@ -174,7 +172,7 @@ suite('Telemetry Controller Test Suite', () => {
 
   test('track playground loaded and saved events', async function () {
     this.timeout(3000);
-    await loadAndSavePlayground(getDocUri('test.mongodb'));
+    await loadAndSavePlayground(getDocUri('testSaving.mongodb'));
 
     sinon.assert.called(mockTrackPlaygroundLoadedMethod);
     sinon.assert.called(mockTrackPlaygroundSavedMethod);

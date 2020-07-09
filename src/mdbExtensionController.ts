@@ -115,8 +115,14 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.createNewPlaygroundFromViewAction', () =>
       this._playgroundController.createPlayground()
     );
+    this.registerCommand('mdb.runSelectedPlaygroundBlocks', () =>
+      this._playgroundController.runSelectedPlaygroundBlocks()
+    );
     this.registerCommand('mdb.runAllPlaygroundBlocks', () =>
       this._playgroundController.runAllPlaygroundBlocks()
+    );
+    this.registerCommand('mdb.runPlayground', () =>
+      this._playgroundController.runAllOrSelectedPlaygroundBlocks()
     );
     this.registerCommand(
       'mdb.showActiveConnectionInPlayground',

@@ -44,6 +44,7 @@ Think RPC handlers.
 - `mdb.createPlayground`
 - `mdb.removePlayground`
 - `mdb.runPlaygroundBlock`
+- `mdb.runSelectedPlaygroundBlocks`
 - `mdb.runAllPlaygroundBlocks`
 - `mdb.createNewPlaygroundFromViewAction`
 

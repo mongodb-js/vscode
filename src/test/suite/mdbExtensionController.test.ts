@@ -1154,6 +1154,25 @@ suite('MDBExtensionController Test Suite', () => {
     );
   });
 
+  test('mdb.runSelectedPlaygroundBlocks command should call runSelectedPlaygroundBlocks on the playground controller', (done) => {
+    const mockRunSelectedPlaygroundBlocks = sinon.fake.resolves();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      'runSelectedPlaygroundBlocks',
+      mockRunSelectedPlaygroundBlocks
+    );
+
+    vscode.commands
+      .executeCommand('mdb.runSelectedPlaygroundBlocks')
+      .then(() => {
+        assert(
+          mockRunSelectedPlaygroundBlocks.called,
+          'Expected "runSelectedPlaygroundBlocks" to be called on the playground controller.'
+        );
+      })
+      .then(done, done);
+  });
+
   test('mdb.runAllPlaygroundBlocks command should call runAllPlaygroundBlocks on the playground controller', (done) => {
     const mockRunAllPlaygroundBlocks = sinon.fake.resolves();
     sinon.replace(

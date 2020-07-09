@@ -177,8 +177,16 @@
         "title": "MongoDB: Show Active Connection In Playground"
       },
       {
+        "command": "mdb.runSelectedPlaygroundBlocks",
+        "title": "MongoDB: Run Selected Lines From Playground"
+      },
+      {
         "command": "mdb.runAllPlaygroundBlocks",
-        "title": "MongoDB: Run All From Playground",
+        "title": "MongoDB: Run All From Playground"
+      },
+      {
+        "command": "mdb.runPlayground",
+        "title": "MongoDB: Run All or Selection From Playground",
         "icon": {
           "light": "images/light/play.svg",
           "dark": "images/dark/play.svg"
@@ -422,7 +430,7 @@
       ],
       "editor/title": [
         {
-          "command": "mdb.runAllPlaygroundBlocks",
+          "command": "mdb.runPlayground",
           "group": "navigation",
           "when": "editorLangId == mongodb"
         }
@@ -510,6 +518,10 @@
         },
         {
           "command": "mdb.refreshSchema",
+          "when": "false"
+        },
+        {
+          "command": "mdb.runPlayground",
           "when": "false"
         }
       ]

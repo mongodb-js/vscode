@@ -7,6 +7,7 @@ import { StorageController } from '../../../storage';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
 import { before, after, beforeEach, afterEach } from 'mocha';
 import TelemetryController from '../../../telemetry/telemetryController';
+import { getDocUri, loadPlayground } from '../editorTestHelper';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -19,7 +20,9 @@ const CONNECTION = {
   driverOptions: {}
 };
 
-suite('Playground Controller Test Suite', () => {
+suite('Playground Controller Test Suite', function () {
+  this.timeout(5000);
+
   const mockExtensionContext = new TestExtensionContext();
 
   mockExtensionContext.extensionPath = '../../';
@@ -183,6 +186,34 @@ suite('Playground Controller Test Suite', () => {
       }
 
       expect(result).to.be.null;
+    });
+
+    test('do not show code lens if a part of a line is selected', async () => {
+      testPlaygroundController._activeTextEditor = await loadPlayground(
+        getDocUri('testCodeLens.mongodb')
+      );
+
+      testPlaygroundController.showCodeLensForSelection(
+        new vscode.Range(0, 5, 0, 11)
+      );
+
+      const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
+
+      expect(codeLens?.length).to.be.equal(0);
+    });
+
+    test('show code lens if whole line is selected', async () => {
+      testPlaygroundController._activeTextEditor = await loadPlayground(
+        getDocUri('testCodeLens.mongodb')
+      );
+
+      testPlaygroundController.showCodeLensForSelection(
+        new vscode.Range(0, 0, 0, 14)
+      );
+
+      const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
+
+      expect(codeLens?.length).to.be.equal(1);
     });
   });
 });

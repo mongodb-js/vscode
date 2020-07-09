@@ -5,6 +5,7 @@ import ConnectionController, {
 import { LanguageServerController } from '../language';
 import TelemetryController from '../telemetry/telemetryController';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
+import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import { createLogger } from '../logging';
@@ -15,15 +16,18 @@ const log = createLogger('playground controller');
  * This controller manages playground.
  */
 export default class PlaygroundController {
-  _context: vscode.ExtensionContext;
-  _connectionController: ConnectionController;
-  _languageServerController: LanguageServerController;
-  _telemetryController: TelemetryController;
-  _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
-  _outputChannel: OutputChannel;
-  _connectionString?: string;
-  _connectionOptions?: any;
-  _activeTextEditor?: TextEditor;
+  public _connectionController: ConnectionController;
+  public _activeTextEditor?: TextEditor;
+  public _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
+  private _context: vscode.ExtensionContext;
+  private _languageServerController: LanguageServerController;
+  private _telemetryController: TelemetryController;
+  private _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
+  private _outputChannel: OutputChannel;
+  private _connectionString?: string;
+  private _connectionOptions?: any;
+  private _selectedText?: string;
+  private _codeToEvaluate: string;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -32,6 +36,7 @@ export default class PlaygroundController {
     telemetryController: TelemetryController
   ) {
     this._context = context;
+    this._codeToEvaluate = '';
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryController = telemetryController;
@@ -41,10 +46,17 @@ export default class PlaygroundController {
     this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(
       this._connectionController
     );
+    this._partialExecutionCodeLensProvider = new PartialExecutionCodeLensProvider();
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
         { language: 'mongodb' },
         this._activeConnectionCodeLensProvider
+      )
+    );
+    this._context.subscriptions.push(
+      vscode.languages.registerCodeLensProvider(
+        { language: 'mongodb' },
+        this._partialExecutionCodeLensProvider
       )
     );
 
@@ -59,10 +71,7 @@ export default class PlaygroundController {
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       async () => {
         await this.connectToServiceProvider();
-
-        if (this._activeConnectionCodeLensProvider) {
-          this._activeConnectionCodeLensProvider.refresh();
-        }
+        this._activeConnectionCodeLensProvider?.refresh();
       }
     );
 
@@ -76,6 +85,41 @@ export default class PlaygroundController {
         log.info('Active editor path', editor.document.uri?.path);
       }
     });
+
+    vscode.window.onDidChangeTextEditorSelection((editor) => {
+      if (
+        editor &&
+        editor.textEditor &&
+        editor.textEditor.document &&
+        editor.textEditor.document.languageId === 'mongodb'
+      ) {
+        this._selectedText = (editor.selections as Array<any>)
+          .sort((a, b) => (a.start.line > b.start.line ? 1 : -1)) // Sort lines selected as alt+click
+          .map((item, index) => {
+            if (index === 0) {
+              this.showCodeLensForSelection(item);
+            }
+
+            return this.getSelectedText(item);
+          })
+          .join('\n');
+      }
+    });
+  }
+
+  public showCodeLensForSelection(item: vscode.Range): void {
+    const selectedText = this.getSelectedText(item).trim();
+    const lastSelectedLine =
+      this._activeTextEditor?.document.lineAt(item.end.line).text.trim() || '';
+
+    if (
+      selectedText.length > 0 &&
+      selectedText.length >= lastSelectedLine.length
+    ) {
+      this._partialExecutionCodeLensProvider?.refresh(item);
+    } else {
+      this._partialExecutionCodeLensProvider?.refresh();
+    }
   }
 
   public disconnectFromServiceProvider(): Promise<boolean> {
@@ -147,6 +191,14 @@ export default class PlaygroundController {
     return Promise.resolve(result);
   }
 
+  private getAllText(): string {
+    return this._activeTextEditor?.document.getText() || '';
+  }
+
+  private getSelectedText(selection: any): string {
+    return this._activeTextEditor?.document.getText(selection) || '';
+  }
+
   public evaluateWithCancelModal(): Promise<any> {
     if (!this._connectionString) {
       return Promise.reject(
@@ -172,14 +224,8 @@ export default class PlaygroundController {
               return resolve(null);
             });
 
-            let codeToEvaluate = '';
-
-            if (this._activeTextEditor && this._activeTextEditor.document) {
-              codeToEvaluate = this._activeTextEditor.document.getText() || '';
-            }
-
             // Run all playground scripts.
-            const result = await this.evaluate(codeToEvaluate);
+            const result = await this.evaluate(this._codeToEvaluate);
 
             return resolve(result);
           }
@@ -192,7 +238,7 @@ export default class PlaygroundController {
     });
   }
 
-  public runAllPlaygroundBlocks(): Promise<boolean> {
+  public evaluatePlayground(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const shouldConfirmRunAll = vscode.workspace
         .getConfiguration('mdb')
@@ -234,6 +280,54 @@ export default class PlaygroundController {
 
       return resolve(true);
     });
+  }
+
+  public runSelectedPlaygroundBlocks() {
+    if (this._activeTextEditor && this._activeTextEditor.document) {
+      const selections = this._activeTextEditor.selections;
+
+      if (
+        !selections ||
+        !Array.isArray(selections) ||
+        (selections.length === 1 && this.getSelectedText(selections[0]) === '')
+      ) {
+        vscode.window.showInformationMessage(
+          'Please select one or more lines in the playground.'
+        );
+
+        return Promise.resolve(true);
+      } else if (this._selectedText) {
+        this._codeToEvaluate = this._selectedText;
+      }
+    }
+
+    return this.evaluatePlayground();
+  }
+
+  public runAllPlaygroundBlocks() {
+    if (this._activeTextEditor) {
+      this._codeToEvaluate = this.getAllText();
+    }
+
+    return this.evaluatePlayground();
+  }
+
+  public runAllOrSelectedPlaygroundBlocks() {
+    if (this._activeTextEditor && this._activeTextEditor.document) {
+      const selections = this._activeTextEditor.selections;
+
+      if (
+        !selections ||
+        !Array.isArray(selections) ||
+        (selections.length === 1 && this.getSelectedText(selections[0]) === '')
+      ) {
+        this._codeToEvaluate = this.getAllText();
+      } else if (this._selectedText) {
+        this._codeToEvaluate = this._selectedText;
+      }
+    }
+
+    return this.evaluatePlayground();
   }
 
   public deactivate(): void {
