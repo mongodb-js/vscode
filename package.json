@@ -178,7 +178,7 @@
       },
       {
         "command": "mdb.runSelectedPlaygroundBlocks",
-        "title": "MongoDB: Run Selection From Playground"
+        "title": "MongoDB: Run Selected Lines From Playground"
       },
       {
         "command": "mdb.runAllPlaygroundBlocks",

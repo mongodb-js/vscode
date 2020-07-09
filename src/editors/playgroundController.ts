@@ -284,7 +284,11 @@ export default class PlaygroundController {
         !Array.isArray(selections) ||
         (selections.length === 1 && this.getSelectedText(selections[0]) === '')
       ) {
-        this._codeToEvaluate = this.getAllText();
+        vscode.window.showInformationMessage(
+          'Please select one or more lines in the playground.'
+        );
+
+        return Promise.resolve(true);
       } else if (this._selection) {
         this._codeToEvaluate = this._selection;
       }
@@ -296,6 +300,24 @@ export default class PlaygroundController {
   public runAllPlaygroundBlocks() {
     if (this._activeTextEditor) {
       this._codeToEvaluate = this.getAllText();
+    }
+
+    return this.evaluatePlayground();
+  }
+
+  public runAllOrSelectedPlaygroundBlocks() {
+    if (this._activeTextEditor && this._activeTextEditor.document) {
+      const selections = this._activeTextEditor.selections;
+
+      if (
+        !selections ||
+        !Array.isArray(selections) ||
+        (selections.length === 1 && this.getSelectedText(selections[0]) === '')
+      ) {
+        this._codeToEvaluate = this.getAllText();
+      } else if (this._selection) {
+        this._codeToEvaluate = this._selection;
+      }
     }
 
     return this.evaluatePlayground();
