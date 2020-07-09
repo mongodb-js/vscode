@@ -1,6 +1,6 @@
 variables:
   npm_config_cache: $(Pipeline.Workspace)/.npm
-  node_version: '12.18.2'
+  node_version: '12.4.0'
 
 trigger:
   - master
