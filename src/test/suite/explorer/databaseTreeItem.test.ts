@@ -78,7 +78,7 @@ suite('DatabaseTreeItem Test Suite', () => {
 
         assert(
           collections[1].label ===
-          mockDatabases[mockDatabaseNames[1]].collections[1].name,
+            mockDatabases[mockDatabaseNames[1]].collections[1].name,
           `Expected a tree item child with the label collection name ${
             mockDatabases[mockDatabaseNames[1]].collections[1].name
           } found ${collections[1].label}`
@@ -170,20 +170,32 @@ suite('DatabaseTreeItem Test Suite', () => {
       {}
     );
 
-    const expectedCollectionsOrder = ['111_abc', '222_abc', 'AAA', 'ZZZ', 'aaa', 'zzz'];
+    const expectedCollectionsOrder = [
+      '111_abc',
+      '222_abc',
+      'AAA',
+      'ZZZ',
+      'aaa',
+      'zzz'
+    ];
 
     testDatabaseTreeItem
       .getChildren()
       .then((collectionTreeItems: CollectionTreeItem[]) => {
         assert.deepEqual(
-          collectionTreeItems.map(({ collectionName }) => collectionName).join(), expectedCollectionsOrder.join(),
+          collectionTreeItems
+            .map(({ collectionName }) => collectionName)
+            .join(),
+          expectedCollectionsOrder.join(),
           'Expected collections to be in alphanumerical order but they were not'
         );
       })
       .then(done, done);
   });
 
-  suite('Live Database Tests', () => {
+  suite('Live Database Tests', function () {
+    this.timeout(5000);
+
     afterEach(async () => {
       await cleanupTestDB();
     });
@@ -289,7 +301,7 @@ suite('DatabaseTreeItem Test Suite', () => {
                           );
                           assert(
                             testerObjectField.collapsibleState ===
-                            vscode.TreeItemCollapsibleState.Expanded,
+                              vscode.TreeItemCollapsibleState.Expanded,
                             `Expected the subdocument field to have an expanded state (2), found ${postCollapseSchemaTreeItem.childrenCache.testerObject.collapsibleState}.`
                           );
                         })
