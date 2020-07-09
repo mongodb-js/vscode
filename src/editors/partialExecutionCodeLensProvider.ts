@@ -33,7 +33,7 @@ export default class PartialExecutionCodeLensProvider
   }
 
   public resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
-    const message = `► Run Selection From Playground`;
+    const message = `► Run Selected Lines From Playground`;
 
     codeLens.command = {
       title: message,

@@ -18,7 +18,7 @@ const log = createLogger('playground controller');
 export default class PlaygroundController {
   public _connectionController: ConnectionController;
   public _activeTextEditor?: TextEditor;
-  public _partialExecutionCodeLensProvider?: PartialExecutionCodeLensProvider;
+  public _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
   private _context: vscode.ExtensionContext;
   private _languageServerController: LanguageServerController;
   private _telemetryController: TelemetryController;
@@ -26,7 +26,7 @@ export default class PlaygroundController {
   private _outputChannel: OutputChannel;
   private _connectionString?: string;
   private _connectionOptions?: any;
-  private _selection?: string;
+  private _selectedText?: string;
   private _codeToEvaluate: string;
 
   constructor(
@@ -87,27 +87,34 @@ export default class PlaygroundController {
     });
 
     vscode.window.onDidChangeTextEditorSelection((editor) => {
-      this._selection = editor.selections
-        .map((item, index) => {
-          if (index === 0) {
-            this.showCodeLensForSelection(item);
-          }
+      if (
+        editor &&
+        editor.textEditor &&
+        editor.textEditor.document &&
+        editor.textEditor.document.languageId === 'mongodb'
+      ) {
+        this._selectedText = (editor.selections as Array<any>)
+          .sort((a, b) => (a.start.line > b.start.line ? 1 : -1)) // Sort lines selected as alt+click
+          .map((item, index) => {
+            if (index === 0) {
+              this.showCodeLensForSelection(item);
+            }
 
-          return this.getSelectedText(item);
-        })
-        .join('\n');
+            return this.getSelectedText(item);
+          })
+          .join('\n');
+      }
     });
   }
 
   public showCodeLensForSelection(item: vscode.Range): void {
     const selectedText = this.getSelectedText(item).trim();
-    const firstSelectedLine =
-      this._activeTextEditor?.document.lineAt(item.start.line).text.trim() ||
-      '';
+    const lastSelectedLine =
+      this._activeTextEditor?.document.lineAt(item.end.line).text.trim() || '';
 
     if (
       selectedText.length > 0 &&
-      selectedText.length >= firstSelectedLine.length
+      selectedText.length >= lastSelectedLine.length
     ) {
       this._partialExecutionCodeLensProvider?.refresh(item);
     } else {
@@ -289,8 +296,8 @@ export default class PlaygroundController {
         );
 
         return Promise.resolve(true);
-      } else if (this._selection) {
-        this._codeToEvaluate = this._selection;
+      } else if (this._selectedText) {
+        this._codeToEvaluate = this._selectedText;
       }
     }
 
@@ -315,8 +322,8 @@ export default class PlaygroundController {
         (selections.length === 1 && this.getSelectedText(selections[0]) === '')
       ) {
         this._codeToEvaluate = this.getAllText();
-      } else if (this._selection) {
-        this._codeToEvaluate = this._selection;
+      } else if (this._selectedText) {
+        this._codeToEvaluate = this._selectedText;
       }
     }
 
