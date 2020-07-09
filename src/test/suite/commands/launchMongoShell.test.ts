@@ -177,12 +177,12 @@ suite('Commands Test Suite', () => {
     });
   });
 
-  suite('Windows cmd or powershell env shell', () => {
+  suite('Windows powershell env shell', () => {
     beforeEach(() => {
-      sandbox.replaceGetter(vscode.env, 'shell', () => 'cmd.exe');
+      sandbox.replaceGetter(vscode.env, 'shell', () => 'powershell.exe');
     });
 
-    test('windows openMongoDBShell should open a terminal with the active connection driver url', async () => {
+    test('powershell openMongoDBShell should open a terminal with the active connection driver url', async () => {
       const driverUri =
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
@@ -205,9 +205,15 @@ suite('Commands Test Suite', () => {
         terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
         `Expected open terminal to set shell arg as driver url "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
+
+      const shellCommandText = fakeSendTerminalText.firstCall.args[0];
+      assert(
+        shellCommandText.includes('$Env:MDB_CONNECTION_STRING'),
+        'Expected sendText to terminal to use powershell env variable syntax'
+      );
     });
 
-    test('windows openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
+    test('powershell openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
       fakeGetActiveConnectionModel.returns(
         new Connection({
           hostname: '127.0.0.1',
@@ -237,7 +243,109 @@ suite('Commands Test Suite', () => {
       );
     });
 
-    test('windows openMongoDBShell should open a terminal with ssl config injected', async () => {
+    test('powershell openMongoDBShell should open a terminal with ssl config injected', async () => {
+      const driverUri =
+        'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
+
+      fakeGetActiveConnectionModel.returns(
+        new Connection({
+          hostname: '127.0.0.1',
+          ssl: true,
+          sslMethod: 'SERVER',
+          sslCA: './path_to_some_file'
+        })
+      );
+      fakeIsCurrentlyConnected.returns(true);
+
+      await launchMongoShell(mockConnectionController);
+
+      assert(createTerminalStub.called);
+
+      const terminalOptions: vscode.TerminalOptions =
+        createTerminalStub.firstCall.args[0];
+
+      assert(
+        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
+        `Expected open terminal to set shell arg as driver url with ssl injected "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+      );
+
+      const shellCommandText = fakeSendTerminalText.firstCall.args[0];
+      assert(
+        shellCommandText.includes('--ssl'),
+        `Expected open terminal to have ssl arg "--ssl" found "${shellCommandText}"`
+      );
+      assert(
+        shellCommandText.includes('--sslAllowInvalidHostnames'),
+        `Expected open terminal to have ssl arg "--sslAllowInvalidHostnames" found "${shellCommandText}"`
+      );
+      assert(
+        shellCommandText.includes('--sslCAFile=./path_to_some_file'),
+        `Expected open terminal to have sslCAFile arg "--sslCAFile=./path_to_some_file" found "${shellCommandText}"`
+      );
+    });
+  });
+
+  suite('Windows cmd env shell', () => {
+    beforeEach(() => {
+      sandbox.replaceGetter(vscode.env, 'shell', () => 'cmd.exe');
+    });
+
+    test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async () => {
+      const driverUri =
+        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+
+      fakeGetActiveConnectionModel.returns(
+        new Connection({
+          hostname: 'localhost',
+          port: 27018
+        })
+      );
+      fakeIsCurrentlyConnected.returns(true);
+
+      await launchMongoShell(mockConnectionController);
+
+      assert(createTerminalStub.called);
+
+      const terminalOptions: vscode.TerminalOptions =
+        createTerminalStub.firstCall.args[0];
+
+      assert(
+        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
+        `Expected open terminal to set shell arg as driver url "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+      );
+    });
+
+    test('windows cmd openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
+      fakeGetActiveConnectionModel.returns(
+        new Connection({
+          hostname: '127.0.0.1',
+          sshTunnel: 'USER_PASSWORD',
+          sshTunnelHostname: 'my.ssh-server.com',
+          sshTunnelUsername: 'my-user',
+          sshTunnelPassword: 'password'
+        })
+      );
+      fakeIsCurrentlyConnected.returns(true);
+
+      await launchMongoShell(mockConnectionController);
+
+      assert(createTerminalStub.called);
+
+      const terminalOptions: vscode.TerminalOptions =
+        createTerminalStub.firstCall.args[0];
+
+      assert(
+        terminalOptions.env?.MDB_CONNECTION_STRING?.includes(
+          'mongodb://127.0.0.1'
+        ) &&
+          terminalOptions.env?.MDB_CONNECTION_STRING.includes(
+            '/?readPreference=primary&ssl=false'
+          ),
+        `Expected open terminal to set shell arg as driver url with ssh tunnel port injected found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+      );
+    });
+
+    test('windows cmd openMongoDBShell should open a terminal with ssl config injected', async () => {
       const driverUri =
         'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
 

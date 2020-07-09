@@ -38,6 +38,67 @@ function getSslOptions(driverOptions: any): string[] {
   return mdbSslOptions;
 }
 
+function launchMongoDBShellOnPowershell(
+  shellCommand: string,
+  mdbConnectionString: string,
+  mdbSslOptions: string[]
+): void {
+  const mongoDBShell = vscode.window.createTerminal({
+    name: 'MongoDB Shell',
+    env: {
+      MDB_CONNECTION_STRING: mdbConnectionString
+    }
+  });
+
+  const mdbSslOptionsString = mdbSslOptions.length > 0
+    ? `${mdbSslOptions.join(' ')} `
+    : '';
+
+  mongoDBShell.sendText(
+    `${shellCommand} ${mdbSslOptionsString}$Env:MDB_CONNECTION_STRING;`
+  );
+  mongoDBShell.show();
+}
+
+function launchMongoDBShellOnCmd(
+  shellCommand: string,
+  mdbConnectionString: string,
+  mdbSslOptions: string[]
+): void {
+  const mongoDBShell = vscode.window.createTerminal({
+    name: 'MongoDB Shell',
+    env: {
+      MDB_CONNECTION_STRING: mdbConnectionString
+    }
+  });
+
+  const mdbSslOptionsString = mdbSslOptions.length > 0
+    ? `${mdbSslOptions.join(' ')} `
+    : '';
+
+  mongoDBShell.sendText(
+    `${shellCommand} ${mdbSslOptionsString}%MDB_CONNECTION_STRING%;`
+  );
+  mongoDBShell.show();
+}
+
+function launchMongoDBShellOnBash(
+  shellCommand: string,
+  mdbConnectionString: string,
+  mdbSslOptions: string[]
+): void {
+  const mongoDBShell = vscode.window.createTerminal({
+    name: 'MongoDB Shell',
+    shellPath: shellCommand,
+    shellArgs: [
+      mdbConnectionString,
+      ...mdbSslOptions
+    ]
+  });
+
+  mongoDBShell.show();
+}
+
 export default function openMongoDBShell(connectionController: ConnectionController): Promise<boolean> {
   let mdbSslOptions: string[] = [];
 
@@ -81,36 +142,14 @@ export default function openMongoDBShell(connectionController: ConnectionControl
     mdbSslOptions = getSslOptions(activeConnectionModel.driverOptions);
   }
 
-  const isWindowsBasedShell = userShell.includes('cmd.exe') || userShell.includes('powershell.exe');
-  if (isWindowsBasedShell) {
-    const mongoDBShell = vscode.window.createTerminal({
-      name: 'MongoDB Shell',
-      env: {
-        MDB_CONNECTION_STRING: mdbConnectionString
-      }
-    });
-
-    const mdbSslOptionsString = mdbSslOptions.length > 0
-      ? `${mdbSslOptions.join(' ')} `
-      : '';
-
-    mongoDBShell.sendText(
-      `${shellCommand} ${mdbSslOptionsString}%MDB_CONNECTION_STRING%;`
-    );
-    mongoDBShell.show();
+  if (userShell.includes('powershell.exe')) {
+    launchMongoDBShellOnPowershell(shellCommand, mdbConnectionString, mdbSslOptions);
+  } else if (userShell.includes('cmd.exe')) {
+    launchMongoDBShellOnCmd(shellCommand, mdbConnectionString, mdbSslOptions);
   } else {
     // Assume it's a bash environment. This may fail on certain
     // shells but should cover most cases.
-    const mongoDBShell = vscode.window.createTerminal({
-      name: 'MongoDB Shell',
-      shellPath: shellCommand,
-      shellArgs: [
-        mdbConnectionString,
-        ...mdbSslOptions
-      ]
-    });
-
-    mongoDBShell.show();
+    launchMongoDBShellOnBash(shellCommand, mdbConnectionString, mdbSslOptions);
   }
 
   return Promise.resolve(true);
