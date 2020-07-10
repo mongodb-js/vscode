@@ -31,19 +31,18 @@ steps:
     displayName: 'Install node@$(node_version)'
   # Proper caching for `npm ci` to be fast
   # https://docs.microsoft.com/en-us/azure/devops/pipelines/release/caching?view=azure-devops#nodejsnpm
-  - task: Cache@2
-    inputs:
-      key: 'npm | "$(Agent.OS)" | package-lock.json'
-      restoreKeys: |
-        npm | "$(Agent.OS)"
-        npm
-      path: $(npm_config_cache)
-    displayName: Cache npm
+  # - task: Cache@2
+  #   inputs:
+  #     key: 'npm | "$(Agent.OS)" | package-lock.json'
+  #     restoreKeys: |
+  #       npm | "$(Agent.OS)"
+  #       npm
+  #     path: $(npm_config_cache)
+  #   displayName: Cache npm
   # TODO (lucas): Caching `./.vscode-test` in the future would be nice
   # so vscode-test isn't downloading the vscode zip everytime. same goes for mongoddb-runner.
   - bash: |
       npm i -g npm@6.13.4;
-      npm cache clean --force
       npm ci;
     displayName: 'Install dependencies from npm'
 
