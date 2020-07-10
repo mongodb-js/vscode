@@ -26,7 +26,11 @@ suite('SchemaTreeItem Test Suite', () => {
       'cheesePizza',
       TEST_DB_NAME,
       {},
-      false
+      false,
+      false,
+      false,
+      false,
+      {}
     );
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
@@ -46,24 +50,64 @@ suite('SchemaTreeItem Test Suite', () => {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {},
-      false
+      false,
+      false,
+      false,
+      false,
+      {}
     );
 
     assert(
       !testSchemaTreeItem.hasClickedShowMoreFields,
       'Expected "hasClickedShowMoreFields" to be false by default'
     );
-    testSchemaTreeItem.childrenCacheIsUpToDate = true;
+    testSchemaTreeItem.cacheIsUpToDate = true;
 
     testSchemaTreeItem.onShowMoreClicked();
 
     assert(
-      !testSchemaTreeItem.childrenCacheIsUpToDate,
-      'Expected `childrenCacheIsUpToDate` to be reset to false'
+      !testSchemaTreeItem.cacheIsUpToDate,
+      'Expected `cacheIsUpToDate` to be reset to false'
     );
     assert(
       testSchemaTreeItem.hasClickedShowMoreFields,
       'Expected "hasClickedShowMoreFields" to be set to true'
+    );
+  });
+
+  test('when there are no documents in the schema it should show a message', async () => {
+    const expectedMessage = 'No documents were found when attempting to parse schema.';
+
+    const testSchemaTreeItem = new SchemaTreeItem(
+      'peanutButter',
+      TEST_DB_NAME,
+      {
+        find: (ns, filter, options, callback): void => {
+          callback(null, []);
+        }
+      },
+      true,
+      false,
+      false,
+      false,
+      {}
+    );
+
+    const fakeShowInformationMessage = sinon.stub(
+      vscode.window,
+      'showInformationMessage'
+    );
+
+    const schemaFields = await testSchemaTreeItem.getChildren();
+
+    assert(
+      schemaFields.length === 0,
+      `Expected ${0} documents to be returned, found ${schemaFields.length}`
+    );
+
+    assert(
+      fakeShowInformationMessage.firstCall.args[0] === expectedMessage,
+      `Expected message to be '${expectedMessage}' found ${fakeShowInformationMessage.firstCall.args[0]}`
     );
   });
 
@@ -81,7 +125,11 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, [mockDocWithTwentyFields]);
         }
       },
-      true
+      true,
+      false,
+      false,
+      false,
+      {}
     );
 
     testSchemaTreeItem
@@ -91,8 +139,9 @@ suite('SchemaTreeItem Test Suite', () => {
 
         assert(
           schemaFields.length === amountOfFieldsExpected + 1,
-          `Expected ${amountOfFieldsExpected +
-            1} documents to be returned, found ${schemaFields.length}`
+          `Expected ${
+            amountOfFieldsExpected + 1
+          } documents to be returned, found ${schemaFields.length}`
         );
         assert(
           schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
@@ -115,7 +164,11 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, [mockDocWithThirtyFields]);
         }
       },
-      true
+      true,
+      false,
+      false,
+      false,
+      {}
     );
 
     testSchemaTreeItem.onShowMoreClicked();
@@ -134,9 +187,6 @@ suite('SchemaTreeItem Test Suite', () => {
   });
 
   test('When schema parsing fails it displays an error message', (done) => {
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
@@ -145,21 +195,29 @@ suite('SchemaTreeItem Test Suite', () => {
           callback(null, 'invalid schema to parse');
         }
       },
-      true
+      true,
+      false,
+      false,
+      false,
+      {}
     );
 
     testSchemaTreeItem
       .getChildren()
-      .then((schemaFields) => {
-        assert(schemaFields.length === 0);
-        assert(fakeVscodeErrorMessage.called);
-        const expectedMessage =
-          'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
-        assert(
-          fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
-          `Expected error message to be "${expectedMessage}" found "${fakeVscodeErrorMessage.firstCall.args[0]}"`
-        );
-      })
+      .then(
+        () => {
+          assert(false, 'Didnt expect to succeed.');
+        },
+        (error) => {
+          const expectedMessage =
+            'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+
+          assert(
+            error.message === expectedMessage,
+            `Expected error message to be "${expectedMessage}" found "${error.message}"`
+          );
+        }
+      )
       .then(done, done);
   });
 
@@ -179,7 +237,11 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false
+          false,
+          false,
+          false,
+          false,
+          {}
         );
 
         testSchemaTreeItem
@@ -207,7 +269,11 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false
+          false,
+          false,
+          false,
+          false,
+          {}
         );
 
         testSchemaTreeItem.onDidExpand();
@@ -256,7 +322,11 @@ suite('SchemaTreeItem Test Suite', () => {
           'favoritePiesIWantToEatRightNow',
           TEST_DB_NAME,
           dataService,
-          false
+          false,
+          false,
+          false,
+          false,
+          {}
         );
 
         testSchemaTreeItem.onDidExpand();
@@ -288,7 +358,11 @@ suite('SchemaTreeItem Test Suite', () => {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {},
-      false
+      false,
+      false,
+      false,
+      false,
+      {}
     );
 
     const schemaIconPath: any = testSchemaTreeItem.iconPath;

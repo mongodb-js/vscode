@@ -4,43 +4,31 @@ import ConnectionController from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { SavedConnection } from '../storage/storageController';
+import { sortTreeItemsByLabel } from './treeItemUtils';
 
 const rootLabel = 'Connections';
 const rootTooltip = 'Your MongoDB connections';
-
-function sortTreeItemsByLabel(treeItems: vscode.TreeItem[]): vscode.TreeItem[] {
-  return treeItems.sort(
-    (
-      a: vscode.TreeItem,
-      b: vscode.TreeItem
-    ) => (a.label || '').localeCompare(b.label || '')
-  );
-}
 
 export default class MDBConnectionsTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   contextValue = 'mdbConnectionsTreeItem';
 
   private _connectionController: ConnectionController;
-  private _connectionTreeItems: { [key: string]: ConnectionTreeItem } = {};
+  private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
 
   isExpanded = true;
+  cacheIsUpToDate = false; // Unused because this is a synchronous resource.
   needsToRefreshExpansionState = false;
 
   constructor(
     connectionController: ConnectionController,
-    existingConnectionItemsCache?: { [key: string]: ConnectionTreeItem }
+    existingConnectionItemsCache: { [key: string]: ConnectionTreeItem }
   ) {
     super(rootLabel, vscode.TreeItemCollapsibleState.Expanded);
 
     this._connectionController = connectionController;
 
-    if (existingConnectionItemsCache) {
-      this._connectionTreeItems = existingConnectionItemsCache;
-    }
-
-    // Ensure we refresh the connections when this node is built.
-    this.id = `${Date.now()}`;
+    this._connectionTreeItems = existingConnectionItemsCache;
   }
 
   get tooltip(): string {
@@ -52,18 +40,18 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
   }
 
   getChildren(): Thenable<vscode.TreeItem[]> {
-    const connectionIds = this._connectionController.getSavedConnections();
+    const connections = this._connectionController.getSavedConnections();
     const pastConnectionTreeItems = this._connectionTreeItems;
     this._connectionTreeItems = {};
 
     // Create new connection tree items, using cached children wherever possible.
-    connectionIds.forEach((savedConnection: SavedConnection) => {
+    connections.forEach((connection: SavedConnection) => {
       const isActiveConnection =
-        savedConnection.id ===
+        connection.id ===
         this._connectionController.getActiveConnectionId();
       const isBeingConnectedTo =
         this._connectionController.isConnecting() &&
-        savedConnection.id ===
+          connection.id ===
           this._connectionController.getConnectingConnectionId();
 
       let connectionExpandedState = isActiveConnection
@@ -71,8 +59,8 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
         : vscode.TreeItemCollapsibleState.Collapsed;
 
       if (
-        pastConnectionTreeItems[savedConnection.id] &&
-        !pastConnectionTreeItems[savedConnection.id].isExpanded
+        pastConnectionTreeItems[connection.id] &&
+        !pastConnectionTreeItems[connection.id].isExpanded
       ) {
         // Connection was manually collapsed while being active.
         connectionExpandedState = vscode.TreeItemCollapsibleState.Collapsed;
@@ -86,13 +74,16 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
         connectionExpandedState = vscode.TreeItemCollapsibleState.None;
       }
 
-      this._connectionTreeItems[savedConnection.id] = new ConnectionTreeItem(
-        savedConnection.id,
+      this._connectionTreeItems[connection.id] = new ConnectionTreeItem(
+        connection.id,
         connectionExpandedState,
         isActiveConnection,
         this._connectionController,
-        pastConnectionTreeItems[savedConnection.id]
-          ? pastConnectionTreeItems[savedConnection.id].getChildrenCache()
+        pastConnectionTreeItems[connection.id]
+          ? pastConnectionTreeItems[connection.id].cacheIsUpToDate
+          : false,
+        pastConnectionTreeItems[connection.id]
+          ? pastConnectionTreeItems[connection.id].getChildrenCache()
           : {}
       );
     });

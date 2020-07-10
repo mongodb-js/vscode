@@ -21,6 +21,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       mockDatabaseNames[1],
       new DataServiceStub(),
       false,
+      false,
       {}
     );
 
@@ -41,6 +42,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       mockDatabaseNames[1],
       new DataServiceStub(),
       false,
+      false,
       {}
     );
 
@@ -60,6 +62,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       mockDatabaseNames[1],
       new DataServiceStub(),
       false,
+      false,
       {}
     );
 
@@ -75,9 +78,9 @@ suite('DatabaseTreeItem Test Suite', () => {
 
         assert(
           collections[1].label ===
-          mockDatabases[mockDatabaseNames[1]].collections[1].name,
+            mockDatabases[mockDatabaseNames[1]].collections[1].name,
           `Expected a tree item child with the label collection name ${
-          mockDatabases[mockDatabaseNames[1]].collections[1].name
+            mockDatabases[mockDatabaseNames[1]].collections[1].name
           } found ${collections[1].label}`
         );
       })
@@ -88,6 +91,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
+      false,
       false,
       {}
     );
@@ -104,6 +108,10 @@ suite('DatabaseTreeItem Test Suite', () => {
 
         collectionTreeItems[1].onDidExpand();
         const documentListItem = collectionTreeItems[1].getDocumentListChild();
+        if (!documentListItem) {
+          assert(false, 'No document list tree item found on collection.');
+          return;
+        }
         documentListItem.onDidExpand();
         documentListItem.onShowMoreClicked();
 
@@ -158,23 +166,36 @@ suite('DatabaseTreeItem Test Suite', () => {
       mockDatabaseNames[2],
       new DataServiceStub(),
       true,
+      false,
       {}
     );
 
-    const expectedCollectionsOrder = ['111_abc', '222_abc', 'AAA', 'ZZZ', 'aaa', 'zzz'];
+    const expectedCollectionsOrder = [
+      '111_abc',
+      '222_abc',
+      'AAA',
+      'ZZZ',
+      'aaa',
+      'zzz'
+    ];
 
     testDatabaseTreeItem
       .getChildren()
       .then((collectionTreeItems: CollectionTreeItem[]) => {
         assert.deepEqual(
-          collectionTreeItems.map(({ collectionName }) => collectionName).join(), expectedCollectionsOrder.join(),
-          `Expected collections to be in alphanumerical order but they were not`
+          collectionTreeItems
+            .map(({ collectionName }) => collectionName)
+            .join(),
+          expectedCollectionsOrder.join(),
+          'Expected collections to be in alphanumerical order but they were not'
         );
       })
       .then(done, done);
   });
 
-  suite('Live Database Tests', () => {
+  suite('Live Database Tests', function () {
+    this.timeout(5000);
+
     afterEach(async () => {
       await cleanupTestDB();
     });
@@ -197,6 +218,7 @@ suite('DatabaseTreeItem Test Suite', () => {
           TEST_DB_NAME,
           dataService,
           true,
+          false,
           {}
         );
 
@@ -210,6 +232,10 @@ suite('DatabaseTreeItem Test Suite', () => {
 
             collectionTreeItems[0].onDidExpand();
             const schemaTreeItem = collectionTreeItems[0].getSchemaChild();
+            if (!schemaTreeItem) {
+              assert(false, 'No schema tree item found on collection.');
+              return;
+            }
             schemaTreeItem.onDidExpand();
             schemaTreeItem.onShowMoreClicked();
 
@@ -275,7 +301,7 @@ suite('DatabaseTreeItem Test Suite', () => {
                           );
                           assert(
                             testerObjectField.collapsibleState ===
-                            vscode.TreeItemCollapsibleState.Expanded,
+                              vscode.TreeItemCollapsibleState.Expanded,
                             `Expected the subdocument field to have an expanded state (2), found ${postCollapseSchemaTreeItem.childrenCache.testerObject.collapsibleState}.`
                           );
                         })

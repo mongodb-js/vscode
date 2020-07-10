@@ -21,7 +21,8 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   constructor(connectionController: ConnectionController) {
     this._mdbConnectionsTreeItem = new MDBConnectionsTreeItem(
-      connectionController
+      connectionController,
+      {} // No cache to start.
     );
 
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
@@ -48,7 +49,9 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     treeView.onDidCollapseElement((event: any) => {
       log.info('Tree item was collapsed:', event.element.label);
 
-      event.element.onDidCollapse();
+      if (event.element.onDidCollapse) {
+        event.element.onDidCollapse();
+      }
 
       if (event.element.doesNotRequireTreeUpdate) {
         // When the element is already loaded (synchronous), we do not need to
@@ -60,20 +63,25 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     });
 
     treeView.onDidExpandElement(
-      (event: any): Promise<any> => {
+      (event: any): Promise<void> => {
         log.info('Tree item was expanded:', event.element.label);
+
         return new Promise((resolve, reject) => {
+          if (!event.element.onDidExpand) {
+            return resolve();
+          }
+
           event.element.onDidExpand().then(
             () => {
               if (event.element.doesNotRequireTreeUpdate) {
                 // When the element is already loaded (synchronous), we do not
-                //  need to fully refresh the tree.
-                return resolve(true);
+                // need to fully refresh the tree.
+                return resolve();
               }
 
               this.onTreeItemUpdate();
 
-              resolve(true);
+              resolve();
             },
             (err: Error) => {
               reject(err);
@@ -145,14 +153,12 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   > {
     // When no element is present we are at the root.
     if (!element) {
-      // We rebuild the connections tree item when we need to reflect
-      // a new expanded state.
-      if (this._mdbConnectionsTreeItem.needsToRefreshExpansionState) {
-        this._mdbConnectionsTreeItem = new MDBConnectionsTreeItem(
-          this._connectionController,
-          this._mdbConnectionsTreeItem.getConnectionItemsCache()
-        );
-      }
+      // We rebuild the connections tree each time in order to
+      // manually control the expanded state of tree items.
+      this._mdbConnectionsTreeItem = new MDBConnectionsTreeItem(
+        this._connectionController,
+        this._mdbConnectionsTreeItem.getConnectionItemsCache()
+      );
 
       return Promise.resolve([this._mdbConnectionsTreeItem]);
     }

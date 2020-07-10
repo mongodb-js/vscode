@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 const path = require('path');
 
 import { getImagesPath } from '../extensionConstants';
-import TreeItemParentInterface from './treeItemParentInterface';
+import TreeItemParent from './treeItemParentInterface';
 
 // Loosely based on bson types. These values match with the
 // types returned by `parseSchema` with `mongodb-schema`.
@@ -121,12 +121,13 @@ export const getIconFileNameForField = (
 };
 
 export default class FieldTreeItem extends vscode.TreeItem
-  implements vscode.TreeDataProvider<FieldTreeItem>, TreeItemParentInterface {
+  implements vscode.TreeDataProvider<FieldTreeItem>, TreeItemParent {
   // This is a flag which notes that when this tree element is updated,
   // the tree view does not have to fully update like it does with
   // asynchronous resources.
   doesNotRequireTreeUpdate = true;
 
+  cacheIsUpToDate = true; // Unused because this is a synchronous resource.
   private _childrenCache: { [fieldName: string]: FieldTreeItem } = {};
 
   field: SchemaFieldType;

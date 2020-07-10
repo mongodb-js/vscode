@@ -9,6 +9,7 @@ export default class DocumentTreeItem extends vscode.TreeItem
   private _documentLabel: string;
 
   namespace: string;
+  document: any;
   documentId: string;
 
   constructor(document: any, namespace: string, documentIndexInTree: number) {
@@ -25,6 +26,7 @@ export default class DocumentTreeItem extends vscode.TreeItem
       ? JSON.stringify(document._id)
       : `Document ${documentIndexInTree + 1}`;
 
+    this.document = document;
     this.documentId = document._id;
     this.namespace = namespace;
   }

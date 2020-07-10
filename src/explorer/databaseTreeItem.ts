@@ -12,7 +12,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
   contextValue = 'databaseTreeItem';
 
-  _childrenCacheIsUpToDate = false;
+  cacheIsUpToDate: boolean;
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };
 
   private _dataService: any;
@@ -24,6 +24,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     databaseName: string,
     dataService: any,
     isExpanded: boolean,
+    cacheIsUpToDate: boolean,
     existingChildrenCache: { [key: string]: CollectionTreeItem }
   ) {
     super(
@@ -37,6 +38,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
+    this.cacheIsUpToDate = cacheIsUpToDate;
     this._childrenCache = existingChildrenCache;
   }
 
@@ -48,15 +50,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return element;
   }
 
-  getChildren(): Thenable<any[]> {
-    if (!this.isExpanded) {
-      return Promise.resolve([]);
-    }
-
-    if (this._childrenCacheIsUpToDate) {
-      return Promise.resolve(Object.values(this._childrenCache));
-    }
-
+  listCollections(): Promise<string[]> {
     return new Promise((resolve, reject) => {
       this._dataService.listCollections(
         this.databaseName,
@@ -68,50 +62,85 @@ export default class DatabaseTreeItem extends vscode.TreeItem
             );
           }
 
-          this._childrenCacheIsUpToDate = true;
-
-          if (collections) {
-            const pastChildrenCache = this._childrenCache;
-            this._childrenCache = {};
-            // Create new collection tree items, using previously cached items
-            // where possible.
-            collections
-              .sort((collectionA: any, collectionB: any) => {
-                if (collectionA.name < collectionB.name) {
-                  return -1;
-                }
-                if (collectionA.name > collectionB.name) {
-                  return 1;
-                }
-                return 0;
-              })
-              .forEach((collection: any) => {
-                if (pastChildrenCache[collection.name]) {
-                  this._childrenCache[collection.name] = new CollectionTreeItem(
-                    collection,
-                    this.databaseName,
-                    this._dataService,
-                    pastChildrenCache[collection.name].isExpanded,
-                    pastChildrenCache[collection.name].getDocumentListChild(),
-                    pastChildrenCache[collection.name].getSchemaChild()
-                  );
-                } else {
-                  this._childrenCache[collection.name] = new CollectionTreeItem(
-                    collection,
-                    this.databaseName,
-                    this._dataService,
-                    false // Not expanded.
-                  );
-                }
-              });
-          } else {
-            this._childrenCache = {};
-          }
-
-          return resolve(Object.values(this._childrenCache));
+          return resolve(collections);
         }
       );
     });
+  }
+
+  async getChildren(): Promise<any[]> {
+    if (!this.isExpanded) {
+      return [];
+    }
+
+    if (this.cacheIsUpToDate) {
+      const pastChildrenCache = this._childrenCache;
+      this._childrenCache = {};
+
+      // We manually rebuild each node to ensure we update the expanded state.
+      Object.keys(pastChildrenCache).forEach((collectionName) => {
+        this._childrenCache[collectionName] = new CollectionTreeItem(
+          pastChildrenCache[collectionName].collection,
+          this.databaseName,
+          this._dataService,
+          pastChildrenCache[collectionName].isExpanded,
+          pastChildrenCache[collectionName].cacheIsUpToDate,
+          pastChildrenCache[collectionName].getDocumentListChild(),
+          pastChildrenCache[collectionName].getSchemaChild(),
+          pastChildrenCache[collectionName].getIndexListChild()
+        );
+      });
+
+      return Object.values(this._childrenCache);
+    }
+
+    // List collections and build tree items.
+    const collections = await this.listCollections();
+
+    this.cacheIsUpToDate = true;
+
+    if (collections && collections.length > 0) {
+      const pastChildrenCache = this._childrenCache;
+      this._childrenCache = {};
+      // Create new collection tree items, using previously cached items
+      // where possible.
+      collections
+        .sort((collectionA: any, collectionB: any) => {
+          if (collectionA.name < collectionB.name) {
+            return -1;
+          }
+          if (collectionA.name > collectionB.name) {
+            return 1;
+          }
+          return 0;
+        })
+        .forEach((collection: any) => {
+          if (pastChildrenCache[collection.name]) {
+            this._childrenCache[collection.name] = new CollectionTreeItem(
+              collection,
+              this.databaseName,
+              this._dataService,
+              pastChildrenCache[collection.name].isExpanded,
+              pastChildrenCache[collection.name].cacheIsUpToDate,
+              pastChildrenCache[collection.name].getDocumentListChild(),
+              pastChildrenCache[collection.name].getSchemaChild(),
+              pastChildrenCache[collection.name].getIndexListChild()
+            );
+          } else {
+            this._childrenCache[collection.name] = new CollectionTreeItem(
+              collection,
+              this.databaseName,
+              this._dataService,
+              false, // Not expanded.
+              false // No cache.
+            );
+          }
+        });
+    } else {
+      this._childrenCache = {};
+    }
+
+    return Object.values(this._childrenCache);
   }
 
   get iconPath():
@@ -129,18 +158,18 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
   onDidCollapse(): void {
     this.isExpanded = false;
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
   }
 
   onDidExpand(): Promise<boolean> {
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
     this.isExpanded = true;
     return Promise.resolve(true);
   }
 
   resetCache(): void {
     this._childrenCache = {};
-    this._childrenCacheIsUpToDate = false;
+    this.cacheIsUpToDate = false;
   }
 
   getChildrenCache(): { [key: string]: CollectionTreeItem } {
@@ -203,7 +232,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
             return resolve(false);
           }
 
-          this._childrenCacheIsUpToDate = false;
+          this.cacheIsUpToDate = false;
           return resolve(true);
         }
       );
@@ -250,7 +279,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           return resolve(false);
         }
 
-        this._childrenCacheIsUpToDate = false;
+        this.cacheIsUpToDate = false;
         return resolve(true);
       });
     });

@@ -21,7 +21,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       'not_real_dataservice',
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
@@ -44,7 +46,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       'not_real_dataservice',
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
 
     const maxDocumentsToShow = testDocumentListTreeItem.getMaxDocumentsToShow();
@@ -70,7 +74,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
 
     testDocumentListTreeItem
@@ -92,7 +98,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
 
     assert(
@@ -109,7 +117,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
     testDocumentListTreeItem.onDidExpand();
 
@@ -137,7 +147,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
     testDocumentListTreeItem.onDidExpand();
 
@@ -164,7 +176,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
 
     testDocumentListTreeItem.onDidExpand();
@@ -197,7 +211,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
 
     testDocumentListTreeItem.onDidExpand();
@@ -231,7 +247,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
 
     const viewIconPath: any = testCollectionViewTreeItem.iconPath;
@@ -247,7 +265,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null
+      false,
+      false,
+      []
     );
 
     const collectionIconPath: any = testDocumentListTreeItem.iconPath;

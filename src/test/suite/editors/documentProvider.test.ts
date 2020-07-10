@@ -204,7 +204,9 @@ suite('Document Provider Test Suite', () => {
       .then(done, done);
   });
 
-  suite('Document Provider with live database', () => {
+  suite('Document Provider with live database', function () {
+    this.timeout(5000);
+
     afterEach(async () => {
       await cleanupTestDB();
     });
