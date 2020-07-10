@@ -43,6 +43,7 @@ steps:
   # so vscode-test isn't downloading the vscode zip everytime. same goes for mongoddb-runner.
   - bash: |
       npm i -g npm@6.13.4;
+      npm cache clean --force
       npm ci;
     displayName: 'Install dependencies from npm'
 
