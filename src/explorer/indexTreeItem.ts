@@ -22,34 +22,6 @@ type IndexModel = {
   ns: string;
 };
 
-function getDisplayNameForIndexKeyType(indexKeyType: IndexKeyType): string {
-  if (indexKeyType === IndexKeyType.ASCENDING) {
-    return 'Ascending';
-  }
-
-  if (indexKeyType === IndexKeyType.DESCENDING) {
-    return 'Descending';
-  }
-
-  if (indexKeyType === IndexKeyType.TEXT) {
-    return 'Text';
-  }
-
-  if (indexKeyType === IndexKeyType.HASHED) {
-    return 'Hashed';
-  }
-
-  if (
-    indexKeyType === IndexKeyType.GEO ||
-    indexKeyType === IndexKeyType.GEOHAYSTACK ||
-    indexKeyType === IndexKeyType.GEOSPHERE
-  ) {
-    return 'Geospatial';
-  }
-
-  return '';
-}
-
 function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {
   if (indexKeyType === IndexKeyType.ASCENDING) {
     return 'ascending';
@@ -91,7 +63,7 @@ export class IndexFieldTreeItem extends vscode.TreeItem
   }
 
   get tooltip(): string {
-    return `${getDisplayNameForIndexKeyType(this.indexKeyType)} index`;
+    return `${this.indexKey}: ${this.indexKeyType}`;
   }
 
   getTreeItem(element: IndexFieldTreeItem): IndexFieldTreeItem {

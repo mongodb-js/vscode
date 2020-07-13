@@ -16,3 +16,4 @@ webpack.config.js
 webpack.test.config.js
 .eslintrc
 .eslintignore
+playgrounds/**
