@@ -15,7 +15,9 @@ const ATLAS_REGEX = /mongodb.net[:/]/i;
 const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
 
 type PlaygroundTelemetryEventProperties = {
-  type: string;
+  type: string | null;
+  partial: boolean;
+  error: boolean;
 };
 
 type SegmentProperties = {
@@ -290,9 +292,15 @@ export default class TelemetryController {
     return 'other';
   }
 
-  public async trackPlaygroundCodeExecuted(result: any): Promise<void> {
+  public async trackPlaygroundCodeExecuted(
+    result: any,
+    partial: boolean,
+    error: boolean
+  ): Promise<void> {
     this.track(TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED, {
-      type: this.getPlaygroundResultType(result)
+      type: result ? this.getPlaygroundResultType(result) : null,
+      partial,
+      error
     });
   }
 

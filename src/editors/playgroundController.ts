@@ -28,6 +28,7 @@ export default class PlaygroundController {
   private _connectionOptions?: any;
   private _selectedText?: string;
   private _codeToEvaluate: string;
+  private _isPartialRun: boolean;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -37,6 +38,7 @@ export default class PlaygroundController {
   ) {
     this._context = context;
     this._codeToEvaluate = '';
+    this._isPartialRun = false;
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryController = telemetryController;
@@ -96,7 +98,7 @@ export default class PlaygroundController {
         this._selectedText = (editor.selections as Array<any>)
           .sort((a, b) => (a.start.line > b.start.line ? 1 : -1)) // Sort lines selected as alt+click
           .map((item, index) => {
-            if (index === 0) {
+            if (index === editor.selections.length - 1) {
               this.showCodeLensForSelection(item);
             }
 
@@ -116,7 +118,9 @@ export default class PlaygroundController {
       selectedText.length > 0 &&
       selectedText.length >= lastSelectedLine.length
     ) {
-      this._partialExecutionCodeLensProvider?.refresh(item);
+      this._partialExecutionCodeLensProvider?.refresh(
+        new vscode.Range(item.end.line + 1, 0, item.end.line + 1, 0)
+      );
     } else {
       this._partialExecutionCodeLensProvider?.refresh();
     }
@@ -184,9 +188,11 @@ export default class PlaygroundController {
     );
 
     // Send metrics to Segment.
-    if (result) {
-      this._telemetryController.trackPlaygroundCodeExecuted(result);
-    }
+    this._telemetryController.trackPlaygroundCodeExecuted(
+      result,
+      this._isPartialRun,
+      result ? false : true
+    );
 
     return Promise.resolve(result);
   }
@@ -297,6 +303,7 @@ export default class PlaygroundController {
 
         return Promise.resolve(true);
       } else if (this._selectedText) {
+        this._isPartialRun = true;
         this._codeToEvaluate = this._selectedText;
       }
     }
@@ -306,6 +313,7 @@ export default class PlaygroundController {
 
   public runAllPlaygroundBlocks() {
     if (this._activeTextEditor) {
+      this._isPartialRun = false;
       this._codeToEvaluate = this.getAllText();
     }
 
@@ -321,8 +329,10 @@ export default class PlaygroundController {
         !Array.isArray(selections) ||
         (selections.length === 1 && this.getSelectedText(selections[0]) === '')
       ) {
+        this._isPartialRun = false;
         this._codeToEvaluate = this.getAllText();
       } else if (this._selectedText) {
+        this._isPartialRun = true;
         this._codeToEvaluate = this._selectedText;
       }
     }
