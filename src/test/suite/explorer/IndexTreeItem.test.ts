@@ -45,7 +45,7 @@ suite('IndexTreeItem Test Suite', () => {
 
       const iconPath: any = testIndexFieldTreeItem.iconPath;
       assert(
-        iconPath.dark.includes('index/geospatial.svg'),
+        iconPath.dark.includes('index') && iconPath.dark.includes('geospatial.svg'),
         'Expected icon path to point to an svg by the name "geospatial" in the index folder'
       );
     });

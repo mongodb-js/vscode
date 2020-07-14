@@ -43,9 +43,7 @@ steps:
   # so vscode-test isn't downloading the vscode zip everytime. same goes for mongoddb-runner.
   - bash: |
       npm i -g npm;
-      npm cache clean -f;
-      npm update;
-      npm ci --loglevel verbose;
+      npm ci;
     displayName: 'Install dependencies from npm'
 
   - bash: npm run test
