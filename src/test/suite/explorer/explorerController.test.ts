@@ -231,7 +231,7 @@ suite('Explorer Controller Test Suite', function () {
 
       testExplorerController.deactivate();
     } catch (error) {
-      assert(false);
+      assert(false, error);
     }
   });
 
