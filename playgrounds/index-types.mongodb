@@ -1,0 +1,50 @@
+// MongoDB Playground
+// To disable this template go to Settings | MongoDB | Use Default Template For Playground.
+// Make sure you are connected to enable completions and to be able to run a playground.
+// Use Ctrl+Space inside a snippet or a string literal to trigger completions.
+
+// Select the database to use.
+use('mongodbVSCodePlaygroundDB');
+
+db['index-testing'].insertOne({
+  'title': 'there and back again'
+});
+
+// Insert a few documents into the sales collection.
+db['index-testing'].createIndex({
+  'fieldAscending': 1,
+  'fieldDescending': -1
+}, {
+  name: 'ascending & descending'
+});
+
+db['index-testing'].createIndex({
+  'location': '2dsphere'
+}, {
+  name: '2dsphere geospatial'
+});
+
+db['index-testing'].createIndex({
+  'location': '2d'
+}, {
+  name: '2d geospatial'
+});
+
+db['index-testing'].createIndex({
+  'title': 'text'
+}, {
+  name: 'text index'
+});
+
+db['index-testing'].createIndex({
+  'title': 'hashed'
+}, {
+  name: 'hashed index'
+});
+
+db['index-testing'].createIndex({
+  "$**" : 1
+}, {
+  name: 'wildcard index'
+});
+

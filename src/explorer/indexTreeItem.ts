@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
+const path = require('path');
 
-enum IndexKeyType {
+import { getImagesPath } from '../extensionConstants';
+
+export enum IndexKeyType {
   ASCENDING = 1,
   DESCENDING = -1,
   TEXT = 'text',
@@ -19,21 +22,21 @@ type IndexModel = {
   ns: string;
 };
 
-function getDisplayNameForIndexKeyType(indexKeyType: IndexKeyType): string {
+function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {
   if (indexKeyType === IndexKeyType.ASCENDING) {
-    return 'Ascending';
+    return 'ascending';
   }
 
   if (indexKeyType === IndexKeyType.DESCENDING) {
-    return 'Descending';
+    return 'descending';
   }
 
   if (indexKeyType === IndexKeyType.TEXT) {
-    return 'Text';
+    return 'text';
   }
 
   if (indexKeyType === IndexKeyType.HASHED) {
-    return 'Hashed';
+    return 'hashed';
   }
 
   if (
@@ -41,26 +44,26 @@ function getDisplayNameForIndexKeyType(indexKeyType: IndexKeyType): string {
     indexKeyType === IndexKeyType.GEOHAYSTACK ||
     indexKeyType === IndexKeyType.GEOSPHERE
   ) {
-    return 'Geospatial';
+    return 'geospatial';
   }
 
   return '';
 }
 
-class IndexFieldTreeItem extends vscode.TreeItem
+export class IndexFieldTreeItem extends vscode.TreeItem
   implements vscode.TreeDataProvider<IndexFieldTreeItem> {
   indexKey: string;
+  indexKeyType: IndexKeyType;
 
   constructor(indexKey: string, indexKeyType: IndexKeyType) {
     super(indexKey, vscode.TreeItemCollapsibleState.None);
 
     this.indexKey = indexKey;
-
-    this.description = getDisplayNameForIndexKeyType(indexKeyType);
+    this.indexKeyType = indexKeyType;
   }
 
   get tooltip(): string {
-    return this.indexKey;
+    return `${this.indexKey}: ${this.indexKeyType}`;
   }
 
   getTreeItem(element: IndexFieldTreeItem): IndexFieldTreeItem {
@@ -69,6 +72,21 @@ class IndexFieldTreeItem extends vscode.TreeItem
 
   getChildren(): Thenable<IndexFieldTreeItem[]> {
     return Promise.resolve([]);
+  }
+
+  get iconPath():
+    | string
+    | vscode.Uri
+    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+    const LIGHT = path.join(getImagesPath(), 'light');
+    const DARK = path.join(getImagesPath(), 'dark');
+
+    const iconName = getIconNameForIndexKeyType(this.indexKeyType);
+
+    return {
+      light: path.join(LIGHT, 'index', `${iconName}.svg`),
+      dark: path.join(DARK, 'index', `${iconName}.svg`)
+    };
   }
 }
 
