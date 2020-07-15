@@ -1,6 +1,6 @@
 variables:
   npm_config_cache: $(Pipeline.Workspace)/.npm
-  node_version: '12.13.0'
+  node_version: '12.4.0'
 
 trigger:
   - master
@@ -42,6 +42,7 @@ steps:
   # TODO (lucas): Caching `./.vscode-test` in the future would be nice
   # so vscode-test isn't downloading the vscode zip everytime. same goes for mongoddb-runner.
   - bash: |
+      npm i -g npm@6.13.4;
       npm ci;
     displayName: 'Install dependencies from npm'
 
