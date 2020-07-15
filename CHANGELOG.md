@@ -4,6 +4,18 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.1.0] - 2020-07-15
+
+### Added
+
+- Added indexes to the explorer tree view
+- Added the ability to run partial playgrounds
+
+### Fixed
+
+- Fixed an issue with the launch shell command in powershell
+- Fixed an issue with the tree explorer freezing when double clicking an open schema
+
 ## [0.0.4] - 2020-06-16
 
 ### Added
