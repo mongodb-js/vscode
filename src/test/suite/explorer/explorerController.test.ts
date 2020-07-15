@@ -59,7 +59,7 @@ suite('Explorer Controller Test Suite', function () {
         'Tree controller should have a "Connections" child'
       );
     } catch (error) {
-      assert(false);
+      assert(false, error);
     }
   });
 
@@ -108,7 +108,7 @@ suite('Explorer Controller Test Suite', function () {
 
       testExplorerController.deactivate();
     } catch (error) {
-      assert(false);
+      assert(false, error);
     }
   });
 
@@ -162,7 +162,7 @@ suite('Explorer Controller Test Suite', function () {
         'Expected the connection tree item to be expanded'
       );
     } catch (error) {
-      assert(false);
+      assert(false, error);
     }
   });
 
@@ -197,7 +197,7 @@ suite('Explorer Controller Test Suite', function () {
         `Expected active connection name to be 'localhost:27018' found ${connectionName}`
       );
     } catch (error) {
-      assert(false);
+      assert(false, error);
     }
 
     try {
@@ -247,14 +247,14 @@ suite('Explorer Controller Test Suite', function () {
         TEST_DATABASE_URI
       );
     } catch (error) {
-      assert(false);
+      assert(false, error);
     }
 
-    const connectionId =
-      testConnectionController.getActiveConnectionId() || '';
+    const connectionId = testConnectionController.getActiveConnectionId() || '';
 
     testConnectionController._connections.aaa = {
-      connectionModel: testConnectionController._connections[connectionId].connectionModel,
+      connectionModel:
+        testConnectionController._connections[connectionId].connectionModel,
       driverUrl: '',
       name: 'aaa',
       id: 'aaa',
@@ -262,7 +262,8 @@ suite('Explorer Controller Test Suite', function () {
     };
 
     testConnectionController._connections.zzz = {
-      connectionModel: testConnectionController._connections[connectionId].connectionModel,
+      connectionModel:
+        testConnectionController._connections[connectionId].connectionModel,
       driverUrl: '',
       name: 'zzz',
       id: 'zzz',
@@ -331,7 +332,7 @@ suite('Explorer Controller Test Suite', function () {
 
       testExplorerController.deactivate();
     } catch (error) {
-      assert(false);
+      assert(false, error);
     }
   });
 
@@ -392,7 +393,7 @@ suite('Explorer Controller Test Suite', function () {
 
       testExplorerController.deactivate();
     } catch (error) {
-      assert(false);
+      assert(false, error);
     }
   });
 
@@ -431,7 +432,7 @@ suite('Explorer Controller Test Suite', function () {
 
       assert(vscodeCreateTreeViewStub.called);
     } catch (error) {
-      assert(false);
+      assert(false, error);
     }
   });
 });
