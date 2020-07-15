@@ -8,8 +8,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Added
 
-- Added indexes to the explorer tree view
 - Added the ability to run partial playgrounds
+- Added indexes to the explorer tree view
 
 ### Fixed
 
