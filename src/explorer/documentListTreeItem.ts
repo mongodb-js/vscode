@@ -208,6 +208,9 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     let documents;
     try {
       documents = await this.getDocuments();
+      if (this._documentCount === null) {
+        this._documentCount = await this.getCount();
+      }
     } catch (err) {
       return Promise.reject(err);
     }
@@ -284,6 +287,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
   }
 
   resetCache(): void {
+    this.isExpanded = false;
     this._childrenCache = [];
     this.cacheIsUpToDate = false;
     this._documentCount = null;

@@ -15,7 +15,6 @@ type KeyTar = typeof keytarType;
 export function run(): Promise<void> {
   const reporterOptions = {
     spec: '-',
-    color: true,
     'mocha-junit-reporter': path.join(__dirname, './test-results.xml')
   };
 
@@ -24,9 +23,9 @@ export function run(): Promise<void> {
     reporter: 'mocha-multi',
     reporterOptions,
     ui: 'tdd'
-    // color: true
   });
-  // mocha.color = true;
+
+  mocha.useColors(true);
 
   const testsRoot = path.join(__dirname, '..');
 

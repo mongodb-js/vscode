@@ -139,13 +139,13 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       []
     );
-    testDocumentListTreeItem.onDidExpand();
+    await testDocumentListTreeItem.onDidExpand();
 
     const documents = await testDocumentListTreeItem.getChildren();
 
     assert(
-      documents.length === 10,
-      `Expected 10 documents to be returned, found ${documents.length}`
+      documents.length === 11,
+      `Expected 11 documents to be returned, found ${documents.length}`
     );
     assert(
       documents[1].label === `"${mockDocuments[1]._id}"`,
@@ -166,7 +166,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       []
     );
-    testDocumentListTreeItem.onDidExpand();
+    await testDocumentListTreeItem.onDidExpand();
 
     const documents = await testDocumentListTreeItem.getChildren();
 
@@ -193,13 +193,13 @@ suite('DocumentListTreeItem Test Suite', () => {
       []
     );
 
-    testDocumentListTreeItem.onDidExpand();
+    await testDocumentListTreeItem.onDidExpand();
     testDocumentListTreeItem.onShowMoreClicked();
 
     const documents = await testDocumentListTreeItem.getChildren();
     assert(
-      documents.length === 20,
-      `Expected 20 documents to be returned, found ${documents.length}`
+      documents.length === 21,
+      `Expected 21 documents to be returned, found ${documents.length}`
     );
     assert(
       documents[19].label === `"${mockDocuments[19]._id}"`,
