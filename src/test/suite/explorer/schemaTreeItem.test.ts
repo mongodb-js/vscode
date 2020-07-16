@@ -9,11 +9,14 @@ import SchemaTreeItem, {
   FIELDS_TO_SHOW
 } from '../../../explorer/schemaTreeItem';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
+import { ext } from '../../../extensionConstants';
+
 import {
   seedDataAndCreateDataService,
   cleanupTestDB,
   TEST_DB_NAME
 } from '../dbTestHelper';
+import { TestExtensionContext } from '../stubs';
 
 suite('SchemaTreeItem Test Suite', () => {
   afterEach(() => {
@@ -354,6 +357,8 @@ suite('SchemaTreeItem Test Suite', () => {
   });
 
   test('it should have an icon with the name schema', () => {
+    ext.context = new TestExtensionContext();
+
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,

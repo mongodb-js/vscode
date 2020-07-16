@@ -19,6 +19,7 @@ import ConnectionTreeItem from './explorer/connectionTreeItem';
 import SchemaTreeItem from './explorer/schemaTreeItem';
 import DocumentTreeItem from './explorer/documentTreeItem';
 import WebviewController from './views/webviewController';
+import DocumentListTreeItem from './explorer/documentListTreeItem';
 
 const log = createLogger('commands');
 
@@ -388,7 +389,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       'mdb.viewCollectionDocuments',
-      (element: CollectionTreeItem): Promise<boolean> => {
+      (
+        element: CollectionTreeItem | DocumentListTreeItem
+      ): Promise<boolean> => {
         const namespace = `${element.databaseName}.${element.collectionName}`;
         return this._editorsController.onViewCollectionDocuments(namespace);
       }
@@ -397,6 +400,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       'mdb.refreshCollection',
       (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
         collectionTreeItem.resetCache();
+        return this._explorerController.refresh();
+      }
+    );
+    this.registerCommand(
+      'mdb.refreshDocumentList',
+      (documentsListTreeItem: DocumentListTreeItem): Promise<boolean> => {
+        documentsListTreeItem.resetCache();
         return this._explorerController.refresh();
       }
     );

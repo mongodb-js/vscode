@@ -14,6 +14,7 @@ import {
 } from '../../explorer';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { StorageScope } from '../../storage/storageController';
+import DocumentListTreeItem from '../../explorer/documentListTreeItem';
 
 const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
@@ -380,6 +381,47 @@ suite('MDBExtensionController Test Suite', () => {
         );
       })
       .then(done, done);
+  });
+
+  test('mdb.refreshDocumentList command should update the document count and call to refresh the explorer controller', async () => {
+    const mockTreeItem = new DocumentListTreeItem(
+      'dolphin_collection',
+      'ocean_database',
+      CollectionTypes.collection,
+      {},
+      false,
+      5,
+      5,
+      false,
+      []
+    );
+
+    mockTreeItem.isExpanded = true;
+
+    const mockExplorerControllerRefresh = sinon.fake.resolves();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._explorerController,
+      'refresh',
+      mockExplorerControllerRefresh
+    );
+
+    await vscode.commands.executeCommand(
+      'mdb.refreshDocumentList',
+      mockTreeItem
+    );
+
+    assert(
+      mockTreeItem.cacheIsUpToDate === false,
+      'Expected document list cache to be out of date.'
+    );
+    assert(
+      mockTreeItem.getDocumentCount() === null,
+      'Expected document count to be null.'
+    );
+    assert(
+      mockExplorerControllerRefresh.called === true,
+      'Expected explorer controller refresh to be called.'
+    );
   });
 
   test('mdb.refreshSchema command should reset its cache and call to refresh the explorer controller', (done) => {

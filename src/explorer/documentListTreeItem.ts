@@ -59,9 +59,8 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
   contextValue = DOCUMENT_LIST_ITEM;
 
-  // We fetch 1 more than this in order to see if there are more to fetch.
+  private _documentCount: number | null;
   private _maxDocumentsToShow: number;
-  hasMoreDocumentsToShow: boolean;
 
   collectionName: string;
   databaseName: string;
@@ -79,7 +78,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     dataService: any,
     isExpanded: boolean,
     maxDocumentsToShow: number,
-    hasMoreDocumentsToShow: boolean,
+    cachedDocumentCount: number | null,
     cacheIsUpToDate: boolean,
     existingCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem>
   ) {
@@ -95,10 +94,15 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     this.isExpanded = isExpanded;
 
     this._maxDocumentsToShow = maxDocumentsToShow;
-    this.hasMoreDocumentsToShow = hasMoreDocumentsToShow;
+    this._documentCount = cachedDocumentCount;
 
     this._childrenCache = existingCache;
     this.cacheIsUpToDate = cacheIsUpToDate;
+
+    if (this._documentCount !== null) {
+      // TODO: Prettify this count, 1k, 2k, 3m etc.
+      this.description = `${this._documentCount}`;
+    }
   }
 
   get tooltip(): string {
@@ -122,9 +126,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
           /* No filter */
         },
         {
-          // We fetch 1 more than the max documents to show to see if
-          // there are more documents we aren't showing.
-          limit: 1 + this._maxDocumentsToShow
+          limit: this._maxDocumentsToShow
         },
         (err: Error, documents: []) => {
           if (err) {
@@ -136,6 +138,37 @@ export default class DocumentListTreeItem extends vscode.TreeItem
         }
       );
     });
+  }
+
+  getCount(): Promise<number> {
+    log.info(
+      `fetching document count from namespace ${this.namespace}`
+    );
+
+    return new Promise((resolve, reject) => {
+      this._dataService.count(
+        this.namespace,
+        {}, // No filter.
+        {}, // No options.
+        (err: Error | undefined, count: number) => {
+          if (err) {
+            return reject(
+              new Error(`Unable to get collection document count: ${err.message}`)
+            );
+          }
+
+          return resolve(count);
+        }
+      );
+    });
+  }
+
+  hasMoreDocumentsToShow(): boolean {
+    if (this._documentCount === null) {
+      return false;
+    }
+
+    return this._maxDocumentsToShow <= this._documentCount;
   }
 
   async getChildren(): Promise<any[]> {
@@ -157,7 +190,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
         );
       });
 
-      if (this.hasMoreDocumentsToShow) {
+      if (this.hasMoreDocumentsToShow()) {
         return [
           ...this._childrenCache,
           // Add a `Show more...` item when there are more documents to show.
@@ -180,18 +213,10 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     }
 
     this.cacheIsUpToDate = true;
-    this.hasMoreDocumentsToShow = false;
 
     if (documents) {
       this._childrenCache = [];
       documents.forEach((document, index) => {
-        // We fetch 1 more than the max documents to see if
-        // there are more documents we aren't showing.
-        if (index === this._maxDocumentsToShow) {
-          this.hasMoreDocumentsToShow = true;
-          return;
-        }
-
         this._childrenCache.push(
           new DocumentTreeItem(document, this.namespace, index)
         );
@@ -200,7 +225,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
       this._childrenCache = [];
     }
 
-    if (this.hasMoreDocumentsToShow) {
+    if (this.hasMoreDocumentsToShow()) {
       return [
         ...this._childrenCache,
         new ShowMoreDocumentsTreeItem(
@@ -238,20 +263,30 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     this.isExpanded = false;
     this.cacheIsUpToDate = false;
     this._maxDocumentsToShow = MAX_DOCUMENTS_VISIBLE;
-    this.hasMoreDocumentsToShow = false;
   }
 
-  onDidExpand(): Promise<boolean> {
+  async onDidExpand(): Promise<boolean> {
+    try {
+      // We fetch the document when we expand in order to
+      // show the document count in the tree item `description`.
+      this._documentCount = await this.getCount();
+    } catch (err) {
+      vscode.window.showInformationMessage(
+        `Unable to fetch document count: ${err}`
+      );
+      return false;
+    }
+
     this.cacheIsUpToDate = false;
     this.isExpanded = true;
 
-    return Promise.resolve(true);
+    return true;
   }
 
   resetCache(): void {
     this._childrenCache = [];
     this.cacheIsUpToDate = false;
-    this.hasMoreDocumentsToShow = false;
+    this._documentCount = null;
   }
 
   getChildrenCache(): Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> {
@@ -260,5 +295,9 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
   getMaxDocumentsToShow(): number {
     return this._maxDocumentsToShow;
+  }
+
+  getDocumentCount(): number | null {
+    return this._documentCount;
   }
 }

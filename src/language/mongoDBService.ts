@@ -13,12 +13,6 @@ const fs = require('fs');
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
-type SslFileOptions = {
-  sslCA?: string;
-  sslKey?: string;
-  sslCert?: string;
-};
-
 export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
   _runtime?: ElectronRuntime;

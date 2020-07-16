@@ -81,7 +81,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
         this._dataService,
         false, // Collapsed.
         MAX_DOCUMENTS_VISIBLE,
-        false, // No more documents to show.
+        null, // No document count yet.
         false, // Cache is not up to date.
         [] // Empty cache.
       );
@@ -158,7 +158,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this._dataService,
       this._documentListChild.isExpanded,
       this._documentListChild.getMaxDocumentsToShow(),
-      this._documentListChild.hasMoreDocumentsToShow,
+      this._documentListChild.getDocumentCount(),
       this._documentListChild.cacheIsUpToDate,
       this._documentListChild.getChildrenCache()
     );
@@ -226,7 +226,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this._dataService,
       false, // Collapsed.
       MAX_DOCUMENTS_VISIBLE,
-      false, // No more documents to show.
+      null, // No document count yet.
       false, // Cache is not up to date.
       [] // Empty cache.
     );
