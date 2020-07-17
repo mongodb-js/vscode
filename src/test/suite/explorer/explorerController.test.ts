@@ -2,7 +2,8 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
-import * as sinon from 'sinon';
+const sinon = require('sinon');
+
 import {
   DefaultSavingLocations,
   StorageScope
@@ -24,6 +25,9 @@ suite('Explorer Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations['Session Only']
       );
+    // Here we stub the showInformationMessage process because it is too much
+    // for the render process and leads to crashes while testing.
+    sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
   });
 
   afterEach(async () => {
@@ -119,51 +123,47 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    try {
-      const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+    const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
 
-      assert(
-        succesfullyConnected === true,
-        'Expected a successful connection response.'
-      );
-      assert(
-        Object.keys(testConnectionController._connections).length === 1,
-        'Expected there to be 1 connection in the connection list.'
-      );
+    assert(
+      succesfullyConnected === true,
+      'Expected a successful connection response.'
+    );
+    assert(
+      Object.keys(testConnectionController._connections).length === 1,
+      'Expected there to be 1 connection in the connection list.'
+    );
 
-      const activeId = testConnectionController.getActiveConnectionId();
+    const activeId = testConnectionController.getActiveConnectionId();
 
-      assert(
-        activeId === Object.keys(testConnectionController._connections)[0],
-        `Expected active connection to be '${
-          Object.keys(testConnectionController._connections)[0]
-        }' found ${activeId}`
-      );
+    assert(
+      activeId === Object.keys(testConnectionController._connections)[0],
+      `Expected active connection to be '${
+        Object.keys(testConnectionController._connections)[0]
+      }' found ${activeId}`
+    );
 
-      const treeControllerChildren = await treeController.getChildren();
-      const connectionsItems = await treeControllerChildren[0].getChildren();
+    const treeControllerChildren = await treeController.getChildren();
+    const connectionsItems = await treeControllerChildren[0].getChildren();
 
-      assert(
-        connectionsItems.length === 1,
-        `Expected there be 1 connection tree item, found ${connectionsItems.length}`
-      );
-      assert(
-        connectionsItems[0].label === 'localhost:27018',
-        'There should be a connection tree item with the label "localhost:27018"'
-      );
-      assert(
-        connectionsItems[0].description === 'connected',
-        'There should be a connection tree item with the description "connected"'
-      );
-      assert(
-        connectionsItems[0].isExpanded,
-        'Expected the connection tree item to be expanded'
-      );
-    } catch (error) {
-      assert(false, error);
-    }
+    assert(
+      connectionsItems.length === 1,
+      `Expected there be 1 connection tree item, found ${connectionsItems.length}`
+    );
+    assert(
+      connectionsItems[0].label === 'localhost:27018',
+      'There should be a connection tree item with the label "localhost:27018"'
+    );
+    assert(
+      connectionsItems[0].description === 'connected',
+      'There should be a connection tree item with the description "connected"'
+    );
+    assert(
+      connectionsItems[0].isExpanded,
+      'Expected the connection tree item to be expanded'
+    );
   });
 
   test('only the active connection is displayed as connected in the tree', async () => {
@@ -173,32 +173,28 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    try {
-      const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+    const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
 
-      assert(
-        succesfullyConnected === true,
-        'Expected a successful connection response.'
-      );
-      assert(
-        Object.keys(testConnectionController._connections).length === 1,
-        'Expected there to be 1 connection in the connection list.'
-      );
+    assert(
+      succesfullyConnected === true,
+      'Expected a successful connection response.'
+    );
+    assert(
+      Object.keys(testConnectionController._connections).length === 1,
+      'Expected there to be 1 connection in the connection list.'
+    );
 
-      const connectionId =
-        testConnectionController.getActiveConnectionId() || '';
-      const connectionName =
-        testConnectionController._connections[connectionId].name;
+    const connectionId =
+      testConnectionController.getActiveConnectionId() || '';
+    const connectionName =
+      testConnectionController._connections[connectionId].name;
 
-      assert(
-        connectionName === 'localhost:27018',
-        `Expected active connection name to be 'localhost:27018' found ${connectionName}`
-      );
-    } catch (error) {
-      assert(false, error);
-    }
+    assert(
+      connectionName === 'localhost:27018',
+      `Expected active connection name to be 'localhost:27018' found ${connectionName}`
+    );
 
     try {
       await testConnectionController.addNewConnectionStringAndConnect(
@@ -208,31 +204,27 @@ suite('Explorer Controller Test Suite', function () {
       /* Silent fail (should fail) */
     }
 
-    try {
-      const treeControllerChildren = await treeController.getChildren();
-      const connectionsItems = await treeControllerChildren[0].getChildren();
+    const treeControllerChildren = await treeController.getChildren();
+    const connectionsItems = await treeControllerChildren[0].getChildren();
 
-      assert(
-        connectionsItems.length === 2,
-        `Expected there be 2 connection tree item, found ${connectionsItems.length}`
-      );
-      assert(
-        connectionsItems[0].label === 'localhost:27018',
-        `First connection tree item should have label "localhost:27018" found ${connectionsItems[0].label}`
-      );
-      assert(
-        connectionsItems[0].isExpanded === false,
-        'Expected the first connection tree item to not be expanded'
-      );
-      assert(
-        connectionsItems[1].label === 'shouldfail:27017',
-        'Second connection tree item should have label "shouldfail:27017"'
-      );
+    assert(
+      connectionsItems.length === 2,
+      `Expected there be 2 connection tree item, found ${connectionsItems.length}`
+    );
+    assert(
+      connectionsItems[0].label === 'localhost:27018',
+      `First connection tree item should have label "localhost:27018" found ${connectionsItems[0].label}`
+    );
+    assert(
+      connectionsItems[0].isExpanded === false,
+      'Expected the first connection tree item to not be expanded'
+    );
+    assert(
+      connectionsItems[1].label === 'shouldfail:27017',
+      'Second connection tree item should have label "shouldfail:27017"'
+    );
 
-      testExplorerController.deactivate();
-    } catch (error) {
-      assert(false, error);
-    }
+    testExplorerController.deactivate();
   });
 
   test('shows connection names sorted alphabetically in the tree', async () => {
@@ -270,35 +262,31 @@ suite('Explorer Controller Test Suite', function () {
       storageLocation: StorageScope.WORKSPACE
     };
 
-    try {
-      const treeControllerChildren = await treeController.getChildren();
-      const connectionsItems = await treeControllerChildren[0].getChildren();
+    const treeControllerChildren = await treeController.getChildren();
+    const connectionsItems = await treeControllerChildren[0].getChildren();
 
-      assert(
-        connectionsItems.length === 3,
-        `Expected there be 3 connection tree item, found ${connectionsItems.length}`
-      );
-      assert(
-        connectionsItems[0].label === 'aaa',
-        `First connection tree item should have label "aaa" found ${connectionsItems[0].label}`
-      );
-      assert(
-        connectionsItems[2].label === 'zzz',
-        `First connection tree item should have label "zzz" found ${connectionsItems[0].label}`
-      );
+    assert(
+      connectionsItems.length === 3,
+      `Expected there be 3 connection tree item, found ${connectionsItems.length}`
+    );
+    assert(
+      connectionsItems[0].label === 'aaa',
+      `First connection tree item should have label "aaa" found ${connectionsItems[0].label}`
+    );
+    assert(
+      connectionsItems[2].label === 'zzz',
+      `First connection tree item should have label "zzz" found ${connectionsItems[0].label}`
+    );
 
-      testConnectionController._connections.zzz.name = '111';
+    testConnectionController._connections.zzz.name = '111';
 
-      const afterAdditionConnectionsItems = await treeControllerChildren[0].getChildren();
-      assert(
-        afterAdditionConnectionsItems[0].label === '111',
-        `First connection tree item should have label "111" found ${afterAdditionConnectionsItems[0].label}`
-      );
+    const afterAdditionConnectionsItems = await treeControllerChildren[0].getChildren();
+    assert(
+      afterAdditionConnectionsItems[0].label === '111',
+      `First connection tree item should have label "111" found ${afterAdditionConnectionsItems[0].label}`
+    );
 
-      testExplorerController.deactivate();
-    } catch (error) {
-      assert(false, error);
-    }
+    testExplorerController.deactivate();
   });
 
   test('shows the databases of connected connection in tree', async () => {
@@ -308,32 +296,28 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    try {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
 
-      const treeControllerChildren = await treeController.getChildren();
-      const connectionsItems = await treeControllerChildren[0].getChildren();
+    const treeControllerChildren = await treeController.getChildren();
+    const connectionsItems = await treeControllerChildren[0].getChildren();
 
-      // Expand the connection.
-      treeControllerChildren[0].onDidExpand();
+    // Expand the connection.
+    treeControllerChildren[0].onDidExpand();
 
-      const databaseItems = await connectionsItems[0].getChildren();
+    const databaseItems = await connectionsItems[0].getChildren();
 
-      assert(
-        databaseItems.length >= 3,
-        `Expected there be 3 or more database tree items, found ${databaseItems.length}`
-      );
-      assert(
-        databaseItems[0].label === 'admin',
-        `First database tree item should have label "admin" found ${connectionsItems[0].label}.`
-      );
+    assert(
+      databaseItems.length >= 3,
+      `Expected there be 3 or more database tree items, found ${databaseItems.length}`
+    );
+    assert(
+      databaseItems[0].label === 'admin',
+      `First database tree item should have label "admin" found ${connectionsItems[0].label}.`
+    );
 
-      testExplorerController.deactivate();
-    } catch (error) {
-      assert(false, error);
-    }
+    testExplorerController.deactivate();
   });
 
   test('caches the expanded state of databases in the tree when a connection is expanded or collapsed', async () => {
@@ -343,58 +327,54 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    try {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
 
-      const rootTreeItem = await treeController.getChildren();
-      const connectionsTreeItem = rootTreeItem[0];
-      const connectionsItems = await connectionsTreeItem.getChildren();
+    const rootTreeItem = await treeController.getChildren();
+    const connectionsTreeItem = rootTreeItem[0];
+    const connectionsItems = await connectionsTreeItem.getChildren();
 
-      // Expand the connection.
-      const testConnectionTreeItem = connectionsItems[0];
+    // Expand the connection.
+    const testConnectionTreeItem = connectionsItems[0];
 
-      await testConnectionTreeItem.onDidExpand();
+    await testConnectionTreeItem.onDidExpand();
 
-      const databaseItems = await testConnectionTreeItem.getChildren();
+    const databaseItems = await testConnectionTreeItem.getChildren();
 
-      assert(
-        databaseItems[1].isExpanded === false,
-        'Expected database tree item not to be expanded on default.'
-      );
+    assert(
+      databaseItems[1].isExpanded === false,
+      'Expected database tree item not to be expanded on default.'
+    );
 
-      // Expand the first database item.
-      await databaseItems[1].onDidExpand();
+    // Expand the first database item.
+    await databaseItems[1].onDidExpand();
 
-      assert(
-        databaseItems[1].isExpanded === true,
-        'Expected database tree item be expanded.'
-      );
+    assert(
+      databaseItems[1].isExpanded === true,
+      'Expected database tree item be expanded.'
+    );
 
-      // Collapse the connection.
-      testConnectionTreeItem.onDidCollapse();
+    // Collapse the connection.
+    testConnectionTreeItem.onDidCollapse();
 
-      const databaseTreeItems = await testConnectionTreeItem.getChildren();
+    const databaseTreeItems = await testConnectionTreeItem.getChildren();
 
-      assert(
-        databaseTreeItems.length === 0,
-        `Expected the connection tree to return no children when collapsed, found ${databaseTreeItems.length}`
-      );
+    assert(
+      databaseTreeItems.length === 0,
+      `Expected the connection tree to return no children when collapsed, found ${databaseTreeItems.length}`
+    );
 
-      testConnectionTreeItem.onDidExpand();
+    testConnectionTreeItem.onDidExpand();
 
-      const newDatabaseItems = await testConnectionTreeItem.getChildren();
+    const newDatabaseItems = await testConnectionTreeItem.getChildren();
 
-      assert(
-        newDatabaseItems[1].isExpanded === true,
-        'Expected database tree to be expanded from cache.'
-      );
+    assert(
+      newDatabaseItems[1].isExpanded === true,
+      'Expected database tree to be expanded from cache.'
+    );
 
-      testExplorerController.deactivate();
-    } catch (error) {
-      assert(false, error);
-    }
+    testExplorerController.deactivate();
   });
 
   test('tree view should be not created by default (shows welcome view)', () => {
@@ -424,15 +404,11 @@ suite('Explorer Controller Test Suite', function () {
 
     sinon.replace(vscode.window, 'createTreeView', vscodeCreateTreeViewStub);
 
-    try {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
-      await testConnectionController.disconnect();
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
+    await testConnectionController.disconnect();
 
-      assert(vscodeCreateTreeViewStub.called);
-    } catch (error) {
-      assert(false, error);
-    }
+    assert(vscodeCreateTreeViewStub.called);
   });
 });

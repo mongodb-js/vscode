@@ -14,7 +14,6 @@ import {
 } from '../../explorer';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { StorageScope } from '../../storage/storageController';
-import DocumentListTreeItem from '../../explorer/documentListTreeItem';
 
 const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';

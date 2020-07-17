@@ -303,8 +303,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
   refreshDocumentCount = async (): Promise<boolean> => {
     try {
-      // We fetch the document when we expand in order to
-      // show the document count in the tree item `description`.
+      // We fetch the document when we expand in order to show
+      // the document count in the document list tree item `description`.
       this.documentCount = await this.getCount();
     } catch (err) {
       vscode.window.showInformationMessage(
