@@ -6,7 +6,7 @@ import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import { CollectionTypes } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
 
-import { TestExtensionContext } from '../stubs';
+import { TestExtensionContext, DataServiceStub } from '../stubs';
 
 suite('CollectionTreeItem Test Suite', () => {
   test('its context value should be in the package json', () => {
@@ -20,7 +20,8 @@ suite('CollectionTreeItem Test Suite', () => {
       'mock_db_name',
       'imaginary data service',
       false,
-      false
+      false,
+      null
     );
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
@@ -35,41 +36,68 @@ suite('CollectionTreeItem Test Suite', () => {
     );
   });
 
-  test('when expanded shows a documents folder and schema folder', (done) => {
+  test('when expanded shows a documents folder and schema folder', async () => {
     const testCollectionTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',
         type: CollectionTypes.collection
       },
       'mock_db_name',
-      'imaginary data service',
+      new DataServiceStub(),
       false,
-      false
+      false,
+      null
     );
 
-    testCollectionTreeItem.onDidExpand();
+    await testCollectionTreeItem.onDidExpand();
 
-    testCollectionTreeItem
-      .getChildren()
-      .then((children) => {
-        assert(
-          children.length === 3,
-          `Expected 3 children to be returned, found ${children.length}`
-        );
-        assert(
-          children[0].label === 'Documents',
-          `Expected first child tree item to be named Documents found ${children[0].label}`
-        );
-        assert(
-          children[1].label === 'Schema',
-          `Expected the second child tree item to be named Schema found ${children[1].label}`
-        );
-        assert(
-          children[2].label === 'Indexes',
-          `Expected the second child tree item to be named Indexes found ${children[2].label}`
-        );
-      })
-      .then(done, done);
+    const collectionChildren = await testCollectionTreeItem.getChildren();
+
+    assert(
+      collectionChildren.length === 3,
+      `Expected 3 children to be returned, found ${collectionChildren.length}`
+    );
+    assert(
+      collectionChildren[0].label === 'Documents',
+      `Expected first child tree item to be named Documents found ${collectionChildren[0].label}`
+    );
+    assert(
+      collectionChildren[1].label === 'Schema',
+      `Expected the second child tree item to be named Schema found ${collectionChildren[1].label}`
+    );
+    assert(
+      collectionChildren[2].label === 'Indexes',
+      `Expected the second child tree item to be named Indexes found ${collectionChildren[2].label}`
+    );
+  });
+
+  test('when expanded it shows the document count in the description of the document list', async () => {
+    const testCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_1',
+        type: CollectionTypes.collection
+      },
+      'mock_db_name',
+      {
+        estimatedCount: (ns, options, cb): void => cb(null, 5000)
+      },
+      false,
+      false,
+      null
+    );
+
+    await testCollectionTreeItem.onDidExpand();
+
+    const collectionChildren = await testCollectionTreeItem.getChildren();
+
+    assert(
+      collectionChildren[0].label === 'Documents',
+      `Expected document list label to be 'Documents' got '${collectionChildren[0].label}'`
+    );
+    assert(
+      collectionChildren[0].description === '5K',
+      `Expected document list description to be '5K' got '${collectionChildren[0].description}'`
+    );
   });
 
   test('a view should show a different icon from a collection', () => {
@@ -83,7 +111,8 @@ suite('CollectionTreeItem Test Suite', () => {
       'mock_db_name',
       'imaginary data service',
       false,
-      false
+      false,
+      null
     );
 
     const viewIconPath: any = testCollectionViewTreeItem.iconPath;
@@ -104,7 +133,8 @@ suite('CollectionTreeItem Test Suite', () => {
       'mock_db_name',
       'imaginary data service',
       false,
-      false
+      false,
+      null
     );
 
     const collectionIconPath: any = testCollectionCollectionTreeItem.iconPath;

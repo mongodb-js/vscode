@@ -118,7 +118,7 @@ class DataServiceStub {
     callback(null, mockDocuments.slice(0, options.limit));
   }
 
-  count(namespace: string, filter: any, options: any, callback: any): void {
+  estimatedCount(namespace: string, options: any, callback: any): void {
     callback(null, mockDocuments.length);
   }
 }

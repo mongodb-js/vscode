@@ -106,6 +106,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
 
     await collectionTreeItems[1].onDidExpand();
+    await collectionTreeItems[1].getChildren();
     const documentListItem = collectionTreeItems[1].getDocumentListChild();
     if (!documentListItem) {
       assert(false, 'No document list tree item found on collection.');

@@ -5,6 +5,7 @@ const { contributes } = require('../../../../package.json');
 
 import DocumentListTreeItem, {
   CollectionTypes,
+  formatDocCount,
   MAX_DOCUMENTS_VISIBLE
 } from '../../../explorer/documentListTreeItem';
 
@@ -21,6 +22,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
@@ -46,6 +48,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
@@ -75,6 +78,7 @@ suite('DocumentListTreeItem Test Suite', () => {
         false,
         MAX_DOCUMENTS_VISIBLE,
         null,
+        (): Promise<boolean> => Promise.resolve(true),
         false,
         []
       );
@@ -95,6 +99,7 @@ suite('DocumentListTreeItem Test Suite', () => {
         false,
         MAX_DOCUMENTS_VISIBLE,
         null,
+        (): Promise<boolean> => Promise.resolve(true),
         false,
         []
       );
@@ -117,6 +122,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
@@ -135,7 +141,8 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null,
+      25,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
@@ -158,11 +165,11 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_2',
       'mock_db_name',
       CollectionTypes.collection,
-
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null,
+      25,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
@@ -188,7 +195,8 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null,
+      25,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
@@ -219,7 +227,8 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null,
+      25,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
@@ -242,6 +251,49 @@ suite('DocumentListTreeItem Test Suite', () => {
     );
   });
 
+  test('when expanded it updates the count of documents', async () => {
+    let maxDocs;
+    const testDocumentListTreeItem = new DocumentListTreeItem(
+      'mock_collection_name_1',
+      'mock_db_name',
+      CollectionTypes.collection,
+      new DataServiceStub(),
+      false,
+      MAX_DOCUMENTS_VISIBLE,
+      maxDocs,
+      (): Promise<boolean> => {
+        maxDocs = 25;
+        return Promise.resolve(true);
+      },
+      false,
+      []
+    );
+    await testDocumentListTreeItem.onDidExpand();
+
+    const newTestDocList = new DocumentListTreeItem(
+      'mock_collection_name_4',
+      'mock_db_name',
+      CollectionTypes.collection,
+      new DataServiceStub(),
+      false,
+      MAX_DOCUMENTS_VISIBLE,
+      maxDocs,
+      (): Promise<boolean> => Promise.resolve(true),
+      false,
+      []
+    );
+
+    await newTestDocList.onDidExpand();
+
+    const documents = await newTestDocList.getChildren();
+
+    assert(
+      documents.length === 11,
+      `Expected 11 documents to be returned, found ${documents.length}`
+    );
+    assert(newTestDocList.description === '25');
+  });
+
   test('it shows a documents icon', () => {
     const testCollectionViewTreeItem = new DocumentListTreeItem(
       'mock_collection_name_4',
@@ -251,6 +303,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
@@ -269,6 +322,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
@@ -280,7 +334,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     );
   });
 
-  test('it shows the document count after it has been expanded.', async () => {
+  test('it shows the document count in the description', () => {
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'mock_collection_name_4',
       'mock_db_name',
@@ -288,15 +342,16 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      null,
+      25,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
 
-    await testDocumentListTreeItem.onDidExpand();
+    assert(testDocumentListTreeItem.description === '25');
+  });
 
-    assert(testDocumentListTreeItem.getDocumentCount() === 25);
-
+  test('the tooltip shows the unformated document count', () => {
     const testNewDocListItem = new DocumentListTreeItem(
       'mock_collection_name_4',
       'mock_db_name',
@@ -304,11 +359,31 @@ suite('DocumentListTreeItem Test Suite', () => {
       new DataServiceStub(),
       false,
       MAX_DOCUMENTS_VISIBLE,
-      testDocumentListTreeItem.getDocumentCount(),
+      2200000,
+      (): Promise<boolean> => Promise.resolve(true),
       false,
       []
     );
 
-    assert(testNewDocListItem.description === '25');
+    assert(
+      testNewDocListItem._documentCount === 2200000,
+      `Expected document count to be '2200000' found '${testNewDocListItem._documentCount}'`
+    );
+    assert(testNewDocListItem.description === '2M');
+    assert(testNewDocListItem.tooltip === 'Collection Documents - 2200000');
+  });
+
+  suite('formatDocCount', () => {
+    test('It formats the document count when the count is 0', () => {
+      const num = 0;
+      const result = formatDocCount(num);
+      assert(result === '0');
+    });
+
+    test('It formats the document count when the count is 10009', () => {
+      const num = 10009;
+      const result = formatDocCount(num);
+      assert(result === '10K');
+    });
   });
 });

@@ -11,6 +11,7 @@ import MDBConnectionsTreeItem from './mdbConnectionsTreeItem';
 
 import { createLogger } from '../logging';
 import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
+import TreeItemParentInterface from './treeItemParentInterface';
 
 const log = createLogger('explorer controller');
 
@@ -140,16 +141,9 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   getChildren(
-    element?:
-      | MDBConnectionsTreeItem
-      | ConnectionTreeItem
-      | DatabaseTreeItem
-      | CollectionTreeItem
+    element?: any
   ): Thenable<
-    | MDBConnectionsTreeItem[]
-    | ConnectionTreeItem[]
-    | DatabaseTreeItem[]
-    | CollectionTreeItem[]
+    | any[]
   > {
     // When no element is present we are at the root.
     if (!element) {

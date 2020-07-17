@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as numeral from 'numeral';
 const path = require('path');
 
 import { createLogger } from '../logging';
@@ -50,6 +51,10 @@ const getCollapsableStateForDocumentList = (
     : vscode.TreeItemCollapsibleState.Collapsed;
 };
 
+export const formatDocCount = (count: number): string => {
+  return `${numeral(count).format('0a')}`.toUpperCase();
+};
+
 export default class DocumentListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DocumentListTreeItem> {
   cacheIsUpToDate = false;
@@ -59,7 +64,13 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
   contextValue = DOCUMENT_LIST_ITEM;
 
-  private _documentCount: number | null;
+  // We display the document count in the description of the
+  // document list tree item, even when it hasn't been expanded.
+  // When it is expanded, we want to ensure that number is up to date.
+  // This function tells the parent collection folder to refresh the count.
+  refreshDocumentCount: () => Promise<boolean>;
+
+  _documentCount: number | null;
   private _maxDocumentsToShow: number;
 
   collectionName: string;
@@ -79,6 +90,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     isExpanded: boolean,
     maxDocumentsToShow: number,
     cachedDocumentCount: number | null,
+    refreshDocumentCount: () => Promise<boolean>,
     cacheIsUpToDate: boolean,
     existingCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem>
   ) {
@@ -96,17 +108,22 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     this._maxDocumentsToShow = maxDocumentsToShow;
     this._documentCount = cachedDocumentCount;
 
+    this.refreshDocumentCount = refreshDocumentCount;
+
     this._childrenCache = existingCache;
     this.cacheIsUpToDate = cacheIsUpToDate;
 
     if (this._documentCount !== null) {
-      // TODO: Prettify this count, 1k, 2k, 3m etc.
-      this.description = `${this._documentCount}`;
+      this.description = formatDocCount(this._documentCount);
     }
   }
 
   get tooltip(): string {
-    const typeString = CollectionTypes.view ? 'View' : 'Collection';
+    const typeString =
+      this.type === CollectionTypes.view ? 'View' : 'Collection';
+    if (this._documentCount !== null) {
+      return `${typeString} Documents - ${this._documentCount}`;
+    }
     return `${typeString} Documents`;
   }
 
@@ -135,29 +152,6 @@ export default class DocumentListTreeItem extends vscode.TreeItem
           }
 
           resolve(documents);
-        }
-      );
-    });
-  }
-
-  getCount(): Promise<number> {
-    log.info(
-      `fetching document count from namespace ${this.namespace}`
-    );
-
-    return new Promise((resolve, reject) => {
-      this._dataService.count(
-        this.namespace,
-        {}, // No filter.
-        {}, // No options.
-        (err: Error | undefined, count: number) => {
-          if (err) {
-            return reject(
-              new Error(`Unable to get collection document count: ${err.message}`)
-            );
-          }
-
-          return resolve(count);
         }
       );
     });
@@ -208,24 +202,19 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     let documents;
     try {
       documents = await this.getDocuments();
-      if (this._documentCount === null) {
-        this._documentCount = await this.getCount();
-      }
     } catch (err) {
       return Promise.reject(err);
     }
 
     this.cacheIsUpToDate = true;
+    this._childrenCache = [];
 
     if (documents) {
-      this._childrenCache = [];
       documents.forEach((document, index) => {
         this._childrenCache.push(
           new DocumentTreeItem(document, this.namespace, index)
         );
       });
-    } else {
-      this._childrenCache = [];
     }
 
     if (this.hasMoreDocumentsToShow()) {
@@ -269,28 +258,20 @@ export default class DocumentListTreeItem extends vscode.TreeItem
   }
 
   async onDidExpand(): Promise<boolean> {
-    try {
-      // We fetch the document when we expand in order to
-      // show the document count in the tree item `description`.
-      this._documentCount = await this.getCount();
-    } catch (err) {
-      vscode.window.showInformationMessage(
-        `Unable to fetch document count: ${err}`
-      );
-      return false;
-    }
-
     this.cacheIsUpToDate = false;
     this.isExpanded = true;
+
+    await this.refreshDocumentCount();
 
     return true;
   }
 
-  resetCache(): void {
+  async resetCache(): Promise<void> {
     this.isExpanded = false;
     this._childrenCache = [];
     this.cacheIsUpToDate = false;
-    this._documentCount = null;
+
+    await this.refreshDocumentCount();
   }
 
   getChildrenCache(): Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> {
@@ -299,9 +280,5 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
   getMaxDocumentsToShow(): number {
     return this._maxDocumentsToShow;
-  }
-
-  getDocumentCount(): number | null {
-    return this._documentCount;
   }
 }

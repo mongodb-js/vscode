@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 const path = require('path');
 
+import { createLogger } from '../logging';
 import DocumentListTreeItem, {
   CollectionTypes,
   MAX_DOCUMENTS_VISIBLE
@@ -9,6 +10,8 @@ import IndexListTreeItem from './indexListTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
 import { getImagesPath } from '../extensionConstants';
+
+const log = createLogger('tree view collection folder');
 
 type CollectionModelType = {
   name: string;
@@ -36,9 +39,11 @@ export default class CollectionTreeItem extends vscode.TreeItem
   collection: CollectionModelType;
   collectionName: string;
   databaseName: string;
+  namespace: string;
 
   private _dataService: any;
   private _type: CollectionTypes;
+  documentCount: number | null;
 
   isExpanded: boolean;
 
@@ -50,6 +55,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     dataService: any,
     isExpanded: boolean,
     cacheIsUpToDate: boolean,
+    cachedDocumentCount: number | null,
     existingDocumentListChild?: DocumentListTreeItem,
     existingSchemaChild?: SchemaTreeItem,
     existingIndexListChild?: IndexListTreeItem
@@ -64,11 +70,14 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this.collection = collection;
     this.collectionName = collection.name;
     this.databaseName = databaseName;
+    this.namespace = `${this.databaseName}.${this.collectionName}`;
 
     this._type = collection.type; // Type can be `collection` or `view`.
     this._dataService = dataService;
 
     this.isExpanded = isExpanded;
+
+    this.documentCount = cachedDocumentCount;
 
     this.cacheIsUpToDate = cacheIsUpToDate;
 
@@ -81,7 +90,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
         this._dataService,
         false, // Collapsed.
         MAX_DOCUMENTS_VISIBLE,
-        null, // No document count yet.
+        this.documentCount,
+        this.refreshDocumentCount,
         false, // Cache is not up to date.
         [] // Empty cache.
       );
@@ -119,9 +129,13 @@ export default class CollectionTreeItem extends vscode.TreeItem
     return element;
   }
 
-  getChildren(): Thenable<any[]> {
+  async getChildren(): Promise<any[]> {
     if (!this.isExpanded) {
-      return Promise.resolve([]);
+      return [];
+    }
+
+    if (this.documentCount === null) {
+      await this.refreshDocumentCount();
     }
 
     // Update cache if one of the children has been expanded/collapsed.
@@ -130,11 +144,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     }
 
     if (this.cacheIsUpToDate) {
-      return Promise.resolve([
-        this._documentListChild,
-        this._schemaChild,
-        this._indexListChild
-      ]);
+      return [this._documentListChild, this._schemaChild, this._indexListChild];
     }
 
     this.cacheIsUpToDate = true;
@@ -143,11 +153,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     // is ensure to be set by vscode.
     this.rebuildChildrenCache();
 
-    return Promise.resolve([
-      this._documentListChild,
-      this._schemaChild,
-      this._indexListChild
-    ]);
+    return [this._documentListChild, this._schemaChild, this._indexListChild];
   }
 
   rebuildDocumentListTreeItem(): void {
@@ -158,7 +164,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this._dataService,
       this._documentListChild.isExpanded,
       this._documentListChild.getMaxDocumentsToShow(),
-      this._documentListChild.getDocumentCount(),
+      this.documentCount,
+      this.refreshDocumentCount,
       this._documentListChild.cacheIsUpToDate,
       this._documentListChild.getChildrenCache()
     );
@@ -209,15 +216,18 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this.cacheIsUpToDate = false;
   }
 
-  onDidExpand(): Promise<boolean> {
+  async onDidExpand(): Promise<boolean> {
     this.isExpanded = true;
     this.cacheIsUpToDate = false;
 
-    return Promise.resolve(true);
+    await this.refreshDocumentCount();
+
+    return true;
   }
 
   resetCache(): void {
     this.cacheIsUpToDate = false;
+    this.documentCount = null;
 
     this._documentListChild = new DocumentListTreeItem(
       this.collectionName,
@@ -226,7 +236,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this._dataService,
       false, // Collapsed.
       MAX_DOCUMENTS_VISIBLE,
-      null, // No document count yet.
+      this.documentCount,
+      this.refreshDocumentCount,
       false, // Cache is not up to date.
       [] // Empty cache.
     );
@@ -267,6 +278,43 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
     return this._documentListChild.getMaxDocumentsToShow();
   }
+
+  getCount(): Promise<number> {
+    log.info(`fetching document count from namespace ${this.namespace}`);
+
+    return new Promise((resolve, reject) => {
+      this._dataService.estimatedCount(
+        this.namespace,
+        {}, // No options.
+        (err: Error | undefined, count: number) => {
+          if (err) {
+            return reject(
+              new Error(
+                `Unable to get collection document count: ${err.message}`
+              )
+            );
+          }
+
+          return resolve(count);
+        }
+      );
+    });
+  }
+
+  refreshDocumentCount = async (): Promise<boolean> => {
+    try {
+      // We fetch the document when we expand in order to
+      // show the document count in the tree item `description`.
+      this.documentCount = await this.getCount();
+    } catch (err) {
+      vscode.window.showInformationMessage(
+        `Unable to fetch document count: ${err}`
+      );
+      return false;
+    }
+
+    return true;
+  };
 
   async onDropCollectionClicked(): Promise<boolean> {
     const collectionName = this.collectionName;

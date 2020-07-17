@@ -18,7 +18,7 @@ suite('Extension Test Suite', () => {
 
     createTerminalStub.returns({
       sendText: fakeSendTerminalText,
-      show: () => {},
+      show: () => {}
     });
     sandbox.replace(vscode.window, 'createTerminal', createTerminalStub);
   });
@@ -59,7 +59,7 @@ suite('Extension Test Suite', () => {
       'mdb.refreshSchema',
 
       // Editor commands.
-      'mdb.codeLens.showMoreDocumentsClicked',
+      'mdb.codeLens.showMoreDocumentsClicked'
     ];
 
     for (let i = 0; i < expectedCommands.length; i++) {

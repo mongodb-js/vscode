@@ -44,7 +44,8 @@ suite('MDBExtensionController Test Suite', () => {
       'testDbName',
       {},
       false,
-      false
+      false,
+      null
     );
 
     vscode.commands
@@ -86,7 +87,8 @@ suite('MDBExtensionController Test Suite', () => {
       'testDbName',
       {},
       false,
-      false
+      false,
+      null
     );
 
     vscode.commands
@@ -289,7 +291,8 @@ suite('MDBExtensionController Test Suite', () => {
       'airZebra',
       {},
       false,
-      false
+      false,
+      null
     );
 
     const mockCopyToClipboard = sinon.fake.resolves();
@@ -352,7 +355,8 @@ suite('MDBExtensionController Test Suite', () => {
       'airZebra',
       {},
       false,
-      false
+      false,
+      null
     );
 
     mockTreeItem.isExpanded = true;
@@ -384,19 +388,32 @@ suite('MDBExtensionController Test Suite', () => {
   });
 
   test('mdb.refreshDocumentList command should update the document count and call to refresh the explorer controller', async () => {
-    const mockTreeItem = new DocumentListTreeItem(
-      'dolphin_collection',
-      'ocean_database',
-      CollectionTypes.collection,
-      {},
+    let count = 9000;
+    const mockTreeItem = new CollectionTreeItem(
+      {
+        name: 'iSawACatThatLookedLikeALionToday',
+        type: CollectionTypes.collection
+      },
+      'airZebra',
+      {
+        estimatedCount: (ns, opts, cb): void => cb(null, count)
+      },
       false,
-      5,
-      5,
       false,
-      []
+      null
     );
 
-    mockTreeItem.isExpanded = true;
+    await mockTreeItem.onDidExpand();
+
+    const collectionChildren = await mockTreeItem.getChildren();
+    const docListTreeItem = collectionChildren[0];
+    console.log('collectionChildren', collectionChildren);
+
+    assert(docListTreeItem.description === '9K');
+
+    count = 10000;
+
+    docListTreeItem.isExpanded = true;
 
     const mockExplorerControllerRefresh = sinon.fake.resolves();
     sinon.replace(
@@ -407,16 +424,20 @@ suite('MDBExtensionController Test Suite', () => {
 
     await vscode.commands.executeCommand(
       'mdb.refreshDocumentList',
-      mockTreeItem
+      docListTreeItem
     );
 
     assert(
-      mockTreeItem.cacheIsUpToDate === false,
+      docListTreeItem.cacheIsUpToDate === false,
       'Expected document list cache to be out of date.'
     );
     assert(
-      mockTreeItem.getDocumentCount() === null,
-      'Expected document count to be null.'
+      docListTreeItem.isExpanded === false,
+      'Expected document list cache to be out of date.'
+    );
+    assert(
+      mockTreeItem.documentCount === 10000,
+      `Expected document count to be 10000, found ${mockTreeItem.documentCount}.`
     );
     assert(
       mockExplorerControllerRefresh.called === true,
@@ -828,7 +849,8 @@ suite('MDBExtensionController Test Suite', () => {
         }
       },
       false,
-      false
+      false,
+      null
     );
 
     const mockInputBoxResolves = sinon.stub();
@@ -856,7 +878,8 @@ suite('MDBExtensionController Test Suite', () => {
           'doesntExistDBName',
           testConnectionController.getActiveDataService(),
           false,
-          false
+          false,
+          null
         );
 
         const mockInputBoxResolves = sinon.stub();
@@ -896,7 +919,8 @@ suite('MDBExtensionController Test Suite', () => {
       'fruitsThatAreTasty',
       {},
       false,
-      false
+      false,
+      null
     );
 
     const mockInputBoxResolves = sinon.stub();
@@ -920,7 +944,8 @@ suite('MDBExtensionController Test Suite', () => {
       'fruitsThatAreTasty',
       {},
       false,
-      false
+      false,
+      null
     );
 
     const mockInputBoxResolves = sinon.stub();
