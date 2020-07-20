@@ -6,6 +6,7 @@ import SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',
   AUTH_STRATEGY_CHANGED = 'AUTH_STRATEGY_CHANGED',
+  CHANGE_STREAM_EVENT_OCCURED = 'CHANGE_STREAM_EVENT_OCCURED',
   CONNECT = 'CONNECT',
   CONNECTION_EVENT_OCCURED = 'CONNECTION_EVENT_OCCURED',
   CONNECTION_FORM_CHANGED = 'CONNECTION_FORM_CHANGED',
@@ -61,6 +62,11 @@ export interface AuthSourceChangedAction extends BaseAction {
 export interface AuthStrategyChangedAction extends BaseAction {
   type: ActionTypes.AUTH_STRATEGY_CHANGED;
   authStrategy: AUTH_STRATEGIES;
+}
+
+export interface ChangeStreamEventOccuredAction extends BaseAction {
+  type: ActionTypes.CHANGE_STREAM_EVENT_OCCURED;
+  changeStreamEvent: any;
 }
 
 export interface ConnectAction extends BaseAction {
@@ -223,6 +229,7 @@ export type FilePickerActions =
 export type Actions =
   | AuthSourceChangedAction
   | AuthStrategyChangedAction
+  | ChangeStreamEventOccuredAction
   | ConnectAction
   | ConnectionEventOccuredAction
   | ConnectionFormChangedAction

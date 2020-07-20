@@ -2,16 +2,21 @@ import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
 
+import ChangeStreamViewer from './change-stream/change-stream-viewer';
 import ConnectionForm from './connect-form/connection-form';
 import HelpPanel from './help-panel/help-panel';
 import {
   ActionTypes,
+  ChangeStreamEventOccuredAction,
   ConnectionEventOccuredAction,
   FilePickerActions,
   FilePickerActionTypes
 } from '../store/actions';
 import {
   MESSAGE_TYPES,
+  WEBVIEWS,
+  WEBVIEW_TYPE_GLOBAL_ID,
+  ChangeStreamEventMessage,
   ConnectResultsMessage,
   FilePickerResultsMessage
 } from '../extension-app-message-constants';
@@ -19,6 +24,9 @@ import {
 const styles = require('../connect.module.less');
 
 type props = {
+  onChangeStreamEvent: (
+    changeStreamEvent: any
+  ) => void;
   onConnectedEvent: (
     successfullyConnected: boolean,
     connectionMessage: string
@@ -29,11 +37,12 @@ type props = {
   ) => void;
 };
 
+type MessageFromExtension = ConnectResultsMessage | FilePickerResultsMessage | ChangeStreamEventMessage;
+
 class App extends React.Component<props> {
   componentDidMount(): void {
     window.addEventListener('message', (event) => {
-      const message: ConnectResultsMessage | FilePickerResultsMessage =
-        event.data;
+      const message: MessageFromExtension = event.data;
 
       switch (message.command) {
         case MESSAGE_TYPES.CONNECT_RESULT:
@@ -46,6 +55,9 @@ class App extends React.Component<props> {
         case MESSAGE_TYPES.FILE_PICKER_RESULTS:
           this.props.onFilePickerEvent(message.action, message.files);
           return;
+        case MESSAGE_TYPES.CHANGE_STREAM_EVENT:
+          this.props.onChangeStreamEvent(message.changeStreamEvent);
+          return;
         default:
           // No-op.
           return;
@@ -56,14 +68,27 @@ class App extends React.Component<props> {
   render(): React.ReactNode {
     return (
       <div className={classnames(styles.page, styles.connect)}>
-        <ConnectionForm />
-        <HelpPanel />
+        {global[WEBVIEW_TYPE_GLOBAL_ID] === WEBVIEWS.CONNECT && (
+          <React.Fragment>
+            <ConnectionForm />
+            <HelpPanel />
+          </React.Fragment>
+        )}
+        {global[WEBVIEW_TYPE_GLOBAL_ID] === WEBVIEWS.CHANGE_STREAM && (
+          <React.Fragment>
+            <ChangeStreamViewer />
+          </React.Fragment>
+        )}
       </div>
     );
   }
 }
 
 const mapDispatchToProps: props = {
+  onChangeStreamEvent: (changeStreamEvent: any): ChangeStreamEventOccuredAction => ({
+    type: ActionTypes.CHANGE_STREAM_EVENT_OCCURED,
+    changeStreamEvent
+  }),
   onConnectedEvent: (
     successfullyConnected: boolean,
     connectionMessage: string

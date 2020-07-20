@@ -19,6 +19,7 @@ export interface AppState {
   errorMessage: string;
   syntaxErrorMessage: string;
   savedMessage: string;
+  changeStreamEvents: any[];
 }
 
 export const initialState = {
@@ -29,7 +30,8 @@ export const initialState = {
   isConnected: false,
   errorMessage: '',
   syntaxErrorMessage: '',
-  savedMessage: ''
+  savedMessage: '',
+  changeStreamEvents: []
 };
 
 const showFilePicker = (
@@ -76,6 +78,15 @@ export const rootReducer = (
           ldapUsername: undefined,
           ldapPassword: undefined
         }
+      };
+
+    case ActionTypes.CHANGE_STREAM_EVENT_OCCURED:
+      return {
+        ...state,
+        changeStreamEvents: [
+          action.changeStreamEvent,
+          ...state.changeStreamEvents
+        ]
       };
 
     case ActionTypes.CONNECT:
@@ -125,7 +136,9 @@ export const rootReducer = (
         isConnecting: false,
         isConnected: action.successfullyConnected,
         isValid: action.successfullyConnected ? state.isValid : false,
-        errorMessage: action.successfullyConnected ? '' : action.connectionMessage,
+        errorMessage: action.successfullyConnected
+          ? ''
+          : action.connectionMessage,
         connectionMessage: action.connectionMessage
       };
 

@@ -169,6 +169,10 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
+        "command": "mdb.openChangeStream",
+        "title": "View Change Stream"
+      },
+      {
         "command": "mdb.createNewPlaygroundFromViewAction",
         "title": "Create MongoDB Playground"
       },
@@ -351,6 +355,11 @@
           "group": "2@1"
         },
         {
+          "command": "mdb.openChangeStream",
+          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "group": "2@1"
+        },
+        {
           "command": "mdb.renameConnection",
           "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
           "group": "3@1"
@@ -522,6 +531,10 @@
         },
         {
           "command": "mdb.refreshConnection",
+          "when": "false"
+        },
+        {
+          "command": "mdb.openChangeStream",
           "when": "false"
         },
         {

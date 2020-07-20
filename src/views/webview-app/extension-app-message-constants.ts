@@ -6,8 +6,16 @@ export enum MESSAGE_TYPES {
   OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
   FILE_PICKER_RESULTS = 'FILE_PICKER_RESULTS',
-  EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED'
+  EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
+  CHANGE_STREAM_EVENT = 'CHANGE_STREAM_EVENT'
 }
+
+export enum WEBVIEWS {
+  CONNECT = 'CONNECT',
+  CHANGE_STREAM = 'CHANGE_STREAM'
+}
+
+export const WEBVIEW_TYPE_GLOBAL_ID = '@@@WEBVIEW_TYPE_GLOBAL_ID@@@';
 
 interface BasicWebviewMessage {
   command: string;
@@ -46,4 +54,9 @@ export interface LinkClickedMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED;
   screen: string;
   linkId: string;
+}
+
+export interface ChangeStreamEventMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.CHANGE_STREAM_EVENT;
+  changeStreamEvent: any;
 }
