@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as numeral from 'numeral';
 const path = require('path');
 
 import { createLogger } from '../logging';
@@ -50,6 +51,11 @@ const getCollapsableStateForDocumentList = (
     : vscode.TreeItemCollapsibleState.Collapsed;
 };
 
+export const formatDocCount = (count: number): string => {
+  // We format the count (30000 -> 30k) and then display it uppercase (30K).
+  return `${numeral(count).format('0a')}`.toUpperCase();
+};
+
 export default class DocumentListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DocumentListTreeItem> {
   cacheIsUpToDate = false;
@@ -59,9 +65,14 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
   contextValue = DOCUMENT_LIST_ITEM;
 
-  // We fetch 1 more than this in order to see if there are more to fetch.
+  // We display the document count in the description of the
+  // document list tree item, even when it hasn't been expanded.
+  // When it is expanded, we want to ensure that number is up to date.
+  // This function tells the parent collection folder to refresh the count.
+  refreshDocumentCount: () => Promise<boolean>;
+
+  _documentCount: number | null;
   private _maxDocumentsToShow: number;
-  hasMoreDocumentsToShow: boolean;
 
   collectionName: string;
   databaseName: string;
@@ -79,7 +90,8 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     dataService: any,
     isExpanded: boolean,
     maxDocumentsToShow: number,
-    hasMoreDocumentsToShow: boolean,
+    cachedDocumentCount: number | null,
+    refreshDocumentCount: () => Promise<boolean>,
     cacheIsUpToDate: boolean,
     existingCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem>
   ) {
@@ -95,14 +107,24 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     this.isExpanded = isExpanded;
 
     this._maxDocumentsToShow = maxDocumentsToShow;
-    this.hasMoreDocumentsToShow = hasMoreDocumentsToShow;
+    this._documentCount = cachedDocumentCount;
+
+    this.refreshDocumentCount = refreshDocumentCount;
 
     this._childrenCache = existingCache;
     this.cacheIsUpToDate = cacheIsUpToDate;
+
+    if (this._documentCount !== null) {
+      this.description = formatDocCount(this._documentCount);
+    }
   }
 
   get tooltip(): string {
-    const typeString = CollectionTypes.view ? 'View' : 'Collection';
+    const typeString =
+      this.type === CollectionTypes.view ? 'View' : 'Collection';
+    if (this._documentCount !== null) {
+      return `${typeString} Documents - ${this._documentCount}`;
+    }
     return `${typeString} Documents`;
   }
 
@@ -122,9 +144,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
           /* No filter */
         },
         {
-          // We fetch 1 more than the max documents to show to see if
-          // there are more documents we aren't showing.
-          limit: 1 + this._maxDocumentsToShow
+          limit: this._maxDocumentsToShow
         },
         (err: Error, documents: []) => {
           if (err) {
@@ -136,6 +156,14 @@ export default class DocumentListTreeItem extends vscode.TreeItem
         }
       );
     });
+  }
+
+  hasMoreDocumentsToShow(): boolean {
+    if (this._documentCount === null) {
+      return false;
+    }
+
+    return this._maxDocumentsToShow <= this._documentCount;
   }
 
   async getChildren(): Promise<any[]> {
@@ -157,7 +185,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
         );
       });
 
-      if (this.hasMoreDocumentsToShow) {
+      if (this.hasMoreDocumentsToShow()) {
         return [
           ...this._childrenCache,
           // Add a `Show more...` item when there are more documents to show.
@@ -180,27 +208,17 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     }
 
     this.cacheIsUpToDate = true;
-    this.hasMoreDocumentsToShow = false;
+    this._childrenCache = [];
 
     if (documents) {
-      this._childrenCache = [];
       documents.forEach((document, index) => {
-        // We fetch 1 more than the max documents to see if
-        // there are more documents we aren't showing.
-        if (index === this._maxDocumentsToShow) {
-          this.hasMoreDocumentsToShow = true;
-          return;
-        }
-
         this._childrenCache.push(
           new DocumentTreeItem(document, this.namespace, index)
         );
       });
-    } else {
-      this._childrenCache = [];
     }
 
-    if (this.hasMoreDocumentsToShow) {
+    if (this.hasMoreDocumentsToShow()) {
       return [
         ...this._childrenCache,
         new ShowMoreDocumentsTreeItem(
@@ -238,20 +256,23 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     this.isExpanded = false;
     this.cacheIsUpToDate = false;
     this._maxDocumentsToShow = MAX_DOCUMENTS_VISIBLE;
-    this.hasMoreDocumentsToShow = false;
   }
 
-  onDidExpand(): Promise<boolean> {
+  async onDidExpand(): Promise<boolean> {
     this.cacheIsUpToDate = false;
     this.isExpanded = true;
 
-    return Promise.resolve(true);
+    await this.refreshDocumentCount();
+
+    return true;
   }
 
-  resetCache(): void {
+  async resetCache(): Promise<void> {
+    this.isExpanded = false;
     this._childrenCache = [];
     this.cacheIsUpToDate = false;
-    this.hasMoreDocumentsToShow = false;
+
+    await this.refreshDocumentCount();
   }
 
   getChildrenCache(): Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> {

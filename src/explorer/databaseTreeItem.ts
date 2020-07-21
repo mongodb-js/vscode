@@ -85,6 +85,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           this._dataService,
           pastChildrenCache[collectionName].isExpanded,
           pastChildrenCache[collectionName].cacheIsUpToDate,
+          pastChildrenCache[collectionName].documentCount,
           pastChildrenCache[collectionName].getDocumentListChild(),
           pastChildrenCache[collectionName].getSchemaChild(),
           pastChildrenCache[collectionName].getIndexListChild()
@@ -122,6 +123,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
               this._dataService,
               pastChildrenCache[collection.name].isExpanded,
               pastChildrenCache[collection.name].cacheIsUpToDate,
+              pastChildrenCache[collection.name].documentCount,
               pastChildrenCache[collection.name].getDocumentListChild(),
               pastChildrenCache[collection.name].getSchemaChild(),
               pastChildrenCache[collection.name].getIndexListChild()
@@ -132,7 +134,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
               this.databaseName,
               this._dataService,
               false, // Not expanded.
-              false // No cache.
+              false, // No cache.
+              null // No document count yet.
             );
           }
         });

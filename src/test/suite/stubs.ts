@@ -117,6 +117,10 @@ class DataServiceStub {
   find(namespace: string, filter: any, options: any, callback: any): void {
     callback(null, mockDocuments.slice(0, options.limit));
   }
+
+  estimatedCount(namespace: string, options: any, callback: any): void {
+    callback(null, mockDocuments.length);
+  }
 }
 
 const mockPosition = new vscode.Position(0, 0);
@@ -172,9 +176,9 @@ class MockLanguageServerController {
     this.client = null;
   }
 
-  activate(): void {}
+  activate(): void { /* */ }
 
-  deactivate(): void {}
+  deactivate(): void { /* */ }
 
   executeAll(codeToEvaluate: string): Promise<any> {
     return Promise.resolve('Result');
