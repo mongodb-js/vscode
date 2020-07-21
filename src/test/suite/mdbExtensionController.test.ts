@@ -438,7 +438,6 @@ suite('MDBExtensionController Test Suite', () => {
 
     const collectionChildren = await mockTreeItem.getChildren();
     const docListTreeItem = collectionChildren[0];
-    console.log('collectionChildren', collectionChildren);
 
     assert(docListTreeItem.description === '9K');
 
