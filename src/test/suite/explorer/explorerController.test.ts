@@ -6,7 +6,7 @@ const sinon = require('sinon');
 
 import {
   DefaultSavingLocations,
-  StorageScope
+  StorageScope,
 } from '../../../storage/storageController';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -15,7 +15,9 @@ const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=500&serverSelectionTimeoutMS=500';
 
 suite('Explorer Controller Test Suite', function () {
-  this.timeout(5000);
+  // Longer timeout, sometimes it takes a few seconds for vscode to
+  // load the extension before running tests.
+  this.timeout(10000);
 
   beforeEach(async () => {
     // Don't save connections on default.
@@ -82,8 +84,8 @@ suite('Explorer Controller Test Suite', function () {
           connectionModel: new Connection(),
           name: 'testConnectionName',
           driverUrl: 'url',
-          storageLocation: StorageScope.NONE
-        }
+          storageLocation: StorageScope.NONE,
+        },
       };
       testConnectionController.setConnnectingConnectionId(mockConnectionId);
       testConnectionController.setConnnecting(true);
@@ -186,8 +188,7 @@ suite('Explorer Controller Test Suite', function () {
       'Expected there to be 1 connection in the connection list.'
     );
 
-    const connectionId =
-      testConnectionController.getActiveConnectionId() || '';
+    const connectionId = testConnectionController.getActiveConnectionId() || '';
     const connectionName =
       testConnectionController._connections[connectionId].name;
 
@@ -234,13 +235,9 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    try {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
-    } catch (error) {
-      assert(false, error);
-    }
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
 
     const connectionId = testConnectionController.getActiveConnectionId() || '';
 
@@ -250,7 +247,7 @@ suite('Explorer Controller Test Suite', function () {
       driverUrl: '',
       name: 'aaa',
       id: 'aaa',
-      storageLocation: StorageScope.WORKSPACE
+      storageLocation: StorageScope.WORKSPACE,
     };
 
     testConnectionController._connections.zzz = {
@@ -259,7 +256,7 @@ suite('Explorer Controller Test Suite', function () {
       driverUrl: '',
       name: 'zzz',
       id: 'zzz',
-      storageLocation: StorageScope.WORKSPACE
+      storageLocation: StorageScope.WORKSPACE,
     };
 
     const treeControllerChildren = await treeController.getChildren();
