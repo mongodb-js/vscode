@@ -52,6 +52,7 @@ const getCollapsableStateForDocumentList = (
 };
 
 export const formatDocCount = (count: number): string => {
+  // We format the count (30000 -> 30k) and then display it uppercase (30K).
   return `${numeral(count).format('0a')}`.toUpperCase();
 };
 
