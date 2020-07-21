@@ -14,12 +14,13 @@ import TelemetryController from './telemetry/telemetryController';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController } from './storage';
-import DatabaseTreeItem from './explorer/databaseTreeItem';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
+import DatabaseTreeItem from './explorer/databaseTreeItem';
 import SchemaTreeItem from './explorer/schemaTreeItem';
+import DocumentListTreeItem from './explorer/documentListTreeItem';
 import DocumentTreeItem from './explorer/documentTreeItem';
 import WebviewController from './views/webviewController';
-import DocumentListTreeItem from './explorer/documentListTreeItem';
+import FieldTreeItem from './explorer/fieldTreeItem';
 
 const log = createLogger('commands');
 
@@ -200,19 +201,15 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       'mdb.copyConnectionString',
-      (element: ConnectionTreeItem) => {
-        // TODO: Password obfuscation.
+      async (element: ConnectionTreeItem): Promise<boolean> => {
         const connectionString = this._connectionController.getConnectionStringFromConnectionId(
           element.connectionId
         );
 
-        return new Promise((resolve, reject) => {
-          vscode.env.clipboard.writeText(connectionString).then(() => {
-            vscode.window.showInformationMessage('Copied to clipboard.');
+        await vscode.env.clipboard.writeText(connectionString);
+        vscode.window.showInformationMessage('Copied to clipboard.');
 
-            return resolve(true);
-          }, reject);
-        });
+        return true;
       }
     );
     this.registerCommand(
@@ -232,7 +229,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           vscode.window.showErrorMessage(
             'Please wait for the connection to finish loading before adding a database.'
           );
-          return Promise.resolve(false);
+          return false;
         }
 
         if (
@@ -242,72 +239,63 @@ export default class MDBExtensionController implements vscode.Disposable {
           vscode.window.showErrorMessage(
             'Please connect to this connection before adding a database.'
           );
-          return Promise.resolve(false);
+          return false;
         }
 
         if (this._connectionController.isDisconnecting()) {
           vscode.window.showErrorMessage(
             'Unable to add database: currently disconnecting.'
           );
-          return Promise.resolve(false);
+          return false;
         }
 
         if (this._connectionController.isConnecting()) {
           vscode.window.showErrorMessage(
             'Unable to add database: currently connecting.'
           );
-          return Promise.resolve(false);
+          return false;
         }
 
-        return new Promise((resolve, reject) => {
-          element
-            .onAddDatabaseClicked(this._context)
-            .then((successfullyAddedDatabase) => {
-              if (successfullyAddedDatabase) {
-                vscode.window.showInformationMessage(
-                  'Database and collection successfully created.'
-                );
+        const successfullyAddedDatabase = await element.onAddDatabaseClicked(
+          this._context
+        );
 
-                // When we successfully added a database & collection, we need
-                // to update the explorer view.
-                this._explorerController.refresh();
-              }
-              resolve(successfullyAddedDatabase);
-            }, reject);
-        });
+        if (successfullyAddedDatabase) {
+          vscode.window.showInformationMessage(
+            'Database and collection successfully created.'
+          );
+
+          // When we successfully added a database & collection, we need
+          // to update the explorer view.
+          this._explorerController.refresh();
+        }
+        return successfullyAddedDatabase;
       }
     );
     this.registerCommand(
       'mdb.copyDatabaseName',
-      (element: DatabaseTreeItem) => {
-        return new Promise((resolve, reject) => {
-          vscode.env.clipboard.writeText(element.databaseName).then(() => {
-            vscode.window.showInformationMessage('Copied to clipboard.');
-            return resolve(true);
-          }, reject);
-        });
+      async (element: DatabaseTreeItem) => {
+        await vscode.env.clipboard.writeText(element.databaseName);
+        vscode.window.showInformationMessage('Copied to clipboard.');
+        return true;
       }
     );
     this.registerCommand(
       'mdb.dropDatabase',
-      (element: DatabaseTreeItem): Promise<boolean> => {
-        return new Promise((resolve, reject) => {
-          element
-            .onDropDatabaseClicked()
-            .then((successfullyDroppedDatabase) => {
-              if (successfullyDroppedDatabase) {
-                vscode.window.showInformationMessage(
-                  'Database successfully dropped.'
-                );
+      async (element: DatabaseTreeItem): Promise<boolean> => {
+        const successfullyDroppedDatabase = await element.onDropDatabaseClicked();
 
-                // When we successfully drop a database, we need
-                // to update the explorer view.
-                this._explorerController.refresh();
-              }
+        if (successfullyDroppedDatabase) {
+          vscode.window.showInformationMessage(
+            'Database successfully dropped.'
+          );
 
-              resolve(successfullyDroppedDatabase);
-            }, reject);
-        });
+          // When we successfully drop a database, we need
+          // to update the explorer view.
+          this._explorerController.refresh();
+        }
+
+        return successfullyDroppedDatabase;
       }
     );
     this.registerCommand(
@@ -324,58 +312,48 @@ export default class MDBExtensionController implements vscode.Disposable {
           vscode.window.showErrorMessage(
             'Unable to add collection: currently disconnecting.'
           );
-          return Promise.resolve(false);
+          return false;
         }
 
-        return new Promise((resolve, reject) => {
-          element
-            .onAddCollectionClicked(this._context)
-            .then((successfullyAddedCollection) => {
-              if (successfullyAddedCollection) {
-                vscode.window.showInformationMessage(
-                  'Collection successfully created.'
-                );
+        const successfullyAddedCollection = await element
+          .onAddCollectionClicked(this._context);
+        if (successfullyAddedCollection) {
+          vscode.window.showInformationMessage(
+            'Collection successfully created.'
+          );
 
-                // When we successfully added a collection, we need
-                // to update the explorer view.
-                this._explorerController.refresh();
-              }
-              resolve(true);
-            }, reject);
-        });
+          // When we successfully added a collection, we need
+          // to update the explorer view.
+          this._explorerController.refresh();
+        }
+        return true;
       }
     );
     this.registerCommand(
       'mdb.copyCollectionName',
-      (element: CollectionTreeItem): Promise<boolean> => {
-        return new Promise((resolve, reject) => {
-          vscode.env.clipboard.writeText(element.collectionName).then(() => {
-            vscode.window.showInformationMessage('Copied to clipboard.');
-            return resolve(true);
-          }, reject);
-        });
+      async (element: CollectionTreeItem): Promise<boolean> => {
+        await vscode.env.clipboard.writeText(element.collectionName);
+        vscode.window.showInformationMessage('Copied to clipboard.');
+
+        return true;
       }
     );
     this.registerCommand(
       'mdb.dropCollection',
-      (element: CollectionTreeItem): Promise<boolean> => {
-        return new Promise((resolve, reject) => {
-          element
-            .onDropCollectionClicked()
-            .then((successfullyDroppedCollection) => {
-              if (successfullyDroppedCollection) {
-                vscode.window.showInformationMessage(
-                  'Collection successfully dropped.'
-                );
+      async (element: CollectionTreeItem): Promise<boolean> => {
+        const successfullyDroppedCollection = await element.onDropCollectionClicked();
 
-                // When we successfully drop a collection, we need
-                // to update the explorer view.
-                this._explorerController.refresh();
-              }
+        if (successfullyDroppedCollection) {
+          vscode.window.showInformationMessage(
+            'Collection successfully dropped.'
+          );
 
-              resolve(successfullyDroppedCollection);
-            }, reject);
-        });
+          // When we successfully drop a collection, we need
+          // to update the explorer view.
+          this._explorerController.refresh();
+        }
+
+        return successfullyDroppedCollection;
       }
     );
     this.registerCommand(
@@ -415,6 +393,17 @@ export default class MDBExtensionController implements vscode.Disposable {
       (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
         schemaTreeItem.resetCache();
         return this._explorerController.refresh();
+      }
+    );
+    this.registerCommand(
+      'mdb.copySchemaFieldName',
+      async (fieldTreeItem: FieldTreeItem): Promise<boolean> => {
+        await vscode.env.clipboard.writeText(
+          fieldTreeItem.getFieldName()
+        );
+        vscode.window.showInformationMessage('Copied to clipboard.');
+
+        return true;
       }
     );
   }

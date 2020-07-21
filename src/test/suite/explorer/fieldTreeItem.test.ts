@@ -1,7 +1,9 @@
 import * as assert from 'assert';
 import { afterEach } from 'mocha';
 
+const { contributes } = require('../../../../package.json');
 import FieldTreeItem, {
+  FIELD_TREE_ITEM_CONTEXT_VALUE,
   fieldIsExpandable,
   getIconFileNameForField
 } from '../../../explorer/fieldTreeItem';
@@ -16,6 +18,21 @@ import {
 import { TestExtensionContext } from '../stubs';
 
 suite('FieldTreeItem Test Suite', () => {
+  test('its context value should be in the package json', function() {
+    let registeredCommandInPackageJson = false;
+
+    contributes.menus['view/item/context'].forEach((contextItem) => {
+      if (contextItem.when.includes(FIELD_TREE_ITEM_CONTEXT_VALUE)) {
+        registeredCommandInPackageJson = true;
+      }
+    });
+
+    assert(
+      registeredCommandInPackageJson,
+      'Expected field tree item to be registered with a command in package json'
+    );
+  });
+
   test('it should have a different icon depending on the field type', () => {
     ext.context = new TestExtensionContext();
 

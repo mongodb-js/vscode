@@ -57,6 +57,7 @@ suite('Extension Test Suite', () => {
       'mdb.copyCollectionName',
       'mdb.refreshCollection',
       'mdb.refreshSchema',
+      'mdb.copySchemaFieldName',
 
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked'

@@ -25,7 +25,7 @@ export enum FieldType {
   regex = 'Regular Expression',
   string = 'String',
   timestamp = 'Timestamp',
-  undefined = 'Undefined'
+  undefined = 'Undefined',
 }
 
 export type SchemaFieldType = {
@@ -120,6 +120,8 @@ export const getIconFileNameForField = (
   return null;
 };
 
+export const FIELD_TREE_ITEM_CONTEXT_VALUE = 'fieldTreeItem';
+
 export default class FieldTreeItem extends vscode.TreeItem
   implements vscode.TreeDataProvider<FieldTreeItem>, TreeItemParent {
   // This is a flag which notes that when this tree element is updated,
@@ -133,7 +135,7 @@ export default class FieldTreeItem extends vscode.TreeItem
   field: SchemaFieldType;
   fieldName: string;
 
-  contextValue = 'fieldTreeItem';
+  contextValue = FIELD_TREE_ITEM_CONTEXT_VALUE;
 
   isExpanded: boolean;
 
@@ -238,6 +240,10 @@ export default class FieldTreeItem extends vscode.TreeItem
 
   getChildrenCache(): { [fieldName: string]: FieldTreeItem } {
     return this._childrenCache;
+  }
+
+  getFieldName(): string {
+    return this.fieldName;
   }
 
   get iconPath():
