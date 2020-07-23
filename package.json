@@ -173,8 +173,8 @@
         "title": "Create MongoDB Playground"
       },
       {
-        "command": "mdb.showActiveConnectionInPlayground",
-        "title": "MongoDB: Show Active Connection In Playground"
+        "command": "mdb.changeActiveConnection",
+        "title": "MongoDB: Change Active Connection"
       },
       {
         "command": "mdb.runSelectedPlaygroundBlocks",
@@ -465,7 +465,7 @@
           "when": "false"
         },
         {
-          "command": "mdb.showActiveConnectionInPlayground",
+          "command": "mdb.changeActiveConnection",
           "when": "false"
         },
         {

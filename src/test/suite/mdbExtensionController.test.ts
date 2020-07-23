@@ -1328,20 +1328,20 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
-  test('mdb.showActiveConnectionInPlayground command should call showActiveConnectionInPlayground on the playground controller', (done) => {
-    const mockShowActiveConnectionInPlayground = sinon.fake.resolves();
+  test('mdb.changeActiveConnection command should call changeActiveConnection on the playground controller', (done) => {
+    const mockChangeActiveConnection = sinon.fake.resolves();
     sinon.replace(
       mdbTestExtension.testExtensionController._playgroundController,
-      'showActiveConnectionInPlayground',
-      mockShowActiveConnectionInPlayground
+      'changeActiveConnection',
+      mockChangeActiveConnection
     );
 
     vscode.commands
-      .executeCommand('mdb.showActiveConnectionInPlayground')
+      .executeCommand('mdb.changeActiveConnection')
       .then(() => {
         assert(
-          mockShowActiveConnectionInPlayground.called,
-          'Expected "showActiveConnectionInPlayground" to be called on the playground controller.'
+          mockChangeActiveConnection.called,
+          'Expected "changeActiveConnection" to be called on the playground controller.'
         );
       })
       .then(done, done);

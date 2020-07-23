@@ -126,10 +126,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.runPlayground', () =>
       this._playgroundController.runAllOrSelectedPlaygroundBlocks()
     );
-    this.registerCommand(
-      'mdb.showActiveConnectionInPlayground',
-      (message: string) =>
-        this._playgroundController.showActiveConnectionInPlayground(message)
+    this.registerCommand('mdb.changeActiveConnection', () =>
+      this._playgroundController.changeActiveConnection()
     );
 
     this.registerCommand('mdb.startStreamLanguageServerLogs', () =>
@@ -315,8 +313,9 @@ export default class MDBExtensionController implements vscode.Disposable {
           return false;
         }
 
-        const successfullyAddedCollection = await element
-          .onAddCollectionClicked(this._context);
+        const successfullyAddedCollection = await element.onAddCollectionClicked(
+          this._context
+        );
         if (successfullyAddedCollection) {
           vscode.window.showInformationMessage(
             'Collection successfully created.'
@@ -398,9 +397,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       'mdb.copySchemaFieldName',
       async (fieldTreeItem: FieldTreeItem): Promise<boolean> => {
-        await vscode.env.clipboard.writeText(
-          fieldTreeItem.getFieldName()
-        );
+        await vscode.env.clipboard.writeText(fieldTreeItem.getFieldName());
         vscode.window.showInformationMessage('Copied to clipboard.');
 
         return true;
