@@ -28,7 +28,10 @@ const openFileOptions = {
   }
 };
 
-export const getWebviewContent = (webviewToShow: WEBVIEWS, jsAppFileUrl: vscode.Uri): string => {
+export const getWebviewContent = (
+  webviewToShow: WEBVIEWS,
+  jsAppFileUrl: vscode.Uri
+): string => {
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -196,7 +199,10 @@ export default class WebviewController {
     return Promise.resolve(true);
   }
 
-  openChangeStreamViewer(context: vscode.ExtensionContext): Promise<boolean> {
+  openChangeStreamViewer(
+    context: vscode.ExtensionContext,
+    namespace: string
+  ): Promise<boolean> {
     log.info('open change stream view called.');
 
     const extensionPath = context.extensionPath;
@@ -204,7 +210,7 @@ export default class WebviewController {
     // Create and show a new connect dialogue webview.
     const panel = vscode.window.createWebviewPanel(
       'connectDialogueWebview',
-      'MongoDB Change Stream', // Title
+      `MongoDB Change Stream: ${namespace}`, // Title
       vscode.ViewColumn.One, // Editor column to show the webview panel in.
       {
         enableScripts: true,
@@ -228,27 +234,48 @@ export default class WebviewController {
       context.subscriptions
     );
 
-    this.registerChangeStreamWatchers(panel);
+    try {
+      this.registerChangeStreamWatchers(panel, namespace);
+    } catch (err) {
+      console.log('error registering change stream viewers', err);
+      return Promise.resolve(false);
+    }
 
     return Promise.resolve(true);
   }
 
-  registerChangeStreamWatchers(panel: vscode.WebviewPanel): void {
+  registerChangeStreamWatchers(
+    panel: vscode.WebviewPanel,
+    namespace: string
+  ): void {
     // NOTE: This only works on replica sets.
 
     console.log('Registering change stream watchers...');
     const activeConnection = this._connectionController.getActiveDataService();
 
     if (activeConnection === null) {
-      vscode.window.showErrorMessage('Not currently connected. Cannot show change stream.');
+      vscode.window.showErrorMessage(
+        'Not currently connected. Cannot show change stream.'
+      );
       return;
     }
 
     const connectionClient = activeConnection.client;
+
+    const clientDB = connectionClient._database(namespace.split('.')[0]);
+
+    let changeStream;
+
+    if (namespace.includes('.')) {
+      changeStream = clientDB.collection(namespace.split('.')[1]).watch();
+    } else {
+      changeStream = clientDB.watch();
+    }
+
     // const clientDB = connectionClient._database(dbToWatch);
 
     // const dbChangeStream = clientDB.watch();
-    const changeStream = connectionClient.watch();
+    // const changeStream = connectionClient.watch();
 
     console.log('Registered change stream watcher, now watching...');
 

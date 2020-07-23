@@ -110,10 +110,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.treeViewOpenMongoDBShell', () =>
       launchMongoShell(this._connectionController)
     );
-    this.registerCommand(
-      'mdb.openChangeStream',
-      () => this._webviewController.openChangeStreamViewer(this._context)
-    );
 
     this.registerCommand('mdb.createPlayground', () =>
       this._playgroundController.createPlayground()
@@ -349,6 +345,23 @@ export default class MDBExtensionController implements vscode.Disposable {
         }
         return true;
       }
+    );
+    this.registerCommand(
+      'mdb.openDatabaseChangeStream',
+      (element: DatabaseTreeItem) =>
+        this._webviewController.openChangeStreamViewer(
+          this._context,
+          element.databaseName
+        )
+    );
+
+    this.registerCommand(
+      'mdb.openCollectionChangeStream',
+      (element: CollectionTreeItem) =>
+        this._webviewController.openChangeStreamViewer(
+          this._context,
+          element.namespace
+        )
     );
     this.registerCommand(
       'mdb.copyCollectionName',

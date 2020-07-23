@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 
 import { ActionTypes, LinkClickedAction } from '../../store/actions';
 import { AppState } from '../../store/store';
+import ChangeStreamEvent from './change-stream-event';
 
 const styles = require('../../connect.module.less');
 
@@ -29,10 +30,18 @@ class ChangeStreamViewer extends React.Component<props> {
 
     return (
       <div className={styles['change-stream']}>
-        Change stream viewer
-        <div>
-          Events: {JSON.stringify(changeStreamEvents)}
-        </div>
+        {(!changeStreamEvents || changeStreamEvents.length === 0) && (
+          <h3>
+            Listening for events...
+          </h3>
+        )}
+        {changeStreamEvents.map(event => (
+          <ChangeStreamEvent
+            _id={event._id}
+            operationType={event.operationType}
+            data={event}
+          />
+        ))}
       </div>
     );
   }

@@ -169,10 +169,6 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
-        "command": "mdb.openChangeStream",
-        "title": "View Change Stream"
-      },
-      {
         "command": "mdb.createNewPlaygroundFromViewAction",
         "title": "Create MongoDB Playground"
       },
@@ -265,6 +261,10 @@
         "title": "Refresh"
       },
       {
+        "command": "mdb.openDatabaseChangeStream",
+        "title": "View Database Change Stream"
+      },
+      {
         "command": "mdb.addCollection",
         "title": "Add Collection...",
         "icon": {
@@ -287,6 +287,10 @@
       {
         "command": "mdb.dropCollection",
         "title": "Drop Collection..."
+      },
+      {
+        "command": "mdb.openCollectionChangeStream",
+        "title": "View Collection Change Stream"
       },
       {
         "command": "mdb.refreshCollection",
@@ -355,11 +359,6 @@
           "group": "2@1"
         },
         {
-          "command": "mdb.openChangeStream",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
-          "group": "2@1"
-        },
-        {
           "command": "mdb.renameConnection",
           "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
           "group": "3@1"
@@ -420,9 +419,14 @@
           "group": "2@1"
         },
         {
-          "command": "mdb.dropDatabase",
+          "command": "mdb.openDatabaseChangeStream",
           "when": "view == mongoDB && viewItem == databaseTreeItem",
           "group": "3@1"
+        },
+        {
+          "command": "mdb.dropDatabase",
+          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "group": "4@1"
         },
         {
           "command": "mdb.viewCollectionDocuments",
@@ -440,14 +444,14 @@
           "group": "2@1"
         },
         {
-          "command": "mdb.dropCollection",
+          "command": "mdb.openCollectionChangeStream",
           "when": "view == mongoDB && viewItem == collectionTreeItem",
           "group": "3@1"
         },
         {
-          "command": "mdb.searchForDocuments",
-          "when": "view == mongoDB && viewItem == documentListTreeItem",
-          "group": "inline"
+          "command": "mdb.dropCollection",
+          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "group": "4@1"
         },
         {
           "command": "mdb.viewCollectionDocuments",
@@ -534,7 +538,7 @@
           "when": "false"
         },
         {
-          "command": "mdb.openChangeStream",
+          "command": "mdb.openDatabaseChangeStream",
           "when": "false"
         },
         {
@@ -555,6 +559,10 @@
         },
         {
           "command": "mdb.viewCollectionDocuments",
+          "when": "false"
+        },
+        {
+          "command": "mdb.openCollectionChangeStream",
           "when": "false"
         },
         {
