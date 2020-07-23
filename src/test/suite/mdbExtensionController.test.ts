@@ -14,6 +14,7 @@ import {
 } from '../../explorer';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { StorageScope } from '../../storage/storageController';
+import FieldTreeItem from '../../explorer/fieldTreeItem';
 
 const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
@@ -312,6 +313,37 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
+  test('mdb.copySchemaFieldName command should try to copy the field name to the vscode env clipboard', async () => {
+    const mockTreeItem = new FieldTreeItem(
+      {
+        name: 'dolphins are sentient',
+        probability: 1,
+        type: 'String',
+        types: []
+      },
+      false,
+      {}
+    );
+
+    const mockCopyToClipboard = sinon.fake.resolves();
+    sinon.replace(vscode.env.clipboard, 'writeText', mockCopyToClipboard);
+
+    const commandResult = await vscode.commands.executeCommand(
+      'mdb.copySchemaFieldName',
+      mockTreeItem
+    );
+
+    assert(commandResult);
+    assert(
+      mockCopyToClipboard.called,
+      'Expected "writeText" to be called on "vscode.env.clipboard".'
+    );
+    assert(
+      mockCopyToClipboard.firstArg === 'dolphins are sentient',
+      `Expected the clipboard to be sent the schema field name "dolphins are sentient", found ${mockCopyToClipboard.firstArg}.`
+    );
+  });
+
   test('mdb.refreshDatabase command should reset the cache on the database tree item', (done) => {
     const mockTreeItem = new DatabaseTreeItem(
       'pinkLemonade',
@@ -406,7 +438,6 @@ suite('MDBExtensionController Test Suite', () => {
 
     const collectionChildren = await mockTreeItem.getChildren();
     const docListTreeItem = collectionChildren[0];
-    console.log('collectionChildren', collectionChildren);
 
     assert(docListTreeItem.description === '9K');
 

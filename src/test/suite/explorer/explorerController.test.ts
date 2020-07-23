@@ -6,7 +6,7 @@ const sinon = require('sinon');
 
 import {
   DefaultSavingLocations,
-  StorageScope,
+  StorageScope
 } from '../../../storage/storageController';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -84,8 +84,8 @@ suite('Explorer Controller Test Suite', function () {
           connectionModel: new Connection(),
           name: 'testConnectionName',
           driverUrl: 'url',
-          storageLocation: StorageScope.NONE,
-        },
+          storageLocation: StorageScope.NONE
+        }
       };
       testConnectionController.setConnnectingConnectionId(mockConnectionId);
       testConnectionController.setConnnecting(true);
@@ -247,7 +247,7 @@ suite('Explorer Controller Test Suite', function () {
       driverUrl: '',
       name: 'aaa',
       id: 'aaa',
-      storageLocation: StorageScope.WORKSPACE,
+      storageLocation: StorageScope.WORKSPACE
     };
 
     testConnectionController._connections.zzz = {
@@ -256,7 +256,7 @@ suite('Explorer Controller Test Suite', function () {
       driverUrl: '',
       name: 'zzz',
       id: 'zzz',
-      storageLocation: StorageScope.WORKSPACE,
+      storageLocation: StorageScope.WORKSPACE
     };
 
     const treeControllerChildren = await treeController.getChildren();

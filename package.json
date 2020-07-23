@@ -285,6 +285,10 @@
         "title": "Refresh"
       },
       {
+        "command": "mdb.copySchemaFieldName",
+        "title": "Copy Field Name"
+      },
+      {
         "command": "mdb.startStreamLanguageServerLogs",
         "title": "LSP Inspector: Start Stream LSP Logs"
       }
@@ -434,6 +438,10 @@
         {
           "command": "mdb.refreshSchema",
           "when": "view == mongoDB && viewItem == schemaTreeItem"
+        },
+        {
+          "command": "mdb.copySchemaFieldName",
+          "when": "view == mongoDB && viewItem == fieldTreeItem"
         }
       ],
       "editor/title": [
@@ -534,6 +542,10 @@
         },
         {
           "command": "mdb.runPlayground",
+          "when": "false"
+        },
+        {
+          "command": "mdb.copySchemaFieldName",
           "when": "false"
         }
       ]
