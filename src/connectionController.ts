@@ -55,6 +55,12 @@ export default class ConnectionController {
   _activeConnectionModel: null | ConnectionModelType = null;
   private _currentConnectionId: null | string = null;
 
+  // When we are connecting to a server we save a connection version to
+  // the request. That way if a new connection attempt is made while
+  // the connection is being established, we know we can ignore the
+  // request when it is completed so we don't have two live connections at once.
+  private _connectingVersion = 0;
+
   private _connecting = false;
   private _connectingConnectionId: null | string = null;
   private _disconnecting = false;
@@ -231,7 +237,7 @@ export default class ConnectionController {
   public sendTelemetry(
     newDataService: DataServiceType,
     connectionType: ConnectionTypes
-  ) {
+  ): void {
     // Send metrics to Segment
     this._telemetryController.trackNewConnection(
       newDataService,
@@ -330,27 +336,25 @@ export default class ConnectionController {
       }).instanceId
     );
 
-    if (this._connecting) {
-      return Promise.reject(
-        new Error('Unable to connect: already connecting.')
-      );
-    }
+    // TODO:
+    // 1. Version the connect.
+    // 2. Allow disconnecting while connecting.
+    // 3. Allow adding / connecting to a new database when connecting.
 
-    if (this._disconnecting) {
-      return Promise.reject(
-        new Error('Unable to connect: currently disconnecting.')
-      );
-    }
-
-    if (this._activeDataService) {
-      await this.disconnect();
-    }
+    // Store a version of this connection, so we can see when the conection
+    // is successful if it is still the most recent connection attempt.
+    this._connectingVersion++;
+    const connectingAttemptVersion = this._connectingVersion;
 
     this._connecting = true;
     this._connectingConnectionId = connectionId;
 
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGING);
+
+    if (this._activeDataService) {
+      await this.disconnect();
+    }
 
     this._statusView.showMessage('Connecting to MongoDB...');
 
@@ -361,6 +365,18 @@ export default class ConnectionController {
       const newDataService: DataServiceType = new DataService(connectionModel);
 
       newDataService.connect((err: Error | undefined) => {
+        if (
+          connectingAttemptVersion !== this._connectingVersion
+          || !this._connections[connectionId]
+        ) {
+          // If the current attempt is no longer the most recent attempt
+          // or the connection no longer exists we silently end the connection
+          // and return.
+          newDataService.disconnect(() => {});
+
+          return resolve(false);
+        }
+
         this._statusView.hideMessage();
 
         if (err) {
@@ -392,7 +408,7 @@ export default class ConnectionController {
 
   public connectWithConnectionId = (connectionId: string): Promise<boolean> => {
     if (this._connections[connectionId]) {
-      let connectionModel: any;
+      let connectionModel: ConnectionModelType;
 
       try {
         const savedConnectionModel = this._connections[connectionId]
@@ -433,36 +449,28 @@ export default class ConnectionController {
       this._currentConnectionId
     );
 
-    if (this._disconnecting) {
+    if (!this._activeDataService) {
       vscode.window.showErrorMessage(
-        'Unable to disconnect: already disconnecting from an instance.'
+        'Unable to disconnect: no active connection.'
       );
 
       return Promise.resolve(false);
     }
 
-    if (this._connecting) {
-      // TODO: The desired UX here may be for the connection to be interrupted.
-      vscode.window.showErrorMessage(
-        'Unable to disconnect: currently connecting to an instance.'
-      );
+    const dataServiceToDisconnectFrom = this._activeDataService;
 
-      return Promise.resolve(false);
-    }
+    this._activeDataService = null;
+    this._currentConnectionId = null;
+    this._activeConnectionModel = null;
+    this._disconnecting = true;
+
+    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
     // Disconnect from the active connection.
     return new Promise<boolean>((resolve) => {
-      if (!this._activeDataService) {
-        vscode.window.showErrorMessage(
-          'Unable to disconnect: no active connection.'
-        );
-
-        return resolve(false);
-      }
-
-      this._disconnecting = true;
       this._statusView.showMessage('Disconnecting from current connection...');
-      this._activeDataService.disconnect((err: Error | undefined): void => {
+      dataServiceToDisconnectFrom.disconnect((err: Error | undefined): void => {
         if (err) {
           // Show an error, however we still reset the active connection to free up the extension.
           vscode.window.showErrorMessage(
@@ -471,16 +479,8 @@ export default class ConnectionController {
         } else {
           vscode.window.showInformationMessage('MongoDB disconnected.');
         }
-
-        this._activeDataService = null;
-        this._currentConnectionId = null;
-        this._activeConnectionModel = null;
-
         this._disconnecting = false;
         this._statusView.hideMessage();
-
-        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-        this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
         return resolve(true);
       });
@@ -506,24 +506,6 @@ export default class ConnectionController {
 
   // Prompts the user to remove the connection then removes it on affirmation.
   public async removeMongoDBConnection(connectionId: string): Promise<boolean> {
-    // Ensure we aren't currently connecting.
-    if (this._connecting) {
-      vscode.window.showErrorMessage(
-        'Unable to remove connection: currently connecting.'
-      );
-
-      return Promise.resolve(false);
-    }
-
-    // Ensure we aren't currently disconnecting.
-    if (this._disconnecting) {
-      vscode.window.showErrorMessage(
-        'Unable to remove connection: currently disconnecting.'
-      );
-
-      return Promise.resolve(false);
-    }
-
     if (!this._connections[connectionId]) {
       // No active connection(s) to remove.
       vscode.window.showErrorMessage('Connection does not exist.');
@@ -545,6 +527,11 @@ export default class ConnectionController {
       await this.disconnect();
     }
 
+    if (!this._connections[connectionId]) {
+      // If the connection was removed while we were disconnecting we resolve.
+      return Promise.resolve(false);
+    }
+
     await this.removeSavedConnection(connectionId);
 
     vscode.window.showInformationMessage('MongoDB connection removed.');
@@ -554,24 +541,6 @@ export default class ConnectionController {
 
   public async onRemoveMongoDBConnection(): Promise<boolean> {
     log.info('mdb.removeConnection command called');
-
-    // Ensure we aren't currently connecting.
-    if (this._connecting) {
-      vscode.window.showErrorMessage(
-        'Unable to remove connection: currently connecting.'
-      );
-
-      return Promise.resolve(false);
-    }
-
-    // Ensure we aren't currently disconnecting.
-    if (this._disconnecting) {
-      vscode.window.showErrorMessage(
-        'Unable to remove connection: currently disconnecting.'
-      );
-
-      return Promise.resolve(false);
-    }
 
     const connectionIds = Object.keys(this._connections);
 
