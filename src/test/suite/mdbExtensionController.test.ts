@@ -1331,7 +1331,7 @@ suite('MDBExtensionController Test Suite', () => {
   test('mdb.changeActiveConnection command should call changeActiveConnection on the playground controller', (done) => {
     const mockChangeActiveConnection = sinon.fake.resolves();
     sinon.replace(
-      mdbTestExtension.testExtensionController._playgroundController,
+      mdbTestExtension.testExtensionController._connectionController,
       'changeActiveConnection',
       mockChangeActiveConnection
     );

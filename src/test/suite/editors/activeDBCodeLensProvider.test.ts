@@ -44,7 +44,7 @@ suite('Active DB CodeLens Provider Test Suite', () => {
       expect(codeLens).to.be.an('array');
       expect(codeLens.length).to.be.equal(1);
       expect(codeLens[0].command?.title).to.be.equal(
-        'Disconnected. Click here to add connection.'
+        'Disconnected. Click here to connect.'
       );
       expect(codeLens[0].range.start.line).to.be.equal(0);
       expect(codeLens[0].range.end.line).to.be.equal(0);

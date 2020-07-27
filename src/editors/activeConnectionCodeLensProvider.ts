@@ -23,10 +23,15 @@ export default class ActiveConnectionCodeLensProvider
 
   public provideCodeLenses(): vscode.CodeLens[] {
     const codeLens = new vscode.CodeLens(new vscode.Range(0, 0, 0, 0));
-    const activeConnection = this._connectionController.getActiveDataService();
-    const message = activeConnection
-      ? `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`
-      : 'Disconnected. Click here to add connection.';
+    let message = '';
+
+    if (this._connectionController.isConnecting()) {
+      message = 'Connecting...';
+    } else if (this._connectionController.getActiveDataService()) {
+      message = `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`;
+    } else {
+      message = 'Disconnected. Click here to connect.';
+    }
 
     codeLens.command = {
       title: message,

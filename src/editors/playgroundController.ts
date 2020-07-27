@@ -12,11 +12,6 @@ import { createLogger } from '../logging';
 
 const log = createLogger('playground controller');
 
-export enum NewConnectionType {
-  NEW_CONNECTION = 'NEW_CONNECTION',
-  SAVED_CONNECTION = 'SAVED_CONNECTION'
-}
-
 /**
  * This controller manages playground.
  */
@@ -173,70 +168,6 @@ export default class PlaygroundController {
           vscode.window.showTextDocument(document);
           resolve(true);
         }, reject);
-    });
-  }
-
-  private getСonnectionQuickPicks(): any[] {
-    if (!this._connectionController._connections) {
-      return [
-        {
-          label: 'Add new connection',
-          data: {
-            type: NewConnectionType.NEW_CONNECTION
-          }
-        }
-      ];
-    }
-
-    return [
-      {
-        label: 'Add new connection',
-        data: {
-          type: NewConnectionType.NEW_CONNECTION
-        }
-      },
-      ...Object.values(this._connectionController._connections)
-        .map((item) => ({
-          label: item.name,
-          data: {
-            type: NewConnectionType.SAVED_CONNECTION,
-            connectionModel: item.connectionModel
-          }
-        }))
-        .sort((collectionA: any, collectionB: any) => {
-          if (collectionA.name < collectionB.name) {
-            return -1;
-          }
-          if (collectionA.name > collectionB.name) {
-            return 1;
-          }
-          return 0;
-        })
-    ];
-  }
-
-  public changeActiveConnection(): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      const selectedQuickPickItem = await vscode.window.showQuickPick(
-        this.getСonnectionQuickPicks(),
-        {
-          placeHolder: 'Select new connection...'
-        }
-      );
-
-      if (!selectedQuickPickItem) {
-        return resolve(true);
-      }
-
-      if (
-        selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION
-      ) {
-        return this._connectionController.connectWithURI();
-      }
-
-      return this._connectionController.parseNewConnectionAndConnect(
-        selectedQuickPickItem.data.connectionModel
-      );
     });
   }
 
