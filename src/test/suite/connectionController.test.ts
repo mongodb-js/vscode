@@ -694,85 +694,115 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('СonnectionQuickPicks list is displayed in the alphanumerical case insensitive order', async () => {
-    try {
-      await vscode.workspace
-        .getConfiguration('mdb.connectionSaving')
-        .update(
-          'defaultConnectionSavingLocation',
-          DefaultSavingLocations.Workspace
-        );
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
+    await vscode.workspace
+      .getConfiguration('mdb.connectionSaving')
+      .update(
+        'defaultConnectionSavingLocation',
+        DefaultSavingLocations.Workspace
       );
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
-      await testConnectionController.disconnect();
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
+    await testConnectionController.disconnect();
 
-      testConnectionController.clearAllConnections();
+    testConnectionController.clearAllConnections();
 
-      await testConnectionController.loadSavedConnections();
+    await testConnectionController.loadSavedConnections();
 
-      let connections = testConnectionController._connections;
-      let connectionIds = Object.keys(connections);
+    let connections = testConnectionController._connections;
+    const connectionIds = Object.keys(connections);
 
-      assert(
-        connectionIds.length === 2,
-        `Expected 2 connection configurations found ${connectionIds.length}`
-      );
-      assert(
-        connections[connectionIds[0]].name === 'localhost:27018',
-        `Expected the first connection name to be 'localhost:27018', found '${
-          connections[connectionIds[0]].name
-        }'.`
-      );
-      assert(
-        connections[connectionIds[1]].name === 'localhost:27018',
-        `Expected the second connection name to be 'localhost:27018', found '${
-          connections[connectionIds[1]].name
-        }'.`
-      );
+    assert(
+      connectionIds.length === 2,
+      `Expected 2 connection configurations found ${connectionIds.length}`
+    );
+    assert(
+      connections[connectionIds[0]].name === 'localhost:27018',
+      `Expected the first connection name to be 'localhost:27018', found '${
+        connections[connectionIds[0]].name
+      }'.`
+    );
+    assert(
+      connections[connectionIds[1]].name === 'localhost:27018',
+      `Expected the second connection name to be 'localhost:27018', found '${
+        connections[connectionIds[1]].name
+      }'.`
+    );
 
-      const mockInputBoxResolves = sinon.stub();
+    const mockInputBoxResolves = sinon.stub();
 
-      mockInputBoxResolves.onCall(0).resolves('Lynx');
-      sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+    mockInputBoxResolves.onCall(0).resolves('Lynx');
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-      const renameSuccess = await testConnectionController.renameConnection(
-        connectionIds[0]
-      );
+    const renameSuccess = await testConnectionController.renameConnection(
+      connectionIds[0]
+    );
 
-      assert(renameSuccess);
+    assert(renameSuccess);
 
-      await testConnectionController.loadSavedConnections();
+    await testConnectionController.loadSavedConnections();
 
-      connections = testConnectionController._connections;
+    connections = testConnectionController._connections;
 
-      assert(
-        connectionIds.length === 2,
-        `Expected 2 connection configurations found ${connectionIds.length}`
-      );
+    assert(
+      connectionIds.length === 2,
+      `Expected 2 connection configurations found ${connectionIds.length}`
+    );
 
-      const connectionQuickPicks = testConnectionController.getСonnectionQuickPicks();
+    const connectionQuickPicks = testConnectionController.getСonnectionQuickPicks();
 
-      assert(
-        connectionQuickPicks.length === 3,
-        `Expected 3 connections found ${connectionIds.length} in connectionQuickPicks`
-      );
-      assert(
-        connectionQuickPicks[0].label === 'Add new connection',
-        `Expected the first quick pick label to be 'Add new connection', found '${connectionQuickPicks[0].name}'.`
-      );
-      assert(
-        connectionQuickPicks[1].label === 'localhost:27018',
-        `Expected the second quick pick label to be 'localhost:27018', found '${connectionQuickPicks[1].name}'.`
-      );
-      assert(
-        connectionQuickPicks[2].label === 'Lynx',
-        `Expected the third quick pick labele to be 'Lynx', found '${connectionQuickPicks[2].name}'.`
-      );
-    } catch (error) {
-      assert(false);
-    }
+    assert(
+      connectionQuickPicks.length === 3,
+      `Expected 3 connections found ${connectionIds.length} in connectionQuickPicks`
+    );
+    assert(
+      connectionQuickPicks[0].label === 'Add new connection',
+      `Expected the first quick pick label to be 'Add new connection', found '${connectionQuickPicks[0].name}'.`
+    );
+    assert(
+      connectionQuickPicks[1].label === 'localhost:27018',
+      `Expected the second quick pick label to be 'localhost:27018', found '${connectionQuickPicks[1].name}'.`
+    );
+    assert(
+      connectionQuickPicks[2].label === 'Lynx',
+      `Expected the third quick pick labele to be 'Lynx', found '${connectionQuickPicks[2].name}'.`
+    );
+  });
+
+  suite('connecting to a new connection when already connecting', () => {
+    test('connects to the new connection', async () => {
+      // todo
+    });
+
+    test('updates the connecting version', async () => {
+      // todo
+    });
+
+    test('disconnects the first attempt', async () => {
+      // todo
+    });
+  });
+
+  test('two disconnects on one connection at once', async () => {
+    // todo
+  });
+
+  test('two disconnects on one connection at once', async () => {
+    // todo
   });
 });
+
+/*
+To test:
+- Disconnect when connecting.
+- Remove when connecting.
+- Remove not active connecting.
+- Remove when disconnecting.
+- Connect to 5 connections.
+
+- todo Create ticket for the db user connecting.
+*/
+
