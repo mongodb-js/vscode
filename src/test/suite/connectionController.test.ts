@@ -841,6 +841,10 @@ suite('Connection Controller Test Suite', function () {
       await testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
       );
+      await testConnectionController.disconnect();
+
+      testConnectionController.clearAllConnections();
+
       await testConnectionController.loadSavedConnections();
 
       let connections = testConnectionController._connections;
