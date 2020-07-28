@@ -783,7 +783,7 @@ export default class ConnectionController {
     this._disconnecting = disconnecting;
   }
 
-  private getСonnectionQuickPicks(): any[] {
+  public getСonnectionQuickPicks(): any[] {
     if (!this._connections) {
       return [
         {
@@ -803,22 +803,16 @@ export default class ConnectionController {
         }
       },
       ...Object.values(this._connections)
-        .map((item) => ({
+        .sort((connectionA: any, connectionB: any) =>
+          (connectionA.name || '').localeCompare(connectionB.name || '')
+        )
+        .map((item: any) => ({
           label: item.name,
           data: {
             type: NewConnectionType.SAVED_CONNECTION,
             connectionId: item.id
           }
         }))
-        .sort((collectionA: any, collectionB: any) => {
-          if (collectionA.name < collectionB.name) {
-            return -1;
-          }
-          if (collectionA.name > collectionB.name) {
-            return 1;
-          }
-          return 0;
-        })
     ];
   }
 

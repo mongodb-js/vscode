@@ -151,7 +151,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('collections are displayed in the alphanumerical order', (done) => {
+  test('collections are displayed in the alphanumerical case insensitive order', (done) => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[2],
       new DataServiceStub(),
@@ -163,10 +163,10 @@ suite('DatabaseTreeItem Test Suite', () => {
     const expectedCollectionsOrder = [
       '111_abc',
       '222_abc',
-      'AAA',
-      'ZZZ',
       'aaa',
-      'zzz'
+      'AAA',
+      'zzz',
+      'ZZZ'
     ];
 
     testDatabaseTreeItem
