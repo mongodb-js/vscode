@@ -37,6 +37,11 @@ export type SavedConnectionInformation = {
 // A loaded connection contains connection information.
 export type LoadedConnection = SavedConnection & SavedConnectionInformation;
 
+export enum NewConnectionType {
+  NEW_CONNECTION = 'NEW_CONNECTION',
+  SAVED_CONNECTION = 'SAVED_CONNECTION'
+}
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
@@ -586,13 +591,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._connections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
-      );
+      connectionIds.map(
+        (id, index) => `${index + 1}: ${this._connections[id].name}`
+      ),
+      {
+        placeHolder: 'Choose a connection to remove...'
+      }
+    );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
@@ -776,5 +781,64 @@ export default class ConnectionController {
 
   public setDisconnecting(disconnecting: boolean): void {
     this._disconnecting = disconnecting;
+  }
+
+  public getСonnectionQuickPicks(): any[] {
+    if (!this._connections) {
+      return [
+        {
+          label: 'Add new connection',
+          data: {
+            type: NewConnectionType.NEW_CONNECTION
+          }
+        }
+      ];
+    }
+
+    return [
+      {
+        label: 'Add new connection',
+        data: {
+          type: NewConnectionType.NEW_CONNECTION
+        }
+      },
+      ...Object.values(this._connections)
+        .sort((connectionA: any, connectionB: any) =>
+          (connectionA.name || '').localeCompare(connectionB.name || '')
+        )
+        .map((item: any) => ({
+          label: item.name,
+          data: {
+            type: NewConnectionType.SAVED_CONNECTION,
+            connectionId: item.id
+          }
+        }))
+    ];
+  }
+
+  public changeActiveConnection(): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      const selectedQuickPickItem = await vscode.window.showQuickPick(
+        this.getСonnectionQuickPicks(),
+        {
+          placeHolder: 'Select new connection...'
+        }
+      );
+
+      if (!selectedQuickPickItem) {
+        return resolve(true);
+      }
+
+      if (
+        selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION
+      ) {
+        return this.connectWithURI();
+      }
+
+      // Get the saved connection by id and return as the current connection.
+      return this.connectWithConnectionId(
+        selectedQuickPickItem.data.connectionId
+      );
+    });
   }
 }

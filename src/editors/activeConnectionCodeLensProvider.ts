@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
-export default class ActiveConnectionCodeLensProvider implements vscode.CodeLensProvider {
-  private _codeLenses: vscode.CodeLens[] = [];
+export default class ActiveConnectionCodeLensProvider
+  implements vscode.CodeLensProvider {
   private _connectionController: any;
   private _onDidChangeCodeLenses: vscode.EventEmitter<
     void
@@ -22,27 +22,23 @@ export default class ActiveConnectionCodeLensProvider implements vscode.CodeLens
   }
 
   public provideCodeLenses(): vscode.CodeLens[] {
-    const activeConnection = this._connectionController.getActiveDataService();
+    const codeLens = new vscode.CodeLens(new vscode.Range(0, 0, 0, 0));
+    let message = '';
 
-    if (!activeConnection) {
-      return [];
+    if (this._connectionController.isConnecting()) {
+      message = 'Connecting...';
+    } else if (this._connectionController.getActiveDataService()) {
+      message = `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`;
+    } else {
+      message = 'Disconnected. Click here to connect.';
     }
-
-    this._codeLenses = [new vscode.CodeLens(new vscode.Range(0, 0, 0, 0))];
-
-    return this._codeLenses;
-  }
-
-  public resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
-    const name = this._connectionController.getActiveConnectionName();
-    const message = `Currently connected to ${name}`;
 
     codeLens.command = {
       title: message,
-      command: "mdb.showActiveConnectionInPlayground",
-      arguments: [message]
+      command: 'mdb.changeActiveConnection',
+      arguments: []
     };
 
-    return codeLens;
+    return [codeLens];
   }
 }

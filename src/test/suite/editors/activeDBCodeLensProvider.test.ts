@@ -1,10 +1,15 @@
-import * as assert from 'assert';
+import * as vscode from 'vscode';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import { TestExtensionContext, mockVSCodeTextDocument } from '../stubs';
+import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
 import TelemetryController from '../../../telemetry/telemetryController';
+import { beforeEach, afterEach } from 'mocha';
+
+const sinon = require('sinon');
+const chai = require('chai');
+const expect = chai.expect;
 
 suite('Active DB CodeLens Provider Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
@@ -14,7 +19,7 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     mockExtensionContext
   );
 
-  test('expected provideCodeLenses to return empty array when user is not connected', () => {
+  suite('user is not connected', () => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -23,13 +28,30 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController
     );
-    const codeLens = testCodeLensProvider.provideCodeLenses();
+    const mockShowQuickPick = sinon.fake.resolves();
 
-    assert(!!codeLens);
-    assert(codeLens.length === 0);
+    beforeEach(() => {
+      sinon.replace(vscode.window, 'showQuickPick', mockShowQuickPick);
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    test('show disconnected message in code lenses', () => {
+      const codeLens = testCodeLensProvider.provideCodeLenses();
+
+      expect(codeLens).to.be.an('array');
+      expect(codeLens.length).to.be.equal(1);
+      expect(codeLens[0].command?.title).to.be.equal(
+        'Disconnected. Click here to connect.'
+      );
+      expect(codeLens[0].range.start.line).to.be.equal(0);
+      expect(codeLens[0].range.end.line).to.be.equal(0);
+    });
   });
 
-  test('expected provideCodeLenses to return a code lens with positions at the first line of the document', () => {
+  suite('user is connected', () => {
     const testConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -44,22 +66,34 @@ suite('Active DB CodeLens Provider Test Suite', () => {
       },
       client: {}
     };
+
     testConnectionController.setActiveConnection(mockActiveConnection);
 
-    const codeLens = testCodeLensProvider.provideCodeLenses();
+    beforeEach(() => {
+      sinon.replace(
+        testConnectionController,
+        'getActiveConnectionName',
+        sinon.fake.returns('fakeName')
+      );
+    });
 
-    assert(!!codeLens);
-    assert(codeLens.length === 1);
-    const range = codeLens[0].range;
-    const expectedStartLine = 0;
-    assert(
-      range.start.line === expectedStartLine,
-      `Expected a codeLens position to be at line ${expectedStartLine}, found ${range.start.line}`
-    );
-    const expectedEnd = 0;
-    assert(
-      range.end.line === expectedEnd,
-      `Expected a codeLens position to be at line ${expectedEnd}, found ${range.end.line}`
-    );
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    test('show active connection in code lenses', () => {
+      const codeLens = testCodeLensProvider.provideCodeLenses();
+
+      expect(codeLens).to.be.an('array');
+      expect(codeLens.length).to.be.equal(1);
+      expect(codeLens[0].command?.title).to.be.equal(
+        'Currently connected to fakeName. Click here to change connection.'
+      );
+      expect(codeLens[0].range.start.line).to.be.equal(0);
+      expect(codeLens[0].range.end.line).to.be.equal(0);
+      expect(codeLens[0].command?.command).to.be.equal(
+        'mdb.changeActiveConnection'
+      );
+    });
   });
 });

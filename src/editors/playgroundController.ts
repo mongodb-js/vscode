@@ -171,16 +171,6 @@ export default class PlaygroundController {
     });
   }
 
-  public showActiveConnectionInPlayground(message: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      this._outputChannel.clear();
-      this._outputChannel.append(message);
-      this._outputChannel.show(true);
-
-      resolve(true);
-    });
-  }
-
   public async evaluate(codeToEvaluate: string): Promise<any> {
     // Send a request to the language server to execute scripts from a playground.
     const result = await this._languageServerController.executeAll(
