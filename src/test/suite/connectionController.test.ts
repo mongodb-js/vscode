@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import * as sinon from 'sinon';
 import Connection = require('mongodb-connection-model/lib/model');
+
 import TelemetryController from '../../telemetry/telemetryController';
 import ConnectionController, {
   DataServiceEventTypes
@@ -15,12 +16,13 @@ import {
 import { StatusView } from '../../views';
 import { TestExtensionContext } from './stubs';
 import { TEST_DATABASE_URI } from './dbTestHelper';
+import { ConnectionModelType } from '../../connectionModelType';
 
 const testDatabaseInstanceId = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
-const sleep = (ms: number) => {
+const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
@@ -195,8 +197,41 @@ suite('Connection Controller Test Suite', function () {
     }
   });
 
+  test('when adding a new connection it sets the connection controller as connecting while it disconnects from the current connection', async () => {
+    const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
+
+    assert(
+      succesfullyConnected,
+      'Expected a successful (true) connection response.'
+    );
+
+    let wasSetToConnectingWhenDisconnecting = false;
+    sinon.replace(
+      testConnectionController,
+      'disconnect',
+      () => {
+        wasSetToConnectingWhenDisconnecting = true;
+
+        return Promise.resolve(true);
+      }
+    );
+
+    const succesfullyConnected2 = await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
+
+    assert(
+      succesfullyConnected2,
+      'Expected a successful (true) connection response.'
+    );
+
+    assert(wasSetToConnectingWhenDisconnecting);
+  });
+
   test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', async () => {
-    let isConnectionChanged: any = false;
+    let isConnectionChanged = false;
 
     testConnectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
@@ -210,7 +245,7 @@ suite('Connection Controller Test Suite', function () {
     );
     await sleep(50);
 
-    assert(isConnectionChanged === true);
+    assert(isConnectionChanged);
   });
 
   const expectedTimesToFire = 3;
@@ -384,7 +419,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('a connection can be connected to by id', async () => {
-    const getConnection = (dbUri): Promise<any> =>
+    const getConnection = (dbUri): Promise<ConnectionModelType> =>
       new Promise((resolve, reject) => {
         Connection.from(dbUri, (err, connectionModel) => {
           if (err) {
@@ -774,35 +809,89 @@ suite('Connection Controller Test Suite', function () {
 
   suite('connecting to a new connection when already connecting', () => {
     test('connects to the new connection', async () => {
-      // todo
+      testConnectionController.addNewConnectionStringAndConnect(
+        testDatabaseURI2WithTimeout
+      );
+
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
+
+      assert(!testConnectionController.isConnecting());
+
+      // Ensure the first connection completes.
+      await sleep(1050);
+
+      assert(testConnectionController.isCurrentlyConnected());
+      assert(testConnectionController.getActiveConnectionName() === 'localhost:27018');
     });
 
-    test('updates the connecting version', async () => {
-      // todo
+    test('increments the connecting version on each new connection attempt', async () => {
+      testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
+
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
+      assert(testConnectionController.getConnectingVersion() === 2);
     });
 
-    test('disconnects the first attempt', async () => {
-      // todo
+    test('it only connects to the most recent connection attempt', async () => {
+      const getConnection = (dbUri): Promise<ConnectionModelType> =>
+        new Promise((resolve, reject) => {
+          Connection.from(dbUri, (err, connectionModel) => {
+            if (err) {
+              return reject(err);
+            }
+
+            return resolve(connectionModel);
+          });
+        });
+
+      const connectionModel = await getConnection(TEST_DATABASE_URI);
+
+      for (let i = 0; i < 5; i++) {
+        const id = `${i}`;
+        testConnectionController._connections[id] = {
+          id,
+          driverUrl: TEST_DATABASE_URI,
+          name: `test${i}`,
+          connectionModel,
+          storageLocation: StorageScope.NONE
+        };
+      }
+
+      for (let i = 0; i < 5; i++) {
+        const id = `${i}`;
+        testConnectionController.connectWithConnectionId(id);
+      }
+
+      // Ensure the connections complete.
+      await sleep(1000);
+
+      assert(!testConnectionController.isConnecting());
+      assert(testConnectionController.isCurrentlyConnected());
+      assert(testConnectionController.getActiveConnectionName() === 'test4');
     });
   });
 
   test('two disconnects on one connection at once', async () => {
-    // todo
-  });
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
 
-  test('two disconnects on one connection at once', async () => {
-    // todo
+    try {
+      testConnectionController.disconnect();
+      testConnectionController.disconnect();
+    } catch (err) {
+      assert(
+        false,
+        `Expected not to error when disconnecting multiple times, recieved: ${err}`
+      );
+    }
+
+    // Ensure the disconnects complete.
+    await sleep(100);
   });
 });
-
-/*
-To test:
-- Disconnect when connecting.
-- Remove when connecting.
-- Remove not active connecting.
-- Remove when disconnecting.
-- Connect to 5 connections.
-
-- todo Create ticket for the db user connecting.
-*/
-

@@ -336,11 +336,6 @@ export default class ConnectionController {
       }).instanceId
     );
 
-    // TODO:
-    // 1. Version the connect.
-    // 2. Allow disconnecting while connecting.
-    // 3. Allow adding / connecting to a new database when connecting.
-
     // Store a version of this connection, so we can see when the conection
     // is successful if it is still the most recent connection attempt.
     this._connectingVersion++;
@@ -372,7 +367,9 @@ export default class ConnectionController {
           // If the current attempt is no longer the most recent attempt
           // or the connection no longer exists we silently end the connection
           // and return.
-          newDataService.disconnect(() => {});
+          try {
+            newDataService.disconnect(() => {});
+          } catch (e) { /* */ }
 
           return resolve(false);
         }
@@ -734,6 +731,11 @@ export default class ConnectionController {
     this._connecting = false;
     this._disconnecting = false;
     this._connectingConnectionId = '';
+    this._connectingVersion = 0;
+  }
+
+  public getConnectingVersion(): number {
+    return this._connectingVersion;
   }
 
   public setActiveConnection(newActiveConnection: any): void {
