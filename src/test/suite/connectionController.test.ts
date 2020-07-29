@@ -26,6 +26,17 @@ const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
+const getConnection = (dbUri): Promise<ConnectionModelType> =>
+  new Promise((resolve, reject) => {
+    Connection.from(dbUri, (err, connectionModel) => {
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve(connectionModel);
+    });
+  });
+
 suite('Connection Controller Test Suite', function () {
   this.timeout(5000);
 
@@ -419,17 +430,6 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('a connection can be connected to by id', async () => {
-    const getConnection = (dbUri): Promise<ConnectionModelType> =>
-      new Promise((resolve, reject) => {
-        Connection.from(dbUri, (err, connectionModel) => {
-          if (err) {
-            return reject(err);
-          }
-
-          return resolve(connectionModel);
-        });
-      });
-
     const connectionModel = await getConnection(TEST_DATABASE_URI);
 
     testConnectionController._connections = {
@@ -838,17 +838,6 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('it only connects to the most recent connection attempt', async () => {
-      const getConnection = (dbUri): Promise<ConnectionModelType> =>
-        new Promise((resolve, reject) => {
-          Connection.from(dbUri, (err, connectionModel) => {
-            if (err) {
-              return reject(err);
-            }
-
-            return resolve(connectionModel);
-          });
-        });
-
       const connectionModel = await getConnection(TEST_DATABASE_URI);
 
       for (let i = 0; i < 5; i++) {
@@ -893,5 +882,63 @@ suite('Connection Controller Test Suite', function () {
 
     // Ensure the disconnects complete.
     await sleep(100);
+
+    assert(!testConnectionController.isCurrentlyConnected());
+    assert(testConnectionController.getActiveDataService() === null);
+  });
+
+  test('a connection which fails can be removed while it is being connected to', async () => {
+    const connectionModel = await getConnection(testDatabaseURI2WithTimeout);
+
+    const connectionId = 'skateboard';
+    testConnectionController._connections[connectionId] = {
+      id: connectionId,
+      driverUrl: testDatabaseURI2WithTimeout,
+      name: 'asdfasdg',
+      connectionModel,
+      storageLocation: StorageScope.NONE
+    };
+
+    testConnectionController.connectWithConnectionId(connectionId);
+
+    // Ensure the connection starts but doesn't time out yet.
+    await sleep(250);
+
+    assert(testConnectionController.isConnecting());
+
+    await testConnectionController.removeSavedConnection(connectionId);
+
+    // Wait for the connection to timeout and complete (and not error in the process).
+    await sleep(1000);
+  });
+
+  test('a successfully connecting connection can be removed while it is being connected to', async () => {
+    const connectionModel = await getConnection(TEST_DATABASE_URI);
+
+    const connectionId = 'skateboard';
+    testConnectionController._connections[connectionId] = {
+      id: connectionId,
+      driverUrl: TEST_DATABASE_URI,
+      name: 'asdfasdg',
+      connectionModel,
+      storageLocation: StorageScope.NONE
+    };
+
+    testConnectionController.connectWithConnectionId(connectionId);
+
+    // Ensure the connection starts but doesn't time out yet.
+    await sleep(2);
+
+    assert(testConnectionController.isConnecting());
+
+    await testConnectionController.removeSavedConnection(connectionId);
+
+    // Wait for the connection to timeout and complete (and not error in the process).
+    await sleep(500);
+
+    assert(
+      !testConnectionController.isCurrentlyConnected(),
+      'Did not expect to connect to the connection which was removed.'
+    );
   });
 });
