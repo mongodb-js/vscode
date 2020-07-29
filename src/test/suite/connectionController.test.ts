@@ -927,7 +927,7 @@ suite('Connection Controller Test Suite', function () {
     testConnectionController.connectWithConnectionId(connectionId);
 
     // Ensure the connection starts but doesn't time out yet.
-    await sleep(2);
+    await sleep(0);
 
     assert(testConnectionController.isConnecting());
 
