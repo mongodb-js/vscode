@@ -29,7 +29,7 @@ export default class ExplorerController {
     );
 
     if (!this._treeView) {
-      this._treeView = vscode.window.createTreeView('mongoDB', {
+      this._treeView = vscode.window.createTreeView('mongoDBConnectionExplorer', {
         treeDataProvider: this._treeController
       });
       this._treeController.activateTreeViewEventHandlers(this._treeView);
