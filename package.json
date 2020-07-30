@@ -473,6 +473,10 @@
       ],
       "commandPalette": [
         {
+          "command": "mdb.searchForDocuments",
+          "when": "false"
+        },
+        {
           "command": "mdb.addConnection",
           "when": "false"
         },
