@@ -1229,6 +1229,31 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
+  test('mdb.searchForDocuments should create a MongoDB playground with search template', async () => {
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument = sinon.fake.resolves();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    await vscode.commands.executeCommand(
+      'mdb.searchForDocuments',
+      'dbName',
+      'collName'
+    );
+
+    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        'Search for documents in the current collection.'
+      )
+    );
+    assert(
+      mockShowTextDocument.firstArg === 'untitled',
+      'Expected it to call vscode to show the playground'
+    );
+  });
+
   test('mdb.createPlayground should create a MongoDB playground with default template', async () => {
     const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);

@@ -8,6 +8,7 @@ import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider
 import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundTemplate from '../templates/playgroundTemplate';
+import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import { createLogger } from '../logging';
 
 const log = createLogger('playground controller');
@@ -150,6 +151,28 @@ export default class PlaygroundController {
     this._connectionOptions = undefined;
 
     return this._languageServerController.disconnectFromServiceProvider();
+  }
+
+  public createPlaygroundForSearch(
+    databaseName: string,
+    collectionName: string
+  ): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const content = playgroundSearchTemplate
+        .replace('CURRENT_DATABASE', databaseName)
+        .replace('CURRENT_COLLECTION', collectionName);
+
+      vscode.workspace
+        .openTextDocument({
+          language: 'mongodb',
+          content
+        })
+        .then((document) => {
+          this._outputChannel.show(true);
+          vscode.window.showTextDocument(document);
+          resolve(true);
+        }, reject);
+    });
   }
 
   public createPlayground(): Promise<boolean> {
