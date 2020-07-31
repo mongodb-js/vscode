@@ -4,19 +4,15 @@ import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
 import { DOCUMENT_ITEM } from './documentTreeItem';
-import ConnectionTreeItem from './connectionTreeItem';
-import DatabaseTreeItem from './databaseTreeItem';
-import CollectionTreeItem from './collectionTreeItem';
 import MDBConnectionsTreeItem from './mdbConnectionsTreeItem';
 
 import { createLogger } from '../logging';
 import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
-import TreeItemParentInterface from './treeItemParentInterface';
 
 const log = createLogger('explorer controller');
 
 export default class ExplorerTreeController
-implements vscode.TreeDataProvider<vscode.TreeItem> {
+  implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _mdbConnectionsTreeItem: MDBConnectionsTreeItem;
 
@@ -140,11 +136,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     return element;
   }
 
-  getChildren(
-    element?: any
-  ): Thenable<
-    | any[]
-  > {
+  getChildren(element?: any): Thenable<any[]> {
     // When no element is present we are at the root.
     if (!element) {
       // We rebuild the connections tree each time in order to

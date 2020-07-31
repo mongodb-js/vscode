@@ -54,6 +54,7 @@ suite('Extension Test Suite', () => {
       'mdb.addCollection',
       'mdb.viewCollectionDocuments',
       'mdb.refreshDocumentList',
+      'mdb.searchForDocuments',
       'mdb.copyCollectionName',
       'mdb.refreshCollection',
       'mdb.refreshSchema',

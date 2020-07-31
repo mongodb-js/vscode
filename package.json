@@ -229,6 +229,14 @@
         }
       },
       {
+        "command": "mdb.searchForDocuments",
+        "title": "Search For Documents...",
+        "icon": {
+          "light": "images/light/search-regular.svg",
+          "dark": "images/dark/search-regular.svg"
+        }
+      },
+      {
         "command": "mdb.connectToConnectionTreeItem",
         "title": "Connect"
       },
@@ -428,12 +436,24 @@
           "group": "3@1"
         },
         {
+          "command": "mdb.searchForDocuments",
+          "when": "view == mongoDB && viewItem == documentListTreeItem",
+          "group": "inline"
+        },
+        {
           "command": "mdb.viewCollectionDocuments",
-          "when": "view == mongoDB && viewItem == documentListTreeItem"
+          "when": "view == mongoDB && viewItem == documentListTreeItem",
+          "group": "1@1"
         },
         {
           "command": "mdb.refreshDocumentList",
-          "when": "view == mongoDB && viewItem == documentListTreeItem"
+          "when": "view == mongoDB && viewItem == documentListTreeItem",
+          "group": "1@2"
+        },
+        {
+          "command": "mdb.searchForDocuments",
+          "when": "view == mongoDB && viewItem == documentListTreeItem",
+          "group": "2@1"
         },
         {
           "command": "mdb.refreshSchema",
@@ -452,6 +472,10 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "mdb.searchForDocuments",
+          "when": "false"
+        },
         {
           "command": "mdb.addConnection",
           "when": "false"

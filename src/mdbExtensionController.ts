@@ -271,6 +271,24 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
+      'mdb.searchForDocuments',
+      async (element: DocumentListTreeItem): Promise<boolean> => {
+        if (this._connectionController.isDisconnecting()) {
+          vscode.window.showErrorMessage(
+            'Unable to add collection: currently disconnecting.'
+          );
+          return false;
+        }
+
+        this._playgroundController.createPlaygroundForSearch(
+          element.databaseName,
+          element.collectionName
+        );
+
+        return true;
+      }
+    );
+    this.registerCommand(
       'mdb.copyDatabaseName',
       async (element: DatabaseTreeItem) => {
         await vscode.env.clipboard.writeText(element.databaseName);

@@ -342,8 +342,8 @@ export default class MongoDBService {
 
   // ------ COMPLETION ------ //
 
-  // Check if string is a valid property name
-  private isValidPropertyName(str): boolean {
+  // Check if a string is a valid property name.
+  private isValidPropertyName(str: string): boolean {
     return /^(?![0-9])[a-zA-Z0-9$_]+$/.test(str);
   }
 
