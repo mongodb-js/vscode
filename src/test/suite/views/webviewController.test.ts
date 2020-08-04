@@ -286,7 +286,7 @@ suite('Connect Form View Test Suite', () => {
     });
   });
 
-  test('web view sends an successful connect result on an overridden unsuccessful connection', (done) => {
+  test('web view sends an unsuccessful connect result on an attempt that is overridden', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
     const testTelemetryController = new TelemetryController(
@@ -302,8 +302,8 @@ suite('Connect Form View Test Suite', () => {
     const fakeWebview = {
       html: '',
       postMessage: (message: any): void => {
-        assert(message.connectionSuccess);
-        assert(message.connectionMessage.includes('Successfully connected.'));
+        assert(!message.connectionSuccess);
+        assert(message.connectionMessage.includes('Unable to connect.'));
 
         testConnectionController.disconnect();
         done();

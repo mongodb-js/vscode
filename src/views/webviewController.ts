@@ -70,12 +70,7 @@ export default class WebviewController {
         this._connectionController
           .parseNewConnectionAndConnect(message.connectionModel)
           .then(
-            () => {
-              // Because this connection attempt could have been overriden
-              // while it was being made, we return the connection controller's
-              // overall connected state to show if a connection was made.
-              const connectionSuccess = this._connectionController.isCurrentlyConnected();
-
+            (connectionSuccess) => {
               panel.webview.postMessage({
                 command: MESSAGE_TYPES.CONNECT_RESULT,
                 connectionSuccess,
