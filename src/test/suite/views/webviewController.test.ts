@@ -286,6 +286,72 @@ suite('Connect Form View Test Suite', () => {
     });
   });
 
+  test('web view sends an successful connect result on an overridden unsuccessful connection', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController,
+      testTelemetryController
+    );
+    let messageRecieved: any;
+    const fakeWebview = {
+      html: '',
+      postMessage: (message: any): void => {
+        assert(message.connectionSuccess);
+        assert(message.connectionMessage.includes('Successfully connected.'));
+
+        testConnectionController.disconnect();
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+      }
+    };
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const testWebviewController = new WebviewController(
+      testConnectionController,
+      testTelemetryController
+    );
+
+    testWebviewController.showConnectForm(
+      mdbTestExtension.testExtensionContext
+    );
+
+    // Mock a connection call.
+    messageRecieved({
+      command: MESSAGE_TYPES.CONNECT,
+      connectionModel: {
+        port: 27018,
+        hostname: 'shouldfail',
+        connectTimeoutMS: 500,
+        socketTimeoutMS: 500,
+        serverSelectionTimeoutMS: 500
+      }
+    });
+
+    setTimeout(() => {
+      // Once the previous request has started, issue a successful connect
+      // attempt to override the previous.
+      testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
+    }, 5);
+  });
+
   test('web view opens file picker on file picker request', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
