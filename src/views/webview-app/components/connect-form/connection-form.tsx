@@ -23,14 +23,13 @@ import { AppState } from '../../store/store';
 const styles = require('../../connect.module.less');
 
 type stateProps = {
+  connectionMessage: string;
   currentConnection: ConnectionModel;
   errorMessage: string;
   isConnected: boolean;
   isConnecting: boolean;
-  isUriConnected: boolean;
   isValid: boolean;
   syntaxErrorMessage: string;
-  uriConnectionMessage: string;
 };
 
 type dispatchProps = {
@@ -133,16 +132,16 @@ class ConnectionForm extends React.Component<props> {
    *
    * @returns {React.Component}
    */
-  renderURIConnectionMessage(): React.ReactNode {
-    const { isUriConnected, uriConnectionMessage } = this.props;
+  renderConnectionMessage(): React.ReactNode {
+    const { isConnected, connectionMessage } = this.props;
 
-    if (isUriConnected) {
+    if (isConnected && connectionMessage) {
       return (
         <div className={styles['connection-message-container']}>
           <div className={styles['connection-message-container-success']}>
             <div
               className={styles['connection-message']}
-            >{`${uriConnectionMessage} You may now close this window.`}</div>
+            >{connectionMessage}</div>
           </div>
         </div>
       );
@@ -151,6 +150,7 @@ class ConnectionForm extends React.Component<props> {
 
   render(): React.ReactNode {
     const {
+      connectionMessage,
       currentConnection,
       errorMessage,
       isConnected,
@@ -172,12 +172,13 @@ class ConnectionForm extends React.Component<props> {
             connect with a connection string
           </a>
         </div>
-        {this.renderURIConnectionMessage()}
+        {this.renderConnectionMessage()}
         <div className={classnames(styles.fields)}>
           {this.renderHostnameArea()}
           {this.renderConnectionOptionsArea()}
         </div>
         <FormActions
+          connectionMessage={connectionMessage}
           currentConnection={currentConnection}
           errorMessage={errorMessage}
           isConnected={isConnected}
@@ -192,14 +193,13 @@ class ConnectionForm extends React.Component<props> {
 
 const mapStateToProps = (state: AppState): stateProps => {
   return {
+    connectionMessage: state.connectionMessage,
     currentConnection: state.currentConnection,
     errorMessage: state.errorMessage,
     isConnected: state.isConnected,
     isConnecting: state.isConnecting,
-    isUriConnected: state.isUriConnected,
     isValid: state.isValid,
-    syntaxErrorMessage: state.syntaxErrorMessage,
-    uriConnectionMessage: state.uriConnectionMessage
+    syntaxErrorMessage: state.syntaxErrorMessage
   };
 };
 

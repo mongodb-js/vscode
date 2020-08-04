@@ -181,7 +181,11 @@ suite('Connect Form View Test Suite', () => {
       html: '',
       postMessage: (message: any): void => {
         assert(message.connectionSuccess);
-        assert(message.connectionMessage === 'Successfully connected.');
+        const expectedMessage = 'Successfully connected to localhost:27018.';
+        assert(
+          message.connectionMessage === expectedMessage,
+          `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
+        );
 
         testConnectionController.disconnect();
         done();
@@ -286,7 +290,7 @@ suite('Connect Form View Test Suite', () => {
     });
   });
 
-  test('web view sends an unsuccessful connect result on an attempt that is overridden', (done) => {
+  test('web view sends an successful connect result on an attempt that is overridden', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
     const testTelemetryController = new TelemetryController(
@@ -302,8 +306,12 @@ suite('Connect Form View Test Suite', () => {
     const fakeWebview = {
       html: '',
       postMessage: (message: any): void => {
-        assert(!message.connectionSuccess);
-        assert(message.connectionMessage.includes('Unable to connect.'));
+        assert(message.connectionSuccess);
+        const expectedMessage = 'Successfully connected to localhost:27018.';
+        assert(
+          message.connectionMessage === expectedMessage,
+          `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
+        );
 
         testConnectionController.disconnect();
         done();

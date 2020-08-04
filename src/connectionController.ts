@@ -20,13 +20,12 @@ const MAX_CONNECTION_NAME_LENGTH = 512;
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
   ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
-  ACTIVE_CONNECTION_CHANGING = 'ACTIVE_CONNECTION_CHANGING'
 }
 
 export enum ConnectionTypes {
   CONNECTION_FORM = 'CONNECTION_FORM',
   CONNECTION_STRING = 'CONNECTION_STRING',
-  CONNECTION_ID = 'CONNECTION_ID'
+  CONNECTION_ID = 'CONNECTION_ID',
 }
 
 export type SavedConnectionInformation = {
@@ -39,7 +38,7 @@ export type LoadedConnection = SavedConnection & SavedConnectionInformation;
 
 export enum NewConnectionType {
   NEW_CONNECTION = 'NEW_CONNECTION',
-  SAVED_CONNECTION = 'SAVED_CONNECTION'
+  SAVED_CONNECTION = 'SAVED_CONNECTION',
 }
 
 export default class ConnectionController {
@@ -245,24 +244,16 @@ export default class ConnectionController {
     );
   }
 
-  public parseNewConnectionAndConnect = (
+  public parseNewConnection = (
     newConnectionModel: ConnectionModelType
-  ): Promise<boolean> => {
+  ): ConnectionModelType => {
     // Here we re-parse the connection, as it can be loaded from storage or
     // passed by the connection model without the class methods.
-    let connectionModel: ConnectionModelType;
-
-    try {
-      connectionModel = new Connection(newConnectionModel);
-    } catch (error) {
-      vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
-      return Promise.reject(new Error(`Unable to load connection: ${error}`));
-    }
-
-    return this.saveNewConnectionAndConnect(
-      connectionModel,
-      ConnectionTypes.CONNECTION_FORM
+    const connectionModel: ConnectionModelType = new Connection(
+      newConnectionModel
     );
+
+    return connectionModel;
   };
 
   public saveNewConnectionAndConnect = async (
@@ -345,7 +336,6 @@ export default class ConnectionController {
     this._connectingConnectionId = connectionId;
 
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGING);
 
     if (this._activeDataService) {
       await this.disconnect();
@@ -361,15 +351,17 @@ export default class ConnectionController {
 
       newDataService.connect((err: Error | undefined) => {
         if (
-          connectingAttemptVersion !== this._connectingVersion
-          || !this._connections[connectionId]
+          connectingAttemptVersion !== this._connectingVersion ||
+          !this._connections[connectionId]
         ) {
           // If the current attempt is no longer the most recent attempt
           // or the connection no longer exists we silently end the connection
           // and return.
           try {
             newDataService.disconnect(() => {});
-          } catch (e) { /* */ }
+          } catch (e) {
+            /* */
+          }
 
           return resolve(false);
         }
@@ -557,13 +549,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-      connectionIds.map(
-        (id, index) => `${index + 1}: ${this._connections[id].name}`
-      ),
-      {
-        placeHolder: 'Choose a connection to remove...'
-      }
-    );
+        connectionIds.map(
+          (id, index) => `${index + 1}: ${this._connections[id].name}`
+        ),
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
@@ -694,13 +686,6 @@ export default class ConnectionController {
     }
 
     return !!this._connections[connectionId];
-  }
-  public getConnectingConnectionName(): string | null {
-    if (this._connectingConnectionId === null) {
-      return null;
-    }
-
-    return this._connections[this._connectingConnectionId].name;
   }
   public getConnectingConnectionId(): string | null {
     return this._connectingConnectionId;

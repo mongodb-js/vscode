@@ -8,8 +8,7 @@ import {
   ActionTypes,
   ConnectionEventOccuredAction,
   FilePickerActions,
-  FilePickerActionTypes,
-  UriConnectionEventOccuredAction
+  FilePickerActionTypes
 } from '../store/actions';
 import {
   MESSAGE_TYPES,
@@ -28,10 +27,6 @@ type props = {
     action: FilePickerActionTypes,
     files: string[] | undefined
   ) => void;
-  onUriConnectedEvent: (
-    successfullyConnected: boolean,
-    connectionMessage: string
-  ) => void;
 };
 
 class App extends React.Component<props> {
@@ -42,17 +37,10 @@ class App extends React.Component<props> {
 
       switch (message.command) {
         case MESSAGE_TYPES.CONNECT_RESULT:
-          if (message.isUriConnection) {
-            this.props.onUriConnectedEvent(
-              message.connectionSuccess,
-              message.connectionMessage
-            );
-          } else {
-            this.props.onConnectedEvent(
-              message.connectionSuccess,
-              message.connectionMessage
-            );
-          }
+          this.props.onConnectedEvent(
+            message.connectionSuccess,
+            message.connectionMessage
+          );
 
           return;
         case MESSAGE_TYPES.FILE_PICKER_RESULTS:
@@ -90,14 +78,6 @@ const mapDispatchToProps: props = {
   ): FilePickerActions => ({
     type: action,
     files
-  }),
-  onUriConnectedEvent: (
-    successfullyConnected: boolean,
-    connectionMessage: string
-  ): UriConnectionEventOccuredAction => ({
-    type: ActionTypes.URI_CONNECTION_EVENT_OCCURED,
-    successfullyConnected,
-    connectionMessage
   })
 };
 

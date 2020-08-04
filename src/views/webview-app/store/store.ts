@@ -11,27 +11,25 @@ declare var acquireVsCodeApi: any;
 const vscode = acquireVsCodeApi();
 
 export interface AppState {
+  connectionMessage: string;
   currentConnection: ConnectionModel;
   isValid: boolean;
   isConnecting: boolean;
   isConnected: boolean;
-  isUriConnected: boolean;
   errorMessage: string;
   syntaxErrorMessage: string;
   savedMessage: string;
-  uriConnectionMessage: string;
 }
 
 export const initialState = {
+  connectionMessage: '',
   currentConnection: new ConnectionModel(),
   isValid: true,
   isConnecting: false,
   isConnected: false,
-  isUriConnected: false,
   errorMessage: '',
   syntaxErrorMessage: '',
-  savedMessage: '',
-  uriConnectionMessage: ''
+  savedMessage: ''
 };
 
 const showFilePicker = (
@@ -89,14 +87,6 @@ export const rootReducer = (
         };
       }
 
-      if (state.isConnecting) {
-        return {
-          ...state,
-          errorMessage: 'Already connecting, please wait.',
-          isValid: false
-        };
-      }
-
       vscode.postMessage({
         command: MESSAGE_TYPES.CONNECT,
         connectionModel: state.currentConnection
@@ -122,10 +112,10 @@ export const rootReducer = (
     case ActionTypes.CONNECTION_FORM_CHANGED:
       return {
         ...state,
+        connectionMessage: '',
+        errorMessage: '',
         isValid: true,
         isConnected: false,
-        isUriConnected: false,
-        errorMessage: '',
         syntaxErrorMessage: ''
       };
 
@@ -135,9 +125,8 @@ export const rootReducer = (
         isConnecting: false,
         isConnected: action.successfullyConnected,
         isValid: action.successfullyConnected ? state.isValid : false,
-        errorMessage: action.successfullyConnected
-          ? state.errorMessage
-          : action.connectionMessage
+        errorMessage: action.successfullyConnected ? '' : action.connectionMessage,
+        connectionMessage: action.connectionMessage
       };
 
     case ActionTypes.HOSTNAME_CHANGED:
@@ -231,7 +220,7 @@ export const rootReducer = (
 
       return {
         ...state,
-        isUriConnected: false
+        isConnected: false
       };
 
     case ActionTypes.PASSWORD_CHANGED:
@@ -381,13 +370,6 @@ export const rootReducer = (
           ...state.currentConnection,
           sslPass: action.sslPass
         }
-      };
-
-    case ActionTypes.URI_CONNECTION_EVENT_OCCURED:
-      return {
-        ...state,
-        isUriConnected: action.successfullyConnected,
-        uriConnectionMessage: action.connectionMessage
       };
 
     case ActionTypes.USERNAME_CHANGED:
