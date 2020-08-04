@@ -25,7 +25,7 @@ export enum DataServiceEventTypes {
 export enum ConnectionTypes {
   CONNECTION_FORM = 'CONNECTION_FORM',
   CONNECTION_STRING = 'CONNECTION_STRING',
-  CONNECTION_ID = 'CONNECTION_ID',
+  CONNECTION_ID = 'CONNECTION_ID'
 }
 
 export type SavedConnectionInformation = {
@@ -38,7 +38,7 @@ export type LoadedConnection = SavedConnection & SavedConnectionInformation;
 
 export enum NewConnectionType {
   NEW_CONNECTION = 'NEW_CONNECTION',
-  SAVED_CONNECTION = 'SAVED_CONNECTION',
+  SAVED_CONNECTION = 'SAVED_CONNECTION'
 }
 
 export default class ConnectionController {
