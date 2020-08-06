@@ -378,7 +378,7 @@ suite('Explorer Controller Test Suite', function () {
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
 
-    assert(testExplorerController.getTreeView() === undefined);
+    assert(testExplorerController.getConnectionsTreeView() === undefined);
   });
 
   test('tree view should call create tree view after a "CONNECTIONS_DID_CHANGE" event', async () => {
@@ -387,7 +387,7 @@ suite('Explorer Controller Test Suite', function () {
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
 
-    testExplorerController.activateTreeView();
+    testExplorerController.activateConnectionsTreeView();
 
     const treeControllerStub = sinon.stub().returns(null);
 

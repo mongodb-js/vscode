@@ -8,7 +8,11 @@ import * as vscode from 'vscode';
 import ConnectionController from './connectionController';
 import launchMongoShell from './commands/launchMongoShell';
 import { EditorsController, PlaygroundController } from './editors';
-import { ExplorerController, CollectionTreeItem } from './explorer';
+import {
+  ExplorerController,
+  PlaygroundsExplorer,
+  CollectionTreeItem
+} from './explorer';
 import { LanguageServerController } from './language';
 import TelemetryController from './telemetry/telemetryController';
 import { StatusView } from './views';
@@ -33,6 +37,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editorsController: EditorsController;
   _playgroundController: PlaygroundController;
   _explorerController: ExplorerController;
+  _playgroundsExplorer: PlaygroundsExplorer;
   _statusView: StatusView;
   _storageController: StorageController;
   _telemetryController: TelemetryController;
@@ -69,6 +74,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController = new ExplorerController(
       this._connectionController
     );
+    this._playgroundsExplorer = new PlaygroundsExplorer();
     this._playgroundController = new PlaygroundController(
       context,
       this._connectionController,
@@ -82,10 +88,11 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   activate(): void {
-    this._explorerController.activateTreeView();
+    this._explorerController.activateConnectionsTreeView();
+    this._playgroundsExplorer.activatePlaygroundsTreeView();
     this._connectionController.loadSavedConnections();
-    this._telemetryController.activate();
-    this._languageServerController.activate();
+    this._telemetryController.activateSegmentAnalytics();
+    this._languageServerController.startLanguageServer();
 
     log.info('Registering commands...');
 
@@ -442,6 +449,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // TODO: Cancel active queries/playgrounds.
     this._connectionController.disconnect();
     this._explorerController.deactivate();
+    this._playgroundsExplorer.deactivate();
     this._playgroundController.deactivate();
     this._telemetryController.deactivate();
     this._languageServerController.deactivate();

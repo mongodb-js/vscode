@@ -104,7 +104,7 @@ export default class LanguageServerController {
     );
   }
 
-  public activate(): void {
+  public startLanguageServer(): void {
     // Start the client. This will also launch the server
     const disposable = this.client.start();
 
