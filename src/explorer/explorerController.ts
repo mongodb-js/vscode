@@ -29,14 +29,17 @@ export default class ExplorerController {
     );
 
     if (!this._treeView) {
-      this._treeView = vscode.window.createTreeView('mongoDBConnectionExplorer', {
-        treeDataProvider: this._treeController
-      });
+      this._treeView = vscode.window.createTreeView(
+        'mongoDBConnectionExplorer',
+        {
+          treeDataProvider: this._treeController
+        }
+      );
       this._treeController.activateTreeViewEventHandlers(this._treeView);
     }
   };
 
-  activateTreeView(): void {
+  activateConnectionsTreeView(): void {
     // Listen for a change in connections to occur before we create the tree
     // so that we show the `viewsWelcome` before any connections are added.
     this._connectionController.addEventListener(
@@ -65,7 +68,9 @@ export default class ExplorerController {
   }
 
   // Exposed for testing.
-  public getTreeView(): vscode.TreeView<vscode.TreeItem> | undefined {
+  public getConnectionsTreeView():
+    | vscode.TreeView<vscode.TreeItem>
+    | undefined {
     return this._treeView;
   }
 

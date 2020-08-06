@@ -128,7 +128,7 @@ export default class TelemetryController {
     return this._segmentKey;
   }
 
-  public activate(): void {
+  public activateSegmentAnalytics(): void {
     if (this._segmentKey) {
       this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
         // Segment batches messages and flushes asynchronously to the server.
