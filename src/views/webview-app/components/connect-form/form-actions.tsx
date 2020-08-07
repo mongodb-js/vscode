@@ -62,13 +62,6 @@ class FormActions extends React.Component<props> {
   renderConnect = (): React.ReactNode => {
     const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
 
-    const { isConnecting } = this.props;
-
-    let connectingText = 'Connect';
-    if (isConnecting) {
-      connectingText = 'Connecting...';
-    }
-
     return (
       <button
         type="submit"
@@ -76,7 +69,7 @@ class FormActions extends React.Component<props> {
         className={classnames(styles.btn, syntaxError)}
         onClick={this.onConnectClicked}
       >
-        {connectingText}
+        Connect
       </button>
     );
   };
@@ -91,12 +84,15 @@ class FormActions extends React.Component<props> {
     let colorStyle = styles['connection-message-container-success'];
     let hasMessage = false;
 
-    if (this.hasError()) {
+    if (this.props.isConnected) {
+      hasMessage = true;
+    } else if (this.props.isConnecting) {
+      hasMessage = true;
+      message = 'Connecting...';
+    } else if (this.hasError()) {
       hasMessage = true;
       message = this.props.errorMessage;
       colorStyle = styles['connection-message-container-error'];
-    } else if (this.props.isConnected) {
-      hasMessage = true;
     }
 
     if (hasMessage === true) {
