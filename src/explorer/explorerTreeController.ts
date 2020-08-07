@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
-
 import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
 import { DOCUMENT_ITEM } from './documentTreeItem';
 import MDBConnectionsTreeItem from './mdbConnectionsTreeItem';
-
 import { createLogger } from '../logging';
 import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 
@@ -21,11 +19,10 @@ export default class ExplorerTreeController
       connectionController,
       {} // No cache to start.
     );
-
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-
     this._connectionController = connectionController;
+
     // Subscribe to changes in the connections.
     this._connectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,

@@ -1,25 +1,23 @@
 import * as vscode from 'vscode';
-import { DOCUMENT_ITEM } from './documentTreeItem';
-import PlaygroundsTreeItem from './playgroundsTreeItem';
+import PlaygroundsTreeHeader from './playgroundsTreeHeader';
 import { createLogger } from '../logging';
-import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 
 const log = createLogger('explorer controller');
 
 export default class PlaygroundsTree
   implements vscode.TreeDataProvider<vscode.TreeItem> {
-  private _playgroundsTreeItem: PlaygroundsTreeItem;
+  private _playgroundsTreeHeader: PlaygroundsTreeHeader;
+  private _onDidChangeTreeData: vscode.EventEmitter<any>;
+  readonly onDidChangeTreeData: vscode.Event<any>;
 
   constructor() {
-    this._playgroundsTreeItem = new PlaygroundsTreeItem(
+    this._playgroundsTreeHeader = new PlaygroundsTreeHeader(
       {} // No cache to start.
     );
 
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
   }
-
-  removeListeners(): void {}
 
   activateTreeViewEventHandlers = (
     treeView: vscode.TreeView<vscode.TreeItem>
@@ -78,32 +76,12 @@ export default class PlaygroundsTree
 
           this.onTreeItemUpdate();
         }
-
-        if (selectedItem.contextValue === DOCUMENT_ITEM) {
-          vscode.commands.executeCommand(
-            'mdb.viewDocument',
-            event.selection[0]
-          );
-        }
-
-        if (
-          selectedItem.contextValue === DOCUMENT_LIST_ITEM &&
-          selectedItem.type === CollectionTypes.view
-        ) {
-          vscode.commands.executeCommand(
-            'mdb.viewCollectionDocuments',
-            event.selection[0]
-          );
-        }
       }
     });
   };
 
-  private _onDidChangeTreeData: vscode.EventEmitter<any>;
-  readonly onDidChangeTreeData: vscode.Event<any>;
-
   public refresh = (): Promise<boolean> => {
-    this._playgroundsTreeItem.connectionsDidChange();
+    this._playgroundsTreeHeader.playgroundsDidChange();
     this._onDidChangeTreeData.fire();
 
     return Promise.resolve(true);
@@ -113,7 +91,7 @@ export default class PlaygroundsTree
     this._onDidChangeTreeData.fire();
   }
 
-  public getTreeItem(element: PlaygroundsTreeItem): vscode.TreeItem {
+  public getTreeItem(element: PlaygroundsTreeHeader): vscode.TreeItem {
     return element;
   }
 
@@ -122,11 +100,11 @@ export default class PlaygroundsTree
     if (!element) {
       // We rebuild the playgrounds tree each time in order to
       // manually control the expanded state of tree items.
-      this._playgroundsTreeItem = new PlaygroundsTreeItem(
-        this._playgroundsTreeItem.getPlaygroundsItemsCache()
+      this._playgroundsTreeHeader = new PlaygroundsTreeHeader(
+        this._playgroundsTreeHeader.getPlaygroundsItemsCache()
       );
 
-      return Promise.resolve([this._playgroundsTreeItem]);
+      return Promise.resolve([this._playgroundsTreeHeader]);
     }
 
     return element.getChildren();
