@@ -27,10 +27,6 @@ export default class PlaygroundsExplorer {
   }
 
   deactivate(): void {
-    if (this._treeController) {
-      this._treeController.removeListeners();
-    }
-
     if (this._treeView) {
       this._treeView.dispose();
       delete this._treeView;
