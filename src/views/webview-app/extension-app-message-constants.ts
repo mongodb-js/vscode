@@ -23,7 +23,6 @@ export interface ConnectResultsMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT_RESULT;
   connectionSuccess: boolean;
   connectionMessage: string;
-  isUriConnection: boolean;
 }
 
 export interface OpenConnectionStringInputMessage extends BasicWebviewMessage {

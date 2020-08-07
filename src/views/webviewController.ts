@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
-import ConnectionController from '../connectionController';
+import ConnectionController, {
+  DataServiceEventTypes,
+  ConnectionTypes
+} from '../connectionController';
 import TelemetryController from '../telemetry/telemetryController';
 import {
   MESSAGE_TYPES,
@@ -57,6 +60,37 @@ export default class WebviewController {
     this._telemetryController = telemetryController;
   }
 
+  listenForConnectionResultsAndUpdatePanel = (
+    panel: vscode.WebviewPanel
+  ): any => {
+    const connectionDidChange = (): void => {
+      if (
+        !this._connectionController.isConnecting()
+      ) {
+        this._connectionController.removeEventListener(
+          DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+          connectionDidChange
+        );
+
+        panel.webview.postMessage({
+          command: MESSAGE_TYPES.CONNECT_RESULT,
+          connectionSuccess: this._connectionController.isCurrentlyConnected(),
+          connectionMessage: this._connectionController.isCurrentlyConnected()
+            ? `Successfully connected to ${this._connectionController.getActiveConnectionName()}.`
+            : 'Unable to connect.'
+        });
+      }
+    };
+
+    this._connectionController.addEventListener(
+      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      connectionDidChange
+    );
+
+    // We return the listening function so we can remove the listener elsewhere.
+    return connectionDidChange;
+  };
+
   handleWebviewMessage = (
     message:
       | ConnectMessage
@@ -67,26 +101,25 @@ export default class WebviewController {
   ): void => {
     switch (message.command) {
       case MESSAGE_TYPES.CONNECT:
-        this._connectionController
-          .parseNewConnectionAndConnect(message.connectionModel)
-          .then(
-            (connectionSuccess) => {
-              panel.webview.postMessage({
-                command: MESSAGE_TYPES.CONNECT_RESULT,
-                connectionSuccess,
-                connectionMessage: connectionSuccess
-                  ? 'Successfully connected.'
-                  : 'Unable to connect.'
-              });
-            },
-            (err: Error) => {
-              panel.webview.postMessage({
-                command: MESSAGE_TYPES.CONNECT_RESULT,
-                connectionSuccess: false,
-                connectionMessage: err.message
-              });
-            }
+        try {
+          const connectionModel = this._connectionController
+            .parseNewConnection(message.connectionModel);
+
+          this.listenForConnectionResultsAndUpdatePanel(panel);
+
+          this._connectionController.saveNewConnectionAndConnect(
+            connectionModel,
+            ConnectionTypes.CONNECTION_FORM
           );
+        } catch (error) {
+          vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
+
+          panel.webview.postMessage({
+            command: MESSAGE_TYPES.CONNECT_RESULT,
+            connectionSuccess: false,
+            connectionMessage: `Unable to load connection: ${error}`
+          });
+        }
         return;
       case MESSAGE_TYPES.OPEN_FILE_PICKER:
         vscode.window
@@ -106,18 +139,8 @@ export default class WebviewController {
           });
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
-        vscode.commands
-          .executeCommand('mdb.connectWithURI')
-          .then((connectionSuccess) => {
-            if (connectionSuccess) {
-              panel.webview.postMessage({
-                command: MESSAGE_TYPES.CONNECT_RESULT,
-                connectionSuccess: true,
-                connectionMessage: 'Successfully connected.',
-                isUriConnection: true
-              });
-            }
-          });
+        this.listenForConnectionResultsAndUpdatePanel(panel);
+        vscode.commands.executeCommand('mdb.connectWithURI');
 
         return;
       case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:

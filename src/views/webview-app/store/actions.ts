@@ -34,9 +34,8 @@ export enum ActionTypes {
   SSL_CERT_CHANGED = 'SSL_CERT_CHANGED',
   SSL_METHOD_CHANGED = 'SSL_METHOD_CHANGED',
   SSL_PASS_CHANGED = 'SSL_PASS_CHANGED',
-  URI_CONNECTION_EVENT_OCCURED = 'URI_CONNECTION_EVENT_OCCURED',
   USERNAME_CHANGED = 'USERNAME_CHANGED',
-  X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED'
+  X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED',
 }
 
 export type FilePickerActionTypes =
@@ -206,12 +205,6 @@ export interface SSLPassChangedAction extends BaseAction {
   sslPass: string;
 }
 
-export interface UriConnectionEventOccuredAction extends BaseAction {
-  type: ActionTypes.URI_CONNECTION_EVENT_OCCURED;
-  successfullyConnected: boolean;
-  connectionMessage: string;
-}
-
 export interface UsernameChangedAction extends BaseAction {
   type: ActionTypes.USERNAME_CHANGED;
   mongodbUsername: string;
@@ -258,6 +251,5 @@ export type Actions =
   | SSLCertChangedAction
   | SSLMethodChangedAction
   | SSLPassChangedAction
-  | UriConnectionEventOccuredAction
   | UsernameChangedAction
   | X509UsernameChangedAction;

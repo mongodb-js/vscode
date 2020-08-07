@@ -13,6 +13,7 @@ type dispatchProps = {
 };
 
 type props = {
+  connectionMessage: string;
   currentConnection: ConnectionModel;
   errorMessage: string;
   isConnected: boolean;
@@ -86,9 +87,7 @@ class FormActions extends React.Component<props> {
    * @returns {React.Component}
    */
   renderMessage(): React.ReactNode {
-    const connection = this.props.currentConnection;
-    const server = `${connection.hostname}:${connection.port}`;
-    let message: React.ReactNode = `Success! Connected to ${server}. You may now close this window.`;
+    let message: React.ReactNode = this.props.connectionMessage;
     let colorStyle = styles['connection-message-container-success'];
     let hasMessage = false;
 
