@@ -4,6 +4,20 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.1.1] - 2020-08-04
+
+### Added
+
+- Added a search for documents playground shortcut in the tree explorer view
+- Added a copy field name right click action in a collection's schema in the tree explorer view
+- Added a document count for a collection in the tree view (with hover tooltip for the full count)
+- Added the ability to change the current connection when in an open playground file by using the codelens on the first line of the playground
+
+### Changed
+
+- Allow connecting to a new connection while already connecting to another connection
+- Allow removing a new connection while it is connecting
+
 ## [0.1.0] - 2020-07-15
 
 ### Added
