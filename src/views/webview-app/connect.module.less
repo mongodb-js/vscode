@@ -1,7 +1,7 @@
 @pw: #21313c;
 @alertRed: #cf4a22;
 @warningText: #ffdd49;
-@green: #13aa52;
+@green: rgb(19, 170, 82);
 @gray: #5d6c74;
 
 .page {
@@ -35,7 +35,7 @@ label {
 
 .connect {
   &-is-connected {
-    border: 2px solid green;
+    border: 2px solid @green;
   }
 
   ::-webkit-scrollbar {
@@ -93,6 +93,7 @@ label {
     }
 
     &-success {
+      color: white;
       background: @green;
       padding: 4px 10px;
       border-radius: 3px;
@@ -112,24 +113,6 @@ label {
       margin: 26px auto;
       width: 70%;
       color: #ed271c;
-      text-align: center;
-      font-weight: bold;
-    }
-  }
-
-  .success {
-    background-color: #90ee90;
-    border-bottom: 3px solid #008000;
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 72px;
-    width: 100%;
-
-    p {
-      margin: 26px auto;
-      width: 70%;
-      color: #008000;
       text-align: center;
       font-weight: bold;
     }
@@ -156,8 +139,10 @@ label {
 
           div {
             border: none;
-            background-color: var(--vscode-searchEditor-textInputBorder,
-                rgba(161, 161, 161, 0.5));
+            background-color: var(
+              --vscode-searchEditor-textInputBorder,
+              rgba(161, 161, 161, 0.5)
+            );
           }
         }
 
@@ -201,7 +186,8 @@ label {
         &-file-button {
           width: 100%;
           background: var(--vscode-input-background, transparent);
-          border: 1px solid var(--vscode-searchEditor-textInputBorder, rgba(161, 161, 161, 0.5));
+          border: 1px solid
+            var(--vscode-searchEditor-textInputBorder, rgba(161, 161, 161, 0.5));
           border-radius: 3px;
           color: var(--vscode-editor-foreground);
           padding: 8px 4px 9px;
