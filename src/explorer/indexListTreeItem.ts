@@ -131,6 +131,11 @@ export default class IndexListTreeItem extends vscode.TreeItem
     return [];
   }
 
+  resetCache(): void {
+    this.cacheIsUpToDate = false;
+    this._childrenCache = [];
+  }
+
   get iconPath():
     | string
     | vscode.Uri

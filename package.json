@@ -297,6 +297,18 @@
         "title": "Copy Field Name"
       },
       {
+        "command": "mdb.refreshIndexes",
+        "title": "Refresh"
+      },
+      {
+        "command": "mdb.createIndexFromTreeView",
+        "title": "Create New Index...",
+        "icon": {
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
+        }
+      },
+      {
         "command": "mdb.startStreamLanguageServerLogs",
         "title": "LSP Inspector: Start Stream LSP Logs"
       }
@@ -462,6 +474,19 @@
         {
           "command": "mdb.copySchemaFieldName",
           "when": "view == mongoDB && viewItem == fieldTreeItem"
+        },
+        {
+          "command": "mdb.createIndexFromTreeView",
+          "when": "view == mongoDB && viewItem == indexListTreeItem",
+          "group": "inline"
+        },
+        {
+          "command": "mdb.refreshIndexes",
+          "when": "view == mongoDB && viewItem == indexListTreeItem"
+        },
+        {
+          "command": "mdb.createIndexFromTreeView",
+          "when": "view == mongoDB && viewItem == indexListTreeItem"
         }
       ],
       "editor/title": [
@@ -566,6 +591,14 @@
         },
         {
           "command": "mdb.runPlayground",
+          "when": "false"
+        },
+        {
+          "command": "mdb.createIndexFromTreeView",
+          "when": "false"
+        },
+        {
+          "command": "mdb.refreshIndexes",
           "when": "false"
         },
         {
