@@ -14,7 +14,7 @@ const ITEM_LABEL = 'Indexes';
 export default class IndexListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<IndexListTreeItem> {
   cacheIsUpToDate = false;
-  private _childrenCache: vscode.TreeItem[] = [];
+  private _childrenCache: IndexTreeItem[] = [];
 
   contextValue = 'indexListTreeItem';
 
@@ -32,7 +32,7 @@ export default class IndexListTreeItem extends vscode.TreeItem
     dataService: any,
     isExpanded: boolean,
     cacheIsUpToDate: boolean,
-    existingCache: vscode.TreeItem[]
+    existingCache: IndexTreeItem[]
   ) {
     super(
       ITEM_LABEL,
@@ -89,6 +89,20 @@ export default class IndexListTreeItem extends vscode.TreeItem
     }
 
     if (this.cacheIsUpToDate) {
+      const pastChildrenCache = this._childrenCache;
+      this._childrenCache = [];
+
+      // We manually rebuild each node to ensure we update the expanded state.
+      pastChildrenCache.forEach((cachedItem: IndexTreeItem) => {
+        this._childrenCache.push(
+          new IndexTreeItem(
+            cachedItem.index,
+            cachedItem.namespace,
+            cachedItem.isExpanded
+          )
+        );
+      });
+
       return this._childrenCache;
     }
 
@@ -101,9 +115,9 @@ export default class IndexListTreeItem extends vscode.TreeItem
 
       this._childrenCache = sortTreeItemsByLabel(
         indexes.map((index) => {
-          return new IndexTreeItem(index, namespace);
+          return new IndexTreeItem(index, namespace, false /* Not expanded. */);
         })
-      );
+      ) as IndexTreeItem[];
     } else {
       this._childrenCache = [];
     }
@@ -123,7 +137,7 @@ export default class IndexListTreeItem extends vscode.TreeItem
     return Promise.resolve(true);
   }
 
-  getChildrenCache(): vscode.TreeItem[] {
+  getChildrenCache(): IndexTreeItem[] {
     if (this.cacheIsUpToDate) {
       return this._childrenCache;
     }

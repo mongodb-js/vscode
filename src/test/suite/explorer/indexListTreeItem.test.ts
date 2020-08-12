@@ -1,8 +1,36 @@
 import * as assert from 'assert';
+import * as vscode from 'vscode';
+
+const { contributes } = require('../../../../package.json');
 
 import IndexListTreeItem from '../../../explorer/indexListTreeItem';
 
 suite('IndexListTreeItem Test Suite', () => {
+  test('its context value should be in the package json', () => {
+    let indexListRegisteredCommandInPackageJson = false;
+    const testIndexListTreeItem = new IndexListTreeItem(
+      'pineapple',
+      'tasty_fruits',
+      {
+        indexes: (): void => { }
+      },
+      false,
+      false,
+      []
+    );
+
+    contributes.menus['view/item/context'].forEach((contextItem) => {
+      if (contextItem.when.includes(testIndexListTreeItem.contextValue)) {
+        indexListRegisteredCommandInPackageJson = true;
+      }
+    });
+
+    assert(
+      indexListRegisteredCommandInPackageJson,
+      'Expected index list tree item to be registered with a command in package json'
+    );
+  });
+
   test('when expanded it fetches indexes and shows them', async () => {
     const fakeFetchIndexes = [
       {
@@ -29,7 +57,7 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb) => {
+        indexes: (ns, opts, cb): void => {
           namespaceRequested = ns;
 
           cb(null, fakeFetchIndexes);
@@ -89,7 +117,7 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb) => {
+        indexes: (ns, opts, cb): void => {
           cb(new Error(expectedErrorMessage));
         }
       },
@@ -107,5 +135,86 @@ suite('IndexListTreeItem Test Suite', () => {
     } catch (err) {
       assert(err.message === expectedErrorMessage, `Expected error message to be '${expectedErrorMessage}' found '${err.message}'`);
     }
+  });
+
+
+  test('when rebuilt it maintains the expanded state of the cached indexes', async () => {
+    const fakeFetchIndexes = [
+      {
+        v: 1,
+        key: {
+          _id: 1
+        },
+        name: '_id_',
+        ns: 'tasty_fruits.pineapple'
+      },
+      {
+        v: 1,
+        key: {
+          _id: 1,
+          gnocchi: -1
+        },
+        name: '_id_1_gnocchi_1',
+        ns: 'tasty_fruits.pineapple'
+      }
+    ];
+
+    const testIndexListTreeItem = new IndexListTreeItem(
+      'pineapple',
+      'tasty_fruits',
+      {
+        indexes: (ns, opts, cb): void => {
+          cb(null, fakeFetchIndexes);
+        }
+      },
+      false,
+      false,
+      []
+    );
+
+    await testIndexListTreeItem.onDidExpand();
+
+    let indexTreeItems;
+
+    try {
+      indexTreeItems = await testIndexListTreeItem.getChildren();
+    } catch (err) {
+      assert(false, `Expected no error, found: ${err.message}`);
+    }
+
+    indexTreeItems[0].onDidExpand();
+
+    const newIndexListTreeItem = new IndexListTreeItem(
+      testIndexListTreeItem.collectionName,
+      testIndexListTreeItem.databaseName,
+      {
+        indexes: (ns, opts, cb): void => {
+          cb(null, []);
+        }
+      },
+      testIndexListTreeItem.isExpanded,
+      testIndexListTreeItem.cacheIsUpToDate,
+      testIndexListTreeItem.getChildrenCache()
+    );
+
+    let newIndexTreeItems;
+    try {
+      newIndexTreeItems = await newIndexListTreeItem.getChildren();
+    } catch (err) {
+      assert(false, `Expected no error, found: ${err.message}`);
+    }
+
+    assert(
+      newIndexTreeItems[1].label === '_id_1_gnocchi_1',
+      `Expected the second child tree item to be named '_id_1_gnocchi_1' found ${newIndexTreeItems[1].label}`
+    );
+    assert(
+      newIndexTreeItems[0].isExpanded,
+      'Expected the first index in list to be expanded'
+    );
+    assert(
+      newIndexTreeItems[0].collapsibleState === vscode.TreeItemCollapsibleState.Expanded,
+      'Expected the first index in list have expanded tree state'
+    );
   });
 });

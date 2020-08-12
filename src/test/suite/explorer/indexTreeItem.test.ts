@@ -17,7 +17,8 @@ suite('IndexTreeItem Test Suite', () => {
         name: '_id_1_gnocchi_1',
         ns: 'tasty_fruits.pineapple'
       },
-      'tasty_fruits.pineapple'
+      'tasty_fruits.pineapple',
+      false
     );
 
     const indexKeyTreeItems = await testIndexTreeItem.getChildren();

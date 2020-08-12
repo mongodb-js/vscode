@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 const path = require('path');
 
 import { getImagesPath } from '../extensionConstants';
+import TreeItemParent from './treeItemParentInterface';
 
 export enum IndexKeyType {
   ASCENDING = 1,
@@ -91,10 +92,10 @@ export class IndexFieldTreeItem extends vscode.TreeItem
 }
 
 export default class IndexTreeItem extends vscode.TreeItem
-  implements vscode.TreeDataProvider<IndexTreeItem> {
+  implements vscode.TreeDataProvider<IndexTreeItem>, TreeItemParent {
   contextValue = 'indexTreeItem';
 
-  private index: IndexModel;
+  index: IndexModel;
 
   namespace: string;
 
@@ -103,14 +104,24 @@ export default class IndexTreeItem extends vscode.TreeItem
   // asynchronous resources.
   doesNotRequireTreeUpdate = true;
 
-  constructor(index: IndexModel, namespace: string) {
-    super(index.name, vscode.TreeItemCollapsibleState.Collapsed);
+  isExpanded: boolean;
+  cacheIsUpToDate = true;
+
+  constructor(index: IndexModel, namespace: string, isExpanded: boolean) {
+    super(
+      index.name,
+      isExpanded
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Collapsed
+    );
 
     this.index = index;
 
     this.namespace = namespace;
 
     this.id = `${index.name}-${namespace}`;
+
+    this.isExpanded = isExpanded;
   }
 
   get tooltip(): string {
@@ -131,5 +142,15 @@ export default class IndexTreeItem extends vscode.TreeItem
         (indexKey) => new IndexFieldTreeItem(indexKey, this.index.key[indexKey])
       )
     );
+  }
+
+  onDidCollapse(): void {
+    this.isExpanded = false;
+  }
+
+  onDidExpand(): Promise<boolean> {
+    this.isExpanded = true;
+
+    return Promise.resolve(true);
   }
 }
