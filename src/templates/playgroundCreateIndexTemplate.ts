@@ -10,16 +10,38 @@ use('CURRENT_DATABASE');
 db.getCollection('CURRENT_COLLECTION')
   .ensureIndex(
     {
-      /**
-       * Define the index.
-       * key: string | object
-       * fieldName: 1 // Create an ascending index on field 'fieldName'.
+      /*
+       * Keys
+       *
+       * Normal index
+       * fieldA:  1, //ascending
+       * fieldB: -1  //descending
+       *
+       * Wildcard index
+       * '$**': 1, //wildcard index on all fields and subfields in a document
+       * 'path.to.field.$**': 1 //wildcard index on a specific field and its subpaths
+       *
+       * Text index
+       * fieldA: 'text',
+       * fieldB: 'text'
+       *
+       * Geospatial Index
+       * locationField: '2dsphere'
+       *
+       * Hashed Index
+       * fieldA: 'hashed'
        */
     }, {
-      /**
-       * Optional index options.
-       * unique: false // Creates an unique index.
-       * background: false // Creates the index in the background, yielding whenever possible.
+      /*
+       * Options (https://docs.mongodb.com/manual/reference/method/db.collection.createIndex/#options-for-all-index-types)
+       *
+       * background: true, //ignored in 4.2+
+       * unique: false,
+       * name: 'some name',
+       * partialFilterExpression: {},
+       * sparse: false,
+       * expireAfterSeconds: TTL,
+       * collation: {}
        */
     }
   );
