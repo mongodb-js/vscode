@@ -182,7 +182,8 @@ export default class PlaygroundController {
     return this.createPlaygroundFileWithContent(content);
   }
 
-  public createPlaygroundForNewIndex(databaseName: string,
+  public createPlaygroundForNewIndex(
+    databaseName: string,
     collectionName: string
   ): Promise<boolean> {
     const content = playgroundCreateIndexTemplate

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 const path = require('path');
 
 import { createLogger } from '../logging';
-import IndexTreeItem from './indexTreeItem';
+import IndexTreeItem, { IndexModel } from './indexTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 import { getImagesPath } from '../extensionConstants';
@@ -61,7 +61,7 @@ export default class IndexListTreeItem extends vscode.TreeItem
     return element;
   }
 
-  getIndexes(): Promise<any> {
+  getIndexes(): Promise<IndexModel[]> {
     const namespace = this.namespace;
 
     log.info(`fetching indexes from namespace ${namespace}`);
@@ -72,7 +72,7 @@ export default class IndexListTreeItem extends vscode.TreeItem
         {
           /* No options */
         },
-        (err: Error, indexes: any[]) => {
+        (err: Error, indexes: IndexModel[]) => {
           if (err) {
             return reject(err);
           }
@@ -114,7 +114,7 @@ export default class IndexListTreeItem extends vscode.TreeItem
       const namespace = this.namespace;
 
       this._childrenCache = sortTreeItemsByLabel(
-        indexes.map((index) => {
+        indexes.map((index: IndexModel) => {
           return new IndexTreeItem(index, namespace, false /* Not expanded. */);
         })
       ) as IndexTreeItem[];

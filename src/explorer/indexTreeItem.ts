@@ -11,10 +11,10 @@ export enum IndexKeyType {
   HASHED = 'hashed',
   GEO = '2d', // flat, cartesian geometry
   GEOSPHERE = '2dsphere', // index assuming a spherical geometry
-  GEOHAYSTACK = 'geoHaystack'
+  GEOHAYSTACK = 'geoHaystack',
 }
 
-type IndexModel = {
+export type IndexModel = {
   v: number;
   key: {
     [key: string]: IndexKeyType;
