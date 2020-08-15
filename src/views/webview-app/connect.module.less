@@ -347,14 +347,38 @@ label {
 
 .change-stream {
   padding: 10px;
+  background: #fafafa;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  overflow: auto;
+
+  color: @pw;
 
   .change-stream-event {
-    color: #fcfcfc;
+    color: @pw;
 
-    border-radius: 11px;
-    background: #1e1e1e;
-    box-shadow: 9px 9px 18px #171717, -9px -9px 18px #252525;
+    border-radius: 20px;
+    background: #fafafa;
+    box-shadow: 11px 11px 22px #d5d5d5, -11px -11px 22px #ffffff;
     padding: 20px;
     margin-bottom: 40px;
+    max-width: 90%;
+    overflow: auto;
+
+    border-left-width: 10px;
+    border-left-style: solid;
+  }
+
+  .change-stream-event-insert {
+    border-color: @green;
+  }
+  .change-stream-event-update {
+    border-color: rgb(246, 170, 29);
+  }
+  .change-stream-event-delete {
+    border-color: @alertRed;
   }
 }

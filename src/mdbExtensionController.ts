@@ -197,6 +197,11 @@ export default class MDBExtensionController implements vscode.Disposable {
         return Promise.resolve(true);
       }
     );
+    this.registerCommand('mdb.refreshExplorerTree', () => {
+      // TODO: If this is used, track the caller here also.
+      this._explorerController.refresh();
+      return Promise.resolve(true);
+    });
     this.registerCommand(
       'mdb.copyConnectionString',
       async (element: ConnectionTreeItem): Promise<boolean> => {

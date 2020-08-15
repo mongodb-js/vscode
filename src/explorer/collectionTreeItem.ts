@@ -9,6 +9,7 @@ import DocumentListTreeItem, {
 import IndexListTreeItem from './indexListTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
+import CollectionChangeStreamTreeItem from './collectionChangeStreamTreeItem';
 import { getImagesPath } from '../extensionConstants';
 
 const log = createLogger('tree view collection folder');
@@ -19,7 +20,11 @@ type CollectionModelType = {
 };
 
 function isChildCacheOutOfSync(
-  child: DocumentListTreeItem | SchemaTreeItem | IndexListTreeItem
+  child:
+    | DocumentListTreeItem
+    | SchemaTreeItem
+    | IndexListTreeItem
+    | CollectionChangeStreamTreeItem
 ): boolean {
   const isExpanded = child.isExpanded;
   const collapsibleState = child.collapsibleState;
@@ -35,6 +40,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
   private _documentListChild: DocumentListTreeItem;
   private _schemaChild: SchemaTreeItem;
   private _indexListChild: IndexListTreeItem;
+  private _changeStreamChild: CollectionChangeStreamTreeItem;
 
   collection: CollectionModelType;
   collectionName: string;
@@ -58,7 +64,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
     cachedDocumentCount: number | null,
     existingDocumentListChild?: DocumentListTreeItem,
     existingSchemaChild?: SchemaTreeItem,
-    existingIndexListChild?: IndexListTreeItem
+    existingIndexListChild?: IndexListTreeItem,
+    existingChangeStreamChild?: CollectionChangeStreamTreeItem
   ) {
     super(
       collection.name,
@@ -117,6 +124,16 @@ export default class CollectionTreeItem extends vscode.TreeItem
         false, // Cache is not up to date.
         [] // Empty cache.
       );
+    this._changeStreamChild = existingChangeStreamChild
+      ? existingChangeStreamChild
+      : new CollectionChangeStreamTreeItem(
+        this.collectionName,
+        this.databaseName,
+        this._dataService,
+        false, // Collapsed.
+        false, // Cache is not up to date.
+        [] // Empty cache.
+      );
   }
 
   get tooltip(): string {
@@ -144,7 +161,12 @@ export default class CollectionTreeItem extends vscode.TreeItem
     }
 
     if (this.cacheIsUpToDate) {
-      return [this._documentListChild, this._schemaChild, this._indexListChild];
+      return [
+        this._documentListChild,
+        this._schemaChild,
+        this._indexListChild,
+        this._changeStreamChild
+      ];
     }
 
     this.cacheIsUpToDate = true;
@@ -153,7 +175,12 @@ export default class CollectionTreeItem extends vscode.TreeItem
     // is ensure to be set by vscode.
     this.rebuildChildrenCache();
 
-    return [this._documentListChild, this._schemaChild, this._indexListChild];
+    return [
+      this._documentListChild,
+      this._schemaChild,
+      this._indexListChild,
+      this._changeStreamChild
+    ];
   }
 
   rebuildDocumentListTreeItem(): void {
@@ -195,19 +222,32 @@ export default class CollectionTreeItem extends vscode.TreeItem
     );
   }
 
+  rebuildChangeStreamTreeItem(): void {
+    this._changeStreamChild = new CollectionChangeStreamTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._dataService,
+      this._changeStreamChild.isExpanded,
+      this._changeStreamChild.cacheIsUpToDate,
+      this._changeStreamChild.getChildrenCache()
+    );
+  }
+
   rebuildChildrenCache(): void {
     // We rebuild the children here so their controlled `expanded` state
     // is ensure to be set by vscode.
     this.rebuildDocumentListTreeItem();
     this.rebuildSchemaTreeItem();
     this.rebuildIndexListTreeItem();
+    this.rebuildChangeStreamTreeItem();
   }
 
   needsToUpdateCache(): boolean {
     return (
       isChildCacheOutOfSync(this._documentListChild) ||
       isChildCacheOutOfSync(this._schemaChild) ||
-      isChildCacheOutOfSync(this._indexListChild)
+      isChildCacheOutOfSync(this._indexListChild) ||
+      isChildCacheOutOfSync(this._changeStreamChild)
     );
   }
 
@@ -259,6 +299,14 @@ export default class CollectionTreeItem extends vscode.TreeItem
       false, // Cache is not up to date.
       [] // Empty cache.
     );
+    this._changeStreamChild = new CollectionChangeStreamTreeItem(
+      this.collectionName,
+      this.databaseName,
+      this._dataService,
+      false, // Collapsed.
+      false, // Cache is not up to date.
+      [] // Empty cache.
+    );
   }
 
   getDocumentListChild(): DocumentListTreeItem {
@@ -269,6 +317,9 @@ export default class CollectionTreeItem extends vscode.TreeItem
   }
   getIndexListChild(): IndexListTreeItem {
     return this._indexListChild;
+  }
+  getChangeStreamChild(): CollectionChangeStreamTreeItem {
+    return this._changeStreamChild;
   }
 
   getMaxDocumentsToShow(): number {

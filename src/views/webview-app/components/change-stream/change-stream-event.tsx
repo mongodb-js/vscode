@@ -16,7 +16,10 @@ class ChangeStreamEvent extends React.Component<props> {
     return (
       <div
         className={classnames({
-          [styles['change-stream-event']]: true
+          [styles['change-stream-event']]: true,
+          [styles['change-stream-event-update']]: operationType === 'update',
+          [styles['change-stream-event-insert']]: operationType === 'insert',
+          [styles['change-stream-event-delete']]: operationType === 'delete'
         })}
       >
         <h4>

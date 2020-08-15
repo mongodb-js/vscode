@@ -301,6 +301,10 @@
         "title": "Refresh"
       },
       {
+        "command": "mdb.refreshExplorerTree",
+        "title": "Refresh"
+      },
+      {
         "command": "mdb.copySchemaFieldName",
         "title": "Copy Field Name"
       },
@@ -434,9 +438,14 @@
           "group": "1@1"
         },
         {
-          "command": "mdb.refreshCollection",
+          "command": "mdb.searchForDocuments",
           "when": "view == mongoDB && viewItem == collectionTreeItem",
           "group": "1@2"
+        },
+        {
+          "command": "mdb.refreshCollection",
+          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "group": "1@3"
         },
         {
           "command": "mdb.copyCollectionName",
@@ -452,6 +461,11 @@
           "command": "mdb.dropCollection",
           "when": "view == mongoDB && viewItem == collectionTreeItem",
           "group": "4@1"
+        },
+        {
+          "command": "mdb.searchForDocuments",
+          "when": "view == mongoDB && viewItem == documentListTreeItem",
+          "group": "inline"
         },
         {
           "command": "mdb.viewCollectionDocuments",
@@ -487,6 +501,10 @@
       "commandPalette": [
         {
           "command": "mdb.searchForDocuments",
+          "when": "false"
+        },
+        {
+          "command": "mdb.refreshExplorerTree",
           "when": "false"
         },
         {

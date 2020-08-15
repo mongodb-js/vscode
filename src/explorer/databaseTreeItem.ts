@@ -88,7 +88,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           pastChildrenCache[collectionName].documentCount,
           pastChildrenCache[collectionName].getDocumentListChild(),
           pastChildrenCache[collectionName].getSchemaChild(),
-          pastChildrenCache[collectionName].getIndexListChild()
+          pastChildrenCache[collectionName].getIndexListChild(),
+          pastChildrenCache[collectionName].getChangeStreamChild()
         );
       });
 
@@ -120,7 +121,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
               pastChildrenCache[collection.name].documentCount,
               pastChildrenCache[collection.name].getDocumentListChild(),
               pastChildrenCache[collection.name].getSchemaChild(),
-              pastChildrenCache[collection.name].getIndexListChild()
+              pastChildrenCache[collection.name].getIndexListChild(),
+              pastChildrenCache[collection.name].getChangeStreamChild()
             );
           } else {
             this._childrenCache[collection.name] = new CollectionTreeItem(

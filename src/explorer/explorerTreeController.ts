@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 
 import ConnectionController, {
-  DataServiceEventTypes
+  DataServiceEventTypes,
 } from '../connectionController';
 import { DOCUMENT_ITEM } from './documentTreeItem';
 import MDBConnectionsTreeItem from './mdbConnectionsTreeItem';
 
 import { createLogger } from '../logging';
 import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
+import { CHANGE_STREAM_ITEM } from './collectionChangeStreamTreeItem';
 
 const log = createLogger('explorer controller');
 
@@ -113,6 +114,17 @@ export default class ExplorerTreeController
             'mdb.viewCollectionDocuments',
             event.selection[0]
           );
+        }
+
+        if (selectedItem.contextValue === CHANGE_STREAM_ITEM) {
+          vscode.workspace
+            .openTextDocument({
+              language: 'json',
+              content: JSON.stringify(event.selection[0].event, null, 2),
+            })
+            .then((document) => {
+              vscode.window.showTextDocument(document);
+            });
         }
       }
     });
