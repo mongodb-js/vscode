@@ -3,22 +3,21 @@ import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
 import { DOCUMENT_ITEM } from './documentTreeItem';
-import MDBConnectionsTreeItem from './mdbConnectionsTreeItem';
 import { createLogger } from '../logging';
 import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
+import ConnectionTreeItem from './connectionTreeItem';
+import { SavedConnection } from '../storage/storageController';
+import { sortTreeItemsByLabel } from './treeItemUtils';
 
 const log = createLogger('explorer controller');
 
 export default class ExplorerTreeController
   implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
-  private _mdbConnectionsTreeItem: MDBConnectionsTreeItem;
+  private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
+  contextValue = 'explorerTreeController';
 
   constructor(connectionController: ConnectionController) {
-    this._mdbConnectionsTreeItem = new MDBConnectionsTreeItem(
-      connectionController,
-      {} // No cache to start.
-    );
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
     this._connectionController = connectionController;
@@ -28,6 +27,8 @@ export default class ExplorerTreeController
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       this.refresh
     );
+
+    this._connectionTreeItems = {};
   }
 
   removeListeners(): void {
@@ -119,7 +120,7 @@ export default class ExplorerTreeController
   readonly onDidChangeTreeData: vscode.Event<any>;
 
   public refresh = (): Promise<boolean> => {
-    this._mdbConnectionsTreeItem.connectionsDidChange();
+    this.getConnectionItemsCache();
     this._onDidChangeTreeData.fire();
 
     return Promise.resolve(true);
@@ -129,23 +130,85 @@ export default class ExplorerTreeController
     this._onDidChangeTreeData.fire();
   }
 
-  getTreeItem(element: MDBConnectionsTreeItem): vscode.TreeItem {
+  getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
     return element;
   }
 
-  getChildren(element?: any): Thenable<any[]> {
-    // When no element is present we are at the root.
-    if (!element) {
-      // We rebuild the connections tree each time in order to
-      // manually control the expanded state of tree items.
-      this._mdbConnectionsTreeItem = new MDBConnectionsTreeItem(
+  getChildren(): Thenable<vscode.TreeItem[]> {
+    const connections = this._connectionController.getSavedConnections();
+    const pastConnectionTreeItems = this._connectionTreeItems;
+
+    // Create new connection tree items, using cached children wherever possible.
+    connections.forEach((connection: SavedConnection) => {
+      const isActiveConnection =
+        connection.id === this._connectionController.getActiveConnectionId();
+      const isBeingConnectedTo =
+        this._connectionController.isConnecting() &&
+        connection.id ===
+          this._connectionController.getConnectingConnectionId();
+
+      let connectionExpandedState = isActiveConnection
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Collapsed;
+
+      if (
+        pastConnectionTreeItems[connection.id] &&
+        !pastConnectionTreeItems[connection.id].isExpanded
+      ) {
+        // Connection was manually collapsed while being active.
+        connectionExpandedState = vscode.TreeItemCollapsibleState.Collapsed;
+      }
+      if (isActiveConnection && this._connectionController.isDisconnecting()) {
+        // Don't show a collapsable state when the connection is being disconnected from.
+        connectionExpandedState = vscode.TreeItemCollapsibleState.None;
+      }
+      if (isBeingConnectedTo) {
+        // Don't show a collapsable state when the connection is being connected to.
+        connectionExpandedState = vscode.TreeItemCollapsibleState.None;
+      }
+
+      this._connectionTreeItems[connection.id] = new ConnectionTreeItem(
+        connection.id,
+        connectionExpandedState,
+        isActiveConnection,
         this._connectionController,
-        this._mdbConnectionsTreeItem.getConnectionItemsCache()
+        pastConnectionTreeItems[connection.id]
+          ? pastConnectionTreeItems[connection.id].cacheIsUpToDate
+          : false,
+        pastConnectionTreeItems[connection.id]
+          ? pastConnectionTreeItems[connection.id].getChildrenCache()
+          : {}
+      );
+    });
+
+    if (
+      this._connectionController.isConnecting() &&
+      !this._connectionController.isConnectionWithIdSaved(
+        this._connectionController.getConnectingConnectionId()
+      )
+    ) {
+      const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
+        this._connectionController.getConnectingConnectionName() ||
+          'New Connection'
       );
 
-      return Promise.resolve([this._mdbConnectionsTreeItem]);
+      notYetEstablishConnectionTreeItem.description = 'connecting...';
+
+      // When we're connecting to a new connection we add simple node showing the connecting status.
+      return Promise.resolve(
+        sortTreeItemsByLabel([
+          ...Object.values(this._connectionTreeItems),
+          notYetEstablishConnectionTreeItem
+        ])
+      );
     }
 
-    return element.getChildren();
+    return Promise.resolve(
+      sortTreeItemsByLabel(Object.values(this._connectionTreeItems))
+    );
+  }
+
+  getConnectionItemsCache(): { [key: string]: ConnectionTreeItem } {
+    return this._connectionTreeItems;
   }
 }

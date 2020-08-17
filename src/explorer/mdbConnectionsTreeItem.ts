@@ -42,16 +42,14 @@ export default class MDBConnectionsTreeItem extends vscode.TreeItem
   getChildren(): Thenable<vscode.TreeItem[]> {
     const connections = this._connectionController.getSavedConnections();
     const pastConnectionTreeItems = this._connectionTreeItems;
-    this._connectionTreeItems = {};
 
     // Create new connection tree items, using cached children wherever possible.
     connections.forEach((connection: SavedConnection) => {
       const isActiveConnection =
-        connection.id ===
-        this._connectionController.getActiveConnectionId();
+        connection.id === this._connectionController.getActiveConnectionId();
       const isBeingConnectedTo =
         this._connectionController.isConnecting() &&
-          connection.id ===
+        connection.id ===
           this._connectionController.getConnectingConnectionId();
 
       let connectionExpandedState = isActiveConnection
