@@ -90,12 +90,12 @@
       "mongoDB": [
         {
           "id": "mongoDBConnectionExplorer",
-          "name": "MongoDB Connection Explorer",
+          "name": "Connections",
           "when": "config.mdb.showMongoDBConnectionExplorer == true"
         },
         {
           "id": "mongoDBPlaygrounds",
-          "name": "MongoDB Playgrounds",
+          "name": "Playgrounds",
           "when": "config.mdb.showMongoDBPlaygrounds == true"
         }
       ]
@@ -344,19 +344,6 @@
         }
       ],
       "view/item/context": [
-        {
-          "command": "mdb.addConnection",
-          "when": "view == mongoDBConnectionExplorer && viewItem == mdbConnectionsTreeItem",
-          "group": "inline"
-        },
-        {
-          "command": "mdb.addConnection",
-          "when": "view == mongoDBConnectionExplorer && viewItem == mdbConnectionsTreeItem"
-        },
-        {
-          "command": "mdb.addConnectionWithURI",
-          "when": "view == mongoDBConnectionExplorer && viewItem == mdbConnectionsTreeItem"
-        },
         {
           "command": "mdb.addDatabase",
           "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
