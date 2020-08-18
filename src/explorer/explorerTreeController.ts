@@ -120,7 +120,6 @@ export default class ExplorerTreeController
   readonly onDidChangeTreeData: vscode.Event<any>;
 
   public refresh = (): Promise<boolean> => {
-    this.getConnectionItemsCache();
     this._onDidChangeTreeData.fire();
 
     return Promise.resolve(true);
@@ -134,81 +133,85 @@ export default class ExplorerTreeController
     return element;
   }
 
-  getChildren(): Thenable<vscode.TreeItem[]> {
-    const connections = this._connectionController.getSavedConnections();
-    const pastConnectionTreeItems = this._connectionTreeItems;
+  getChildren(element?: any): Thenable<any[]> {
+    // When no element is present we are at the root.
+    if (!element) {
+      const connections = this._connectionController.getSavedConnections();
+      const pastConnectionTreeItems = this._connectionTreeItems;
 
-    // Create new connection tree items, using cached children wherever possible.
-    connections.forEach((connection: SavedConnection) => {
-      const isActiveConnection =
-        connection.id === this._connectionController.getActiveConnectionId();
-      const isBeingConnectedTo =
-        this._connectionController.isConnecting() &&
-        connection.id ===
-          this._connectionController.getConnectingConnectionId();
+      // Create new connection tree items, using cached children wherever possible.
+      connections.forEach((connection: SavedConnection) => {
+        const isActiveConnection =
+          connection.id === this._connectionController.getActiveConnectionId();
+        const isBeingConnectedTo =
+          this._connectionController.isConnecting() &&
+          connection.id ===
+            this._connectionController.getConnectingConnectionId();
 
-      let connectionExpandedState = isActiveConnection
-        ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed;
+        let connectionExpandedState = isActiveConnection
+          ? vscode.TreeItemCollapsibleState.Expanded
+          : vscode.TreeItemCollapsibleState.Collapsed;
+
+        if (
+          pastConnectionTreeItems[connection.id] &&
+          !pastConnectionTreeItems[connection.id].isExpanded
+        ) {
+          // Connection was manually collapsed while being active.
+          connectionExpandedState = vscode.TreeItemCollapsibleState.Collapsed;
+        }
+        if (
+          isActiveConnection &&
+          this._connectionController.isDisconnecting()
+        ) {
+          // Don't show a collapsable state when the connection is being disconnected from.
+          connectionExpandedState = vscode.TreeItemCollapsibleState.None;
+        }
+        if (isBeingConnectedTo) {
+          // Don't show a collapsable state when the connection is being connected to.
+          connectionExpandedState = vscode.TreeItemCollapsibleState.None;
+        }
+
+        this._connectionTreeItems[connection.id] = new ConnectionTreeItem(
+          connection.id,
+          connectionExpandedState,
+          isActiveConnection,
+          this._connectionController,
+          pastConnectionTreeItems[connection.id]
+            ? pastConnectionTreeItems[connection.id].cacheIsUpToDate
+            : false,
+          pastConnectionTreeItems[connection.id]
+            ? pastConnectionTreeItems[connection.id].getChildrenCache()
+            : {}
+        );
+      });
 
       if (
-        pastConnectionTreeItems[connection.id] &&
-        !pastConnectionTreeItems[connection.id].isExpanded
+        this._connectionController.isConnecting() &&
+        !this._connectionController.isConnectionWithIdSaved(
+          this._connectionController.getConnectingConnectionId()
+        )
       ) {
-        // Connection was manually collapsed while being active.
-        connectionExpandedState = vscode.TreeItemCollapsibleState.Collapsed;
+        const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
+          this._connectionController.getConnectingConnectionName() ||
+            'New Connection'
+        );
+
+        notYetEstablishConnectionTreeItem.description = 'connecting...';
+
+        // When we're connecting to a new connection we add simple node showing the connecting status.
+        return Promise.resolve(
+          sortTreeItemsByLabel([
+            ...Object.values(this._connectionTreeItems),
+            notYetEstablishConnectionTreeItem
+          ])
+        );
       }
-      if (isActiveConnection && this._connectionController.isDisconnecting()) {
-        // Don't show a collapsable state when the connection is being disconnected from.
-        connectionExpandedState = vscode.TreeItemCollapsibleState.None;
-      }
-      if (isBeingConnectedTo) {
-        // Don't show a collapsable state when the connection is being connected to.
-        connectionExpandedState = vscode.TreeItemCollapsibleState.None;
-      }
 
-      this._connectionTreeItems[connection.id] = new ConnectionTreeItem(
-        connection.id,
-        connectionExpandedState,
-        isActiveConnection,
-        this._connectionController,
-        pastConnectionTreeItems[connection.id]
-          ? pastConnectionTreeItems[connection.id].cacheIsUpToDate
-          : false,
-        pastConnectionTreeItems[connection.id]
-          ? pastConnectionTreeItems[connection.id].getChildrenCache()
-          : {}
-      );
-    });
-
-    if (
-      this._connectionController.isConnecting() &&
-      !this._connectionController.isConnectionWithIdSaved(
-        this._connectionController.getConnectingConnectionId()
-      )
-    ) {
-      const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
-        this._connectionController.getConnectingConnectionName() ||
-          'New Connection'
-      );
-
-      notYetEstablishConnectionTreeItem.description = 'connecting...';
-
-      // When we're connecting to a new connection we add simple node showing the connecting status.
       return Promise.resolve(
-        sortTreeItemsByLabel([
-          ...Object.values(this._connectionTreeItems),
-          notYetEstablishConnectionTreeItem
-        ])
+        sortTreeItemsByLabel(Object.values(this._connectionTreeItems))
       );
     }
 
-    return Promise.resolve(
-      sortTreeItemsByLabel(Object.values(this._connectionTreeItems))
-    );
-  }
-
-  getConnectionItemsCache(): { [key: string]: ConnectionTreeItem } {
-    return this._connectionTreeItems;
+    return element.getChildren();
   }
 }
