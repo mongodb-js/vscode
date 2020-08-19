@@ -114,10 +114,6 @@ export default class PlaygroundsTreeHeader extends vscode.TreeItem
           stat.type === vscode.FileType.File &&
           fileName.split('.').pop() === 'mongodb'
         ) {
-          console.log('fileUri----------------------');
-          console.log(fileUri);
-          console.log('----------------------');
-
           this._playgroundsTreeItems[fileUri.fsPath] = new PlaygroundsTreeItem(
             fileName,
             fileUri.fsPath
@@ -146,10 +142,6 @@ export default class PlaygroundsTreeHeader extends vscode.TreeItem
         await this.readDirectory(folder.uri);
       }
     }
-
-    console.log('this._playgroundsTreeItems----------------------');
-    console.log(this._playgroundsTreeItems);
-    console.log('----------------------');
 
     return Promise.resolve(
       sortTreeItemsByLabel(Object.values(this._playgroundsTreeItems))

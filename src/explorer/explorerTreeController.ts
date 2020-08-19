@@ -28,7 +28,7 @@ export default class ExplorerTreeController
       this.refresh
     );
 
-    this._connectionTreeItems = {};
+    this._connectionTreeItems = {}; // No cache to start.
   }
 
   removeListeners(): void {
@@ -138,6 +138,7 @@ export default class ExplorerTreeController
     if (!element) {
       const connections = this._connectionController.getSavedConnections();
       const pastConnectionTreeItems = this._connectionTreeItems;
+      this._connectionTreeItems = {};
 
       // Create new connection tree items, using cached children wherever possible.
       connections.forEach((connection: SavedConnection) => {
