@@ -15,6 +15,7 @@ import {
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { StorageScope } from '../../storage/storageController';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
+import IndexListTreeItem from '../../explorer/indexListTreeItem';
 
 const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
@@ -475,7 +476,7 @@ suite('MDBExtensionController Test Suite', () => {
     );
   });
 
-  test('mdb.refreshSchema command should reset its cache and call to refresh the explorer controller', (done) => {
+  test('mdb.refreshSchema command should reset its cache and call to refresh the explorer controller', async () => {
     const mockTreeItem = new SchemaTreeItem(
       'zebraWearwolf',
       'giraffeVampire',
@@ -497,19 +498,46 @@ suite('MDBExtensionController Test Suite', () => {
       mockExplorerControllerRefresh
     );
 
-    vscode.commands
-      .executeCommand('mdb.refreshSchema', mockTreeItem)
-      .then(() => {
-        assert(
-          mockTreeItem.cacheIsUpToDate === false,
-          'Expected schema field cache to be not up to date.'
-        );
-        assert(
-          mockExplorerControllerRefresh.called === true,
-          'Expected explorer controller refresh to be called.'
-        );
-      })
-      .then(done, done);
+    await vscode.commands.executeCommand('mdb.refreshSchema', mockTreeItem);
+    assert(
+      !mockTreeItem.cacheIsUpToDate,
+      'Expected schema field cache to be not up to date.'
+    );
+    assert(
+      mockExplorerControllerRefresh.called === true,
+      'Expected explorer controller refresh to be called.'
+    );
+  });
+
+  test('mdb.refreshIndexes command should reset its cache and call to refresh the explorer controller', async () => {
+    const mockTreeItem = new IndexListTreeItem(
+      'zebraWearwolf',
+      'giraffeVampire',
+      {},
+      false,
+      false,
+      []
+    );
+
+    // Set cached.
+    mockTreeItem.cacheIsUpToDate = true;
+
+    const mockExplorerControllerRefresh = sinon.fake.resolves();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._explorerController,
+      'refresh',
+      mockExplorerControllerRefresh
+    );
+
+    await vscode.commands.executeCommand('mdb.refreshIndexes', mockTreeItem);
+    assert(
+      !mockTreeItem.cacheIsUpToDate,
+      'Expected schema field cache to be not up to date.'
+    );
+    assert(
+      mockExplorerControllerRefresh.called === true,
+      'Expected explorer controller refresh to be called.'
+    );
   });
 
   test('mdb.addDatabase command fails when not connected to the connection', (done) => {
@@ -1238,14 +1266,63 @@ suite('MDBExtensionController Test Suite', () => {
 
     await vscode.commands.executeCommand(
       'mdb.searchForDocuments',
-      'dbName',
-      'collName'
+      {
+        databaseName: 'dbbbbbName',
+        collectionName: 'colllllllllName'
+      }
     );
 
     assert(mockOpenTextDocument.firstArg.language === 'mongodb');
     assert(
       mockOpenTextDocument.firstArg.content.includes(
         'Search for documents in the current collection.'
+      )
+    );
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        'dbbbbbName'
+      )
+    );
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        'colllllllllName'
+      )
+    );
+    assert(
+      mockShowTextDocument.firstArg === 'untitled',
+      'Expected it to call vscode to show the playground'
+    );
+  });
+
+  test('mdb.createIndexFromTreeView should create a MongoDB playground with search template', async () => {
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument = sinon.fake.resolves();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    await vscode.commands.executeCommand(
+      'mdb.createIndexFromTreeView',
+      {
+        databaseName: 'dbbbbbName',
+        collectionName: 'colllllllllName'
+      }
+    );
+
+    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        'dbbbbbName'
+      )
+    );
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        'colllllllllName'
+      )
+    );
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        'Create a new index in the collection.'
       )
     );
     assert(

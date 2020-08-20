@@ -21,6 +21,7 @@ import DocumentListTreeItem from './explorer/documentListTreeItem';
 import DocumentTreeItem from './explorer/documentTreeItem';
 import WebviewController from './views/webviewController';
 import FieldTreeItem from './explorer/fieldTreeItem';
+import IndexListTreeItem from './explorer/indexListTreeItem';
 
 const log = createLogger('commands');
 
@@ -272,20 +273,11 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       'mdb.searchForDocuments',
-      async (element: DocumentListTreeItem): Promise<boolean> => {
-        if (this._connectionController.isDisconnecting()) {
-          vscode.window.showErrorMessage(
-            'Unable to add collection: currently disconnecting.'
-          );
-          return false;
-        }
-
-        this._playgroundController.createPlaygroundForSearch(
+      (element: DocumentListTreeItem): Promise<boolean> => {
+        return this._playgroundController.createPlaygroundForSearch(
           element.databaseName,
           element.collectionName
         );
-
-        return true;
       }
     );
     this.registerCommand(
@@ -419,6 +411,22 @@ export default class MDBExtensionController implements vscode.Disposable {
         vscode.window.showInformationMessage('Copied to clipboard.');
 
         return true;
+      }
+    );
+    this.registerCommand(
+      'mdb.refreshIndexes',
+      (indexListTreeItem: IndexListTreeItem): Promise<boolean> => {
+        indexListTreeItem.resetCache();
+        return this._explorerController.refresh();
+      }
+    );
+    this.registerCommand(
+      'mdb.createIndexFromTreeView',
+      (indexListTreeItem: IndexListTreeItem): Promise<boolean> => {
+        return this._playgroundController.createPlaygroundForNewIndex(
+          indexListTreeItem.databaseName,
+          indexListTreeItem.collectionName
+        );
       }
     );
   }

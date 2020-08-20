@@ -59,6 +59,8 @@ suite('Extension Test Suite', () => {
       'mdb.refreshCollection',
       'mdb.refreshSchema',
       'mdb.copySchemaFieldName',
+      'mdb.refreshIndexes',
+      'mdb.createIndexFromTreeView',
 
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked'

@@ -9,6 +9,7 @@ import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
+import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import { createLogger } from '../logging';
 
 const log = createLogger('playground controller');
@@ -96,7 +97,7 @@ export default class PlaygroundController {
         editor.textEditor.document &&
         editor.textEditor.document.languageId === 'mongodb'
       ) {
-        this._selectedText = (editor.selections as Array<any>)
+        this._selectedText = (editor.selections as Array<vscode.Selection>)
           .sort((a, b) => (a.start.line > b.start.line ? 1 : -1)) // Sort lines selected as alt+click
           .map((item, index) => {
             if (index === editor.selections.length - 1) {
@@ -153,15 +154,10 @@ export default class PlaygroundController {
     return this._languageServerController.disconnectFromServiceProvider();
   }
 
-  public createPlaygroundForSearch(
-    databaseName: string,
-    collectionName: string
+  private createPlaygroundFileWithContent(
+    content: string | undefined
   ): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      const content = playgroundSearchTemplate
-        .replace('CURRENT_DATABASE', databaseName)
-        .replace('CURRENT_COLLECTION', collectionName);
-
       vscode.workspace
         .openTextDocument({
           language: 'mongodb',
@@ -173,6 +169,28 @@ export default class PlaygroundController {
           resolve(true);
         }, reject);
     });
+  }
+
+  public createPlaygroundForSearch(
+    databaseName: string,
+    collectionName: string
+  ): Promise<boolean> {
+    const content = playgroundSearchTemplate
+      .replace('CURRENT_DATABASE', databaseName)
+      .replace('CURRENT_COLLECTION', collectionName);
+
+    return this.createPlaygroundFileWithContent(content);
+  }
+
+  public createPlaygroundForNewIndex(
+    databaseName: string,
+    collectionName: string
+  ): Promise<boolean> {
+    const content = playgroundCreateIndexTemplate
+      .replace('CURRENT_DATABASE', databaseName)
+      .replace('CURRENT_COLLECTION', collectionName);
+
+    return this.createPlaygroundFileWithContent(content);
   }
 
   public createPlayground(): Promise<boolean> {
@@ -214,7 +232,7 @@ export default class PlaygroundController {
     return this._activeTextEditor?.document.getText() || '';
   }
 
-  private getSelectedText(selection: any): string {
+  private getSelectedText(selection: vscode.Range): string {
     return this._activeTextEditor?.document.getText(selection) || '';
   }
 
@@ -234,7 +252,7 @@ export default class PlaygroundController {
             cancellable: true
           },
           async (progress, token) => {
-            token.onCancellationRequested(async () => {
+            token.onCancellationRequested(() => {
               // If a user clicked the cancel button terminate all playground scripts.
               this._languageServerController.cancelAll();
               this._outputChannel.clear();
@@ -301,7 +319,7 @@ export default class PlaygroundController {
     });
   }
 
-  public runSelectedPlaygroundBlocks() {
+  public runSelectedPlaygroundBlocks(): Promise<boolean> {
     if (this._activeTextEditor && this._activeTextEditor.document) {
       const selections = this._activeTextEditor.selections;
 
@@ -324,7 +342,7 @@ export default class PlaygroundController {
     return this.evaluatePlayground();
   }
 
-  public runAllPlaygroundBlocks() {
+  public runAllPlaygroundBlocks(): Promise<boolean> {
     if (this._activeTextEditor) {
       this._isPartialRun = false;
       this._codeToEvaluate = this.getAllText();
@@ -333,7 +351,7 @@ export default class PlaygroundController {
     return this.evaluatePlayground();
   }
 
-  public runAllOrSelectedPlaygroundBlocks() {
+  public runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
     if (this._activeTextEditor && this._activeTextEditor.document) {
       const selections = this._activeTextEditor.selections;
 
