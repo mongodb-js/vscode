@@ -186,28 +186,6 @@ export default class ExplorerTreeController
         );
       });
 
-      if (
-        this._connectionController.isConnecting() &&
-        !this._connectionController.isConnectionWithIdSaved(
-          this._connectionController.getConnectingConnectionId()
-        )
-      ) {
-        const notYetEstablishConnectionTreeItem = new vscode.TreeItem(
-          this._connectionController.getConnectingConnectionName() ||
-            'New Connection'
-        );
-
-        notYetEstablishConnectionTreeItem.description = 'connecting...';
-
-        // When we're connecting to a new connection we add simple node showing the connecting status.
-        return Promise.resolve(
-          sortTreeItemsByLabel([
-            ...Object.values(this._connectionTreeItems),
-            notYetEstablishConnectionTreeItem
-          ])
-        );
-      }
-
       return Promise.resolve(
         sortTreeItemsByLabel(Object.values(this._connectionTreeItems))
       );
