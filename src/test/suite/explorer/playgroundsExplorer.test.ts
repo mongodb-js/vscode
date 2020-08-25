@@ -1,6 +1,5 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 suite('Playgrounds Controller Test Suite', () => {
@@ -24,28 +23,12 @@ suite('Playgrounds Controller Test Suite', () => {
     }
   });
 
-  test.only('should search for playground in the workspace', async () => {
+  test('should search for playground in the workspace', async () => {
     const workspaceFolders = (vscode.workspace.workspaceFolders || []).filter(
       (folder) => folder.uri.scheme === 'file'
     );
-
-    console.log('workspaceFolders[0]?.uri.path----------------------');
-    console.log(workspaceFolders[0]?.uri.path);
-    console.log('----------------------');
-
-    const rootPath = path.resolve(workspaceFolders[0]?.uri.path, '..', '..');
-    const rootPath2 = path.resolve(
-      __dirname,
-      workspaceFolders[0]?.uri.path,
-      '..',
-      '..'
-    );
-
-    console.log('rootPath2----------------------');
-    console.log(rootPath2);
-    console.log('----------------------');
-
-    const rootUri = vscode.Uri.parse(rootPath2);
+    const rootPath = workspaceFolders[0]?.uri.path.replace('/out/test', '');
+    const rootUri = vscode.Uri.parse(rootPath);
     const treeController = testPlaygroundsExplorer.getTreeController();
 
     try {
