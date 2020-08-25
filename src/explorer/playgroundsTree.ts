@@ -1,26 +1,70 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import PlaygroundsTreeHeader from './playgroundsTreeHeader';
 import { PLAYGROUND_ITEM } from './playgroundsTreeItem';
 import { createLogger } from '../logging';
+import PlaygroundsTreeItem from './playgroundsTreeItem';
 
+const micromatch = require('micromatch');
 const log = createLogger('explorer controller');
+
+export class FileStat implements vscode.FileStat {
+  constructor(private fsStat: fs.Stats) {}
+
+  get type(): vscode.FileType {
+    return this.fsStat.isFile()
+      ? vscode.FileType.File
+      : this.fsStat.isDirectory()
+      ? vscode.FileType.Directory
+      : this.fsStat.isSymbolicLink()
+      ? vscode.FileType.SymbolicLink
+      : vscode.FileType.Unknown;
+  }
+
+  get isFile(): boolean | undefined {
+    return this.fsStat.isFile();
+  }
+
+  get isDirectory(): boolean | undefined {
+    return this.fsStat.isDirectory();
+  }
+
+  get isSymbolicLink(): boolean | undefined {
+    return this.fsStat.isSymbolicLink();
+  }
+
+  get size(): number {
+    return this.fsStat.size;
+  }
+
+  get ctime(): number {
+    return this.fsStat.ctime.getTime();
+  }
+
+  get mtime(): number {
+    return this.fsStat.mtime.getTime();
+  }
+}
 
 export default class PlaygroundsTree
   implements vscode.TreeDataProvider<vscode.TreeItem> {
-  private _playgroundsTreeHeader: PlaygroundsTreeHeader;
   private _playgroundsTreeHeaders: PlaygroundsTreeHeader[];
   private _onDidChangeTreeData: vscode.EventEmitter<any>;
+  private _excludeFromPlaygroundsSearch: string[];
+  private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
   readonly onDidChangeTreeData: vscode.Event<any>;
 
   contextValue = 'playgroundsTree';
 
   constructor() {
-    this._playgroundsTreeHeader = new PlaygroundsTreeHeader(
-      vscode.Uri.parse(''),
-      {} // No cache to start.
-    );
+    this._excludeFromPlaygroundsSearch =
+      vscode.workspace
+        .getConfiguration('mdb')
+        .get('excludeFromPlaygroundsSearch') || [];
     this._playgroundsTreeHeaders = [];
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
+    this._playgroundsTreeItems = {};
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
   }
 
@@ -100,7 +144,71 @@ export default class PlaygroundsTree
     return element;
   }
 
-  public getChildren(element?: any): Thenable<any[]> {
+  private getFileNames(path: string): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+      fs.readdir(path, (error, files) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(files);
+        }
+      });
+    });
+  }
+
+  private stat(path: string): Promise<fs.Stats> {
+    return new Promise<fs.Stats>((resolve, reject) => {
+      fs.stat(path, (error, stat) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(stat);
+        }
+      });
+    });
+  }
+
+  private async getStat(path: string): Promise<vscode.FileStat> {
+    return new FileStat(await this.stat(path));
+  }
+
+  public async readDirectory(uri: vscode.Uri): Promise<void> {
+    const fileNames = await this.getFileNames(uri.fsPath);
+
+    for (let i = 0; i < fileNames.length; i++) {
+      const fileName = fileNames[i];
+
+      try {
+        const stat = await this.getStat(path.join(uri.fsPath, fileName));
+        const fileUri = vscode.Uri.file(path.join(uri.fsPath, fileName));
+
+        if (
+          stat.type === vscode.FileType.File &&
+          fileName.split('.').pop() === 'mongodb'
+        ) {
+          this._playgroundsTreeItems[fileUri.fsPath] = new PlaygroundsTreeItem(
+            fileName,
+            fileUri.fsPath
+          );
+        } else if (
+          stat.type === vscode.FileType.Directory &&
+          !micromatch.isMatch(fileName, this._excludeFromPlaygroundsSearch)
+        ) {
+          await this.readDirectory(fileUri);
+        }
+      } catch (error) {}
+    }
+  }
+
+  public async getPlaygrounds(folderUri: vscode.Uri): Promise<any> {
+    this._playgroundsTreeItems = {};
+
+    await this.readDirectory(folderUri);
+
+    return this._playgroundsTreeItems;
+  }
+
+  public async getChildren(element?: any): Promise<any[]> {
     // When no element is present we are at the root.
     if (!element) {
       this._playgroundsTreeHeaders = [];
@@ -114,14 +222,15 @@ export default class PlaygroundsTree
         );
 
         for (const folder of workspaceFolders) {
-          // We rebuild the playgrounds tree each time in order to
-          // manually control the expanded state of tree items.
-          this._playgroundsTreeHeaders.push(
-            new PlaygroundsTreeHeader(
-              folder.uri,
-              this._playgroundsTreeHeader.getPlaygroundsItemsCache()
-            )
-          );
+          const playgrounds = await this.getPlaygrounds(folder.uri);
+
+          if (Object.keys(playgrounds).length > 0) {
+            // We rebuild the playgrounds tree each time in order to
+            // manually control the expanded state of tree items.
+            this._playgroundsTreeHeaders.push(
+              new PlaygroundsTreeHeader(folder.uri, playgrounds)
+            );
+          }
         }
       }
 

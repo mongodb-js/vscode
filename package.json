@@ -181,7 +181,7 @@
       },
       {
         "command": "mdb.refreshPlaygrounds",
-        "title": "Refresh Playgrounds"
+        "title": "Refresh"
       },
       {
         "command": "mdb.createNewPlaygroundFromViewAction",
@@ -351,6 +351,10 @@
           "when": "view == mongoDBPlaygrounds"
         },
         {
+          "command": "mdb.refreshPlaygrounds",
+          "when": "view == mongoDBPlaygrounds"
+        },
+        {
           "command": "mdb.addConnection",
           "when": "view == mongoDBConnectionExplorer"
         },
@@ -403,11 +407,6 @@
         {
           "command": "mdb.openPlaygroundFromTreeItem",
           "when": "view == mongoDBPlaygrounds && viewItem == playgroundsTreeItem",
-          "group": "1@1"
-        },
-        {
-          "command": "mdb.refreshPlaygrounds",
-          "when": "view == mongoDBPlaygrounds && viewItem == playgroundsTreeHeader",
           "group": "1@1"
         },
         {

@@ -1,36 +1,52 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 suite('Playgrounds Controller Test Suite', () => {
-  test('should have a workspace root without children', async () => {
-    const testPlaygroundsExplorer =
-      mdbTestExtension.testExtensionController._playgroundsExplorer;
+  const testPlaygroundsExplorer =
+    mdbTestExtension.testExtensionController._playgroundsExplorer;
+
+  test('should show a welcome view if playgrounds list is empty', async () => {
     const treeController = testPlaygroundsExplorer.getTreeController();
 
     assert(!!treeController, 'Tree controller should not be undefined');
 
     try {
       const treeControllerChildren = await treeController.getChildren();
-      const workspaceFolders = (vscode.workspace.workspaceFolders || []).filter(
-        (folder) => folder.uri.scheme === 'file'
-      );
-      const rootPath = workspaceFolders[0]?.uri.path;
 
       assert(
-        treeControllerChildren.length === 1,
-        `Tree controller should have 1 child, found ${treeControllerChildren.length}`
+        treeControllerChildren.length === 0,
+        `Tree controller should have 0 child, found ${treeControllerChildren.length}`
       );
+    } catch (error) {
+      assert(false, error);
+    }
+  });
+
+  test('should search for playground in the workspace', async () => {
+    const workspaceFolders = (vscode.workspace.workspaceFolders || []).filter(
+      (folder) => folder.uri.scheme === 'file'
+    );
+    const rootPath = path.resolve(workspaceFolders[0]?.uri.path, '..', '..');
+    const rootUri = vscode.Uri.parse(rootPath);
+    const treeController = testPlaygroundsExplorer.getTreeController();
+
+    try {
+      const children = await treeController.getPlaygrounds(rootUri);
+
       assert(
-        treeControllerChildren[0].label === rootPath,
-        'Tree controller should have a root Uri child'
+        Object.keys(children).length === 4,
+        `Tree playgrounds should have 4 child, found ${children.length}`
       );
 
-      const playgrounds = await treeControllerChildren[0].getChildren();
+      const playgrounds = Object.values(children).filter(
+        (item: any) => item.label && item.label.split('.').pop() === 'mongodb'
+      );
 
       assert(
-        playgrounds.length === 0,
-        `Expected there to be 0 playgrounds tree item, found ${playgrounds.length}`
+        Object.keys(playgrounds).length === 4,
+        `Tree playgrounds should have 4 playgrounds with mongodb extension, found ${children.length}`
       );
     } catch (error) {
       assert(false, error);
