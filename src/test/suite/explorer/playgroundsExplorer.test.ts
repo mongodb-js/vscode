@@ -45,7 +45,7 @@ suite('Playgrounds Controller Test Suite', () => {
     console.log(rootPath2);
     console.log('----------------------');
 
-    const rootUri = vscode.Uri.parse(rootPath);
+    const rootUri = vscode.Uri.parse(rootPath2);
     const treeController = testPlaygroundsExplorer.getTreeController();
 
     try {
