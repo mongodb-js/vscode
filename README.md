@@ -33,7 +33,7 @@ Launch the MongoDB Shell from the command palette to quickly connect to the same
 
 ![MongoDB Shell](resources/screenshots/shell-launcher.png)
 
-_The shell binary needs to be in your `$PATH`. The shell binary can be either the `mongo` shell or the new [MongoDB Shell](https://www.mongodb.com/try/download/shell) (`mongosh`). In the extension's settings you can switch between the two._
+_The shell binary needs to be in your `$PATH`. The shell binary can be either the `mongo` shell or the new [MongoDB Shell](https://www.mongodb.com/products/shell) (`mongosh`). In the extension's settings you can switch between the two._
 
 ### Terraform snippet for MongoDB Atlas
 
