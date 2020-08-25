@@ -63,8 +63,8 @@ export default class PlaygroundsTree
         .getConfiguration('mdb')
         .get('excludeFromPlaygroundsSearch') || [];
     this._playgroundsTreeHeaders = [];
-    this._onDidChangeTreeData = new vscode.EventEmitter<void>();
     this._playgroundsTreeItems = {};
+    this._onDidChangeTreeData = new vscode.EventEmitter<void>();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
   }
 
@@ -212,8 +212,7 @@ export default class PlaygroundsTree
     // When no element is present we are at the root.
     if (!element) {
       this._playgroundsTreeHeaders = [];
-      // We rebuild the playgrounds tree each time in order to
-      // manually control the expanded state of tree items.
+
       let workspaceFolders = vscode.workspace.workspaceFolders;
 
       if (workspaceFolders) {
@@ -225,8 +224,6 @@ export default class PlaygroundsTree
           const playgrounds = await this.getPlaygrounds(folder.uri);
 
           if (Object.keys(playgrounds).length > 0) {
-            // We rebuild the playgrounds tree each time in order to
-            // manually control the expanded state of tree items.
             this._playgroundsTreeHeaders.push(
               new PlaygroundsTreeHeader(folder.uri, playgrounds)
             );

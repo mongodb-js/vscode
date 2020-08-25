@@ -15,9 +15,12 @@ export default class PlaygroundsExplorer {
 
   private createPlaygroundsTreeView = (): void => {
     if (!this._treeView) {
-      this._treeView = vscode.window.createTreeView('mongoDBPlaygrounds', {
-        treeDataProvider: this._treeController
-      });
+      this._treeView = vscode.window.createTreeView(
+        'mongoDBPlaygroundsExplorer',
+        {
+          treeDataProvider: this._treeController
+        }
+      );
       this._treeController.activateTreeViewEventHandlers(this._treeView);
     }
   };
@@ -39,13 +42,6 @@ export default class PlaygroundsExplorer {
     }
 
     return Promise.reject(new Error('No tree to refresh.'));
-  }
-
-  // Exposed for testing.
-  public getPlaygroundsTreeView():
-    | vscode.TreeView<vscode.TreeItem>
-    | undefined {
-    return this._treeView;
   }
 
   public getTreeController(): PlaygroundsTree {

@@ -373,7 +373,7 @@ export default class PlaygroundController {
 
   public openPlayground(filePath: string): Promise<boolean> {
     return new Promise(async (resolve) => {
-      vscode.workspace
+      await vscode.workspace
         .openTextDocument(filePath)
         .then((doc) => vscode.window.showTextDocument(doc, 1, false));
 

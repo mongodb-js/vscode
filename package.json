@@ -72,7 +72,7 @@
     "onCommand:mdb.openMongoDBShell",
     "onView:mongoDB",
     "onView:mongoDBConnectionExplorer",
-    "onView:mongoDBPlaygrounds",
+    "onView:mongoDBPlaygroundsExplorer",
     "onLanguage:json",
     "onLanguage:mongodb"
   ],
@@ -94,7 +94,7 @@
           "when": "config.mdb.showMongoDBConnectionExplorer == true"
         },
         {
-          "id": "mongoDBPlaygrounds",
+          "id": "mongoDBPlaygroundsExplorer",
           "name": "Playgrounds",
           "when": "config.mdb.showMongoDBPlaygrounds == true"
         }
@@ -106,7 +106,7 @@
         "contents": "No connections found.\n[Add Connection](command:mdb.connect)"
       },
       {
-        "view": "mongoDBPlaygrounds",
+        "view": "mongoDBPlaygroundsExplorer",
         "contents": "No playgrounds found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromPlaygroundExplorer)"
       }
     ],
@@ -348,11 +348,11 @@
       "view/title": [
         {
           "command": "mdb.createNewPlaygroundFromViewAction",
-          "when": "view == mongoDBPlaygrounds"
+          "when": "view == mongoDBPlaygroundsExplorer"
         },
         {
           "command": "mdb.refreshPlaygrounds",
-          "when": "view == mongoDBPlaygrounds"
+          "when": "view == mongoDBPlaygroundsExplorer"
         },
         {
           "command": "mdb.addConnection",
@@ -455,11 +455,6 @@
           "group": "3@1"
         },
         {
-          "command": "mdb.searchForDocuments",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
-          "group": "inline"
-        },
-        {
           "command": "mdb.viewCollectionDocuments",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "1@1"
@@ -478,6 +473,11 @@
           "command": "mdb.dropCollection",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "3@1"
+        },
+        {
+          "command": "mdb.searchForDocuments",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "inline"
         },
         {
           "command": "mdb.viewCollectionDocuments",
