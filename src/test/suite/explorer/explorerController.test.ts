@@ -46,29 +46,6 @@ suite('Explorer Controller Test Suite', function () {
     sinon.restore();
   });
 
-  test('should have a connections root', async () => {
-    const testExplorerController =
-      mdbTestExtension.testExtensionController._explorerController;
-    const treeController = testExplorerController.getTreeController();
-
-    assert(!!treeController, 'Tree controller should not be undefined');
-
-    try {
-      const treeControllerChildren = await treeController.getChildren();
-
-      assert(
-        treeControllerChildren.length === 1,
-        `Tree controller should have 1 child, found ${treeControllerChildren.length}`
-      );
-      assert(
-        treeControllerChildren[0].label === 'Connections',
-        'Tree controller should have a "Connections" child'
-      );
-    } catch (error) {
-      assert(false, error);
-    }
-  });
-
   test('it updates the connections to account for a change in the connection controller', async () => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
@@ -90,18 +67,7 @@ suite('Explorer Controller Test Suite', function () {
       testConnectionController.setConnnectingConnectionId(mockConnectionId);
       testConnectionController.setConnnecting(true);
 
-      const treeControllerChildren = await treeController.getChildren();
-
-      assert(
-        treeControllerChildren.length === 1,
-        `Tree controller should have 1 child, found ${treeControllerChildren.length}`
-      );
-      assert(
-        treeControllerChildren[0].label === 'Connections',
-        'Tree controller should have a "Connections" child'
-      );
-
-      const connectionsItems = await treeControllerChildren[0].getChildren();
+      const connectionsItems = await treeController.getChildren();
 
       assert(
         connectionsItems.length === 1,
@@ -118,7 +84,7 @@ suite('Explorer Controller Test Suite', function () {
     }
   });
 
-  test('when a connection is added and connected it is added to the tree and expanded', async () => {
+  test('when a connection is added and connected it is added to the tree', async () => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
     const testExplorerController =
@@ -147,8 +113,7 @@ suite('Explorer Controller Test Suite', function () {
       }' found ${activeId}`
     );
 
-    const treeControllerChildren = await treeController.getChildren();
-    const connectionsItems = await treeControllerChildren[0].getChildren();
+    const connectionsItems = await treeController.getChildren();
 
     assert(
       connectionsItems.length === 1,
@@ -161,10 +126,6 @@ suite('Explorer Controller Test Suite', function () {
     assert(
       connectionsItems[0].description === 'connected',
       'There should be a connection tree item with the description "connected"'
-    );
-    assert(
-      connectionsItems[0].isExpanded,
-      'Expected the connection tree item to be expanded'
     );
   });
 
@@ -205,8 +166,7 @@ suite('Explorer Controller Test Suite', function () {
       /* Silent fail (should fail) */
     }
 
-    const treeControllerChildren = await treeController.getChildren();
-    const connectionsItems = await treeControllerChildren[0].getChildren();
+    const connectionsItems = await treeController.getChildren();
 
     assert(
       connectionsItems.length === 2,
@@ -259,8 +219,7 @@ suite('Explorer Controller Test Suite', function () {
       storageLocation: StorageScope.WORKSPACE
     };
 
-    const treeControllerChildren = await treeController.getChildren();
-    const connectionsItems = await treeControllerChildren[0].getChildren();
+    const connectionsItems = await treeController.getChildren();
 
     assert(
       connectionsItems.length === 3,
@@ -277,7 +236,8 @@ suite('Explorer Controller Test Suite', function () {
 
     testConnectionController._connections.zzz.name = '111';
 
-    const afterAdditionConnectionsItems = await treeControllerChildren[0].getChildren();
+    const afterAdditionConnectionsItems = await treeController.getChildren();
+
     assert(
       afterAdditionConnectionsItems[0].label === '111',
       `First connection tree item should have label "111" found ${afterAdditionConnectionsItems[0].label}`
@@ -297,12 +257,7 @@ suite('Explorer Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    const treeControllerChildren = await treeController.getChildren();
-    const connectionsItems = await treeControllerChildren[0].getChildren();
-
-    // Expand the connection.
-    treeControllerChildren[0].onDidExpand();
-
+    const connectionsItems = await treeController.getChildren();
     const databaseItems = await connectionsItems[0].getChildren();
 
     assert(
@@ -328,9 +283,7 @@ suite('Explorer Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    const rootTreeItem = await treeController.getChildren();
-    const connectionsTreeItem = rootTreeItem[0];
-    const connectionsItems = await connectionsTreeItem.getChildren();
+    const connectionsItems = await treeController.getChildren();
 
     // Expand the connection.
     const testConnectionTreeItem = connectionsItems[0];

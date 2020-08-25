@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import PlaygroundsTreeItem from './playgroundsTreeItem';
 import TreeItemParent from './treeItemParentInterface';
+import PlaygroundsTreeItem from './playgroundsTreeItem';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 
-const rootLabel = 'Playgrounds';
+const micromatch = require('micromatch');
+
 const rootTooltip = 'Your MongoDB playgrounds';
 
 export class FileStat implements vscode.FileStat {
@@ -48,27 +49,35 @@ export class FileStat implements vscode.FileStat {
 
 export default class PlaygroundsTreeHeader extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
-  contextValue = 'playgroundsTreeItem';
-
   private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
+  private _excludeFromPlaygroundsSearch: string[];
+  private _rootUri: vscode.Uri;
 
+  contextValue = 'playgroundsTreeHeader';
   isExpanded = true;
-  cacheIsUpToDate = false; // Unused because this is a synchronous resource.
-  needsToRefreshExpansionState = false;
+  doesNotRequireTreeUpdate = true;
+  cacheIsUpToDate = true;
 
-  constructor(existingPlaygroundsItemsCache: {
-    [key: string]: PlaygroundsTreeItem;
-  }) {
-    super(rootLabel, vscode.TreeItemCollapsibleState.Expanded);
-
+  constructor(
+    fileUri: vscode.Uri,
+    existingPlaygroundsItemsCache: {
+      [key: string]: PlaygroundsTreeItem;
+    }
+  ) {
+    super(fileUri.path, vscode.TreeItemCollapsibleState.Expanded);
+    this._rootUri = fileUri;
     this._playgroundsTreeItems = existingPlaygroundsItemsCache;
+    this._excludeFromPlaygroundsSearch =
+      vscode.workspace
+        .getConfiguration('mdb')
+        .get('excludeFromPlaygroundsSearch') || [];
   }
 
   get tooltip(): string {
     return rootTooltip;
   }
 
-  getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+  public getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
     return element;
   }
 
@@ -100,7 +109,7 @@ export default class PlaygroundsTreeHeader extends vscode.TreeItem
     return new FileStat(await this.stat(path));
   }
 
-  private async readDirectory(uri: vscode.Uri): Promise<void> {
+  public async readDirectory(uri: vscode.Uri): Promise<void> {
     const fileNames = await this.getFileNames(uri.fsPath);
 
     for (let i = 0; i < fileNames.length; i++) {
@@ -120,7 +129,7 @@ export default class PlaygroundsTreeHeader extends vscode.TreeItem
           );
         } else if (
           stat.type === vscode.FileType.Directory &&
-          fileName !== 'node_modules'
+          !micromatch.isMatch(fileName, this._excludeFromPlaygroundsSearch)
         ) {
           await this.readDirectory(fileUri);
         }
@@ -128,44 +137,27 @@ export default class PlaygroundsTreeHeader extends vscode.TreeItem
     }
   }
 
-  async getChildren(): Promise<vscode.TreeItem[]> {
+  public async getChildren(): Promise<vscode.TreeItem[]> {
     this._playgroundsTreeItems = {};
 
-    let workspaceFolders = vscode.workspace.workspaceFolders;
-
-    if (workspaceFolders) {
-      workspaceFolders = workspaceFolders.filter(
-        (folder) => folder.uri.scheme === 'file'
-      );
-
-      for (const folder of workspaceFolders) {
-        await this.readDirectory(folder.uri);
-      }
-    }
+    await this.readDirectory(this._rootUri);
 
     return Promise.resolve(
       sortTreeItemsByLabel(Object.values(this._playgroundsTreeItems))
     );
   }
 
-  playgroundsDidChange(): void {
-    // When the playgrounds change, like a playground is added or removed,
-    // we want to open the playgrounds dropdown if it's collapsed.
-    if (!this.isExpanded) {
-      this.needsToRefreshExpansionState = true;
-    }
-  }
-
-  onDidCollapse(): void {
+  public onDidCollapse(): void {
     this.isExpanded = false;
   }
 
-  onDidExpand(): Promise<boolean> {
+  public onDidExpand(): Promise<boolean> {
     this.isExpanded = true;
+
     return Promise.resolve(true);
   }
 
-  getPlaygroundsItemsCache(): { [key: string]: PlaygroundsTreeItem } {
+  public getPlaygroundsItemsCache(): { [key: string]: PlaygroundsTreeItem } {
     return this._playgroundsTreeItems;
   }
 }

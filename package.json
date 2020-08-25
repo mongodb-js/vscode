@@ -180,6 +180,10 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
+        "command": "mdb.refreshPlaygrounds",
+        "title": "Refresh Playgrounds"
+      },
+      {
         "command": "mdb.createNewPlaygroundFromViewAction",
         "title": "Create MongoDB Playground"
       },
@@ -252,6 +256,10 @@
         }
       },
       {
+        "command": "mdb.openPlaygroundFromTreeItem",
+        "title": "Open Playground"
+      },
+      {
         "command": "mdb.connectToConnectionTreeItem",
         "title": "Connect"
       },
@@ -316,6 +324,14 @@
         "title": "Refresh"
       },
       {
+        "command": "mdb.createPlaygroundFromTreeView",
+        "title": "Create New Index...",
+        "icon": {
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
+        }
+      },
+      {
         "command": "mdb.createIndexFromTreeView",
         "title": "Create New Index...",
         "icon": {
@@ -332,7 +348,7 @@
       "view/title": [
         {
           "command": "mdb.createNewPlaygroundFromViewAction",
-          "when": "view == mongoDBConnectionExplorer"
+          "when": "view == mongoDBPlaygrounds"
         },
         {
           "command": "mdb.addConnection",
@@ -383,6 +399,16 @@
           "command": "mdb.treeItemRemoveConnection",
           "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "5@2"
+        },
+        {
+          "command": "mdb.openPlaygroundFromTreeItem",
+          "when": "view == mongoDBPlaygrounds && viewItem == playgroundsTreeItem",
+          "group": "1@1"
+        },
+        {
+          "command": "mdb.refreshPlaygrounds",
+          "when": "view == mongoDBPlaygrounds && viewItem == playgroundsTreeHeader",
+          "group": "1@1"
         },
         {
           "command": "mdb.connectToConnectionTreeItem",
@@ -538,6 +564,10 @@
           "when": "false"
         },
         {
+          "command": "mdb.openPlaygroundFromTreeItem",
+          "when": "false"
+        },
+        {
           "command": "mdb.connectToConnectionTreeItem",
           "when": "false"
         },
@@ -673,6 +703,29 @@
           "default": true,
           "description": "Show or hide the MongoDB playgrounds view."
         },
+        "mdb.excludeFromPlaygroundsSearch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files and folders to exclude while searching for playground in the the current workspace.",
+          "default": [
+            "**/.!(todo|todos|task|tasks)/**",
+            "**/_output/**",
+            "**/bower_components/**",
+            "**/build/**",
+            "**/dist/**",
+            "**/node_modules/**",
+            "**/out/**",
+            "**/output/**",
+            "**/release/**",
+            "**/releases/**",
+            "**/static/**",
+            "**/target/**",
+            "**/third_party/**",
+            "**/vendor/**"
+          ]
+        },
         "mdb.defaultLimit": {
           "type": "number",
           "default": 10,
@@ -732,6 +785,7 @@
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "encoding": "^0.1.12",
+    "micromatch": "^4.0.2",
     "mongodb-cloud-info": "^1.1.2",
     "mongodb-connection-model": "^16.1.4",
     "mongodb-data-service": "^16.8.1",

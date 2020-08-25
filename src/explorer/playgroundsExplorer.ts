@@ -13,7 +13,7 @@ export default class PlaygroundsExplorer {
     this._treeController = new PlaygroundsTree();
   }
 
-  createPlaygroundsTreeView = (): void => {
+  private createPlaygroundsTreeView = (): void => {
     if (!this._treeView) {
       this._treeView = vscode.window.createTreeView('mongoDBPlaygrounds', {
         treeDataProvider: this._treeController
@@ -22,18 +22,18 @@ export default class PlaygroundsExplorer {
     }
   };
 
-  async activatePlaygroundsTreeView(): Promise<void> {
+  public async activatePlaygroundsTreeView(): Promise<void> {
     this.createPlaygroundsTreeView();
   }
 
-  deactivate(): void {
+  public deactivate(): void {
     if (this._treeView) {
       this._treeView.dispose();
       delete this._treeView;
     }
   }
 
-  refresh(): Promise<boolean> {
+  public refresh(): Promise<boolean> {
     if (this._treeController) {
       return this._treeController.refresh();
     }

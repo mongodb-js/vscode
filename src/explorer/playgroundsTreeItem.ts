@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
 import path = require('path');
-import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
+
+export const PLAYGROUND_ITEM = 'playgroundsTreeItem';
 
 export default class PlaygroundsTreeItem extends vscode.TreeItem
   implements vscode.TreeDataProvider<PlaygroundsTreeItem> {
-  fileName: string;
-  filePath: string;
+  public filePath: string;
+
+  contextValue = PLAYGROUND_ITEM;
 
   constructor(fileName: string, filePath: string) {
     super(fileName);
-
-    this.fileName = fileName;
     this.filePath = filePath;
   }
 
@@ -21,14 +21,6 @@ export default class PlaygroundsTreeItem extends vscode.TreeItem
 
   get description(): string {
     return '';
-  }
-
-  getTreeItem(element: PlaygroundsTreeItem): PlaygroundsTreeItem {
-    return element;
-  }
-
-  getChildren(): Thenable<PlaygroundsTreeItem[]> {
-    return Promise.resolve([]);
   }
 
   get iconPath():
@@ -42,5 +34,13 @@ export default class PlaygroundsTreeItem extends vscode.TreeItem
       light: path.join(LIGHT, 'file-light.svg'),
       dark: path.join(DARK, 'file-light.svg')
     };
+  }
+
+  public getTreeItem(element: PlaygroundsTreeItem): PlaygroundsTreeItem {
+    return element;
+  }
+
+  public getChildren(): Thenable<PlaygroundsTreeItem[]> {
+    return Promise.resolve([]);
   }
 }

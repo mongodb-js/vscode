@@ -26,6 +26,7 @@ import DocumentTreeItem from './explorer/documentTreeItem';
 import WebviewController from './views/webviewController';
 import FieldTreeItem from './explorer/fieldTreeItem';
 import IndexListTreeItem from './explorer/indexListTreeItem';
+import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 
 const log = createLogger('commands');
 
@@ -187,13 +188,20 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.addConnectionWithURI', () =>
       this._connectionController.connectWithURI()
     );
+    this.registerCommand('mdb.refreshPlaygrounds', () =>
+      this._playgroundsExplorer.refresh()
+    );
+    this.registerCommand(
+      'mdb.openPlaygroundFromTreeItem',
+      (playgroundsTreeItem: PlaygroundsTreeItem) =>
+        this._playgroundController.openPlayground(playgroundsTreeItem.filePath)
+    );
     this.registerCommand(
       'mdb.connectToConnectionTreeItem',
-      (connectionTreeItem: ConnectionTreeItem) => {
-        return this._connectionController.connectWithConnectionId(
+      (connectionTreeItem: ConnectionTreeItem) =>
+        this._connectionController.connectWithConnectionId(
           connectionTreeItem.connectionId
-        );
-      }
+        )
     );
     this.registerCommand('mdb.disconnectFromConnectionTreeItem', () => {
       // In order for this command to be activated, the connection must
@@ -205,6 +213,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       (connectionTreeItem: ConnectionTreeItem) => {
         connectionTreeItem.resetCache();
         this._explorerController.refresh();
+
         return Promise.resolve(true);
       }
     );
@@ -283,18 +292,18 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       'mdb.searchForDocuments',
-      (element: DocumentListTreeItem): Promise<boolean> => {
-        return this._playgroundController.createPlaygroundForSearch(
+      (element: DocumentListTreeItem): Promise<boolean> =>
+        this._playgroundController.createPlaygroundForSearch(
           element.databaseName,
           element.collectionName
-        );
-      }
+        )
     );
     this.registerCommand(
       'mdb.copyDatabaseName',
       async (element: DatabaseTreeItem) => {
         await vscode.env.clipboard.writeText(element.databaseName);
         vscode.window.showInformationMessage('Copied to clipboard.');
+
         return true;
       }
     );

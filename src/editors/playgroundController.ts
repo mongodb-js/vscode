@@ -371,6 +371,16 @@ export default class PlaygroundController {
     return this.evaluatePlayground();
   }
 
+  public openPlayground(filePath: string): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      vscode.workspace
+        .openTextDocument(filePath)
+        .then((doc) => vscode.window.showTextDocument(doc, 1, false));
+
+      return resolve(true);
+    });
+  }
+
   public deactivate(): void {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
