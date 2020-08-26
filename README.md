@@ -10,7 +10,7 @@ MongoDB for VS Code makes it easy to work with MongoDB, whether your own instanc
 
 - Navigate your database, collections and read-only views
 - See the documents in your collections
-- Get a quick overview of your schema
+- Get a quick overview of your schema and your indexes
 
 ![Explore data with MongoDB for VS Code](resources/screenshots/explore-data.png)
 
@@ -33,7 +33,7 @@ Launch the MongoDB Shell from the command palette to quickly connect to the same
 
 ![MongoDB Shell](resources/screenshots/shell-launcher.png)
 
-_The shell binary needs to be in your `$PATH`. This functionality has some issues on Windows, we'll release an update with a fix soon._
+_The shell binary needs to be in your `$PATH`. The shell binary can be either the `mongo` shell or the new [MongoDB Shell](https://www.mongodb.com/products/shell) (`mongosh`). In the extension's settings you can switch between the two._
 
 ### Terraform snippet for MongoDB Atlas
 
@@ -43,7 +43,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 
 ## Extension Settings
 
-- `mdb.shell`: The MongoDB shell to use.
+- `mdb.shell`: The MongoDB shell to use (`mongo` or the new `mongosh`).
 - `mdb.show`: Show or hide the MongoDB view.
 - `mdb.defaultLimit`: The number of documents to fetch when viewing documents from a collection.
 - `mdb.confirmRunAll`: Show a confirmation message before running commands in a playground.
