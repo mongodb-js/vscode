@@ -1,10 +1,29 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import { before, afterEach } from 'mocha';
 import { mdbTestExtension } from '../stubbableMdbExtension';
+import PlaygroundsTree from './../../../explorer/playgroundsTree';
 
 suite('Playgrounds Controller Test Suite', () => {
   const testPlaygroundsExplorer =
     mdbTestExtension.testExtensionController._playgroundsExplorer;
+  let excludeFromPlaygroundsSearchDefault: string[];
+
+  before(async () => {
+    excludeFromPlaygroundsSearchDefault =
+      (await vscode.workspace
+        .getConfiguration('mdb')
+        .get('excludeFromPlaygroundsSearch')) || [];
+  });
+
+  afterEach(async () => {
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update(
+        'excludeFromPlaygroundsSearch',
+        excludeFromPlaygroundsSearchDefault
+      );
+  });
 
   test('should show a welcome view if playgrounds list is empty', async () => {
     const treeController = testPlaygroundsExplorer.getTreeController();
@@ -46,6 +65,33 @@ suite('Playgrounds Controller Test Suite', () => {
       assert(
         Object.keys(playgrounds).length === 4,
         `Tree playgrounds should have 4 playgrounds with mongodb extension, found ${children.length}`
+      );
+    } catch (error) {
+      assert(false, error);
+    }
+  });
+
+  test('should exclude folders and files specified in extension settings', async () => {
+    const workspaceFolders = (vscode.workspace.workspaceFolders || []).filter(
+      (folder) => folder.uri.scheme === 'file'
+    );
+    const rootPath = workspaceFolders[0]?.uri.path.replace('/out/test', '');
+    const rootUri = vscode.Uri.parse(rootPath);
+
+    try {
+      await vscode.workspace
+        .getConfiguration('mdb')
+        .update(
+          'excludeFromPlaygroundsSearch',
+          excludeFromPlaygroundsSearchDefault.concat(['**/playgrounds/**'])
+        );
+
+      const treeController = new PlaygroundsTree();
+      const children = await treeController.getPlaygrounds(rootUri);
+
+      assert(
+        Object.keys(children).length === 3,
+        `Tree playgrounds should have 3 child, found ${children.length}`
       );
     } catch (error) {
       assert(false, error);
