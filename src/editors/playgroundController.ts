@@ -373,9 +373,12 @@ export default class PlaygroundController {
 
   public openPlayground(filePath: string): Promise<boolean> {
     return new Promise(async (resolve) => {
-      await vscode.workspace
-        .openTextDocument(filePath)
-        .then((doc) => vscode.window.showTextDocument(doc, 1, false));
+      await vscode.workspace.openTextDocument(filePath).then(
+        (doc) => vscode.window.showTextDocument(doc, 1, false),
+        (error) => {
+          vscode.window.showErrorMessage(`Unable to read file: ${filePath}`);
+        }
+      );
 
       return resolve(true);
     });

@@ -49,16 +49,16 @@ export class FileStat implements vscode.FileStat {
 
 export default class PlaygroundsTree
   implements vscode.TreeDataProvider<vscode.TreeItem> {
+  public excludeFromPlaygroundsSearch: string[];
   private _playgroundsTreeHeaders: PlaygroundsTreeHeader[];
   private _onDidChangeTreeData: vscode.EventEmitter<any>;
-  private _excludeFromPlaygroundsSearch: string[];
   private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
   readonly onDidChangeTreeData: vscode.Event<any>;
 
   contextValue = 'playgroundsTree';
 
   constructor() {
-    this._excludeFromPlaygroundsSearch =
+    this.excludeFromPlaygroundsSearch =
       vscode.workspace
         .getConfiguration('mdb')
         .get('excludeFromPlaygroundsSearch') || [];
@@ -131,6 +131,11 @@ export default class PlaygroundsTree
   };
 
   public refresh = (): Promise<boolean> => {
+    this.excludeFromPlaygroundsSearch =
+      vscode.workspace
+        .getConfiguration('mdb')
+        .get('excludeFromPlaygroundsSearch') || [];
+
     this._onDidChangeTreeData.fire();
 
     return Promise.resolve(true);
@@ -181,10 +186,12 @@ export default class PlaygroundsTree
       try {
         const stat = await this.getStat(path.join(uri.fsPath, fileName));
         const fileUri = vscode.Uri.file(path.join(uri.fsPath, fileName));
+        const fileNameParts = fileName.split('.');
 
         if (
           stat.type === vscode.FileType.File &&
-          fileName.split('.').pop() === 'mongodb'
+          fileNameParts.length > 1 &&
+          fileNameParts.pop() === 'mongodb'
         ) {
           this._playgroundsTreeItems[fileUri.fsPath] = new PlaygroundsTreeItem(
             fileName,
@@ -192,7 +199,7 @@ export default class PlaygroundsTree
           );
         } else if (
           stat.type === vscode.FileType.Directory &&
-          !micromatch.isMatch(fileName, this._excludeFromPlaygroundsSearch)
+          !micromatch.isMatch(fileName, this.excludeFromPlaygroundsSearch)
         ) {
           await this.readDirectory(fileUri);
         }

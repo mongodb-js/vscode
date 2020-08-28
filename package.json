@@ -107,7 +107,7 @@
       },
       {
         "view": "mongoDBPlaygroundsExplorer",
-        "contents": "No playgrounds found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromPlaygroundExplorer)"
+        "contents": "No '.mongodb' playground files found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromPlaygroundExplorer)"
       }
     ],
     "languages": [
@@ -406,7 +406,7 @@
         },
         {
           "command": "mdb.openPlaygroundFromTreeItem",
-          "when": "view == mongoDBPlaygrounds && viewItem == playgroundsTreeItem",
+          "when": "view == mongoDBPlaygroundsExplorer && viewItem == playgroundsTreeItem",
           "group": "1@1"
         },
         {
