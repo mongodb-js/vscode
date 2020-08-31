@@ -324,14 +324,6 @@
         "title": "Refresh"
       },
       {
-        "command": "mdb.createPlaygroundFromTreeView",
-        "title": "Create New Index...",
-        "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
-        }
-      },
-      {
         "command": "mdb.createIndexFromTreeView",
         "title": "Create New Index...",
         "icon": {
