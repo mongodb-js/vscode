@@ -181,6 +181,10 @@
       },
       {
         "command": "mdb.refreshPlaygrounds",
+        "title": "MongoDB: Refresh Playgrounds List"
+      },
+      {
+        "command": "mdb.refreshPlaygroundsFromTreeView",
         "title": "Refresh"
       },
       {
@@ -343,7 +347,7 @@
           "when": "view == mongoDBPlaygroundsExplorer"
         },
         {
-          "command": "mdb.refreshPlaygrounds",
+          "command": "mdb.refreshPlaygroundsFromTreeView",
           "when": "view == mongoDBPlaygroundsExplorer"
         },
         {
@@ -514,6 +518,10 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "mdb.refreshPlaygroundsFromTreeView",
+          "when": "false"
+        },
         {
           "command": "mdb.searchForDocuments",
           "when": "false"
