@@ -128,6 +128,11 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     return `${typeString} Documents`;
   }
 
+[MongoDB Documentation](https://docs.mongodb.com/manual/)
+[Extension Documentation](https://docs.mongodb.com/mongodb-vscode/)
+[Feedback](https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/)
+[Submit a bug](https://github.com/mongodb-js/vscode/issues)
+
   getTreeItem(element: DocumentListTreeItem): DocumentListTreeItem {
     return element;
   }
