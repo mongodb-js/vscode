@@ -8,7 +8,11 @@ import * as vscode from 'vscode';
 import ConnectionController from './connectionController';
 import launchMongoShell from './commands/launchMongoShell';
 import { EditorsController, PlaygroundController } from './editors';
-import { ExplorerController, CollectionTreeItem } from './explorer';
+import {
+  ExplorerController,
+  PlaygroundsExplorer,
+  CollectionTreeItem
+} from './explorer';
 import { LanguageServerController } from './language';
 import TelemetryController from './telemetry/telemetryController';
 import { StatusView } from './views';
@@ -22,6 +26,7 @@ import DocumentTreeItem from './explorer/documentTreeItem';
 import WebviewController from './views/webviewController';
 import FieldTreeItem from './explorer/fieldTreeItem';
 import IndexListTreeItem from './explorer/indexListTreeItem';
+import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 
 const log = createLogger('commands');
 
@@ -33,6 +38,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editorsController: EditorsController;
   _playgroundController: PlaygroundController;
   _explorerController: ExplorerController;
+  _playgroundsExplorer: PlaygroundsExplorer;
   _statusView: StatusView;
   _storageController: StorageController;
   _telemetryController: TelemetryController;
@@ -69,6 +75,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController = new ExplorerController(
       this._connectionController
     );
+    this._playgroundsExplorer = new PlaygroundsExplorer();
     this._playgroundController = new PlaygroundController(
       context,
       this._connectionController,
@@ -82,10 +89,11 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   activate(): void {
-    this._explorerController.activateTreeView();
+    this._explorerController.activateConnectionsTreeView();
+    this._playgroundsExplorer.activatePlaygroundsTreeView();
     this._connectionController.loadSavedConnections();
-    this._telemetryController.activate();
-    this._languageServerController.activate();
+    this._telemetryController.activateSegmentAnalytics();
+    this._languageServerController.startLanguageServer();
 
     log.info('Registering commands...');
 
@@ -118,6 +126,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.createNewPlaygroundFromViewAction', () =>
       this._playgroundController.createPlayground()
     );
+    this.registerCommand('mdb.createNewPlaygroundFromPlaygroundExplorer', () =>
+      this._playgroundController.createPlayground()
+    );
     this.registerCommand('mdb.runSelectedPlaygroundBlocks', () =>
       this._playgroundController.runSelectedPlaygroundBlocks()
     );
@@ -129,6 +140,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand('mdb.changeActiveConnection', () =>
       this._connectionController.changeActiveConnection()
+    );
+    this.registerCommand('mdb.refreshPlaygrounds', () =>
+      this._playgroundsExplorer.refresh()
     );
 
     this.registerCommand('mdb.startStreamLanguageServerLogs', () =>
@@ -177,13 +191,20 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.addConnectionWithURI', () =>
       this._connectionController.connectWithURI()
     );
+    this.registerCommand('mdb.refreshPlaygroundsFromTreeView', () =>
+      this._playgroundsExplorer.refresh()
+    );
+    this.registerCommand(
+      'mdb.openPlaygroundFromTreeItem',
+      (playgroundsTreeItem: PlaygroundsTreeItem) =>
+        this._playgroundController.openPlayground(playgroundsTreeItem.filePath)
+    );
     this.registerCommand(
       'mdb.connectToConnectionTreeItem',
-      (connectionTreeItem: ConnectionTreeItem) => {
-        return this._connectionController.connectWithConnectionId(
+      (connectionTreeItem: ConnectionTreeItem) =>
+        this._connectionController.connectWithConnectionId(
           connectionTreeItem.connectionId
-        );
-      }
+        )
     );
     this.registerCommand('mdb.disconnectFromConnectionTreeItem', () => {
       // In order for this command to be activated, the connection must
@@ -195,6 +216,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       (connectionTreeItem: ConnectionTreeItem) => {
         connectionTreeItem.resetCache();
         this._explorerController.refresh();
+
         return Promise.resolve(true);
       }
     );
@@ -273,18 +295,18 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       'mdb.searchForDocuments',
-      (element: DocumentListTreeItem): Promise<boolean> => {
-        return this._playgroundController.createPlaygroundForSearch(
+      (element: DocumentListTreeItem): Promise<boolean> =>
+        this._playgroundController.createPlaygroundForSearch(
           element.databaseName,
           element.collectionName
-        );
-      }
+        )
     );
     this.registerCommand(
       'mdb.copyDatabaseName',
       async (element: DatabaseTreeItem) => {
         await vscode.env.clipboard.writeText(element.databaseName);
         vscode.window.showInformationMessage('Copied to clipboard.');
+
         return true;
       }
     );
@@ -439,6 +461,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // TODO: Cancel active queries/playgrounds.
     this._connectionController.disconnect();
     this._explorerController.deactivate();
+    this._playgroundsExplorer.deactivate();
     this._playgroundController.deactivate();
     this._telemetryController.deactivate();
     this._languageServerController.deactivate();

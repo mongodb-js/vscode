@@ -37,7 +37,7 @@ suite('Language Server Controller Test Suite', () => {
     mockExtensionContext
   );
 
-  testLanguageServerController.activate();
+  testLanguageServerController.startLanguageServer();
 
   const testConnectionController = new ConnectionController(
     new StatusView(mockExtensionContext),

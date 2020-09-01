@@ -71,6 +71,8 @@
     "onCommand:mdb.removeConnection",
     "onCommand:mdb.openMongoDBShell",
     "onView:mongoDB",
+    "onView:mongoDBConnectionExplorer",
+    "onView:mongoDBPlaygroundsExplorer",
     "onLanguage:json",
     "onLanguage:mongodb"
   ],
@@ -87,16 +89,25 @@
     "views": {
       "mongoDB": [
         {
-          "id": "mongoDB",
-          "name": "MongoDB",
-          "when": "config.mdb.show == true"
+          "id": "mongoDBConnectionExplorer",
+          "name": "Connections",
+          "when": "config.mdb.showMongoDBConnectionExplorer == true"
+        },
+        {
+          "id": "mongoDBPlaygroundsExplorer",
+          "name": "Playgrounds",
+          "when": "config.mdb.showMongoDBPlaygrounds == true"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "mongoDB",
+        "view": "mongoDBConnectionExplorer",
         "contents": "No connections found.\n[Add Connection](command:mdb.connect)"
+      },
+      {
+        "view": "mongoDBPlaygroundsExplorer",
+        "contents": "No '.mongodb' playground files found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromPlaygroundExplorer)"
       }
     ],
     "languages": [
@@ -169,7 +180,19 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
+        "command": "mdb.refreshPlaygrounds",
+        "title": "MongoDB: Refresh Playgrounds List"
+      },
+      {
+        "command": "mdb.refreshPlaygroundsFromTreeView",
+        "title": "Refresh"
+      },
+      {
         "command": "mdb.createNewPlaygroundFromViewAction",
+        "title": "Create MongoDB Playground"
+      },
+      {
+        "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
         "title": "Create MongoDB Playground"
       },
       {
@@ -235,6 +258,10 @@
           "light": "images/light/search-regular.svg",
           "dark": "images/dark/search-regular.svg"
         }
+      },
+      {
+        "command": "mdb.openPlaygroundFromTreeItem",
+        "title": "Open Playground"
       },
       {
         "command": "mdb.connectToConnectionTreeItem",
@@ -317,176 +344,170 @@
       "view/title": [
         {
           "command": "mdb.createNewPlaygroundFromViewAction",
-          "when": "view == mongoDB"
+          "when": "view == mongoDBPlaygroundsExplorer"
+        },
+        {
+          "command": "mdb.refreshPlaygroundsFromTreeView",
+          "when": "view == mongoDBPlaygroundsExplorer"
         },
         {
           "command": "mdb.addConnection",
-          "when": "view == mongoDB"
+          "when": "view == mongoDBConnectionExplorer"
         },
         {
           "command": "mdb.addConnectionWithURI",
-          "when": "view == mongoDB"
+          "when": "view == mongoDBConnectionExplorer"
         }
       ],
       "view/item/context": [
         {
-          "command": "mdb.addConnection",
-          "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem",
-          "group": "inline"
-        },
-        {
-          "command": "mdb.addConnection",
-          "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem"
-        },
-        {
-          "command": "mdb.addConnectionWithURI",
-          "when": "view == mongoDB && viewItem == mdbConnectionsTreeItem"
-        },
-        {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "inline"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "1@1"
         },
         {
           "command": "mdb.refreshConnection",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "1@2"
         },
         {
           "command": "mdb.treeViewOpenMongoDBShell",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "2@1"
         },
         {
           "command": "mdb.renameConnection",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "3@1"
         },
         {
           "command": "mdb.copyConnectionString",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "4@1"
         },
         {
           "command": "mdb.disconnectFromConnectionTreeItem",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "5@1"
         },
         {
           "command": "mdb.treeItemRemoveConnection",
-          "when": "view == mongoDB && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "5@2"
         },
         {
+          "command": "mdb.openPlaygroundFromTreeItem",
+          "when": "view == mongoDBPlaygroundsExplorer && viewItem == playgroundsTreeItem",
+          "group": "1@1"
+        },
+        {
           "command": "mdb.connectToConnectionTreeItem",
-          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
           "group": "1@1"
         },
         {
           "command": "mdb.renameConnection",
-          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
           "group": "2@1"
         },
         {
           "command": "mdb.copyConnectionString",
-          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
           "group": "3@1"
         },
         {
           "command": "mdb.treeItemRemoveConnection",
-          "when": "view == mongoDB && viewItem == disconnectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
           "group": "4@1"
         },
         {
           "command": "mdb.addCollection",
-          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == databaseTreeItem",
           "group": "inline"
         },
         {
           "command": "mdb.addCollection",
-          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == databaseTreeItem",
           "group": "1@1"
         },
         {
           "command": "mdb.refreshDatabase",
-          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == databaseTreeItem",
           "group": "1@2"
         },
         {
           "command": "mdb.copyDatabaseName",
-          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == databaseTreeItem",
           "group": "2@1"
         },
         {
           "command": "mdb.dropDatabase",
-          "when": "view == mongoDB && viewItem == databaseTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == databaseTreeItem",
           "group": "3@1"
         },
         {
           "command": "mdb.viewCollectionDocuments",
-          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "1@1"
         },
         {
           "command": "mdb.refreshCollection",
-          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "1@2"
         },
         {
           "command": "mdb.copyCollectionName",
-          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "2@1"
         },
         {
           "command": "mdb.dropCollection",
-          "when": "view == mongoDB && viewItem == collectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "3@1"
         },
         {
           "command": "mdb.searchForDocuments",
-          "when": "view == mongoDB && viewItem == documentListTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
           "group": "inline"
         },
         {
           "command": "mdb.viewCollectionDocuments",
-          "when": "view == mongoDB && viewItem == documentListTreeItem",
-          "group": "1@1"
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem"
         },
         {
           "command": "mdb.refreshDocumentList",
-          "when": "view == mongoDB && viewItem == documentListTreeItem",
-          "group": "1@2"
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem"
         },
         {
           "command": "mdb.searchForDocuments",
-          "when": "view == mongoDB && viewItem == documentListTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
           "group": "2@1"
         },
         {
           "command": "mdb.refreshSchema",
-          "when": "view == mongoDB && viewItem == schemaTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == schemaTreeItem"
         },
         {
           "command": "mdb.copySchemaFieldName",
-          "when": "view == mongoDB && viewItem == fieldTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == fieldTreeItem"
         },
         {
           "command": "mdb.createIndexFromTreeView",
-          "when": "view == mongoDB && viewItem == indexListTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == indexListTreeItem",
           "group": "inline"
         },
         {
           "command": "mdb.refreshIndexes",
-          "when": "view == mongoDB && viewItem == indexListTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == indexListTreeItem"
         },
         {
           "command": "mdb.createIndexFromTreeView",
-          "when": "view == mongoDB && viewItem == indexListTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == indexListTreeItem"
         }
       ],
       "editor/title": [
@@ -497,6 +518,10 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "mdb.refreshPlaygroundsFromTreeView",
+          "when": "false"
+        },
         {
           "command": "mdb.searchForDocuments",
           "when": "false"
@@ -511,6 +536,10 @@
         },
         {
           "command": "mdb.createNewPlaygroundFromViewAction",
+          "when": "false"
+        },
+        {
+          "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
           "when": "false"
         },
         {
@@ -531,6 +560,10 @@
         },
         {
           "command": "mdb.addDatabase",
+          "when": "false"
+        },
+        {
+          "command": "mdb.openPlaygroundFromTreeItem",
           "when": "false"
         },
         {
@@ -659,10 +692,38 @@
           "default": "mongo",
           "description": "The MongoDB shell to use."
         },
-        "mdb.show": {
+        "mdb.showMongoDBConnectionExplorer": {
           "type": "boolean",
           "default": true,
-          "description": "Show or hide the MongoDB view."
+          "description": "Show or hide the MongoDB connections view."
+        },
+        "mdb.showMongoDBPlaygrounds": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show or hide the MongoDB playgrounds view."
+        },
+        "mdb.excludeFromPlaygroundsSearch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files and folders to exclude while searching for playground in the the current workspace.",
+          "default": [
+            "**/.!(todo|todos|task|tasks)/**",
+            "**/_output/**",
+            "**/bower_components/**",
+            "**/build/**",
+            "**/dist/**",
+            "**/node_modules/**",
+            "**/out/**",
+            "**/output/**",
+            "**/release/**",
+            "**/releases/**",
+            "**/static/**",
+            "**/target/**",
+            "**/third_party/**",
+            "**/vendor/**"
+          ]
         },
         "mdb.defaultLimit": {
           "type": "number",
@@ -723,6 +784,7 @@
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "encoding": "^0.1.12",
+    "micromatch": "^4.0.2",
     "mongodb-cloud-info": "^1.1.2",
     "mongodb-connection-model": "^16.1.4",
     "mongodb-data-service": "^16.8.1",

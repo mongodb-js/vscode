@@ -1264,13 +1264,10 @@ suite('MDBExtensionController Test Suite', () => {
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    await vscode.commands.executeCommand(
-      'mdb.searchForDocuments',
-      {
-        databaseName: 'dbbbbbName',
-        collectionName: 'colllllllllName'
-      }
-    );
+    await vscode.commands.executeCommand('mdb.searchForDocuments', {
+      databaseName: 'dbbbbbName',
+      collectionName: 'colllllllllName'
+    });
 
     assert(mockOpenTextDocument.firstArg.language === 'mongodb');
     assert(
@@ -1278,16 +1275,8 @@ suite('MDBExtensionController Test Suite', () => {
         'Search for documents in the current collection.'
       )
     );
-    assert(
-      mockOpenTextDocument.firstArg.content.includes(
-        'dbbbbbName'
-      )
-    );
-    assert(
-      mockOpenTextDocument.firstArg.content.includes(
-        'colllllllllName'
-      )
-    );
+    assert(mockOpenTextDocument.firstArg.content.includes('dbbbbbName'));
+    assert(mockOpenTextDocument.firstArg.content.includes('colllllllllName'));
     assert(
       mockShowTextDocument.firstArg === 'untitled',
       'Expected it to call vscode to show the playground'
@@ -1301,25 +1290,14 @@ suite('MDBExtensionController Test Suite', () => {
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    await vscode.commands.executeCommand(
-      'mdb.createIndexFromTreeView',
-      {
-        databaseName: 'dbbbbbName',
-        collectionName: 'colllllllllName'
-      }
-    );
+    await vscode.commands.executeCommand('mdb.createIndexFromTreeView', {
+      databaseName: 'dbbbbbName',
+      collectionName: 'colllllllllName'
+    });
 
     assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-    assert(
-      mockOpenTextDocument.firstArg.content.includes(
-        'dbbbbbName'
-      )
-    );
-    assert(
-      mockOpenTextDocument.firstArg.content.includes(
-        'colllllllllName'
-      )
-    );
+    assert(mockOpenTextDocument.firstArg.content.includes('dbbbbbName'));
+    assert(mockOpenTextDocument.firstArg.content.includes('colllllllllName'));
     assert(
       mockOpenTextDocument.firstArg.content.includes(
         'Create a new index in the collection.'
@@ -1444,6 +1422,25 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mockChangeActiveConnection.called,
           'Expected "changeActiveConnection" to be called on the playground controller.'
+        );
+      })
+      .then(done, done);
+  });
+
+  test('mdb.refreshPlaygrounds command should call refreshPlaygrounds on the playgrounds explorer controller', (done) => {
+    const mockRefreshPlaygrounds = sinon.fake.resolves();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundsExplorer,
+      'refresh',
+      mockRefreshPlaygrounds
+    );
+
+    vscode.commands
+      .executeCommand('mdb.refreshPlaygrounds')
+      .then(() => {
+        assert(
+          mockRefreshPlaygrounds.called,
+          'Expected "refreshPlaygrounds" to be called on the playground controller.'
         );
       })
       .then(done, done);

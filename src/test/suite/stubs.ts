@@ -176,9 +176,13 @@ class MockLanguageServerController {
     this.client = null;
   }
 
-  activate(): void { /* */ }
+  startLanguageServer(): void {
+    /* */
+  }
 
-  deactivate(): void { /* */ }
+  deactivate(): void {
+    /* */
+  }
 
   executeAll(codeToEvaluate: string): Promise<any> {
     return Promise.resolve('Result');

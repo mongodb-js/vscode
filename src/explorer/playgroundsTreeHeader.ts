@@ -1,0 +1,50 @@
+import * as vscode from 'vscode';
+import TreeItemParent from './treeItemParentInterface';
+import PlaygroundsTreeItem from './playgroundsTreeItem';
+import { sortTreeItemsByLabel } from './treeItemUtils';
+
+const rootTooltip = 'Your MongoDB playgrounds';
+
+export default class PlaygroundsTreeHeader extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
+  private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
+
+  contextValue = 'playgroundsTreeHeader';
+  isExpanded = true;
+  doesNotRequireTreeUpdate = true;
+  cacheIsUpToDate = true;
+
+  constructor(
+    fileUri: vscode.Uri,
+    playgroundsTreeItems: {
+      [key: string]: PlaygroundsTreeItem;
+    }
+  ) {
+    super(fileUri.path, vscode.TreeItemCollapsibleState.Expanded);
+    this._playgroundsTreeItems = playgroundsTreeItems;
+  }
+
+  get tooltip(): string {
+    return rootTooltip;
+  }
+
+  public getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+    return element;
+  }
+
+  public async getChildren(): Promise<vscode.TreeItem[]> {
+    return Promise.resolve(
+      sortTreeItemsByLabel(Object.values(this._playgroundsTreeItems))
+    );
+  }
+
+  public onDidCollapse(): void {
+    this.isExpanded = false;
+  }
+
+  public onDidExpand(): Promise<boolean> {
+    this.isExpanded = true;
+
+    return Promise.resolve(true);
+  }
+}

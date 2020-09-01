@@ -1,12 +1,11 @@
 import * as vscode from 'vscode';
 import * as numeral from 'numeral';
-const path = require('path');
-
 import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
 
+const path = require('path');
 const log = createLogger('tree view document list');
 
 // We fetch 1 more than this in order to see if there are more to fetch.
@@ -17,7 +16,7 @@ export const MAX_DOCUMENTS_VISIBLE = 10;
 export const DOCUMENT_LIST_ITEM = 'documentListTreeItem';
 export enum CollectionTypes {
   collection = 'collection',
-  view = 'view',
+  view = 'view'
 }
 
 const ITEM_LABEL = 'Documents';
@@ -201,6 +200,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     }
 
     let documents;
+
     try {
       documents = await this.getDocuments();
     } catch (err) {
