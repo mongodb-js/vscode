@@ -2,17 +2,20 @@ import * as vscode from 'vscode';
 const path = require('path');
 
 import { getImagesPath } from '../extensionConstants';
+import { TelemetryController } from '../telemetry';
 
 const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
 export class HelpLinkTreeItem extends vscode.TreeItem {
   iconName?: string;
   contextValue = HELP_LINK_CONTEXT_VALUE;
+  linkId: string;
   url: string;
 
-  constructor(title: string, url: string, iconName?: string) {
+  constructor(title: string, url: string, linkId: string, iconName?: string) {
     super(title, vscode.TreeItemCollapsibleState.None);
 
+    this.linkId = linkId;
     this.iconName = iconName;
     this.url = url;
   }
@@ -44,13 +47,19 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   public activateTreeViewEventHandlers = (
-    treeView: vscode.TreeView<vscode.TreeItem>
+    treeView: vscode.TreeView<vscode.TreeItem>,
+    telemetryController: TelemetryController
   ): void => {
     treeView.onDidChangeSelection(async (event: any) => {
       if (event.selection && event.selection.length === 1) {
         const selectedItem = event.selection[0];
 
         if (selectedItem.contextValue === HELP_LINK_CONTEXT_VALUE) {
+          telemetryController.trackLinkClicked(
+            'helpPanel',
+            selectedItem.linkId
+          );
+
           await vscode.commands.executeCommand(
             'vscode.open',
             vscode.Uri.parse(selectedItem.url)
@@ -66,31 +75,31 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
       const atlas = new HelpLinkTreeItem(
         'Create Free Atlas Cluster',
         'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension',
-        ''
+        'freeClusterCTA'
       );
 
       const feedback = new HelpLinkTreeItem(
         'Feedback',
         'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/',
-        ''
+        'feedback'
       );
 
       const reportBug = new HelpLinkTreeItem(
         'Report a Bug',
         'https://github.com/mongodb-js/vscode/issues',
-        ''
+        'reportABug'
       );
 
       const extensionDocs = new HelpLinkTreeItem(
         'Extension Documentation',
         'https://docs.mongodb.com/mongodb-vscode/',
-        ''
+        'extensionDocumentation'
       );
 
       const mdbDocs = new HelpLinkTreeItem(
         'MongoDB Documentation',
         'https://docs.mongodb.com/manual/',
-        ''
+        'mongoDBDocumentation'
       );
 
       return Promise.resolve([

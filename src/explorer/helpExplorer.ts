@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import HelpTree from './helpTree';
 import { createLogger } from '../logging';
+import { TelemetryController } from '../telemetry';
 
 const log = createLogger('help and info explorer controller');
 
@@ -13,15 +14,15 @@ export default class HelpExplorer {
     this._treeController = new HelpTree();
   }
 
-  public activateHelpTreeView(): void {
+  public activateHelpTreeView(telemetryController: TelemetryController): void {
     if (!this._treeView) {
-      this._treeView = vscode.window.createTreeView(
-        'mongoDBHelpExplorer',
-        {
-          treeDataProvider: this._treeController
-        }
+      this._treeView = vscode.window.createTreeView('mongoDBHelpExplorer', {
+        treeDataProvider: this._treeController,
+      });
+      this._treeController.activateTreeViewEventHandlers(
+        this._treeView,
+        telemetryController
       );
-      this._treeController.activateTreeViewEventHandlers(this._treeView);
     }
   }
 
