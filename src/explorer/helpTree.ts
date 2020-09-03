@@ -63,9 +63,9 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   public async getChildren(element?: any): Promise<any[]> {
     // When no element is present we are at the root.
     if (!element) {
-      const extensionDocs = new HelpLinkTreeItem(
-        'Extension Documentation',
-        'https://docs.mongodb.com/mongodb-vscode/',
+      const atlas = new HelpLinkTreeItem(
+        'Create Free Atlas Cluster',
+        'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension',
         ''
       );
 
@@ -75,16 +75,15 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
         ''
       );
 
-      const submitABug = new HelpLinkTreeItem(
-        'Submit a Bug',
+      const reportBug = new HelpLinkTreeItem(
+        'Report a Bug',
         'https://github.com/mongodb-js/vscode/issues',
         ''
       );
 
-      // https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension
-      const atlas = new HelpLinkTreeItem(
-        'MongoDB Atlas',
-        'https://www.mongodb.com/cloud/atlas',
+      const extensionDocs = new HelpLinkTreeItem(
+        'Extension Documentation',
+        'https://docs.mongodb.com/mongodb-vscode/',
         ''
       );
 
@@ -95,10 +94,10 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
       );
 
       return Promise.resolve([
-        extensionDocs,
-        feedback,
-        submitABug,
         atlas,
+        feedback,
+        reportBug,
+        extensionDocs,
         mdbDocs
       ]);
     }
