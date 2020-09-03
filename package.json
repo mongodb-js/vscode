@@ -99,9 +99,9 @@
           "when": "config.mdb.showMongoDBPlaygrounds == true"
         },
         {
-          "id": "helpAndInfo",
-          "name": "Resources & Information",
-          "when": "config.mdb.showMongoDBHelpAndInformationPanel == true"
+          "id": "mongoDBHelpExplorer",
+          "name": "Help and Feedback",
+          "when": "config.mdb.showMongoDBHelpExplorer == true"
         }
       ]
     },
@@ -711,10 +711,10 @@
           "default": true,
           "description": "Show or hide the MongoDB playgrounds view."
         },
-        "mdb.showMongoDBHelpAndInformationPanel": {
+        "mdb.showMongoDBHelpExplorer": {
           "type": "boolean",
           "default": true,
-          "description": "Show or hide the resources and information view."
+          "description": "Show or hide the help and feedback view."
         },
         "mdb.excludeFromPlaygroundsSearch": {
           "type": "array",

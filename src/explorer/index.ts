@@ -4,6 +4,7 @@ import ConnectionTreeItem from './connectionTreeItem';
 import DatabaseTreeItem from './databaseTreeItem';
 import { CollectionTypes } from './documentListTreeItem';
 import DocumentTreeItem from './documentTreeItem';
+import HelpExplorer from './helpExplorer';
 import SchemaTreeItem from './schemaTreeItem';
 import PlaygroundsExplorer from './playgroundsExplorer';
 
@@ -12,8 +13,9 @@ export {
   CollectionTypes,
   ConnectionTreeItem,
   DatabaseTreeItem,
-  ExplorerController,
   DocumentTreeItem,
-  SchemaTreeItem,
-  PlaygroundsExplorer
+  ExplorerController,
+  HelpExplorer,
+  PlaygroundsExplorer,
+  SchemaTreeItem
 };

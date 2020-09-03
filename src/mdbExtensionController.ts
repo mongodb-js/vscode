@@ -11,6 +11,7 @@ import { EditorsController, PlaygroundController } from './editors';
 import {
   ExplorerController,
   PlaygroundsExplorer,
+  HelpExplorer,
   CollectionTreeItem
 } from './explorer';
 import { LanguageServerController } from './language';
@@ -89,8 +90,12 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   activate(): void {
+    const helpTree = new HelpExplorer();
+
+    helpTree.activateHelpTreeView();
     this._explorerController.activateConnectionsTreeView();
     this._playgroundsExplorer.activatePlaygroundsTreeView();
+
     this._connectionController.loadSavedConnections();
     this._telemetryController.activateSegmentAnalytics();
     this._languageServerController.startLanguageServer();

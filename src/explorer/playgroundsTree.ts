@@ -7,7 +7,7 @@ import { createLogger } from '../logging';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
 
 const micromatch = require('micromatch');
-const log = createLogger('explorer controller');
+const log = createLogger('playgrounds tree controller');
 
 export class FileStat implements vscode.FileStat {
   constructor(private fsStat: fs.Stats) {}
@@ -16,10 +16,10 @@ export class FileStat implements vscode.FileStat {
     return this.fsStat.isFile()
       ? vscode.FileType.File
       : this.fsStat.isDirectory()
-      ? vscode.FileType.Directory
-      : this.fsStat.isSymbolicLink()
-      ? vscode.FileType.SymbolicLink
-      : vscode.FileType.Unknown;
+        ? vscode.FileType.Directory
+        : this.fsStat.isSymbolicLink()
+          ? vscode.FileType.SymbolicLink
+          : vscode.FileType.Unknown;
   }
 
   get isFile(): boolean | undefined {
@@ -48,7 +48,7 @@ export class FileStat implements vscode.FileStat {
 }
 
 export default class PlaygroundsTree
-  implements vscode.TreeDataProvider<vscode.TreeItem> {
+implements vscode.TreeDataProvider<vscode.TreeItem> {
   public excludeFromPlaygroundsSearch: string[];
   private _playgroundsTreeHeaders: PlaygroundsTreeHeader[];
   private _onDidChangeTreeData: vscode.EventEmitter<any>;
@@ -149,9 +149,9 @@ export default class PlaygroundsTree
     return element;
   }
 
-  private getFileNames(path: string): Promise<string[]> {
+  private getFileNames(filePath: string): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
-      fs.readdir(path, (error, files) => {
+      fs.readdir(filePath, (error, files) => {
         if (error) {
           reject(error);
         } else {
@@ -161,9 +161,9 @@ export default class PlaygroundsTree
     });
   }
 
-  private stat(path: string): Promise<fs.Stats> {
+  private stat(filePath: string): Promise<fs.Stats> {
     return new Promise<fs.Stats>((resolve, reject) => {
-      fs.stat(path, (error, stat) => {
+      fs.stat(filePath, (error, stat) => {
         if (error) {
           reject(error);
         } else {
@@ -173,8 +173,8 @@ export default class PlaygroundsTree
     });
   }
 
-  private async getStat(path: string): Promise<vscode.FileStat> {
-    return new FileStat(await this.stat(path));
+  private async getStat(filePath: string): Promise<vscode.FileStat> {
+    return new FileStat(await this.stat(filePath));
   }
 
   public async readDirectory(uri: vscode.Uri): Promise<void> {
@@ -203,7 +203,7 @@ export default class PlaygroundsTree
         ) {
           await this.readDirectory(fileUri);
         }
-      } catch (error) {}
+      } catch (error) { /* */ }
     }
   }
 
