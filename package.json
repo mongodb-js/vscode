@@ -97,6 +97,11 @@
           "id": "mongoDBPlaygroundsExplorer",
           "name": "Playgrounds",
           "when": "config.mdb.showMongoDBPlaygrounds == true"
+        },
+        {
+          "id": "helpAndInfo",
+          "name": "Resources & Information",
+          "when": "config.mdb.showMongoDBHelpAndInformationPanel == true"
         }
       ]
     },
@@ -108,6 +113,10 @@
       {
         "view": "mongoDBPlaygroundsExplorer",
         "contents": "No '.mongodb' playground files found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromPlaygroundExplorer)"
+      },
+      {
+        "view": "helpAndInfo",
+        "contents": "[MongoDB Documentation](https://docs.mongodb.com/manual/)\n[Extension Documentation](https://docs.mongodb.com/mongodb-vscode/)\n[Feedback](https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/)\n[Submit a bug](https://github.com/mongodb-js/vscode/issues)"
       }
     ],
     "languages": [
@@ -701,6 +710,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show or hide the MongoDB playgrounds view."
+        },
+        "mdb.showMongoDBHelpAndInformationPanel": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show or hide the resources and information view."
         },
         "mdb.excludeFromPlaygroundsSearch": {
           "type": "array",
