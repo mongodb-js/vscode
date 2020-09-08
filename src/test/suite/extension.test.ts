@@ -2,6 +2,9 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import * as sinon from 'sinon';
+
+const { contributes } = require('../../../../package.json');
+
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
@@ -26,6 +29,13 @@ suite('Extension Test Suite', () => {
   afterEach(() => {
     sandbox.restore();
     sinon.restore();
+  });
+
+  test('there should be 3 views registered in the package.json', () => {
+    assert(contributes.views.mongodb.length === 3);
+    assert(contributes.views.mongodb.id === 'mongoDBConnectionExplorer');
+    assert(contributes.views.mongodb.id === 'mongoDBPlaygroundsExplorer');
+    assert(contributes.views.mongodb.id === 'mongoDBHelpExplorer');
   });
 
   test('commands are registered in vscode', async () => {

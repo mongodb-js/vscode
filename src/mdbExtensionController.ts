@@ -39,6 +39,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editorsController: EditorsController;
   _playgroundController: PlaygroundController;
   _explorerController: ExplorerController;
+  _helpExplorer: HelpExplorer;
   _playgroundsExplorer: PlaygroundsExplorer;
   _statusView: StatusView;
   _storageController: StorageController;
@@ -76,6 +77,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController = new ExplorerController(
       this._connectionController
     );
+    this._helpExplorer = new HelpExplorer();
     this._playgroundsExplorer = new PlaygroundsExplorer();
     this._playgroundController = new PlaygroundController(
       context,
@@ -90,10 +92,8 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   activate(): void {
-    const helpTree = new HelpExplorer();
-
-    helpTree.activateHelpTreeView();
     this._explorerController.activateConnectionsTreeView();
+    this._helpExplorer.activateHelpTreeView(this._telemetryController);
     this._playgroundsExplorer.activatePlaygroundsTreeView();
 
     this._connectionController.loadSavedConnections();

@@ -32,8 +32,8 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
     const DARK = path.join(getImagesPath(), 'dark');
 
     return {
-      light: path.join(LIGHT, 'index', `${this.iconName}.svg`),
-      dark: path.join(DARK, 'index', `${this.iconName}.svg`)
+      light: path.join(LIGHT, 'help', `${this.iconName}.svg`),
+      dark: path.join(DARK, 'help', `${this.iconName}.svg`)
     };
   }
 }
@@ -46,7 +46,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     return element;
   }
 
-  public activateTreeViewEventHandlers = (
+  activateTreeViewEventHandlers = (
     treeView: vscode.TreeView<vscode.TreeItem>,
     telemetryController: TelemetryController
   ): void => {
@@ -54,63 +54,79 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
       if (event.selection && event.selection.length === 1) {
         const selectedItem = event.selection[0];
 
-        if (selectedItem.contextValue === HELP_LINK_CONTEXT_VALUE) {
-          telemetryController.trackLinkClicked(
-            'helpPanel',
-            selectedItem.linkId
-          );
-
-          await vscode.commands.executeCommand(
-            'vscode.open',
-            vscode.Uri.parse(selectedItem.url)
-          );
-        }
+        await this.onClickHelpItem(selectedItem, telemetryController);
       }
     });
   };
 
-  public async getChildren(element?: any): Promise<any[]> {
+  async getChildren(element?: any): Promise<any[]> {
     // When no element is present we are at the root.
     if (!element) {
+      const whatsNew = new HelpLinkTreeItem(
+        'What\'s New',
+        'https://github.com/mongodb-js/vscode/blob/master/CHANGELOG.md',
+        'whatsNew',
+        'megaphone'
+      );
+
+      const extensionDocs = new HelpLinkTreeItem(
+        'Extension Documentation',
+        'https://docs.mongodb.com/mongodb-vscode/',
+        'extensionDocumentation',
+        'book'
+      );
+
+      const mdbDocs = new HelpLinkTreeItem(
+        'MongoDB Documentation',
+        'https://docs.mongodb.com/manual/',
+        'mongoDBDocumentation',
+        'leaf'
+      );
+
+      const feedback = new HelpLinkTreeItem(
+        'Suggest a Feature',
+        'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/',
+        'feedback',
+        'lightbulb'
+      );
+
+      const reportBug = new HelpLinkTreeItem(
+        'Report a Bug',
+        'https://github.com/mongodb-js/vscode/issues',
+        'reportABug',
+        'report'
+      );
+
       const atlas = new HelpLinkTreeItem(
         'Create Free Atlas Cluster',
         'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension',
         'freeClusterCTA'
       );
 
-      const feedback = new HelpLinkTreeItem(
-        'Feedback',
-        'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/',
-        'feedback'
-      );
-
-      const reportBug = new HelpLinkTreeItem(
-        'Report a Bug',
-        'https://github.com/mongodb-js/vscode/issues',
-        'reportABug'
-      );
-
-      const extensionDocs = new HelpLinkTreeItem(
-        'Extension Documentation',
-        'https://docs.mongodb.com/mongodb-vscode/',
-        'extensionDocumentation'
-      );
-
-      const mdbDocs = new HelpLinkTreeItem(
-        'MongoDB Documentation',
-        'https://docs.mongodb.com/manual/',
-        'mongoDBDocumentation'
-      );
-
       return Promise.resolve([
-        atlas,
+        whatsNew,
+        extensionDocs,
+        mdbDocs,
         feedback,
         reportBug,
-        extensionDocs,
-        mdbDocs
+        atlas
       ]);
     }
 
     return element.getChildren();
+  }
+
+  async onClickHelpItem(helpItem: HelpLinkTreeItem, telemetryController: TelemetryController): Promise<void> {
+    if (helpItem.contextValue === HELP_LINK_CONTEXT_VALUE) {
+      telemetryController.trackLinkClicked(
+        'helpPanel',
+        helpItem.linkId
+      );
+
+      await vscode.commands.executeCommand(
+        'vscode.open',
+        vscode.Uri.parse(helpItem.url)
+      );
+    }
   }
 }
