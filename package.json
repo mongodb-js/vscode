@@ -519,6 +519,14 @@
       ],
       "commandPalette": [
         {
+          "command": "mdb.runSelectedPlaygroundBlocks",
+          "when": "editorLangId == mongodb"
+        },
+        {
+          "command": "mdb.runAllPlaygroundBlocks",
+          "when": "editorLangId == mongodb"
+        },
+        {
           "command": "mdb.refreshPlaygroundsFromTreeView",
           "when": "false"
         },
@@ -709,7 +717,7 @@
           },
           "description": "Files and folders to exclude while searching for playground in the the current workspace.",
           "default": [
-            "**/.!(todo|todos|task|tasks)/**",
+            "**/.*",
             "**/_output/**",
             "**/bower_components/**",
             "**/build/**",

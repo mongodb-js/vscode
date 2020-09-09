@@ -63,30 +63,13 @@ suite('Playground Controller Test Suite', function () {
     sandbox.restore();
   });
 
-  suite('user is not connected', () => {
+  suite('playground is not open', () => {
     before(() => {
-      const mockGetActiveConnectionName = sinon.fake.returns('');
-      const mockGetActiveConnectionModel = sinon.fake.returns(null);
-
-      sinon.replace(
-        testPlaygroundController._connectionController,
-        'getActiveConnectionName',
-        mockGetActiveConnectionName
-      );
-      sinon.replace(
-        testPlaygroundController._connectionController,
-        'getActiveConnectionModel',
-        mockGetActiveConnectionModel
-      );
+      testPlaygroundController._activeTextEditor = undefined;
     });
 
-    after(() => {
-      sinon.restore();
-    });
-
-    test('run all playground blocks should throw the error', async () => {
-      const errorMessage =
-        'Please connect to a database before running a playground.';
+    test('run all playground blocks should throw the playground not found error', async () => {
+      const errorMessage = 'Please open a playground before running it.';
 
       fakeShowErrorMessage.resolves(errorMessage);
 
@@ -98,122 +81,187 @@ suite('Playground Controller Test Suite', function () {
     });
   });
 
-  suite('user is connected', () => {
-    beforeEach(async () => {
-      const mockGetActiveConnectionName = sinon.fake.returns('fakeName');
-      const mockGetActiveConnectionModel = sinon.fake.returns({
-        appname: 'VSCode Playground Tests',
-        port: 27018,
-        disconnect: () => {},
-        getAttributes: () => CONNECTION
+  suite('playground is open', () => {
+    before(async () => {
+      testPlaygroundController._activeTextEditor = await loadPlayground(
+        getDocUri('testCodeLens.mongodb')
+      );
+    });
+
+    suite('user is not connected', () => {
+      before(() => {
+        const mockGetActiveConnectionName = sinon.fake.returns('');
+        const mockGetActiveConnectionModel = sinon.fake.returns(null);
+
+        sinon.replace(
+          testPlaygroundController._connectionController,
+          'getActiveConnectionName',
+          mockGetActiveConnectionName
+        );
+        sinon.replace(
+          testPlaygroundController._connectionController,
+          'getActiveConnectionModel',
+          mockGetActiveConnectionModel
+        );
       });
 
-      sinon.replace(
-        testPlaygroundController._connectionController,
-        'getActiveConnectionName',
-        mockGetActiveConnectionName
-      );
-      sinon.replace(
-        testPlaygroundController._connectionController,
-        'getActiveConnectionModel',
-        mockGetActiveConnectionModel
-      );
+      after(() => {
+        sinon.restore();
+      });
 
-      await testPlaygroundController.connectToServiceProvider();
+      test('run all playground blocks should throw the error', async () => {
+        const errorMessage =
+          'Please connect to a database before running a playground.';
+
+        fakeShowErrorMessage.resolves(errorMessage);
+
+        try {
+          await testPlaygroundController.runAllPlaygroundBlocks();
+        } catch (error) {
+          sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+        }
+      });
+
+      test('run selected playground blocks should throw the error', async () => {
+        const errorMessage =
+          'Please connect to a database before running a playground.';
+
+        fakeShowErrorMessage.resolves(errorMessage);
+
+        try {
+          await testPlaygroundController.runSelectedPlaygroundBlocks();
+        } catch (error) {
+          sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+        }
+      });
+
+      test('run all or selected playground blocks should throw the error', async () => {
+        const errorMessage =
+          'Please connect to a database before running a playground.';
+
+        fakeShowErrorMessage.resolves(errorMessage);
+
+        try {
+          await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
+        } catch (error) {
+          sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+        }
+      });
     });
 
-    afterEach(() => {
-      sinon.restore();
-    });
+    suite('user is connected', () => {
+      beforeEach(async () => {
+        const mockGetActiveConnectionName = sinon.fake.returns('fakeName');
+        const mockGetActiveConnectionModel = sinon.fake.returns({
+          appname: 'VSCode Playground Tests',
+          port: 27018,
+          disconnect: () => {},
+          getAttributes: () => CONNECTION
+        });
 
-    test('show a confirmation message if mdb.confirmRunAll is true', async () => {
-      let result: any;
+        sinon.replace(
+          testPlaygroundController._connectionController,
+          'getActiveConnectionName',
+          mockGetActiveConnectionName
+        );
+        sinon.replace(
+          testPlaygroundController._connectionController,
+          'getActiveConnectionModel',
+          mockGetActiveConnectionModel
+        );
 
-      fakeShowInformationMessage.resolves('Yes');
+        await testPlaygroundController.connectToServiceProvider();
+      });
 
-      try {
-        result = await testPlaygroundController.runAllPlaygroundBlocks();
-      } catch (error) {
-        // No action.
-      }
+      afterEach(() => {
+        sinon.restore();
+      });
 
-      expect(result).to.be.true;
-    });
+      test('show a confirmation message if mdb.confirmRunAll is true', async () => {
+        let result: any;
 
-    test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
-      let result: any;
+        fakeShowInformationMessage.resolves('Yes');
 
-      await vscode.workspace
-        .getConfiguration('mdb')
-        .update('confirmRunAll', false);
+        try {
+          result = await testPlaygroundController.runAllPlaygroundBlocks();
+        } catch (error) {
+          // No action.
+        }
 
-      try {
-        result = await testPlaygroundController.runAllPlaygroundBlocks();
-      } catch (error) {
-        // No action.
-      }
+        expect(result).to.be.true;
+      });
 
-      expect(result).to.be.true;
-    });
+      test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
+        let result: any;
 
-    test('do not run a playground if user selected No in the confirmation message', async () => {
-      let result: any;
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
 
-      await vscode.workspace
-        .getConfiguration('mdb')
-        .update('confirmRunAll', true);
+        try {
+          result = await testPlaygroundController.runAllPlaygroundBlocks();
+        } catch (error) {
+          // No action.
+        }
 
-      fakeShowInformationMessage.resolves('No');
+        expect(result).to.be.true;
+      });
 
-      try {
-        result = await testPlaygroundController.runAllPlaygroundBlocks();
-      } catch (error) {
-        // No action.
-      }
+      test('do not run a playground if user selected No in the confirmation message', async () => {
+        let result: any;
 
-      expect(result).to.be.false;
-    });
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', true);
 
-    test('close cancelation modal when a playground is canceled', async () => {
-      let result: any;
+        fakeShowInformationMessage.resolves('No');
 
-      sinon.replace(testPlaygroundController, 'evaluate', sinon.fake.rejects());
+        try {
+          result = await testPlaygroundController.runAllPlaygroundBlocks();
+        } catch (error) {
+          // No action.
+        }
 
-      try {
-        result = await testPlaygroundController.evaluateWithCancelModal();
-      } catch (error) {
-        // No action.
-      }
+        expect(result).to.be.false;
+      });
 
-      expect(result).to.be.null;
-    });
+      test('close cancelation modal when a playground is canceled', async () => {
+        let result: any;
 
-    test('do not show code lens if a part of a line is selected', async () => {
-      testPlaygroundController._activeTextEditor = await loadPlayground(
-        getDocUri('testCodeLens.mongodb')
-      );
+        sinon.replace(
+          testPlaygroundController,
+          'evaluate',
+          sinon.fake.rejects()
+        );
 
-      testPlaygroundController.showCodeLensForSelection(
-        new vscode.Range(0, 5, 0, 11)
-      );
+        try {
+          result = await testPlaygroundController.evaluateWithCancelModal();
+        } catch (error) {
+          // No action.
+        }
 
-      const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
+        expect(result).to.be.null;
+      });
 
-      expect(codeLens?.length).to.be.equal(0);
-    });
+      test('do not show code lens if a part of a line is selected', async () => {
+        testPlaygroundController.showCodeLensForSelection(
+          new vscode.Range(0, 5, 0, 11)
+        );
 
-    test('show code lens if whole line is selected', async () => {
-      testPlaygroundController._activeTextEditor = await loadPlayground(
-        getDocUri('testCodeLens.mongodb')
-      );
+        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
 
-      testPlaygroundController.showCodeLensForSelection(
-        new vscode.Range(0, 0, 0, 14)
-      );
+        expect(codeLens?.length).to.be.equal(0);
+      });
 
-      const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
+      test('show code lens if whole line is selected', async () => {
+        testPlaygroundController.showCodeLensForSelection(
+          new vscode.Range(0, 0, 0, 14)
+        );
 
-      expect(codeLens?.length).to.be.equal(1);
+        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
+
+        expect(codeLens?.length).to.be.equal(1);
+      });
     });
   });
 });

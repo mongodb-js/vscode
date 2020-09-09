@@ -80,13 +80,9 @@ export default class PlaygroundController {
     );
 
     vscode.window.onDidChangeActiveTextEditor((editor) => {
-      if (
-        editor &&
-        editor.document &&
-        editor.document.languageId === 'mongodb'
-      ) {
+      if (editor?.document.languageId !== 'Log') {
         this._activeTextEditor = editor;
-        log.info('Active editor path', editor.document.uri?.path);
+        log.info('Active editor path', editor?.document.uri?.path);
       }
     });
 
@@ -320,52 +316,79 @@ export default class PlaygroundController {
   }
 
   public runSelectedPlaygroundBlocks(): Promise<boolean> {
-    if (this._activeTextEditor && this._activeTextEditor.document) {
-      const selections = this._activeTextEditor.selections;
+    if (
+      !this._activeTextEditor ||
+      this._activeTextEditor.document.languageId !== 'mongodb'
+    ) {
+      vscode.window.showErrorMessage(
+        'Please connect to a database before running a playground.'
+      );
 
-      if (
-        !selections ||
-        !Array.isArray(selections) ||
-        (selections.length === 1 && this.getSelectedText(selections[0]) === '')
-      ) {
-        vscode.window.showInformationMessage(
-          'Please select one or more lines in the playground.'
-        );
+      return Promise.resolve(false);
+    }
 
-        return Promise.resolve(true);
-      } else if (this._selectedText) {
-        this._isPartialRun = true;
-        this._codeToEvaluate = this._selectedText;
-      }
+    const selections = this._activeTextEditor.selections;
+
+    if (
+      !selections ||
+      !Array.isArray(selections) ||
+      (selections.length === 1 && this.getSelectedText(selections[0]) === '')
+    ) {
+      vscode.window.showInformationMessage(
+        'Please select one or more lines in the playground.'
+      );
+
+      return Promise.resolve(true);
+    } else if (this._selectedText) {
+      this._isPartialRun = true;
+      this._codeToEvaluate = this._selectedText;
     }
 
     return this.evaluatePlayground();
   }
 
   public runAllPlaygroundBlocks(): Promise<boolean> {
-    if (this._activeTextEditor) {
-      this._isPartialRun = false;
-      this._codeToEvaluate = this.getAllText();
+    if (
+      !this._activeTextEditor ||
+      this._activeTextEditor.document.languageId !== 'mongodb'
+    ) {
+      vscode.window.showErrorMessage(
+        'Please connect to a database before running a playground.'
+      );
+
+      return Promise.resolve(false);
     }
+
+    this._isPartialRun = false;
+    this._codeToEvaluate = this.getAllText();
 
     return this.evaluatePlayground();
   }
 
   public runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
-    if (this._activeTextEditor && this._activeTextEditor.document) {
-      const selections = this._activeTextEditor.selections;
+    if (
+      !this._activeTextEditor ||
+      this._activeTextEditor.document.languageId !== 'mongodb'
+    ) {
+      vscode.window.showErrorMessage(
+        'Please connect to a database before running a playground.'
+      );
 
-      if (
-        !selections ||
-        !Array.isArray(selections) ||
-        (selections.length === 1 && this.getSelectedText(selections[0]) === '')
-      ) {
-        this._isPartialRun = false;
-        this._codeToEvaluate = this.getAllText();
-      } else if (this._selectedText) {
-        this._isPartialRun = true;
-        this._codeToEvaluate = this._selectedText;
-      }
+      return Promise.resolve(false);
+    }
+
+    const selections = this._activeTextEditor.selections;
+
+    if (
+      !selections ||
+      !Array.isArray(selections) ||
+      (selections.length === 1 && this.getSelectedText(selections[0]) === '')
+    ) {
+      this._isPartialRun = false;
+      this._codeToEvaluate = this.getAllText();
+    } else if (this._selectedText) {
+      this._isPartialRun = true;
+      this._codeToEvaluate = this._selectedText;
     }
 
     return this.evaluatePlayground();
