@@ -4,6 +4,7 @@ import { afterEach } from 'mocha';
 const sinon = require('sinon');
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
+import { HelpExplorer } from '../../../explorer';
 
 suite('Help Explorer Test Suite', function () {
   afterEach(() => {
@@ -12,8 +13,7 @@ suite('Help Explorer Test Suite', function () {
   });
 
   test('tree view should be not created until it is activated', () => {
-    const testHelpExplorer =
-      mdbTestExtension.testExtensionController._helpExplorer;
+    const testHelpExplorer = new HelpExplorer();
     assert(testHelpExplorer._treeView === undefined);
     testHelpExplorer.activateHelpTreeView(
       mdbTestExtension.testExtensionController._telemetryController
@@ -39,7 +39,8 @@ suite('Help Explorer Test Suite', function () {
     );
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
-    assert(atlasHelpItem.title === 'Create Free Atlas Cluster');
+
+    assert(atlasHelpItem.label === 'Create Free Atlas Cluster');
     assert(
       atlasHelpItem.url ===
         'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension'
@@ -51,20 +52,19 @@ suite('Help Explorer Test Suite', function () {
   test('when a help item is clicked on it should open the url with vscode', async () => {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
-    testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryController
-    );
+
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryController,
       'trackLinkClicked',
-      sinon.stub()
+      sinon.fake.resolves()
     );
-    const stubExecuteCommand = sinon.stub();
-    sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
-      'executeCommand',
-      stubExecuteCommand
+
+    testHelpExplorer.activateHelpTreeView(
+      mdbTestExtension.testExtensionController._telemetryController
     );
+
+    const stubExecuteCommand = sinon.fake.resolves();
+    sinon.replace(vscode.commands, 'executeCommand', stubExecuteCommand);
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
     testHelpExplorer._treeController.onClickHelpItem(
@@ -72,28 +72,29 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._telemetryController
     );
     assert(stubExecuteCommand.called);
-    assert(stubExecuteCommand.firstArg === 'vscode.open');
+    assert(stubExecuteCommand.firstCall.args[0] === 'vscode.open');
     assert(
-      stubExecuteCommand.secondArg === vscode.Uri.parse(atlasHelpItem.url)
+      stubExecuteCommand.firstCall.args[1].path === vscode.Uri.parse(atlasHelpItem.url).path
+    );
+    assert(
+      stubExecuteCommand.firstCall.args[1].authority === vscode.Uri.parse(atlasHelpItem.url).authority
     );
   });
   test('when a help item is clicked on it should have a telemetry trackLinkClicked event', async () => {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
-    testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryController
-    );
-    const stubLinkClickedTelemetry = sinon.stub();
+
+    const stubLinkClickedTelemetry = sinon.fake.resolves();
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryController,
       'trackLinkClicked',
       stubLinkClickedTelemetry
     );
-    sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
-      'executeCommand',
-      sinon.stub()
+    testHelpExplorer.activateHelpTreeView(
+      mdbTestExtension.testExtensionController._telemetryController
     );
+
+    sinon.replace(vscode.commands, 'executeCommand', sinon.fake.resolves());
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
     testHelpExplorer._treeController.onClickHelpItem(
@@ -101,7 +102,7 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._telemetryController
     );
     assert(stubLinkClickedTelemetry.called);
-    assert(stubLinkClickedTelemetry.firstArg === 'helpPanel');
-    assert(stubLinkClickedTelemetry.secondArg === 'freeClusterCTA');
+    assert(stubLinkClickedTelemetry.firstCall.args[0] === 'helpPanel');
+    assert(stubLinkClickedTelemetry.firstCall.args[1] === 'freeClusterCTA');
   });
 });

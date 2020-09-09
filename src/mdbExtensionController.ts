@@ -466,6 +466,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // TODO: Cancel active queries/playgrounds.
     this._connectionController.disconnect();
     this._explorerController.deactivate();
+    this._helpExplorer.deactivate();
     this._playgroundsExplorer.deactivate();
     this._playgroundController.deactivate();
     this._telemetryController.deactivate();
