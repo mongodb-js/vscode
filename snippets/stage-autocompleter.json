@@ -221,7 +221,7 @@
       "  into: '${1:string}',",
       "  on: '${2:string}',",
       "  let: '${3:specification(s)}',",
-      "  whenMatched: '${4:string}'",
+      "  whenMatched: '${4:string}',",
       "  whenNotMatched: '${5:string}'",
       "}"
     ],
@@ -311,9 +311,10 @@
   "MongoDB Aggregations $search": {
     "prefix": "$search",
     "body": [
-      "/**",
-      " * search: Analyzed search.",
-      " * term: Unanalyzed search.",
+      "/** ",
+      " * index: the name of the Search index.",
+      " * text: Analyzed search, with required fields of query and path, the analyzed field(s) to search.",
+      " * term: Un-analyzed search.",
       " * compound: Combines ops.",
       " * span: Find in text field regions.",
       " * exists: Test for presence of a field.",
@@ -321,9 +322,10 @@
       " * range: Find in numeric or date range.",
       " */",
       "\\$search: {",
+      "  index: '${1:string}',",
       "  text: {",
-      "    query: '${1:string}',",
-      "    path: '${2:string}'",
+      "    query: '${2:string}',",
+      "    path: '${3:string}'",
       "  }",
       "}"
     ],
