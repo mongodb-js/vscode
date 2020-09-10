@@ -321,7 +321,7 @@ export default class PlaygroundController {
       this._activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
-        'Please connect to a database before running a playground.'
+        `Please open a '.mongodb' playground file before running it.`
       );
 
       return Promise.resolve(false);
@@ -353,7 +353,7 @@ export default class PlaygroundController {
       this._activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
-        'Please connect to a database before running a playground.'
+        `Please open a '.mongodb' playground file before running it.`
       );
 
       return Promise.resolve(false);
@@ -371,7 +371,7 @@ export default class PlaygroundController {
       this._activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
-        'Please connect to a database before running a playground.'
+        `Please open a '.mongodb' playground file before running it.`
       );
 
       return Promise.resolve(false);

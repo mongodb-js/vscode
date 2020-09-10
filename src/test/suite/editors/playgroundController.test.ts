@@ -69,12 +69,36 @@ suite('Playground Controller Test Suite', function () {
     });
 
     test('run all playground blocks should throw the playground not found error', async () => {
-      const errorMessage = 'Please open a playground before running it.';
+      const errorMessage = `Please open a '.mongodb' playground file before running it.`;
 
       fakeShowErrorMessage.resolves(errorMessage);
 
       try {
         await testPlaygroundController.runAllPlaygroundBlocks();
+      } catch (error) {
+        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+      }
+    });
+
+    test('run selected playground blocks should throw the playground not found error', async () => {
+      const errorMessage = `Please open a '.mongodb' playground file before running it.`;
+
+      fakeShowErrorMessage.resolves(errorMessage);
+
+      try {
+        await testPlaygroundController.runSelectedPlaygroundBlocks();
+      } catch (error) {
+        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+      }
+    });
+
+    test('run all or selected playground blocks should throw the playground not found error', async () => {
+      const errorMessage = `Please open a '.mongodb' playground file before running it.`;
+
+      fakeShowErrorMessage.resolves(errorMessage);
+
+      try {
+        await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
       } catch (error) {
         sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
       }
