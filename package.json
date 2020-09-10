@@ -97,6 +97,11 @@
           "id": "mongoDBPlaygroundsExplorer",
           "name": "Playgrounds",
           "when": "config.mdb.showMongoDBPlaygrounds == true"
+        },
+        {
+          "id": "mongoDBHelpExplorer",
+          "name": "Help and Feedback",
+          "when": "config.mdb.showMongoDBHelpExplorer == true"
         }
       ]
     },
@@ -701,6 +706,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show or hide the MongoDB playgrounds view."
+        },
+        "mdb.showMongoDBHelpExplorer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show or hide the help and feedback view."
         },
         "mdb.excludeFromPlaygroundsSearch": {
           "type": "array",

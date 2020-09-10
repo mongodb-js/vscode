@@ -44,6 +44,7 @@ suite('Explorer Controller Test Suite', function () {
     await mdbTestExtension.testExtensionController._connectionController.disconnect();
     mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
     sinon.restore();
+    mdbTestExtension.testExtensionController._explorerController.deactivate();
   });
 
   test('it updates the connections to account for a change in the connection controller', async () => {
@@ -54,34 +55,28 @@ suite('Explorer Controller Test Suite', function () {
     const treeController = testExplorerController.getTreeController();
     const mockConnectionId = 'testConnectionId';
 
-    try {
-      testConnectionController._connections = {
-        testConnectionId: {
-          id: 'testConnectionId',
-          connectionModel: new Connection(),
-          name: 'testConnectionName',
-          driverUrl: 'url',
-          storageLocation: StorageScope.NONE
-        }
-      };
-      testConnectionController.setConnnectingConnectionId(mockConnectionId);
-      testConnectionController.setConnnecting(true);
+    testConnectionController._connections = {
+      testConnectionId: {
+        id: 'testConnectionId',
+        connectionModel: new Connection(),
+        name: 'testConnectionName',
+        driverUrl: 'url',
+        storageLocation: StorageScope.NONE
+      }
+    };
+    testConnectionController.setConnnectingConnectionId(mockConnectionId);
+    testConnectionController.setConnnecting(true);
 
-      const connectionsItems = await treeController.getChildren();
+    const connectionsItems = await treeController.getChildren();
 
-      assert(
-        connectionsItems.length === 1,
-        `Expected there to be 1 connection tree item, found ${connectionsItems.length}`
-      );
-      assert(
-        connectionsItems[0].label === 'testConnectionName',
-        'There should be a connection tree item with the label "testConnectionName"'
-      );
-
-      testExplorerController.deactivate();
-    } catch (error) {
-      assert(false, error);
-    }
+    assert(
+      connectionsItems.length === 1,
+      `Expected there to be 1 connection tree item, found ${connectionsItems.length}`
+    );
+    assert(
+      connectionsItems[0].label === 'testConnectionName',
+      'There should be a connection tree item with the label "testConnectionName"'
+    );
   });
 
   test('when a connection is added and connected it is added to the tree', async () => {
@@ -184,8 +179,6 @@ suite('Explorer Controller Test Suite', function () {
       connectionsItems[1].label === 'shouldfail:27017',
       'Second connection tree item should have label "shouldfail:27017"'
     );
-
-    testExplorerController.deactivate();
   });
 
   test('shows connection names sorted alphabetically in the tree', async () => {
@@ -242,8 +235,6 @@ suite('Explorer Controller Test Suite', function () {
       afterAdditionConnectionsItems[0].label === '111',
       `First connection tree item should have label "111" found ${afterAdditionConnectionsItems[0].label}`
     );
-
-    testExplorerController.deactivate();
   });
 
   test('shows the databases of connected connection in tree', async () => {
@@ -268,8 +259,6 @@ suite('Explorer Controller Test Suite', function () {
       databaseItems[0].label === 'admin',
       `First database tree item should have label "admin" found ${connectionsItems[0].label}.`
     );
-
-    testExplorerController.deactivate();
   });
 
   test('caches the expanded state of databases in the tree when a connection is expanded or collapsed', async () => {
@@ -323,8 +312,6 @@ suite('Explorer Controller Test Suite', function () {
       newDatabaseItems[1].isExpanded === true,
       'Expected database tree to be expanded from cache.'
     );
-
-    testExplorerController.deactivate();
   });
 
   test('tree view should be not created by default (shows welcome view)', () => {

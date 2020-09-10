@@ -1,31 +1,16 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { beforeEach, afterEach } from 'mocha';
-import * as sinon from 'sinon';
+
+const { contributes } = require('../../../package.json');
+
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  const sandbox = sinon.createSandbox();
-
-  let createTerminalStub: any;
-  let fakeSendTerminalText: any;
-
-  beforeEach(() => {
-    sandbox.stub(vscode.window, 'showInformationMessage');
-
-    createTerminalStub = sandbox.stub();
-    fakeSendTerminalText = sandbox.stub();
-
-    createTerminalStub.returns({
-      sendText: fakeSendTerminalText,
-      show: () => {}
-    });
-    sandbox.replace(vscode.window, 'createTerminal', createTerminalStub);
-  });
-
-  afterEach(() => {
-    sandbox.restore();
-    sinon.restore();
+  test('there should be 3 views registered in the package.json', () => {
+    assert(contributes.views.mongoDB.length === 3);
+    assert(contributes.views.mongoDB[0].id === 'mongoDBConnectionExplorer');
+    assert(contributes.views.mongoDB[1].id === 'mongoDBPlaygroundsExplorer');
+    assert(contributes.views.mongoDB[2].id === 'mongoDBHelpExplorer');
   });
 
   test('commands are registered in vscode', async () => {

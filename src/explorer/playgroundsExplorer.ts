@@ -25,7 +25,7 @@ export default class PlaygroundsExplorer {
     }
   };
 
-  public async activatePlaygroundsTreeView(): Promise<void> {
+  public activatePlaygroundsTreeView(): void {
     this.createPlaygroundsTreeView();
   }
 

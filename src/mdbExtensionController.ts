@@ -11,6 +11,7 @@ import { EditorsController, PlaygroundController } from './editors';
 import {
   ExplorerController,
   PlaygroundsExplorer,
+  HelpExplorer,
   CollectionTreeItem
 } from './explorer';
 import { LanguageServerController } from './language';
@@ -38,6 +39,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editorsController: EditorsController;
   _playgroundController: PlaygroundController;
   _explorerController: ExplorerController;
+  _helpExplorer: HelpExplorer;
   _playgroundsExplorer: PlaygroundsExplorer;
   _statusView: StatusView;
   _storageController: StorageController;
@@ -75,6 +77,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController = new ExplorerController(
       this._connectionController
     );
+    this._helpExplorer = new HelpExplorer();
     this._playgroundsExplorer = new PlaygroundsExplorer();
     this._playgroundController = new PlaygroundController(
       context,
@@ -90,7 +93,9 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   activate(): void {
     this._explorerController.activateConnectionsTreeView();
+    this._helpExplorer.activateHelpTreeView(this._telemetryController);
     this._playgroundsExplorer.activatePlaygroundsTreeView();
+
     this._connectionController.loadSavedConnections();
     this._telemetryController.activateSegmentAnalytics();
     this._languageServerController.startLanguageServer();
@@ -461,6 +466,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // TODO: Cancel active queries/playgrounds.
     this._connectionController.disconnect();
     this._explorerController.deactivate();
+    this._helpExplorer.deactivate();
     this._playgroundsExplorer.deactivate();
     this._playgroundController.deactivate();
     this._telemetryController.deactivate();
