@@ -524,6 +524,14 @@
       ],
       "commandPalette": [
         {
+          "command": "mdb.runSelectedPlaygroundBlocks",
+          "when": "editorTextFocus && editorLangId == mongodb"
+        },
+        {
+          "command": "mdb.runAllPlaygroundBlocks",
+          "when": "editorTextFocus && editorLangId == mongodb"
+        },
+        {
           "command": "mdb.refreshPlaygroundsFromTreeView",
           "when": "false"
         },
@@ -645,6 +653,20 @@
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "mdb.runSelectedPlaygroundBlocks",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "editorTextFocus && editorLangId == mongodb"
+      },
+      {
+        "command": "mdb.runAllPlaygroundBlocks",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorTextFocus && editorLangId == mongodb"
+      }
+    ],
     "capabilities": {
       "codeLensProvider": {
         "resolveProvider": "true"
@@ -719,7 +741,7 @@
           },
           "description": "Files and folders to exclude while searching for playground in the the current workspace.",
           "default": [
-            "**/.!(todo|todos|task|tasks)/**",
+            "**/.*",
             "**/_output/**",
             "**/bower_components/**",
             "**/build/**",
