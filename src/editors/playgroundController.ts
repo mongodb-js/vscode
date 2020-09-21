@@ -117,7 +117,7 @@ export default class PlaygroundController {
       selectedText.length >= lastSelectedLine.length
     ) {
       this._partialExecutionCodeLensProvider?.refresh(
-        new vscode.Range(item.end.line + 1, 0, item.end.line + 1, 0)
+        new vscode.Range(item.start.line, 0, item.start.line, 0)
       );
     } else {
       this._partialExecutionCodeLensProvider?.refresh();
