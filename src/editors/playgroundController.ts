@@ -111,13 +111,15 @@ export default class PlaygroundController {
     const selectedText = this.getSelectedText(item).trim();
     const lastSelectedLine =
       this._activeTextEditor?.document.lineAt(item.end.line).text.trim() || '';
+    const selections = this._activeTextEditor?.selections.sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
+    const firstLine = selections ? selections[0].start.line : 0;
 
     if (
       selectedText.length > 0 &&
       selectedText.length >= lastSelectedLine.length
     ) {
       this._partialExecutionCodeLensProvider?.refresh(
-        new vscode.Range(item.start.line, 0, item.start.line, 0)
+        new vscode.Range(firstLine, 0, firstLine, 0)
       );
     } else {
       this._partialExecutionCodeLensProvider?.refresh();
