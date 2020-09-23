@@ -65,35 +65,35 @@ export default class HelpTree
       const whatsNew = new HelpLinkTreeItem(
         'What\'s New',
         'https://github.com/mongodb-js/vscode/blob/master/CHANGELOG.md',
-        'whatsNew',
+        'whatsNewHelpTree',
         'megaphone'
       );
 
       const extensionDocs = new HelpLinkTreeItem(
         'Extension Documentation',
         'https://docs.mongodb.com/mongodb-vscode/',
-        'extensionDocumentation',
+        'extensionDocumentationHelpTree',
         'book'
       );
 
       const mdbDocs = new HelpLinkTreeItem(
         'MongoDB Documentation',
         'https://docs.mongodb.com/manual/',
-        'mongoDBDocumentation',
+        'mongoDBDocumentationHelpTree',
         'leaf'
       );
 
       const feedback = new HelpLinkTreeItem(
         'Suggest a Feature',
         'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/',
-        'feedback',
+        'feedbackHelpTree',
         'lightbulb'
       );
 
       const reportBug = new HelpLinkTreeItem(
         'Report a Bug',
         'https://github.com/mongodb-js/vscode/issues',
-        'reportABug',
+        'reportABugHelpTree',
         'report'
       );
 
