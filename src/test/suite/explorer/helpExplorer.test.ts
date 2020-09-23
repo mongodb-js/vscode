@@ -43,10 +43,10 @@ suite('Help Explorer Test Suite', function () {
     assert(atlasHelpItem.label === 'Create Free Atlas Cluster');
     assert(
       atlasHelpItem.url ===
-        'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension'
+      'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension'
     );
     assert(atlasHelpItem.iconName === 'atlas');
-    assert(atlasHelpItem.linkId === 'freeClusterCTA');
+    assert(atlasHelpItem.linkId === 'freeClusterCTAHelpTree');
   });
 
   test('when a help item is clicked on it should open the url with vscode', async () => {
@@ -103,6 +103,6 @@ suite('Help Explorer Test Suite', function () {
     );
     assert(stubLinkClickedTelemetry.called);
     assert(stubLinkClickedTelemetry.firstCall.args[0] === 'helpPanel');
-    assert(stubLinkClickedTelemetry.firstCall.args[1] === 'freeClusterCTA');
+    assert(stubLinkClickedTelemetry.firstCall.args[1] === 'freeClusterCTAHelpTree');
   });
 });
