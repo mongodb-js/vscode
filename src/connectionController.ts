@@ -13,6 +13,10 @@ import { SavedConnection, StorageScope } from './storage/storageController';
 import TelemetryController from './telemetry/telemetryController';
 import { ext } from './extensionConstants';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
+import { parse } from 'dotenv';
+import { promisify } from 'util';
+import { readFile } from 'fs';
+import { resolve } from 'path';
 
 const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
@@ -169,6 +173,31 @@ export default class ConnectionController {
           )
         )
       );
+    }
+  };
+
+  loadDotenvConnections = async (): Promise<void> => {
+    const workspace: vscode.WorkspaceFolder | undefined = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0];
+    if (workspace) {
+      const promisifiedReadFile = promisify(readFile);
+      const promisifiedConnectionFrom = promisify(Connection.from);
+      let dotEnvConnection: LoadedConnection;
+      try {
+        const envFileContent = await promisifiedReadFile(resolve(workspace.uri.fsPath, '.env'), 'utf8');
+        const dotenvVars = parse(envFileContent);
+        dotEnvConnection = {
+          id: '__dotEnvConnection',
+          driverUrl: dotenvVars.MDB_CONNECTION_STRING,
+          name: `.𝗘𝗡𝗩 ${dotenvVars.MDB_CONNECTION_NAME || 'MongoDB'}`,
+          connectionModel: await promisifiedConnectionFrom(dotenvVars.MDB_CONNECTION_STRING),
+          storageLocation: StorageScope.NONE
+        };
+        this._connections['__dotEnvConnection'] = dotEnvConnection;
+        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+        Promise.resolve();
+      } catch (_) {
+        //If we can't read the file, let's assume it is not there
+      }
     }
   };
 
@@ -360,7 +389,7 @@ export default class ConnectionController {
           // or the connection no longer exists we silently end the connection
           // and return.
           try {
-            newDataService.disconnect(() => {});
+            newDataService.disconnect(() => { });
           } catch (e) {
             /* */
           }
@@ -739,7 +768,7 @@ export default class ConnectionController {
     if (
       this.isConnecting() &&
       this.getConnectingConnectionId() ===
-        connectionId
+      connectionId
     ) {
       return 'connecting...';
     }
