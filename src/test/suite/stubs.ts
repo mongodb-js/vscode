@@ -18,6 +18,9 @@ class TestExtensionContext implements vscode.ExtensionContext {
   extensionUri;
   environmentVariableCollection;
   extensionMode;
+  storageUri;
+  globalStorageUri;
+  logUri;
 
   asAbsolutePath(relativePath: string): string {
     return relativePath;
@@ -161,7 +164,8 @@ const mockVSCodeTextDocument = {
     undefined,
   validateRange: (range: vscode.Range): vscode.Range => mockRange,
 
-  validatePosition: (position: vscode.Position): vscode.Position => mockPosition
+  validatePosition: (position: vscode.Position): vscode.Position =>
+    mockPosition
 };
 
 class MockLanguageServerController {
