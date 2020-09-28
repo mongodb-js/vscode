@@ -68,13 +68,6 @@ const languageServerConfig = {
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
     vscode: 'commonjs vscode'
-    // Webpack uses its own versions of these acorn plugins
-    // when they aren't listed as an external here. This can lead to import
-    // errors from differing acorn plugin versions.
-    // 'acorn-private-methods': 'acorn-private-methods',
-    // 'acorn-class-fields': 'acorn-class-fields',
-    // 'acorn-numeric-separator': 'acorn-numeric-separator',
-    // 'acorn-static-class-features': 'acorn-static-class-features'
   },
   module: {
     rules: [
@@ -110,13 +103,6 @@ const languageServerWorkerConfig = {
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
     vscode: 'commonjs vscode'
-    // Webpack uses its own versions of these acorn plugins
-    // when they aren't listed as an external here. This can lead to import
-    // errors from differing acorn plugin versions.
-    // 'acorn-private-methods': 'acorn-private-methods',
-    // 'acorn-class-fields': 'acorn-class-fields',
-    // 'acorn-numeric-separator': 'acorn-numeric-separator',
-    // 'acorn-static-class-features': 'acorn-static-class-features'
   },
   module: {
     rules: [
