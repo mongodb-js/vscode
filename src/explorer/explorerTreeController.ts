@@ -12,7 +12,7 @@ import { sortTreeItemsByLabel } from './treeItemUtils';
 const log = createLogger('explorer controller');
 
 export default class ExplorerTreeController
-  implements vscode.TreeDataProvider<vscode.TreeItem> {
+implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
   contextValue = 'explorerTreeController';
@@ -120,13 +120,13 @@ export default class ExplorerTreeController
   readonly onDidChangeTreeData: vscode.Event<any>;
 
   public refresh = (): Promise<boolean> => {
-    this._onDidChangeTreeData.fire();
+    this._onDidChangeTreeData.fire(null);
 
     return Promise.resolve(true);
   };
 
   public onTreeItemUpdate(): void {
-    this._onDidChangeTreeData.fire();
+    this._onDidChangeTreeData.fire(null);
   }
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {

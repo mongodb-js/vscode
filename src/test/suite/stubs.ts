@@ -15,6 +15,12 @@ class TestExtensionContext implements vscode.ExtensionContext {
   _globalState = {};
   extensionPath: string;
   storagePath: string;
+  extensionUri;
+  environmentVariableCollection;
+  extensionMode;
+  storageUri;
+  globalStorageUri;
+  logUri;
 
   asAbsolutePath(relativePath: string): string {
     return relativePath;

@@ -329,7 +329,7 @@ export default class MongoDBService {
     const shellSymbols = {};
 
     Object.keys(signatures).map((symbol) => {
-      shellSymbols[symbol] = Object.keys(signatures[symbol].attributes).map(
+      shellSymbols[symbol] = Object.keys(signatures[symbol].attributes || {}).map(
         (item) => ({
           label: item,
           kind: CompletionItemKind.Method

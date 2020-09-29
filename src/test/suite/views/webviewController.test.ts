@@ -33,7 +33,8 @@ suite('Connect Form View Test Suite', () => {
     const stubOnDidRecieveMessage = sinon.stub();
     const fakeWebview = {
       html: '',
-      onDidReceiveMessage: stubOnDidRecieveMessage
+      onDidReceiveMessage: stubOnDidRecieveMessage,
+      asWebviewUri: sinon.fake.returns('')
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
@@ -74,11 +75,16 @@ suite('Connect Form View Test Suite', () => {
       });
     }
 
+    const fakeWebview: any = {
+      asWebviewUri: (jsUri) => {
+        return jsUri;
+      }
+    };
+
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-    const appUri = getReactAppUri(extensionPath);
+    const appUri = getReactAppUri(extensionPath, fakeWebview);
     const htmlString = getConnectWebviewContent(appUri);
 
-    assert(htmlString.includes('vscode-resource:/'));
     assert(htmlString.includes('dist/webviewApp.js'));
 
     const webviewAppFileName = (): string => 'dist/webviewApp.js';
@@ -121,7 +127,8 @@ suite('Connect Form View Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
         messageRecievedSet = true;
-      }
+      },
+      asWebviewUri: sinon.fake.returns('')
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
@@ -193,7 +200,8 @@ suite('Connect Form View Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
         messageRecievedSet = true;
-      }
+      },
+      asWebviewUri: sinon.fake.returns('')
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
@@ -259,7 +267,8 @@ suite('Connect Form View Test Suite', () => {
       },
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
-      }
+      },
+      asWebviewUri: sinon.fake.returns('')
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
@@ -318,7 +327,8 @@ suite('Connect Form View Test Suite', () => {
       },
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
-      }
+      },
+      asWebviewUri: sinon.fake.returns('')
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
@@ -388,7 +398,8 @@ suite('Connect Form View Test Suite', () => {
       },
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
-      }
+      },
+      asWebviewUri: sinon.fake.returns('')
     };
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
@@ -442,7 +453,8 @@ suite('Connect Form View Test Suite', () => {
       },
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
-      }
+      },
+      asWebviewUri: sinon.fake.returns('')
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
@@ -494,7 +506,8 @@ suite('Connect Form View Test Suite', () => {
       html: '',
       onDidReceiveMessage: (callback): void => {
         messageRecieved = callback;
-      }
+      },
+      asWebviewUri: sinon.fake.returns('')
     };
     const fakeVSCodeExecuteCommand = sinon.fake.resolves(false);
 

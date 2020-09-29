@@ -41,11 +41,12 @@ export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
   </html>`;
 };
 
-export const getReactAppUri = (extensionPath: string): vscode.Uri => {
-  const jsAppFilePath = vscode.Uri.file(
+export const getReactAppUri = (extensionPath: string, webview: vscode.Webview): vscode.Uri => {
+  const localFilePathUri = vscode.Uri.file(
     path.join(extensionPath, 'dist', 'webviewApp.js')
   );
-  return jsAppFilePath.with({ scheme: 'vscode-resource' });
+  const jsAppFileWebviewUri = webview.asWebviewUri(localFilePathUri);
+  return jsAppFileWebviewUri;
 };
 
 export default class WebviewController {
@@ -177,7 +178,7 @@ export default class WebviewController {
       path.join(extensionPath, 'images', 'leaf.svg')
     );
 
-    const reactAppUri = getReactAppUri(extensionPath);
+    const reactAppUri = getReactAppUri(extensionPath, panel.webview);
     panel.webview.html = getConnectWebviewContent(reactAppUri);
 
     // Handle messages from the webview.
