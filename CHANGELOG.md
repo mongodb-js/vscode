@@ -8,18 +8,18 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Added
 
-- Added a Playgrounds panel that displays `.mongodb` playground files in the open workspace
-- Added a setting to configure which folders and files are exluded from the playgrounds panel file searching
-- Added a Help and Resources panel to the explorer with useful links
-- Added a button to the indexes folder in the tree view which, when clicked, creates a playground prefilled with an index creation script
+- Added a Playgrounds panel that displays `.mongodb` playground files in the current VSCode workspace
+- Added a setting to configure which folders and files are excluded from the playgrounds panel file searching
+- Added a help and resources panel to the explorer with links to documentation and feedback portals
+- Added a button to the indexes folder in the tree view which creates a playground prefilled with an index creation script
 
 ### Changed
 
-- Updated our mongosh dependency to 0.4.2 which brings more functionality to playgrounds
+- Updated our mongosh dependency to 0.4.2 to bring more functionality to playgrounds
 
 ### Fixed
 
-- Fixed index expanded state caching in the explorer tree view
+- Fixed indexes expanded state caching in the connection explorer panel tree view
 
 ## [0.1.1] - 2020-08-10
 
