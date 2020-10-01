@@ -62,6 +62,11 @@ const languageServerConfig = {
   entry: {
     languageServer: './src/language/server.ts'
   },
+  optimization: {
+    // Don't minimize in order to preserve
+    // the signature names from @mongosh/shell-api.
+    minimize: false
+  },
   resolve: {
     extensions: ['.js', '.ts', '.json']
   },
@@ -96,6 +101,11 @@ const languageServerWorkerConfig = {
   target: 'node',
   entry: {
     languageServerWorker: './src/language/worker.ts'
+  },
+  optimization: {
+    // Don't minimize in order to preserve
+    // the signature names from @mongosh/shell-api.
+    minimize: false
   },
   resolve: {
     extensions: ['.js', '.ts', '.json']

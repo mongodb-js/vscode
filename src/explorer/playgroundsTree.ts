@@ -136,13 +136,13 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
         .getConfiguration('mdb')
         .get('excludeFromPlaygroundsSearch') || [];
 
-    this._onDidChangeTreeData.fire();
+    this._onDidChangeTreeData.fire(null);
 
     return Promise.resolve(true);
   };
 
   public onTreeItemUpdate(): void {
-    this._onDidChangeTreeData.fire();
+    this._onDidChangeTreeData.fire(null);
   }
 
   public getTreeItem(element: PlaygroundsTreeHeader): vscode.TreeItem {
