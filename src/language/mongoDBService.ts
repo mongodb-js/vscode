@@ -246,9 +246,7 @@ export default class MongoDBService {
 
       await worker.terminate();
 
-      this._connection.console.log(
-        `MONGOSH found ${result.length} databases`
-      );
+      this._connection.console.log(`MONGOSH found ${result.length} databases`);
       this.updateCurrentSessionDatabases(result);
     });
   }
@@ -329,12 +327,12 @@ export default class MongoDBService {
     const shellSymbols = {};
 
     Object.keys(signatures).map((symbol) => {
-      shellSymbols[symbol] = Object.keys(signatures[symbol].attributes || {}).map(
-        (item) => ({
-          label: item,
-          kind: CompletionItemKind.Method
-        })
-      );
+      shellSymbols[symbol] = Object.keys(
+        signatures[symbol].attributes || {}
+      ).map((item) => ({
+        label: item,
+        kind: CompletionItemKind.Method
+      }));
     });
 
     return shellSymbols;
