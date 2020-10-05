@@ -4,7 +4,11 @@ import ConnectionModel, {
   validateConnectionModel
 } from '../connection-model/connection-model';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
-import { MESSAGE_TYPES } from '../extension-app-message-constants';
+import {
+  INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME,
+  MESSAGE_TYPES,
+  WEBVIEW_VIEWS
+} from '../extension-app-message-constants';
 
 // eslint-disable-next-line no-var
 declare var acquireVsCodeApi: any;
@@ -13,6 +17,7 @@ const vscode = acquireVsCodeApi();
 export interface AppState {
   connectionMessage: string;
   currentConnection: ConnectionModel;
+  currentView: WEBVIEW_VIEWS;
   isValid: boolean;
   isConnecting: boolean;
   isConnected: boolean;
@@ -21,9 +26,10 @@ export interface AppState {
   savedMessage: string;
 }
 
-export const initialState = {
+export const initialState: AppState = {
   connectionMessage: '',
   currentConnection: new ConnectionModel(),
+  currentView: window[INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME],
   isValid: true,
   isConnecting: false,
   isConnected: false,

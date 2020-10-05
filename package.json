@@ -63,6 +63,7 @@
   "activationEvents": [
     "onCommand:mdb.connect",
     "onCommand:mdb.connectWithURI",
+    "onCommand:mdb.openOverviewPage",
     "onCommand:mdb.createPlayground",
     "onCommand:mdb.addConnection",
     "onCommand:mdb.addConnectionWithURI",
@@ -170,6 +171,10 @@
       {
         "command": "mdb.removeConnection",
         "title": "MongoDB: Remove Connection..."
+      },
+      {
+        "command": "mdb.openOverviewPage",
+        "title": "MongoDB: Open Overview Page"
       },
       {
         "command": "mdb.openMongoDBShell",

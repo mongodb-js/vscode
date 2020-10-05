@@ -5,7 +5,9 @@ import ConnectionController, {
 } from '../connectionController';
 import TelemetryController from '../telemetry/telemetryController';
 import {
+  INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME,
   MESSAGE_TYPES,
+  WEBVIEW_VIEWS,
   ConnectMessage,
   OpenFilePickerMessage,
   OpenConnectionStringInputMessage,
@@ -26,16 +28,17 @@ const openFileOptions = {
   }
 };
 
-export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
+export const getWebviewContent = (jsAppFileUrl: vscode.Uri, view: WEBVIEW_VIEWS): string => {
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Connect to MongoDB</title>
+        <title>MongoDB</title>
     </head>
     <body>
       <div id="root"></div>
+      <script>window['${INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME}'] = '${view}';</script>
       <script src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
@@ -157,15 +160,13 @@ export default class WebviewController {
     }
   };
 
-  showConnectForm(context: vscode.ExtensionContext): Promise<boolean> {
-    log.info('show connect form called.');
-
+  openWebview(view: WEBVIEW_VIEWS, context: vscode.ExtensionContext): Promise<boolean> {
     const extensionPath = context.extensionPath;
 
     // Create and show a new connect dialogue webview.
     const panel = vscode.window.createWebviewPanel(
       'connectDialogueWebview',
-      'Connect to MongoDB', // Title
+      'MongoDB', // Title
       vscode.ViewColumn.One, // Editor column to show the webview panel in.
       {
         enableScripts: true,
@@ -179,7 +180,7 @@ export default class WebviewController {
     );
 
     const reactAppUri = getReactAppUri(extensionPath, panel.webview);
-    panel.webview.html = getConnectWebviewContent(reactAppUri);
+    panel.webview.html = getWebviewContent(reactAppUri, view);
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
@@ -190,5 +191,17 @@ export default class WebviewController {
     );
 
     return Promise.resolve(true);
+  }
+
+  showConnectForm(context: vscode.ExtensionContext): Promise<boolean> {
+    log.info('show connect form called.');
+
+    return this.openWebview(WEBVIEW_VIEWS.CONNECT, context);
+  }
+
+  showOverviewPage(context: vscode.ExtensionContext): Promise<boolean> {
+    log.info('show connect form called.');
+
+    return this.openWebview(WEBVIEW_VIEWS.OVERVIEW, context);
   }
 }

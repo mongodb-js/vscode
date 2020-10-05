@@ -20,6 +20,7 @@ suite('Extension Test Suite', () => {
       // General / connection commands.
       'mdb.connect',
       'mdb.connectWithURI',
+      'mdb.openOverviewPage',
       'mdb.disconnect',
       'mdb.removeConnection',
       'mdb.openMongoDBShell',
@@ -53,16 +54,11 @@ suite('Extension Test Suite', () => {
     ];
 
     for (let i = 0; i < expectedCommands.length; i++) {
-      try {
-        assert.notEqual(
-          registeredCommands.indexOf(expectedCommands[i]),
-          -1,
-          `command ${expectedCommands[i]} not registered and was expected`
-        );
-      } catch (e) {
-        assert(false);
-        return;
-      }
+      assert.notEqual(
+        registeredCommands.indexOf(expectedCommands[i]),
+        -1,
+        `command ${expectedCommands[i]} not registered and was expected`
+      );
     }
   });
 });
