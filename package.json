@@ -56,7 +56,7 @@
     "local-install": "npm run package && code --install-extension ./mongodb-vscode-*.vsix"
   },
   "engines": {
-    "vscode": "^1.41.0",
+    "vscode": "^1.49.0",
     "node": "^12.4.0",
     "npm": ">=6.13.0"
   },
