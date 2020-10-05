@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { connect } from 'react-redux';
 import { ActionTypes, LinkClickedAction } from '../../store/actions';
 
-const styles = require('../../connect.module.less');
+const styles = require('./help-panel.less');
 
 type dispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;

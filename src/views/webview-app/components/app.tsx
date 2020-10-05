@@ -68,7 +68,9 @@ class App extends React.Component<dispatchProps & stateProps> {
         {currentView === WEBVIEW_VIEWS.CONNECT && (
           <React.Fragment>
             <ConnectionForm />
-            <HelpPanel />
+            <div className={classnames(styles['connect-form-help-panel'])}>
+              <HelpPanel />
+            </div>
           </React.Fragment>
         )}
         {currentView === WEBVIEW_VIEWS.OVERVIEW && <OverviewPage />}

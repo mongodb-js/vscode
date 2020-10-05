@@ -7,7 +7,7 @@ import ConnectHelper from '../connect-helper/connect-helper';
 import ConnectionStatus from '../connection-status/connection-status';
 import HelpPanel from '../help-panel/help-panel';
 
-const styles = require('../../connect.module.less');
+const styles = require('./overview-page.less');
 
 type dispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;
@@ -26,7 +26,9 @@ class Overview extends React.Component<props> {
         <OverviewHeader />
         <ConnectionStatus />
         <ConnectHelper />
-        <HelpPanel />
+        <div className={styles['overview-help-panel-container']}>
+          <HelpPanel />
+        </div>
         {/* TODO: Call it overview or home */}
       </div>
     );
