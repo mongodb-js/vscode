@@ -40,15 +40,14 @@
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js"
-      ],
-      "preLaunchTask": "${defaultBuildTask}"
+      ]
     }
   ],
   "compounds": [
     {
       "name": "Extension + Server Inspector",
       "configurations": [
-        "Run Extension",
+        "Launch Extension and Rebuild on Changes (dev)",
         "Attach to Language Server"
       ]
     }
