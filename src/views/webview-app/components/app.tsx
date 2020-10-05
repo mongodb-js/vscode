@@ -64,14 +64,14 @@ class App extends React.Component<dispatchProps & stateProps> {
     const { currentView } = this.props;
 
     return (
-      <div className={classnames(styles.page, styles.connect)}>
+      <div className={styles.page}>
         {currentView === WEBVIEW_VIEWS.CONNECT && (
-          <React.Fragment>
+          <div className={styles.connect}>
             <ConnectionForm />
             <div className={classnames(styles['connect-form-help-panel'])}>
               <HelpPanel />
             </div>
-          </React.Fragment>
+          </div>
         )}
         {currentView === WEBVIEW_VIEWS.OVERVIEW && <OverviewPage />}
       </div>
