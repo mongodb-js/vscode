@@ -8,12 +8,9 @@
       "script": "watch",
       "problemMatcher": "$tsc-watch",
       "isBackground": true,
-      "presentation": {
-        "reveal": "never"
-      },
       "group": {
         "kind": "build",
-        "isDefault": true
+        "isDefault": true // This is the `defaultBuildTask`.
       }
     }
   ]
