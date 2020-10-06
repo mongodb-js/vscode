@@ -54,7 +54,10 @@ class ConnectHelper extends React.Component<props> {
               Connect
             </button>
           </div>
-          <div className={classnames(styles['connect-helper-connect-option'], styles['connect-connection-form-area'])}>
+          <div className={classnames(
+            styles['connect-helper-connect-option'],
+            styles['connect-connection-form-area']
+          )}>
             <div>
               Advanced
             </div>
