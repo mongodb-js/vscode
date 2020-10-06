@@ -179,6 +179,7 @@ export default class ConnectionController {
     try {
       connectionString = await vscode.window.showInputBox({
         value: '',
+        ignoreFocusOut: true,
         placeHolder:
           'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
