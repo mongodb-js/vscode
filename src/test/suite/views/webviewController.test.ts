@@ -82,8 +82,7 @@ suite('Connect Form View Test Suite', () => {
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-    const appUri = getReactAppUri(extensionPath, fakeWebview);
-    const htmlString = getWebviewContent(appUri, WEBVIEW_VIEWS.CONNECT);
+    const htmlString = getWebviewContent(extensionPath, fakeWebview, WEBVIEW_VIEWS.CONNECT);
 
     assert(htmlString.includes('dist/webviewApp.js'));
 

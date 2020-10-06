@@ -29,13 +29,54 @@ const openFileOptions = {
   }
 };
 
-export const getWebviewContent = (jsAppFileUrl: vscode.Uri, view: WEBVIEW_VIEWS): string => {
+export const getFontUri = (
+  extensionPath: string,
+  webview: vscode.Webview,
+  fontName: string
+): vscode.Uri =>{
+  const localFilePathUri = vscode.Uri.file(
+    path.join(extensionPath, 'resources', 'fonts', fontName)
+  );
+  const fontUri = webview.asWebviewUri(localFilePathUri);
+  return fontUri;
+};
+
+export const getReactAppUri = (
+  extensionPath: string,
+  webview: vscode.Webview
+): vscode.Uri => {
+  const localFilePathUri = vscode.Uri.file(
+    path.join(extensionPath, 'dist', 'webviewApp.js')
+  );
+  const jsAppFileWebviewUri = webview.asWebviewUri(localFilePathUri);
+  return jsAppFileWebviewUri;
+};
+
+export const getWebviewContent = (
+  extensionPath: string,
+  webview: vscode.Webview,
+  view: WEBVIEW_VIEWS
+): string => {
+  const jsAppFileUrl = getReactAppUri(extensionPath, webview);
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>MongoDB</title>
+        <style>
+          @font-face {
+            font-family: AkzidenzGroteskStd;
+            src: url("${getFontUri(extensionPath, webview, 'AkzidGroStdReg.otf')}");
+          }
+
+          @font-face {
+            font-family: AkzidenzGroteskStd;
+            font-weight: bold;
+            src: url("${getFontUri(extensionPath, webview, 'AkzidGroStdBol.otf')}");
+          }
+        </style>
     </head>
     <body>
       <div id="root"></div>
@@ -43,14 +84,6 @@ export const getWebviewContent = (jsAppFileUrl: vscode.Uri, view: WEBVIEW_VIEWS)
       <script src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
-};
-
-export const getReactAppUri = (extensionPath: string, webview: vscode.Webview): vscode.Uri => {
-  const localFilePathUri = vscode.Uri.file(
-    path.join(extensionPath, 'dist', 'webviewApp.js')
-  );
-  const jsAppFileWebviewUri = webview.asWebviewUri(localFilePathUri);
-  return jsAppFileWebviewUri;
 };
 
 export default class WebviewController {
@@ -182,7 +215,10 @@ export default class WebviewController {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'dist'))]
+        localResourceRoots: [
+          vscode.Uri.file(path.join(extensionPath, 'dist')),
+          vscode.Uri.file(path.join(extensionPath, 'resources'))
+        ]
       }
     );
 
@@ -190,8 +226,7 @@ export default class WebviewController {
       path.join(extensionPath, 'images', 'leaf.svg')
     );
 
-    const reactAppUri = getReactAppUri(extensionPath, panel.webview);
-    panel.webview.html = getWebviewContent(reactAppUri, view);
+    panel.webview.html = getWebviewContent(extensionPath, panel.webview, view);
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
