@@ -9,6 +9,7 @@ import {
   MESSAGE_TYPES,
   WEBVIEW_VIEWS,
   ConnectMessage,
+  CreateNewPlaygroundMessage,
   OpenFilePickerMessage,
   OpenConnectionStringInputMessage,
   LinkClickedMessage
@@ -98,6 +99,7 @@ export default class WebviewController {
   handleWebviewMessage = (
     message:
       | ConnectMessage
+      | CreateNewPlaygroundMessage
       | OpenFilePickerMessage
       | LinkClickedMessage
       | OpenConnectionStringInputMessage,
@@ -124,6 +126,11 @@ export default class WebviewController {
             connectionMessage: `Unable to load connection: ${error}`
           });
         }
+        return;
+      case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
+        vscode.commands.executeCommand(
+          'mdb.createNewPlaygroundFromOverviewPage'
+        );
         return;
       case MESSAGE_TYPES.OPEN_FILE_PICKER:
         vscode.window

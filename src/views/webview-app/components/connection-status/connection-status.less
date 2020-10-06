@@ -4,18 +4,30 @@
 
 .connection-status-status-message {
   margin: 16px auto;
-  margin-bottom: 54px;
+  margin-bottom: 34px;
 }
 
 .connection-status-playground-message {
-  margin-right: 20px;
+  margin: 0 20px;
 
   display: inline-block;
   font-size: 20px;
   vertical-align: middle;
 }
 
-.connection-status-playground-button {
+.connection-status-create-playground-button {
   display: inline-block;
-  margin-left: 20px;
+  border: none;
+  border-radius: 3px;
+  margin: 0 20px;
+  margin-top: 20px;
+  height: 32px;
+  width: 161px;
+  // TODO: Pull in variables for colors.
+  color: white;
+  background-color: #13AA52;
+
+  &:hover {
+    cursor: pointer;
+  }
 }

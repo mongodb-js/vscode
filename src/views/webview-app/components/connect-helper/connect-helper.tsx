@@ -4,9 +4,9 @@ import { connect } from 'react-redux';
 import {
   ActionTypes,
   LinkClickedAction,
-  OpenConnectionStringInputAction
+  OpenConnectionStringInputAction,
+  SetCurrentViewAction
 } from '../../store/actions';
-import Button from '@leafygreen-ui/button';
 import { WEBVIEW_VIEWS } from '../../extension-app-message-constants';
 
 const styles = require('./connect-helper.less');
@@ -36,13 +36,15 @@ class ConnectHelper extends React.Component<props> {
             <div>
               <strong>Connection String</strong>
             </div>
-            <Button
-              className={styles['connect-helper-connect-option-button']}
-              variant="dark"
+            <button
+              className={classnames(
+                styles['connect-helper-connect-option-button'],
+                styles['connect-helper-connection-string-button']
+              )}
               onClick={() => onOpenConnectionStringInput()}
             >
               Connect
-            </Button>
+            </button>
           </div>
           <div className={classnames(styles['connect-helper-connect-option'], styles['connect-connection-form-area'])}>
             <div>
@@ -52,13 +54,15 @@ class ConnectHelper extends React.Component<props> {
               <strong>Connection Settings</strong>
             </div>
 
-            <Button
-              className={styles['connect-helper-connect-option-button']}
-              variant="info"
+            <button
+              className={classnames(
+                styles['connect-helper-connect-option-button'],
+                styles['connect-helper-connection-form-button']
+              )}
               onClick={() => onOpenConnectionFrom()}
             >
               Open form
-            </Button>
+            </button>
           </div>
         </div>
         <div className={styles['connect-helper-message']}>

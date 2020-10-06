@@ -10,6 +10,7 @@ export enum ActionTypes {
   CONNECT = 'CONNECT',
   CONNECTION_EVENT_OCCURED = 'CONNECTION_EVENT_OCCURED',
   CONNECTION_FORM_CHANGED = 'CONNECTION_FORM_CHANGED',
+  CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
   HOSTNAME_CHANGED = 'HOSTNAME_CHANGED',
   IS_SRV_RECORD_TOGGLED = 'IS_SRV_RECORD_TOGGLED',
   KERBEROS_PARAMETERS_CHANGED = 'KERBEROS_PARAMETERS_CHANGED',
@@ -77,6 +78,10 @@ export interface ConnectionEventOccuredAction extends BaseAction {
 
 export interface ConnectionFormChangedAction extends BaseAction {
   type: ActionTypes.CONNECTION_FORM_CHANGED;
+}
+
+export interface CreateNewPlaygroundAction extends BaseAction {
+  type: ActionTypes.CREATE_NEW_PLAYGROUND;
 }
 
 export interface HostnameChangedAction extends BaseAction {
@@ -233,6 +238,7 @@ export type Actions =
   | ConnectAction
   | ConnectionEventOccuredAction
   | ConnectionFormChangedAction
+  | CreateNewPlaygroundAction
   | HostnameChangedAction
   | IsSrvRecordToggledAction
   | KerberosParametersChanged

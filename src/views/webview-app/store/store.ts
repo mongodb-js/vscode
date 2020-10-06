@@ -111,6 +111,13 @@ export const rootReducer = (
         isConnected: false
       };
 
+    case ActionTypes.CREATE_NEW_PLAYGROUND:
+      vscode.postMessage({
+        command: MESSAGE_TYPES.CREATE_NEW_PLAYGROUND
+      });
+
+      return { ...state };
+
     case ActionTypes.EXTENSION_LINK_CLICKED:
       vscode.postMessage({
         command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED,
