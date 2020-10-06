@@ -19,6 +19,14 @@ type dispatchProps = {
 
 type props = dispatchProps;
 
+function getOSCommandShortcutName(): string {
+  if (navigator.userAgent.indexOf('Win') != -1) {
+    return 'Ctrl';
+  }
+
+  return 'Cmd';
+}
+
 class ConnectHelper extends React.Component<props> {
   render(): React.ReactNode {
     const {
@@ -67,7 +75,7 @@ class ConnectHelper extends React.Component<props> {
         </div>
         <div className={styles['connect-helper-message']}>
           {/* TODO: Pull in user's hotkey for command prompt. */}
-          <strong>Cmd + Shift + P</strong> for all MongoDB Command Palette options
+          <strong>{getOSCommandShortcutName()} + Shift + P</strong> for all MongoDB Command Palette options
         </div>
       </div>
     );
