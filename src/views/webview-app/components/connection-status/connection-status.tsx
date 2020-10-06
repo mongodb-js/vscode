@@ -5,6 +5,7 @@ import {
   ActionTypes,
   CreateNewPlaygroundAction
 } from '../../store/actions';
+import InfoSprinkle from '../info-sprinkle/info-sprinkle';
 
 const styles = require('./connection-status.less');
 
@@ -27,7 +28,7 @@ class ConnectionStatus extends React.Component<dispatchProps> {
               All set. Ready to start?
             </div>
             <div>
-              Create a Playground.
+              Create a Playground. <InfoSprinkle linkTo="https://docs.mongodb.com/mongodb-vscode/playgrounds" />
             </div>
           </div>
           <button

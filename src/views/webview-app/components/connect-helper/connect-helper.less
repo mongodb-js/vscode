@@ -13,9 +13,10 @@
 }
 
 .connect-helper-connect-option {
-  width: 200px;
+  width: 198px;
   display: inline-block;
-  height: 200px;
+  height: 198px;
+  border: 1px solid transparent;
   padding-top: 29px;
   font-size: 14px;
 }
@@ -34,24 +35,22 @@
 }
 
 .connect-helper-connection-string-button {
-  // TODO: Color themes.
   background-color: rgb(41, 41, 41);
   border-color: transparent;
 }
 
 .connect-helper-connection-form-button {
   background: none;
-  border-color: #ffffff;
+  color: var(--vscode-editor-foreground);
+  border-color: var(--vscode-editor-foreground);
 }
 
 .connect-connection-string-area {
   background-color: rgba(228, 244, 228, 0.9);
-  // TODO: Theme color.
   color: #21313C;
 }
 
 .connect-connection-form-area {
   background-color: rgba(255, 255, 255, 0.05);
-  // TODO: Theme color.
-  color: #d4d4d4;
+  border-color: rgba(228, 244, 228, 0.9)
 }
