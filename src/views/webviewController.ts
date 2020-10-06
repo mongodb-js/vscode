@@ -167,13 +167,17 @@ export default class WebviewController {
     }
   };
 
-  openWebview(view: WEBVIEW_VIEWS, context: vscode.ExtensionContext): Promise<boolean> {
+  openWebview(
+    view: WEBVIEW_VIEWS,
+    viewTitle: string,
+    context: vscode.ExtensionContext
+  ): Promise<boolean> {
     const extensionPath = context.extensionPath;
 
     // Create and show a new connect dialogue webview.
     const panel = vscode.window.createWebviewPanel(
       'connectDialogueWebview',
-      'MongoDB', // Title
+      viewTitle,
       vscode.ViewColumn.One, // Editor column to show the webview panel in.
       {
         enableScripts: true,
@@ -203,12 +207,12 @@ export default class WebviewController {
   showConnectForm(context: vscode.ExtensionContext): Promise<boolean> {
     log.info('show connect form called.');
 
-    return this.openWebview(WEBVIEW_VIEWS.CONNECT, context);
+    return this.openWebview(WEBVIEW_VIEWS.CONNECT, 'Connect to MongoDB', context);
   }
 
   showOverviewPage(context: vscode.ExtensionContext): Promise<boolean> {
     log.info('show connect form called.');
 
-    return this.openWebview(WEBVIEW_VIEWS.OVERVIEW, context);
+    return this.openWebview(WEBVIEW_VIEWS.OVERVIEW, 'MongoDB', context);
   }
 }
