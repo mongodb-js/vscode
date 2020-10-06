@@ -28,7 +28,7 @@ class ConnectionStatus extends React.Component<dispatchProps> {
               All set. Ready to start?
             </div>
             <div>
-              Create a playground. <InfoSprinkle linkTo="https://docs.mongodb.com/mongodb-vscode/playgrounds" />
+              Create a playground.<InfoSprinkle linkTo="https://docs.mongodb.com/mongodb-vscode/playgrounds" />
             </div>
           </div>
           <button

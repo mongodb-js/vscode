@@ -12,10 +12,15 @@ type props = {
 class InfoSprinkle extends React.Component<props> {
   render(): React.ReactNode {
     return (
-      <a target="_blank" rel="noopener" href={this.props.linkTo}>
+      <a
+        className={classnames(styles['info-sprinkle'])}
+        target="_blank"
+        rel="noopener"
+        href={this.props.linkTo}
+      >
         <FontAwesomeIcon
-          icon={faInfoCircle}
           className={classnames(styles['info-sprinkle-icon'])}
+          icon={faInfoCircle}
         />
       </a>
     );

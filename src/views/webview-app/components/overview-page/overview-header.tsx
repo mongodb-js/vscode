@@ -40,7 +40,7 @@ class OverviewHeader extends React.Component<props> {
         <div className={styles['overview-header-description']}>
           Navigate your databases and collections, use playgrounds for exploring and transforming your data
         </div>
-        <hr className={styles['overview-header-bar']}/>
+        <div className={styles['overview-header-bar']}/>
       </div>
     );
   }
