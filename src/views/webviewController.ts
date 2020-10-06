@@ -211,7 +211,7 @@ export default class WebviewController {
   }
 
   showOverviewPage(context: vscode.ExtensionContext): Promise<boolean> {
-    log.info('show connect form called.');
+    log.info('show overview page called.');
 
     return this.openWebview(WEBVIEW_VIEWS.OVERVIEW, 'MongoDB', context);
   }
