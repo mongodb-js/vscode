@@ -1,22 +1,31 @@
 import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
-import { ActionTypes, LinkClickedAction } from '../../store/actions';
+import {
+  ActionTypes,
+  LinkClickedAction,
+  OpenConnectionStringInputAction
+} from '../../store/actions';
+import Button from '@leafygreen-ui/button';
+import { WEBVIEW_VIEWS } from '../../extension-app-message-constants';
 
 const styles = require('./connect-helper.less');
 
 type dispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;
+  onOpenConnectionStringInput: () => void;
+  onOpenConnectionFrom: () => void;
 };
 
 type props = dispatchProps;
 
 class ConnectHelper extends React.Component<props> {
-  onLinkClicked = (screen: string, linkId: string): void => {
-    this.props.onLinkClicked(screen, linkId);
-  };
-
   render(): React.ReactNode {
+    const {
+      onOpenConnectionFrom,
+      onOpenConnectionStringInput
+    } = this.props;
+
     return (
       <div className={styles['connect-helper']}>
         <div className={styles['connect-helper-connect-area']}>
@@ -27,9 +36,13 @@ class ConnectHelper extends React.Component<props> {
             <div>
               <strong>Connection String</strong>
             </div>
-            <button className={styles['connect-helper-connect-option-button']}>
+            <Button
+              className={styles['connect-helper-connect-option-button']}
+              variant="dark"
+              onClick={() => onOpenConnectionStringInput()}
+            >
               Connect
-            </button>
+            </Button>
           </div>
           <div className={classnames(styles['connect-helper-connect-option'], styles['connect-connection-form-area'])}>
             <div>
@@ -38,9 +51,14 @@ class ConnectHelper extends React.Component<props> {
             <div>
               <strong>Connection Settings</strong>
             </div>
-            <button className={styles['connect-helper-connect-option-button']}>
-              Open Form
-            </button>
+
+            <Button
+              className={styles['connect-helper-connect-option-button']}
+              variant="info"
+              onClick={() => onOpenConnectionFrom()}
+            >
+              Open form
+            </Button>
           </div>
         </div>
         <div className={styles['connect-helper-message']}>
@@ -57,6 +75,13 @@ const mapDispatchToProps: dispatchProps = {
     type: ActionTypes.EXTENSION_LINK_CLICKED,
     screen,
     linkId
+  }),
+  onOpenConnectionStringInput: (): OpenConnectionStringInputAction => ({
+    type: ActionTypes.OPEN_CONNECTION_STRING_INPUT
+  }),
+  onOpenConnectionFrom: (): SetCurrentViewAction => ({
+    type: ActionTypes.SET_CURRENT_VIEW,
+    currentView: WEBVIEW_VIEWS.CONNECT
   })
 };
 

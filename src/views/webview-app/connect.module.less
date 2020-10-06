@@ -16,7 +16,7 @@
 }
 
 form {
-  display: block;
+  // display: block;
   margin-top: 0em;
   padding: 15px 0;
 
@@ -24,6 +24,9 @@ form {
   color: var(--vscode-editor-foreground);
   font-size: 14px;
   line-height: 20px;
+
+  display: inline-block;
+  width: 400px;
 }
 
 label {
@@ -36,9 +39,12 @@ label {
 .connect-form-help-panel {
   margin: 30px;
   display: inline-block;
+  vertical-align: top;
 }
 
 .connect {
+  min-width: 700px;
+
   &-is-connected {
     border: 2px solid @green;
   }

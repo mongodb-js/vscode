@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Button from '@leafygreen-ui/button';
 
 const styles = require('./connection-status.less');
 
@@ -12,16 +13,19 @@ class ConnectionStatus extends React.Component {
         <div>
           <div className={styles['connection-status-playground-message']}>
             <div>
-              All Set. Ready to start?
+              All set. Ready to start?
             </div>
             <div>
               Create a Playground.
             </div>
           </div>
           <div className={styles['connection-status-playground-button']}>
-            <button>
+            <Button
+              variant="primary"
+              className="connection-status-create-playground-button"
+            >
               Create playground
-            </button>
+            </Button>
           </div>
         </div>
       </div>

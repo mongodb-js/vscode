@@ -55,6 +55,11 @@ export const rootReducer = (
   action: Actions
 ): AppState => {
   switch (action.type) {
+    case ActionTypes.SET_CURRENT_VIEW:
+      return {
+        ...state,
+        currentView: action.currentView
+      };
     case ActionTypes.AUTH_SOURCE_CHANGED:
       return {
         ...state,

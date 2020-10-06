@@ -2,6 +2,7 @@ import READ_PREFERENCES from '../connection-model/constants/read-preferences';
 import AUTH_STRATEGIES from '../connection-model/constants/auth-strategies';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
+import { WEBVIEW_VIEWS } from '../extension-app-message-constants';
 
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',
@@ -23,6 +24,7 @@ export enum ActionTypes {
   PORT_CHANGED = 'PORT_CHANGED',
   READ_PREFERENCE_CHANGED = 'READ_PREFERENCE_CHANGED',
   REPLICA_SET_CHANGED = 'REPLICA_SET_CHANGED',
+  SET_CURRENT_VIEW = 'SET_CURRENT_VIEW',
   SSH_TUNNEL_CHANGED = 'SSH_TUNNEL_CHANGED',
   SSH_TUNNEL_IDENTITY_FILE_CHANGED = 'SSH_TUNNEL_IDENTITY_FILE_CHANGED',
   SSH_TUNNEL_HOSTNAME_CHANGED = 'SSH_TUNNEL_HOSTNAME_CHANGED',
@@ -150,6 +152,11 @@ export interface ReplicaSetChangedAction extends BaseAction {
   replicaSet: string;
 }
 
+export interface SetCurrentViewAction extends BaseAction {
+  type: ActionTypes.SET_CURRENT_VIEW;
+  currentView: WEBVIEW_VIEWS;
+}
+
 export interface SSHTunnelChangedAction extends BaseAction {
   type: ActionTypes.SSH_TUNNEL_CHANGED;
   sshTunnel: SSH_TUNNEL_TYPES;
@@ -240,6 +247,7 @@ export type Actions =
   | PortChangedAction
   | ReadPreferenceChangedAction
   | ReplicaSetChangedAction
+  | SetCurrentViewAction
   | SSHTunnelChangedAction
   | SSHTunnelHostnameChangedAction
   | SSHTunnelIdentityFileChangedAction
