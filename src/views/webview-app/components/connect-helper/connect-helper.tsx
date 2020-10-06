@@ -74,7 +74,6 @@ class ConnectHelper extends React.Component<props> {
           </div>
         </div>
         <div className={styles['connect-helper-message']}>
-          {/* TODO: Pull in user's hotkey for command prompt. */}
           <strong>{getOSCommandShortcutName()} + Shift + P</strong> for all MongoDB Command Palette options
         </div>
       </div>

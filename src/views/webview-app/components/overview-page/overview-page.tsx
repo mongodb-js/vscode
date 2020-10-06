@@ -29,7 +29,6 @@ class Overview extends React.Component<props> {
         <div className={styles['overview-help-panel-container']}>
           <HelpPanel />
         </div>
-        {/* TODO: Call it overview or home */}
       </div>
     );
   }
