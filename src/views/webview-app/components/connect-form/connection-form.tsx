@@ -22,7 +22,7 @@ import { AppState } from '../../store/store';
 
 const styles = require('../../connect.module.less');
 
-type stateProps = {
+type StateProps = {
   connectionMessage: string;
   currentConnection: ConnectionModel;
   errorMessage: string;
@@ -32,12 +32,12 @@ type stateProps = {
   syntaxErrorMessage: string;
 };
 
-type dispatchProps = {
+type DispatchProps = {
   onConnectionFormChanged: () => void;
   onOpenConnectionStringInput: () => void;
 };
 
-type props = stateProps & dispatchProps;
+type props = StateProps & DispatchProps;
 
 class ConnectionForm extends React.Component<props> {
   static displayName = 'ConnectionForm';
@@ -191,7 +191,7 @@ class ConnectionForm extends React.Component<props> {
   }
 }
 
-const mapStateToProps = (state: AppState): stateProps => {
+const mapStateToProps = (state: AppState): StateProps => {
   return {
     connectionMessage: state.connectionMessage,
     currentConnection: state.currentConnection,
@@ -203,7 +203,7 @@ const mapStateToProps = (state: AppState): stateProps => {
   };
 };
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   // Resets URL validation if form was changed.
   onConnectionFormChanged: (): ConnectionFormChangedAction => ({
     type: ActionTypes.CONNECTION_FORM_CHANGED

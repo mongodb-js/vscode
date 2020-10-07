@@ -8,7 +8,7 @@ import ConnectionModel from '../../connection-model/connection-model';
 
 const styles = require('../../connect.module.less');
 
-type dispatchProps = {
+type DispatchProps = {
   onConnectClicked: () => void;
 };
 
@@ -20,7 +20,7 @@ type props = {
   isConnecting: boolean;
   isValid: boolean;
   syntaxErrorMessage: string;
-} & dispatchProps;
+} & DispatchProps;
 
 class FormActions extends React.Component<props> {
   static displayName = 'FormActions';
@@ -116,7 +116,7 @@ class FormActions extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onConnectClicked: (): ConnectAction => ({
     type: ActionTypes.CONNECT
   })

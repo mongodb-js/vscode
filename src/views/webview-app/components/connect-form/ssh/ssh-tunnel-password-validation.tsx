@@ -12,14 +12,14 @@ import { AppState } from '../../../store/store';
 import FormInput from '../form-input';
 import FormGroup from '../form-group';
 
-type dispatchProps = {
+type DispatchProps = {
   onSSHTunnelHostnameChanged: (sshTunnelHostname: string) => void;
   onSSHTunnelPasswordChanged: (sshTunnelPassword: string) => void;
   onSSHTunnelPortChanged: (sshTunnelPort: number) => void;
   onSSHTunnelUsernameChanged: (sshTunnelUsername: string) => void;
 };
 
-type stateProps = {
+type StateProps = {
   isValid: boolean;
   sshTunnelHostname?: string;
   sshTunnelPassword?: string;
@@ -27,7 +27,7 @@ type stateProps = {
   sshTunnelUsername?: string;
 };
 
-type props = stateProps & dispatchProps;
+type props = StateProps & DispatchProps;
 
 class SSHTunnelPasswordValidation extends React.Component<props> {
   static displayName = 'SSHTunnelPasswordValidation';
@@ -115,7 +115,7 @@ class SSHTunnelPasswordValidation extends React.Component<props> {
   }
 }
 
-const mapStateToProps = (state: AppState): stateProps => {
+const mapStateToProps = (state: AppState): StateProps => {
   return {
     isValid: state.isValid,
     sshTunnelHostname: state.currentConnection.sshTunnelHostname,
@@ -125,7 +125,7 @@ const mapStateToProps = (state: AppState): stateProps => {
   };
 };
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onSSHTunnelHostnameChanged: (
     sshTunnelHostname: string
   ): SSHTunnelHostnameChangedAction => ({

@@ -10,13 +10,13 @@ import FormItemSelect from '../form-item-select';
 import SSLServerValidation from './ssl-server-validation';
 import SSLServerClientValidation from './ssl-server-client-validation';
 
-type dispatchProps = {
+type DispatchProps = {
   onSSLMethodChanged: (authStrategy: SSL_METHODS) => void;
 };
 
 type props = {
   sslMethod: string;
-} & dispatchProps;
+} & DispatchProps;
 
 class SSLMethod extends React.Component<props> {
   static displayName = 'SSLMethod';
@@ -66,7 +66,7 @@ class SSLMethod extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onSSLMethodChanged: (newSSLMethod): SSLMethodChangedAction => ({
     type: ActionTypes.SSL_METHOD_CHANGED,
     sslMethod: newSSLMethod

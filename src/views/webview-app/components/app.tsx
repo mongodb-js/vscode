@@ -21,11 +21,11 @@ import {
 
 const styles = require('../connect.module.less');
 
-type stateProps = {
+type StateProps = {
   currentView: WEBVIEW_VIEWS;
 };
 
-type dispatchProps = {
+type DispatchProps = {
   onConnectedEvent: (
     successfullyConnected: boolean,
     connectionMessage: string
@@ -36,7 +36,7 @@ type dispatchProps = {
   ) => void;
 };
 
-class App extends React.Component<dispatchProps & stateProps> {
+class App extends React.Component<DispatchProps& StateProps> {
   componentDidMount(): void {
     window.addEventListener('message', (event) => {
       const message: ConnectResultsMessage | FilePickerResultsMessage =
@@ -79,13 +79,13 @@ class App extends React.Component<dispatchProps & stateProps> {
   }
 }
 
-const mapStateToProps = (state: AppState): stateProps => {
+const mapStateToProps = (state: AppState): StateProps => {
   return {
     currentView: state.currentView
   };
 };
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onConnectedEvent: (
     successfullyConnected: boolean,
     connectionMessage: string

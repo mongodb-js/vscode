@@ -5,10 +5,10 @@ import { ActionTypes, ReadPreferenceChangedAction } from '../../store/actions';
 import FormItemSelect from './form-item-select';
 import READ_PREFERENCES from '../../connection-model/constants/read-preferences';
 
-type dispatchProps = {
+type DispatchProps = {
   onReadPreferenceChanged: (newReadPreference: READ_PREFERENCES) => void;
 };
-type props = { readPreference: string } & dispatchProps;
+type props = { readPreference: string } & DispatchProps;
 
 class ReadPreferenceSelect extends React.PureComponent<props> {
   static displayName = 'ReadPreferenceSelect';
@@ -43,7 +43,7 @@ class ReadPreferenceSelect extends React.PureComponent<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onReadPreferenceChanged: (
     newReadPreference: READ_PREFERENCES
   ): ReadPreferenceChangedAction => ({

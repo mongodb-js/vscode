@@ -11,13 +11,13 @@ import { WEBVIEW_VIEWS } from '../../extension-app-message-constants';
 
 const styles = require('./connect-helper.less');
 
-type dispatchProps = {
+type DispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;
   onOpenConnectionStringInput: () => void;
   onOpenConnectionFrom: () => void;
 };
 
-type props = dispatchProps;
+type props = DispatchProps;
 
 function getOSCommandShortcutName(): string {
   if (navigator.userAgent.indexOf('Win') != -1) {
@@ -84,7 +84,7 @@ class ConnectHelper extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onLinkClicked: (screen, linkId): LinkClickedAction => ({
     type: ActionTypes.EXTENSION_LINK_CLICKED,
     screen,

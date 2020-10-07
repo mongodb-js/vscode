@@ -5,11 +5,11 @@ import { ActionTypes, LinkClickedAction } from '../../store/actions';
 
 const styles = require('./help-panel.less');
 
-type dispatchProps = {
+type DispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;
 };
 
-type props = dispatchProps;
+type props = DispatchProps;
 
 class HelpPanel extends React.Component<props> {
   onLinkClicked = (screen: string, linkId: string): void => {
@@ -170,7 +170,7 @@ class HelpPanel extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onLinkClicked: (screen, linkId): LinkClickedAction => ({
     type: ActionTypes.EXTENSION_LINK_CLICKED,
     screen,

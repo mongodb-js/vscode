@@ -9,11 +9,11 @@ import InfoSprinkle from '../info-sprinkle/info-sprinkle';
 
 const styles = require('./connection-status.less');
 
-type dispatchProps = {
+type DispatchProps = {
   onClickCreatePlayground: () => void;
 };
 
-class ConnectionStatus extends React.Component<dispatchProps> {
+class ConnectionStatus extends React.Component<DispatchProps> {
   render(): React.ReactNode {
     const { onClickCreatePlayground } = this.props;
 
@@ -43,7 +43,7 @@ class ConnectionStatus extends React.Component<dispatchProps> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onClickCreatePlayground: (): CreateNewPlaygroundAction => ({
     type: ActionTypes.CREATE_NEW_PLAYGROUND
   })

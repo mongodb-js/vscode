@@ -6,13 +6,13 @@ import { ActionTypes, IsSrvRecordToggledAction } from '../../../store/actions';
 
 const styles = require('../../../connect.module.less');
 
-type dispatchProps = {
+type DispatchProps = {
   onSRVRecordToggled: () => void;
 };
 
 type props = {
   isSrvRecord: boolean;
-} & dispatchProps;
+} & DispatchProps;
 
 class SRVInput extends React.PureComponent<props> {
   static displayName = 'SRVInput';
@@ -50,7 +50,7 @@ class SRVInput extends React.PureComponent<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onSRVRecordToggled: (): IsSrvRecordToggledAction => ({
     type: ActionTypes.IS_SRV_RECORD_TOGGLED
   })

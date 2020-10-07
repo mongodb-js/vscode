@@ -9,11 +9,11 @@ import HelpPanel from '../help-panel/help-panel';
 
 const styles = require('./overview-page.less');
 
-type dispatchProps = {
+type DispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;
 };
 
-type props = dispatchProps;
+type props = DispatchProps;
 
 class Overview extends React.Component<props> {
   onLinkClicked = (screen: string, linkId: string): void => {
@@ -34,7 +34,7 @@ class Overview extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onLinkClicked: (screen, linkId): LinkClickedAction => ({
     type: ActionTypes.EXTENSION_LINK_CLICKED,
     screen,

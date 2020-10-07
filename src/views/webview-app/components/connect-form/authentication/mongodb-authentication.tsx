@@ -10,7 +10,7 @@ import {
 import FormInput from '../form-input';
 import FormGroup from '../form-group';
 
-type dispatchProps = {
+type DispatchProps = {
   onAuthSourceChanged: (newAuthSource: string) => void;
   onPasswordChanged: (newPassword: string) => void;
   onUsernameChanged: (newUsername: string) => void;
@@ -21,7 +21,7 @@ type props = {
   mongodbDatabaseName?: string;
   mongodbPassword?: string;
   mongodbUsername?: string;
-} & dispatchProps;
+} & DispatchProps;
 
 class MongoDBAuthentication extends React.Component<props> {
   static displayName = 'MongoDBAuthentication';
@@ -92,7 +92,7 @@ class MongoDBAuthentication extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onAuthSourceChanged: (newAuthSource: string): AuthSourceChangedAction => ({
     type: ActionTypes.AUTH_SOURCE_CHANGED,
     mongodbDatabaseName: newAuthSource
