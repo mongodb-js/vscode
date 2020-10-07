@@ -7,8 +7,7 @@ import TelemetryController from '../../../telemetry/telemetryController';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import WebviewController, {
-  getWebviewContent,
-  getReactAppUri
+  getWebviewContent
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
 import { MESSAGE_TYPES, WEBVIEW_VIEWS } from '../../../views/webview-app/extension-app-message-constants';
