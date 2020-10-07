@@ -1,6 +1,6 @@
 import * as React from 'react';
-import Toggle from '@leafygreen-ui/toggle';
 import { connect } from 'react-redux';
+// import Toggle from '@leafygreen-ui/toggle';
 
 import { ActionTypes, IsSrvRecordToggledAction } from '../../../store/actions';
 
@@ -36,15 +36,14 @@ class SRVInput extends React.PureComponent<props> {
             <span>SRV Record</span>
           </label>
         </div>
-        <Toggle
+        {/* <Toggle
           className={styles['form-toggle']}
           name="isSrvRecord"
           onChange={this.onSRVRecordToggled}
           checked={isSrvRecord}
           size="small"
-          variant="default"
           disabled={false}
-        />
+        /> */}
       </div>
     );
   }
