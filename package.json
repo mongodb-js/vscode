@@ -63,6 +63,7 @@
   "activationEvents": [
     "onCommand:mdb.connect",
     "onCommand:mdb.connectWithURI",
+    "onCommand:mdb.openOverviewPage",
     "onCommand:mdb.createPlayground",
     "onCommand:mdb.addConnection",
     "onCommand:mdb.addConnectionWithURI",
@@ -172,6 +173,10 @@
         "title": "MongoDB: Remove Connection..."
       },
       {
+        "command": "mdb.openOverviewPage",
+        "title": "MongoDB: Open Overview Page"
+      },
+      {
         "command": "mdb.openMongoDBShell",
         "title": "MongoDB: Launch MongoDB Shell"
       },
@@ -193,6 +198,10 @@
       },
       {
         "command": "mdb.createNewPlaygroundFromViewAction",
+        "title": "Create MongoDB Playground"
+      },
+      {
+        "command": "mdb.createNewPlaygroundFromOverviewPage",
         "title": "Create MongoDB Playground"
       },
       {
@@ -548,6 +557,10 @@
         },
         {
           "command": "mdb.createNewPlaygroundFromViewAction",
+          "when": "false"
+        },
+        {
+          "command": "mdb.createNewPlaygroundFromOverviewPage",
           "when": "false"
         },
         {

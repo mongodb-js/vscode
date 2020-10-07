@@ -14,7 +14,7 @@ import FormInput from '../form-input';
 import FileInputButton from '../file-input-button';
 import FormGroup from '../form-group';
 
-type dispatchProps = {
+type DispatchProps = {
   onChangeSSHTunnelIdentityFile: () => void;
   onSSHTunnelHostnameChanged: (sshTunnelHostname: string) => void;
   onSSHTunnelPassphraseChanged: (sshTunnelPassphrase: string) => void;
@@ -22,7 +22,7 @@ type dispatchProps = {
   onSSHTunnelUsernameChanged: (sshTunnelUsername: string) => void;
 };
 
-type stateProps = {
+type StateProps = {
   isValid: boolean;
   sshTunnelHostname?: string;
   sshTunnelIdentityFile?: string[];
@@ -31,7 +31,7 @@ type stateProps = {
   sshTunnelUsername?: string;
 };
 
-type props = stateProps & dispatchProps;
+type props = StateProps & DispatchProps;
 
 class SSHTunnelIdentityFileValidation extends React.Component<props> {
   static displayName = 'SSHTunnelIdentityFileValidation';
@@ -135,7 +135,7 @@ class SSHTunnelIdentityFileValidation extends React.Component<props> {
   }
 }
 
-const mapStateToProps = (state: AppState): stateProps => {
+const mapStateToProps = (state: AppState): StateProps => {
   return {
     isValid: state.isValid,
     sshTunnelHostname: state.currentConnection.sshTunnelHostname,
@@ -146,7 +146,7 @@ const mapStateToProps = (state: AppState): stateProps => {
   };
 };
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onChangeSSHTunnelIdentityFile: (): OnChangeSSHTunnelIdentityFileAction => ({
     type: ActionTypes.ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE,
   }),

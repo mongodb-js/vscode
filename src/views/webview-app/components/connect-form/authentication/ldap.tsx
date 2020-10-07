@@ -8,7 +8,7 @@ import {
 } from '../../../store/actions';
 import FormInput from '../form-input';
 
-type dispatchProps = {
+type DispatchProps = {
   onLDAPPasswordChanged: (newPassword: string) => void;
   onLDAPUsernameChanged: (newUsername: string) => void;
 };
@@ -17,7 +17,7 @@ type props = {
   isValid: boolean;
   ldapPassword?: string;
   ldapUsername?: string;
-} & dispatchProps;
+} & DispatchProps;
 
 /**
  * The LDAP auth role component.
@@ -75,7 +75,7 @@ class LDAP extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onLDAPPasswordChanged: (newPassword): LDAPPasswordChangedAction => ({
     type: ActionTypes.LDAP_PASSWORD_CHANGED,
     ldapPassword: newPassword

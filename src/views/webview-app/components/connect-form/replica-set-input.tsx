@@ -4,14 +4,14 @@ import { connect } from 'react-redux';
 import { ActionTypes, ReplicaSetChangedAction } from '../../store/actions';
 import FormInput from './form-input';
 
-type dispatchProps = {
+type DispatchProps = {
   onReplicaSetChanged: (newReplicaSetName: string) => void;
 };
 
 type props = {
   sshTunnel: string;
   replicaSet?: string;
-} & dispatchProps;
+} & DispatchProps;
 
 class ReplicaSetInput extends React.PureComponent<props> {
   static displayName = 'ReplicaSetInput';
@@ -43,7 +43,7 @@ class ReplicaSetInput extends React.PureComponent<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onReplicaSetChanged: (
     newReplicaSetName: string
   ): ReplicaSetChangedAction => ({

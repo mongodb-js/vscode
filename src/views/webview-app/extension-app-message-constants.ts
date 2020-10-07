@@ -1,8 +1,16 @@
 import { FilePickerActionTypes } from './store/actions';
 
+export enum WEBVIEW_VIEWS {
+  CONNECT = 'CONNECT',
+  OVERVIEW = 'OVERVIEW'
+}
+
+export const INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME = '@@@WEBVIEW_INITIAL_VIEW@@@';
+
 export enum MESSAGE_TYPES {
   CONNECT = 'CONNECT',
   CONNECT_RESULT = 'CONNECT_RESULT',
+  CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
   OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
   FILE_PICKER_RESULTS = 'FILE_PICKER_RESULTS',
@@ -11,6 +19,10 @@ export enum MESSAGE_TYPES {
 
 interface BasicWebviewMessage {
   command: string;
+}
+
+export interface CreateNewPlaygroundMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.CREATE_NEW_PLAYGROUND;
 }
 
 // Note: In the app this is tightly coupled with 'externals.ts'.

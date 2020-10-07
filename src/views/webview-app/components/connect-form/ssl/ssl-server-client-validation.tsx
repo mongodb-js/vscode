@@ -14,20 +14,20 @@ import { AppState } from '../../../store/store';
 
 const styles = require('../../../connect.module.less');
 
-type stateProps = {
+type StateProps = {
   isValid: boolean;
   sslCA?: string[];
   sslCert?: string[];
   sslPass?: string;
 };
 
-type dispatchProps = {
+type DispatchProps = {
   onChangeSSLCA: () => void;
   onChangeSSLCertificate: () => void;
   sslPrivateKeyPasswordChanged: (newSSLPass: string) => void;
 };
 
-type props = stateProps & dispatchProps;
+type props = StateProps & DispatchProps;
 
 class SSLServerClientValidation extends React.Component<props> {
   static displayName = 'SSLServerClientValidation';
@@ -93,7 +93,7 @@ class SSLServerClientValidation extends React.Component<props> {
   }
 }
 
-const mapStateToProps = (state: AppState): stateProps => {
+const mapStateToProps = (state: AppState): StateProps => {
   return {
     isValid: state.isValid,
     sslCA: state.currentConnection.sslCA,
@@ -102,7 +102,7 @@ const mapStateToProps = (state: AppState): stateProps => {
   };
 };
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onChangeSSLCA: (): OnChangeSSLCAAction => ({
     type: ActionTypes.ON_CHANGE_SSL_CA
   }),

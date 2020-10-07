@@ -11,7 +11,7 @@ import FormInput from '../form-input';
 
 const styles = require('../../../connect.module.less');
 
-type dispatchProps = {
+type DispatchProps = {
   kerberosParametersChanged: (newParams: KerberosParameters) => void;
 };
 
@@ -21,7 +21,7 @@ type props = {
   kerberosPassword?: string;
   kerberosPrincipal?: string;
   kerberosServiceName?: string;
-} & dispatchProps;
+} & DispatchProps;
 
 /**
  * The kerberos auth role component.
@@ -165,7 +165,7 @@ class Kerberos extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   kerberosParametersChanged: (
     newKerberosParams
   ): KerberosParametersChanged => ({

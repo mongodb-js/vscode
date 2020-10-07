@@ -13,6 +13,10 @@ interface ConnectMessage extends BasicWebviewMessage {
   connectionModel: object;
 }
 
+interface CreateNewPlaygroundMessage extends BasicWebviewMessage {
+  command: 'CREATE_NEW_PLAYGROUND';
+}
+
 interface OpenConnectionStringInputMessage extends BasicWebviewMessage {
   command: 'OPEN_CONNECTION_STRING_INPUT';
 }

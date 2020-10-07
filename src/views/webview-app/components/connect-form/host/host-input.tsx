@@ -4,13 +4,13 @@ import { connect } from 'react-redux';
 import { ActionTypes, HostnameChangedAction } from '../../../store/actions';
 import FormInput from '../form-input';
 
-type dispatchProps = {
+type DispatchProps = {
   onHostnameChanged: (newHostName: string) => void;
 };
 
 type props = {
   hostname: string;
-} & dispatchProps;
+} & DispatchProps;
 
 class HostInput extends React.PureComponent<props> {
   static displayName = 'HostInput';
@@ -46,7 +46,7 @@ class HostInput extends React.PureComponent<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onHostnameChanged: (newHostname: string): HostnameChangedAction => ({
     type: ActionTypes.HOSTNAME_CHANGED,
     hostname: newHostname

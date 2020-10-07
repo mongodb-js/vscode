@@ -110,6 +110,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand('mdb.connectWithURI', () =>
       this._connectionController.connectWithURI()
     );
+    this.registerCommand('mdb.openOverviewPage', () =>
+      this._webviewController.showOverviewPage(this._context)
+    );
 
     this.registerCommand('mdb.disconnect', () =>
       this._connectionController.disconnect()
@@ -129,6 +132,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundController.createPlayground()
     );
     this.registerCommand('mdb.createNewPlaygroundFromViewAction', () =>
+      this._playgroundController.createPlayground()
+    );
+    this.registerCommand('mdb.createNewPlaygroundFromOverviewPage', () =>
       this._playgroundController.createPlayground()
     );
     this.registerCommand('mdb.createNewPlaygroundFromPlaygroundExplorer', () =>

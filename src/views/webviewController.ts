@@ -5,8 +5,11 @@ import ConnectionController, {
 } from '../connectionController';
 import TelemetryController from '../telemetry/telemetryController';
 import {
+  INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME,
   MESSAGE_TYPES,
+  WEBVIEW_VIEWS,
   ConnectMessage,
+  CreateNewPlaygroundMessage,
   OpenFilePickerMessage,
   OpenConnectionStringInputMessage,
   LinkClickedMessage
@@ -26,27 +29,61 @@ const openFileOptions = {
   }
 };
 
-export const getConnectWebviewContent = (jsAppFileUrl: vscode.Uri): string => {
-  return `<!DOCTYPE html>
-  <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Connect to MongoDB</title>
-    </head>
-    <body>
-      <div id="root"></div>
-      <script src="${jsAppFileUrl}"></script>
-    </body>
-  </html>`;
+export const getFontUri = (
+  extensionPath: string,
+  webview: vscode.Webview,
+  fontName: string
+): vscode.Uri =>{
+  const localFilePathUri = vscode.Uri.file(
+    path.join(extensionPath, 'resources', 'fonts', fontName)
+  );
+  const fontUri = webview.asWebviewUri(localFilePathUri);
+  return fontUri;
 };
 
-export const getReactAppUri = (extensionPath: string, webview: vscode.Webview): vscode.Uri => {
+export const getReactAppUri = (
+  extensionPath: string,
+  webview: vscode.Webview
+): vscode.Uri => {
   const localFilePathUri = vscode.Uri.file(
     path.join(extensionPath, 'dist', 'webviewApp.js')
   );
   const jsAppFileWebviewUri = webview.asWebviewUri(localFilePathUri);
   return jsAppFileWebviewUri;
+};
+
+export const getWebviewContent = (
+  extensionPath: string,
+  webview: vscode.Webview,
+  view: WEBVIEW_VIEWS
+): string => {
+  const jsAppFileUrl = getReactAppUri(extensionPath, webview);
+
+  return `<!DOCTYPE html>
+  <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MongoDB</title>
+        <style>
+          @font-face {
+            font-family: AkzidenzGroteskStd;
+            src: url("${getFontUri(extensionPath, webview, 'AkzidGroStdReg.otf')}");
+          }
+
+          @font-face {
+            font-family: AkzidenzGroteskStd;
+            font-weight: bold;
+            src: url("${getFontUri(extensionPath, webview, 'AkzidGroStdBol.otf')}");
+          }
+        </style>
+    </head>
+    <body>
+      <div id="root"></div>
+      <script>window['${INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME}'] = '${view}';</script>
+      <script src="${jsAppFileUrl}"></script>
+    </body>
+  </html>`;
 };
 
 export default class WebviewController {
@@ -95,6 +132,7 @@ export default class WebviewController {
   handleWebviewMessage = (
     message:
       | ConnectMessage
+      | CreateNewPlaygroundMessage
       | OpenFilePickerMessage
       | LinkClickedMessage
       | OpenConnectionStringInputMessage,
@@ -121,6 +159,11 @@ export default class WebviewController {
             connectionMessage: `Unable to load connection: ${error}`
           });
         }
+        return;
+      case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
+        vscode.commands.executeCommand(
+          'mdb.createNewPlaygroundFromOverviewPage'
+        );
         return;
       case MESSAGE_TYPES.OPEN_FILE_PICKER:
         vscode.window
@@ -157,20 +200,25 @@ export default class WebviewController {
     }
   };
 
-  showConnectForm(context: vscode.ExtensionContext): Promise<boolean> {
-    log.info('show connect form called.');
-
+  openWebview(
+    view: WEBVIEW_VIEWS,
+    viewTitle: string,
+    context: vscode.ExtensionContext
+  ): Promise<boolean> {
     const extensionPath = context.extensionPath;
 
     // Create and show a new connect dialogue webview.
     const panel = vscode.window.createWebviewPanel(
       'connectDialogueWebview',
-      'Connect to MongoDB', // Title
+      viewTitle,
       vscode.ViewColumn.One, // Editor column to show the webview panel in.
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'dist'))]
+        localResourceRoots: [
+          vscode.Uri.file(path.join(extensionPath, 'dist')),
+          vscode.Uri.file(path.join(extensionPath, 'resources'))
+        ]
       }
     );
 
@@ -178,8 +226,7 @@ export default class WebviewController {
       path.join(extensionPath, 'images', 'leaf.svg')
     );
 
-    const reactAppUri = getReactAppUri(extensionPath, panel.webview);
-    panel.webview.html = getConnectWebviewContent(reactAppUri);
+    panel.webview.html = getWebviewContent(extensionPath, panel.webview, view);
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
@@ -190,5 +237,17 @@ export default class WebviewController {
     );
 
     return Promise.resolve(true);
+  }
+
+  showConnectForm(context: vscode.ExtensionContext): Promise<boolean> {
+    log.info('show connect form called.');
+
+    return this.openWebview(WEBVIEW_VIEWS.CONNECT, 'Connect to MongoDB', context);
+  }
+
+  showOverviewPage(context: vscode.ExtensionContext): Promise<boolean> {
+    log.info('show overview page called.');
+
+    return this.openWebview(WEBVIEW_VIEWS.OVERVIEW, 'MongoDB', context);
   }
 }

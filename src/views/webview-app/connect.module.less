@@ -9,6 +9,8 @@
   flex-direction: row;
   align-items: stretch;
   flex: 1;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
 }
 
 .panel {
@@ -16,7 +18,6 @@
 }
 
 form {
-  display: block;
   margin-top: 0em;
   padding: 15px 0;
 
@@ -24,6 +25,9 @@ form {
   color: var(--vscode-editor-foreground);
   font-size: 14px;
   line-height: 20px;
+
+  display: inline-block;
+  width: 400px;
 }
 
 label {
@@ -33,7 +37,15 @@ label {
   font-weight: bold;
 }
 
+.connect-form-help-panel {
+  margin: 30px;
+  display: inline-block;
+  vertical-align: top;
+}
+
 .connect {
+  min-width: 700px;
+
   &-is-connected {
     border: 2px solid @green;
   }
@@ -139,10 +151,8 @@ label {
 
           div {
             border: none;
-            background-color: var(
-              --vscode-searchEditor-textInputBorder,
-              rgba(161, 161, 161, 0.5)
-            );
+            background-color: var(--vscode-searchEditor-textInputBorder,
+                rgba(161, 161, 161, 0.5));
           }
         }
 
@@ -186,8 +196,7 @@ label {
         &-file-button {
           width: 100%;
           background: var(--vscode-input-background, transparent);
-          border: 1px solid
-            var(--vscode-searchEditor-textInputBorder, rgba(161, 161, 161, 0.5));
+          border: 1px solid var(--vscode-searchEditor-textInputBorder, rgba(161, 161, 161, 0.5));
           border-radius: 3px;
           color: var(--vscode-editor-foreground);
           padding: 8px 4px 9px;
@@ -260,61 +269,6 @@ label {
     overflow: hidden;
     position: absolute;
     z-index: -1;
-  }
-
-  .help-panel {
-    width: 240px;
-    margin: 30px;
-    background-color: var(--vscode-editor-background);
-    color: @pw;
-    font-size: 14px;
-    line-height: 20px;
-
-    .help-container {
-      display: inline-block;
-      height: auto;
-      padding: 24px 20px 20px;
-      background-color: #ffffff;
-      border-radius: 3px;
-      border: 1px solid rgb(231, 238, 236);
-      box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 10px -4px;
-
-      .btn {
-        background-color: #ffffff;
-        background-image: none;
-        border: 1px solid @green;
-        box-shadow: none;
-        color: @green;
-        padding: 5px 12px 6px;
-        margin: 0 auto;
-        display: inline-block;
-
-        &:hover {
-          background-color: #109648;
-          background-image: linear-gradient(#129f4c, #148040);
-          color: #ffffff;
-          border: 1px solid rgb(21, 130, 66);
-          box-shadow: rgb(21, 130, 66) 0px -1px 0px inset;
-        }
-      }
-
-      .help-section {
-        margin: 0;
-        padding: 0;
-        text-align: center;
-      }
-
-      .help-link {
-        color: var(--vscode-notificationLink-foreground);
-        text-decoration: underline;
-        margin-left: 3px;
-
-        &:visited {
-          color: var(--vscode-badge-foreground);
-          text-decoration: underline;
-        }
-      }
-    }
   }
 
   .btn {

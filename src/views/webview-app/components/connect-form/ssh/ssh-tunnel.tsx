@@ -10,13 +10,13 @@ import FormItemSelect from '../form-item-select';
 import SSHTunnelPasswordValidation from './ssh-tunnel-password-validation';
 import SSHTunnelIdentityFileValidation from './ssh-tunnel-identity-file-validation';
 
-type dispatchProps = {
+type DispatchProps = {
   onSSHTunnelChanged: (sshTunnel: SSH_TUNNEL_TYPES) => void;
 };
 
 type props = {
   sshTunnel: string;
-} & dispatchProps;
+} & DispatchProps;
 
 class SSHTunnel extends React.Component<props> {
   static displayName = 'SSHTunnel';
@@ -67,7 +67,7 @@ class SSHTunnel extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onSSHTunnelChanged: (newSSHTunnel): SSHTunnelChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_CHANGED,
     sshTunnel: newSSHTunnel,

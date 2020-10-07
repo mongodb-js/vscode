@@ -4,21 +4,28 @@ import { connect } from 'react-redux';
 
 import ConnectionForm from './connect-form/connection-form';
 import HelpPanel from './help-panel/help-panel';
+import OverviewPage from './overview-page/overview-page';
 import {
   ActionTypes,
   ConnectionEventOccuredAction,
   FilePickerActions,
   FilePickerActionTypes
 } from '../store/actions';
+import { AppState } from '../store/store';
 import {
   MESSAGE_TYPES,
   ConnectResultsMessage,
-  FilePickerResultsMessage
+  FilePickerResultsMessage,
+  WEBVIEW_VIEWS
 } from '../extension-app-message-constants';
 
 const styles = require('../connect.module.less');
 
-type props = {
+type StateProps = {
+  currentView: WEBVIEW_VIEWS;
+};
+
+type DispatchProps = {
   onConnectedEvent: (
     successfullyConnected: boolean,
     connectionMessage: string
@@ -29,7 +36,7 @@ type props = {
   ) => void;
 };
 
-class App extends React.Component<props> {
+class App extends React.Component<DispatchProps& StateProps> {
   componentDidMount(): void {
     window.addEventListener('message', (event) => {
       const message: ConnectResultsMessage | FilePickerResultsMessage =
@@ -54,16 +61,31 @@ class App extends React.Component<props> {
   }
 
   render(): React.ReactNode {
+    const { currentView } = this.props;
+
     return (
-      <div className={classnames(styles.page, styles.connect)}>
-        <ConnectionForm />
-        <HelpPanel />
+      <div className={styles.page}>
+        {currentView === WEBVIEW_VIEWS.CONNECT && (
+          <div className={styles.connect}>
+            <ConnectionForm />
+            <div className={classnames(styles['connect-form-help-panel'])}>
+              <HelpPanel />
+            </div>
+          </div>
+        )}
+        {currentView === WEBVIEW_VIEWS.OVERVIEW && <OverviewPage />}
       </div>
     );
   }
 }
 
-const mapDispatchToProps: props = {
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    currentView: state.currentView
+  };
+};
+
+const mapDispatchToProps: DispatchProps = {
   onConnectedEvent: (
     successfullyConnected: boolean,
     connectionMessage: string
@@ -81,4 +103,4 @@ const mapDispatchToProps: props = {
   })
 };
 
-export default connect(null, mapDispatchToProps)(App);
+export default connect(mapStateToProps, mapDispatchToProps)(App);

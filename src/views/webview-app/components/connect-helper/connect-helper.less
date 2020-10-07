@@ -1,0 +1,69 @@
+.connect-helper {
+  margin-top: 60px;
+  margin-bottom: 10px;
+}
+
+.connect-helper-connect-area {
+  // width: 400px;
+  margin: 0 auto;
+}
+
+.connect-helper-message {
+  margin-top: 10px;
+}
+
+.connect-helper-connect-option {
+  width: 198px;
+  display: inline-block;
+  height: 170px;
+  border: 1px solid transparent;
+  padding-top: 29px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.connect-helper-connect-option-button {
+  margin: 0 auto;
+  margin-top: 54px;
+  border: 1px solid;
+  width: 100px;
+  height: 32px;
+  border-radius: 3px;
+  color: #ffffff;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.connect-helper-connection-string-button {
+  background-color: rgb(41, 41, 41);
+  border-color: transparent;
+}
+
+.connect-helper-connection-form-button {
+  background: none;
+  color: var(--vscode-editor-foreground);
+  border-color: var(--vscode-editor-foreground);
+}
+
+.connect-connection-string-area {
+  background-color: rgba(228, 244, 228, 0.9);
+  color: #21313C;
+}
+
+.connect-connection-form-area {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+body[data-vscode-theme-kind="vscode-light"] {
+  .connect-connection-form-area {
+    border-color: rgba(228, 244, 228, 0.9);
+  }
+}
+
+body[data-vscode-theme-kind="vscode-high-contrast"] {
+  .connect-connection-form-area {
+    border-color: rgba(228, 244, 228, 0.9);
+  }
+}

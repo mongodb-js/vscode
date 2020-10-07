@@ -7,11 +7,10 @@ import TelemetryController from '../../../telemetry/telemetryController';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import WebviewController, {
-  getConnectWebviewContent,
-  getReactAppUri
+  getWebviewContent
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
-import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
+import { MESSAGE_TYPES, WEBVIEW_VIEWS } from '../../../views/webview-app/extension-app-message-constants';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -82,8 +81,7 @@ suite('Connect Form View Test Suite', () => {
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-    const appUri = getReactAppUri(extensionPath, fakeWebview);
-    const htmlString = getConnectWebviewContent(appUri);
+    const htmlString = getWebviewContent(extensionPath, fakeWebview, WEBVIEW_VIEWS.CONNECT);
 
     assert(htmlString.includes('dist/webviewApp.js'));
 

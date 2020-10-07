@@ -16,6 +16,7 @@ Think RPC handlers.
 - `mdb.refresh`
 
 - `mdb.openMongoDBShell`
+- `mdb.openOverviewPage`
 
 ## General database commands
 
@@ -47,6 +48,7 @@ Think RPC handlers.
 - `mdb.runSelectedPlaygroundBlocks`
 - `mdb.runAllPlaygroundBlocks`
 - `mdb.createNewPlaygroundFromViewAction`
+- `mdb.createNewPlaygroundFromOverviewPage`
 
 ## Index commands
 

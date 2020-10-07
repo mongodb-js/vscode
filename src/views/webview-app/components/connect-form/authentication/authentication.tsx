@@ -13,7 +13,7 @@ import MongoDBAuth from './mongodb-authentication';
 import ScramSha256 from './scram-sha-256';
 import X509 from './x509';
 
-type dispatchProps = {
+type DispatchProps = {
   onAuthStrategyChanged: (authStrategy: AUTH_STRATEGIES) => void;
 };
 
@@ -30,7 +30,7 @@ type props = {
   mongodbPassword?: string;
   mongodbUsername?: string;
   x509Username?: string;
-} & dispatchProps;
+} & DispatchProps;
 
 class Authentication extends React.Component<props> {
   static displayName = 'Authentication';
@@ -139,7 +139,7 @@ class Authentication extends React.Component<props> {
   }
 }
 
-const mapDispatchToProps: dispatchProps = {
+const mapDispatchToProps: DispatchProps = {
   onAuthStrategyChanged: (newAuthStrategy): AuthStrategyChangedAction => ({
     type: ActionTypes.AUTH_STRATEGY_CHANGED,
     authStrategy: newAuthStrategy
