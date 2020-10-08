@@ -4,12 +4,6 @@ import {
   rootReducer
 } from '../../../../../views/webview-app/store/store';
 
-// global.acquireVsCodeApi = (): any => {
-//   return {
-//     postMessage: (message: string): void => { }
-//   };
-// };
-
 describe('Webview Store Test Suite', () => {
   test('ensure the state updates on an action call', () => {
     const resultingState = rootReducer(undefined, {

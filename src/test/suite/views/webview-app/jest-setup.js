@@ -1,7 +1,5 @@
-// This file contains testing configuration and the
-// globals which vscode embeds
-// in webviews and our jest tests need.
-
+// This file contains testing configuration and the globals variables
+// that vscode embeds in webviews and our jest tests need.
 
 const Enzyme = require('enzyme');
 const Adapter = require('enzyme-adapter-react-16');
