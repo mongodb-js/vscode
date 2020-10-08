@@ -3,7 +3,6 @@ import classnames from 'classnames';
 import { connect } from 'react-redux';
 import {
   ActionTypes,
-  LinkClickedAction,
   OpenConnectionStringInputAction,
   SetCurrentViewAction
 } from '../../store/actions';
@@ -12,7 +11,6 @@ import { WEBVIEW_VIEWS } from '../../extension-app-message-constants';
 const styles = require('./connect-helper.less');
 
 type DispatchProps = {
-  onLinkClicked: (screen: string, linkId: string) => void;
   onOpenConnectionStringInput: () => void;
   onOpenConnectionFrom: () => void;
 };
@@ -20,14 +18,14 @@ type DispatchProps = {
 type props = DispatchProps;
 
 function getOSCommandShortcutName(): string {
-  if (navigator.userAgent.indexOf('Win') != -1) {
+  if (navigator.userAgent.includes('Win')) {
     return 'Ctrl';
   }
 
   return 'Cmd';
 }
 
-class ConnectHelper extends React.Component<props> {
+export class ConnectHelper extends React.Component<props> {
   render(): React.ReactNode {
     const {
       onOpenConnectionFrom,
@@ -49,7 +47,7 @@ class ConnectHelper extends React.Component<props> {
                 styles['connect-helper-connect-option-button'],
                 styles['connect-helper-connection-string-button']
               )}
-              onClick={() => onOpenConnectionStringInput()}
+              onClick={(): void => onOpenConnectionStringInput()}
             >
               Connect
             </button>
@@ -70,7 +68,7 @@ class ConnectHelper extends React.Component<props> {
                 styles['connect-helper-connect-option-button'],
                 styles['connect-helper-connection-form-button']
               )}
-              onClick={() => onOpenConnectionFrom()}
+              onClick={(): void => onOpenConnectionFrom()}
             >
               Open form
             </button>
@@ -85,11 +83,6 @@ class ConnectHelper extends React.Component<props> {
 }
 
 const mapDispatchToProps: DispatchProps = {
-  onLinkClicked: (screen, linkId): LinkClickedAction => ({
-    type: ActionTypes.EXTENSION_LINK_CLICKED,
-    screen,
-    linkId
-  }),
   onOpenConnectionStringInput: (): OpenConnectionStringInputAction => ({
     type: ActionTypes.OPEN_CONNECTION_STRING_INPUT
   }),

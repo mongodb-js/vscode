@@ -36,7 +36,7 @@ type DispatchProps = {
   ) => void;
 };
 
-class App extends React.Component<DispatchProps& StateProps> {
+export class App extends React.Component<DispatchProps& StateProps> {
   componentDidMount(): void {
     window.addEventListener('message', (event) => {
       const message: ConnectResultsMessage | FilePickerResultsMessage =

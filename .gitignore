@@ -4,6 +4,7 @@ node_modules
 .vscode-test/
 *.vsix
 .DS_Store
-test-results.xml
+test-extension-results.xml
+test-webview-results.xml
 constants.json
 .env

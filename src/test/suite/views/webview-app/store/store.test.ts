@@ -4,7 +4,13 @@ import {
   rootReducer
 } from '../../../../../views/webview-app/store/store';
 
-suite('Webview Store Test Suite', () => {
+// global.acquireVsCodeApi = (): any => {
+//   return {
+//     postMessage: (message: string): void => { }
+//   };
+// };
+
+describe('Webview Store Test Suite', () => {
   test('ensure the state updates on an action call', () => {
     const resultingState = rootReducer(undefined, {
       type: 'CONNECTION_EVENT_OCCURED',

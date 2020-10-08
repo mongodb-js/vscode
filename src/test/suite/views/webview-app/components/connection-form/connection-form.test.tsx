@@ -6,16 +6,10 @@ import ConnectionModel from '../../../../../../views/webview-app/connection-mode
 import {
   ConnectionForm
 } from '../../../../../../views/webview-app/components/connect-form/connection-form';
+import FormActions from '../../../../../../views/webview-app/components/connect-form/form-actions';
 
-suite('Webview Connection Form Component Test Suite', () => {
-  test('ensure the state updates on an action call', () => {
-    // const resultingState = rootReducer(undefined, {
-    //   type: 'CONNECTION_EVENT_OCCURED',
-    //   successfullyConnected: true
-    // } as any);
-    // assert(resultingState.isConnected);
-
-    // ConnectionForm
+describe('Webview Connection Form Component Test Suite', () => {
+  test('it shows a connection form', () => {
     const wrapper = shallow(<ConnectionForm
       connectionMessage=""
       currentConnection={new ConnectionModel()}
@@ -27,6 +21,7 @@ suite('Webview Connection Form Component Test Suite', () => {
       onConnectionFormChanged={(): void => {}}
       onOpenConnectionStringInput={(): void => {}}
     />);
-    assert(wrapper.find('Connect to MongoDB').exists());
+    assert(wrapper.find('form').exists());
+    assert(wrapper.find(FormActions).exists());
   });
 });

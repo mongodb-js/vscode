@@ -15,7 +15,7 @@ type KeyTar = typeof keytarType;
 export function run(): Promise<void> {
   const reporterOptions = {
     spec: '-',
-    'mocha-junit-reporter': path.join(__dirname, './test-results.xml')
+    'mocha-junit-reporter': path.join(__dirname, './test-extension-results.xml')
   };
 
   // Create the mocha tester.
