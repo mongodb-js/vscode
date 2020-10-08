@@ -8,6 +8,9 @@
       "es6",
       "dom"
     ],
+    "types": [
+      "node"
+    ],
     "jsx": "react",
     "sourceMap": true,
     "rootDir": "src",

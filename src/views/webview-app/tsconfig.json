@@ -5,11 +5,19 @@
     "noImplicitAny": false,
     "target": "es6",
     "outDir": "out/webview-app",
-    "lib": ["es6", "dom"],
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "types": [
+      "node"
+    ],
     "jsx": "react",
     "sourceMap": true,
     "rootDir": "..",
     "strict": true
   },
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

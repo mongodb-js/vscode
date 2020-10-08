@@ -24,7 +24,6 @@ export function run(): Promise<void> {
     reporterOptions,
     ui: 'tdd'
   });
-  mocha.useColors(true);
 
   const testsRoot = path.join(__dirname, '..');
 
