@@ -106,7 +106,7 @@ suite('FieldTreeItem Test Suite', () => {
     const testField = new FieldTreeItem(
       {
         name: 'test',
-        probability: 1,
+        probability: 0.5,
         type: 'String',
         types: [
           {
@@ -125,7 +125,8 @@ suite('FieldTreeItem Test Suite', () => {
       {}
     );
 
-    assert(testField.tooltip === 'test - mixed-type');
+    const tooltipMatches = testField.tooltip === 'test - mixed-type';
+    assert(tooltipMatches, `Expected tooltip '${testField.tooltip}' to equal 'test - mixed-type'`);
   });
 
   suite('Full database tests', () => {
