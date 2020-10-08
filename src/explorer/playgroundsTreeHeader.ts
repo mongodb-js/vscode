@@ -3,8 +3,6 @@ import TreeItemParent from './treeItemParentInterface';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 
-const rootTooltip = 'Your MongoDB playgrounds';
-
 export default class PlaygroundsTreeHeader extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
@@ -22,10 +20,8 @@ export default class PlaygroundsTreeHeader extends vscode.TreeItem
   ) {
     super(fileUri.path, vscode.TreeItemCollapsibleState.Expanded);
     this._playgroundsTreeItems = playgroundsTreeItems;
-  }
 
-  get tooltip(): string {
-    return rootTooltip;
+    this.tooltip = 'Your MongoDB playgrounds';
   }
 
   public getTreeItem(element: vscode.TreeItem): vscode.TreeItem {

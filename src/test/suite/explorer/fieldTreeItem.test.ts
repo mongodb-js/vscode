@@ -102,6 +102,32 @@ suite('FieldTreeItem Test Suite', () => {
     assert(getIconFileNameForField(notFullProbability) === 'mixed-type');
   });
 
+  test('it should have the fieldtype in the tooltip', () => {
+    const testField = new FieldTreeItem(
+      {
+        name: 'test',
+        probability: 1,
+        type: 'String',
+        types: [
+          {
+            name: 'a',
+            probability: 0.5,
+            bsonType: 'String'
+          },
+          {
+            name: 'b',
+            probability: 0.5,
+            bsonType: 'Number'
+          }
+        ]
+      },
+      false,
+      {}
+    );
+
+    assert(testField.tooltip === 'test - mixed-type');
+  });
+
   suite('Full database tests', () => {
     afterEach(async () => {
       await cleanupTestDB();

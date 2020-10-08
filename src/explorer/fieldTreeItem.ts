@@ -120,6 +120,19 @@ export const getIconFileNameForField = (
   return null;
 };
 
+function getFieldTypeString(field: SchemaFieldType): string {
+  if (field.probability !== 1) {
+    // The field doesn't exist on every document.
+    return 'mixed-type';
+  }
+  const fieldType = field.type || field.bsonType;
+  if (!fieldType) {
+    // The field has polymorphic data types.
+    return 'mixed-type';
+  }
+  return fieldType;
+}
+
 function getIconPath(field: SchemaFieldType):
   | string
   | vscode.Uri
@@ -173,7 +186,7 @@ export default class FieldTreeItem extends vscode.TreeItem
     this._childrenCache = existingCache;
 
     this.iconPath = getIconPath(field);
-    this.tooltip = field.name;
+    this.tooltip = `${field.name} - ${getFieldTypeString(field)}`;
   }
 
   getTreeItem(element: FieldTreeItem): FieldTreeItem {

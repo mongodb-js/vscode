@@ -98,6 +98,10 @@ suite('CollectionTreeItem Test Suite', () => {
       collectionChildren[0].description === '5K',
       `Expected document list description to be '5K' got '${collectionChildren[0].description}'`
     );
+    assert(
+      collectionChildren[0].tooltip === '5000',
+      `Expected document list tooltip to be '5000' got '${collectionChildren[0].tooltip}'`
+    );
   });
 
   test('a view should show a different icon from a collection', () => {

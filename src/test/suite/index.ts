@@ -28,7 +28,10 @@ export function run(): Promise<void> {
   const testsRoot = path.join(__dirname, '..');
 
   return new Promise((c, e) => {
-    glob('**/**.test.js', { cwd: testsRoot }, (err, files) => {
+    glob('**/**.test.js', {
+      cwd: testsRoot,
+      ignore: ['**/webview-app/**/*.js']
+    }, (err, files) => {
       if (err) {
         return e(err);
       }
@@ -66,6 +69,9 @@ export function run(): Promise<void> {
               }
             });
           } catch (mochaRunErr) {
+            console.log('mochaRunErr', mochaRunErr);
+
+            console.log('Failed to run tests!!');
             e(mochaRunErr);
           }
         });

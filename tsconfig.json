@@ -25,6 +25,8 @@
     "dist",
     "out",
     ".vscode-test",
-    "scripts"
+    "scripts",
+    "src/views/webview-app",
+    "test/suite/views/webview-app"
   ]
 }
