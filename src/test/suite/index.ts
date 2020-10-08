@@ -69,9 +69,8 @@ export function run(): Promise<void> {
               }
             });
           } catch (mochaRunErr) {
-            console.log('mochaRunErr', mochaRunErr);
-
-            console.log('Failed to run tests!!');
+            console.error('Error running mocha tests:');
+            console.error(mochaRunErr);
             e(mochaRunErr);
           }
         });
