@@ -8,6 +8,19 @@ import CollectionTreeItem from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
 
+function getIconPath():
+  | string
+  | vscode.Uri
+  | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  const LIGHT = path.join(getImagesPath(), 'light');
+  const DARK = path.join(getImagesPath(), 'dark');
+
+  return {
+    light: path.join(LIGHT, 'database.svg'),
+    dark: path.join(DARK, 'database.svg')
+  };
+}
+
 export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
   contextValue = 'databaseTreeItem';
@@ -40,10 +53,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     this.isExpanded = isExpanded;
     this.cacheIsUpToDate = cacheIsUpToDate;
     this._childrenCache = existingChildrenCache;
-  }
 
-  get tooltip(): string {
-    return this.databaseName;
+    this.iconPath = getIconPath();
+    this.tooltip = this.databaseName;
   }
 
   getTreeItem(element: DatabaseTreeItem): DatabaseTreeItem {
@@ -138,19 +150,6 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     }
 
     return Object.values(this._childrenCache);
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    return {
-      light: path.join(LIGHT, 'database.svg'),
-      dark: path.join(DARK, 'database.svg')
-    };
   }
 
   onDidCollapse(): void {

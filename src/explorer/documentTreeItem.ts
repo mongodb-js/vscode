@@ -22,17 +22,16 @@ export default class DocumentTreeItem extends vscode.TreeItem
       vscode.TreeItemCollapsibleState.None
     );
 
-    this._documentLabel = document._id
+    const documentLabel = document._id
       ? JSON.stringify(document._id)
       : `Document ${documentIndexInTree + 1}`;
+    this._documentLabel = documentLabel;
 
     this.document = document;
     this.documentId = document._id;
     this.namespace = namespace;
-  }
 
-  get tooltip(): string {
-    return this._documentLabel;
+    this.tooltip = documentLabel;
   }
 
   getTreeItem(element: DocumentTreeItem): DocumentTreeItem {

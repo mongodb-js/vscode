@@ -708,6 +708,28 @@ export default class ConnectionController {
     return this._activeConnectionModel;
   }
 
+  public getConnectionStatusStringForConnection(connectionId: string): string {
+    if (
+      this.getActiveConnectionId() === connectionId
+    ) {
+      if (this.isDisconnecting()) {
+        return 'disconnecting...';
+      }
+
+      return 'connected';
+    }
+
+    if (
+      this.isConnecting() &&
+      this.getConnectingConnectionId() ===
+        connectionId
+    ) {
+      return 'connecting...';
+    }
+
+    return '';
+  }
+
   // Exposed for testing.
   public clearAllConnections(): void {
     this._connections = {};
