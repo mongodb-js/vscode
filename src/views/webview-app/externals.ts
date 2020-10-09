@@ -4,6 +4,11 @@ declare module '*.less' {
   export default resource;
 }
 
+declare module '*.svg' {
+  const content: any;
+  export default content;
+}
+
 interface BasicWebviewMessage {
   command: string;
 }
