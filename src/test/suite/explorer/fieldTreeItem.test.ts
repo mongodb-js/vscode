@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import { afterEach } from 'mocha';
 
 const { contributes } = require('../../../../package.json');
@@ -18,7 +18,7 @@ import {
 import { TestExtensionContext } from '../stubs';
 
 suite('FieldTreeItem Test Suite', () => {
-  test('its context value should be in the package json', function() {
+  test('its context value should be in the package json', function () {
     let registeredCommandInPackageJson = false;
 
     contributes.menus['view/item/context'].forEach((contextItem) => {

@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import * as React from 'react';
 import * as sinon from 'sinon';
 import { mount } from 'enzyme';

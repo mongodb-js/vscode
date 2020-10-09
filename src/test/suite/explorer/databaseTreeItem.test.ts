@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as assert from 'assert';
+import assert from 'assert';
 import { afterEach } from 'mocha';
 
 const { contributes } = require('../../../../package.json');
@@ -78,9 +78,8 @@ suite('DatabaseTreeItem Test Suite', () => {
 
         assert(
           collections[1].label ===
-            mockDatabases[mockDatabaseNames[1]].collections[1].name,
-          `Expected a tree item child with the label collection name ${
-            mockDatabases[mockDatabaseNames[1]].collections[1].name
+          mockDatabases[mockDatabaseNames[1]].collections[1].name,
+          `Expected a tree item child with the label collection name ${mockDatabases[mockDatabaseNames[1]].collections[1].name
           } found ${collections[1].label}`
         );
       })
@@ -291,7 +290,7 @@ suite('DatabaseTreeItem Test Suite', () => {
                           );
                           assert(
                             testerObjectField.collapsibleState ===
-                              vscode.TreeItemCollapsibleState.Expanded,
+                            vscode.TreeItemCollapsibleState.Expanded,
                             `Expected the subdocument field to have an expanded state (2), found ${postCollapseSchemaTreeItem.childrenCache.testerObject.collapsibleState}.`
                           );
                         })

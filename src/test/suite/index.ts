@@ -1,5 +1,5 @@
-import * as Mocha from 'mocha';
-import * as glob from 'glob';
+import Mocha from 'mocha';
+import glob from 'glob';
 import * as vscode from 'vscode';
 import path = require('path');
 import * as keytarType from 'keytar';

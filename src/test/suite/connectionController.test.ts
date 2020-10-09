@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import * as sinon from 'sinon';
@@ -331,8 +331,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(connections).length === 4,
-      `Expected 4 connection configurations found ${
-        Object.keys(connections).length
+      `Expected 4 connection configurations found ${Object.keys(connections).length
       }`
     );
     assert(
@@ -341,9 +340,8 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(
       connections[Object.keys(connections)[2]].driverUrl ===
-        expectedDriverUri,
-      `Expected loaded connection to include driver url '${expectedDriverUri}' found '${
-        connections[Object.keys(connections)[2]].driverUrl
+      expectedDriverUri,
+      `Expected loaded connection to include driver url '${expectedDriverUri}' found '${connections[Object.keys(connections)[2]].driverUrl
       }'`
     );
   });
@@ -366,8 +364,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected global store connections to have 1 connection found ${
-        Object.keys(globalStoreConnections).length
+      `Expected global store connections to have 1 connection found ${Object.keys(globalStoreConnections).length
       }`
     );
 
@@ -407,8 +404,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
-        Object.keys(workspaceStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length
       }`
     );
 
@@ -469,8 +465,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
-        Object.keys(workspaceStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length
       }`
     );
 
@@ -487,8 +482,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       testConnectionController.getSavedConnections().length === 1,
-      `Expected 1 connection config, found ${
-        testConnectionController.getSavedConnections().length
+      `Expected 1 connection config, found ${testConnectionController.getSavedConnections().length
       }.`
     );
 
@@ -600,8 +594,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
-        Object.keys(workspaceStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length
       }`
     );
 
@@ -618,8 +611,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(postWorkspaceStoreConnections).length === 0,
-      `Expected workspace store connections to have 0 connections found ${
-        Object.keys(postWorkspaceStoreConnections).length
+      `Expected workspace store connections to have 0 connections found ${Object.keys(postWorkspaceStoreConnections).length
       }`
     );
   });
@@ -642,8 +634,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
-        Object.keys(globalStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${Object.keys(globalStoreConnections).length
       }`
     );
 
@@ -657,8 +648,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(postGlobalStoreConnections).length === 0,
-      `Expected global store connections to have 0 connections found ${
-        Object.keys(postGlobalStoreConnections).length
+      `Expected global store connections to have 0 connections found ${Object.keys(postGlobalStoreConnections).length
       }`
     );
   });
@@ -682,8 +672,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
-        Object.keys(workspaceStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length
       }`
     );
 
@@ -714,8 +703,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       testConnectionController.getSavedConnections().length === 1,
-      `Expected 1 connection config, found ${
-        testConnectionController.getSavedConnections().length
+      `Expected 1 connection config, found ${testConnectionController.getSavedConnections().length
       }.`
     );
 
@@ -756,14 +744,12 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(
       connections[connectionIds[0]].name === 'localhost:27018',
-      `Expected the first connection name to be 'localhost:27018', found '${
-        connections[connectionIds[0]].name
+      `Expected the first connection name to be 'localhost:27018', found '${connections[connectionIds[0]].name
       }'.`
     );
     assert(
       connections[connectionIds[1]].name === 'localhost:27018',
-      `Expected the second connection name to be 'localhost:27018', found '${
-        connections[connectionIds[1]].name
+      `Expected the second connection name to be 'localhost:27018', found '${connections[connectionIds[1]].name
       }'.`
     );
 

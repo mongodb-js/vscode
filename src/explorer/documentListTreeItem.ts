@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as numeral from 'numeral';
+import numeral from 'numeral';
 import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
 import TreeItemParent from './treeItemParentInterface';

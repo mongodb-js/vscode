@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Toggle from '@leafygreen-ui/toggle';
-// const Toggle = require('@leafygreen-ui/toggle');
 
 import {
   ActionTypes,

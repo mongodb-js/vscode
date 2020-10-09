@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
@@ -142,8 +142,7 @@ suite('SchemaTreeItem Test Suite', () => {
 
         assert(
           schemaFields.length === amountOfFieldsExpected + 1,
-          `Expected ${
-            amountOfFieldsExpected + 1
+          `Expected ${amountOfFieldsExpected + 1
           } documents to be returned, found ${schemaFields.length}`
         );
         assert(

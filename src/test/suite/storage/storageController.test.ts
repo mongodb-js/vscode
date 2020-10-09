@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 
 import StorageController, {
   StorageVariables,
@@ -63,8 +63,7 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       Object.keys(updatedGlobalModels).length === 2,
-      `Expected 2 connections, found ${
-        Object.keys(updatedGlobalModels).length
+      `Expected 2 connections, found ${Object.keys(updatedGlobalModels).length
       }.`
     );
     assert(
@@ -104,8 +103,7 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       Object.keys(updatedWorkspaceModels).length === 2,
-      `Expected 2 connections, found ${
-        Object.keys(updatedWorkspaceModels).length
+      `Expected 2 connections, found ${Object.keys(updatedWorkspaceModels).length
       }.`
     );
     assert(
@@ -126,7 +124,7 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       updatedWorkspaceModels.new_conn.storageLocation ===
-        StorageScope.WORKSPACE,
+      StorageScope.WORKSPACE,
       'Expected storage scope to be set.'
     );
   });

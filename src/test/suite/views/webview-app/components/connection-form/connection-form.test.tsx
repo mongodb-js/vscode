@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import * as React from 'react';
 import { shallow } from 'enzyme';
 
@@ -18,8 +18,8 @@ describe('Webview Connection Form Component Test Suite', () => {
       isConnecting
       isValid
       syntaxErrorMessage=""
-      onConnectionFormChanged={(): void => {}}
-      onOpenConnectionStringInput={(): void => {}}
+      onConnectionFormChanged={(): void => { }}
+      onOpenConnectionStringInput={(): void => { }}
     />);
     assert(wrapper.find('form').exists());
     assert(wrapper.find(FormActions).exists());

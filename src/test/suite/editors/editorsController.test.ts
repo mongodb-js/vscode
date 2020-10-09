@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 
 import { EditorsController } from '../../../editors';
 
@@ -23,7 +23,7 @@ suite('Editors Controller Test Suite', () => {
     );
     assert(
       testUri.query ===
-        'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
+      'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
       `Expected uri query ${testUri.query} to equal 'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011'.`
     );
   });

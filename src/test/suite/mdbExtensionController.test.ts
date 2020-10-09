@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
@@ -214,7 +214,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-            'craving_for_pancakes_with_maple_syrup',
+          'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })
@@ -1207,7 +1207,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._connections.blueBerryPancakesAndTheSmellOfBacon.name ===
-            'orange juice',
+          'orange juice',
           'Expected connection to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();

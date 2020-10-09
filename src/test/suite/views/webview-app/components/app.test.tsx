@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import * as React from 'react';
 import { shallow } from 'enzyme';
 
@@ -14,8 +14,8 @@ describe('App Component Test Suite', () => {
     test('it shows a connection form', () => {
       const wrapper = shallow(<App
         currentView={WEBVIEW_VIEWS.CONNECT}
-        onConnectedEvent={() => {}}
-        onFilePickerEvent={() => {}}
+        onConnectedEvent={() => { }}
+        onFilePickerEvent={() => { }}
       />);
       assert(wrapper.find(ConnectionForm).exists());
       assert(!wrapper.find(OverviewPage).exists());
@@ -26,8 +26,8 @@ describe('App Component Test Suite', () => {
     test('it shows a connection form', () => {
       const wrapper = shallow(<App
         currentView={WEBVIEW_VIEWS.OVERVIEW}
-        onConnectedEvent={() => {}}
-        onFilePickerEvent={() => {}}
+        onConnectedEvent={() => { }}
+        onFilePickerEvent={() => { }}
       />);
       assert(wrapper.find(OverviewPage).exists());
       assert(!wrapper.find(ConnectionForm).exists());
