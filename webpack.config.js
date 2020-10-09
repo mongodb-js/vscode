@@ -179,18 +179,6 @@ const webviewConfig = {
             }
           }
         ]
-      },
-      // {
-      //   test: /\.svg$/,
-      //   exclude: /node_modules/,
-      //   loader: 'svg-react-loader'
-      // },
-      {
-        test: /\.svg/,
-        use: {
-          loader: 'svg-url-loader',
-          options: {}
-        }
       }
     ]
   }
