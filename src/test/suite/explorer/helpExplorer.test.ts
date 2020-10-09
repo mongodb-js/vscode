@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 const sinon = require('sinon');
@@ -43,7 +43,7 @@ suite('Help Explorer Test Suite', function () {
     assert(atlasHelpItem.label === 'Create Free Atlas Cluster');
     assert(
       atlasHelpItem.url ===
-        'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension'
+      'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension'
     );
     assert(atlasHelpItem.iconName === 'atlas');
     assert(atlasHelpItem.linkId === 'freeClusterCTA');

@@ -28,6 +28,16 @@ class ShowAllFieldsTreeItem extends vscode.TreeItem {
   }
 }
 
+function getIconPath(): { light: string; dark: string } {
+  const LIGHT = path.join(getImagesPath(), 'light');
+  const DARK = path.join(getImagesPath(), 'dark');
+
+  return {
+    light: path.join(LIGHT, 'schema.svg'),
+    dark: path.join(DARK, 'schema.svg')
+  };
+}
+
 export default class SchemaTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<SchemaTreeItem> {
   cacheIsUpToDate: boolean;
@@ -73,10 +83,9 @@ export default class SchemaTreeItem extends vscode.TreeItem
     this.hasMoreFieldsToShow = hasMoreFieldsToShow;
     this.childrenCache = childrenCache;
     this.cacheIsUpToDate = cacheIsUpToDate;
-  }
 
-  get tooltip(): string {
-    return 'Derived Document Schema';
+    this.iconPath = getIconPath();
+    this.tooltip = 'Derived Document Schema';
   }
 
   getTreeItem(element: SchemaTreeItem): SchemaTreeItem {
@@ -252,18 +261,5 @@ export default class SchemaTreeItem extends vscode.TreeItem
   resetCache(): void {
     this.childrenCache = {};
     this.cacheIsUpToDate = false;
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    return {
-      light: path.join(LIGHT, 'schema.svg'),
-      dark: path.join(DARK, 'schema.svg')
-    };
   }
 }

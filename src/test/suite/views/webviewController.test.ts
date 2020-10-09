@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
@@ -113,7 +113,7 @@ suite('Connect Form View Test Suite', () => {
         assert(testConnectionController.isCurrentlyConnected());
         assert(
           testConnectionController.getActiveConnectionName() ===
-            'localhost:27018'
+          'localhost:27018'
         );
         assert(
           testConnectionController.getActiveConnectionModel()?.port === 27018

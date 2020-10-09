@@ -51,6 +51,18 @@ function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {
   return '';
 }
 
+function getIndexFieldIconPath(indexKeyType: IndexKeyType): { light: string; dark: string } {
+  const LIGHT = path.join(getImagesPath(), 'light');
+  const DARK = path.join(getImagesPath(), 'dark');
+
+  const iconName = getIconNameForIndexKeyType(indexKeyType);
+
+  return {
+    light: path.join(LIGHT, 'index', `${iconName}.svg`),
+    dark: path.join(DARK, 'index', `${iconName}.svg`)
+  };
+}
+
 export class IndexFieldTreeItem extends vscode.TreeItem
   implements vscode.TreeDataProvider<IndexFieldTreeItem> {
   indexKey: string;
@@ -61,10 +73,9 @@ export class IndexFieldTreeItem extends vscode.TreeItem
 
     this.indexKey = indexKey;
     this.indexKeyType = indexKeyType;
-  }
 
-  get tooltip(): string {
-    return `${this.indexKey}: ${this.indexKeyType}`;
+    this.iconPath = getIndexFieldIconPath(indexKeyType);
+    this.tooltip = `${indexKey}: ${indexKeyType}`;
   }
 
   getTreeItem(element: IndexFieldTreeItem): IndexFieldTreeItem {
@@ -73,21 +84,6 @@ export class IndexFieldTreeItem extends vscode.TreeItem
 
   getChildren(): Thenable<IndexFieldTreeItem[]> {
     return Promise.resolve([]);
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    const iconName = getIconNameForIndexKeyType(this.indexKeyType);
-
-    return {
-      light: path.join(LIGHT, 'index', `${iconName}.svg`),
-      dark: path.join(DARK, 'index', `${iconName}.svg`)
-    };
   }
 }
 
@@ -122,10 +118,8 @@ export default class IndexTreeItem extends vscode.TreeItem
     this.id = `${index.name}-${namespace}`;
 
     this.isExpanded = isExpanded;
-  }
 
-  get tooltip(): string {
-    return this.index.name;
+    this.tooltip = index.name;
   }
 
   getTreeItem(element: IndexTreeItem): IndexTreeItem {

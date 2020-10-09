@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as numeral from 'numeral';
+import numeral from 'numeral';
 import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
 import TreeItemParent from './treeItemParentInterface';
@@ -54,6 +54,24 @@ export const formatDocCount = (count: number): string => {
   // We format the count (30000 -> 30k) and then display it uppercase (30K).
   return `${numeral(count).format('0a')}`.toUpperCase();
 };
+
+function getIconPath(): { light: string; dark: string } {
+  const LIGHT = path.join(getImagesPath(), 'light');
+  const DARK = path.join(getImagesPath(), 'dark');
+
+  return {
+    light: path.join(LIGHT, 'documents.svg'),
+    dark: path.join(DARK, 'documents.svg')
+  };
+}
+
+function getTooltip(type: CollectionTypes, documentCount: number | null): string {
+  const typeString = type === CollectionTypes.view ? 'View' : 'Collection';
+  if (documentCount !== null) {
+    return `${typeString} Documents - ${documentCount}`;
+  }
+  return `${typeString} Documents`;
+}
 
 export default class DocumentListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DocumentListTreeItem> {
@@ -116,15 +134,9 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     if (this._documentCount !== null) {
       this.description = formatDocCount(this._documentCount);
     }
-  }
 
-  get tooltip(): string {
-    const typeString =
-      this.type === CollectionTypes.view ? 'View' : 'Collection';
-    if (this._documentCount !== null) {
-      return `${typeString} Documents - ${this._documentCount}`;
-    }
-    return `${typeString} Documents`;
+    this.iconPath = getIconPath();
+    this.tooltip = getTooltip(type, cachedDocumentCount);
   }
 
   getTreeItem(element: DocumentListTreeItem): DocumentListTreeItem {
@@ -230,19 +242,6 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     }
 
     return this._childrenCache;
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    return {
-      light: path.join(LIGHT, 'documents.svg'),
-      dark: path.join(DARK, 'documents.svg')
-    };
   }
 
   onShowMoreClicked(): void {

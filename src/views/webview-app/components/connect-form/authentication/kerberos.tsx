@@ -1,6 +1,6 @@
 import * as React from 'react';
-import Toggle from '@leafygreen-ui/toggle';
 import { connect } from 'react-redux';
+import Toggle from '@leafygreen-ui/toggle';
 
 import {
   ActionTypes,
@@ -156,8 +156,8 @@ class Kerberos extends React.Component<props> {
             onChange={this.onCnameToggle}
             checked={kerberosCanonicalizeHostname || false}
             size="small"
-            variant="default"
             disabled={false}
+            variant="default"
           />
         </div>
       </div>

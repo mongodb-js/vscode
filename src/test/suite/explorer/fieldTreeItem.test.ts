@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import { afterEach } from 'mocha';
 
 const { contributes } = require('../../../../package.json');
@@ -18,7 +18,7 @@ import {
 import { TestExtensionContext } from '../stubs';
 
 suite('FieldTreeItem Test Suite', () => {
-  test('its context value should be in the package json', function() {
+  test('its context value should be in the package json', function () {
     let registeredCommandInPackageJson = false;
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
@@ -100,6 +100,33 @@ suite('FieldTreeItem Test Suite', () => {
       ]
     };
     assert(getIconFileNameForField(notFullProbability) === 'mixed-type');
+  });
+
+  test('it should have the fieldtype in the tooltip', () => {
+    const testField = new FieldTreeItem(
+      {
+        name: 'test',
+        probability: 0.5,
+        type: 'String',
+        types: [
+          {
+            name: 'a',
+            probability: 0.5,
+            bsonType: 'String'
+          },
+          {
+            name: 'b',
+            probability: 0.5,
+            bsonType: 'Number'
+          }
+        ]
+      },
+      false,
+      {}
+    );
+
+    const tooltipMatches = testField.tooltip === 'test - mixed-type';
+    assert(tooltipMatches, `Expected tooltip '${testField.tooltip}' to equal 'test - mixed-type'`);
   });
 
   suite('Full database tests', () => {

@@ -1,5 +1,5 @@
-import * as Mocha from 'mocha';
-import * as glob from 'glob';
+import Mocha from 'mocha';
+import glob from 'glob';
 import * as vscode from 'vscode';
 import path = require('path');
 import * as keytarType from 'keytar';
@@ -22,14 +22,17 @@ export function run(): Promise<void> {
   const mocha = new Mocha({
     reporter: 'mocha-multi',
     reporterOptions,
-    ui: 'tdd'
+    ui: 'tdd',
+    color: true
   });
-  mocha.useColors(true);
 
   const testsRoot = path.join(__dirname, '..');
 
   return new Promise((c, e) => {
-    glob('**/**.test.js', { cwd: testsRoot }, (err, files) => {
+    glob('**/**.test.js', {
+      cwd: testsRoot,
+      ignore: ['**/webview-app/**/*.js']
+    }, (err, files) => {
       if (err) {
         return e(err);
       }
@@ -67,6 +70,8 @@ export function run(): Promise<void> {
               }
             });
           } catch (mochaRunErr) {
+            console.error('Error running mocha tests:');
+            console.error(mochaRunErr);
             e(mochaRunErr);
           }
         });

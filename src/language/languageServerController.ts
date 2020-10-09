@@ -8,7 +8,7 @@ import {
   TransportKind,
   CancellationTokenSource
 } from 'vscode-languageclient';
-import * as WebSocket from 'ws';
+import WebSocket from 'ws';
 
 import { createLogger } from '../logging';
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';

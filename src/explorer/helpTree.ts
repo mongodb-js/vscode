@@ -6,6 +6,22 @@ import { TelemetryController } from '../telemetry';
 
 const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
+function getIconPath(iconName?: string):
+  | string
+  | { light: string; dark: string } {
+  if (!iconName || iconName === '') {
+    return '';
+  }
+
+  const LIGHT = path.join(getImagesPath(), 'light');
+  const DARK = path.join(getImagesPath(), 'dark');
+
+  return {
+    light: path.join(LIGHT, 'help', `${iconName}.svg`),
+    dark: path.join(DARK, 'help', `${iconName}.svg`)
+  };
+}
+
 export class HelpLinkTreeItem extends vscode.TreeItem {
   iconName?: string;
   contextValue = HELP_LINK_CONTEXT_VALUE;
@@ -18,23 +34,7 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
     this.linkId = linkId;
     this.iconName = iconName;
     this.url = url;
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    if (!this.iconName || this.iconName === '') {
-      return '';
-    }
-
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    return {
-      light: path.join(LIGHT, 'help', `${this.iconName}.svg`),
-      dark: path.join(DARK, 'help', `${this.iconName}.svg`)
-    };
+    this.iconPath = getIconPath(iconName);
   }
 }
 

@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
@@ -103,8 +103,7 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       activeId === Object.keys(testConnectionController._connections)[0],
-      `Expected active connection to be '${
-        Object.keys(testConnectionController._connections)[0]
+      `Expected active connection to be '${Object.keys(testConnectionController._connections)[0]
       }' found ${activeId}`
     );
 

@@ -39,7 +39,7 @@ type DispatchProps = {
 
 type props = StateProps & DispatchProps;
 
-class ConnectionForm extends React.Component<props> {
+export class ConnectionForm extends React.Component<props> {
   static displayName = 'ConnectionForm';
 
   onConnectWithConnectionStringClicked = (): void => {

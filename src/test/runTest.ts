@@ -27,7 +27,8 @@ async function main(): Promise<any> {
       ]
     });
   } catch (err) {
-    console.error('Failed to run tests');
+    console.error('Failed to run tests:');
+    console.error(err);
     process.exit(1);
   }
 }

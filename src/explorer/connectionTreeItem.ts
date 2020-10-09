@@ -14,6 +14,19 @@ enum ConnectionItemContextValues {
 }
 export { ConnectionItemContextValues };
 
+function getIconPath(isActiveConnection: boolean): { light: string; dark: string } {
+  const LIGHT = path.join(getImagesPath(), 'light');
+  const DARK = path.join(getImagesPath(), 'dark');
+
+  return isActiveConnection ? {
+    light: path.join(LIGHT, 'connection-active.svg'),
+    dark: path.join(DARK, 'connection-active.svg')
+  } : {
+    light: path.join(LIGHT, 'connection-inactive.svg'),
+    dark: path.join(DARK, 'connection-inactive.svg')
+  };
+}
+
 export default class ConnectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
   contextValue = ConnectionItemContextValues.disconnected;
@@ -56,32 +69,14 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     // Create a unique id to ensure the tree updates the expanded property.
     // (Without an id it treats this tree item like a previous tree item with the same label).
     this.id = `${connectionId}-${Date.now()}`;
-  }
 
-  get tooltip(): string {
-    return this._connectionController.getSavedConnectionName(this.connectionId);
-  }
-
-  get description(): string {
-    if (
-      this._connectionController.getActiveConnectionId() === this.connectionId
-    ) {
-      if (this._connectionController.isDisconnecting()) {
-        return 'disconnecting...';
-      }
-
-      return 'connected';
-    }
-
-    if (
-      this._connectionController.isConnecting() &&
-      this._connectionController.getConnectingConnectionId() ===
-        this.connectionId
-    ) {
-      return 'connecting...';
-    }
-
-    return '';
+    this.tooltip = connectionController.getSavedConnectionName(this.connectionId);
+    this.description = connectionController.getConnectionStatusStringForConnection(
+      this.connectionId
+    );
+    this.iconPath = getIconPath(
+      connectionController.getActiveConnectionId() === this.connectionId
+    );
   }
 
   getTreeItem(element: ConnectionTreeItem): ConnectionTreeItem {
@@ -172,27 +167,6 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     }
 
     return Object.values(this._childrenCache);
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    if (
-      this._connectionController.getActiveConnectionId() === this.connectionId
-    ) {
-      return {
-        light: path.join(LIGHT, 'connection-active.svg'),
-        dark: path.join(DARK, 'connection-active.svg')
-      };
-    }
-    return {
-      light: path.join(LIGHT, 'connection-inactive.svg'),
-      dark: path.join(DARK, 'connection-inactive.svg')
-    };
   }
 
   onDidCollapse(): void {

@@ -120,6 +120,36 @@ export const getIconFileNameForField = (
   return null;
 };
 
+function getFieldTypeString(field: SchemaFieldType): string {
+  if (field.probability !== 1) {
+    // The field doesn't exist on every document.
+    return 'mixed-type';
+  }
+  const fieldType = field.type || field.bsonType;
+  if (!fieldType) {
+    // The field has polymorphic data types.
+    return 'mixed-type';
+  }
+  return fieldType;
+}
+
+function getIconPath(field: SchemaFieldType): string | { light: string; dark: string } {
+  const LIGHT = path.join(getImagesPath(), 'light');
+  const DARK = path.join(getImagesPath(), 'dark');
+
+  const iconFileName = getIconFileNameForField(field);
+
+  if (iconFileName === null) {
+    // No icon.
+    return '';
+  }
+
+  return {
+    light: path.join(LIGHT, 'schema', `${iconFileName}.svg`),
+    dark: path.join(DARK, 'schema', `${iconFileName}.svg`)
+  };
+}
+
 export const FIELD_TREE_ITEM_CONTEXT_VALUE = 'fieldTreeItem';
 
 export default class FieldTreeItem extends vscode.TreeItem
@@ -151,10 +181,9 @@ export default class FieldTreeItem extends vscode.TreeItem
 
     this.isExpanded = isExpanded;
     this._childrenCache = existingCache;
-  }
 
-  get tooltip(): string {
-    return this.fieldName;
+    this.iconPath = getIconPath(field);
+    this.tooltip = `${field.name} - ${getFieldTypeString(field)}`;
   }
 
   getTreeItem(element: FieldTreeItem): FieldTreeItem {
@@ -244,25 +273,5 @@ export default class FieldTreeItem extends vscode.TreeItem
 
   getFieldName(): string {
     return this.fieldName;
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    const iconFileName = getIconFileNameForField(this.field);
-
-    if (iconFileName === null) {
-      // No icon.
-      return '';
-    }
-
-    return {
-      light: path.join(LIGHT, 'schema', `${iconFileName}.svg`),
-      dark: path.join(DARK, 'schema', `${iconFileName}.svg`)
-    };
   }
 }

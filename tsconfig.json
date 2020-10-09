@@ -4,10 +4,17 @@
     "noImplicitAny": false,
     "target": "es6",
     "outDir": "out",
-    "lib": ["es6", "dom"],
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "types": [
+      "node"
+    ],
     "jsx": "react",
     "sourceMap": true,
     "rootDir": "src",
+    "esModuleInterop": true,
     "strict": true /* enable all strict type-checking options */
     /* Additional Checks */
     // "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
@@ -20,6 +27,7 @@
     "out",
     ".vscode-test",
     "scripts",
-    "src/views/webview-app"
+    "src/views/webview-app",
+    "src/test/suite/views/webview-app"
   ]
 }

@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 
 const { contributes } = require('../../../../package.json');
 
@@ -9,9 +9,10 @@ import { ext } from '../../../extensionConstants';
 import { TestExtensionContext, DataServiceStub } from '../stubs';
 
 suite('CollectionTreeItem Test Suite', () => {
+  ext.context = new TestExtensionContext();
+
   test('its context value should be in the package json', () => {
     let registeredCommandInPackageJson = false;
-
     const testCollectionTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',
@@ -98,11 +99,13 @@ suite('CollectionTreeItem Test Suite', () => {
       collectionChildren[0].description === '5K',
       `Expected document list description to be '5K' got '${collectionChildren[0].description}'`
     );
+    assert(
+      collectionChildren[0].tooltip === 'Collection Documents - 5000',
+      `Expected document list tooltip to be 'Collection Documents - 5000' got '${collectionChildren[0].tooltip}'`
+    );
   });
 
   test('a view should show a different icon from a collection', () => {
-    ext.context = new TestExtensionContext();
-
     const testCollectionViewTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',

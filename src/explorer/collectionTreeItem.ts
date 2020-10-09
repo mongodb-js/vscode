@@ -13,6 +13,31 @@ import { getImagesPath } from '../extensionConstants';
 
 const log = createLogger('tree view collection folder');
 
+function getIconPath(
+  type: CollectionTypes,
+  isExpanded: boolean
+): { light: string; dark: string } {
+  const LIGHT = path.join(getImagesPath(), 'light');
+  const DARK = path.join(getImagesPath(), 'dark');
+
+  if (type === CollectionTypes.collection) {
+    if (isExpanded) {
+      return {
+        light: path.join(LIGHT, 'collection-folder-open.svg'),
+        dark: path.join(DARK, 'collection-folder-open.svg')
+      };
+    }
+    return {
+      light: path.join(LIGHT, 'collection-folder-closed.svg'),
+      dark: path.join(DARK, 'collection-folder-closed.svg')
+    };
+  }
+  return {
+    light: path.join(LIGHT, 'view-folder.svg'),
+    dark: path.join(DARK, 'view-folder.svg')
+  };
+}
+
 type CollectionModelType = {
   name: string;
   type: CollectionTypes;
@@ -117,12 +142,11 @@ export default class CollectionTreeItem extends vscode.TreeItem
         false, // Cache is not up to date.
         [] // Empty cache.
       );
-  }
 
-  get tooltip(): string {
-    return this._type === CollectionTypes.view
+    this.tooltip = collection.type === CollectionTypes.view
       ? 'Read only view'
-      : this.collectionName;
+      : collection.name;
+    this.iconPath = getIconPath(collection.type, isExpanded);
   }
 
   getTreeItem(element: CollectionTreeItem): CollectionTreeItem {
@@ -361,30 +385,5 @@ export default class CollectionTreeItem extends vscode.TreeItem
         }
       );
     });
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    if (this._type === CollectionTypes.collection) {
-      if (this.isExpanded) {
-        return {
-          light: path.join(LIGHT, 'collection-folder-open.svg'),
-          dark: path.join(DARK, 'collection-folder-open.svg')
-        };
-      }
-      return {
-        light: path.join(LIGHT, 'collection-folder-closed.svg'),
-        dark: path.join(DARK, 'collection-folder-closed.svg')
-      };
-    }
-    return {
-      light: path.join(LIGHT, 'view-folder.svg'),
-      dark: path.join(DARK, 'view-folder.svg')
-    };
   }
 }

@@ -11,6 +11,16 @@ const log = createLogger('tree view indexes list');
 
 const ITEM_LABEL = 'Indexes';
 
+function getIconPath(): { light: string; dark: string } {
+  const LIGHT = path.join(getImagesPath(), 'light');
+  const DARK = path.join(getImagesPath(), 'dark');
+
+  return {
+    light: path.join(LIGHT, 'indexes.svg'),
+    dark: path.join(DARK, 'indexes.svg')
+  };
+}
+
 export default class IndexListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<IndexListTreeItem> {
   cacheIsUpToDate = false;
@@ -51,10 +61,9 @@ export default class IndexListTreeItem extends vscode.TreeItem
 
     this._childrenCache = existingCache;
     this.cacheIsUpToDate = cacheIsUpToDate;
-  }
 
-  get tooltip(): string {
-    return 'Collection Indexes';
+    this.iconPath = getIconPath();
+    this.tooltip = 'Collection Indexes';
   }
 
   getTreeItem(element: IndexListTreeItem): IndexListTreeItem {
@@ -148,18 +157,5 @@ export default class IndexListTreeItem extends vscode.TreeItem
   resetCache(): void {
     this.cacheIsUpToDate = false;
     this._childrenCache = [];
-  }
-
-  get iconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-    const LIGHT = path.join(getImagesPath(), 'light');
-    const DARK = path.join(getImagesPath(), 'dark');
-
-    return {
-      light: path.join(LIGHT, 'indexes.svg'),
-      dark: path.join(DARK, 'indexes.svg')
-    };
   }
 }
