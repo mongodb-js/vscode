@@ -43,6 +43,7 @@ class SRVInput extends React.PureComponent<props> {
           checked={isSrvRecord}
           size="small"
           disabled={false}
+          variant="default"
         />
       </div>
     );
