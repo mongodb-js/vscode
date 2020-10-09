@@ -1,23 +1,25 @@
-{
-  "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "noImplicitAny": false,
-    "target": "es6",
-    "outDir": "out/webview-app",
-    "lib": [
-      "es6",
-      "dom"
-    ],
-    "types": [
-      "node"
-    ],
-    "jsx": "react",
-    "sourceMap": true,
-    "rootDir": "..",
-    "strict": true
-  },
-  "exclude": [
-    "node_modules"
-  ]
-}
+// {
+//   "compilerOptions": {
+//     "module": "commonjs",
+//     "moduleResolution": "node",
+//     "noImplicitAny": false,
+//     "esModuleInterop": true,
+//     "target": "es6",
+//     "outDir": "out/webview-app",
+//     "allowSyntheticDefaultImports": true,
+//     "lib": [
+//       "es7",
+//       "dom"
+//     ],
+//     "types": [
+//       "node"
+//     ],
+//     "jsx": "react",
+//     "sourceMap": true,
+//     "rootDir": "..",
+//     "strict": true
+//   },
+//   "exclude": [
+//     "node_modules"
+//   ]
+// }

@@ -10,7 +10,6 @@ module.exports = {
       outputName: 'test-webview-results.xml'
     }]
   ],
-  // '(/test/suite/views/webview-app/.*|(\\.|/)(test|spec))\\.tsx?$',
   testRegex: '(/test/suite/views/webview-app/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   setupFiles: ['<rootDir>/src/test/suite/views/webview-app/jest-setup.js']

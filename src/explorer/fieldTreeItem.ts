@@ -133,10 +133,7 @@ function getFieldTypeString(field: SchemaFieldType): string {
   return fieldType;
 }
 
-function getIconPath(field: SchemaFieldType):
-  | string
-  | vscode.Uri
-  | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+function getIconPath(field: SchemaFieldType): string | { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 

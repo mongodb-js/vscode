@@ -8,8 +8,7 @@ const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
 function getIconPath(iconName?: string):
   | string
-  | vscode.Uri
-  | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+  | { light: string; dark: string } {
   if (!iconName || iconName === '') {
     return '';
   }

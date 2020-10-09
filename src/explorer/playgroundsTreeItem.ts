@@ -4,10 +4,7 @@ import { getImagesPath } from '../extensionConstants';
 
 export const PLAYGROUND_ITEM = 'playgroundsTreeItem';
 
-function getIconPath():
-    | string
-    | vscode.Uri
-    | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+function getIconPath(): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
@@ -28,6 +25,7 @@ export default class PlaygroundsTreeItem extends vscode.TreeItem
     this.filePath = filePath;
 
     this.tooltip = this.filePath;
+    this.iconPath = getIconPath();
   }
 
   public getTreeItem(element: PlaygroundsTreeItem): PlaygroundsTreeItem {

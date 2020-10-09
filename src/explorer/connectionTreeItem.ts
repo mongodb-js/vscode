@@ -14,10 +14,7 @@ enum ConnectionItemContextValues {
 }
 export { ConnectionItemContextValues };
 
-function getIconPath(isActiveConnection: boolean):
-| string
-| vscode.Uri
-| { light: string | vscode.Uri; dark: string | vscode.Uri } {
+function getIconPath(isActiveConnection: boolean): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 

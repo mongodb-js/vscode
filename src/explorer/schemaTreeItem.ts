@@ -28,10 +28,7 @@ class ShowAllFieldsTreeItem extends vscode.TreeItem {
   }
 }
 
-function getIconPath():
-| string
-| vscode.Uri
-| { light: string | vscode.Uri; dark: string | vscode.Uri } {
+function getIconPath(): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 

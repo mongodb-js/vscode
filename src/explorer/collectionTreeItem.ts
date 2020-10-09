@@ -13,10 +13,10 @@ import { getImagesPath } from '../extensionConstants';
 
 const log = createLogger('tree view collection folder');
 
-function getIconPath(type: CollectionTypes, isExpanded: boolean):
-  | string
-  | vscode.Uri
-  | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+function getIconPath(
+  type: CollectionTypes,
+  isExpanded: boolean
+): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 

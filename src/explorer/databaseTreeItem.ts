@@ -8,10 +8,7 @@ import CollectionTreeItem from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
 
-function getIconPath():
-  | string
-  | vscode.Uri
-  | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+function getIconPath(): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
