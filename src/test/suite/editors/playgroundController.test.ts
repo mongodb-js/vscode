@@ -264,7 +264,7 @@ suite('Playground Controller Test Suite', function () {
           // No action.
         }
 
-        expect(result).to.be.null;
+        expect(result).to.be.undefined;
       });
 
       test('do not show code lens if a part of a line is selected', async () => {

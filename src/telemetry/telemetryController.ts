@@ -7,6 +7,7 @@ import { StorageController } from '../storage';
 import { ConnectionTypes } from '../connectionController';
 import { getCloudInfo } from 'mongodb-cloud-info';
 import { DataServiceType } from '../dataServiceType';
+import type { ExecuteAllResult } from '../utils/types';
 
 const log = createLogger('telemetry');
 const fs = require('fs');
@@ -265,12 +266,13 @@ export default class TelemetryController {
     this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
   }
 
-  public getPlaygroundResultType(res: any): string {
-    if (!res.shellApiType) {
+  public getPlaygroundResultType(res: ExecuteAllResult): string {
+    const lastResult = res && res[res.length - 1];
+    if (!lastResult || !lastResult.type) {
       return 'other';
     }
 
-    const shellApiType = res.shellApiType.toLocaleLowerCase();
+    const shellApiType = lastResult.type.toLocaleLowerCase();
 
     // See: https://github.com/mongodb-js/mongosh/blob/master/packages/shell-api/src/shell-api.js
     if (shellApiType.includes('insert')) {
@@ -293,7 +295,7 @@ export default class TelemetryController {
   }
 
   public async trackPlaygroundCodeExecuted(
-    result: any,
+    result: ExecuteAllResult,
     partial: boolean,
     error: boolean
   ): Promise<void> {

@@ -9,6 +9,7 @@ import {
   CancellationTokenSource
 } from 'vscode-languageclient';
 import WebSocket from 'ws';
+import type { ExecuteAllResult } from '../utils/types';
 
 import { createLogger } from '../logging';
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
@@ -133,7 +134,7 @@ export default class LanguageServerController {
     this.client.stop();
   }
 
-  public executeAll(codeToEvaluate: string): Promise<any> {
+  public executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
     return this.client.onReady().then(() => {
       // Instantiate a new CancellationTokenSource object
       // that generates a cancellation token for each run of a playground

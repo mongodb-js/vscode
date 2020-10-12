@@ -3,6 +3,7 @@ import path = require('path');
 
 import { CancellationTokenSource } from 'vscode-languageclient';
 import { StorageController } from '../../storage';
+import type { ExecuteAllResult } from '../../utils/types';
 
 // Bare mock of the extension context for vscode.
 class TestExtensionContext implements vscode.ExtensionContext {
@@ -191,8 +192,8 @@ class MockLanguageServerController {
     /* */
   }
 
-  executeAll(codeToEvaluate: string): Promise<any> {
-    return Promise.resolve('Result');
+  executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
+    return Promise.resolve([{ type: null, content: 'Result' }]);
   }
 
   connectToServiceProvider(params: {

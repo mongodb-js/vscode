@@ -2,7 +2,7 @@ import { inspect as utilInspect } from 'util';
 
 type EvaluationResult = {
   value: any;
-  type?: string;
+  type: string | null;
 };
 
 const inspect = (output): any => {

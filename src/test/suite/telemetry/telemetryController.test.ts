@@ -76,9 +76,7 @@ suite('Telemetry Controller Test Suite', () => {
     sinon.replace(
       mdbTestExtension.testExtensionController._languageServerController,
       'executeAll',
-      sinon.fake.resolves({
-        shellApiType: 'TEST'
-      })
+      sinon.fake.resolves([{ type: 'TEST', content: 'Result' }])
     );
   });
 
@@ -177,98 +175,98 @@ suite('Telemetry Controller Test Suite', () => {
 
   suite('prepare playground result types', () => {
     test('convert AggregationCursor shellApiType to aggregation telemetry type', () => {
-      const res = { shellApiType: 'AggregationCursor' };
+      const res = [{ type: 'AggregationCursor', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('aggregation');
     });
 
     test('convert BulkWriteResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'BulkWriteResult' };
+      const res = [{ type: 'BulkWriteResult', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
 
     test('convert Collection shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'Collection' };
+      const res = [{ type: 'Collection', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
 
     test('convert Cursor shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'Cursor' };
+      const res = [{ type: 'Cursor', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('query');
     });
 
     test('convert Database shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'Database' };
+      const res = [{ type: 'Database', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
 
     test('convert DeleteResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'DeleteResult' };
+      const res = [{ type: 'DeleteResult', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('delete');
     });
 
     test('convert InsertManyResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'InsertManyResult' };
+      const res = [{ type: 'InsertManyResult', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('insert');
     });
 
     test('convert InsertOneResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'InsertOneResult' };
+      const res = [{ type: 'InsertOneResult', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('insert');
     });
 
     test('convert ReplicaSet shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'ReplicaSet' };
+      const res = [{ type: 'ReplicaSet', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
 
     test('convert Shard shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'Shard' };
+      const res = [{ type: 'Shard', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
 
     test('convert ShellApi shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'ShellApi' };
+      const res = [{ type: 'ShellApi', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
 
     test('convert UpdateResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'UpdateResult' };
+      const res = [{ type: 'UpdateResult', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('update');
     });
 
     test('convert UpdateResult shellApiType to other telemetry type', () => {
-      const res = { shellApiType: 'UpdateResult' };
+      const res = [{ type: 'UpdateResult', content: '' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('update');
     });
 
     test('return other telemetry type if evaluation returns a string', () => {
-      const res = '2';
+      const res = [{ type: null, content: '2' }];
       const type = testTelemetryController.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
