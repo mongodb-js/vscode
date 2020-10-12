@@ -13,7 +13,7 @@ import { CONNECTION_STATUS } from '../../extension-app-message-constants';
 
 const styles = require('./connection-status.less');
 
-const CONNECTION_STATUS_POLLING_FREQ_MS = 2000;
+const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
 
 type StateProps = {
   activeConnectionName: string;
@@ -41,6 +41,7 @@ export class ConnectionStatus extends React.Component<StateProps & DispatchProps
       return;
     }
 
+    this.props.requestConnectionStatus();
     this.connectionStatusPollingInterval = setInterval(() => {
       this.props.requestConnectionStatus();
     }, CONNECTION_STATUS_POLLING_FREQ_MS) as any;
