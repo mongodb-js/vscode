@@ -15,6 +15,7 @@ import {
   LinkClickedMessage
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
+import EXTENSION_COMMANDS from '../commands';
 
 const path = require('path');
 const log = createLogger('webviewController');
@@ -162,7 +163,7 @@ export default class WebviewController {
         return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         vscode.commands.executeCommand(
-          'mdb.createNewPlaygroundFromOverviewPage'
+          EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE
         );
         return;
       case MESSAGE_TYPES.OPEN_FILE_PICKER:
@@ -184,7 +185,7 @@ export default class WebviewController {
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
         this.listenForConnectionResultsAndUpdatePanel(panel);
-        vscode.commands.executeCommand('mdb.connectWithURI');
+        vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI);
 
         return;
       case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import EXTENSION_COMMANDS from '../commands';
 
 export default class ActiveConnectionCodeLensProvider
   implements vscode.CodeLensProvider {
@@ -35,7 +36,7 @@ export default class ActiveConnectionCodeLensProvider
 
     codeLens.command = {
       title: message,
-      command: 'mdb.changeActiveConnection',
+      command: EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION,
       arguments: []
     };
 

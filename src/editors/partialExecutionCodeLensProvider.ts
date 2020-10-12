@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import EXTENSION_COMMANDS from '../commands';
 
 export default class PartialExecutionCodeLensProvider
   implements vscode.CodeLensProvider {
@@ -33,11 +34,11 @@ export default class PartialExecutionCodeLensProvider
   }
 
   public resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
-    const message = `► Run Selected Lines From Playground`;
+    const message = '► Run Selected Lines From Playground';
 
     codeLens.command = {
       title: message,
-      command: 'mdb.runSelectedPlaygroundBlocks',
+      command: EXTENSION_COMMANDS.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS,
       arguments: [message]
     };
 
