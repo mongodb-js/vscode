@@ -25,7 +25,7 @@ type DispatchProps = {
   requestConnectionStatus: () => void;
 };
 
-class ConnectionStatus extends React.Component<StateProps & DispatchProps> {
+export class ConnectionStatus extends React.Component<StateProps & DispatchProps> {
   connectionStatusPollingInterval: null | number = null;
 
   componentDidMount(): void {
@@ -119,6 +119,14 @@ class ConnectionStatus extends React.Component<StateProps & DispatchProps> {
     );
   }
 
+  renderLoadingStatus(): React.ReactNode {
+    return (
+      <div className={styles['connection-status-status-message']}>
+        Loading...
+      </div>
+    );
+  }
+
   render(): React.ReactNode {
     const {
       connectionStatus
@@ -130,6 +138,7 @@ class ConnectionStatus extends React.Component<StateProps & DispatchProps> {
         {connectionStatus === CONNECTION_STATUS.CONNECTING && this.renderConnectingStatus()}
         {connectionStatus === CONNECTION_STATUS.DISCONNECTED && this.renderDisconnectedStatus()}
         {connectionStatus === CONNECTION_STATUS.DISCONNECTING && this.renderDisconnectingStatus()}
+        {connectionStatus === CONNECTION_STATUS.LOADING && this.renderLoadingStatus()}
       </div>
     );
   }

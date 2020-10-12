@@ -1,6 +1,7 @@
 import { FilePickerActionTypes } from './store/actions';
 
 export enum CONNECTION_STATUS {
+  LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
   CONNECTED = 'CONNECTED',
   CONNECTING = 'CONNECTING',
   DISCONNECTING = 'DISCONNECTING',

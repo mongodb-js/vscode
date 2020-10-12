@@ -45,8 +45,7 @@ export const initialState: AppState = {
   errorMessage: '',
   syntaxErrorMessage: '',
   savedMessage: '',
-  // TODO: Initial state?
-  connectionStatus: CONNECTION_STATUS.DISCONNECTED
+  connectionStatus: CONNECTION_STATUS.LOADING
 };
 
 const showFilePicker = (
