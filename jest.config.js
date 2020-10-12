@@ -2,7 +2,7 @@ module.exports = {
   roots: ['<rootDir>/src/test/suite/views/webview-app'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
-    '.+\\.(less)$': 'jest-transform-stub'
+    '.+\\.(less|svg)$': 'jest-transform-stub'
   },
   reporters: [
     'default',
