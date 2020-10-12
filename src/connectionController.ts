@@ -12,6 +12,7 @@ import { StorageController, StorageVariables } from './storage';
 import { SavedConnection, StorageScope } from './storage/storageController';
 import TelemetryController from './telemetry/telemetryController';
 import { ext } from './extensionConstants';
+import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 
 const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
@@ -706,6 +707,22 @@ export default class ConnectionController {
 
   public getActiveConnectionModel(): null | ConnectionModelType {
     return this._activeConnectionModel;
+  }
+
+  public getConnectionStatus(): CONNECTION_STATUS {
+    if (this.isCurrentlyConnected()) {
+      if (this.isDisconnecting()) {
+        return CONNECTION_STATUS.DISCONNECTING;
+      }
+
+      return CONNECTION_STATUS.CONNECTED;
+    }
+
+    if (this.isConnecting()) {
+      return CONNECTION_STATUS.CONNECTING;
+    }
+
+    return CONNECTION_STATUS.DISCONNECTED;
   }
 
   public getConnectionStatusStringForConnection(connectionId: string): string {

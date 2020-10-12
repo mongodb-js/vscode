@@ -6,13 +6,9 @@ import ConnectionController, {
 import TelemetryController from '../telemetry/telemetryController';
 import {
   INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME,
+  MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
   MESSAGE_TYPES,
-  WEBVIEW_VIEWS,
-  ConnectMessage,
-  CreateNewPlaygroundMessage,
-  OpenFilePickerMessage,
-  OpenConnectionStringInputMessage,
-  LinkClickedMessage
+  WEBVIEW_VIEWS
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
@@ -131,12 +127,7 @@ export default class WebviewController {
   };
 
   handleWebviewMessage = (
-    message:
-      | ConnectMessage
-      | CreateNewPlaygroundMessage
-      | OpenFilePickerMessage
-      | LinkClickedMessage
-      | OpenConnectionStringInputMessage,
+    message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel
   ): void => {
     switch (message.command) {
@@ -165,6 +156,13 @@ export default class WebviewController {
         vscode.commands.executeCommand(
           EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE
         );
+        return;
+      case MESSAGE_TYPES.GET_CONNECTION_STATUS:
+        panel.webview.postMessage({
+          command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,
+          connectionStatus: this._connectionController.getConnectionStatus(),
+          activeConnectionName: this._connectionController.getActiveConnectionName()
+        });
         return;
       case MESSAGE_TYPES.OPEN_FILE_PICKER:
         vscode.window
@@ -201,6 +199,21 @@ export default class WebviewController {
     }
   };
 
+  onRecievedWebviewMessage = (
+    message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
+    panel: vscode.WebviewPanel
+  ): void => {
+    // Ensure handling message from the webview can't crash the extension.
+    try {
+      this.handleWebviewMessage(message, panel);
+    } catch (err) {
+      log.info('Error occured when parsing message from webview:');
+      log.info(err);
+
+      return;
+    }
+  };
+
   openWebview(
     view: WEBVIEW_VIEWS,
     viewTitle: string,
@@ -231,8 +244,8 @@ export default class WebviewController {
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
-      (message: ConnectMessage | OpenFilePickerMessage) =>
-        this.handleWebviewMessage(message, panel),
+      (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) =>
+        this.onRecievedWebviewMessage(message, panel),
       undefined,
       context.subscriptions
     );

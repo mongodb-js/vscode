@@ -9,13 +9,14 @@ import {
   ActionTypes,
   ConnectionEventOccuredAction,
   FilePickerActions,
-  FilePickerActionTypes
+  FilePickerActionTypes,
+  SetConnectionStatusAction
 } from '../store/actions';
 import { AppState } from '../store/store';
 import {
+  CONNECTION_STATUS,
+  MESSAGE_FROM_EXTENSION_TO_WEBVIEW,
   MESSAGE_TYPES,
-  ConnectResultsMessage,
-  FilePickerResultsMessage,
   WEBVIEW_VIEWS
 } from '../extension-app-message-constants';
 
@@ -34,19 +35,29 @@ type DispatchProps = {
     action: FilePickerActionTypes,
     files: string[] | undefined
   ) => void;
+  setConnectionStatus: (
+    connectionStatus: CONNECTION_STATUS,
+    activeConnectionName: string
+  ) => void;
 };
 
 export class App extends React.Component<DispatchProps& StateProps> {
   componentDidMount(): void {
     window.addEventListener('message', (event) => {
-      const message: ConnectResultsMessage | FilePickerResultsMessage =
-        event.data;
+      const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
 
       switch (message.command) {
         case MESSAGE_TYPES.CONNECT_RESULT:
           this.props.onConnectedEvent(
             message.connectionSuccess,
             message.connectionMessage
+          );
+
+          return;
+        case MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE:
+          this.props.setConnectionStatus(
+            message.connectionStatus,
+            message.activeConnectionName
           );
 
           return;
@@ -100,6 +111,14 @@ const mapDispatchToProps: DispatchProps = {
   ): FilePickerActions => ({
     type: action,
     files
+  }),
+  setConnectionStatus: (
+    connectionStatus: CONNECTION_STATUS,
+    activeConnectionName: string
+  ): SetConnectionStatusAction => ({
+    type: ActionTypes.SET_CONNECTION_STATUS,
+    activeConnectionName,
+    connectionStatus
   })
 };
 

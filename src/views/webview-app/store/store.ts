@@ -5,16 +5,23 @@ import ConnectionModel, {
 } from '../connection-model/connection-model';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import {
+  CONNECTION_STATUS,
   INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME,
+  MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
   MESSAGE_TYPES,
   WEBVIEW_VIEWS
 } from '../extension-app-message-constants';
 
+interface VSCodeApi {
+  postMessage: (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) => void;
+}
+
 // eslint-disable-next-line no-var
-declare var acquireVsCodeApi: any;
+declare var acquireVsCodeApi: () => VSCodeApi;
 const vscode = acquireVsCodeApi();
 
 export interface AppState {
+  activeConnectionName: string;
   connectionMessage: string;
   currentConnection: ConnectionModel;
   currentView: WEBVIEW_VIEWS;
@@ -24,9 +31,11 @@ export interface AppState {
   errorMessage: string;
   syntaxErrorMessage: string;
   savedMessage: string;
+  connectionStatus: CONNECTION_STATUS;
 }
 
 export const initialState: AppState = {
+  activeConnectionName: '',
   connectionMessage: '',
   currentConnection: new ConnectionModel(),
   currentView: window[INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME],
@@ -35,7 +44,9 @@ export const initialState: AppState = {
   isConnected: false,
   errorMessage: '',
   syntaxErrorMessage: '',
-  savedMessage: ''
+  savedMessage: '',
+  // TODO: Initial state?
+  connectionStatus: CONNECTION_STATUS.DISCONNECTED
 };
 
 const showFilePicker = (
@@ -275,6 +286,20 @@ export const rootReducer = (
           ...state.currentConnection,
           replicaSet: action.replicaSet
         }
+      };
+
+    case ActionTypes.REQUEST_CONNECTION_STATUS:
+      vscode.postMessage({
+        command: MESSAGE_TYPES.GET_CONNECTION_STATUS
+      });
+
+      return { ...state };
+
+    case ActionTypes.SET_CONNECTION_STATUS:
+      return {
+        ...state,
+        activeConnectionName: action.activeConnectionName,
+        connectionStatus: action.connectionStatus
       };
 
     case ActionTypes.SSH_TUNNEL_CHANGED:
