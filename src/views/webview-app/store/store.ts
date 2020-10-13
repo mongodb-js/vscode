@@ -16,8 +16,7 @@ interface VSCodeApi {
   postMessage: (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) => void;
 }
 
-// eslint-disable-next-line no-var
-declare var acquireVsCodeApi: () => VSCodeApi;
+declare const acquireVsCodeApi: () => VSCodeApi;
 const vscode = acquireVsCodeApi();
 
 export interface AppState {
