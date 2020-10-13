@@ -993,7 +993,7 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
 
-      expect(result).to.be.equal('2');
+      expect(result).to.deep.equal([{ type: null, content: '2' }]);
     });
 
     test('evaluate multiple commands at once', async function () {
@@ -1007,7 +1007,7 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
 
-      expect(result).to.be.equal('3');
+      expect(result).to.deep.equal([{ type: null, content: '3' }]);
     });
 
     test('create each time a new runtime', async function () {
@@ -1021,7 +1021,7 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
 
-      expect(firstEvalResult).to.be.equal('2');
+      expect(firstEvalResult).to.deep.equal([{ type: null, content: '2' }]);
 
       const secondEvalResult = await testMongoDBService.executeAll(
         {
@@ -1030,7 +1030,27 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
 
-      expect(secondEvalResult).to.be.equal('3');
+      expect(secondEvalResult).to.deep.equal([{ type: null, content: '3' }]);
+    });
+
+    test('includes results from print() and console.log()', async function () {
+      this.timeout(INCREASED_TEST_TIMEOUT);
+
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll(
+        {
+          codeToEvaluate: 'print("Hello"); console.log(1,2,3); 42'
+        },
+        source.token
+      );
+
+      expect(result).to.deep.equal([
+        { type: null, content: 'Hello' },
+        { type: null, content: '1' },
+        { type: null, content: '2' },
+        { type: null, content: '3' },
+        { type: null, content: '42' },
+      ]);
     });
   });
 });

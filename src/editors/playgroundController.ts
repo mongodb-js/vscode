@@ -11,6 +11,7 @@ import playgroundTemplate from '../templates/playgroundTemplate';
 import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import { createLogger } from '../logging';
+import type { ExecuteAllResult } from '../utils/types';
 
 const log = createLogger('playground controller');
 
@@ -210,9 +211,9 @@ export default class PlaygroundController {
     });
   }
 
-  public async evaluate(codeToEvaluate: string): Promise<any> {
+  public async evaluate(codeToEvaluate: string): Promise<ExecuteAllResult> {
     // Send a request to the language server to execute scripts from a playground.
-    const result = await this._languageServerController.executeAll(
+    const result: ExecuteAllResult = await this._languageServerController.executeAll(
       codeToEvaluate
     );
 
@@ -223,7 +224,7 @@ export default class PlaygroundController {
       result ? false : true
     );
 
-    return Promise.resolve(result);
+    return result;
   }
 
   private getAllText(): string {
@@ -234,7 +235,7 @@ export default class PlaygroundController {
     return this._activeTextEditor?.document.getText(selection) || '';
   }
 
-  public evaluateWithCancelModal(): Promise<any> {
+  public evaluateWithCancelModal(): Promise<ExecuteAllResult> {
     if (!this._connectionString) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
@@ -256,11 +257,11 @@ export default class PlaygroundController {
               this._outputChannel.clear();
               this._outputChannel.show(true);
 
-              return resolve(null);
+              return resolve(undefined);
             });
 
             // Run all playground scripts.
-            const result = await this.evaluate(this._codeToEvaluate);
+            const result: ExecuteAllResult = await this.evaluate(this._codeToEvaluate);
 
             return resolve(result);
           }
@@ -268,7 +269,7 @@ export default class PlaygroundController {
         .then(undefined, (error) => {
           log.error('Evaluate playground with cancel modal error', error);
 
-          return resolve(null);
+          return resolve(undefined);
         });
     });
   }
@@ -300,7 +301,7 @@ export default class PlaygroundController {
         }
       }
 
-      const result = await this.evaluateWithCancelModal();
+      const result: ExecuteAllResult = await this.evaluateWithCancelModal();
 
       if (!result) {
         this._outputChannel.clear();
@@ -310,7 +311,8 @@ export default class PlaygroundController {
       }
 
       this._outputChannel.clear();
-      this._outputChannel.append(result);
+      for (const line of result)
+        this._outputChannel.appendLine(line.content);
       this._outputChannel.show(true);
 
       return resolve(true);

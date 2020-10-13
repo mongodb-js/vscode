@@ -4,13 +4,13 @@ import { expect } from 'chai';
 suite('Format Output Test Suite', () => {
   suite('when the result is a string', () => {
     test('returns the output', () => {
-      expect(formatOutput({ value: 'test' })).to.equal('test');
+      expect(formatOutput({ value: 'test', type: null })).to.equal('test');
     });
   });
 
   suite('when the result is an object', () => {
     test('returns the inspection', () => {
-      expect(formatOutput({ value: 2 })).to.include('2');
+      expect(formatOutput({ value: 2, type: null })).to.include('2');
     });
   });
 

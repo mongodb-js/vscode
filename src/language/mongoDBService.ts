@@ -1,10 +1,9 @@
 import { CompletionItemKind, CancellationToken } from 'vscode-languageserver';
 import { Worker as WorkerThreads } from 'worker_threads';
-import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
-import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { signatures } from '@mongosh/shell-api';
 import * as util from 'util';
 import { Visitor } from './visitor';
+import { ExecuteAllResult } from '../utils/types';
 
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
@@ -14,8 +13,6 @@ const fs = require('fs');
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
 export default class MongoDBService {
-  _serviceProvider?: CliServiceProvider;
-  _runtime?: ElectronRuntime;
   _connection: any;
   _connectionString?: string;
   _connectionOptions?: any;
@@ -116,11 +113,6 @@ export default class MongoDBService {
     }
 
     try {
-      this._serviceProvider = await CliServiceProvider.connect(
-        this._connectionString,
-        this._connectionOptions
-      );
-      this._runtime = new ElectronRuntime(this._serviceProvider);
       this.getDatabasesCompletionItems();
 
       return Promise.resolve(true);
@@ -551,8 +543,6 @@ export default class MongoDBService {
   }
 
   public clearCurrentSessionConnection(): void {
-    this._serviceProvider = undefined;
-    this._runtime = undefined;
     this._connectionString = undefined;
     this._connectionOptions = undefined;
   }

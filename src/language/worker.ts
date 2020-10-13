@@ -8,10 +8,11 @@ import formatOutput from '../utils/formatOutput';
 import parseSchema = require('mongodb-schema');
 import { ServerCommands } from './serverCommands';
 import { CompletionItemKind } from 'vscode-languageserver';
+import type { OutputItem } from '../utils/types';
 
 type EvaluationResult = {
-  value: any;
-  type?: string;
+  printable: any;
+  type: string | null;
 };
 type WorkerResult = any;
 type WorkerError = any | null;
@@ -31,13 +32,28 @@ const executeAll = async (
       connectionOptions
     );
 
+    const outputLines: OutputItem[] = [];
     // Create a new instance of the runtime and evaluate code from a playground.
     const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
-    const result: EvaluationResult | string = await runtime.evaluate(
+    runtime.setEvaluationListener({
+      onPrint(values: EvaluationResult[]) {
+        for (const { type, printable } of values) {
+          outputLines.push({
+            type,
+            content: formatOutput({ value: printable, type })
+          });
+        }
+      }
+    });
+    const { type, printable } = await runtime.evaluate(
       codeToEvaluate
     );
+    outputLines.push({
+      type,
+      content: formatOutput({ value: printable, type })
+    });
 
-    return [null, result ? formatOutput(result) : null];
+    return [null, outputLines];
   } catch (error) {
     return [error];
   }
