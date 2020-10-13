@@ -30,7 +30,7 @@ export const getFontUri = (
   extensionPath: string,
   webview: vscode.Webview,
   fontName: string
-): vscode.Uri =>{
+): vscode.Uri => {
   const localFilePathUri = vscode.Uri.file(
     path.join(extensionPath, 'resources', 'fonts', fontName)
   );
@@ -182,7 +182,6 @@ export default class WebviewController {
           });
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
-        this.listenForConnectionResultsAndUpdatePanel(panel);
         vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI);
 
         return;
