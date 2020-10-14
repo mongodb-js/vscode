@@ -4,7 +4,34 @@
 
 .connection-status-status-message {
   margin: 16px auto;
-  margin-bottom: 34px;
+}
+
+.connection-status-dot {
+  height: 8px;
+  width: 8px;
+  display: inline-block;
+  margin-right: 14px;
+
+  &:before {
+    position: absolute;
+    content: '';
+    border-radius: 50%;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+  }
+}
+
+.connection-status-dot-connected:before {
+  background-color: #13AA52;
+}
+
+.connection-status-dot-disconnected:before {
+  background-color: #BB2222;
+}
+
+.connection-status-playground-area {
+  margin: 34px auto;
 }
 
 .connection-status-playground-message {

@@ -1,28 +1,77 @@
+import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
+import { AppState } from '../../store/store';
 import {
   ActionTypes,
-  CreateNewPlaygroundAction
+  CreateNewPlaygroundAction,
+  RequestConnectionStatusAction
 } from '../../store/actions';
 import InfoSprinkle from '../info-sprinkle/info-sprinkle';
+import { CONNECTION_STATUS } from '../../extension-app-message-constants';
 
 const styles = require('./connection-status.less');
 
-type DispatchProps = {
-  onClickCreatePlayground: () => void;
+const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
+
+type StateProps = {
+  activeConnectionName: string;
+  connectionStatus: CONNECTION_STATUS;
 };
 
-class ConnectionStatus extends React.Component<DispatchProps> {
-  render(): React.ReactNode {
-    const { onClickCreatePlayground } = this.props;
+type DispatchProps = {
+  onClickCreatePlayground: () => void;
+  requestConnectionStatus: () => void;
+};
+
+export class ConnectionStatus extends React.Component<StateProps & DispatchProps> {
+  connectionStatusPollingInterval: null | number = null;
+
+  componentDidMount(): void {
+    this.startConnectionStatusPolling();
+  }
+
+  componentWillUnmount(): void {
+    this.stopConnectionStatusPolling();
+  }
+
+  startConnectionStatusPolling(): void {
+    if (this.connectionStatusPollingInterval !== null) {
+      return;
+    }
+
+    this.props.requestConnectionStatus();
+    this.connectionStatusPollingInterval = setInterval(() => {
+      this.props.requestConnectionStatus();
+    }, CONNECTION_STATUS_POLLING_FREQ_MS) as any;
+  };
+
+  stopConnectionStatusPolling(): void {
+    if (this.connectionStatusPollingInterval === null) {
+      return;
+    }
+
+    clearInterval(this.connectionStatusPollingInterval);
+
+    this.connectionStatusPollingInterval = null;
+  };
+
+  renderConnectedStatus(): React.ReactNode {
+    const {
+      activeConnectionName,
+      onClickCreatePlayground
+    } = this.props;
 
     return (
-      <div className={styles['connection-status']}>
+      <React.Fragment>
         <div className={styles['connection-status-status-message']}>
-          Connection Status - coming soon.
+          <span className={classnames(
+            styles['connection-status-dot'],
+            styles['connection-status-dot-connected']
+          )}/>Connected to: <strong>{activeConnectionName}</strong>
         </div>
-        <div>
+        <div className={styles['connection-status-playground-area']}>
           <div className={styles['connection-status-playground-message']}>
             <div>
               All set. Ready to start?
@@ -38,16 +87,79 @@ class ConnectionStatus extends React.Component<DispatchProps> {
             Create playground
           </button>
         </div>
+      </React.Fragment>
+    );
+  }
+
+  renderConnectingStatus(): React.ReactNode {
+    return (
+      <React.Fragment>
+        <div className={styles['connection-status-status-message']}>
+          Connecting...
+        </div>
+      </React.Fragment>
+    );
+  }
+
+  renderDisconnectedStatus(): React.ReactNode {
+    return (
+      <div className={styles['connection-status-status-message']}>
+        <span className={classnames(
+          styles['connection-status-dot'],
+          styles['connection-status-dot-disconnected']
+        )}/>Not connected.
+      </div>
+    );
+  }
+
+  renderDisconnectingStatus(): React.ReactNode {
+    return (
+      <div className={styles['connection-status-status-message']}>
+        Disconnecting...
+      </div>
+    );
+  }
+
+  renderLoadingStatus(): React.ReactNode {
+    return (
+      <div className={styles['connection-status-status-message']}>
+        Loading...
+      </div>
+    );
+  }
+
+  render(): React.ReactNode {
+    const {
+      connectionStatus
+    } = this.props;
+
+    return (
+      <div className={styles['connection-status']}>
+        {connectionStatus === CONNECTION_STATUS.CONNECTED && this.renderConnectedStatus()}
+        {connectionStatus === CONNECTION_STATUS.CONNECTING && this.renderConnectingStatus()}
+        {connectionStatus === CONNECTION_STATUS.DISCONNECTED && this.renderDisconnectedStatus()}
+        {connectionStatus === CONNECTION_STATUS.DISCONNECTING && this.renderDisconnectingStatus()}
+        {connectionStatus === CONNECTION_STATUS.LOADING && this.renderLoadingStatus()}
       </div>
     );
   }
 }
 
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    activeConnectionName: state.activeConnectionName,
+    connectionStatus: state.connectionStatus
+  };
+};
+
 const mapDispatchToProps: DispatchProps = {
   onClickCreatePlayground: (): CreateNewPlaygroundAction => ({
     type: ActionTypes.CREATE_NEW_PLAYGROUND
+  }),
+  requestConnectionStatus: (): RequestConnectionStatusAction => ({
+    type: ActionTypes.REQUEST_CONNECTION_STATUS
   })
 };
 
-export default connect(() => ({}), mapDispatchToProps)(ConnectionStatus);
+export default connect(mapStateToProps, mapDispatchToProps)(ConnectionStatus);
 

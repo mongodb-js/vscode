@@ -119,6 +119,7 @@ suite('Connection Controller Test Suite', function () {
       succesfullyConnected === true,
       'Expected a successful (true) connection response.'
     );
+    assert(testConnectionController.getConnectionStatus() === 'CONNECTED');
 
     const successfullyDisconnected = await testConnectionController.disconnect();
 
@@ -129,6 +130,7 @@ suite('Connection Controller Test Suite', function () {
     const connectionModel = testConnectionController.getActiveConnectionModel();
     const dataService = testConnectionController.getActiveDataService();
 
+    assert(testConnectionController.getConnectionStatus() === 'DISCONNECTED');
     assert(
       successfullyDisconnected === true,
       'Expected a successful (true) disconnect response.'
@@ -891,6 +893,7 @@ suite('Connection Controller Test Suite', function () {
     await sleep(250);
 
     assert(testConnectionController.isConnecting());
+    assert(testConnectionController.getConnectionStatus() === 'CONNECTING');
 
     await testConnectionController.removeSavedConnection(connectionId);
 

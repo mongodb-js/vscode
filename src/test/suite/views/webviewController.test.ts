@@ -543,4 +543,113 @@ suite('Connect Form View Test Suite', () => {
       done();
     }, 50);
   });
+
+  test('webview returns the connection status on a connection status request', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController,
+      testTelemetryController
+    );
+    let messageRecieved: any;
+    const fakeWebview = {
+      html: '',
+      postMessage: (message: any): void => {
+        assert(message.command === 'CONNECTION_STATUS_MESSAGE');
+        assert(message.connectionStatus === 'DISCONNECTED');
+        assert(message.activeConnectionName === '');
+
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+      },
+      asWebviewUri: sinon.fake.returns('')
+    };
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const testWebviewController = new WebviewController(
+      testConnectionController,
+      testTelemetryController
+    );
+
+    testWebviewController.showOverviewPage(
+      mdbTestExtension.testExtensionContext
+    );
+
+    // Mock a connection status request call.
+    messageRecieved({
+      command: MESSAGE_TYPES.GET_CONNECTION_STATUS
+    });
+  });
+
+  test('webview returns the connection status on a connection status request', (done) => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController,
+      testTelemetryController
+    );
+    let messageRecieved: any;
+    const fakeWebview = {
+      html: '',
+      postMessage: (message: any): void => {
+        assert(message.command === 'CONNECTION_STATUS_MESSAGE');
+        assert(message.connectionStatus === 'CONNECTED');
+        assert(message.activeConnectionName === 'localhost:27018');
+        testConnectionController.disconnect();
+
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+      },
+      asWebviewUri: sinon.fake.returns('')
+    };
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const testWebviewController = new WebviewController(
+      testConnectionController,
+      testTelemetryController
+    );
+
+    testWebviewController.showOverviewPage(
+      mdbTestExtension.testExtensionContext
+    );
+
+    testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    ).then(() => {
+      // Mock a connection status request call.
+      messageRecieved({
+        command: MESSAGE_TYPES.GET_CONNECTION_STATUS
+      });
+    });
+  });
 });

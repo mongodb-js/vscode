@@ -2,7 +2,7 @@ import READ_PREFERENCES from '../connection-model/constants/read-preferences';
 import AUTH_STRATEGIES from '../connection-model/constants/auth-strategies';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
-import { WEBVIEW_VIEWS } from '../extension-app-message-constants';
+import { CONNECTION_STATUS, WEBVIEW_VIEWS } from '../extension-app-message-constants';
 
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',
@@ -25,6 +25,8 @@ export enum ActionTypes {
   PORT_CHANGED = 'PORT_CHANGED',
   READ_PREFERENCE_CHANGED = 'READ_PREFERENCE_CHANGED',
   REPLICA_SET_CHANGED = 'REPLICA_SET_CHANGED',
+  REQUEST_CONNECTION_STATUS = 'REQUEST_CONNECTION_STATUS',
+  SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS',
   SET_CURRENT_VIEW = 'SET_CURRENT_VIEW',
   SSH_TUNNEL_CHANGED = 'SSH_TUNNEL_CHANGED',
   SSH_TUNNEL_IDENTITY_FILE_CHANGED = 'SSH_TUNNEL_IDENTITY_FILE_CHANGED',
@@ -157,6 +159,16 @@ export interface ReplicaSetChangedAction extends BaseAction {
   replicaSet: string;
 }
 
+export interface RequestConnectionStatusAction extends BaseAction {
+  type: ActionTypes.REQUEST_CONNECTION_STATUS;
+}
+
+export interface SetConnectionStatusAction extends BaseAction {
+  type: ActionTypes.SET_CONNECTION_STATUS;
+  connectionStatus: CONNECTION_STATUS;
+  activeConnectionName: string;
+}
+
 export interface SetCurrentViewAction extends BaseAction {
   type: ActionTypes.SET_CURRENT_VIEW;
   currentView: WEBVIEW_VIEWS;
@@ -253,6 +265,8 @@ export type Actions =
   | PortChangedAction
   | ReadPreferenceChangedAction
   | ReplicaSetChangedAction
+  | RequestConnectionStatusAction
+  | SetConnectionStatusAction
   | SetCurrentViewAction
   | SSHTunnelChangedAction
   | SSHTunnelHostnameChangedAction
