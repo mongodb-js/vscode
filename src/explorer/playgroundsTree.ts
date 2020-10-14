@@ -5,6 +5,7 @@ import PlaygroundsTreeHeader from './playgroundsTreeHeader';
 import { PLAYGROUND_ITEM } from './playgroundsTreeItem';
 import { createLogger } from '../logging';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
+import EXTENSION_COMMANDS from '../commands';
 
 const micromatch = require('micromatch');
 const log = createLogger('playgrounds tree controller');
@@ -122,7 +123,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
 
         if (selectedItem.contextValue === PLAYGROUND_ITEM) {
           vscode.commands.executeCommand(
-            'mdb.openPlaygroundFromTreeItem',
+            EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
             selectedItem
           );
         }

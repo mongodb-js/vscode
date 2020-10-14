@@ -8,6 +8,7 @@ import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 import ConnectionTreeItem from './connectionTreeItem';
 import { SavedConnection } from '../storage/storageController';
 import { sortTreeItemsByLabel } from './treeItemUtils';
+import EXTENSION_COMMANDS from '../commands';
 
 const log = createLogger('explorer controller');
 
@@ -98,7 +99,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
 
         if (selectedItem.contextValue === DOCUMENT_ITEM) {
           vscode.commands.executeCommand(
-            'mdb.viewDocument',
+            EXTENSION_COMMANDS.MDB_VIEW_DOCUMENT,
             event.selection[0]
           );
         }
@@ -108,7 +109,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
           selectedItem.type === CollectionTypes.view
         ) {
           vscode.commands.executeCommand(
-            'mdb.viewCollectionDocuments',
+            EXTENSION_COMMANDS.MDB_VIEW_COLLECTION_DOCUMENTS,
             event.selection[0]
           );
         }

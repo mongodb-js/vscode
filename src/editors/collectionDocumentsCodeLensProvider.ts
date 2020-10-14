@@ -1,5 +1,6 @@
 import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
+import EXTENSION_COMMANDS from '../commands';
 
 import CollectionDocumentsOperationStore from './collectionDocumentsOperationsStore';
 import {
@@ -88,7 +89,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     codeLens.command = {
       title: commandTitle,
       tooltip: commandTooltip,
-      command: 'mdb.codeLens.showMoreDocumentsClicked',
+      command: EXTENSION_COMMANDS.MDB_CODELENS_SHOW_MORE_DOCUMENTS,
       arguments: [{ operationId, connectionId, namespace }]
     };
 
