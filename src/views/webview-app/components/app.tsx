@@ -1,5 +1,4 @@
 import * as React from 'react';
-import classnames from 'classnames';
 import { connect } from 'react-redux';
 
 import ConnectionForm from './connect-form/connection-form';
@@ -79,7 +78,7 @@ export class App extends React.Component<DispatchProps& StateProps> {
         {currentView === WEBVIEW_VIEWS.CONNECT && (
           <div className={styles.connect}>
             <ConnectionForm />
-            <div className={classnames(styles['connect-form-help-panel'])}>
+            <div className={styles['connect-form-help-panel']}>
               <HelpPanel />
             </div>
           </div>

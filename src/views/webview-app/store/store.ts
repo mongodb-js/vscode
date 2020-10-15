@@ -28,6 +28,7 @@ export interface AppState {
   isConnecting: boolean;
   isConnected: boolean;
   errorMessage: string;
+  showConnectForm: boolean;
   syntaxErrorMessage: string;
   savedMessage: string;
   connectionStatus: CONNECTION_STATUS;
@@ -42,6 +43,7 @@ export const initialState: AppState = {
   isConnecting: false,
   isConnected: false,
   errorMessage: '',
+  showConnectForm: false,
   syntaxErrorMessage: '',
   savedMessage: '',
   connectionStatus: CONNECTION_STATUS.LOADING
