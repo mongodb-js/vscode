@@ -66,11 +66,6 @@ export const rootReducer = (
   action: Actions
 ): AppState => {
   switch (action.type) {
-    case ActionTypes.SET_CURRENT_VIEW:
-      return {
-        ...state,
-        currentView: action.currentView
-      };
     case ActionTypes.AUTH_SOURCE_CHANGED:
       return {
         ...state,
@@ -413,6 +408,12 @@ export const rootReducer = (
           ...state.currentConnection,
           sslPass: action.sslPass
         }
+      };
+
+    case ActionTypes.TOGGLE_SHOW_CONNECTION_FORM:
+      return {
+        ...state,
+        showConnectForm: !state.showConnectForm
       };
 
     case ActionTypes.USERNAME_CHANGED:

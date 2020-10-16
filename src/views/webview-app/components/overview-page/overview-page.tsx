@@ -7,6 +7,10 @@ import ConnectionForm from '../connect-form/connection-form';
 import ConnectHelper from '../connect-helper/connect-helper';
 import ConnectionStatus from '../connection-status/connection-status';
 import AtlasCTA from '../atlas-cta/atlas-cta';
+import {
+  ActionTypes,
+  ToggleShowConnectionFormAction
+} from '../../store/actions';
 
 const styles = require('./overview-page.less');
 
@@ -14,12 +18,22 @@ type StateProps = {
   showConnectForm: boolean;
 };
 
-export class Overview extends React.PureComponent<StateProps> {
+type DispatchProps = {
+  toggleShowConnectForm: () => void;
+};
+
+export class Overview extends React.PureComponent<StateProps & DispatchProps> {
   renderConnectForm() {
     return (
-      <div className={styles['overview-page-connection-form-modal']}>
-        <ConnectionForm />
-      </div>
+      <React.Fragment>
+        <div
+          className={styles['overview-page-connect-form-modal-back']}
+          onClick={() => this.props.toggleShowConnectForm()}
+        />
+        <div className={styles['overview-page-connection-form-modal']}>
+          <ConnectionForm />
+        </div>
+      </React.Fragment>
     )
   }
 
@@ -46,5 +60,11 @@ const mapStateToProps = (state: AppState): StateProps => {
   };
 };
 
-export default connect(mapStateToProps, null)(Overview);
+const mapDispatchToProps: DispatchProps = {
+  toggleShowConnectForm: (): ToggleShowConnectionFormAction => ({
+    type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM
+  })
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Overview);
 
