@@ -2,8 +2,8 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import FileInputButton from '../file-input-button';
-import FormInput from '../form-input';
+import FileInputButton from '../../form/file-input-button';
+import FormInput from '../../form/form-input';
 import {
   ActionTypes,
   OnChangeSSLCAAction,

@@ -23,18 +23,18 @@ type DispatchProps = {
 };
 
 export class Overview extends React.PureComponent<StateProps & DispatchProps> {
-  renderConnectForm() {
+  renderConnectForm(): React.ReactNode {
     return (
       <React.Fragment>
         <div
           className={styles['overview-page-connect-form-modal-back']}
-          onClick={() => this.props.toggleShowConnectForm()}
+          onClick={(): void => this.props.toggleShowConnectForm()}
         />
         <div className={styles['overview-page-connection-form-modal']}>
           <ConnectionForm />
         </div>
       </React.Fragment>
-    )
+    );
   }
 
   render(): React.ReactNode {

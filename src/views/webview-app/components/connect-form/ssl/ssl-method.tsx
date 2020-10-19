@@ -5,8 +5,8 @@ import { ActionTypes, SSLMethodChangedAction } from '../../../store/actions';
 import SSL_METHODS, {
   SSLMethodOptions
 } from '../../../connection-model/constants/ssl-methods';
-import FormGroup from '../form-group';
-import FormItemSelect from '../form-item-select';
+import FormGroup from '../../form/form-group';
+import FormItemSelect from '../../form/form-item-select';
 import SSLServerValidation from './ssl-server-validation';
 import SSLServerClientValidation from './ssl-server-client-validation';
 

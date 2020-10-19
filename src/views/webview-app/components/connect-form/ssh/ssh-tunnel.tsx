@@ -5,8 +5,8 @@ import { ActionTypes, SSHTunnelChangedAction } from '../../../store/actions';
 import SSH_TUNNEL_TYPES, {
   SSHTunnelOptions,
 } from '../../../connection-model/constants/ssh-tunnel-types';
-import FormGroup from '../form-group';
-import FormItemSelect from '../form-item-select';
+import FormGroup from '../../form/form-group';
+import FormItemSelect from '../../form/form-item-select';
 import SSHTunnelPasswordValidation from './ssh-tunnel-password-validation';
 import SSHTunnelIdentityFileValidation from './ssh-tunnel-identity-file-validation';
 

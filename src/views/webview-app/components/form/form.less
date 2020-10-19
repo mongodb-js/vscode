@@ -1,0 +1,145 @@
+@import "~../../styles/_variables";
+
+.form-group {
+  display: block;
+}
+
+.form-item {
+  margin: 15px auto 15px;
+  width: 100%;
+
+  .form-toggle {
+    margin-top: 5px;
+
+    div {
+      border: none;
+      background-color: var(--vscode-searchEditor-textInputBorder,
+          rgba(161, 161, 161, 0.5));
+    }
+  }
+
+  &-has-error {
+    .form-control {
+      border: 1px solid @alertRed;
+
+      &:focus {
+        border: 1px solid @alertRed;
+      }
+    }
+
+    label {
+      color: @alertRed;
+
+      i {
+        margin-right: 5px;
+      }
+    }
+
+    .form-item-file-button {
+      border-color: @alertRed;
+    }
+  }
+
+  label {
+    .help-icon {
+      display: inline-block;
+      font-size: inherit;
+      text-rendering: auto;
+      margin: 0 0 0 5px;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.5);
+
+      :hover {
+        color: #fbb129;
+      }
+    }
+  }
+}
+
+.form-item-file-button {
+  width: 100%;
+  background: var(--vscode-input-background, transparent);
+  border: 1px solid var(--vscode-searchEditor-textInputBorder, rgba(161, 161, 161, 0.5));
+  border-radius: 3px;
+  color: var(--vscode-editor-foreground);
+  padding: 8px 4px 9px;
+  margin: 0;
+
+  .file-icon {
+    display: inline-block;
+    font-size: inherit;
+    text-rendering: auto;
+    margin: 0 5px 0 0;
+    color: var(--vscode-editor-foreground);
+  }
+
+  i.help {
+    display: inline-block;
+    font-size: inherit;
+    text-rendering: auto;
+    margin: 0 0 0 5px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+
+    :hover {
+      color: #fbb129;
+    }
+  }
+}
+
+.form-group-separator {
+  margin-bottom: 20px;
+}
+
+.form-control {
+  display: block;
+  padding: 6px 10px;
+  font-size: 14px;
+  height: 32px;
+  line-height: 32px;
+  color: var(--vscode-input-foreground);
+  background-color: var(--vscode-input-background);
+  background-image: none;
+  border: 1px solid var(--vscode-searchEditor-textInputBorder, transparent);
+  width: 100%;
+  border-radius: 3px;
+
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+
+  &:focus {
+    border: 1px solid var(--vscode-focusBorder);
+  }
+
+  ::placeholder {
+    color: var(--vscode-input-placeholderForeground);
+  }
+}
+
+.btn {
+  background-color: @green;
+  color: white;
+  padding: 9px 12px 10px;
+  margin: 6px 0 0 0;
+  display: inline-block;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
+  transition: 200ms all;
+  font-size: 14px;
+  background-color: rgb(19, 170, 82);
+  background-image: linear-gradient(rgb(19, 170, 82), rgb(24, 150, 76));
+  border-radius: 3px;
+  text-decoration: none;
+  transition: all 120ms ease 0s;
+  overflow: hidden;
+  border: 1px solid rgb(21, 130, 66);
+  box-shadow: rgb(21, 130, 66) 0px -1px 0px inset;
+
+  &:hover {
+    background-color: #109648;
+    background-image: linear-gradient(#129f4c, #148040);
+  }
+}

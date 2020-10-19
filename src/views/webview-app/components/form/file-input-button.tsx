@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faFileUpload } from '@fortawesome/free-solid-svg-icons';
 
-const styles = require('../../connect.module.less');
+const styles = require('./form.less');
 
 type props = {
   error: boolean;
@@ -65,7 +65,7 @@ class FileInputButton extends React.Component<props> {
         <a target="_blank" rel="noopener" href={this.props.link}>
           <FontAwesomeIcon
             icon={faInfoCircle}
-            className={classnames(styles['help-icon'])}
+            className={styles['help-icon']}
           />
         </a>
       );
@@ -92,7 +92,11 @@ class FileInputButton extends React.Component<props> {
           <span>{label}</span>
           {this.renderInfoSprinkle()}
         </label>
-        <button id={id} className={buttonClassName} onClick={this.onClick}>
+        <button
+          id={id}
+          className={buttonClassName}
+          onClick={this.onClick}
+        >
           <FontAwesomeIcon
             icon={faFileUpload}
             className={styles['file-icon']}

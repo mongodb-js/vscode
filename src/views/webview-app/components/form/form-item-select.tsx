@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-const styles = require('../../connect.module.less');
+const styles = require('./form.less');
 
 type props = {
   label: string;
@@ -16,7 +16,7 @@ class FormItemSelect extends React.Component<props> {
   /**
    * Prepares options for the form item select.
    *
-   * @param {Array} options - A list of otions for select.
+   * @param {Array} options - A list of options for select.
    *
    * @returns {React.Component}
    */

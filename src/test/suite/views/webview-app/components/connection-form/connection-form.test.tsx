@@ -6,7 +6,7 @@ import ConnectionModel from '../../../../../../views/webview-app/connection-mode
 import {
   ConnectionForm
 } from '../../../../../../views/webview-app/components/connect-form/connection-form';
-import FormActions from '../../../../../../views/webview-app/components/connect-form/form-actions';
+import FormActions from '../../../../../../views/webview-app/components/form/form-actions';
 
 describe('Webview Connection Form Component Test Suite', () => {
   test('it shows a connection form', () => {

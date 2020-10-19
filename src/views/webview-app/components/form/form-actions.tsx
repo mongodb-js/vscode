@@ -6,7 +6,7 @@ import { ActionTypes, ConnectAction } from '../../store/actions';
 import FormGroup from './form-group';
 import ConnectionModel from '../../connection-model/connection-model';
 
-const styles = require('../../connect.module.less');
+const styles = require('./form.less');
 
 type DispatchProps = {
   onConnectClicked: () => void;

@@ -7,8 +7,8 @@ import {
   PasswordChangedAction,
   UsernameChangedAction
 } from '../../../store/actions';
-import FormInput from '../form-input';
-import FormGroup from '../form-group';
+import FormInput from '../../form/form-input';
+import FormGroup from '../../form/form-group';
 
 type DispatchProps = {
   onAuthSourceChanged: (newAuthSource: string) => void;

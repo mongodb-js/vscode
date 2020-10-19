@@ -9,8 +9,8 @@ import {
   SSHTunnelUsernameChangedAction,
 } from '../../../store/actions';
 import { AppState } from '../../../store/store';
-import FormInput from '../form-input';
-import FormGroup from '../form-group';
+import FormInput from '../../form/form-input';
+import FormGroup from '../../form/form-group';
 
 type DispatchProps = {
   onSSHTunnelHostnameChanged: (sshTunnelHostname: string) => void;

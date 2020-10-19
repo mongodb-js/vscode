@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import { ActionTypes, ReadPreferenceChangedAction } from '../../store/actions';
-import FormItemSelect from './form-item-select';
+import FormItemSelect from '../form/form-item-select';
 import READ_PREFERENCES from '../../connection-model/constants/read-preferences';
 
 type DispatchProps = {
