@@ -6,7 +6,7 @@
   font-size: 14px;
 }
 
-.overview-page-connection-form-modal {
+.connect-form-modal {
   position: absolute;
   top: 54px;
   min-width: 700px;
@@ -16,7 +16,7 @@
   z-index: 10;
 }
 
-.overview-page-connect-form-modal-back {
+.connect-form-modal-back {
   background-color: rgba(37, 37, 38, 0.7);
   position: fixed;
   top: 0;
@@ -24,6 +24,21 @@
   right: 0;
   bottom: 0;
   z-index: 5;
+}
+
+.connect-form-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 18px;
+  background: none;
+  color: var(--vscode-editor-foreground);
+  transition: 250ms all;
+  border: none;
+
+  &:hover {
+    cursor: pointer;
+  }
 }
 
 .overview-header-bar {

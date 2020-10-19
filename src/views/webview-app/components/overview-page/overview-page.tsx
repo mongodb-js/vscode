@@ -27,10 +27,16 @@ export class Overview extends React.PureComponent<StateProps & DispatchProps> {
     return (
       <React.Fragment>
         <div
-          className={styles['overview-page-connect-form-modal-back']}
+          className={styles['connect-form-modal-back']}
           onClick={(): void => this.props.toggleShowConnectForm()}
         />
-        <div className={styles['overview-page-connection-form-modal']}>
+        <div className={styles['connect-form-modal']}>
+          <button
+            className={styles['connect-form-modal-close']}
+            onClick={(): void => this.props.toggleShowConnectForm()}
+          >
+            X
+          </button>
           <ConnectionForm />
         </div>
       </React.Fragment>
