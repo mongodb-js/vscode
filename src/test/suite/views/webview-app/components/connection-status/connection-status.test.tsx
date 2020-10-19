@@ -1,13 +1,6 @@
 import assert from 'assert';
 import * as React from 'react';
-import { mount, shallow } from 'enzyme';
-import * as sinon from 'sinon';
-import { createStore } from 'redux';
-import { Provider } from 'react-redux';
-
-import {
-  rootReducer
-} from '../../../../../../views/webview-app/store/store';
+import { shallow } from 'enzyme';
 import {
   ConnectionStatus
 } from '../../../../../../views/webview-app/components/connection-status/connection-status';
@@ -19,8 +12,8 @@ describe('Connection Status Component Test Suite', () => {
       const wrapper = shallow(<ConnectionStatus
         activeConnectionName="Active connection name"
         connectionStatus={CONNECTION_STATUS.CONNECTED}
-        onClickCreatePlayground={() => {}}
-        requestConnectionStatus={() => {}}
+        onClickCreatePlayground={(): void => {}}
+        requestConnectionStatus={(): void => {}}
       />);
       assert(wrapper.text().includes('Connected to:'));
       assert(wrapper.text().includes('Active connection name'));
@@ -30,8 +23,8 @@ describe('Connection Status Component Test Suite', () => {
       const wrapper = shallow(<ConnectionStatus
         activeConnectionName="Active connection name"
         connectionStatus={CONNECTION_STATUS.CONNECTED}
-        onClickCreatePlayground={() => {}}
-        requestConnectionStatus={() => {}}
+        onClickCreatePlayground={(): void => {}}
+        requestConnectionStatus={(): void => {}}
       />);
       assert(wrapper.find('button').exists());
     });
@@ -42,8 +35,8 @@ describe('Connection Status Component Test Suite', () => {
       const wrapper = shallow(<ConnectionStatus
         activeConnectionName=""
         connectionStatus={CONNECTION_STATUS.DISCONNECTED}
-        onClickCreatePlayground={() => {}}
-        requestConnectionStatus={() => {}}
+        onClickCreatePlayground={(): void => {}}
+        requestConnectionStatus={(): void => {}}
       />);
       assert(wrapper.text().includes('Not connected'));
     });
@@ -52,8 +45,8 @@ describe('Connection Status Component Test Suite', () => {
       const wrapper = shallow(<ConnectionStatus
         activeConnectionName=""
         connectionStatus={CONNECTION_STATUS.DISCONNECTED}
-        onClickCreatePlayground={() => {}}
-        requestConnectionStatus={() => {}}
+        onClickCreatePlayground={(): void => {}}
+        requestConnectionStatus={(): void => {}}
       />);
       assert(wrapper.find('button').exists() === false);
     });
@@ -64,8 +57,8 @@ describe('Connection Status Component Test Suite', () => {
       const wrapper = shallow(<ConnectionStatus
         activeConnectionName=""
         connectionStatus={CONNECTION_STATUS.CONNECTING}
-        onClickCreatePlayground={() => {}}
-        requestConnectionStatus={() => {}}
+        onClickCreatePlayground={(): void => {}}
+        requestConnectionStatus={(): void => {}}
       />);
       assert(wrapper.text().includes('Connecting...'));
     });
@@ -76,8 +69,8 @@ describe('Connection Status Component Test Suite', () => {
       const wrapper = shallow(<ConnectionStatus
         activeConnectionName=""
         connectionStatus={CONNECTION_STATUS.DISCONNECTING}
-        onClickCreatePlayground={() => {}}
-        requestConnectionStatus={() => {}}
+        onClickCreatePlayground={(): void => {}}
+        requestConnectionStatus={(): void => {}}
       />);
       assert(wrapper.text().includes('Disconnecting...'));
     });
@@ -88,8 +81,8 @@ describe('Connection Status Component Test Suite', () => {
       const wrapper = shallow(<ConnectionStatus
         activeConnectionName=""
         connectionStatus={CONNECTION_STATUS.LOADING}
-        onClickCreatePlayground={() => {}}
-        requestConnectionStatus={() => {}}
+        onClickCreatePlayground={(): void => {}}
+        requestConnectionStatus={(): void => {}}
       />);
       assert(wrapper.text().includes('Loading...'));
     });

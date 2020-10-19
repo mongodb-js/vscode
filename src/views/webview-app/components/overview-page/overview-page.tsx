@@ -3,14 +3,10 @@ import { connect } from 'react-redux';
 
 import { AppState } from '../../store/store';
 import OverviewHeader from './overview-header';
-import ConnectionForm from '../connect-form/connection-form';
+import ConnectFormModal from '../connect-form-modal/connect-form-modal';
 import ConnectHelper from '../connect-helper/connect-helper';
 import ConnectionStatus from '../connection-status/connection-status';
 import AtlasCTA from '../atlas-cta/atlas-cta';
-import {
-  ActionTypes,
-  ToggleShowConnectionFormAction
-} from '../../store/actions';
 
 const styles = require('./overview-page.less');
 
@@ -18,37 +14,13 @@ type StateProps = {
   showConnectForm: boolean;
 };
 
-type DispatchProps = {
-  toggleShowConnectForm: () => void;
-};
-
-export class Overview extends React.PureComponent<StateProps & DispatchProps> {
-  renderConnectForm(): React.ReactNode {
-    return (
-      <React.Fragment>
-        <div
-          className={styles['connect-form-modal-back']}
-          onClick={(): void => this.props.toggleShowConnectForm()}
-        />
-        <div className={styles['connect-form-modal']}>
-          <button
-            className={styles['connect-form-modal-close']}
-            onClick={(): void => this.props.toggleShowConnectForm()}
-          >
-            X
-          </button>
-          <ConnectionForm />
-        </div>
-      </React.Fragment>
-    );
-  }
-
+export class Overview extends React.PureComponent<StateProps> {
   render(): React.ReactNode {
     const { showConnectForm } = this.props;
 
     return (
       <div className={styles.overview}>
-        {showConnectForm && this.renderConnectForm()}
+        {showConnectForm && <ConnectFormModal />}
         <OverviewHeader />
         <ConnectionStatus />
         <ConnectHelper />
@@ -66,11 +38,5 @@ const mapStateToProps = (state: AppState): StateProps => {
   };
 };
 
-const mapDispatchToProps: DispatchProps = {
-  toggleShowConnectForm: (): ToggleShowConnectionFormAction => ({
-    type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM
-  })
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Overview);
+export default connect(mapStateToProps, null)(Overview);
 
