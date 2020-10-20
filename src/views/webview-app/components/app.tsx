@@ -40,7 +40,7 @@ type DispatchProps = {
   ) => void;
 };
 
-export class App extends React.Component<DispatchProps& StateProps> {
+export class App extends React.Component<DispatchProps & StateProps> {
   componentDidMount(): void {
     window.addEventListener('message', (event) => {
       const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;

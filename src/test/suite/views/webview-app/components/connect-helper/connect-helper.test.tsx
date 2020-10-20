@@ -11,7 +11,6 @@ import {
   initialState,
   rootReducer
 } from '../../../../../../views/webview-app/store/store';
-import { WEBVIEW_VIEWS } from '../../../../../../views/webview-app/extension-app-message-constants';
 
 describe('Connect Helper Component Test Suite', () => {
   describe('when rendered', () => {

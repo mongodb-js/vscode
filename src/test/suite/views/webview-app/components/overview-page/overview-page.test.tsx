@@ -2,7 +2,7 @@ import assert from 'assert';
 import * as React from 'react';
 import { shallow } from 'enzyme';
 
-import { Overview } from '../../../../../../views/webview-app/components/overview-page/overview-page';
+import { OverviewPage } from '../../../../../../views/webview-app/components/overview-page/overview-page';
 import ConnectHelper from '../../../../../../views/webview-app/components/connect-helper/connect-helper';
 import ConnectionStatus from '../../../../../../views/webview-app/components/connection-status/connection-status';
 import OverviewHeader from '../../../../../../views/webview-app/components/overview-page/overview-header';
@@ -10,7 +10,7 @@ import ConnectionFormModal from '../../../../../../views/webview-app/components/
 
 describe('Overview Page Component Test Suite', () => {
   describe('when rendered', () => {
-    const wrapper = shallow(<Overview showConnectForm={false} />);
+    const wrapper = shallow(<OverviewPage showConnectForm={false} />);
 
     test('it shows an overview header', () => {
       assert(wrapper.find(OverviewHeader).exists());
@@ -30,7 +30,7 @@ describe('Overview Page Component Test Suite', () => {
   });
 
   describe('when rendered with showConnectForm', () => {
-    const wrapper = shallow(<Overview showConnectForm />);
+    const wrapper = shallow(<OverviewPage showConnectForm />);
 
     test('it shows the connect form', () => {
       assert(wrapper.find(ConnectionFormModal).exists());

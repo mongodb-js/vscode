@@ -14,7 +14,7 @@ type StateProps = {
   showConnectForm: boolean;
 };
 
-export class Overview extends React.PureComponent<StateProps> {
+export class OverviewPage extends React.Component<StateProps> {
   render(): React.ReactNode {
     const { showConnectForm } = this.props;
 
@@ -38,5 +38,4 @@ const mapStateToProps = (state: AppState): StateProps => {
   };
 };
 
-export default connect(mapStateToProps, null)(Overview);
-
+export default connect(mapStateToProps, null)(OverviewPage);
