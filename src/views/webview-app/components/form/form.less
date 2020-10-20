@@ -8,16 +8,6 @@
   margin: 15px auto 15px;
   width: 100%;
 
-  .form-toggle {
-    margin-top: 5px;
-
-    div {
-      border: none;
-      background-color: var(--vscode-searchEditor-textInputBorder,
-          rgba(161, 161, 161, 0.5));
-    }
-  }
-
   &-has-error {
     .form-control {
       border: 1px solid @alertRed;
@@ -141,5 +131,45 @@
   &:hover {
     background-color: #109648;
     background-image: linear-gradient(#129f4c, #148040);
+  }
+}
+
+.form-message-container {
+  width: 100%;
+  padding: 0px;
+  margin-top: 5px;
+  color: @pw;
+  font-size: small;
+  font-weight: bold;
+
+  &-error {
+    background: @alertRed;
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: #fcebe2;
+    border: 1px solid #f9d3c5;
+    word-break: break-all;
+    color: #8f221b;
+    font-size: small;
+    font-weight: bold;
+  }
+
+  &-syntax-error {
+    background: @warningText;
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: #fef7e3;
+    border: 1px solid #fef2c8;
+    word-break: break-all;
+    color: #86681d;
+    font-size: small;
+    font-weight: bold;
+  }
+
+  &-success {
+    color: white;
+    background: @green;
+    padding: 4px 10px;
+    border-radius: 3px;
   }
 }
