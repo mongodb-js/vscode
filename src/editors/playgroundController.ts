@@ -80,12 +80,14 @@ export default class PlaygroundController {
       }
     );
 
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
+    const onEditorChange = (editor) => {
       if (editor?.document.languageId !== 'Log') {
         this._activeTextEditor = editor;
         log.info('Active editor path', editor?.document.uri?.path);
       }
-    });
+    };
+    vscode.window.onDidChangeActiveTextEditor(onEditorChange);
+    onEditorChange(vscode.window.activeTextEditor);
 
     vscode.window.onDidChangeTextEditorSelection((editor) => {
       if (
