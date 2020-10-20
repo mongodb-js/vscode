@@ -287,5 +287,31 @@ suite('Playground Controller Test Suite', function () {
         expect(codeLens?.length).to.be.equal(1);
       });
     });
+
+    test('playground controller loads the active editor on start', () => {
+      const activeTestEditorMock = {
+        document: {
+          languageId: '',
+          uri: {
+            path: 'test'
+          }
+        }
+      };
+
+      sandbox.replaceGetter(
+        vscode.window,
+        'activeTextEditor',
+        () => activeTestEditorMock
+      );
+
+      const playgroundControllerTest = new PlaygroundController(
+        mockExtensionContext,
+        testConnectionController,
+        mockLanguageServerController as LanguageServerController,
+        testTelemetryController
+      );
+
+      expect(playgroundControllerTest._activeTextEditor).to.deep.equal(activeTestEditorMock);
+    });
   });
 });
