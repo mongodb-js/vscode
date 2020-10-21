@@ -21,9 +21,9 @@ describe('App Component Test Suite', () => {
     test('it shows a connection form', () => {
       const wrapper = shallow(<NotConnectedApp
         currentView={WEBVIEW_VIEWS.CONNECT}
-        onConnectedEvent={() => { }}
-        onFilePickerEvent={() => { }}
-        setConnectionStatus={() => { }}
+        onConnectedEvent={(): void => { }}
+        onFilePickerEvent={(): void => { }}
+        setConnectionStatus={(): void => { }}
       />);
       assert(wrapper.find(ConnectionForm).exists());
       assert(!wrapper.find(OverviewPage).exists());
@@ -34,9 +34,9 @@ describe('App Component Test Suite', () => {
     test('it shows a connection form', () => {
       const wrapper = shallow(<NotConnectedApp
         currentView={WEBVIEW_VIEWS.OVERVIEW}
-        onConnectedEvent={() => { }}
-        onFilePickerEvent={() => { }}
-        setConnectionStatus={() => { }}
+        onConnectedEvent={(): void => { }}
+        onFilePickerEvent={(): void => { }}
+        setConnectionStatus={(): void => { }}
       />);
       assert(wrapper.find(OverviewPage).exists());
       assert(!wrapper.find(ConnectionForm).exists());
@@ -52,7 +52,7 @@ describe('App Component Test Suite', () => {
 
     beforeEach(() => {
       fakeVscodeWindowPostMessage = sinon.fake.returns(null);
-      fakeAddEventListener = (eventName, eventFn) => {
+      fakeAddEventListener = (eventName, eventFn): void => {
         if (eventName === 'message') {
           fakeOnEventFunction = eventFn;
         }

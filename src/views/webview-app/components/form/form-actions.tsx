@@ -6,7 +6,7 @@ import { ActionTypes, ConnectAction } from '../../store/actions';
 import FormGroup from './form-group';
 import ConnectionModel from '../../connection-model/connection-model';
 
-const styles = require('../../connect.module.less');
+const styles = require('./form.less');
 
 type DispatchProps = {
   onConnectClicked: () => void;
@@ -81,7 +81,7 @@ class FormActions extends React.Component<props> {
    */
   renderMessage(): React.ReactNode {
     let message: React.ReactNode = this.props.connectionMessage;
-    let colorStyle = styles['connection-message-container-success'];
+    let colorStyle = styles['form-message-container-success'];
     let hasMessage = false;
 
     if (this.props.isConnected) {
@@ -92,12 +92,12 @@ class FormActions extends React.Component<props> {
     } else if (this.hasError()) {
       hasMessage = true;
       message = this.props.errorMessage;
-      colorStyle = styles['connection-message-container-error'];
+      colorStyle = styles['form-message-container-error'];
     }
 
     if (hasMessage === true) {
       return (
-        <div className={styles['connection-message-container']}>
+        <div className={styles['form-message-container']}>
           <div className={classnames(colorStyle)}>
             <div className={styles['connection-message']}>{message}</div>
           </div>

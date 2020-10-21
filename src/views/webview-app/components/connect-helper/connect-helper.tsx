@@ -4,15 +4,14 @@ import { connect } from 'react-redux';
 import {
   ActionTypes,
   OpenConnectionStringInputAction,
-  SetCurrentViewAction
+  ToggleShowConnectionFormAction
 } from '../../store/actions';
-import { WEBVIEW_VIEWS } from '../../extension-app-message-constants';
 
 const styles = require('./connect-helper.less');
 
 type DispatchProps = {
   onOpenConnectionStringInput: () => void;
-  onOpenConnectionFrom: () => void;
+  onOpenConnectionForm: () => void;
 };
 
 type props = DispatchProps;
@@ -28,7 +27,7 @@ function getOSCommandShortcutName(): string {
 export class ConnectHelper extends React.Component<props> {
   render(): React.ReactNode {
     const {
-      onOpenConnectionFrom,
+      onOpenConnectionForm,
       onOpenConnectionStringInput
     } = this.props;
 
@@ -68,7 +67,7 @@ export class ConnectHelper extends React.Component<props> {
                 styles['connect-helper-connect-option-button'],
                 styles['connect-helper-connection-form-button']
               )}
-              onClick={(): void => onOpenConnectionFrom()}
+              onClick={(): void => onOpenConnectionForm()}
             >
               Open form
             </button>
@@ -86,9 +85,8 @@ const mapDispatchToProps: DispatchProps = {
   onOpenConnectionStringInput: (): OpenConnectionStringInputAction => ({
     type: ActionTypes.OPEN_CONNECTION_STRING_INPUT
   }),
-  onOpenConnectionFrom: (): SetCurrentViewAction => ({
-    type: ActionTypes.SET_CURRENT_VIEW,
-    currentView: WEBVIEW_VIEWS.CONNECT
+  onOpenConnectionForm: (): ToggleShowConnectionFormAction => ({
+    type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM
   })
 };
 

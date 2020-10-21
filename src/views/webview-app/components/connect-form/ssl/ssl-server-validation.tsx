@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import FileInputButton from '../file-input-button';
+import FileInputButton from '../../form/file-input-button';
 import { ActionTypes, OnChangeSSLCAAction } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 

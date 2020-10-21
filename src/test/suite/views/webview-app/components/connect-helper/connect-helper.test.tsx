@@ -7,9 +7,10 @@ import { createStore } from 'redux';
 
 import ConnectHelper from '../../../../../../views/webview-app/components/connect-helper/connect-helper';
 import {
+  AppState,
+  initialState,
   rootReducer
 } from '../../../../../../views/webview-app/store/store';
-import { WEBVIEW_VIEWS } from '../../../../../../views/webview-app/extension-app-message-constants';
 
 describe('Connect Helper Component Test Suite', () => {
   describe('when rendered', () => {
@@ -27,8 +28,9 @@ describe('Connect Helper Component Test Suite', () => {
       );
 
       store = createStore(rootReducer, {
+        ...initialState,
         currentView: 'OVERVIEW'
-      } as any);
+      } as AppState);
 
       wrapper = mount(
         <Provider
@@ -49,10 +51,10 @@ describe('Connect Helper Component Test Suite', () => {
       assert(fakeVscodeWindowPostMessage.firstCall.args[0].command === 'OPEN_CONNECTION_STRING_INPUT');
     });
 
-    test('when onOpenConnectionFrom is clicked it changes the webview to connect', () => {
-      assert(store.getState().currentView === WEBVIEW_VIEWS.OVERVIEW);
+    test('when onOpenConnectionFrom is clicked it shows the connect form modal', () => {
+      assert(store.getState().showConnectForm === false);
       wrapper.find('button').at(1).simulate('click');
-      assert(store.getState().currentView === WEBVIEW_VIEWS.CONNECT);
+      assert(store.getState().showConnectForm);
     });
   });
 });

@@ -5,8 +5,8 @@ import { ActionTypes, AuthStrategyChangedAction } from '../../../store/actions';
 import AUTH_STRATEGIES, {
   AuthStrategies
 } from '../../../connection-model/constants/auth-strategies';
-import FormGroup from '../form-group';
-import FormItemSelect from '../form-item-select';
+import FormGroup from '../../form/form-group';
+import FormItemSelect from '../../form/form-item-select';
 import Kerberos from './kerberos';
 import LDAP from './ldap';
 import MongoDBAuth from './mongodb-authentication';

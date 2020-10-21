@@ -1,16 +1,26 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
+import { AppState } from '../../store/store';
 import OverviewHeader from './overview-header';
+import ConnectFormModal from '../connect-form-modal/connect-form-modal';
 import ConnectHelper from '../connect-helper/connect-helper';
 import ConnectionStatus from '../connection-status/connection-status';
 import AtlasCTA from '../atlas-cta/atlas-cta';
 
 const styles = require('./overview-page.less');
 
-export class Overview extends React.PureComponent {
+type StateProps = {
+  showConnectForm: boolean;
+};
+
+export class OverviewPage extends React.Component<StateProps> {
   render(): React.ReactNode {
+    const { showConnectForm } = this.props;
+
     return (
       <div className={styles.overview}>
+        {showConnectForm && <ConnectFormModal />}
         <OverviewHeader />
         <ConnectionStatus />
         <ConnectHelper />
@@ -22,4 +32,10 @@ export class Overview extends React.PureComponent {
   }
 }
 
-export default Overview;
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    showConnectForm: state.showConnectForm
+  };
+};
+
+export default connect(mapStateToProps, null)(OverviewPage);

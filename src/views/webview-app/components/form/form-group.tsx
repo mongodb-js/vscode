@@ -1,7 +1,7 @@
 import * as React from 'react';
 import classnames from 'classnames';
 
-const styles = require('../../connect.module.less');
+const styles = require('./form.less');
 
 type props = {
   id: string;

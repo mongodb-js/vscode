@@ -2,7 +2,7 @@ import READ_PREFERENCES from '../connection-model/constants/read-preferences';
 import AUTH_STRATEGIES from '../connection-model/constants/auth-strategies';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
-import { CONNECTION_STATUS, WEBVIEW_VIEWS } from '../extension-app-message-constants';
+import { CONNECTION_STATUS } from '../extension-app-message-constants';
 
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',
@@ -27,7 +27,6 @@ export enum ActionTypes {
   REPLICA_SET_CHANGED = 'REPLICA_SET_CHANGED',
   REQUEST_CONNECTION_STATUS = 'REQUEST_CONNECTION_STATUS',
   SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS',
-  SET_CURRENT_VIEW = 'SET_CURRENT_VIEW',
   SSH_TUNNEL_CHANGED = 'SSH_TUNNEL_CHANGED',
   SSH_TUNNEL_IDENTITY_FILE_CHANGED = 'SSH_TUNNEL_IDENTITY_FILE_CHANGED',
   SSH_TUNNEL_HOSTNAME_CHANGED = 'SSH_TUNNEL_HOSTNAME_CHANGED',
@@ -39,6 +38,7 @@ export enum ActionTypes {
   SSL_CERT_CHANGED = 'SSL_CERT_CHANGED',
   SSL_METHOD_CHANGED = 'SSL_METHOD_CHANGED',
   SSL_PASS_CHANGED = 'SSL_PASS_CHANGED',
+  TOGGLE_SHOW_CONNECTION_FORM = 'TOGGLE_SHOW_CONNECTION_FORM',
   USERNAME_CHANGED = 'USERNAME_CHANGED',
   X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED',
 }
@@ -169,11 +169,6 @@ export interface SetConnectionStatusAction extends BaseAction {
   activeConnectionName: string;
 }
 
-export interface SetCurrentViewAction extends BaseAction {
-  type: ActionTypes.SET_CURRENT_VIEW;
-  currentView: WEBVIEW_VIEWS;
-}
-
 export interface SSHTunnelChangedAction extends BaseAction {
   type: ActionTypes.SSH_TUNNEL_CHANGED;
   sshTunnel: SSH_TUNNEL_TYPES;
@@ -229,6 +224,10 @@ export interface SSLPassChangedAction extends BaseAction {
   sslPass: string;
 }
 
+export interface ToggleShowConnectionFormAction extends BaseAction {
+  type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM;
+}
+
 export interface UsernameChangedAction extends BaseAction {
   type: ActionTypes.USERNAME_CHANGED;
   mongodbUsername: string;
@@ -267,7 +266,6 @@ export type Actions =
   | ReplicaSetChangedAction
   | RequestConnectionStatusAction
   | SetConnectionStatusAction
-  | SetCurrentViewAction
   | SSHTunnelChangedAction
   | SSHTunnelHostnameChangedAction
   | SSHTunnelIdentityFileChangedAction
@@ -279,5 +277,6 @@ export type Actions =
   | SSLCertChangedAction
   | SSLMethodChangedAction
   | SSLPassChangedAction
+  | ToggleShowConnectionFormAction
   | UsernameChangedAction
   | X509UsernameChangedAction;

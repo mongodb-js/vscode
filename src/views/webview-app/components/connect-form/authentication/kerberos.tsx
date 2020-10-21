@@ -7,7 +7,7 @@ import {
   KerberosParameters,
   KerberosParametersChanged
 } from '../../../store/actions';
-import FormInput from '../form-input';
+import FormInput from '../../form/form-input';
 
 const styles = require('../../../connect.module.less');
 

@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
-const styles = require('../../connect.module.less');
+const styles = require('./form.less');
 
 type props = {
   label: string;
@@ -42,7 +42,7 @@ class FormInput extends React.PureComponent<props> {
         <a target="_blank" rel="noopener" href={this.props.linkTo}>
           <FontAwesomeIcon
             icon={faInfoCircle}
-            className={classnames(styles['help-icon'])}
+            className={styles['help-icon']}
           />
         </a>
       );

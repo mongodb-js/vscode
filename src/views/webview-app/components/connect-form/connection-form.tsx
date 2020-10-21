@@ -1,4 +1,3 @@
-import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
@@ -7,7 +6,7 @@ import {
   ConnectionFormChangedAction,
   OpenConnectionStringInputAction
 } from '../../store/actions';
-import FormGroup from './form-group';
+import FormGroup from '../form/form-group';
 import HostInput from './host/host-input';
 import PortInput from './host/port-input';
 import SRVInput from './host/srv-input';
@@ -16,11 +15,11 @@ import ReplicaSetInput from './replica-set-input';
 import ReadPreferenceSelect from './read-preference-select';
 import SSLMethod from './ssl/ssl-method';
 import SSHTunnel from './ssh/ssh-tunnel';
-import FormActions from './form-actions';
+import FormActions from '../form/form-actions';
 import ConnectionModel from '../../connection-model/connection-model';
 import { AppState } from '../../store/store';
 
-const styles = require('../../connect.module.less');
+const styles = require('./connection-form.less');
 
 type StateProps = {
   connectionMessage: string;
@@ -163,7 +162,7 @@ export class ConnectionForm extends React.Component<props> {
     return (
       <form
         onChange={onConnectionFormChanged}
-        className={classnames(styles['connect-form'])}
+        className={styles['connection-form']}
       >
         <h1>Connect to MongoDB</h1>
         <div>
@@ -173,7 +172,7 @@ export class ConnectionForm extends React.Component<props> {
           </a>
         </div>
         {this.renderConnectionMessage()}
-        <div className={classnames(styles.fields)}>
+        <div className={styles['connection-form-fields']}>
           {this.renderHostnameArea()}
           {this.renderConnectionOptionsArea()}
         </div>
