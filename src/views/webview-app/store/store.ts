@@ -11,6 +11,7 @@ import {
   MESSAGE_TYPES,
   WEBVIEW_VIEWS
 } from '../extension-app-message-constants';
+import { CONNECTION_FORM_TABS } from './constants';
 
 interface VSCodeApi {
   postMessage: (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) => void;
@@ -21,7 +22,9 @@ const vscode = acquireVsCodeApi();
 
 export interface AppState {
   activeConnectionName: string;
+  connectionFormTab: CONNECTION_FORM_TABS;
   connectionMessage: string;
+  connectionStatus: CONNECTION_STATUS;
   currentConnection: ConnectionModel;
   currentView: WEBVIEW_VIEWS;
   isValid: boolean;
@@ -31,12 +34,13 @@ export interface AppState {
   showConnectForm: boolean;
   syntaxErrorMessage: string;
   savedMessage: string;
-  connectionStatus: CONNECTION_STATUS;
 }
 
 export const initialState: AppState = {
   activeConnectionName: '',
+  connectionFormTab: CONNECTION_FORM_TABS.GENERAL,
   connectionMessage: '',
+  connectionStatus: CONNECTION_STATUS.LOADING,
   currentConnection: new ConnectionModel(),
   currentView: window[INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME],
   isValid: true,
@@ -45,8 +49,7 @@ export const initialState: AppState = {
   errorMessage: '',
   showConnectForm: false,
   syntaxErrorMessage: '',
-  savedMessage: '',
-  connectionStatus: CONNECTION_STATUS.LOADING
+  savedMessage: ''
 };
 
 const showFilePicker = (
@@ -296,6 +299,12 @@ export const rootReducer = (
       });
 
       return { ...state };
+
+    case ActionTypes.SET_CONNECTION_FORM_TAB:
+      return {
+        ...state,
+        connectionFormTab: action.connectionFormTab
+      };
 
     case ActionTypes.SET_CONNECTION_STATUS:
       return {

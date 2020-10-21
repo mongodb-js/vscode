@@ -1,10 +1,11 @@
+import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
 import {
   ActionTypes,
   ConnectionFormChangedAction,
-  OpenConnectionStringInputAction
+  SetConnectionFormTabAction
 } from '../../store/actions';
 import FormGroup from '../form/form-group';
 import HostInput from './host/host-input';
@@ -18,10 +19,12 @@ import SSHTunnel from './ssh/ssh-tunnel';
 import FormActions from '../form/form-actions';
 import ConnectionModel from '../../connection-model/connection-model';
 import { AppState } from '../../store/store';
+import { CONNECTION_FORM_TABS } from '../../store/constants';
 
 const styles = require('./connection-form.less');
 
 type StateProps = {
+  connectionFormTab: CONNECTION_FORM_TABS;
   connectionMessage: string;
   currentConnection: ConnectionModel;
   errorMessage: string;
@@ -33,17 +36,13 @@ type StateProps = {
 
 type DispatchProps = {
   onConnectionFormChanged: () => void;
-  onOpenConnectionStringInput: () => void;
+  setConnectionFormTab: (connectionFormTab: CONNECTION_FORM_TABS) => void;
 };
 
 type props = StateProps & DispatchProps;
 
 export class ConnectionForm extends React.Component<props> {
   static displayName = 'ConnectionForm';
-
-  onConnectWithConnectionStringClicked = (): void => {
-    this.props.onOpenConnectionStringInput();
-  };
 
   /**
    * Renders a port input.
@@ -149,6 +148,7 @@ export class ConnectionForm extends React.Component<props> {
 
   render(): React.ReactNode {
     const {
+      connectionFormTab,
       connectionMessage,
       currentConnection,
       errorMessage,
@@ -156,6 +156,7 @@ export class ConnectionForm extends React.Component<props> {
       isConnecting,
       isValid,
       onConnectionFormChanged,
+      setConnectionFormTab,
       syntaxErrorMessage
     } = this.props;
 
@@ -164,14 +165,48 @@ export class ConnectionForm extends React.Component<props> {
         onChange={onConnectionFormChanged}
         className={styles['connection-form']}
       >
-        <h1>Connect to MongoDB</h1>
-        <div>
-          Enter your connection details below, or{' '}
-          <a href="#" onClick={this.onConnectWithConnectionStringClicked}>
-            connect with a connection string
-          </a>
-        </div>
-        {this.renderConnectionMessage()}
+        <h2 className={styles['connection-form-title']}>New connection</h2>
+        <ul
+          className={styles['connection-form-tabs-container']}
+          role="tablist"
+        >
+          <li
+            className={classnames({
+              [styles['connection-form-tab']]: true,
+              [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.GENERAL
+            })}
+            onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.GENERAL)}
+            role="tab"
+            aria-selected={connectionFormTab === CONNECTION_FORM_TABS.GENERAL}
+          >General</li>
+          <li
+            className={classnames({
+              [styles['connection-form-tab']]: true,
+              [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.SSL
+            })}
+            onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.SSL)}
+            role="tab"
+            aria-selected={connectionFormTab === CONNECTION_FORM_TABS.SSL}
+          >SSL/TLS</li>
+          <li
+            className={classnames({
+              [styles['connection-form-tab']]: true,
+              [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.SSH
+            })}
+            onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.SSH)}
+            role="tab"
+            aria-selected={connectionFormTab === CONNECTION_FORM_TABS.SSH}
+          >SSH Tunnel</li>
+          <li
+            className={classnames({
+              [styles['connection-form-tab']]: true,
+              [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.ADVANCED
+            })}
+            onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.ADVANCED)}
+            role="tab"
+            aria-selected={connectionFormTab === CONNECTION_FORM_TABS.ADVANCED}
+          >Advanced</li>
+        </ul>
         <div className={styles['connection-form-fields']}>
           {this.renderHostnameArea()}
           {this.renderConnectionOptionsArea()}
@@ -192,6 +227,7 @@ export class ConnectionForm extends React.Component<props> {
 
 const mapStateToProps = (state: AppState): StateProps => {
   return {
+    connectionFormTab: state.connectionFormTab,
     connectionMessage: state.connectionMessage,
     currentConnection: state.currentConnection,
     errorMessage: state.errorMessage,
@@ -207,8 +243,9 @@ const mapDispatchToProps: DispatchProps = {
   onConnectionFormChanged: (): ConnectionFormChangedAction => ({
     type: ActionTypes.CONNECTION_FORM_CHANGED
   }),
-  onOpenConnectionStringInput: (): OpenConnectionStringInputAction => ({
-    type: ActionTypes.OPEN_CONNECTION_STRING_INPUT
+  setConnectionFormTab: (connectionFormTab: CONNECTION_FORM_TABS): SetConnectionFormTabAction => ({
+    type: ActionTypes.SET_CONNECTION_FORM_TAB,
+    connectionFormTab
   })
 };
 

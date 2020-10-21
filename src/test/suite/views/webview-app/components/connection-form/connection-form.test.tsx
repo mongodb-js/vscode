@@ -19,7 +19,6 @@ describe('Webview Connection Form Component Test Suite', () => {
       isValid
       syntaxErrorMessage=""
       onConnectionFormChanged={(): void => { }}
-      onOpenConnectionStringInput={(): void => { }}
     />);
     assert(wrapper.find('form').exists());
     assert(wrapper.find(FormActions).exists());

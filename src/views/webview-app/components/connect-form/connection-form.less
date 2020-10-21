@@ -8,15 +8,53 @@
   line-height: 20px;
 
   display: inline-block;
-  width: 400px;
+  width: 500px;
+  text-align: left;
+}
+
+.connection-form-title {
+  font-size: 21px;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.connection-form-tabs-container {
+  list-style-type: none;
+  border-bottom: 1px solid rgba(75, 75, 75, 0.5);
+  padding: 0;
+  margin: 0;
+  margin-top: 10px;
+}
+
+.connection-form-tab {
+  display: inline-block;
+  padding: 12px 14px;
+  position: relative;
+  font-weight: 500;
+  font-size: 16px;
+  font-style: normal;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.connection-form-tab-selected {
+  color: #C3E7CA;
+}
+
+.connection-form-tab-selected::after {
+  content: '';
+  position: absolute;
+  height: 4px;
+  bottom: 0;
+  left: -1px;
+  right: -1px;
+  background-color: #13AA52;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
 }
 
 .connection-form-fields {
   display: block;
-}
-
-.connection-form {
-  margin: 10px;
-  width: 320px;
-  text-align: left;
 }

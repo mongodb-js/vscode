@@ -98,7 +98,7 @@ class FormActions extends React.Component<props> {
     if (hasMessage === true) {
       return (
         <div className={styles['form-message-container']}>
-          <div className={classnames(colorStyle)}>
+          <div className={colorStyle}>
             <div className={styles['connection-message']}>{message}</div>
           </div>
         </div>
@@ -110,7 +110,7 @@ class FormActions extends React.Component<props> {
     return (
       <FormGroup id="favorite">
         {this.renderMessage()}
-        <div className={classnames(styles.buttons)}>{this.renderConnect()}</div>
+        <div className={styles.buttons}>{this.renderConnect()}</div>
       </FormGroup>
     );
   }

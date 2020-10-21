@@ -138,6 +138,8 @@ export default class WebviewController {
 
           this.listenForConnectionResultsAndUpdatePanel(panel);
 
+          // TODO: Pass the right error here.
+
           this._connectionController.saveNewConnectionAndConnect(
             connectionModel,
             ConnectionTypes.CONNECTION_FORM
