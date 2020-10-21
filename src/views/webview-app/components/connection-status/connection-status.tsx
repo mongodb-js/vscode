@@ -6,10 +6,13 @@ import { AppState } from '../../store/store';
 import {
   ActionTypes,
   CreateNewPlaygroundAction,
+  RenameConnectionAction,
   RequestConnectionStatusAction
 } from '../../store/actions';
 import InfoSprinkle from '../info-sprinkle/info-sprinkle';
 import { CONNECTION_STATUS } from '../../extension-app-message-constants';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 
 const styles = require('./connection-status.less');
 
@@ -22,6 +25,7 @@ type StateProps = {
 
 type DispatchProps = {
   onClickCreatePlayground: () => void;
+  onClickRenameConnection: () => void;
   requestConnectionStatus: () => void;
 };
 
@@ -60,7 +64,8 @@ export class ConnectionStatus extends React.Component<StateProps & DispatchProps
   renderConnectedStatus(): React.ReactNode {
     const {
       activeConnectionName,
-      onClickCreatePlayground
+      onClickCreatePlayground,
+      onClickRenameConnection
     } = this.props;
 
     return (
@@ -70,6 +75,14 @@ export class ConnectionStatus extends React.Component<StateProps & DispatchProps
             styles['connection-status-dot'],
             styles['connection-status-dot-connected']
           )}/>Connected to: <strong>{activeConnectionName}</strong>
+          <button
+            className={styles['connection-status-rename']}
+            onClick={(): void => onClickRenameConnection()}
+          >
+            <FontAwesomeIcon
+              icon={faPencilAlt}
+            />
+          </button>
         </div>
         <div className={styles['connection-status-playground-area']}>
           <div className={styles['connection-status-playground-message']}>
@@ -155,6 +168,9 @@ const mapStateToProps = (state: AppState): StateProps => {
 const mapDispatchToProps: DispatchProps = {
   onClickCreatePlayground: (): CreateNewPlaygroundAction => ({
     type: ActionTypes.CREATE_NEW_PLAYGROUND
+  }),
+  onClickRenameConnection: (): RenameConnectionAction => ({
+    type: ActionTypes.RENAME_CONNECTION
   }),
   requestConnectionStatus: (): RequestConnectionStatusAction => ({
     type: ActionTypes.REQUEST_CONNECTION_STATUS

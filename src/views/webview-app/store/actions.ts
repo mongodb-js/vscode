@@ -24,6 +24,7 @@ export enum ActionTypes {
   PASSWORD_CHANGED = 'PASSWORD_CHANGED',
   PORT_CHANGED = 'PORT_CHANGED',
   READ_PREFERENCE_CHANGED = 'READ_PREFERENCE_CHANGED',
+  RENAME_CONNECTION = 'RENAME_CONNECTION',
   REPLICA_SET_CHANGED = 'REPLICA_SET_CHANGED',
   REQUEST_CONNECTION_STATUS = 'REQUEST_CONNECTION_STATUS',
   SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS',
@@ -154,6 +155,10 @@ export interface ReadPreferenceChangedAction extends BaseAction {
   readPreference: READ_PREFERENCES;
 }
 
+export interface RenameConnectionAction extends BaseAction {
+  type: ActionTypes.RENAME_CONNECTION;
+}
+
 export interface ReplicaSetChangedAction extends BaseAction {
   type: ActionTypes.REPLICA_SET_CHANGED;
   replicaSet: string;
@@ -263,6 +268,7 @@ export type Actions =
   | PasswordChangedAction
   | PortChangedAction
   | ReadPreferenceChangedAction
+  | RenameConnectionAction
   | ReplicaSetChangedAction
   | RequestConnectionStatusAction
   | SetConnectionStatusAction

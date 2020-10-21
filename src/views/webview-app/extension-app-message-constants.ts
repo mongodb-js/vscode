@@ -19,12 +19,13 @@ export enum MESSAGE_TYPES {
   CONNECT = 'CONNECT',
   CONNECT_RESULT = 'CONNECT_RESULT',
   CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
+  EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
   CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
+  FILE_PICKER_RESULTS = 'FILE_PICKER_RESULTS',
   GET_CONNECTION_STATUS = 'GET_CONNECTION_STATUS',
   OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
-  FILE_PICKER_RESULTS = 'FILE_PICKER_RESULTS',
-  EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED'
+  RENAME_ACTIVE_CONNECTION = 'RENAME_ACTIVE_CONNECTION'
 }
 
 interface BasicWebviewMessage {
@@ -79,13 +80,18 @@ export interface LinkClickedMessage extends BasicWebviewMessage {
   linkId: string;
 }
 
+export interface RenameConnectionMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION;
+}
+
 export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | ConnectMessage
   | CreateNewPlaygroundMessage
   | GetConnectionStatusMessage
   | LinkClickedMessage
   | OpenConnectionStringInputMessage
-  | OpenFilePickerMessage;
+  | OpenFilePickerMessage
+  | RenameConnectionMessage;
 
 export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
   | ConnectResultsMessage
