@@ -652,4 +652,67 @@ suite('Connect Form View Test Suite', () => {
       });
     });
   });
+
+  test('calls to rename the active connection when a rename active connection message is passed', async () => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
+    const testConnectionController = new ConnectionController(
+      new StatusView(testExtensionContext),
+      testStorageController,
+      testTelemetryController
+    );
+    let messageRecieved: any;
+    const fakeWebview = {
+      html: '',
+      postMessage: (): void => { },
+      onDidReceiveMessage: (callback): void => {
+        messageRecieved = callback;
+      },
+      asWebviewUri: sinon.fake.returns('')
+    };
+    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      webview: fakeWebview
+    });
+
+    sinon.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const mockRenameConnectionOnConnectionController = sinon.fake.returns(null);
+
+    sinon.replace(
+      testConnectionController,
+      'renameConnection',
+      mockRenameConnectionOnConnectionController
+    );
+
+    const testWebviewController = new WebviewController(
+      testConnectionController,
+      testTelemetryController
+    );
+
+    testWebviewController.showOverviewPage(
+      mdbTestExtension.testExtensionContext
+    );
+
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
+
+    // Mock a connection status request call.
+    messageRecieved({
+      command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION
+    });
+
+    assert(mockRenameConnectionOnConnectionController.called);
+    assert(mockRenameConnectionOnConnectionController.firstCall.args[0] === testConnectionController.getActiveConnectionId());
+
+    testConnectionController.disconnect();
+  });
 });

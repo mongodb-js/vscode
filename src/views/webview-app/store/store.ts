@@ -274,6 +274,13 @@ export const rootReducer = (
         }
       };
 
+    case ActionTypes.RENAME_CONNECTION:
+      vscode.postMessage({
+        command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION
+      });
+
+      return { ...state };
+
     case ActionTypes.REPLICA_SET_CHANGED:
       return {
         ...state,
