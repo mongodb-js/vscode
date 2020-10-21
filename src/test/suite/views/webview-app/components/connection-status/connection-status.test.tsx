@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as sinon from 'sinon';
 import { mount, shallow } from 'enzyme';
 import { createStore } from 'redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 import { Provider } from 'react-redux';
 
@@ -49,7 +50,7 @@ describe('Connection Status Component Test Suite', () => {
         requestConnectionStatus={(): void => {}}
         onClickRenameConnection={(): void => {}}
       />);
-      assert(wrapper.find(faPencilAlt).exists());
+      assert(wrapper.find(FontAwesomeIcon).prop('icon') === faPencilAlt);
     });
 
     describe('with store actions', () => {
@@ -75,7 +76,9 @@ describe('Connection Status Component Test Suite', () => {
           <Provider
             store={store}
           >
-            <ConnectionStatus />
+            <ConnectionStatus
+              requestConnectionStatus={(): void => {}}
+            />
           </Provider>
         );
       });
@@ -85,10 +88,9 @@ describe('Connection Status Component Test Suite', () => {
       });
 
       test('when the edit connection name button is clicked it posts a message to the extension to rename the connection', () => {
-        assert(!fakeVscodeWindowPostMessage.called);
         wrapper.find('button').at(0).simulate('click');
         assert(fakeVscodeWindowPostMessage.called);
-        assert(fakeVscodeWindowPostMessage.firstCall.args[0].command === 'RENAME_ACTIVE_CONNECTION');
+        assert(fakeVscodeWindowPostMessage.secondCall.args[0].command === 'RENAME_ACTIVE_CONNECTION');
       });
     });
   });
