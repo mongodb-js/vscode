@@ -195,7 +195,9 @@ export default class WebviewController {
 
       case MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION:
         if (this._connectionController.isCurrentlyConnected()) {
-          this._connectionController.renameConnection(this._connectionController.getActiveConnectionId() as string);
+          this._connectionController.renameConnection(
+            this._connectionController.getActiveConnectionId() as string
+          );
         }
 
         return;

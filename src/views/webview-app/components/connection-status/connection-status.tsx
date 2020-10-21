@@ -30,8 +30,6 @@ type DispatchProps = {
 };
 
 export class ConnectionStatus extends React.Component<StateProps & DispatchProps> {
-  connectionStatusPollingInterval: null | number = null;
-
   componentDidMount(): void {
     this.startConnectionStatusPolling();
   }
@@ -40,7 +38,9 @@ export class ConnectionStatus extends React.Component<StateProps & DispatchProps
     this.stopConnectionStatusPolling();
   }
 
-  startConnectionStatusPolling(): void {
+  connectionStatusPollingInterval: null | number = null;
+
+  startConnectionStatusPolling = (): void => {
     if (this.connectionStatusPollingInterval !== null) {
       return;
     }
@@ -51,7 +51,7 @@ export class ConnectionStatus extends React.Component<StateProps & DispatchProps
     }, CONNECTION_STATUS_POLLING_FREQ_MS) as any;
   };
 
-  stopConnectionStatusPolling(): void {
+  stopConnectionStatusPolling = (): void => {
     if (this.connectionStatusPollingInterval === null) {
       return;
     }
