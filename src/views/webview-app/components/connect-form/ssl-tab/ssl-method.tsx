@@ -1,7 +1,11 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, SSLMethodChangedAction } from '../../../store/actions';
+import {
+  ActionTypes,
+  SSLMethodChangedAction
+} from '../../../store/actions';
+import { AppState } from '../../../store/store';
 import SSL_METHODS, {
   SSLMethodOptions
 } from '../../../connection-model/constants/ssl-methods';
@@ -14,13 +18,11 @@ type DispatchProps = {
   onSSLMethodChanged: (authStrategy: SSL_METHODS) => void;
 };
 
-type props = {
+type StateProps = {
   sslMethod: string;
-} & DispatchProps;
+};
 
-class SSLMethod extends React.Component<props> {
-  static displayName = 'SSLMethod';
-
+class SSLMethod extends React.Component<StateProps & DispatchProps> {
   /**
    * Handles SSL method change.
    *
@@ -66,6 +68,12 @@ class SSLMethod extends React.Component<props> {
   }
 }
 
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    sslMethod: state.currentConnection.sslMethod
+  };
+};
+
 const mapDispatchToProps: DispatchProps = {
   onSSLMethodChanged: (newSSLMethod): SSLMethodChangedAction => ({
     type: ActionTypes.SSL_METHOD_CHANGED,
@@ -73,4 +81,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(null, mapDispatchToProps)(SSLMethod);
+export default connect(mapStateToProps, mapDispatchToProps)(SSLMethod);

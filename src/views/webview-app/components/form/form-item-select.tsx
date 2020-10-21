@@ -11,8 +11,6 @@ type props = {
 };
 
 class FormItemSelect extends React.Component<props> {
-  static displayName = 'FormItemSelect';
-
   /**
    * Prepares options for the form item select.
    *

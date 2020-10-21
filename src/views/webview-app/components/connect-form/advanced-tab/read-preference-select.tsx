@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, ReadPreferenceChangedAction } from '../../store/actions';
-import FormItemSelect from '../form/form-item-select';
-import READ_PREFERENCES from '../../connection-model/constants/read-preferences';
+import { ActionTypes, ReadPreferenceChangedAction } from '../../../store/actions';
+import FormItemSelect from '../../form/form-item-select';
+import READ_PREFERENCES from '../../../connection-model/constants/read-preferences';
 
 type DispatchProps = {
   onReadPreferenceChanged: (newReadPreference: READ_PREFERENCES) => void;
@@ -11,8 +11,6 @@ type DispatchProps = {
 type props = { readPreference: string } & DispatchProps;
 
 class ReadPreferenceSelect extends React.PureComponent<props> {
-  static displayName = 'ReadPreferenceSelect';
-
   /**
    * Handles a read preference change.
    *

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, ReplicaSetChangedAction } from '../../store/actions';
-import FormInput from '../form/form-input';
+import { ActionTypes, ReplicaSetChangedAction } from '../../../store/actions';
+import FormInput from '../../form/form-input';
 
 type DispatchProps = {
   onReplicaSetChanged: (newReplicaSetName: string) => void;
@@ -14,8 +14,6 @@ type props = {
 } & DispatchProps;
 
 class ReplicaSetInput extends React.PureComponent<props> {
-  static displayName = 'ReplicaSetInput';
-
   /**
    * Handles a replica set change.
    *

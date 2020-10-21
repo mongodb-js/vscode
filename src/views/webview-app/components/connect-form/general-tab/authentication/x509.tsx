@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, X509UsernameChangedAction } from '../../../store/actions';
-import FormInput from '../../form/form-input';
+import { ActionTypes, X509UsernameChangedAction } from '../../../../store/actions';
+import FormInput from '../../../form/form-input';
 
 type DispatchProps = {
   onX509UsernameChanged: (newUsername: string) => void;
@@ -17,8 +17,6 @@ type props = {
  * The kerberos auth role component.
  */
 class X509 extends React.Component<props> {
-  static displayName = 'X509';
-
   /**
    * Handle the username change.
    *

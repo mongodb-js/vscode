@@ -30,8 +30,6 @@ type DispatchProps = {
 type props = StateProps & DispatchProps;
 
 class SSLServerClientValidation extends React.Component<props> {
-  static displayName = 'SSLServerClientValidation';
-
   /**
    * Handles sslCA change.
    */

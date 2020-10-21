@@ -13,8 +13,6 @@ type props = {
 } & DispatchProps;
 
 class HostInput extends React.PureComponent<props> {
-  static displayName = 'HostInput';
-
   /**
    * Changes a host name.
    *

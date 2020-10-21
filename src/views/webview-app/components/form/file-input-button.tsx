@@ -16,8 +16,6 @@ type props = {
 };
 
 class FileInputButton extends React.Component<props> {
-  static displayName = 'FormFileInput';
-
   /**
    * Handles a form item file button click.
    *

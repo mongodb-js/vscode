@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 
 import { ActionTypes, ConnectAction } from '../../store/actions';
 import FormGroup from './form-group';
-import ConnectionModel from '../../connection-model/connection-model';
 
 const styles = require('./form.less');
 
@@ -14,7 +13,6 @@ type DispatchProps = {
 
 type props = {
   connectionMessage: string;
-  currentConnection: ConnectionModel;
   errorMessage: string;
   isConnected: boolean;
   isConnecting: boolean;
@@ -23,8 +21,6 @@ type props = {
 } & DispatchProps;
 
 class FormActions extends React.Component<props> {
-  static displayName = 'FormActions';
-
   /**
    * Handles a connect click.
    *
@@ -108,7 +104,7 @@ class FormActions extends React.Component<props> {
 
   render(): React.ReactNode {
     return (
-      <FormGroup id="favorite">
+      <FormGroup id="form-actions-group">
         {this.renderMessage()}
         <div className={styles.buttons}>{this.renderConnect()}</div>
       </FormGroup>

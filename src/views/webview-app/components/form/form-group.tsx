@@ -10,8 +10,6 @@ type props = {
 };
 
 class FormGroup extends React.PureComponent<props> {
-  static displayName = 'FormGroup';
-
   render(): React.ReactNode {
     const { children, id, separator } = this.props;
 

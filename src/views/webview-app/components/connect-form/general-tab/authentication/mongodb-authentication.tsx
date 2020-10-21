@@ -1,5 +1,4 @@
 import * as React from 'react';
-import classnames from 'classnames';
 import { connect } from 'react-redux';
 
 import {
@@ -7,10 +6,9 @@ import {
   AuthSourceChangedAction,
   PasswordChangedAction,
   UsernameChangedAction
-} from '../../../store/actions';
-import FormInput from '../../form/form-input';
-
-const styles = require('../../../connect.module.less');
+} from '../../../../store/actions';
+import FormInput from '../../../form/form-input';
+import FormGroup from '../../../form/form-group';
 
 type DispatchProps = {
   onAuthSourceChanged: (newAuthSource: string) => void;
@@ -25,9 +23,7 @@ type props = {
   mongodbUsername?: string;
 } & DispatchProps;
 
-class ScramSha256 extends React.Component<props> {
-  static displayName = 'ScramSha256';
-
+class MongoDBAuthentication extends React.Component<props> {
   /**
    * Handles username change.
    *
@@ -64,7 +60,7 @@ class ScramSha256 extends React.Component<props> {
     } = this.props;
 
     return (
-      <div id="scram-sha-256" className={classnames(styles['form-group'])}>
+      <FormGroup id="mongodb-authenticatio">
         <FormInput
           label="Username"
           name="username"
@@ -83,13 +79,13 @@ class ScramSha256 extends React.Component<props> {
         <FormInput
           label="Authentication Database"
           placeholder="admin"
-          name="authSource"
+          name="auth-source"
           changeHandler={this.onAuthSourceChanged}
           value={mongodbDatabaseName || ''}
           // Opens "Authentication Database" documentation.
           linkTo="https://docs.mongodb.com/manual/core/security-users/#user-authentication-database"
         />
-      </div>
+      </FormGroup>
     );
   }
 }
@@ -109,4 +105,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(null, mapDispatchToProps)(ScramSha256);
+export default connect(null, mapDispatchToProps)(MongoDBAuthentication);

@@ -15,8 +15,6 @@ type props = {
 } & DispatchProps;
 
 class SRVInput extends React.PureComponent<props> {
-  static displayName = 'SRVInput';
-
   /**
    * Handles SRV record toggle.
    *

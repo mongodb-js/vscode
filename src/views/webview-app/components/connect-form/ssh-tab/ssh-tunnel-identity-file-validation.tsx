@@ -3,18 +3,21 @@ import { connect } from 'react-redux';
 
 import {
   ActionTypes,
+  OnChangeSSHTunnelIdentityFileAction,
   SSHTunnelHostnameChangedAction,
-  SSHTunnelPasswordChangedAction,
+  SSHTunnelPassphraseChangedAction,
   SSHTunnelPortChangedAction,
   SSHTunnelUsernameChangedAction
 } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 import FormInput from '../../form/form-input';
+import FileInputButton from '../../form/file-input-button';
 import FormGroup from '../../form/form-group';
 
 type DispatchProps = {
+  onChangeSSHTunnelIdentityFile: () => void;
   onSSHTunnelHostnameChanged: (sshTunnelHostname: string) => void;
-  onSSHTunnelPasswordChanged: (sshTunnelPassword: string) => void;
+  onSSHTunnelPassphraseChanged: (sshTunnelPassphrase: string) => void;
   onSSHTunnelPortChanged: (sshTunnelPort: number) => void;
   onSSHTunnelUsernameChanged: (sshTunnelUsername: string) => void;
 };
@@ -22,22 +25,21 @@ type DispatchProps = {
 type StateProps = {
   isValid: boolean;
   sshTunnelHostname?: string;
-  sshTunnelPassword?: string;
+  sshTunnelIdentityFile?: string[];
+  sshTunnelPassphrase?: string;
   sshTunnelPort: number;
   sshTunnelUsername?: string;
 };
 
 type props = StateProps & DispatchProps;
 
-class SSHTunnelPasswordValidation extends React.Component<props> {
-  static displayName = 'SSHTunnelPasswordValidation';
-
+class SSHTunnelIdentityFileValidation extends React.Component<props> {
   /**
    * Handles sshTunnelHostname change.
    *
    * @param {Object} evt - evt.
    */
-  onSSHTunnelHostnameChanged = (evt) => {
+  onSSHTunnelHostnameChanged = (evt): void => {
     this.props.onSSHTunnelHostnameChanged(evt.target.value);
   };
 
@@ -46,17 +48,26 @@ class SSHTunnelPasswordValidation extends React.Component<props> {
    *
    * @param {Object} evt - evt.
    */
-  onSSHTunnelUsernameChanged = (evt) => {
+  onSSHTunnelUsernameChanged = (evt): void => {
     this.props.onSSHTunnelUsernameChanged(evt.target.value.trim());
   };
 
   /**
-   * Handles sshTunnelPassword change.
+   * Handles sshTunnelIdentityFile change.
    *
    * @param {Object} evt - evt.
    */
-  onSSHTunnelPasswordChanged = (evt) => {
-    this.props.onSSHTunnelPasswordChanged(evt.target.value);
+  onChangeSSHTunnelIdentityFile = (): void => {
+    this.props.onChangeSSHTunnelIdentityFile();
+  };
+
+  /**
+   * Handles sshTunnelPassphrase change.
+   *
+   * @param {Object} evt - evt.
+   */
+  onSSHTunnelPassphraseChanged = (evt): void => {
+    this.props.onSSHTunnelPassphraseChanged(evt.target.value);
   };
 
   /**
@@ -64,7 +75,7 @@ class SSHTunnelPasswordValidation extends React.Component<props> {
    *
    * @param {Object} evt - evt.
    */
-  onSSHTunnelPortChanged = (evt) => {
+  onSSHTunnelPortChanged = (evt): void => {
     this.props.onSSHTunnelPortChanged(evt.target.value);
   };
 
@@ -72,13 +83,14 @@ class SSHTunnelPasswordValidation extends React.Component<props> {
     const {
       isValid,
       sshTunnelHostname,
-      sshTunnelPassword,
+      sshTunnelIdentityFile,
+      sshTunnelPassphrase,
       sshTunnelPort,
       sshTunnelUsername
     } = this.props;
 
     return (
-      <FormGroup id="sshTunnelPassword">
+      <FormGroup id="sshTunnelIdentityFileValidation">
         <FormInput
           label="SSH Hostname"
           name="sshTunnelHostname"
@@ -90,10 +102,10 @@ class SSHTunnelPasswordValidation extends React.Component<props> {
         <FormInput
           label="SSH Tunnel Port"
           name="sshTunnelPort"
+          placeholder="22"
           error={!isValid && sshTunnelPort === undefined}
           changeHandler={this.onSSHTunnelPortChanged}
           value={sshTunnelPort}
-          type="number"
         />
         <FormInput
           label="SSH Username"
@@ -102,13 +114,19 @@ class SSHTunnelPasswordValidation extends React.Component<props> {
           changeHandler={this.onSSHTunnelUsernameChanged}
           value={sshTunnelUsername || ''}
         />
+        <FileInputButton
+          label="SSH Identity File"
+          id="sshTunnelIdentityFile"
+          error={!isValid && sshTunnelIdentityFile === undefined}
+          onClick={this.onChangeSSHTunnelIdentityFile}
+          values={sshTunnelIdentityFile}
+        />
         <FormInput
-          label="SSH Password"
-          name="sshTunnelPassword"
+          label="SSH Passphrase"
+          name="sshTunnelPassphrase"
           type="password"
-          error={!isValid && sshTunnelPassword === undefined}
-          changeHandler={this.onSSHTunnelPasswordChanged}
-          value={sshTunnelPassword || ''}
+          changeHandler={this.onSSHTunnelPassphraseChanged.bind(this)}
+          value={sshTunnelPassphrase || ''}
         />
       </FormGroup>
     );
@@ -119,24 +137,28 @@ const mapStateToProps = (state: AppState): StateProps => {
   return {
     isValid: state.isValid,
     sshTunnelHostname: state.currentConnection.sshTunnelHostname,
-    sshTunnelPassword: state.currentConnection.sshTunnelPassword,
+    sshTunnelIdentityFile: state.currentConnection.sshTunnelIdentityFile,
+    sshTunnelPassphrase: state.currentConnection.sshTunnelPassphrase,
     sshTunnelPort: state.currentConnection.sshTunnelPort,
     sshTunnelUsername: state.currentConnection.sshTunnelUsername
   };
 };
 
 const mapDispatchToProps: DispatchProps = {
+  onChangeSSHTunnelIdentityFile: (): OnChangeSSHTunnelIdentityFileAction => ({
+    type: ActionTypes.ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE
+  }),
   onSSHTunnelHostnameChanged: (
     sshTunnelHostname: string
   ): SSHTunnelHostnameChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_HOSTNAME_CHANGED,
     sshTunnelHostname
   }),
-  onSSHTunnelPasswordChanged: (
-    sshTunnelPassword: string
-  ): SSHTunnelPasswordChangedAction => ({
-    type: ActionTypes.SSH_TUNNEL_PASSWORD_CHANGED,
-    sshTunnelPassword
+  onSSHTunnelPassphraseChanged: (
+    sshTunnelPassphrase: string
+  ): SSHTunnelPassphraseChangedAction => ({
+    type: ActionTypes.SSH_TUNNEL_PASSPHRASE_CHANGED,
+    sshTunnelPassphrase
   }),
   onSSHTunnelPortChanged: (
     sshTunnelPort: number
@@ -155,4 +177,4 @@ const mapDispatchToProps: DispatchProps = {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(SSHTunnelPasswordValidation);
+)(SSHTunnelIdentityFileValidation);

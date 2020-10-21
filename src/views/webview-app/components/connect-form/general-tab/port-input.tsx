@@ -13,8 +13,6 @@ type props = {
 } & DispatchProps;
 
 class PortInput extends React.PureComponent<props> {
-  static displayName = 'PortInput';
-
   /**
    * Changes port.
    *
