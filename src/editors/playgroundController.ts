@@ -344,7 +344,6 @@ export default class PlaygroundController {
       vscode.workspace.openTextDocument(playgroundResultURI).then((doc) => {
         vscode.window.showTextDocument(doc, { preview: true, viewColumn })
         .then(editor => {
-          this._playgroundResultTextEditor = editor;
           editor.edit(editBuilder => {
             let fullRange = new vscode.Range(new vscode.Position(0, 0), editor.document.positionAt(editor.document.getText().length));
 
