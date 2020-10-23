@@ -29,11 +29,11 @@ export class ConnectionFormTabs extends React.Component<props> {
     } = this.props;
 
     return (
-      <ul
+      <div
         className={styles['connection-form-tabs-container']}
         role="tablist"
       >
-        <li
+        <button
           className={classnames({
             [styles['connection-form-tab']]: true,
             [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.GENERAL
@@ -41,8 +41,8 @@ export class ConnectionFormTabs extends React.Component<props> {
           onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.GENERAL)}
           role="tab"
           aria-selected={connectionFormTab === CONNECTION_FORM_TABS.GENERAL}
-        >General</li>
-        <li
+        >General</button>
+        <button
           className={classnames({
             [styles['connection-form-tab']]: true,
             [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.SSL
@@ -50,8 +50,8 @@ export class ConnectionFormTabs extends React.Component<props> {
           onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.SSL)}
           role="tab"
           aria-selected={connectionFormTab === CONNECTION_FORM_TABS.SSL}
-        >SSL/TLS</li>
-        <li
+        >SSL/TLS</button>
+        <button
           className={classnames({
             [styles['connection-form-tab']]: true,
             [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.SSH
@@ -59,8 +59,8 @@ export class ConnectionFormTabs extends React.Component<props> {
           onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.SSH)}
           role="tab"
           aria-selected={connectionFormTab === CONNECTION_FORM_TABS.SSH}
-        >SSH Tunnel</li>
-        <li
+        >SSH Tunnel</button>
+        <button
           className={classnames({
             [styles['connection-form-tab']]: true,
             [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.ADVANCED
@@ -68,8 +68,8 @@ export class ConnectionFormTabs extends React.Component<props> {
           onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.ADVANCED)}
           role="tab"
           aria-selected={connectionFormTab === CONNECTION_FORM_TABS.ADVANCED}
-        >Advanced</li>
-      </ul>
+        >Advanced</button>
+      </div>
     );
   }
 }

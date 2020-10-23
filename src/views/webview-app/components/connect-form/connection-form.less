@@ -33,9 +33,31 @@
   font-weight: 500;
   font-size: 16px;
   font-style: normal;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--vscode-editor-foreground);
 
   &:hover {
     cursor: pointer;
+  }
+
+  &:focus {
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0px;
+      height: 4px;
+      left: -1px;
+      right: -1px;
+      pointer-events: none;
+      outline: none;
+      background-color: var(--vscode-focusBorder);
+      border-top-left-radius: 3px;
+      border-top-right-radius: 3px;
+      animation-name: selectedConnectionTabAnimation;
+      animation-duration: 200ms;
+    }
   }
 }
 

@@ -2,13 +2,18 @@ import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
 
-import { ActionTypes, ConnectAction } from '../../store/actions';
+import {
+  ActionTypes,
+  ConnectAction,
+  ToggleShowConnectionFormAction
+} from '../../store/actions';
 import FormGroup from './form-group';
 
 const styles = require('./form.less');
 
 type DispatchProps = {
   onConnectClicked: () => void;
+  toggleShowConnectForm: () => void;
 };
 
 type props = {
@@ -51,26 +56,6 @@ class FormActions extends React.Component<props> {
   }
 
   /**
-   * Renders "Connect" button.
-   *
-   * @returns {React.Component}
-   */
-  renderConnect = (): React.ReactNode => {
-    const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
-
-    return (
-      <button
-        type="submit"
-        name="connect"
-        className={classnames(styles.btn, syntaxError)}
-        onClick={this.onConnectClicked}
-      >
-        Connect
-      </button>
-    );
-  };
-
-  /**
    * Renders a component with messages.
    *
    * @returns {React.Component}
@@ -103,10 +88,28 @@ class FormActions extends React.Component<props> {
   }
 
   render(): React.ReactNode {
+    const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
+
     return (
       <FormGroup id="form-actions-group">
         {this.renderMessage()}
-        <div className={styles['form-actions-buttons-container']}>{this.renderConnect()}</div>
+        <div className={styles['form-actions-buttons-container']}>
+          <button
+            name="cancel"
+            className={classnames(styles.btn)}
+            onClick={(): void => this.props.toggleShowConnectForm()}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            name="connect"
+            className={classnames(styles.btn, styles['btn-primary'], syntaxError)}
+            onClick={this.onConnectClicked}
+          >
+            Connect
+          </button>
+        </div>
       </FormGroup>
     );
   }
@@ -115,6 +118,9 @@ class FormActions extends React.Component<props> {
 const mapDispatchToProps: DispatchProps = {
   onConnectClicked: (): ConnectAction => ({
     type: ActionTypes.CONNECT
+  }),
+  toggleShowConnectForm: (): ToggleShowConnectionFormAction => ({
+    type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM
   })
 };
 
