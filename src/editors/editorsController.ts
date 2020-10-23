@@ -126,10 +126,6 @@ export default class EditorsController {
       )} - ${Date.now()}.json${uriQuery}`
     );
 
-    console.log('textDocumentUri----------------------');
-    console.log(textDocumentUri);
-    console.log('----------------------');
-
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(textDocumentUri).then((doc) => {
         vscode.window
