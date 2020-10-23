@@ -26,18 +26,6 @@ const openFileOptions = {
   }
 };
 
-export const getFontUri = (
-  extensionPath: string,
-  webview: vscode.Webview,
-  fontName: string
-): vscode.Uri => {
-  const localFilePathUri = vscode.Uri.file(
-    path.join(extensionPath, 'resources', 'fonts', fontName)
-  );
-  const fontUri = webview.asWebviewUri(localFilePathUri);
-  return fontUri;
-};
-
 export const getReactAppUri = (
   extensionPath: string,
   webview: vscode.Webview
@@ -62,18 +50,6 @@ export const getWebviewContent = (
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>MongoDB</title>
-        <style>
-          @font-face {
-            font-family: AkzidenzGroteskStd;
-            src: url("${getFontUri(extensionPath, webview, 'AkzidGroStdReg.otf')}");
-          }
-
-          @font-face {
-            font-family: AkzidenzGroteskStd;
-            font-weight: bold;
-            src: url("${getFontUri(extensionPath, webview, 'AkzidGroStdBol.otf')}");
-          }
-        </style>
     </head>
     <body>
       <div id="root"></div>
@@ -97,7 +73,7 @@ export default class WebviewController {
 
   listenForConnectionResultsAndUpdatePanel = (
     panel: vscode.WebviewPanel
-  ): any => {
+  ): () => void => {
     const connectionDidChange = (): void => {
       if (
         !this._connectionController.isConnecting()
