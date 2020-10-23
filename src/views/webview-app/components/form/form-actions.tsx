@@ -96,6 +96,7 @@ class FormActions extends React.Component<props> {
         <div className={styles['form-actions-buttons-container']}>
           <button
             name="cancel"
+            id="cancelButton"
             className={classnames(styles.btn)}
             onClick={(): void => this.props.toggleShowConnectForm()}
           >
@@ -103,6 +104,7 @@ class FormActions extends React.Component<props> {
           </button>
           <button
             type="submit"
+            id="connectButton"
             name="connect"
             className={classnames(styles.btn, styles['btn-primary'], syntaxError)}
             onClick={this.onConnectClicked}
