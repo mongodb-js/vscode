@@ -103,7 +103,7 @@ export const rootReducer = (
         return {
           ...state,
           isValid: false,
-          errorMessage: 'The required fields can not be empty.'
+          errorMessage: validateConnectionModel(state.currentConnection).message
         };
       }
 

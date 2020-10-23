@@ -9,12 +9,9 @@ import { AppState } from '../../../store/store';
 import ReadPreferenceSelect from './read-preference-select';
 import ReplicaSetInput from './replica-set-input';
 import READ_PREFERENCES from '../../../connection-model/constants/read-preferences';
-import SSH_TUNNEL_TYPES from '../../../connection-model/constants/ssh-tunnel-types';
 
 type StateProps = {
   readPreference: READ_PREFERENCES;
-  replicaSet?: string;
-  sshTunnel: SSH_TUNNEL_TYPES;
 };
 
 type DispatchProps = {
@@ -26,14 +23,12 @@ type props = StateProps & DispatchProps;
 export class AdvancedTab extends React.Component<props> {
   render(): React.ReactNode {
     const {
-      readPreference,
-      replicaSet,
-      sshTunnel
+      readPreference
     } = this.props;
 
     return (
       <React.Fragment>
-        <ReplicaSetInput sshTunnel={sshTunnel} replicaSet={replicaSet} />
+        <ReplicaSetInput />
         <ReadPreferenceSelect readPreference={readPreference} />
       </React.Fragment>
     );
@@ -42,9 +37,7 @@ export class AdvancedTab extends React.Component<props> {
 
 const mapStateToProps = (state: AppState): StateProps => {
   return {
-    readPreference: state.currentConnection.readPreference,
-    replicaSet: state.currentConnection.replicaSet,
-    sshTunnel: state.currentConnection.sshTunnel
+    readPreference: state.currentConnection.readPreference
   };
 };
 

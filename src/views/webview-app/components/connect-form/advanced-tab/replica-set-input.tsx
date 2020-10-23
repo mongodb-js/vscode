@@ -2,18 +2,21 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import { ActionTypes, ReplicaSetChangedAction } from '../../../store/actions';
+import { AppState } from '../../../store/store';
 import FormInput from '../../form/form-input';
+import SSH_TUNNEL_TYPES from '../../../connection-model/constants/ssh-tunnel-types';
+
+type StateProps = {
+  isSrvRecord: boolean;
+  replicaSet?: string;
+  sshTunnel: SSH_TUNNEL_TYPES;
+};
 
 type DispatchProps = {
   onReplicaSetChanged: (newReplicaSetName: string) => void;
 };
 
-type props = {
-  sshTunnel: string;
-  replicaSet?: string;
-} & DispatchProps;
-
-class ReplicaSetInput extends React.PureComponent<props> {
+class ReplicaSetInput extends React.PureComponent<StateProps & DispatchProps> {
   /**
    * Handles a replica set change.
    *
@@ -24,22 +27,32 @@ class ReplicaSetInput extends React.PureComponent<props> {
   };
 
   render(): React.ReactNode {
-    const { replicaSet, sshTunnel } = this.props;
+    const { isSrvRecord, replicaSet, sshTunnel } = this.props;
 
-    if (sshTunnel === 'NONE' || !sshTunnel) {
-      return (
-        <FormInput
-          label="Replica Set Name"
-          name="replicaSet"
-          changeHandler={this.onReplicaSetChanged}
-          value={replicaSet || ''}
-        />
-      );
+    if (sshTunnel !== SSH_TUNNEL_TYPES.NONE || isSrvRecord) {
+      // Don't show the replica set input when the connection
+      // is using an ssh tunnel or srv record.
+      return null;
     }
 
-    return null;
+    return (
+      <FormInput
+        label="Replica Set Name"
+        name="replicaSet"
+        changeHandler={this.onReplicaSetChanged}
+        value={replicaSet || ''}
+      />
+    );
   }
 }
+
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    isSrvRecord: state.currentConnection.isSrvRecord,
+    replicaSet: state.currentConnection.replicaSet,
+    sshTunnel: state.currentConnection.sshTunnel
+  };
+};
 
 const mapDispatchToProps: DispatchProps = {
   onReplicaSetChanged: (
@@ -50,4 +63,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(null, mapDispatchToProps)(ReplicaSetInput);
+export default connect(mapStateToProps, mapDispatchToProps)(ReplicaSetInput);

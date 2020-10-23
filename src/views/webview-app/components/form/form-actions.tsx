@@ -106,7 +106,7 @@ class FormActions extends React.Component<props> {
     return (
       <FormGroup id="form-actions-group">
         {this.renderMessage()}
-        <div className={styles.buttons}>{this.renderConnect()}</div>
+        <div className={styles['form-actions-buttons-container']}>{this.renderConnect()}</div>
       </FormGroup>
     );
   }

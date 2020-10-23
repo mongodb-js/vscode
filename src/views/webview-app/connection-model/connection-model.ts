@@ -162,11 +162,7 @@ const validateKerberos = (attrs: ConnectionModel): void => {
 
 const validateX509 = (attrs: ConnectionModel): void => {
   if (attrs.authStrategy === 'X509') {
-    if (!attrs.x509Username) {
-      throw new TypeError(
-        'The x509Username field is required when using X509 for authStrategy.'
-      );
-    }
+    // TODO: SSL require here.
   }
 };
 
@@ -186,6 +182,12 @@ const validateLdap = (attrs: ConnectionModel): void => {
 };
 
 const validateStandardSshTunnelOptions = (attrs: ConnectionModel): void => {
+  if (attrs.sshTunnel !== SSH_TUNNEL_TYPES.NONE && attrs.isSrvRecord) {
+    throw new TypeError(
+      'SSH Tunnel connections are not currently supported with srv records, please specify an individual server to connect to.'
+    );
+  }
+
   if (!attrs.sshTunnelUsername) {
     throw new TypeError(
       'sslTunnelUsername is required when sshTunnel is not NONE.'
