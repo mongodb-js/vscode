@@ -193,7 +193,10 @@ class MockLanguageServerController {
   }
 
   executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
-    return Promise.resolve([{ type: null, content: 'Result' }]);
+    return Promise.resolve({
+      outputLines: [],
+      result: { type: null, content: 'Result' }
+    });
   }
 
   connectToServiceProvider(params: {

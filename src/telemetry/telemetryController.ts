@@ -267,12 +267,11 @@ export default class TelemetryController {
   }
 
   public getPlaygroundResultType(res: ExecuteAllResult): string {
-    const lastResult = res && res[res.length - 1];
-    if (!lastResult || !lastResult.type) {
+    if (!res || !res.result || !res.result.type) {
       return 'other';
     }
 
-    const shellApiType = lastResult.type.toLocaleLowerCase();
+    const shellApiType = res.result.type.toLocaleLowerCase();
 
     // See: https://github.com/mongodb-js/mongosh/blob/master/packages/shell-api/src/shell-api.js
     if (shellApiType.includes('insert')) {

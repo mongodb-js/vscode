@@ -40,7 +40,7 @@ const executeAll = async (
         for (const { type, printable } of values) {
           outputLines.push({
             type,
-            content: formatOutput({ value: printable, type })
+            content: printable
           });
         }
       }
@@ -48,12 +48,12 @@ const executeAll = async (
     const { type, printable } = await runtime.evaluate(
       codeToEvaluate
     );
-    outputLines.push({
+    const result = {
       type,
-      content: formatOutput({ value: printable, type })
-    });
+      content: printable
+    };
 
-    return [null, outputLines];
+    return [null, { outputLines, result }];
   } catch (error) {
     return [error];
   }

@@ -181,6 +181,10 @@ export default class MongoDBService {
 
         await worker.terminate();
 
+        this._connection.console.log('result----------------------');
+        this._connection.console.log(`${util.inspect(result)}`);
+        this._connection.console.log('----------------------');
+
         return resolve(result);
       });
 

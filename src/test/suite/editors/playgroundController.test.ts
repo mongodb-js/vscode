@@ -65,7 +65,7 @@ suite('Playground Controller Test Suite', function () {
 
   suite('playground is not open', () => {
     before(() => {
-      testPlaygroundController._activeTextEditor = undefined;
+      testPlaygroundController.activeTextEditor = undefined;
     });
 
     test('run all playground blocks should throw the playground not found error', async () => {
@@ -107,7 +107,7 @@ suite('Playground Controller Test Suite', function () {
 
   suite('playground is open', () => {
     before(async () => {
-      testPlaygroundController._activeTextEditor = await loadPlayground(
+      testPlaygroundController.activeTextEditor = await loadPlayground(
         getDocUri('testCodeLens.mongodb')
       );
     });
@@ -118,12 +118,12 @@ suite('Playground Controller Test Suite', function () {
         const mockGetActiveConnectionModel = sinon.fake.returns(null);
 
         sinon.replace(
-          testPlaygroundController._connectionController,
+          testPlaygroundController.connectionController,
           'getActiveConnectionName',
           mockGetActiveConnectionName
         );
         sinon.replace(
-          testPlaygroundController._connectionController,
+          testPlaygroundController.connectionController,
           'getActiveConnectionModel',
           mockGetActiveConnectionModel
         );
@@ -184,12 +184,12 @@ suite('Playground Controller Test Suite', function () {
         });
 
         sinon.replace(
-          testPlaygroundController._connectionController,
+          testPlaygroundController.connectionController,
           'getActiveConnectionName',
           mockGetActiveConnectionName
         );
         sinon.replace(
-          testPlaygroundController._connectionController,
+          testPlaygroundController.connectionController,
           'getActiveConnectionModel',
           mockGetActiveConnectionModel
         );
@@ -272,7 +272,7 @@ suite('Playground Controller Test Suite', function () {
           new vscode.Range(0, 5, 0, 11)
         );
 
-        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
+        const codeLens = testPlaygroundController.partialExecutionCodeLensProvider?.provideCodeLenses();
 
         expect(codeLens?.length).to.be.equal(0);
       });
@@ -282,7 +282,7 @@ suite('Playground Controller Test Suite', function () {
           new vscode.Range(0, 0, 0, 14)
         );
 
-        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
+        const codeLens = testPlaygroundController.partialExecutionCodeLensProvider?.provideCodeLenses();
 
         expect(codeLens?.length).to.be.equal(1);
       });

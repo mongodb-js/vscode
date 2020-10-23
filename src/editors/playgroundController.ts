@@ -12,6 +12,9 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import { createLogger } from '../logging';
 import type { ExecuteAllResult } from '../utils/types';
+import {
+  PLAYGROUND_RESULT_SCHEME
+} from './playgroundResultProvider';
 
 const log = createLogger('playground controller');
 
@@ -19,9 +22,10 @@ const log = createLogger('playground controller');
  * This controller manages playground.
  */
 export default class PlaygroundController {
-  public _connectionController: ConnectionController;
-  public _activeTextEditor?: TextEditor;
-  public _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
+  public connectionController: ConnectionController;
+  public activeTextEditor?: TextEditor;
+  public partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
+  public playgroundResult?: any;
   private _context: vscode.ExtensionContext;
   private _languageServerController: LanguageServerController;
   private _telemetryController: TelemetryController;
@@ -42,16 +46,16 @@ export default class PlaygroundController {
     this._context = context;
     this._codeToEvaluate = '';
     this._isPartialRun = false;
-    this._connectionController = connectionController;
+    this.connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryController = telemetryController;
     this._outputChannel = vscode.window.createOutputChannel(
       'Playground output'
     );
     this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(
-      this._connectionController
+      this.connectionController
     );
-    this._partialExecutionCodeLensProvider = new PartialExecutionCodeLensProvider();
+    this.partialExecutionCodeLensProvider = new PartialExecutionCodeLensProvider();
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
         { language: 'mongodb' },
@@ -61,18 +65,18 @@ export default class PlaygroundController {
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
         { language: 'mongodb' },
-        this._partialExecutionCodeLensProvider
+        this.partialExecutionCodeLensProvider
       )
     );
 
-    this._connectionController.addEventListener(
+    this.connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       async () => {
         await this.disconnectFromServiceProvider();
       }
     );
 
-    this._connectionController.addEventListener(
+    this.connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       async () => {
         await this.connectToServiceProvider();
@@ -82,7 +86,7 @@ export default class PlaygroundController {
 
     const onEditorChange = (editor) => {
       if (editor?.document.languageId !== 'Log') {
-        this._activeTextEditor = editor;
+        this.activeTextEditor = editor;
         log.info('Active editor path', editor?.document.uri?.path);
       }
     };
@@ -113,19 +117,19 @@ export default class PlaygroundController {
   public showCodeLensForSelection(item: vscode.Range): void {
     const selectedText = this.getSelectedText(item).trim();
     const lastSelectedLine =
-      this._activeTextEditor?.document.lineAt(item.end.line).text.trim() || '';
-    const selections = this._activeTextEditor?.selections.sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
+      this.activeTextEditor?.document.lineAt(item.end.line).text.trim() || '';
+    const selections = this.activeTextEditor?.selections.sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
     const firstLine = selections ? selections[0].start.line : 0;
 
     if (
       selectedText.length > 0 &&
       selectedText.length >= lastSelectedLine.length
     ) {
-      this._partialExecutionCodeLensProvider?.refresh(
+      this.partialExecutionCodeLensProvider?.refresh(
         new vscode.Range(firstLine, 0, firstLine, 0)
       );
     } else {
-      this._partialExecutionCodeLensProvider?.refresh();
+      this.partialExecutionCodeLensProvider?.refresh();
     }
   }
 
@@ -134,7 +138,7 @@ export default class PlaygroundController {
   }
 
   public connectToServiceProvider(): Promise<boolean> {
-    const model = this._connectionController
+    const model = this.connectionController
       .getActiveConnectionModel()
       ?.getAttributes({ derived: true });
 
@@ -230,11 +234,11 @@ export default class PlaygroundController {
   }
 
   private getAllText(): string {
-    return this._activeTextEditor?.document.getText() || '';
+    return this.activeTextEditor?.document.getText() || '';
   }
 
   private getSelectedText(selection: vscode.Range): string {
-    return this._activeTextEditor?.document.getText(selection) || '';
+    return this.activeTextEditor?.document.getText(selection) || '';
   }
 
   public evaluateWithCancelModal(): Promise<ExecuteAllResult> {
@@ -291,7 +295,7 @@ export default class PlaygroundController {
       }
 
       if (shouldConfirmRunAll === true) {
-        const name = this._connectionController.getActiveConnectionName();
+        const name = this.connectionController.getActiveConnectionName();
         const confirmRunAll = await vscode.window.showInformationMessage(
           `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,
           { modal: true },
@@ -303,19 +307,51 @@ export default class PlaygroundController {
         }
       }
 
-      const result: ExecuteAllResult = await this.evaluateWithCancelModal();
+      const evaluateResponse: ExecuteAllResult = await this.evaluateWithCancelModal();
 
-      if (!result) {
-        this._outputChannel.clear();
+      this._outputChannel.clear();
+      if (evaluateResponse.outputLines) {
+        for (const line of evaluateResponse.outputLines)
+          this._outputChannel.appendLine(line.content);
         this._outputChannel.show(true);
+      }
 
+      if (!evaluateResponse.outputLines && !evaluateResponse.result) {
         return resolve(false);
       }
 
-      this._outputChannel.clear();
-      for (const line of result)
-        this._outputChannel.appendLine(line.content);
-      this._outputChannel.show(true);
+      this.playgroundResult = evaluateResponse.result?.content;
+
+      let extension = '';
+
+      if (this.playgroundResult) {
+        if (typeof this.playgroundResult === 'object') {
+          extension = 'json';
+        } else {
+          extension = 'txt';
+        }
+      }
+
+      const playgroundResultURI = vscode.Uri.parse(
+        [
+          `${PLAYGROUND_RESULT_SCHEME}:`,
+          `Playground Result - ${this.activeTextEditor?.document.fileName} - ${Date.now()}`,
+          `.${extension}`
+        ].join('')
+      );
+      const viewColumn = vscode.ViewColumn.Beside;
+
+      vscode.workspace.openTextDocument(playgroundResultURI).then((doc) => {
+        vscode.window.showTextDocument(doc, { preview: true, viewColumn })
+        .then(editor => {
+          this._playgroundResultTextEditor = editor;
+          editor.edit(editBuilder => {
+            let fullRange = new vscode.Range(new vscode.Position(0, 0), editor.document.positionAt(editor.document.getText().length));
+
+            editBuilder.delete(fullRange);
+          })
+        })
+      });
 
       return resolve(true);
     });
@@ -323,8 +359,8 @@ export default class PlaygroundController {
 
   public runSelectedPlaygroundBlocks(): Promise<boolean> {
     if (
-      !this._activeTextEditor ||
-      this._activeTextEditor.document.languageId !== 'mongodb'
+      !this.activeTextEditor ||
+      this.activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
         `Please open a '.mongodb' playground file before running it.`
@@ -333,7 +369,7 @@ export default class PlaygroundController {
       return Promise.resolve(false);
     }
 
-    const selections = this._activeTextEditor.selections;
+    const selections = this.activeTextEditor.selections;
 
     if (
       !selections ||
@@ -355,8 +391,8 @@ export default class PlaygroundController {
 
   public runAllPlaygroundBlocks(): Promise<boolean> {
     if (
-      !this._activeTextEditor ||
-      this._activeTextEditor.document.languageId !== 'mongodb'
+      !this.activeTextEditor ||
+      this.activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
         `Please open a '.mongodb' playground file before running it.`
@@ -373,8 +409,8 @@ export default class PlaygroundController {
 
   public runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
     if (
-      !this._activeTextEditor ||
-      this._activeTextEditor.document.languageId !== 'mongodb'
+      !this.activeTextEditor ||
+      this.activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
         `Please open a '.mongodb' playground file before running it.`
@@ -383,7 +419,7 @@ export default class PlaygroundController {
       return Promise.resolve(false);
     }
 
-    const selections = this._activeTextEditor.selections;
+    const selections = this.activeTextEditor.selections;
 
     if (
       !selections ||
@@ -414,7 +450,7 @@ export default class PlaygroundController {
   }
 
   public deactivate(): void {
-    this._connectionController.removeEventListener(
+    this.connectionController.removeEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       () => {
         // No action is required after removing the listener.
