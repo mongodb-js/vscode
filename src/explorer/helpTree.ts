@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { openLink } from '../utils/linkHelper';
 const path = require('path');
 
 import { getImagesPath } from '../extensionConstants';
@@ -27,19 +28,21 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
   contextValue = HELP_LINK_CONTEXT_VALUE;
   linkId: string;
   url: string;
+  useRedirect: boolean;
 
-  constructor(title: string, url: string, linkId: string, iconName?: string) {
+  constructor(title: string, url: string, linkId: string, iconName?: string, useRedirect = false,) {
     super(title, vscode.TreeItemCollapsibleState.None);
 
     this.linkId = linkId;
     this.iconName = iconName;
     this.url = url;
+    this.useRedirect = useRedirect;
     this.iconPath = getIconPath(iconName);
   }
 }
 
 export default class HelpTree
-implements vscode.TreeDataProvider<vscode.TreeItem> {
+  implements vscode.TreeDataProvider<vscode.TreeItem> {
   contextValue = 'helpTree';
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
@@ -101,7 +104,8 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
         'Create Free Atlas Cluster',
         'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension',
         'freeClusterCTA',
-        'atlas'
+        'atlas',
+        true
       );
 
       return Promise.resolve([
@@ -124,10 +128,14 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
         helpItem.linkId
       );
 
-      await vscode.commands.executeCommand(
-        'vscode.open',
-        vscode.Uri.parse(helpItem.url)
-      );
+      if (helpItem.useRedirect) {
+        await openLink(helpItem.url);
+      } else {
+        await vscode.commands.executeCommand(
+          'vscode.open',
+          vscode.Uri.parse(helpItem.url)
+        );
+      }
     }
   }
 }
