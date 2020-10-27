@@ -30,7 +30,7 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
   url: string;
   useRedirect: boolean;
 
-  constructor(title: string, url: string, linkId: string, iconName?: string, useRedirect = false,) {
+  constructor(title: string, url: string, linkId: string, iconName?: string, useRedirect = false) {
     super(title, vscode.TreeItemCollapsibleState.None);
 
     this.linkId = linkId;
