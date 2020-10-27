@@ -129,7 +129,15 @@ export default class HelpTree
       );
 
       if (helpItem.useRedirect) {
-        await openLink(helpItem.url);
+        try {
+          await openLink(helpItem.url);
+        } catch (err) {
+          // If opening the link fails we default to regular link opening.
+          await vscode.commands.executeCommand(
+            'vscode.open',
+            vscode.Uri.parse(helpItem.url)
+          );
+        }
       } else {
         await vscode.commands.executeCommand(
           'vscode.open',
