@@ -15,14 +15,8 @@ import { createServer, Server } from 'http';
  */
 export const openLink = (url: string, serverPort = 3211): Promise<Server> => new Promise((resolve) => {
   const server = createServer((request, response) => {
-    response.writeHead(200);
-    response.end(`
-      <html>
-        <head>
-          <meta http-equiv="refresh" content="0;url=${url}" />
-        </head>
-      </html>
-      `)
+    response.writeHead(302, { location: url });
+    response.end();
   });
 
   // This works well for the time being but it should be changed
