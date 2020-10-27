@@ -2,6 +2,7 @@ import { openLink } from '../../../utils/linkHelper';
 import { expect } from 'chai';
 import vscode from 'vscode';
 import http from 'http';
+import { EventEmitter } from 'events';
 const sinon = require('sinon');
 
 suite('Open Link Test Suite', () => {
@@ -26,6 +27,20 @@ suite('Open Link Test Suite', () => {
     expect(stubExecuteCommand.firstCall.args[1].path).to.equal(vscode.Uri.parse('https://mongodb.com:4322').path);
     stubExecuteCommand.restore();
     stubCreateServer.restore();
+  });
+
+  test('handles errors', (done) => {
+    class MockedServer extends EventEmitter {
+      listen() { }
+    }
+    const mockedServer = new MockedServer();
+    const stubCreateServer = sinon.stub(http, 'createServer').returns(mockedServer);
+    openLink('https://mongodb.com', 4321).catch((e) => {
+      expect(e.message).to.equal('some error');
+      stubCreateServer.restore();
+      done();
+    });
+    mockedServer.emit('error', new Error('some error'));
   });
 });
 

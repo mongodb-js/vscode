@@ -13,7 +13,7 @@ import { createServer, Server } from 'http';
  *
  * @returns {Server} the helper Server instance
  */
-export const openLink = (url: string, serverPort = 3211): Promise<Server> => new Promise((resolve) => {
+export const openLink = (url: string, serverPort = 3211): Promise<Server> => new Promise((resolve, reject) => {
   const server = createServer((request, response) => {
     response.writeHead(302, { location: url });
     response.end();
@@ -27,6 +27,10 @@ export const openLink = (url: string, serverPort = 3211): Promise<Server> => new
     setTimeout(() => {
       server.close();
     }, 2000);
+  });
+
+  server.on('error', (err) => {
+    reject(err);
   });
 
   server.listen(serverPort, async () => {
