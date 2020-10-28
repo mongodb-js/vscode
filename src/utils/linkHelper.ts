@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import { createServer, Server } from 'http';
 
+const TRUSTED_DOMAINS: Array<RegExp> = [
+  /^.*mongodb\.com$/i
+];
+
 /**
  * Opens a link through an in-browser redirect from localhost
  * via a short-lived helper server.
@@ -14,6 +18,11 @@ import { createServer, Server } from 'http';
  * @returns {Server} the helper Server instance
  */
 export const openLink = (url: string, serverPort = 3211): Promise<Server> => new Promise((resolve, reject) => {
+  const { scheme, authority } = vscode.Uri.parse(url);
+  if (scheme !== 'https' || !TRUSTED_DOMAINS.find(regex => regex.test(authority))) {
+    return reject(new Error('untrusted url'));
+  }
+
   const server = createServer((request, response) => {
     response.writeHead(302, { location: url });
     response.end();
