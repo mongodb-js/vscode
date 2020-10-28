@@ -15,7 +15,7 @@ suite('Open Link Test Suite', () => {
     stubCreateServer.restore();
   });
 
-  test('the browser opens correctly', () => {
+  test('the browser opens correctly for mongodb.com', () => {
     const stubServer = sinon.createStubInstance(http.Server, {
       on: sinon.stub(),
       listen: sinon.stub().callsArg(1)
@@ -24,7 +24,21 @@ suite('Open Link Test Suite', () => {
     const stubExecuteCommand = sinon.stub(vscode.commands, 'executeCommand').resolves();
     openLink('https://mongodb.com', 4321);
     expect(stubExecuteCommand.firstCall.args[0]).to.equal('vscode.open');
-    expect(stubExecuteCommand.firstCall.args[1].path).to.equal(vscode.Uri.parse('https://mongodb.com:4322').path);
+    expect(stubExecuteCommand.firstCall.args[1].authority).to.equal(vscode.Uri.parse('http://localhost:4321').authority);
+    stubExecuteCommand.restore();
+    stubCreateServer.restore();
+  });
+
+  test('the browser opens correctly for a subdomain of mongodb.com', () => {
+    const stubServer = sinon.createStubInstance(http.Server, {
+      on: sinon.stub(),
+      listen: sinon.stub().callsArg(1)
+    });
+    const stubCreateServer = sinon.stub(http, 'createServer').returns(stubServer);
+    const stubExecuteCommand = sinon.stub(vscode.commands, 'executeCommand').resolves();
+    openLink('https://monkey.mongodb.com', 4321);
+    expect(stubExecuteCommand.firstCall.args[0]).to.equal('vscode.open');
+    expect(stubExecuteCommand.firstCall.args[1].authority).to.equal(vscode.Uri.parse('http://localhost:4321').authority);
     stubExecuteCommand.restore();
     stubCreateServer.restore();
   });
@@ -41,6 +55,27 @@ suite('Open Link Test Suite', () => {
       done();
     });
     mockedServer.emit('error', new Error('some error'));
+  });
+
+  test('does not allow insecure connections', (done) => {
+    openLink('http://mongodb.com', 4321).catch((e) => {
+      expect(e.message).to.equal('untrusted url');
+      done();
+    });
+  });
+
+  test('does not allow untrusted urls', (done) => {
+    openLink('https://mongobd.com', 4321).catch((e) => {
+      expect(e.message).to.equal('untrusted url');
+      done();
+    });
+  });
+
+  test('does not allow untrusted urls that contain mongodb.com', (done) => {
+    openLink('https://mongodb.com.foo.dev', 4321).catch((e) => {
+      expect(e.message).to.equal('untrusted url');
+      done();
+    });
   });
 });
 
