@@ -73,12 +73,6 @@ class FileInputButton extends React.Component<props> {
   render(): React.ReactNode {
     const { id, label } = this.props;
 
-    const buttonClassName = `${classnames(
-      styles.btn,
-      styles['btn-sm'],
-      styles['form-item-file-button']
-    )}`;
-
     return (
       <div
         className={classnames({
@@ -92,7 +86,10 @@ class FileInputButton extends React.Component<props> {
         </label>
         <button
           id={id}
-          className={buttonClassName}
+          className={classnames(
+            styles['btn-sm'],
+            styles['form-item-file-button']
+          )}
           onClick={this.onClick}
         >
           <FontAwesomeIcon
