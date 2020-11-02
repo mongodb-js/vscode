@@ -114,7 +114,7 @@ export class Authentication extends React.Component<StateProps & DispatchProps> 
     }
     if (authStrategy === AUTH_STRATEGIES.X509) {
       const { x509Username } = this.props;
-      return <X509 isValid={isValid} x509Username={x509Username} />;
+      return <X509 x509Username={x509Username} />;
     }
   }
 

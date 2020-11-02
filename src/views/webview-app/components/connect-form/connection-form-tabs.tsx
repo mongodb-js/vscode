@@ -22,10 +22,15 @@ type DispatchProps = {
 type props = StateProps & DispatchProps;
 
 export class ConnectionFormTabs extends React.Component<props> {
+  onClickNewConnectFormTab = (e: React.MouseEvent, newTab: CONNECTION_FORM_TABS): void => {
+    e.preventDefault();
+
+    this.props.setConnectionFormTab(newTab);
+  };
+
   render(): React.ReactNode {
     const {
-      connectionFormTab,
-      setConnectionFormTab
+      connectionFormTab
     } = this.props;
 
     return (
@@ -38,7 +43,7 @@ export class ConnectionFormTabs extends React.Component<props> {
             [styles['connection-form-tab']]: true,
             [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.GENERAL
           })}
-          onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.GENERAL)}
+          onClick={(e): void => this.onClickNewConnectFormTab(e, CONNECTION_FORM_TABS.GENERAL)}
           role="tab"
           aria-selected={connectionFormTab === CONNECTION_FORM_TABS.GENERAL}
         >General</button>
@@ -47,7 +52,7 @@ export class ConnectionFormTabs extends React.Component<props> {
             [styles['connection-form-tab']]: true,
             [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.SSL
           })}
-          onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.SSL)}
+          onClick={(e): void => this.onClickNewConnectFormTab(e, CONNECTION_FORM_TABS.SSL)}
           role="tab"
           aria-selected={connectionFormTab === CONNECTION_FORM_TABS.SSL}
         >SSL/TLS</button>
@@ -56,7 +61,7 @@ export class ConnectionFormTabs extends React.Component<props> {
             [styles['connection-form-tab']]: true,
             [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.SSH
           })}
-          onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.SSH)}
+          onClick={(e): void => this.onClickNewConnectFormTab(e, CONNECTION_FORM_TABS.SSH)}
           role="tab"
           aria-selected={connectionFormTab === CONNECTION_FORM_TABS.SSH}
         >SSH Tunnel</button>
@@ -65,7 +70,7 @@ export class ConnectionFormTabs extends React.Component<props> {
             [styles['connection-form-tab']]: true,
             [styles['connection-form-tab-selected']]: connectionFormTab === CONNECTION_FORM_TABS.ADVANCED
           })}
-          onClick={(): void => setConnectionFormTab(CONNECTION_FORM_TABS.ADVANCED)}
+          onClick={(e): void => this.onClickNewConnectFormTab(e, CONNECTION_FORM_TABS.ADVANCED)}
           role="tab"
           aria-selected={connectionFormTab === CONNECTION_FORM_TABS.ADVANCED}
         >Advanced</button>

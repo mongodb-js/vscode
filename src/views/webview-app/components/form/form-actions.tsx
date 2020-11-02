@@ -37,6 +37,12 @@ class FormActions extends React.Component<props> {
     this.props.onConnectClicked();
   };
 
+  onCancelClicked = (evt): void => {
+    evt.preventDefault();
+    evt.stopPropagation();
+    this.props.toggleShowConnectForm();
+  };
+
   /**
    * Checks for a syntax error.
    *
@@ -98,9 +104,9 @@ class FormActions extends React.Component<props> {
             name="cancel"
             id="cancelButton"
             className={classnames(styles.btn)}
-            onClick={(): void => this.props.toggleShowConnectForm()}
+            onClick={this.onCancelClicked}
           >
-            Cancel
+            {this.props.isConnected ? 'Close' : 'Cancel'}
           </button>
           <button
             type="submit"
