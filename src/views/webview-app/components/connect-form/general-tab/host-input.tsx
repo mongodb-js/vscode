@@ -3,16 +3,17 @@ import { connect } from 'react-redux';
 
 import { ActionTypes, HostnameChangedAction } from '../../../store/actions';
 import FormInput from '../../form/form-input';
+import { AppState } from '../../../store/store';
+
+type StateProps = {
+  hostname: string;
+};
 
 type DispatchProps = {
   onHostnameChanged: (newHostName: string) => void;
 };
 
-type props = {
-  hostname: string;
-} & DispatchProps;
-
-class HostInput extends React.PureComponent<props> {
+class HostInput extends React.PureComponent<StateProps & DispatchProps> {
   /**
    * Changes a host name.
    *
@@ -44,6 +45,12 @@ class HostInput extends React.PureComponent<props> {
   }
 }
 
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    hostname: state.currentConnection.hostname
+  };
+};
+
 const mapDispatchToProps: DispatchProps = {
   onHostnameChanged: (newHostname: string): HostnameChangedAction => ({
     type: ActionTypes.HOSTNAME_CHANGED,
@@ -51,4 +58,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(null, mapDispatchToProps)(HostInput);
+export default connect(mapStateToProps, mapDispatchToProps)(HostInput);

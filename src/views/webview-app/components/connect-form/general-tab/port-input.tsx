@@ -3,16 +3,17 @@ import { connect } from 'react-redux';
 
 import { ActionTypes, PortChangedAction } from '../../../store/actions';
 import FormInput from '../../form/form-input';
+import { AppState } from '../../../store/store';
+
+type StateProps = {
+  port: number;
+};
 
 type DispatchProps = {
   onPortChanged: (newPort: number) => void;
 };
 
-type props = {
-  port: number;
-} & DispatchProps;
-
-class PortInput extends React.PureComponent<props> {
+class PortInput extends React.PureComponent<StateProps & DispatchProps> {
   /**
    * Changes port.
    *
@@ -45,6 +46,12 @@ class PortInput extends React.PureComponent<props> {
   }
 }
 
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    port: state.currentConnection.port
+  };
+};
+
 const mapDispatchToProps: DispatchProps = {
   onPortChanged: (newPort: number): PortChangedAction => ({
     type: ActionTypes.PORT_CHANGED,
@@ -52,4 +59,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(null, mapDispatchToProps)(PortInput);
+export default connect(mapStateToProps, mapDispatchToProps)(PortInput);
