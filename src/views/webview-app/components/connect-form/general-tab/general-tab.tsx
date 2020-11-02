@@ -1,10 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
-  ConnectionFormChangedAction
-} from '../../../store/actions';
 import FormGroup from '../../form/form-group';
 import HostInput from './host-input';
 import PortInput from './port-input';
@@ -22,13 +18,7 @@ type StateProps = {
   syntaxErrorMessage: string;
 };
 
-type DispatchProps = {
-  onConnectionFormChanged: () => void;
-};
-
-type props = StateProps & DispatchProps;
-
-export class GeneralTab extends React.Component<props> {
+export class GeneralTab extends React.Component<StateProps> {
   /**
    * Renders a port input.
    *
@@ -68,11 +58,4 @@ const mapStateToProps = (state: AppState): StateProps => {
   };
 };
 
-const mapDispatchToProps: DispatchProps = {
-  // Resets URL validation if form was changed.
-  onConnectionFormChanged: (): ConnectionFormChangedAction => ({
-    type: ActionTypes.CONNECTION_FORM_CHANGED
-  })
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(GeneralTab);
+export default connect(mapStateToProps, null)(GeneralTab);

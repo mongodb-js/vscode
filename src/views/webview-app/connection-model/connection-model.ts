@@ -98,9 +98,9 @@ const validateSsl = (attrs: ConnectionModel): void => {
     return;
   }
 
-  if (attrs.sslMethod === 'SERVER' && !attrs.sslCA) {
+  if (attrs.sslMethod === SSL_METHODS.SERVER && !attrs.sslCA) {
     throw new TypeError('sslCA is required when ssl is SERVER.');
-  } else if (attrs.sslMethod === 'ALL') {
+  } else if (attrs.sslMethod === SSL_METHODS.ALL) {
     if (!attrs.sslCA) {
       throw new TypeError('sslCA is required when ssl is ALL.');
     }
@@ -113,8 +113,8 @@ const validateSsl = (attrs: ConnectionModel): void => {
 
 const validateMongodb = (attrs: ConnectionModel): void => {
   if (
-    attrs.authStrategy === 'MONGODB' ||
-    attrs.authStrategy === 'SCRAM-SHA-256'
+    attrs.authStrategy === AUTH_STRATEGIES.MONGODB ||
+    attrs.authStrategy === AUTH_STRATEGIES['SCRAM-SHA-256']
   ) {
     if (!attrs.mongodbUsername) {
       throw new TypeError(
@@ -137,7 +137,7 @@ const validateMongodb = (attrs: ConnectionModel): void => {
  * @param {Object} attrs - Incoming attributes.
  */
 const validateKerberos = (attrs: ConnectionModel): void => {
-  if (attrs.authStrategy !== 'KERBEROS') {
+  if (attrs.authStrategy !== AUTH_STRATEGIES.KERBEROS) {
     if (attrs.kerberosServiceName) {
       throw new TypeError(
         `The kerberosServiceName field does not apply when using ${attrs.authStrategy} for authStrategy.`
@@ -161,13 +161,15 @@ const validateKerberos = (attrs: ConnectionModel): void => {
 };
 
 const validateX509 = (attrs: ConnectionModel): void => {
-  if (attrs.authStrategy === 'X509') {
-    // TODO: SSL require here.
+  if (attrs.authStrategy === AUTH_STRATEGIES.X509 && attrs.sslMethod !== SSL_METHODS.ALL) {
+    throw new TypeError(
+      'SSL method is required to be set to \'Server and Client\' when using x509 authentication'
+    );
   }
 };
 
 const validateLdap = (attrs: ConnectionModel): void => {
-  if (attrs.authStrategy === 'LDAP') {
+  if (attrs.authStrategy === AUTH_STRATEGIES.LDAP) {
     if (!attrs.ldapUsername) {
       throw new TypeError(
         'The ldapUsername field is required when using LDAP for authStrategy.'

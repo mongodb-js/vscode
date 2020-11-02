@@ -18,7 +18,6 @@ describe('General Tab Component Test Suite', () => {
       isSrvRecord
       isValid
       syntaxErrorMessage=""
-      onConnectionFormChanged={(): void => { }}
     />);
     assert(wrapper.find(Authentication).exists());
     assert(wrapper.find(HostInput).exists());
@@ -34,7 +33,6 @@ describe('General Tab Component Test Suite', () => {
       isSrvRecord
       isValid
       syntaxErrorMessage=""
-      onConnectionFormChanged={(): void => { }}
     />);
     assert(!wrapper.find(PortInput).exists());
   });
@@ -48,7 +46,6 @@ describe('General Tab Component Test Suite', () => {
       isSrvRecord={false}
       isValid
       syntaxErrorMessage=""
-      onConnectionFormChanged={(): void => { }}
     />);
     assert(wrapper.find(PortInput).exists());
   });
