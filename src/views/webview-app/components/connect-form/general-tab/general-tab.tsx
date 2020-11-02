@@ -10,15 +10,14 @@ import HostInput from './host-input';
 import PortInput from './port-input';
 import SRVInput from './srv-input';
 import Authentication from './authentication/authentication';
-import ConnectionModel from '../../../connection-model/connection-model';
 import { AppState } from '../../../store/store';
 
 type StateProps = {
   connectionMessage: string;
-  currentConnection: ConnectionModel;
   errorMessage: string;
   isConnected: boolean;
   isConnecting: boolean;
+  isSrvRecord: boolean;
   isValid: boolean;
   syntaxErrorMessage: string;
 };
@@ -36,55 +35,22 @@ export class GeneralTab extends React.Component<props> {
    * @returns {React.Component}
    */
   renderPort(): React.ReactNode {
-    const { currentConnection } = this.props;
-
-    const { isSrvRecord, port } = currentConnection;
+    const { isSrvRecord } = this.props;
 
     if (!isSrvRecord) {
-      return <PortInput port={port} />;
+      return <PortInput />;
     }
   }
 
   render(): React.ReactNode {
-    const { currentConnection, isValid } = this.props;
-
-    const {
-      authStrategy,
-      hostname,
-      isSrvRecord,
-      kerberosCanonicalizeHostname,
-      kerberosPassword,
-      kerberosPrincipal,
-      kerberosServiceName,
-      ldapPassword,
-      ldapUsername,
-      mongodbDatabaseName,
-      mongodbPassword,
-      mongodbUsername,
-      x509Username
-    } = currentConnection;
-
     return (
       <div>
         <FormGroup id="connection-host-information" separator>
-          <HostInput hostname={hostname} />
+          <HostInput />
           {this.renderPort()}
-          <SRVInput isSrvRecord={isSrvRecord} />
+          <SRVInput />
         </FormGroup>
-        <Authentication
-          authStrategy={authStrategy}
-          isValid={isValid}
-          kerberosCanonicalizeHostname={kerberosCanonicalizeHostname}
-          kerberosPassword={kerberosPassword}
-          kerberosPrincipal={kerberosPrincipal}
-          kerberosServiceName={kerberosServiceName}
-          ldapPassword={ldapPassword}
-          ldapUsername={ldapUsername}
-          mongodbDatabaseName={mongodbDatabaseName}
-          mongodbPassword={mongodbPassword}
-          mongodbUsername={mongodbUsername}
-          x509Username={x509Username}
-        />
+        <Authentication />
       </div>
     );
   }
@@ -93,10 +59,10 @@ export class GeneralTab extends React.Component<props> {
 const mapStateToProps = (state: AppState): StateProps => {
   return {
     connectionMessage: state.connectionMessage,
-    currentConnection: state.currentConnection,
     errorMessage: state.errorMessage,
     isConnected: state.isConnected,
     isConnecting: state.isConnecting,
+    isSrvRecord: state.currentConnection.isSrvRecord,
     isValid: state.isValid,
     syntaxErrorMessage: state.syntaxErrorMessage
   };

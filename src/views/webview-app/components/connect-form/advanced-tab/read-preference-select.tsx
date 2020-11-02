@@ -1,16 +1,20 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
+import { AppState } from '../../../store/store';
 import { ActionTypes, ReadPreferenceChangedAction } from '../../../store/actions';
 import FormItemSelect from '../../form/form-item-select';
 import READ_PREFERENCES from '../../../connection-model/constants/read-preferences';
 
+type StateProps = {
+  readPreference: READ_PREFERENCES;
+};
+
 type DispatchProps = {
   onReadPreferenceChanged: (newReadPreference: READ_PREFERENCES) => void;
 };
-type props = { readPreference: string } & DispatchProps;
 
-class ReadPreferenceSelect extends React.PureComponent<props> {
+class ReadPreferenceSelect extends React.PureComponent<StateProps & DispatchProps> {
   /**
    * Handles a read preference change.
    *
@@ -41,6 +45,12 @@ class ReadPreferenceSelect extends React.PureComponent<props> {
   }
 }
 
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    readPreference: state.currentConnection.readPreference
+  };
+};
+
 const mapDispatchToProps: DispatchProps = {
   onReadPreferenceChanged: (
     newReadPreference: READ_PREFERENCES
@@ -50,4 +60,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(null, mapDispatchToProps)(ReadPreferenceSelect);
+export default connect(mapStateToProps, mapDispatchToProps)(ReadPreferenceSelect);

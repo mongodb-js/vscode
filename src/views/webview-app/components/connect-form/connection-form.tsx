@@ -5,8 +5,8 @@ import {
   ActionTypes,
   ConnectionFormChangedAction
 } from '../../store/actions';
-import SSLMethod from './ssl-tab/ssl-method';
-import SSHTunnel from './ssh-tab/ssh-tunnel';
+import SSLMethodTab from './ssl-tab/ssl-tab';
+import SSHTunnelTab from './ssh-tab/ssh-tunnel-tab';
 import FormActions from '../form/form-actions';
 import { AppState } from '../../store/store';
 import { CONNECTION_FORM_TABS } from '../../store/constants';
@@ -76,8 +76,8 @@ export class ConnectionForm extends React.Component<props> {
 
         <div className={styles['connection-form-fields']}>
           {connectionFormTab === CONNECTION_FORM_TABS.GENERAL && <GeneralTab />}
-          {connectionFormTab === CONNECTION_FORM_TABS.SSL && <SSLMethod />}
-          {connectionFormTab === CONNECTION_FORM_TABS.SSH && <SSHTunnel />}
+          {connectionFormTab === CONNECTION_FORM_TABS.SSL && <SSLMethodTab />}
+          {connectionFormTab === CONNECTION_FORM_TABS.SSH && <SSHTunnelTab />}
           {connectionFormTab === CONNECTION_FORM_TABS.ADVANCED && <AdvancedTab />}
         </div>
 

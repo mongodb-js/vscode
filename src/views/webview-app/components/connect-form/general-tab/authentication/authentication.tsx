@@ -12,12 +12,9 @@ import LDAP from './ldap';
 import MongoDBAuth from './mongodb-authentication';
 import ScramSha256 from './scram-sha-256';
 import X509 from './x509';
+import { AppState } from '../../../../store/store';
 
-type DispatchProps = {
-  onAuthStrategyChanged: (authStrategy: AUTH_STRATEGIES) => void;
-};
-
-type props = {
+type StateProps = {
   authStrategy: AUTH_STRATEGIES;
   isValid: boolean;
   kerberosCanonicalizeHostname: boolean;
@@ -30,9 +27,13 @@ type props = {
   mongodbPassword?: string;
   mongodbUsername?: string;
   x509Username?: string;
-} & DispatchProps;
+};
 
-class Authentication extends React.Component<props> {
+type DispatchProps = {
+  onAuthStrategyChanged: (authStrategy: AUTH_STRATEGIES) => void;
+};
+
+export class Authentication extends React.Component<StateProps & DispatchProps> {
   /**
    * Changes an authentication strategy.
    *
@@ -137,6 +138,23 @@ class Authentication extends React.Component<props> {
   }
 }
 
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    authStrategy: state.currentConnection.authStrategy,
+    isValid: state.isValid,
+    kerberosCanonicalizeHostname: state.currentConnection.kerberosCanonicalizeHostname,
+    kerberosPassword: state.currentConnection.kerberosPassword,
+    kerberosPrincipal: state.currentConnection.kerberosPrincipal,
+    kerberosServiceName: state.currentConnection.kerberosServiceName,
+    ldapPassword: state.currentConnection.ldapPassword,
+    ldapUsername: state.currentConnection.ldapUsername,
+    mongodbDatabaseName: state.currentConnection.mongodbDatabaseName,
+    mongodbPassword: state.currentConnection.mongodbPassword,
+    mongodbUsername: state.currentConnection.mongodbUsername,
+    x509Username: state.currentConnection.x509Username
+  };
+};
+
 const mapDispatchToProps: DispatchProps = {
   onAuthStrategyChanged: (newAuthStrategy): AuthStrategyChangedAction => ({
     type: ActionTypes.AUTH_STRATEGY_CHANGED,
@@ -144,4 +162,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(null, mapDispatchToProps)(Authentication);
+export default connect(mapStateToProps, mapDispatchToProps)(Authentication);

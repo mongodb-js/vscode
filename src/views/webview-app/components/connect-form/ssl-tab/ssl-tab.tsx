@@ -22,7 +22,7 @@ type StateProps = {
   sslMethod: string;
 };
 
-class SSLMethod extends React.Component<StateProps & DispatchProps> {
+class SSLTab extends React.Component<StateProps & DispatchProps> {
   /**
    * Handles SSL method change.
    *
@@ -81,4 +81,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(SSLMethod);
+export default connect(mapStateToProps, mapDispatchToProps)(SSLTab);

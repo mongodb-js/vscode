@@ -19,7 +19,7 @@ type StateProps = {
   sshTunnel: string;
 };
 
-class SSHTunnel extends React.Component<StateProps & DispatchProps> {
+class SSHTunnelTab extends React.Component<StateProps & DispatchProps> {
   /**
    * Handles SSH tunnel change.
    *
@@ -77,4 +77,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(SSHTunnel);
+export default connect(mapStateToProps, mapDispatchToProps)(SSHTunnelTab);
