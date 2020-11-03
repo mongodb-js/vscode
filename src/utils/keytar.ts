@@ -2,7 +2,21 @@ import * as keytarType from 'keytar';
 
 import { getNodeModule } from './getNodeModule';
 
+export type KeytarCredential = {
+  account: string;
+  password: string;
+};
+
 export interface KeytarInterface {
+  /**
+   * Find all accounts and passwords for `service` in the keychain.
+   *
+   * @param service The string service name.
+   *
+   * @returns A promise for the array of found credentials.
+   */
+  findCredentials(service: string): Promise<Array<KeytarCredential> | undefined>;
+
   /**
    * Get the stored password for the service and account.
    *

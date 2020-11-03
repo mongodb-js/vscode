@@ -13,6 +13,7 @@ import { SavedConnection, StorageScope } from './storage/storageController';
 import TelemetryController from './telemetry/telemetryController';
 import { ext } from './extensionConstants';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
+import { KeytarCredential } from './utils/keytar';
 
 const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
@@ -84,24 +85,18 @@ export default class ConnectionController {
 
   _loadSavedConnection = async (
     connectionId: string,
-    savedConnection: SavedConnection
+    savedConnection: SavedConnection,
+    unparsedCredential?: KeytarCredential
   ): Promise<void> => {
-    if (!ext.keytarModule) {
-      return;
-    }
-
     let loadedSavedConnection: LoadedConnection;
 
-    try {
-      const unparsedConnectionInformation = await ext.keytarModule.getPassword(
-        this._serviceName,
-        connectionId
-      );
+    if (!unparsedCredential || !unparsedCredential.password) {
+      // Skip this connection if the credentials don't exist.
+      return Promise.resolve();
+    }
 
-      if (!unparsedConnectionInformation) {
-        // Ignore empty connections.
-        return Promise.resolve();
-      }
+    try {
+      const unparsedConnectionInformation = unparsedCredential.password;
 
       const connectionInformation: SavedConnectionInformation = JSON.parse(
         unparsedConnectionInformation
@@ -127,11 +122,63 @@ export default class ConnectionController {
 
     this._connections[connectionId] = loadedSavedConnection;
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+  };
 
-    Promise.resolve();
+  loadSavedConnectionList = async (
+    savedConnections: SavedConnection[],
+    credentials: KeytarCredential[]
+  ): Promise<void> => {
+    if (Object.keys(savedConnections).length > 0) {
+      await Promise.allSettled(
+        Object.keys(savedConnections).map(
+          (connectionId) => this._loadSavedConnection(
+            connectionId,
+            savedConnections[connectionId],
+            credentials.find(credential => (
+              credential && credential.account === connectionId
+            ))
+          )
+        )
+      );
+    }
   };
 
   loadSavedConnections = async (): Promise<void> => {
+    if (!ext.keytarModule) {
+      return;
+    }
+
+    try {
+      const credentials = await ext.keytarModule.findCredentials(this._serviceName);
+
+      if (!credentials || credentials.length === 0) {
+        return;
+      }
+
+      // Load saved connections from storage.
+      const existingGlobalConnections: SavedConnection[] =
+        this._storageController.get(
+          StorageVariables.GLOBAL_SAVED_CONNECTIONS
+        ) || [] as SavedConnection[];
+
+      const existingWorkspaceConnections: SavedConnection[] =
+        this._storageController.get(
+          StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+          StorageScope.WORKSPACE
+        ) || [] as SavedConnection[];
+
+      await Promise.allSettled([
+        this.loadSavedConnectionList(existingGlobalConnections, credentials),
+        this.loadSavedConnectionList(existingWorkspaceConnections, credentials)
+      ]);
+    } catch (err) {
+      vscode.window.showInformationMessage(
+        `An error occured when loading saved connections: ${err}`
+      );
+    }
+  };
+
+  oldloadSavedConnections = async (): Promise<void> => {
     if (!ext.keytarModule) {
       return;
     }

@@ -2,11 +2,12 @@
   "compilerOptions": {
     "module": "commonjs",
     "noImplicitAny": false,
-    "target": "es6",
     "outDir": "out",
+    "target": "es2018",
     "lib": [
-      "es6",
-      "dom"
+      "es2018",
+      "dom",
+      "ES2020.Promise"
     ],
     "types": [
       "node"
