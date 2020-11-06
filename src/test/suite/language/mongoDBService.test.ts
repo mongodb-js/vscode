@@ -992,8 +992,12 @@ suite('MongoDBService Test Suite', () => {
         },
         source.token
       );
+      const res = {
+        outputLines: [],
+        result: { type: null, content: 2 }
+      };
 
-      expect(result).to.deep.equal([{ type: null, content: '2' }]);
+      expect(result).to.deep.equal(res);
     });
 
     test('evaluate multiple commands at once', async function () {
@@ -1006,8 +1010,12 @@ suite('MongoDBService Test Suite', () => {
         },
         source.token
       );
+      const res = {
+        outputLines: [],
+        result: { type: null, content: 3 }
+      };
 
-      expect(result).to.deep.equal([{ type: null, content: '3' }]);
+      expect(result).to.deep.equal(res);
     });
 
     test('create each time a new runtime', async function () {
@@ -1020,8 +1028,12 @@ suite('MongoDBService Test Suite', () => {
         },
         source.token
       );
+      const firstRes = {
+        outputLines: [],
+        result: { type: null, content: 2 }
+      };
 
-      expect(firstEvalResult).to.deep.equal([{ type: null, content: '2' }]);
+      expect(firstEvalResult).to.deep.equal(firstRes);
 
       const secondEvalResult = await testMongoDBService.executeAll(
         {
@@ -1029,8 +1041,12 @@ suite('MongoDBService Test Suite', () => {
         },
         source.token
       );
+      const secondRes = {
+        outputLines: [],
+        result: { type: null, content: 3 }
+      };
 
-      expect(secondEvalResult).to.deep.equal([{ type: null, content: '3' }]);
+      expect(secondEvalResult).to.deep.equal(secondRes);
     });
 
     test('includes results from print() and console.log()', async function () {
@@ -1043,14 +1059,17 @@ suite('MongoDBService Test Suite', () => {
         },
         source.token
       );
+      const res = {
+        outputLines: [
+          { type: null, content: 'Hello' },
+          { type: null, content: 1 },
+          { type: null, content: 2 },
+          { type: null, content: 3 }
+        ],
+        result: { type: null, content: 42 }
+      };
 
-      expect(result).to.deep.equal([
-        { type: null, content: 'Hello' },
-        { type: null, content: '1' },
-        { type: null, content: '2' },
-        { type: null, content: '3' },
-        { type: null, content: '42' },
-      ]);
+      expect(result).to.deep.equal(res);
     });
   });
 });

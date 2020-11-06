@@ -535,11 +535,11 @@
       "commandPalette": [
         {
           "command": "mdb.runSelectedPlaygroundBlocks",
-          "when": "editorTextFocus && editorLangId == mongodb"
+          "when": "editorLangId == mongodb"
         },
         {
           "command": "mdb.runAllPlaygroundBlocks",
-          "when": "editorTextFocus && editorLangId == mongodb"
+          "when": "editorLangId == mongodb"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -672,13 +672,13 @@
         "command": "mdb.runSelectedPlaygroundBlocks",
         "key": "ctrl+alt+s",
         "mac": "cmd+alt+s",
-        "when": "editorTextFocus && editorLangId == mongodb"
+        "when": "editorLangId == mongodb"
       },
       {
         "command": "mdb.runAllPlaygroundBlocks",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "editorTextFocus && editorLangId == mongodb"
+        "when": "editorLangId == mongodb"
       }
     ],
     "capabilities": {

@@ -13,9 +13,13 @@ import DocumentProvider, {
   DOCUMENT_ID_URI_IDENTIFIER,
   VIEW_DOCUMENT_SCHEME
 } from './documentProvider';
+import PlaygroundResultProvider, {
+  PLAYGROUND_RESULT_SCHEME
+} from './playgroundResultProvider';
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { StatusView } from '../views';
+import PlaygroundController from './playgroundController';
 
 const log = createLogger('editors controller');
 
@@ -25,16 +29,20 @@ const log = createLogger('editors controller');
  */
 export default class EditorsController {
   _connectionController: ConnectionController;
+  _playgroundController: PlaygroundController;
   _collectionDocumentsOperationsStore = new CollectionDocumentsOperationsStore();
   _collectionViewProvider: CollectionDocumentsProvider;
   _documentViewProvider: DocumentProvider;
+  _playgroundResultViewProvider: PlaygroundResultProvider;
 
   constructor(
     context: vscode.ExtensionContext,
-    connectionController: ConnectionController
+    connectionController: ConnectionController,
+    playgroundController: PlaygroundController
   ) {
     log.info('activating...');
     this._connectionController = connectionController;
+    this._playgroundController = playgroundController;
 
     const collectionViewProvider = new CollectionDocumentsProvider(
       connectionController,
@@ -75,6 +83,19 @@ export default class EditorsController {
     );
     this._documentViewProvider = documentViewProvider;
 
+    const playgroundResultViewProvider = new PlaygroundResultProvider(
+      playgroundController,
+      new StatusView(context)
+    );
+
+    context.subscriptions.push(
+      vscode.workspace.registerTextDocumentContentProvider(
+        PLAYGROUND_RESULT_SCHEME,
+        playgroundResultViewProvider
+      )
+    );
+    this._playgroundResultViewProvider = playgroundResultViewProvider;
+
     log.info('activated.');
   }
 
@@ -104,6 +125,7 @@ export default class EditorsController {
         documentId
       )} - ${Date.now()}.json${uriQuery}`
     );
+
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(textDocumentUri).then((doc) => {
         vscode.window

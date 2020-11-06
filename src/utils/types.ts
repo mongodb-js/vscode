@@ -3,4 +3,7 @@ export type OutputItem = {
   content: string;
 };
 
-export type ExecuteAllResult = OutputItem[] | undefined;
+export type ExecuteAllResult = {
+  outputLines: OutputItem[] | undefined,
+  result: any
+};

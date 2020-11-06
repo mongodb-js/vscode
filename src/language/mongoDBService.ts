@@ -3,8 +3,6 @@ import { Worker as WorkerThreads } from 'worker_threads';
 import { signatures } from '@mongosh/shell-api';
 import * as util from 'util';
 import { Visitor } from './visitor';
-import { ExecuteAllResult } from '../utils/types';
-
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 const path = require('path');
