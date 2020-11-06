@@ -84,7 +84,7 @@ export default class PlaygroundController {
       }
     );
 
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
+    const onEditorChange = (editor) => {
       if (editor?.document.uri.scheme === PLAYGROUND_RESULT_SCHEME) {
         this._playgroundResultViewColumn = editor.viewColumn;
         this._playgroundResultTextDocument = editor?.document;
@@ -94,7 +94,10 @@ export default class PlaygroundController {
         this.activeTextEditor = editor;
         log.info('Active editor path', editor?.document.uri?.path);
       }
-    });
+    };
+
+    vscode.window.onDidChangeActiveTextEditor(onEditorChange);
+    onEditorChange(vscode.window.activeTextEditor);
 
     vscode.window.onDidChangeTextEditorSelection((editor) => {
       if (
