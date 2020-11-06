@@ -12,9 +12,7 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import { createLogger } from '../logging';
 import type { ExecuteAllResult } from '../utils/types';
-import {
-  PLAYGROUND_RESULT_SCHEME
-} from './playgroundResultProvider';
+import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
 
 const log = createLogger('playground controller');
 
@@ -36,6 +34,8 @@ export default class PlaygroundController {
   private _selectedText?: string;
   private _codeToEvaluate: string;
   private _isPartialRun: boolean;
+  private _playgroundResultViewColumn?: vscode.ViewColumn;
+  private _playgroundResultTextDocument?: vscode.TextDocument;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -84,14 +84,17 @@ export default class PlaygroundController {
       }
     );
 
-    const onEditorChange = (editor) => {
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (editor?.document.uri.scheme === PLAYGROUND_RESULT_SCHEME) {
+        this._playgroundResultViewColumn = editor.viewColumn;
+        this._playgroundResultTextDocument = editor?.document;
+      }
+
       if (editor?.document.languageId !== 'Log') {
         this.activeTextEditor = editor;
         log.info('Active editor path', editor?.document.uri?.path);
       }
-    };
-    vscode.window.onDidChangeActiveTextEditor(onEditorChange);
-    onEditorChange(vscode.window.activeTextEditor);
+    });
 
     vscode.window.onDidChangeTextEditorSelection((editor) => {
       if (
@@ -118,7 +121,9 @@ export default class PlaygroundController {
     const selectedText = this.getSelectedText(item).trim();
     const lastSelectedLine =
       this.activeTextEditor?.document.lineAt(item.end.line).text.trim() || '';
-    const selections = this.activeTextEditor?.selections.sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
+    const selections = this.activeTextEditor?.selections.sort((a, b) =>
+      a.start.line > b.start.line ? 1 : -1
+    );
     const firstLine = selections ? selections[0].start.line : 0;
 
     if (
@@ -267,7 +272,9 @@ export default class PlaygroundController {
             });
 
             // Run all playground scripts.
-            const result: ExecuteAllResult = await this.evaluate(this._codeToEvaluate);
+            const result: ExecuteAllResult = await this.evaluate(
+              this._codeToEvaluate
+            );
 
             return resolve(result);
           }
@@ -278,6 +285,35 @@ export default class PlaygroundController {
           return resolve(undefined);
         });
     });
+  }
+
+  private getVirtualDocumentUri() {
+    let extension = '';
+
+    if (this.playgroundResult) {
+      if (typeof this.playgroundResult === 'object') {
+        extension = 'json';
+      } else {
+        extension = 'txt';
+      }
+    }
+
+    return vscode.Uri.parse(
+      [
+        `${PLAYGROUND_RESULT_SCHEME}:Playground Result`,
+        `.${extension}`,
+        `?id=${Date.now()}`
+      ].join('')
+    );
+  }
+
+  private openResultAsVirtualDocument(viewColumn) {
+    vscode.workspace
+      .openTextDocument(this.getVirtualDocumentUri())
+      .then((doc) => {
+        this._playgroundResultTextDocument = doc;
+        vscode.window.showTextDocument(doc, { preview: false, viewColumn });
+      });
   }
 
   public evaluatePlayground(): Promise<boolean> {
@@ -322,35 +358,25 @@ export default class PlaygroundController {
 
       this.playgroundResult = evaluateResponse.result?.content;
 
-      let extension = '';
+      let viewColumn: vscode.ViewColumn =
+        this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
 
-      if (this.playgroundResult) {
-        if (typeof this.playgroundResult === 'object') {
-          extension = 'json';
-        } else {
-          extension = 'txt';
-        }
-      }
-
-      const playgroundResultURI = vscode.Uri.parse(
-        [
-          `${PLAYGROUND_RESULT_SCHEME}:`,
-          `Playground Result - ${this.activeTextEditor?.document.fileName} - ${Date.now()}`,
-          `.${extension}`
-        ].join('')
-      );
-      const viewColumn = vscode.ViewColumn.Beside;
-
-      vscode.workspace.openTextDocument(playgroundResultURI).then((doc) => {
-        vscode.window.showTextDocument(doc, { preview: true, viewColumn })
-        .then(editor => {
-          editor.edit(editBuilder => {
-            let fullRange = new vscode.Range(new vscode.Position(0, 0), editor.document.positionAt(editor.document.getText().length));
-
-            editBuilder.delete(fullRange);
+      if (this._playgroundResultTextDocument) {
+        vscode.window
+          .showTextDocument(this._playgroundResultTextDocument, {
+            preview: false,
+            viewColumn
           })
-        })
-      });
+          .then((editor) => {
+            viewColumn = editor.viewColumn || vscode.ViewColumn.Beside;
+            vscode.commands.executeCommand(
+              'workbench.action.closeActiveEditor'
+            );
+            this.openResultAsVirtualDocument(viewColumn);
+          });
+      } else {
+        this.openResultAsVirtualDocument(viewColumn);
+      }
 
       return resolve(true);
     });
@@ -441,6 +467,7 @@ export default class PlaygroundController {
         (doc) => vscode.window.showTextDocument(doc, 1, false),
         (error) => {
           vscode.window.showErrorMessage(`Unable to read file: ${filePath}`);
+          log.error('Open playground ERROR', error);
         }
       );
 
