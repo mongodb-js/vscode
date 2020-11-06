@@ -286,6 +286,15 @@ suite('Playground Controller Test Suite', function () {
 
         expect(codeLens?.length).to.be.equal(1);
       });
+
+      test('evaluatePlayground should open editor to print results', async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
+        const isEditprOpened = await testPlaygroundController.evaluatePlayground();
+
+        expect(isEditprOpened).to.be.equal(true);
+      });
     });
 
     test('playground controller loads the active editor on start', () => {
