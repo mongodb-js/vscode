@@ -1,0 +1,6 @@
+export enum CONNECTION_FORM_TABS {
+  GENERAL = 'GENERAL',
+  SSL = 'SSL',
+  SSH = 'SSH',
+  ADVANCED = 'ADVANCED'
+}

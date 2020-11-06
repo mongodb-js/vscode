@@ -2,19 +2,22 @@ import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
 
-import { ActionTypes, ConnectAction } from '../../store/actions';
+import {
+  ActionTypes,
+  ConnectAction,
+  ToggleShowConnectionFormAction
+} from '../../store/actions';
 import FormGroup from './form-group';
-import ConnectionModel from '../../connection-model/connection-model';
 
 const styles = require('./form.less');
 
 type DispatchProps = {
   onConnectClicked: () => void;
+  toggleShowConnectForm: () => void;
 };
 
 type props = {
   connectionMessage: string;
-  currentConnection: ConnectionModel;
   errorMessage: string;
   isConnected: boolean;
   isConnecting: boolean;
@@ -23,8 +26,6 @@ type props = {
 } & DispatchProps;
 
 class FormActions extends React.Component<props> {
-  static displayName = 'FormActions';
-
   /**
    * Handles a connect click.
    *
@@ -34,6 +35,12 @@ class FormActions extends React.Component<props> {
     evt.preventDefault();
     evt.stopPropagation();
     this.props.onConnectClicked();
+  };
+
+  onCancelClicked = (evt): void => {
+    evt.preventDefault();
+    evt.stopPropagation();
+    this.props.toggleShowConnectForm();
   };
 
   /**
@@ -53,26 +60,6 @@ class FormActions extends React.Component<props> {
   hasError(): boolean {
     return !this.props.isValid && !!this.props.errorMessage;
   }
-
-  /**
-   * Renders "Connect" button.
-   *
-   * @returns {React.Component}
-   */
-  renderConnect = (): React.ReactNode => {
-    const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
-
-    return (
-      <button
-        type="submit"
-        name="connect"
-        className={classnames(styles.btn, syntaxError)}
-        onClick={this.onConnectClicked}
-      >
-        Connect
-      </button>
-    );
-  };
 
   /**
    * Renders a component with messages.
@@ -98,7 +85,7 @@ class FormActions extends React.Component<props> {
     if (hasMessage === true) {
       return (
         <div className={styles['form-message-container']}>
-          <div className={classnames(colorStyle)}>
+          <div className={colorStyle}>
             <div className={styles['connection-message']}>{message}</div>
           </div>
         </div>
@@ -107,10 +94,30 @@ class FormActions extends React.Component<props> {
   }
 
   render(): React.ReactNode {
+    const syntaxError = this.hasSyntaxError() ? 'disabled' : '';
+
     return (
-      <FormGroup id="favorite">
+      <FormGroup id="form-actions-group">
         {this.renderMessage()}
-        <div className={classnames(styles.buttons)}>{this.renderConnect()}</div>
+        <div className={styles['form-actions-buttons-container']}>
+          <button
+            name="cancel"
+            id="cancelButton"
+            className={classnames(styles.btn)}
+            onClick={this.onCancelClicked}
+          >
+            {this.props.isConnected ? 'Close' : 'Cancel'}
+          </button>
+          <button
+            type="submit"
+            id="connectButton"
+            name="connect"
+            className={classnames(styles.btn, styles['btn-primary'], syntaxError)}
+            onClick={this.onConnectClicked}
+          >
+            Connect
+          </button>
+        </div>
       </FormGroup>
     );
   }
@@ -119,6 +126,9 @@ class FormActions extends React.Component<props> {
 const mapDispatchToProps: DispatchProps = {
   onConnectClicked: (): ConnectAction => ({
     type: ActionTypes.CONNECT
+  }),
+  toggleShowConnectForm: (): ToggleShowConnectionFormAction => ({
+    type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM
   })
 };
 

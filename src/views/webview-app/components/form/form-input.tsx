@@ -20,8 +20,6 @@ type props = {
  * Represents an input field within a form.
  */
 class FormInput extends React.PureComponent<props> {
-  static displayName = 'FormInput';
-
   /**
    * Gets the error id for the tooltip.
    *

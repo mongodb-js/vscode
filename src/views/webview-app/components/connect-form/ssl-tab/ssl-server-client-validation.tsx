@@ -30,8 +30,6 @@ type DispatchProps = {
 type props = StateProps & DispatchProps;
 
 class SSLServerClientValidation extends React.Component<props> {
-  static displayName = 'SSLServerClientValidation';
-
   /**
    * Handles sslCA change.
    */
@@ -64,7 +62,7 @@ class SSLServerClientValidation extends React.Component<props> {
         className={classnames(styles['form-group'])}
       >
         <FileInputButton
-          label="Certificate Authority"
+          label="Certificate Authority (.pem)"
           id="sslCA"
           error={!isValid && sslCA === undefined}
           onClick={this.onCertificateAuthorityChanged}
@@ -72,7 +70,7 @@ class SSLServerClientValidation extends React.Component<props> {
           link="https://docs.mongodb.com/manual/tutorial/configure-ssl/#certificate-authorities"
         />
         <FileInputButton
-          label="Client Certificate and Key"
+          label="Client Certificate and Key (.pem)"
           id="sslCert"
           error={!isValid && sslCert === undefined}
           onClick={this.onClientCertificateChanged}

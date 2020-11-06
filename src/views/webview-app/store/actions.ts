@@ -3,6 +3,7 @@ import AUTH_STRATEGIES from '../connection-model/constants/auth-strategies';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
 import { CONNECTION_STATUS } from '../extension-app-message-constants';
+import { CONNECTION_FORM_TABS } from './constants';
 
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',
@@ -27,6 +28,7 @@ export enum ActionTypes {
   RENAME_CONNECTION = 'RENAME_CONNECTION',
   REPLICA_SET_CHANGED = 'REPLICA_SET_CHANGED',
   REQUEST_CONNECTION_STATUS = 'REQUEST_CONNECTION_STATUS',
+  SET_CONNECTION_FORM_TAB = 'SET_CONNECTION_FORM_TAB',
   SET_CONNECTION_STATUS = 'SET_CONNECTION_STATUS',
   SSH_TUNNEL_CHANGED = 'SSH_TUNNEL_CHANGED',
   SSH_TUNNEL_IDENTITY_FILE_CHANGED = 'SSH_TUNNEL_IDENTITY_FILE_CHANGED',
@@ -168,6 +170,11 @@ export interface RequestConnectionStatusAction extends BaseAction {
   type: ActionTypes.REQUEST_CONNECTION_STATUS;
 }
 
+export interface SetConnectionFormTabAction extends BaseAction {
+  type: ActionTypes.SET_CONNECTION_FORM_TAB;
+  connectionFormTab: CONNECTION_FORM_TABS;
+}
+
 export interface SetConnectionStatusAction extends BaseAction {
   type: ActionTypes.SET_CONNECTION_STATUS;
   connectionStatus: CONNECTION_STATUS;
@@ -271,6 +278,7 @@ export type Actions =
   | RenameConnectionAction
   | ReplicaSetChangedAction
   | RequestConnectionStatusAction
+  | SetConnectionFormTabAction
   | SetConnectionStatusAction
   | SSHTunnelChangedAction
   | SSHTunnelHostnameChangedAction

@@ -6,10 +6,10 @@ import {
   ActionTypes,
   KerberosParameters,
   KerberosParametersChanged
-} from '../../../store/actions';
-import FormInput from '../../form/form-input';
+} from '../../../../store/actions';
+import FormInput from '../../../form/form-input';
 
-const styles = require('../../../connect.module.less');
+const styles = require('../../../../connect.module.less');
 
 type DispatchProps = {
   kerberosParametersChanged: (newParams: KerberosParameters) => void;
@@ -27,8 +27,6 @@ type props = {
  * The kerberos auth role component.
  */
 class Kerberos extends React.Component<props> {
-  static displayName = 'Kerberos';
-
   /**
    * Handle the principal change.
    *
