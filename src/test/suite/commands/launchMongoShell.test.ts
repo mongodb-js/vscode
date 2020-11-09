@@ -163,16 +163,16 @@ suite('Commands Test Suite', () => {
       );
 
       assert(
-        shellArgs[1] === '--ssl',
-        `Expected open terminal to set ssl arg "--ssl" found "${shellArgs[1]}"`
+        shellArgs[1] === '--tls',
+        `Expected open terminal to set tls arg "--tls" found "${shellArgs[1]}"`
       );
       assert(
-        shellArgs[2] === '--sslAllowInvalidHostnames',
-        `Expected open terminal to set ssl arg "--sslAllowInvalidHostnames" found "${shellArgs[2]}"`
+        shellArgs[2] === '--tlsAllowInvalidHostnames',
+        `Expected open terminal to set tls arg "--tlsAllowInvalidHostnames" found "${shellArgs[2]}"`
       );
       assert(
-        shellArgs[3] === '--sslCAFile=./path_to_some_file',
-        `Expected open terminal to set sslCAFile arg "--sslCAFile=./path_to_some_file" found "${shellArgs[3]}"`
+        shellArgs[3] === '--tlsCAFile="./path_to_some_file"',
+        `Expected open terminal to set tlsCAFile arg "--tlsCAFile="./path_to_some_file"" found "${shellArgs[3]}"`
       );
     });
   });
@@ -271,16 +271,16 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
       assert(
-        shellCommandText.includes('--ssl'),
-        `Expected open terminal to have ssl arg "--ssl" found "${shellCommandText}"`
+        shellCommandText.includes('--tls'),
+        `Expected open terminal to have tls arg "--tls" found "${shellCommandText}"`
       );
       assert(
-        shellCommandText.includes('--sslAllowInvalidHostnames'),
-        `Expected open terminal to have ssl arg "--sslAllowInvalidHostnames" found "${shellCommandText}"`
+        shellCommandText.includes('--tlsAllowInvalidHostnames'),
+        `Expected open terminal to have tls arg "--tlsAllowInvalidHostnames" found "${shellCommandText}"`
       );
       assert(
-        shellCommandText.includes('--sslCAFile=./path_to_some_file'),
-        `Expected open terminal to have sslCAFile arg "--sslCAFile=./path_to_some_file" found "${shellCommandText}"`
+        shellCommandText.includes('--tlsCAFile="./path_to_some_file"'),
+        `Expected open terminal to have tlsCAFile arg "--tlsCAFile="./path_to_some_file"" found "${shellCommandText}"`
       );
     });
   });
@@ -373,16 +373,16 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
       assert(
-        shellCommandText.includes('--ssl'),
-        `Expected open terminal to have ssl arg "--ssl" found "${shellCommandText}"`
+        shellCommandText.includes('--tls'),
+        `Expected open terminal to have tls arg "--tls" found "${shellCommandText}"`
       );
       assert(
-        shellCommandText.includes('--sslAllowInvalidHostnames'),
-        `Expected open terminal to have ssl arg "--sslAllowInvalidHostnames" found "${shellCommandText}"`
+        shellCommandText.includes('--tlsAllowInvalidHostnames'),
+        `Expected open terminal to have tls arg "--tlsAllowInvalidHostnames" found "${shellCommandText}"`
       );
       assert(
-        shellCommandText.includes('--sslCAFile=./path_to_some_file'),
-        `Expected open terminal to have sslCAFile arg "--sslCAFile=./path_to_some_file" found "${shellCommandText}"`
+        shellCommandText.includes('--tlsCAFile="./path_to_some_file"'),
+        `Expected open terminal to have tlsCAFile arg "--tlsCAFile="./path_to_some_file"" found "${shellCommandText}"`
       );
     });
   });
