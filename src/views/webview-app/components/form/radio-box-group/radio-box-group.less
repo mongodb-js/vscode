@@ -1,0 +1,38 @@
+
+.radio-box-group {}
+
+.radio-box-item {
+  display: inline-block;
+  margin: 3px;
+  border: 1px solid var(--vscode-searchEditor-textInputBorder, black);
+  padding: 8px 14px;
+  border-radius: 3px;
+  transition: all 150ms ease-in-out;
+  color: var(--vscode-editor-foreground);
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &:focus-within {
+    box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+  }
+}
+
+.radio-box-item-selected {
+  background: #C3E7CA;
+  border-color: transparent;
+  color: #1E1E1E;
+}
+
+.radio-box-item-input {
+  // Hidden radio button styles.
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.radio-box-item-label {
+  font-size: 14px;
+  font-weight: normal;
+}
