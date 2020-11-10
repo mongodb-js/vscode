@@ -6,7 +6,7 @@ import SSH_TUNNEL_TYPES, {
   SSHTunnelOptions
 } from '../../../connection-model/constants/ssh-tunnel-types';
 import FormGroup from '../../form/form-group';
-import FormItemSelect from '../../form/form-item-select';
+import RadioBoxGroup from '../../form/radio-box-group/radio-box-group';
 import SSHTunnelPasswordValidation from './ssh-tunnel-password-validation';
 import SSHTunnelIdentityFileValidation from './ssh-tunnel-identity-file-validation';
 import { AppState } from '../../../store/store';
@@ -51,13 +51,14 @@ class SSHTunnelTab extends React.Component<StateProps & DispatchProps> {
 
     return (
       <FormGroup id="ssh-tunnel" separator>
-        <FormItemSelect
+        <RadioBoxGroup
           label="SSH Tunnel"
           name="sshTunnel"
           options={SSHTunnelOptions.map((sshTunnelOption) => ({
-            [`${sshTunnelOption.id}`]: sshTunnelOption.title
+            label: sshTunnelOption.title,
+            value: sshTunnelOption.id
           }))}
-          changeHandler={this.onSSHTunnelChanged}
+          onChange={this.onSSHTunnelChanged}
           value={sshTunnel}
         />
         {this.renderSSHTunnel()}

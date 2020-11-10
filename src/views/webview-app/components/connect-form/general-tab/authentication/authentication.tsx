@@ -123,15 +123,6 @@ export class Authentication extends React.Component<StateProps & DispatchProps> 
 
     return (
       <FormGroup id="authStrategy" separator>
-        {/* <FormItemSelect
-          label="Authentication"
-          name="authStrategy"
-          options={AuthStrategies.map((authStrat) => ({
-            [`${authStrat.id}`]: authStrat.title
-          }))}
-          changeHandler={this.onAuthStrategyChanged}
-          value={authStrategy}
-        /> */}
         <RadioBoxGroup
           label="Authentication"
           name="authStrategy"

@@ -21,7 +21,6 @@ class RadioBoxGroup extends React.Component<props> {
 
     // Stopped propagation to prevent event from bubbling with new target, and thus value coming back as undefined
     e.stopPropagation();
-    // e.preventDefault(); // TODO Rhys
 
     onChange(e);
 

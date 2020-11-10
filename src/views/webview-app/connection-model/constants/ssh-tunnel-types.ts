@@ -1,5 +1,5 @@
 // Allowed values for the `sshTunnel` field.
-enum SSH_TUNNEL_TYPES {
+export enum SSH_TUNNEL_TYPES {
   /**
    * Do not use SSH tunneling.
    */
