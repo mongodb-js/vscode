@@ -29,13 +29,6 @@ class RadioBoxGroup extends React.Component<props> {
     }
   };
 
-  /**
-   * Prepares options for the box item select.
-   *
-   * @param {Array} options - A list of options for boxes to select.
-   *
-   * @returns {React.Component}
-   */
   renderOptions(): React.ReactNode {
     const {
       options,
