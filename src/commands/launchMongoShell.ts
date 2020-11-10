@@ -13,29 +13,52 @@ function isSslConnection(activeConnectionModel: any): boolean {
 }
 
 function getSslOptions(driverOptions: any): string[] {
-  const mdbSslOptions = [ '--ssl' ];
+  const mdbSslOptions = ['--tls'];
 
   if (!driverOptions.checkServerIdentity) {
-    mdbSslOptions.push('--sslAllowInvalidHostnames');
+    mdbSslOptions.push('--tlsAllowInvalidHostnames');
   }
 
   if (!driverOptions.sslValidate) {
-    mdbSslOptions.push('--sslAllowInvalidCertificates');
+    mdbSslOptions.push('--tlsAllowInvalidCertificates');
   }
 
   if (driverOptions.sslCA) {
-    mdbSslOptions.push(`--sslCAFile=${driverOptions.sslCA}`);
+    mdbSslOptions.push(`--tlsCAFile="${driverOptions.sslCA}"`);
   }
 
   if (driverOptions.sslCert) {
-    mdbSslOptions.push(`--sslPEMKeyFile=${driverOptions.sslCert}`);
+    mdbSslOptions.push(`--tlsCertificateKeyFile="${driverOptions.sslCert}"`);
   }
 
   if (driverOptions.sslPass) {
-    mdbSslOptions.push(`--sslPEMKeyPassword=${driverOptions.sslPass}`);
+    mdbSslOptions.push(`--tlsCertificateKeyFilePassword="${driverOptions.sslPass}"`);
   }
 
   return mdbSslOptions;
+}
+
+function launchMongoDBShellWithEnv(
+  shellCommand: string,
+  mdbConnectionString: string,
+  mdbSslOptions: string[],
+  envVariableString: string
+) {
+  const mongoDBShell = vscode.window.createTerminal({
+    name: 'MongoDB Shell',
+    env: {
+      MDB_CONNECTION_STRING: mdbConnectionString
+    }
+  });
+
+  const mdbSslOptionsString = mdbSslOptions.length > 0
+    ? `${mdbSslOptions.join(' ')} `
+    : '';
+
+  mongoDBShell.sendText(
+    `${shellCommand} ${mdbSslOptionsString}${envVariableString};`
+  );
+  mongoDBShell.show();
 }
 
 function launchMongoDBShellOnPowershell(
@@ -43,21 +66,7 @@ function launchMongoDBShellOnPowershell(
   mdbConnectionString: string,
   mdbSslOptions: string[]
 ): void {
-  const mongoDBShell = vscode.window.createTerminal({
-    name: 'MongoDB Shell',
-    env: {
-      MDB_CONNECTION_STRING: mdbConnectionString
-    }
-  });
-
-  const mdbSslOptionsString = mdbSslOptions.length > 0
-    ? `${mdbSslOptions.join(' ')} `
-    : '';
-
-  mongoDBShell.sendText(
-    `${shellCommand} ${mdbSslOptionsString}$Env:MDB_CONNECTION_STRING;`
-  );
-  mongoDBShell.show();
+  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '$Env:MDB_CONNECTION_STRING');
 }
 
 function launchMongoDBShellOnCmd(
@@ -65,21 +74,15 @@ function launchMongoDBShellOnCmd(
   mdbConnectionString: string,
   mdbSslOptions: string[]
 ): void {
-  const mongoDBShell = vscode.window.createTerminal({
-    name: 'MongoDB Shell',
-    env: {
-      MDB_CONNECTION_STRING: mdbConnectionString
-    }
-  });
+  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '%MDB_CONNECTION_STRING%');
+}
 
-  const mdbSslOptionsString = mdbSslOptions.length > 0
-    ? `${mdbSslOptions.join(' ')} `
-    : '';
-
-  mongoDBShell.sendText(
-    `${shellCommand} ${mdbSslOptionsString}%MDB_CONNECTION_STRING%;`
-  );
-  mongoDBShell.show();
+function launchMongoDBShellOnGitBash(
+  shellCommand: string,
+  mdbConnectionString: string,
+  mdbSslOptions: string[]
+): void {
+  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '$MDB_CONNECTION_STRING');
 }
 
 function launchMongoDBShellOnBash(
@@ -146,6 +149,8 @@ export default function openMongoDBShell(connectionController: ConnectionControl
     launchMongoDBShellOnPowershell(shellCommand, mdbConnectionString, mdbSslOptions);
   } else if (userShell.includes('cmd.exe')) {
     launchMongoDBShellOnCmd(shellCommand, mdbConnectionString, mdbSslOptions);
+  } else if (userShell.toLocaleLowerCase().includes('git\\bin\\bash.exe')) {
+    launchMongoDBShellOnGitBash(shellCommand, mdbConnectionString, mdbSslOptions);
   } else {
     // Assume it's a bash environment. This may fail on certain
     // shells but should cover most cases.
