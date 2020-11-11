@@ -1,3 +1,5 @@
+@import "~../../styles/_variables";
+
 .connection-form {
   margin-top: 0em;
   padding: 15px 0;
@@ -63,7 +65,7 @@
 }
 
 .connection-form-tab-selected {
-  color: #C3E7CA;
+  color: @green-selected;
 }
 
 .connection-form-tab-selected::after {
@@ -75,7 +77,7 @@
   right: -1px;
   pointer-events: none;
   outline: none;
-  background-color: #13AA52;
+  background-color: @green;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
   animation-name: selectedConnectionTabAnimation;

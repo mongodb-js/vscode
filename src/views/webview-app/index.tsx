@@ -7,8 +7,6 @@ import App from './components/app';
 
 import { initialState, rootReducer } from './store/store';
 
-import './connect.module.less';
-
 const store = createStore(rootReducer, initialState);
 
 ReactDOM.render(

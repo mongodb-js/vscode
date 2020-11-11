@@ -1,5 +1,7 @@
 @import "~../../styles/_variables";
 
+@help-icon-button__color: rgba(255, 255, 255, 0.5);
+
 .form-group {
   display: block;
 }
@@ -37,10 +39,10 @@
       text-rendering: auto;
       margin: 0 0 0 5px;
       cursor: pointer;
-      color: rgba(255, 255, 255, 0.5);
+      color: @help-icon-button__color;
 
       :hover {
-        color: #fbb129;
+        color: @icon-button-hover__color;
       }
     }
   }
@@ -73,10 +75,10 @@
     text-rendering: auto;
     margin: 0 0 0 5px;
     cursor: pointer;
-    color: rgba(255, 255, 255, 0.5);
+    color: @help-icon-button__color;
 
     :hover {
-      color: #fbb129;
+      color: @icon-button-hover__color;
     }
   }
 }
@@ -140,8 +142,8 @@
 
 .btn-primary {
   color: white;
-  background-color: rgb(19, 170, 82);
-  background-image: linear-gradient(rgb(19, 170, 82), rgb(24, 150, 76));
+  background-color: @green;
+  background-image: linear-gradient(@green, rgb(24, 150, 76));
 
   border-color: rgb(21, 130, 66);
   box-shadow: rgb(21, 130, 66) 0px -1px 0px inset;
@@ -158,7 +160,7 @@
   width: 100%;
   padding: 0px;
   margin-top: 5px;
-  color: @pw;
+  color: @font-dark__color;
   font-size: small;
   font-weight: bold;
 
