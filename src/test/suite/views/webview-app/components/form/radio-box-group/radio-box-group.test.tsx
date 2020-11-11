@@ -4,7 +4,7 @@ import { mount } from 'enzyme';
 
 import RadioBoxGroup from '../../../../../../../views/webview-app/components/form/radio-box-group/radio-box-group';
 
-describe('Connect Form Modal Component Test Suite', () => {
+describe('Radio Box Group Component Test Suite', () => {
   describe('when rendered', () => {
     let didCallChangeHandler = false;
     let changeHandlerCalledValue;
