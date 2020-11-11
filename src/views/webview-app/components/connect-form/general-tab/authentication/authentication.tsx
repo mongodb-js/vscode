@@ -6,13 +6,13 @@ import AUTH_STRATEGIES, {
   AuthStrategies
 } from '../../../../connection-model/constants/auth-strategies';
 import FormGroup from '../../../form/form-group';
-import FormItemSelect from '../../../form/form-item-select';
 import Kerberos from './kerberos';
 import LDAP from './ldap';
 import MongoDBAuth from './mongodb-authentication';
 import ScramSha256 from './scram-sha-256';
 import X509 from './x509';
 import { AppState } from '../../../../store/store';
+import RadioBoxGroup from '../../../form/radio-box-group/radio-box-group';
 
 type StateProps = {
   authStrategy: AUTH_STRATEGIES;
@@ -123,13 +123,14 @@ export class Authentication extends React.Component<StateProps & DispatchProps> 
 
     return (
       <FormGroup id="authStrategy" separator>
-        <FormItemSelect
+        <RadioBoxGroup
           label="Authentication"
           name="authStrategy"
           options={AuthStrategies.map((authStrat) => ({
-            [`${authStrat.id}`]: authStrat.title
+            label: authStrat.title,
+            value: authStrat.id
           }))}
-          changeHandler={this.onAuthStrategyChanged}
+          onChange={this.onAuthStrategyChanged}
           value={authStrategy}
         />
         {this.renderAuthStrategy()}

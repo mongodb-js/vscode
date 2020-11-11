@@ -1,5 +1,5 @@
 // Allowed values for the `sslMethod` field.
-enum SSL_METHODS {
+export enum SSL_METHODS {
   /**
    * Do not use SSL for anything.
    */
