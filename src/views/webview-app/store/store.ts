@@ -32,6 +32,7 @@ export interface AppState {
   isConnected: boolean;
   errorMessage: string;
   showConnectForm: boolean;
+  showResourcesPanel: boolean;
   syntaxErrorMessage: string;
   savedMessage: string;
 }
@@ -48,6 +49,7 @@ export const initialState: AppState = {
   isConnected: false,
   errorMessage: '',
   showConnectForm: false,
+  showResourcesPanel: false,
   syntaxErrorMessage: '',
   savedMessage: ''
 };
@@ -434,6 +436,12 @@ export const rootReducer = (
       return {
         ...state,
         showConnectForm: !state.showConnectForm
+      };
+
+    case ActionTypes.TOGGLE_SHOW_RESOURCES_PANEL:
+      return {
+        ...state,
+        showResourcesPanel: !state.showResourcesPanel
       };
 
     case ActionTypes.USERNAME_CHANGED:

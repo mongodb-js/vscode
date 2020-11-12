@@ -1,0 +1,56 @@
+
+.resources-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.resources-panel-background {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.resources-panel-content {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  padding: 48px 24px;
+  background: var(--vscode-editor-background);
+}
+
+.resources-panel-close {
+  position: absolute;
+  top: 26px;
+  right: 20px;
+  font-size: 18px;
+  background: none;
+  color: var(--vscode-editor-foreground);
+  transition: 200ms all;
+  border: none;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.resources-panel-header {
+  font-size: 21px;
+  color: #13AA52;
+  text-align: left;
+}
+
+.resources-panel-book-icon {
+  vertical-align: text-top;
+  font-size: 26px;
+  margin-right: 8px;
+}
