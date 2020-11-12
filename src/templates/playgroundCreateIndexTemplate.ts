@@ -5,10 +5,8 @@ const template = `// MongoDB Playground
 use('CURRENT_DATABASE');
 
 // Create a new index in the collection.
-// 'ensureIndex' checks to see if the index already exists
-// before creating it, to avoid duplicates.
 db.getCollection('CURRENT_COLLECTION')
-  .ensureIndex(
+  .createIndex(
     {
       /*
        * Keys
