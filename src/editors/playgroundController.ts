@@ -13,6 +13,7 @@ import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTem
 import { createLogger } from '../logging';
 import type { ExecuteAllResult } from '../utils/types';
 import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
+import type { OutputItem } from '../utils/types';
 
 const log = createLogger('playground controller');
 
@@ -23,7 +24,7 @@ export default class PlaygroundController {
   public connectionController: ConnectionController;
   public activeTextEditor?: TextEditor;
   public partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
-  public playgroundResult?: any;
+  public playgroundResult?: OutputItem;
   private _context: vscode.ExtensionContext;
   private _languageServerController: LanguageServerController;
   private _telemetryController: TelemetryController;
@@ -290,15 +291,13 @@ export default class PlaygroundController {
     });
   }
 
-  private getVirtualDocumentUri() {
+  public getVirtualDocumentUri(content?: any) {
     let extension = '';
 
-    if (this.playgroundResult) {
-      if (typeof this.playgroundResult === 'object') {
-        extension = 'json';
-      } else {
-        extension = 'txt';
-      }
+    if (typeof content === 'object') {
+      extension = 'json';
+    } else {
+      extension = 'txt';
     }
 
     return vscode.Uri.parse(
@@ -312,7 +311,9 @@ export default class PlaygroundController {
 
   private openResultAsVirtualDocument(viewColumn) {
     vscode.workspace
-      .openTextDocument(this.getVirtualDocumentUri())
+      .openTextDocument(
+        this.getVirtualDocumentUri(this.playgroundResult?.content)
+      )
       .then((doc) => {
         this._playgroundResultTextDocument = doc;
         vscode.window.showTextDocument(doc, { preview: false, viewColumn });
@@ -359,7 +360,7 @@ export default class PlaygroundController {
         return resolve(false);
       }
 
-      this.playgroundResult = evaluateResponse.result?.content;
+      this.playgroundResult = evaluateResponse.result;
 
       let viewColumn: vscode.ViewColumn =
         this._playgroundResultViewColumn || vscode.ViewColumn.Beside;

@@ -4,7 +4,8 @@ import PlaygroundController from './playgroundController';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
-export default class PlaygroundResultProvider implements vscode.TextDocumentContentProvider {
+export default class PlaygroundResultProvider
+  implements vscode.TextDocumentContentProvider {
   _playgroundController: PlaygroundController;
   _statusView: StatusView;
 
@@ -23,7 +24,21 @@ export default class PlaygroundResultProvider implements vscode.TextDocumentCont
     return new Promise((resolve) => {
       this._statusView.showMessage('Getting results...');
 
-      return resolve(JSON.stringify(this._playgroundController.playgroundResult, null, 2));
+      if (
+        typeof this._playgroundController.playgroundResult?.content ===
+          'object' ||
+        this._playgroundController.playgroundResult?.type !== 'string'
+      ) {
+        return resolve(
+          JSON.stringify(
+            this._playgroundController.playgroundResult?.content,
+            null,
+            2
+          )
+        );
+      }
+
+      return resolve(this._playgroundController.playgroundResult?.content);
     });
   }
 }

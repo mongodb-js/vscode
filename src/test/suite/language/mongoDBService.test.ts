@@ -15,7 +15,6 @@ import MongoDBService, {
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 const expect = chai.expect;
-
 const INCREASED_TEST_TIMEOUT = 5000;
 
 suite('MongoDBService Test Suite', () => {
@@ -992,15 +991,15 @@ suite('MongoDBService Test Suite', () => {
         },
         source.token
       );
-      const res = {
+      const expectedResult = {
         outputLines: [],
-        result: { type: null, content: 2 }
+        result: { type: 'number', content: 2 }
       };
 
-      expect(result).to.deep.equal(res);
+      expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate multiple commands at once', async function () {
+    test('evaluate multiplies commands at once', async function () {
       this.timeout(INCREASED_TEST_TIMEOUT);
 
       const source = new CancellationTokenSource();
@@ -1010,12 +1009,12 @@ suite('MongoDBService Test Suite', () => {
         },
         source.token
       );
-      const res = {
+      const expectedResult = {
         outputLines: [],
-        result: { type: null, content: 3 }
+        result: { type: 'number', content: 3 }
       };
 
-      expect(result).to.deep.equal(res);
+      expect(result).to.deep.equal(expectedResult);
     });
 
     test('create each time a new runtime', async function () {
@@ -1030,7 +1029,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const firstRes = {
         outputLines: [],
-        result: { type: null, content: 2 }
+        result: { type: 'number', content: 2 }
       };
 
       expect(firstEvalResult).to.deep.equal(firstRes);
@@ -1043,10 +1042,85 @@ suite('MongoDBService Test Suite', () => {
       );
       const secondRes = {
         outputLines: [],
-        result: { type: null, content: 3 }
+        result: { type: 'number', content: 3 }
       };
 
       expect(secondEvalResult).to.deep.equal(secondRes);
+    });
+
+    test('evaluate returns valid EJSON', async function () {
+      this.timeout(INCREASED_TEST_TIMEOUT);
+
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll(
+        {
+          codeToEvaluate: `const { ObjectId } = require('bson');
+          const x = { _id: new ObjectId('5fb292760ece2dc9c0362075') };
+          x`
+        },
+        source.token
+      );
+      const expectedResult = {
+        outputLines: [],
+        result: {
+          type: 'object',
+          content: {
+            _id: {
+              $oid: '5fb292760ece2dc9c0362075'
+            }
+          }
+        }
+      };
+
+      expect(result).to.deep.equal(expectedResult);
+    });
+
+    test('evaluate returns single line strings', async function () {
+      this.timeout(INCREASED_TEST_TIMEOUT);
+
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll(
+        {
+          codeToEvaluate: `const x = 'A single line string';
+          x`
+        },
+        source.token
+      );
+      const expectedResult = {
+        outputLines: [],
+        result: {
+          type: 'string',
+          content: 'A single line string'
+        }
+      };
+
+      expect(result).to.deep.equal(expectedResult);
+    });
+
+    test('evaluate returns multiline strings', async function () {
+      this.timeout(INCREASED_TEST_TIMEOUT);
+
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll(
+        {
+          codeToEvaluate: `const x = \`vscode
+          is
+          awesome\`;
+          x`
+        },
+        source.token
+      );
+      const expectedResult = {
+        outputLines: [],
+        result: {
+          type: 'string',
+          content: `vscode
+          is
+          awesome`
+        }
+      };
+
+      expect(result).to.deep.equal(expectedResult);
     });
 
     test('includes results from print() and console.log()', async function () {
@@ -1059,17 +1133,17 @@ suite('MongoDBService Test Suite', () => {
         },
         source.token
       );
-      const res = {
+      const expectedResult = {
         outputLines: [
           { type: null, content: 'Hello' },
           { type: null, content: 1 },
           { type: null, content: 2 },
           { type: null, content: 3 }
         ],
-        result: { type: null, content: 42 }
+        result: { type: 'number', content: 42 }
       };
 
-      expect(result).to.deep.equal(res);
+      expect(result).to.deep.equal(expectedResult);
     });
   });
 });

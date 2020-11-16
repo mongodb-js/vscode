@@ -4,11 +4,12 @@ import {
   CliServiceProvider,
   NodeOptions
 } from '@mongosh/service-provider-server';
-import formatOutput from '../utils/formatOutput';
 import parseSchema = require('mongodb-schema');
 import { ServerCommands } from './serverCommands';
 import { CompletionItemKind } from 'vscode-languageserver';
 import type { OutputItem } from '../utils/types';
+
+const { EJSON } = require('bson');
 
 type EvaluationResult = {
   printable: any;
@@ -45,12 +46,13 @@ const executeAll = async (
         }
       }
     });
-    const { type, printable } = await runtime.evaluate(
-      codeToEvaluate
-    );
+    const { type, printable } = await runtime.evaluate(codeToEvaluate);
     const result = {
-      type,
-      content: printable
+      type: type ? type : typeof printable,
+      content:
+        typeof printable === 'string'
+          ? printable
+          : JSON.parse(EJSON.stringify(printable))
     };
 
     return [null, { outputLines, result }];
