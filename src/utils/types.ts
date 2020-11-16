@@ -4,6 +4,6 @@ export type OutputItem = {
 };
 
 export type ExecuteAllResult = {
-  outputLines: OutputItem[] | undefined,
-  result: any
+  outputLines: OutputItem[] | undefined;
+  result: OutputItem;
 };

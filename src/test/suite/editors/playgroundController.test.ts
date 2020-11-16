@@ -323,6 +323,66 @@ suite('Playground Controller Test Suite', function () {
 
         expect(isEditprOpened).to.be.equal(true);
       });
+
+      test('getVirtualDocumentUri should return json uri if content is object', async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
+        const uri = await testPlaygroundController.getVirtualDocumentUri({
+          test: 'value'
+        });
+
+        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
+        expect(uri.path).to.be.equal('Playground Result.json');
+      });
+
+      test('getVirtualDocumentUri should return json uri if content is array', async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
+        const uri = await testPlaygroundController.getVirtualDocumentUri([
+          { test: 'value' }
+        ]);
+
+        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
+        expect(uri.path).to.be.equal('Playground Result.json');
+      });
+
+      test('getVirtualDocumentUri should return json uri if content is object with BSON value', async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
+        const uri = await testPlaygroundController.getVirtualDocumentUri({
+          _id: {
+            $oid: '5d973ae7443762aae72a160'
+          }
+        });
+
+        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
+        expect(uri.path).to.be.equal('Playground Result.json');
+      });
+
+      test('getVirtualDocumentUri should return txt uri if content is string', async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
+        const uri = await testPlaygroundController.getVirtualDocumentUri(
+          'I am a string'
+        );
+
+        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
+        expect(uri.path).to.be.equal('Playground Result.txt');
+      });
+
+      test('getVirtualDocumentUri should return txt uri if content is number', async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
+        const uri = await testPlaygroundController.getVirtualDocumentUri(12);
+
+        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
+        expect(uri.path).to.be.equal('Playground Result.txt');
+      });
     });
   });
 });
