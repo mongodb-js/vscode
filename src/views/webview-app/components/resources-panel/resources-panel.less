@@ -16,6 +16,20 @@
   left: 0;
   z-index: -1;
   background-color: rgba(0, 0, 0, 0.5);
+  animation-duration: 250ms;
+  animation-direction: forwards;
+  animation-name: backgroundDarkenAnimation;
+}
+
+
+@keyframes backgroundDarkenAnimation {
+  from {
+    width: rgba(0, 0, 0, 0.1);
+  }
+
+  to {
+    width: rgba(0, 0, 0, 0.5);
+  }
 }
 
 .resources-panel-content {
