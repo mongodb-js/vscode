@@ -17,7 +17,7 @@ const ResourceLinks = [{
   title: 'Product overview',
   description: 'Get an overview on MongoDB',
   linkId: 'productOverview',
-  url: 'https://www.mongodb.com/'
+  url: 'https://docs.mongodb.com/'
 }, {
   title: 'Extension documentation',
   description: 'Check the documentation about the extension',
