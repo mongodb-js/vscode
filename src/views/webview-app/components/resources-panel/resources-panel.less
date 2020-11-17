@@ -21,7 +21,6 @@
   animation-name: backgroundDarkenAnimation;
 }
 
-
 @keyframes backgroundDarkenAnimation {
   from {
     width: rgba(0, 0, 0, 0.1);
@@ -83,4 +82,42 @@
   vertical-align: text-top;
   font-size: 26px;
   margin-right: 8px;
+}
+
+.resources-panel-links-container {
+  margin-top: 54px;
+}
+
+.resources-panel-link {
+  margin-top: 8px;
+  padding: 10px 20px;
+  background-color: rgba(50, 50, 50, 0.5);
+  line-height: 20px;
+  color: white;
+  text-align: left;
+  text-decoration: none;
+  display: block;
+}
+
+.resources-panel-footer {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: row;
+  text-align: left;
+}
+
+.resources-panel-footer-item {
+  display: inline-block;
+  width: 50%;
+}
+
+.resources-panel-footer-item-title {
+  margin: 10px 0px;
+}
+
+.resources-panel-footer-link {
+  margin: 5px 0px;
+  text-decoration: none;
+  display: block;
+  color: var(--vscode-editor-foreground);
 }
