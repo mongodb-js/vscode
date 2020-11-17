@@ -5,10 +5,8 @@ import ConnectionController, {
 } from '../connectionController';
 import TelemetryController from '../telemetry/telemetryController';
 import {
-  INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME,
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
-  MESSAGE_TYPES,
-  WEBVIEW_INITIAL_VIEWS
+  MESSAGE_TYPES
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
@@ -39,8 +37,7 @@ export const getReactAppUri = (
 
 export const getWebviewContent = (
   extensionPath: string,
-  webview: vscode.Webview,
-  view: WEBVIEW_INITIAL_VIEWS
+  webview: vscode.Webview
 ): string => {
   const jsAppFileUrl = getReactAppUri(extensionPath, webview);
 
@@ -53,7 +50,6 @@ export const getWebviewContent = (
     </head>
     <body>
       <div id="root"></div>
-      <script>window['${INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME}'] = '${view}';</script>
       <script src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
@@ -199,16 +195,16 @@ export default class WebviewController {
   };
 
   openWebview(
-    view: WEBVIEW_INITIAL_VIEWS,
-    viewTitle: string,
     context: vscode.ExtensionContext
   ): Promise<boolean> {
+    log.info('open webview called.');
+
     const extensionPath = context.extensionPath;
 
     // Create and show a new connect dialogue webview.
     const panel = vscode.window.createWebviewPanel(
       'connectDialogueWebview',
-      viewTitle,
+      'MongoDB',
       vscode.ViewColumn.One, // Editor column to show the webview panel in.
       {
         enableScripts: true,
@@ -224,7 +220,7 @@ export default class WebviewController {
       path.join(extensionPath, 'images', 'leaf.svg')
     );
 
-    panel.webview.html = getWebviewContent(extensionPath, panel.webview, view);
+    panel.webview.html = getWebviewContent(extensionPath, panel.webview);
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
@@ -235,17 +231,5 @@ export default class WebviewController {
     );
 
     return Promise.resolve(true);
-  }
-
-  showConnectForm(context: vscode.ExtensionContext): Promise<boolean> {
-    log.info('show connect form called.');
-
-    return this.openWebview(WEBVIEW_INITIAL_VIEWS.CONNECT, 'MongoDB', context);
-  }
-
-  showOverviewPage(context: vscode.ExtensionContext): Promise<boolean> {
-    log.info('show overview page called.');
-
-    return this.openWebview(WEBVIEW_INITIAL_VIEWS.OVERVIEW, 'MongoDB', context);
   }
 }

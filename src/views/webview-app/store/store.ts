@@ -6,10 +6,8 @@ import ConnectionModel, {
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import {
   CONNECTION_STATUS,
-  INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME,
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
-  MESSAGE_TYPES,
-  WEBVIEW_INITIAL_VIEWS
+  MESSAGE_TYPES
 } from '../extension-app-message-constants';
 import { CONNECTION_FORM_TABS } from './constants';
 
@@ -45,7 +43,7 @@ export const initialState: AppState = {
   isConnecting: false,
   isConnected: false,
   errorMessage: '',
-  showConnectForm: window[INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME] === WEBVIEW_INITIAL_VIEWS.CONNECT,
+  showConnectForm: false,
   syntaxErrorMessage: '',
   savedMessage: ''
 };
