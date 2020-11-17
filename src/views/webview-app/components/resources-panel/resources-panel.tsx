@@ -54,10 +54,6 @@ const FooterFeatures = [{
 }];
 
 const FooterLinks = [{
-  title: 'MongoDB Cloud',
-  linkId: 'mongoDBCloud',
-  url: 'https://www.mongodb.com/cloud'
-}, {
   title: 'Github',
   linkId: 'github',
   url: 'https://github.com/mongodb-js/vscode'
@@ -69,6 +65,10 @@ const FooterLinks = [{
   title: 'Report a bug',
   linkId: 'reportABug',
   url: 'https://github.com/mongodb-js/vscode/issues'
+}, {
+  title: 'MongoDB Cloud',
+  linkId: 'mongoDBCloud',
+  url: 'https://www.mongodb.com/cloud'
 }];
 
 const TELEMETRY_SCREEN_ID = 'overviewResourcesPanel';
