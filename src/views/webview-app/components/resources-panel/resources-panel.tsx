@@ -17,10 +17,8 @@ const ResourceLinks = [{
   title: 'Product overview',
   description: 'Get an overview on MongoDB',
   linkId: 'productOverview',
-  url: 'https://www.mongodb.com/products/vs-code'
-  // TODO: Should we use a special link.
+  url: 'https://www.mongodb.com/'
 }, {
-  // TODO: Do we pair this with the help tree resource links?
   title: 'Extension documentation',
   description: 'Check the documentation about the extension',
   linkId: 'extensionDocumentation',
@@ -28,34 +26,41 @@ const ResourceLinks = [{
 }, {
   title: 'Connect to your database',
   description: 'Connect in just a few steps',
-  url: 'https://docs.mongodb.com/mongodb-vscode/connect',
-  linkId: 'connectInfo'
+  linkId: 'connectInfo',
+  url: 'https://docs.mongodb.com/mongodb-vscode/connect'
 }, {
   title: 'Interact with your data',
   description: 'Play with your data, create queries and aggregations',
-  // TODO: This link good?
-  url: 'https://docs.mongodb.com/mongodb-vscode/playgrounds',
-  linkId: 'interactWithYourData'
+  linkId: 'interactWithYourData',
+  url: 'https://docs.mongodb.com/mongodb-vscode/playgrounds'
 }];
 
 const FooterFeatures = [{
-  title: 'Navigate databases'
+  title: 'Navigate databases',
+  linkId: 'navigateDatabaseInfo',
+  url: 'https://docs.mongodb.com/mongodb-vscode/databases-collections'
 }, {
-  title: 'Perform CRUD operations'
+  title: 'Perform CRUD operations',
+  linkId: 'crudInfo',
+  url: 'https://docs.mongodb.com/mongodb-vscode/crud-ops'
 }, {
-  title: 'Run aggregation pipelines'
+  title: 'Run aggregation pipelines',
+  linkId: 'aggPipelineInfo',
+  url: 'https://docs.mongodb.com/mongodb-vscode/run-agg-pipelines'
 }, {
-  title: 'Playgrounds'
+  title: 'Playgrounds',
+  linkId: 'playgroundsInfo',
+  url: 'https://docs.mongodb.com/mongodb-vscode/playgrounds'
 }];
 
 const FooterLinks = [{
+  title: 'MongoDB Cloud',
+  linkId: 'mongoDBCloud',
+  url: 'https://www.mongodb.com/cloud'
+}, {
   title: 'Github',
   linkId: 'github',
   url: 'https://github.com/mongodb-js/vscode'
-}, {
-  title: 'Stack Overflow',
-  linkId: 'stackOverflow',
-  url: 'https://stackoverflow.com/questions'
 }, {
   title: 'Suggest a feature',
   linkId: 'feedback',
@@ -65,6 +70,8 @@ const FooterLinks = [{
   linkId: 'reportABug',
   url: 'https://github.com/mongodb-js/vscode/issues'
 }];
+
+const TELEMETRY_SCREEN_ID = 'overviewResourcesPanel';
 
 type DispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;
@@ -105,7 +112,7 @@ class ResourcesPanel extends React.Component<DispatchProps> {
             className={styles['resources-panel-link']}
             href={resourceLink.url}
             onClick={(): void => this.onLinkClicked(
-              'overviewResourcesPanel',
+              TELEMETRY_SCREEN_ID,
               resourceLink.linkId
             )}
             key={`link-${resourceLink.linkId}`}
@@ -129,31 +136,32 @@ class ResourcesPanel extends React.Component<DispatchProps> {
       <div className={styles['resources-panel-footer']}>
         <div className={styles['resources-panel-footer-item']}>
           <div className={styles['resources-panel-footer-item-title']}>
-            <strong>
-              Key Features
-            </strong>
+            Key features
           </div>
           {FooterFeatures.map(footerFeature => (
-            <div
+            <a
               className={styles['resources-panel-footer-link']}
-              key={`footer-feature-${footerFeature.title}`}
+              key={`footer-feature-${footerFeature.linkId}`}
+              href={footerFeature.url}
+              onClick={(): void => this.onLinkClicked(
+                TELEMETRY_SCREEN_ID,
+                footerFeature.linkId
+              )}
             >
               {footerFeature.title}
-            </div>
+            </a>
           ))}
         </div>
         <div className={styles['resources-panel-footer-item']}>
           <div className={styles['resources-panel-footer-item-title']}>
-            <strong>
-              Contribute
-            </strong>
+            Contribute
           </div>
           {FooterLinks.map(footerLink => (
             <a
               className={styles['resources-panel-footer-link']}
               href={footerLink.url}
               onClick={(): void => this.onLinkClicked(
-                'overviewResourcesPanel',
+                TELEMETRY_SCREEN_ID,
                 footerLink.linkId
               )}
               key={`footer-link-${footerLink.linkId}`}
