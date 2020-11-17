@@ -10,7 +10,10 @@ import WebviewController, {
   getWebviewContent
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
-import { MESSAGE_TYPES, WEBVIEW_VIEWS } from '../../../views/webview-app/extension-app-message-constants';
+import {
+  MESSAGE_TYPES,
+  WEBVIEW_INITIAL_VIEWS
+} from '../../../views/webview-app/extension-app-message-constants';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -81,7 +84,7 @@ suite('Connect Form View Test Suite', () => {
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-    const htmlString = getWebviewContent(extensionPath, fakeWebview, WEBVIEW_VIEWS.CONNECT);
+    const htmlString = getWebviewContent(extensionPath, fakeWebview, WEBVIEW_INITIAL_VIEWS.CONNECT);
 
     assert(htmlString.includes('dist/webviewApp.js'));
 

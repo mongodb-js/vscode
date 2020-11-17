@@ -28,8 +28,7 @@ describe('Connect Helper Component Test Suite', () => {
       );
 
       store = createStore(rootReducer, {
-        ...initialState,
-        currentView: 'OVERVIEW'
+        ...initialState
       } as AppState);
 
       wrapper = mount(

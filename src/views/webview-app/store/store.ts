@@ -9,7 +9,7 @@ import {
   INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME,
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
   MESSAGE_TYPES,
-  WEBVIEW_VIEWS
+  WEBVIEW_INITIAL_VIEWS
 } from '../extension-app-message-constants';
 import { CONNECTION_FORM_TABS } from './constants';
 
@@ -26,7 +26,6 @@ export interface AppState {
   connectionMessage: string;
   connectionStatus: CONNECTION_STATUS;
   currentConnection: ConnectionModel;
-  currentView: WEBVIEW_VIEWS;
   isValid: boolean;
   isConnecting: boolean;
   isConnected: boolean;
@@ -42,12 +41,11 @@ export const initialState: AppState = {
   connectionMessage: '',
   connectionStatus: CONNECTION_STATUS.LOADING,
   currentConnection: new ConnectionModel(),
-  currentView: window[INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME],
   isValid: true,
   isConnecting: false,
   isConnected: false,
   errorMessage: '',
-  showConnectForm: false,
+  showConnectForm: window[INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME] === WEBVIEW_INITIAL_VIEWS.CONNECT,
   syntaxErrorMessage: '',
   savedMessage: ''
 };

@@ -8,7 +8,7 @@ import {
   INITIAL_WEBVIEW_VIEW_GLOBAL_VARNAME,
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
   MESSAGE_TYPES,
-  WEBVIEW_VIEWS
+  WEBVIEW_INITIAL_VIEWS
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
@@ -40,7 +40,7 @@ export const getReactAppUri = (
 export const getWebviewContent = (
   extensionPath: string,
   webview: vscode.Webview,
-  view: WEBVIEW_VIEWS
+  view: WEBVIEW_INITIAL_VIEWS
 ): string => {
   const jsAppFileUrl = getReactAppUri(extensionPath, webview);
 
@@ -199,7 +199,7 @@ export default class WebviewController {
   };
 
   openWebview(
-    view: WEBVIEW_VIEWS,
+    view: WEBVIEW_INITIAL_VIEWS,
     viewTitle: string,
     context: vscode.ExtensionContext
   ): Promise<boolean> {
@@ -240,12 +240,12 @@ export default class WebviewController {
   showConnectForm(context: vscode.ExtensionContext): Promise<boolean> {
     log.info('show connect form called.');
 
-    return this.openWebview(WEBVIEW_VIEWS.CONNECT, 'Connect to MongoDB', context);
+    return this.openWebview(WEBVIEW_INITIAL_VIEWS.CONNECT, 'MongoDB', context);
   }
 
   showOverviewPage(context: vscode.ExtensionContext): Promise<boolean> {
     log.info('show overview page called.');
 
-    return this.openWebview(WEBVIEW_VIEWS.OVERVIEW, 'MongoDB', context);
+    return this.openWebview(WEBVIEW_INITIAL_VIEWS.OVERVIEW, 'MongoDB', context);
   }
 }
