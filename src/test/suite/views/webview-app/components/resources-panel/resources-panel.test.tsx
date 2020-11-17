@@ -12,8 +12,6 @@ import {
 } from '../../../../../../views/webview-app/store/store';
 import ResourcesPanel from '../../../../../../views/webview-app/components/resources-panel/resources-panel';
 
-const styles = require('../../../../../../views/webview-app/components/resources-panel/resources-panel.less');
-
 describe('Resources Panel Component Test Suite', () => {
   describe('when rendered', () => {
     let fakeVscodeWindowPostMessage;
