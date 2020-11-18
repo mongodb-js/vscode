@@ -23,11 +23,11 @@
 
 @keyframes backgroundDarkenAnimation {
   from {
-    width: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.1);
   }
 
   to {
-    width: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -39,7 +39,6 @@
   width: 420px;
   padding: 48px 24px;
   background: var(--vscode-editor-background);
-  width: 420px;
   animation-duration: 250ms;
   animation-direction: forwards;
   animation-name: panelOpenAnimation;
@@ -91,9 +90,9 @@
 .resources-panel-link {
   margin-top: 8px;
   padding: 10px 20px;
-  background-color: rgba(50, 50, 50, 0.25);
+  background-color: var(--vscode-sideBar-background, rgba(50, 50, 50, 0.25));
   line-height: 20px;
-  color: var(--vscode-editor-foreground);
+  color: var(var(--vscode-sideBar-foreground), --vscode-editor-foreground);
   text-align: left;
   text-decoration: none;
   display: block;
