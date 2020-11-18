@@ -9,7 +9,8 @@ type ConnectionAttributes = {
 export type ConnectionModelType = {
   appname: string;
   port: number;
-
+  driverUrl: string;
+  driverUrlWithSsh: string;
   getAttributes(options: object): ConnectionAttributes;
   disconnect(callback: (n: Error | undefined) => void): void;
 };

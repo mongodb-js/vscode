@@ -20,7 +20,7 @@ const MAX_CONNECTION_NAME_LENGTH = 512;
 
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
-  ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
+  ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED'
 }
 
 export enum ConnectionTypes {
@@ -31,7 +31,6 @@ export enum ConnectionTypes {
 
 export type SavedConnectionInformation = {
   connectionModel: ConnectionModelType;
-  driverUrl: string;
 };
 
 // A loaded connection contains connection information.
@@ -114,7 +113,6 @@ export default class ConnectionController {
 
       loadedSavedConnection = {
         id: connectionId,
-        driverUrl: connectionInformation.driverUrl,
         name: savedConnection.name,
         connectionModel: connectionInformation.connectionModel,
         storageLocation: savedConnection.storageLocation
@@ -125,7 +123,10 @@ export default class ConnectionController {
       return Promise.resolve();
     }
 
-    this._connections[connectionId] = loadedSavedConnection;
+    this._connections[connectionId] = {
+      ...loadedSavedConnection,
+      connectionModel: new Connection(loadedSavedConnection.connectionModel)
+    };
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
     Promise.resolve();
@@ -271,8 +272,7 @@ export default class ConnectionController {
     });
     const connectionId = uuidv4();
     const connectionInformation: SavedConnectionInformation = {
-      connectionModel,
-      driverUrl
+      connectionModel
     };
     const connectionName =
       sshTunnelOptions.host && sshTunnelOptions.port
@@ -551,13 +551,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._connections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
-      );
+      connectionIds.map(
+        (id, index) => `${index + 1}: ${this._connections[id].name}`
+      ),
+      {
+        placeHolder: 'Choose a connection to remove...'
+      }
+    );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
@@ -641,7 +641,8 @@ export default class ConnectionController {
       return null;
     }
 
-    return this._connections[this._currentConnectionId].driverUrl;
+    return this._connections[this._currentConnectionId].connectionModel
+      .driverUrl;
   }
 
   public addEventListener(
@@ -694,7 +695,7 @@ export default class ConnectionController {
   }
 
   public getConnectionStringFromConnectionId(connectionId: string): string {
-    return this._connections[connectionId].driverUrl;
+    return this._connections[connectionId].connectionModel.driverUrlWithSsh;
   }
 
   public isCurrentlyConnected(): boolean {
@@ -726,9 +727,7 @@ export default class ConnectionController {
   }
 
   public getConnectionStatusStringForConnection(connectionId: string): string {
-    if (
-      this.getActiveConnectionId() === connectionId
-    ) {
+    if (this.getActiveConnectionId() === connectionId) {
       if (this.isDisconnecting()) {
         return 'disconnecting...';
       }
@@ -738,8 +737,7 @@ export default class ConnectionController {
 
     if (
       this.isConnecting() &&
-      this.getConnectingConnectionId() ===
-        connectionId
+      this.getConnectingConnectionId() === connectionId
     ) {
       return 'connecting...';
     }
