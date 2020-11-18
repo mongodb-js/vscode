@@ -378,22 +378,6 @@
     ],
     "description": "Groups incoming documents based on the value of a specified expression, then computes the count of documents in each distinct group."
   },
-  "MongoDB Aggregations $sql": {
-    "prefix": "$sql",
-    "body": [
-      "/**",
-      " * statement: The SQL statement.",
-      " * format: The SQL format.",
-      " * formatVersion: The format version.",
-      " */",
-      "\\$sql: {",
-      "  statement: '${1:statement}',",
-      "  format: '${2:format}',",
-      "  formatVersion: ${3:formatVersion}",
-      "}"
-    ],
-    "description": "Executes a SQL statement against Atlas Data Lake."
-  },
   "MongoDB Aggregations $unionWith": {
     "prefix": "$unionWith",
     "body": [
