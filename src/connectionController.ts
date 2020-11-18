@@ -695,7 +695,7 @@ export default class ConnectionController {
   }
 
   public getConnectionStringFromConnectionId(connectionId: string): string {
-    return this._connections[connectionId].connectionModel.driverUrl;
+    return this._connections[connectionId].connectionModel.driverUrlWithSsh;
   }
 
   public isCurrentlyConnected(): boolean {
