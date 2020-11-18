@@ -214,7 +214,7 @@ suite('MDBExtensionController Test Suite', () => {
         );
         assert(
           mockRemoveMongoDBConnection.firstArg ===
-          'craving_for_pancakes_with_maple_syrup',
+            'craving_for_pancakes_with_maple_syrup',
           `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
         );
       })
@@ -1144,7 +1144,6 @@ suite('MDBExtensionController Test Suite', () => {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
       connectionModel: new Connection(),
       name: 'NAAAME',
-      driverUrl: '',
       storageLocation: StorageScope.NONE
     };
 
@@ -1183,7 +1182,6 @@ suite('MDBExtensionController Test Suite', () => {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
       name: 'NAAAME',
       connectionModel: new Connection(),
-      driverUrl: '',
       storageLocation: StorageScope.NONE
     };
 
@@ -1207,7 +1205,7 @@ suite('MDBExtensionController Test Suite', () => {
         assert(
           mdbTestExtension.testExtensionController._connectionController
             ._connections.blueBerryPancakesAndTheSmellOfBacon.name ===
-          'orange juice',
+            'orange juice',
           'Expected connection to be ranamed.'
         );
         mdbTestExtension.testExtensionController._connectionController.clearAllConnections();

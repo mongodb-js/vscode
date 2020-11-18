@@ -60,7 +60,6 @@ suite('Explorer Controller Test Suite', function () {
         id: 'testConnectionId',
         connectionModel: new Connection(),
         name: 'testConnectionName',
-        driverUrl: 'url',
         storageLocation: StorageScope.NONE
       }
     };
@@ -103,7 +102,8 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       activeId === Object.keys(testConnectionController._connections)[0],
-      `Expected active connection to be '${Object.keys(testConnectionController._connections)[0]
+      `Expected active connection to be '${
+        Object.keys(testConnectionController._connections)[0]
       }' found ${activeId}`
     );
 
@@ -196,7 +196,6 @@ suite('Explorer Controller Test Suite', function () {
     testConnectionController._connections.aaa = {
       connectionModel:
         testConnectionController._connections[connectionId].connectionModel,
-      driverUrl: '',
       name: 'aaa',
       id: 'aaa',
       storageLocation: StorageScope.WORKSPACE
@@ -205,7 +204,6 @@ suite('Explorer Controller Test Suite', function () {
     testConnectionController._connections.zzz = {
       connectionModel:
         testConnectionController._connections[connectionId].connectionModel,
-      driverUrl: '',
       name: 'zzz',
       id: 'zzz',
       storageLocation: StorageScope.WORKSPACE

@@ -221,15 +221,11 @@ suite('Connection Controller Test Suite', function () {
     );
 
     let wasSetToConnectingWhenDisconnecting = false;
-    sinon.replace(
-      testConnectionController,
-      'disconnect',
-      () => {
-        wasSetToConnectingWhenDisconnecting = true;
+    sinon.replace(testConnectionController, 'disconnect', () => {
+      wasSetToConnectingWhenDisconnecting = true;
 
-        return Promise.resolve(true);
-      }
-    );
+      return Promise.resolve(true);
+    });
 
     const succesfullyConnected2 = await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
@@ -303,10 +299,7 @@ suite('Connection Controller Test Suite', function () {
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update(
-        'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Global
-      );
+      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
@@ -333,7 +326,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(connections).length === 4,
-      `Expected 4 connection configurations found ${Object.keys(connections).length
+      `Expected 4 connection configurations found ${
+        Object.keys(connections).length
       }`
     );
     assert(
@@ -341,9 +335,10 @@ suite('Connection Controller Test Suite', function () {
       "Expected loaded connection to include name 'localhost:27018'"
     );
     assert(
-      connections[Object.keys(connections)[2]].driverUrl ===
-      expectedDriverUri,
-      `Expected loaded connection to include driver url '${expectedDriverUri}' found '${connections[Object.keys(connections)[2]].driverUrl
+      connections[Object.keys(connections)[2]].connectionModel.driverUrl ===
+        expectedDriverUri,
+      `Expected loaded connection to include driver url '${expectedDriverUri}' found '${
+        connections[Object.keys(connections)[2]].connectionModel.driverUrl
       }'`
     );
   });
@@ -352,10 +347,7 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update(
-        'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Global
-      );
+      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
@@ -366,7 +358,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected global store connections to have 1 connection found ${Object.keys(globalStoreConnections).length
+      `Expected global store connections to have 1 connection found ${
+        Object.keys(globalStoreConnections).length
       }`
     );
 
@@ -406,7 +399,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${
+        Object.keys(workspaceStoreConnections).length
       }`
     );
 
@@ -433,7 +427,6 @@ suite('Connection Controller Test Suite', function () {
     testConnectionController._connections = {
       '25': {
         id: '25',
-        driverUrl: TEST_DATABASE_URI,
         name: 'tester',
         connectionModel,
         storageLocation: StorageScope.NONE
@@ -467,7 +460,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${
+        Object.keys(workspaceStoreConnections).length
       }`
     );
 
@@ -484,7 +478,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       testConnectionController.getSavedConnections().length === 1,
-      `Expected 1 connection config, found ${testConnectionController.getSavedConnections().length
+      `Expected 1 connection config, found ${
+        testConnectionController.getSavedConnections().length
       }.`
     );
 
@@ -516,7 +511,7 @@ suite('Connection Controller Test Suite', function () {
 
   test('"getConnectionStringFromConnectionId" returns the driver uri of a connection', async () => {
     const expectedDriverUri =
-      'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.2.2-dev.0&ssl=false';
 
     await testConnectionController.loadSavedConnections();
     await testConnectionController.addNewConnectionStringAndConnect(
@@ -596,7 +591,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${
+        Object.keys(workspaceStoreConnections).length
       }`
     );
 
@@ -613,7 +609,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(postWorkspaceStoreConnections).length === 0,
-      `Expected workspace store connections to have 0 connections found ${Object.keys(postWorkspaceStoreConnections).length
+      `Expected workspace store connections to have 0 connections found ${
+        Object.keys(postWorkspaceStoreConnections).length
       }`
     );
   });
@@ -622,10 +619,7 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update(
-        'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Global
-      );
+      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
@@ -636,7 +630,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${Object.keys(globalStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${
+        Object.keys(globalStoreConnections).length
       }`
     );
 
@@ -650,7 +645,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(postGlobalStoreConnections).length === 0,
-      `Expected global store connections to have 0 connections found ${Object.keys(postGlobalStoreConnections).length
+      `Expected global store connections to have 0 connections found ${
+        Object.keys(postGlobalStoreConnections).length
       }`
     );
   });
@@ -674,7 +670,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${Object.keys(workspaceStoreConnections).length
+      `Expected workspace store connections to have 1 connection found ${
+        Object.keys(workspaceStoreConnections).length
       }`
     );
 
@@ -705,7 +702,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       testConnectionController.getSavedConnections().length === 1,
-      `Expected 1 connection config, found ${testConnectionController.getSavedConnections().length
+      `Expected 1 connection config, found ${
+        testConnectionController.getSavedConnections().length
       }.`
     );
 
@@ -746,12 +744,14 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(
       connections[connectionIds[0]].name === 'localhost:27018',
-      `Expected the first connection name to be 'localhost:27018', found '${connections[connectionIds[0]].name
+      `Expected the first connection name to be 'localhost:27018', found '${
+        connections[connectionIds[0]].name
       }'.`
     );
     assert(
       connections[connectionIds[1]].name === 'localhost:27018',
-      `Expected the second connection name to be 'localhost:27018', found '${connections[connectionIds[1]].name
+      `Expected the second connection name to be 'localhost:27018', found '${
+        connections[connectionIds[1]].name
       }'.`
     );
 
@@ -811,7 +811,9 @@ suite('Connection Controller Test Suite', function () {
       await sleep(1050);
 
       assert(testConnectionController.isCurrentlyConnected());
-      assert(testConnectionController.getActiveConnectionName() === 'localhost:27018');
+      assert(
+        testConnectionController.getActiveConnectionName() === 'localhost:27018'
+      );
     });
 
     test('increments the connecting version on each new connection attempt', async () => {
@@ -832,7 +834,6 @@ suite('Connection Controller Test Suite', function () {
         const id = `${i}`;
         testConnectionController._connections[id] = {
           id,
-          driverUrl: TEST_DATABASE_URI,
           name: `test${i}`,
           connectionModel,
           storageLocation: StorageScope.NONE
@@ -881,7 +882,6 @@ suite('Connection Controller Test Suite', function () {
     const connectionId = 'skateboard';
     testConnectionController._connections[connectionId] = {
       id: connectionId,
-      driverUrl: testDatabaseURI2WithTimeout,
       name: 'asdfasdg',
       connectionModel,
       storageLocation: StorageScope.NONE
@@ -907,7 +907,6 @@ suite('Connection Controller Test Suite', function () {
     const connectionId = 'skateboard';
     testConnectionController._connections[connectionId] = {
       id: connectionId,
-      driverUrl: TEST_DATABASE_URI,
       name: 'asdfasdg',
       connectionModel,
       storageLocation: StorageScope.NONE
