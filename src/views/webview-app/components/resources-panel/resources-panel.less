@@ -36,7 +36,9 @@
   top: 0;
   right: 0;
   bottom: 0;
+  left: calc(100% - 468px);
   width: 420px;
+  overflow: auto;
   padding: 48px 24px;
   background: var(--vscode-editor-background);
   animation-duration: 250ms;
@@ -48,11 +50,11 @@
 
 @keyframes panelOpenAnimation {
   from {
-    width: 0px;
+    left: 100%;
   }
 
   to {
-    width: 420px;
+    left: calc(100% - 468px);
   }
 }
 
@@ -84,22 +86,30 @@
 }
 
 .resources-panel-links-container {
-  margin-top: 54px;
+  margin-top: 70px;
 }
 
 .resources-panel-link {
   margin-top: 8px;
-  padding: 10px 20px;
+  padding: 10px 16px;
   background-color: var(--vscode-sideBar-background, rgba(50, 50, 50, 0.25));
   line-height: 20px;
   color: var(--vscode-editor-foreground);
   text-align: left;
   text-decoration: none;
   display: block;
+  position: relative;
+}
+
+.resources-panel-link-icon {
+  font-size: 18px;
+  position: absolute;
+  right: 16px;
+  top: 21px;
 }
 
 .resources-panel-footer {
-  margin-top: 36px;
+  margin-top: 40px;
   display: flex;
   flex-direction: row;
   text-align: left;
@@ -108,6 +118,9 @@
 .resources-panel-footer-item {
   display: inline-block;
   width: 50%;
+}
+.resources-panel-footer-item:last-child {
+  padding-left: 10px;
 }
 
 .resources-panel-footer-item-title {
