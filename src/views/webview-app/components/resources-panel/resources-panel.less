@@ -1,0 +1,123 @@
+
+.resources-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.resources-panel-background {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation-duration: 250ms;
+  animation-direction: forwards;
+  animation-name: backgroundDarkenAnimation;
+}
+
+@keyframes backgroundDarkenAnimation {
+  from {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  to {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.resources-panel-content {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  padding: 48px 24px;
+  background: var(--vscode-editor-background);
+  animation-duration: 250ms;
+  animation-direction: forwards;
+  animation-name: panelOpenAnimation;
+  animation-timing-function: cubic-bezier(0, 1.3, 0.7, 1);
+  box-shadow: -4px 0px 5px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes panelOpenAnimation {
+  from {
+    width: 0px;
+  }
+
+  to {
+    width: 420px;
+  }
+}
+
+.resources-panel-close {
+  position: absolute;
+  top: 26px;
+  right: 20px;
+  font-size: 18px;
+  background: none;
+  color: var(--vscode-editor-foreground);
+  transition: 200ms all;
+  border: none;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.resources-panel-header {
+  font-size: 21px;
+  color: #13AA52;
+  text-align: left;
+}
+
+.resources-panel-book-icon {
+  vertical-align: text-top;
+  font-size: 26px;
+  margin-right: 8px;
+}
+
+.resources-panel-links-container {
+  margin-top: 54px;
+}
+
+.resources-panel-link {
+  margin-top: 8px;
+  padding: 10px 20px;
+  background-color: var(--vscode-sideBar-background, rgba(50, 50, 50, 0.25));
+  line-height: 20px;
+  color: var(--vscode-editor-foreground);
+  text-align: left;
+  text-decoration: none;
+  display: block;
+}
+
+.resources-panel-footer {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: row;
+  text-align: left;
+}
+
+.resources-panel-footer-item {
+  display: inline-block;
+  width: 50%;
+}
+
+.resources-panel-footer-item-title {
+  margin: 10px 0px;
+  font-weight: bold;
+}
+
+.resources-panel-footer-link {
+  margin: 5px 0px;
+  text-decoration: none;
+  display: block;
+  color: var(--vscode-editor-foreground);
+}
