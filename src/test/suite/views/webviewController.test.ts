@@ -10,7 +10,9 @@ import WebviewController, {
   getWebviewContent
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
-import { MESSAGE_TYPES, WEBVIEW_VIEWS } from '../../../views/webview-app/extension-app-message-constants';
+import {
+  MESSAGE_TYPES
+} from '../../../views/webview-app/extension-app-message-constants';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -18,7 +20,7 @@ import { TEST_DATABASE_URI } from '../dbTestHelper';
 const fs = require('fs');
 const path = require('path');
 
-suite('Connect Form View Test Suite', () => {
+suite('Webview Test Suite', () => {
   const disposables: vscode.Disposable[] = [];
 
   afterEach(() => {
@@ -50,7 +52,7 @@ suite('Connect Form View Test Suite', () => {
       mdbTestExtension.testExtensionController._telemetryController
     );
 
-    testWebviewController.showConnectForm(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -81,7 +83,7 @@ suite('Connect Form View Test Suite', () => {
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-    const htmlString = getWebviewContent(extensionPath, fakeWebview, WEBVIEW_VIEWS.CONNECT);
+    const htmlString = getWebviewContent(extensionPath, fakeWebview);
 
     assert(htmlString.includes('dist/webviewApp.js'));
 
@@ -90,7 +92,7 @@ suite('Connect Form View Test Suite', () => {
       path.join(extensionPath, webviewAppFileName())
     );
 
-    assert(`${jsFileString}`.includes('ConnectionForm'));
+    assert(`${jsFileString}`.includes('OverviewPage'));
   });
 
   test('web view listens for a connect message and adds the connection', (done) => {
@@ -143,7 +145,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showConnectForm(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -216,7 +218,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showConnectForm(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -283,7 +285,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showConnectForm(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -343,7 +345,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showConnectForm(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -416,7 +418,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showConnectForm(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -477,7 +479,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showConnectForm(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -526,7 +528,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showConnectForm(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -586,7 +588,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showOverviewPage(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -639,7 +641,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showOverviewPage(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 
@@ -697,7 +699,7 @@ suite('Connect Form View Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.showOverviewPage(
+    testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
 

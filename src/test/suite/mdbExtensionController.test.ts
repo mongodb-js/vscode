@@ -116,20 +116,20 @@ suite('MDBExtensionController Test Suite', () => {
       .then(done, done);
   });
 
-  test('mdb.addConnection command should call showConnectForm on the webview controller', (done) => {
-    const mockShowConnectForm = sinon.fake.resolves();
+  test('mdb.addConnection command should call openWebview on the webview controller', (done) => {
+    const mockOpenWebview = sinon.fake.resolves();
     sinon.replace(
       mdbTestExtension.testExtensionController._webviewController,
-      'showConnectForm',
-      mockShowConnectForm
+      'openWebview',
+      mockOpenWebview
     );
 
     vscode.commands
       .executeCommand('mdb.addConnection')
       .then(() => {
         assert(
-          mockShowConnectForm.called,
-          'Expected "mockShowConnectForm" to be called on the webview controller.'
+          mockOpenWebview.called,
+          'Expected "mockOpenWebview" to be called on the webview controller.'
         );
       })
       .then(done, done);

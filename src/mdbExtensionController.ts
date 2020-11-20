@@ -107,13 +107,13 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
     this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT, () =>
-      this._webviewController.showConnectForm(this._context)
+      this._webviewController.openWebview(this._context)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, () =>
       this._connectionController.connectWithURI()
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE, () =>
-      this._webviewController.showOverviewPage(this._context)
+      this._webviewController.openWebview(this._context)
     );
 
     this.registerCommand(EXTENSION_COMMANDS.MDB_DISCONNECT, () =>
@@ -193,7 +193,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   registerTreeViewCommands(): void {
     this.registerCommand(EXTENSION_COMMANDS.MDB_ADD_CONNECTION, () =>
-      this._webviewController.showConnectForm(this._context)
+      this._webviewController.openWebview(this._context)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_ADD_CONNECTION_WITH_URI, () =>
       this._connectionController.connectWithURI()

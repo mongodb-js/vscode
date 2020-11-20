@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import ConnectionForm from './connect-form/connection-form';
-import HelpPanel from './help-panel/help-panel';
 import OverviewPage from './overview-page/overview-page';
 import {
   ActionTypes,
@@ -11,19 +9,13 @@ import {
   FilePickerActionTypes,
   SetConnectionStatusAction
 } from '../store/actions';
-import { AppState } from '../store/store';
 import {
   CONNECTION_STATUS,
   MESSAGE_FROM_EXTENSION_TO_WEBVIEW,
-  MESSAGE_TYPES,
-  WEBVIEW_VIEWS
+  MESSAGE_TYPES
 } from '../extension-app-message-constants';
 
 const styles = require('../connect.module.less');
-
-type StateProps = {
-  currentView: WEBVIEW_VIEWS;
-};
 
 type DispatchProps = {
   onConnectedEvent: (
@@ -40,7 +32,7 @@ type DispatchProps = {
   ) => void;
 };
 
-export class App extends React.Component<DispatchProps & StateProps> {
+export class App extends React.Component<DispatchProps> {
   componentDidMount(): void {
     window.addEventListener('message', (event) => {
       const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
@@ -71,29 +63,13 @@ export class App extends React.Component<DispatchProps & StateProps> {
   }
 
   render(): React.ReactNode {
-    const { currentView } = this.props;
-
     return (
       <div className={styles.page}>
-        {currentView === WEBVIEW_VIEWS.CONNECT && (
-          <div className={styles.connect}>
-            <ConnectionForm />
-            <div className={styles['connect-form-help-panel']}>
-              <HelpPanel />
-            </div>
-          </div>
-        )}
-        {currentView === WEBVIEW_VIEWS.OVERVIEW && <OverviewPage />}
+        <OverviewPage />
       </div>
     );
   }
 }
-
-const mapStateToProps = (state: AppState): StateProps => {
-  return {
-    currentView: state.currentView
-  };
-};
 
 const mapDispatchToProps: DispatchProps = {
   onConnectedEvent: (
@@ -121,4 +97,4 @@ const mapDispatchToProps: DispatchProps = {
   })
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default connect(null, mapDispatchToProps)(App);

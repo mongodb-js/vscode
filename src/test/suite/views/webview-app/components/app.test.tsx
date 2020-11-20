@@ -12,34 +12,18 @@ import {
 import App, {
   App as NotConnectedApp
 } from '../../../../../views/webview-app/components/app';
-import ConnectionForm from '../../../../../views/webview-app/components/connect-form/connection-form';
 import OverviewPage from '../../../../../views/webview-app/components/overview-page/overview-page';
-import { CONNECTION_STATUS, MESSAGE_TYPES, WEBVIEW_VIEWS } from '../../../../../views/webview-app/extension-app-message-constants';
+import { CONNECTION_STATUS, MESSAGE_TYPES } from '../../../../../views/webview-app/extension-app-message-constants';
 
 describe('App Component Test Suite', () => {
-  describe('when passed currentView=CONNECT', () => {
-    test('it shows a connection form', () => {
+  describe('when rendered', () => {
+    test('it shows the overview page', () => {
       const wrapper = shallow(<NotConnectedApp
-        currentView={WEBVIEW_VIEWS.CONNECT}
-        onConnectedEvent={(): void => { }}
-        onFilePickerEvent={(): void => { }}
-        setConnectionStatus={(): void => { }}
-      />);
-      assert(wrapper.find(ConnectionForm).exists());
-      assert(!wrapper.find(OverviewPage).exists());
-    });
-  });
-
-  describe('when passed currentView=CONNECT', () => {
-    test('it shows a connection form', () => {
-      const wrapper = shallow(<NotConnectedApp
-        currentView={WEBVIEW_VIEWS.OVERVIEW}
         onConnectedEvent={(): void => { }}
         onFilePickerEvent={(): void => { }}
         setConnectionStatus={(): void => { }}
       />);
       assert(wrapper.find(OverviewPage).exists());
-      assert(!wrapper.find(ConnectionForm).exists());
     });
   });
 
