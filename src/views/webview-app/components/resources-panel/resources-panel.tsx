@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Icon } from '@iconify/react';
 import bookIcon from '@iconify-icons/codicon/book';
 
@@ -121,6 +121,10 @@ class ResourcesPanel extends React.Component<DispatchProps> {
             <div>
               {resourceLink.description}
             </div>
+            <FontAwesomeIcon
+              className={styles['resources-panel-link-icon']}
+              icon={faArrowRight}
+            />
           </a>
         ))}
       </div>

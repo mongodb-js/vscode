@@ -11,9 +11,7 @@ type DispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;
 };
 
-type props = DispatchProps;
-
-class AtlasCTA extends React.Component<props> {
+class AtlasCTA extends React.Component<DispatchProps> {
   onLinkClicked = (screen: string, linkId: string): void => {
     this.props.onLinkClicked(screen, linkId);
   };
@@ -32,6 +30,7 @@ class AtlasCTA extends React.Component<props> {
             If you don't already have a cluster you can create one for free
             using&nbsp;
             <a
+              className={styles['atlas-cta-text-link']}
               target="_blank"
               rel="noopener"
               href="https://www.mongodb.com/cloud/atlas"
