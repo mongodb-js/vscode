@@ -10,7 +10,7 @@ import SSL_METHODS, {
   SSLMethodOptions
 } from '../../../connection-model/constants/ssl-methods';
 import FormGroup from '../../form/form-group';
-import FormItemSelect from '../../form/form-item-select';
+import RadioBoxGroup from '../../form/radio-box-group/radio-box-group';
 import SSLServerValidation from './ssl-server-validation';
 import SSLServerClientValidation from './ssl-server-client-validation';
 
@@ -53,13 +53,14 @@ class SSLTab extends React.Component<StateProps & DispatchProps> {
 
     return (
       <FormGroup id="sslMethod" separator>
-        <FormItemSelect
+        <RadioBoxGroup
           label="SSL"
           name="sslMethod"
-          options={SSLMethodOptions.map((methodOption) => ({
-            [`${methodOption.id}`]: methodOption.title
+          options={SSLMethodOptions.map((sslMethodOption) => ({
+            label: sslMethodOption.title,
+            value: sslMethodOption.id
           }))}
-          changeHandler={this.onSSLMethodChanged}
+          onChange={this.onSSLMethodChanged}
           value={sslMethod}
         />
         {this.renderSSLMethod()}
