@@ -1,3 +1,4 @@
+import { EJSON } from 'bson';
 import * as vscode from 'vscode';
 
 export const DOCUMENT_ITEM = 'documentTreeItem';
@@ -6,11 +7,9 @@ export default class DocumentTreeItem extends vscode.TreeItem
   implements vscode.TreeDataProvider<DocumentTreeItem> {
   contextValue = DOCUMENT_ITEM;
 
-  private _documentLabel: string;
-
   namespace: string;
   document: any;
-  documentId: string;
+  documentId: EJSON.SerializableTypes;
 
   constructor(document: any, namespace: string, documentIndexInTree: number) {
     // A document can not have a `_id` when it is in a view. In this instance
@@ -25,7 +24,6 @@ export default class DocumentTreeItem extends vscode.TreeItem
     const documentLabel = document._id
       ? JSON.stringify(document._id)
       : `Document ${documentIndexInTree + 1}`;
-    this._documentLabel = documentLabel;
 
     this.document = document;
     this.documentId = document._id;

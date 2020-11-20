@@ -16,7 +16,9 @@ import {
 } from '../dbTestHelper';
 import {
   documentWithAllBSONTypes,
-  documentWithAllBsonTypesJsonified
+  documentWithAllBsonTypesJsonified,
+  documentWithBinaryId,
+  documentWithBinaryIdString
 } from './documentStringFixtures';
 
 const mockDocumentAsJsonString = `{
@@ -139,7 +141,7 @@ suite('Document Provider Test Suite', () => {
       .then((document) => {
         assert(
           document === mockDocumentAsJsonString,
-          `Expected provideTextDocumentContent to return ejson stringified string, found ${document}`
+          `Expected provideTextDocumentContent to return json stringified string, found ${document}`
         );
         done();
       })
@@ -212,7 +214,9 @@ suite('Document Provider Test Suite', () => {
     });
 
     test('handles displaying a document with all bson types', (done) => {
-      seedDataAndCreateDataService('ramen', [documentWithAllBSONTypes]).then(
+      seedDataAndCreateDataService('ramen', [
+        documentWithAllBSONTypes
+      ]).then(
         (dataService) => {
           const mockExtensionContext = new TestExtensionContext();
           const mockStorageController = new StorageController(
@@ -236,7 +240,7 @@ suite('Document Provider Test Suite', () => {
           );
 
           const documentId = EJSON.stringify({
-            value: documentWithAllBSONTypes._id
+            value: (documentWithAllBSONTypes as any)._id
           });
           const uri = vscode.Uri.parse(
             `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
@@ -247,12 +251,52 @@ suite('Document Provider Test Suite', () => {
             .then((document) => {
               assert(
                 document === documentWithAllBsonTypesJsonified,
-                `Expected provideTextDocumentContent to return ejson stringified string, found ${document}`
+                `Expected provideTextDocumentContent to return json stringified string, found ${document}`
               );
               done();
             })
             .catch(done);
         }
+      );
+    });
+
+    test('can find a doc with a binary _id', async () => {
+      const dataService = await seedDataAndCreateDataService('ramen', [
+        documentWithBinaryId
+      ]);
+      const mockExtensionContext = new TestExtensionContext();
+      const mockStorageController = new StorageController(
+        mockExtensionContext
+      );
+      const testTelemetryController = new TelemetryController(
+        mockStorageController,
+        mockExtensionContext
+      );
+      const mockConnectionController = new ConnectionController(
+        new StatusView(mockExtensionContext),
+        mockStorageController,
+        testTelemetryController
+      );
+
+      mockConnectionController.setActiveConnection(dataService);
+
+      const testCollectionViewProvider = new DocumentProvider(
+        mockConnectionController,
+        new StatusView(mockExtensionContext)
+      );
+
+      const documentId = EJSON.stringify({
+        value: documentWithBinaryId._id
+      });
+      const uri = vscode.Uri.parse(
+        `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
+      );
+
+      const document = await testCollectionViewProvider
+        .provideTextDocumentContent(uri);
+      assert(
+        document === documentWithBinaryIdString,
+        `Expected provideTextDocumentContent to return json stringified string ${documentWithBinaryIdString}, found ${document}`
       );
     });
 
@@ -297,7 +341,7 @@ suite('Document Provider Test Suite', () => {
             .then((document) => {
               assert(
                 document === docAsString2,
-                `Expected provideTextDocumentContent to return ejson stringified string, found ${document}`
+                `Expected provideTextDocumentContent to return json stringified string, found ${document}`
               );
               done();
             })
@@ -347,7 +391,7 @@ suite('Document Provider Test Suite', () => {
             .then((document) => {
               assert(
                 document === docAsString3,
-                `Expected provideTextDocumentContent to return ejson stringified string, found ${document}`
+                `Expected provideTextDocumentContent to return json stringified string, found ${document}`
               );
               done();
             })
