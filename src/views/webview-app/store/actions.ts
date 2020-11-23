@@ -80,6 +80,7 @@ export interface ConnectionEventOccuredAction extends BaseAction {
   type: ActionTypes.CONNECTION_EVENT_OCCURED;
   successfullyConnected: boolean;
   connectionMessage: string;
+  connectionAttemptId: string;
 }
 
 export interface ConnectionFormChangedAction extends BaseAction {
