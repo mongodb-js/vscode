@@ -109,9 +109,12 @@ export const rootReducer = (
         };
       }
 
+      const connectionAttemptId = uuidv4();
+
       vscode.postMessage({
         command: MESSAGE_TYPES.CONNECT,
-        connectionModel: state.currentConnection
+        connectionModel: state.currentConnection,
+        connectionAttemptId: connectionAttemptId
       });
 
       return {
@@ -119,7 +122,8 @@ export const rootReducer = (
         // The form may be displaying a previous error message from a failed connect.
         isValid: true,
         isConnecting: true,
-        isConnected: false
+        isConnected: false,
+        connectionAttemptId
       };
 
     case ActionTypes.CREATE_NEW_PLAYGROUND:
