@@ -85,14 +85,19 @@ export default class WebviewController {
         ConnectionTypes.CONNECTION_FORM
       );
 
-      panel.webview.postMessage({
-        command: MESSAGE_TYPES.CONNECT_RESULT,
-        connectionAttemptId,
-        connectionSuccess: successfullyConnected,
-        connectionMessage: successfullyConnected
-          ? `Successfully connected to ${this._connectionController.getActiveConnectionName()}.`
-          : connectionErrorMessage
-      });
+      try {
+        // The webview may have been closed in which case this will throw.
+        panel.webview.postMessage({
+          command: MESSAGE_TYPES.CONNECT_RESULT,
+          connectionAttemptId,
+          connectionSuccess: successfullyConnected,
+          connectionMessage: successfullyConnected
+            ? `Successfully connected to ${this._connectionController.getActiveConnectionName()}.`
+            : connectionErrorMessage
+        });
+      } catch (err) {
+        log.error('Unable to send connection result to webview:', err);
+      }
     } catch (error) {
       vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
 
