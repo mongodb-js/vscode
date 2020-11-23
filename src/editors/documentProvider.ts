@@ -36,7 +36,9 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
       const documentIdEJSONString = decodeURIComponent(
         uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || ''
       );
-      const documentId = EJSON.parse(documentIdEJSONString).value;
+
+      const jsonObjectId = JSON.parse(documentIdEJSONString).value;
+      const documentId = EJSON.deserialize(jsonObjectId);
 
       // Ensure we're still connected to the correct connection.
       if (connectionId !== this._connectionController.getActiveConnectionId()) {
@@ -77,7 +79,7 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
           }
 
           if (!documents || documents.length === 0) {
-            const errorMessage = `Unable to find document: ${documentId}`;
+            const errorMessage = `Unable to find document: ${JSON.stringify(jsonObjectId)}`;
             vscode.window.showErrorMessage(errorMessage);
             return reject(new Error(errorMessage));
           }

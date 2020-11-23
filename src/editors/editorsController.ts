@@ -99,15 +99,15 @@ export default class EditorsController {
     log.info('activated.');
   }
 
-  onViewDocument(namespace: string, documentId: any): Promise<boolean> {
+  onViewDocument(namespace: string, documentId: EJSON.SerializableTypes): Promise<boolean> {
     log.info('view document in editor', namespace);
 
     const connectionId = this._connectionController.getActiveConnectionId();
     const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
     // Encode the _id field incase the document id is a custom string with
     // special characters.
-    const documentIdString = EJSON.stringify({
-      value: documentId
+    const documentIdString = JSON.stringify({
+      value: EJSON.serialize(documentId)
     });
 
     const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${encodeURIComponent(
