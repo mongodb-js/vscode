@@ -15,10 +15,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Moved playground output to the editor, logs remain in the output section (VSCODE-177, #198)
 - Playground results are now displayed in EJSON or text (VSCODE-203, #206)
-- Updated connect commands to route to overview page instead of directly to connection form (VSCODE-170, #210)
-- Changed connection form to show in modal in overview page (VSCODE-173, #190)
-- Updated index creation template to use `createIndex` instead of `ensureIndex` (#205)
+- Connect commands route to overview page instead of directly to connection form (VSCODE-170, #210)
+- Connection form shows in modal in overview page (VSCODE-173, #190)
+- Index creation template now uses `createIndex` instead of `ensureIndex` (#205)
+
+### Removed
+
 - Removed custom font in overview page (#192)
+- Removed sql pipeline stage operator (#211)
 
 ### Fixed
 
