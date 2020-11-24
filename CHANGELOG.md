@@ -9,7 +9,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Added
 
 - Added a resources panel to the overview page (VSCODE-168, #208)
-- Display button to change currently connected connection name in overview page (VSCODE-189, #191)
+- Added a button to change currently connected connection name in overview page (VSCODE-189, #191)
 
 ### Changed
 
