@@ -511,7 +511,7 @@ suite('Connection Controller Test Suite', function () {
 
   test('"getConnectionStringFromConnectionId" returns the driver uri of a connection', async () => {
     const expectedDriverUri =
-      'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.2.2-dev.0&ssl=false';
+      'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.3.0&ssl=false';
 
     await testConnectionController.loadSavedConnections();
     await testConnectionController.addNewConnectionStringAndConnect(
