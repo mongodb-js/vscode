@@ -4,6 +4,30 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.3.0] - 2020-11-24
+
+### Added
+
+- Added a resources panel to the overview page (VSCODE-168, #208)
+- Display button to change currently connected connection name in overview page (VSCODE-189, #191)
+
+### Changed
+
+- Moved playground output to the editor, logs remain in the output section (VSCODE-177, #198)
+- Playground results are now displayed in EJSON or text (VSCODE-203, #206)
+- Updated connect commands to route to overview page instead of directly to connection form (VSCODE-170, #210)
+- Changed connection form to show in modal in overview page (VSCODE-173, #190)
+- Updated index creation template to use `createIndex` instead of `ensureIndex` (#205)
+- Removed custom font in overview page (#192)
+
+### Fixed
+
+- Fix x509 username being required in connection string building and parsing (VSCODE-202, #203)
+- Fix viewing documents Binary UUID _ids (VSCODE-118, #213)
+- Fix opening mongodb shell on windows with git bash (VSCODE-200, #201)
+- Fix opening mongodb shell on windows with an ssl file with a space in it (#201)
+- Fix password encoding of connection strings when copying connection string and opening in mongodb shell (VSCODE-198, #207)
+
 ## [0.2.1] - 2020-10-20
 
 ### Added
