@@ -904,7 +904,7 @@ suite('Connection Controller Test Suite', function () {
   test('a successfully connecting connection can be removed while it is being connected to', async () => {
     const connectionModel = await getConnection(TEST_DATABASE_URI);
 
-    const connectionId = 'skateboard';
+    const connectionId = 'skateboard2';
     testConnectionController._connections[connectionId] = {
       id: connectionId,
       name: 'asdfasdg',

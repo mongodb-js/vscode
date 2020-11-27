@@ -20,7 +20,9 @@ import IndexListTreeItem from '../../explorer/indexListTreeItem';
 const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
 
-suite('MDBExtensionController Test Suite', () => {
+suite('MDBExtensionController Test Suite', function () {
+  this.timeout(10000);
+
   beforeEach(() => {
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.

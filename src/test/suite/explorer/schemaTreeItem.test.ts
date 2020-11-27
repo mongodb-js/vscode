@@ -2,6 +2,7 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
+import { inspect } from 'util';
 
 const { contributes } = require('../../../../package.json');
 
@@ -18,7 +19,8 @@ import {
 } from '../dbTestHelper';
 import { TestExtensionContext } from '../stubs';
 
-suite('SchemaTreeItem Test Suite', () => {
+suite('SchemaTreeItem Test Suite', function () {
+  this.timeout(10000);
   afterEach(() => {
     sinon.restore();
   });
@@ -339,7 +341,7 @@ suite('SchemaTreeItem Test Suite', () => {
             dataService.disconnect();
             assert(
               schemaFields.length === 3,
-              `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}`
+              `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}: ${inspect(schemaFields)}`
             );
             assert(
               fieldIsExpandable(schemaFields[1].field),
