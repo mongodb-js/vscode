@@ -818,11 +818,12 @@ suite('Connection Controller Test Suite', function () {
 
     test('updates the connecting version on each new connection attempt', async () => {
       assert(testConnectionController.getConnectingVersion() === null);
-      testConnectionController.addNewConnectionStringAndConnect(
+      await testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
       );
 
       const currentConnectingVersion = testConnectionController.getConnectingVersion();
+
       assert(currentConnectingVersion !== null);
       assert(currentConnectingVersion === testConnectionController._connections[
         Object.keys(testConnectionController._connections)[0]

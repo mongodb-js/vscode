@@ -364,7 +364,7 @@ export default class ConnectionController {
 
           return resolve({
             successfullyConnected: false,
-            connectionErrorMessage: 'connection overriden'
+            connectionErrorMessage: 'connection attempt overriden'
           });
         }
 
