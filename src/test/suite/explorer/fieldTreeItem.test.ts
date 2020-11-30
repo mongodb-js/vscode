@@ -17,7 +17,8 @@ import {
 } from '../dbTestHelper';
 import { TestExtensionContext } from '../stubs';
 
-suite('FieldTreeItem Test Suite', () => {
+suite('FieldTreeItem Test Suite', function () {
+  this.timeout(10000);
   test('its context value should be in the package json', function () {
     let registeredCommandInPackageJson = false;
 

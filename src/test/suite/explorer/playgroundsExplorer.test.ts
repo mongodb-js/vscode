@@ -4,7 +4,8 @@ import { before, afterEach } from 'mocha';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import PlaygroundsTree from './../../../explorer/playgroundsTree';
 
-suite('Playgrounds Controller Test Suite', () => {
+suite('Playgrounds Controller Test Suite', function () {
+  this.timeout(10000);
   const testPlaygroundsExplorer =
     mdbTestExtension.testExtensionController._playgroundsExplorer;
   let excludeFromPlaygroundsSearchDefault: string[];
