@@ -248,4 +248,83 @@ export const validateConnectionModel = (attrs: ConnectionModel): Error | undefin
   }
 };
 
+export const parseConnectionModel = (
+  model: any
+): ConnectionModel => {
+  const newConnectionModel = new ConnectionModel();
+
+  // TODO: Parse connection model.
+
+  return newConnectionModel;
+};
+
+export const buildConnectionModelFromConnectionString = (
+  connectionString: string
+): ConnectionModel => {
+  const model = new ConnectionModel();
+
+  // TODO: Parse connection string into model.
+
+  return model;
+};
+
+export const buildConnectionStringFromConnectionModel = (
+  model: ConnectionModel
+): string => {
+  // TODO
+
+  return '';
+};
+
+// MongoClientOptions
+interface ConnectionOptions {
+  a: number;
+}
+
+export const getConnectionOptionsFromConnectionModel = (
+  model: ConnectionModel
+): ConnectionOptions => {
+  // TODO
+
+  return {
+    a: 3
+  };
+};
+
+
+export const getInstanceIdFromConnectionModel = (
+  connectionModel: ConnectionModel
+): string => {
+  // TODO: Derive instance id.
+
+  return '';
+};
+
+export function getConnectionNameFromConnectionModel(
+  model: ConnectionModel
+): string {
+  if (
+    model.sshTunnel &&
+    model.sshTunnel !== SSH_TUNNEL_TYPES.NONE &&
+    model.sshTunnelHostname &&
+    model.sshTunnelPort
+  ) {
+    return `SSH to ${model.hosts
+      .map(({ host, port }) => `${host}:${port}`)
+      .join(',')}`;
+  }
+
+  if (model.isSrvRecord) {
+    return model.hostname;
+  }
+
+  if (model.hosts && model.hosts.length > 0) {
+    return model.hosts
+      .map(({ host, port }) => `${host}:${port}`)
+      .join(',');
+  }
+
+  return model.hostname;
+}
+
 export default ConnectionModel;
