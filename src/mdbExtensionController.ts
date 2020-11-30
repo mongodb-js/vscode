@@ -19,7 +19,7 @@ import { LanguageServerController } from './language';
 import TelemetryController from './telemetry/telemetryController';
 import { StatusView } from './views';
 import { createLogger } from './logging';
-import { StorageController } from './storage';
+import { StorageController, StorageVariables } from './storage';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
 import DatabaseTreeItem from './explorer/databaseTreeItem';
 import SchemaTreeItem from './explorer/schemaTreeItem';
@@ -102,6 +102,23 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._telemetryController.activateSegmentAnalytics();
     this._languageServerController.startLanguageServer();
 
+    this.registerCommands();
+
+    // TODO: Should we automatically open the overview page?
+    setImmediate(() => {
+      const hasBeenShownViewAlready = this._storageController.get(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW);
+      if (!hasBeenShownViewAlready) {
+        // TODO check if there were alread connections made - connection controller or straight to storage
+        // Do we want to set them to shown then?
+        vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE);
+
+        // TODO: Set hasBeenShownViewAlready true
+        // this._storageController.update(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW, true);
+      }
+    });
+  }
+
+  registerCommands = (): void => {
     log.info('Registering commands...');
 
     // Register our extension's commands. These are the event handlers and
@@ -160,7 +177,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerTreeViewCommands();
 
     log.info('Registered commands.');
-  }
+  };
 
   registerCommand = (
     command: string,

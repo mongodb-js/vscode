@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export enum StorageVariables {
   // Only exists on globalState.
+  GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW = 'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW',
   GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS',
   GLOBAL_USER_ID = 'GLOBAL_USER_ID',
   // Only exists on workspaceState.
