@@ -248,5 +248,57 @@ const validateConnectionModel = (attrs: ConnectionModel): Error | undefined => {
   }
 };
 
+export const parseConnectionModel = (
+  model: any
+): ConnectionModel => {
+  const newConnectionModel = new ConnectionModel();
+
+  // TODO: Parse connection model.
+
+  return newConnectionModel;
+};
+
+export const buildConnectionModelFromConnectionString = (
+  connectionString: string
+): ConnectionModel => {
+  const model = new ConnectionModel();
+
+  // TODO: Parse connection string into model.
+
+  return model;
+};
+
+export const buildConnectionStringFromConnectionModel = (
+  model: ConnectionModel
+): string => {
+  // TODO
+
+  return '';
+};
+
+// MongoClientOptions
+interface ConnectionOptions {
+  a: number;
+}
+
+export const getConnectionOptionsFromConnectionModel = (
+  model: ConnectionModel
+): ConnectionOptions => {
+  // TODO
+
+  return {
+    a: 3
+  };
+};
+
+
+export const getInstanceIdFromConnectionModel = (
+  connectionModel: ConnectionModel
+): string => {
+  // TODO: Derive instance id.
+
+  return '';
+};
+
 export { validateConnectionModel };
 export default ConnectionModel;

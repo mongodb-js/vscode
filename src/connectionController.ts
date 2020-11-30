@@ -1,10 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as vscode from 'vscode';
-import Connection from 'mongodb-connection-model/lib/model';
-import DataService from 'mongodb-data-service';
+import { MongoClient } from 'mongodb';
 
-import { ConnectionModelType } from './connectionModelType';
-import { DataServiceType } from './dataServiceType';
 import { createLogger } from './logging';
 import { StatusView } from './views';
 import { EventEmitter } from 'events';
@@ -13,6 +10,12 @@ import { SavedConnection, StorageScope } from './storage/storageController';
 import TelemetryController from './telemetry/telemetryController';
 import { ext } from './extensionConstants';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
+import ConnectionModel, {
+  getConnectionOptionsFromConnectionModel,
+  buildConnectionModelFromConnectionString,
+  buildConnectionStringFromConnectionModel,
+  parseConnectionModel
+} from './views/webview-app/connection-model/connection-model';
 
 const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
@@ -30,7 +33,7 @@ export enum ConnectionTypes {
 }
 
 export type SavedConnectionInformation = {
-  connectionModel: ConnectionModelType;
+  connectionModel: ConnectionModel;
 };
 
 // A loaded connection contains connection information.
@@ -55,8 +58,8 @@ export default class ConnectionController {
   } = {};
 
   private readonly _serviceName = 'mdb.vscode.savedConnections';
-  _activeDataService: null | DataServiceType = null;
-  _activeConnectionModel: null | ConnectionModelType = null;
+  _activeDataService: null | MongoClient = null;
+  _activeConnectionModel: null | ConnectionModel = null;
   private _currentConnectionId: null | string = null;
 
   // When we are connecting to a server we save a connection version to
@@ -130,7 +133,7 @@ export default class ConnectionController {
 
     this._connections[connectionId] = {
       ...loadedSavedConnection,
-      connectionModel: new Connection(loadedSavedConnection.connectionModel)
+      connectionModel: parseConnectionModel(loadedSavedConnection.connectionModel)
     };
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
@@ -190,8 +193,12 @@ export default class ConnectionController {
         placeHolder:
           'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
-        validateInput: (uri: string) => {
-          if (!Connection.isURI(uri)) {
+        validateInput: (uri?: string) => {
+          if (
+            uri &&
+            !uri.startsWith('mongodb://') &&
+            !uri.startsWith('mongodb+srv://')
+          ) {
             return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
           }
 
@@ -225,28 +232,24 @@ export default class ConnectionController {
   ): Promise<boolean> => {
     log.info('Trying to connect to a new connection configuration');
 
-    return new Promise((resolve, reject) => {
-      Connection.from(
-        connectionString,
-        (error: Error | undefined, newConnectionModel: ConnectionModelType) => {
-          if (error) {
-            return reject(new Error(`Unable to create connection: ${error}`));
-          }
+    let model: ConnectionModel;
+    try {
+      model = buildConnectionModelFromConnectionString(connectionString);
+    } catch (error: any) {
+      return Promise.reject(new Error(`Unable to create connection: ${error}`));
+    }
 
-          return this.saveNewConnectionAndConnect(
-            newConnectionModel,
-            ConnectionTypes.CONNECTION_STRING
-          ).then(
-            (connectResult) => resolve(connectResult.successfullyConnected),
-            reject
-          );
-        }
-      );
-    });
+    return this.saveNewConnectionAndConnect(
+      model,
+      ConnectionTypes.CONNECTION_STRING
+    ).then(
+      (connectResult) => resolve(connectResult.successfullyConnected),
+      reject
+    );
   };
 
   public sendTelemetry(
-    newDataService: DataServiceType,
+    newDataService: MongoClient,
     connectionType: ConnectionTypes
   ): void {
     // Send metrics to Segment
@@ -257,11 +260,11 @@ export default class ConnectionController {
   }
 
   public parseNewConnection = (
-    newConnectionModel: ConnectionModelType
-  ): ConnectionModelType => {
+    newConnectionModel: ConnectionModel
+  ): ConnectionModel => {
     // Here we re-parse the connection, as it can be loaded from storage or
     // passed by the connection model without the class methods.
-    const connectionModel: ConnectionModelType = new Connection(
+    const connectionModel = parseConnectionModel(
       newConnectionModel
     );
 
@@ -269,15 +272,18 @@ export default class ConnectionController {
   };
 
   public saveNewConnectionAndConnect = async (
-    connectionModel: ConnectionModelType,
+    connectionModel: ConnectionModel,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> => {
-    const {
-      instanceId,
-      sshTunnelOptions
-    } = connectionModel.getAttributes({
-      derived: true
-    });
+    // const {
+    //   instanceId,
+    //   sshTunnelOptions
+    // } = connectionModel.getAttributes({
+    //   derived: true
+    // });
+    const instanceId = getInstanceIdFromConnectionModel(connectionModel);
+    // const
+
     const connectionId = uuidv4();
     const connectionInformation: SavedConnectionInformation = {
       connectionModel
@@ -316,7 +322,7 @@ export default class ConnectionController {
 
   public connect = async (
     connectionId: string,
-    connectionModel: ConnectionModelType,
+    connectionModel: ConnectionModel,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> => {
     log.info(
@@ -346,7 +352,10 @@ export default class ConnectionController {
       // Override the default connection `appname`.
       connectionModel.appname = `${name} ${version}`;
 
-      const newDataService: DataServiceType = new DataService(connectionModel);
+      const newDataService = new MongoClient(
+        buildConnectionStringFromConnectionModel(connectionModel),
+        getConnectionOptionsFromConnectionModel(connectionModel)
+      );
 
       newDataService.connect((err: Error | undefined) => {
         if (
@@ -357,7 +366,7 @@ export default class ConnectionController {
           // or the connection no longer exists we silently end the connection
           // and return.
           try {
-            newDataService.disconnect(() => {});
+            newDataService.close(() => {});
           } catch (e) {
             /* */
           }
@@ -402,7 +411,7 @@ export default class ConnectionController {
 
   public connectWithConnectionId = (connectionId: string): Promise<boolean> => {
     if (this._connections[connectionId]) {
-      let connectionModel: ConnectionModelType;
+      let connectionModel: ConnectionModel;
 
       try {
         const savedConnectionModel = this._connections[connectionId]
@@ -467,7 +476,7 @@ export default class ConnectionController {
     // Disconnect from the active connection.
     return new Promise<boolean>((resolve) => {
       this._statusView.showMessage('Disconnecting from current connection...');
-      dataServiceToDisconnectFrom.disconnect((err: Error | undefined): void => {
+      dataServiceToDisconnectFrom.close((err: Error | undefined): void => {
         if (err) {
           // Show an error, however we still reset the active connection to free up the extension.
           vscode.window.showErrorMessage(
@@ -642,15 +651,6 @@ export default class ConnectionController {
     return this._currentConnectionId;
   }
 
-  public getActiveConnectionDriverUrl(): string | null {
-    if (!this._currentConnectionId) {
-      return null;
-    }
-
-    return this._connections[this._currentConnectionId].connectionModel
-      .driverUrl;
-  }
-
   public addEventListener(
     eventType: DataServiceEventTypes,
     listener: () => void
@@ -701,18 +701,23 @@ export default class ConnectionController {
   }
 
   public getConnectionStringFromConnectionId(connectionId: string): string {
-    return this._connections[connectionId].connectionModel.driverUrlWithSsh;
+    // TODO: With or without ssh?
+    const connectionString = buildConnectionStringFromConnectionModel(
+      this._connections[connectionId].connectionModel
+    );
+
+    return connectionString;
   }
 
   public isCurrentlyConnected(): boolean {
     return this._activeDataService !== null;
   }
 
-  public getActiveDataService(): null | DataServiceType {
+  public getActiveDataService(): null | MongoClient {
     return this._activeDataService;
   }
 
-  public getActiveConnectionModel(): null | ConnectionModelType {
+  public getActiveConnectionModel(): null | ConnectionModel {
     return this._activeConnectionModel;
   }
 
