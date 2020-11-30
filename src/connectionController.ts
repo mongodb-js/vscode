@@ -208,7 +208,7 @@ export default class ConnectionController {
       }
 
       this.addNewConnectionStringAndConnect(connectionString).then(
-        (result) => resolve(!!result),
+        resolve,
         (err) => {
           vscode.window.showErrorMessage(err.message);
           resolve(false);
