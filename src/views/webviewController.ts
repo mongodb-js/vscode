@@ -11,6 +11,7 @@ import {
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
 import ConnectionModel from './webview-app/connection-model/connection-model';
+import { openLink } from '../utils/linkHelper';
 
 const path = require('path');
 const log = createLogger('webviewController');
@@ -157,6 +158,18 @@ export default class WebviewController {
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
         vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI);
 
+        return;
+
+      case MESSAGE_TYPES.OPEN_TRUSTED_LINK:
+        try {
+          await openLink(message.linkTo);
+        } catch (err) {
+          // If opening the link fails we default to regular link opening.
+          await vscode.commands.executeCommand(
+            'vscode.open',
+            vscode.Uri.parse(message.linkTo)
+          );
+        }
         return;
       case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
         this._telemetryController.trackLinkClicked(

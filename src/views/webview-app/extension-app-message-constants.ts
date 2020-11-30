@@ -19,6 +19,7 @@ export enum MESSAGE_TYPES {
   GET_CONNECTION_STATUS = 'GET_CONNECTION_STATUS',
   OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
+  OPEN_TRUSTED_LINK = 'OPEN_TRUSTED_LINK',
   RENAME_ACTIVE_CONNECTION = 'RENAME_ACTIVE_CONNECTION'
 }
 
@@ -76,6 +77,11 @@ export interface LinkClickedMessage extends BasicWebviewMessage {
   linkId: string;
 }
 
+export interface OpenTrustedLinkMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.OPEN_TRUSTED_LINK;
+  linkTo: string;
+}
+
 export interface RenameConnectionMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION;
 }
@@ -87,6 +93,7 @@ export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | LinkClickedMessage
   | OpenConnectionStringInputMessage
   | OpenFilePickerMessage
+  | OpenTrustedLinkMessage
   | RenameConnectionMessage;
 
 export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =

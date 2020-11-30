@@ -1,8 +1,10 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { beforeEach, afterEach } from 'mocha';
 import * as sinon from 'sinon';
 import Connection = require('mongodb-connection-model/lib/model');
+
+import * as linkHelper from '../../../utils/linkHelper';
 import TelemetryController from '../../../telemetry/telemetryController';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
@@ -21,12 +23,7 @@ const fs = require('fs');
 const path = require('path');
 
 suite('Webview Test Suite', () => {
-  const disposables: vscode.Disposable[] = [];
-
   afterEach(() => {
-    disposables.forEach((d) => d.dispose());
-    disposables.length = 0;
-
     sinon.restore();
   });
 
@@ -716,5 +713,68 @@ suite('Webview Test Suite', () => {
     assert(mockRenameConnectionOnConnectionController.firstCall.args[0] === testConnectionController.getActiveConnectionId());
 
     testConnectionController.disconnect();
+  });
+
+  suite('with a rendered webview', () => {
+    const testExtensionContext = new TestExtensionContext();
+    const testStorageController = new StorageController(testExtensionContext);
+    const testTelemetryController = new TelemetryController(
+      testStorageController,
+      testExtensionContext
+    );
+    let testConnectionController;
+
+    let messageRecieved;
+    let fakeWebview;
+
+    let testWebviewController;
+
+    beforeEach(() => {
+      testConnectionController = new ConnectionController(
+        new StatusView(testExtensionContext),
+        testStorageController,
+        testTelemetryController
+      );
+
+      fakeWebview = {
+        html: '',
+        postMessage: (): void => { },
+        onDidReceiveMessage: (callback): void => {
+          messageRecieved = callback;
+        },
+        asWebviewUri: sinon.fake.returns('')
+      };
+
+      const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+        webview: fakeWebview
+      });
+      sinon.replace(
+        vscode.window,
+        'createWebviewPanel',
+        fakeVSCodeCreateWebviewPanel
+      );
+
+      testWebviewController = new WebviewController(
+        testConnectionController,
+        testTelemetryController
+      );
+
+      testWebviewController.openWebview(
+        mdbTestExtension.testExtensionContext
+      );
+    });
+
+    test('it should handle opening trusted links', () => {
+      const stubOpenLink = sinon.fake.resolves(null);
+      sinon.replace(linkHelper, 'openLink', stubOpenLink);
+
+      messageRecieved({
+        command: MESSAGE_TYPES.OPEN_TRUSTED_LINK,
+        linkTo: 'https://mongodb.com/test'
+      });
+
+      assert(stubOpenLink.called);
+      assert(stubOpenLink.firstCall.args[0] === 'https://mongodb.com/test');
+    });
   });
 });
