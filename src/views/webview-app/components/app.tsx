@@ -19,6 +19,7 @@ const styles = require('../connect.module.less');
 
 type DispatchProps = {
   onConnectedEvent: (
+    connectionAttemptId: string,
     successfullyConnected: boolean,
     connectionMessage: string
   ) => void;
@@ -40,6 +41,7 @@ export class App extends React.Component<DispatchProps> {
       switch (message.command) {
         case MESSAGE_TYPES.CONNECT_RESULT:
           this.props.onConnectedEvent(
+            message.connectionAttemptId,
             message.connectionSuccess,
             message.connectionMessage
           );
@@ -73,10 +75,12 @@ export class App extends React.Component<DispatchProps> {
 
 const mapDispatchToProps: DispatchProps = {
   onConnectedEvent: (
+    connectionAttemptId: string,
     successfullyConnected: boolean,
     connectionMessage: string
   ): ConnectionEventOccuredAction => ({
     type: ActionTypes.CONNECTION_EVENT_OCCURED,
+    connectionAttemptId,
     successfullyConnected,
     connectionMessage
   }),

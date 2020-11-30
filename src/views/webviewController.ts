@@ -1,15 +1,16 @@
 import * as vscode from 'vscode';
 import ConnectionController, {
-  DataServiceEventTypes,
   ConnectionTypes
 } from '../connectionController';
 import TelemetryController from '../telemetry/telemetryController';
 import {
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
-  MESSAGE_TYPES
+  MESSAGE_TYPES,
+  OpenFilePickerMessage
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
+import ConnectionModel from './webview-app/connection-model/connection-model';
 
 const path = require('path');
 const log = createLogger('webviewController');
@@ -67,62 +68,76 @@ export default class WebviewController {
     this._telemetryController = telemetryController;
   }
 
-  listenForConnectionResultsAndUpdatePanel = (
-    panel: vscode.WebviewPanel
-  ): () => void => {
-    const connectionDidChange = (): void => {
-      if (
-        !this._connectionController.isConnecting()
-      ) {
-        this._connectionController.removeEventListener(
-          DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-          connectionDidChange
-        );
+  handleWebviewConnectAttempt = async (
+    panel: vscode.WebviewPanel,
+    rawConnectionModel: ConnectionModel,
+    connectionAttemptId: string
+  ): Promise<void> => {
+    try {
+      const connectionModel = this._connectionController
+        .parseNewConnection(rawConnectionModel as any);
 
+      const {
+        successfullyConnected,
+        connectionErrorMessage
+      } = await this._connectionController.saveNewConnectionAndConnect(
+        connectionModel,
+        ConnectionTypes.CONNECTION_FORM
+      );
+
+      try {
+        // The webview may have been closed in which case this will throw.
         panel.webview.postMessage({
           command: MESSAGE_TYPES.CONNECT_RESULT,
-          connectionSuccess: this._connectionController.isCurrentlyConnected(),
-          connectionMessage: this._connectionController.isCurrentlyConnected()
+          connectionAttemptId,
+          connectionSuccess: successfullyConnected,
+          connectionMessage: successfullyConnected
             ? `Successfully connected to ${this._connectionController.getActiveConnectionName()}.`
-            : 'Unable to connect.'
+            : connectionErrorMessage
         });
+      } catch (err) {
+        log.error('Unable to send connection result to webview:', err);
       }
-    };
+    } catch (error) {
+      vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
 
-    this._connectionController.addEventListener(
-      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      connectionDidChange
-    );
-
-    // We return the listening function so we can remove the listener elsewhere.
-    return connectionDidChange;
+      panel.webview.postMessage({
+        command: MESSAGE_TYPES.CONNECT_RESULT,
+        connectionAttemptId,
+        connectionSuccess: false,
+        connectionMessage: `Unable to load connection: ${error}`
+      });
+    }
   };
 
-  handleWebviewMessage = (
+  handleWebviewOpenFilePickerRequest = async (
+    message: OpenFilePickerMessage,
+    panel: vscode.WebviewPanel
+  ): Promise<void> => {
+    const files = await vscode.window.showOpenDialog({
+      ...openFileOptions,
+      canSelectMany: message.multi
+    });
+    panel.webview.postMessage({
+      command: MESSAGE_TYPES.FILE_PICKER_RESULTS,
+      action: message.action,
+      files: (files && files.length > 0)
+        ? files.map((file) => path.resolve(file.path.substr(1)))
+        : undefined
+    });
+  };
+
+  handleWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel
-  ): void => {
+  ): Promise<void> => {
     switch (message.command) {
       case MESSAGE_TYPES.CONNECT:
-        try {
-          const connectionModel = this._connectionController
-            .parseNewConnection(message.connectionModel);
-
-          this.listenForConnectionResultsAndUpdatePanel(panel);
-
-          this._connectionController.saveNewConnectionAndConnect(
-            connectionModel,
-            ConnectionTypes.CONNECTION_FORM
-          );
-        } catch (error) {
-          vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
-
-          panel.webview.postMessage({
-            command: MESSAGE_TYPES.CONNECT_RESULT,
-            connectionSuccess: false,
-            connectionMessage: `Unable to load connection: ${error}`
-          });
-        }
+        await this.handleWebviewConnectAttempt(
+          panel,
+          message.connectionModel,
+          message.connectionAttemptId
+        );
         return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         vscode.commands.executeCommand(
@@ -137,21 +152,7 @@ export default class WebviewController {
         });
         return;
       case MESSAGE_TYPES.OPEN_FILE_PICKER:
-        vscode.window
-          .showOpenDialog({
-            ...openFileOptions,
-            canSelectMany: message.multi
-          })
-          .then((files) => {
-            panel.webview.postMessage({
-              command: MESSAGE_TYPES.FILE_PICKER_RESULTS,
-              action: message.action,
-              files:
-                files && files.length > 0
-                  ? files.map((file) => path.resolve(file.path.substr(1)))
-                  : undefined
-            });
-          });
+        await this.handleWebviewOpenFilePickerRequest(message, panel);
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
         vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI);
@@ -179,13 +180,13 @@ export default class WebviewController {
     }
   };
 
-  onRecievedWebviewMessage = (
+  onRecievedWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel
-  ): void => {
+  ): Promise<void> => {
     // Ensure handling message from the webview can't crash the extension.
     try {
-      this.handleWebviewMessage(message, panel);
+      await this.handleWebviewMessage(message, panel);
     } catch (err) {
       log.info('Error occured when parsing message from webview:');
       log.info(err);

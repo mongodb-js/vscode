@@ -299,7 +299,7 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  test('web view sends an successful connect result on an attempt that is overridden', (done) => {
+  test('web view sends an unsuccessful connect result on an attempt that is overridden', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
     const testTelemetryController = new TelemetryController(
@@ -315,8 +315,8 @@ suite('Webview Test Suite', () => {
     const fakeWebview = {
       html: '',
       postMessage: (message: any): void => {
-        assert(message.connectionSuccess);
-        const expectedMessage = 'Successfully connected to localhost:27018.';
+        assert(!message.connectionSuccess);
+        const expectedMessage = 'connection attempt overriden';
         assert(
           message.connectionMessage === expectedMessage,
           `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`

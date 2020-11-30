@@ -41,6 +41,11 @@ export enum NewConnectionType {
   SAVED_CONNECTION = 'SAVED_CONNECTION'
 }
 
+type ConnectionAttemptResult = {
+  successfullyConnected: boolean;
+  connectionErrorMessage: string;
+};
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
@@ -58,7 +63,7 @@ export default class ConnectionController {
   // the request. That way if a new connection attempt is made while
   // the connection is being established, we know we can ignore the
   // request when it is completed so we don't have two live connections at once.
-  private _connectingVersion = 0;
+  private _connectingVersion: null | string = null;
 
   private _connecting = false;
   private _connectingConnectionId: null | string = null;
@@ -174,7 +179,7 @@ export default class ConnectionController {
   };
 
   public async connectWithURI(): Promise<boolean> {
-    let connectionString: any;
+    let connectionString: string | undefined;
 
     log.info('connectWithURI command called');
 
@@ -197,11 +202,11 @@ export default class ConnectionController {
       return Promise.resolve(false);
     }
 
-    if (!connectionString) {
-      return Promise.resolve(false);
-    }
-
     return new Promise((resolve) => {
+      if (!connectionString) {
+        return resolve(false);
+      }
+
       this.addNewConnectionStringAndConnect(connectionString).then(
         resolve,
         (err) => {
@@ -212,14 +217,15 @@ export default class ConnectionController {
     });
   }
 
-  // Resolves true when the connection is successfully added.
+  // Resolves the new connection id when the connection is successfully added.
+  // Resolves false when it is added and not connected.
   // The connection can fail to connect but be successfully added.
   public addNewConnectionStringAndConnect = (
     connectionString: string
   ): Promise<boolean> => {
     log.info('Trying to connect to a new connection configuration');
 
-    return new Promise<boolean>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       Connection.from(
         connectionString,
         (error: Error | undefined, newConnectionModel: ConnectionModelType) => {
@@ -230,7 +236,10 @@ export default class ConnectionController {
           return this.saveNewConnectionAndConnect(
             newConnectionModel,
             ConnectionTypes.CONNECTION_STRING
-          ).then(resolve, reject);
+          ).then(
+            (connectResult) => resolve(connectResult.successfullyConnected),
+            reject
+          );
         }
       );
     });
@@ -262,9 +271,8 @@ export default class ConnectionController {
   public saveNewConnectionAndConnect = async (
     connectionModel: ConnectionModelType,
     connectionType: ConnectionTypes
-  ): Promise<boolean> => {
+  ): Promise<ConnectionAttemptResult> => {
     const {
-      driverUrl,
       instanceId,
       sshTunnelOptions
     } = connectionModel.getAttributes({
@@ -303,25 +311,14 @@ export default class ConnectionController {
       this._storageController.storeNewConnection(newLoadedConnection);
     }
 
-    return new Promise((resolve, reject) => {
-      this.connect(connectionId, connectionModel, connectionType).then(
-        (connectSuccess) => {
-          if (!connectSuccess) {
-            return resolve(false);
-          }
-
-          return resolve(true);
-        },
-        reject
-      );
-    });
+    return this.connect(connectionId, connectionModel, connectionType);
   };
 
   public connect = async (
     connectionId: string,
     connectionModel: ConnectionModelType,
     connectionType: ConnectionTypes
-  ): Promise<boolean> => {
+  ): Promise<ConnectionAttemptResult> => {
     log.info(
       'Connect called to connect to instance:',
       connectionModel.getAttributes({
@@ -331,7 +328,7 @@ export default class ConnectionController {
 
     // Store a version of this connection, so we can see when the conection
     // is successful if it is still the most recent connection attempt.
-    this._connectingVersion++;
+    this._connectingVersion = connectionId;
     const connectingAttemptVersion = this._connectingVersion;
 
     this._connecting = true;
@@ -345,7 +342,7 @@ export default class ConnectionController {
 
     this._statusView.showMessage('Connecting to MongoDB...');
 
-    return new Promise<boolean>((resolve, reject) => {
+    return new Promise<ConnectionAttemptResult>((resolve, reject) => {
       // Override the default connection `appname`.
       connectionModel.appname = `${name} ${version}`;
 
@@ -365,7 +362,10 @@ export default class ConnectionController {
             /* */
           }
 
-          return resolve(false);
+          return resolve({
+            successfullyConnected: false,
+            connectionErrorMessage: 'connection attempt overriden'
+          });
         }
 
         this._statusView.hideMessage();
@@ -392,7 +392,10 @@ export default class ConnectionController {
         // Send metrics to Segment
         this.sendTelemetry(newDataService, connectionType);
 
-        return resolve(true);
+        return resolve({
+          successfullyConnected: true,
+          connectionErrorMessage: ''
+        });
       });
     });
   };
@@ -423,11 +426,14 @@ export default class ConnectionController {
           connectionId,
           connectionModel,
           ConnectionTypes.CONNECTION_ID
-        ).then(resolve, (err: Error) => {
-          vscode.window.showErrorMessage(err.message);
+        ).then(
+          (connectResult) => resolve(connectResult.successfullyConnected),
+          (err: Error) => {
+            vscode.window.showErrorMessage(err.message);
 
-          return resolve(false);
-        });
+            return resolve(false);
+          }
+        );
       });
     }
 
@@ -551,13 +557,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-      connectionIds.map(
-        (id, index) => `${index + 1}: ${this._connections[id].name}`
-      ),
-      {
-        placeHolder: 'Choose a connection to remove...'
-      }
-    );
+        connectionIds.map(
+          (id, index) => `${index + 1}: ${this._connections[id].name}`
+        ),
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
@@ -572,14 +578,14 @@ export default class ConnectionController {
   }
 
   public async renameConnection(connectionId: string): Promise<boolean> {
-    let inputtedConnectionName: any;
+    let inputtedConnectionName: string | undefined;
 
     try {
       inputtedConnectionName = await vscode.window.showInputBox({
         value: this._connections[connectionId].name,
         placeHolder: 'e.g. My Connection Name',
         prompt: 'Enter new connection name.',
-        validateInput: (inputConnectionName: any) => {
+        validateInput: (inputConnectionName: string) => {
           if (
             inputConnectionName &&
             inputConnectionName.length > MAX_CONNECTION_NAME_LENGTH
@@ -754,10 +760,10 @@ export default class ConnectionController {
     this._connecting = false;
     this._disconnecting = false;
     this._connectingConnectionId = '';
-    this._connectingVersion = 0;
+    this._connectingVersion = null;
   }
 
-  public getConnectingVersion(): number {
+  public getConnectingVersion(): string | null {
     return this._connectingVersion;
   }
 

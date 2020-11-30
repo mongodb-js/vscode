@@ -1,4 +1,5 @@
 import { Actions, ActionTypes, FilePickerActionTypes } from './actions';
+import { v4 as uuidv4 } from 'uuid';
 
 import ConnectionModel, {
   validateConnectionModel
@@ -20,6 +21,7 @@ const vscode = acquireVsCodeApi();
 
 export interface AppState {
   activeConnectionName: string;
+  connectionAttemptId: null | string;
   connectionFormTab: CONNECTION_FORM_TABS;
   connectionMessage: string;
   connectionStatus: CONNECTION_STATUS;
@@ -36,6 +38,7 @@ export interface AppState {
 
 export const initialState: AppState = {
   activeConnectionName: '',
+  connectionAttemptId: null,
   connectionFormTab: CONNECTION_FORM_TABS.GENERAL,
   connectionMessage: '',
   connectionStatus: CONNECTION_STATUS.LOADING,
@@ -59,6 +62,18 @@ const showFilePicker = (
     action,
     multi
   });
+};
+
+const sendConnectToExtension = (connectionModel: ConnectionModel): string => {
+  const connectionAttemptId = uuidv4();
+
+  vscode.postMessage({
+    command: MESSAGE_TYPES.CONNECT,
+    connectionModel,
+    connectionAttemptId
+  });
+
+  return connectionAttemptId;
 };
 
 // eslint-disable-next-line complexity
@@ -109,17 +124,13 @@ export const rootReducer = (
         };
       }
 
-      vscode.postMessage({
-        command: MESSAGE_TYPES.CONNECT,
-        connectionModel: state.currentConnection
-      });
-
       return {
         ...state,
         // The form may be displaying a previous error message from a failed connect.
         isValid: true,
         isConnecting: true,
-        isConnected: false
+        isConnected: false,
+        connectionAttemptId: sendConnectToExtension(state.currentConnection)
       };
 
     case ActionTypes.CREATE_NEW_PLAYGROUND:
@@ -149,14 +160,19 @@ export const rootReducer = (
       };
 
     case ActionTypes.CONNECTION_EVENT_OCCURED:
-      return {
-        ...state,
-        isConnecting: false,
-        isConnected: action.successfullyConnected,
-        isValid: action.successfullyConnected ? state.isValid : false,
-        errorMessage: action.successfullyConnected ? '' : action.connectionMessage,
-        connectionMessage: action.connectionMessage
-      };
+      if (state.connectionAttemptId === action.connectionAttemptId) {
+        // Only update to show the connection attempt result
+        // when we it is the most recent connection attempt.
+        return {
+          ...state,
+          isConnecting: false,
+          isConnected: action.successfullyConnected,
+          isValid: action.successfullyConnected ? state.isValid : false,
+          errorMessage: action.successfullyConnected ? '' : action.connectionMessage,
+          connectionMessage: action.connectionMessage
+        };
+      }
+      return { ...state };
 
     case ActionTypes.HOSTNAME_CHANGED:
       return {
