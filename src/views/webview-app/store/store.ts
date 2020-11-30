@@ -2,6 +2,7 @@ import { Actions, ActionTypes, FilePickerActionTypes } from './actions';
 import { v4 as uuidv4 } from 'uuid';
 
 import ConnectionModel, {
+  DEFAULT_HOST,
   validateConnectionModel
 } from '../connection-model/connection-model';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
@@ -183,6 +184,17 @@ export const rootReducer = (
           sslMethod: /mongodb\.net/i.exec(action.hostname)
             ? SSL_METHODS.SYSTEMCA
             : state.currentConnection.sslMethod
+        }
+      };
+
+    case ActionTypes.HOSTS_CHANGED:
+      return {
+        ...state,
+        currentConnection: {
+          ...state.currentConnection,
+          hosts: [
+            ...(action.hosts ? action.hosts : [DEFAULT_HOST])
+          ]
         }
       };
 

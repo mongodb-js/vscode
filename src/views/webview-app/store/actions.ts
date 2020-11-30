@@ -4,6 +4,7 @@ import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
 import { CONNECTION_STATUS } from '../extension-app-message-constants';
 import { CONNECTION_FORM_TABS } from './constants';
+import { Host } from '../connection-model/connection-model';
 
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',
@@ -13,6 +14,7 @@ export enum ActionTypes {
   CONNECTION_FORM_CHANGED = 'CONNECTION_FORM_CHANGED',
   CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
   HOSTNAME_CHANGED = 'HOSTNAME_CHANGED',
+  HOSTS_CHANGED = 'HOSTS_CHANGED',
   IS_SRV_RECORD_TOGGLED = 'IS_SRV_RECORD_TOGGLED',
   KERBEROS_PARAMETERS_CHANGED = 'KERBEROS_PARAMETERS_CHANGED',
   EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
@@ -96,6 +98,11 @@ export interface HostnameChangedAction extends BaseAction {
   hostname: string;
 }
 
+export interface HostsChangedAction extends BaseAction {
+  type: ActionTypes.HOSTS_CHANGED;
+  hosts: Host[];
+}
+
 export interface IsSrvRecordToggledAction extends BaseAction {
   type: ActionTypes.IS_SRV_RECORD_TOGGLED;
 }
@@ -165,7 +172,7 @@ export interface RenameConnectionAction extends BaseAction {
 
 export interface ReplicaSetChangedAction extends BaseAction {
   type: ActionTypes.REPLICA_SET_CHANGED;
-  replicaSet: string;
+  replicaSet?: string;
 }
 
 export interface RequestConnectionStatusAction extends BaseAction {
@@ -269,6 +276,7 @@ export type Actions =
   | ConnectionFormChangedAction
   | CreateNewPlaygroundAction
   | HostnameChangedAction
+  | HostsChangedAction
   | IsSrvRecordToggledAction
   | KerberosParametersChanged
   | LDAPPasswordChangedAction
