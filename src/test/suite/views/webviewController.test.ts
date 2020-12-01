@@ -104,11 +104,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryController
     );
-    let messageRecievedSet = false;
-    let messageRecieved: any;
+    let messageReceivedSet = false;
+    let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message: any): void => {
+      postMessage: (): void => {
         assert(testConnectionController.isCurrentlyConnected());
         assert(
           testConnectionController.getActiveConnectionName() ===
@@ -122,8 +122,8 @@ suite('Webview Test Suite', () => {
         done();
       },
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
-        messageRecievedSet = true;
+        messageReceived = callback;
+        messageReceivedSet = true;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -147,7 +147,7 @@ suite('Webview Test Suite', () => {
     );
 
     assert(
-      messageRecievedSet,
+      messageReceivedSet,
       'Ensure it starts listening for messages from the webview.'
     );
 
@@ -157,7 +157,7 @@ suite('Webview Test Suite', () => {
       }
 
       // Mock a connection call.
-      messageRecieved({
+      messageReceived({
         command: MESSAGE_TYPES.CONNECT,
         connectionModel: {
           port: connectionModel.port,
@@ -179,11 +179,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryController
     );
-    let messageRecievedSet = false;
-    let messageRecieved: any;
+    let messageReceivedSet = false;
+    let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message: any): void => {
+      postMessage: (message): void => {
         assert(message.connectionSuccess);
         const expectedMessage = 'Successfully connected to localhost:27018.';
         assert(
@@ -195,8 +195,8 @@ suite('Webview Test Suite', () => {
         done();
       },
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
-        messageRecievedSet = true;
+        messageReceived = callback;
+        messageReceivedSet = true;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -220,7 +220,7 @@ suite('Webview Test Suite', () => {
     );
 
     assert(
-      messageRecievedSet,
+      messageReceivedSet,
       'Ensure it starts listening for messages from the webview.'
     );
 
@@ -230,7 +230,7 @@ suite('Webview Test Suite', () => {
       }
 
       // Mock a connection call.
-      messageRecieved({
+      messageReceived({
         command: MESSAGE_TYPES.CONNECT,
         connectionModel: {
           port: connectionModel.port,
@@ -252,10 +252,10 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryController
     );
-    let messageRecieved: any;
+    let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message: any): void => {
+      postMessage: (message): void => {
         assert(!message.connectionSuccess);
         assert(message.connectionMessage.includes('Unable to load connection'));
 
@@ -263,7 +263,7 @@ suite('Webview Test Suite', () => {
         done();
       },
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
+        messageReceived = callback;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -287,7 +287,7 @@ suite('Webview Test Suite', () => {
     );
 
     // Mock a connection call.
-    messageRecieved({
+    messageReceived({
       command: MESSAGE_TYPES.CONNECT,
       connectionModel: {
         port: 2700002, // Bad port number.
@@ -308,10 +308,10 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryController
     );
-    let messageRecieved: any;
+    let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message: any): void => {
+      postMessage: (message): void => {
         assert(!message.connectionSuccess);
         const expectedMessage = 'connection attempt overriden';
         assert(
@@ -323,7 +323,7 @@ suite('Webview Test Suite', () => {
         done();
       },
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
+        messageReceived = callback;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -347,7 +347,7 @@ suite('Webview Test Suite', () => {
     );
 
     // Mock a connection call.
-    messageRecieved({
+    messageReceived({
       command: MESSAGE_TYPES.CONNECT,
       connectionModel: {
         port: 27018,
@@ -383,7 +383,7 @@ suite('Webview Test Suite', () => {
       path: '/somefilepath/test.text'
     });
 
-    let messageRecieved;
+    let messageReceived;
     const fakeWebview = {
       html: '',
       postMessage: (): void => {
@@ -394,7 +394,7 @@ suite('Webview Test Suite', () => {
         done();
       },
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
+        messageReceived = callback;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -420,7 +420,7 @@ suite('Webview Test Suite', () => {
     );
 
     // Mock a connection call.
-    messageRecieved({
+    messageReceived({
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
       action: 'file_action'
     });
@@ -438,10 +438,10 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryController
     );
-    let messageRecieved: any;
+    let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message: any): void => {
+      postMessage: (message): void => {
         assert(message.action === 'file_action');
         assert(message.files[0] === path.resolve('somefilepath/test.text'));
 
@@ -449,7 +449,7 @@ suite('Webview Test Suite', () => {
         done();
       },
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
+        messageReceived = callback;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -480,7 +480,7 @@ suite('Webview Test Suite', () => {
       mdbTestExtension.testExtensionContext
     );
 
-    messageRecieved({
+    messageReceived({
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
       action: 'file_action'
     });
@@ -498,11 +498,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryController
     );
-    let messageRecieved: any;
+    let messageReceived;
     const fakeWebview = {
       html: '',
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
+        messageReceived = callback;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -529,7 +529,7 @@ suite('Webview Test Suite', () => {
       mdbTestExtension.testExtensionContext
     );
 
-    messageRecieved({
+    messageReceived({
       command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT
     });
 
@@ -555,10 +555,10 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryController
     );
-    let messageRecieved: any;
+    let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message: any): void => {
+      postMessage: (message): void => {
         assert(message.command === 'CONNECTION_STATUS_MESSAGE');
         assert(message.connectionStatus === 'DISCONNECTED');
         assert(message.activeConnectionName === '');
@@ -566,7 +566,7 @@ suite('Webview Test Suite', () => {
         done();
       },
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
+        messageReceived = callback;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -590,7 +590,7 @@ suite('Webview Test Suite', () => {
     );
 
     // Mock a connection status request call.
-    messageRecieved({
+    messageReceived({
       command: MESSAGE_TYPES.GET_CONNECTION_STATUS
     });
   });
@@ -607,10 +607,10 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryController
     );
-    let messageRecieved: any;
+    let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message: any): void => {
+      postMessage: (message): void => {
         assert(message.command === 'CONNECTION_STATUS_MESSAGE');
         assert(message.connectionStatus === 'CONNECTED');
         assert(message.activeConnectionName === 'localhost:27018');
@@ -619,7 +619,7 @@ suite('Webview Test Suite', () => {
         done();
       },
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
+        messageReceived = callback;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -646,7 +646,7 @@ suite('Webview Test Suite', () => {
       TEST_DATABASE_URI
     ).then(() => {
       // Mock a connection status request call.
-      messageRecieved({
+      messageReceived({
         command: MESSAGE_TYPES.GET_CONNECTION_STATUS
       });
     });
@@ -664,12 +664,12 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryController
     );
-    let messageRecieved: any;
+    let messageReceived;
     const fakeWebview = {
       html: '',
       postMessage: (): void => { },
       onDidReceiveMessage: (callback): void => {
-        messageRecieved = callback;
+        messageReceived = callback;
       },
       asWebviewUri: sinon.fake.returns('')
     };
@@ -705,7 +705,7 @@ suite('Webview Test Suite', () => {
     );
 
     // Mock a connection status request call.
-    messageRecieved({
+    messageReceived({
       command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION
     });
 
@@ -724,7 +724,7 @@ suite('Webview Test Suite', () => {
     );
     let testConnectionController;
 
-    let messageRecieved;
+    let messageReceived;
     let fakeWebview;
 
     let testWebviewController;
@@ -740,7 +740,7 @@ suite('Webview Test Suite', () => {
         html: '',
         postMessage: (): void => { },
         onDidReceiveMessage: (callback): void => {
-          messageRecieved = callback;
+          messageReceived = callback;
         },
         asWebviewUri: sinon.fake.returns('')
       };
@@ -768,7 +768,7 @@ suite('Webview Test Suite', () => {
       const stubOpenLink = sinon.fake.resolves(null);
       sinon.replace(linkHelper, 'openLink', stubOpenLink);
 
-      messageRecieved({
+      messageReceived({
         command: MESSAGE_TYPES.OPEN_TRUSTED_LINK,
         linkTo: 'https://mongodb.com/test'
       });
