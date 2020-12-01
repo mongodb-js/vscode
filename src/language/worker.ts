@@ -2,7 +2,7 @@ import { parentPort, workerData } from 'worker_threads';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import {
   CliServiceProvider,
-  NodeOptions
+  MongoClientOptions
 } from '@mongosh/service-provider-server';
 import parseSchema = require('mongodb-schema');
 import { ServerCommands } from './serverCommands';
@@ -21,7 +21,7 @@ type WorkerError = any | null;
 const executeAll = async (
   codeToEvaluate: string,
   connectionString: string,
-  connectionOptions: NodeOptions
+  connectionOptions: MongoClientOptions
 ): Promise<[WorkerError, WorkerResult?]> => {
   try {
     // Instantiate a data service provider.
