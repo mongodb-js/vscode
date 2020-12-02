@@ -6,9 +6,10 @@ import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 const styles = require('./form.less');
 
 type props = {
+  className?: string;
   label: string;
   name: string;
-  changeHandler: (evt: React.ChangeEvent) => void;
+  changeHandler: (evt: React.ChangeEvent<HTMLInputElement>) => void;
   linkTo?: string;
   placeholder?: string;
   value?: string | number;
@@ -53,11 +54,19 @@ class FormInput extends React.PureComponent<props> {
    * @returns {React.Component} The input field.
    */
   render(): React.ReactNode {
-    const { changeHandler, label, name, placeholder, type, value } = this.props;
+    const {
+      changeHandler,
+      className,
+      label,
+      name,
+      placeholder,
+      type,
+      value
+    } = this.props;
 
     return (
       <div
-        className={classnames({
+        className={classnames(className, {
           [styles['form-item']]: true,
           [styles['form-item-has-error']]: this.props.error
         })}

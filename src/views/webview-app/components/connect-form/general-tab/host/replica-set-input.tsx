@@ -1,15 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, ReplicaSetChangedAction } from '../../../store/actions';
-import { AppState } from '../../../store/store';
-import FormInput from '../../form/form-input';
-import SSH_TUNNEL_TYPES from '../../../connection-model/constants/ssh-tunnel-types';
+import { ActionTypes, ReplicaSetChangedAction } from '../../../../store/actions';
+import { AppState } from '../../../../store/store';
+import FormInput from '../../../form/form-input';
 
 type StateProps = {
-  isSrvRecord: boolean;
   replicaSet?: string;
-  sshTunnel: SSH_TUNNEL_TYPES;
 };
 
 type DispatchProps = {
@@ -17,23 +14,12 @@ type DispatchProps = {
 };
 
 class ReplicaSetInput extends React.PureComponent<StateProps & DispatchProps> {
-  /**
-   * Handles a replica set change.
-   *
-   * @param {Object} evt - evt.
-   */
-  onReplicaSetChanged = (evt): void => {
+  onReplicaSetChanged = (evt: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onReplicaSetChanged(evt.target.value);
   };
 
   render(): React.ReactNode {
-    const { isSrvRecord, replicaSet, sshTunnel } = this.props;
-
-    if (sshTunnel !== SSH_TUNNEL_TYPES.NONE || isSrvRecord) {
-      // Don't show the replica set input when the connection
-      // is using an ssh tunnel or srv record.
-      return null;
-    }
+    const { replicaSet } = this.props;
 
     return (
       <FormInput
@@ -48,9 +34,7 @@ class ReplicaSetInput extends React.PureComponent<StateProps & DispatchProps> {
 
 const mapStateToProps = (state: AppState): StateProps => {
   return {
-    isSrvRecord: state.currentConnection.isSrvRecord,
-    replicaSet: state.currentConnection.replicaSet,
-    sshTunnel: state.currentConnection.sshTunnel
+    replicaSet: state.currentConnection.replicaSet
   };
 };
 

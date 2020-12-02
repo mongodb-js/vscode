@@ -23,7 +23,7 @@ class ConnectionModel {
   isSrvRecord = false;
   hostname = 'localhost';
   port: port = 27017;
-  hosts: Host[] = [DEFAULT_HOST];
+  hosts: Host[] = [{ ...DEFAULT_HOST }];
   extraOptions = {};
   replicaSet: undefined | string;
   readPreference: READ_PREFERENCES = READ_PREFERENCE_DEFAULT;
