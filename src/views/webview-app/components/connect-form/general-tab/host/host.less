@@ -6,10 +6,6 @@
   flex-direction: row;
   width: 100%;
   align-items: center;
-
-  &:first-child {
-    margin-top: 0;
-  }
 }
 
 .host-input-port {
@@ -25,9 +21,7 @@
 
 .host-add-host-button {
   display: inline-block;
-  margin: 0;
   margin-left: 10px;
-  margin-top: 22px;
   padding: 5px;
   background: none;
   color: var(--vscode-editor-foreground);
@@ -38,11 +32,13 @@
   }
 }
 
+.first-host {
+  margin-top: 22px;
+}
+
 .host-remove-host-button {
   display: inline-block;
-  margin: 0;
   margin-left: 10px;
-  margin-top: 22px;
   padding: 5px;
   background: none;
   color: var(--vscode-editor-foreground);

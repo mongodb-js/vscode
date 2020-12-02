@@ -7,7 +7,7 @@ const styles = require('./form.less');
 
 type props = {
   className?: string;
-  label: string;
+  label?: string;
   name: string;
   changeHandler: (evt: React.ChangeEvent<HTMLInputElement>) => void;
   linkTo?: string;
@@ -71,10 +71,12 @@ class FormInput extends React.PureComponent<props> {
           [styles['form-item-has-error']]: this.props.error
         })}
       >
-        <label>
-          <span className={styles['form-item-label']}>{label}</span>
-          {this.renderInfoSprinkle()}
-        </label>
+        {label && (
+          <label>
+            <span className={styles['form-item-label']}>{label}</span>
+            {this.renderInfoSprinkle()}
+          </label>
+        )}
         <input
           name={name}
           placeholder={placeholder}

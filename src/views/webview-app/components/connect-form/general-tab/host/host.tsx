@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
@@ -63,8 +64,8 @@ type DispatchProps = {
 };
 
 export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
-  onConnectionTypeChange = (evt: React.ChangeEvent<HTMLInputElement>): void => {
-    switch (evt.target.value as CONNECTION_TYPE) {
+  onConnectionTypeChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    switch (event.target.value as CONNECTION_TYPE) {
       case CONNECTION_TYPE.STANDALONE:
         this.props.setReplicaSet();
         if (this.props.hosts.length > 1) {
@@ -107,7 +108,9 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
     this.props.updateHosts(newHosts);
   };
 
-  onAddNewHost = (): void => {
+  onAddNewHost = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    event.preventDefault();
+
     const { hosts, replicaSet } = this.props;
 
     this.props.updateHosts([
@@ -122,15 +125,20 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
     }
   };
 
-  onHostnameChanged = (evt): void => {
-    this.props.onHostnameChanged(evt.target.value);
+  onHostnameChanged = (event): void => {
+    this.props.onHostnameChanged(event.target.value);
   };
 
-  onPortChanged = (evt): void => {
-    this.props.onPortChanged(evt.target.value.trim());
+  onPortChanged = (event): void => {
+    this.props.onPortChanged(event.target.value.trim());
   };
 
-  onRemoveHost = (hostIndex: number): void => {
+  onRemoveHost = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    hostIndex: number
+  ): void => {
+    event.preventDefault();
+
     const { hosts } = this.props;
 
     const newHosts = [ ...hosts ];
@@ -194,7 +202,7 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
           value={port}
         />
         <button
-          className={styles['host-add-host-button']}
+          className={`${styles['host-add-host-button']} ${styles['first-host']}`}
           onClick={this.onAddNewHost}
         >
           <FontAwesomeIcon
@@ -219,29 +227,31 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
           >
             <FormInput
               className={styles['host-input-host']}
-              label="Hostname"
+              label={index === 0 ? 'Hostname' : undefined}
               name={`host-name-${index}`}
               placeholder="localhost"
-              changeHandler={(evt: React.ChangeEvent<HTMLInputElement>): void => this.onHostChanged({
-                host: evt.target.value,
+              changeHandler={(event: React.ChangeEvent<HTMLInputElement>): void => this.onHostChanged({
+                host: event.target.value,
                 port: host.port
               }, index)}
               value={host.host}
             />
             <FormInput
               className={styles['host-input-port']}
-              label="Port"
+              label={index === 0 ? 'Port' : undefined}
               name={`host-port-${index}`}
               placeholder="27017"
-              changeHandler={(evt: React.ChangeEvent<HTMLInputElement>): void => this.onHostChanged({
+              changeHandler={(event: React.ChangeEvent<HTMLInputElement>): void => this.onHostChanged({
                 host: host.host,
-                port: evt.target.value
+                port: event.target.value
               }, index)}
               value={host.port}
               type="number"
             />
             <button
-              className={styles['host-add-host-button']}
+              className={classnames(styles['host-add-host-button'], {
+                [styles['first-host']]: index === 0
+              })}
               onClick={this.onAddNewHost}
             >
               <FontAwesomeIcon
@@ -249,8 +259,10 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
               />
             </button>
             {hosts.length > 1 && (<button
-              className={styles['host-remove-host-button']}
-              onClick={(): void => this.onRemoveHost(index)}
+              className={classnames(styles['host-remove-host-button'], {
+                [styles['first-host']]: index === 0
+              })}
+              onClick={(event): void => this.onRemoveHost(event, index)}
             >
               <FontAwesomeIcon
                 icon={faMinus}
