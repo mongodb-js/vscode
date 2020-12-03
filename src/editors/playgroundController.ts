@@ -272,7 +272,10 @@ export default class PlaygroundController {
               this._outputChannel.clear();
               this._outputChannel.show(true);
 
-              return resolve(undefined);
+              return resolve({
+                outputLines: undefined,
+                result: undefined
+              });
             });
 
             // Run all playground scripts.
@@ -286,7 +289,10 @@ export default class PlaygroundController {
         .then(undefined, (error) => {
           log.error('Evaluate playground with cancel modal error', error);
 
-          return resolve(undefined);
+          return resolve({
+            outputLines: undefined,
+            result: undefined
+          });
         });
     });
   }
@@ -351,8 +357,7 @@ export default class PlaygroundController {
 
       this._outputChannel.clear();
       if (evaluateResponse.outputLines) {
-        for (const line of evaluateResponse.outputLines)
-          this._outputChannel.appendLine(line.content);
+        for (const line of evaluateResponse.outputLines) {this._outputChannel.appendLine(line.content);}
         this._outputChannel.show(true);
       }
 
@@ -392,7 +397,7 @@ export default class PlaygroundController {
       this.activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
-        `Please open a '.mongodb' playground file before running it.`
+        'Please open a \'.mongodb\' playground file before running it.'
       );
 
       return Promise.resolve(false);
@@ -424,7 +429,7 @@ export default class PlaygroundController {
       this.activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
-        `Please open a '.mongodb' playground file before running it.`
+        'Please open a \'.mongodb\' playground file before running it.'
       );
 
       return Promise.resolve(false);
@@ -442,7 +447,7 @@ export default class PlaygroundController {
       this.activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
-        `Please open a '.mongodb' playground file before running it.`
+        'Please open a \'.mongodb\' playground file before running it.'
       );
 
       return Promise.resolve(false);
