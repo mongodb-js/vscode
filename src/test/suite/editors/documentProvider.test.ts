@@ -20,6 +20,7 @@ import {
   documentWithBinaryId,
   documentWithBinaryIdString
 } from './documentStringFixtures';
+import DocumentIdStore from '../../../editors/documentIdStore';
 
 const mockDocumentAsJsonString = `{
   "_id": "first_id",
@@ -123,17 +124,18 @@ suite('Document Provider Test Suite', () => {
     );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
+    const docStore = new DocumentIdStore();
+
     const testCollectionViewProvider = new DocumentProvider(
       mockConnectionController,
+      docStore,
       new StatusView(mockExtensionContext)
     );
 
-    const documentId = EJSON.stringify({
-      value: '123'
-    });
+    const documentIdRef = docStore.add('123');
 
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=test.test&documentId=${documentId}`
+      `scheme:Results: filename.json?namespace=test.test&documentId=${documentIdRef}`
     );
 
     testCollectionViewProvider
