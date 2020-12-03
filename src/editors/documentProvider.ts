@@ -1,6 +1,4 @@
-// import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
-// import { EJSON } from 'bson';
 
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
@@ -37,10 +35,9 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
       const uriParams = new URLSearchParams(uri.query);
       const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER) || '';
       const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
-      const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
 
+      const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
       const documentId = this._documentIdStore.get(documentIdReference);
-      // const jsonObjectId = JSON.parse(documentIdReference).value;
       if (!documentId) {
         vscode.window.showErrorMessage(
           'Unable to fetch document: reference has expired.'
