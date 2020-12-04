@@ -123,8 +123,7 @@ export default class EditorsController {
     const textDocumentUri = vscode.Uri.parse(
       `${VIEW_DOCUMENT_SCHEME}:${namespace}: ${JSON.stringify(
         documentId
-      )} - ${Date.now()}.json${uriQuery}`,
-      true
+      )} - ${Date.now()}.json${uriQuery}`
     );
 
     return new Promise((resolve, reject) => {
