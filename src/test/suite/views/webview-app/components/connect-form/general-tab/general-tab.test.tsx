@@ -12,14 +12,4 @@ describe('General Tab Component Test Suite', () => {
     assert(wrapper.find(Authentication).exists());
     assert(wrapper.find(HostInput).exists());
   });
-
-  // test('it does not show the port when srv record is true', () => {
-  //   const wrapper = shallow(<GeneralTab />);
-  //   assert(!wrapper.find(PortInput).exists());
-  // });
-
-  // test('it shows the port input when srv record is false', () => {
-  //   const wrapper = shallow(<GeneralTab />);
-  //   assert(wrapper.find(PortInput).exists());
-  // });
 });
