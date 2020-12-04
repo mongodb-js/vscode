@@ -945,7 +945,7 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.removeSavedConnection(connectionId);
 
     // Wait for the connection to timeout and complete (and not error in the process).
-    await sleep(100);
+    await sleep(250);
 
     assert(
       !testConnectionController.isCurrentlyConnected(),
