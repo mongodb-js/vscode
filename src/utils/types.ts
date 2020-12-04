@@ -5,5 +5,5 @@ export type OutputItem = {
 
 export type ExecuteAllResult = {
   outputLines: OutputItem[] | undefined;
-  result: OutputItem;
+  result: OutputItem | undefined;
 };

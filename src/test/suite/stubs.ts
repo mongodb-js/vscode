@@ -12,7 +12,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
   subscriptions: { dispose(): any }[];
   workspaceState: vscode.Memento;
   _workspaceState = {};
-  globalState: vscode.Memento;
+  globalState: vscode.Memento & { setKeysForSync(keys: string[]): void };
   _globalState = {};
   extensionPath: string;
   storagePath: string;
@@ -49,7 +49,8 @@ class TestExtensionContext implements vscode.ExtensionContext {
         return new Promise<void>(() => {
           this._globalState[key] = value;
         });
-      }
+      },
+      setKeysForSync: (keys: string[]): void => {}
     };
     this.extensionPath = path.join(__dirname, '..', '..', '..');
     this.storagePath = '';

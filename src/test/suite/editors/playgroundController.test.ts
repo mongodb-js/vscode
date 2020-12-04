@@ -69,7 +69,7 @@ suite('Playground Controller Test Suite', function () {
     });
 
     test('run all playground blocks should throw the playground not found error', async () => {
-      const errorMessage = `Please open a '.mongodb' playground file before running it.`;
+      const errorMessage = 'Please open a \'.mongodb\' playground file before running it.';
 
       fakeShowErrorMessage.resolves(errorMessage);
 
@@ -81,7 +81,7 @@ suite('Playground Controller Test Suite', function () {
     });
 
     test('run selected playground blocks should throw the playground not found error', async () => {
-      const errorMessage = `Please open a '.mongodb' playground file before running it.`;
+      const errorMessage = 'Please open a \'.mongodb\' playground file before running it.';
 
       fakeShowErrorMessage.resolves(errorMessage);
 
@@ -93,7 +93,7 @@ suite('Playground Controller Test Suite', function () {
     });
 
     test('run all or selected playground blocks should throw the playground not found error', async () => {
-      const errorMessage = `Please open a '.mongodb' playground file before running it.`;
+      const errorMessage = 'Please open a \'.mongodb\' playground file before running it.';
 
       fakeShowErrorMessage.resolves(errorMessage);
 
@@ -264,7 +264,10 @@ suite('Playground Controller Test Suite', function () {
           // No action.
         }
 
-        expect(result).to.be.undefined;
+        expect(result).to.deep.equal({
+          outputLines: undefined,
+          result: undefined
+        });
       });
 
       test('do not show code lens if a part of a line is selected', async () => {

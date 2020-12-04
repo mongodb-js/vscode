@@ -20,6 +20,7 @@ import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { StatusView } from '../views';
 import PlaygroundController from './playgroundController';
+import DocumentIdStore from './documentIdStore';
 
 const log = createLogger('editors controller');
 
@@ -29,6 +30,7 @@ const log = createLogger('editors controller');
  */
 export default class EditorsController {
   _connectionController: ConnectionController;
+  _documentIdStore: DocumentIdStore;
   _playgroundController: PlaygroundController;
   _collectionDocumentsOperationsStore = new CollectionDocumentsOperationsStore();
   _collectionViewProvider: CollectionDocumentsProvider;
@@ -70,8 +72,12 @@ export default class EditorsController {
       )
     );
 
+    const documentIdStore = new DocumentIdStore();
+    this._documentIdStore = documentIdStore;
+
     const documentViewProvider = new DocumentProvider(
       connectionController,
+      documentIdStore,
       new StatusView(context)
     );
 
@@ -104,15 +110,9 @@ export default class EditorsController {
 
     const connectionId = this._connectionController.getActiveConnectionId();
     const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
-    // Encode the _id field incase the document id is a custom string with
-    // special characters.
-    const documentIdString = JSON.stringify({
-      value: EJSON.serialize(documentId)
-    });
+    const documentIdReference = this._documentIdStore.add(documentId);
 
-    const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${encodeURIComponent(
-      documentIdString
-    )}`;
+    const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
     const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
 
     // We attach the current time to ensure a new editor window is opened on
