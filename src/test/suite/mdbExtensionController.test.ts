@@ -1215,7 +1215,7 @@ suite('MDBExtensionController Test Suite', function () {
       .then(done, done);
   });
 
-  test('mdb.viewDocument opens an editor with the document using its id', (done) => {
+  test('mdb.viewDocument opens an editor with the document using its id', async () => {
     const mockOpenTextDocument = sinon.fake.resolves('magna carta');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
@@ -1230,31 +1230,23 @@ suite('MDBExtensionController Test Suite', function () {
       0
     );
 
-    vscode.commands
-      .executeCommand('mdb.viewDocument', documentItem)
-      .then(() => {
-        assert(
-          mockOpenTextDocument.firstArg.path.includes(
-            'waffle.house: "pancakes"'
-          )
-        );
-        assert(mockOpenTextDocument.firstArg.path.includes('.json'));
-        assert(mockOpenTextDocument.firstArg.scheme === VIEW_DOCUMENT_SCHEME);
-        assert(
-          mockOpenTextDocument.firstArg.query.includes(
-            'documentId={"value":"pancakes"}'
-          )
-        );
-        assert(
-          mockOpenTextDocument.firstArg.query.includes('namespace=waffle.house')
-        );
+    await vscode.commands.executeCommand('mdb.viewDocument', documentItem);
+    assert(
+      mockOpenTextDocument.firstArg.path.includes(
+        'waffle.house: "pancakes"'
+      )
+    );
+    assert(mockOpenTextDocument.firstArg.path.includes('.json'));
+    assert(mockOpenTextDocument.firstArg.scheme === VIEW_DOCUMENT_SCHEME);
+    assert(mockOpenTextDocument.firstArg.query.includes('documentId='));
+    assert(
+      mockOpenTextDocument.firstArg.query.includes('namespace=waffle.house')
+    );
 
-        assert(
-          mockShowTextDocument.firstArg === 'magna carta',
-          'Expected it to call vscode to show the returned document from the provider'
-        );
-      })
-      .then(done, done);
+    assert(
+      mockShowTextDocument.firstArg === 'magna carta',
+      'Expected it to call vscode to show the returned document from the provider'
+    );
   });
 
   test('mdb.searchForDocuments should create a MongoDB playground with search template', async () => {

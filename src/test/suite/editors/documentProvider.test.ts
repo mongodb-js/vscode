@@ -2,7 +2,7 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
-import { ObjectId, EJSON } from 'bson';
+import { ObjectId } from 'bson';
 import TelemetryController from '../../../telemetry/telemetryController';
 import DocumentProvider from '../../../editors/documentProvider';
 import ConnectionController from '../../../connectionController';
@@ -72,17 +72,16 @@ suite('Document Provider Test Suite', () => {
     );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
+    const docStore = new DocumentIdStore();
     const testCollectionViewProvider = new DocumentProvider(
       mockConnectionController,
+      docStore,
       new StatusView(mockExtensionContext)
     );
 
-    const documentId = EJSON.stringify({
-      value: '123'
-    });
-
+    const documentIdRef = docStore.add('123');
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=fruit.pineapple&documentId=${documentId}`
+      `scheme:Results: filename.json?namespace=fruit.pineapple&documentId=${documentIdRef}`
     );
 
     testCollectionViewProvider
@@ -168,17 +167,18 @@ suite('Document Provider Test Suite', () => {
 
     const textStatusView = new StatusView(mockExtensionContext);
 
+    const docStore = new DocumentIdStore();
+
     const testCollectionViewProvider = new DocumentProvider(
       mockConnectionController,
+      docStore,
       textStatusView
     );
 
-    const documentId = EJSON.stringify({
-      value: '123'
-    });
+    const documentIdRef = docStore.add('123');
 
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=aaaaaaaa&documentId=${documentId}`
+      `scheme:Results: filename.json?namespace=aaaaaaaa&documentId=${documentIdRef}`
     );
 
     const mockShowMessage = sinon.fake();
@@ -236,16 +236,17 @@ suite('Document Provider Test Suite', () => {
 
           mockConnectionController.setActiveConnection(dataService);
 
+          const docStore = new DocumentIdStore();
+
           const testCollectionViewProvider = new DocumentProvider(
             mockConnectionController,
+            docStore,
             new StatusView(mockExtensionContext)
           );
 
-          const documentId = EJSON.stringify({
-            value: (documentWithAllBSONTypes as any)._id
-          });
+          const documentIdRef = docStore.add((documentWithAllBSONTypes as any)._id);
           const uri = vscode.Uri.parse(
-            `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
+            `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentIdRef}`
           );
 
           testCollectionViewProvider
@@ -282,16 +283,16 @@ suite('Document Provider Test Suite', () => {
 
       mockConnectionController.setActiveConnection(dataService);
 
+      const docStore = new DocumentIdStore();
       const testCollectionViewProvider = new DocumentProvider(
         mockConnectionController,
+        docStore,
         new StatusView(mockExtensionContext)
       );
 
-      const documentId = EJSON.stringify({
-        value: documentWithBinaryId._id
-      });
+      const documentIdRef = docStore.add(documentWithBinaryId._id);
       const uri = vscode.Uri.parse(
-        `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
+        `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentIdRef}`
       );
 
       const document = await testCollectionViewProvider
@@ -326,16 +327,16 @@ suite('Document Provider Test Suite', () => {
 
           mockConnectionController.setActiveConnection(dataService);
 
+          const docStore = new DocumentIdStore();
           const testCollectionViewProvider = new DocumentProvider(
             mockConnectionController,
+            docStore,
             new StatusView(mockExtensionContext)
           );
+          const documentIdRef = docStore.add(mockDocument._id);
 
-          const documentId = EJSON.stringify({
-            value: mockDocument._id
-          });
           const uri = vscode.Uri.parse(
-            `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
+            `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentIdRef}`
           );
 
           testCollectionViewProvider
@@ -376,16 +377,16 @@ suite('Document Provider Test Suite', () => {
 
           mockConnectionController.setActiveConnection(dataService);
 
+          const docStore = new DocumentIdStore();
           const testCollectionViewProvider = new DocumentProvider(
             mockConnectionController,
+            docStore,
             new StatusView(mockExtensionContext)
           );
 
-          const documentId = EJSON.stringify({
-            value: mockDocument._id
-          });
+          const documentIdRef = docStore.add(mockDocument._id);
           const uri = vscode.Uri.parse(
-            `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentId}`
+            `scheme:Results: filename.json?namespace=${TEST_DB_NAME}.ramen&documentId=${documentIdRef}`
           );
 
           testCollectionViewProvider

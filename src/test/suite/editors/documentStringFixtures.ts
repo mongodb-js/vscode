@@ -58,7 +58,7 @@ export const documentWithAllBsonTypesJsonified = `{
 }`;
 
 export const documentWithBinaryId = {
-  _id: new Binary('aaa')
+  _id: new Binary('a+b')
 };
 export const documentWithBinaryIdString = JSON.stringify(
   documentWithBinaryId,
