@@ -1,0 +1,160 @@
+.schema-field-options-button {
+  position: absolute;
+  right: 2px;
+  top: 18px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  z-index: 15;
+}
+
+.schema-field-options-button:hover {
+  cursor: pointer;
+}
+
+.schema-field-options-dropdown {
+  position: absolute;
+  top: 24px;
+  right: 12px;
+  border: 1px solid black;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #232323;
+  font-weight: bold;
+  font-size:10pt;
+}
+
+.schema-field-options-dropdown-option:not(:last-child) {
+  border-bottom: 1px solid #343434;
+}
+
+.schema-field-options-dropdown-option {
+  padding: 2px 6px;
+  background: white;
+  text-decoration: none;
+  color: #232323;
+}
+
+.schema-field-options-dropdown-option:hover {
+  cursor: pointer;
+  background: #ffffff;
+}
+
+.schema-field-is-hidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.schema-field-name-name {
+  display: inline-block;
+}
+
+.schema-field-name-rename-button {
+  color: #ccc;
+  background: none;
+  border: none;
+  font-size: 10px;
+  vertical-align: middle;
+}
+
+.schema-field-name-rename-button:hover {
+  cursor: pointer;
+  color: #666;
+}
+
+.schema-field-changes-area {
+  position: absolute;
+  left: 20px;
+  top: 16px;
+}
+
+.schema-field-changes-icon {
+  font-size: 14px;
+}
+
+.schema-field-changes-list {
+  visibility: hidden;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  border: 1px solid black;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  font-size: 14px;
+  background: white;
+}
+
+.schema-field-change-item {
+  padding: 4px 8px;
+}
+
+.schema-field-change-item:not(:last-child) {
+  border-bottom: 1px solid #343434;
+}
+
+.schema-field-changes-area:hover .schema-field-changes-list {
+  visibility: visible;
+}
+
+.schema-field-find-and-replace-container {
+  width: 100%;
+  display: flex;
+  padding: 20px;
+  padding-left:220px;
+  border: 1px solid rgb(133, 132, 132);
+  font-size: 11pt;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.schema-field-find-and-replace-form {
+  flex-grow: 1;
+  flex-direction: column;
+  max-width: 350px;
+}
+
+.schema-field-find-and-replace-item {
+  display: flex;
+  /* flex-grow: 1; */
+  width: 100%;
+  flex-direction: row;
+  padding: 10px;
+  padding-bottom: 0px;
+}
+
+.schema-field-find-and-replace-item-title {
+  flex-grow: 1;
+}
+
+.schema-field-find-and-replace-item-field {
+  margin-left: 4px;
+}
+
+.schema-field-find-and-replace-actions {
+  text-align: right;
+  display: block;
+}
+
+.schema-field-find-and-replace-actions button {
+  background-color: rgba(255,255,255,1);
+  text-transform: uppercase;
+  font-size: 9pt;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #000000;
+  font-weight: bolder;
+  padding: 4px 8px;
+  margin:2px;
+  border: 1px solid black;
+}
+
+.schema-field-find-and-replace-actions button:hover {
+  cursor: pointer
+}
