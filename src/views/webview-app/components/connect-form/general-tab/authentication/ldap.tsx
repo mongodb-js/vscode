@@ -50,7 +50,7 @@ class LDAP extends React.Component<props> {
     const { isValid, ldapPassword, ldapUsername } = this.props;
 
     return (
-      <div id="ldap-authentication" className="form-group">
+      <div>
         <FormInput
           label="Username"
           name="ldap-username"

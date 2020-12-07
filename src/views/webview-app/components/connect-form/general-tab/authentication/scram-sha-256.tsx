@@ -62,7 +62,7 @@ class ScramSha256 extends React.Component<props> {
     } = this.props;
 
     return (
-      <div id="scram-sha-256" className={classnames(styles['form-group'])}>
+      <div>
         <FormInput
           label="Username"
           name="username"
