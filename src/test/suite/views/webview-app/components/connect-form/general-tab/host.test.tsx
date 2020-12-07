@@ -141,16 +141,16 @@ describe('Host Component Test Suite', () => {
 
       it('shows host name input for each host', () => {
         assert(wrapper.find('#host-name-0').exists());
-        assert((wrapper.find('#host-name-0').instance() as any).value === 'underwaterhost', `Expected '${wrapper.find('#host-name-0').text()}' to equal 'underwaterhost'`);
+        assert(wrapper.find('#host-name-0').props().value === 'underwaterhost', `Expected '${wrapper.find('#host-name-0').text()}' to equal 'underwaterhost'`);
         assert(wrapper.find('#host-name-1').exists());
-        assert((wrapper.find('#host-name-1').instance() as any).value === 'outerspacehost');
+        assert(wrapper.find('#host-name-1').props().value === 'outerspacehost');
       });
 
       it('shows host port input for each host', () => {
         assert(wrapper.find('#host-port-0').exists());
-        assert((wrapper.find('#host-port-0').instance() as any).value === '27020');
+        assert(wrapper.find('#host-port-0').props().value === 27020);
         assert(wrapper.find('#host-port-1').exists());
-        assert((wrapper.find('#host-port-1').instance() as any).value === '27029');
+        assert(wrapper.find('#host-port-1').props().value === 27029);
       });
 
       describe('when remove host is clicked', () => {
