@@ -125,11 +125,11 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
     }
   };
 
-  onHostnameChanged = (event): void => {
+  onHostnameChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onHostnameChanged(event.target.value);
   };
 
-  onPortChanged = (event): void => {
+  onPortChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onPortChanged(+event.target.value.trim());
   };
 
