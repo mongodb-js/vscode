@@ -2,7 +2,8 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import * as sinon from 'sinon';
-import Connection = require('mongodb-connection-model/lib/model');
+import Connection from 'mongodb-connection-model/lib/model';
+import DataService from 'mongodb-data-service';
 
 import TelemetryController from '../../telemetry/telemetryController';
 import ConnectionController, {
@@ -920,17 +921,31 @@ suite('Connection Controller Test Suite', function () {
       storageLocation: StorageScope.NONE
     };
 
+    const originalConnect = DataService.connect;
+
+    sinon.replace(
+      DataService.prototype,
+      'connect',
+      sinon.fake(async (
+        callback
+      ) => {
+        await sleep(50);
+
+        return originalConnect(callback);
+      })
+    );
+
     testConnectionController.connectWithConnectionId(connectionId);
 
-    // Ensure the connection starts but doesn't time out yet.
-    await sleep(0);
+    // Ensure the connection attempt has started.
+    await sleep(10);
 
     assert(testConnectionController.isConnecting());
 
     await testConnectionController.removeSavedConnection(connectionId);
 
     // Wait for the connection to timeout and complete (and not error in the process).
-    await sleep(500);
+    await sleep(250);
 
     assert(
       !testConnectionController.isCurrentlyConnected(),

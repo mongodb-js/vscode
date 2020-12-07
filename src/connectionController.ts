@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as vscode from 'vscode';
-import Connection = require('mongodb-connection-model/lib/model');
-import DataService = require('mongodb-data-service');
+import Connection from 'mongodb-connection-model/lib/model';
+import DataService from 'mongodb-data-service';
 
 import { ConnectionModelType } from './connectionModelType';
 import { DataServiceType } from './dataServiceType';
