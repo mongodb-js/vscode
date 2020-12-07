@@ -130,7 +130,7 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
   };
 
   onPortChanged = (event): void => {
-    this.props.onPortChanged(event.target.value.trim());
+    this.props.onPortChanged(+event.target.value.trim());
   };
 
   onRemoveHost = (
