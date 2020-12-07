@@ -18,7 +18,7 @@ export interface Host {
 
 export const DEFAULT_HOST: Host = { host: 'localhost', port: 27017 };
 
-// NOTE: This is currently tightly coupled with `connection-model`.
+// NOTE: This is currently tightly coupled with `mongodb-connection-model`.
 class ConnectionModel {
   isSrvRecord = false;
   hostname = 'localhost';

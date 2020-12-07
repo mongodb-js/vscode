@@ -6,15 +6,16 @@ import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 const styles = require('./form.less');
 
 type props = {
-  className?: string;
-  label?: string;
-  name: string;
   changeHandler: (evt: React.ChangeEvent<HTMLInputElement>) => void;
-  linkTo?: string;
-  placeholder?: string;
-  value?: string | number;
-  type?: string;
+  className?: string;
   error?: boolean;
+  id?: string;
+  label?: string;
+  linkTo?: string;
+  name: string;
+  placeholder?: string;
+  type?: string;
+  value?: string | number;
 };
 
 /**
@@ -57,6 +58,7 @@ class FormInput extends React.PureComponent<props> {
     const {
       changeHandler,
       className,
+      id,
       label,
       name,
       placeholder,
@@ -78,6 +80,7 @@ class FormInput extends React.PureComponent<props> {
           </label>
         )}
         <input
+          id={id}
           name={name}
           placeholder={placeholder}
           onChange={changeHandler}

@@ -186,6 +186,7 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
       >
         <FormInput
           className={styles['host-input-host']}
+          id="hostname"
           label="Hostname"
           name="hostname"
           placeholder="localhost"
@@ -194,8 +195,9 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
         />
         <FormInput
           className={styles['host-input-port']}
+          id="port"
           label="Port"
-          name="host-port"
+          name="port"
           placeholder="27017"
           changeHandler={this.onPortChanged}
           type="number"
@@ -227,6 +229,7 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
           >
             <FormInput
               className={styles['host-input-host']}
+              id={`host-name-${index}`}
               label={index === 0 ? 'Hostname' : undefined}
               name={`host-name-${index}`}
               placeholder="localhost"
@@ -238,6 +241,7 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
             />
             <FormInput
               className={styles['host-input-port']}
+              id={`host-port-${index}`}
               label={index === 0 ? 'Port' : undefined}
               name={`host-port-${index}`}
               placeholder="27017"
@@ -280,6 +284,7 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
 
     return (
       <FormInput
+        id="hostname"
         label="Hostname"
         name="hostname"
         placeholder="localhost"
