@@ -7,7 +7,7 @@ import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 import { HostInput } from '../../../../../../../views/webview-app/components/connect-form/general-tab/host/host';
 import FormGroup from '../../../../../../../views/webview-app/components/form/form-group';
-// import { Host } from '../../../../../../../views/webview-app/connection-model/connection-model';
+import RadioBoxGroup from '../../../../../../../views/webview-app/components/form/radio-box-group/radio-box-group';
 
 describe('Host Component Test Suite', () => {
   test('it shows a form group', () => {
@@ -24,6 +24,25 @@ describe('Host Component Test Suite', () => {
       updateHosts={(): void => {}}
     />);
     assert(wrapper.find(FormGroup).exists());
+  });
+
+  test('it shows the three connection types (standalone, replicaset, srv)', () => {
+    const wrapper = shallow(<HostInput
+      hostname="localhost"
+      hosts={[{host: 'localhost', port: 27020}]}
+      isSrvRecord={false}
+      port={27019}
+      replicaSet={undefined}
+      onHostnameChanged={(): void => {}}
+      onPortChanged={(): void => {}}
+      setReplicaSet={(): void => {}}
+      toggleSRVRecord={(): void => {}}
+      updateHosts={(): void => {}}
+    />);
+    assert(wrapper.find(RadioBoxGroup).exists());
+    assert(wrapper.find(RadioBoxGroup).props().options[0].label === 'Standalone');
+    assert(wrapper.find(RadioBoxGroup).props().options[1].label === 'Replica Set');
+    assert(wrapper.find(RadioBoxGroup).props().options[2].label === 'SRV Record');
   });
 
   describe('when there is no replicaSet and only one host', () => {

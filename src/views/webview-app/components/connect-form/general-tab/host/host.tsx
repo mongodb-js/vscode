@@ -42,7 +42,7 @@ const CONNECTION_TYPE_OPTIONS: {
     value: CONNECTION_TYPE.REPLICA_SET
   },
   [CONNECTION_TYPE.SRV_RECORD]: {
-    label: 'SRV',
+    label: 'SRV Record',
     value: CONNECTION_TYPE.SRV_RECORD
   }
 };
