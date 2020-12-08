@@ -43,7 +43,7 @@ export default class StorageController {
     this._workspaceState = context.workspaceState;
   }
 
-  public get(variableName: StorageVariables, storageScope?: StorageScope): any {
+  get(variableName: StorageVariables, storageScope?: StorageScope): any {
     if (storageScope === StorageScope.WORKSPACE) {
       return this._workspaceState.get(variableName);
     }
@@ -52,7 +52,7 @@ export default class StorageController {
   }
 
   // Update something in the storage. Defaults to global storage (not workspace).
-  public update(
+  update(
     variableName: StorageVariables,
     value: any,
     storageScope?: StorageScope
@@ -66,7 +66,7 @@ export default class StorageController {
     return Promise.resolve();
   }
 
-  public getUserID(): string {
+  getUserID(): string {
     let globalUserId = this.get(StorageVariables.GLOBAL_USER_ID);
 
     if (globalUserId) {
@@ -79,7 +79,7 @@ export default class StorageController {
     return globalUserId;
   }
 
-  public saveConnectionToGlobalStore(
+  saveConnectionToGlobalStore(
     connection: SavedConnection
   ): Thenable<void> {
     // Get the current save connections.
@@ -103,7 +103,7 @@ export default class StorageController {
     );
   }
 
-  public saveConnectionToWorkspaceStore(
+  saveConnectionToWorkspaceStore(
     connection: SavedConnection
   ): Thenable<void> {
     // Get the current save connections.
@@ -128,7 +128,7 @@ export default class StorageController {
     );
   }
 
-  public storeNewConnection(newConnection: SavedConnection): Thenable<void> {
+  storeNewConnection(newConnection: SavedConnection): Thenable<void> {
     const dontShowSaveLocationPrompt = vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .get('hideOptionToChooseWhereToSaveNewConnections');
@@ -183,7 +183,7 @@ export default class StorageController {
     });
   }
 
-  public removeConnection(connectionId: string): void {
+  removeConnection(connectionId: string): void {
     // See if the connection exists in the saved global or workspace connections
     // and remove it if it is.
     const globalStoredConnections: StoredConnectionsType = this.get(
@@ -212,5 +212,18 @@ export default class StorageController {
         StorageScope.WORKSPACE
       );
     }
+  }
+
+  hasSavedConnections(): boolean {
+    const savedWorkspaceConnections = this.get(StorageVariables.WORKSPACE_SAVED_CONNECTIONS, StorageScope.WORKSPACE);
+    const savedGlobalConnections = this.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS, StorageScope.GLOBAL);
+
+    return (
+      savedWorkspaceConnections
+        && Object.keys(savedWorkspaceConnections).length > 0
+    ) || (
+      savedGlobalConnections
+        && Object.keys(savedGlobalConnections).length
+    );
   }
 }

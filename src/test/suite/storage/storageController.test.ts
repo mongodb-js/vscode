@@ -78,6 +78,7 @@ suite('Storage Controller Test Suite', () => {
       updatedGlobalModels.new_conn.storageLocation === StorageScope.GLOBAL,
       'Expected storage scope to be set.'
     );
+    assert(testStorageController.hasSavedConnections());
   });
 
   test('addNewConnectionToWorkspaceStore adds the connection to preexisting connections on the workspace store', () => {
@@ -149,5 +150,40 @@ suite('Storage Controller Test Suite', () => {
       StorageVariables.GLOBAL_USER_ID
     );
     assert(userId === userIdAfterSecondCall);
+  });
+
+  test('when there are saved workspace connections, hasSavedConnections returns true', () => {
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._workspaceState = {
+      [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
+        conn1: {
+          id: 'conn1',
+          name: 'saved1'
+        }
+      }
+    };
+    const testStorageController = new StorageController(testExtensionContext);
+    assert(testStorageController.hasSavedConnections());
+  });
+
+  test('when there are saved global connections, hasSavedConnections returns true', () => {
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._globalState = {
+      [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
+        conn1: {
+          id: 'conn1',
+          name: 'saved1'
+        }
+      }
+    };
+    const testStorageController = new StorageController(testExtensionContext);
+    assert(testStorageController.hasSavedConnections());
+  });
+
+  test('when there are no saved connections, hasSavedConnections returns false', () => {
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._globalState = {};
+    const testStorageController = new StorageController(testExtensionContext);
+    assert(!testStorageController.hasSavedConnections());
   });
 });

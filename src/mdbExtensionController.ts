@@ -104,18 +104,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommands();
 
-    // TODO: Should we automatically open the overview page?
-    setImmediate(() => {
-      const hasBeenShownViewAlready = this._storageController.get(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW);
-      if (!hasBeenShownViewAlready) {
-        // TODO check if there were alread connections made - connection controller or straight to storage
-        // Do we want to set them to shown then?
-        vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE);
-
-        // TODO: Set hasBeenShownViewAlready true
-        // this._storageController.update(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW, true);
-      }
-    });
+    this.showOverviewPageIfRecentlyInstalled();
   }
 
   registerCommands = (): void => {
@@ -183,7 +172,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     command: string,
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
-    const commandHandlerWithTelemetry = (args: any[]) => {
+    const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
       // Send metrics to Segment.
       this._telemetryController.trackCommandRun(command);
 
@@ -481,6 +470,19 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER, () =>
       this._playgroundController.createPlayground()
     );
+  }
+
+  showOverviewPageIfRecentlyInstalled(): void {
+    const hasBeenShownViewAlready = this._storageController.get(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW);
+    // Show the overview page when it hasn't been show to the
+    // user yet, and they have no saved connections.
+    if (!hasBeenShownViewAlready) {
+      if (!this._storageController.hasSavedConnections()) {
+        vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE);
+      }
+
+      this._storageController.update(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW, true);
+    }
   }
 
   dispose(): void {
