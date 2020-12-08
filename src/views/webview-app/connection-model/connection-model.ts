@@ -11,19 +11,21 @@ const SSH_TUNNEL_DEFAULT = SSH_TUNNEL_TYPES.NONE;
 
 type port = number;
 
-type host = {
+export interface Host {
   host: string;
   port: port;
-};
+}
 
+export const DEFAULT_HOST: Host = { host: 'localhost', port: 27017 };
+
+// NOTE: This is currently tightly coupled with `mongodb-connection-model`.
 class ConnectionModel {
-  ns: string | null = null;
   isSrvRecord = false;
   hostname = 'localhost';
   port: port = 27017;
-  hosts: host[] = [{ host: 'localhost', port: 27017 }];
+  hosts: Host[] = [{ ...DEFAULT_HOST }];
   extraOptions = {};
-  replicaSet?: string;
+  replicaSet: undefined | string;
   readPreference: READ_PREFERENCES = READ_PREFERENCE_DEFAULT;
 
   /**

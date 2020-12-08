@@ -6,14 +6,16 @@ import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 const styles = require('./form.less');
 
 type props = {
-  label: string;
-  name: string;
-  changeHandler: (evt: React.ChangeEvent) => void;
-  linkTo?: string;
-  placeholder?: string;
-  value?: string | number;
-  type?: string;
+  changeHandler: (evt: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
   error?: boolean;
+  id?: string;
+  label?: string;
+  linkTo?: string;
+  name: string;
+  placeholder?: string;
+  type?: string;
+  value?: string | number;
 };
 
 /**
@@ -53,20 +55,32 @@ class FormInput extends React.PureComponent<props> {
    * @returns {React.Component} The input field.
    */
   render(): React.ReactNode {
-    const { changeHandler, label, name, placeholder, type, value } = this.props;
+    const {
+      changeHandler,
+      className,
+      id,
+      label,
+      name,
+      placeholder,
+      type,
+      value
+    } = this.props;
 
     return (
       <div
-        className={classnames({
+        className={classnames(className, {
           [styles['form-item']]: true,
           [styles['form-item-has-error']]: this.props.error
         })}
       >
-        <label>
-          <span className={styles['form-item-label']}>{label}</span>
-          {this.renderInfoSprinkle()}
-        </label>
+        {label && (
+          <label>
+            <span className={styles['form-item-label']}>{label}</span>
+            {this.renderInfoSprinkle()}
+          </label>
+        )}
         <input
+          id={id}
           name={name}
           placeholder={placeholder}
           onChange={changeHandler}

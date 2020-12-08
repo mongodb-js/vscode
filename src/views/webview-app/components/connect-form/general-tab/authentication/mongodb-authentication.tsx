@@ -8,7 +8,6 @@ import {
   UsernameChangedAction
 } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
-import FormGroup from '../../../form/form-group';
 
 type DispatchProps = {
   onAuthSourceChanged: (newAuthSource: string) => void;
@@ -60,7 +59,7 @@ class MongoDBAuthentication extends React.Component<props> {
     } = this.props;
 
     return (
-      <FormGroup id="mongodb-authenticatio">
+      <div>
         <FormInput
           label="Username"
           name="username"
@@ -85,7 +84,7 @@ class MongoDBAuthentication extends React.Component<props> {
           // Opens "Authentication Database" documentation.
           linkTo="https://docs.mongodb.com/manual/core/security-users/#user-authentication-database"
         />
-      </FormGroup>
+      </div>
     );
   }
 }

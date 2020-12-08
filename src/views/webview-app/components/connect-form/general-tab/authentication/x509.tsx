@@ -34,7 +34,7 @@ class X509 extends React.Component<props> {
     const { x509Username } = this.props;
 
     return (
-      <div id="x509-authentication" className="form-group">
+      <div>
         <FormInput
           label="Username"
           name="x509-username"
