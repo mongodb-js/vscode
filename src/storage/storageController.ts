@@ -223,7 +223,7 @@ export default class StorageController {
         && Object.keys(savedWorkspaceConnections).length > 0
     ) || (
       savedGlobalConnections
-        && Object.keys(savedGlobalConnections).length
+        && Object.keys(savedGlobalConnections).length > 0
     );
   }
 }
