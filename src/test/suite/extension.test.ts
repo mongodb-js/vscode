@@ -1,5 +1,6 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
+import EXTENSION_COMMANDS from '../../commands';
 
 const { contributes } = require('../../../package.json');
 
@@ -51,7 +52,9 @@ suite('Extension Test Suite', () => {
       'mdb.createIndexFromTreeView',
 
       // Editor commands.
-      'mdb.codeLens.showMoreDocumentsClicked'
+      'mdb.codeLens.showMoreDocumentsClicked',
+
+      ...Object.values(EXTENSION_COMMANDS)
     ];
 
     for (let i = 0; i < expectedCommands.length; i++) {

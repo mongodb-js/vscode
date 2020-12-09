@@ -13,9 +13,11 @@ import {
   SchemaTreeItem
 } from '../../explorer';
 import { mdbTestExtension } from './stubbableMdbExtension';
-import { StorageScope } from '../../storage/storageController';
+import { StorageScope, StorageVariables } from '../../storage/storageController';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
 import IndexListTreeItem from '../../explorer/indexListTreeItem';
+import { SinonSpy } from 'sinon';
+import EXTENSION_COMMANDS from '../../commands';
 
 const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
@@ -1436,5 +1438,126 @@ suite('MDBExtensionController Test Suite', function () {
         );
       })
       .then(done, done);
+  });
+
+  suite('when a user hasnt been shown the initial overview page yet and they have no connections saved', () => {
+    let mockVSCodeExecuteCommand: SinonSpy;
+    let mockStorageControllerUpdate: SinonSpy;
+
+    beforeEach(() => {
+      mockVSCodeExecuteCommand = sinon.fake.resolves(undefined);
+      sinon.replace(
+        vscode.commands,
+        'executeCommand',
+        mockVSCodeExecuteCommand
+      );
+      sinon.replace(
+        mdbTestExtension.testExtensionController._storageController,
+        'get',
+        sinon.fake.returns(false)
+      );
+
+      sinon.replace(
+        mdbTestExtension.testExtensionController._storageController,
+        'hasSavedConnections',
+        sinon.fake.returns(false)
+      );
+
+      mockStorageControllerUpdate = sinon.fake.resolves(undefined);
+      sinon.replace(
+        mdbTestExtension.testExtensionController._storageController,
+        'update',
+        mockStorageControllerUpdate
+      );
+
+      mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    test('they are shown the overview page', () => {
+      assert(mockVSCodeExecuteCommand.called);
+      assert(mockVSCodeExecuteCommand.firstCall.args[0] === 'mdb.openOverviewPage');
+      assert(mockVSCodeExecuteCommand.firstCall.args[0] === EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE);
+    });
+
+    test('it sets that they\'ve been shown the overview page', () => {
+      assert(mockStorageControllerUpdate.called);
+      assert(mockStorageControllerUpdate.firstCall.args[0] === StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW);
+      assert(mockStorageControllerUpdate.firstCall.args[0] === 'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW');
+      assert(mockStorageControllerUpdate.firstCall.args[1] === true);
+    });
+  });
+
+  suite('when a user hasnt been shown the initial overview page yet and they have connections saved', () => {
+    let mockVSCodeExecuteCommand: SinonSpy;
+    let mockStorageControllerUpdate: SinonSpy;
+
+    beforeEach(() => {
+      mockVSCodeExecuteCommand = sinon.fake.resolves(undefined);
+      sinon.replace(
+        vscode.commands,
+        'executeCommand',
+        mockVSCodeExecuteCommand
+      );
+      sinon.replace(
+        mdbTestExtension.testExtensionController._storageController,
+        'get',
+        sinon.fake.returns(undefined)
+      );
+
+      sinon.replace(
+        mdbTestExtension.testExtensionController._storageController,
+        'hasSavedConnections',
+        sinon.fake.returns(true)
+      );
+
+      mockStorageControllerUpdate = sinon.fake.resolves(undefined);
+      sinon.replace(
+        mdbTestExtension.testExtensionController._storageController,
+        'update',
+        mockStorageControllerUpdate
+      );
+
+      mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
+    });
+
+    test('they are not shown the overview page', () => {
+      assert(!mockVSCodeExecuteCommand.called);
+    });
+
+    test('it sets that they\'ve been shown the overview page', () => {
+      assert(mockStorageControllerUpdate.called);
+      assert(mockStorageControllerUpdate.firstCall.args[0] === StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW);
+      assert(mockStorageControllerUpdate.firstCall.args[0] === 'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW');
+      assert(mockStorageControllerUpdate.firstCall.args[1] === true);
+    });
+  });
+
+  suite('when a user has been shown the initial overview page', () => {
+    let mockVSCodeExecuteCommand: SinonSpy;
+
+    beforeEach(() => {
+      sinon.replace(
+        mdbTestExtension.testExtensionController._storageController,
+        'get',
+        sinon.fake.returns(true)
+      );
+
+      mockVSCodeExecuteCommand = sinon.fake.resolves(undefined);
+      sinon.replace(
+        vscode.commands,
+        'executeCommand',
+        mockVSCodeExecuteCommand
+      );
+
+      mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
+    });
+
+    test('they are not shown the overview page', () => {
+      assert(!mockVSCodeExecuteCommand.called);
+    });
   });
 });

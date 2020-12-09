@@ -19,7 +19,7 @@ import { LanguageServerController } from './language';
 import TelemetryController from './telemetry/telemetryController';
 import { StatusView } from './views';
 import { createLogger } from './logging';
-import { StorageController } from './storage';
+import { StorageController, StorageVariables } from './storage';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
 import DatabaseTreeItem from './explorer/databaseTreeItem';
 import SchemaTreeItem from './explorer/schemaTreeItem';
@@ -102,6 +102,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._telemetryController.activateSegmentAnalytics();
     this._languageServerController.startLanguageServer();
 
+    this.registerCommands();
+
+    this.showOverviewPageIfRecentlyInstalled();
+  }
+
+  registerCommands = (): void => {
     log.info('Registering commands...');
 
     // Register our extension's commands. These are the event handlers and
@@ -160,13 +166,13 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerTreeViewCommands();
 
     log.info('Registered commands.');
-  }
+  };
 
   registerCommand = (
     command: string,
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
-    const commandHandlerWithTelemetry = (args: any[]) => {
+    const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
       // Send metrics to Segment.
       this._telemetryController.trackCommandRun(command);
 
@@ -464,6 +470,19 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER, () =>
       this._playgroundController.createPlayground()
     );
+  }
+
+  showOverviewPageIfRecentlyInstalled(): void {
+    const hasBeenShownViewAlready = this._storageController.get(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW);
+    // Show the overview page when it hasn't been show to the
+    // user yet, and they have no saved connections.
+    if (!hasBeenShownViewAlready) {
+      if (!this._storageController.hasSavedConnections()) {
+        vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE);
+      }
+
+      this._storageController.update(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW, true);
+    }
   }
 
   dispose(): void {
