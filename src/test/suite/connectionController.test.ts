@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
-import sinon from 'sinon';
+import * as sinon from 'sinon';
 import Connection from 'mongodb-connection-model/lib/model';
 import DataService from 'mongodb-data-service';
 
@@ -18,11 +18,14 @@ import { StatusView } from '../../views';
 import { TestExtensionContext } from './stubs';
 import { TEST_DATABASE_URI } from './dbTestHelper';
 import { ConnectionModelType } from '../../connectionModelType';
-import { defer, ensureResult } from '../helpers';
 
 const testDatabaseInstanceId = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
+
+const sleep = (ms: number): Promise<void> => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
 
 const getConnection = (dbUri): Promise<ConnectionModelType> =>
   new Promise((resolve, reject) => {
@@ -240,21 +243,17 @@ suite('Connection Controller Test Suite', function () {
   test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', async () => {
     let isConnectionChanged = false;
 
-    const [connectionEventOccured, connectionEventFire] = defer();
-
     testConnectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => {
         isConnectionChanged = true;
-        connectionEventFire();
       }
     );
 
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
-
-    await connectionEventOccured;
+    await sleep(50);
 
     assert(isConnectionChanged);
   });
@@ -275,14 +274,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
     await testConnectionController.disconnect();
-    await ensureResult(
-      100,
-      () => connectionEventFiredCount,
-      (timesFired) => {
-        return timesFired === expectedTimesToFire;
-      },
-      'connection event to be fired 3 times'
-    );
+    await sleep(500);
 
     assert(
       connectionEventFiredCount === expectedTimesToFire,
@@ -805,43 +797,10 @@ suite('Connection Controller Test Suite', function () {
   });
 
   suite('connecting to a new connection when already connecting', () => {
-    afterEach(() => {
-      sinon.restore();
-    });
-
     test('connects to the new connection', async () => {
-      const [connectionStarted, startConnection] = defer();
-      const [connectionFinished, finishConnection] = defer();
-
-      const failWithTimeoutModel = await getConnection(testDatabaseURI2WithTimeout);
-
-      let firstConnectAttempt = true;
-      sinon.replace(
-        DataService.prototype,
-        'connect',
-        sinon.stub((
-          callback
-        ) => {
-          console.log('here with callback', callback);
-          if (firstConnectAttempt) {
-            firstConnectAttempt = false;
-
-            startConnection();
-            new DataService(failWithTimeoutModel).connect((err) => {
-              callback(err);
-              finishConnection();
-            });
-          } else {
-            callback(undefined);
-          }
-        })
-      );
-
       testConnectionController.addNewConnectionStringAndConnect(
         testDatabaseURI2WithTimeout
       );
-
-      await connectionStarted;
 
       await testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
@@ -849,7 +808,8 @@ suite('Connection Controller Test Suite', function () {
 
       assert(!testConnectionController.isConnecting());
 
-      await connectionFinished;
+      // Ensure the first connection completes.
+      await sleep(1050);
 
       assert(testConnectionController.isCurrentlyConnected());
       assert(
@@ -877,35 +837,7 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('it only connects to the most recent connection attempt', async () => {
-      const [lastConnectionConnected, lastConnectionDidConnect] = defer();
-
-      // const originalConnect = DataService.prototype.connect;
       const connectionModel = await getConnection(TEST_DATABASE_URI);
-      const originalConnect = (): void => void[];
-      for (let i = 0; i < 5; i++) {
-        originalConnect[i] = new DataService(connectionModel).connect;
-      }
-
-      let connectionAttempts = 0;
-      sinon.replace(
-        DataService.prototype,
-        'connect',
-        sinon.fake((
-          callback
-        ) => {
-          console.log('connectionAttempts', connectionAttempts);
-          connectionAttempts++;
-          if (connectionAttempts === 5) {
-            originalConnect[connectionAttempts]((err) => {
-              lastConnectionDidConnect();
-
-              callback(err);
-            });
-          } else {
-            originalConnect[connectionAttempts](callback);
-          }
-        })
-      );
 
       for (let i = 0; i < 5; i++) {
         const id = `${i}`;
@@ -922,7 +854,8 @@ suite('Connection Controller Test Suite', function () {
         testConnectionController.connectWithConnectionId(id);
       }
 
-      await lastConnectionConnected;
+      // Ensure the connections complete.
+      await sleep(1000);
 
       assert(!testConnectionController.isConnecting());
       assert(testConnectionController.isCurrentlyConnected());
@@ -935,18 +868,18 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    testConnectionController.disconnect();
-    testConnectionController.disconnect();
+    try {
+      testConnectionController.disconnect();
+      testConnectionController.disconnect();
+    } catch (err) {
+      assert(
+        false,
+        `Expected not to error when disconnecting multiple times, recieved: ${err}`
+      );
+    }
 
     // Ensure the disconnects complete.
-    await ensureResult(
-      100,
-      () => testConnectionController.isDisconnecting(),
-      (isDisconnecting) => {
-        return !isDisconnecting && !testConnectionController.isCurrentlyConnected();
-      },
-      'disconnecting to finish'
-    );
+    await sleep(100);
 
     assert(!testConnectionController.isCurrentlyConnected());
     assert(testConnectionController.getActiveDataService() === null);
@@ -963,54 +896,18 @@ suite('Connection Controller Test Suite', function () {
       storageLocation: StorageScope.NONE
     };
 
-    const [connectionStarted, startConnection] = defer();
-    const [connectionFinished, finishConnection] = defer();
-
-    const originalConnect = DataService.prototype.connect;
-    sinon.replace(
-      DataService.prototype,
-      'connect',
-      sinon.fake((
-        callback
-      ) => {
-        startConnection();
-        console.log('aaaa');
-        originalConnect((err) => {
-          console.log('bbbbb');
-
-          finishConnection();
-
-          callback(err);
-        });
-        console.log('fff');
-      }
-      ));
-
     testConnectionController.connectWithConnectionId(connectionId);
 
-    console.log('await started');
-
     // Ensure the connection starts but doesn't time out yet.
-    await connectionStarted;
-
-    console.log('cccc');
+    await sleep(250);
 
     assert(testConnectionController.isConnecting());
     assert(testConnectionController.getConnectionStatus() === 'CONNECTING');
 
     await testConnectionController.removeSavedConnection(connectionId);
-    console.log('ddddd');
 
     // Wait for the connection to timeout and complete (and not error in the process).
-    await connectionFinished;
-
-    console.log('eeee');
-
-    assert(!testConnectionController.isConnecting());
-    assert(
-      !testConnectionController.isCurrentlyConnected(),
-      'Did not expect to connect to the connection which was removed.'
-    );
+    await sleep(1000);
   });
 
   test('a successfully connecting connection can be removed while it is being connected to', async () => {
@@ -1024,45 +921,31 @@ suite('Connection Controller Test Suite', function () {
       storageLocation: StorageScope.NONE
     };
 
-    const [connectionStarted, startConnection] = defer();
-    const [connectionFinished, finishConnection] = defer();
+    const originalConnect = DataService.connect;
 
-    const ourDatServ = new DataService(connectionModel);
-    const originalConnect = ourDatServ.connect;
     sinon.replace(
       DataService.prototype,
       'connect',
-      sinon.stub((
+      sinon.fake(async (
         callback
       ) => {
-        console.log('1is first');
+        await sleep(50);
 
-        startConnection();
-        console.log('11111is first');
-        originalConnect((err) => {
-          console.log('1finish first');
-
-          callback(err);
-          finishConnection();
-        });
-      }
-      ));
+        return originalConnect(callback);
+      })
+    );
 
     testConnectionController.connectWithConnectionId(connectionId);
 
-    console.log('1here1');
     // Ensure the connection attempt has started.
-    await connectionStarted;
-    console.log('1here222');
+    await sleep(10);
 
     assert(testConnectionController.isConnecting());
 
     await testConnectionController.removeSavedConnection(connectionId);
-    console.log('1here444');
 
     // Wait for the connection to timeout and complete (and not error in the process).
-    await connectionFinished;
-    console.log('1here33332');
+    await sleep(250);
 
     assert(
       !testConnectionController.isCurrentlyConnected(),
