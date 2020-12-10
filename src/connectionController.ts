@@ -12,13 +12,12 @@ import TelemetryService from './telemetry/telemetryService';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import ConnectionModel, {
   getConnectionNameFromConnectionModel,
-  getConnectionOptionsFromConnectionModel,
+  getDriverOptionsFromConnectionModel,
   buildConnectionModelFromConnectionString,
   buildConnectionStringFromConnectionModel,
   parseConnectionModel
 } from './views/webview-app/connection-model/connection-model';
 
-const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
 const MAX_CONNECTION_NAME_LENGTH = 512;
 
@@ -240,13 +239,15 @@ export default class ConnectionController {
       return Promise.reject(new Error(`Unable to create connection: ${error}`));
     }
 
-    return this.saveNewConnectionAndConnect(
-      model,
-      ConnectionTypes.CONNECTION_STRING
-    ).then(
-      (connectResult) => resolve(connectResult.successfullyConnected),
-      reject
-    );
+    return new Promise((resolve, reject) => {
+      this.saveNewConnectionAndConnect(
+        model,
+        ConnectionTypes.CONNECTION_STRING
+      ).then(
+        (connectResult) => resolve(connectResult.successfullyConnected),
+        reject
+      );
+    });
   };
 
   public sendTelemetry(
@@ -275,13 +276,12 @@ export default class ConnectionController {
     connectionModel: ConnectionModel,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> => {
+    const connectionName = getConnectionNameFromConnectionModel(connectionModel);
+
     const connectionId = uuidv4();
     const connectionInformation: SavedConnectionInformation = {
       connectionModel
     };
-    const connectionName = getConnectionNameFromConnectionModel(
-      connectionModel
-    );
     const savedConnection: SavedConnection = {
       id: connectionId,
       name: connectionName,
@@ -337,12 +337,9 @@ export default class ConnectionController {
     this._statusView.showMessage('Connecting to MongoDB...');
 
     return new Promise<ConnectionAttemptResult>((resolve, reject) => {
-      // Override the default connection `appname`.
-      connectionModel.appname = `${name} ${version}`;
-
       const newDataService = new MongoClient(
         buildConnectionStringFromConnectionModel(connectionModel),
-        getConnectionOptionsFromConnectionModel(connectionModel)
+        getDriverOptionsFromConnectionModel(connectionModel)
       );
 
       newDataService.connect((err: Error | undefined) => {
@@ -405,13 +402,7 @@ export default class ConnectionController {
         const savedConnectionModel = this._connections[connectionId]
           .connectionModel;
 
-        // Here we rebuild the connection model to ensure it's up to date and
-        // contains the connection model class methods (not just attributes).
-        connectionModel = new Connection(
-          savedConnectionModel.getAttributes
-            ? savedConnectionModel.getAttributes({ props: true })
-            : savedConnectionModel
-        );
+        connectionModel = parseConnectionModel(savedConnectionModel);
       } catch (error) {
         vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
 

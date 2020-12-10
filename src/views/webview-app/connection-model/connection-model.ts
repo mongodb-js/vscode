@@ -2,6 +2,13 @@ import AUTH_STRATEGIES from './constants/auth-strategies';
 import READ_PREFERENCES from './constants/read-preferences';
 import SSL_METHODS from './constants/ssl-methods';
 import SSH_TUNNEL_TYPES from './constants/ssh-tunnel-types';
+import { MongoClient, MongoClientOptions } from 'mongodb';
+
+const {
+  name: appName,
+  version: appVersion
+} = require('../../../../package.json');
+
 
 // Defaults.
 const AUTH_STRATEGY_DEFAULT = AUTH_STRATEGIES.NONE;
@@ -27,6 +34,8 @@ class ConnectionModel {
   extraOptions = {};
   replicaSet: undefined | string;
   readPreference: READ_PREFERENCES = READ_PREFERENCE_DEFAULT;
+
+  appname = `${appName} ${appVersion}`;
 
   /**
    * Authentication.
@@ -281,23 +290,12 @@ interface ConnectionOptions {
   a: number;
 }
 
-export const getConnectionOptionsFromConnectionModel = (
+export const getDriverOptionsFromConnectionModel = (
   model: ConnectionModel
-): ConnectionOptions => {
+): MongoClientOptions => {
   // TODO
 
-  return {
-    a: 3
-  };
-};
-
-
-export const getInstanceIdFromConnectionModel = (
-  connectionModel: ConnectionModel
-): string => {
-  // TODO: Derive instance id.
-
-  return '';
+  return { };
 };
 
 export function getConnectionNameFromConnectionModel(
