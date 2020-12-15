@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
-import * as linkHelper from '../../../utils/linkHelper'
+import * as linkHelper from '../../../utils/linkHelper';
 const sinon = require('sinon');
 
 import { mdbTestExtension } from '../stubbableMdbExtension';

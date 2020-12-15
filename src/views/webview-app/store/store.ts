@@ -468,6 +468,14 @@ export const rootReducer = (
         showResourcesPanel: !state.showResourcesPanel
       };
 
+    case ActionTypes.TRUSTED_LINK_CLICKED:
+      vscode.postMessage({
+        command: MESSAGE_TYPES.OPEN_TRUSTED_LINK,
+        linkTo: action.linkTo
+      });
+
+      return { ...state };
+
     case ActionTypes.USERNAME_CHANGED:
       return {
         ...state,

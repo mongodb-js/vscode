@@ -2,16 +2,32 @@ import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
 
-import { ActionTypes, LinkClickedAction } from '../../store/actions';
+import {
+  ActionTypes,
+  LinkClickedAction,
+  TrustedLinkClickedAction
+} from '../../store/actions';
 import AtlasLogo from './atlas-logo';
 
 const styles = require('./atlas-cta.less');
 
 type DispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;
+  openTrustedLink: (linkTo: string) => void;
 };
 
 class AtlasCTA extends React.Component<DispatchProps> {
+  onAtlasCtaClicked = (): void => {
+    this.props.openTrustedLink(
+      'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension'
+    );
+
+    this.onLinkClicked(
+      'overviewPage',
+      'freeClusterCTA'
+    );
+  };
+
   onLinkClicked = (screen: string, linkId: string): void => {
     this.props.onLinkClicked(screen, linkId);
   };
@@ -41,19 +57,15 @@ class AtlasCTA extends React.Component<DispatchProps> {
               )}
             >
               MongoDB Atlas
-            </a>
+            </a>.
           </div>
         </div>
         <a
           className={classnames(styles['atlas-cta-button'])}
           target="_blank"
           rel="noopener"
-          href="https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension"
-          onClick={this.onLinkClicked.bind(
-            this,
-            'overviewPage',
-            'freeClusterCTA'
-          )}
+          href="#"
+          onClick={this.onAtlasCtaClicked}
         >
           Create free cluster
         </a>
@@ -67,6 +79,10 @@ const mapDispatchToProps: DispatchProps = {
     type: ActionTypes.EXTENSION_LINK_CLICKED,
     screen,
     linkId
+  }),
+  openTrustedLink: (linkTo: string): TrustedLinkClickedAction => ({
+    type: ActionTypes.TRUSTED_LINK_CLICKED,
+    linkTo
   })
 };
 

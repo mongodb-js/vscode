@@ -45,6 +45,7 @@ export enum ActionTypes {
   SSL_PASS_CHANGED = 'SSL_PASS_CHANGED',
   TOGGLE_SHOW_CONNECTION_FORM = 'TOGGLE_SHOW_CONNECTION_FORM',
   TOGGLE_SHOW_RESOURCES_PANEL = 'TOGGLE_SHOW_RESOURCES_PANEL',
+  TRUSTED_LINK_CLICKED = 'TRUSTED_LINK_CLICKED',
   USERNAME_CHANGED = 'USERNAME_CHANGED',
   X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED',
 }
@@ -253,6 +254,11 @@ export interface ToggleShowResourcesPanelAction extends BaseAction {
   type: ActionTypes.TOGGLE_SHOW_RESOURCES_PANEL;
 }
 
+export interface TrustedLinkClickedAction extends BaseAction {
+  type: ActionTypes.TRUSTED_LINK_CLICKED;
+  linkTo: string;
+}
+
 export interface UsernameChangedAction extends BaseAction {
   type: ActionTypes.USERNAME_CHANGED;
   mongodbUsername: string;
@@ -307,5 +313,6 @@ export type Actions =
   | SSLPassChangedAction
   | ToggleShowConnectionFormAction
   | ToggleShowResourcesPanelAction
+  | TrustedLinkClickedAction
   | UsernameChangedAction
   | X509UsernameChangedAction;
