@@ -337,12 +337,12 @@ export default class ConnectionController {
     this._statusView.showMessage('Connecting to MongoDB...');
 
     return new Promise<ConnectionAttemptResult>((resolve, reject) => {
-      const newDataService = new MongoClient(
+      const dataService = new MongoClient(
         buildConnectionStringFromConnectionModel(connectionModel),
         getDriverOptionsFromConnectionModel(connectionModel)
       );
 
-      newDataService.connect((err: Error | undefined) => {
+      dataService.connect((err: Error | undefined) => {
         if (
           connectingAttemptVersion !== this._connectingVersion ||
           !this._connections[connectionId]
@@ -351,7 +351,7 @@ export default class ConnectionController {
           // or the connection no longer exists we silently end the connection
           // and return.
           try {
-            newDataService.close(() => {});
+            dataService.close(() => {});
           } catch (e) {
             /* */
           }
@@ -375,7 +375,7 @@ export default class ConnectionController {
         log.info('Successfully connected');
         vscode.window.showInformationMessage('MongoDB connection successful.');
 
-        this._activeDataService = newDataService;
+        this._activeDataService = dataService;
         this._activeConnectionModel = connectionModel;
         this._currentConnectionId = connectionId;
         this._connecting = false;
@@ -384,7 +384,7 @@ export default class ConnectionController {
         this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
         // Send metrics to Segment
-        this.sendTelemetry(newDataService, connectionType);
+        this.sendTelemetry(dataService, connectionType);
 
         return resolve({
           successfullyConnected: true,

@@ -5,6 +5,7 @@ import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import sinon, { SinonSpy } from 'sinon';
 
+import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import {
   CollectionTreeItem,
   CollectionTypes,
@@ -13,7 +14,6 @@ import {
   DocumentTreeItem,
   SchemaTreeItem
 } from '../../explorer';
-import Connection = require('mongodb-connection-model/lib/model');
 import EXTENSION_COMMANDS from '../../commands';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
 import IndexListTreeItem from '../../explorer/indexListTreeItem';
@@ -23,7 +23,7 @@ import {
   StorageScope,
   StorageVariables
 } from '../../storage/storageController';
-import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
+import ConnectionModel from '../../views/webview-app/connection-model/connection-model';
 
 const testDatabaseURI = 'mongodb://localhost:27018';
 
@@ -1156,7 +1156,7 @@ suite('MDBExtensionController Test Suite', function () {
   test('mdb.renameConnection fails when the name input is empty', (done) => {
     mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon = {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
-      connectionModel: new Connection(),
+      connectionModel: new ConnectionModel(),
       name: 'NAAAME',
       storageLocation: StorageScope.NONE
     };
@@ -1195,7 +1195,7 @@ suite('MDBExtensionController Test Suite', function () {
     mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon = {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
       name: 'NAAAME',
-      connectionModel: new Connection(),
+      connectionModel: new ConnectionModel(),
       storageLocation: StorageScope.NONE
     };
 

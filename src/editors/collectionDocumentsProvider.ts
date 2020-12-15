@@ -79,16 +79,18 @@ implements vscode.TextDocumentContentProvider {
       throw new Error(errorMessage);
     }
 
-    const find = util.promisify(dataservice.find.bind(dataservice));
-
     try {
-      const documents = await find(
-        namespace,
+      const documents = await dataservice.db(
+        // TODO: Better namespace passing - never split/merge it.
+        namespace.split('.')[0]
+      ).collection(
+        namespace.split('.')[1]
+      ).find(
         {}, // No filter.
         {
           limit: documentLimit
         }
-      );
+      ).toArray();
 
       operation.isCurrentlyFetchingMoreDocuments = false;
       this._statusView.hideMessage();

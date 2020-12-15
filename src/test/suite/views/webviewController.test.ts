@@ -2,7 +2,6 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import * as sinon from 'sinon';
-import Connection = require('mongodb-connection-model/lib/model');
 
 import * as linkHelper from '../../../utils/linkHelper';
 import TelemetryService from '../../../telemetry/telemetryService';

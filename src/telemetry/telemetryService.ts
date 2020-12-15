@@ -5,12 +5,11 @@ import { config } from 'dotenv';
 import fs from 'fs';
 import { getCloudInfo } from 'mongodb-cloud-info';
 import SegmentAnalytics from 'analytics-node';
+import { MongoClient } from 'mongodb';
 
 import type { CloudInfo } from '../types/cloudInfoType';
-import { ConnectionModel } from '../types/connectionModelType';
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
-import { DataServiceType } from '../types/dataServiceType';
 import { DocumentSource } from '../documentSource';
 import type { InstanceInfoResult } from '../types/instanceInfoResultType';
 import type { ShellExecuteAllResult } from '../types/playgroundType';
@@ -261,7 +260,7 @@ export default class TelemetryService {
   }
 
   async trackNewConnection(
-    dataService: DataServiceType,
+    dataService: MongoClient,
     connectionType: ConnectionTypes
   ): Promise<void> {
     const instance = util.promisify(dataService.instance.bind(dataService));

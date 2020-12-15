@@ -10,6 +10,7 @@ import IndexListTreeItem from './indexListTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
 import { getImagesPath } from '../extensionConstants';
+import { MongoClient } from 'mongodb';
 
 const log = createLogger('tree view collection folder');
 
@@ -66,7 +67,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
   databaseName: string;
   namespace: string;
 
-  private _dataService: any;
+  private _dataService: MongoClient;
   private _type: CollectionTypes;
   documentCount: number | null;
 
@@ -77,7 +78,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
   constructor(
     collection: CollectionModelType,
     databaseName: string,
-    dataService: any,
+    dataService: MongoClient,
     isExpanded: boolean,
     cacheIsUpToDate: boolean,
     cachedDocumentCount: number | null,

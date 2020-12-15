@@ -4,6 +4,7 @@ import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
+import { MongoClient } from 'mongodb';
 
 const path = require('path');
 const log = createLogger('tree view document list');
@@ -96,7 +97,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
   namespace: string;
   type: CollectionTypes;
 
-  private _dataService: any;
+  private _dataService: MongoClient;
 
   isExpanded: boolean;
 
@@ -104,7 +105,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     collectionName: string,
     databaseName: string,
     type: CollectionTypes,
-    dataService: any,
+    dataService: MongoClient,
     isExpanded: boolean,
     maxDocumentsToShow: number,
     cachedDocumentCount: number | null,
@@ -143,30 +144,24 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     return element;
   }
 
-  async getDocuments(): Promise<[]> {
+  async getDocuments(): Promise<any[]> {
     log.info(
       `fetching ${this._maxDocumentsToShow} documents from namespace ${this.namespace}`
     );
 
-    return new Promise((resolve, reject) => {
-      this._dataService.find(
-        this.namespace,
-        {
+    try {
+      const documents = await this._dataService
+        .db(this.databaseName)
+        .collection(this.collectionName)
+        .find({
           /* No filter */
-        },
-        {
-          limit: this._maxDocumentsToShow
-        },
-        (err: Error, documents: []) => {
-          if (err) {
-            vscode.window.showErrorMessage(`Unable to list documents: ${err}`);
-            return reject(err);
-          }
+        }).limit(this._maxDocumentsToShow).toArray();
 
-          resolve(documents);
-        }
-      );
-    });
+      return documents;
+    } catch (err ) {
+      vscode.window.showErrorMessage(`Unable to list documents: ${err}`);
+      return Promise.reject(err);
+    }
   }
 
   hasMoreDocumentsToShow(): boolean {
