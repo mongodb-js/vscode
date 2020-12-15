@@ -7,6 +7,7 @@ import { StatusView } from '../views';
 import CollectionTreeItem from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
+import { MongoClient } from 'mongodb';
 
 function getIconPath(): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
@@ -25,14 +26,14 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   cacheIsUpToDate: boolean;
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };
 
-  private _dataService: any;
+  private _dataService: MongoClient;
 
   databaseName: string;
   isExpanded: boolean;
 
   constructor(
     databaseName: string,
-    dataService: any,
+    dataService: MongoClient,
     isExpanded: boolean,
     cacheIsUpToDate: boolean,
     existingChildrenCache: { [key: string]: CollectionTreeItem }

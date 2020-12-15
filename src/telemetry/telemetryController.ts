@@ -6,8 +6,8 @@ import { config } from 'dotenv';
 import { StorageController } from '../storage';
 import { ConnectionTypes } from '../connectionController';
 import { getCloudInfo } from 'mongodb-cloud-info';
-import { DataServiceType } from '../dataServiceType';
 import type { ExecuteAllResult } from '../utils/types';
+import { MongoClient } from 'mongodb';
 
 const log = createLogger('telemetry');
 const fs = require('fs');
@@ -150,8 +150,8 @@ export default class TelemetryController {
     this._segmentAnalytics?.flush();
   }
 
-  public needTelemetry() {
-    return vscode.workspace.getConfiguration('mdb').get('sendTelemetry');
+  public needTelemetry(): boolean {
+    return !!vscode.workspace.getConfiguration('mdb').get('sendTelemetry');
   }
 
   public track(
@@ -220,10 +220,11 @@ export default class TelemetryController {
     }
   }
 
-  public async trackNewConnection(
-    dataService: DataServiceType,
+  trackNewConnection(
+    dataService: MongoClient,
     connectionType: ConnectionTypes
-  ): Promise<void> {
+  ): void {
+    // TODO:
     dataService.instance({}, async (error: any, data: any) => {
       if (error) {
         log.error('TELEMETRY data service error', error);
@@ -262,7 +263,7 @@ export default class TelemetryController {
     });
   }
 
-  public async trackCommandRun(command: string): Promise<void> {
+  trackCommandRun(command: string): void {
     this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
   }
 
@@ -293,11 +294,11 @@ export default class TelemetryController {
     return 'other';
   }
 
-  public async trackPlaygroundCodeExecuted(
+  trackPlaygroundCodeExecuted(
     result: ExecuteAllResult,
     partial: boolean,
     error: boolean
-  ): Promise<void> {
+  ): void {
     this.track(TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED, {
       type: result ? this.getPlaygroundResultType(result) : null,
       partial,
@@ -305,18 +306,18 @@ export default class TelemetryController {
     });
   }
 
-  public async trackLinkClicked(screen: string, linkId: string): Promise<void> {
+  trackLinkClicked(screen: string, linkId: string): void {
     this.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED, {
       screen,
       link_id: linkId
     });
   }
 
-  public async trackPlaygroundLoaded(): Promise<void> {
+  trackPlaygroundLoaded(): void {
     this.track(TelemetryEventTypes.PLAYGROUND_LOADED);
   }
 
-  public async trackPlaygroundSaved(): Promise<void> {
+  trackPlaygroundSaved(): void {
     this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
   }
 }

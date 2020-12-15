@@ -7,6 +7,7 @@ import TreeItemParent from './treeItemParentInterface';
 import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
 import FieldTreeItem from './fieldTreeItem';
 import { getImagesPath } from '../extensionConstants';
+import { MongoClient } from 'mongodb';
 
 const log = createLogger('tree view document list');
 
@@ -48,7 +49,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
   collectionName: string;
   databaseName: string;
 
-  private _dataService: any;
+  private _dataService: MongoClient;
 
   isExpanded: boolean;
 
@@ -58,7 +59,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
   constructor(
     collectionName: string,
     databaseName: string,
-    dataService: any,
+    dataService: MongoClient,
     isExpanded: boolean,
     hasClickedShowMoreFields: boolean,
     hasMoreFieldsToShow: boolean,
@@ -93,26 +94,18 @@ export default class SchemaTreeItem extends vscode.TreeItem
   }
 
   async fetchDocumentsForSchema(): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const namespace = `${this.databaseName}.${this.collectionName}`;
-
-      this._dataService.find(
-        namespace,
-        {
+    try {
+      const documents = await this._dataService
+        .db(this.databaseName)
+        .collection(this.collectionName)
+        .find({
           /* No filter */
-        },
-        {
-          limit: MAX_DOCUMENTS_VISIBLE
-        },
-        (findError: Error | undefined, documents: any[]) => {
-          if (findError) {
-            return reject(new Error(`Unable to list documents: ${findError}`));
-          }
+        }).limit(MAX_DOCUMENTS_VISIBLE).toArray();
 
-          return resolve(documents);
-        }
-      );
-    });
+      return documents;
+    } catch (error) {
+      return Promise.reject(new Error(`Unable to list documents: ${error}`));
+    }
   }
 
   async getSchema(): Promise<any[]> {

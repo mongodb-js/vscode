@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
+import ConnectionController from '../connectionController';
 
-export default class ActiveConnectionCodeLensProvider
-  implements vscode.CodeLensProvider {
-  private _connectionController: any;
+export default class ActiveConnectionCodeLensProvider implements vscode.CodeLensProvider {
+  private _connectionController: ConnectionController;
   private _onDidChangeCodeLenses: vscode.EventEmitter<
     void
   > = new vscode.EventEmitter<void>();
   public readonly onDidChangeCodeLenses: vscode.Event<void> = this
     ._onDidChangeCodeLenses.event;
 
-  constructor(connectionController?: any) {
+  constructor(connectionController: ConnectionController) {
     this._connectionController = connectionController;
 
     vscode.workspace.onDidChangeConfiguration(() => {

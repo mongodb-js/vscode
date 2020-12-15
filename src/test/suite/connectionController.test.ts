@@ -2,8 +2,6 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import * as sinon from 'sinon';
-import Connection from 'mongodb-connection-model/lib/model';
-import DataService from 'mongodb-data-service';
 
 import TelemetryController from '../../telemetry/telemetryController';
 import ConnectionController, {
@@ -17,7 +15,6 @@ import {
 import { StatusView } from '../../views';
 import { TestExtensionContext } from './stubs';
 import { TEST_DATABASE_URI } from './dbTestHelper';
-import { ConnectionModelType } from '../../connectionModelType';
 
 const testDatabaseInstanceId = 'localhost:27018';
 const testDatabaseURI2WithTimeout =

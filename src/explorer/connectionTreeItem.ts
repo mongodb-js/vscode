@@ -90,7 +90,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     }
 
     return new Promise((resolve, reject) => {
-      dataService.listDatabases((err: Error | undefined, databases: any[]) => {
+      // TODO: Use the supplied db.
+      dataService.db('test').admin().listDatabases((err: Error | undefined, databases: any[]) => {
         if (err) {
           return reject(new Error(`Unable to list databases: ${err.message}`));
         }
@@ -285,9 +286,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         );
         return Promise.resolve(false);
       }
-      dataService.createCollection(
-        `${databaseName}.${collectionName}`,
-        {}, // No options.
+      dataService.db(databaseName).createCollection(
+        'collectionName', // No options.
         (err) => {
           statusView.hideMessage();
 

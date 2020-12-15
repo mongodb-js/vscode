@@ -6,6 +6,7 @@ import IndexTreeItem, { IndexModel } from './indexTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 import { getImagesPath } from '../extensionConstants';
+import { MongoClient } from 'mongodb';
 
 const log = createLogger('tree view indexes list');
 
@@ -32,14 +33,14 @@ export default class IndexListTreeItem extends vscode.TreeItem
   databaseName: string;
   namespace: string;
 
-  private _dataService: any;
+  private _dataService: MongoClient;
 
   isExpanded: boolean;
 
   constructor(
     collectionName: string,
     databaseName: string,
-    dataService: any,
+    dataService: MongoClient,
     isExpanded: boolean,
     cacheIsUpToDate: boolean,
     existingCache: IndexTreeItem[]

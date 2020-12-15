@@ -72,13 +72,10 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
         return reject(new Error(errorMessage));
       }
 
-      dataservice.find(
-        namespace,
+      // TODO: Get db and col.
+      dataservice.db(namespace).collection(namespace).findOne(
         {
           _id: documentId
-        },
-        {
-          limit: 1
         },
         (err: Error | undefined, documents: object[]) => {
           this._statusView.hideMessage();
