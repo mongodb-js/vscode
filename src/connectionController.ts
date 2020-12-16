@@ -235,7 +235,7 @@ export default class ConnectionController {
     let model: ConnectionModel;
     try {
       model = buildConnectionModelFromConnectionString(connectionString);
-    } catch (error: any) {
+    } catch (error) {
       return Promise.reject(new Error(`Unable to create connection: ${error}`));
     }
 
@@ -748,7 +748,7 @@ export default class ConnectionController {
     return this._connectingVersion;
   }
 
-  public setActiveConnection(newActiveConnection: any): void {
+  public setActiveConnection(newActiveConnection: MongoClient | null): void {
     this._activeDataService = newActiveConnection;
   }
 
@@ -764,7 +764,13 @@ export default class ConnectionController {
     this._disconnecting = disconnecting;
   }
 
-  public getСonnectionQuickPicks(): any[] {
+  public getСonnectionQuickPicks(): {
+    label: string;
+    data: {
+      type: NewConnectionType;
+      connectionId?: string;
+    };
+  }[] {
     if (!this._connections) {
       return [
         {
@@ -784,10 +790,14 @@ export default class ConnectionController {
         }
       },
       ...Object.values(this._connections)
+<<<<<<< HEAD
         .sort((connectionA: { name: string }, connectionB: any) =>
+=======
+        .sort((connectionA: LoadedConnection, connectionB: LoadedConnection) =>
+>>>>>>> Improve typing with mongodb driver and use it in most places with new model
           (connectionA.name || '').localeCompare(connectionB.name || '')
         )
-        .map((item: any) => ({
+        .map((item: LoadedConnection) => ({
           label: item.name,
           data: {
             type: NewConnectionType.SAVED_CONNECTION,
@@ -797,7 +807,11 @@ export default class ConnectionController {
     ];
   }
 
+<<<<<<< HEAD
   async changeActiveConnection(): Promise<boolean> {
+=======
+  public async changeActiveConnection(): Promise<boolean> {
+>>>>>>> Improve typing with mongodb driver and use it in most places with new model
     const selectedQuickPickItem = await vscode.window.showQuickPick(
       this.getСonnectionQuickPicks(),
       {
@@ -809,7 +823,14 @@ export default class ConnectionController {
       return true;
     }
 
+<<<<<<< HEAD
     if (selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION) {
+=======
+    if (
+      selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION
+      || !selectedQuickPickItem.data.connectionId
+    ) {
+>>>>>>> Improve typing with mongodb driver and use it in most places with new model
       return this.connectWithURI();
     }
 

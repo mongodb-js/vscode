@@ -20,6 +20,7 @@ import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
 import { ConnectionOptions } from '../types/connectionOptionsType';
+import { buildConnectionStringFromConnectionModel, getDriverOptionsFromConnectionModel } from '../views/webview-app/connection-model/connection-model';
 
 const log = createLogger('playground controller');
 
@@ -179,8 +180,23 @@ export default class PlaygroundController {
       return;
     }
 
-    const connectionDetails = dataService.getConnectionOptions();
-    const connectionString = connectionDetails.url;
+    const connectionString = buildConnectionStringFromConnectionModel(
+      connectionModel,
+      {
+        withSSHTunnelIfConfigured: true
+      }
+    );
+
+    // TODO: This should be the connecting driver options.
+    const connectionOptions = getDriverOptionsFromConnectionModel(
+      connectionModel
+    );
+
+    // TODO: We can probably fix this up.
+
+    // const connectionDetails = dataService.getConnectionOptions();
+    // const connectionString = connectionDetails.url;
+
     // We pass file paths to the language server since it doesn't
     // handle being passsed buffers well.
     // With driver version 4.0 we should be able to remove any use

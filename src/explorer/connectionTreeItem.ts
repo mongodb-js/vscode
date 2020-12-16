@@ -7,6 +7,7 @@ import ConnectionController from '../connectionController';
 import TreeItemParent from './treeItemParentInterface';
 import { StatusView } from '../views';
 import { getImagesPath } from '../extensionConstants';
+import { ListDatabasesResult } from 'mongodb';
 
 enum ConnectionItemContextValues {
   disconnected = 'disconnectedConnectionTreeItem',
@@ -83,22 +84,28 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     return element;
   }
 
-  async listDatabases(): Promise<any[]> {
+  async listDatabases(): Promise<string[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (dataService === null) {
-      throw new Error('Not currently connected.');
+      return Promise.reject(new Error('Not currently connected.'));
     }
 
-    return new Promise((resolve, reject) => {
+    try {
       // TODO: Use the supplied db.
-      dataService.db('test').admin().listDatabases((err: Error | undefined, databases: any[]) => {
-        if (err) {
-          return reject(new Error(`Unable to list databases: ${err.message}`));
-        }
+      // TODO
+      const listDbResult: ListDatabasesResult = await dataService
+        .db('test')
+        .admin()
+        .listDatabases({
+          nameOnly: true
+        }) as string[];
 
-        return resolve(databases);
-      });
-    });
+      return (listDbResult)
+        ? listDbResult
+        : [];
+    } catch (err) {
+      return Promise.reject(new Error(`Unable to list databases: ${err.message}`));
+    }
   }
 
   async getChildren(): Promise<any[]> {
@@ -142,20 +149,20 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       const pastChildrenCache = this._childrenCache;
       this._childrenCache = {};
 
-      databases.forEach(({ name }: any) => {
-        if (pastChildrenCache[name]) {
+      databases.forEach((dbName: string) => {
+        if (pastChildrenCache[dbName]) {
           // We create a new element here instead of reusing the cached one
           // in order to ensure the expanded state is set.
-          this._childrenCache[name] = new DatabaseTreeItem(
-            name,
+          this._childrenCache[dbName] = new DatabaseTreeItem(
+            dbName,
             dataService,
-            pastChildrenCache[name].isExpanded,
-            pastChildrenCache[name].cacheIsUpToDate,
-            pastChildrenCache[name].getChildrenCache()
+            pastChildrenCache[dbName].isExpanded,
+            pastChildrenCache[dbName].cacheIsUpToDate,
+            pastChildrenCache[dbName].getChildrenCache()
           );
         } else {
-          this._childrenCache[name] = new DatabaseTreeItem(
-            name,
+          this._childrenCache[dbName] = new DatabaseTreeItem(
+            dbName,
             dataService,
             false, // Collapsed.
             false, // Cache is not up to date (no cache).
@@ -212,7 +219,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
   async onAddDatabaseClicked(
     context: vscode.ExtensionContext
   ): Promise<boolean> {
-    let databaseName;
+    let databaseName: string | undefined;
     try {
       databaseName = await vscode.window.showInputBox({
         value: '',
@@ -237,10 +244,10 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     }
 
     if (!databaseName) {
-      return Promise.resolve(false);
+      return false;
     }
 
-    let collectionName;
+    let collectionName: string | undefined;
     try {
       collectionName = await vscode.window.showInputBox({
         value: '',
@@ -272,39 +279,35 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     }
 
     if (!collectionName) {
-      return Promise.resolve(false);
+      return false;
     }
 
     const statusView = new StatusView(context);
     statusView.showMessage('Creating new database and collection...');
 
-    return new Promise((resolve) => {
-      const dataService = this._connectionController.getActiveDataService();
-      if (dataService === null) {
-        vscode.window.showErrorMessage(
-          'Unable to create database, not currently connected.'
-        );
-        Promise.resolve(false);
-        return;
-      }
-      dataService.db(databaseName).createCollection(
-        'collectionName', // No options.
-        (err) => {
-          statusView.hideMessage();
 
-          if (err) {
-            vscode.window.showErrorMessage(
-              `Create collection failed: ${err.message}`
-            );
-            resolve(false);
-            return;
-          }
-
-          this.cacheIsUpToDate = false;
-          resolve(true);
-          return;
-        }
+    const dataService = this._connectionController.getActiveDataService();
+    if (dataService === null) {
+      vscode.window.showErrorMessage(
+        'Unable to create database, not currently connected.'
       );
-    });
+      return false;
+    }
+    try {
+      await dataService.db(databaseName).createCollection('collectionName');
+
+      statusView.hideMessage();
+
+      this.cacheIsUpToDate = false;
+
+      return true;
+    } catch (err) {
+      statusView.hideMessage();
+
+      vscode.window.showErrorMessage(
+        `Create collection failed: ${err.message}`
+      );
+      return false;
+    }
   }
 }

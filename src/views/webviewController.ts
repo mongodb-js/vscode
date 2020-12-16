@@ -77,7 +77,7 @@ export default class WebviewController {
   ): Promise<void> => {
     try {
       const connectionModel = this._connectionController
-        .parseNewConnection(rawConnectionModel as any);
+        .parseNewConnection(rawConnectionModel);
 
       const {
         successfullyConnected,

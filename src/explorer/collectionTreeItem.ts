@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-const path = require('path');
+import * as path from 'path';
 
 import { createLogger } from '../logging';
 import DocumentListTreeItem, {
@@ -39,7 +39,7 @@ function getIconPath(
   };
 }
 
-type CollectionModelType = {
+export type CollectionModelType = {
   name: string;
   type: CollectionTypes;
 };
@@ -304,26 +304,24 @@ export default class CollectionTreeItem extends vscode.TreeItem
     return this._documentListChild.getMaxDocumentsToShow();
   }
 
-  getCount(): Promise<number> {
+  async getCount(): Promise<number> {
     log.info(`fetching document count from namespace ${this.namespace}`);
+    const collectionName = this.collectionName;
 
-    return new Promise((resolve, reject) => {
-      this._dataService.estimatedCount(
-        this.namespace,
-        {}, // No options.
-        (err: Error | undefined, count: number) => {
-          if (err) {
-            return reject(
-              new Error(
-                `Unable to get collection document count: ${err.message}`
-              )
-            );
-          }
+    try {
+      const count = this._dataService
+        .db(this.databaseName)
+        .collection(collectionName)
+        .estimatedDocumentCount();
 
-          return resolve(count);
-        }
+      return count;
+    } catch (err) {
+      return Promise.reject(
+        new Error(
+          `Unable to get collection document count: ${err.message}`
+        )
       );
-    });
+    }
   }
 
   refreshDocumentCount = async (): Promise<number> => {
@@ -344,13 +342,13 @@ export default class CollectionTreeItem extends vscode.TreeItem
   async onDropCollectionClicked(): Promise<boolean> {
     const collectionName = this.collectionName;
 
-    let inputtedCollectionName;
+    let inputtedCollectionName: string | undefined;
     try {
       inputtedCollectionName = await vscode.window.showInputBox({
         value: '',
         placeHolder: 'e.g. myNewCollection',
         prompt: `Are you sure you wish to drop this collection? Enter the collection name '${collectionName}' to confirm.`,
-        validateInput: (inputCollectionName: any) => {
+        validateInput: (inputCollectionName: string) => {
           if (
             inputCollectionName &&
             !collectionName.startsWith(inputCollectionName)
@@ -368,23 +366,17 @@ export default class CollectionTreeItem extends vscode.TreeItem
     }
 
     if (!inputtedCollectionName || collectionName !== inputtedCollectionName) {
-      return Promise.resolve(false);
+      return false;
     }
 
-    return new Promise((resolve) => {
-      this._dataService.dropCollection(
-        `${this.databaseName}.${collectionName}`,
-        (err, successfullyDroppedCollection) => {
-          if (err) {
-            vscode.window.showErrorMessage(
-              `Drop collection failed: ${err.message}`
-            );
-            return resolve(false);
-          }
-
-          return resolve(successfullyDroppedCollection);
-        }
+    try {
+      const successfullyDroppedCollection = await this._dataService.db(this.databaseName).dropCollection(collectionName);
+      return successfullyDroppedCollection;
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        `Drop collection failed: ${err.message}`
       );
-    });
+      return false;
+    }
   }
 }

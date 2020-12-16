@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 const ns = require('mongodb-ns');
-const path = require('path');
+import * as path from 'path';
 
 import { StatusView } from '../views';
 
-import CollectionTreeItem from './collectionTreeItem';
+import CollectionTreeItem, { CollectionModelType } from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
 import { MongoClient } from 'mongodb';
@@ -18,6 +18,8 @@ function getIconPath(): { light: string; dark: string } {
     dark: path.join(DARK, 'database.svg')
   };
 }
+
+type CollectionListResult = CollectionModelType[];
 
 export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
@@ -60,22 +62,19 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return element;
   }
 
-  listCollections(): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-      this._dataService.listCollections(
-        this.databaseName,
-        {}, // No filter.
-        (err: Error | undefined, collections: string[]) => {
-          if (err) {
-            return reject(
-              new Error(`Unable to list collections: ${err.message}`)
-            );
-          }
+  async listCollections(): Promise<CollectionListResult> {
+    try {
+      const collections: CollectionListResult = await this._dataService
+        .db(this.databaseName)
+        .listCollections()
+        .toArray();
 
-          return resolve(collections);
-        }
+      return collections;
+    } catch (err) {
+      return Promise.reject(
+        new Error(`Unable to list collections: ${err.message}`)
       );
-    });
+    }
   }
 
   async getChildren(): Promise<any[]> {
@@ -106,7 +105,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     }
 
     // List collections and build tree items.
-    const collections = await this.listCollections();
+    const collections: CollectionListResult = await this.listCollections();
 
     this.cacheIsUpToDate = true;
 
@@ -116,10 +115,10 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       // Create new collection tree items, using previously cached items
       // where possible.
       collections
-        .sort((collectionA: any, collectionB: any) =>
+        .sort((collectionA: CollectionModelType, collectionB: CollectionModelType) =>
           (collectionA.name || '').localeCompare(collectionB.name || '')
         )
-        .forEach((collection: any) => {
+        .forEach((collection: CollectionModelType) => {
           if (pastChildrenCache[collection.name]) {
             this._childrenCache[collection.name] = new CollectionTreeItem(
               collection,
@@ -175,13 +174,13 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   ): Promise<boolean> {
     const databaseName = this.databaseName;
 
-    let collectionName;
+    let collectionName: string | undefined;
     try {
       collectionName = await vscode.window.showInputBox({
         value: '',
         placeHolder: 'e.g. myNewCollection',
         prompt: 'Enter the new collection name.',
-        validateInput: (inputCollectionName: any) => {
+        validateInput: (inputCollectionName: string) => {
           if (!inputCollectionName) {
             return null;
           }
@@ -206,44 +205,40 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     }
 
     if (!collectionName) {
-      return Promise.resolve(false);
+      return false;
     }
 
     const statusBarItem = new StatusView(context);
     statusBarItem.showMessage('Creating new collection...');
 
-    return new Promise((resolve) => {
-      this._dataService.createCollection(
-        `${databaseName}.${collectionName}`,
-        {}, // No options.
-        (err) => {
-          statusBarItem.hideMessage();
+    try {
+      await this._dataService
+        .db(databaseName)
+        .createCollection(collectionName);
 
-          if (err) {
-            vscode.window.showErrorMessage(
-              `Create collection failed: ${err.message}`
-            );
-            return resolve(false);
-          }
+      statusBarItem.hideMessage();
 
-          this.cacheIsUpToDate = false;
-          return resolve(true);
-        }
+      this.cacheIsUpToDate = false;
+      return true;
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        `Create collection failed: ${err.message}`
       );
-    });
+      return false;
+    }
   }
 
   // Prompt the user to input the database name to confirm the drop, then drop.
   async onDropDatabaseClicked(): Promise<boolean> {
     const databaseName = this.databaseName;
 
-    let inputtedDatabaseName;
+    let inputtedDatabaseName: string | undefined;
     try {
       inputtedDatabaseName = await vscode.window.showInputBox({
         value: '',
         placeHolder: 'e.g. myNewCollection',
         prompt: `Are you sure you wish to drop this database? Enter the database name '${databaseName}' to confirm.`,
-        validateInput: (inputDatabaseName: any) => {
+        validateInput: (inputDatabaseName: string) => {
           if (
             inputDatabaseName &&
             !databaseName.startsWith(inputDatabaseName)
@@ -261,21 +256,19 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     }
 
     if (!inputtedDatabaseName || databaseName !== inputtedDatabaseName) {
-      return Promise.resolve(false);
+      return false;
     }
 
-    return new Promise((resolve) => {
-      this._dataService.dropDatabase(databaseName, (err) => {
-        if (err) {
-          vscode.window.showErrorMessage(
-            `Drop database failed: ${err.message}`
-          );
-          return resolve(false);
-        }
+    try {
+      await this._dataService.db(databaseName).dropDatabase();
 
-        this.cacheIsUpToDate = false;
-        return resolve(true);
-      });
-    });
+      this.cacheIsUpToDate = false;
+      return true;
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        `Drop database failed: ${err.message}`
+      );
+      return false;
+    }
   }
 }
