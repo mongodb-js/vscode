@@ -13,11 +13,13 @@ import WebviewController, {
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
 import {
+  MESSAGE_FROM_EXTENSION_TO_WEBVIEW,
   MESSAGE_TYPES
 } from '../../../views/webview-app/extension-app-message-constants';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
+import { buildConnectionModelFromConnectionString } from '../../../views/webview-app/connection-model/connection-model';
 
 suite('Webview Test Suite', () => {
   const disposables: vscode.Disposable[] = [];
@@ -153,19 +155,17 @@ suite('Webview Test Suite', () => {
       'Ensure it starts listening for messages from the webview.'
     );
 
-    Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
-      if (err) {
-        assert(false);
-      }
+    const connectionModel = buildConnectionModelFromConnectionString(
+      TEST_DATABASE_URI
+    );
 
-      // Mock a connection call.
-      messageRecieved({
-        command: MESSAGE_TYPES.CONNECT,
-        connectionModel: {
-          port: connectionModel.port,
-          hostname: connectionModel.hostname
-        }
-      });
+    // Mock a connection call.
+    messageRecieved({
+      command: MESSAGE_TYPES.CONNECT,
+      connectionModel: {
+        port: connectionModel.port,
+        hostname: connectionModel.hostname
+      }
     });
   });
 
@@ -226,19 +226,17 @@ suite('Webview Test Suite', () => {
       'Ensure it starts listening for messages from the webview.'
     );
 
-    Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
-      if (err) {
-        assert(false);
-      }
+    const connectionModel = buildConnectionModelFromConnectionString(
+      TEST_DATABASE_URI
+    );
 
-      // Mock a connection call.
-      messageRecieved({
-        command: MESSAGE_TYPES.CONNECT,
-        connectionModel: {
-          port: connectionModel.port,
-          hostname: connectionModel.hostname
-        }
-      });
+    // Mock a connection call.
+    messageRecieved({
+      command: MESSAGE_TYPES.CONNECT,
+      connectionModel: {
+        port: connectionModel.port,
+        hostname: connectionModel.hostname
+      }
     });
   });
 
@@ -257,7 +255,8 @@ suite('Webview Test Suite', () => {
     let messageRecieved: any;
     const fakeWebview = {
       html: '',
-      postMessage: (message: any): void => {
+      postMessage: (message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW): void => {
+        assert(message.command === 'CONNECT_RESULT');
         assert(!message.connectionSuccess);
         assert(message.connectionMessage.includes('Unable to load connection'));
 

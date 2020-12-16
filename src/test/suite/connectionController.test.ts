@@ -1,6 +1,7 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
+import { MongoClient } from 'mongodb';
 import * as sinon from 'sinon';
 
 import TelemetryController from '../../telemetry/telemetryController';
@@ -15,6 +16,7 @@ import {
 import { StatusView } from '../../views';
 import { TestExtensionContext } from './stubs';
 import { TEST_DATABASE_URI } from './dbTestHelper';
+import ConnectionModel, { buildConnectionModelFromConnectionString, buildConnectionStringFromConnectionModel, getConnectionNameFromConnectionModel } from '../../views/webview-app/connection-model/connection-model';
 
 const testDatabaseInstanceId = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
@@ -24,16 +26,13 @@ const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-const getConnection = (dbUri): Promise<ConnectionModelType> =>
-  new Promise((resolve, reject) => {
-    Connection.from(dbUri, (err, connectionModel) => {
-      if (err) {
-        return reject(err);
-      }
+const getConnection = (dbUri): Promise<ConnectionModel> => {
+  const model = buildConnectionModelFromConnectionString(
+    dbUri
+  );
 
-      return resolve(connectionModel);
-    });
-  });
+  return Promise.resolve(model);
+};
 
 suite('Connection Controller Test Suite', function () {
   this.timeout(5000);
@@ -95,9 +94,9 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(connectionModel !== null);
     assert(
-      connectionModel?.getAttributes({
-        derived: true
-      }).instanceId === 'localhost:27018'
+      getConnectionNameFromConnectionModel(
+        connectionModel
+      ) === 'localhost:27018'
     );
     assert(dataService !== null);
     assert(
@@ -332,11 +331,15 @@ suite('Connection Controller Test Suite', function () {
       connections[Object.keys(connections)[0]].name === 'localhost:27018',
       "Expected loaded connection to include name 'localhost:27018'"
     );
+    const driverUri = buildConnectionStringFromConnectionModel(
+      connections[Object.keys(connections)[2]].connectionModel
+    );
     assert(
-      connections[Object.keys(connections)[2]].connectionModel.driverUrl ===
-        expectedDriverUri,
-      `Expected loaded connection to include driver url '${expectedDriverUri}' found '${
-        connections[Object.keys(connections)[2]].connectionModel.driverUrl
+      driverUri === expectedDriverUri,
+      `Expected loaded connection to include driver url '${
+        expectedDriverUri
+      }' found '${
+        driverUri
       }'`
     );
   });
@@ -781,15 +784,21 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(
       connectionQuickPicks[0].label === 'Add new connection',
-      `Expected the first quick pick label to be 'Add new connection', found '${connectionQuickPicks[0].name}'.`
+      `Expected the first quick pick label to be 'Add new connection', found '${
+        connectionQuickPicks[0].label
+      }'.`
     );
     assert(
       connectionQuickPicks[1].label === 'localhost:27018',
-      `Expected the second quick pick label to be 'localhost:27018', found '${connectionQuickPicks[1].name}'.`
+      `Expected the second quick pick label to be 'localhost:27018', found '${
+        connectionQuickPicks[1].label
+      }'.`
     );
     assert(
       connectionQuickPicks[2].label === 'Lynx',
-      `Expected the third quick pick labele to be 'Lynx', found '${connectionQuickPicks[2].name}'.`
+      `Expected the third quick pick label to be 'Lynx', found '${
+        connectionQuickPicks[2].label
+      }'.`
     );
   });
 
@@ -918,10 +927,10 @@ suite('Connection Controller Test Suite', function () {
       storageLocation: StorageScope.NONE
     };
 
-    const originalConnect = DataService.connect;
+    const originalConnect = MongoClient.connect;
 
     sinon.replace(
-      DataService.prototype,
+      MongoClient.prototype,
       'connect',
       sinon.fake(async (
         callback
