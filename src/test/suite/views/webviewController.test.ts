@@ -13,10 +13,13 @@ import WebviewController, {
   getWebviewContent
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
-import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
+import {
+  MESSAGE_TYPES
+} from '../../../views/webview-app/extension-app-message-constants';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
+import { buildConnectionModelFromConnectionString } from '../../../views/webview-app/connection-model/connection-model';
 
 suite('Webview Test Suite', () => {
   afterEach(() => {
@@ -143,10 +146,9 @@ suite('Webview Test Suite', () => {
       'Ensure it starts listening for messages from the webview.'
     );
 
-    Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
-      if (err) {
-        assert(false);
-      }
+    const connectionModel = buildConnectionModelFromConnectionString(
+      TEST_DATABASE_URI
+    );
 
       // Mock a connection call.
       messageReceived({
@@ -215,20 +217,18 @@ suite('Webview Test Suite', () => {
       'Ensure it starts listening for messages from the webview.'
     );
 
-    Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
-      if (err) {
-        assert(false);
-      }
+    const connectionModel = buildConnectionModelFromConnectionString(
+      TEST_DATABASE_URI
+    );
 
-      // Mock a connection call.
-      messageReceived({
-        command: MESSAGE_TYPES.CONNECT,
-        connectionModel: {
-          port: connectionModel.port,
-          hostname: connectionModel.hostname,
-          hosts: connectionModel.hosts
-        }
-      });
+    // Mock a connection call.
+    messageReceived({
+      command: MESSAGE_TYPES.CONNECT,
+      connectionModel: {
+        port: connectionModel.port,
+        hostname: connectionModel.hostname,
+        hosts: connectionModel.hosts
+      }
     });
   });
 

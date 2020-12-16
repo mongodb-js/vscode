@@ -1,5 +1,6 @@
-import Connection = require('mongodb-connection-model/lib/model');
-import DataService = require('mongodb-data-service');
+import { Document } from 'bson';
+import { MongoClient } from 'mongodb';
+import { buildConnectionModelFromConnectionString, buildConnectionStringFromConnectionModel, getDriverOptionsFromConnectionModel } from '../../views/webview-app/connection-model/connection-model';
 
 export const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
@@ -8,81 +9,45 @@ export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 let testDatabaseConnectionModel;
 
 // Note: Be sure to disconnect from the dataservice to free up connections.
-export const seedDataAndCreateDataService = (
+export const seedDataAndCreateDataService = async (
   collectionName: string,
-  documentsArray: any[]
-): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    if (testDatabaseConnectionModel) {
-      const newConnection = new DataService(testDatabaseConnectionModel);
-      newConnection.connect((connectError: Error | undefined) => {
-        if (connectError) {
-          return reject(connectError);
-        }
+  documentsArray: Document[]
+): Promise<MongoClient> => {
+  if (!testDatabaseConnectionModel) {
+    testDatabaseConnectionModel = buildConnectionModelFromConnectionString(
+      TEST_DATABASE_URI
+    );
+  }
 
-        newConnection.insertMany(
-          `${TEST_DB_NAME}.${collectionName}`,
-          documentsArray,
-          {},
-          (insertManyError: Error | undefined) => {
-            if (insertManyError) {
-              return reject(insertManyError);
-            }
-            return resolve(newConnection);
-          }
-        );
-      });
-    } else {
-      Connection.from(
-        TEST_DATABASE_URI,
-        (connectionModelError: Error | undefined, newConnectionConfig: any) => {
-          if (connectionModelError) {
-            return reject(connectionModelError);
-          }
+  const dataService = new MongoClient(
+    buildConnectionStringFromConnectionModel(testDatabaseConnectionModel),
+    getDriverOptionsFromConnectionModel(testDatabaseConnectionModel)
+  );
+  try {
+    await dataService.connect();
 
-          testDatabaseConnectionModel = newConnectionConfig;
-          const newConnection = new DataService(newConnectionConfig);
-          newConnection.connect((connectError: Error | undefined) => {
-            if (connectError) {
-              return reject(connectError);
-            }
+    dataService
+      .db(TEST_DB_NAME)
+      .collection(collectionName)
+      .insertMany(documentsArray);
+  } catch (err) {
+    return Promise.reject(err);
+  }
 
-            newConnection.insertMany(
-              `${TEST_DB_NAME}.${collectionName}`,
-              documentsArray,
-              {},
-              (insertManyError: Error | undefined) => {
-                if (insertManyError) {
-                  return reject(insertManyError);
-                }
+  // TODO: Maybe we add a timeout to ensure we auto cleanup connections.
 
-                return resolve(newConnection);
-              }
-            );
-          });
-        }
-      );
-    }
-  });
+  return dataService;
 };
 
-export const cleanupTestDB = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const newConnection = new DataService(testDatabaseConnectionModel);
-    newConnection.connect((connectError: Error | undefined) => {
-      if (connectError) {
-        return reject(connectError);
-      }
+export const cleanupTestDB = async (): Promise<void> => {
+  const dataService = new MongoClient(
+    buildConnectionStringFromConnectionModel(testDatabaseConnectionModel),
+    getDriverOptionsFromConnectionModel(testDatabaseConnectionModel)
+  );
 
-      newConnection.dropDatabase(
-        TEST_DB_NAME,
-        (dropError: Error | undefined) => {
-          if (dropError) {
-            return reject(dropError);
-          }
-          newConnection.disconnect(() => resolve());
-        }
-      );
-    });
-  });
+  await dataService.connect();
+
+  await dataService.db(TEST_DB_NAME).dropDatabase();
+
+  await dataService.close();
 };
