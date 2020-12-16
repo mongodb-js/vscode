@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import parseSchema = require('mongodb-schema');
-const path = require('path');
+import * as parseSchema from 'mongodb-schema';
+import * as path from 'path';
 
 import { createLogger } from '../logging';
 import TreeItemParent from './treeItemParentInterface';

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-const path = require('path');
+import * as path from 'path';
 
 import { createLogger } from '../logging';
 import IndexTreeItem, { IndexModel } from './indexTreeItem';
@@ -71,26 +71,21 @@ export default class IndexListTreeItem extends vscode.TreeItem
     return element;
   }
 
-  getIndexes(): Promise<IndexModel[]> {
+  async getIndexes(): Promise<IndexModel[]> {
     const namespace = this.namespace;
 
     log.info(`fetching indexes from namespace ${namespace}`);
 
-    return new Promise((resolve, reject) => {
-      this._dataService.indexes(
-        namespace,
-        {
-          /* No options */
-        },
-        (err: Error, indexes: IndexModel[]) => {
-          if (err) {
-            return reject(err);
-          }
+    try {
+      const indexes = await this._dataService
+        .db(this.databaseName)
+        .collection(this.collectionName)
+        .indexes();
 
-          return resolve(indexes);
-        }
-      );
-    });
+      return indexes;
+    } catch (err) {
+      return Promise.reject(err);
+    }
   }
 
   async getChildren(): Promise<any[]> {

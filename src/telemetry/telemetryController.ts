@@ -34,6 +34,7 @@ type CloudInfo = {
 
 type LinkClickedTelemetryEventProperties = {
   screen: string;
+  // eslint-disable-next-line camelcase
   link_id: string;
 };
 
@@ -42,6 +43,7 @@ type ExtensionCommandRunTelemetryEventProperties = {
 };
 
 type NewConnectionTelemetryEventProperties = {
+  /* eslint-disable camelcase */
   is_atlas: boolean;
   is_localhost: boolean;
   is_data_lake: boolean;
@@ -56,6 +58,7 @@ type NewConnectionTelemetryEventProperties = {
   is_used_connect_screen: boolean;
   is_used_command_palette: boolean;
   is_used_saved_connection: boolean;
+  /* eslint-enable camelcase */
 };
 
 export type TelemetryEventProperties =
@@ -170,7 +173,7 @@ export default class TelemetryController {
 
       log.info('TELEMETRY track', segmentProperties);
 
-      this._segmentAnalytics?.track(segmentProperties, (error: any) => {
+      this._segmentAnalytics?.track(segmentProperties, (error?: Error) => {
         if (error) {
           log.error('TELEMETRY track error', error);
         }
@@ -238,6 +241,8 @@ export default class TelemetryController {
         const nonGenuineServerName = data.genuineMongoDB.isGenuine
           ? null
           : data.genuineMongoDB.dbType;
+
+        /* eslint-disable @typescript-eslint/camelcase */
         const preparedProperties = {
           is_atlas: !!data.client.s.url.match(ATLAS_REGEX),
           is_localhost: !!data.client.s.url.match(LOCALHOST_REGEX),
@@ -257,6 +262,7 @@ export default class TelemetryController {
           is_used_saved_connection:
             connectionType === ConnectionTypes.CONNECTION_ID
         };
+        /* eslint-enable @typescript-eslint/camelcase */
 
         this.track(TelemetryEventTypes.NEW_CONNECTION, preparedProperties);
       }
@@ -309,6 +315,7 @@ export default class TelemetryController {
   trackLinkClicked(screen: string, linkId: string): void {
     this.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED, {
       screen,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       link_id: linkId
     });
   }

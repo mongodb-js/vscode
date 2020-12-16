@@ -278,7 +278,10 @@ export const buildConnectionModelFromConnectionString = (
 };
 
 export const buildConnectionStringFromConnectionModel = (
-  model: ConnectionModel
+  model: ConnectionModel,
+  options?: {
+    withSSHTunnelIfConfigured?: boolean;
+  }
 ): string => {
   // TODO
 

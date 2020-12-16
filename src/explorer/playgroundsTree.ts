@@ -14,13 +14,17 @@ export class FileStat implements vscode.FileStat {
   constructor(private fsStat: fs.Stats) {}
 
   get type(): vscode.FileType {
-    return this.fsStat.isFile()
-      ? vscode.FileType.File
-      : this.fsStat.isDirectory()
-        ? vscode.FileType.Directory
-        : this.fsStat.isSymbolicLink()
-          ? vscode.FileType.SymbolicLink
-          : vscode.FileType.Unknown;
+    if (this.fsStat.isFile()) {
+      return vscode.FileType.File;
+    }
+    if (this.fsStat.isDirectory()) {
+      return vscode.FileType.Directory;
+    }
+    if (this.fsStat.isSymbolicLink()) {
+      return vscode.FileType.SymbolicLink;
+    }
+
+    return vscode.FileType.Unknown;
   }
 
   get isFile(): boolean | undefined {

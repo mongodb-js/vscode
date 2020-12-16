@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { openLink } from '../utils/linkHelper';
-const path = require('path');
+import * as path from 'path';
 
 import { getImagesPath } from '../extensionConstants';
 import { TelemetryController } from '../telemetry';
@@ -42,7 +42,7 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
 }
 
 export default class HelpTree
-  implements vscode.TreeDataProvider<vscode.TreeItem> {
+implements vscode.TreeDataProvider<vscode.TreeItem> {
   contextValue = 'helpTree';
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
@@ -53,9 +53,11 @@ export default class HelpTree
     treeView: vscode.TreeView<vscode.TreeItem>,
     telemetryController: TelemetryController
   ): void => {
-    treeView.onDidChangeSelection(async (event: any) => {
+    treeView.onDidChangeSelection(async (
+      event: vscode.TreeViewSelectionChangeEvent<vscode.TreeItem>
+    ) => {
       if (event.selection && event.selection.length === 1) {
-        const selectedItem = event.selection[0];
+        const selectedItem = event.selection[0] as HelpLinkTreeItem;
 
         await this.onClickHelpItem(selectedItem, telemetryController);
       }

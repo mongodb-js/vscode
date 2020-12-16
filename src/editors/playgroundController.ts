@@ -14,6 +14,7 @@ import { createLogger } from '../logging';
 import type { ExecuteAllResult } from '../utils/types';
 import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
 import type { OutputItem } from '../utils/types';
+import { buildConnectionStringFromConnectionModel, getDriverOptionsFromConnectionModel } from '../views/webview-app/connection-model/connection-model';
 
 const log = createLogger('playground controller');
 
@@ -147,13 +148,19 @@ export default class PlaygroundController {
   }
 
   public connectToServiceProvider(): Promise<boolean> {
-    const model = this.connectionController
-      .getActiveConnectionModel()
-      ?.getAttributes({ derived: true });
+    const model = this.connectionController.getActiveConnectionModel();
+    if (
+      this.connectionController.isCurrentlyConnected()
+      && model !== null
+    ) {
+      this._connectionString = buildConnectionStringFromConnectionModel(
+        model,
+        {
+          withSSHTunnelIfConfigured: true
+        }
+      );
 
-    if (model && model.driverUrlWithSsh) {
-      this._connectionString = model.driverUrlWithSsh;
-      this._connectionOptions = model.driverOptions ? model.driverOptions : {};
+      this._connectionOptions = getDriverOptionsFromConnectionModel(model);
 
       return this._languageServerController.connectToServiceProvider({
         connectionString: this._connectionString,

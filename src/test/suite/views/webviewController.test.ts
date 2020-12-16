@@ -2,6 +2,9 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
+import * as path from 'path';
+import * as fs from 'fs';
+
 import TelemetryController from '../../../telemetry/telemetryController';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
@@ -15,9 +18,6 @@ import {
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-
-const fs = require('fs');
-const path = require('path');
 
 suite('Webview Test Suite', () => {
   const disposables: vscode.Disposable[] = [];

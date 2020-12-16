@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+
 import ConnectionController, {
   ConnectionTypes
 } from '../connectionController';
@@ -12,7 +14,6 @@ import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
 import ConnectionModel from './webview-app/connection-model/connection-model';
 
-const path = require('path');
 const log = createLogger('webviewController');
 
 const openFileOptions = {
@@ -75,7 +76,7 @@ export default class WebviewController {
   ): Promise<void> => {
     try {
       const connectionModel = this._connectionController
-        .parseNewConnection(rawConnectionModel as any);
+        .parseNewConnection(rawConnectionModel);
 
       const {
         successfullyConnected,

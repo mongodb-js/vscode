@@ -1,12 +1,11 @@
+import * as path from 'path';
+import * as fs from 'fs';
+import * as util from 'util';
 import { CompletionItemKind, CancellationToken } from 'vscode-languageserver';
 import { Worker as WorkerThreads } from 'worker_threads';
 import { signatures } from '@mongosh/shell-api';
-import * as util from 'util';
 import { Visitor } from './visitor';
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
-
-const path = require('path');
-const fs = require('fs');
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 

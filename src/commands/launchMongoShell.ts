@@ -1,18 +1,19 @@
+import { MongoClientOptions } from 'mongodb';
 import * as vscode from 'vscode';
 
 import ConnectionController from '../connectionController';
+import { buildConnectionStringFromConnectionModel, getDriverOptionsFromConnectionModel } from '../views/webview-app/connection-model/connection-model';
 
-function isSslConnection(activeConnectionModel: any): boolean {
+function isSslConnection(driverOptions: MongoClientOptions): boolean {
   return !!(
-    activeConnectionModel &&
-    activeConnectionModel.driverOptions &&
-    (activeConnectionModel.driverOptions.sslCA ||
-      activeConnectionModel.driverOptions.sslCert ||
-      activeConnectionModel.driverOptions.sslPass)
+    driverOptions &&
+    (driverOptions.sslCA ||
+      driverOptions.sslCert ||
+      driverOptions.sslPass)
   );
 }
 
-function getSslOptions(driverOptions: any): string[] {
+function getSslOptions(driverOptions: MongoClientOptions): string[] {
   const mdbSslOptions = ['--tls'];
 
   if (!driverOptions.checkServerIdentity) {
@@ -43,7 +44,7 @@ function launchMongoDBShellWithEnv(
   mdbConnectionString: string,
   mdbSslOptions: string[],
   envVariableString: string
-) {
+): void {
   const mongoDBShell = vscode.window.createTerminal({
     name: 'MongoDB Shell',
     env: {
@@ -105,8 +106,11 @@ function launchMongoDBShellOnBash(
 export default function openMongoDBShell(connectionController: ConnectionController): Promise<boolean> {
   let mdbSslOptions: string[] = [];
 
+  const connectionModel = connectionController.getActiveConnectionModel();
+
   if (
     !connectionController.isCurrentlyConnected()
+    || connectionModel === null
   ) {
     vscode.window.showErrorMessage(
       'You need to be connected before launching the MongoDB Shell.'
@@ -133,16 +137,16 @@ export default function openMongoDBShell(connectionController: ConnectionControl
     return Promise.resolve(false);
   }
 
-  const activeConnectionModel = connectionController
-    .getActiveConnectionModel()
-    ?.getAttributes({ derived: true });
+  const mdbConnectionString = buildConnectionStringFromConnectionModel(
+    connectionModel,
+    {
+      withSSHTunnelIfConfigured: true
+    }
+  );
 
-  const mdbConnectionString = activeConnectionModel
-    ? activeConnectionModel.driverUrlWithSsh
-    : '';
-
-  if (activeConnectionModel && isSslConnection(activeConnectionModel)) {
-    mdbSslOptions = getSslOptions(activeConnectionModel.driverOptions);
+  const driverOptions = getDriverOptionsFromConnectionModel(connectionModel);
+  if (isSslConnection(driverOptions)) {
+    mdbSslOptions = getSslOptions(driverOptions);
   }
 
   if (userShell.includes('powershell.exe')) {
