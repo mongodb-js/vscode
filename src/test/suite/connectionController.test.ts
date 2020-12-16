@@ -15,7 +15,12 @@ import {
 import { StatusView } from '../../views';
 import { TestExtensionContext } from './stubs';
 import { TEST_DATABASE_URI } from './dbTestHelper';
-import ConnectionModel, { buildConnectionModelFromConnectionString, buildConnectionStringFromConnectionModel, getConnectionNameFromConnectionModel, parseConnectionModel } from '../../views/webview-app/connection-model/connection-model';
+import ConnectionModel, {
+  buildConnectionModelFromConnectionString,
+  buildConnectionStringFromConnectionModel,
+  getConnectionNameFromConnectionModel,
+  parseConnectionModel
+} from '../../views/webview-app/connection-model/connection-model';
 
 const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
@@ -400,7 +405,11 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       workspaceStoreConnections[id].name === testDatabaseConnectionName,
-      `Expected workspace stored connection to have correct name '${testDatabaseConnectionName}' found ${workspaceStoreConnections[id].name}`
+      `Expected workspace stored connection to have correct name '${
+        testDatabaseConnectionName
+      }' found ${
+        workspaceStoreConnections[id].name
+      }`
     );
 
     const globalStoreConnections = mockStorageController.get(
