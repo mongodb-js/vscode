@@ -22,6 +22,8 @@ import ConnectionModel from '../../views/webview-app/connection-model/connection
 const sinon = require('sinon');
 const testDatabaseURI = 'mongodb://localhost:27018';
 
+const mockEmptyMongoClient: any = {};
+
 suite('MDBExtensionController Test Suite', function () {
   this.timeout(10000);
 
@@ -47,7 +49,7 @@ suite('MDBExtensionController Test Suite', function () {
         type: CollectionTypes.collection
       },
       'testDbName',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       null
@@ -90,7 +92,7 @@ suite('MDBExtensionController Test Suite', function () {
         type: CollectionTypes.collection
       },
       'testDbName',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       null
@@ -263,7 +265,7 @@ suite('MDBExtensionController Test Suite', function () {
   test('mdb.copyDatabaseName command should try to copy the database name to the vscode env clipboard', (done) => {
     const mockTreeItem = new DatabaseTreeItem(
       'isClubMateTheBestDrinkEver',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       {}
@@ -294,7 +296,7 @@ suite('MDBExtensionController Test Suite', function () {
         type: CollectionTypes.collection
       },
       'airZebra',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       null
@@ -352,7 +354,7 @@ suite('MDBExtensionController Test Suite', function () {
   test('mdb.refreshDatabase command should reset the cache on the database tree item', (done) => {
     const mockTreeItem = new DatabaseTreeItem(
       'pinkLemonade',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       {}
@@ -389,7 +391,7 @@ suite('MDBExtensionController Test Suite', function () {
         type: CollectionTypes.collection
       },
       'airZebra',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       null
@@ -433,7 +435,7 @@ suite('MDBExtensionController Test Suite', function () {
       'airZebra',
       {
         estimatedCount: (ns, opts, cb): void => cb(null, count)
-      },
+      } as any,
       false,
       false,
       null
@@ -484,7 +486,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new SchemaTreeItem(
       'zebraWearwolf',
       'giraffeVampire',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       false,
@@ -517,7 +519,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new IndexListTreeItem(
       'zebraWearwolf',
       'giraffeVampire',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       []
@@ -779,15 +781,20 @@ suite('MDBExtensionController Test Suite', function () {
   });
 
   test('mdb.addCollection command calls the dataservice to add the collection the user inputs', (done) => {
-    let returnedNamespaceArg = '';
+    let returnedDatabaseArg = '';
+    let returnedCollectionArg = '';
     const mockTreeItem = new DatabaseTreeItem(
       'iceCreamDB',
       {
-        createCollection: (namespace, options, callback): void => {
-          returnedNamespaceArg = namespace;
-          callback(null);
-        }
-      },
+        db: (database: string) => ({
+          createCollection: (collection: string): Promise<void> => {
+            returnedDatabaseArg = database;
+            returnedCollectionArg = collection;
+
+            return Promise.resolve();
+          }
+        })
+      } as any,
       false,
       false,
       {}
@@ -806,8 +813,16 @@ suite('MDBExtensionController Test Suite', function () {
           'Expected show input box to be called'
         );
         assert(
-          returnedNamespaceArg === 'iceCreamDB.mintChocolateChips',
-          `Expected create collection to be called with the namespace "iceCreamDB.mintChocolateChips" got ${returnedNamespaceArg}.`
+          returnedDatabaseArg === 'iceCreamDB',
+          `Expected create collection to be called with the database "iceCreamDB" got ${
+            returnedDatabaseArg
+          }.`
+        );
+        assert(
+          returnedCollectionArg === 'mintChocolateChips',
+          `Expected create collection to be called with the collection "mintChocolateChips" got ${
+            returnedCollectionArg
+          }.`
         );
       })
       .then(done, done);
@@ -816,7 +831,7 @@ suite('MDBExtensionController Test Suite', function () {
   test('mdb.addCollection command fails when disconnecting', (done) => {
     const mockTreeItem = new DatabaseTreeItem(
       'iceCreamDB',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       {}
@@ -868,18 +883,20 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new DatabaseTreeItem(
       'iceCreamDB',
       {
-        createCollection: (namespace, options, callback): void => {
-          assert(stubShowMessage.called);
-          assert(!stubHideMessage.called);
-          const expectedMessage = 'Creating new collection...';
-          assert(
-            testStatusViewObject.text === expectedMessage,
-            `Expected to show status bar message "${expectedMessage}", found ${stubShowMessage.firstArg}`
-          );
+        db: () => ({
+          createCollection: (): Promise<void> => {
+            assert(stubShowMessage.called);
+            assert(!stubHideMessage.called);
+            const expectedMessage = 'Creating new collection...';
+            assert(
+              testStatusViewObject.text === expectedMessage,
+              `Expected to show status bar message "${expectedMessage}", found ${stubShowMessage.firstArg}`
+            );
 
-          callback(null);
-        }
-      },
+            return Promise.resolve();
+          }
+        })
+      } as any,
       false,
       false,
       {}
@@ -900,16 +917,21 @@ suite('MDBExtensionController Test Suite', function () {
   // https://code.visualstudio.com/api/references/contribution-points#Sorting-of-groups
 
   test('mdb.dropCollection calls dataservice to drop the collection after inputting the collection name', (done) => {
-    let calledNamespace = '';
+    let calledDatabaseArg = '';
+    let calledCollectionArg = '';
     const testCollectionTreeItem = new CollectionTreeItem(
       { name: 'testColName', type: CollectionTypes.collection },
       'testDbName',
       {
-        dropCollection: (namespace, callback): void => {
-          calledNamespace = namespace;
-          callback(null, true);
-        }
-      },
+        db: (database: string) => ({
+          createCollection: (collection: string): Promise<boolean> => {
+            calledDatabaseArg = database;
+            calledCollectionArg = collection;
+
+            return Promise.resolve(true);
+          }
+        })
+      } as any,
       false,
       false,
       null
@@ -923,63 +945,69 @@ suite('MDBExtensionController Test Suite', function () {
       .executeCommand('mdb.dropCollection', testCollectionTreeItem)
       .then((successfullyDropped) => {
         assert(successfullyDropped);
-        assert(calledNamespace === 'testDbName.testColName');
+        assert(calledDatabaseArg === 'testDbName');
+        assert(calledCollectionArg === 'testColName');
       })
       .then(done, done);
   });
 
-  test('mdb.dropCollection fails when a collection doesnt exist', (done) => {
+  test('mdb.dropCollection fails when a collection doesnt exist', async () => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    testConnectionController
-      .addNewConnectionStringAndConnect(testDatabaseURI)
-      .then(() => {
-        const testCollectionTreeItem = new CollectionTreeItem(
-          { name: 'doesntExistColName', type: CollectionTypes.collection },
-          'doesntExistDBName',
-          testConnectionController.getActiveDataService(),
-          false,
-          false,
-          null
-        );
+    await testConnectionController.addNewConnectionStringAndConnect(
+      testDatabaseURI
+    );
 
-        const mockInputBoxResolves = sinon.stub();
-        mockInputBoxResolves.onCall(0).resolves('doesntExistColName');
-        sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+    const dataService = testConnectionController.getActiveDataService();
 
-        const fakeVscodeErrorMessage = sinon.fake();
-        sinon.replace(
-          vscode.window,
-          'showErrorMessage',
-          fakeVscodeErrorMessage
-        );
+    if (!dataService) {
+      throw new Error('expected data service for testing drop collection');
+    }
 
-        vscode.commands
-          .executeCommand('mdb.dropCollection', testCollectionTreeItem)
-          .then(async (successfullyDropped) => {
-            assert(
-              successfullyDropped === false,
-              'Expected the drop collection command handler to return a false succeeded response'
-            );
-            const expectedMessage = 'Drop collection failed: ns not found';
-            assert(
-              fakeVscodeErrorMessage.firstArg === expectedMessage,
-              `Expected "${expectedMessage}" when dropping a collection that doesn't exist, recieved "${fakeVscodeErrorMessage.firstArg}"`
-            );
+    const testCollectionTreeItem = new CollectionTreeItem(
+      { name: 'doesntExistColName', type: CollectionTypes.collection },
+      'doesntExistDBName',
+      dataService,
+      false,
+      false,
+      null
+    );
 
-            await testConnectionController.disconnect();
-            testConnectionController.clearAllConnections();
-          })
-          .then(done, done);
-      });
+    const mockInputBoxResolves = sinon.stub();
+    mockInputBoxResolves.onCall(0).resolves('doesntExistColName');
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(
+      vscode.window,
+      'showErrorMessage',
+      fakeVscodeErrorMessage
+    );
+
+    const successfullyDropped = await vscode.commands.executeCommand(
+      'mdb.dropCollection',
+      testCollectionTreeItem
+    );
+    assert(
+      successfullyDropped === false,
+      'Expected the drop collection command handler to return a false succeeded response'
+    );
+    const expectedMessage = 'Drop collection failed: ns not found';
+    assert(
+      fakeVscodeErrorMessage.firstArg === expectedMessage,
+      `Expected "${expectedMessage}" when dropping a collection that doesn't exist, recieved "${fakeVscodeErrorMessage.firstArg}"`
+    );
+
+    await testConnectionController.disconnect();
+    testConnectionController.clearAllConnections();
   });
 
-  test('mdb.dropCollection fails when the input doesnt match the collection name', (done) => {
+  test('mdb.dropCollection fails when the input doesnt match the collection name', async () => {
     const testCollectionTreeItem = new CollectionTreeItem(
       { name: 'orange', type: CollectionTypes.collection },
       'fruitsThatAreTasty',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       null
@@ -989,22 +1017,21 @@ suite('MDBExtensionController Test Suite', function () {
     mockInputBoxResolves.onCall(0).resolves('apple');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands
-      .executeCommand('mdb.dropCollection', testCollectionTreeItem)
-      .then((successfullyDropped) => {
-        assert(
-          successfullyDropped === false,
-          'Expected the drop collection command handler to return a false succeeded response'
-        );
-      })
-      .then(done, done);
+    const successfullyDropped = await vscode.commands.executeCommand(
+      'mdb.dropCollection',
+      testCollectionTreeItem
+    );
+    assert(
+      successfullyDropped === false,
+      'Expected the drop collection command handler to return a false succeeded response'
+    );
   });
 
   test('mdb.dropCollection fails when the collection name input is empty', (done) => {
     const testCollectionTreeItem = new CollectionTreeItem(
       { name: 'orange', type: CollectionTypes.view },
       'fruitsThatAreTasty',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       null
@@ -1025,16 +1052,18 @@ suite('MDBExtensionController Test Suite', function () {
       .then(done, done);
   });
 
-  test('mdb.dropDatabase calls dataservice to drop the database after inputting the database name', (done) => {
+  test('mdb.dropDatabase calls dataservice to drop the database after inputting the database name', async () => {
     let calledDatabaseName = '';
     const testDatabaseTreeItem = new DatabaseTreeItem(
       'iMissTangerineAltoids',
       {
-        dropDatabase: (dbName, callback): void => {
-          calledDatabaseName = dbName;
-          callback(null, true);
-        }
-      },
+        db: (dbName: string) => ({
+          dropDatabase: (): Promise<void> => {
+            calledDatabaseName = dbName;
+            return Promise.resolve();
+          }
+        })
+      } as any,
       false,
       false,
       {}
@@ -1044,61 +1073,63 @@ suite('MDBExtensionController Test Suite', function () {
     mockInputBoxResolves.onCall(0).resolves('iMissTangerineAltoids');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    vscode.commands
-      .executeCommand('mdb.dropDatabase', testDatabaseTreeItem)
-      .then((successfullyDropped) => {
-        assert(successfullyDropped);
-        assert(calledDatabaseName === 'iMissTangerineAltoids');
-      })
-      .then(done, done);
+    const successfullyDropped = await vscode.commands.executeCommand(
+      'mdb.dropDatabase',
+      testDatabaseTreeItem
+    );
+    assert(successfullyDropped);
+    assert(calledDatabaseName === 'iMissTangerineAltoids');
   });
 
-  test('mdb.dropDatabase succeeds even when a database doesnt exist (mdb behavior)', (done) => {
+  test('mdb.dropDatabase succeeds even when a database doesnt exist (mdb behavior)', async () => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    testConnectionController
-      .addNewConnectionStringAndConnect(testDatabaseURI)
-      .then(() => {
-        const testDatabaseTreeItem = new DatabaseTreeItem(
-          'narnia____a',
-          testConnectionController.getActiveDataService(),
-          false,
-          false,
-          {}
-        );
+    await testConnectionController.addNewConnectionStringAndConnect(
+      testDatabaseURI
+    );
 
-        const mockInputBoxResolves = sinon.stub();
-        mockInputBoxResolves.onCall(0).resolves('narnia____a');
-        sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+    const dataService = testConnectionController.getActiveDataService();
+    if (!dataService) {
+      throw new Error('expected dataservice to exist');
+    }
+    const testDatabaseTreeItem = new DatabaseTreeItem(
+      'narnia____a',
+      dataService,
+      false,
+      false,
+      {}
+    );
 
-        const fakeVscodeErrorMessage = sinon.fake();
-        sinon.replace(
-          vscode.window,
-          'showErrorMessage',
-          fakeVscodeErrorMessage
-        );
+    const mockInputBoxResolves = sinon.stub();
+    mockInputBoxResolves.onCall(0).resolves('narnia____a');
+    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-        vscode.commands
-          .executeCommand('mdb.dropDatabase', testDatabaseTreeItem)
-          .then((successfullyDropped) => {
-            assert(
-              successfullyDropped,
-              'Expected the drop database command handler to return a successful boolean response'
-            );
-            assert(
-              fakeVscodeErrorMessage.called === false,
-              'Expected no error messages'
-            );
-          })
-          .then(done, done);
-      });
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(
+      vscode.window,
+      'showErrorMessage',
+      fakeVscodeErrorMessage
+    );
+
+    const successfullyDropped = await vscode.commands.executeCommand(
+      'mdb.dropDatabase',
+      testDatabaseTreeItem
+    );
+    assert(
+      successfullyDropped,
+      'Expected the drop database command handler to return a successful boolean response'
+    );
+    assert(
+      fakeVscodeErrorMessage.called === false,
+      'Expected no error messages'
+    );
   });
 
   test('mdb.dropDatabase fails when the input doesnt match the database name', (done) => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       'cinnamonToastCrunch',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       {}
@@ -1122,7 +1153,7 @@ suite('MDBExtensionController Test Suite', function () {
   test('mdb.dropDatabase fails when the database name input is empty', (done) => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       'blueBerryPancakesAndTheSmellOfBacon',
-      {},
+      mockEmptyMongoClient,
       false,
       false,
       {}
