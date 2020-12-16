@@ -2,6 +2,7 @@ import { Document } from 'bson';
 import { MongoClient } from 'mongodb';
 import { buildConnectionModelFromConnectionString, buildConnectionStringFromConnectionModel, getDriverOptionsFromConnectionModel } from '../../views/webview-app/connection-model/connection-model';
 
+export const TEST_DB_INSTANCE_ID = 'localhost:27018';
 export const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
 export const TEST_DB_NAME = 'vscodeTestDatabaseAA';

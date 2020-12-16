@@ -15,10 +15,9 @@ import {
 } from '../../storage/storageController';
 import { StatusView } from '../../views';
 import { TestExtensionContext } from './stubs';
-import { TEST_DATABASE_URI } from './dbTestHelper';
+import { TEST_DATABASE_URI, TEST_DB_INSTANCE_ID } from './dbTestHelper';
 import ConnectionModel, { buildConnectionModelFromConnectionString, buildConnectionStringFromConnectionModel, getConnectionNameFromConnectionModel } from '../../views/webview-app/connection-model/connection-model';
 
-const testDatabaseInstanceId = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
@@ -367,8 +366,8 @@ suite('Connection Controller Test Suite', function () {
     const id = Object.keys(globalStoreConnections)[0];
 
     assert(
-      globalStoreConnections[id].name === testDatabaseInstanceId,
-      `Expected global stored connection to have correct name '${testDatabaseInstanceId}' found ${globalStoreConnections[id].name}`
+      globalStoreConnections[id].name === TEST_DB_INSTANCE_ID,
+      `Expected global stored connection to have correct name '${TEST_DB_INSTANCE_ID}' found ${globalStoreConnections[id].name}`
     );
 
     const workspaceStoreConnections = mockStorageController.get(
@@ -408,8 +407,12 @@ suite('Connection Controller Test Suite', function () {
     const id = Object.keys(workspaceStoreConnections)[0];
 
     assert(
-      workspaceStoreConnections[id].name === testDatabaseInstanceId,
-      `Expected workspace stored connection to have correct name '${testDatabaseInstanceId}' found ${workspaceStoreConnections[id].name}`
+      workspaceStoreConnections[id].name === TEST_DB_INSTANCE_ID,
+      `Expected workspace stored connection to have correct name '${
+        TEST_DB_INSTANCE_ID
+      }' found ${
+        workspaceStoreConnections[id].name
+      }`
     );
 
     const globalStoreConnections = mockStorageController.get(

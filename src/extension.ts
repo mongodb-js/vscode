@@ -8,8 +8,7 @@ import { createLogger } from './logging';
 const log = createLogger('extension.ts');
 
 /**
- * Capture debug logs from mongodb-data-service, connection-model,
- * etc. and write them to the extension's log output channel too.
+ * Capture debug logs and write them to the extension's log output channel.
  */
 import debug from 'debug';
 debug.enable('INFO');

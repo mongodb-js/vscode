@@ -6,10 +6,10 @@ import { config } from 'dotenv';
 import TelemetryController from '../../../telemetry/telemetryController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { afterEach, beforeEach } from 'mocha';
-import Connection = require('mongodb-connection-model/lib/model');
 import { ConnectionTypes } from '../../../connectionController';
 import { getDocUri, loadAndSavePlayground } from '../editorTestHelper';
-import DataService = require('mongodb-data-service');
+import { MongoClient } from 'mongodb';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -23,12 +23,11 @@ config({ path: resolve(__dirname, '../../../../.env') });
 suite('Telemetry Controller Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  const dataService = new DataService(
-    new Connection({
-      hostname: 'localhost',
-      port: 27018
-    })
-  );
+  const dataService = new MongoClient(TEST_DATABASE_URI);
+
+  // TODO: With trackNewConnection ensure we're sending the
+  // connection's details.
+
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
   const testTelemetryController = new TelemetryController(
