@@ -272,10 +272,10 @@ export default class EditorsController {
 
       this._statusView.showMessage('Saving document...');
 
-      let newDocument: object = {};
+      let newDocument: EJSON.SerializableTypes = {};
 
       try {
-        newDocument = JSON.parse(activeEditor?.document.getText());
+        newDocument = EJSON.parse(activeEditor?.document.getText());
       } catch (error) {
         vscode.window.showErrorMessage(error.message);
 
@@ -287,7 +287,7 @@ export default class EditorsController {
         {
           _id: documentId
         },
-        EJSON.parse(EJSON.stringify(newDocument)),
+        newDocument,
         {
           returnOriginal: false
         },
