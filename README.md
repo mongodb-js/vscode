@@ -10,6 +10,7 @@ MongoDB for VS Code makes it easy to work with MongoDB, whether your own instanc
 
 - Navigate your database, collections and read-only views
 - See the documents in your collections
+- Edit documents and save changes to the database
 - Get a quick overview of your schema and your indexes
 
 ![Explore data with MongoDB for VS Code](resources/screenshots/explore-data.png)
