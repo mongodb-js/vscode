@@ -834,6 +834,7 @@
     "encoding": "^0.1.12",
     "micromatch": "^4.0.2",
     "mongodb": "^3.6.3",
+    "mongodb-build-info": "^1.1.1",
     "mongodb-cloud-info": "^1.1.2",
     "mongodb-ns": "^2.2.0",
     "mongodb-schema": "^8.2.5",

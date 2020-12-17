@@ -1,19 +1,20 @@
 import * as vscode from 'vscode';
-import { createLogger } from '../logging';
 import SegmentAnalytics = require('analytics-node');
 import * as path from 'path';
 import { config } from 'dotenv';
+import { MongoClient } from 'mongodb';
+
+import { createLogger } from '../logging';
 import { StorageController } from '../storage';
 import { ConnectionTypes } from '../connectionController';
-import { getCloudInfo } from 'mongodb-cloud-info';
 import type { ExecuteAllResult } from '../utils/types';
-import { MongoClient } from 'mongodb';
+import {
+  getConnectionTelemetryProperties,
+  NewConnectionTelemetryEventProperties
+} from './telemetryConnectionHelper';
 
 const log = createLogger('telemetry');
 const fs = require('fs');
-
-const ATLAS_REGEX = /mongodb.net[:/]/i;
-const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
 
 type PlaygroundTelemetryEventProperties = {
   type: string | null;
@@ -27,11 +28,6 @@ type SegmentProperties = {
   properties?: any;
 };
 
-type CloudInfo = {
-  isPublicCloud?: boolean;
-  publicCloudName?: string | null;
-};
-
 type LinkClickedTelemetryEventProperties = {
   screen: string;
   // eslint-disable-next-line camelcase
@@ -40,25 +36,6 @@ type LinkClickedTelemetryEventProperties = {
 
 type ExtensionCommandRunTelemetryEventProperties = {
   command: string;
-};
-
-type NewConnectionTelemetryEventProperties = {
-  /* eslint-disable camelcase */
-  is_atlas: boolean;
-  is_localhost: boolean;
-  is_data_lake: boolean;
-  is_enterprise: boolean;
-  is_public_cloud?: boolean;
-  public_cloud_name?: string | null;
-  is_genuine: boolean;
-  non_genuine_server_name: string | null;
-  server_version: string;
-  server_arch: string;
-  server_os: string;
-  is_used_connect_screen: boolean;
-  is_used_command_palette: boolean;
-  is_used_saved_connection: boolean;
-  /* eslint-enable camelcase */
 };
 
 export type TelemetryEventProperties =
@@ -183,90 +160,24 @@ export default class TelemetryController {
     }
   }
 
-  private async getCloudInfoFromDataService(
-    firstServerHostname: string
-  ): Promise<CloudInfo> {
+  async trackNewConnection(
+    dataService: MongoClient,
+    connectionType: ConnectionTypes
+  ): Promise<void> {
     if (!this.needTelemetry()) {
-      return {};
+      return;
     }
 
     try {
-      const cloudInfo = await getCloudInfo(firstServerHostname);
+      const connectionTelemetryProperties = await getConnectionTelemetryProperties(
+        dataService,
+        connectionType
+      );
 
-      if (cloudInfo.isAws) {
-        return {
-          isPublicCloud: true,
-          publicCloudName: 'aws'
-        };
-      }
-      if (cloudInfo.isGcp) {
-        return {
-          isPublicCloud: true,
-          publicCloudName: 'gcp'
-        };
-      }
-      if (cloudInfo.isAzure) {
-        return {
-          isPublicCloud: true,
-          publicCloudName: 'azure'
-        };
-      }
-
-      return {
-        isPublicCloud: false,
-        publicCloudName: null
-      };
+      this.track(TelemetryEventTypes.NEW_CONNECTION, connectionTelemetryProperties);
     } catch (error) {
-      log.error('TELEMETRY cloud info error', error);
-
-      return {};
+      log.error('TELEMETRY data service error', error);
     }
-  }
-
-  trackNewConnection(
-    dataService: MongoClient,
-    connectionType: ConnectionTypes
-  ): void {
-    // TODO:
-    dataService.instance({}, async (error: any, data: any) => {
-      if (error) {
-        log.error('TELEMETRY data service error', error);
-      }
-
-      if (data) {
-        const firstServerHostname = dataService.client.model.hosts[0].host;
-        const cloudInfo = await this.getCloudInfoFromDataService(
-          firstServerHostname
-        );
-        const nonGenuineServerName = data.genuineMongoDB.isGenuine
-          ? null
-          : data.genuineMongoDB.dbType;
-
-        /* eslint-disable @typescript-eslint/camelcase */
-        const preparedProperties = {
-          is_atlas: !!data.client.s.url.match(ATLAS_REGEX),
-          is_localhost: !!data.client.s.url.match(LOCALHOST_REGEX),
-          is_data_lake: data.dataLake.isDataLake,
-          is_enterprise: data.build.enterprise_module,
-          is_public_cloud: cloudInfo.isPublicCloud,
-          public_cloud_name: cloudInfo.publicCloudName,
-          is_genuine: data.genuineMongoDB.isGenuine,
-          non_genuine_server_name: nonGenuineServerName,
-          server_version: data.build.version,
-          server_arch: data.build.raw.buildEnvironment.target_arch,
-          server_os: data.build.raw.buildEnvironment.target_os,
-          is_used_connect_screen:
-            connectionType === ConnectionTypes.CONNECTION_FORM,
-          is_used_command_palette:
-            connectionType === ConnectionTypes.CONNECTION_STRING,
-          is_used_saved_connection:
-            connectionType === ConnectionTypes.CONNECTION_ID
-        };
-        /* eslint-enable @typescript-eslint/camelcase */
-
-        this.track(TelemetryEventTypes.NEW_CONNECTION, preparedProperties);
-      }
-    });
   }
 
   trackCommandRun(command: string): void {
