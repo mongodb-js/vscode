@@ -49,8 +49,6 @@ export default class DocumentViewProvider
         );
       }
 
-      // this._documentIdStore.remove(documentIdReference);
-
       // Ensure we're still connected to the correct connection.
       if (connectionId !== this._connectionController.getActiveConnectionId()) {
         vscode.window.showErrorMessage(

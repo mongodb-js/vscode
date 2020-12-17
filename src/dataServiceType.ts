@@ -1,3 +1,5 @@
+import { EJSON } from 'bson';
+
 export type DataServiceType = {
   connect(callback: (error: Error | undefined) => void): void;
   disconnect(callback: (error: Error | undefined) => void): void;
@@ -22,7 +24,7 @@ export type DataServiceType = {
   findOneAndReplace(
     namespace: string,
     filter: object,
-    replacement: object,
+    replacement: EJSON.SerializableTypes,
     options: object,
     callback: (error: Error | undefined, result?: object) => void
   ): void;

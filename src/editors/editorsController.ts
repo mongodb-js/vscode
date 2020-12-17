@@ -287,7 +287,7 @@ export default class EditorsController {
         {
           _id: documentId
         },
-        newDocument,
+        EJSON.parse(EJSON.stringify(newDocument)),
         {
           returnOriginal: false
         },
