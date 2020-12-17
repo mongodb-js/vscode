@@ -19,9 +19,6 @@ const { version } = require('../../package.json');
 
 const log = createLogger('telemetry');
 
-const ATLAS_REGEX = /mongodb.net[:/]/i;
-const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
-
 type PlaygroundTelemetryEventProperties = {
   type: string | null;
   partial: boolean;
@@ -42,6 +39,9 @@ type LinkClickedTelemetryEventProperties = {
 type ExtensionCommandRunTelemetryEventProperties = {
   command: string;
 };
+
+const ATLAS_REGEX = /mongodb.net[:/]/i;
+const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
 
 export type NewConnectionTelemetryEventProperties = {
   /* eslint-disable camelcase */
