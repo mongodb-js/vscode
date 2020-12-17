@@ -19,6 +19,14 @@ export type DataServiceType = {
     callback: (error: Error | undefined, documents: object[]) => void
   ): void;
 
+  findOneAndReplace(
+    namespace: string,
+    filter: object,
+    replacement: object,
+    options: object,
+    callback: (error: Error | undefined, result?: object) => void
+  ): void;
+
   instance(opts: any, callback: any): any;
 
   client: any;

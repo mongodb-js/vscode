@@ -2,26 +2,48 @@ import { EJSON } from 'bson';
 import { v4 as uuidv4 } from 'uuid';
 
 // In order to provide opening documents with various _id types we need
-// to pass the _id from the document to open to vscode's document provider.
-// So that when we open a document we have an id in the uri which corresponds
-// to the document's _id in the `_ids` map.
-// We can't store the _id on the uri itself as the _id can potentially be large.
+// to pass the documentId and create associated documentIdReference.
+// documentId can potentially be large, therefore we want to avoid
+// passing it as a part of URI query.
 export default class DocumentIdStore {
-  _ids: { [key: string]: EJSON.SerializableTypes } = {};
+  _documents: {
+    documentIdReference: string;
+    documentId: EJSON.SerializableTypes;
+  }[] = [];
 
-  add(_id: EJSON.SerializableTypes): string {
-    const key = uuidv4();
+  add(documentId: EJSON.SerializableTypes): string {
+    const existingDocument = this._documents.find(
+      (item) => item.documentId === documentId
+    );
 
-    this._ids[key] = _id;
+    if (existingDocument) {
+      return existingDocument.documentIdReference;
+    }
 
-    return key;
+    const newDocument: {
+      documentIdReference: string;
+      documentId: EJSON.SerializableTypes;
+    } = {
+      documentIdReference: uuidv4(),
+      documentId
+    };
+
+    this._documents.push(newDocument);
+
+    return newDocument.documentIdReference;
   }
 
-  get(key: string): EJSON.SerializableTypes {
-    return this._ids[key];
+  get(documentIdReference: string): EJSON.SerializableTypes | undefined {
+    const existingDocument = this._documents.find(
+      (item) => item.documentIdReference === documentIdReference
+    );
+
+    return existingDocument?.documentId;
   }
 
-  remove(key: string): void {
-    delete this._ids[key];
+  removeByDocumentIdReference(documentIdReference: string): void {
+    this._documents = this._documents.filter(
+      (item) => item.documentIdReference !== documentIdReference
+    );
   }
 }

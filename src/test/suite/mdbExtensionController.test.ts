@@ -1,9 +1,9 @@
 import assert from 'assert';
+import * as fse from 'fs-extra';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
-import { VIEW_DOCUMENT_SCHEME } from '../../editors/documentProvider';
 import {
   CollectionTreeItem,
   CollectionTypes,
@@ -25,12 +25,20 @@ const testDatabaseURI = 'mongodb://localhost:27018';
 suite('MDBExtensionController Test Suite', function () {
   this.timeout(10000);
 
+  const sandbox = sinon.createSandbox();
+  const fakeShowInformationMessage = sinon.fake();
+
   beforeEach(() => {
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.
-    sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
+    sinon.replace(
+      vscode.window,
+      'showInformationMessage',
+      fakeShowInformationMessage
+    );
   });
   afterEach(() => {
+    sandbox.restore();
     sinon.restore();
   });
 
@@ -1217,37 +1225,316 @@ suite('MDBExtensionController Test Suite', function () {
       .then(done, done);
   });
 
-  test('mdb.viewDocument opens an editor with the document using its id', async () => {
+  test('documents can be opened from the sidebar and saved to MongoDB', async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      name: ''
+    };
+
     const mockOpenTextDocument = sinon.fake.resolves('magna carta');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    const documentItem = new DocumentTreeItem(
-      {
-        _id: 'pancakes'
-      },
-      'waffle.house',
-      0
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          query: [
+            '?documentLocation=mongodb',
+            'namespace=waffle.house',
+            'connectionId=tasty_sandwhich',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+          ].join('&')
+        },
+        getText: () => JSON.stringify(mockDocument),
+        save: () => {}
+      }
+    }));
+
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
     );
 
+    const mockGetActiveDataService = sinon.fake.returns({
+      find: (
+        namespace: string,
+        filter: object,
+        options: object,
+        callback: (error: Error | undefined, documents: object[]) => void
+      ) => {
+        callback(undefined, [mockDocument]);
+      },
+      findOneAndReplace: (
+        namespace: string,
+        filter: object,
+        replacement: object,
+        options: object,
+        callback: (error: Error | undefined, result: object) => void
+      ) => {
+        mockDocument.name = 'something sweet';
+        callback(undefined, mockDocument);
+      }
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+
+    const documentItem = new DocumentTreeItem(mockDocument, 'waffle.house', 0);
+
     await vscode.commands.executeCommand('mdb.viewDocument', documentItem);
+
     assert(
-      mockOpenTextDocument.firstArg.path.includes(
-        'waffle.house: "pancakes"'
-      )
+      mockOpenTextDocument.firstArg.path.includes('vscode-opened-documents')
     );
     assert(mockOpenTextDocument.firstArg.path.includes('.json'));
-    assert(mockOpenTextDocument.firstArg.scheme === VIEW_DOCUMENT_SCHEME);
+    assert(mockOpenTextDocument.firstArg.scheme === 'file');
     assert(mockOpenTextDocument.firstArg.query.includes('documentId='));
+    assert(mockOpenTextDocument.firstArg.query.includes('connectionId='));
     assert(
       mockOpenTextDocument.firstArg.query.includes('namespace=waffle.house')
     );
-
+    assert(
+      mockOpenTextDocument.firstArg.query.includes('documentLocation=mongodb')
+    );
     assert(
       mockShowTextDocument.firstArg === 'magna carta',
       'Expected it to call vscode to show the returned document from the provider'
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    assert(mockDocument.name === 'something sweet');
+
+    const expectedMessage =
+      "The document was saved successfully to 'waffle.house'";
+
+    assert(
+      fakeShowInformationMessage.firstArg === expectedMessage,
+      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeShowInformationMessage.firstArg}"`
+    );
+
+    await fse.remove(mockOpenTextDocument.firstArg.path);
+  });
+
+  test('if the active editor is missing, the save function does not call findOneAndReplace', async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      name: ''
+    };
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => null);
+
+    const mockGetActiveDataService = sinon.fake.returns({
+      findOneAndReplace: (
+        namespace: string,
+        filter: object,
+        replacement: object,
+        options: object,
+        callback: (error: Error | undefined, result: object) => void
+      ) => {
+        mockDocument.name = 'something sweet';
+        callback(undefined, mockDocument);
+      }
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    assert(mockDocument.name === '');
+  });
+
+  test("json files that are not MongoDB documents won't be saved to database", async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      name: ''
+    };
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          query: ''
+        }
+      }
+    }));
+
+    const mockGetActiveDataService = sinon.fake.returns({
+      findOneAndReplace: (
+        namespace: string,
+        filter: object,
+        replacement: object,
+        options: object,
+        callback: (error: Error | undefined, result: object) => void
+      ) => {
+        mockDocument.name = 'something sweet';
+        callback(undefined, mockDocument);
+      }
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    assert(mockDocument.name === '');
+  });
+
+  test("if a user is not connected, documents won't be saved to MongoDB", async () => {
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          query: [
+            '?documentLocation=mongodb',
+            'namespace=waffle.house',
+            'connectionId=tasty_sandwhich',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+          ].join('&')
+        }
+      }
+    }));
+
+    const mockActiveConnectionId = sinon.fake.returns(null);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    const expectedMessage =
+      'Unable to save document: no longer connected to tasty_sandwhich';
+
+    assert(
+      fakeVscodeErrorMessage.firstArg === expectedMessage,
+      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
+    );
+  });
+
+  test("if a user switched the active connection, document opened from the previous connection can't be saved", async () => {
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          query: [
+            '?documentLocation=mongodb',
+            'namespace=waffle.house',
+            'connectionId=tasty_sandwhich',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+          ].join('&')
+        }
+      }
+    }));
+
+    const mockActiveConnectionId = sinon.fake.returns('berlin.coctails');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    const expectedMessage =
+      'Unable to save document: no longer connected to tasty_sandwhich';
+
+    assert(
+      fakeVscodeErrorMessage.firstArg === expectedMessage,
+      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
+    );
+  });
+
+  test('if dataservice is missing an error occurs', async () => {
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          query: [
+            '?documentLocation=mongodb',
+            'namespace=waffle.house',
+            'connectionId=tasty_sandwhich',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+          ].join('&')
+        }
+      }
+    }));
+
+    const mockGetActiveDataService = sinon.fake.returns(null);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    const expectedMessage =
+      'Unable to save document: no longer connected to tasty_sandwhich';
+
+    assert(
+      fakeVscodeErrorMessage.firstArg === expectedMessage,
+      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
+    );
+  });
+
+  test('if dataservice is missing an error occurs', async () => {
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          query: [
+            '?documentLocation=mongodb',
+            'namespace=waffle.house',
+            'connectionId=tasty_sandwhich',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+          ].join('&')
+        },
+        getText: () => '{'
+      }
+    }));
+
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    const expectedMessage =
+      'Unable to save document: no longer connected to tasty_sandwhich';
+
+    assert(
+      fakeVscodeErrorMessage.firstArg === expectedMessage,
+      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
     );
   });
 

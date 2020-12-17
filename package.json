@@ -219,6 +219,10 @@
         "title": "MongoDB: Run Selected Lines From Playground"
       },
       {
+        "command": "mdb.saveDocumentToMongoDB",
+        "title": "MongoDB: Save Document To MongoDB"
+      },
+      {
         "command": "mdb.runAllPlaygroundBlocks",
         "title": "MongoDB: Run All From Playground"
       },
@@ -534,6 +538,10 @@
       ],
       "commandPalette": [
         {
+          "command": "mdb.saveDocumentToMongoDB",
+          "when": "editorLangId == json"
+        },
+        {
           "command": "mdb.runSelectedPlaygroundBlocks",
           "when": "editorLangId == mongodb"
         },
@@ -679,6 +687,12 @@
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
         "when": "editorLangId == mongodb"
+      },
+      {
+        "command": "mdb.saveDocumentToMongoDB",
+        "key": "ctrl+s",
+        "mac": "cmd+s",
+        "when": "editorLangId == json"
       }
     ],
     "capabilities": {
