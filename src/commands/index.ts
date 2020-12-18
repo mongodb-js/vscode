@@ -1,4 +1,3 @@
-
 enum EXTENSION_COMMANDS {
   MDB_CONNECT = 'mdb.connect',
   MDB_CONNECT_WITH_URI = 'mdb.connectWithURI',
@@ -14,6 +13,8 @@ enum EXTENSION_COMMANDS {
   MDB_RUN_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runSelectedPlaygroundBlocks',
   MDB_RUN_ALL_PLAYGROUND_BLOCKS = 'mdb.runAllPlaygroundBlocks',
   MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runPlayground',
+
+  MDB_SAVE_DOCUMENT_TO_MONGODB = 'mdb.saveDocumentToMongoDB',
 
   MDB_CHANGE_ACTIVE_CONNECTION = 'mdb.changeActiveConnection',
   MDB_REFRESH_PLAYGROUNDS = 'mdb.refreshPlaygrounds',

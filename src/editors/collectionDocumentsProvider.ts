@@ -5,13 +5,15 @@ import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsS
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
 
+export const DOCUMENT_LOCATION_URI_IDENTIFIER = 'documentLocation';
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
 export const CONNECTION_ID_URI_IDENTIFIER = 'connectionId';
 
 export const VIEW_COLLECTION_SCHEME = 'VIEW_COLLECTION_SCHEME';
 
-export default class CollectionViewProvider implements vscode.TextDocumentContentProvider {
+export default class CollectionViewProvider
+  implements vscode.TextDocumentContentProvider {
   _connectionController: ConnectionController;
   _operationsStore: CollectionDocumentsOperationsStore;
   _statusView: StatusView;

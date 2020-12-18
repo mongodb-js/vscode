@@ -12,7 +12,8 @@ export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
 export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
-export default class DocumentViewProvider implements vscode.TextDocumentContentProvider {
+export default class DocumentViewProvider
+  implements vscode.TextDocumentContentProvider {
   _connectionController: ConnectionController;
   _documentIdStore: DocumentIdStore;
   _statusView: StatusView;
@@ -36,20 +37,17 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
       const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER) || '';
       const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
 
-      const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
+      const documentIdReference =
+        uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
       const documentId = this._documentIdStore.get(documentIdReference);
       if (!documentId) {
         vscode.window.showErrorMessage(
           'Unable to fetch document: reference has expired.'
         );
         return reject(
-          new Error(
-            'Unable to fetch document: reference has expired.'
-          )
+          new Error('Unable to fetch document: reference has expired.')
         );
       }
-
-      this._documentIdStore.remove(documentIdReference);
 
       // Ensure we're still connected to the correct connection.
       if (connectionId !== this._connectionController.getActiveConnectionId()) {
@@ -90,7 +88,9 @@ export default class DocumentViewProvider implements vscode.TextDocumentContentP
           }
 
           if (!documents || documents.length === 0) {
-            const errorMessage = `Unable to find document: ${JSON.stringify(documentId)}`;
+            const errorMessage = `Unable to find document: ${JSON.stringify(
+              documentId
+            )}`;
             vscode.window.showErrorMessage(errorMessage);
             return reject(new Error(errorMessage));
           }

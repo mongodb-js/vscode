@@ -85,7 +85,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._editorsController = new EditorsController(
       context,
       this._connectionController,
-      this._playgroundController
+      this._playgroundController,
+      this._statusView
     );
     this._webviewController = new WebviewController(
       this._connectionController,
@@ -132,24 +133,28 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL, () =>
       launchMongoShell(this._connectionController)
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW, () =>
-      launchMongoShell(this._connectionController)
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW,
+      () => launchMongoShell(this._connectionController)
     );
 
     this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND, () =>
       this._playgroundController.createPlayground()
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE, () =>
-      this._playgroundController.createPlayground()
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE,
+      () => this._playgroundController.createPlayground()
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS, () =>
-      this._playgroundController.runSelectedPlaygroundBlocks()
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS,
+      () => this._playgroundController.runSelectedPlaygroundBlocks()
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_RUN_ALL_PLAYGROUND_BLOCKS, () =>
       this._playgroundController.runAllPlaygroundBlocks()
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS, () =>
-      this._playgroundController.runAllOrSelectedPlaygroundBlocks()
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
+      () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION, () =>
       this._connectionController.changeActiveConnection()
@@ -158,8 +163,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundsExplorer.refresh()
     );
 
-    this.registerCommand(EXTENSION_COMMANDS.MDB_START_LANGUAGE_STREAM_LOGS, () =>
-      this._languageServerController.startStreamLanguageServerLogs()
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_START_LANGUAGE_STREAM_LOGS,
+      () => this._languageServerController.startStreamLanguageServerLogs()
+    );
+
+    this.registerCommand(EXTENSION_COMMANDS.MDB_SAVE_DOCUMENT_TO_MONGODB, () =>
+      this._editorsController.saveDocumentToMongoDB()
     );
 
     this.registerEditorCommands();
@@ -204,8 +214,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(EXTENSION_COMMANDS.MDB_ADD_CONNECTION_WITH_URI, () =>
       this._connectionController.connectWithURI()
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW, () =>
-      this._playgroundsExplorer.refresh()
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,
+      () => this._playgroundsExplorer.refresh()
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
@@ -219,11 +230,14 @@ export default class MDBExtensionController implements vscode.Disposable {
           connectionTreeItem.connectionId
         )
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW, () => {
-      // In order for this command to be activated, the connection must
-      // be the active connection, so we can just generally disconnect.
-      return this._connectionController.disconnect();
-    });
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW,
+      () => {
+        // In order for this command to be activated, the connection must
+        // be the active connection, so we can just generally disconnect.
+        return this._connectionController.disconnect();
+      }
+    );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_CONNECTION,
       (connectionTreeItem: ConnectionTreeItem) => {
@@ -464,11 +478,13 @@ export default class MDBExtensionController implements vscode.Disposable {
         );
       }
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_VIEW_ACTION, () =>
-      this._playgroundController.createPlayground()
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_VIEW_ACTION,
+      () => this._playgroundController.createPlayground()
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER, () =>
-      this._playgroundController.createPlayground()
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER,
+      () => this._playgroundController.createPlayground()
     );
   }
 
