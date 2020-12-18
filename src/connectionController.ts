@@ -13,6 +13,7 @@ import { SavedConnection, StorageScope } from './storage/storageController';
 import TelemetryController from './telemetry/telemetryController';
 import { ext } from './extensionConstants';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
+import SSH_TUNNEL_TYPES from './views/webview-app/connection-model/constants/ssh-tunnel-types';
 
 const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
@@ -268,24 +269,50 @@ export default class ConnectionController {
     return connectionModel;
   };
 
-  public saveNewConnectionAndConnect = async (
-    connectionModel: ConnectionModelType,
-    connectionType: ConnectionTypes
-  ): Promise<ConnectionAttemptResult> => {
+  public getConnectionNameFromConnectionModel = (
+    connectionModel: ConnectionModelType
+  ): string => {
     const {
-      instanceId,
       sshTunnelOptions
     } = connectionModel.getAttributes({
       derived: true
     });
+
+    if (
+      connectionModel.sshTunnel &&
+      connectionModel.sshTunnel !== SSH_TUNNEL_TYPES.NONE &&
+      sshTunnelOptions.host &&
+      sshTunnelOptions.port
+    ) {
+      return `SSH to ${connectionModel.hosts.map(
+        ({ host, port }) => `${host}:${port}`
+      ).join(',')}`;
+    }
+
+    if (connectionModel.isSrvRecord) {
+      return connectionModel.hostname;
+    }
+
+    if (connectionModel.hosts && connectionModel.hosts.length > 0) {
+      return connectionModel.hosts.map(
+        ({ host, port }) => `${host}:${port}`
+      ).join(',');
+    }
+
+    return connectionModel.hostname;
+  };
+
+  public saveNewConnectionAndConnect = async (
+    connectionModel: ConnectionModelType,
+    connectionType: ConnectionTypes
+  ): Promise<ConnectionAttemptResult> => {
     const connectionId = uuidv4();
     const connectionInformation: SavedConnectionInformation = {
       connectionModel
     };
-    const connectionName =
-      sshTunnelOptions.host && sshTunnelOptions.port
-        ? `${sshTunnelOptions.host}:${sshTunnelOptions.port}`
-        : instanceId;
+    const connectionName = this.getConnectionNameFromConnectionModel(
+      connectionModel
+    );
     const savedConnection: SavedConnection = {
       id: connectionId,
       name: connectionName,
@@ -321,9 +348,7 @@ export default class ConnectionController {
   ): Promise<ConnectionAttemptResult> => {
     log.info(
       'Connect called to connect to instance:',
-      connectionModel.getAttributes({
-        derived: true
-      }).instanceId
+      this.getConnectionNameFromConnectionModel(connectionModel)
     );
 
     // Store a version of this connection, so we can see when the conection
