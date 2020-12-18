@@ -34,7 +34,6 @@ suite('Telemetry Controller Test Suite', () => {
   let mockTrackPlaygroundCodeExecuted: Promise<void>;
   let mockTrackPlaygroundLoadedMethod: Promise<void>;
   let mockTrackPlaygroundSavedMethod: Promise<void>;
-  let mockTrack: Promise<void>;
 
   beforeEach(() => {
     mockTrackNewConnection = sinon.fake.resolves(true);
@@ -42,7 +41,6 @@ suite('Telemetry Controller Test Suite', () => {
     mockTrackPlaygroundCodeExecuted = sinon.fake.resolves();
     mockTrackPlaygroundLoadedMethod = sinon.fake.resolves();
     mockTrackPlaygroundSavedMethod = sinon.fake.resolves();
-    mockTrack = sinon.fake.resolves();
 
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryController,
