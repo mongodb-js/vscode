@@ -98,7 +98,7 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
     }
   };
 
-  onHostChanged = (updatedHost, hostIndex): void => {
+  onHostChanged = (updatedHost: Host, hostIndex: number): void => {
     const { hosts } = this.props;
 
     const newHosts = [ ...hosts ];
@@ -127,10 +127,18 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
 
   onHostnameChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onHostnameChanged(event.target.value);
+    this.onHostChanged({
+      host: event.target.value,
+      port: this.props.hosts[0].port
+    }, 0);
   };
 
   onPortChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onPortChanged(+event.target.value.trim());
+    this.onHostChanged({
+      host: this.props.hosts[0].host,
+      port: +event.target.value.trim()
+    }, 0);
   };
 
   onRemoveHost = (
@@ -247,7 +255,7 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
               placeholder="27017"
               changeHandler={(event: React.ChangeEvent<HTMLInputElement>): void => this.onHostChanged({
                 host: host.host,
-                port: event.target.value
+                port: +event.target.value.trim()
               }, index)}
               value={host.port}
               type="number"

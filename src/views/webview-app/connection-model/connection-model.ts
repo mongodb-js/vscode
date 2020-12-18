@@ -235,7 +235,7 @@ const validateSshTunnel = (attrs: ConnectionModel): void => {
   }
 };
 
-const validateConnectionModel = (attrs: ConnectionModel): Error | undefined => {
+export const validateConnectionModel = (attrs: ConnectionModel): Error | undefined => {
   try {
     validateSsl(attrs);
     validateMongodb(attrs);
@@ -248,5 +248,4 @@ const validateConnectionModel = (attrs: ConnectionModel): Error | undefined => {
   }
 };
 
-export { validateConnectionModel };
 export default ConnectionModel;

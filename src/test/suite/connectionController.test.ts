@@ -19,7 +19,7 @@ import { TestExtensionContext } from './stubs';
 import { TEST_DATABASE_URI } from './dbTestHelper';
 import { ConnectionModelType } from '../../connectionModelType';
 
-const testDatabaseInstanceId = 'localhost:27018';
+const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
@@ -98,9 +98,9 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(connectionModel !== null);
     assert(
-      connectionModel?.getAttributes({
-        derived: true
-      }).instanceId === 'localhost:27018'
+      testConnectionController.getConnectionNameFromConnectionModel(
+        connectionModel
+      ) === 'localhost:27018'
     );
     assert(dataService !== null);
     assert(
@@ -206,7 +206,7 @@ suite('Connection Controller Test Suite', function () {
       );
       assert(
         testConnectionController.getActiveConnectionId() === null,
-        'Expected to current connection instanceId to be null (not connected).'
+        'Expected to current connection id to be null (not connected).'
       );
     }
   });
@@ -367,8 +367,8 @@ suite('Connection Controller Test Suite', function () {
     const id = Object.keys(globalStoreConnections)[0];
 
     assert(
-      globalStoreConnections[id].name === testDatabaseInstanceId,
-      `Expected global stored connection to have correct name '${testDatabaseInstanceId}' found ${globalStoreConnections[id].name}`
+      globalStoreConnections[id].name === testDatabaseConnectionName,
+      `Expected global stored connection to have correct name '${testDatabaseConnectionName}' found ${globalStoreConnections[id].name}`
     );
 
     const workspaceStoreConnections = mockStorageController.get(
@@ -408,8 +408,8 @@ suite('Connection Controller Test Suite', function () {
     const id = Object.keys(workspaceStoreConnections)[0];
 
     assert(
-      workspaceStoreConnections[id].name === testDatabaseInstanceId,
-      `Expected workspace stored connection to have correct name '${testDatabaseInstanceId}' found ${workspaceStoreConnections[id].name}`
+      workspaceStoreConnections[id].name === testDatabaseConnectionName,
+      `Expected workspace stored connection to have correct name '${testDatabaseConnectionName}' found ${workspaceStoreConnections[id].name}`
     );
 
     const globalStoreConnections = mockStorageController.get(
@@ -535,6 +535,69 @@ suite('Connection Controller Test Suite', function () {
       `Expected to be returned the driver uri "${expectedDriverUri}" found ${testDriverUri}`
     );
   });
+
+  test(
+    '"getConnectionNameFromConnectionModel" returns a connection\'s name',
+    () => {
+      const testConnections: {
+      model: ConnectionModelType;
+      name: string;
+    }[] = [{
+      model: new Connection({
+        hosts: [{
+          host: 'pineapple',
+          port: 27020
+        }]
+      }),
+      name: 'pineapple:27020'
+    }, {
+      model: new Connection({
+        hostname: 'alaska',
+        port: 27020,
+        hosts: [{
+          host: 'wyoming',
+          port: 28001
+        }],
+        isSrvRecord: true
+      }),
+      name: 'alaska'
+    }, {
+      model: new Connection({
+        hostname: 'pineapple',
+        port: 27020,
+        hosts: [{
+          host: 'kentucky',
+          port: 28001
+        }, {
+          host: 'nebraska',
+          port: 28002
+        }]
+      }),
+      name: 'kentucky:28001,nebraska:28002'
+    }, {
+      model: new Connection({
+        sshTunnel: 'USER_PASSWORD',
+        sshTunnelHostname: 'california',
+        sshTunnelPort: 29222,
+        hosts: [{
+          host: 'alabama',
+          port: 28123
+        }]
+      }),
+      name: 'ssh tunnel to alabama:28123'
+    }];
+
+      testConnections.forEach(connection => {
+        const name = testConnectionController.getConnectionNameFromConnectionModel(
+          connection.model
+        );
+        assert(
+          name === connection.name,
+          `Expected to be returned the name "${connection.name}" found ${name}`
+        );
+      });
+    }
+  );
 
   test('when a connection is added and the user has set it to not save on default it is not saved', async () => {
     await testConnectionController.loadSavedConnections();

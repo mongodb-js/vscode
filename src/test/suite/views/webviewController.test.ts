@@ -164,7 +164,8 @@ suite('Webview Test Suite', () => {
         command: MESSAGE_TYPES.CONNECT,
         connectionModel: {
           port: connectionModel.port,
-          hostname: connectionModel.hostname
+          hostname: connectionModel.hostname,
+          hosts: connectionModel.hosts
         }
       });
     });
@@ -237,7 +238,8 @@ suite('Webview Test Suite', () => {
         command: MESSAGE_TYPES.CONNECT,
         connectionModel: {
           port: connectionModel.port,
-          hostname: connectionModel.hostname
+          hostname: connectionModel.hostname,
+          hosts: connectionModel.hosts
         }
       });
     });
