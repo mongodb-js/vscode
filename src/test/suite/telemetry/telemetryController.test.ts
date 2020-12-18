@@ -1,9 +1,6 @@
 import * as vscode from 'vscode';
-import { StorageController } from '../../../storage';
-import { TestExtensionContext } from '../stubs';
 import { resolve } from 'path';
 import { config } from 'dotenv';
-import TelemetryController from '../../../telemetry/telemetryController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { afterEach, beforeEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
@@ -29,17 +26,15 @@ suite('Telemetry Controller Test Suite', () => {
       port: 27018
     })
   );
-  const mockExtensionContext = new TestExtensionContext();
-  const mockStorageController = new StorageController(mockExtensionContext);
-  const testTelemetryController = new TelemetryController(
-    mockStorageController,
-    mockExtensionContext
-  );
+  const testTelemetryController =
+    mdbTestExtension.testExtensionController._telemetryController;
+
   let mockTrackNewConnection: Promise<any>;
   let mockTrackCommandRun: Promise<void>;
   let mockTrackPlaygroundCodeExecuted: Promise<void>;
   let mockTrackPlaygroundLoadedMethod: Promise<void>;
   let mockTrackPlaygroundSavedMethod: Promise<void>;
+  let mockTrack: Promise<void>;
 
   beforeEach(() => {
     mockTrackNewConnection = sinon.fake.resolves(true);
@@ -47,6 +42,7 @@ suite('Telemetry Controller Test Suite', () => {
     mockTrackPlaygroundCodeExecuted = sinon.fake.resolves();
     mockTrackPlaygroundLoadedMethod = sinon.fake.resolves();
     mockTrackPlaygroundSavedMethod = sinon.fake.resolves();
+    mockTrack = sinon.fake.resolves();
 
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryController,
@@ -153,6 +149,22 @@ suite('Telemetry Controller Test Suite', () => {
       mockTrackNewConnection,
       sinon.match.any,
       sinon.match(ConnectionTypes.CONNECTION_ID)
+    );
+  });
+
+  test('track document saved form a tree-view event', () => {
+    const mockTrack = sinon.replace(
+      testTelemetryController,
+      'track',
+      sinon.fake.resolves()
+    );
+
+    testTelemetryController.trackDocumentUpdated('treeview', true);
+
+    sinon.assert.calledWith(
+      mockTrack,
+      sinon.match('Document Updated'),
+      sinon.match({ source: 'treeview', success: true })
     );
   });
 

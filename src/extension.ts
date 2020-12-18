@@ -34,7 +34,9 @@ export function activate(context: vscode.ExtensionContext): void {
     // Couldn't load keytar, proceed without storing & loading connections.
   }
 
-  mdbExtension = new MDBExtensionController(context);
+  const needTelemetry = true;
+
+  mdbExtension = new MDBExtensionController(context, needTelemetry);
   mdbExtension.activate();
 
   // Add our extension to a list of disposables for when we are deactivated.

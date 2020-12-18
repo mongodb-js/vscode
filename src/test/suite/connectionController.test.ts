@@ -889,14 +889,20 @@ suite('Connection Controller Test Suite', function () {
       const currentConnectingVersion = testConnectionController.getConnectingVersion();
 
       assert(currentConnectingVersion !== null);
-      assert(currentConnectingVersion === testConnectionController._connections[
-        Object.keys(testConnectionController._connections)[0]
-      ].id);
+      assert(
+        currentConnectingVersion ===
+          testConnectionController._connections[
+            Object.keys(testConnectionController._connections)[0]
+          ].id
+      );
 
       await testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
       );
-      assert(testConnectionController.getConnectingVersion() !== currentConnectingVersion);
+      assert(
+        testConnectionController.getConnectingVersion() !==
+          currentConnectingVersion
+      );
     });
 
     test('it only connects to the most recent connection attempt', async () => {
@@ -989,9 +995,7 @@ suite('Connection Controller Test Suite', function () {
     sinon.replace(
       DataService.prototype,
       'connect',
-      sinon.fake(async (
-        callback
-      ) => {
+      sinon.fake(async (callback) => {
         await sleep(50);
 
         return originalConnect(callback);

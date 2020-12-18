@@ -13,7 +13,6 @@ import { SavedConnection, StorageScope } from './storage/storageController';
 import TelemetryController from './telemetry/telemetryController';
 import { ext } from './extensionConstants';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
-import SSH_TUNNEL_TYPES from './views/webview-app/connection-model/constants/ssh-tunnel-types';
 
 const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
@@ -269,50 +268,21 @@ export default class ConnectionController {
     return connectionModel;
   };
 
-  public getConnectionNameFromConnectionModel = (
-    connectionModel: ConnectionModelType
-  ): string => {
-    const {
-      sshTunnelOptions
-    } = connectionModel.getAttributes({
-      derived: true
-    });
-
-    if (
-      connectionModel.sshTunnel &&
-      connectionModel.sshTunnel !== SSH_TUNNEL_TYPES.NONE &&
-      sshTunnelOptions.host &&
-      sshTunnelOptions.port
-    ) {
-      return `SSH to ${connectionModel.hosts.map(
-        ({ host, port }) => `${host}:${port}`
-      ).join(',')}`;
-    }
-
-    if (connectionModel.isSrvRecord) {
-      return connectionModel.hostname;
-    }
-
-    if (connectionModel.hosts && connectionModel.hosts.length > 0) {
-      return connectionModel.hosts.map(
-        ({ host, port }) => `${host}:${port}`
-      ).join(',');
-    }
-
-    return connectionModel.hostname;
-  };
-
   public saveNewConnectionAndConnect = async (
     connectionModel: ConnectionModelType,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> => {
+    const { instanceId, sshTunnelOptions } = connectionModel.getAttributes({
+      derived: true
+    });
     const connectionId = uuidv4();
     const connectionInformation: SavedConnectionInformation = {
       connectionModel
     };
-    const connectionName = this.getConnectionNameFromConnectionModel(
-      connectionModel
-    );
+    const connectionName =
+      sshTunnelOptions.host && sshTunnelOptions.port
+        ? `${sshTunnelOptions.host}:${sshTunnelOptions.port}`
+        : instanceId;
     const savedConnection: SavedConnection = {
       id: connectionId,
       name: connectionName,
@@ -348,7 +318,9 @@ export default class ConnectionController {
   ): Promise<ConnectionAttemptResult> => {
     log.info(
       'Connect called to connect to instance:',
-      this.getConnectionNameFromConnectionModel(connectionModel)
+      connectionModel.getAttributes({
+        derived: true
+      }).instanceId
     );
 
     // Store a version of this connection, so we can see when the conection
@@ -582,13 +554,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._connections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
-      );
+      connectionIds.map(
+        (id, index) => `${index + 1}: ${this._connections[id].name}`
+      ),
+      {
+        placeHolder: 'Choose a connection to remove...'
+      }
+    );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);

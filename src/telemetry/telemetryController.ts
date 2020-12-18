@@ -58,11 +58,17 @@ type NewConnectionTelemetryEventProperties = {
   is_used_saved_connection: boolean;
 };
 
+type DocumentUpdatedTelemetryEventProperties = {
+  source: string;
+  success: boolean;
+};
+
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
   | LinkClickedTelemetryEventProperties
   | ExtensionCommandRunTelemetryEventProperties
-  | NewConnectionTelemetryEventProperties;
+  | NewConnectionTelemetryEventProperties
+  | DocumentUpdatedTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -70,22 +76,26 @@ export enum TelemetryEventTypes {
   EXTENSION_COMMAND_RUN = 'Command Run',
   NEW_CONNECTION = 'New Connection',
   PLAYGROUND_SAVED = 'Playground Saved',
-  PLAYGROUND_LOADED = 'Playground Loaded'
+  PLAYGROUND_LOADED = 'Playground Loaded',
+  DOCUMENT_UPDATED = 'Document Updated'
 }
 
 /**
  * This controller manages telemetry.
  */
 export default class TelemetryController {
+  public _needTelemetry: boolean;
   private _segmentAnalytics: SegmentAnalytics;
   private _segmentUserID: string | undefined; // The user uuid from the global storage.
   private _segmentKey: string | undefined; // The segment API write key.
 
   constructor(
     storageController: StorageController,
-    context: vscode.ExtensionContext
+    context: vscode.ExtensionContext,
+    needTelemetry?: boolean
   ) {
     this._segmentUserID = storageController.getUserID();
+    this._needTelemetry = needTelemetry || false;
 
     config({ path: path.join(context.extensionPath, '.env') });
 
@@ -150,8 +160,20 @@ export default class TelemetryController {
     this._segmentAnalytics?.flush();
   }
 
-  public needTelemetry() {
-    return vscode.workspace.getConfiguration('mdb').get('sendTelemetry');
+  private needTelemetry(): boolean {
+    if (this._needTelemetry !== true) {
+      return false;
+    }
+
+    const confNeedTelemetry = vscode.workspace
+      .getConfiguration('mdb')
+      .get('sendTelemetry');
+
+    if (confNeedTelemetry === false) {
+      return false;
+    }
+
+    return true;
   }
 
   public track(
@@ -318,5 +340,12 @@ export default class TelemetryController {
 
   public async trackPlaygroundSaved(): Promise<void> {
     this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
+  }
+
+  public async trackDocumentUpdated(
+    source: string,
+    success: boolean
+  ): Promise<void> {
+    this.track(TelemetryEventTypes.DOCUMENT_UPDATED, { source, success });
   }
 }
