@@ -584,7 +584,7 @@ suite('Connection Controller Test Suite', function () {
           port: 28123
         }]
       }),
-      name: 'SSH tunnel to alabama:28123'
+      name: 'SSH to alabama:28123'
     }];
 
       testConnections.forEach(connection => {
