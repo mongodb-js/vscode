@@ -238,18 +238,31 @@ export default class EditorsController {
       const uriParams = new URLSearchParams(activeEditor.document.uri.query);
       const documentLocation =
         uriParams.get(DOCUMENT_LOCATION_URI_IDENTIFIER) || '';
+      const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER) || '';
+      const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
+      const documentIdReference =
+        uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
+      const documentId = this._documentIdStore.get(documentIdReference);
 
-      if (documentLocation !== 'mongodb') {
+      if (
+        documentLocation !== 'mongodb' ||
+        !namespace ||
+        !connectionId ||
+        !documentId
+      ) {
         vscode.commands.executeCommand('workbench.action.files.save');
 
         return resolve(true);
       }
 
-      const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
+      const activeConnectionId = this._connectionController.getActiveConnectionId();
+      const connectionName = this._connectionController.getSavedConnectionName(
+        connectionId
+      );
 
-      if (this._connectionController.getActiveConnectionId() !== connectionId) {
+      if (activeConnectionId !== connectionId) {
         vscode.window.showErrorMessage(
-          `Unable to save document: no longer connected to ${connectionId}`
+          `Unable to save document: no longer connected to '${connectionName}'`
         );
 
         return resolve(false);
@@ -259,16 +272,11 @@ export default class EditorsController {
 
       if (dataservice === null) {
         vscode.window.showErrorMessage(
-          `Unable to save document: no longer connected to ${connectionId}`
+          `Unable to save document: no longer connected to '${connectionName}'`
         );
 
         return resolve(false);
       }
-
-      const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER) || '';
-      const documentIdReference =
-        uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
-      const documentId = this._documentIdStore.get(documentIdReference);
 
       this._statusView.showMessage('Saving document...');
 

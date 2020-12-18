@@ -1243,6 +1243,14 @@ suite('MDBExtensionController Test Suite', function () {
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
+    const mockGet = sinon.fake.returns('pancakes');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController
+        ._documentIdStore,
+      'get',
+      mockGet
+    );
+
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
@@ -1369,7 +1377,134 @@ suite('MDBExtensionController Test Suite', function () {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
-          query: ''
+          query: [
+            'namespace=waffle.house',
+            'connectionId=tasty_sandwhich',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+          ].join('&')
+        }
+      }
+    }));
+
+    const mockGetActiveDataService = sinon.fake.returns({
+      findOneAndReplace: (
+        namespace: string,
+        filter: object,
+        replacement: object,
+        options: object,
+        callback: (error: Error | undefined, result: object) => void
+      ) => {
+        mockDocument.name = 'something sweet';
+        callback(undefined, mockDocument);
+      }
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    assert(mockDocument.name === '');
+  });
+
+  test("MongoDB documents without namespace parameter won't be saved to database", async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      name: ''
+    };
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          query: [
+            '?documentLocation=mongodb',
+            'connectionId=tasty_sandwhich',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+          ].join('&')
+        }
+      }
+    }));
+
+    const mockGetActiveDataService = sinon.fake.returns({
+      findOneAndReplace: (
+        namespace: string,
+        filter: object,
+        replacement: object,
+        options: object,
+        callback: (error: Error | undefined, result: object) => void
+      ) => {
+        mockDocument.name = 'something sweet';
+        callback(undefined, mockDocument);
+      }
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    assert(mockDocument.name === '');
+  });
+
+  test("MongoDB documents without connectionId parameter won't be saved to database", async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      name: ''
+    };
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          query: [
+            '?documentLocation=mongodb',
+            'namespace=waffle.house',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+          ].join('&')
+        }
+      }
+    }));
+
+    const mockGetActiveDataService = sinon.fake.returns({
+      findOneAndReplace: (
+        namespace: string,
+        filter: object,
+        replacement: object,
+        options: object,
+        callback: (error: Error | undefined, result: object) => void
+      ) => {
+        mockDocument.name = 'something sweet';
+        callback(undefined, mockDocument);
+      }
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+
+    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+
+    assert(mockDocument.name === '');
+  });
+
+  test("MongoDB documents without documentId parameter won't be saved to database", async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      name: ''
+    };
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          query: [
+            '?documentLocation=mongodb',
+            'namespace=waffle.house',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+          ].join('&')
         }
       }
     }));
@@ -1414,6 +1549,14 @@ suite('MDBExtensionController Test Suite', function () {
       }
     }));
 
+    const mockGet = sinon.fake.returns('pancakes');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController
+        ._documentIdStore,
+      'get',
+      mockGet
+    );
+
     const mockActiveConnectionId = sinon.fake.returns(null);
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
@@ -1421,10 +1564,17 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
+    const mockGetSavedConnectionName = sinon.fake.returns('connect:27017');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getSavedConnectionName',
+      mockGetSavedConnectionName
+    );
+
     await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
 
     const expectedMessage =
-      'Unable to save document: no longer connected to tasty_sandwhich';
+      "Unable to save document: no longer connected to 'connect:27017'";
 
     assert(
       fakeVscodeErrorMessage.firstArg === expectedMessage,
@@ -1435,6 +1585,14 @@ suite('MDBExtensionController Test Suite', function () {
   test("if a user switched the active connection, document opened from the previous connection can't be saved", async () => {
     const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    const mockGet = sinon.fake.returns('pancakes');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController
+        ._documentIdStore,
+      'get',
+      mockGet
+    );
 
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
@@ -1456,10 +1614,17 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
+    const mockGetSavedConnectionName = sinon.fake.returns('connect:27017');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getSavedConnectionName',
+      mockGetSavedConnectionName
+    );
+
     await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
 
     const expectedMessage =
-      'Unable to save document: no longer connected to tasty_sandwhich';
+      "Unable to save document: no longer connected to 'connect:27017'";
 
     assert(
       fakeVscodeErrorMessage.firstArg === expectedMessage,
@@ -1470,6 +1635,14 @@ suite('MDBExtensionController Test Suite', function () {
   test('if dataservice is missing, an error occurs', async () => {
     const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    const mockGet = sinon.fake.returns('pancakes');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController
+        ._documentIdStore,
+      'get',
+      mockGet
+    );
 
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
@@ -1498,10 +1671,17 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
+    const mockGetSavedConnectionName = sinon.fake.returns('connect:27017');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getSavedConnectionName',
+      mockGetSavedConnectionName
+    );
+
     await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
 
     const expectedMessage =
-      'Unable to save document: no longer connected to tasty_sandwhich';
+      "Unable to save document: no longer connected to 'connect:27017'";
 
     assert(
       fakeVscodeErrorMessage.firstArg === expectedMessage,
@@ -1512,6 +1692,14 @@ suite('MDBExtensionController Test Suite', function () {
   test('if a user saves an invalid javascript value, an error occurs', async () => {
     const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    const mockGet = sinon.fake.returns('pancakes');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController
+        ._documentIdStore,
+      'get',
+      mockGet
+    );
 
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
@@ -1534,10 +1722,17 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
+    const mockGetSavedConnectionName = sinon.fake.returns('connect:27017');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getSavedConnectionName',
+      mockGetSavedConnectionName
+    );
+
     await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
 
     const expectedMessage =
-      'Unable to save document: no longer connected to tasty_sandwhich';
+      "Unable to save document: no longer connected to 'connect:27017'";
 
     assert(
       fakeVscodeErrorMessage.firstArg === expectedMessage,
