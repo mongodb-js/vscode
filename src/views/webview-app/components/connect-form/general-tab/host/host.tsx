@@ -105,6 +105,12 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
 
     newHosts[hostIndex] = updatedHost;
 
+    if (hostIndex === 0) {
+      // Keep hostname and port synced with hosts[0].
+      this.props.onHostnameChanged(newHosts[hostIndex].host);
+      this.props.onPortChanged(newHosts[hostIndex].port);
+    }
+
     this.props.updateHosts(newHosts);
   };
 

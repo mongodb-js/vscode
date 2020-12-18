@@ -284,7 +284,7 @@ export default class ConnectionController {
       sshTunnelOptions.host &&
       sshTunnelOptions.port
     ) {
-      return `ssh tunnel to ${connectionModel.hosts.map(
+      return `SSH tunnel to ${connectionModel.hosts.map(
         ({ host, port }) => `${host}:${port}`
       ).join(',')}`;
     }
