@@ -328,9 +328,9 @@ export default class PlaygroundController {
       },
       (error) => {
         vscode.window.showErrorMessage(
-          `Unable to open results document: ${error.message}`
+          `Unable to open a result document: ${error.message}`
         );
-        log.error('Open playground ERROR', error);
+        log.error('Open result as VirtualDocument ERROR', error);
       }
     );
   }
