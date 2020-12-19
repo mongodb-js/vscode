@@ -165,7 +165,7 @@ suite('Telemetry Controller Test Suite', () => {
     sinon.assert.called(mockTrackPlaygroundCodeExecuted);
   });
 
-  test('track playground loaded and saved events', async () => {
+  test('track playground loaded event', async () => {
     const docPath = path.resolve(
       __dirname,
       '../../../../src/test/fixture/testSaving.mongodb'
@@ -174,6 +174,12 @@ suite('Telemetry Controller Test Suite', () => {
     await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
 
     sinon.assert.called(mockTrackPlaygroundLoadedMethod);
+  });
+
+  test('track playground saved event', async () => {
+    await testTelemetryController.trackPlaygroundSaved();
+
+    sinon.assert.calledWith(mockTrack);
   });
 
   suite('prepare playground result types', () => {

@@ -315,15 +315,24 @@ export default class PlaygroundController {
     );
   }
 
-  private openResultAsVirtualDocument(viewColumn) {
-    vscode.workspace
-      .openTextDocument(
-        this.getVirtualDocumentUri(this.playgroundResult?.content)
-      )
-      .then((doc) => {
+  private openResultAsVirtualDocument(viewColumn: vscode.ViewColumn) {
+    const content =
+      this.playgroundResult && this.playgroundResult.content
+        ? this.playgroundResult.content
+        : '';
+
+    vscode.workspace.openTextDocument(this.getVirtualDocumentUri(content)).then(
+      (doc) => {
         this._playgroundResultTextDocument = doc;
         vscode.window.showTextDocument(doc, { preview: false, viewColumn });
-      });
+      },
+      (error) => {
+        vscode.window.showErrorMessage(
+          `Unable to open results document: ${error.message}`
+        );
+        log.error('Open playground ERROR', error);
+      }
+    );
   }
 
   public evaluatePlayground(): Promise<boolean> {

@@ -536,68 +536,79 @@ suite('Connection Controller Test Suite', function () {
     );
   });
 
-  test(
-    '"getConnectionNameFromConnectionModel" returns a connection\'s name',
-    () => {
-      const testConnections: {
+  test('"getConnectionNameFromConnectionModel" returns a connection\'s name', () => {
+    const testConnections: {
       model: ConnectionModelType;
       name: string;
-    }[] = [{
-      model: new Connection({
-        hosts: [{
-          host: 'pineapple',
-          port: 27020
-        }]
-      }),
-      name: 'pineapple:27020'
-    }, {
-      model: new Connection({
-        hostname: 'alaska',
-        port: 27020,
-        hosts: [{
-          host: 'wyoming',
-          port: 28001
-        }],
-        isSrvRecord: true
-      }),
-      name: 'alaska'
-    }, {
-      model: new Connection({
-        hostname: 'pineapple',
-        port: 27020,
-        hosts: [{
-          host: 'kentucky',
-          port: 28001
-        }, {
-          host: 'nebraska',
-          port: 28002
-        }]
-      }),
-      name: 'kentucky:28001,nebraska:28002'
-    }, {
-      model: new Connection({
-        sshTunnel: 'USER_PASSWORD',
-        sshTunnelHostname: 'california',
-        sshTunnelPort: 29222,
-        hosts: [{
-          host: 'alabama',
-          port: 28123
-        }]
-      }),
-      name: 'SSH to alabama:28123'
-    }];
+    }[] = [
+      {
+        model: new Connection({
+          hosts: [
+            {
+              host: 'pineapple',
+              port: 27020
+            }
+          ]
+        }),
+        name: 'pineapple:27020'
+      },
+      {
+        model: new Connection({
+          hostname: 'alaska',
+          port: 27020,
+          hosts: [
+            {
+              host: 'wyoming',
+              port: 28001
+            }
+          ],
+          isSrvRecord: true
+        }),
+        name: 'alaska'
+      },
+      {
+        model: new Connection({
+          hostname: 'pineapple',
+          port: 27020,
+          hosts: [
+            {
+              host: 'kentucky',
+              port: 28001
+            },
+            {
+              host: 'nebraska',
+              port: 28002
+            }
+          ]
+        }),
+        name: 'kentucky:28001,nebraska:28002'
+      },
+      {
+        model: new Connection({
+          sshTunnel: 'USER_PASSWORD',
+          sshTunnelHostname: 'california',
+          sshTunnelPort: 29222,
+          hosts: [
+            {
+              host: 'alabama',
+              port: 28123
+            }
+          ]
+        }),
+        name: 'SSH to alabama:28123'
+      }
+    ];
 
-      testConnections.forEach(connection => {
-        const name = testConnectionController.getConnectionNameFromConnectionModel(
-          connection.model
-        );
-        assert(
-          name === connection.name,
-          `Expected to be returned the name "${connection.name}" found ${name}`
-        );
-      });
-    }
-  );
+    testConnections.forEach((connection) => {
+      const name = testConnectionController.getConnectionNameFromConnectionModel(
+        connection.model
+      );
+      assert(
+        name === connection.name,
+        `Expected to be returned the name "${connection.name}" found ${name}`
+      );
+    });
+  });
 
   test('when a connection is added and the user has set it to not save on default it is not saved', async () => {
     await testConnectionController.loadSavedConnections();
@@ -990,15 +1001,13 @@ suite('Connection Controller Test Suite', function () {
       storageLocation: StorageScope.NONE
     };
 
-    const originalConnect = DataService.connect;
-
     sinon.replace(
       DataService.prototype,
       'connect',
       sinon.fake(async (callback) => {
         await sleep(50);
 
-        return originalConnect(callback);
+        return callback(null, DataService);
       })
     );
 
