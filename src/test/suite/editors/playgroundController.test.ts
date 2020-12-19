@@ -5,9 +5,8 @@ import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
-import { before, after, beforeEach, afterEach } from 'mocha';
+import { before, beforeEach, afterEach } from 'mocha';
 import TelemetryController from '../../../telemetry/telemetryController';
-import { getDocUri, loadPlayground } from '../editorTestHelper';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -51,7 +50,7 @@ suite('Playground Controller Test Suite', function () {
   let fakeShowInformationMessage: any;
   let fakeShowErrorMessage: any;
 
-  before(() => {
+  beforeEach(() => {
     fakeShowInformationMessage = sandbox.stub(
       vscode.window,
       'showInformationMessage'
@@ -59,14 +58,13 @@ suite('Playground Controller Test Suite', function () {
     fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
-  after(() => {
+  afterEach(() => {
     sandbox.restore();
+    sinon.restore();
   });
 
   suite('playground is not open', () => {
-    before(() => {
-      testPlaygroundController.activeTextEditor = undefined;
-    });
+    testPlaygroundController.activeTextEditor = undefined;
 
     test('run all playground blocks should throw the playground not found error', async () => {
       const errorMessage =
@@ -109,10 +107,25 @@ suite('Playground Controller Test Suite', function () {
   });
 
   suite('playground is open', () => {
-    before(async () => {
-      testPlaygroundController.activeTextEditor = await loadPlayground(
-        getDocUri('testCodeLens.mongodb')
-      );
+    const activeTestEditorMock = {
+      document: {
+        languageId: 'mongodb',
+        uri: {
+          path: 'test'
+        },
+        getText: () => "use('dbName');",
+        lineAt: sinon.fake.returns({ text: "use('dbName');" })
+      },
+      selections: [
+        new vscode.Selection(
+          new vscode.Position(0, 0),
+          new vscode.Position(0, 0)
+        )
+      ]
+    };
+
+    beforeEach(() => {
+      testPlaygroundController.activeTextEditor = activeTestEditorMock as vscode.TextEditor;
     });
 
     suite('user is not connected', () => {
@@ -130,10 +143,6 @@ suite('Playground Controller Test Suite', function () {
           'getActiveConnectionModel',
           mockGetActiveConnectionModel
         );
-      });
-
-      after(() => {
-        sinon.restore();
       });
 
       test('run all playground blocks should throw the error', async () => {
@@ -198,10 +207,6 @@ suite('Playground Controller Test Suite', function () {
         );
 
         await testPlaygroundController.connectToServiceProvider();
-      });
-
-      afterEach(() => {
-        sinon.restore();
       });
 
       test('show a confirmation message if mdb.confirmRunAll is true', async () => {
@@ -274,6 +279,25 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('do not show code lens if a part of a line is selected', async () => {
+        const activeTestEditorWithSelectionMock = {
+          document: {
+            languageId: 'mongodb',
+            uri: {
+              path: 'test'
+            },
+            getText: () => 'dbName',
+            lineAt: sinon.fake.returns({ text: "use('dbName');" })
+          },
+          selections: [
+            new vscode.Selection(
+              new vscode.Position(0, 5),
+              new vscode.Position(0, 11)
+            )
+          ]
+        };
+
+        testPlaygroundController.activeTextEditor = activeTestEditorWithSelectionMock as vscode.TextEditor;
+
         testPlaygroundController.showCodeLensForSelection(
           new vscode.Range(0, 5, 0, 11)
         );
@@ -294,15 +318,6 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('playground controller loads the active editor on start', () => {
-        const activeTestEditorMock = {
-          document: {
-            languageId: '',
-            uri: {
-              path: 'test'
-            }
-          }
-        };
-
         sandbox.replaceGetter(
           vscode.window,
           'activeTextEditor',

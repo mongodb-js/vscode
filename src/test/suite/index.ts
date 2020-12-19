@@ -39,12 +39,10 @@ export function run(): Promise<void> {
         // Activate the extension.
         mdbTestExtension.testExtensionContext = new TestExtensionContext();
         mdbTestExtension.testExtensionController = new MDBExtensionController(
-          mdbTestExtension.testExtensionContext
+          mdbTestExtension.testExtensionContext,
+          false
         );
         mdbTestExtension.testExtensionController.activate();
-
-        // Disable metrics.
-        vscode.workspace.getConfiguration('mdb').update('sendTelemetry', false);
 
         // We avoid using the user's credential store when running tests
         // in order to ensure we're not polluting the credential store

@@ -3,18 +3,14 @@ import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import * as sinon from 'sinon';
 import Connection = require('mongodb-connection-model/lib/model');
-
-import MDBExtensionController from '../../../mdbExtensionController';
 import launchMongoShell from '../../../commands/launchMongoShell';
-
-import { TestExtensionContext } from '../stubs';
+import { mdbTestExtension } from '../stubbableMdbExtension';
 
 suite('Commands Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  const mockExtensionContext = new TestExtensionContext();
-  const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
-  const mockConnectionController = mockMDBExtension._connectionController;
+  const mockConnectionController =
+    mdbTestExtension.testExtensionController._connectionController;
   const sandbox = sinon.createSandbox();
 
   let fakeShowErrorMessage: any;
