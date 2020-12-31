@@ -1,14 +1,11 @@
 import * as vscode from 'vscode';
-import { StorageController } from '../../../storage';
-import { TestExtensionContext } from '../stubs';
+import * as path from 'path';
 import { resolve } from 'path';
 import { config } from 'dotenv';
-import TelemetryController from '../../../telemetry/telemetryController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { afterEach, beforeEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
 import { ConnectionTypes } from '../../../connectionController';
-import { getDocUri, loadAndSavePlayground } from '../editorTestHelper';
 import DataService = require('mongodb-data-service');
 
 const sinon = require('sinon');
@@ -29,24 +26,21 @@ suite('Telemetry Controller Test Suite', () => {
       port: 27018
     })
   );
-  const mockExtensionContext = new TestExtensionContext();
-  const mockStorageController = new StorageController(mockExtensionContext);
-  const testTelemetryController = new TelemetryController(
-    mockStorageController,
-    mockExtensionContext
-  );
+  const testTelemetryController =
+    mdbTestExtension.testExtensionController._telemetryController;
+
   let mockTrackNewConnection: Promise<any>;
   let mockTrackCommandRun: Promise<void>;
   let mockTrackPlaygroundCodeExecuted: Promise<void>;
   let mockTrackPlaygroundLoadedMethod: Promise<void>;
-  let mockTrackPlaygroundSavedMethod: Promise<void>;
+  let mockTrack: Promise<void>;
 
   beforeEach(() => {
     mockTrackNewConnection = sinon.fake.resolves(true);
     mockTrackCommandRun = sinon.fake.resolves();
     mockTrackPlaygroundCodeExecuted = sinon.fake.resolves();
     mockTrackPlaygroundLoadedMethod = sinon.fake.resolves();
-    mockTrackPlaygroundSavedMethod = sinon.fake.resolves();
+    mockTrack = sinon.fake.resolves();
 
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryController,
@@ -69,15 +63,11 @@ suite('Telemetry Controller Test Suite', () => {
       mockTrackPlaygroundLoadedMethod
     );
     sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
-      'trackPlaygroundSaved',
-      mockTrackPlaygroundSavedMethod
-    );
-    sinon.replace(
       mdbTestExtension.testExtensionController._languageServerController,
       'executeAll',
       sinon.fake.resolves([{ type: 'TEST', content: 'Result' }])
     );
+    sinon.replace(testTelemetryController, 'track', mockTrack);
   });
 
   afterEach(() => {
@@ -156,6 +146,16 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
+  test('track document saved form a tree-view event', async () => {
+    await testTelemetryController.trackDocumentUpdated('treeview', true);
+
+    sinon.assert.calledWith(
+      mockTrack,
+      sinon.match('Document Updated'),
+      sinon.match({ source: 'treeview', success: true })
+    );
+  });
+
   test('track playground code executed event', async () => {
     const mockPlaygroundController =
       mdbTestExtension.testExtensionController._playgroundController;
@@ -165,12 +165,21 @@ suite('Telemetry Controller Test Suite', () => {
     sinon.assert.called(mockTrackPlaygroundCodeExecuted);
   });
 
-  test('track playground loaded and saved events', async function () {
-    this.timeout(10000);
-    await loadAndSavePlayground(getDocUri('testSaving.mongodb'));
+  test('track playground loaded event', async () => {
+    const docPath = path.resolve(
+      __dirname,
+      '../../../../src/test/fixture/testSaving.mongodb'
+    );
+
+    await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
 
     sinon.assert.called(mockTrackPlaygroundLoadedMethod);
-    sinon.assert.called(mockTrackPlaygroundSavedMethod);
+  });
+
+  test('track playground saved event', async () => {
+    await testTelemetryController.trackPlaygroundSaved();
+
+    sinon.assert.calledWith(mockTrack);
   });
 
   suite('prepare playground result types', () => {

@@ -58,11 +58,17 @@ type NewConnectionTelemetryEventProperties = {
   is_used_saved_connection: boolean;
 };
 
+type DocumentUpdatedTelemetryEventProperties = {
+  source: string;
+  success: boolean;
+};
+
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
   | LinkClickedTelemetryEventProperties
   | ExtensionCommandRunTelemetryEventProperties
-  | NewConnectionTelemetryEventProperties;
+  | NewConnectionTelemetryEventProperties
+  | DocumentUpdatedTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -70,22 +76,26 @@ export enum TelemetryEventTypes {
   EXTENSION_COMMAND_RUN = 'Command Run',
   NEW_CONNECTION = 'New Connection',
   PLAYGROUND_SAVED = 'Playground Saved',
-  PLAYGROUND_LOADED = 'Playground Loaded'
+  PLAYGROUND_LOADED = 'Playground Loaded',
+  DOCUMENT_UPDATED = 'Document Updated'
 }
 
 /**
  * This controller manages telemetry.
  */
 export default class TelemetryController {
+  private _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
   private _segmentAnalytics: SegmentAnalytics;
   private _segmentUserID: string | undefined; // The user uuid from the global storage.
   private _segmentKey: string | undefined; // The segment API write key.
 
   constructor(
     storageController: StorageController,
-    context: vscode.ExtensionContext
+    context: vscode.ExtensionContext,
+    shouldTrackTelemetry?: boolean
   ) {
     this._segmentUserID = storageController.getUserID();
+    this._shouldTrackTelemetry = shouldTrackTelemetry || false;
 
     config({ path: path.join(context.extensionPath, '.env') });
 
@@ -150,15 +160,32 @@ export default class TelemetryController {
     this._segmentAnalytics?.flush();
   }
 
-  public needTelemetry() {
-    return vscode.workspace.getConfiguration('mdb').get('sendTelemetry');
+  // Checks user settings and extension running mode
+  // to determine whether or not we should track telemetry.
+  private isTelemetryFeatureEnabled(): boolean {
+    // If tests run the extension we do not track telemetry.
+    if (this._shouldTrackTelemetry !== true) {
+      return false;
+    }
+
+    const telemetryEnabledByUser = vscode.workspace
+      .getConfiguration('mdb')
+      .get('sendTelemetry');
+
+    // If the user disabled it in config do not track telemetry.
+    if (telemetryEnabledByUser === false) {
+      return false;
+    }
+
+    // Otherwise tracking telemetry is allowed.
+    return true;
   }
 
   public track(
     eventType: TelemetryEventTypes,
     properties?: TelemetryEventProperties
   ): void {
-    if (this.needTelemetry()) {
+    if (this.isTelemetryFeatureEnabled()) {
       const segmentProperties: SegmentProperties = {
         event: eventType,
         userId: this._segmentUserID
@@ -183,7 +210,7 @@ export default class TelemetryController {
   private async getCloudInfoFromDataService(
     firstServerHostname: string
   ): Promise<CloudInfo> {
-    if (!this.needTelemetry()) {
+    if (!this.isTelemetryFeatureEnabled()) {
       return {};
     }
 
@@ -318,5 +345,12 @@ export default class TelemetryController {
 
   public async trackPlaygroundSaved(): Promise<void> {
     this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
+  }
+
+  public async trackDocumentUpdated(
+    source: string,
+    success: boolean
+  ): Promise<void> {
+    this.track(TelemetryEventTypes.DOCUMENT_UPDATED, { source, success });
   }
 }

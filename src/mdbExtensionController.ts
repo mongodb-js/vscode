@@ -50,26 +50,21 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   constructor(
     context: vscode.ExtensionContext,
-    connectionController?: ConnectionController
+    options: { shouldTrackTelemetry?: boolean }
   ) {
     this._context = context;
     this._statusView = new StatusView(context);
     this._storageController = new StorageController(context);
     this._telemetryController = new TelemetryController(
       this._storageController,
-      context
+      context,
+      options.shouldTrackTelemetry
     );
-
-    if (connectionController) {
-      this._connectionController = connectionController;
-    } else {
-      this._connectionController = new ConnectionController(
-        this._statusView,
-        this._storageController,
-        this._telemetryController
-      );
-    }
-
+    this._connectionController = new ConnectionController(
+      this._statusView,
+      this._storageController,
+      this._telemetryController
+    );
     this._languageServerController = new LanguageServerController(context);
     this._explorerController = new ExplorerController(
       this._connectionController
@@ -86,7 +81,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       context,
       this._connectionController,
       this._playgroundController,
-      this._statusView
+      this._statusView,
+      this._telemetryController
     );
     this._webviewController = new WebviewController(
       this._connectionController,
@@ -489,15 +485,22 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   showOverviewPageIfRecentlyInstalled(): void {
-    const hasBeenShownViewAlready = this._storageController.get(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW);
+    const hasBeenShownViewAlready = this._storageController.get(
+      StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
+    );
     // Show the overview page when it hasn't been show to the
     // user yet, and they have no saved connections.
     if (!hasBeenShownViewAlready) {
       if (!this._storageController.hasSavedConnections()) {
-        vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE);
+        vscode.commands.executeCommand(
+          EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE
+        );
       }
 
-      this._storageController.update(StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW, true);
+      this._storageController.update(
+        StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+        true
+      );
     }
   }
 

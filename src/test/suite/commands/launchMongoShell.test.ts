@@ -3,18 +3,14 @@ import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import * as sinon from 'sinon';
 import Connection = require('mongodb-connection-model/lib/model');
-
-import MDBExtensionController from '../../../mdbExtensionController';
 import launchMongoShell from '../../../commands/launchMongoShell';
-
-import { TestExtensionContext } from '../stubs';
+import { mdbTestExtension } from '../stubbableMdbExtension';
 
 suite('Commands Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
 
-  const mockExtensionContext = new TestExtensionContext();
-  const mockMDBExtension = new MDBExtensionController(mockExtensionContext);
-  const mockConnectionController = mockMDBExtension._connectionController;
+  const mockConnectionController =
+    mdbTestExtension.testExtensionController._connectionController;
   const sandbox = sinon.createSandbox();
 
   let fakeShowErrorMessage: any;
@@ -42,7 +38,7 @@ suite('Commands Test Suite', () => {
 
     createTerminalStub.returns({
       sendText: fakeSendTerminalText,
-      show: () => { }
+      show: () => {}
     });
     sandbox.replace(vscode.window, 'createTerminal', createTerminalStub);
   });
@@ -127,7 +123,7 @@ suite('Commands Test Suite', () => {
 
       assert(
         shellArgs[0].includes('mongodb://127.0.0.1') &&
-        shellArgs[0].includes('/?readPreference=primary&ssl=false'),
+          shellArgs[0].includes('/?readPreference=primary&ssl=false'),
         `Expected open terminal to set shell arg as driver url with ssh tunnel port injected found "${shellArgs[0]}"`
       );
     });
@@ -236,9 +232,9 @@ suite('Commands Test Suite', () => {
         terminalOptions.env?.MDB_CONNECTION_STRING?.includes(
           'mongodb://127.0.0.1'
         ) &&
-        terminalOptions.env?.MDB_CONNECTION_STRING.includes(
-          '/?readPreference=primary&ssl=false'
-        ),
+          terminalOptions.env?.MDB_CONNECTION_STRING.includes(
+            '/?readPreference=primary&ssl=false'
+          ),
         `Expected open terminal to set shell arg as driver url with ssh tunnel port injected found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
     });
@@ -338,9 +334,9 @@ suite('Commands Test Suite', () => {
         terminalOptions.env?.MDB_CONNECTION_STRING?.includes(
           'mongodb://127.0.0.1'
         ) &&
-        terminalOptions.env?.MDB_CONNECTION_STRING.includes(
-          '/?readPreference=primary&ssl=false'
-        ),
+          terminalOptions.env?.MDB_CONNECTION_STRING.includes(
+            '/?readPreference=primary&ssl=false'
+          ),
         `Expected open terminal to set shell arg as driver url with ssh tunnel port injected found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
     });

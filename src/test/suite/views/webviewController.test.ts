@@ -12,9 +12,7 @@ import WebviewController, {
   getWebviewContent
 } from '../../../views/webviewController';
 import { StatusView } from '../../../views';
-import {
-  MESSAGE_TYPES
-} from '../../../views/webview-app/extension-app-message-constants';
+import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -49,9 +47,7 @@ suite('Webview Test Suite', () => {
       mdbTestExtension.testExtensionController._telemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     assert(fakeVSCodeCreateWebviewPanel.called);
     assert(fakeWebview.html !== '');
@@ -112,7 +108,7 @@ suite('Webview Test Suite', () => {
         assert(testConnectionController.isCurrentlyConnected());
         assert(
           testConnectionController.getActiveConnectionName() ===
-          'localhost:27018'
+            'localhost:27018'
         );
         assert(
           testConnectionController.getActiveConnectionModel()?.port === 27018
@@ -142,9 +138,7 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     assert(
       messageReceivedSet,
@@ -216,9 +210,7 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     assert(
       messageReceivedSet,
@@ -284,9 +276,7 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection call.
     messageReceived({
@@ -344,9 +334,7 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection call.
     messageReceived({
@@ -417,9 +405,7 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection call.
     messageReceived({
@@ -478,9 +464,7 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     messageReceived({
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
@@ -527,9 +511,7 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     messageReceived({
       command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT
@@ -587,9 +569,7 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection status request call.
     messageReceived({
@@ -640,18 +620,16 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
-    testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    ).then(() => {
-      // Mock a connection status request call.
-      messageReceived({
-        command: MESSAGE_TYPES.GET_CONNECTION_STATUS
+    testConnectionController
+      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
+      .then(() => {
+        // Mock a connection status request call.
+        messageReceived({
+          command: MESSAGE_TYPES.GET_CONNECTION_STATUS
+        });
       });
-    });
   });
 
   test('calls to rename the active connection when a rename active connection message is passed', async () => {
@@ -669,7 +647,7 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (): void => { },
+      postMessage: (): void => {},
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
@@ -698,9 +676,7 @@ suite('Webview Test Suite', () => {
       testTelemetryController
     );
 
-    testWebviewController.openWebview(
-      mdbTestExtension.testExtensionContext
-    );
+    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
@@ -712,7 +688,10 @@ suite('Webview Test Suite', () => {
     });
 
     assert(mockRenameConnectionOnConnectionController.called);
-    assert(mockRenameConnectionOnConnectionController.firstCall.args[0] === testConnectionController.getActiveConnectionId());
+    assert(
+      mockRenameConnectionOnConnectionController.firstCall.args[0] ===
+        testConnectionController.getActiveConnectionId()
+    );
 
     testConnectionController.disconnect();
   });
@@ -740,7 +719,7 @@ suite('Webview Test Suite', () => {
 
       fakeWebview = {
         html: '',
-        postMessage: (): void => { },
+        postMessage: (): void => {},
         onDidReceiveMessage: (callback): void => {
           messageReceived = callback;
         },
@@ -761,9 +740,7 @@ suite('Webview Test Suite', () => {
         testTelemetryController
       );
 
-      testWebviewController.openWebview(
-        mdbTestExtension.testExtensionContext
-      );
+      testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
     });
 
     test('it should handle opening trusted links', () => {

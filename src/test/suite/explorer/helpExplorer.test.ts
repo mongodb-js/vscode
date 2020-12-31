@@ -44,7 +44,7 @@ suite('Help Explorer Test Suite', function () {
     assert(atlasHelpItem.label === 'Create Free Atlas Cluster');
     assert(
       atlasHelpItem.url ===
-      'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension'
+        'https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product&utm_campaign=VS%20code%20extension'
     );
     assert(atlasHelpItem.iconName === 'atlas');
     assert(atlasHelpItem.linkId === 'freeClusterCTA');
@@ -54,12 +54,6 @@ suite('Help Explorer Test Suite', function () {
   test('when a help item that does not require a redirect is clicked on it should open the url with vscode', async () => {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
-
-    sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
-      'trackLinkClicked',
-      sinon.fake.resolves()
-    );
 
     testHelpExplorer.activateHelpTreeView(
       mdbTestExtension.testExtensionController._telemetryController
@@ -76,22 +70,18 @@ suite('Help Explorer Test Suite', function () {
     assert(stubExecuteCommand.called);
     assert(stubExecuteCommand.firstCall.args[0] === 'vscode.open');
     assert(
-      stubExecuteCommand.firstCall.args[1].path === vscode.Uri.parse(atlasHelpItem.url).path
+      stubExecuteCommand.firstCall.args[1].path ===
+        vscode.Uri.parse(atlasHelpItem.url).path
     );
     assert(
-      stubExecuteCommand.firstCall.args[1].authority === vscode.Uri.parse(atlasHelpItem.url).authority
+      stubExecuteCommand.firstCall.args[1].authority ===
+        vscode.Uri.parse(atlasHelpItem.url).authority
     );
   });
 
   test('when a help item that requires a redirect is clicked on it should open the url with the link helper', async () => {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
-
-    sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
-      'trackLinkClicked',
-      sinon.fake.resolves()
-    );
 
     testHelpExplorer.activateHelpTreeView(
       mdbTestExtension.testExtensionController._telemetryController

@@ -40,6 +40,7 @@ suite('MDBExtensionController Test Suite', function () {
       fakeShowInformationMessage
     );
   });
+
   afterEach(() => {
     sandbox.restore();
     sinon.restore();
@@ -1947,7 +1948,6 @@ suite('MDBExtensionController Test Suite', function () {
           'get',
           sinon.fake.returns(false)
         );
-
         sinon.replace(
           mdbTestExtension.testExtensionController._storageController,
           'hasSavedConnections',

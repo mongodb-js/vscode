@@ -24,6 +24,7 @@ import { createLogger } from '../logging';
 import { StatusView } from '../views';
 import PlaygroundController from './playgroundController';
 import DocumentIdStore from './documentIdStore';
+import TelemetryController from '../telemetry/telemetryController';
 
 const log = createLogger('editors controller');
 
@@ -41,12 +42,14 @@ export default class EditorsController {
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _context: vscode.ExtensionContext;
   _statusView: StatusView;
+  _telemetryController: TelemetryController;
 
   constructor(
     context: vscode.ExtensionContext,
     connectionController: ConnectionController,
     playgroundController: PlaygroundController,
-    statusView: StatusView
+    statusView: StatusView,
+    telemetryController: TelemetryController
   ) {
     log.info('activating...');
 
@@ -54,6 +57,7 @@ export default class EditorsController {
     this._playgroundController = playgroundController;
     this._context = context;
     this._statusView = statusView;
+    this._telemetryController = telemetryController;
 
     const collectionViewProvider = new CollectionDocumentsProvider(
       connectionController,
@@ -261,6 +265,9 @@ export default class EditorsController {
       );
 
       if (activeConnectionId !== connectionId) {
+        // Send metrics to Segment.
+        this._telemetryController.trackDocumentUpdated('treeview', false);
+
         vscode.window.showErrorMessage(
           `Unable to save document: no longer connected to '${connectionName}'`
         );
@@ -271,6 +278,9 @@ export default class EditorsController {
       const dataservice = this._connectionController.getActiveDataService();
 
       if (dataservice === null) {
+        // Send metrics to Segment.
+        this._telemetryController.trackDocumentUpdated('treeview', false);
+
         vscode.window.showErrorMessage(
           `Unable to save document: no longer connected to '${connectionName}'`
         );
@@ -285,6 +295,9 @@ export default class EditorsController {
       try {
         newDocument = EJSON.parse(activeEditor?.document.getText());
       } catch (error) {
+        // Send metrics to Segment.
+        this._telemetryController.trackDocumentUpdated('treeview', false);
+
         vscode.window.showErrorMessage(error.message);
 
         return resolve(false);
@@ -305,10 +318,16 @@ export default class EditorsController {
           if (error) {
             const errorMessage = `Unable to save document: ${error.message}`;
 
+            // Send metrics to Segment.
+            this._telemetryController.trackDocumentUpdated('treeview', false);
+
             vscode.window.showErrorMessage(errorMessage);
 
             return resolve(false);
           }
+
+          // Send metrics to Segment.
+          this._telemetryController.trackDocumentUpdated('treeview', true);
 
           activeEditor?.document.save();
           vscode.window.showInformationMessage(

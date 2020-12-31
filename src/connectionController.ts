@@ -272,9 +272,7 @@ export default class ConnectionController {
   public getConnectionNameFromConnectionModel = (
     connectionModel: ConnectionModelType
   ): string => {
-    const {
-      sshTunnelOptions
-    } = connectionModel.getAttributes({
+    const { sshTunnelOptions } = connectionModel.getAttributes({
       derived: true
     });
 
@@ -284,9 +282,9 @@ export default class ConnectionController {
       sshTunnelOptions.host &&
       sshTunnelOptions.port
     ) {
-      return `SSH to ${connectionModel.hosts.map(
-        ({ host, port }) => `${host}:${port}`
-      ).join(',')}`;
+      return `SSH to ${connectionModel.hosts
+        .map(({ host, port }) => `${host}:${port}`)
+        .join(',')}`;
     }
 
     if (connectionModel.isSrvRecord) {
@@ -294,9 +292,9 @@ export default class ConnectionController {
     }
 
     if (connectionModel.hosts && connectionModel.hosts.length > 0) {
-      return connectionModel.hosts.map(
-        ({ host, port }) => `${host}:${port}`
-      ).join(',');
+      return connectionModel.hosts
+        .map(({ host, port }) => `${host}:${port}`)
+        .join(',');
     }
 
     return connectionModel.hostname;
@@ -582,13 +580,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._connections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...'
-        }
-      );
+      connectionIds.map(
+        (id, index) => `${index + 1}: ${this._connections[id].name}`
+      ),
+      {
+        placeHolder: 'Choose a connection to remove...'
+      }
+    );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);

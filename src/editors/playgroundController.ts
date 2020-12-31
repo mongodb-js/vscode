@@ -315,18 +315,34 @@ export default class PlaygroundController {
     );
   }
 
-  private openResultAsVirtualDocument(viewColumn) {
-    vscode.workspace
-      .openTextDocument(
-        this.getVirtualDocumentUri(this.playgroundResult?.content)
-      )
-      .then((doc) => {
-        this._playgroundResultTextDocument = doc;
-        vscode.window.showTextDocument(doc, { preview: false, viewColumn });
-      });
+  private openResultAsVirtualDocument(
+    viewColumn: vscode.ViewColumn
+  ): Thenable<TextEditor> {
+    const content =
+      this.playgroundResult && this.playgroundResult.content
+        ? this.playgroundResult.content
+        : '';
+
+    return vscode.workspace
+      .openTextDocument(this.getVirtualDocumentUri(content))
+      .then(
+        (doc) => {
+          this._playgroundResultTextDocument = doc;
+          return vscode.window.showTextDocument(doc, {
+            preview: false,
+            viewColumn
+          });
+        },
+        (error) => {
+          log.error('Open result as VirtualDocument ERROR', error);
+          return vscode.window.showErrorMessage(
+            `Unable to open a result document: ${error.message}`
+          );
+        }
+      );
   }
 
-  public evaluatePlayground(): Promise<boolean> {
+  public async evaluatePlayground(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const shouldConfirmRunAll = vscode.workspace
         .getConfiguration('mdb')
@@ -357,7 +373,9 @@ export default class PlaygroundController {
 
       this._outputChannel.clear();
       if (evaluateResponse.outputLines) {
-        for (const line of evaluateResponse.outputLines) {this._outputChannel.appendLine(line.content);}
+        for (const line of evaluateResponse.outputLines) {
+          this._outputChannel.appendLine(line.content);
+        }
         this._outputChannel.show(true);
       }
 
@@ -371,7 +389,7 @@ export default class PlaygroundController {
         this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
 
       if (this._playgroundResultTextDocument) {
-        vscode.window
+        await vscode.window
           .showTextDocument(this._playgroundResultTextDocument, {
             preview: false,
             viewColumn
@@ -381,10 +399,10 @@ export default class PlaygroundController {
             vscode.commands.executeCommand(
               'workbench.action.closeActiveEditor'
             );
-            this.openResultAsVirtualDocument(viewColumn);
+            return this.openResultAsVirtualDocument(viewColumn);
           });
       } else {
-        this.openResultAsVirtualDocument(viewColumn);
+        await this.openResultAsVirtualDocument(viewColumn);
       }
 
       return resolve(true);
@@ -397,7 +415,7 @@ export default class PlaygroundController {
       this.activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
-        'Please open a \'.mongodb\' playground file before running it.'
+        "Please open a '.mongodb' playground file before running it."
       );
 
       return Promise.resolve(false);
@@ -429,7 +447,7 @@ export default class PlaygroundController {
       this.activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
-        'Please open a \'.mongodb\' playground file before running it.'
+        "Please open a '.mongodb' playground file before running it."
       );
 
       return Promise.resolve(false);
@@ -447,7 +465,7 @@ export default class PlaygroundController {
       this.activeTextEditor.document.languageId !== 'mongodb'
     ) {
       vscode.window.showErrorMessage(
-        'Please open a \'.mongodb\' playground file before running it.'
+        "Please open a '.mongodb' playground file before running it."
       );
 
       return Promise.resolve(false);
