@@ -321,21 +321,26 @@ export default class PlaygroundController {
         ? this.playgroundResult.content
         : '';
 
-    vscode.workspace.openTextDocument(this.getVirtualDocumentUri(content)).then(
-      (doc) => {
-        this._playgroundResultTextDocument = doc;
-        vscode.window.showTextDocument(doc, { preview: false, viewColumn });
-      },
-      (error) => {
-        vscode.window.showErrorMessage(
-          `Unable to open a result document: ${error.message}`
-        );
-        log.error('Open result as VirtualDocument ERROR', error);
-      }
-    );
+    return vscode.workspace
+      .openTextDocument(this.getVirtualDocumentUri(content))
+      .then(
+        (doc) => {
+          this._playgroundResultTextDocument = doc;
+          return vscode.window.showTextDocument(doc, {
+            preview: false,
+            viewColumn
+          });
+        },
+        (error) => {
+          log.error('Open result as VirtualDocument ERROR', error);
+          return vscode.window.showErrorMessage(
+            `Unable to open a result document: ${error.message}`
+          );
+        }
+      );
   }
 
-  public evaluatePlayground(): Promise<boolean> {
+  public async evaluatePlayground(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const shouldConfirmRunAll = vscode.workspace
         .getConfiguration('mdb')
@@ -382,7 +387,7 @@ export default class PlaygroundController {
         this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
 
       if (this._playgroundResultTextDocument) {
-        vscode.window
+        await vscode.window
           .showTextDocument(this._playgroundResultTextDocument, {
             preview: false,
             viewColumn
@@ -392,10 +397,10 @@ export default class PlaygroundController {
             vscode.commands.executeCommand(
               'workbench.action.closeActiveEditor'
             );
-            this.openResultAsVirtualDocument(viewColumn);
+            return this.openResultAsVirtualDocument(viewColumn);
           });
       } else {
-        this.openResultAsVirtualDocument(viewColumn);
+        await this.openResultAsVirtualDocument(viewColumn);
       }
 
       return resolve(true);
