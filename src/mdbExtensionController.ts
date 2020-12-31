@@ -48,14 +48,17 @@ export default class MDBExtensionController implements vscode.Disposable {
   _languageServerController: LanguageServerController;
   _webviewController: WebviewController;
 
-  constructor(context: vscode.ExtensionContext, needTelemetry?: boolean) {
+  constructor(
+    context: vscode.ExtensionContext,
+    options: { shouldTrackTelemetry?: boolean }
+  ) {
     this._context = context;
     this._statusView = new StatusView(context);
     this._storageController = new StorageController(context);
     this._telemetryController = new TelemetryController(
       this._storageController,
       context,
-      needTelemetry
+      options.shouldTrackTelemetry
     );
     this._connectionController = new ConnectionController(
       this._statusView,

@@ -40,7 +40,7 @@ export function run(): Promise<void> {
         mdbTestExtension.testExtensionContext = new TestExtensionContext();
         mdbTestExtension.testExtensionController = new MDBExtensionController(
           mdbTestExtension.testExtensionContext,
-          false
+          { shouldTrackTelemetry: false }
         );
         mdbTestExtension.testExtensionController.activate();
 

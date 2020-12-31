@@ -84,7 +84,7 @@ export enum TelemetryEventTypes {
  * This controller manages telemetry.
  */
 export default class TelemetryController {
-  public _needTelemetry: boolean;
+  private _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
   private _segmentAnalytics: SegmentAnalytics;
   private _segmentUserID: string | undefined; // The user uuid from the global storage.
   private _segmentKey: string | undefined; // The segment API write key.
@@ -92,10 +92,10 @@ export default class TelemetryController {
   constructor(
     storageController: StorageController,
     context: vscode.ExtensionContext,
-    needTelemetry?: boolean
+    shouldTrackTelemetry?: boolean
   ) {
     this._segmentUserID = storageController.getUserID();
-    this._needTelemetry = needTelemetry || false;
+    this._shouldTrackTelemetry = shouldTrackTelemetry || false;
 
     config({ path: path.join(context.extensionPath, '.env') });
 
@@ -160,19 +160,24 @@ export default class TelemetryController {
     this._segmentAnalytics?.flush();
   }
 
-  private needTelemetry(): boolean {
-    if (this._needTelemetry !== true) {
+  // Checks user settings and extension running mode
+  // to determine whether or not we should track telemetry.
+  private isTelemetryFeatureEnabled(): boolean {
+    // If tests run the extension we do not track telemetry.
+    if (this._shouldTrackTelemetry !== true) {
       return false;
     }
 
-    const confNeedTelemetry = vscode.workspace
+    const telemetryEnabledByUser = vscode.workspace
       .getConfiguration('mdb')
       .get('sendTelemetry');
 
-    if (confNeedTelemetry === false) {
+    // If the user disabled it in config do not track telemetry.
+    if (telemetryEnabledByUser === false) {
       return false;
     }
 
+    // Otherwise tracking telemetry is allowed.
     return true;
   }
 
@@ -180,7 +185,7 @@ export default class TelemetryController {
     eventType: TelemetryEventTypes,
     properties?: TelemetryEventProperties
   ): void {
-    if (this.needTelemetry()) {
+    if (this.isTelemetryFeatureEnabled()) {
       const segmentProperties: SegmentProperties = {
         event: eventType,
         userId: this._segmentUserID
@@ -205,7 +210,7 @@ export default class TelemetryController {
   private async getCloudInfoFromDataService(
     firstServerHostname: string
   ): Promise<CloudInfo> {
-    if (!this.needTelemetry()) {
+    if (!this.isTelemetryFeatureEnabled()) {
       return {};
     }
 

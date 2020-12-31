@@ -315,7 +315,9 @@ export default class PlaygroundController {
     );
   }
 
-  private openResultAsVirtualDocument(viewColumn: vscode.ViewColumn) {
+  private openResultAsVirtualDocument(
+    viewColumn: vscode.ViewColumn
+  ): Thenable<TextEditor> {
     const content =
       this.playgroundResult && this.playgroundResult.content
         ? this.playgroundResult.content
