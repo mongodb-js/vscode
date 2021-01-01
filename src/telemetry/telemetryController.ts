@@ -34,7 +34,7 @@ type CloudInfo = {
 
 type LinkClickedTelemetryEventProperties = {
   screen: string;
-  link_id: string;
+  link_id: string; // eslint-disable-line camelcase
 };
 
 type ExtensionCommandRunTelemetryEventProperties = {
@@ -42,6 +42,7 @@ type ExtensionCommandRunTelemetryEventProperties = {
 };
 
 type NewConnectionTelemetryEventProperties = {
+  /* eslint-disable camelcase */
   is_atlas: boolean;
   is_localhost: boolean;
   is_data_lake: boolean;
@@ -56,6 +57,7 @@ type NewConnectionTelemetryEventProperties = {
   is_used_connect_screen: boolean;
   is_used_command_palette: boolean;
   is_used_saved_connection: boolean;
+  /* eslint-enable camelcase */
 };
 
 type DocumentUpdatedTelemetryEventProperties = {

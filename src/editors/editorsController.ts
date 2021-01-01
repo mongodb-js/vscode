@@ -19,6 +19,7 @@ import MongoDBDocumentService, {
 } from './mongoDBDocumentService';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import TelemetryController from '../telemetry/telemetryController';
+import { DataServiceType } from '../dataServiceType';
 
 const log = createLogger('editors controller');
 

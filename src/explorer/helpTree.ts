@@ -42,7 +42,7 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
 }
 
 export default class HelpTree
-  implements vscode.TreeDataProvider<vscode.TreeItem> {
+implements vscode.TreeDataProvider<vscode.TreeItem> {
   contextValue = 'helpTree';
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {

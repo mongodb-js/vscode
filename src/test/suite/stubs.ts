@@ -50,7 +50,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
           this._globalState[key] = value;
         });
       },
-      setKeysForSync: (keys: string[]): void => {}
+      setKeysForSync: (/* keys: string[] */): void => {}
     };
     this.extensionPath = path.join(__dirname, '..', '..', '..');
     this.storagePath = '';
@@ -157,16 +157,16 @@ const mockVSCodeTextDocument = {
   save: (): Promise<boolean> => Promise.resolve(true),
 
   // lineAt: (line: number): vscode.TextLine => mockTextLine,
-  lineAt: (position: vscode.Position | number): vscode.TextLine => mockTextLine,
-  offsetAt: (position: vscode.Position): number => 0,
-  positionAt: (offset: number): vscode.Position => mockPosition,
-  getText: (range?: vscode.Range): string => '',
+  lineAt: (/* position: vscode.Position | number */): vscode.TextLine => mockTextLine,
+  offsetAt: (/* position: vscode.Position */): number => 0,
+  positionAt: (/* offset: number */): vscode.Position => mockPosition,
+  getText: (/* range?: vscode.Range */): string => '',
 
-  getWordRangeAtPosition: (position: vscode.Position, regex?: RegExp) =>
+  getWordRangeAtPosition: (/* position: vscode.Position, regex?: RegExp */) =>
     undefined,
-  validateRange: (range: vscode.Range): vscode.Range => mockRange,
-
-  validatePosition: (position: vscode.Position): vscode.Position => mockPosition
+  validateRange: (/* range: vscode.Range */): vscode.Range => mockRange,
+  validatePosition: (/* position: vscode.Position */): vscode.Position =>
+    mockPosition
 };
 
 class MockLanguageServerController {
@@ -192,18 +192,18 @@ class MockLanguageServerController {
     /* */
   }
 
-  executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
+  executeAll(/* codeToEvaluate: string */): Promise<ExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
       result: { namespace: null, type: null, content: 'Result' }
     });
   }
 
-  connectToServiceProvider(params: {
+  connectToServiceProvider(/* params: {
     connectionString?: string;
     connectionOptions?: any;
     extensionPath: string;
-  }): Promise<any> {
+  } */): Promise<any> {
     return Promise.resolve(true);
   }
 

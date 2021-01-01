@@ -119,7 +119,7 @@ export class Visitor {
       return this._state;
     }
 
-    const self = this;
+    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
 
     traverse(ast, {
       enter(path) {
@@ -135,6 +135,8 @@ export class Visitor {
             break;
           case 'ObjectExpression':
             self.visitObjectExpression(path.node);
+            break;
+          default:
             break;
         }
       }
@@ -157,6 +159,7 @@ export class Visitor {
     };
   }
 
+  // eslint-disable-next-line complexity
   private checkIsUseCall(node: any): boolean {
     if (
       (node.callee.name === 'use' &&
@@ -205,6 +208,7 @@ export class Visitor {
     return false;
   }
 
+  // eslint-disable-next-line complexity
   private checkIsCollectionName(node: any): boolean {
     if (
       (node.object &&

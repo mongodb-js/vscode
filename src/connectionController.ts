@@ -580,13 +580,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-      connectionIds.map(
-        (id, index) => `${index + 1}: ${this._connections[id].name}`
-      ),
-      {
-        placeHolder: 'Choose a connection to remove...'
-      }
-    );
+        connectionIds.map(
+          (id, index) => `${index + 1}: ${this._connections[id].name}`
+        ),
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);

@@ -100,12 +100,6 @@ suite('Playgrounds Controller Test Suite', function () {
   });
 
   test('should fetch new folders and files to exclude after refreshing', async () => {
-    const workspaceFolders = (vscode.workspace.workspaceFolders || []).filter(
-      (folder) => folder.uri.scheme === 'file'
-    );
-    const rootPath = workspaceFolders[0]?.uri.path.replace('/out/test', '');
-    const rootUri = vscode.Uri.parse(rootPath);
-
     try {
       const treeController = new PlaygroundsTree();
 

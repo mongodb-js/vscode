@@ -147,9 +147,9 @@ const getListDatabases = async (
     const result = await serviceProvider.listDatabases('admin');
     const databases = result
       ? result.databases.map((item) => ({
-          label: item.name,
-          kind: CompletionItemKind.Value
-        }))
+        label: item.name,
+        kind: CompletionItemKind.Value
+      }))
       : [];
 
     return [null, databases];
