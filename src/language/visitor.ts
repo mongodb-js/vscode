@@ -119,22 +119,20 @@ export class Visitor {
       return this._state;
     }
 
-    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
-
     traverse(ast, {
-      enter(path) {
+      enter: (path) => {
         switch (path.node.type) {
           case 'CallExpression':
-            self.visitCallExpression(path.node);
+            this.visitCallExpression(path.node);
             break;
           case 'MemberExpression':
-            self.visitMemberExpression(path.node);
+            this.visitMemberExpression(path.node);
             break;
           case 'ExpressionStatement':
-            self.visitExpressionStatement(path.node);
+            this.visitExpressionStatement(path.node);
             break;
           case 'ObjectExpression':
-            self.visitObjectExpression(path.node);
+            this.visitObjectExpression(path.node);
             break;
           default:
             break;
