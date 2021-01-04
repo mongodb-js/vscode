@@ -1,3 +1,5 @@
+@import "~../../styles/_variables";
+
 .connection-status {
   padding: 11.5px;
 }
@@ -23,7 +25,7 @@
 }
 
 .connection-status-dot-connected:before {
-  background-color: #13AA52;
+  background-color: @green;
 }
 
 .connection-status-dot-disconnected:before {
@@ -52,12 +54,12 @@
   height: 32px;
   width: 161px;
   color: white;
-  background-color: #13AA52;
+  background-color: @green;
   transition: 250ms all;
 
   &:hover {
     cursor: pointer;
-    background-color: #3F864B;
+    background-color: @green-hover;
   }
 }
 
@@ -73,6 +75,6 @@
 
   &:hover {
     cursor: pointer;
-    color: #fbb129;
+    color: @icon-button-hover__color;
   }
 }

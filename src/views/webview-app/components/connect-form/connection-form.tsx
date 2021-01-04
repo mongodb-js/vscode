@@ -33,27 +33,6 @@ type DispatchProps = {
 type props = StateProps & DispatchProps;
 
 export class ConnectionForm extends React.Component<props> {
-  /**
-   * Renders a component with messages.
-   *
-   * @returns {React.Component}
-   */
-  renderConnectionMessage(): React.ReactNode {
-    const { isConnected, connectionMessage } = this.props;
-
-    if (isConnected && connectionMessage) {
-      return (
-        <div className={styles['connection-message-container']}>
-          <div className={styles['connection-message-container-success']}>
-            <div
-              className={styles['connection-message']}
-            >{connectionMessage}</div>
-          </div>
-        </div>
-      );
-    }
-  }
-
   render(): React.ReactNode {
     const {
       connectionFormTab,
