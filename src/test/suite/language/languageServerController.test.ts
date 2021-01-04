@@ -1,5 +1,7 @@
 import { before, after } from 'mocha';
 import TelemetryController from '../../../telemetry/telemetryController';
+import DocumentIdStore from '../../../editors/documentIdStore';
+import DocumentController from '../../../editors/documentController';
 
 const path = require('path');
 const fs = require('fs');
@@ -36,20 +38,29 @@ suite('Language Server Controller Test Suite', () => {
     mockStorageController,
     mockExtensionContext
   );
-
-  testLanguageServerController.startLanguageServer();
-
+  const testStatusView = new StatusView(mockExtensionContext);
   const testConnectionController = new ConnectionController(
-    new StatusView(mockExtensionContext),
+    testStatusView,
     mockStorageController,
     testTelemetryController
   );
+  const testDocumentIdStore = new DocumentIdStore();
+  const testDocumentController = new DocumentController(
+    testDocumentIdStore,
+    testConnectionController,
+    testStatusView,
+    testTelemetryController
+  );
+
+  testLanguageServerController.startLanguageServer();
 
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
     testLanguageServerController,
-    testTelemetryController
+    testTelemetryController,
+    testStatusView,
+    testDocumentController
   );
 
   before(async () => {

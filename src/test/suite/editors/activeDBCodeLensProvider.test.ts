@@ -18,10 +18,11 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     mockStorageController,
     mockExtensionContext
   );
+  const testStatusView = new StatusView(mockExtensionContext);
 
   suite('user is not connected', () => {
     const testConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
+      testStatusView,
       mockStorageController,
       testTelemetryController
     );
@@ -53,7 +54,7 @@ suite('Active DB CodeLens Provider Test Suite', () => {
 
   suite('user is connected', () => {
     const testConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
+      testStatusView,
       mockStorageController,
       testTelemetryController
     );

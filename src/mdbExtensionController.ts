@@ -4,7 +4,7 @@
  * Activated from `./src/extension.ts`
  */
 import * as vscode from 'vscode';
-
+import { EJSON } from 'bson';
 import ConnectionController from './connectionController';
 import launchMongoShell from './commands/launchMongoShell';
 import { EditorsController, PlaygroundController } from './editors';
@@ -29,6 +29,8 @@ import WebviewController from './views/webviewController';
 import FieldTreeItem from './explorer/fieldTreeItem';
 import IndexListTreeItem from './explorer/indexListTreeItem';
 import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
+import DocumentIdStore from './editors/documentIdStore';
+import DocumentController from './editors/documentController';
 
 const log = createLogger('commands');
 
@@ -47,6 +49,8 @@ export default class MDBExtensionController implements vscode.Disposable {
   _telemetryController: TelemetryController;
   _languageServerController: LanguageServerController;
   _webviewController: WebviewController;
+  _documentIdStore: DocumentIdStore;
+  _documentController: DocumentController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -65,6 +69,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._storageController,
       this._telemetryController
     );
+    this._documentIdStore = new DocumentIdStore();
+    this._documentController = new DocumentController(
+      this._documentIdStore,
+      this._connectionController,
+      this._statusView,
+      this._telemetryController
+    );
     this._languageServerController = new LanguageServerController(context);
     this._explorerController = new ExplorerController(
       this._connectionController
@@ -75,14 +86,17 @@ export default class MDBExtensionController implements vscode.Disposable {
       context,
       this._connectionController,
       this._languageServerController,
-      this._telemetryController
+      this._telemetryController,
+      this._statusView,
+      this._documentController
     );
     this._editorsController = new EditorsController(
       context,
       this._connectionController,
       this._playgroundController,
       this._statusView,
-      this._telemetryController
+      this._documentIdStore,
+      this._documentController
     );
     this._webviewController = new WebviewController(
       this._connectionController,
@@ -152,6 +166,19 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
     );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT,
+      (item: { documentId: EJSON.SerializableTypes; namespace: string }) =>
+        this._playgroundController.refreshPlaygroundResultDocument(
+          item.documentId,
+          item.namespace
+        )
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT_CONTENT,
+      (data: any) =>
+        this._playgroundController.refreshPlaygroundResultContent(data)
+    );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION, () =>
       this._connectionController.changeActiveConnection()
     );
@@ -165,7 +192,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     this.registerCommand(EXTENSION_COMMANDS.MDB_SAVE_DOCUMENT_TO_MONGODB, () =>
-      this._editorsController.saveDocumentToMongoDB()
+      this._documentController.saveDocumentToMongoDB()
     );
 
     this.registerEditorCommands();

@@ -13,6 +13,8 @@ enum EXTENSION_COMMANDS {
   MDB_RUN_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runSelectedPlaygroundBlocks',
   MDB_RUN_ALL_PLAYGROUND_BLOCKS = 'mdb.runAllPlaygroundBlocks',
   MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runPlayground',
+  MDB_REFRESH_PLAYGROUND_RESULT = 'mdb.refreshPlaygroundResult',
+  MDB_REFRESH_PLAYGROUND_RESULT_CONTENT = 'mdb.refreshPlaygroundResultContent',
 
   MDB_SAVE_DOCUMENT_TO_MONGODB = 'mdb.saveDocumentToMongoDB',
 

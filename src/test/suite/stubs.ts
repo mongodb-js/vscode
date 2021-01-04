@@ -166,8 +166,7 @@ const mockVSCodeTextDocument = {
     undefined,
   validateRange: (range: vscode.Range): vscode.Range => mockRange,
 
-  validatePosition: (position: vscode.Position): vscode.Position =>
-    mockPosition
+  validatePosition: (position: vscode.Position): vscode.Position => mockPosition
 };
 
 class MockLanguageServerController {
@@ -196,7 +195,7 @@ class MockLanguageServerController {
   executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
-      result: { type: null, content: 'Result' }
+      result: { namespace: null, type: null, content: 'Result' }
     });
   }
 

@@ -41,18 +41,25 @@ const executeAll = async (
         for (const { type, printable } of values) {
           outputLines.push({
             type,
-            content: printable
+            content: printable,
+            namespace: null
           });
         }
       }
     });
-    const { type, printable } = await runtime.evaluate(codeToEvaluate);
+    const { source, type, printable } = await runtime.evaluate(codeToEvaluate);
+    const namespace =
+      source && source.namespace
+        ? `${source.namespace.db}.${source.namespace.collection}`
+        : null;
+    const content =
+      typeof printable === 'string'
+        ? printable
+        : JSON.parse(EJSON.stringify(printable));
     const result = {
+      namespace,
       type: type ? type : typeof printable,
-      content:
-        typeof printable === 'string'
-          ? printable
-          : JSON.parse(EJSON.stringify(printable))
+      content
     };
 
     return [null, { outputLines, result }];
