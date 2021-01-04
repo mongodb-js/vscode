@@ -53,7 +53,7 @@
     "test-webview": "jest",
     "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run clean && npm run compile:keyfile && npm run compile:resources && webpack --mode production",
-    "check": "npm run lint && mongodb-js-precommit './src/**/*.{js,ts,tsx}'",
+    "check": "npm run lint && mongodb-js-precommit",
     "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && vsce package",
     "local-install": "npm run package && code --install-extension ./mongodb-vscode-*.vsix"
   },
