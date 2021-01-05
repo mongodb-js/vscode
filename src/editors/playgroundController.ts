@@ -121,7 +121,7 @@ export default class PlaygroundController {
           editor.textEditor.document.languageId === 'mongodb'
         ) {
           this._selectedText = (editor.selections as Array<vscode.Selection>)
-            .sort((a, b) => (a.start.line > b.start.line ? 1 : -1)) // Sort lines selected as alt+click
+            .sort((a, b) => (a.start.line > b.start.line ? 1 : -1)) // Sort lines selected as alt+click.
             .map((item, index) => {
               if (index === editor.selections.length - 1) {
                 this.showCodeLensForSelection(item);

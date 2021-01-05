@@ -58,8 +58,8 @@ export default class PlaygroundResultProvider
         }
       });
     } else if (
-      this._playgroundResult !== null &&
-      typeof this._playgroundResult === 'object'
+      this._playgroundResult.content !== null &&
+      typeof this._playgroundResult.content === 'object'
     ) {
       const content = { ...this._playgroundResult.content };
 
@@ -81,7 +81,7 @@ export default class PlaygroundResultProvider
     return new Promise((resolve) => {
       const namespace: string | null = this._playgroundResult.namespace;
       const type: string | null = this._playgroundResult.type;
-      const content = this._playgroundResult.content;
+      const content: any = this._playgroundResult.content;
 
       if (type === 'undefined') {
         return resolve('undefined');

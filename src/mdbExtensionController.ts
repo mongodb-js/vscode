@@ -54,7 +54,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   constructor(
     context: vscode.ExtensionContext,
-    options: { shouldTrackTelemetry?: boolean }
+    options: { shouldTrackTelemetry: boolean }
   ) {
     this._context = context;
     this._statusView = new StatusView(context);
