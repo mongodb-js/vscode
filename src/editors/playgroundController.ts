@@ -349,20 +349,13 @@ export default class PlaygroundController {
       this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
 
     if (this._playgroundResultTextDocument) {
-      return vscode.window
-        .showTextDocument(this._playgroundResultTextDocument, {
-          preview: false,
-          viewColumn
-        })
-        .then((editor) => {
-          viewColumn = editor.viewColumn || vscode.ViewColumn.Beside;
-          vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-
-          return this.openResultAsVirtualDocument(viewColumn);
-        });
+      await this._playgroundResultViewProvider.reopenResultAsVirtualDocument(
+        viewColumn,
+        this.playgroundResult
+      );
+    } else {
+      await this.openResultAsVirtualDocument(viewColumn);
     }
-
-    return this.openResultAsVirtualDocument(viewColumn);
   }
 
   async openResultAsVirtualDocument(

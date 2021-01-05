@@ -41,6 +41,24 @@ export default class PlaygroundResultProvider
     }
   }
 
+  async reopenResultAsVirtualDocument(
+    viewColumn: vscode.ViewColumn,
+    playgroundResult?: OutputItem
+  ): Promise<void> {
+    if (playgroundResult) {
+      this._playgroundResult = playgroundResult;
+    }
+
+    if (this._uri) {
+      this.onDidChangeEmitter.fire(this._uri);
+
+      await vscode.window.showTextDocument(this._uri, {
+        preview: false,
+        viewColumn
+      });
+    }
+  }
+
   // When the document is saved (Cmd/Ctrl + S or with the menu),
   // update the document (content) in the collection
   // or the single document to reflect the changes that were made.
@@ -52,11 +70,13 @@ export default class PlaygroundResultProvider
       const content = [...this._playgroundResult.content];
       const index = content.findIndex((item) => item._id === data._id);
 
-      Object.keys(content[index]).forEach((item) => {
-        if (this._playgroundResult && this._playgroundResult.content) {
-          this._playgroundResult.content[index][item] = data[item];
-        }
-      });
+      if (typeof content[index] === 'object' && content[index] !== null) {
+        Object.keys(content[index]).forEach((item) => {
+          if (this._playgroundResult && this._playgroundResult.content) {
+            this._playgroundResult.content[index][item] = data[item];
+          }
+        });
+      }
     } else if (
       this._playgroundResult.content !== null &&
       typeof this._playgroundResult.content === 'object'
