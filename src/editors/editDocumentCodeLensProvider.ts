@@ -30,26 +30,24 @@ export default class EditDocumentCodeLensProvider
 
     if (this._codeLensesInfo) {
       this._codeLensesInfo.forEach((item) => {
-        if (item.documentId && item.namespace) {
-          const position = new vscode.Position(item.line, 0);
-          const range = new vscode.Range(position, position);
-          const command: {
-            title: string;
-            command: EXTENSION_COMMANDS;
-            arguments: {
-              documentId: EJSON.SerializableTypes;
-              namespace: string;
-            }[];
-          } = {
-            title: 'Edit Document',
-            command: EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT,
-            arguments: [
-              { documentId: item.documentId, namespace: item.namespace }
-            ]
-          };
+        const position = new vscode.Position(item.line, 0);
+        const range = new vscode.Range(position, position);
+        const command: {
+          title: string;
+          command: EXTENSION_COMMANDS;
+          arguments: {
+            documentId: EJSON.SerializableTypes;
+            namespace: string;
+          }[];
+        } = {
+          title: 'Edit Document',
+          command: EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT,
+          arguments: [
+            { documentId: item.documentId, namespace: item.namespace }
+          ]
+        };
 
-          this._codeLenses.push(new vscode.CodeLens(range, command));
-        }
+        this._codeLenses.push(new vscode.CodeLens(range, command));
       });
     }
 

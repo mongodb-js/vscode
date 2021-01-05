@@ -36,37 +36,36 @@ export default class DocumentViewProvider
       const uriParams = new URLSearchParams(uri.query);
       const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER) || '';
       const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
-
       const documentIdReference =
         uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
       const documentId = this._documentIdStore.get(documentIdReference);
+
       if (!documentId) {
-        vscode.window.showErrorMessage(
-          'Unable to fetch document: reference has expired.'
-        );
-        return reject(
-          new Error('Unable to fetch document: reference has expired.')
-        );
+        const errorMessage = 'Unable to fetch document: reference has expired.';
+
+        vscode.window.showErrorMessage(errorMessage);
+
+        return reject(new Error(errorMessage));
       }
 
       // Ensure we're still connected to the correct connection.
       if (connectionId !== this._connectionController.getActiveConnectionId()) {
-        vscode.window.showErrorMessage(
-          `Unable to fetch document: no longer connected to ${connectionId}`
-        );
-        return reject(
-          new Error(
-            `Unable to fetch document: no longer connected to ${connectionId}`
-          )
-        );
+        const errorMessage = `Unable to fetch document: no longer connected to ${connectionId}`;
+
+        vscode.window.showErrorMessage(errorMessage);
+
+        return reject(new Error(errorMessage));
       }
 
       this._statusView.showMessage('Fetching document...');
 
       const dataservice = this._connectionController.getActiveDataService();
+
       if (dataservice === null) {
         const errorMessage = `Unable to find document: no longer connected to ${connectionId}`;
+
         vscode.window.showErrorMessage(errorMessage);
+
         return reject(new Error(errorMessage));
       }
 
@@ -83,7 +82,9 @@ export default class DocumentViewProvider
 
           if (err) {
             const errorMessage = `Unable to find document: ${err.message}`;
+
             vscode.window.showErrorMessage(errorMessage);
+
             return reject(new Error(errorMessage));
           }
 
@@ -91,7 +92,9 @@ export default class DocumentViewProvider
             const errorMessage = `Unable to find document: ${JSON.stringify(
               documentId
             )}`;
+
             vscode.window.showErrorMessage(errorMessage);
+
             return reject(new Error(errorMessage));
           }
 

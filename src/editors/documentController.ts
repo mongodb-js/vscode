@@ -112,7 +112,7 @@ export default class DocumentController {
     log.info('save document to MongoDB', activeEditor);
 
     if (!activeEditor) {
-      return true;
+      return false;
     }
 
     const uriParams = new URLSearchParams(activeEditor.document.uri.query);
@@ -132,7 +132,7 @@ export default class DocumentController {
     ) {
       vscode.commands.executeCommand('workbench.action.files.save');
 
-      return true;
+      return false;
     }
 
     const activeConnectionId = this._connectionController.getActiveConnectionId();
@@ -200,7 +200,7 @@ export default class DocumentController {
         // Send metrics to Segment.
         this._telemetryController.trackDocumentUpdated('treeview', true);
 
-        // Save document changes in active editor.
+        // Save document changes to active editor.
         activeEditor?.document.save();
 
         // Update parent list of documents to reflect the changes that were made.
