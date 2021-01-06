@@ -29,8 +29,6 @@ import WebviewController from './views/webviewController';
 import FieldTreeItem from './explorer/fieldTreeItem';
 import IndexListTreeItem from './explorer/indexListTreeItem';
 import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
-import DocumentIdStore from './editors/documentIdStore';
-import DocumentController from './editors/documentController';
 
 const log = createLogger('commands');
 
@@ -49,8 +47,6 @@ export default class MDBExtensionController implements vscode.Disposable {
   _telemetryController: TelemetryController;
   _languageServerController: LanguageServerController;
   _webviewController: WebviewController;
-  _documentIdStore: DocumentIdStore;
-  _documentController: DocumentController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -69,13 +65,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._storageController,
       this._telemetryController
     );
-    this._documentIdStore = new DocumentIdStore();
-    this._documentController = new DocumentController(
-      this._documentIdStore,
-      this._connectionController,
-      this._statusView,
-      this._telemetryController
-    );
     this._languageServerController = new LanguageServerController(context);
     this._explorerController = new ExplorerController(
       this._connectionController
@@ -87,16 +76,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController,
       this._languageServerController,
       this._telemetryController,
-      this._statusView,
-      this._documentController
+      this._statusView
     );
     this._editorsController = new EditorsController(
       context,
       this._connectionController,
       this._playgroundController,
       this._statusView,
-      this._documentIdStore,
-      this._documentController
+      this._telemetryController
     );
     this._webviewController = new WebviewController(
       this._connectionController,
@@ -167,17 +154,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT,
-      (item: { documentId: EJSON.SerializableTypes; namespace: string }) =>
-        this._playgroundController.refreshPlaygroundResultDocument(
-          item.documentId,
-          item.namespace
-        )
-    );
-    this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT_CONTENT,
-      (data: any) =>
-        this._playgroundController.refreshPlaygroundResultContent(data)
+      (document: any) =>
+        this._playgroundController.refreshPlaygroundResultContent(document)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION, () =>
       this._connectionController.changeActiveConnection()
@@ -191,8 +170,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => this._languageServerController.startStreamLanguageServerLogs()
     );
 
-    this.registerCommand(EXTENSION_COMMANDS.MDB_SAVE_DOCUMENT_TO_MONGODB, () =>
-      this._documentController.saveDocumentToMongoDB()
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT,
+      (data: { documentId: EJSON.SerializableTypes; namespace: string }) =>
+        this._editorsController.openMongoDBDocument(data)
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_SAVE_MONGODB_DOCUMENT, () =>
+      this._editorsController.saveMongoDBDocument()
     );
 
     this.registerEditorCommands();
@@ -440,10 +424,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_VIEW_DOCUMENT,
       (element: DocumentTreeItem): Promise<boolean> => {
-        return this._editorsController.onViewDocument(
-          element.namespace,
-          element.documentId
-        );
+        return this._editorsController.openMongoDBDocument({
+          documentId: element.documentId,
+          namespace: element.namespace
+        });
       }
     );
     this.registerCommand(

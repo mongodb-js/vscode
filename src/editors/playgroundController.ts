@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { EJSON } from 'bson';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
@@ -18,7 +17,6 @@ import PlaygroundResultProvider, {
 } from './playgroundResultProvider';
 import type { OutputItem } from '../utils/types';
 import { StatusView } from '../views';
-import DocumentController from './documentController';
 
 const log = createLogger('playground controller');
 
@@ -43,7 +41,6 @@ export default class PlaygroundController {
   _playgroundResultViewColumn?: vscode.ViewColumn;
   _playgroundResultTextDocument?: vscode.TextDocument;
   _statusView: StatusView;
-  _documentController: DocumentController;
   _playgroundResultViewProvider: PlaygroundResultProvider;
 
   constructor(
@@ -51,8 +48,7 @@ export default class PlaygroundController {
     connectionController: ConnectionController,
     languageServerController: LanguageServerController,
     telemetryController: TelemetryController,
-    statusView: StatusView,
-    documentController: DocumentController
+    statusView: StatusView
   ) {
     this._context = context;
     this._codeToEvaluate = '';
@@ -61,7 +57,6 @@ export default class PlaygroundController {
     this._languageServerController = languageServerController;
     this._telemetryController = telemetryController;
     this._statusView = statusView;
-    this._documentController = documentController;
     this._outputChannel = vscode.window.createOutputChannel(
       'Playground output'
     );
@@ -370,30 +365,34 @@ export default class PlaygroundController {
       this.playgroundResult
     );
 
-    await vscode.workspace
-      .openTextDocument(this.getVirtualDocumentUri(content))
-      .then(
-        (doc) => {
-          this._playgroundResultTextDocument = doc;
+    const uri = this.getVirtualDocumentUri(content);
 
-          return vscode.window.showTextDocument(doc, {
-            preview: false,
-            viewColumn
-          });
-        },
-        (error) => {
-          log.error('Open result as VirtualDocument ERROR', error);
+    this._playgroundResultViewProvider.setPlaygroundResultUri(uri);
 
-          return vscode.window.showErrorMessage(
-            `Unable to open a result document: ${error.message}`
-          );
-        }
-      );
+    await vscode.workspace.openTextDocument(uri).then(
+      (doc) => {
+        this._playgroundResultTextDocument = doc;
+
+        return vscode.window.showTextDocument(doc, {
+          preview: false,
+          viewColumn
+        });
+      },
+      (error) => {
+        log.error('Open result as VirtualDocument ERROR', error);
+
+        return vscode.window.showErrorMessage(
+          `Unable to open a result document: ${error.message}`
+        );
+      }
+    );
   }
 
-  async refreshPlaygroundResultContent(data: any): Promise<boolean> {
+  async refreshPlaygroundResultContent(document: any): Promise<boolean> {
     return new Promise(async (resolve) => {
-      this._playgroundResultViewProvider.refreshPlaygroundResultContent(data);
+      this._playgroundResultViewProvider.refreshPlaygroundResultContent(
+        document
+      );
 
       return resolve(true);
     });
@@ -528,28 +527,12 @@ export default class PlaygroundController {
   }
 
   openPlayground(filePath: string): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      await vscode.workspace.openTextDocument(filePath).then(
-        (doc) => vscode.window.showTextDocument(doc, 1, false),
-        (error) => {
-          vscode.window.showErrorMessage(`Unable to read file: ${filePath}`);
-          log.error('Open playground ERROR', error);
-        }
-      );
-
-      return resolve(true);
-    });
-  }
-
-  refreshPlaygroundResultDocument(
-    documentId: EJSON.SerializableTypes,
-    namespace: string
-  ): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      return this._documentController.openEditableDocument(
-        documentId,
-        namespace
-      );
+    return new Promise(async (resolve, reject) => {
+      vscode.workspace.openTextDocument(filePath).then((doc) => {
+        vscode.window
+          .showTextDocument(doc, { preview: false })
+          .then(() => resolve(true), reject);
+      }, reject);
     });
   }
 

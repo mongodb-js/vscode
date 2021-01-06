@@ -41,7 +41,7 @@ export default class EditDocumentCodeLensProvider
           }[];
         } = {
           title: 'Edit Document',
-          command: EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT,
+          command: EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT,
           arguments: [
             { documentId: item.documentId, namespace: item.namespace }
           ]

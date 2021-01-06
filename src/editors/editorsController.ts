@@ -8,16 +8,17 @@ import CollectionDocumentsProvider, {
   NAMESPACE_URI_IDENTIFIER,
   VIEW_COLLECTION_SCHEME
 } from './collectionDocumentsProvider';
-import DocumentProvider, {
-  DOCUMENT_ID_URI_IDENTIFIER,
-  VIEW_DOCUMENT_SCHEME
-} from './documentProvider';
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { StatusView } from '../views';
 import PlaygroundController from './playgroundController';
 import DocumentIdStore from './documentIdStore';
-import DocumentController from './documentController';
+import DocumentController, {
+  DOCUMENT_ID_URI_IDENTIFIER,
+  VIEW_DOCUMENT_SCHEME
+} from './documentController';
+import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
+import TelemetryController from '../telemetry/telemetryController';
 
 const log = createLogger('editors controller');
 
@@ -30,19 +31,19 @@ export default class EditorsController {
   _playgroundController: PlaygroundController;
   _collectionDocumentsOperationsStore = new CollectionDocumentsOperationsStore();
   _collectionViewProvider: CollectionDocumentsProvider;
-  _documentViewProvider: DocumentProvider;
   _context: vscode.ExtensionContext;
   _statusView: StatusView;
   _documentIdStore: DocumentIdStore;
   _documentController: DocumentController;
+  _memoryFileSystemProvider: MemoryFileSystemProvider;
+  _telemetryController: TelemetryController;
 
   constructor(
     context: vscode.ExtensionContext,
     connectionController: ConnectionController,
     playgroundController: PlaygroundController,
     statusView: StatusView,
-    documentIdStore: DocumentIdStore,
-    documentController: DocumentController
+    telemetryController: TelemetryController
   ) {
     log.info('activating...');
 
@@ -50,8 +51,36 @@ export default class EditorsController {
     this._playgroundController = playgroundController;
     this._context = context;
     this._statusView = statusView;
-    this._documentIdStore = documentIdStore;
-    this._documentController = documentController;
+    this._telemetryController = telemetryController;
+    this._documentIdStore = new DocumentIdStore();
+    this._memoryFileSystemProvider = new MemoryFileSystemProvider();
+    this._documentController = new DocumentController(
+      this._context,
+      this._documentIdStore,
+      this._connectionController,
+      this._statusView,
+      this._telemetryController,
+      this._memoryFileSystemProvider
+    );
+
+    this._documentController = new DocumentController(
+      context,
+      this._documentIdStore,
+      this._connectionController,
+      this._statusView,
+      this._telemetryController,
+      this._memoryFileSystemProvider
+    );
+
+    context.subscriptions.push(
+      vscode.workspace.registerFileSystemProvider(
+        VIEW_DOCUMENT_SCHEME,
+        this._memoryFileSystemProvider,
+        {
+          isCaseSensitive: true
+        }
+      )
+    );
 
     const collectionViewProvider = new CollectionDocumentsProvider(
       connectionController,
@@ -65,6 +94,7 @@ export default class EditorsController {
         collectionViewProvider
       )
     );
+
     this._collectionViewProvider = collectionViewProvider;
 
     context.subscriptions.push(
@@ -79,20 +109,6 @@ export default class EditorsController {
       )
     );
 
-    const documentViewProvider = new DocumentProvider(
-      connectionController,
-      documentIdStore,
-      new StatusView(context)
-    );
-
-    context.subscriptions.push(
-      vscode.workspace.registerTextDocumentContentProvider(
-        VIEW_DOCUMENT_SCHEME,
-        documentViewProvider
-      )
-    );
-    this._documentViewProvider = documentViewProvider;
-
     vscode.workspace.onDidCloseTextDocument((e) => {
       const uriParams = new URLSearchParams(e.uri.query);
       const documentIdReference =
@@ -104,13 +120,27 @@ export default class EditorsController {
     log.info('activated.');
   }
 
-  async onViewDocument(
-    namespace: string,
-    documentId: EJSON.SerializableTypes
-  ): Promise<boolean> {
-    log.info('view document from the sidebar in editor', namespace);
+  async openMongoDBDocument(data: {
+    documentId: EJSON.SerializableTypes;
+    namespace: string;
+  }): Promise<boolean> {
+    const uri = await this._documentController.openMongoDBDocument(data);
 
-    return this._documentController.openEditableDocument(documentId, namespace);
+    if (!uri) {
+      return Promise.resolve(true);
+    }
+
+    return new Promise(async (resolve, reject) => {
+      vscode.workspace.openTextDocument(uri).then((doc) => {
+        vscode.window
+          .showTextDocument(doc, { preview: false })
+          .then(() => resolve(true), reject);
+      }, reject);
+    });
+  }
+
+  async saveMongoDBDocument(): Promise<boolean> {
+    return this._documentController.saveMongoDBDocument();
   }
 
   static getViewCollectionDocumentsUri(
@@ -135,12 +165,12 @@ export default class EditorsController {
     log.info('view collection documents', namespace);
 
     const operationId = this._collectionDocumentsOperationsStore.createNewOperation();
-
     const uri = EditorsController.getViewCollectionDocumentsUri(
       operationId,
       namespace,
       this._connectionController.getActiveConnectionId()
     );
+
     return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(uri).then((doc) => {
         vscode.window
@@ -193,6 +223,7 @@ export default class EditorsController {
 
     // Notify the document provider to update with the new document limit.
     this._collectionViewProvider.onDidChangeEmitter.fire(uri);
+
     return Promise.resolve(true);
   }
 }

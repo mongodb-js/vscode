@@ -119,11 +119,10 @@ suite('Playground Result Provider Test Suite', () => {
     ]);
   });
 
-  test('returns undefined formatted to string if content is undefined', async () => {
+  test('returns undefined formatted to string if content is undefined', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       mockExtensionContext
     );
-    const uri = vscode.Uri.parse('');
 
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -131,18 +130,15 @@ suite('Playground Result Provider Test Suite', () => {
       content: null
     };
 
-    const result = await testPlaygroundResultViewProvider.provideTextDocumentContent(
-      uri
-    );
+    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('undefined');
   });
 
-  test('returns null formatted to string if content is null', async () => {
+  test('returns null formatted to string if content is null', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       mockExtensionContext
     );
-    const uri = vscode.Uri.parse('');
 
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -150,18 +146,15 @@ suite('Playground Result Provider Test Suite', () => {
       content: null
     };
 
-    const result = await testPlaygroundResultViewProvider.provideTextDocumentContent(
-      uri
-    );
+    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('null');
   });
 
-  test('returns number formatted to string if content is number', async () => {
+  test('returns number formatted to string if content is number', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       mockExtensionContext
     );
-    const uri = vscode.Uri.parse('');
 
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -169,18 +162,15 @@ suite('Playground Result Provider Test Suite', () => {
       content: 4
     };
 
-    const result = await testPlaygroundResultViewProvider.provideTextDocumentContent(
-      uri
-    );
+    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('4');
   });
 
-  test('returns array formatted to string if content is array', async () => {
+  test('returns array formatted to string if content is array', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       mockExtensionContext
     );
-    const uri = vscode.Uri.parse('');
 
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -188,18 +178,15 @@ suite('Playground Result Provider Test Suite', () => {
       content: []
     };
 
-    const result = await testPlaygroundResultViewProvider.provideTextDocumentContent(
-      uri
-    );
+    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('[]');
   });
 
-  test('returns object formatted to string if content is object', async () => {
+  test('returns object formatted to string if content is object', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       mockExtensionContext
     );
-    const uri = vscode.Uri.parse('');
 
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -207,18 +194,15 @@ suite('Playground Result Provider Test Suite', () => {
       content: {}
     };
 
-    const result = await testPlaygroundResultViewProvider.provideTextDocumentContent(
-      uri
-    );
+    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('{}');
   });
 
-  test('returns boolean formatted to string if content is boolean', async () => {
+  test('returns boolean formatted to string if content is boolean', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       mockExtensionContext
     );
-    const uri = vscode.Uri.parse('');
 
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -226,18 +210,15 @@ suite('Playground Result Provider Test Suite', () => {
       content: true
     };
 
-    const result = await testPlaygroundResultViewProvider.provideTextDocumentContent(
-      uri
-    );
+    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('true');
   });
 
-  test('returns string if content is string', async () => {
+  test('returns string if content is string', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       mockExtensionContext
     );
-    const uri = vscode.Uri.parse('');
 
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -245,18 +226,15 @@ suite('Playground Result Provider Test Suite', () => {
       content: 'Berlin'
     };
 
-    const result = await testPlaygroundResultViewProvider.provideTextDocumentContent(
-      uri
-    );
+    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('Berlin');
   });
 
-  test('returns Cursor formatted to string if content is string', async () => {
+  test('returns Cursor formatted to string if content is string', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       mockExtensionContext
     );
-    const uri = vscode.Uri.parse('');
     const content = [
       {
         _id: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
@@ -281,9 +259,7 @@ suite('Playground Result Provider Test Suite', () => {
       content
     };
 
-    const result = await testPlaygroundResultViewProvider.provideTextDocumentContent(
-      uri
-    );
+    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
     mockRefresh.firstArg;
 
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
@@ -301,11 +277,10 @@ suite('Playground Result Provider Test Suite', () => {
     ]);
   });
 
-  test('returns Document formatted to string if content is string', async () => {
+  test('returns Document formatted to string if content is string', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       mockExtensionContext
     );
-    const uri = vscode.Uri.parse('');
     const content = {
       _id: '20213a0d-83f6-4e6f-a575-af7ea6187lala',
       name: 'Minsk'
@@ -324,9 +299,7 @@ suite('Playground Result Provider Test Suite', () => {
       content
     };
 
-    const result = await testPlaygroundResultViewProvider.provideTextDocumentContent(
-      uri
-    );
+    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
     mockRefresh.firstArg;
 
     expect(result).to.be.equal(JSON.stringify(content, null, 2));

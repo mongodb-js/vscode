@@ -72,7 +72,7 @@
     "onCommand:mdb.disconnect",
     "onCommand:mdb.removeConnection",
     "onCommand:mdb.openMongoDBShell",
-    "onCommand:mdb.saveDocumentToMongoDB",
+    "onCommand:mdb.saveMongoDBDocument",
     "onView:mongoDB",
     "onView:mongoDBConnectionExplorer",
     "onView:mongoDBPlaygroundsExplorer",
@@ -220,7 +220,7 @@
         "title": "MongoDB: Run Selected Lines From Playground"
       },
       {
-        "command": "mdb.saveDocumentToMongoDB",
+        "command": "mdb.saveMongoDBDocument",
         "title": "MongoDB: Save Document To MongoDB"
       },
       {
@@ -539,7 +539,7 @@
       ],
       "commandPalette": [
         {
-          "command": "mdb.saveDocumentToMongoDB",
+          "command": "mdb.saveMongoDBDocument",
           "when": "editorLangId == json"
         },
         {
@@ -690,7 +690,7 @@
         "when": "editorLangId == mongodb"
       },
       {
-        "command": "mdb.saveDocumentToMongoDB",
+        "command": "mdb.saveMongoDBDocument",
         "key": "ctrl+s",
         "mac": "cmd+s",
         "when": "editorLangId == json"

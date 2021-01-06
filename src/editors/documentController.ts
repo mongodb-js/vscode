@@ -1,43 +1,50 @@
 import * as vscode from 'vscode';
-import * as fse from 'fs-extra';
-import * as os from 'os';
-import * as path from 'path';
 import { EJSON } from 'bson';
 import DocumentIdStore from './documentIdStore';
 import {
   CONNECTION_ID_URI_IDENTIFIER,
-  NAMESPACE_URI_IDENTIFIER,
-  DOCUMENT_LOCATION_URI_IDENTIFIER
+  NAMESPACE_URI_IDENTIFIER
 } from './collectionDocumentsProvider';
 import ConnectionController from '../connectionController';
-import { DOCUMENT_ID_URI_IDENTIFIER } from './documentProvider';
 import { StatusView } from '../views';
 import TelemetryController from '../telemetry/telemetryController';
 import { DataServiceType } from '../dataServiceType';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
+import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
+import util from 'util';
+
+export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
+
+export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
 const log = createLogger('document controller');
 
 export default class DocumentController {
+  _context: vscode.ExtensionContext;
   _documentIdStore: DocumentIdStore;
   _connectionController: ConnectionController;
   _statusView: StatusView;
   _telemetryController: TelemetryController;
+  _memoryFileSystemProvider: MemoryFileSystemProvider;
 
   constructor(
+    context: vscode.ExtensionContext,
     documentIdStore: DocumentIdStore,
     connectionController: ConnectionController,
     statusView: StatusView,
-    telemetryController: TelemetryController
+    telemetryController: TelemetryController,
+    memoryFileSystemProvider: MemoryFileSystemProvider
   ) {
+    this._context = context;
     this._documentIdStore = documentIdStore;
     this._connectionController = connectionController;
     this._statusView = statusView;
     this._telemetryController = telemetryController;
+    this._memoryFileSystemProvider = memoryFileSystemProvider;
   }
 
-  provideDocumentContent(
+  async _fetchDocument(
     namespace: string,
     documentId: any,
     connectionId: string | null
@@ -49,52 +56,48 @@ export default class DocumentController {
       connectionId
     );
 
-    return new Promise((resolve, reject) => {
-      const dataservice = this._connectionController.getActiveDataService();
+    const dataservice = this._connectionController.getActiveDataService();
 
-      if (dataservice === null) {
-        const errorMessage = `Unable to find document: no longer connected to ${connectionId}`;
+    if (dataservice === null) {
+      const errorMessage = `Unable to find document: no longer connected to ${connectionId}`;
 
-        vscode.window.showErrorMessage(errorMessage);
+      throw new Error(errorMessage);
+    }
 
-        return reject(new Error(errorMessage));
-      }
+    const find = util.promisify(dataservice.find.bind(dataservice));
 
-      this._statusView.showMessage('Fetching document...');
+    this._statusView.showMessage('Fetching document...');
 
-      dataservice.find(
+    try {
+      const documents = await find(
         namespace,
         {
           _id: documentId
         },
         {
           limit: 1
-        },
-        (error: Error | undefined, documents: object[]) => {
-          this._statusView.hideMessage();
-
-          if (error) {
-            const errorMessage = `Unable to find document: ${error.message}`;
-
-            vscode.window.showErrorMessage(errorMessage);
-
-            return reject(new Error(errorMessage));
-          }
-
-          if (!documents || documents.length === 0) {
-            const errorMessage = `Unable to find document: ${JSON.stringify(
-              documentId
-            )}`;
-
-            vscode.window.showErrorMessage(errorMessage);
-
-            return reject(new Error(errorMessage));
-          }
-
-          return resolve(JSON.parse(EJSON.stringify(documents[0])));
         }
       );
-    });
+
+      if (!documents || documents.length === 0) {
+        const errorMessage = `Unable to find document: ${JSON.stringify(
+          documentId
+        )}`;
+
+        throw new Error(errorMessage);
+      }
+
+      this._statusView.hideMessage();
+
+      return JSON.parse(EJSON.stringify(documents[0]));
+    } catch (error) {
+      const errorMessage = `Unable to find document: ${error.message}`;
+
+      this._statusView.hideMessage();
+      vscode.window.showErrorMessage(errorMessage);
+
+      return null;
+    }
   }
 
   _saveDocumentFailed(errorMessage: string): boolean {
@@ -106,7 +109,68 @@ export default class DocumentController {
     return false;
   }
 
-  async saveDocumentToMongoDB(): Promise<boolean> {
+  async _replaceDocument(data: {
+    documentId: EJSON.SerializableTypes;
+    namespace: string;
+    dataservice: DataServiceType;
+  }): Promise<boolean> {
+    const { documentId, namespace, dataservice } = data;
+    const activeEditor = vscode.window.activeTextEditor;
+    let newDocument: EJSON.SerializableTypes = {};
+
+    try {
+      newDocument = EJSON.parse(activeEditor?.document.getText() || '');
+    } catch (error) {
+      return this._saveDocumentFailed(error.message);
+    }
+
+    this._statusView.showMessage('Saving document...');
+
+    const findOneAndReplace = util.promisify(
+      dataservice.findOneAndReplace.bind(dataservice)
+    );
+
+    try {
+      const document = await findOneAndReplace(
+        namespace,
+        {
+          _id: documentId
+        },
+        newDocument,
+        {
+          returnOriginal: false
+        }
+      );
+
+      this._statusView.hideMessage();
+
+      // Send metrics to Segment.
+      this._telemetryController.trackDocumentUpdated('treeview', true);
+
+      // Save document changes to active editor.
+      activeEditor?.document.save();
+
+      // Update parent list of documents to reflect the changes that were made.
+      vscode.commands.executeCommand(
+        EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT_CONTENT,
+        document
+      );
+
+      vscode.window.showInformationMessage(
+        `The document was saved successfully to '${namespace}'`
+      );
+
+      return true;
+    } catch (error) {
+      const errorMessage = `Unable to save document: ${error.message}`;
+
+      this._statusView.hideMessage();
+
+      return this._saveDocumentFailed(errorMessage);
+    }
+  }
+
+  async saveMongoDBDocument(): Promise<boolean> {
     const activeEditor = vscode.window.activeTextEditor;
 
     log.info('save document to MongoDB', activeEditor);
@@ -116,8 +180,6 @@ export default class DocumentController {
     }
 
     const uriParams = new URLSearchParams(activeEditor.document.uri.query);
-    const documentLocation =
-      uriParams.get(DOCUMENT_LOCATION_URI_IDENTIFIER) || '';
     const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER);
     const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
@@ -125,7 +187,7 @@ export default class DocumentController {
 
     // If not MongoDB document save to disk instead of MongoDB.
     if (
-      documentLocation !== 'mongodb' ||
+      activeEditor.document.uri.scheme !== 'VIEW_DOCUMENT_SCHEME' ||
       !namespace ||
       !connectionId ||
       !documentId
@@ -154,109 +216,43 @@ export default class DocumentController {
       );
     }
 
-    return await this.replaceDocument(
+    return await this._replaceDocument({
       documentId,
       namespace,
-      dataservice,
-      activeEditor
-    );
+      dataservice
+    });
   }
 
-  async replaceDocument(
-    documentId: EJSON.SerializableTypes,
-    namespace: string,
-    dataservice: DataServiceType,
-    editor: vscode.TextEditor
-  ): Promise<boolean> {
-    const activeEditor = vscode.window.activeTextEditor;
-    let newDocument: EJSON.SerializableTypes = {};
-
-    try {
-      newDocument = EJSON.parse(editor.document.getText());
-    } catch (error) {
-      return this._saveDocumentFailed(error.message);
-    }
-
-    this._statusView.showMessage('Saving document...');
-
-    dataservice.findOneAndReplace(
-      namespace,
-      {
-        _id: documentId
-      },
-      newDocument,
-      {
-        returnOriginal: false
-      },
-      (error, data) => {
-        this._statusView.hideMessage();
-
-        if (error) {
-          return this._saveDocumentFailed(
-            `Unable to save document: ${error.message}`
-          );
-        }
-
-        // Send metrics to Segment.
-        this._telemetryController.trackDocumentUpdated('treeview', true);
-
-        // Save document changes to active editor.
-        activeEditor?.document.save();
-
-        // Update parent list of documents to reflect the changes that were made.
-        vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT_CONTENT,
-          data
-        );
-
-        vscode.window.showInformationMessage(
-          `The document was saved successfully to '${namespace}'`
-        );
-
-        return true;
-      }
-    );
-
-    return true;
-  }
-
-  async openEditableDocument(
-    documentId: EJSON.SerializableTypes,
-    namespace: string
-  ): Promise<boolean> {
-    const documentLocation = `${DOCUMENT_LOCATION_URI_IDENTIFIER}=mongodb`;
+  async openMongoDBDocument(data: {
+    documentId: EJSON.SerializableTypes;
+    namespace: string;
+  }): Promise<vscode.Uri | undefined> {
     const connectionId = this._connectionController.getActiveConnectionId();
     const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
-    const documentIdReference = this._documentIdStore.add(documentId);
+    const documentIdReference = this._documentIdStore.add(data.documentId);
     const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
-    const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
-    const localDocPath: string = path.join(
-      os.tmpdir(),
-      'vscode-opened-documents',
-      `${documentIdReference}.json`
-    );
-    const document = await this.provideDocumentContent(
-      namespace,
-      documentId,
+    const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${data.namespace}`;
+    const document = await this._fetchDocument(
+      data.namespace,
+      data.documentId,
       connectionId
     );
 
-    await fse.ensureFile(localDocPath);
-    await fse.writeJson(localDocPath, document, {
-      spaces: 2,
-      EOL: os.EOL
+    if (!document) {
+      return;
+    }
+
+    const fileName = `${VIEW_DOCUMENT_SCHEME}:/${data.namespace}:${documentIdReference}.json`;
+    const uri: vscode.Uri = vscode.Uri.parse(fileName).with({
+      query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}`
     });
 
-    const uri: vscode.Uri = vscode.Uri.file(localDocPath).with({
-      query: `?${documentLocation}&${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}`
-    });
+    this._memoryFileSystemProvider.writeFile(
+      vscode.Uri.parse(fileName),
+      Buffer.from(JSON.stringify(document, null, 2)),
+      { create: true, overwrite: true }
+    );
 
-    return new Promise(async (resolve, reject) => {
-      vscode.workspace.openTextDocument(uri).then((doc) => {
-        vscode.window
-          .showTextDocument(doc, { preview: false, preserveFocus: true })
-          .then(() => resolve(true), reject);
-      }, reject);
-    });
+    return uri;
   }
 }

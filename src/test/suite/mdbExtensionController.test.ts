@@ -1,5 +1,4 @@
 import assert from 'assert';
-import * as fse from 'fs-extra';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
@@ -1255,8 +1254,8 @@ suite('MDBExtensionController Test Suite', function () {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
+          scheme: 'VIEW_DOCUMENT_SCHEME',
           query: [
-            '?documentLocation=mongodb',
             'namespace=waffle.house',
             'connectionId=tasty_sandwhich',
             'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
@@ -1304,25 +1303,19 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.viewDocument', documentItem);
 
-    assert(
-      mockOpenTextDocument.firstArg.path.includes('vscode-opened-documents')
-    );
     assert(mockOpenTextDocument.firstArg.path.includes('.json'));
-    assert(mockOpenTextDocument.firstArg.scheme === 'file');
+    assert(mockOpenTextDocument.firstArg.scheme === 'VIEW_DOCUMENT_SCHEME');
     assert(mockOpenTextDocument.firstArg.query.includes('documentId='));
     assert(mockOpenTextDocument.firstArg.query.includes('connectionId='));
     assert(
       mockOpenTextDocument.firstArg.query.includes('namespace=waffle.house')
     );
     assert(
-      mockOpenTextDocument.firstArg.query.includes('documentLocation=mongodb')
-    );
-    assert(
       mockShowTextDocument.firstArg === 'magna carta',
       'Expected it to call vscode to show the returned document from the provider'
     );
 
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+    await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
 
     assert(mockDocument.name === 'something sweet');
     assert(mockDocument.time.$time === '12345');
@@ -1334,8 +1327,6 @@ suite('MDBExtensionController Test Suite', function () {
       fakeShowInformationMessage.firstArg === expectedMessage,
       `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeShowInformationMessage.firstArg}"`
     );
-
-    await fse.remove(mockOpenTextDocument.firstArg.path);
   });
 
   test("if a user is not connected, documents won't be saved to MongoDB", async () => {
@@ -1345,8 +1336,8 @@ suite('MDBExtensionController Test Suite', function () {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
+          scheme: 'VIEW_DOCUMENT_SCHEME',
           query: [
-            '?documentLocation=mongodb',
             'namespace=waffle.house',
             'connectionId=tasty_sandwhich',
             'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
@@ -1377,7 +1368,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockGetSavedConnectionName
     );
 
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+    await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
 
     const expectedMessage =
       "Unable to save document: no longer connected to 'connect:27017'";
@@ -1403,8 +1394,8 @@ suite('MDBExtensionController Test Suite', function () {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
+          scheme: 'VIEW_DOCUMENT_SCHEME',
           query: [
-            '?documentLocation=mongodb',
             'namespace=waffle.house',
             'connectionId=tasty_sandwhich',
             'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
@@ -1427,7 +1418,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockGetSavedConnectionName
     );
 
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+    await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
 
     const expectedMessage =
       "Unable to save document: no longer connected to 'connect:27017'";
@@ -1453,8 +1444,8 @@ suite('MDBExtensionController Test Suite', function () {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
+          scheme: 'VIEW_DOCUMENT_SCHEME',
           query: [
-            '?documentLocation=mongodb',
             'namespace=waffle.house',
             'connectionId=tasty_sandwhich',
             'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
@@ -1484,7 +1475,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockGetSavedConnectionName
     );
 
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+    await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
 
     const expectedMessage =
       "Unable to save document: no longer connected to 'connect:27017'";
@@ -1510,8 +1501,8 @@ suite('MDBExtensionController Test Suite', function () {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
+          scheme: 'VIEW_DOCUMENT_SCHEME',
           query: [
-            '?documentLocation=mongodb',
             'namespace=waffle.house',
             'connectionId=tasty_sandwhich',
             'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
@@ -1535,7 +1526,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockGetSavedConnectionName
     );
 
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+    await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
 
     const expectedMessage =
       "Unable to save document: no longer connected to 'connect:27017'";

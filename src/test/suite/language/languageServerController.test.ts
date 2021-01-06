@@ -1,7 +1,5 @@
 import { before, after } from 'mocha';
 import TelemetryController from '../../../telemetry/telemetryController';
-import DocumentIdStore from '../../../editors/documentIdStore';
-import DocumentController from '../../../editors/documentController';
 
 const path = require('path');
 const fs = require('fs');
@@ -16,7 +14,6 @@ import { LanguageServerController } from '../../../language';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-
 import { TestExtensionContext } from '../stubs';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
@@ -44,13 +41,6 @@ suite('Language Server Controller Test Suite', () => {
     mockStorageController,
     testTelemetryController
   );
-  const testDocumentIdStore = new DocumentIdStore();
-  const testDocumentController = new DocumentController(
-    testDocumentIdStore,
-    testConnectionController,
-    testStatusView,
-    testTelemetryController
-  );
 
   testLanguageServerController.startLanguageServer();
 
@@ -59,8 +49,7 @@ suite('Language Server Controller Test Suite', () => {
     testConnectionController,
     testLanguageServerController,
     testTelemetryController,
-    testStatusView,
-    testDocumentController
+    testStatusView
   );
 
   before(async () => {

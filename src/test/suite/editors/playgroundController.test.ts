@@ -7,8 +7,6 @@ import { StorageController } from '../../../storage';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
 import { before, beforeEach, afterEach } from 'mocha';
 import TelemetryController from '../../../telemetry/telemetryController';
-import DocumentIdStore from '../../../editors/documentIdStore';
-import DocumentController from '../../../editors/documentController';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -43,20 +41,12 @@ suite('Playground Controller Test Suite', function () {
     mockExtensionContext,
     mockStorageController
   );
-  const testDocumentIdStore = new DocumentIdStore();
-  const testDocumentController = new DocumentController(
-    testDocumentIdStore,
-    testConnectionController,
-    testStatusView,
-    testTelemetryController
-  );
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
     mockLanguageServerController as LanguageServerController,
     testTelemetryController,
-    testStatusView,
-    testDocumentController
+    testStatusView
   );
   const sandbox = sinon.createSandbox();
   let fakeShowInformationMessage: any;
@@ -341,8 +331,7 @@ suite('Playground Controller Test Suite', function () {
           testConnectionController,
           mockLanguageServerController as LanguageServerController,
           testTelemetryController,
-          testStatusView,
-          testDocumentController
+          testStatusView
         );
 
         expect(playgroundControllerTest.activeTextEditor).to.deep.equal(

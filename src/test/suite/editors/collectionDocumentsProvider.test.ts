@@ -211,13 +211,13 @@ suite('Collection Documents Provider Test Suite', () => {
     );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
-    const textStatusView = new StatusView(mockExtensionContext);
+    const testStatusView = new StatusView(mockExtensionContext);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(
       mockConnectionController,
       testQueryStore,
-      textStatusView
+      testStatusView
     );
 
     const operationId = testQueryStore.createNewOperation();
@@ -227,10 +227,10 @@ suite('Collection Documents Provider Test Suite', () => {
     );
 
     const mockShowMessage = sinon.fake();
-    sinon.replace(textStatusView, 'showMessage', mockShowMessage);
+    sinon.replace(testStatusView, 'showMessage', mockShowMessage);
 
     const mockHideMessage = sinon.fake();
-    sinon.replace(textStatusView, 'hideMessage', mockHideMessage);
+    sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
 
     mockActiveConnection.find = (
       namespace,
