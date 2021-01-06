@@ -19,7 +19,7 @@ suite('CollectionTreeItem Test Suite', () => {
         type: CollectionTypes.collection
       },
       'mock_db_name',
-      'imaginary data service',
+      'imaginary data service' as any,
       false,
       false,
       null
@@ -44,7 +44,7 @@ suite('CollectionTreeItem Test Suite', () => {
         type: CollectionTypes.collection
       },
       'mock_db_name',
-      new DataServiceStub(),
+      new DataServiceStub() as any,
       false,
       false,
       null
@@ -81,7 +81,7 @@ suite('CollectionTreeItem Test Suite', () => {
       'mock_db_name',
       {
         estimatedCount: (ns, options, cb): void => cb(null, 5000)
-      },
+      } as any,
       false,
       false,
       null
@@ -112,7 +112,7 @@ suite('CollectionTreeItem Test Suite', () => {
         type: CollectionTypes.view
       },
       'mock_db_name',
-      'imaginary data service',
+      'imaginary data service' as any,
       false,
       false,
       null
@@ -134,7 +134,7 @@ suite('CollectionTreeItem Test Suite', () => {
         type: CollectionTypes.collection
       },
       'mock_db_name',
-      'imaginary data service',
+      'imaginary data service' as any,
       false,
       false,
       null

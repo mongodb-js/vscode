@@ -2,12 +2,12 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import * as sinon from 'sinon';
-import Connection = require('mongodb-connection-model/lib/model');
 
 import MDBExtensionController from '../../../mdbExtensionController';
 import launchMongoShell from '../../../commands/launchMongoShell';
 
 import { TestExtensionContext } from '../stubs';
+import { parseConnectionModel } from '../../../views/webview-app/connection-model/connection-model';
 
 suite('Commands Test Suite', () => {
   vscode.window.showInformationMessage('Starting tests...');
@@ -78,7 +78,7 @@ suite('Commands Test Suite', () => {
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
       fakeGetActiveConnectionModel.returns(
-        new Connection({
+        parseConnectionModel({
           hostname: 'localhost',
           port: 27018
         })
@@ -104,7 +104,7 @@ suite('Commands Test Suite', () => {
 
     test('openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
       fakeGetActiveConnectionModel.returns(
-        new Connection({
+        parseConnectionModel({
           hostname: '127.0.0.1',
           sshTunnel: 'USER_PASSWORD',
           sshTunnelHostname: 'my.ssh-server.com',
@@ -137,7 +137,7 @@ suite('Commands Test Suite', () => {
         'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
 
       fakeGetActiveConnectionModel.returns(
-        new Connection({
+        parseConnectionModel({
           hostname: '127.0.0.1',
           ssl: true,
           sslMethod: 'SERVER',
@@ -187,7 +187,7 @@ suite('Commands Test Suite', () => {
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
       fakeGetActiveConnectionModel.returns(
-        new Connection({
+        parseConnectionModel({
           hostname: 'localhost',
           port: 27018
         })
@@ -215,7 +215,7 @@ suite('Commands Test Suite', () => {
 
     test('powershell openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
       fakeGetActiveConnectionModel.returns(
-        new Connection({
+        parseConnectionModel({
           hostname: '127.0.0.1',
           sshTunnel: 'USER_PASSWORD',
           sshTunnelHostname: 'my.ssh-server.com',
@@ -248,7 +248,7 @@ suite('Commands Test Suite', () => {
         'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
 
       fakeGetActiveConnectionModel.returns(
-        new Connection({
+        parseConnectionModel({
           hostname: '127.0.0.1',
           ssl: true,
           sslMethod: 'SERVER',
@@ -295,7 +295,7 @@ suite('Commands Test Suite', () => {
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
       fakeGetActiveConnectionModel.returns(
-        new Connection({
+        parseConnectionModel({
           hostname: 'localhost',
           port: 27018
         })
@@ -317,7 +317,7 @@ suite('Commands Test Suite', () => {
 
     test('windows cmd openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
       fakeGetActiveConnectionModel.returns(
-        new Connection({
+        parseConnectionModel({
           hostname: '127.0.0.1',
           sshTunnel: 'USER_PASSWORD',
           sshTunnelHostname: 'my.ssh-server.com',
@@ -350,7 +350,7 @@ suite('Commands Test Suite', () => {
         'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
 
       fakeGetActiveConnectionModel.returns(
-        new Connection({
+        parseConnectionModel({
           hostname: '127.0.0.1',
           ssl: true,
           sslMethod: 'SERVER',

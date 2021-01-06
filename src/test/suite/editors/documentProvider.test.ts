@@ -43,7 +43,7 @@ suite('Document Provider Test Suite', () => {
   });
 
   test('expected provideTextDocumentContent to parse uri and return the document in the form of a string from a find call', (done) => {
-    const mockActiveConnection = {
+    const mockActiveConnection: any = {
       find: (namespace, filter, options, callback): void => {
         assert(
           namespace === 'fruit.pineapple',
@@ -104,7 +104,7 @@ suite('Document Provider Test Suite', () => {
       }
     ];
 
-    const mockActiveConnection = {
+    const mockActiveConnection: any = {
       find: (namespace, filter, options, callback): void => {
         return callback(null, mockDocument);
       }
@@ -150,7 +150,7 @@ suite('Document Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent shows a status bar item while it is running then hide it', (done) => {
-    const mockActiveConnection = { find: {} };
+    const mockActiveConnection: any = { find: {} };
 
     const mockExtensionContext = new TestExtensionContext();
     const mockStorageController = new StorageController(mockExtensionContext);

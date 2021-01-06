@@ -1,7 +1,6 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import Connection = require('mongodb-connection-model/lib/model');
 const sinon = require('sinon');
 
 import {
@@ -10,6 +9,7 @@ import {
 } from '../../../storage/storageController';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
+import ConnectionModel from '../../../views/webview-app/connection-model/connection-model';
 
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=500&serverSelectionTimeoutMS=500';
@@ -58,7 +58,7 @@ suite('Explorer Controller Test Suite', function () {
     testConnectionController._connections = {
       testConnectionId: {
         id: 'testConnectionId',
-        connectionModel: new Connection(),
+        connectionModel: new ConnectionModel(),
         name: 'testConnectionName',
         storageLocation: StorageScope.NONE
       }

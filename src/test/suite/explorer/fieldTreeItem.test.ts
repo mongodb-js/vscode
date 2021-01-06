@@ -135,48 +135,43 @@ suite('FieldTreeItem Test Suite', function () {
       await cleanupTestDB();
     });
 
-    test('field name is pulled from the name of a field', (done) => {
-      seedDataAndCreateDataService('pie', [
+    test('field name is pulled from the name of a field', async () => {
+      const dataService = await seedDataAndCreateDataService('pie', [
         {
           _id: 1,
           blueberryPie: 'yes'
         }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'pie',
-          TEST_DB_NAME,
-          dataService,
-          true,
-          false,
-          false,
-          false,
-          {}
-        );
+      ]);
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'pie',
+        TEST_DB_NAME,
+        dataService,
+        true,
+        false,
+        false,
+        false,
+        {}
+      );
 
-        testSchemaTreeItem
-          .getChildren()
-          .then((schemaFields) => {
-            dataService.disconnect();
+      const schemaFields = await testSchemaTreeItem.getChildren();
+      await dataService.close();
 
-            assert(
-              schemaFields[0].label === '_id',
-              `Expected field name to be "_id" recieved ${schemaFields[0].label}`
-            );
-            assert(
-              schemaFields[1].label === 'blueberryPie',
-              `Expected field name to be "blueberryPie" recieved ${schemaFields[0].label}`
-            );
-            assert(
-              schemaFields[1].fieldName === 'blueberryPie',
-              `Expected field name to be "blueberryPie" recieved ${schemaFields[0].label}`
-            );
-          })
-          .then(done, done);
-      });
+      assert(
+        schemaFields[0].label === '_id',
+        `Expected field name to be "_id" recieved ${schemaFields[0].label}`
+      );
+      assert(
+        schemaFields[1].label === 'blueberryPie',
+        `Expected field name to be "blueberryPie" recieved ${schemaFields[0].label}`
+      );
+      assert(
+        schemaFields[1].fieldName === 'blueberryPie',
+        `Expected field name to be "blueberryPie" recieved ${schemaFields[0].label}`
+      );
     });
 
-    test('it shows dropdowns for nested subdocuments', (done) => {
-      seedDataAndCreateDataService('gryffindor', [
+    test('it shows dropdowns for nested subdocuments', async () => {
+      const dataService = await seedDataAndCreateDataService('gryffindor', [
         {
           _id: 1,
           alwaysDocument: {
@@ -195,62 +190,52 @@ suite('FieldTreeItem Test Suite', function () {
             }
           }
         }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'gryffindor',
-          TEST_DB_NAME,
-          dataService,
-          false,
-          false,
-          false,
-          false,
-          {}
-        );
+      ]);
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'gryffindor',
+        TEST_DB_NAME,
+        dataService,
+        false,
+        false,
+        false,
+        false,
+        {}
+      );
 
-        testSchemaTreeItem.onDidExpand();
+      testSchemaTreeItem.onDidExpand();
 
-        testSchemaTreeItem.getChildren().then((schemaFields) => {
-          dataService.disconnect();
-          assert(
-            schemaFields.length === 2,
-            `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
-          );
-          assert(
-            !fieldIsExpandable(schemaFields[0].field),
-            'Expected _id field not to have expandable state'
-          );
-          assert(
-            fieldIsExpandable(schemaFields[1].field),
-            'Expected field to have expandable state'
-          );
-          schemaFields[1]
-            .getChildren()
-            .then((subdocuments) => {
-              assert(
-                subdocuments.length === 1,
-                `Expected subdocument to have 1 field found ${subdocuments.length}`
-              );
-              assert(
-                fieldIsExpandable(subdocuments[0].field),
-                'Expected subdocument to be expandable'
-              );
-              subdocuments[0]
-                .getChildren()
-                .then((nestedSubDocument) => {
-                  assert(
-                    nestedSubDocument.length === 3,
-                    'Expected nested subdocument to have 3 fields'
-                  );
-                })
-                .then(done, done);
-            })
-            .catch(done);
-        });
-      });
+      const schemaFields = await testSchemaTreeItem.getChildren();
+      await dataService.close();
+      assert(
+        schemaFields.length === 2,
+        `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
+      );
+      assert(
+        !fieldIsExpandable(schemaFields[0].field),
+        'Expected _id field not to have expandable state'
+      );
+      assert(
+        fieldIsExpandable(schemaFields[1].field),
+        'Expected field to have expandable state'
+      );
+      const subdocuments = await schemaFields[1].getChildren();
+      assert(
+        subdocuments.length === 1,
+        `Expected subdocument to have 1 field found ${subdocuments.length}`
+      );
+      assert(
+        fieldIsExpandable(subdocuments[0].field),
+        'Expected subdocument to be expandable'
+      );
+      const nestedSubDocument = await subdocuments[0].getChildren();
+      assert(
+        nestedSubDocument.length === 3,
+        'Expected nested subdocument to have 3 fields'
+      );
     });
 
-    test('it shows dropdowns for arrays', (done) => {
-      seedDataAndCreateDataService('gryffindor', [
+    test('it shows dropdowns for arrays', async () => {
+      const dataService = await seedDataAndCreateDataService('gryffindor', [
         {
           _id: 1,
           testingArray: ['okay', 'nice']
@@ -259,48 +244,43 @@ suite('FieldTreeItem Test Suite', function () {
           _id: 2,
           testingArray: ['dobby']
         }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'gryffindor',
-          TEST_DB_NAME,
-          dataService,
-          false,
-          false,
-          false,
-          false,
-          {}
-        );
+      ]);
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'gryffindor',
+        TEST_DB_NAME,
+        dataService,
+        false,
+        false,
+        false,
+        false,
+        {}
+      );
 
-        testSchemaTreeItem.onDidExpand();
+      testSchemaTreeItem.onDidExpand();
 
-        testSchemaTreeItem.getChildren().then((schemaFields) => {
-          dataService.disconnect();
-          assert(
-            schemaFields.length === 2,
-            `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
-          );
-          assert(
-            fieldIsExpandable(schemaFields[1].field),
-            'Expected field to have expandable state'
-          );
-          schemaFields[1]
-            .getChildren()
-            .then((arrayFieldContainer) => {
-              assert(
-                arrayFieldContainer.length === 1,
-                `Expected array field to have 1 field found ${arrayFieldContainer.length}`
-              );
-              assert(
-                !fieldIsExpandable(arrayFieldContainer[0].field),
-                'Expected array field container to not be expandable'
-              );
-            }).then(done, done);
-        }, done);
-      });
+      const schemaFields = await testSchemaTreeItem.getChildren();
+      await dataService.close();
+      assert(
+        schemaFields.length === 2,
+        `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
+      );
+      assert(
+        fieldIsExpandable(schemaFields[1].field),
+        'Expected field to have expandable state'
+      );
+      const arrayFieldContainer = await schemaFields[1].getChildren();
+      assert(
+        arrayFieldContainer.length === 1,
+        `Expected array field to have 1 field found ${arrayFieldContainer.length}`
+      );
+      assert(
+        !fieldIsExpandable(arrayFieldContainer[0].field),
+        'Expected array field container to not be expandable'
+      );
     });
 
-    test('it shows dropdowns and fields for document fields in arrays', (done) => {
-      seedDataAndCreateDataService('beach', [
+    test('it shows dropdowns and fields for document fields in arrays', async () => {
+      const dataService = await seedDataAndCreateDataService('beach', [
         {
           _id: 1,
           testingArray: [
@@ -319,52 +299,45 @@ suite('FieldTreeItem Test Suite', function () {
             }
           ]
         }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'beach',
-          TEST_DB_NAME,
-          dataService,
-          false,
-          false,
-          false,
-          false,
-          {}
-        );
+      ]);
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'beach',
+        TEST_DB_NAME,
+        dataService,
+        false,
+        false,
+        false,
+        false,
+        {}
+      );
 
-        testSchemaTreeItem.onDidExpand();
+      testSchemaTreeItem.onDidExpand();
 
-        testSchemaTreeItem.getChildren().then((schemaFields) => {
-          dataService.disconnect();
+      const schemaFields = await testSchemaTreeItem.getChildren();
+      await dataService.close();
 
-          schemaFields[1].getChildren().then((nestedSubDocuments) => {
-            assert(
-              nestedSubDocuments.length === 1,
-              `Expected array field fields to have 1 field found ${nestedSubDocuments.length}`
-            );
-            assert(
-              fieldIsExpandable(nestedSubDocuments[0].field),
-              'Expected subdocument in array to be expandable'
-            );
-            nestedSubDocuments[0]
-              .getChildren()
-              .then((subdocFields) => {
-                assert(
-                  subdocFields.length === 2,
-                  `Expected subdocument in array field to have 2 fields found ${subdocFields.length}`
-                );
-                assert(
-                  subdocFields[1].label === 'sunset',
-                  'Expected subdocument field to have correct label'
-                );
-                assert(
-                  !fieldIsExpandable(subdocFields[1].field),
-                  'Expected subdocument boolean field to not be expandable'
-                );
-              })
-              .then(done, done);
-          });
-        });
-      });
+      const nestedSubDocuments = await schemaFields[1].getChildren();
+      assert(
+        nestedSubDocuments.length === 1,
+        `Expected array field fields to have 1 field found ${nestedSubDocuments.length}`
+      );
+      assert(
+        fieldIsExpandable(nestedSubDocuments[0].field),
+        'Expected subdocument in array to be expandable'
+      );
+      const subdocFields = await nestedSubDocuments[0].getChildren();
+      assert(
+        subdocFields.length === 2,
+        `Expected subdocument in array field to have 2 fields found ${subdocFields.length}`
+      );
+      assert(
+        subdocFields[1].label === 'sunset',
+        'Expected subdocument field to have correct label'
+      );
+      assert(
+        !fieldIsExpandable(subdocFields[1].field),
+        'Expected subdocument boolean field to not be expandable'
+      );
     });
   });
 });
