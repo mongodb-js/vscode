@@ -1596,9 +1596,11 @@ suite('MDBExtensionController Test Suite', function () {
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('useDefaultTemplateForPlayground', true);
+    const mockGetConfiguration = sinon.fake.returns({
+      get: () => true
+    });
+    sinon.replace(vscode.workspace, 'getConfiguration', mockGetConfiguration);
+
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     assert(mockOpenTextDocument.firstArg.language === 'mongodb');
@@ -1637,9 +1639,11 @@ suite('MDBExtensionController Test Suite', function () {
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('useDefaultTemplateForPlayground', false);
+    const mockGetConfiguration = sinon.fake.returns({
+      get: () => false
+    });
+    sinon.replace(vscode.workspace, 'getConfiguration', mockGetConfiguration);
+
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     assert(mockOpenTextDocument.firstArg.language === 'mongodb');

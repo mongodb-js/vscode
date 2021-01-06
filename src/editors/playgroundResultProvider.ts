@@ -8,7 +8,7 @@ export default class PlaygroundResultProvider
   implements vscode.TextDocumentContentProvider {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _playgroundResult: OutputItem;
-  _uri?: vscode.Uri;
+  _uri: vscode.Uri;
 
   constructor(context: vscode.ExtensionContext) {
     this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider();
@@ -17,6 +17,7 @@ export default class PlaygroundResultProvider
       type: null,
       content: undefined
     };
+    this._uri = vscode.Uri.parse('');
 
     context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
@@ -76,9 +77,7 @@ export default class PlaygroundResultProvider
       });
     }
 
-    if (this._uri) {
-      this.onDidChangeEmitter.fire(this._uri);
-    }
+    this.onDidChangeEmitter.fire(this._uri);
   }
 
   async reopenResultAsVirtualDocument(
@@ -89,14 +88,11 @@ export default class PlaygroundResultProvider
       this._playgroundResult = playgroundResult;
     }
 
-    if (this._uri) {
-      this.onDidChangeEmitter.fire(this._uri);
-
-      await vscode.window.showTextDocument(this._uri, {
-        preview: false,
-        viewColumn
-      });
-    }
+    this.onDidChangeEmitter.fire(this._uri);
+    await vscode.window.showTextDocument(this._uri, {
+      preview: false,
+      viewColumn
+    });
   }
 
   provideTextDocumentContent(): string {

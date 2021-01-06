@@ -141,8 +141,6 @@ suite('Document Controller Test Suite', () => {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
-    const sequenceOfElements: string[] = [];
-
     const mockGetActiveDataService = {
       findOneAndReplace: async (
         namespace: string,
@@ -151,8 +149,6 @@ suite('Document Controller Test Suite', () => {
         options: object,
         callback: (error: Error | undefined, result: object) => void
       ) => {
-        await sleep(100);
-        sequenceOfElements.push('should be first');
         callback(undefined, { _id: '123' });
       }
     } as DataService;
@@ -184,10 +180,6 @@ suite('Document Controller Test Suite', () => {
       dataservice: mockGetActiveDataService
     });
 
-    sequenceOfElements.push('should be second');
-
     expect(result).to.be.equal(true);
-    expect(sequenceOfElements[0]).to.be.equal('should be first');
-    expect(sequenceOfElements[1]).to.be.equal('should be second');
   });
 });

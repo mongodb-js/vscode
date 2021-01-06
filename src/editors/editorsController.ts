@@ -33,9 +33,9 @@ export default class EditorsController {
   _collectionViewProvider: CollectionDocumentsProvider;
   _context: vscode.ExtensionContext;
   _statusView: StatusView;
+  _memoryFileSystemProvider: MemoryFileSystemProvider;
   _documentIdStore: DocumentIdStore;
   _documentController: DocumentController;
-  _memoryFileSystemProvider: MemoryFileSystemProvider;
   _telemetryController: TelemetryController;
 
   constructor(
@@ -52,8 +52,8 @@ export default class EditorsController {
     this._context = context;
     this._statusView = statusView;
     this._telemetryController = telemetryController;
-    this._documentIdStore = new DocumentIdStore();
     this._memoryFileSystemProvider = new MemoryFileSystemProvider();
+    this._documentIdStore = new DocumentIdStore();
     this._documentController = new DocumentController(
       this._context,
       this._documentIdStore,

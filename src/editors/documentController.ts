@@ -226,7 +226,7 @@ export default class DocumentController {
   async openMongoDBDocument(data: {
     documentId: EJSON.SerializableTypes;
     namespace: string;
-  }): Promise<vscode.Uri | undefined> {
+  }): Promise<vscode.Uri | null> {
     const connectionId = this._connectionController.getActiveConnectionId();
     const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
     const documentIdReference = this._documentIdStore.add(data.documentId);
@@ -239,7 +239,7 @@ export default class DocumentController {
     );
 
     if (!document) {
-      return;
+      return null;
     }
 
     const fileName = `${VIEW_DOCUMENT_SCHEME}:/${data.namespace}:${documentIdReference}.json`;
