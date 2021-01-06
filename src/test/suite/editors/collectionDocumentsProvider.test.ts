@@ -6,9 +6,7 @@ import sinon from 'sinon';
 import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, { VIEW_COLLECTION_SCHEME } from '../../../editors/collectionDocumentsProvider';
-import Connection from 'mongodb-connection-model/lib/model';
 import ConnectionController from '../../../connectionController';
-import { ConnectionModel } from '../../../types/connectionModelType';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
@@ -16,17 +14,7 @@ import { StorageScope } from '../../../storage/storageController';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext, mockTextEditor } from '../stubs';
-
-const getConnection = (dbUri): Promise<ConnectionModel> =>
-  new Promise((resolve, reject) => {
-    Connection.from(dbUri, (err, connectionModel) => {
-      if (err) {
-        return reject(err);
-      }
-
-      return resolve(connectionModel);
-    });
-  });
+import { buildConnectionModelFromConnectionString } from '../../../views/webview-app/connection-model/connection-model';
 
 const mockDocumentsAsJsonString = `[
   {
@@ -54,7 +42,7 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', (done) => {
-    const mockActiveConnection = {
+    const mockActiveConnection: any = {
       find: (namespace, filter, options, callback): void => {
         assert(
           namespace === 'my-favorite-fruit-is.pineapple',
@@ -119,7 +107,7 @@ suite('Collection Documents Provider Test Suite', () => {
       }
     ];
 
-    const mockActiveConnection = {
+    const mockActiveConnection: any = {
       find: (namespace, filter, options, callback): void => {
         return callback(null, mockDocuments);
       }
@@ -162,7 +150,7 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', (done) => {
-    const mockActiveConnection = {
+    const mockActiveConnection: any = {
       find: (namespace, filter, options, callback): void => {
         return callback(null, ['Apollo', 'Gemini ']);
       }
@@ -217,7 +205,7 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent shows a status bar item while it is running then hide it', (done) => {
-    const mockActiveConnection = { find: {} };
+    const mockActiveConnection: any = { find: {} };
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -470,7 +458,7 @@ suite('Collection Documents Provider Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testCollectionViewProvider._statusView, 'hideMessage', mockHideMessage);
 
-    const connectionModel = await getConnection(TEST_DATABASE_URI);
+    const connectionModel = buildConnectionModelFromConnectionString(TEST_DATABASE_URI);
     const firstConnectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
     const secondConnectionId = '333c2b06-hhhh-40b7-bd8a-bd1f8333a896';
 
