@@ -13,7 +13,8 @@ import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTem
 import { createLogger } from '../logging';
 import type { ExecuteAllResult } from '../utils/types';
 import PlaygroundResultProvider, {
-  PLAYGROUND_RESULT_SCHEME
+  PLAYGROUND_RESULT_SCHEME,
+  PLAYGROUND_RESULT_URI
 } from './playgroundResultProvider';
 import type { OutputItem } from '../utils/types';
 import { StatusView } from '../views';
@@ -320,61 +321,53 @@ export default class PlaygroundController {
     });
   }
 
-  getVirtualDocumentUri(content?: EJSON.SerializableTypes): vscode.Uri {
-    let extension = '';
-
+  getDocumentLanguage(content?: EJSON.SerializableTypes): string {
     if (typeof content === 'object') {
-      extension = 'json';
-    } else {
-      extension = 'txt';
+      return 'json';
     }
 
-    return vscode.Uri.parse(
-      [
-        `${PLAYGROUND_RESULT_SCHEME}:Playground Result`,
-        `.${extension}`,
-        `?id=${Date.now()}`
-      ].join('')
-    );
+    return 'plaintext';
   }
 
   async openPlaygroundResult(): Promise<void> {
-    let viewColumn: vscode.ViewColumn =
-      this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
-
-    if (this._playgroundResultTextDocument) {
-      await vscode.window
-        .showTextDocument(this._playgroundResultTextDocument, {
-          preview: false,
-          viewColumn
-        })
-        .then((editor) => {
-          viewColumn = editor.viewColumn || vscode.ViewColumn.Beside;
-          vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-
-          return this.openResultAsVirtualDocument(viewColumn);
-        });
-    } else {
-      await this.openResultAsVirtualDocument(viewColumn);
-    }
-  }
-
-  async openResultAsVirtualDocument(
-    viewColumn: vscode.ViewColumn
-  ): Promise<void> {
-    const content =
-      this.playgroundResult && this.playgroundResult.content
-        ? this.playgroundResult.content
-        : '';
-
-    this._playgroundResultViewProvider.refreshPlaygroundResult(
+    this._playgroundResultViewProvider.setPlaygroundResult(
       this.playgroundResult
     );
 
-    const uri = this.getVirtualDocumentUri(content);
+    if (this._playgroundResultTextDocument) {
+      await this.reopenResultAsVirtualDocument();
+    } else {
+      await this.openResultAsVirtualDocument();
+    }
 
-    await vscode.workspace.openTextDocument(uri).then(
-      (doc) => {
+    if (this._playgroundResultTextDocument) {
+      const language = this.getDocumentLanguage(this.playgroundResult?.content);
+
+      await vscode.languages.setTextDocumentLanguage(
+        this._playgroundResultTextDocument,
+        language
+      );
+    }
+  }
+
+  async reopenResultAsVirtualDocument() {
+    let viewColumn: vscode.ViewColumn =
+      this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
+
+    this._playgroundResultViewProvider.refresh();
+
+    await vscode.window.showTextDocument(PLAYGROUND_RESULT_URI, {
+      preview: false,
+      viewColumn
+    });
+  }
+
+  async openResultAsVirtualDocument(): Promise<void> {
+    let viewColumn: vscode.ViewColumn =
+      this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
+
+    await vscode.workspace.openTextDocument(PLAYGROUND_RESULT_URI).then(
+      async (doc) => {
         this._playgroundResultTextDocument = doc;
 
         return vscode.window.showTextDocument(doc, {

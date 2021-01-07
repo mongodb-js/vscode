@@ -348,64 +348,59 @@ suite('Playground Controller Test Suite', function () {
         expect(isEditprOpened).to.be.equal(true);
       });
 
-      test('getVirtualDocumentUri should return json uri if content is object', async () => {
+      test('getDocumentLanguage should return json if content is object', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const uri = await testPlaygroundController.getVirtualDocumentUri({
+        const language = testPlaygroundController.getDocumentLanguage({
           test: 'value'
         });
 
-        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
-        expect(uri.path).to.be.equal('Playground Result.json');
+        expect(language).to.be.equal('json');
       });
 
-      test('getVirtualDocumentUri should return json uri if content is array', async () => {
+      test('getDocumentLanguage should return json if content is array', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const uri = await testPlaygroundController.getVirtualDocumentUri([
+        const language = await testPlaygroundController.getDocumentLanguage([
           { test: 'value' }
         ]);
 
-        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
-        expect(uri.path).to.be.equal('Playground Result.json');
+        expect(language).to.be.equal('json');
       });
 
-      test('getVirtualDocumentUri should return json uri if content is object with BSON value', async () => {
+      test('getDocumentLanguage should return json if content is object with BSON value', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const uri = await testPlaygroundController.getVirtualDocumentUri({
+        const language = await testPlaygroundController.getDocumentLanguage({
           _id: {
             $oid: '5d973ae7443762aae72a160'
           }
         });
 
-        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
-        expect(uri.path).to.be.equal('Playground Result.json');
+        expect(language).to.be.equal('json');
       });
 
-      test('getVirtualDocumentUri should return txt uri if content is string', async () => {
+      test('getDocumentLanguage should return plaintext if content is string', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const uri = await testPlaygroundController.getVirtualDocumentUri(
+        const language = await testPlaygroundController.getDocumentLanguage(
           'I am a string'
         );
 
-        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
-        expect(uri.path).to.be.equal('Playground Result.txt');
+        expect(language).to.be.equal('plaintext');
       });
 
-      test('getVirtualDocumentUri should return txt uri if content is number', async () => {
+      test('getDocumentLanguage should return plaintext if content is number', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const uri = await testPlaygroundController.getVirtualDocumentUri(12);
+        const language = await testPlaygroundController.getDocumentLanguage(12);
 
-        expect(uri.scheme).to.be.equal('PLAYGROUND_RESULT_SCHEME');
-        expect(uri.path).to.be.equal('Playground Result.txt');
+        expect(language).to.be.equal('plaintext');
       });
     });
   });

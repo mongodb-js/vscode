@@ -4,6 +4,10 @@ import type { OutputItem, DocCodeLensesInfo } from '../utils/types';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
+export const PLAYGROUND_RESULT_URI = vscode.Uri.parse(
+  `${PLAYGROUND_RESULT_SCHEME}:Playground Result`
+);
+
 export default class PlaygroundResultProvider
   implements vscode.TextDocumentContentProvider {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
@@ -31,13 +35,14 @@ export default class PlaygroundResultProvider
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this.onDidChangeEmitter.event;
 
-  // When the playground evaluation response is received,
-  // use playgroundResult (namespace, type, content)
-  // to provide a virtual document content.
-  refreshPlaygroundResult(playgroundResult?: OutputItem): void {
+  setPlaygroundResult(playgroundResult?: OutputItem): void {
     if (playgroundResult) {
       this._playgroundResult = playgroundResult;
     }
+  }
+
+  async refresh(): Promise<void> {
+    this.onDidChangeEmitter.fire(PLAYGROUND_RESULT_URI);
   }
 
   provideTextDocumentContent(): string {

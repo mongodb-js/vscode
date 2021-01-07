@@ -41,7 +41,7 @@ suite('Playground Result Provider Test Suite', () => {
       }
     };
 
-    testPlaygroundResultViewProvider.refreshPlaygroundResult(playgroundResult);
+    testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
 
     expect(testPlaygroundResultViewProvider._playgroundResult).to.be.deep.equal(
       playgroundResult
