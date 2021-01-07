@@ -351,6 +351,7 @@ export default class PlaygroundController {
         .then((editor) => {
           viewColumn = editor.viewColumn || vscode.ViewColumn.Beside;
           vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+
           return this.openResultAsVirtualDocument(viewColumn);
         });
     } else {

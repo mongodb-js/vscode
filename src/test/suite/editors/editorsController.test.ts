@@ -41,7 +41,7 @@ suite('Editors Controller Test Suite', () => {
     );
   });
 
-  test('returns false if there is no active editor', async () => {
+  test('saveMongoDBDocument returns false if there is no active editor', async () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => undefined);
 
     const result = await vscode.commands.executeCommand(
@@ -51,7 +51,7 @@ suite('Editors Controller Test Suite', () => {
     expect(result).to.be.equal(false);
   });
 
-  test('returns false if this is not a mongodb document', async () => {
+  test('saveMongoDBDocument returns false if this is not a mongodb document', async () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         scheme: 'file',
@@ -72,7 +72,7 @@ suite('Editors Controller Test Suite', () => {
     expect(result).to.be.equal(false);
   });
 
-  test('returns false if this is not a mongodb document and namespace is missing', async () => {
+  test('saveMongoDBDocument returns false if this is not a mongodb document and namespace is missing', async () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
@@ -92,7 +92,7 @@ suite('Editors Controller Test Suite', () => {
     expect(result).to.be.equal(false);
   });
 
-  test('returns false if this is not a mongodb document and connectionId is missing', async () => {
+  test('saveMongoDBDocument returns false if this is not a mongodb document and connectionId is missing', async () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
@@ -112,7 +112,7 @@ suite('Editors Controller Test Suite', () => {
     expect(result).to.be.equal(false);
   });
 
-  test('returns false if this is not a mongodb document and documentId is missing', async () => {
+  test('saveMongoDBDocument returns false if this is not a mongodb document and documentId is missing', async () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
@@ -132,7 +132,7 @@ suite('Editors Controller Test Suite', () => {
     expect(result).to.be.equal(false);
   });
 
-  test('returns false if a user saves an invalid javascript value', async () => {
+  test('saveMongoDBDocument returns false if a user saves an invalid javascript value', async () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
