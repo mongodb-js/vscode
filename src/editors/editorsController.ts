@@ -270,4 +270,8 @@ export default class EditorsController {
 
     return Promise.resolve(true);
   }
+
+  public deactivate(): void {
+    this._documentController.resetMemoryFileSystemProvider();
+  }
 }

@@ -213,4 +213,16 @@ export default class DocumentController {
 
     return uri;
   }
+
+  resetMemoryFileSystemProvider(): void {
+    const prefix = `${VIEW_DOCUMENT_SCHEME}:/`;
+
+    for (const [name] of this._memoryFileSystemProvider.readDirectory(
+      vscode.Uri.parse(prefix)
+    )) {
+      this._memoryFileSystemProvider.delete(
+        vscode.Uri.parse(`${prefix}${name}`)
+      );
+    }
+  }
 }
