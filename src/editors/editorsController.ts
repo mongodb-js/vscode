@@ -126,10 +126,6 @@ export default class EditorsController {
   }): Promise<boolean> {
     const uri = await this._documentController.openMongoDBDocument(data);
 
-    if (!uri) {
-      return Promise.resolve(true);
-    }
-
     return new Promise(async (resolve, reject) => {
       vscode.workspace.openTextDocument(uri).then((doc) => {
         vscode.window
@@ -140,7 +136,55 @@ export default class EditorsController {
   }
 
   async saveMongoDBDocument(): Promise<boolean> {
-    return this._documentController.saveMongoDBDocument();
+    const activeEditor = vscode.window.activeTextEditor;
+
+    if (!activeEditor) {
+      vscode.window.showErrorMessage('The active editor cannot be found');
+
+      return false;
+    }
+
+    const uriParams = new URLSearchParams(activeEditor.document.uri.query);
+    const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER);
+    const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
+    const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
+    const documentId = this._documentIdStore.get(documentIdReference);
+
+    // If not MongoDB document save to disk instead of MongoDB.
+    if (
+      activeEditor.document.uri.scheme !== 'VIEW_DOCUMENT_SCHEME' ||
+      !namespace ||
+      !connectionId ||
+      !documentId
+    ) {
+      vscode.commands.executeCommand('workbench.action.files.save');
+
+      return false;
+    }
+
+    try {
+      const newDocument = EJSON.parse(activeEditor.document.getText() || '');
+
+      await this._documentController.saveMongoDBDocument({
+        namespace,
+        connectionId,
+        documentId,
+        newDocument
+      });
+
+      // Save document changes to active editor.
+      activeEditor?.document.save();
+
+      vscode.window.showInformationMessage(
+        `The document was saved successfully to '${namespace}'`
+      );
+
+      return true;
+    } catch (error) {
+      vscode.window.showErrorMessage(error.message);
+
+      return false;
+    }
   }
 
   static getViewCollectionDocumentsUri(

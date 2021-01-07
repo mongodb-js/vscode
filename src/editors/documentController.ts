@@ -1,17 +1,16 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import DocumentIdStore from './documentIdStore';
+import ConnectionController from '../connectionController';
+import { StatusView } from '../views';
+import TelemetryController from '../telemetry/telemetryController';
+import { createLogger } from '../logging';
+import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
+import util from 'util';
 import {
   CONNECTION_ID_URI_IDENTIFIER,
   NAMESPACE_URI_IDENTIFIER
 } from './collectionDocumentsProvider';
-import ConnectionController from '../connectionController';
-import { StatusView } from '../views';
-import TelemetryController from '../telemetry/telemetryController';
-import { DataServiceType } from '../dataServiceType';
-import { createLogger } from '../logging';
-import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
-import util from 'util';
 
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
@@ -43,29 +42,42 @@ export default class DocumentController {
     this._memoryFileSystemProvider = memoryFileSystemProvider;
   }
 
-  async _fetchDocument(
-    namespace: string,
-    documentId: any,
-    connectionId: string | null
-  ): Promise<any> {
-    log.info(
-      'fetch document from MongoDB',
-      namespace,
-      documentId,
-      connectionId
-    );
+  _fetchDocumentFailed(message: string): void {
+    this._statusView.hideMessage();
 
+    const errorMessage = `Unable to fetch document: ${message}`;
+
+    throw new Error(errorMessage);
+  }
+
+  _saveDocumentFailed(message: string): void {
+    this._statusView.hideMessage();
+
+    const errorMessage = `Unable to save document: ${message}`;
+
+    // Send a telemetry event that saving the document failed.
+    this._telemetryController.trackDocumentUpdated('treeview', false);
+
+    throw new Error(errorMessage);
+  }
+
+  async _fetchDocument(data: {
+    documentId: EJSON.SerializableTypes;
+    namespace: string;
+    connectionName: string;
+  }): Promise<any> {
+    log.info('fetch document from MongoDB', data);
+
+    const { documentId, namespace, connectionName } = data;
     const dataservice = this._connectionController.getActiveDataService();
 
     if (dataservice === null) {
-      const errorMessage = `Unable to find document: no longer connected to ${connectionId}`;
-
-      throw new Error(errorMessage);
+      return this._fetchDocumentFailed(
+        `no longer connected to ${connectionName}`
+      );
     }
 
     const find = util.promisify(dataservice.find.bind(dataservice));
-
-    this._statusView.showMessage('Fetching document...');
 
     try {
       const documents = await find(
@@ -79,58 +91,38 @@ export default class DocumentController {
       );
 
       if (!documents || documents.length === 0) {
-        const errorMessage = `Unable to find document: ${JSON.stringify(
-          documentId
-        )}`;
-
-        throw new Error(errorMessage);
+        return null;
       }
-
-      this._statusView.hideMessage();
 
       return JSON.parse(EJSON.stringify(documents[0]));
     } catch (error) {
-      const errorMessage = `Unable to find document: ${error.message}`;
-
-      this._statusView.hideMessage();
-      vscode.window.showErrorMessage(errorMessage);
-
-      return null;
+      return this._fetchDocumentFailed(error.message);
     }
-  }
-
-  _saveDocumentFailed(errorMessage: string): boolean {
-    // Send a telemetry event that saving the document failed.
-    this._telemetryController.trackDocumentUpdated('treeview', false);
-
-    vscode.window.showErrorMessage(errorMessage);
-
-    return false;
   }
 
   async _replaceDocument(data: {
     documentId: EJSON.SerializableTypes;
     namespace: string;
-    dataservice: DataServiceType;
-  }): Promise<boolean> {
-    const { documentId, namespace, dataservice } = data;
-    const activeEditor = vscode.window.activeTextEditor;
-    let newDocument: EJSON.SerializableTypes = {};
+    connectionName: string;
+    newDocument: EJSON.SerializableTypes;
+  }): Promise<void> {
+    log.info('replace document in MongoDB', data);
 
-    try {
-      newDocument = EJSON.parse(activeEditor?.document.getText() || '');
-    } catch (error) {
-      return this._saveDocumentFailed(error.message);
+    const { documentId, namespace, connectionName, newDocument } = data;
+    const dataservice = this._connectionController.getActiveDataService();
+
+    if (dataservice === null) {
+      return this._saveDocumentFailed(
+        `no longer connected to '${connectionName}'`
+      );
     }
-
-    this._statusView.showMessage('Saving document...');
 
     const findOneAndReplace = util.promisify(
       dataservice.findOneAndReplace.bind(dataservice)
     );
 
     try {
-      const document = await findOneAndReplace(
+      await findOneAndReplace(
         namespace,
         {
           _id: documentId
@@ -141,55 +133,19 @@ export default class DocumentController {
         }
       );
 
-      this._statusView.hideMessage();
-
-      // Send metrics to Segment.
       this._telemetryController.trackDocumentUpdated('treeview', true);
-
-      // Save document changes to active editor.
-      activeEditor?.document.save();
-
-      vscode.window.showInformationMessage(
-        `The document was saved successfully to '${namespace}'`
-      );
-
-      return true;
     } catch (error) {
-      const errorMessage = `Unable to save document: ${error.message}`;
-
-      this._statusView.hideMessage();
-
-      return this._saveDocumentFailed(errorMessage);
+      return this._saveDocumentFailed(error.message);
     }
   }
 
-  async saveMongoDBDocument(): Promise<boolean> {
-    const activeEditor = vscode.window.activeTextEditor;
-
-    log.info('save document to MongoDB', activeEditor);
-
-    if (!activeEditor) {
-      return false;
-    }
-
-    const uriParams = new URLSearchParams(activeEditor.document.uri.query);
-    const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER);
-    const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
-    const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
-    const documentId = this._documentIdStore.get(documentIdReference);
-
-    // If not MongoDB document save to disk instead of MongoDB.
-    if (
-      activeEditor.document.uri.scheme !== 'VIEW_DOCUMENT_SCHEME' ||
-      !namespace ||
-      !connectionId ||
-      !documentId
-    ) {
-      vscode.commands.executeCommand('workbench.action.files.save');
-
-      return false;
-    }
-
+  async saveMongoDBDocument(data: {
+    documentId: EJSON.SerializableTypes;
+    namespace: string;
+    connectionId: string;
+    newDocument: EJSON.SerializableTypes;
+  }): Promise<void> {
+    const { documentId, namespace, connectionId, newDocument } = data;
     const activeConnectionId = this._connectionController.getActiveConnectionId();
     const connectionName = this._connectionController.getSavedConnectionName(
       connectionId
@@ -197,45 +153,54 @@ export default class DocumentController {
 
     if (activeConnectionId !== connectionId) {
       return this._saveDocumentFailed(
-        `Unable to save document: no longer connected to '${connectionName}'`
+        `no longer connected to '${connectionName}'`
       );
     }
 
-    const dataservice = this._connectionController.getActiveDataService();
-
-    if (dataservice === null) {
-      return this._saveDocumentFailed(
-        `Unable to save document: no longer connected to '${connectionName}'`
-      );
-    }
-
-    return await this._replaceDocument({
+    this._statusView.showMessage('Saving document...');
+    await this._replaceDocument({
       documentId,
       namespace,
-      dataservice
+      connectionName,
+      newDocument
     });
+    this._statusView.hideMessage();
   }
 
   async openMongoDBDocument(data: {
     documentId: EJSON.SerializableTypes;
     namespace: string;
-  }): Promise<vscode.Uri | null> {
-    const connectionId = this._connectionController.getActiveConnectionId();
-    const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
-    const documentIdReference = this._documentIdStore.add(data.documentId);
-    const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
-    const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${data.namespace}`;
-    const document = await this._fetchDocument(
-      data.namespace,
-      data.documentId,
-      connectionId
-    );
+  }): Promise<vscode.Uri> {
+    const { documentId, namespace } = data;
+    const activeConnectionId = this._connectionController.getActiveConnectionId();
+    let connectionName = '';
 
-    if (!document) {
-      return null;
+    if (activeConnectionId) {
+      connectionName = this._connectionController.getSavedConnectionName(
+        activeConnectionId
+      );
     }
 
-    const fileName = `${VIEW_DOCUMENT_SCHEME}:/${data.namespace}:${documentIdReference}.json`;
+    this._statusView.showMessage('Fetching document...');
+    const document = await this._fetchDocument({
+      documentId,
+      namespace,
+      connectionName
+    });
+    this._statusView.hideMessage();
+
+    let fileDocumentId = EJSON.stringify(document['_id']);
+
+    fileDocumentId =
+      fileDocumentId.length > 50
+        ? fileDocumentId.substring(0, 50)
+        : fileDocumentId;
+
+    const fileName = `${VIEW_DOCUMENT_SCHEME}:/${data.namespace}:${fileDocumentId}.json`;
+    const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${data.namespace}`;
+    const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${activeConnectionId}`;
+    const documentIdReference = this._documentIdStore.add(data.documentId);
+    const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
     const uri: vscode.Uri = vscode.Uri.parse(fileName).with({
       query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}`
     });

@@ -8,7 +8,6 @@ export default class PlaygroundResultProvider
   implements vscode.TextDocumentContentProvider {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _playgroundResult: OutputItem;
-  _uri: vscode.Uri;
 
   constructor(context: vscode.ExtensionContext) {
     this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider();
@@ -17,7 +16,6 @@ export default class PlaygroundResultProvider
       type: null,
       content: undefined
     };
-    this._uri = vscode.Uri.parse('');
 
     context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
@@ -33,10 +31,6 @@ export default class PlaygroundResultProvider
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this.onDidChangeEmitter.event;
 
-  setPlaygroundResultUri(uri: vscode.Uri) {
-    this._uri = uri;
-  }
-
   // When the playground evaluation response is received,
   // use playgroundResult (namespace, type, content)
   // to provide a virtual document content.
@@ -44,21 +38,6 @@ export default class PlaygroundResultProvider
     if (playgroundResult) {
       this._playgroundResult = playgroundResult;
     }
-  }
-
-  async reopenResultAsVirtualDocument(
-    viewColumn: vscode.ViewColumn,
-    playgroundResult?: OutputItem
-  ): Promise<void> {
-    if (playgroundResult) {
-      this._playgroundResult = playgroundResult;
-    }
-
-    this.onDidChangeEmitter.fire(this._uri);
-    await vscode.window.showTextDocument(this._uri, {
-      preview: false,
-      viewColumn
-    });
   }
 
   provideTextDocumentContent(): string {

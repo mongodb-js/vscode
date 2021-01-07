@@ -8,15 +8,11 @@ import { StatusView } from '../../../views';
 import TelemetryController from '../../../telemetry/telemetryController';
 import { afterEach } from 'mocha';
 import { MemoryFileSystemProvider } from '../../../editors/memoryFileSystemProvider';
-import DataService from 'mongodb-data-service';
+import { EJSON } from 'bson';
 
 const sinon = require('sinon');
 const chai = require('chai');
 const expect = chai.expect;
-
-const sleep = (ms: number): Promise<void> => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
 
 suite('Document Controller Test Suite', () => {
   const testDocumentIdStore = new DocumentIdStore();
@@ -41,13 +37,6 @@ suite('Document Controller Test Suite', () => {
     testTelemetryController,
     testMemoryFileSystemProvider
   );
-  const mockDocument = {
-    _id: 'abc',
-    name: '',
-    time: {
-      $time: '12345'
-    }
-  };
 
   const sandbox = sinon.createSandbox();
 
@@ -56,102 +45,31 @@ suite('Document Controller Test Suite', () => {
     sinon.restore();
   });
 
-  test('returns false if there is no active editor', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => undefined);
-
-    const result = await testDocumentController.saveMongoDBDocument();
-
-    expect(result).to.be.equal(false);
-  });
-
-  test('returns false if this is not a mongodb document', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        scheme: 'file',
-        uri: {
-          query: [
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const result = await testDocumentController.saveMongoDBDocument();
-
-    expect(result).to.be.equal(false);
-  });
-
-  test('returns false if this is not a mongodb document and namespace is missing', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const result = await testDocumentController.saveMongoDBDocument();
-
-    expect(result).to.be.equal(false);
-  });
-
-  test('returns false if this is not a mongodb document and connectionId is missing', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            'namespace=waffle.house',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const result = await testDocumentController.saveMongoDBDocument();
-
-    expect(result).to.be.equal(false);
-  });
-
-  test('returns false if this is not a mongodb document and documentId is missing', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich'
-          ].join('&')
-        }
-      }
-    }));
-
-    const result = await testDocumentController.saveMongoDBDocument();
-
-    expect(result).to.be.equal(false);
-  });
-
-  test('replaceDocument returns result after findOneAndReplace completes', async () => {
+  test('replaceDocument calls findOneAndReplace and saves a document when connected', async () => {
     const namespace = 'waffle.house';
-    const connectionId = 'tasty_sandwhich';
+    const connectionName = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
-    const mockGetActiveDataService = {
+    const document: EJSON.SerializableTypes = { _id: '123' };
+    const newDocument = { _id: '123', price: 5000 };
+
+    const mockGetActiveDataService = sinon.fake.returns({
       findOneAndReplace: async (
         namespace: string,
         filter: object,
         replacement: object,
         options: object,
-        callback: (error: Error | undefined, result: object) => void
+        callback: (error: Error | null, result: object) => void
       ) => {
-        callback(undefined, { _id: '123' });
+        document.price = 5000;
+
+        return callback(null, document);
       }
-    } as DataService;
+    });
+    sinon.replace(
+      testConnectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
 
     const mockShowMessage = sinon.fake();
     sinon.replace(testStatusView, 'showMessage', mockShowMessage);
@@ -159,27 +77,126 @@ suite('Document Controller Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
 
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            `namespace=${namespace}`,
-            `connectionId=${connectionId}`,
-            `documentId=${documentId}`
-          ].join('&')
-        },
-        getText: () => JSON.stringify(mockDocument),
-        save: () => {}
-      }
-    }));
-
-    const result = await testDocumentController._replaceDocument({
+    await testDocumentController._replaceDocument({
       namespace,
       documentId,
-      dataservice: mockGetActiveDataService
+      connectionName,
+      newDocument
     });
 
-    expect(result).to.be.equal(true);
+    expect(document).to.be.deep.equal(newDocument);
+  });
+
+  test('fetchDocument calls find and returns a single document when connected', async () => {
+    const namespace = 'waffle.house';
+    const connectionName = 'tasty_sandwhich';
+    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+    const documents = [{ _id: '123' }];
+
+    const mockGetActiveDataService = sinon.fake.returns({
+      find: (
+        namespace: string,
+        filter: object,
+        options: object,
+        callback: (error: Error | null, result: object) => void
+      ) => {
+        return callback(null, [{ _id: '123' }]);
+      }
+    });
+    sinon.replace(
+      testConnectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+
+    const mockShowMessage = sinon.fake();
+    sinon.replace(testStatusView, 'showMessage', mockShowMessage);
+
+    const mockHideMessage = sinon.fake();
+    sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
+
+    const result = await testDocumentController._fetchDocument({
+      namespace,
+      documentId,
+      connectionName
+    });
+
+    expect(result).to.be.deep.equal(JSON.parse(EJSON.stringify(documents[0])));
+  });
+
+  test("if a user is not connected, documents won't be saved to MongoDB", async () => {
+    const namespace = 'waffle.house';
+    const connectionId = 'tasty_sandwhich';
+    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+    const newDocument = { _id: '123', price: 5000 };
+
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    const mockActiveConnectionId = sinon.fake.returns(null);
+    sinon.replace(
+      testConnectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    const mockGetSavedConnectionName = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      testConnectionController,
+      'getSavedConnectionName',
+      mockGetSavedConnectionName
+    );
+
+    try {
+      await testDocumentController.saveMongoDBDocument({
+        documentId,
+        namespace,
+        connectionId,
+        newDocument
+      });
+    } catch (error) {
+      const expectedMessage =
+        "Unable to save document: no longer connected to 'tasty_sandwhich'";
+
+      expect(error.message).to.be.equal(expectedMessage);
+    }
+  });
+
+  test("if a user switched the active connection, document opened from the previous connection can't be saved", async () => {
+    const namespace = 'waffle.house';
+    const connectionId = 'tasty_sandwhich';
+    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+    const newDocument = { _id: '123', price: 5000 };
+
+    const fakeVscodeErrorMessage = sinon.fake();
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
+    const mockActiveConnectionId = sinon.fake.returns('berlin.coctails');
+    sinon.replace(
+      testConnectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    const mockGetSavedConnectionName = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      testConnectionController,
+      'getSavedConnectionName',
+      mockGetSavedConnectionName
+    );
+
+    try {
+      await testDocumentController.saveMongoDBDocument({
+        documentId,
+        namespace,
+        connectionId,
+        newDocument
+      });
+    } catch (error) {
+      const expectedMessage =
+        "Unable to save document: no longer connected to 'tasty_sandwhich'";
+
+      expect(error.message).to.be.equal(expectedMessage);
+    }
   });
 });

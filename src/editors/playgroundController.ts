@@ -17,6 +17,7 @@ import PlaygroundResultProvider, {
 } from './playgroundResultProvider';
 import type { OutputItem } from '../utils/types';
 import { StatusView } from '../views';
+import { EJSON } from 'bson';
 
 const log = createLogger('playground controller');
 
@@ -255,8 +256,6 @@ export default class PlaygroundController {
     );
 
     this._statusView.hideMessage();
-
-    // Send metrics to Segment.
     this._telemetryController.trackPlaygroundCodeExecuted(
       result,
       this._isPartialRun,
@@ -321,7 +320,7 @@ export default class PlaygroundController {
     });
   }
 
-  getVirtualDocumentUri(content?: any): vscode.Uri {
+  getVirtualDocumentUri(content?: EJSON.SerializableTypes): vscode.Uri {
     let extension = '';
 
     if (typeof content === 'object') {
@@ -344,10 +343,16 @@ export default class PlaygroundController {
       this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
 
     if (this._playgroundResultTextDocument) {
-      await this._playgroundResultViewProvider.reopenResultAsVirtualDocument(
-        viewColumn,
-        this.playgroundResult
-      );
+      await vscode.window
+        .showTextDocument(this._playgroundResultTextDocument, {
+          preview: false,
+          viewColumn
+        })
+        .then((editor) => {
+          viewColumn = editor.viewColumn || vscode.ViewColumn.Beside;
+          vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+          return this.openResultAsVirtualDocument(viewColumn);
+        });
     } else {
       await this.openResultAsVirtualDocument(viewColumn);
     }
@@ -366,8 +371,6 @@ export default class PlaygroundController {
     );
 
     const uri = this.getVirtualDocumentUri(content);
-
-    this._playgroundResultViewProvider.setPlaygroundResultUri(uri);
 
     await vscode.workspace.openTextDocument(uri).then(
       (doc) => {
@@ -517,7 +520,7 @@ export default class PlaygroundController {
   }
 
   openPlayground(filePath: string): Promise<boolean> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       vscode.workspace.openTextDocument(filePath).then((doc) => {
         vscode.window
           .showTextDocument(doc, { preview: false })
