@@ -57,27 +57,27 @@ export default class ConnectionController {
     [key: string]: LoadedConnection;
   } = {};
 
-  private readonly _serviceName = 'mdb.vscode.savedConnections';
+  readonly _serviceName = 'mdb.vscode.savedConnections';
   _activeDataService: null | MongoClient = null;
   _activeConnectionModel: null | ConnectionModel = null;
-  private _currentConnectionId: null | string = null;
+  _currentConnectionId: null | string = null;
 
   // When we are connecting to a server we save a connection version to
   // the request. That way if a new connection attempt is made while
   // the connection is being established, we know we can ignore the
   // request when it is completed so we don't have two live connections at once.
-  private _connectingVersion: null | string = null;
+  _connectingVersion: null | string = null;
 
-  private _connecting = false;
-  private _connectingConnectionId: null | string = null;
-  private _disconnecting = false;
+  _connecting = false;
+  _connectingConnectionId: null | string = null;
+  _disconnecting = false;
 
   private _statusView: StatusView;
   private _storageController: StorageController;
   private _telemetryService: TelemetryService;
 
   // Used by other parts of the extension that respond to changes in the connections.
-  private eventEmitter: EventEmitter = new EventEmitter();
+  eventEmitter: EventEmitter = new EventEmitter();
 
   constructor(
     _statusView: StatusView,
@@ -107,7 +107,7 @@ export default class ConnectionController {
 
       if (!unparsedConnectionInformation) {
         // Ignore empty connections.
-        return Promise.resolve();
+        return;
       }
 
       const connectionInformation: SavedConnectionInformation = JSON.parse(
@@ -116,7 +116,7 @@ export default class ConnectionController {
 
       if (!connectionInformation.connectionModel) {
         // Ignore empty connections.
-        return Promise.resolve();
+        return;
       }
 
       loadedSavedConnection = {
@@ -128,7 +128,7 @@ export default class ConnectionController {
     } catch (error) {
       // Here we're leniant when loading connections in case their
       // connections have become corrupted.
-      return Promise.resolve();
+      return;
     }
 
     this._connections[connectionId] = {
@@ -136,8 +136,6 @@ export default class ConnectionController {
       connectionModel: parseConnectionModel(loadedSavedConnection.connectionModel)
     };
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-
-    Promise.resolve();
   };
 
   loadSavedConnections = async (): Promise<void> => {
@@ -181,7 +179,7 @@ export default class ConnectionController {
     }
   };
 
-  public async connectWithURI(): Promise<boolean> {
+  async connectWithURI(): Promise<boolean> {
     let connectionString: string | undefined;
 
     log.info('connectWithURI command called');
@@ -206,28 +204,25 @@ export default class ConnectionController {
         }
       });
     } catch (e) {
-      return Promise.resolve(false);
+      return false;
     }
 
-    return new Promise((resolve) => {
-      if (!connectionString) {
-        return resolve(false);
-      }
+    if (!connectionString) {
+      return false;
+    }
 
-      this.addNewConnectionStringAndConnect(connectionString).then(
-        resolve,
-        (err) => {
-          vscode.window.showErrorMessage(err.message);
-          resolve(false);
-        }
-      );
-    });
+    try {
+      return await this.addNewConnectionStringAndConnect(connectionString);
+    } catch (err) {
+      vscode.window.showErrorMessage(err.message);
+      return false;
+    }
   }
 
   // Resolves the new connection id when the connection is successfully added.
   // Resolves false when it is added and not connected.
   // The connection can fail to connect but be successfully added.
-  public addNewConnectionStringAndConnect = (
+  addNewConnectionStringAndConnect = async (
     connectionString: string
   ): Promise<boolean> => {
     log.info('Trying to connect to a new connection configuration');
@@ -236,21 +231,18 @@ export default class ConnectionController {
     try {
       model = buildConnectionModelFromConnectionString(connectionString);
     } catch (error) {
-      return Promise.reject(new Error(`Unable to create connection: ${error}`));
+      throw new Error(`Unable to create connection: ${error}`);
     }
 
-    return new Promise((resolve, reject) => {
-      this.saveNewConnectionAndConnect(
-        model,
-        ConnectionTypes.CONNECTION_STRING
-      ).then(
-        (connectResult) => resolve(connectResult.successfullyConnected),
-        reject
-      );
-    });
+    const connectResult = await this.saveNewConnectionAndConnect(
+      model,
+      ConnectionTypes.CONNECTION_STRING
+    );
+
+    return connectResult.successfullyConnected;
   };
 
-  public sendTelemetry(
+  sendTelemetry(
     newDataService: MongoClient,
     connectionType: ConnectionTypes
   ): void {
@@ -260,7 +252,7 @@ export default class ConnectionController {
     );
   }
 
-  public parseNewConnection = (
+  parseNewConnection = (
     newConnectionModel: ConnectionModel
   ): ConnectionModel => {
     // Here we re-parse the connection, as it can be loaded from storage or
@@ -272,7 +264,7 @@ export default class ConnectionController {
     return connectionModel;
   };
 
-  public saveNewConnectionAndConnect = async (
+  saveNewConnectionAndConnect = async (
     connectionModel: ConnectionModel,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> => {
@@ -310,7 +302,7 @@ export default class ConnectionController {
     return this.connect(connectionId, connectionModel, connectionType);
   };
 
-  public connect = async (
+  connect = async (
     connectionId: string,
     connectionModel: ConnectionModel,
     connectionType: ConnectionTypes
@@ -336,99 +328,118 @@ export default class ConnectionController {
 
     this._statusView.showMessage('Connecting to MongoDB...');
 
-    return new Promise<ConnectionAttemptResult>((resolve, reject) => {
-      const dataService = new MongoClient(
-        buildConnectionStringFromConnectionModel(connectionModel),
-        getDriverOptionsFromConnectionModel(connectionModel)
-      );
+    const dataService = new MongoClient(
+      buildConnectionStringFromConnectionModel(connectionModel),
+      getDriverOptionsFromConnectionModel(connectionModel)
+    );
 
-      dataService.connect((err: Error | undefined) => {
-        if (
-          connectingAttemptVersion !== this._connectingVersion ||
+    try {
+      await dataService.connect();
+
+      this._statusView.hideMessage();
+
+      if (
+        connectingAttemptVersion !== this._connectingVersion ||
           !this._connections[connectionId]
-        ) {
-          // If the current attempt is no longer the most recent attempt
-          // or the connection no longer exists we silently end the connection
-          // and return.
-          try {
-            dataService.close(() => {});
-          } catch (e) {
-            /* */
-          }
-
-          return resolve({
-            successfullyConnected: false,
-            connectionErrorMessage: 'connection attempt overriden'
-          });
+      ) {
+        // If the current attempt is no longer the most recent attempt
+        // or the connection no longer exists we silently end the connection
+        // and return.
+        try {
+          dataService.close(() => {});
+        } catch (e) {
+          /* */
         }
 
-        this._statusView.hideMessage();
+        return {
+          successfullyConnected: false,
+          connectionErrorMessage: 'connection attempt overriden'
+        };
+      }
+    } catch (err) {
+      this._statusView.hideMessage();
 
-        if (err) {
-          this._connecting = false;
-          log.info('Failed to connect');
-          this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-
-          return reject(new Error(`Failed to connect: ${err.message}`));
+      if (
+        connectingAttemptVersion !== this._connectingVersion ||
+            !this._connections[connectionId]
+      ) {
+        // If the current attempt is no longer the most recent attempt
+        // or the connection no longer exists we silently end the connection
+        // and return.
+        try {
+          dataService.close(() => {});
+        } catch (e) {
+          /* */
         }
 
-        log.info('Successfully connected');
-        vscode.window.showInformationMessage('MongoDB connection successful.');
-
-        this._activeDataService = dataService;
-        this._activeConnectionModel = connectionModel;
-        this._currentConnectionId = connectionId;
-        this._connecting = false;
-        this._connectingConnectionId = null;
-        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-        this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
-
-        // Send metrics to Segment
-        this.sendTelemetry(dataService, connectionType);
-
-        return resolve({
-          successfullyConnected: true,
-          connectionErrorMessage: ''
-        });
-      });
-    });
-  };
-
-  public connectWithConnectionId = (connectionId: string): Promise<boolean> => {
-    if (this._connections[connectionId]) {
-      let connectionModel: ConnectionModel;
-
-      try {
-        const savedConnectionModel = this._connections[connectionId]
-          .connectionModel;
-
-        connectionModel = parseConnectionModel(savedConnectionModel);
-      } catch (error) {
-        vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
-
-        return Promise.resolve(false);
+        return {
+          successfullyConnected: false,
+          connectionErrorMessage: 'connection attempt overriden'
+        };
       }
 
-      return new Promise((resolve) => {
-        this.connect(
-          connectionId,
-          connectionModel,
-          ConnectionTypes.CONNECTION_ID
-        ).then(
-          (connectResult) => resolve(connectResult.successfullyConnected),
-          (err: Error) => {
-            vscode.window.showErrorMessage(err.message);
+      this._connecting = false;
+      log.info('Failed to connect');
+      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
-            return resolve(false);
-          }
-        );
-      });
+      throw new Error(`Failed to connect: ${err.message}`);
     }
 
-    return Promise.reject(new Error('Connection not found.'));
+    log.info('Successfully connected');
+    vscode.window.showInformationMessage('MongoDB connection successful.');
+
+    this._activeDataService = dataService;
+    this._activeConnectionModel = connectionModel;
+    this._currentConnectionId = connectionId;
+    this._connecting = false;
+    this._connectingConnectionId = null;
+    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+
+    // Send metrics to Segment
+    this.sendTelemetry(dataService, connectionType);
+
+    return {
+      successfullyConnected: true,
+      connectionErrorMessage: ''
+    };
   };
 
-  public disconnect(): Promise<boolean> {
+  connectWithConnectionId = async (
+    connectionId: string
+  ): Promise<boolean> => {
+    if (!this._connections[connectionId]) {
+      throw new Error('Connection not found.');
+    }
+
+    let connectionModel: ConnectionModel;
+
+    try {
+      const savedConnectionModel = this._connections[connectionId]
+        .connectionModel;
+
+      connectionModel = parseConnectionModel(savedConnectionModel);
+    } catch (error) {
+      vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
+
+      return false;
+    }
+
+    try {
+      const connectResult = await this.connect(
+        connectionId,
+        connectionModel,
+        ConnectionTypes.CONNECTION_ID
+      );
+      return connectResult.successfullyConnected;
+    } catch (err) {
+      vscode.window.showErrorMessage(err.message);
+
+      return false;
+    }
+  };
+
+  async disconnect(): Promise<boolean> {
     log.info(
       'Disconnect called, currently connected to:',
       this._currentConnectionId
@@ -439,7 +450,7 @@ export default class ConnectionController {
         'Unable to disconnect: no active connection.'
       );
 
-      return Promise.resolve(false);
+      return false;
     }
 
     const dataServiceToDisconnectFrom = this._activeDataService;
@@ -453,26 +464,25 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
     // Disconnect from the active connection.
-    return new Promise<boolean>((resolve) => {
-      this._statusView.showMessage('Disconnecting from current connection...');
-      dataServiceToDisconnectFrom.close((err: Error | undefined): void => {
-        if (err) {
-          // Show an error, however we still reset the active connection to free up the extension.
-          vscode.window.showErrorMessage(
-            'An error occured while disconnecting from the current connection.'
-          );
-        } else {
-          vscode.window.showInformationMessage('MongoDB disconnected.');
-        }
-        this._disconnecting = false;
-        this._statusView.hideMessage();
+    this._statusView.showMessage('Disconnecting from current connection...');
+    try {
+      await dataServiceToDisconnectFrom.close();
 
-        return resolve(true);
-      });
-    });
+      vscode.window.showInformationMessage('MongoDB disconnected.');
+    } catch (err) {
+      // Show an error, however we still reset the active connection to free up the extension.
+      vscode.window.showErrorMessage(
+        'An error occured while disconnecting from the current connection.'
+      );
+    }
+
+    this._disconnecting = false;
+    this._statusView.hideMessage();
+
+    return true;
   }
 
-  public removeSavedConnection = async (
+  removeSavedConnection = async (
     connectionId: string
   ): Promise<void> => {
     delete this._connections[connectionId];
@@ -485,17 +495,15 @@ export default class ConnectionController {
     }
 
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-
-    return Promise.resolve();
   };
 
   // Prompts the user to remove the connection then removes it on affirmation.
-  public async removeMongoDBConnection(connectionId: string): Promise<boolean> {
+  async removeMongoDBConnection(connectionId: string): Promise<boolean> {
     if (!this._connections[connectionId]) {
       // No active connection(s) to remove.
       vscode.window.showErrorMessage('Connection does not exist.');
 
-      return Promise.resolve(false);
+      return false;
     }
 
     const removeConfirmationResponse = await vscode.window.showInformationMessage(
@@ -505,7 +513,7 @@ export default class ConnectionController {
     );
 
     if (removeConfirmationResponse !== 'Yes') {
-      return Promise.resolve(false);
+      return false;
     }
 
     if (this._activeDataService && connectionId === this._currentConnectionId) {
@@ -514,17 +522,17 @@ export default class ConnectionController {
 
     if (!this._connections[connectionId]) {
       // If the connection was removed while we were disconnecting we resolve.
-      return Promise.resolve(false);
+      return false;
     }
 
     await this.removeSavedConnection(connectionId);
 
     vscode.window.showInformationMessage('MongoDB connection removed.');
 
-    return Promise.resolve(true);
+    return true;
   }
 
-  public async onRemoveMongoDBConnection(): Promise<boolean> {
+  async onRemoveMongoDBConnection(): Promise<boolean> {
     log.info('mdb.removeConnection command called');
 
     const connectionIds = Object.keys(this._connections);
@@ -533,7 +541,7 @@ export default class ConnectionController {
       // No active connection(s) to remove.
       vscode.window.showErrorMessage('No connections to remove.');
 
-      return Promise.resolve(false);
+      return false;
     }
 
     if (connectionIds.length === 1) {
@@ -554,7 +562,7 @@ export default class ConnectionController {
       );
 
     if (!connectionNameToRemove) {
-      return Promise.resolve(false);
+      return false;
     }
 
     // We attach the index of the connection so that we can infer their pick.
@@ -565,7 +573,7 @@ export default class ConnectionController {
     return this.removeMongoDBConnection(connectionIdToRemove);
   }
 
-  public async renameConnection(connectionId: string): Promise<boolean> {
+  async renameConnection(connectionId: string): Promise<boolean> {
     let inputtedConnectionName: string | undefined;
 
     try {
@@ -589,7 +597,7 @@ export default class ConnectionController {
     }
 
     if (!inputtedConnectionName) {
-      return Promise.resolve(false);
+      return false;
     }
 
     this._connections[connectionId].name = inputtedConnectionName;
@@ -619,43 +627,43 @@ export default class ConnectionController {
     return true;
   }
 
-  public getSavedConnections(): SavedConnection[] {
+  getSavedConnections(): SavedConnection[] {
     return Object.values(this._connections);
   }
 
-  public getActiveConnectionId(): string | null {
+  getActiveConnectionId(): string | null {
     return this._currentConnectionId;
   }
 
-  public addEventListener(
+  addEventListener(
     eventType: DataServiceEventTypes,
     listener: () => void
   ): void {
     this.eventEmitter.addListener(eventType, listener);
   }
 
-  public removeEventListener(
+  removeEventListener(
     eventType: DataServiceEventTypes,
     listener: () => void
   ): void {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
-  public isConnecting(): boolean {
+  isConnecting(): boolean {
     return this._connecting;
   }
 
-  public isDisconnecting(): boolean {
+  isDisconnecting(): boolean {
     return this._disconnecting;
   }
 
-  public getSavedConnectionName(connectionId: string): string {
+  getSavedConnectionName(connectionId: string): string {
     return this._connections[connectionId]
       ? this._connections[connectionId].name
       : '';
   }
 
-  public getActiveConnectionName(): string {
+  getActiveConnectionName(): string {
     if (!this._currentConnectionId) {
       return '';
     }
@@ -665,18 +673,18 @@ export default class ConnectionController {
       : '';
   }
 
-  public isConnectionWithIdSaved(connectionId: string | null): boolean {
+  isConnectionWithIdSaved(connectionId: string | null): boolean {
     if (connectionId === null) {
       return false;
     }
 
     return !!this._connections[connectionId];
   }
-  public getConnectingConnectionId(): string | null {
+  getConnectingConnectionId(): string | null {
     return this._connectingConnectionId;
   }
 
-  public getConnectionStringFromConnectionId(connectionId: string): string {
+  getConnectionStringFromConnectionId(connectionId: string): string {
     // TODO: With or without ssh?
     const connectionString = buildConnectionStringFromConnectionModel(
       this._connections[connectionId].connectionModel
@@ -685,19 +693,19 @@ export default class ConnectionController {
     return connectionString;
   }
 
-  public isCurrentlyConnected(): boolean {
+  isCurrentlyConnected(): boolean {
     return this._activeDataService !== null;
   }
 
-  public getActiveDataService(): null | MongoClient {
+  getActiveDataService(): null | MongoClient {
     return this._activeDataService;
   }
 
-  public getActiveConnectionModel(): null | ConnectionModel {
+  getActiveConnectionModel(): null | ConnectionModel {
     return this._activeConnectionModel;
   }
 
-  public getConnectionStatus(): CONNECTION_STATUS {
+  getConnectionStatus(): CONNECTION_STATUS {
     if (this.isCurrentlyConnected()) {
       if (this.isDisconnecting()) {
         return CONNECTION_STATUS.DISCONNECTING;
@@ -713,7 +721,7 @@ export default class ConnectionController {
     return CONNECTION_STATUS.DISCONNECTED;
   }
 
-  public getConnectionStatusStringForConnection(connectionId: string): string {
+  getConnectionStatusStringForConnection(connectionId: string): string {
     if (this.getActiveConnectionId() === connectionId) {
       if (this.isDisconnecting()) {
         return 'disconnecting...';
@@ -733,7 +741,7 @@ export default class ConnectionController {
   }
 
   // Exposed for testing.
-  public clearAllConnections(): void {
+  clearAllConnections(): void {
     this._connections = {};
     this._activeDataService = null;
     this._activeConnectionModel = null;
@@ -744,27 +752,27 @@ export default class ConnectionController {
     this._connectingVersion = null;
   }
 
-  public getConnectingVersion(): string | null {
+  getConnectingVersion(): string | null {
     return this._connectingVersion;
   }
 
-  public setActiveConnection(newActiveConnection: MongoClient | null): void {
+  setActiveConnection(newActiveConnection: MongoClient | null): void {
     this._activeDataService = newActiveConnection;
   }
 
-  public setConnnecting(connecting: boolean): void {
+  setConnnecting(connecting: boolean): void {
     this._connecting = connecting;
   }
 
-  public setConnnectingConnectionId(connectingConnectionId: string): void {
+  setConnnectingConnectionId(connectingConnectionId: string): void {
     this._connectingConnectionId = connectingConnectionId;
   }
 
-  public setDisconnecting(disconnecting: boolean): void {
+  setDisconnecting(disconnecting: boolean): void {
     this._disconnecting = disconnecting;
   }
 
-  public getСonnectionQuickPicks(): {
+  getСonnectionQuickPicks(): {
     label: string;
     data: {
       type: NewConnectionType;
@@ -790,11 +798,7 @@ export default class ConnectionController {
         }
       },
       ...Object.values(this._connections)
-<<<<<<< HEAD
-        .sort((connectionA: { name: string }, connectionB: any) =>
-=======
         .sort((connectionA: LoadedConnection, connectionB: LoadedConnection) =>
->>>>>>> Improve typing with mongodb driver and use it in most places with new model
           (connectionA.name || '').localeCompare(connectionB.name || '')
         )
         .map((item: LoadedConnection) => ({
@@ -807,11 +811,7 @@ export default class ConnectionController {
     ];
   }
 
-<<<<<<< HEAD
   async changeActiveConnection(): Promise<boolean> {
-=======
-  public async changeActiveConnection(): Promise<boolean> {
->>>>>>> Improve typing with mongodb driver and use it in most places with new model
     const selectedQuickPickItem = await vscode.window.showQuickPick(
       this.getСonnectionQuickPicks(),
       {
@@ -823,14 +823,10 @@ export default class ConnectionController {
       return true;
     }
 
-<<<<<<< HEAD
-    if (selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION) {
-=======
     if (
       selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION
       || !selectedQuickPickItem.data.connectionId
     ) {
->>>>>>> Improve typing with mongodb driver and use it in most places with new model
       return this.connectWithURI();
     }
 
