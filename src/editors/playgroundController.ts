@@ -388,16 +388,6 @@ export default class PlaygroundController {
     );
   }
 
-  async refreshPlaygroundResultContent(document: any): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      this._playgroundResultViewProvider.refreshPlaygroundResultContent(
-        document
-      );
-
-      return resolve(true);
-    });
-  }
-
   async evaluatePlayground(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const shouldConfirmRunAll = vscode.workspace

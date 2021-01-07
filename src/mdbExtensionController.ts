@@ -153,11 +153,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
     );
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT_CONTENT,
-      (document: any) =>
-        this._playgroundController.refreshPlaygroundResultContent(document)
-    );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION, () =>
       this._connectionController.changeActiveConnection()
     );

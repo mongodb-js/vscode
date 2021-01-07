@@ -10,7 +10,6 @@ import { StatusView } from '../views';
 import TelemetryController from '../telemetry/telemetryController';
 import { DataServiceType } from '../dataServiceType';
 import { createLogger } from '../logging';
-import EXTENSION_COMMANDS from '../commands';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import util from 'util';
 
@@ -149,12 +148,6 @@ export default class DocumentController {
 
       // Save document changes to active editor.
       activeEditor?.document.save();
-
-      // Update parent list of documents to reflect the changes that were made.
-      vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUND_RESULT_CONTENT,
-        document
-      );
 
       vscode.window.showInformationMessage(
         `The document was saved successfully to '${namespace}'`

@@ -46,40 +46,6 @@ export default class PlaygroundResultProvider
     }
   }
 
-  // When the document is saved (Cmd/Ctrl + S or with the menu),
-  // update the document (content) in the collection
-  // or the single document to reflect the changes that were made.
-  refreshPlaygroundResultContent(document?: any): void {
-    if (
-      this._playgroundResult.content &&
-      Array.isArray(this._playgroundResult.content)
-    ) {
-      const content = [...this._playgroundResult.content];
-      const index = content.findIndex((item) => item._id === document._id);
-
-      if (typeof content[index] === 'object' && content[index] !== null) {
-        Object.keys(content[index]).forEach((item) => {
-          if (this._playgroundResult && this._playgroundResult.content) {
-            this._playgroundResult.content[index][item] = document[item];
-          }
-        });
-      }
-    } else if (
-      this._playgroundResult.content !== null &&
-      typeof this._playgroundResult.content === 'object'
-    ) {
-      const content = { ...this._playgroundResult.content };
-
-      Object.keys(content).forEach((item) => {
-        if (this._playgroundResult && this._playgroundResult.content) {
-          this._playgroundResult.content[item] = document[item];
-        }
-      });
-    }
-
-    this.onDidChangeEmitter.fire(this._uri);
-  }
-
   async reopenResultAsVirtualDocument(
     viewColumn: vscode.ViewColumn,
     playgroundResult?: OutputItem
