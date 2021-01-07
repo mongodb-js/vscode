@@ -63,15 +63,6 @@ export default class EditorsController {
       this._memoryFileSystemProvider
     );
 
-    this._documentController = new DocumentController(
-      context,
-      this._documentIdStore,
-      this._connectionController,
-      this._statusView,
-      this._telemetryController,
-      this._memoryFileSystemProvider
-    );
-
     context.subscriptions.push(
       vscode.workspace.registerFileSystemProvider(
         VIEW_DOCUMENT_SCHEME,
