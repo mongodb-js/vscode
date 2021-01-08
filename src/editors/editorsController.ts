@@ -146,7 +146,9 @@ export default class EditorsController {
       activeEditor.document.uri.scheme !== 'VIEW_DOCUMENT_SCHEME' ||
       !namespace ||
       !connectionId ||
-      !documentId
+      // A valid documentId can be false.
+      documentId === null ||
+      documentId === undefined
     ) {
       vscode.commands.executeCommand('workbench.action.files.save');
 

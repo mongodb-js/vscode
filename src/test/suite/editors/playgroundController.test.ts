@@ -339,7 +339,7 @@ suite('Playground Controller Test Suite', function () {
         );
       });
 
-      test('evaluatePlayground should open editor to print results', async () => {
+      test('evaluatePlayground opens an editor to print results', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
@@ -348,7 +348,7 @@ suite('Playground Controller Test Suite', function () {
         expect(isEditprOpened).to.be.equal(true);
       });
 
-      test('getDocumentLanguage should return json if content is object', async () => {
+      test('getDocumentLanguage returns json if content is object', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
@@ -359,7 +359,7 @@ suite('Playground Controller Test Suite', function () {
         expect(language).to.be.equal('json');
       });
 
-      test('getDocumentLanguage should return json if content is array', async () => {
+      test('getDocumentLanguage returns json if content is array', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
@@ -370,7 +370,7 @@ suite('Playground Controller Test Suite', function () {
         expect(language).to.be.equal('json');
       });
 
-      test('getDocumentLanguage should return json if content is object with BSON value', async () => {
+      test('getDocumentLanguage returns json if content is object with BSON value', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
@@ -383,7 +383,7 @@ suite('Playground Controller Test Suite', function () {
         expect(language).to.be.equal('json');
       });
 
-      test('getDocumentLanguage should return plaintext if content is string', async () => {
+      test('getDocumentLanguage returns plaintext if content is string', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
@@ -394,11 +394,33 @@ suite('Playground Controller Test Suite', function () {
         expect(language).to.be.equal('plaintext');
       });
 
-      test('getDocumentLanguage should return plaintext if content is number', async () => {
+      test('getDocumentLanguage returns plaintext if content is number', async () => {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
         const language = await testPlaygroundController.getDocumentLanguage(12);
+
+        expect(language).to.be.equal('plaintext');
+      });
+
+      test('getDocumentLanguage returns plaintext if content is undefined', async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
+        const language = await testPlaygroundController.getDocumentLanguage(
+          undefined
+        );
+
+        expect(language).to.be.equal('plaintext');
+      });
+
+      test('getDocumentLanguage returns plaintext if content is null', async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
+        const language = await testPlaygroundController.getDocumentLanguage(
+          undefined
+        );
 
         expect(language).to.be.equal('plaintext');
       });

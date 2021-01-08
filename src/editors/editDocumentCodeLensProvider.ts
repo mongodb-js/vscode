@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import EXTENSION_COMMANDS from '../commands';
 import type { DocCodeLensesInfo } from '../utils/types';
+import type { OutputItem } from '../utils/types';
 
 export default class EditDocumentCodeLensProvider
   implements vscode.CodeLensProvider {
@@ -20,7 +21,42 @@ export default class EditDocumentCodeLensProvider
     });
   }
 
-  refresh(codeLensesInfo: DocCodeLensesInfo): void {
+  updateCodeLensesPosition(playgroundResult: OutputItem): void {
+    if (!playgroundResult) {
+      this._codeLensesInfo = [];
+
+      return;
+    }
+
+    const content = playgroundResult.content;
+    const namespace = playgroundResult.namespace;
+    const type = playgroundResult.type;
+    const codeLensesInfo: DocCodeLensesInfo = [];
+
+    // Show code lenses only for the list of documents returned by `find()`
+    // or the single document returned by `findOne()`.
+    if (type === 'Cursor' && Array.isArray(content)) {
+      // When the playground result is the collection,
+      // show the first code lense after [{.
+      let line = 2;
+
+      content.forEach((item) => {
+        // We need _id and namespace for code lenses
+        // to be able to save the editable document.
+        if (item !== null && item._id && namespace) {
+          codeLensesInfo.push({ line, documentId: item._id, namespace });
+          // To calculate the position of the next open curly bracket,
+          // we stringify the object and use a regular expression
+          // so we can count the number of lines.
+          line += JSON.stringify(item, null, 2).split(/\r\n|\r|\n/).length;
+        }
+      });
+    } else if (type === 'Document' && content._id && namespace) {
+      // When the playground result is the single document,
+      // show the single code lense after {.
+      codeLensesInfo.push({ line: 1, documentId: content._id, namespace });
+    }
+
     this._codeLensesInfo = codeLensesInfo;
     this._onDidChangeCodeLenses.fire();
   }

@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { TestExtensionContext } from '../stubs';
 import { afterEach } from 'mocha';
@@ -174,36 +173,26 @@ suite('Playground Result Provider Test Suite', () => {
         name: 'Rome'
       }
     ];
-
-    const mockRefresh = sinon.fake.resolves();
-    sinon.replace(
-      testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
-      'refresh',
-      mockRefresh
-    );
-
-    testPlaygroundResultViewProvider._playgroundResult = {
+    const playgroundResult = {
       namespace: 'db.berlin',
       type: 'Cursor',
       content
     };
 
+    const mockRefresh = sinon.fake.resolves();
+    sinon.replace(
+      testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
+      'updateCodeLensesPosition',
+      mockRefresh
+    );
+
+    testPlaygroundResultViewProvider._playgroundResult = playgroundResult;
+
     const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
     mockRefresh.firstArg;
 
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
-    expect(mockRefresh.firstArg).to.be.deep.equal([
-      {
-        line: 2,
-        documentId: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-        namespace: 'db.berlin'
-      },
-      {
-        line: 6,
-        documentId: '55333a0d-83f6-4e6f-a575-af7ea6187a55',
-        namespace: 'db.berlin'
-      }
-    ]);
+    expect(mockRefresh.firstArg).to.be.deep.equal(playgroundResult);
   });
 
   test('returns Document formatted to string if content is string', () => {
@@ -214,30 +203,25 @@ suite('Playground Result Provider Test Suite', () => {
       _id: '20213a0d-83f6-4e6f-a575-af7ea6187lala',
       name: 'Minsk'
     };
-
-    const mockRefresh = sinon.fake.resolves();
-    sinon.replace(
-      testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
-      'refresh',
-      mockRefresh
-    );
-
-    testPlaygroundResultViewProvider._playgroundResult = {
+    const playgroundResult = {
       namespace: 'db.berlin',
       type: 'Document',
       content
     };
 
+    const mockRefresh = sinon.fake.resolves();
+    sinon.replace(
+      testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
+      'updateCodeLensesPosition',
+      mockRefresh
+    );
+
+    testPlaygroundResultViewProvider._playgroundResult = playgroundResult;
+
     const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
     mockRefresh.firstArg;
 
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
-    expect(mockRefresh.firstArg).to.be.deep.equal([
-      {
-        line: 1,
-        documentId: '20213a0d-83f6-4e6f-a575-af7ea6187lala',
-        namespace: 'db.berlin'
-      }
-    ]);
+    expect(mockRefresh.firstArg).to.be.deep.equal(playgroundResult);
   });
 });

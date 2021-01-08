@@ -322,7 +322,7 @@ export default class PlaygroundController {
   }
 
   getDocumentLanguage(content?: EJSON.SerializableTypes): string {
-    if (typeof content === 'object') {
+    if (typeof content === 'object' && content !== null) {
       return 'json';
     }
 
@@ -419,6 +419,7 @@ export default class PlaygroundController {
         for (const line of evaluateResponse.outputLines) {
           this._outputChannel.appendLine(line.content);
         }
+
         this._outputChannel.show(true);
       }
 
