@@ -34,7 +34,7 @@ export default class EditDocumentCodeLensProvider
     const codeLensesInfo: DocCodeLensesInfo = [];
 
     // Show code lenses only for the list of documents or a single document
-    // that are returned by the find() method
+    // that are returned by the find() method.
     if (type === 'Cursor' && Array.isArray(content)) {
       // When the playground result is the collection,
       // show the first code lense after [{.

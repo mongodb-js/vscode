@@ -1273,6 +1273,13 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
+    const mockSaveDocumnentToMemoryFileSystem = sinon.fake.returns();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController,
+      '_saveDocumnentToMemoryFileSystem',
+      mockSaveDocumnentToMemoryFileSystem
+    );
+
     const mockGetActiveDataService = sinon.fake.returns({
       find: (
         namespace: string,

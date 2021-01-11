@@ -34,8 +34,7 @@ suite('Document Controller Test Suite', () => {
     testDocumentIdStore,
     testConnectionController,
     testStatusView,
-    testTelemetryController,
-    testMemoryFileSystemProvider
+    testTelemetryController
   );
 
   const sandbox = sinon.createSandbox();
@@ -47,10 +46,17 @@ suite('Document Controller Test Suite', () => {
 
   test('replaceDocument calls findOneAndReplace and saves a document when connected', async () => {
     const namespace = 'waffle.house';
-    const connectionName = 'tasty_sandwhich';
+    const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const document: EJSON.SerializableTypes = { _id: '123' };
     const newDocument = { _id: '123', price: 5000 };
+
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      testConnectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
 
     const mockGetActiveDataService = sinon.fake.returns({
       findOneAndReplace: async (
@@ -77,10 +83,10 @@ suite('Document Controller Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
 
-    await testDocumentController._replaceDocument({
+    await testDocumentController.replaceDocument({
       namespace,
       documentId,
-      connectionName,
+      connectionId,
       newDocument
     });
 
@@ -115,10 +121,9 @@ suite('Document Controller Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
 
-    const result = await testDocumentController._fetchDocument({
+    const result = await testDocumentController.fetchDocument({
       namespace,
-      documentId,
-      connectionName
+      documentId
     });
 
     expect(result).to.be.deep.equal(JSON.parse(EJSON.stringify(documents[0])));
@@ -148,7 +153,7 @@ suite('Document Controller Test Suite', () => {
     );
 
     try {
-      await testDocumentController.saveMongoDBDocument({
+      await testDocumentController.replaceDocument({
         documentId,
         namespace,
         connectionId,
@@ -186,7 +191,7 @@ suite('Document Controller Test Suite', () => {
     );
 
     try {
-      await testDocumentController.saveMongoDBDocument({
+      await testDocumentController.replaceDocument({
         documentId,
         namespace,
         connectionId,

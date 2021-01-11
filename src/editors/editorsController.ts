@@ -59,8 +59,7 @@ export default class EditorsController {
       this._documentIdStore,
       this._connectionController,
       this._statusView,
-      this._telemetryController,
-      this._memoryFileSystemProvider
+      this._telemetryController
     );
 
     context.subscriptions.push(
@@ -115,15 +114,48 @@ export default class EditorsController {
     documentId: EJSON.SerializableTypes;
     namespace: string;
   }): Promise<boolean> {
-    const uri = await this._documentController.openMongoDBDocument(data);
+    try {
+      let fileDocumentId = EJSON.stringify(data.documentId);
 
-    return new Promise(async (resolve, reject) => {
-      vscode.workspace.openTextDocument(uri).then((doc) => {
-        vscode.window
-          .showTextDocument(doc, { preview: false })
-          .then(() => resolve(true), reject);
-      }, reject);
-    });
+      fileDocumentId =
+        fileDocumentId.length > 50
+          ? fileDocumentId.substring(0, 50)
+          : fileDocumentId;
+
+      const fileName = `${VIEW_DOCUMENT_SCHEME}:/${data.namespace}:${fileDocumentId}.json`;
+      const document = await this._documentController.fetchDocument(data);
+
+      if (document === null) {
+        vscode.window.showErrorMessage(
+          `Unable to open document: document ${data.documentId} not found`
+        );
+
+        return false;
+      }
+
+      this._saveDocumnentToMemoryFileSystem(fileName);
+
+      const activeConnectionId = this._connectionController.getActiveConnectionId();
+      const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${data.namespace}`;
+      const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${activeConnectionId}`;
+      const documentIdReference = this._documentIdStore.add(data.documentId);
+      const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
+      const uri: vscode.Uri = vscode.Uri.parse(fileName).with({
+        query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}`
+      });
+
+      return new Promise(async (resolve, reject) => {
+        vscode.workspace.openTextDocument(uri).then((doc) => {
+          vscode.window
+            .showTextDocument(doc, { preview: false })
+            .then(() => resolve(true), reject);
+        }, reject);
+      });
+    } catch (error) {
+      vscode.window.showErrorMessage(error.message);
+
+      return false;
+    }
   }
 
   async saveMongoDBDocument(): Promise<boolean> {
@@ -158,7 +190,7 @@ export default class EditorsController {
     try {
       const newDocument = EJSON.parse(activeEditor.document.getText() || '');
 
-      await this._documentController.saveMongoDBDocument({
+      await this._documentController.replaceDocument({
         namespace,
         connectionId,
         documentId,
@@ -264,7 +296,27 @@ export default class EditorsController {
     return Promise.resolve(true);
   }
 
+  _saveDocumnentToMemoryFileSystem(fileName: string): void {
+    this._memoryFileSystemProvider.writeFile(
+      vscode.Uri.parse(fileName),
+      Buffer.from(JSON.stringify(document, null, 2)),
+      { create: true, overwrite: true }
+    );
+  }
+
+  _resetMemoryFileSystemProvider(): void {
+    const prefix = `${VIEW_DOCUMENT_SCHEME}:/`;
+
+    for (const [name] of this._memoryFileSystemProvider.readDirectory(
+      vscode.Uri.parse(prefix)
+    )) {
+      this._memoryFileSystemProvider.delete(
+        vscode.Uri.parse(`${prefix}${name}`)
+      );
+    }
+  }
+
   public deactivate(): void {
-    this._documentController.resetMemoryFileSystemProvider();
+    this._resetMemoryFileSystemProvider();
   }
 }
