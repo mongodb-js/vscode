@@ -166,7 +166,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT,
+      EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_PLAYGROUND,
       (data: { documentId: EJSON.SerializableTypes; namespace: string }) =>
         this._editorsController.openMongoDBDocument(data)
     );
@@ -417,7 +417,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_VIEW_DOCUMENT,
+      EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
       (element: DocumentTreeItem): Promise<boolean> => {
         return this._editorsController.openMongoDBDocument({
           documentId: element.documentId,

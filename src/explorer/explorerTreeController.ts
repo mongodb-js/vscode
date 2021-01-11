@@ -13,7 +13,7 @@ import EXTENSION_COMMANDS from '../commands';
 const log = createLogger('explorer controller');
 
 export default class ExplorerTreeController
-implements vscode.TreeDataProvider<vscode.TreeItem> {
+  implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionController: ConnectionController;
   private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
   contextValue = 'explorerTreeController';
@@ -99,7 +99,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
 
         if (selectedItem.contextValue === DOCUMENT_ITEM) {
           vscode.commands.executeCommand(
-            EXTENSION_COMMANDS.MDB_VIEW_DOCUMENT,
+            EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
             event.selection[0]
           );
         }

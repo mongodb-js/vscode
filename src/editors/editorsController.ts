@@ -123,7 +123,9 @@ export default class EditorsController {
           : fileDocumentId;
 
       const fileName = `${VIEW_DOCUMENT_SCHEME}:/${data.namespace}:${fileDocumentId}.json`;
-      const document = await this._mongoDBDocumentService.fetchDocument(data);
+      const document = (await this._mongoDBDocumentService.fetchDocument(
+        data
+      )) as EJSON.SerializableTypes;
 
       if (document === null) {
         vscode.window.showErrorMessage(
@@ -133,7 +135,7 @@ export default class EditorsController {
         return false;
       }
 
-      this._saveDocumnentToMemoryFileSystem(fileName);
+      this._saveDocumnentToMemoryFileSystem(fileName, document);
 
       const activeConnectionId = this._connectionController.getActiveConnectionId();
       const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${data.namespace}`;
@@ -296,7 +298,10 @@ export default class EditorsController {
     return Promise.resolve(true);
   }
 
-  _saveDocumnentToMemoryFileSystem(fileName: string): void {
+  _saveDocumnentToMemoryFileSystem(
+    fileName: string,
+    document: EJSON.SerializableTypes
+  ): void {
     this._memoryFileSystemProvider.writeFile(
       vscode.Uri.parse(fileName),
       Buffer.from(JSON.stringify(document, null, 2)),

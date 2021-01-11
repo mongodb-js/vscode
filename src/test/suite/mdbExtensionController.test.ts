@@ -1273,13 +1273,6 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
-    const mockSaveDocumnentToMemoryFileSystem = sinon.fake.returns();
-    sinon.replace(
-      mdbTestExtension.testExtensionController._editorsController,
-      '_saveDocumnentToMemoryFileSystem',
-      mockSaveDocumnentToMemoryFileSystem
-    );
-
     const mockGetActiveDataService = sinon.fake.returns({
       find: (
         namespace: string,
@@ -1309,7 +1302,10 @@ suite('MDBExtensionController Test Suite', function () {
 
     const documentItem = new DocumentTreeItem(mockDocument, 'waffle.house', 0);
 
-    await vscode.commands.executeCommand('mdb.viewDocument', documentItem);
+    await vscode.commands.executeCommand(
+      'mdb.openMongoDBDocumentFromTree',
+      documentItem
+    );
 
     assert(mockOpenTextDocument.firstArg.path.includes('.json'));
     assert(mockOpenTextDocument.firstArg.scheme === 'VIEW_DOCUMENT_SCHEME');
