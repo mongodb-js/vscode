@@ -190,21 +190,17 @@ export default class PlaygroundController {
     return this._languageServerController.disconnectFromServiceProvider();
   }
 
-  createPlaygroundFileWithContent(
+  async createPlaygroundFileWithContent(
     content: string | undefined
   ): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      vscode.workspace
-        .openTextDocument({
-          language: 'mongodb',
-          content
-        })
-        .then((document) => {
-          this._outputChannel.show(true);
-          vscode.window.showTextDocument(document);
-          resolve(true);
-        }, reject);
+    const document = await vscode.workspace.openTextDocument({
+      language: 'mongodb',
+      content
     });
+
+    vscode.window.showTextDocument(document);
+
+    return true;
   }
 
   createPlaygroundForSearch(
@@ -234,18 +230,9 @@ export default class PlaygroundController {
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
 
-    return new Promise((resolve, reject) => {
-      vscode.workspace
-        .openTextDocument({
-          language: 'mongodb',
-          content: useDefaultTemplate ? playgroundTemplate : ''
-        })
-        .then((document) => {
-          this._outputChannel.show(true);
-          vscode.window.showTextDocument(document);
-          resolve(true);
-        }, reject);
-    });
+    return this.createPlaygroundFileWithContent(
+      useDefaultTemplate ? playgroundTemplate : ''
+    );
   }
 
   async evaluate(codeToEvaluate: string): Promise<ExecuteAllResult> {
@@ -294,7 +281,6 @@ export default class PlaygroundController {
               // If a user clicked the cancel button terminate all playground scripts.
               this._languageServerController.cancelAll();
               this._outputChannel.clear();
-              this._outputChannel.show(true);
 
               return resolve({
                 outputLines: undefined,

@@ -8,7 +8,7 @@ import { TestExtensionContext, MockLanguageServerController } from '../stubs';
 import { before, beforeEach, afterEach } from 'mocha';
 import TelemetryController from '../../../telemetry/telemetryController';
 
-const sinon = require('sinon');
+import sinon from 'sinon';
 const chai = require('chai');
 const expect = chai.expect;
 
@@ -346,6 +346,22 @@ suite('Playground Controller Test Suite', function () {
         const isEditprOpened = await testPlaygroundController.evaluatePlayground();
 
         expect(isEditprOpened).to.be.equal(true);
+      });
+
+      test('evaluatePlayground should open and clear an output channel to show output', async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('confirmRunAll', false);
+
+        sinon.spy();
+        const spy = sandbox.spy(
+          testPlaygroundController._outputChannel,
+          'show'
+        );
+
+        await testPlaygroundController.evaluatePlayground();
+
+        expect(spy.calledOnce).to.be.equal(true);
       });
 
       test('getDocumentLanguage returns json if content is object', async () => {
