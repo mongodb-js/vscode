@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
+import ConnectionController from '../connectionController';
 
 export default class ActiveConnectionCodeLensProvider
   implements vscode.CodeLensProvider {
-  private _connectionController: any;
-  private _onDidChangeCodeLenses: vscode.EventEmitter<
-    void
-  > = new vscode.EventEmitter<void>();
-  public readonly onDidChangeCodeLenses: vscode.Event<void> = this
+  _connectionController: ConnectionController;
+  _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+
+  readonly onDidChangeCodeLenses: vscode.Event<void> = this
     ._onDidChangeCodeLenses.event;
 
-  constructor(connectionController?: any) {
+  constructor(connectionController: ConnectionController) {
     this._connectionController = connectionController;
 
     vscode.workspace.onDidChangeConfiguration(() => {
@@ -18,11 +18,11 @@ export default class ActiveConnectionCodeLensProvider
     });
   }
 
-  public refresh(): void {
+  refresh(): void {
     this._onDidChangeCodeLenses.fire();
   }
 
-  public provideCodeLenses(): vscode.CodeLens[] {
+  provideCodeLenses(): vscode.CodeLens[] {
     const codeLens = new vscode.CodeLens(new vscode.Range(0, 0, 0, 0));
     let message = '';
 

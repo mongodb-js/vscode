@@ -14,7 +14,6 @@ import { LanguageServerController } from '../../../language';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-
 import { TestExtensionContext } from '../stubs';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
@@ -36,20 +35,21 @@ suite('Language Server Controller Test Suite', () => {
     mockStorageController,
     mockExtensionContext
   );
-
-  testLanguageServerController.startLanguageServer();
-
+  const testStatusView = new StatusView(mockExtensionContext);
   const testConnectionController = new ConnectionController(
-    new StatusView(mockExtensionContext),
+    testStatusView,
     mockStorageController,
     testTelemetryController
   );
+
+  testLanguageServerController.startLanguageServer();
 
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
     testLanguageServerController,
-    testTelemetryController
+    testTelemetryController,
+    testStatusView
   );
 
   before(async () => {

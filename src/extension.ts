@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { ext } from './extensionConstants';
 import { createKeytar } from './utils/keytar';
 import { createLogger } from './logging';
+
 const log = createLogger('extension.ts');
 
 /**

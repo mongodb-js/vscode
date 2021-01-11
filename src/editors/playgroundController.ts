@@ -12,8 +12,13 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import { createLogger } from '../logging';
 import type { ExecuteAllResult } from '../utils/types';
-import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
+import PlaygroundResultProvider, {
+  PLAYGROUND_RESULT_SCHEME,
+  PLAYGROUND_RESULT_URI
+} from './playgroundResultProvider';
 import type { OutputItem } from '../utils/types';
+import { StatusView } from '../views';
+import { EJSON } from 'bson';
 
 const log = createLogger('playground controller');
 
@@ -21,28 +26,31 @@ const log = createLogger('playground controller');
  * This controller manages playground.
  */
 export default class PlaygroundController {
-  public connectionController: ConnectionController;
-  public activeTextEditor?: TextEditor;
-  public partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
-  public playgroundResult?: OutputItem;
-  private _context: vscode.ExtensionContext;
-  private _languageServerController: LanguageServerController;
-  private _telemetryController: TelemetryController;
-  private _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
-  private _outputChannel: OutputChannel;
-  private _connectionString?: string;
-  private _connectionOptions?: any;
-  private _selectedText?: string;
-  private _codeToEvaluate: string;
-  private _isPartialRun: boolean;
-  private _playgroundResultViewColumn?: vscode.ViewColumn;
-  private _playgroundResultTextDocument?: vscode.TextDocument;
+  connectionController: ConnectionController;
+  activeTextEditor?: TextEditor;
+  partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
+  playgroundResult?: OutputItem;
+  _context: vscode.ExtensionContext;
+  _languageServerController: LanguageServerController;
+  _telemetryController: TelemetryController;
+  _activeConnectionCodeLensProvider?: ActiveConnectionCodeLensProvider;
+  _outputChannel: OutputChannel;
+  _connectionString?: string;
+  _connectionOptions?: any;
+  _selectedText?: string;
+  _codeToEvaluate: string;
+  _isPartialRun: boolean;
+  _playgroundResultViewColumn?: vscode.ViewColumn;
+  _playgroundResultTextDocument?: vscode.TextDocument;
+  _statusView: StatusView;
+  _playgroundResultViewProvider: PlaygroundResultProvider;
 
   constructor(
     context: vscode.ExtensionContext,
     connectionController: ConnectionController,
     languageServerController: LanguageServerController,
-    telemetryController: TelemetryController
+    telemetryController: TelemetryController,
+    statusView: StatusView
   ) {
     this._context = context;
     this._codeToEvaluate = '';
@@ -50,6 +58,7 @@ export default class PlaygroundController {
     this.connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryController = telemetryController;
+    this._statusView = statusView;
     this._outputChannel = vscode.window.createOutputChannel(
       'Playground output'
     );
@@ -85,7 +94,7 @@ export default class PlaygroundController {
       }
     );
 
-    const onEditorChange = (editor) => {
+    const onEditorChange = (editor: vscode.TextEditor | undefined) => {
       if (editor?.document.uri.scheme === PLAYGROUND_RESULT_SCHEME) {
         this._playgroundResultViewColumn = editor.viewColumn;
         this._playgroundResultTextDocument = editor?.document;
@@ -100,28 +109,41 @@ export default class PlaygroundController {
     vscode.window.onDidChangeActiveTextEditor(onEditorChange);
     onEditorChange(vscode.window.activeTextEditor);
 
-    vscode.window.onDidChangeTextEditorSelection((editor) => {
-      if (
-        editor &&
-        editor.textEditor &&
-        editor.textEditor.document &&
-        editor.textEditor.document.languageId === 'mongodb'
-      ) {
-        this._selectedText = (editor.selections as Array<vscode.Selection>)
-          .sort((a, b) => (a.start.line > b.start.line ? 1 : -1)) // Sort lines selected as alt+click
-          .map((item, index) => {
-            if (index === editor.selections.length - 1) {
-              this.showCodeLensForSelection(item);
-            }
+    vscode.window.onDidChangeTextEditorSelection(
+      (editor: vscode.TextEditorSelectionChangeEvent) => {
+        if (
+          editor &&
+          editor.textEditor &&
+          editor.textEditor.document &&
+          editor.textEditor.document.languageId === 'mongodb'
+        ) {
+          this._selectedText = (editor.selections as Array<vscode.Selection>)
+            .sort((a, b) => (a.start.line > b.start.line ? 1 : -1)) // Sort lines selected as alt+click.
+            .map((item, index) => {
+              if (index === editor.selections.length - 1) {
+                this.showCodeLensForSelection(item);
+              }
 
-            return this.getSelectedText(item);
-          })
-          .join('\n');
+              return this.getSelectedText(item);
+            })
+            .join('\n');
+        }
       }
-    });
+    );
+
+    const playgroundResultViewProvider = new PlaygroundResultProvider(context);
+
+    context.subscriptions.push(
+      vscode.workspace.registerTextDocumentContentProvider(
+        PLAYGROUND_RESULT_SCHEME,
+        playgroundResultViewProvider
+      )
+    );
+
+    this._playgroundResultViewProvider = playgroundResultViewProvider;
   }
 
-  public showCodeLensForSelection(item: vscode.Range): void {
+  showCodeLensForSelection(item: vscode.Range): void {
     const selectedText = this.getSelectedText(item).trim();
     const lastSelectedLine =
       this.activeTextEditor?.document.lineAt(item.end.line).text.trim() || '';
@@ -142,11 +164,11 @@ export default class PlaygroundController {
     }
   }
 
-  public disconnectFromServiceProvider(): Promise<boolean> {
+  disconnectFromServiceProvider(): Promise<boolean> {
     return this._languageServerController.disconnectFromServiceProvider();
   }
 
-  public connectToServiceProvider(): Promise<boolean> {
+  connectToServiceProvider(): Promise<boolean> {
     const model = this.connectionController
       .getActiveConnectionModel()
       ?.getAttributes({ derived: true });
@@ -168,7 +190,7 @@ export default class PlaygroundController {
     return this._languageServerController.disconnectFromServiceProvider();
   }
 
-  private createPlaygroundFileWithContent(
+  createPlaygroundFileWithContent(
     content: string | undefined
   ): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -185,7 +207,7 @@ export default class PlaygroundController {
     });
   }
 
-  public createPlaygroundForSearch(
+  createPlaygroundForSearch(
     databaseName: string,
     collectionName: string
   ): Promise<boolean> {
@@ -196,7 +218,7 @@ export default class PlaygroundController {
     return this.createPlaygroundFileWithContent(content);
   }
 
-  public createPlaygroundForNewIndex(
+  createPlaygroundForNewIndex(
     databaseName: string,
     collectionName: string
   ): Promise<boolean> {
@@ -207,7 +229,7 @@ export default class PlaygroundController {
     return this.createPlaygroundFileWithContent(content);
   }
 
-  public createPlayground(): Promise<boolean> {
+  createPlayground(): Promise<boolean> {
     const useDefaultTemplate = !!vscode.workspace
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
@@ -226,13 +248,15 @@ export default class PlaygroundController {
     });
   }
 
-  public async evaluate(codeToEvaluate: string): Promise<ExecuteAllResult> {
+  async evaluate(codeToEvaluate: string): Promise<ExecuteAllResult> {
+    this._statusView.showMessage('Getting results...');
+
     // Send a request to the language server to execute scripts from a playground.
     const result: ExecuteAllResult = await this._languageServerController.executeAll(
       codeToEvaluate
     );
 
-    // Send metrics to Segment.
+    this._statusView.hideMessage();
     this._telemetryController.trackPlaygroundCodeExecuted(
       result,
       this._isPartialRun,
@@ -242,15 +266,15 @@ export default class PlaygroundController {
     return result;
   }
 
-  private getAllText(): string {
+  getAllText(): string {
     return this.activeTextEditor?.document.getText() || '';
   }
 
-  private getSelectedText(selection: vscode.Range): string {
+  getSelectedText(selection: vscode.Range): string {
     return this.activeTextEditor?.document.getText(selection) || '';
   }
 
-  public evaluateWithCancelModal(): Promise<ExecuteAllResult> {
+  evaluateWithCancelModal(): Promise<ExecuteAllResult> {
     if (!this._connectionString) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
@@ -297,52 +321,71 @@ export default class PlaygroundController {
     });
   }
 
-  public getVirtualDocumentUri(content?: any) {
-    let extension = '';
-
-    if (typeof content === 'object') {
-      extension = 'json';
-    } else {
-      extension = 'txt';
+  getDocumentLanguage(content?: EJSON.SerializableTypes): string {
+    if (typeof content === 'object' && content !== null) {
+      return 'json';
     }
 
-    return vscode.Uri.parse(
-      [
-        `${PLAYGROUND_RESULT_SCHEME}:Playground Result`,
-        `.${extension}`,
-        `?id=${Date.now()}`
-      ].join('')
+    return 'plaintext';
+  }
+
+  async openPlaygroundResult(): Promise<void> {
+    this._playgroundResultViewProvider.setPlaygroundResult(
+      this.playgroundResult
+    );
+
+    if (this._playgroundResultTextDocument) {
+      await this.reopenResultAsVirtualDocument();
+    } else {
+      await this.openResultAsVirtualDocument();
+    }
+
+    if (this._playgroundResultTextDocument) {
+      const language = this.getDocumentLanguage(this.playgroundResult?.content);
+
+      await vscode.languages.setTextDocumentLanguage(
+        this._playgroundResultTextDocument,
+        language
+      );
+    }
+  }
+
+  async reopenResultAsVirtualDocument() {
+    let viewColumn: vscode.ViewColumn =
+      this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
+
+    this._playgroundResultViewProvider.refresh();
+
+    await vscode.window.showTextDocument(PLAYGROUND_RESULT_URI, {
+      preview: false,
+      viewColumn
+    });
+  }
+
+  async openResultAsVirtualDocument(): Promise<void> {
+    let viewColumn: vscode.ViewColumn =
+      this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
+
+    await vscode.workspace.openTextDocument(PLAYGROUND_RESULT_URI).then(
+      async (doc) => {
+        this._playgroundResultTextDocument = doc;
+
+        return vscode.window.showTextDocument(doc, {
+          preview: false,
+          viewColumn
+        });
+      },
+      (error) => {
+        log.error('Open result as VirtualDocument ERROR', error);
+
+        return vscode.window.showErrorMessage(
+          `Unable to open a result document: ${error.message}`
+        );
+      }
     );
   }
 
-  private openResultAsVirtualDocument(
-    viewColumn: vscode.ViewColumn
-  ): Thenable<TextEditor> {
-    const content =
-      this.playgroundResult && this.playgroundResult.content
-        ? this.playgroundResult.content
-        : '';
-
-    return vscode.workspace
-      .openTextDocument(this.getVirtualDocumentUri(content))
-      .then(
-        (doc) => {
-          this._playgroundResultTextDocument = doc;
-          return vscode.window.showTextDocument(doc, {
-            preview: false,
-            viewColumn
-          });
-        },
-        (error) => {
-          log.error('Open result as VirtualDocument ERROR', error);
-          return vscode.window.showErrorMessage(
-            `Unable to open a result document: ${error.message}`
-          );
-        }
-      );
-  }
-
-  public async evaluatePlayground(): Promise<boolean> {
+  async evaluatePlayground(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const shouldConfirmRunAll = vscode.workspace
         .getConfiguration('mdb')
@@ -376,6 +419,7 @@ export default class PlaygroundController {
         for (const line of evaluateResponse.outputLines) {
           this._outputChannel.appendLine(line.content);
         }
+
         this._outputChannel.show(true);
       }
 
@@ -385,31 +429,13 @@ export default class PlaygroundController {
 
       this.playgroundResult = evaluateResponse.result;
 
-      let viewColumn: vscode.ViewColumn =
-        this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
-
-      if (this._playgroundResultTextDocument) {
-        await vscode.window
-          .showTextDocument(this._playgroundResultTextDocument, {
-            preview: false,
-            viewColumn
-          })
-          .then((editor) => {
-            viewColumn = editor.viewColumn || vscode.ViewColumn.Beside;
-            vscode.commands.executeCommand(
-              'workbench.action.closeActiveEditor'
-            );
-            return this.openResultAsVirtualDocument(viewColumn);
-          });
-      } else {
-        await this.openResultAsVirtualDocument(viewColumn);
-      }
+      await this.openPlaygroundResult();
 
       return resolve(true);
     });
   }
 
-  public runSelectedPlaygroundBlocks(): Promise<boolean> {
+  runSelectedPlaygroundBlocks(): Promise<boolean> {
     if (
       !this.activeTextEditor ||
       this.activeTextEditor.document.languageId !== 'mongodb'
@@ -441,7 +467,7 @@ export default class PlaygroundController {
     return this.evaluatePlayground();
   }
 
-  public runAllPlaygroundBlocks(): Promise<boolean> {
+  runAllPlaygroundBlocks(): Promise<boolean> {
     if (
       !this.activeTextEditor ||
       this.activeTextEditor.document.languageId !== 'mongodb'
@@ -459,7 +485,7 @@ export default class PlaygroundController {
     return this.evaluatePlayground();
   }
 
-  public runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
+  runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
     if (
       !this.activeTextEditor ||
       this.activeTextEditor.document.languageId !== 'mongodb'
@@ -488,21 +514,17 @@ export default class PlaygroundController {
     return this.evaluatePlayground();
   }
 
-  public openPlayground(filePath: string): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      await vscode.workspace.openTextDocument(filePath).then(
-        (doc) => vscode.window.showTextDocument(doc, 1, false),
-        (error) => {
-          vscode.window.showErrorMessage(`Unable to read file: ${filePath}`);
-          log.error('Open playground ERROR', error);
-        }
-      );
-
-      return resolve(true);
+  openPlayground(filePath: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      vscode.workspace.openTextDocument(filePath).then((doc) => {
+        vscode.window
+          .showTextDocument(doc, { preview: false })
+          .then(() => resolve(true), reject);
+      }, reject);
     });
   }
 
-  public deactivate(): void {
+  deactivate(): void {
     this.connectionController.removeEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       () => {

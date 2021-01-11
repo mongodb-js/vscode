@@ -993,7 +993,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         outputLines: [],
-        result: { type: 'number', content: 2 }
+        result: { namespace: null, type: 'number', content: 2 }
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1011,7 +1011,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         outputLines: [],
-        result: { type: 'number', content: 3 }
+        result: { namespace: null, type: 'number', content: 3 }
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1029,7 +1029,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const firstRes = {
         outputLines: [],
-        result: { type: 'number', content: 2 }
+        result: { namespace: null, type: 'number', content: 2 }
       };
 
       expect(firstEvalResult).to.deep.equal(firstRes);
@@ -1042,7 +1042,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const secondRes = {
         outputLines: [],
-        result: { type: 'number', content: 3 }
+        result: { namespace: null, type: 'number', content: 3 }
       };
 
       expect(secondEvalResult).to.deep.equal(secondRes);
@@ -1063,6 +1063,7 @@ suite('MongoDBService Test Suite', () => {
       const expectedResult = {
         outputLines: [],
         result: {
+          namespace: null,
           type: 'object',
           content: {
             _id: {
@@ -1089,6 +1090,7 @@ suite('MongoDBService Test Suite', () => {
       const expectedResult = {
         outputLines: [],
         result: {
+          namespace: null,
           type: 'string',
           content: 'A single line string'
         }
@@ -1113,6 +1115,7 @@ suite('MongoDBService Test Suite', () => {
       const expectedResult = {
         outputLines: [],
         result: {
+          namespace: null,
           type: 'string',
           content: `vscode
           is
@@ -1135,12 +1138,12 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         outputLines: [
-          { type: null, content: 'Hello' },
-          { type: null, content: 1 },
-          { type: null, content: 2 },
-          { type: null, content: 3 }
+          { namespace: null, type: null, content: 'Hello' },
+          { namespace: null, type: null, content: 1 },
+          { namespace: null, type: null, content: 2 },
+          { namespace: null, type: null, content: 3 }
         ],
-        result: { type: 'number', content: 42 }
+        result: { namespace: null, type: 'number', content: 42 }
       };
 
       expect(result).to.deep.equal(expectedResult);

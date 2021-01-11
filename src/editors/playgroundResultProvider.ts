@@ -1,44 +1,66 @@
 import * as vscode from 'vscode';
-import { StatusView } from '../views';
-import PlaygroundController from './playgroundController';
+import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
+import type { OutputItem } from '../utils/types';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
+export const PLAYGROUND_RESULT_URI = vscode.Uri.parse(
+  `${PLAYGROUND_RESULT_SCHEME}:Playground Result`
+);
+
 export default class PlaygroundResultProvider
   implements vscode.TextDocumentContentProvider {
-  _playgroundController: PlaygroundController;
-  _statusView: StatusView;
+  _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
+  _playgroundResult: OutputItem;
 
-  constructor(
-    playgroundController: PlaygroundController,
-    statusView: StatusView
-  ) {
-    this._playgroundController = playgroundController;
-    this._statusView = statusView;
+  constructor(context: vscode.ExtensionContext) {
+    this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider();
+    this._playgroundResult = {
+      namespace: null,
+      type: null,
+      content: undefined
+    };
+
+    context.subscriptions.push(
+      vscode.languages.registerCodeLensProvider(
+        {
+          scheme: PLAYGROUND_RESULT_SCHEME,
+          language: 'json'
+        },
+        this._editDocumentCodeLensProvider
+      )
+    );
   }
 
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this.onDidChangeEmitter.event;
 
-  provideTextDocumentContent(): Promise<string> {
-    return new Promise((resolve) => {
-      this._statusView.showMessage('Getting results...');
+  setPlaygroundResult(playgroundResult?: OutputItem): void {
+    if (playgroundResult) {
+      this._playgroundResult = playgroundResult;
+    }
+  }
 
-      if (
-        typeof this._playgroundController.playgroundResult?.content ===
-          'object' ||
-        this._playgroundController.playgroundResult?.type !== 'string'
-      ) {
-        return resolve(
-          JSON.stringify(
-            this._playgroundController.playgroundResult?.content,
-            null,
-            2
-          )
-        );
-      }
+  async refresh(): Promise<void> {
+    this.onDidChangeEmitter.fire(PLAYGROUND_RESULT_URI);
+  }
 
-      return resolve(this._playgroundController.playgroundResult?.content);
-    });
+  provideTextDocumentContent(): string {
+    const type = this._playgroundResult.type;
+    const content = this._playgroundResult.content;
+
+    if (type === 'undefined') {
+      return 'undefined';
+    }
+
+    if (type === 'string') {
+      return this._playgroundResult.content;
+    }
+
+    this._editDocumentCodeLensProvider?.updateCodeLensesPosition(
+      this._playgroundResult
+    );
+
+    return JSON.stringify(content, null, 2);
   }
 }

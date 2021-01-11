@@ -1,5 +1,4 @@
 import assert from 'assert';
-import * as fse from 'fs-extra';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
@@ -1255,8 +1254,8 @@ suite('MDBExtensionController Test Suite', function () {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: {
         uri: {
+          scheme: 'VIEW_DOCUMENT_SCHEME',
           query: [
-            '?documentLocation=mongodb',
             'namespace=waffle.house',
             'connectionId=tasty_sandwhich',
             'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
@@ -1288,10 +1287,11 @@ suite('MDBExtensionController Test Suite', function () {
         filter: object,
         replacement: object,
         options: object,
-        callback: (error: Error | undefined, result: object) => void
+        callback: (error: Error | null, result: object) => void
       ) => {
         mockDocument.name = 'something sweet';
-        callback(undefined, mockDocument);
+
+        return callback(null, mockDocument);
       }
     });
     sinon.replace(
@@ -1302,27 +1302,24 @@ suite('MDBExtensionController Test Suite', function () {
 
     const documentItem = new DocumentTreeItem(mockDocument, 'waffle.house', 0);
 
-    await vscode.commands.executeCommand('mdb.viewDocument', documentItem);
-
-    assert(
-      mockOpenTextDocument.firstArg.path.includes('vscode-opened-documents')
+    await vscode.commands.executeCommand(
+      'mdb.openMongoDBDocumentFromTree',
+      documentItem
     );
+
     assert(mockOpenTextDocument.firstArg.path.includes('.json'));
-    assert(mockOpenTextDocument.firstArg.scheme === 'file');
+    assert(mockOpenTextDocument.firstArg.scheme === 'VIEW_DOCUMENT_SCHEME');
     assert(mockOpenTextDocument.firstArg.query.includes('documentId='));
     assert(mockOpenTextDocument.firstArg.query.includes('connectionId='));
     assert(
       mockOpenTextDocument.firstArg.query.includes('namespace=waffle.house')
     );
     assert(
-      mockOpenTextDocument.firstArg.query.includes('documentLocation=mongodb')
-    );
-    assert(
       mockShowTextDocument.firstArg === 'magna carta',
       'Expected it to call vscode to show the returned document from the provider'
     );
 
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
+    await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
 
     assert(mockDocument.name === 'something sweet');
     assert(mockDocument.time.$time === '12345');
@@ -1333,411 +1330,6 @@ suite('MDBExtensionController Test Suite', function () {
     assert(
       fakeShowInformationMessage.firstArg === expectedMessage,
       `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeShowInformationMessage.firstArg}"`
-    );
-
-    await fse.remove(mockOpenTextDocument.firstArg.path);
-  });
-
-  test('if the active editor is missing, the save function does not call findOneAndReplace', async () => {
-    const mockDocument = {
-      _id: 'pancakes',
-      name: ''
-    };
-
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => null);
-
-    const mockGetActiveDataService = sinon.fake.returns({
-      findOneAndReplace: (
-        namespace: string,
-        filter: object,
-        replacement: object,
-        options: object,
-        callback: (error: Error | undefined, result: object) => void
-      ) => {
-        mockDocument.name = 'something sweet';
-        callback(undefined, mockDocument);
-      }
-    });
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
-
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
-
-    assert(mockDocument.name === '');
-  });
-
-  test("json files that are not MongoDB documents won't be saved to database", async () => {
-    const mockDocument = {
-      _id: 'pancakes',
-      name: ''
-    };
-
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          query: [
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const mockGetActiveDataService = sinon.fake.returns({
-      findOneAndReplace: (
-        namespace: string,
-        filter: object,
-        replacement: object,
-        options: object,
-        callback: (error: Error | undefined, result: object) => void
-      ) => {
-        mockDocument.name = 'something sweet';
-        callback(undefined, mockDocument);
-      }
-    });
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
-
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
-
-    assert(mockDocument.name === '');
-  });
-
-  test("MongoDB documents without namespace parameter won't be saved to database", async () => {
-    const mockDocument = {
-      _id: 'pancakes',
-      name: ''
-    };
-
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          query: [
-            '?documentLocation=mongodb',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const mockGetActiveDataService = sinon.fake.returns({
-      findOneAndReplace: (
-        namespace: string,
-        filter: object,
-        replacement: object,
-        options: object,
-        callback: (error: Error | undefined, result: object) => void
-      ) => {
-        mockDocument.name = 'something sweet';
-        callback(undefined, mockDocument);
-      }
-    });
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
-
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
-
-    assert(mockDocument.name === '');
-  });
-
-  test("MongoDB documents without connectionId parameter won't be saved to database", async () => {
-    const mockDocument = {
-      _id: 'pancakes',
-      name: ''
-    };
-
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          query: [
-            '?documentLocation=mongodb',
-            'namespace=waffle.house',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const mockGetActiveDataService = sinon.fake.returns({
-      findOneAndReplace: (
-        namespace: string,
-        filter: object,
-        replacement: object,
-        options: object,
-        callback: (error: Error | undefined, result: object) => void
-      ) => {
-        mockDocument.name = 'something sweet';
-        callback(undefined, mockDocument);
-      }
-    });
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
-
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
-
-    assert(mockDocument.name === '');
-  });
-
-  test("MongoDB documents without documentId parameter won't be saved to database", async () => {
-    const mockDocument = {
-      _id: 'pancakes',
-      name: ''
-    };
-
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          query: [
-            '?documentLocation=mongodb',
-            'namespace=waffle.house',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const mockGetActiveDataService = sinon.fake.returns({
-      findOneAndReplace: (
-        namespace: string,
-        filter: object,
-        replacement: object,
-        options: object,
-        callback: (error: Error | undefined, result: object) => void
-      ) => {
-        mockDocument.name = 'something sweet';
-        callback(undefined, mockDocument);
-      }
-    });
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
-
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
-
-    assert(mockDocument.name === '');
-  });
-
-  test("if a user is not connected, documents won't be saved to MongoDB", async () => {
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          query: [
-            '?documentLocation=mongodb',
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const mockGet = sinon.fake.returns('pancakes');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._editorsController
-        ._documentIdStore,
-      'get',
-      mockGet
-    );
-
-    const mockActiveConnectionId = sinon.fake.returns(null);
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionId',
-      mockActiveConnectionId
-    );
-
-    const mockGetSavedConnectionName = sinon.fake.returns('connect:27017');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getSavedConnectionName',
-      mockGetSavedConnectionName
-    );
-
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
-
-    const expectedMessage =
-      "Unable to save document: no longer connected to 'connect:27017'";
-
-    assert(
-      fakeVscodeErrorMessage.firstArg === expectedMessage,
-      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
-    );
-  });
-
-  test("if a user switched the active connection, document opened from the previous connection can't be saved", async () => {
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
-    const mockGet = sinon.fake.returns('pancakes');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._editorsController
-        ._documentIdStore,
-      'get',
-      mockGet
-    );
-
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          query: [
-            '?documentLocation=mongodb',
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const mockActiveConnectionId = sinon.fake.returns('berlin.coctails');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionId',
-      mockActiveConnectionId
-    );
-
-    const mockGetSavedConnectionName = sinon.fake.returns('connect:27017');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getSavedConnectionName',
-      mockGetSavedConnectionName
-    );
-
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
-
-    const expectedMessage =
-      "Unable to save document: no longer connected to 'connect:27017'";
-
-    assert(
-      fakeVscodeErrorMessage.firstArg === expectedMessage,
-      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
-    );
-  });
-
-  test('if dataservice is missing, an error occurs', async () => {
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
-    const mockGet = sinon.fake.returns('pancakes');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._editorsController
-        ._documentIdStore,
-      'get',
-      mockGet
-    );
-
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          query: [
-            '?documentLocation=mongodb',
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
-
-    const mockGetActiveDataService = sinon.fake.returns(null);
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
-
-    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionId',
-      mockActiveConnectionId
-    );
-
-    const mockGetSavedConnectionName = sinon.fake.returns('connect:27017');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getSavedConnectionName',
-      mockGetSavedConnectionName
-    );
-
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
-
-    const expectedMessage =
-      "Unable to save document: no longer connected to 'connect:27017'";
-
-    assert(
-      fakeVscodeErrorMessage.firstArg === expectedMessage,
-      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
-    );
-  });
-
-  test('if a user saves an invalid javascript value, an error occurs', async () => {
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
-    const mockGet = sinon.fake.returns('pancakes');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._editorsController
-        ._documentIdStore,
-      'get',
-      mockGet
-    );
-
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          query: [
-            '?documentLocation=mongodb',
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        },
-        getText: () => '{'
-      }
-    }));
-
-    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionId',
-      mockActiveConnectionId
-    );
-
-    const mockGetSavedConnectionName = sinon.fake.returns('connect:27017');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getSavedConnectionName',
-      mockGetSavedConnectionName
-    );
-
-    await vscode.commands.executeCommand('mdb.saveDocumentToMongoDB');
-
-    const expectedMessage =
-      "Unable to save document: no longer connected to 'connect:27017'";
-
-    assert(
-      fakeVscodeErrorMessage.firstArg === expectedMessage,
-      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
     );
   });
 
@@ -1800,9 +1392,11 @@ suite('MDBExtensionController Test Suite', function () {
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('useDefaultTemplateForPlayground', true);
+    const mockGetConfiguration = sinon.fake.returns({
+      get: () => true
+    });
+    sinon.replace(vscode.workspace, 'getConfiguration', mockGetConfiguration);
+
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     assert(mockOpenTextDocument.firstArg.language === 'mongodb');
@@ -1841,9 +1435,11 @@ suite('MDBExtensionController Test Suite', function () {
     const mockShowTextDocument = sinon.fake.resolves();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('useDefaultTemplateForPlayground', false);
+    const mockGetConfiguration = sinon.fake.returns({
+      get: () => false
+    });
+    sinon.replace(vscode.workspace, 'getConfiguration', mockGetConfiguration);
+
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     assert(mockOpenTextDocument.firstArg.language === 'mongodb');

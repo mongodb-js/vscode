@@ -72,7 +72,7 @@
     "onCommand:mdb.disconnect",
     "onCommand:mdb.removeConnection",
     "onCommand:mdb.openMongoDBShell",
-    "onCommand:mdb.saveDocumentToMongoDB",
+    "onCommand:mdb.saveMongoDBDocument",
     "onView:mongoDB",
     "onView:mongoDBConnectionExplorer",
     "onView:mongoDBPlaygroundsExplorer",
@@ -220,7 +220,7 @@
         "title": "MongoDB: Run Selected Lines From Playground"
       },
       {
-        "command": "mdb.saveDocumentToMongoDB",
+        "command": "mdb.saveMongoDBDocument",
         "title": "MongoDB: Save Document To MongoDB"
       },
       {
@@ -539,7 +539,7 @@
       ],
       "commandPalette": [
         {
-          "command": "mdb.saveDocumentToMongoDB",
+          "command": "mdb.saveMongoDBDocument",
           "when": "editorLangId == json"
         },
         {
@@ -690,7 +690,7 @@
         "when": "editorLangId == mongodb"
       },
       {
-        "command": "mdb.saveDocumentToMongoDB",
+        "command": "mdb.saveMongoDBDocument",
         "key": "ctrl+s",
         "mac": "cmd+s",
         "when": "editorLangId == json"
@@ -884,8 +884,8 @@
     "@types/sinon": "^9.0.1",
     "@types/vscode": "^1.49.0",
     "@types/ws": "^7.2.4",
-    "@typescript-eslint/eslint-plugin": "^2.19.2",
-    "@typescript-eslint/parser": "^2.19.2",
+    "@typescript-eslint/eslint-plugin": "^4.12.0",
+    "@typescript-eslint/parser": "^4.12.0",
     "autoprefixer": "^9.7.5",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",

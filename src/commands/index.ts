@@ -14,7 +14,9 @@ enum EXTENSION_COMMANDS {
   MDB_RUN_ALL_PLAYGROUND_BLOCKS = 'mdb.runAllPlaygroundBlocks',
   MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runPlayground',
 
-  MDB_SAVE_DOCUMENT_TO_MONGODB = 'mdb.saveDocumentToMongoDB',
+  MDB_OPEN_MONGODB_DOCUMENT_FROM_PLAYGROUND = 'mdb.openMongoDBDocumentFromPlayground',
+  MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE = 'mdb.openMongoDBDocumentFromTree',
+  MDB_SAVE_MONGODB_DOCUMENT = 'mdb.saveMongoDBDocument',
 
   MDB_CHANGE_ACTIVE_CONNECTION = 'mdb.changeActiveConnection',
   MDB_REFRESH_PLAYGROUNDS = 'mdb.refreshPlaygrounds',
@@ -43,7 +45,6 @@ enum EXTENSION_COMMANDS {
   MDB_ADD_COLLECTION = 'mdb.addCollection',
   MDB_COPY_COLLECTION_NAME = 'mdb.copyCollectionName',
   MDB_DROP_COLLECTION = 'mdb.dropCollection',
-  MDB_VIEW_DOCUMENT = 'mdb.viewDocument',
   MDB_VIEW_COLLECTION_DOCUMENTS = 'mdb.viewCollectionDocuments',
   MDB_REFRESH_COLLECTION = 'mdb.refreshCollection',
   MDB_REFRESH_DOCUMENT_LIST = 'mdb.refreshDocumentList',
