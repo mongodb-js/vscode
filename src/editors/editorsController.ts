@@ -13,10 +13,10 @@ import { createLogger } from '../logging';
 import { StatusView } from '../views';
 import PlaygroundController from './playgroundController';
 import DocumentIdStore from './documentIdStore';
-import DocumentController, {
+import MongoDBDocumentService, {
   DOCUMENT_ID_URI_IDENTIFIER,
   VIEW_DOCUMENT_SCHEME
-} from './documentController';
+} from './mongoDBDocumentService';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import TelemetryController from '../telemetry/telemetryController';
 
@@ -35,7 +35,7 @@ export default class EditorsController {
   _statusView: StatusView;
   _memoryFileSystemProvider: MemoryFileSystemProvider;
   _documentIdStore: DocumentIdStore;
-  _documentController: DocumentController;
+  _mongoDBDocumentService: MongoDBDocumentService;
   _telemetryController: TelemetryController;
 
   constructor(
@@ -54,7 +54,7 @@ export default class EditorsController {
     this._telemetryController = telemetryController;
     this._memoryFileSystemProvider = new MemoryFileSystemProvider();
     this._documentIdStore = new DocumentIdStore();
-    this._documentController = new DocumentController(
+    this._mongoDBDocumentService = new MongoDBDocumentService(
       this._context,
       this._documentIdStore,
       this._connectionController,
@@ -123,7 +123,7 @@ export default class EditorsController {
           : fileDocumentId;
 
       const fileName = `${VIEW_DOCUMENT_SCHEME}:/${data.namespace}:${fileDocumentId}.json`;
-      const document = await this._documentController.fetchDocument(data);
+      const document = await this._mongoDBDocumentService.fetchDocument(data);
 
       if (document === null) {
         vscode.window.showErrorMessage(
@@ -190,7 +190,7 @@ export default class EditorsController {
     try {
       const newDocument = EJSON.parse(activeEditor.document.getText() || '');
 
-      await this._documentController.replaceDocument({
+      await this._mongoDBDocumentService.replaceDocument({
         namespace,
         connectionId,
         documentId,

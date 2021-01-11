@@ -13,7 +13,7 @@ export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
 const log = createLogger('document controller');
 
-export default class DocumentController {
+export default class MongoDBDocumentService {
   _context: vscode.ExtensionContext;
   _documentIdStore: DocumentIdStore;
   _connectionController: ConnectionController;

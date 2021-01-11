@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import DocumentController from '../../../editors/documentController';
+import MongoDBDocumentService from '../../../editors/mongoDBDocumentService';
 import DocumentIdStore from '../../../editors/documentIdStore';
 import ConnectionController from '../../../connectionController';
 import { TestExtensionContext } from '../stubs';
@@ -14,7 +14,7 @@ const sinon = require('sinon');
 const chai = require('chai');
 const expect = chai.expect;
 
-suite('Document Controller Test Suite', () => {
+suite('MongoDB Document Service Test Suite', () => {
   const testDocumentIdStore = new DocumentIdStore();
   const mockExtensionContext = new TestExtensionContext();
   const testStorageController = new StorageController(mockExtensionContext);
@@ -28,8 +28,7 @@ suite('Document Controller Test Suite', () => {
     testStorageController,
     testTelemetryController
   );
-  const testMemoryFileSystemProvider = new MemoryFileSystemProvider();
-  const testDocumentController = new DocumentController(
+  const testMongoDBDocumentService = new MongoDBDocumentService(
     mockExtensionContext,
     testDocumentIdStore,
     testConnectionController,
@@ -83,7 +82,7 @@ suite('Document Controller Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
 
-    await testDocumentController.replaceDocument({
+    await testMongoDBDocumentService.replaceDocument({
       namespace,
       documentId,
       connectionId,
@@ -121,7 +120,7 @@ suite('Document Controller Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
 
-    const result = await testDocumentController.fetchDocument({
+    const result = await testMongoDBDocumentService.fetchDocument({
       namespace,
       documentId
     });
@@ -153,7 +152,7 @@ suite('Document Controller Test Suite', () => {
     );
 
     try {
-      await testDocumentController.replaceDocument({
+      await testMongoDBDocumentService.replaceDocument({
         documentId,
         namespace,
         connectionId,
@@ -191,7 +190,7 @@ suite('Document Controller Test Suite', () => {
     );
 
     try {
-      await testDocumentController.replaceDocument({
+      await testMongoDBDocumentService.replaceDocument({
         documentId,
         namespace,
         connectionId,
