@@ -1,5 +1,4 @@
 import * as React from 'react';
-import classnames from 'classnames';
 import { connect } from 'react-redux';
 
 import {
@@ -9,8 +8,6 @@ import {
   UsernameChangedAction
 } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
-
-const styles = require('../../../../connect.module.less');
 
 type DispatchProps = {
   onAuthSourceChanged: (newAuthSource: string) => void;

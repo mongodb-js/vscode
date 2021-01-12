@@ -580,13 +580,13 @@ export default class ConnectionController {
     const connectionNameToRemove:
       | string
       | undefined = await vscode.window.showQuickPick(
-      connectionIds.map(
-        (id, index) => `${index + 1}: ${this._connections[id].name}`
-      ),
-      {
-        placeHolder: 'Choose a connection to remove...'
-      }
-    );
+        connectionIds.map(
+          (id, index) => `${index + 1}: ${this._connections[id].name}`
+        ),
+        {
+          placeHolder: 'Choose a connection to remove...'
+        }
+      );
 
     if (!connectionNameToRemove) {
       return Promise.resolve(false);
@@ -620,9 +620,7 @@ export default class ConnectionController {
         }
       });
     } catch (e) {
-      return Promise.reject(
-        new Error(`An error occured parsing the connection name: ${e}`)
-      );
+      throw new Error(`An error occured parsing the connection name: ${e}`);
     }
 
     if (!inputtedConnectionName) {
@@ -634,27 +632,25 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
-    return new Promise((resolve, reject) => {
-      if (
-        this._connections[connectionId].storageLocation === StorageScope.GLOBAL
-      ) {
-        return this._storageController
-          .saveConnectionToGlobalStore(this._connections[connectionId])
-          .then(() => resolve(true), reject);
-      }
+    if (
+      this._connections[connectionId].storageLocation === StorageScope.GLOBAL
+    ) {
+      await this._storageController
+        .saveConnectionToGlobalStore(this._connections[connectionId]);
+      return true;
+    }
 
-      if (
-        this._connections[connectionId].storageLocation ===
-        StorageScope.WORKSPACE
-      ) {
-        return this._storageController
-          .saveConnectionToWorkspaceStore(this._connections[connectionId])
-          .then(() => resolve(true), reject);
-      }
+    if (
+      this._connections[connectionId].storageLocation ===
+      StorageScope.WORKSPACE
+    ) {
+      await this._storageController
+        .saveConnectionToWorkspaceStore(this._connections[connectionId]);
+      return true;
+    }
 
-      // No storing needed.
-      return resolve(true);
-    });
+    // No storing needed.
+    return true;
   }
 
   public getSavedConnections(): SavedConnection[] {
@@ -826,7 +822,9 @@ export default class ConnectionController {
         }
       },
       ...Object.values(this._connections)
-        .sort((connectionA: any, connectionB: any) =>
+        .sort((connectionA: {
+          name: string
+        }, connectionB: any) =>
           (connectionA.name || '').localeCompare(connectionB.name || '')
         )
         .map((item: any) => ({
@@ -839,29 +837,27 @@ export default class ConnectionController {
     ];
   }
 
-  public changeActiveConnection(): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      const selectedQuickPickItem = await vscode.window.showQuickPick(
-        this.getСonnectionQuickPicks(),
-        {
-          placeHolder: 'Select new connection...'
-        }
-      );
-
-      if (!selectedQuickPickItem) {
-        return resolve(true);
+  async changeActiveConnection(): Promise<boolean> {
+    const selectedQuickPickItem = await vscode.window.showQuickPick(
+      this.getСonnectionQuickPicks(),
+      {
+        placeHolder: 'Select new connection...'
       }
+    );
 
-      if (
-        selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION
-      ) {
-        return this.connectWithURI();
-      }
+    if (!selectedQuickPickItem) {
+      return true;
+    }
 
-      // Get the saved connection by id and return as the current connection.
-      return this.connectWithConnectionId(
-        selectedQuickPickItem.data.connectionId
-      );
-    });
+    if (
+      selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION
+    ) {
+      return this.connectWithURI();
+    }
+
+    // Get the saved connection by id and return as the current connection.
+    return this.connectWithConnectionId(
+      selectedQuickPickItem.data.connectionId
+    );
   }
 }

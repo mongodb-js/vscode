@@ -34,7 +34,7 @@ type CloudInfo = {
 
 type LinkClickedTelemetryEventProperties = {
   screen: string;
-  link_id: string;
+  link_id: string; // eslint-disable-line camelcase
 };
 
 type ExtensionCommandRunTelemetryEventProperties = {
@@ -42,6 +42,7 @@ type ExtensionCommandRunTelemetryEventProperties = {
 };
 
 type NewConnectionTelemetryEventProperties = {
+  /* eslint-disable camelcase */
   is_atlas: boolean;
   is_localhost: boolean;
   is_data_lake: boolean;
@@ -56,6 +57,7 @@ type NewConnectionTelemetryEventProperties = {
   is_used_connect_screen: boolean;
   is_used_command_palette: boolean;
   is_used_saved_connection: boolean;
+  /* eslint-enable camelcase */
 };
 
 type DocumentUpdatedTelemetryEventProperties = {
@@ -247,10 +249,10 @@ export default class TelemetryController {
     }
   }
 
-  public async trackNewConnection(
+  trackNewConnection(
     dataService: DataServiceType,
     connectionType: ConnectionTypes
-  ): Promise<void> {
+  ): void {
     dataService.instance({}, async (error: any, data: any) => {
       if (error) {
         log.error('TELEMETRY data service error', error);
@@ -289,7 +291,7 @@ export default class TelemetryController {
     });
   }
 
-  public async trackCommandRun(command: string): Promise<void> {
+  trackCommandRun(command: string): void {
     this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
   }
 
@@ -320,11 +322,11 @@ export default class TelemetryController {
     return 'other';
   }
 
-  public async trackPlaygroundCodeExecuted(
+  trackPlaygroundCodeExecuted(
     result: ExecuteAllResult,
     partial: boolean,
     error: boolean
-  ): Promise<void> {
+  ): void {
     this.track(TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED, {
       type: result ? this.getPlaygroundResultType(result) : null,
       partial,
@@ -332,25 +334,25 @@ export default class TelemetryController {
     });
   }
 
-  public async trackLinkClicked(screen: string, linkId: string): Promise<void> {
+  trackLinkClicked(screen: string, linkId: string): void {
     this.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED, {
       screen,
       link_id: linkId
     });
   }
 
-  public async trackPlaygroundLoaded(): Promise<void> {
+  trackPlaygroundLoaded(): void {
     this.track(TelemetryEventTypes.PLAYGROUND_LOADED);
   }
 
-  public async trackPlaygroundSaved(): Promise<void> {
+  trackPlaygroundSaved(): void {
     this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
   }
 
-  public async trackDocumentUpdated(
+  trackDocumentUpdated(
     source: string,
     success: boolean
-  ): Promise<void> {
+  ): void {
     this.track(TelemetryEventTypes.DOCUMENT_UPDATED, { source, success });
   }
 }

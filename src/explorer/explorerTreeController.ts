@@ -13,9 +13,9 @@ import EXTENSION_COMMANDS from '../commands';
 const log = createLogger('explorer controller');
 
 export default class ExplorerTreeController
-  implements vscode.TreeDataProvider<vscode.TreeItem> {
-  private _connectionController: ConnectionController;
-  private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
+implements vscode.TreeDataProvider<vscode.TreeItem> {
+  _connectionController: ConnectionController;
+  _connectionTreeItems: { [key: string]: ConnectionTreeItem };
   contextValue = 'explorerTreeController';
 
   constructor(connectionController: ConnectionController) {
@@ -26,7 +26,7 @@ export default class ExplorerTreeController
     // Subscribe to changes in the connections.
     this._connectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      this.refresh
+      () => { this.refresh(); }
     );
 
     this._connectionTreeItems = {}; // No cache to start.
@@ -35,7 +35,7 @@ export default class ExplorerTreeController
   removeListeners(): void {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      this.refresh
+      () => { this.refresh(); }
     );
   }
 
@@ -117,7 +117,7 @@ export default class ExplorerTreeController
     });
   };
 
-  private _onDidChangeTreeData: vscode.EventEmitter<any>;
+  _onDidChangeTreeData: vscode.EventEmitter<any>;
   readonly onDidChangeTreeData: vscode.Event<any>;
 
   public refresh = (): Promise<boolean> => {
@@ -126,7 +126,7 @@ export default class ExplorerTreeController
     return Promise.resolve(true);
   };
 
-  public onTreeItemUpdate(): void {
+  onTreeItemUpdate(): void {
     this._onDidChangeTreeData.fire(null);
   }
 

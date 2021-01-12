@@ -146,8 +146,8 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('track document saved form a tree-view event', async () => {
-    await testTelemetryController.trackDocumentUpdated('treeview', true);
+  test('track document saved form a tree-view event', () => {
+    testTelemetryController.trackDocumentUpdated('treeview', true);
 
     sinon.assert.calledWith(
       mockTrack,
@@ -176,8 +176,8 @@ suite('Telemetry Controller Test Suite', () => {
     sinon.assert.called(mockTrackPlaygroundLoadedMethod);
   });
 
-  test('track playground saved event', async () => {
-    await testTelemetryController.trackPlaygroundSaved();
+  test('track playground saved event', () => {
+    testTelemetryController.trackPlaygroundSaved();
 
     sinon.assert.calledWith(mockTrack);
   });

@@ -119,22 +119,22 @@ export class Visitor {
       return this._state;
     }
 
-    const self = this;
-
     traverse(ast, {
-      enter(path) {
+      enter: (path) => {
         switch (path.node.type) {
           case 'CallExpression':
-            self.visitCallExpression(path.node);
+            this.visitCallExpression(path.node);
             break;
           case 'MemberExpression':
-            self.visitMemberExpression(path.node);
+            this.visitMemberExpression(path.node);
             break;
           case 'ExpressionStatement':
-            self.visitExpressionStatement(path.node);
+            this.visitExpressionStatement(path.node);
             break;
           case 'ObjectExpression':
-            self.visitObjectExpression(path.node);
+            this.visitObjectExpression(path.node);
+            break;
+          default:
             break;
         }
       }
@@ -157,6 +157,7 @@ export class Visitor {
     };
   }
 
+  // eslint-disable-next-line complexity
   private checkIsUseCall(node: any): boolean {
     if (
       (node.callee.name === 'use' &&
@@ -196,7 +197,7 @@ export class Visitor {
   private checkIsObjectKey(node: any): boolean {
     if (
       node.properties.find(
-        (item: any) => item.key.name && item.key.name.includes(PLACEHOLDER)
+        (item: any) => !!(item.key.name && item.key.name.includes(PLACEHOLDER))
       )
     ) {
       return true;
@@ -205,6 +206,7 @@ export class Visitor {
     return false;
   }
 
+  // eslint-disable-next-line complexity
   private checkIsCollectionName(node: any): boolean {
     if (
       (node.object &&

@@ -108,7 +108,9 @@ connection.onDidChangeConfiguration((change) => {
 
   // Revalidate all open text documents.
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  documents.all().forEach(validateTextDocument);
+  documents.all().forEach((document: TextDocument) => {
+    validateTextDocument(document);
+  });
 });
 
 const getDocumentSettings = (resource: string): Thenable<ExampleSettings> => {
@@ -211,7 +213,7 @@ documents.onDidChangeContent((change) => {
   }
 });
 
-connection.onRequest(new RequestType('textDocument/codeLens'), (event) => {
+connection.onRequest(new RequestType('textDocument/codeLens'), (/* event*/) => {
   // connection.console.log(
   //   `documents.onDidChangeContent: ${JSON.stringify(event)}`
   // );
@@ -220,7 +222,7 @@ connection.onRequest(new RequestType('textDocument/codeLens'), (event) => {
   // return parsed;
 });
 
-connection.onDidChangeWatchedFiles((_change) => {
+connection.onDidChangeWatchedFiles((/* _change */) => {
   // Monitored files have change in VSCode.
   // connection.console.log(
   //   `We received an file change event: ${JSON.stringify(_change)}`
@@ -303,13 +305,13 @@ connection.onRequest('textDocument/formatting', (event) => {
   return text;
 });
 
-connection.onDidOpenTextDocument((params) => {
+connection.onDidOpenTextDocument((/* params */) => {
   // A text document got opened in VSCode.
   // params.textDocument.uri uniquely identifies the document. For documents store on disk this is a file URI.
   // params.textDocument.text the initial full content of the document.
   // connection.console.log(`${params.textDocument.uri} opened.`);
 });
-connection.onDidChangeTextDocument((params) => {
+connection.onDidChangeTextDocument((/* params */) => {
   // The content of a text document did change in VSCode.
   // params.textDocument.uri uniquely identifies the document.
   // params.contentChanges describe the content changes to the document.
@@ -319,7 +321,7 @@ connection.onDidChangeTextDocument((params) => {
   //   )}`
   // );
 });
-connection.onDidCloseTextDocument((params) => {
+connection.onDidCloseTextDocument((/* params */) => {
   // A text document got closed in VSCode.
   // params.textDocument.uri uniquely identifies the document.
   // connection.console.log(`${params.textDocument.uri} closed.`);

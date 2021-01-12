@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import * as chai from 'chai';
 import chaiFs = require('chai-fs');
 import chaiJsonSchema = require('chai-json-schema');

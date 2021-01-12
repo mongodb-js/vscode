@@ -29,7 +29,6 @@ describe('App Component Test Suite', () => {
 
   describe('when the extension sends a connection status message', () => {
     let fakeVscodeWindowPostMessage;
-    let wrapper;
     let store;
     let fakeOnEventFunction;
     let fakeAddEventListener;
@@ -56,7 +55,7 @@ describe('App Component Test Suite', () => {
 
       store = createStore(rootReducer, initialState);
 
-      wrapper = mount(
+      mount(
         <Provider
           store={store}
         >

@@ -105,7 +105,7 @@ export default class LanguageServerController {
     );
   }
 
-  public startLanguageServer(): void {
+  startLanguageServer(): void {
     // Start the client. This will also launch the server
     const disposable = this.client.start();
 
@@ -125,7 +125,7 @@ export default class LanguageServerController {
     });
   }
 
-  public deactivate(): void {
+  deactivate(): void {
     if (!this.client) {
       return undefined;
     }
@@ -134,7 +134,7 @@ export default class LanguageServerController {
     this.client.stop();
   }
 
-  public executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
+  executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
     return this.client.onReady().then(() => {
       // Instantiate a new CancellationTokenSource object
       // that generates a cancellation token for each run of a playground
@@ -153,28 +153,26 @@ export default class LanguageServerController {
     });
   }
 
-  public connectToServiceProvider(params: {
+  async connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: any;
     extensionPath: string;
-  }): Promise<any> {
-    return this.client.onReady().then(async () => {
-      return this.client.sendRequest(
-        ServerCommands.CONNECT_TO_SERVICE_PROVIDER,
-        params
-      );
-    });
+  }): Promise<boolean> {
+    await this.client.onReady();
+    return this.client.sendRequest(
+      ServerCommands.CONNECT_TO_SERVICE_PROVIDER,
+      params
+    );
   }
 
-  public disconnectFromServiceProvider(): Promise<any> {
-    return this.client.onReady().then(async () => {
-      return this.client.sendRequest(
-        ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER
-      );
-    });
+  async disconnectFromServiceProvider(): Promise<boolean> {
+    await this.client.onReady();
+    return this.client.sendRequest(
+      ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER
+    );
   }
 
-  public startStreamLanguageServerLogs(): Promise<boolean> {
+  startStreamLanguageServerLogs(): Promise<boolean> {
     const socketPort = workspace
       .getConfiguration('languageServerExample')
       .get('port', 7000);
@@ -184,7 +182,7 @@ export default class LanguageServerController {
     return Promise.resolve(true);
   }
 
-  public cancelAll(): Promise<boolean> {
+  cancelAll(): Promise<boolean> {
     return new Promise((resolve) => {
       // Send a request for cancellation. As a result
       // the associated CancellationToken will be notified of the cancellation,

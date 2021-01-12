@@ -491,7 +491,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   showOverviewPageIfRecentlyInstalled(): void {
-    const hasBeenShownViewAlready = this._storageController.get(
+    const hasBeenShownViewAlready = !!this._storageController.get(
       StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
     );
     // Show the overview page when it hasn't been show to the

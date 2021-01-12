@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -223,7 +224,7 @@ export class MemoryFileSystemProvider implements vscode.FileSystemProvider {
   readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this
     ._emitter.event;
 
-  watch(_resource: vscode.Uri): vscode.Disposable {
+  watch(/* _resource: vscode.Uri */): vscode.Disposable {
     // Ignore, fires for all changes...
     return new vscode.Disposable(() => {});
   }

@@ -12,7 +12,7 @@ export const CONNECTION_ID_URI_IDENTIFIER = 'connectionId';
 export const VIEW_COLLECTION_SCHEME = 'VIEW_COLLECTION_SCHEME';
 
 export default class CollectionViewProvider
-  implements vscode.TextDocumentContentProvider {
+implements vscode.TextDocumentContentProvider {
   _connectionController: ConnectionController;
   _operationsStore: CollectionDocumentsOperationsStore;
   _statusView: StatusView;

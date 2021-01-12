@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 
 export default class PartialExecutionCodeLensProvider
-  implements vscode.CodeLensProvider {
+implements vscode.CodeLensProvider {
   private _codeLenses: vscode.CodeLens[] = [];
   private _selection?: vscode.Range;
   private _onDidChangeCodeLenses: vscode.EventEmitter<

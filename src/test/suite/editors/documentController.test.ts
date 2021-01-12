@@ -7,7 +7,6 @@ import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
 import TelemetryController from '../../../telemetry/telemetryController';
 import { afterEach } from 'mocha';
-import { MemoryFileSystemProvider } from '../../../editors/memoryFileSystemProvider';
 import { EJSON } from 'bson';
 
 const sinon = require('sinon');
@@ -64,6 +63,7 @@ suite('MongoDB Document Service Test Suite', () => {
         replacement: object,
         options: object,
         callback: (error: Error | null, result: object) => void
+      // eslint-disable-next-line @typescript-eslint/require-await
       ) => {
         document.price = 5000;
 
@@ -94,7 +94,6 @@ suite('MongoDB Document Service Test Suite', () => {
 
   test('fetchDocument calls find and returns a single document when connected', async () => {
     const namespace = 'waffle.house';
-    const connectionName = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const documents = [{ _id: '123' }];
 

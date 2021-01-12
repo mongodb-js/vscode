@@ -5,7 +5,7 @@ import type { DocCodeLensesInfo } from '../utils/types';
 import type { OutputItem } from '../utils/types';
 
 export default class EditDocumentCodeLensProvider
-  implements vscode.CodeLensProvider {
+implements vscode.CodeLensProvider {
   _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
   _codeLenses: vscode.CodeLens[] = [];
   _codeLensesInfo: DocCodeLensesInfo;
