@@ -93,12 +93,12 @@ export default class EditorsController {
     log.info('activated.');
   }
 
-  async _openMongoDBDocumentFailed(text: string): Promise<boolean> {
+  _openMongoDBDocumentFailed(text: string): Promise<boolean> {
     const message = `Unable to open mongodb document: ${text}`;
 
-    await vscode.window.showErrorMessage(message);
+    vscode.window.showErrorMessage(message);
 
-    return false;
+    return Promise.resolve(false);
   }
 
   async openMongoDBDocument(data: ResultCodeLensInfo): Promise<boolean> {
@@ -144,12 +144,12 @@ export default class EditorsController {
     }
   }
 
-  async _saveMongoDBDocumentFailed(text: string): Promise<boolean> {
+  _saveMongoDBDocumentFailed(text: string): Promise<boolean> {
     const message = `Unable to save mongodb document: ${text}`;
 
-    await vscode.window.showErrorMessage(message);
+    vscode.window.showErrorMessage(message);
 
-    return false;
+    return Promise.resolve(false);
   }
 
   async saveMongoDBDocument(): Promise<boolean> {
@@ -194,7 +194,7 @@ export default class EditorsController {
       // Save document changes to active editor.
       await activeEditor?.document.save();
 
-      await vscode.window.showInformationMessage(
+      vscode.window.showInformationMessage(
         `The document was saved successfully to '${namespace}'`
       );
 
@@ -239,13 +239,13 @@ export default class EditorsController {
     try {
       const document = await vscode.workspace.openTextDocument(uri);
 
-      await vscode.window.showTextDocument(document, { preview: false });
+      vscode.window.showTextDocument(document, { preview: false });
 
       return true;
     } catch (error) {
       const printableError = error as { message: string };
 
-      await vscode.window.showErrorMessage(
+      vscode.window.showErrorMessage(
         `Unable to open documents: ${printableError.message}`
       );
 
@@ -266,17 +266,19 @@ export default class EditorsController {
       this._collectionDocumentsOperationsStore.operations[operationId]
         .isCurrentlyFetchingMoreDocuments
     ) {
-      await vscode.window.showErrorMessage(
+      vscode.window.showErrorMessage(
         'Already fetching more documents...'
       );
+
       return Promise.resolve(false);
     }
 
     // Ensure we're still connected to the correct connection.
     if (connectionId !== this._connectionController.getActiveConnectionId()) {
-      await vscode.window.showErrorMessage(
+      vscode.window.showErrorMessage(
         `Unable to view more documents: no longer connected to ${connectionId}`
       );
+
       return Promise.resolve(false);
     }
 
