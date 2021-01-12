@@ -8,7 +8,7 @@ import { TestExtensionContext, MockLanguageServerController } from '../stubs';
 import { before, beforeEach, afterEach } from 'mocha';
 import TelemetryController from '../../../telemetry/telemetryController';
 
-import sinon from 'sinon';
+const sinon = require('sinon');
 const chai = require('chai');
 const expect = chai.expect;
 
