@@ -1,9 +1,29 @@
 import assert from 'assert';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
+import ConnectionController from '../../../connectionController';
+import { TestExtensionContext } from '../stubs';
+import { StorageController } from '../../../storage';
+import TelemetryController from '../../../telemetry/telemetryController';
+import { StatusView } from '../../../views';
 
 suite('Edit Document Code Lens Provider Test Suite', () => {
+  const mockExtensionContext = new TestExtensionContext();
+  const mockStorageController = new StorageController(mockExtensionContext);
+  const testTelemetryController = new TelemetryController(
+    mockStorageController,
+    mockExtensionContext
+  );
+  const testStatusView = new StatusView(mockExtensionContext);
+  const testConnectionController = new ConnectionController(
+    testStatusView,
+    mockStorageController,
+    testTelemetryController
+  );
+
   test('provideCodeLenses returns an empty array if codeLensesInfo is empty', () => {
-    const testCodeLensProvider = new EditDocumentCodeLensProvider();
+    const testCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
     const codeLens = testCodeLensProvider.provideCodeLenses();
 
     assert(!!codeLens);
@@ -11,7 +31,9 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
   });
 
   test('provideCodeLenses returns one code lens when result is a single document', () => {
-    const testCodeLensProvider = new EditDocumentCodeLensProvider();
+    const testCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
 
     testCodeLensProvider.updateCodeLensesPosition({
       namespace: 'db.coll',
@@ -37,7 +59,9 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
   });
 
   test('provideCodeLenses returns two code lenses when result is array of two documents', () => {
-    const testCodeLensProvider = new EditDocumentCodeLensProvider();
+    const testCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
 
     testCodeLensProvider.updateCodeLensesPosition({
       namespace: 'db.coll',
@@ -77,7 +101,9 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
   });
 
   test('provideCodeLenses returns code lenses when result is ejson array', () => {
-    const testCodeLensProvider = new EditDocumentCodeLensProvider();
+    const testCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
 
     testCodeLensProvider.updateCodeLensesPosition({
       namespace: 'db.coll',

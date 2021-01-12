@@ -1,19 +1,20 @@
 import * as vscode from 'vscode';
-import { EJSON } from 'bson';
 import EXTENSION_COMMANDS from '../commands';
-import type { DocCodeLensesInfo } from '../utils/types';
-import type { OutputItem } from '../utils/types';
+import type { OutputItem, ResultCodeLensInfo } from '../utils/types';
+import ConnectionController from '../connectionController';
 
 export default class EditDocumentCodeLensProvider
 implements vscode.CodeLensProvider {
   _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
   _codeLenses: vscode.CodeLens[] = [];
-  _codeLensesInfo: DocCodeLensesInfo;
+  _codeLensesInfo: ResultCodeLensInfo[];
+  _connectionController: ConnectionController;
 
   readonly onDidChangeCodeLenses: vscode.Event<void> = this
     ._onDidChangeCodeLenses.event;
 
-  constructor() {
+  constructor(connectionController: ConnectionController) {
+    this._connectionController = connectionController;
     this._codeLensesInfo = [];
 
     vscode.workspace.onDidChangeConfiguration(() => {
@@ -22,16 +23,15 @@ implements vscode.CodeLensProvider {
   }
 
   updateCodeLensesPosition(playgroundResult: OutputItem): void {
-    if (!playgroundResult) {
+    if (!playgroundResult || !playgroundResult.content) {
       this._codeLensesInfo = [];
 
       return;
     }
 
-    const content = playgroundResult.content;
-    const namespace = playgroundResult.namespace;
-    const type = playgroundResult.type;
-    const codeLensesInfo: DocCodeLensesInfo = [];
+    const { content, namespace, type } = playgroundResult;
+    const codeLensesInfo: ResultCodeLensInfo[] = [];
+    const connectionId = this._connectionController.getActiveConnectionId();
 
     // Show code lenses only for the list of documents or a single document
     // that are returned by the find() method.
@@ -44,7 +44,12 @@ implements vscode.CodeLensProvider {
         // We need _id and namespace for code lenses
         // to be able to save the editable document.
         if (item !== null && item._id && namespace) {
-          codeLensesInfo.push({ line, documentId: item._id, namespace });
+          codeLensesInfo.push({
+            line,
+            documentId: item._id,
+            namespace,
+            connectionId
+          });
           // To calculate the position of the next open curly bracket,
           // we stringify the object and use a regular expression
           // so we can count the number of lines.
@@ -54,7 +59,12 @@ implements vscode.CodeLensProvider {
     } else if (type === 'Document' && content._id && namespace) {
       // When the playground result is the single document,
       // show the single code lense after {.
-      codeLensesInfo.push({ line: 1, documentId: content._id, namespace });
+      codeLensesInfo.push({
+        line: 1,
+        documentId: content._id,
+        namespace,
+        connectionId
+      });
     }
 
     this._codeLensesInfo = codeLensesInfo;
@@ -71,16 +81,11 @@ implements vscode.CodeLensProvider {
         const command: {
           title: string;
           command: EXTENSION_COMMANDS;
-          arguments: {
-            documentId: EJSON.SerializableTypes;
-            namespace: string;
-          }[];
+          arguments: ResultCodeLensInfo[];
         } = {
           title: 'Edit Document',
           command: EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_PLAYGROUND,
-          arguments: [
-            { documentId: item.documentId, namespace: item.namespace }
-          ]
+          arguments: [item]
         };
 
         this._codeLenses.push(new vscode.CodeLens(range, command));

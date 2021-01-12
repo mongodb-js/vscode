@@ -167,7 +167,7 @@ export default class MongoDBService {
       worker.postMessage(ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND);
 
       // Listen for results from the worker thread.
-      worker.on('message', async ([error, result]) => {
+      worker.on('message', ([error, result]) => {
         if (error) {
           this._connection.console.log(
             `MONGOSH execute all error: ${util.inspect(error)}`
@@ -175,9 +175,7 @@ export default class MongoDBService {
           this._connection.sendNotification('showErrorMessage', error.message);
         }
 
-        await worker.terminate();
-
-        return resolve(result);
+        worker.terminate().then(() => resolve(result));
       });
 
       // Listen for cancellation request from the language server client.
@@ -225,17 +223,17 @@ export default class MongoDBService {
     this._connection.console.log('MONGOSH get list databases...');
     worker.postMessage(ServerCommands.GET_LIST_DATABASES);
 
-    worker.on('message', async ([error, result]) => {
+    worker.on('message', ([error, result]) => {
       if (error) {
         this._connection.console.log(
           `MONGOSH get list databases error: ${util.inspect(error)}`
         );
       }
 
-      await worker.terminate();
-
-      this._connection.console.log(`MONGOSH found ${result.length} databases`);
-      this.updateCurrentSessionDatabases(result);
+      worker.terminate().then(() => {
+        this._connection.console.log(`MONGOSH found ${result.length} databases`);
+        this.updateCurrentSessionDatabases(result);
+      });
     });
   }
 
@@ -255,21 +253,21 @@ export default class MongoDBService {
       this._connection.console.log('MONGOSH get list collections...');
       worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
 
-      worker.on('message', async ([error, result]) => {
+      worker.on('message', ([error, result]) => {
         if (error) {
           this._connection.console.log(
             `MONGOSH get list collections error: ${util.inspect(error)}`
           );
         }
 
-        await worker.terminate();
+        worker.terminate().then(() => {
+          this._connection.console.log(
+            `MONGOSH found ${result.length} collections`
+          );
+          this.updateCurrentSessionCollections(databaseName, result);
 
-        this._connection.console.log(
-          `MONGOSH found ${result.length} collections`
-        );
-        this.updateCurrentSessionCollections(databaseName, result);
-
-        return resolve(true);
+          return resolve(true);
+        });
       });
     });
   }
@@ -295,17 +293,17 @@ export default class MongoDBService {
       this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
       worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
-      worker.on('message', async ([error, fields]) => {
+      worker.on('message', ([error, fields]) => {
         if (error) {
           this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
         }
 
-        await worker.terminate();
+        worker.terminate().then(() => {
+          this._connection.console.log(`SCHEMA found ${fields.length} fields`);
+          this.updateCurrentSessionFields(namespace, fields);
 
-        this._connection.console.log(`SCHEMA found ${fields.length} fields`);
-        this.updateCurrentSessionFields(namespace, fields);
-
-        return resolve(true);
+          return resolve(true);
+        });
       });
     });
   }

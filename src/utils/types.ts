@@ -1,3 +1,5 @@
+import { EJSON } from 'bson';
+
 export type OutputItem = {
   namespace: string | null;
   type: string | null;
@@ -9,8 +11,9 @@ export type ExecuteAllResult = {
   result: OutputItem | undefined;
 };
 
-export type DocCodeLensesInfo = {
+export type ResultCodeLensInfo = {
   line: number;
-  documentId: string;
+  documentId: EJSON.SerializableTypes;
   namespace: string;
-}[];
+  connectionId: string | null;
+};

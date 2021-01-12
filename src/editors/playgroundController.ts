@@ -71,15 +71,15 @@ export default class PlaygroundController {
 
     this.connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      async () => {
-        await this.disconnectFromServiceProvider();
+      () => {
+        this.disconnectFromServiceProvider();
       }
     );
 
     this.connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      async () => {
-        await this.connectToServiceProvider();
+      () => {
+        this.connectToServiceProvider();
         this._activeConnectionCodeLensProvider?.refresh();
       }
     );
@@ -145,8 +145,8 @@ export default class PlaygroundController {
     }
   }
 
-  disconnectFromServiceProvider(): Promise<void> {
-    return this._languageServerController.disconnectFromServiceProvider();
+  disconnectFromServiceProvider(): void {
+    this._languageServerController.disconnectFromServiceProvider();
   }
 
   async connectToServiceProvider(): Promise<void> {
@@ -250,7 +250,7 @@ export default class PlaygroundController {
     );
 
     this._statusView.hideMessage();
-    await this._telemetryController.trackPlaygroundCodeExecuted(
+    this._telemetryController.trackPlaygroundCodeExecuted(
       result,
       this._isPartialRun,
       result ? false : true
@@ -328,7 +328,7 @@ export default class PlaygroundController {
     if (!this._playgroundResultTextDocument) {
       await this.openResultAsVirtualDocument();
     } else {
-      await this.refreshResultAsVirtualDocument();
+      this.refreshResultAsVirtualDocument();
     }
 
     await this.showResultAsVirtualDocument();
@@ -343,8 +343,8 @@ export default class PlaygroundController {
     }
   }
 
-  async refreshResultAsVirtualDocument(): Promise<void> {
-    await this._playgroundResultViewProvider.refresh();
+  refreshResultAsVirtualDocument(): void {
+    this._playgroundResultViewProvider.refresh();
   }
 
   async showResultAsVirtualDocument(): Promise<void> {
@@ -369,61 +369,59 @@ export default class PlaygroundController {
   }
 
   async evaluatePlayground(): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      const shouldConfirmRunAll = vscode.workspace
-        .getConfiguration('mdb')
-        .get('confirmRunAll');
+    const shouldConfirmRunAll = vscode.workspace
+      .getConfiguration('mdb')
+      .get('confirmRunAll');
 
-      if (!this._connectionString) {
-        await vscode.window.showErrorMessage(
-          'Please connect to a database before running a playground.'
-        );
+    if (!this._connectionString) {
+      await vscode.window.showErrorMessage(
+        'Please connect to a database before running a playground.'
+      );
 
-        return resolve(false);
+      return false;
+    }
+
+    if (shouldConfirmRunAll === true) {
+      const name = this.connectionController.getActiveConnectionName();
+      const confirmRunAll = await vscode.window.showInformationMessage(
+        `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,
+        { modal: true },
+        'Yes'
+      );
+
+      if (confirmRunAll !== 'Yes') {
+        return false;
+      }
+    }
+
+    this._outputChannel.clear();
+
+    const evaluateResponse: ExecuteAllResult = await this.evaluateWithCancelModal();
+
+    if (
+      evaluateResponse &&
+      evaluateResponse.outputLines &&
+      evaluateResponse.outputLines.length > 0
+    ) {
+      for (const line of evaluateResponse.outputLines) {
+        this._outputChannel.appendLine(line.content);
       }
 
-      if (shouldConfirmRunAll === true) {
-        const name = this.connectionController.getActiveConnectionName();
-        const confirmRunAll = await vscode.window.showInformationMessage(
-          `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,
-          { modal: true },
-          'Yes'
-        );
+      this._outputChannel.show(true);
+    }
 
-        if (confirmRunAll !== 'Yes') {
-          return resolve(false);
-        }
-      }
+    if (
+      !evaluateResponse ||
+      (!evaluateResponse.outputLines && !evaluateResponse.result)
+    ) {
+      return false;
+    }
 
-      this._outputChannel.clear();
+    this.playgroundResult = evaluateResponse.result;
 
-      const evaluateResponse: ExecuteAllResult = await this.evaluateWithCancelModal();
+    await this.openPlaygroundResult();
 
-      if (
-        evaluateResponse &&
-        evaluateResponse.outputLines &&
-        evaluateResponse.outputLines.length > 0
-      ) {
-        for (const line of evaluateResponse.outputLines) {
-          this._outputChannel.appendLine(line.content);
-        }
-
-        this._outputChannel.show(true);
-      }
-
-      if (
-        !evaluateResponse ||
-        (!evaluateResponse.outputLines && !evaluateResponse.result)
-      ) {
-        return resolve(false);
-      }
-
-      this.playgroundResult = evaluateResponse.result;
-
-      await this.openPlaygroundResult();
-
-      return resolve(true);
-    });
+    return true;
   }
 
   async runSelectedPlaygroundBlocks(): Promise<boolean> {

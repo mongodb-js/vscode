@@ -45,7 +45,8 @@ suite('Language Server Controller Test Suite', () => {
     testTelemetryController
   );
   const testPlaygroundResultProvider = new PlaygroundResultProvider(
-    mockExtensionContext
+    mockExtensionContext,
+    testConnectionController
   );
   const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
     testConnectionController

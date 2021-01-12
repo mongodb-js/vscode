@@ -1,6 +1,10 @@
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { TestExtensionContext } from '../stubs';
 import { afterEach } from 'mocha';
+import ConnectionController from '../../../connectionController';
+import { StorageController } from '../../../storage';
+import TelemetryController from '../../../telemetry/telemetryController';
+import { StatusView } from '../../../views';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -8,6 +12,17 @@ const expect = chai.expect;
 
 suite('Playground Result Provider Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
+  const mockStorageController = new StorageController(mockExtensionContext);
+  const testTelemetryController = new TelemetryController(
+    mockStorageController,
+    mockExtensionContext
+  );
+  const testStatusView = new StatusView(mockExtensionContext);
+  const testConnectionController = new ConnectionController(
+    testStatusView,
+    mockStorageController,
+    testTelemetryController
+  );
 
   afterEach(() => {
     sinon.restore();
@@ -15,7 +30,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('sets default playground result', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
 
     expect(testPlaygroundResultViewProvider._playgroundResult).to.be.deep.equal(
@@ -29,7 +45,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('refreshes playground result', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
     const playgroundResult = {
       namespace: 'db.berlin',
@@ -49,7 +66,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('returns undefined formatted to string if content is undefined', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
 
     testPlaygroundResultViewProvider._playgroundResult = {
@@ -65,7 +83,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('returns null formatted to string if content is null', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
 
     testPlaygroundResultViewProvider._playgroundResult = {
@@ -81,7 +100,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('returns number formatted to string if content is number', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
 
     testPlaygroundResultViewProvider._playgroundResult = {
@@ -97,7 +117,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('returns array formatted to string if content is array', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
 
     testPlaygroundResultViewProvider._playgroundResult = {
@@ -113,7 +134,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('returns object formatted to string if content is object', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
 
     testPlaygroundResultViewProvider._playgroundResult = {
@@ -129,7 +151,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('returns boolean formatted to string if content is boolean', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
 
     testPlaygroundResultViewProvider._playgroundResult = {
@@ -145,7 +168,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('returns string if content is string', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
 
     testPlaygroundResultViewProvider._playgroundResult = {
@@ -161,7 +185,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('returns Cursor formatted to string if content is string', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
     const content = [
       {
@@ -197,7 +222,8 @@ suite('Playground Result Provider Test Suite', () => {
 
   test('returns Document formatted to string if content is string', () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      mockExtensionContext
+      mockExtensionContext,
+      testConnectionController
     );
     const content = {
       _id: '20213a0d-83f6-4e6f-a575-af7ea6187lala',

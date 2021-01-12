@@ -4,7 +4,6 @@
  * Activated from `./src/extension.ts`
  */
 import * as vscode from 'vscode';
-import { EJSON } from 'bson';
 import ConnectionController from './connectionController';
 import launchMongoShell from './commands/launchMongoShell';
 import { EditorsController, PlaygroundController } from './editors';
@@ -32,6 +31,7 @@ import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
 import PartialExecutionCodeLensProvider from './editors/partialExecutionCodeLensProvider';
+import type { ResultCodeLensInfo } from './utils/types';
 
 const log = createLogger('commands');
 
@@ -77,7 +77,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this._helpExplorer = new HelpExplorer();
     this._playgroundsExplorer = new PlaygroundsExplorer();
-    this._playgroundResultViewProvider = new PlaygroundResultProvider(context);
+    this._playgroundResultViewProvider = new PlaygroundResultProvider(
+      context,
+      this._connectionController
+    );
     this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(
       this._connectionController
     );
@@ -185,7 +188,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_PLAYGROUND,
-      (data: { documentId: EJSON.SerializableTypes; namespace: string }) =>
+      (data: ResultCodeLensInfo) =>
         this._editorsController.openMongoDBDocument(data)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_SAVE_MONGODB_DOCUMENT, () =>
@@ -439,7 +442,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       (element: DocumentTreeItem): Promise<boolean> => {
         return this._editorsController.openMongoDBDocument({
           documentId: element.documentId,
-          namespace: element.namespace
+          namespace: element.namespace,
+          connectionId: this._connectionController.getActiveConnectionId(),
+          line: 1
         });
       }
     );

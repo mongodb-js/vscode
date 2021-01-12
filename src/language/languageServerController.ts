@@ -120,11 +120,11 @@ export default class LanguageServerController {
     await this._client.onReady();
 
     this._client.onNotification('showInformationMessage', (messsage) => {
-      return vscode.window.showInformationMessage(messsage);
+      vscode.window.showInformationMessage(messsage);
     });
 
     this._client.onNotification('showErrorMessage', (messsage) => {
-      return vscode.window.showErrorMessage(messsage);
+      vscode.window.showErrorMessage(messsage);
     });
   }
 

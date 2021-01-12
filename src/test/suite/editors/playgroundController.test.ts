@@ -45,7 +45,8 @@ suite('Playground Controller Test Suite', function () {
     mockStorageController
   );
   const testPlaygroundResultProvider = new PlaygroundResultProvider(
-    mockExtensionContext
+    mockExtensionContext,
+    testConnectionController
   );
   const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
     testConnectionController

@@ -26,7 +26,9 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     // Subscribe to changes in the connections.
     this._connectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      () => { this.refresh(); }
+      () => {
+        this.refresh();
+      }
     );
 
     this._connectionTreeItems = {}; // No cache to start.
@@ -35,7 +37,9 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   removeListeners(): void {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      () => { this.refresh(); }
+      () => {
+        this.refresh();
+      }
     );
   }
 

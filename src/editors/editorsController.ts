@@ -24,6 +24,7 @@ import TelemetryController from '../telemetry/telemetryController';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME
 } from './playgroundResultProvider';
+import type { ResultCodeLensInfo } from '../utils/types';
 
 const log = createLogger('editors controller');
 
@@ -100,10 +101,7 @@ export default class EditorsController {
     return false;
   }
 
-  async openMongoDBDocument(data: {
-    documentId: EJSON.SerializableTypes;
-    namespace: string;
-  }): Promise<boolean> {
+  async openMongoDBDocument(data: ResultCodeLensInfo): Promise<boolean> {
     try {
       let fileDocumentId = EJSON.stringify(data.documentId);
 
