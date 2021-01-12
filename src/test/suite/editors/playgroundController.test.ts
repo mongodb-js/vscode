@@ -22,8 +22,8 @@ const CONNECTION = {
   driverOptions: {}
 };
 
-suite.skip('Playground Controller Test Suite', function () {
-  /* this.timeout(5000);
+suite('Playground Controller Test Suite', function () {
+  this.timeout(5000);
 
   const mockExtensionContext = new TestExtensionContext();
 
@@ -122,7 +122,7 @@ suite.skip('Playground Controller Test Suite', function () {
   });
 
   suite('playground is open', () => {
-    const activeTestEditorMock = {
+    const activeTestEditorMock: unknown = {
       document: {
         languageId: 'mongodb',
         uri: {
@@ -225,38 +225,70 @@ suite.skip('Playground Controller Test Suite', function () {
       });
 
       test('show a confirmation message if mdb.confirmRunAll is true', async () => {
-        let result: any;
-
         fakeShowInformationMessage.resolves('Yes');
 
-        try {
-          result = await testPlaygroundController.runAllPlaygroundBlocks();
-        } catch (error) {
-          // No action.
-        }
+        const mockEvaluateWithCancelModal = sinon.fake.resolves({
+          outputLines: [],
+          result: '123'
+        });
+        sinon.replace(
+          testPlaygroundController,
+          'evaluateWithCancelModal',
+          mockEvaluateWithCancelModal
+        );
 
-        expect(result).to.be.true;
+        const mockOpenPlaygroundResult = sinon.fake();
+        sinon.replace(
+          testPlaygroundController,
+          'openPlaygroundResult',
+          mockOpenPlaygroundResult
+        );
+
+        try {
+          const result = await testPlaygroundController.runAllPlaygroundBlocks();
+
+          expect(result).to.be.equal(true);
+          sinon.assert.called(fakeShowInformationMessage);
+        } catch (error) {
+          expect(error).to.be.equal(undefined);
+        }
       });
 
       test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
-        let result: any;
+        fakeShowInformationMessage.resolves('Yes');
 
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
 
-        try {
-          result = await testPlaygroundController.runAllPlaygroundBlocks();
-        } catch (error) {
-          // No action.
-        }
+        const mockEvaluateWithCancelModal = sinon.fake.resolves({
+          outputLines: [],
+          result: '123'
+        });
+        sinon.replace(
+          testPlaygroundController,
+          'evaluateWithCancelModal',
+          mockEvaluateWithCancelModal
+        );
 
-        expect(result).to.be.true;
+        const mockOpenPlaygroundResult = sinon.fake();
+        sinon.replace(
+          testPlaygroundController,
+          'openPlaygroundResult',
+          mockOpenPlaygroundResult
+        );
+
+        try {
+          const result = await testPlaygroundController.runAllPlaygroundBlocks();
+
+          expect(result).to.be.equal(true);
+          sinon.assert.notCalled(fakeShowInformationMessage);
+        } catch (error) {
+          expect(error).to.be.equal(undefined);
+        }
       });
 
       test('do not run a playground if user selected No in the confirmation message', async () => {
-        let result: any;
-
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', true);
@@ -264,17 +296,15 @@ suite.skip('Playground Controller Test Suite', function () {
         fakeShowInformationMessage.resolves('No');
 
         try {
-          result = await testPlaygroundController.runAllPlaygroundBlocks();
-        } catch (error) {
-          // No action.
-        }
+          const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
-        expect(result).to.be.false;
+          expect(result).to.be.false;
+        } catch (error) {
+          expect(error).to.be.equal(undefined);
+        }
       });
 
       test('close cancelation modal when a playground is canceled', async () => {
-        let result: any;
-
         sinon.replace(
           testPlaygroundController,
           'evaluate',
@@ -282,19 +312,19 @@ suite.skip('Playground Controller Test Suite', function () {
         );
 
         try {
-          result = await testPlaygroundController.evaluateWithCancelModal();
-        } catch (error) {
-          // No action.
-        }
+          const result = await testPlaygroundController.evaluateWithCancelModal();
 
-        expect(result).to.deep.equal({
-          outputLines: undefined,
-          result: undefined
-        });
+          expect(result).to.deep.equal({
+            outputLines: undefined,
+            result: undefined
+          });
+        } catch (error) {
+          expect(error).to.be.equal(undefined);
+        }
       });
 
       test('do not show code lens if a part of a line is selected', () => {
-        const activeTestEditorWithSelectionMock = {
+        const activeTestEditorWithSelectionMock: unknown = {
           document: {
             languageId: 'mongodb',
             uri: {
@@ -317,7 +347,7 @@ suite.skip('Playground Controller Test Suite', function () {
           new vscode.Range(0, 5, 0, 11)
         );
 
-        const codeLens = testPlaygroundController.partialExecutionCodeLensProvider?.provideCodeLenses();
+        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
 
         expect(codeLens?.length).to.be.equal(0);
       });
@@ -327,7 +357,7 @@ suite.skip('Playground Controller Test Suite', function () {
           new vscode.Range(0, 0, 0, 14)
         );
 
-        const codeLens = testPlaygroundController.partialExecutionCodeLensProvider?.provideCodeLenses();
+        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
 
         expect(codeLens?.length).to.be.equal(1);
       });
@@ -336,7 +366,7 @@ suite.skip('Playground Controller Test Suite', function () {
         sandbox.replaceGetter(
           vscode.window,
           'activeTextEditor',
-          () => activeTestEditorMock
+          () => activeTestEditorMock as vscode.TextEditor
         );
 
         const playgroundControllerTest = new PlaygroundController(
@@ -353,15 +383,6 @@ suite.skip('Playground Controller Test Suite', function () {
         expect(playgroundControllerTest.activeTextEditor).to.deep.equal(
           activeTestEditorMock
         );
-      });
-
-      test('evaluatePlayground opens an editor to print results', async () => {
-        await vscode.workspace
-          .getConfiguration('mdb')
-          .update('confirmRunAll', false);
-        const isEditprOpened = await testPlaygroundController.evaluatePlayground();
-
-        expect(isEditprOpened).to.be.equal(true);
       });
 
       test('getDocumentLanguage returns json if content is object', async () => {
@@ -441,5 +462,5 @@ suite.skip('Playground Controller Test Suite', function () {
         expect(language).to.be.equal('plaintext');
       });
     });
-  }); */
+  });
 });

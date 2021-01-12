@@ -1532,7 +1532,7 @@ suite('MDBExtensionController Test Suite', function () {
       let mockVSCodeExecuteCommand: SinonSpy;
       let mockStorageControllerUpdate: SinonSpy;
 
-      beforeEach(() => {
+      beforeEach(async () => {
         mockVSCodeExecuteCommand = sinon.fake.resolves(undefined);
         sinon.replace(
           vscode.commands,
@@ -1557,7 +1557,7 @@ suite('MDBExtensionController Test Suite', function () {
           mockStorageControllerUpdate
         );
 
-        mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
+        await mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
       });
 
       afterEach(() => {

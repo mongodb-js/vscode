@@ -43,6 +43,7 @@ suite('Editors Controller Test Suite', () => {
 
   test('saveMongoDBDocument returns false if there is no active editor', async () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => undefined);
+    sinon.replace(vscode.window, 'showErrorMessage', sinon.fake());
 
     const result = await vscode.commands.executeCommand(
       'mdb.saveMongoDBDocument'

@@ -106,6 +106,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController,
       this._telemetryController
     );
+
+    this._editorsController.registerProviders();
   }
 
   async activate(): Promise<void> {
@@ -113,7 +115,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._helpExplorer.activateHelpTreeView(this._telemetryController);
     this._playgroundsExplorer.activatePlaygroundsTreeView();
     this._telemetryController.activateSegmentAnalytics();
-    this._editorsController.registerProviders();
+
     this.registerCommands();
 
     await this._connectionController.loadSavedConnections();

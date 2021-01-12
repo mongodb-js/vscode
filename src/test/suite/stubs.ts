@@ -174,7 +174,8 @@ class MockLanguageServerController {
   _context: TestExtensionContext;
   _storageController?: StorageController;
   _source?: CancellationTokenSource;
-  client: any;
+  _isExecutingInProgress: boolean;
+  _client: any;
 
   constructor(
     context: TestExtensionContext,
@@ -182,7 +183,8 @@ class MockLanguageServerController {
   ) {
     this._context = context;
     this._storageController = storageController;
-    this.client = null;
+    this._client = null;
+    this._isExecutingInProgress = false;
   }
 
   async startLanguageServer(): Promise<void> {

@@ -208,10 +208,6 @@ export default class ConnectionController {
         return resolve(false);
       }
 
-      console.log('connectionString----------------------');
-      console.log(connectionString);
-      console.log('----------------------');
-
       this.addNewConnectionStringAndConnect(connectionString).then(
         resolve,
         (err) => {
@@ -237,10 +233,6 @@ export default class ConnectionController {
           if (error) {
             return reject(new Error(`Unable to create connection: ${error}`));
           }
-
-          console.log('1----------------------');
-          console.log('1');
-          console.log('----------------------');
 
           return this.saveNewConnectionAndConnect(
             newConnectionModel,
@@ -334,20 +326,8 @@ export default class ConnectionController {
     this._connections[connectionId] = newLoadedConnection;
 
     if (ext.keytarModule) {
-      console.log('3----------------------');
-
       const connectionInfoAsString = JSON.stringify(connectionInformation);
-      console.log('4----------------------');
 
-      console.log('----------------------');
-      console.log(this._serviceName);
-      console.log('----------------------');
-      console.log('----------------------');
-      console.log(connectionId);
-      console.log('----------------------');
-      console.log('----------------------');
-      console.log(connectionInfoAsString);
-      console.log('----------------------');
       ext.keytarModule.setPassword(
         this._serviceName,
         connectionId,
@@ -356,12 +336,6 @@ export default class ConnectionController {
       this._storageController.storeNewConnection(newLoadedConnection);
     }
 
-    console.log('connectionModel----------------------');
-    console.log(connectionModel);
-    console.log('----------------------');
-    console.log('connectionType----------------------');
-    console.log(connectionType);
-    console.log('----------------------');
     return this.connect(connectionId, connectionModel, connectionType);
   };
 

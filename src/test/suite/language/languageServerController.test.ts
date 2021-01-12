@@ -1,10 +1,10 @@
 import { before, after } from 'mocha';
 import TelemetryController from '../../../telemetry/telemetryController';
 
-const path = require('path');
-const fs = require('fs');
-const sinon = require('sinon');
-const chai = require('chai');
+import path from 'path';
+import fs from 'fs';
+import sinon from 'sinon';
+import chai from 'chai';
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
@@ -16,6 +16,9 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext } from '../stubs';
 import { mdbTestExtension } from '../stubbableMdbExtension';
+import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
+import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
+import PartialExecutionCodeLensProvider from '../../../editors/partialExecutionCodeLensProvider';
 
 const CONNECTION = {
   driverUrlWithSsh: 'mongodb://localhost:27018',
@@ -23,7 +26,7 @@ const CONNECTION = {
 };
 
 suite('Language Server Controller Test Suite', () => {
-  /* const mockExtensionContext = new TestExtensionContext();
+  const mockExtensionContext = new TestExtensionContext();
 
   mockExtensionContext.extensionPath = '../../';
 
@@ -41,18 +44,27 @@ suite('Language Server Controller Test Suite', () => {
     mockStorageController,
     testTelemetryController
   );
-
-  testLanguageServerController.startLanguageServer();
-
+  const testPlaygroundResultProvider = new PlaygroundResultProvider(
+    mockExtensionContext
+  );
+  const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
+    testConnectionController
+  );
+  const testPartialExecutionCodeLensProvider = new PartialExecutionCodeLensProvider();
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
     testLanguageServerController,
     testTelemetryController,
-    testStatusView
+    testStatusView,
+    testPlaygroundResultProvider,
+    testActiveDBCodeLensProvider,
+    testPartialExecutionCodeLensProvider
   );
 
   before(async () => {
+    await testLanguageServerController.startLanguageServer();
+
     testConnectionController.getActiveConnectionName = sinon.fake.returns(
       'fakeName'
     );
@@ -71,7 +83,9 @@ suite('Language Server Controller Test Suite', () => {
   });
 
   test('cancel a long-running script', async () => {
-    testLanguageServerController.executeAll(`
+    expect(testLanguageServerController._isExecutingInProgress).to.equal(false);
+
+    await testLanguageServerController.executeAll(`
       const names = [
         "flour",
         "butter",
@@ -89,9 +103,8 @@ suite('Language Server Controller Test Suite', () => {
       currentName
     `);
 
-    const isDone = testLanguageServerController.cancelAll();
-
-    expect(isDone).to.be.equal(true);
+    testLanguageServerController.cancelAll();
+    expect(testLanguageServerController._isExecutingInProgress).to.equal(false);
   });
 
   test('the language server dependency bundle exists', () => {
@@ -105,5 +118,5 @@ suite('Language Server Controller Test Suite', () => {
 
     // eslint-disable-next-line no-sync
     expect(fs.existsSync(languageServerModuleBundlePath)).to.equal(true);
-  }); */
+  });
 });
