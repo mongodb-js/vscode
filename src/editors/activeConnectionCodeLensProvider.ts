@@ -3,7 +3,7 @@ import EXTENSION_COMMANDS from '../commands';
 import ConnectionController from '../connectionController';
 
 export default class ActiveConnectionCodeLensProvider
-  implements vscode.CodeLensProvider {
+implements vscode.CodeLensProvider {
   _connectionController: ConnectionController;
   _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
 

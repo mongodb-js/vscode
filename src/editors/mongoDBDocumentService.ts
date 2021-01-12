@@ -144,7 +144,9 @@ export default class MongoDBDocumentService {
         return null;
       }
 
-      return JSON.parse(EJSON.stringify(documents[0]));
+      return JSON.parse(
+        EJSON.stringify(documents[0])
+      ) as EJSON.SerializableTypes;
     } catch (error) {
       this._statusView.hideMessage();
 

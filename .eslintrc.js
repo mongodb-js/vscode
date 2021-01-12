@@ -6,10 +6,20 @@ const ruleOverridesForJs = Object.keys(typescriptEslintEslintPlugin.rules).reduc
 );
 
 module.exports = {
-  plugins: ['mocha'],
+  plugins: ['mocha', '@typescript-eslint'],
+  parser: '@typescript-eslint/parser', // Specifies the ESLint parser.
+  parserOptions: {
+    ecmaVersion: 2018,
+    sourceType: 'module',
+    project: [
+      './tsconfig.json'
+    ]
+  },
   extends: [
     'eslint-config-mongodb-js/react',
-    'plugin:@typescript-eslint/recommended'
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-requiring-type-checking'
   ],
   rules: {
     'chai-friendly/no-unused-expressions': 0,
@@ -32,7 +42,17 @@ module.exports = {
     'no-shadow': 0,
     'no-use-before-define': 0,
     'no-cond-assign': [2, 'except-parens'],
-    'space-before-function-paren': 0
+    'space-before-function-paren': 0,
+    '@typescript-eslint/no-floating-promises': 0,
+
+    'restrict-template-expressions': 0,
+    '@typescript-eslint/restrict-template-expressions': 0,
+
+    // VV These rules we'd like to turn off one day so they error.
+    '@typescript-eslint/no-unsafe-assignment': 'warn',
+    '@typescript-eslint/no-unsafe-member-access': 'warn',
+    '@typescript-eslint/no-unsafe-call': 'warn',
+    '@typescript-eslint/no-unsafe-return': 'warn'
   },
   overrides: [{
     files: ['**/*.js'],

@@ -68,26 +68,20 @@ const executeAll = async (
   }
 };
 
-const findAndParse = (
+const findAndParse = async (
   serviceProvider: CliServiceProvider,
   databaseName: string,
   collectionName: string
-): Promise<any> => {
-  return new Promise(async (resolve, reject) => {
-    let documents: Array<any>;
+) => {
+  const documents = await serviceProvider
+    .find(databaseName, collectionName, {}, { limit: 1 })
+    .toArray();
 
-    try {
-      documents = await serviceProvider
-        .find(databaseName, collectionName, {}, { limit: 1 })
-        .toArray();
-    } catch (error) {
-      return reject(error);
-    }
+  if (documents.length === 0) {
+    return [];
+  }
 
-    if (documents.length === 0) {
-      return resolve([]);
-    }
-
+  return new Promise((resolve, reject) => {
     parseSchema(documents, (error: Error | undefined, schema) => {
       if (error) {
         return reject(documents);
@@ -177,48 +171,52 @@ const getListCollections = async (
   }
 };
 
+const handleMessageFromParentPort = async(message: string) => {
+  if (message === ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND) {
+    parentPort?.postMessage(
+      await executeAll(
+        workerData.codeToEvaluate,
+        workerData.connectionString,
+        workerData.connectionOptions
+      )
+    );
+  }
+
+  if (message === ServerCommands.GET_FIELDS_FROM_SCHEMA) {
+    parentPort?.postMessage(
+      await getFieldsFromSchema(
+        workerData.connectionString,
+        workerData.connectionOptions,
+        workerData.databaseName,
+        workerData.collectionName
+      )
+    );
+  }
+
+  if (message === ServerCommands.GET_LIST_DATABASES) {
+    parentPort?.postMessage(
+      await getListDatabases(
+        workerData.connectionString,
+        workerData.connectionOptions
+      )
+    );
+  }
+
+  if (message === ServerCommands.GET_LIST_COLLECTIONS) {
+    parentPort?.postMessage(
+      await getListCollections(
+        workerData.connectionString,
+        workerData.connectionOptions,
+        workerData.databaseName
+      )
+    );
+  }
+};
+
 // parentPort allows communication with the parent thread.
 parentPort?.once(
   'message',
-  async (message: string): Promise<any> => {
-    if (message === ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND) {
-      parentPort?.postMessage(
-        await executeAll(
-          workerData.codeToEvaluate,
-          workerData.connectionString,
-          workerData.connectionOptions
-        )
-      );
-    }
-
-    if (message === ServerCommands.GET_FIELDS_FROM_SCHEMA) {
-      parentPort?.postMessage(
-        await getFieldsFromSchema(
-          workerData.connectionString,
-          workerData.connectionOptions,
-          workerData.databaseName,
-          workerData.collectionName
-        )
-      );
-    }
-
-    if (message === ServerCommands.GET_LIST_DATABASES) {
-      parentPort?.postMessage(
-        await getListDatabases(
-          workerData.connectionString,
-          workerData.connectionOptions
-        )
-      );
-    }
-
-    if (message === ServerCommands.GET_LIST_COLLECTIONS) {
-      parentPort?.postMessage(
-        await getListCollections(
-          workerData.connectionString,
-          workerData.connectionOptions,
-          workerData.databaseName
-        )
-      );
-    }
+  (message: string): void => {
+    handleMessageFromParentPort(message);
   }
 );

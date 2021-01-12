@@ -283,7 +283,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
         vscode.window.showErrorMessage(
           'Unable to create database, not currently connected.'
         );
-        return Promise.resolve(false);
+        Promise.resolve(false);
+        return;
       }
       dataService.createCollection(
         `${databaseName}.${collectionName}`,
@@ -295,11 +296,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
             vscode.window.showErrorMessage(
               `Create collection failed: ${err.message}`
             );
-            return resolve(false);
+            resolve(false);
+            return;
           }
 
           this.cacheIsUpToDate = false;
-          return resolve(true);
+          resolve(true);
+          return;
         }
       );
     });

@@ -81,16 +81,17 @@ export default class PlaygroundController {
 
     this.connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      async () => {
-        await this.disconnectFromServiceProvider();
+      () => {
+        this.disconnectFromServiceProvider();
       }
     );
 
     this.connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      async () => {
-        await this.connectToServiceProvider();
-        this._activeConnectionCodeLensProvider?.refresh();
+      () => {
+        this.connectToServiceProvider().then(() => {
+          this._activeConnectionCodeLensProvider?.refresh();
+        });
       }
     );
 
@@ -351,7 +352,7 @@ export default class PlaygroundController {
   }
 
   async reopenResultAsVirtualDocument() {
-    let viewColumn: vscode.ViewColumn =
+    const viewColumn: vscode.ViewColumn =
       this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
 
     this._playgroundResultViewProvider.refresh();
@@ -363,7 +364,7 @@ export default class PlaygroundController {
   }
 
   async openResultAsVirtualDocument(): Promise<void> {
-    let viewColumn: vscode.ViewColumn =
+    const viewColumn: vscode.ViewColumn =
       this._playgroundResultViewColumn || vscode.ViewColumn.Beside;
 
     await vscode.workspace.openTextDocument(PLAYGROUND_RESULT_URI).then(
@@ -386,53 +387,51 @@ export default class PlaygroundController {
   }
 
   async evaluatePlayground(): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      const shouldConfirmRunAll = vscode.workspace
-        .getConfiguration('mdb')
-        .get('confirmRunAll');
+    const shouldConfirmRunAll = vscode.workspace
+      .getConfiguration('mdb')
+      .get('confirmRunAll');
 
-      if (!this._connectionString) {
-        vscode.window.showErrorMessage(
-          'Please connect to a database before running a playground.'
-        );
+    if (!this._connectionString) {
+      vscode.window.showErrorMessage(
+        'Please connect to a database before running a playground.'
+      );
 
-        return resolve(false);
+      return false;
+    }
+
+    if (shouldConfirmRunAll === true) {
+      const name = this.connectionController.getActiveConnectionName();
+      const confirmRunAll = await vscode.window.showInformationMessage(
+        `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,
+        { modal: true },
+        'Yes'
+      );
+
+      if (confirmRunAll !== 'Yes') {
+        return false;
+      }
+    }
+
+    const evaluateResponse: ExecuteAllResult = await this.evaluateWithCancelModal();
+
+    this._outputChannel.clear();
+    if (evaluateResponse.outputLines) {
+      for (const line of evaluateResponse.outputLines) {
+        this._outputChannel.appendLine(line.content);
       }
 
-      if (shouldConfirmRunAll === true) {
-        const name = this.connectionController.getActiveConnectionName();
-        const confirmRunAll = await vscode.window.showInformationMessage(
-          `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,
-          { modal: true },
-          'Yes'
-        );
+      this._outputChannel.show(true);
+    }
 
-        if (confirmRunAll !== 'Yes') {
-          return resolve(false);
-        }
-      }
+    if (!evaluateResponse.outputLines && !evaluateResponse.result) {
+      return false;
+    }
 
-      const evaluateResponse: ExecuteAllResult = await this.evaluateWithCancelModal();
+    this.playgroundResult = evaluateResponse.result;
 
-      this._outputChannel.clear();
-      if (evaluateResponse.outputLines) {
-        for (const line of evaluateResponse.outputLines) {
-          this._outputChannel.appendLine(line.content);
-        }
+    await this.openPlaygroundResult();
 
-        this._outputChannel.show(true);
-      }
-
-      if (!evaluateResponse.outputLines && !evaluateResponse.result) {
-        return resolve(false);
-      }
-
-      this.playgroundResult = evaluateResponse.result;
-
-      await this.openPlaygroundResult();
-
-      return resolve(true);
-    });
+    return true;
   }
 
   runSelectedPlaygroundBlocks(): Promise<boolean> {

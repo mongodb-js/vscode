@@ -280,7 +280,7 @@ suite('Playground Controller Test Suite', function () {
         });
       });
 
-      test('do not show code lens if a part of a line is selected', async () => {
+      test('do not show code lens if a part of a line is selected', () => {
         const activeTestEditorWithSelectionMock = {
           document: {
             languageId: 'mongodb',
@@ -309,7 +309,7 @@ suite('Playground Controller Test Suite', function () {
         expect(codeLens?.length).to.be.equal(0);
       });
 
-      test('show code lens if whole line is selected', async () => {
+      test('show code lens if whole line is selected', () => {
         testPlaygroundController.showCodeLensForSelection(
           new vscode.Range(0, 0, 0, 14)
         );
@@ -363,7 +363,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = await testPlaygroundController.getDocumentLanguage([
+        const language = testPlaygroundController.getDocumentLanguage([
           { test: 'value' }
         ]);
 
@@ -374,7 +374,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = await testPlaygroundController.getDocumentLanguage({
+        const language = testPlaygroundController.getDocumentLanguage({
           _id: {
             $oid: '5d973ae7443762aae72a160'
           }
@@ -387,7 +387,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = await testPlaygroundController.getDocumentLanguage(
+        const language = testPlaygroundController.getDocumentLanguage(
           'I am a string'
         );
 
@@ -398,7 +398,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = await testPlaygroundController.getDocumentLanguage(12);
+        const language = testPlaygroundController.getDocumentLanguage(12);
 
         expect(language).to.be.equal('plaintext');
       });
@@ -407,7 +407,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = await testPlaygroundController.getDocumentLanguage(
+        const language = testPlaygroundController.getDocumentLanguage(
           undefined
         );
 
@@ -418,7 +418,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = await testPlaygroundController.getDocumentLanguage(
+        const language = testPlaygroundController.getDocumentLanguage(
           undefined
         );
 

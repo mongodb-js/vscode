@@ -108,7 +108,9 @@ connection.onDidChangeConfiguration((change) => {
 
   // Revalidate all open text documents.
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  documents.all().forEach(validateTextDocument);
+  documents.all().forEach((document: TextDocument) => {
+    validateTextDocument(document);
+  });
 });
 
 const getDocumentSettings = (resource: string): Thenable<ExampleSettings> => {

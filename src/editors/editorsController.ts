@@ -19,7 +19,6 @@ import MongoDBDocumentService, {
 } from './mongoDBDocumentService';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import TelemetryController from '../telemetry/telemetryController';
-import { DataServiceType } from '../dataServiceType';
 
 const log = createLogger('editors controller');
 
@@ -136,7 +135,7 @@ export default class EditorsController {
         return false;
       }
 
-      this._saveDocumnentToMemoryFileSystem(fileName, document);
+      this._saveDocumentToMemoryFileSystem(fileName, document);
 
       const activeConnectionId = this._connectionController.getActiveConnectionId();
       const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${data.namespace}`;
@@ -147,13 +146,9 @@ export default class EditorsController {
         query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}`
       });
 
-      return new Promise(async (resolve, reject) => {
-        vscode.workspace.openTextDocument(uri).then((doc) => {
-          vscode.window
-            .showTextDocument(doc, { preview: false })
-            .then(() => resolve(true), reject);
-        }, reject);
-      });
+      const doc = await vscode.workspace.openTextDocument(uri);
+      await vscode.window.showTextDocument(doc, { preview: false });
+      return true;
     } catch (error) {
       vscode.window.showErrorMessage(error.message);
 
@@ -299,7 +294,7 @@ export default class EditorsController {
     return Promise.resolve(true);
   }
 
-  _saveDocumnentToMemoryFileSystem(
+  _saveDocumentToMemoryFileSystem(
     fileName: string,
     document: EJSON.SerializableTypes
   ): void {

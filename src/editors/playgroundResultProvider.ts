@@ -9,7 +9,7 @@ export const PLAYGROUND_RESULT_URI = vscode.Uri.parse(
 );
 
 export default class PlaygroundResultProvider
-  implements vscode.TextDocumentContentProvider {
+implements vscode.TextDocumentContentProvider {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _playgroundResult: OutputItem;
 
@@ -41,7 +41,7 @@ export default class PlaygroundResultProvider
     }
   }
 
-  async refresh(): Promise<void> {
+  refresh(): void {
     this.onDidChangeEmitter.fire(PLAYGROUND_RESULT_URI);
   }
 
@@ -54,7 +54,7 @@ export default class PlaygroundResultProvider
     }
 
     if (type === 'string') {
-      return this._playgroundResult.content;
+      return this._playgroundResult.content as string;
     }
 
     this._editDocumentCodeLensProvider?.updateCodeLensesPosition(

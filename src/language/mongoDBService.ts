@@ -26,16 +26,16 @@ export default class MongoDBService {
     this._cachedFields = {};
     this._cachedDatabases = [];
     this._cachedCollections = [];
-    this._cachedShellSymbols = this.getShellCompletionItems();
+    this._cachedShellSymbols = this._getShellCompletionItems();
     this._visitor = new Visitor();
   }
 
   // ------ CONNECTION ------ //
-  public get connectionString(): string | undefined {
+  get connectionString(): string | undefined {
     return this._connectionString;
   }
 
-  public get connectionOptions(): object | undefined {
+  get connectionOptions(): object | undefined {
     return this._connectionOptions;
   }
 
@@ -80,7 +80,7 @@ export default class MongoDBService {
     }
   }
 
-  public async connectToServiceProvider(params: {
+  async connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: any;
     extensionPath: string;
@@ -123,7 +123,7 @@ export default class MongoDBService {
     }
   }
 
-  public async disconnectFromServiceProvider(): Promise<boolean> {
+  async disconnectFromServiceProvider(): Promise<boolean> {
     this.clearCurrentSessionConnection();
     this.clearCurrentSessionFields();
     this.clearCurrentSessionDatabases();
@@ -133,7 +133,7 @@ export default class MongoDBService {
   }
 
   // ------ EXECUTION ------ //
-  public executeAll(
+  executeAll(
     executionParameters: PlaygroundRunParameters,
     token: CancellationToken
   ): Promise<any> {
@@ -169,7 +169,7 @@ export default class MongoDBService {
       worker.postMessage(ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND);
 
       // Listen for results from the worker thread.
-      worker.on('message', async ([error, result]) => {
+      worker.on('message', ([error, result]) => {
         if (error) {
           this._connection.console.log(
             `MONGOSH execute all error: ${util.inspect(error)}`
@@ -177,9 +177,9 @@ export default class MongoDBService {
           this._connection.sendNotification('showErrorMessage', error.message);
         }
 
-        await worker.terminate();
-
-        return resolve(result);
+        worker.terminate().then(
+          () => resolve(result)
+        );
       });
 
       // Listen for cancellation request from the language server client.
@@ -213,7 +213,7 @@ export default class MongoDBService {
   }
 
   // ------ GET DATA FOR COMPLETION ------ //
-  public getDatabasesCompletionItems(): void {
+  getDatabasesCompletionItems(): void {
     const worker = new WorkerThreads(
       path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
       {
@@ -227,21 +227,21 @@ export default class MongoDBService {
     this._connection.console.log('MONGOSH get list databases...');
     worker.postMessage(ServerCommands.GET_LIST_DATABASES);
 
-    worker.on('message', async ([error, result]) => {
+    worker.on('message', ([error, result]) => {
       if (error) {
         this._connection.console.log(
           `MONGOSH get list databases error: ${util.inspect(error)}`
         );
       }
 
-      await worker.terminate();
-
-      this._connection.console.log(`MONGOSH found ${result.length} databases`);
-      this.updateCurrentSessionDatabases(result);
+      worker.terminate().then(() => {
+        this._connection.console.log(`MONGOSH found ${result.length} databases`);
+        this.updateCurrentSessionDatabases(result);
+      });
     });
   }
 
-  public getCollectionsCompletionItems(databaseName: string): Promise<boolean> {
+  getCollectionsCompletionItems(databaseName: string): Promise<boolean> {
     return new Promise((resolve) => {
       const worker = new WorkerThreads(
         path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
@@ -257,26 +257,26 @@ export default class MongoDBService {
       this._connection.console.log('MONGOSH get list collections...');
       worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
 
-      worker.on('message', async ([error, result]) => {
+      worker.on('message', ([error, result]) => {
         if (error) {
           this._connection.console.log(
             `MONGOSH get list collections error: ${util.inspect(error)}`
           );
         }
 
-        await worker.terminate();
+        worker.terminate().then(() => {
+          this._connection.console.log(
+            `MONGOSH found ${result.length} collections`
+          );
+          this.updateCurrentSessionCollections(databaseName, result);
 
-        this._connection.console.log(
-          `MONGOSH found ${result.length} collections`
-        );
-        this.updateCurrentSessionCollections(databaseName, result);
-
-        return resolve(true);
+          resolve(true);
+        });
       });
     });
   }
 
-  public getFieldsCompletionItems(
+  getFieldsCompletionItems(
     databaseName: string,
     collectionName: string
   ): Promise<boolean> {
@@ -297,23 +297,23 @@ export default class MongoDBService {
       this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
       worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
-      worker.on('message', async ([error, fields]) => {
+      worker.on('message', ([error, fields]) => {
         if (error) {
           this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
         }
 
-        await worker.terminate();
+        worker.terminate().then(() => {
+          this._connection.console.log(`SCHEMA found ${fields.length} fields`);
+          this.updateCurrentSessionFields(namespace, fields);
 
-        this._connection.console.log(`SCHEMA found ${fields.length} fields`);
-        this.updateCurrentSessionFields(namespace, fields);
-
-        return resolve(true);
+          resolve(true);
+        });
       });
     });
   }
 
   // Get shell API symbols/methods completion from mongosh.
-  private getShellCompletionItems(): object {
+  _getShellCompletionItems(): object {
     const shellSymbols = {};
 
     Object.keys(signatures).map((symbol) => {
@@ -383,97 +383,76 @@ export default class MongoDBService {
     });
   }
 
-  public provideCompletionItems(
+  // eslint-disable-next-line complexity
+  async provideCompletionItems(
     textFromEditor: string,
     position: { line: number; character: number }
   ): Promise<[]> {
     // eslint-disable-next-line complexity
-    return new Promise(async (resolve) => {
-      this._connection.console.log(
-        `LS text from editor: ${util.inspect(textFromEditor)}`
-      );
-      this._connection.console.log(
-        `LS current symbol position: ${util.inspect(position)}`
-      );
+    this._connection.console.log(
+      `LS text from editor: ${util.inspect(textFromEditor)}`
+    );
+    this._connection.console.log(
+      `LS current symbol position: ${util.inspect(position)}`
+    );
 
-      const state = this._visitor.parseAST(textFromEditor, position);
+    const state = this._visitor.parseAST(textFromEditor, position);
 
-      this._connection.console.log(
-        `VISITOR completion state: ${util.inspect(state)}`
-      );
+    this._connection.console.log(
+      `VISITOR completion state: ${util.inspect(state)}`
+    );
 
-      if (state.databaseName && !this._cachedCollections[state.databaseName]) {
-        await this.getCollectionsCompletionItems(state.databaseName);
-      }
+    if (state.databaseName && !this._cachedCollections[state.databaseName]) {
+      await this.getCollectionsCompletionItems(state.databaseName);
+    }
 
-      if (state.databaseName && state.collectionName) {
-        const namespace = `${state.databaseName}.${state.collectionName}`;
+    if (state.databaseName && state.collectionName) {
+      const namespace = `${state.databaseName}.${state.collectionName}`;
 
-        if (!this._cachedFields[namespace]) {
-          await this.getFieldsCompletionItems(
-            state.databaseName,
-            state.collectionName
-          );
-        }
-
-        if (state.isObjectKey) {
-          this._connection.console.log('VISITOR found field names completion');
-
-          return resolve(this._cachedFields[namespace]);
-        }
-      }
-
-      if (state.isShellMethod) {
-        this._connection.console.log(
-          'VISITOR found shell collection methods completion'
+      if (!this._cachedFields[namespace]) {
+        await this.getFieldsCompletionItems(
+          state.databaseName,
+          state.collectionName
         );
-
-        return resolve(this._cachedShellSymbols.Collection);
       }
 
-      if (state.isAggregationCursor) {
+      if (state.isObjectKey) {
+        this._connection.console.log('VISITOR found field names completion');
+
+        return this._cachedFields[namespace];
+      }
+    }
+
+    if (state.isShellMethod) {
+      this._connection.console.log(
+        'VISITOR found shell collection methods completion'
+      );
+
+      return this._cachedShellSymbols.Collection;
+    }
+
+    if (state.isAggregationCursor) {
+      this._connection.console.log(
+        'VISITOR found shell aggregation cursor methods completion'
+      );
+
+      return this._cachedShellSymbols.AggregationCursor;
+    }
+
+    if (state.isFindCursor) {
+      this._connection.console.log(
+        'VISITOR found shell cursor methods completion'
+      );
+
+      return this._cachedShellSymbols.Cursor;
+    }
+
+    if (state.isDbCallExpression) {
+      let dbCompletions: any = [...this._cachedShellSymbols.Database];
+
+      if (state.databaseName) {
         this._connection.console.log(
-          'VISITOR found shell aggregation cursor methods completion'
-        );
-
-        return resolve(this._cachedShellSymbols.AggregationCursor);
-      }
-
-      if (state.isFindCursor) {
-        this._connection.console.log(
-          'VISITOR found shell cursor methods completion'
-        );
-
-        return resolve(this._cachedShellSymbols.Cursor);
-      }
-
-      if (state.isDbCallExpression) {
-        let dbCompletions: any = [...this._cachedShellSymbols.Database];
-
-        if (state.databaseName) {
-          this._connection.console.log(
-            'VISITOR found shell db methods and collection names completion'
-          );
-
-          const collectionCompletions = this.prepareCollectionsItems(
-            textFromEditor,
-            this._cachedCollections[state.databaseName],
-            position
-          );
-
-          dbCompletions = dbCompletions.concat(collectionCompletions);
-        } else {
-          this._connection.console.log(
-            'VISITOR found shell db methods completion'
-          );
-        }
-
-        return resolve(dbCompletions);
-      }
-
-      if (state.isCollectionName && state.databaseName) {
-        this._connection.console.log(
-          'VISITOR found collection names completion'
+          'VISITOR found shell db methods and collection names completion'
         );
 
         const collectionCompletions = this.prepareCollectionsItems(
@@ -482,27 +461,47 @@ export default class MongoDBService {
           position
         );
 
-        return resolve(collectionCompletions);
+        dbCompletions = dbCompletions.concat(collectionCompletions);
+      } else {
+        this._connection.console.log(
+          'VISITOR found shell db methods completion'
+        );
       }
 
-      if (state.isUseCallExpression) {
-        this._connection.console.log('VISITOR found database names completion');
+      return dbCompletions;
+    }
 
-        return resolve(this._cachedDatabases);
-      }
+    if (state.isCollectionName && state.databaseName) {
+      this._connection.console.log(
+        'VISITOR found collection names completion'
+      );
 
-      this._connection.console.log('VISITOR no completions');
+      const collectionCompletions = this.prepareCollectionsItems(
+        textFromEditor,
+        this._cachedCollections[state.databaseName],
+        position
+      );
 
-      return resolve([]);
-    });
+      return collectionCompletions;
+    }
+
+    if (state.isUseCallExpression) {
+      this._connection.console.log('VISITOR found database names completion');
+
+      return this._cachedDatabases;
+    }
+
+    this._connection.console.log('VISITOR no completions');
+
+    return [];
   }
 
   // ------ CURRENT SESSION ------ //
-  public clearCurrentSessionFields(): void {
+  clearCurrentSessionFields(): void {
     this._cachedFields = {};
   }
 
-  public updateCurrentSessionFields(
+  updateCurrentSessionFields(
     namespace: string,
     fields: [{ label: string; kind: number }]
   ): [] {
@@ -515,19 +514,19 @@ export default class MongoDBService {
     return this._cachedFields[namespace];
   }
 
-  public clearCurrentSessionDatabases(): void {
+  clearCurrentSessionDatabases(): void {
     this._cachedDatabases = [];
   }
 
-  public updateCurrentSessionDatabases(databases: any): void {
+  updateCurrentSessionDatabases(databases: any): void {
     this._cachedDatabases = databases ? databases : [];
   }
 
-  public clearCurrentSessionCollections(): void {
+  clearCurrentSessionCollections(): void {
     this._cachedCollections = {};
   }
 
-  public updateCurrentSessionCollections(
+  updateCurrentSessionCollections(
     database: string,
     collections: any
   ): [] {
@@ -540,7 +539,7 @@ export default class MongoDBService {
     return [];
   }
 
-  public clearCurrentSessionConnection(): void {
+  clearCurrentSessionConnection(): void {
     this._connectionString = undefined;
     this._connectionOptions = undefined;
   }

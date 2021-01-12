@@ -197,7 +197,7 @@ export class Visitor {
   private checkIsObjectKey(node: any): boolean {
     if (
       node.properties.find(
-        (item: any) => item.key.name && item.key.name.includes(PLACEHOLDER)
+        (item: any) => !!(item.key.name && item.key.name.includes(PLACEHOLDER))
       )
     ) {
       return true;
