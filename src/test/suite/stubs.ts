@@ -157,7 +157,8 @@ const mockVSCodeTextDocument = {
   save: (): Promise<boolean> => Promise.resolve(true),
 
   // lineAt: (line: number): vscode.TextLine => mockTextLine,
-  lineAt: (/* position: vscode.Position | number */): vscode.TextLine => mockTextLine,
+  lineAt: (/* position: vscode.Position | number */): vscode.TextLine =>
+    mockTextLine,
   offsetAt: (/* position: vscode.Position */): number => 0,
   positionAt: (/* offset: number */): vscode.Position => mockPosition,
   getText: (/* range?: vscode.Range */): string => '',
@@ -184,39 +185,39 @@ class MockLanguageServerController {
     this.client = null;
   }
 
-  startLanguageServer(): void {
-    /* */
+  async startLanguageServer(): Promise<void> {
+    return Promise.resolve();
   }
 
-  deactivate(): void {
-    /* */
+  async deactivate(): Promise<void> {
+    return Promise.resolve();
   }
 
-  executeAll(/* codeToEvaluate: string */): Promise<ExecuteAllResult> {
+  async executeAll(/* codeToEvaluate: string*/): Promise<ExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
       result: { namespace: null, type: null, content: 'Result' }
     });
   }
 
-  connectToServiceProvider(/* params: {
+  async connectToServiceProvider(/* params: {
     connectionString?: string;
     connectionOptions?: any;
     extensionPath: string;
-  } */): Promise<any> {
-    return Promise.resolve(true);
+  }*/): Promise<void> {
+    return Promise.resolve();
   }
 
-  disconnectFromServiceProvider(): Promise<any> {
-    return Promise.resolve(false);
+  async disconnectFromServiceProvider(): Promise<void> {
+    return Promise.resolve();
   }
 
   startStreamLanguageServerLogs(): Promise<boolean> {
     return Promise.resolve(true);
   }
 
-  cancelAll(): Promise<boolean> {
-    return Promise.resolve(true);
+  cancelAll(): void {
+    return;
   }
 }
 

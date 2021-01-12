@@ -39,7 +39,7 @@ export default class MongoDBService {
     return this._connectionOptions;
   }
 
-  private isSslConnection(connectionOptions: any): boolean {
+  isSslConnection(connectionOptions: any): boolean {
     return !!(
       connectionOptions &&
       (connectionOptions.sslCA ||
@@ -48,7 +48,7 @@ export default class MongoDBService {
     );
   }
 
-  private readSslFileSync(sslOption: string | string[]): any {
+  readSslFileSync(sslOption: string | string[]): any {
     if (Array.isArray(sslOption)) {
       return fs.readFileSync(sslOption[0]);
     }
@@ -60,7 +60,7 @@ export default class MongoDBService {
     return fs.readFileSync(sslOption);
   }
 
-  private loadSslBinaries(): void {
+  loadSslBinaries(): void {
     if (this._connectionOptions.sslCA) {
       this._connectionOptions.sslCA = this.readSslFileSync(
         this._connectionOptions.sslCA
@@ -123,13 +123,11 @@ export default class MongoDBService {
     }
   }
 
-  async disconnectFromServiceProvider(): Promise<boolean> {
+  disconnectFromServiceProvider(): void {
     this.clearCurrentSessionConnection();
     this.clearCurrentSessionFields();
     this.clearCurrentSessionDatabases();
     this.clearCurrentSessionCollections();
-
-    return Promise.resolve(false);
   }
 
   // ------ EXECUTION ------ //
@@ -169,7 +167,7 @@ export default class MongoDBService {
       worker.postMessage(ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND);
 
       // Listen for results from the worker thread.
-      worker.on('message', ([error, result]) => {
+      worker.on('message', async ([error, result]) => {
         if (error) {
           this._connection.console.log(
             `MONGOSH execute all error: ${util.inspect(error)}`
@@ -177,9 +175,9 @@ export default class MongoDBService {
           this._connection.sendNotification('showErrorMessage', error.message);
         }
 
-        worker.terminate().then(
-          () => resolve(result)
-        );
+        await worker.terminate();
+
+        return resolve(result);
       });
 
       // Listen for cancellation request from the language server client.
@@ -227,17 +225,17 @@ export default class MongoDBService {
     this._connection.console.log('MONGOSH get list databases...');
     worker.postMessage(ServerCommands.GET_LIST_DATABASES);
 
-    worker.on('message', ([error, result]) => {
+    worker.on('message', async ([error, result]) => {
       if (error) {
         this._connection.console.log(
           `MONGOSH get list databases error: ${util.inspect(error)}`
         );
       }
 
-      worker.terminate().then(() => {
-        this._connection.console.log(`MONGOSH found ${result.length} databases`);
-        this.updateCurrentSessionDatabases(result);
-      });
+      await worker.terminate();
+
+      this._connection.console.log(`MONGOSH found ${result.length} databases`);
+      this.updateCurrentSessionDatabases(result);
     });
   }
 
@@ -257,21 +255,21 @@ export default class MongoDBService {
       this._connection.console.log('MONGOSH get list collections...');
       worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
 
-      worker.on('message', ([error, result]) => {
+      worker.on('message', async ([error, result]) => {
         if (error) {
           this._connection.console.log(
             `MONGOSH get list collections error: ${util.inspect(error)}`
           );
         }
 
-        worker.terminate().then(() => {
-          this._connection.console.log(
-            `MONGOSH found ${result.length} collections`
-          );
-          this.updateCurrentSessionCollections(databaseName, result);
+        await worker.terminate();
 
-          resolve(true);
-        });
+        this._connection.console.log(
+          `MONGOSH found ${result.length} collections`
+        );
+        this.updateCurrentSessionCollections(databaseName, result);
+
+        return resolve(true);
       });
     });
   }
@@ -297,17 +295,17 @@ export default class MongoDBService {
       this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
       worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
-      worker.on('message', ([error, fields]) => {
+      worker.on('message', async ([error, fields]) => {
         if (error) {
           this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
         }
 
-        worker.terminate().then(() => {
-          this._connection.console.log(`SCHEMA found ${fields.length} fields`);
-          this.updateCurrentSessionFields(namespace, fields);
+        await worker.terminate();
 
-          resolve(true);
-        });
+        this._connection.console.log(`SCHEMA found ${fields.length} fields`);
+        this.updateCurrentSessionFields(namespace, fields);
+
+        return resolve(true);
       });
     });
   }
@@ -331,11 +329,11 @@ export default class MongoDBService {
   // ------ COMPLETION ------ //
 
   // Check if a string is a valid property name.
-  private isValidPropertyName(str: string): boolean {
+  isValidPropertyName(str: string): boolean {
     return /^(?![0-9])[a-zA-Z0-9$_]+$/.test(str);
   }
 
-  private prepareCollectionsItems(
+  prepareCollectionsItems(
     textFromEditor: string,
     collections: Array<any>,
     position: { line: number; character: number }
@@ -472,9 +470,7 @@ export default class MongoDBService {
     }
 
     if (state.isCollectionName && state.databaseName) {
-      this._connection.console.log(
-        'VISITOR found collection names completion'
-      );
+      this._connection.console.log('VISITOR found collection names completion');
 
       const collectionCompletions = this.prepareCollectionsItems(
         textFromEditor,
@@ -526,10 +522,7 @@ export default class MongoDBService {
     this._cachedCollections = {};
   }
 
-  updateCurrentSessionCollections(
-    database: string,
-    collections: any
-  ): [] {
+  updateCurrentSessionCollections(database: string, collections: any): [] {
     if (database) {
       this._cachedCollections[database] = collections;
 

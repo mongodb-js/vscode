@@ -1,3 +1,4 @@
+import { EJSON } from 'bson';
 import { Host } from './views/webview-app/connection-model/connection-model';
 import SSH_TUNNEL_TYPES from './views/webview-app/connection-model/constants/ssh-tunnel-types';
 
@@ -20,6 +21,6 @@ export type ConnectionModelType = {
   driverUrl: string;
   driverUrlWithSsh: string;
   sshTunnel?: SSH_TUNNEL_TYPES;
-  getAttributes(options?: object): ConnectionAttributes;
+  getAttributes(options?: any): ConnectionAttributes;
   disconnect(callback: (n: Error | undefined) => void): void;
 };
