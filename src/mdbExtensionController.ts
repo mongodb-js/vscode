@@ -289,7 +289,7 @@ export default class MDBExtensionController implements vscode.Disposable {
             'Please wait for the connection to finish loading before adding a database.'
           );
 
-          return Promise.resolve(false);
+          return false;
         }
 
         if (
@@ -300,7 +300,7 @@ export default class MDBExtensionController implements vscode.Disposable {
             'Please connect to this connection before adding a database.'
           );
 
-          return Promise.resolve(false);
+          return false;
         }
 
         if (this._connectionController.isDisconnecting()) {
@@ -308,7 +308,7 @@ export default class MDBExtensionController implements vscode.Disposable {
             'Unable to add database: currently disconnecting.'
           );
 
-          return Promise.resolve(false);
+          return false;
         }
 
         if (this._connectionController.isConnecting()) {
@@ -316,7 +316,7 @@ export default class MDBExtensionController implements vscode.Disposable {
             'Unable to add database: currently connecting.'
           );
 
-          return Promise.resolve(false);
+          return false;
         }
 
         const successfullyAddedDatabase = await element.onAddDatabaseClicked(
@@ -549,13 +549,13 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   deactivate(): void {
+    this._connectionController.disconnect();
     this._explorerController.deactivate();
     this._helpExplorer.deactivate();
     this._playgroundsExplorer.deactivate();
     this._playgroundController.deactivate();
     this._telemetryController.deactivate();
-    this._editorsController.deactivate();
     this._languageServerController.deactivate();
-    this._connectionController.disconnect();
+    this._editorsController.deactivate();
   }
 }

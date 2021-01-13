@@ -399,11 +399,7 @@ export default class PlaygroundController {
 
     const evaluateResponse: ExecuteAllResult = await this.evaluateWithCancelModal();
 
-    if (
-      evaluateResponse &&
-      evaluateResponse.outputLines &&
-      evaluateResponse.outputLines.length > 0
-    ) {
+    if (evaluateResponse?.outputLines?.length) {
       for (const line of evaluateResponse.outputLines) {
         this._outputChannel.appendLine(line.content);
       }
