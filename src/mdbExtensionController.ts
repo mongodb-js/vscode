@@ -15,7 +15,7 @@ import {
 } from './explorer';
 import EXTENSION_COMMANDS from './commands';
 import { LanguageServerController } from './language';
-import TelemetryController from './telemetry/telemetryController';
+import TelemetryService, { DOCUMENT_SOURCE_PLAYGROUND, DOCUMENT_SOURCE_TREEVIEW } from './telemetry/telemetryService';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController, StorageVariables } from './storage';
@@ -47,7 +47,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _playgroundsExplorer: PlaygroundsExplorer;
   _statusView: StatusView;
   _storageController: StorageController;
-  _telemetryController: TelemetryController;
+  _telemetryService: TelemetryService;
   _languageServerController: LanguageServerController;
   _webviewController: WebviewController;
   _playgroundResultViewProvider: PlaygroundResultProvider;
@@ -61,7 +61,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._context = context;
     this._statusView = new StatusView(context);
     this._storageController = new StorageController(context);
-    this._telemetryController = new TelemetryController(
+    this._telemetryService = new TelemetryService(
       this._storageController,
       context,
       options.shouldTrackTelemetry
@@ -69,7 +69,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._connectionController = new ConnectionController(
       this._statusView,
       this._storageController,
-      this._telemetryController
+      this._telemetryService
     );
     this._languageServerController = new LanguageServerController(context);
     this._explorerController = new ExplorerController(
@@ -89,7 +89,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       context,
       this._connectionController,
       this._languageServerController,
-      this._telemetryController,
+      this._telemetryService,
       this._statusView,
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
@@ -100,24 +100,24 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController,
       this._playgroundController,
       this._statusView,
-      this._telemetryController,
+      this._telemetryService,
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
       this._partialExecutionCodeLensProvider
     );
     this._webviewController = new WebviewController(
       this._connectionController,
-      this._telemetryController
+      this._telemetryService
     );
     this._editorsController.registerProviders();
   }
 
   activate(): void {
     this._explorerController.activateConnectionsTreeView();
-    this._helpExplorer.activateHelpTreeView(this._telemetryController);
+    this._helpExplorer.activateHelpTreeView(this._telemetryService);
     this._playgroundsExplorer.activatePlaygroundsTreeView();
     this._connectionController.loadSavedConnections();
-    this._telemetryController.activateSegmentAnalytics();
+    this._telemetryService.activateSegmentAnalytics();
     this._languageServerController.startLanguageServer();
 
     this.registerCommands();
@@ -179,8 +179,11 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_PLAYGROUND,
-      (data: ResultCodeLensInfo) =>
-        this._editorsController.openMongoDBDocument(data)
+      (data: ResultCodeLensInfo) => {
+        this._telemetryService.trackOpenMongoDBDocumentFromPlayground(DOCUMENT_SOURCE_PLAYGROUND);
+
+        return this._editorsController.openMongoDBDocument(data);
+      }
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_SAVE_MONGODB_DOCUMENT, () =>
       this._editorsController.saveMongoDBDocument()
@@ -202,8 +205,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
     const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
-      // Send metrics to Segment.
-      this._telemetryController.trackCommandRun(command);
+      this._telemetryService.trackCommandRun(command);
 
       return commandHandler(args);
     };
@@ -455,6 +457,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
       (element: DocumentTreeItem): Promise<boolean> => {
         return this._editorsController.openMongoDBDocument({
+          source: DOCUMENT_SOURCE_TREEVIEW,
           documentId: element.documentId,
           namespace: element.namespace,
           connectionId: this._connectionController.getActiveConnectionId(),
@@ -554,7 +557,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._helpExplorer.deactivate();
     this._playgroundsExplorer.deactivate();
     this._playgroundController.deactivate();
-    this._telemetryController.deactivate();
+    this._telemetryService.deactivate();
     this._languageServerController.deactivate();
     this._editorsController.deactivate();
   }

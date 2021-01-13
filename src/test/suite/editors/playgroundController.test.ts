@@ -6,7 +6,7 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
 import { before, beforeEach, afterEach } from 'mocha';
-import TelemetryController from '../../../telemetry/telemetryController';
+import TelemetryService from '../../../telemetry/telemetryService';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import PartialExecutionCodeLensProvider from '../../../editors/partialExecutionCodeLensProvider';
@@ -30,7 +30,7 @@ suite('Playground Controller Test Suite', function () {
   mockExtensionContext.extensionPath = '../../';
 
   const mockStorageController = new StorageController(mockExtensionContext);
-  const testTelemetryController = new TelemetryController(
+  const testTelemetryService = new TelemetryService(
     mockStorageController,
     mockExtensionContext
   );
@@ -38,7 +38,7 @@ suite('Playground Controller Test Suite', function () {
   const testConnectionController = new ConnectionController(
     testStatusView,
     mockStorageController,
-    testTelemetryController
+    testTelemetryService
   );
   const mockLanguageServerController = new MockLanguageServerController(
     mockExtensionContext,
@@ -56,7 +56,7 @@ suite('Playground Controller Test Suite', function () {
     mockExtensionContext,
     testConnectionController,
     mockLanguageServerController as LanguageServerController,
-    testTelemetryController,
+    testTelemetryService,
     testStatusView,
     testPlaygroundResultProvider,
     testActiveDBCodeLensProvider,
@@ -374,7 +374,7 @@ suite('Playground Controller Test Suite', function () {
           mockExtensionContext,
           testConnectionController,
           mockLanguageServerController as LanguageServerController,
-          testTelemetryController,
+          testTelemetryService,
           testStatusView,
           testPlaygroundResultProvider,
           testActiveDBCodeLensProvider,

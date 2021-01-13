@@ -5,7 +5,7 @@ import * as sinon from 'sinon';
 import Connection from 'mongodb-connection-model/lib/model';
 import DataService from 'mongodb-data-service';
 
-import TelemetryController from '../../telemetry/telemetryController';
+import TelemetryService from '../../telemetry/telemetryService';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../../connectionController';
@@ -43,14 +43,14 @@ suite('Connection Controller Test Suite', function () {
 
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
-  const testTelemetryController = new TelemetryController(
+  const testTelemetryService = new TelemetryService(
     mockStorageController,
     mockExtensionContext
   );
   const testConnectionController = new ConnectionController(
     new StatusView(mockExtensionContext),
     mockStorageController,
-    testTelemetryController
+    testTelemetryService
   );
 
   beforeEach(() => {

@@ -17,7 +17,7 @@ suite('Help Explorer Test Suite', function () {
     const testHelpExplorer = new HelpExplorer();
     assert(testHelpExplorer._treeView === undefined);
     testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
     assert(testHelpExplorer._treeView !== undefined);
   });
@@ -26,7 +26,7 @@ suite('Help Explorer Test Suite', function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
     testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     assert(helpTreeItems.length === 6);
@@ -36,7 +36,7 @@ suite('Help Explorer Test Suite', function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
     testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
@@ -56,7 +56,7 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._helpExplorer;
 
     testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
 
     const stubExecuteCommand = sinon.fake.resolves();
@@ -65,7 +65,7 @@ suite('Help Explorer Test Suite', function () {
     const atlasHelpItem = helpTreeItems[1];
     testHelpExplorer._treeController.onClickHelpItem(
       atlasHelpItem,
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
     assert(stubExecuteCommand.called);
     assert(stubExecuteCommand.firstCall.args[0] === 'vscode.open');
@@ -84,7 +84,7 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._helpExplorer;
 
     testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
 
     const stubExecuteCommand = sinon.fake.resolves();
@@ -93,7 +93,7 @@ suite('Help Explorer Test Suite', function () {
     const atlasHelpItem = helpTreeItems[5];
     testHelpExplorer._treeController.onClickHelpItem(
       atlasHelpItem,
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
     assert(stubExecuteCommand.called);
     assert(stubExecuteCommand.firstCall.args[0] === atlasHelpItem.url);
@@ -105,12 +105,12 @@ suite('Help Explorer Test Suite', function () {
 
     const stubLinkClickedTelemetry = sinon.fake.resolves();
     sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
+      mdbTestExtension.testExtensionController._telemetryService,
       'trackLinkClicked',
       stubLinkClickedTelemetry
     );
     testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
 
     sinon.replace(vscode.commands, 'executeCommand', sinon.fake.resolves());
@@ -118,7 +118,7 @@ suite('Help Explorer Test Suite', function () {
     const atlasHelpItem = helpTreeItems[5];
     testHelpExplorer._treeController.onClickHelpItem(
       atlasHelpItem,
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
     assert(stubLinkClickedTelemetry.called);
     assert(stubLinkClickedTelemetry.firstCall.args[0] === 'helpPanel');

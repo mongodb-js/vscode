@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import type { OutputItem, ResultCodeLensInfo } from '../utils/types';
 import ConnectionController from '../connectionController';
+import { DOCUMENT_SOURCE_PLAYGROUND } from '../telemetry/telemetryService';
 
 export default class EditDocumentCodeLensProvider
 implements vscode.CodeLensProvider {
@@ -22,7 +23,9 @@ implements vscode.CodeLensProvider {
     });
   }
 
-  updateCodeLensesPosition(playgroundResult: OutputItem): void {
+  updateCodeLensesForPlayground(playgroundResult: OutputItem) {
+    const source = DOCUMENT_SOURCE_PLAYGROUND;
+
     if (!playgroundResult || !playgroundResult.content) {
       this._codeLensesInfo = [];
 
@@ -30,24 +33,39 @@ implements vscode.CodeLensProvider {
     }
 
     const { content, namespace, type } = playgroundResult;
-    const connectionId = this._connectionController.getActiveConnectionId();
-    const codeLensesInfo: ResultCodeLensInfo[] = [];
 
     // Show code lenses only for the list of documents or a single document
     // that are returned by the find() method.
-    if (type === 'Cursor' && Array.isArray(content)) {
+    if (type === 'Cursor') {
+      this._updateCodeLensesForCursor({ content, namespace, source });
+    } else if (type === 'Document') {
+      this._updateCodeLensesForDocument({ content, namespace, source });
+    }
+  }
+
+  _updateCodeLensesForCursor(data: {
+    content: any,
+    namespace: string | null,
+    source: string
+  }) {
+    const codeLensesInfo: ResultCodeLensInfo[] = [];
+
+    if (Array.isArray(data.content)) {
+      const connectionId = this._connectionController.getActiveConnectionId();
+
       // When the playground result is the collection,
       // show the first code lense after [{.
       let line = 2;
 
-      content.forEach((item) => {
+      data.content.forEach((item) => {
         // We need _id and namespace for code lenses
         // to be able to save the editable document.
-        if (item !== null && item._id && namespace) {
+        if (item !== null && item._id && data.namespace) {
           codeLensesInfo.push({
+            source: data.source,
             line,
             documentId: item._id,
-            namespace,
+            namespace: data.namespace,
             connectionId
           });
           // To calculate the position of the next open curly bracket,
@@ -56,13 +74,29 @@ implements vscode.CodeLensProvider {
           line += JSON.stringify(item, null, 2).split(/\r\n|\r|\n/).length;
         }
       });
-    } else if (type === 'Document' && content._id && namespace) {
+    }
+
+    this._codeLensesInfo = codeLensesInfo;
+    this._onDidChangeCodeLenses.fire();
+  }
+
+  _updateCodeLensesForDocument(data: {
+    content: any,
+    namespace: string | null,
+    source: string
+  }): void {
+    const codeLensesInfo: ResultCodeLensInfo[] = [];
+
+    if (data.content._id && data.namespace) {
+      const connectionId = this._connectionController.getActiveConnectionId();
+
       // When the playground result is the single document,
       // show the single code lense after {.
       codeLensesInfo.push({
+        source: data.source,
         line: 1,
-        documentId: content._id,
-        namespace,
+        documentId: data.content._id,
+        namespace: data.namespace,
         connectionId
       });
     }

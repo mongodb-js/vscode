@@ -4,7 +4,7 @@ import { StatusView } from '../../../views';
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
-import TelemetryController from '../../../telemetry/telemetryController';
+import TelemetryService from '../../../telemetry/telemetryService';
 import { beforeEach, afterEach } from 'mocha';
 
 const sinon = require('sinon');
@@ -14,7 +14,7 @@ const expect = chai.expect;
 suite('Active DB CodeLens Provider Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
-  const testTelemetryController = new TelemetryController(
+  const testTelemetryService = new TelemetryService(
     mockStorageController,
     mockExtensionContext
   );
@@ -24,7 +24,7 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     const testConnectionController = new ConnectionController(
       testStatusView,
       mockStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController
@@ -56,7 +56,7 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     const testConnectionController = new ConnectionController(
       testStatusView,
       mockStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController

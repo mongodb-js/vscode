@@ -1,16 +1,22 @@
 import * as vscode from 'vscode';
 import { createLogger } from '../logging';
-import SegmentAnalytics = require('analytics-node');
+import SegmentAnalytics from 'analytics-node';
 import * as path from 'path';
 import { config } from 'dotenv';
 import { StorageController } from '../storage';
 import { ConnectionTypes } from '../connectionController';
 import { getCloudInfo } from 'mongodb-cloud-info';
 import { DataServiceType } from '../dataServiceType';
-import type { ExecuteAllResult } from '../utils/types';
+import type { ExecuteAllResult, CloudInfoResult } from '../utils/types';
+import type { InstanceInfoResult } from '../instanceInfoResultType';
+import { ConnectionModelType } from '../connectionModelType';
+import fs from 'fs';
+
+export const DOCUMENT_SOURCE_TREEVIEW = 'treeview';
+
+export const DOCUMENT_SOURCE_PLAYGROUND = 'playground';
 
 const log = createLogger('telemetry');
-const fs = require('fs');
 
 const ATLAS_REGEX = /mongodb.net[:/]/i;
 const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
@@ -23,7 +29,7 @@ type PlaygroundTelemetryEventProperties = {
 
 type SegmentProperties = {
   event: string;
-  userId?: string;
+  userId: string;
   properties?: any;
 };
 
@@ -51,9 +57,9 @@ type NewConnectionTelemetryEventProperties = {
   public_cloud_name?: string | null;
   is_genuine: boolean;
   non_genuine_server_name: string | null;
-  server_version: string;
-  server_arch: string;
-  server_os: string;
+  server_version?: string;
+  server_arch: string | null;
+  server_os: string | null;
   is_used_connect_screen: boolean;
   is_used_command_palette: boolean;
   is_used_saved_connection: boolean;
@@ -65,12 +71,17 @@ type DocumentUpdatedTelemetryEventProperties = {
   success: boolean;
 };
 
+type DocumentEditedTelemetryEventProperties = {
+  source: string;
+};
+
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
   | LinkClickedTelemetryEventProperties
   | ExtensionCommandRunTelemetryEventProperties
   | NewConnectionTelemetryEventProperties
-  | DocumentUpdatedTelemetryEventProperties;
+  | DocumentUpdatedTelemetryEventProperties
+  | DocumentEditedTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -79,40 +90,29 @@ export enum TelemetryEventTypes {
   NEW_CONNECTION = 'New Connection',
   PLAYGROUND_SAVED = 'Playground Saved',
   PLAYGROUND_LOADED = 'Playground Loaded',
-  DOCUMENT_UPDATED = 'Document Updated'
+  DOCUMENT_UPDATED = 'Document Updated',
+  DOCUMENT_EDITED = 'Document Edited'
 }
 
 /**
  * This controller manages telemetry.
  */
-export default class TelemetryController {
-  private _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
-  private _segmentAnalytics: SegmentAnalytics;
-  private _segmentUserID: string | undefined; // The user uuid from the global storage.
-  private _segmentKey: string | undefined; // The segment API write key.
+export default class TelemetryService {
+  _context: vscode.ExtensionContext;
+  _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
+  _segmentAnalytics?: SegmentAnalytics;
+  _segmentUserID: string; // The user uuid from the global storage.
+  _segmentKey?: string; // The segment API write key.
 
   constructor(
     storageController: StorageController,
     context: vscode.ExtensionContext,
     shouldTrackTelemetry?: boolean
   ) {
-    this._segmentUserID = storageController.getUserID();
+    this._context = context;
     this._shouldTrackTelemetry = shouldTrackTelemetry || false;
-
-    config({ path: path.join(context.extensionPath, '.env') });
-
-    try {
-      const segmentKeyFileLocation = path.join(
-        context.extensionPath,
-        './constants.json'
-      );
-      const constants = fs.readFileSync(segmentKeyFileLocation);
-
-      this._segmentKey = JSON.parse(constants)?.segmentKey;
-      log.info('TELEMETRY key received', typeof this._segmentKey);
-    } catch (error) {
-      log.error('TELEMETRY key error', error);
-    }
+    this._segmentUserID = storageController.getUserID() || '';
+    this._segmentKey = this._readSegmentKey();
 
     vscode.workspace.onDidOpenTextDocument((document) => {
       if (
@@ -120,25 +120,37 @@ export default class TelemetryController {
         document.languageId === 'mongodb' &&
         document.uri.scheme === 'file'
       ) {
-        // Send metrics to Segment.
         this.trackPlaygroundLoaded();
       }
     });
 
     vscode.workspace.onDidSaveTextDocument((document) => {
       if (document && document.languageId === 'mongodb') {
-        // Send metrics to Segment.
         this.trackPlaygroundSaved();
       }
     });
   }
 
-  get segmentUserID(): string | undefined {
-    return this._segmentUserID;
-  }
+  _readSegmentKey(): string | undefined {
+    config({ path: path.join(this._context.extensionPath, '.env') });
 
-  get segmentKey(): string | undefined {
-    return this._segmentKey;
+    try {
+      const segmentKeyFileLocation = path.join(
+        this._context.extensionPath,
+        './constants.json'
+      );
+      // eslint-disable-next-line no-sync
+      const constantsFile = fs.readFileSync(segmentKeyFileLocation).toString();
+      const constants = JSON.parse(constantsFile) as { segmentKey: string };
+
+      log.info('TELEMETRY key received', typeof constants.segmentKey);
+
+      return constants.segmentKey;
+    } catch (error) {
+      log.error('TELEMETRY key error', error);
+
+      return;
+    }
   }
 
   activateSegmentAnalytics(): void {
@@ -153,6 +165,7 @@ export default class TelemetryController {
         // before flushing the queue automatically.
         flushInterval: 10000 // 10 seconds is the default libraries' value.
       });
+
       this._segmentAnalytics.identify({ userId: this._segmentUserID });
     }
   }
@@ -217,7 +230,8 @@ export default class TelemetryController {
     }
 
     try {
-      const cloudInfo = await getCloudInfo(firstServerHostname);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      const cloudInfo: CloudInfoResult = (await getCloudInfo(firstServerHostname)) as CloudInfoResult;
 
       if (cloudInfo.isAws) {
         return {
@@ -253,31 +267,34 @@ export default class TelemetryController {
     dataService: DataServiceType,
     connectionType: ConnectionTypes
   ): void {
-    dataService.instance({}, async (error: any, data: any) => {
+    dataService.instance({}, async (error: any, data: unknown) => {
       if (error) {
         log.error('TELEMETRY data service error', error);
       }
 
-      if (data) {
-        const firstServerHostname = dataService.client.model.hosts[0].host;
+      const instanceInfo = data as InstanceInfoResult;
+      const dataServiceClient = dataService.client as { model: ConnectionModelType};
+
+      if (instanceInfo) {
+        const firstServerHostname = dataServiceClient.model.hosts[0].host;
         const cloudInfo = await this.getCloudInfoFromDataService(
           firstServerHostname
         );
-        const nonGenuineServerName = data.genuineMongoDB.isGenuine
+        const nonGenuineServerName = instanceInfo.genuineMongoDB.isGenuine
           ? null
-          : data.genuineMongoDB.dbType;
+          : instanceInfo.genuineMongoDB.dbType;
         const preparedProperties = {
-          is_atlas: !!data.client.s.url.match(ATLAS_REGEX),
-          is_localhost: !!data.client.s.url.match(LOCALHOST_REGEX),
-          is_data_lake: data.dataLake.isDataLake,
-          is_enterprise: data.build.enterprise_module,
+          is_atlas: !!ATLAS_REGEX.exec(instanceInfo.client.s.url),
+          is_localhost: !!LOCALHOST_REGEX.exec(instanceInfo.client.s.url),
+          is_data_lake: instanceInfo.dataLake.isDataLake,
+          is_enterprise: instanceInfo.build.enterprise_module,
           is_public_cloud: cloudInfo.isPublicCloud,
           public_cloud_name: cloudInfo.publicCloudName,
-          is_genuine: data.genuineMongoDB.isGenuine,
+          is_genuine: instanceInfo.genuineMongoDB.isGenuine,
           non_genuine_server_name: nonGenuineServerName,
-          server_version: data.build.version,
-          server_arch: data.build.raw.buildEnvironment.target_arch,
-          server_os: data.build.raw.buildEnvironment.target_os,
+          server_version: instanceInfo.build.version,
+          server_arch: instanceInfo.build.raw.buildEnvironment.target_arch,
+          server_os: instanceInfo.build.raw.buildEnvironment.target_os,
           is_used_connect_screen:
             connectionType === ConnectionTypes.CONNECTION_FORM,
           is_used_command_palette:
@@ -351,5 +368,9 @@ export default class TelemetryController {
 
   trackDocumentUpdated(source: string, success: boolean): void {
     this.track(TelemetryEventTypes.DOCUMENT_UPDATED, { source, success });
+  }
+
+  trackOpenMongoDBDocumentFromPlayground(source: string): void {
+    this.track(TelemetryEventTypes.DOCUMENT_EDITED, { source });
   }
 }

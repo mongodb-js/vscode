@@ -9,7 +9,7 @@ import { StatusView } from '../../../views';
 import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
-import TelemetryController from '../../../telemetry/telemetryController';
+import TelemetryService from '../../../telemetry/telemetryService';
 
 const mockDocumentsAsJsonString = `[
   {
@@ -46,14 +46,14 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const mockExtensionContext = new TestExtensionContext();
     const mockStorageController = new StorageController(mockExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       mockStorageController,
       mockExtensionContext
     );
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
@@ -102,14 +102,14 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const mockExtensionContext = new TestExtensionContext();
     const mockStorageController = new StorageController(mockExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       mockStorageController,
       mockExtensionContext
     );
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
@@ -147,14 +147,14 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const mockExtensionContext = new TestExtensionContext();
     const mockStorageController = new StorageController(mockExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       mockStorageController,
       mockExtensionContext
     );
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 
@@ -200,14 +200,14 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const mockExtensionContext = new TestExtensionContext();
     const mockStorageController = new StorageController(mockExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       mockStorageController,
       mockExtensionContext
     );
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     mockConnectionController.setActiveConnection(mockActiveConnection);
 

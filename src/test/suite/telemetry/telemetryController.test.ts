@@ -26,8 +26,8 @@ suite('Telemetry Controller Test Suite', () => {
       port: 27018
     })
   );
-  const testTelemetryController =
-    mdbTestExtension.testExtensionController._telemetryController;
+  const testTelemetryService =
+    mdbTestExtension.testExtensionController._telemetryService;
 
   let mockTrackNewConnection: Promise<any>;
   let mockTrackCommandRun: Promise<void>;
@@ -43,22 +43,22 @@ suite('Telemetry Controller Test Suite', () => {
     mockTrack = sinon.fake.resolves();
 
     sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
+      mdbTestExtension.testExtensionController._telemetryService,
       'trackNewConnection',
       mockTrackNewConnection
     );
     sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
+      mdbTestExtension.testExtensionController._telemetryService,
       'trackCommandRun',
       mockTrackCommandRun
     );
     sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
+      mdbTestExtension.testExtensionController._telemetryService,
       'trackPlaygroundCodeExecuted',
       mockTrackPlaygroundCodeExecuted
     );
     sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryController,
+      mdbTestExtension.testExtensionController._telemetryService,
       'trackPlaygroundLoaded',
       mockTrackPlaygroundLoadedMethod
     );
@@ -67,7 +67,7 @@ suite('Telemetry Controller Test Suite', () => {
       'executeAll',
       sinon.fake.resolves([{ type: 'TEST', content: 'Result' }])
     );
-    sinon.replace(testTelemetryController, 'track', mockTrack);
+    sinon.replace(testTelemetryService, 'track', mockTrack);
   });
 
   afterEach(() => {
@@ -85,8 +85,8 @@ suite('Telemetry Controller Test Suite', () => {
     }
 
     expect(segmentKey).to.be.equal(process.env.SEGMENT_KEY);
-    expect(testTelemetryController.segmentKey).to.be.a('string');
-    expect(testTelemetryController.segmentUserID).to.be.a('string');
+    expect(testTelemetryService._segmentKey).to.be.a('string');
+    expect(testTelemetryService._segmentUserID).to.be.a('string');
   });
 
   test('track command run event', (done) => {
@@ -147,13 +147,35 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('track document saved form a tree-view event', () => {
-    testTelemetryController.trackDocumentUpdated('treeview', true);
+    testTelemetryService.trackDocumentUpdated('treeview', true);
 
     sinon.assert.calledWith(
       mockTrack,
       sinon.match('Document Updated'),
       sinon.match({ source: 'treeview', success: true })
     );
+  });
+
+  test('track document opened form playground results', async () => {
+    const mockTrackOpenMongoDBDocumentFromPlayground = sinon.fake.resolves();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackOpenMongoDBDocumentFromPlayground',
+      mockTrackOpenMongoDBDocumentFromPlayground
+    );
+
+    await vscode.commands.executeCommand(
+      'mdb.openMongoDBDocumentFromPlayground',
+      {
+        source: 'playground',
+        line: 1,
+        documentId: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+        namespace: 'db.coll',
+        connectionId: null
+      }
+    );
+
+    expect(mockTrackOpenMongoDBDocumentFromPlayground.firstArg).to.be.equal('playground');
   });
 
   test('track playground code executed event', async () => {
@@ -177,7 +199,7 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('track playground saved event', () => {
-    testTelemetryController.trackPlaygroundSaved();
+    testTelemetryService.trackPlaygroundSaved();
 
     sinon.assert.calledWith(mockTrack);
   });
@@ -188,7 +210,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'AggregationCursor', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('aggregation');
     });
@@ -198,7 +220,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'BulkWriteResult', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
@@ -208,7 +230,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'Collection', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
@@ -218,7 +240,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'Cursor', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('query');
     });
@@ -228,7 +250,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'Database', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
@@ -238,7 +260,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'DeleteResult', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('delete');
     });
@@ -248,7 +270,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'InsertManyResult', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('insert');
     });
@@ -258,7 +280,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'InsertOneResult', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('insert');
     });
@@ -268,7 +290,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'ReplicaSet', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
@@ -278,7 +300,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'Shard', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
@@ -288,7 +310,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'ShellApi', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });
@@ -298,7 +320,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: 'UpdateResult', content: '' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('update');
     });
@@ -308,7 +330,7 @@ suite('Telemetry Controller Test Suite', () => {
         outputLines: [],
         result: { namespace: null, type: null, content: '2' }
       };
-      const type = testTelemetryController.getPlaygroundResultType(res);
+      const type = testTelemetryService.getPlaygroundResultType(res);
 
       expect(type).to.deep.equal('other');
     });

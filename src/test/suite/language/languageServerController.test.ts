@@ -1,5 +1,5 @@
 import { before, after } from 'mocha';
-import TelemetryController from '../../../telemetry/telemetryController';
+import TelemetryService from '../../../telemetry/telemetryService';
 
 import path from 'path';
 import fs from 'fs';
@@ -34,7 +34,7 @@ suite('Language Server Controller Test Suite', () => {
   const testLanguageServerController = new LanguageServerController(
     mockExtensionContext
   );
-  const testTelemetryController = new TelemetryController(
+  const testTelemetryService = new TelemetryService(
     mockStorageController,
     mockExtensionContext
   );
@@ -42,7 +42,7 @@ suite('Language Server Controller Test Suite', () => {
   const testConnectionController = new ConnectionController(
     testStatusView,
     mockStorageController,
-    testTelemetryController
+    testTelemetryService
   );
   const testPlaygroundResultProvider = new PlaygroundResultProvider(
     mockExtensionContext,
@@ -56,7 +56,7 @@ suite('Language Server Controller Test Suite', () => {
     mockExtensionContext,
     testConnectionController,
     testLanguageServerController,
-    testTelemetryController,
+    testTelemetryService,
     testStatusView,
     testPlaygroundResultProvider,
     testActiveDBCodeLensProvider,

@@ -12,8 +12,15 @@ export type ExecuteAllResult = {
 };
 
 export type ResultCodeLensInfo = {
+  source: string;
   line: number;
   documentId: EJSON.SerializableTypes;
   namespace: string;
   connectionId: string | null;
+};
+
+export type CloudInfoResult = {
+  isAws: boolean;
+  isGcp: boolean;
+  isAzure: boolean;
 };

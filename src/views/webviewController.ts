@@ -4,7 +4,7 @@ import path from 'path';
 import ConnectionController, {
   ConnectionTypes
 } from '../connectionController';
-import TelemetryController from '../telemetry/telemetryController';
+import TelemetryService from '../telemetry/telemetryService';
 import {
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
   MESSAGE_TYPES,
@@ -60,14 +60,14 @@ export const getWebviewContent = (
 
 export default class WebviewController {
   _connectionController: ConnectionController;
-  _telemetryController: TelemetryController;
+  _telemetryService: TelemetryService;
 
   constructor(
     connectionController: ConnectionController,
-    telemetryController: TelemetryController
+    telemetryService: TelemetryService
   ) {
     this._connectionController = connectionController;
-    this._telemetryController = telemetryController;
+    this._telemetryService = telemetryService;
   }
 
   handleWebviewConnectAttempt = async (
@@ -173,7 +173,7 @@ export default class WebviewController {
         }
         return;
       case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
-        this._telemetryController.trackLinkClicked(
+        this._telemetryService.trackLinkClicked(
           message.screen,
           message.linkId
         );

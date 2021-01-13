@@ -867,6 +867,7 @@
     "ws": "^7.2.3"
   },
   "devDependencies": {
+    "@types/analytics-node": "^3.1.4",
     "@types/chai": "^4.2.9",
     "@types/chai-fs": "^2.0.2",
     "@types/chai-json-schema": "^1.4.5",

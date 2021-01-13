@@ -5,7 +5,7 @@ import * as sinon from 'sinon';
 import Connection = require('mongodb-connection-model/lib/model');
 
 import * as linkHelper from '../../../utils/linkHelper';
-import TelemetryController from '../../../telemetry/telemetryController';
+import TelemetryService from '../../../telemetry/telemetryService';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import WebviewController, {
@@ -44,7 +44,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       mdbTestExtension.testExtensionController._connectionController,
-      mdbTestExtension.testExtensionController._telemetryController
+      mdbTestExtension.testExtensionController._telemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -91,14 +91,14 @@ suite('Webview Test Suite', () => {
   test('web view listens for a connect message and adds the connection', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     let messageReceivedSet = false;
     let messageReceived;
@@ -135,7 +135,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -165,14 +165,14 @@ suite('Webview Test Suite', () => {
   test('web view sends a successful connect result on a successful connection', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     let messageReceivedSet = false;
     let messageReceived;
@@ -207,7 +207,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -237,14 +237,14 @@ suite('Webview Test Suite', () => {
   test('web view sends an unsuccessful connect result on an unsuccessful connection', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     let messageReceived;
     const fakeWebview = {
@@ -273,7 +273,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -291,14 +291,14 @@ suite('Webview Test Suite', () => {
   test('web view sends an unsuccessful connect result on an attempt that is overridden', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     let messageReceived;
     const fakeWebview = {
@@ -331,7 +331,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -360,14 +360,14 @@ suite('Webview Test Suite', () => {
   test('web view opens file picker on file picker request', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     const fakeVSCodeOpenDialog = sinon.fake.resolves({
       path: '/somefilepath/test.text'
@@ -402,7 +402,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -417,14 +417,14 @@ suite('Webview Test Suite', () => {
   test('web view returns file name on file picker request', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     let messageReceived;
     const fakeWebview = {
@@ -461,7 +461,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -475,14 +475,14 @@ suite('Webview Test Suite', () => {
   test('web view runs the "connectWithURI" command when open connection string input is recieved', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     let messageReceived;
     const fakeWebview = {
@@ -508,7 +508,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -530,14 +530,14 @@ suite('Webview Test Suite', () => {
   test('webview returns the connection status on a connection status request', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     let messageReceived;
     const fakeWebview = {
@@ -566,7 +566,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -580,14 +580,14 @@ suite('Webview Test Suite', () => {
   test('webview returns the connection status on a connection status request', (done) => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     let messageReceived;
     const fakeWebview = {
@@ -617,7 +617,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -635,14 +635,14 @@ suite('Webview Test Suite', () => {
   test('calls to rename the active connection when a rename active connection message is passed', async () => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
     const testConnectionController = new ConnectionController(
       new StatusView(testExtensionContext),
       testStorageController,
-      testTelemetryController
+      testTelemetryService
     );
     let messageReceived;
     const fakeWebview = {
@@ -673,7 +673,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
-      testTelemetryController
+      testTelemetryService
     );
 
     testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
@@ -699,7 +699,7 @@ suite('Webview Test Suite', () => {
   suite('with a rendered webview', () => {
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
-    const testTelemetryController = new TelemetryController(
+    const testTelemetryService = new TelemetryService(
       testStorageController,
       testExtensionContext
     );
@@ -714,7 +714,7 @@ suite('Webview Test Suite', () => {
       testConnectionController = new ConnectionController(
         new StatusView(testExtensionContext),
         testStorageController,
-        testTelemetryController
+        testTelemetryService
       );
 
       fakeWebview = {
@@ -737,7 +737,7 @@ suite('Webview Test Suite', () => {
 
       testWebviewController = new WebviewController(
         testConnectionController,
-        testTelemetryController
+        testTelemetryService
       );
 
       testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
