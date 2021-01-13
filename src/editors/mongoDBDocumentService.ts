@@ -6,6 +6,7 @@ import { StatusView } from '../views';
 import TelemetryController from '../telemetry/telemetryController';
 import { createLogger } from '../logging';
 import util from 'util';
+import type { ResultCodeLensInfo } from '../utils/types';
 
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
@@ -104,17 +105,23 @@ export default class MongoDBDocumentService {
     }
   }
 
-  async fetchDocument(data: {
-    documentId: EJSON.SerializableTypes;
-    namespace: string;
-  }): Promise<EJSON.SerializableTypes | void> {
+  async fetchDocument(
+    data: ResultCodeLensInfo
+  ): Promise<EJSON.SerializableTypes | void> {
     log.info('fetch document from MongoDB', data);
 
-    const { documentId, namespace } = data;
+    const { documentId, namespace, connectionId } = data;
     const activeConnectionId = this._connectionController.getActiveConnectionId();
-    const connectionName = activeConnectionId
-      ? this._connectionController.getSavedConnectionName(activeConnectionId)
+    const connectionName = connectionId
+      ? this._connectionController.getSavedConnectionName(connectionId)
       : '';
+
+    if (activeConnectionId !== connectionId) {
+      return this._fetchDocumentFailed(
+        `no longer connected to '${connectionName}'`
+      );
+    }
+
     const dataservice = this._connectionController.getActiveDataService();
 
     if (dataservice === null) {

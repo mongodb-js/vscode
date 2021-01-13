@@ -49,7 +49,7 @@ suite('MongoDBService Test Suite', () => {
         'mongodb://localhost:27018'
       );
 
-      await testMongoDBService.disconnectFromServiceProvider();
+      testMongoDBService.disconnectFromServiceProvider();
 
       expect(testMongoDBService.connectionString).to.be.undefined;
       expect(testMongoDBService.connectionOptions).to.be.undefined;

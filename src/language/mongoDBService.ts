@@ -39,7 +39,7 @@ export default class MongoDBService {
     return this._connectionOptions;
   }
 
-  private isSslConnection(connectionOptions: any): boolean {
+  isSslConnection(connectionOptions: any): boolean {
     return !!(
       connectionOptions &&
       (connectionOptions.sslCA ||
@@ -48,7 +48,7 @@ export default class MongoDBService {
     );
   }
 
-  private readSslFileSync(sslOption: string | string[]): any {
+  readSslFileSync(sslOption: string | string[]): any {
     if (Array.isArray(sslOption)) {
       return fs.readFileSync(sslOption[0]);
     }
@@ -60,7 +60,7 @@ export default class MongoDBService {
     return fs.readFileSync(sslOption);
   }
 
-  private loadSslBinaries(): void {
+  loadSslBinaries(): void {
     if (this._connectionOptions.sslCA) {
       this._connectionOptions.sslCA = this.readSslFileSync(
         this._connectionOptions.sslCA
@@ -123,13 +123,11 @@ export default class MongoDBService {
     }
   }
 
-  async disconnectFromServiceProvider(): Promise<boolean> {
+  disconnectFromServiceProvider(): void {
     this.clearCurrentSessionConnection();
     this.clearCurrentSessionFields();
     this.clearCurrentSessionDatabases();
     this.clearCurrentSessionCollections();
-
-    return Promise.resolve(false);
   }
 
   // ------ EXECUTION ------ //
@@ -177,9 +175,7 @@ export default class MongoDBService {
           this._connection.sendNotification('showErrorMessage', error.message);
         }
 
-        worker.terminate().then(
-          () => resolve(result)
-        );
+        worker.terminate().then(() => resolve(result));
       });
 
       // Listen for cancellation request from the language server client.
@@ -270,7 +266,7 @@ export default class MongoDBService {
           );
           this.updateCurrentSessionCollections(databaseName, result);
 
-          resolve(true);
+          return resolve(true);
         });
       });
     });
@@ -306,7 +302,7 @@ export default class MongoDBService {
           this._connection.console.log(`SCHEMA found ${fields.length} fields`);
           this.updateCurrentSessionFields(namespace, fields);
 
-          resolve(true);
+          return resolve(true);
         });
       });
     });
@@ -331,11 +327,11 @@ export default class MongoDBService {
   // ------ COMPLETION ------ //
 
   // Check if a string is a valid property name.
-  private isValidPropertyName(str: string): boolean {
+  isValidPropertyName(str: string): boolean {
     return /^(?![0-9])[a-zA-Z0-9$_]+$/.test(str);
   }
 
-  private prepareCollectionsItems(
+  prepareCollectionsItems(
     textFromEditor: string,
     collections: Array<any>,
     position: { line: number; character: number }
@@ -472,9 +468,7 @@ export default class MongoDBService {
     }
 
     if (state.isCollectionName && state.databaseName) {
-      this._connection.console.log(
-        'VISITOR found collection names completion'
-      );
+      this._connection.console.log('VISITOR found collection names completion');
 
       const collectionCompletions = this.prepareCollectionsItems(
         textFromEditor,
@@ -526,10 +520,7 @@ export default class MongoDBService {
     this._cachedCollections = {};
   }
 
-  updateCurrentSessionCollections(
-    database: string,
-    collections: any
-  ): [] {
+  updateCurrentSessionCollections(database: string, collections: any): [] {
     if (database) {
       this._cachedCollections[database] = collections;
 

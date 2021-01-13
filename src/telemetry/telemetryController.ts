@@ -141,7 +141,7 @@ export default class TelemetryController {
     return this._segmentKey;
   }
 
-  public activateSegmentAnalytics(): void {
+  activateSegmentAnalytics(): void {
     if (this._segmentKey) {
       this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
         // Segment batches messages and flushes asynchronously to the server.
@@ -157,7 +157,7 @@ export default class TelemetryController {
     }
   }
 
-  public deactivate(): void {
+  deactivate(): void {
     // Flush on demand to make sure that nothing is left in the queue.
     this._segmentAnalytics?.flush();
   }
@@ -183,7 +183,7 @@ export default class TelemetryController {
     return true;
   }
 
-  public track(
+  track(
     eventType: TelemetryEventTypes,
     properties?: TelemetryEventProperties
   ): void {
@@ -295,7 +295,7 @@ export default class TelemetryController {
     this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
   }
 
-  public getPlaygroundResultType(res: ExecuteAllResult): string {
+  getPlaygroundResultType(res: ExecuteAllResult): string {
     if (!res || !res.result || !res.result.type) {
       return 'other';
     }
@@ -349,10 +349,7 @@ export default class TelemetryController {
     this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
   }
 
-  trackDocumentUpdated(
-    source: string,
-    success: boolean
-  ): void {
+  trackDocumentUpdated(source: string, success: boolean): void {
     this.track(TelemetryEventTypes.DOCUMENT_UPDATED, { source, success });
   }
 }

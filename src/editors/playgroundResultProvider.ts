@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import type { OutputItem } from '../utils/types';
+import ConnectionController from '../connectionController';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
@@ -12,9 +13,16 @@ export default class PlaygroundResultProvider
 implements vscode.TextDocumentContentProvider {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _playgroundResult: OutputItem;
+  _connectionController: ConnectionController;
 
-  constructor(context: vscode.ExtensionContext) {
-    this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider();
+  constructor(
+    context: vscode.ExtensionContext,
+    connectionController: ConnectionController
+  ) {
+    this._connectionController = connectionController;
+    this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
+      this._connectionController
+    );
     this._playgroundResult = {
       namespace: null,
       type: null,

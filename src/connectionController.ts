@@ -635,17 +635,18 @@ export default class ConnectionController {
     if (
       this._connections[connectionId].storageLocation === StorageScope.GLOBAL
     ) {
-      await this._storageController
-        .saveConnectionToGlobalStore(this._connections[connectionId]);
+      await this._storageController.saveConnectionToGlobalStore(
+        this._connections[connectionId]
+      );
       return true;
     }
 
     if (
-      this._connections[connectionId].storageLocation ===
-      StorageScope.WORKSPACE
+      this._connections[connectionId].storageLocation === StorageScope.WORKSPACE
     ) {
-      await this._storageController
-        .saveConnectionToWorkspaceStore(this._connections[connectionId]);
+      await this._storageController.saveConnectionToWorkspaceStore(
+        this._connections[connectionId]
+      );
       return true;
     }
 
@@ -822,9 +823,7 @@ export default class ConnectionController {
         }
       },
       ...Object.values(this._connections)
-        .sort((connectionA: {
-          name: string
-        }, connectionB: any) =>
+        .sort((connectionA: { name: string }, connectionB: any) =>
           (connectionA.name || '').localeCompare(connectionB.name || '')
         )
         .map((item: any) => ({
@@ -849,9 +848,7 @@ export default class ConnectionController {
       return true;
     }
 
-    if (
-      selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION
-    ) {
+    if (selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION) {
       return this.connectWithURI();
     }
 

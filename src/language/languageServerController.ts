@@ -13,6 +13,7 @@ import type { ExecuteAllResult } from '../utils/types';
 
 import { createLogger } from '../logging';
 import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
+import { EJSON } from 'bson';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -23,10 +24,12 @@ let socket: WebSocket | null;
 export default class LanguageServerController {
   _context: ExtensionContext;
   _source?: CancellationTokenSource;
-  client: LanguageClient;
+  _isExecutingInProgress: boolean;
+  _client: LanguageClient;
 
   constructor(context: ExtensionContext) {
     this._context = context;
+    this._isExecutingInProgress = false;
 
     // The server is implemented in node.
     const serverModule = path.join(
@@ -97,7 +100,7 @@ export default class LanguageServerController {
     });
 
     // Create the language server client
-    this.client = new LanguageClient(
+    this._client = new LanguageClient(
       'mongodbLanguageServer',
       'MongoDB Language Server',
       serverOptions,
@@ -105,69 +108,74 @@ export default class LanguageServerController {
     );
   }
 
-  startLanguageServer(): void {
+  async startLanguageServer(): Promise<void> {
     // Start the client. This will also launch the server
-    const disposable = this.client.start();
+    const disposable = this._client.start();
 
     // Push the disposable to the context's subscriptions so that the
     // client can be deactivated on extension deactivation
     this._context.subscriptions.push(disposable);
 
     // Subscribe on notifications from the server when the client is ready
-    this.client.onReady().then(() => {
-      this.client.onNotification('showInformationMessage', (messsage) => {
-        vscode.window.showInformationMessage(messsage);
-      });
+    await this._client.onReady();
 
-      this.client.onNotification('showErrorMessage', (messsage) => {
-        vscode.window.showErrorMessage(messsage);
-      });
+    this._client.onNotification('showInformationMessage', (messsage) => {
+      vscode.window.showInformationMessage(messsage);
+    });
+
+    this._client.onNotification('showErrorMessage', (messsage) => {
+      vscode.window.showErrorMessage(messsage);
     });
   }
 
   deactivate(): void {
-    if (!this.client) {
+    if (!this._client) {
       return undefined;
     }
 
     // Stop the language server
-    this.client.stop();
+    this._client.stop();
   }
 
-  executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
-    return this.client.onReady().then(() => {
-      // Instantiate a new CancellationTokenSource object
-      // that generates a cancellation token for each run of a playground
-      this._source = new CancellationTokenSource();
+  async executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
+    this._isExecutingInProgress = true;
 
-      // Send a request with a cancellation token
-      // to the language server server to execute scripts from a playground
-      // and return results to the playground controller when ready
-      return this.client.sendRequest(
-        ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
-        {
-          codeToEvaluate
-        } as PlaygroundRunParameters,
-        this._source.token
-      );
-    });
+    await this._client.onReady();
+    // Instantiate a new CancellationTokenSource object
+    // that generates a cancellation token for each run of a playground
+    this._source = new CancellationTokenSource();
+
+    // Send a request with a cancellation token
+    // to the language server server to execute scripts from a playground
+    // and return results to the playground controller when ready
+    const result: ExecuteAllResult = await this._client.sendRequest(
+      ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
+      {
+        codeToEvaluate
+      } as PlaygroundRunParameters,
+      this._source.token
+    );
+
+    this._isExecutingInProgress = false;
+
+    return result;
   }
 
   async connectToServiceProvider(params: {
     connectionString?: string;
-    connectionOptions?: any;
+    connectionOptions?: EJSON.SerializableTypes;
     extensionPath: string;
-  }): Promise<boolean> {
-    await this.client.onReady();
-    return this.client.sendRequest(
+  }): Promise<void> {
+    await this._client.onReady();
+    await this._client.sendRequest(
       ServerCommands.CONNECT_TO_SERVICE_PROVIDER,
       params
     );
   }
 
-  async disconnectFromServiceProvider(): Promise<boolean> {
-    await this.client.onReady();
-    return this.client.sendRequest(
+  async disconnectFromServiceProvider(): Promise<void> {
+    await this._client.onReady();
+    await this._client.sendRequest(
       ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER
     );
   }
@@ -182,15 +190,14 @@ export default class LanguageServerController {
     return Promise.resolve(true);
   }
 
-  cancelAll(): Promise<boolean> {
-    return new Promise((resolve) => {
-      // Send a request for cancellation. As a result
-      // the associated CancellationToken will be notified of the cancellation,
-      // the onCancellationRequested event will be fired,
-      // and IsCancellationRequested will return true.
+  cancelAll(): void {
+    // Send a request for cancellation. As a result
+    // the associated CancellationToken will be notified of the cancellation,
+    // the onCancellationRequested event will be fired,
+    // and IsCancellationRequested will return true.
+    if (this._isExecutingInProgress) {
       this._source?.cancel();
-
-      return resolve(true);
-    });
+      this._isExecutingInProgress = false;
+    }
   }
 }

@@ -63,7 +63,7 @@ suite('MongoDB Document Service Test Suite', () => {
         replacement: object,
         options: object,
         callback: (error: Error | null, result: object) => void
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
       ) => {
         document.price = 5000;
 
@@ -94,7 +94,9 @@ suite('MongoDB Document Service Test Suite', () => {
 
   test('fetchDocument calls find and returns a single document when connected', async () => {
     const namespace = 'waffle.house';
+    const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+    const line = 1;
     const documents = [{ _id: '123' }];
 
     const mockGetActiveDataService = sinon.fake.returns({
@@ -113,6 +115,13 @@ suite('MongoDB Document Service Test Suite', () => {
       mockGetActiveDataService
     );
 
+    const mockGetActiveConnectionId = sinon.fake.returns(connectionId);
+    sinon.replace(
+      testConnectionController,
+      'getActiveConnectionId',
+      mockGetActiveConnectionId
+    );
+
     const mockShowMessage = sinon.fake();
     sinon.replace(testStatusView, 'showMessage', mockShowMessage);
 
@@ -121,7 +130,9 @@ suite('MongoDB Document Service Test Suite', () => {
 
     const result = await testMongoDBDocumentService.fetchDocument({
       namespace,
-      documentId
+      documentId,
+      line,
+      connectionId
     });
 
     expect(result).to.be.deep.equal(JSON.parse(EJSON.stringify(documents[0])));
@@ -198,6 +209,47 @@ suite('MongoDB Document Service Test Suite', () => {
     } catch (error) {
       const expectedMessage =
         "Unable to save document: no longer connected to 'tasty_sandwhich'";
+
+      expect(error.message).to.be.equal(expectedMessage);
+    }
+  });
+
+  test("if a user switched the active connection, document can't be opened from the old playground results", async () => {
+    const namespace = 'waffle.house';
+    const connectionId = '123';
+    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+    const line = 1;
+
+    const mockGetActiveConnectionId = sinon.fake.returns('345');
+    sinon.replace(
+      testConnectionController,
+      'getActiveConnectionId',
+      mockGetActiveConnectionId
+    );
+
+    const mockGetSavedConnectionName = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      testConnectionController,
+      'getSavedConnectionName',
+      mockGetSavedConnectionName
+    );
+
+    const mockShowMessage = sinon.fake();
+    sinon.replace(testStatusView, 'showMessage', mockShowMessage);
+
+    const mockHideMessage = sinon.fake();
+    sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
+
+    try {
+      await testMongoDBDocumentService.fetchDocument({
+        namespace,
+        documentId,
+        line,
+        connectionId
+      });
+    } catch (error) {
+      const expectedMessage =
+        "Unable to fetch document: no longer connected to 'tasty_sandwhich'";
 
       expect(error.message).to.be.equal(expectedMessage);
     }

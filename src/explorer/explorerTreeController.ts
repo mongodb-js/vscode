@@ -26,7 +26,9 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     // Subscribe to changes in the connections.
     this._connectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      () => { this.refresh(); }
+      () => {
+        this.refresh();
+      }
     );
 
     this._connectionTreeItems = {}; // No cache to start.
@@ -35,7 +37,9 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   removeListeners(): void {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      () => { this.refresh(); }
+      () => {
+        this.refresh();
+      }
     );
   }
 
@@ -87,7 +91,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
       }
     );
 
-    treeView.onDidChangeSelection((event: any) => {
+    treeView.onDidChangeSelection(async (event: any) => {
       if (event.selection && event.selection.length === 1) {
         const selectedItem = event.selection[0];
 
@@ -98,7 +102,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
 
         if (selectedItem.contextValue === DOCUMENT_ITEM) {
-          vscode.commands.executeCommand(
+          await vscode.commands.executeCommand(
             EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
             event.selection[0]
           );
@@ -108,7 +112,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
           selectedItem.contextValue === DOCUMENT_LIST_ITEM &&
           selectedItem.type === CollectionTypes.view
         ) {
-          vscode.commands.executeCommand(
+          await vscode.commands.executeCommand(
             EXTENSION_COMMANDS.MDB_VIEW_COLLECTION_DOCUMENTS,
             event.selection[0]
           );
