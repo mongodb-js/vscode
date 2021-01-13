@@ -33,13 +33,14 @@ implements vscode.CodeLensProvider {
     }
 
     const { content, namespace, type } = playgroundResult;
+    const data = { content, namespace, source };
 
     // Show code lenses only for the list of documents or a single document
     // that are returned by the find() method.
     if (type === 'Cursor') {
-      this._updateCodeLensesForCursor({ content, namespace, source });
+      this._updateCodeLensesForCursor(data);
     } else if (type === 'Document') {
-      this._updateCodeLensesForDocument({ content, namespace, source });
+      this._updateCodeLensesForDocument(data);
     }
   }
 
@@ -52,22 +53,24 @@ implements vscode.CodeLensProvider {
 
     if (Array.isArray(data.content)) {
       const connectionId = this._connectionController.getActiveConnectionId();
+      const { content, namespace, source } = data;
 
       // When the playground result is the collection,
       // show the first code lense after [{.
       let line = 2;
 
-      data.content.forEach((item) => {
+      content.forEach((item) => {
         // We need _id and namespace for code lenses
         // to be able to save the editable document.
-        if (item !== null && item._id && data.namespace) {
+        if (item !== null && item._id && namespace) {
           codeLensesInfo.push({
-            source: data.source,
-            line,
             documentId: item._id,
-            namespace: data.namespace,
+            source,
+            line,
+            namespace,
             connectionId
           });
+
           // To calculate the position of the next open curly bracket,
           // we stringify the object and use a regular expression
           // so we can count the number of lines.
@@ -86,17 +89,18 @@ implements vscode.CodeLensProvider {
     source: string
   }): void {
     const codeLensesInfo: ResultCodeLensInfo[] = [];
+    const { content, namespace, source } = data;
 
-    if (data.content._id && data.namespace) {
+    if (content._id && namespace) {
       const connectionId = this._connectionController.getActiveConnectionId();
 
       // When the playground result is the single document,
       // show the single code lense after {.
       codeLensesInfo.push({
-        source: data.source,
+        documentId: content._id,
+        source,
         line: 1,
-        documentId: data.content._id,
-        namespace: data.namespace,
+        namespace,
         connectionId
       });
     }

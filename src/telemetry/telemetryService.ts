@@ -267,34 +267,33 @@ export default class TelemetryService {
     dataService: DataServiceType,
     connectionType: ConnectionTypes
   ): void {
-    dataService.instance({}, async (error: any, data: unknown) => {
+    dataService.instance({}, async (error: any, data: InstanceInfoResult) => {
       if (error) {
         log.error('TELEMETRY data service error', error);
       }
 
-      const instanceInfo = data as InstanceInfoResult;
-      const dataServiceClient = dataService.client as { model: ConnectionModelType};
+      const dataServiceClient = dataService.client as { model: ConnectionModelType };
 
-      if (instanceInfo) {
+      if (data) {
         const firstServerHostname = dataServiceClient.model.hosts[0].host;
         const cloudInfo = await this.getCloudInfoFromDataService(
           firstServerHostname
         );
-        const nonGenuineServerName = instanceInfo.genuineMongoDB.isGenuine
+        const nonGenuineServerName = data.genuineMongoDB.isGenuine
           ? null
-          : instanceInfo.genuineMongoDB.dbType;
+          : data.genuineMongoDB.dbType;
         const preparedProperties = {
-          is_atlas: !!ATLAS_REGEX.exec(instanceInfo.client.s.url),
-          is_localhost: !!LOCALHOST_REGEX.exec(instanceInfo.client.s.url),
-          is_data_lake: instanceInfo.dataLake.isDataLake,
-          is_enterprise: instanceInfo.build.enterprise_module,
+          is_atlas: !!ATLAS_REGEX.exec(data.client.s.url),
+          is_localhost: !!LOCALHOST_REGEX.exec(data.client.s.url),
+          is_data_lake: data.dataLake.isDataLake,
+          is_enterprise: data.build.enterprise_module,
           is_public_cloud: cloudInfo.isPublicCloud,
           public_cloud_name: cloudInfo.publicCloudName,
-          is_genuine: instanceInfo.genuineMongoDB.isGenuine,
+          is_genuine: data.genuineMongoDB.isGenuine,
           non_genuine_server_name: nonGenuineServerName,
-          server_version: instanceInfo.build.version,
-          server_arch: instanceInfo.build.raw.buildEnvironment.target_arch,
-          server_os: instanceInfo.build.raw.buildEnvironment.target_os,
+          server_version: data.build.version,
+          server_arch: data.build.raw.buildEnvironment.target_arch,
+          server_os: data.build.raw.buildEnvironment.target_os,
           is_used_connect_screen:
             connectionType === ConnectionTypes.CONNECTION_FORM,
           is_used_command_palette:

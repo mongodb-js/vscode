@@ -101,9 +101,11 @@ export default class MongoDBDocumentService {
       this._statusView.hideMessage();
       this._telemetryService.trackDocumentUpdated(source, true);
     } catch (error) {
+      const printableError = error as { message: string };
+
       this._statusView.hideMessage();
 
-      return this._saveDocumentFailed(error.message);
+      return this._saveDocumentFailed(printableError.message);
     }
   }
 
@@ -157,9 +159,11 @@ export default class MongoDBDocumentService {
         EJSON.stringify(documents[0])
       ) as EJSON.SerializableTypes;
     } catch (error) {
+      const printableError = error as { message: string };
+
       this._statusView.hideMessage();
 
-      return this._fetchDocumentFailed(error.message);
+      return this._fetchDocumentFailed(printableError.message);
     }
   }
 }

@@ -1335,7 +1335,7 @@ suite('MDBExtensionController Test Suite', function () {
     );
   });
 
-  test('document opened from a tree has treeview sorce', async () => {
+  test('document opened from a tree has treeview source', async () => {
     const mockDocument = {
       _id: 'pancakes',
       name: '',
@@ -1360,7 +1360,7 @@ suite('MDBExtensionController Test Suite', function () {
     assert(mockFetchDocument.firstArg.source === 'treeview');
   });
 
-  test('document opened from playground results has treeview sorce', async () => {
+  test('document opened from playground results has treeview source', async () => {
     const documentItem = {
       source: 'playground',
       line: 1,
@@ -1384,7 +1384,7 @@ suite('MDBExtensionController Test Suite', function () {
     assert(mockFetchDocument.firstArg.source === 'playground');
   });
 
-  test('fetchDocument recieves treeview source if document opened from tree', async () => {
+  test('fetchDocument recieves treeview source if document opened from a tree', async () => {
     const mockDocument = {
       _id: 'pancakes',
       name: '',
