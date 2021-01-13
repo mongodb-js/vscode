@@ -93,14 +93,6 @@ export default class EditorsController {
     log.info('activated.');
   }
 
-  _openMongoDBDocumentFailed(text: string): Promise<boolean> {
-    const message = `Unable to open mongodb document: ${text}`;
-
-    vscode.window.showErrorMessage(message);
-
-    return Promise.resolve(false);
-  }
-
   async openMongoDBDocument(data: ResultCodeLensInfo): Promise<boolean> {
     try {
       let fileDocumentId = EJSON.stringify(data.documentId);
@@ -116,9 +108,11 @@ export default class EditorsController {
       )) as EJSON.SerializableTypes;
 
       if (mdbDocument === null) {
-        return await this._openMongoDBDocumentFailed(
-          `document ${JSON.stringify(data.documentId)} not found`
-        );
+        vscode.window.showErrorMessage(`
+          Unable to open mongodb document: document ${JSON.stringify(data.documentId)} not found
+        `);
+
+        return false;
       }
 
       this._saveDocumentToMemoryFileSystem(fileName, mdbDocument);
@@ -140,25 +134,19 @@ export default class EditorsController {
     } catch (error) {
       const printableError = error as { message: string };
 
-      return await this._openMongoDBDocumentFailed(printableError.message);
+      vscode.window.showErrorMessage(printableError.message);
+
+      return false;
     }
-  }
-
-  _saveMongoDBDocumentFailed(text: string): Promise<boolean> {
-    const message = `Unable to save mongodb document: ${text}`;
-
-    vscode.window.showErrorMessage(message);
-
-    return Promise.resolve(false);
   }
 
   async saveMongoDBDocument(): Promise<boolean> {
     const activeEditor = vscode.window.activeTextEditor;
 
     if (!activeEditor) {
-      return await this._saveMongoDBDocumentFailed(
-        'The active editor cannot be found'
-      );
+      vscode.window.showErrorMessage('Unable to save mongodb document: The active editor cannot be found');
+
+      return false;
     }
 
     const uriParams = new URLSearchParams(activeEditor.document.uri.query);
@@ -202,7 +190,9 @@ export default class EditorsController {
     } catch (error) {
       const printableError = error as { message: string };
 
-      return await this._saveMongoDBDocumentFailed(printableError.message);
+      vscode.window.showErrorMessage(printableError.message);
+
+      return false;
     }
   }
 
