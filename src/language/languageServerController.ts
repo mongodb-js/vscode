@@ -128,13 +128,13 @@ export default class LanguageServerController {
     });
   }
 
-  async deactivate(): Promise<void> {
+  deactivate(): void {
     if (!this._client) {
       return undefined;
     }
 
     // Stop the language server
-    await this._client.stop();
+    this._client.stop();
   }
 
   async executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {

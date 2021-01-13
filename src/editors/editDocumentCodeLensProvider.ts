@@ -30,8 +30,8 @@ implements vscode.CodeLensProvider {
     }
 
     const { content, namespace, type } = playgroundResult;
-    const codeLensesInfo: ResultCodeLensInfo[] = [];
     const connectionId = this._connectionController.getActiveConnectionId();
+    const codeLensesInfo: ResultCodeLensInfo[] = [];
 
     // Show code lenses only for the list of documents or a single document
     // that are returned by the find() method.

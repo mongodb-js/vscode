@@ -112,17 +112,16 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._editorsController.registerProviders();
   }
 
-  async activate(): Promise<void> {
+  activate(): void {
     this._explorerController.activateConnectionsTreeView();
     this._helpExplorer.activateHelpTreeView(this._telemetryController);
     this._playgroundsExplorer.activatePlaygroundsTreeView();
+    this._connectionController.loadSavedConnections();
     this._telemetryController.activateSegmentAnalytics();
+    this._languageServerController.startLanguageServer();
 
     this.registerCommands();
-
-    await this._connectionController.loadSavedConnections();
-    await this._languageServerController.startLanguageServer();
-    await this.showOverviewPageIfRecentlyInstalled();
+    this.showOverviewPageIfRecentlyInstalled();
   }
 
   registerCommands = (): void => {
@@ -251,9 +250,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_CONNECTION,
-      async (connectionTreeItem: ConnectionTreeItem) => {
+      (connectionTreeItem: ConnectionTreeItem) => {
         connectionTreeItem.resetCache();
-        await this._explorerController.refresh();
+        this._explorerController.refresh();
 
         return Promise.resolve(true);
       }
@@ -331,7 +330,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
           // When we successfully added a database & collection, we need
           // to update the explorer view.
-          await this._explorerController.refresh();
+          this._explorerController.refresh();
         }
 
         return successfullyAddedDatabase;
@@ -358,7 +357,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
           // When we successfully drop a database, we need
           // to update the explorer view.
-          await this._explorerController.refresh();
+          this._explorerController.refresh();
         }
 
         return successfullyDroppedDatabase;
@@ -394,7 +393,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
           // When we successfully added a collection, we need
           // to update the explorer view.
-          await this._explorerController.refresh();
+          this._explorerController.refresh();
         }
         return true;
       }
@@ -420,7 +419,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
           // When we successfully drop a collection, we need
           // to update the explorer view.
-          await this._explorerController.refresh();
+          this._explorerController.refresh();
         }
 
         return successfullyDroppedCollection;
@@ -465,8 +464,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_DOCUMENT_LIST,
-      async (documentsListTreeItem: DocumentListTreeItem): Promise<boolean> => {
-        await documentsListTreeItem.resetCache();
+      (documentsListTreeItem: DocumentListTreeItem): Promise<boolean> => {
+        documentsListTreeItem.resetCache();
 
         return this._explorerController.refresh();
       }
@@ -524,8 +523,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
   }
 
-  async showOverviewPageIfRecentlyInstalled(): Promise<void> {
-    const hasBeenShownViewAlready = this._storageController.get(
+  showOverviewPageIfRecentlyInstalled(): void {
+    const hasBeenShownViewAlready = !!this._storageController.get(
       StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
     );
 
@@ -533,31 +532,30 @@ export default class MDBExtensionController implements vscode.Disposable {
     // user yet, and they have no saved connections.
     if (!hasBeenShownViewAlready) {
       if (!this._storageController.hasSavedConnections()) {
-        await vscode.commands.executeCommand(
+        vscode.commands.executeCommand(
           EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE
         );
       }
 
-      await this._storageController.update(
+      this._storageController.update(
         StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
         true
       );
     }
   }
 
-  async dispose(): Promise<void> {
-    await this.deactivate();
+  dispose(): void {
+    this.deactivate();
   }
 
-  async deactivate(): Promise<void> {
+  deactivate(): void {
     this._explorerController.deactivate();
     this._helpExplorer.deactivate();
-    this._playgroundsExplorer.deactivate(); // TODO: Cancel active queries/playgrounds.
+    this._playgroundsExplorer.deactivate();
     this._playgroundController.deactivate();
     this._telemetryController.deactivate();
     this._editorsController.deactivate();
-
-    await this._connectionController.disconnect();
-    await this._languageServerController.deactivate();
+    this._languageServerController.deactivate();
+    this._connectionController.disconnect();
   }
 }

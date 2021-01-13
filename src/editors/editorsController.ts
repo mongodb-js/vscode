@@ -192,7 +192,7 @@ export default class EditorsController {
       });
 
       // Save document changes to active editor.
-      await activeEditor?.document.save();
+      activeEditor?.document.save();
 
       vscode.window.showInformationMessage(
         `The document was saved successfully to '${namespace}'`
@@ -239,7 +239,7 @@ export default class EditorsController {
     try {
       const document = await vscode.workspace.openTextDocument(uri);
 
-      vscode.window.showTextDocument(document, { preview: false });
+      await vscode.window.showTextDocument(document, { preview: false });
 
       return true;
     } catch (error) {
@@ -253,7 +253,7 @@ export default class EditorsController {
     }
   }
 
-  async onViewMoreCollectionDocuments(
+  onViewMoreCollectionDocuments(
     operationId: string,
     connectionId: string,
     namespace: string

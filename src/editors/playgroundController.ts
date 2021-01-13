@@ -425,7 +425,7 @@ export default class PlaygroundController {
     return true;
   }
 
-  async runSelectedPlaygroundBlocks(): Promise<boolean> {
+  runSelectedPlaygroundBlocks(): Promise<boolean> {
     if (
       !this.activeTextEditor ||
       this.activeTextEditor.document.languageId !== 'mongodb'
@@ -457,7 +457,7 @@ export default class PlaygroundController {
     return this.evaluatePlayground();
   }
 
-  async runAllPlaygroundBlocks(): Promise<boolean> {
+  runAllPlaygroundBlocks(): Promise<boolean> {
     if (
       !this.activeTextEditor ||
       this.activeTextEditor.document.languageId !== 'mongodb'
@@ -475,7 +475,7 @@ export default class PlaygroundController {
     return this.evaluatePlayground();
   }
 
-  async runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
+  runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
     if (
       !this.activeTextEditor ||
       this.activeTextEditor.document.languageId !== 'mongodb'

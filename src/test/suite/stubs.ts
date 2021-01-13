@@ -191,8 +191,8 @@ class MockLanguageServerController {
     return Promise.resolve();
   }
 
-  async deactivate(): Promise<void> {
-    return Promise.resolve();
+  deactivate(): void{
+    return;
   }
 
   async executeAll(/* codeToEvaluate: string*/): Promise<ExecuteAllResult> {

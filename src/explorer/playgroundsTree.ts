@@ -121,12 +121,12 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
       }
     );
 
-    treeView.onDidChangeSelection((event: any) => {
+    treeView.onDidChangeSelection(async (event: any) => {
       if (event.selection && event.selection.length === 1) {
         const selectedItem = event.selection[0];
 
         if (selectedItem.contextValue === PLAYGROUND_ITEM) {
-          vscode.commands.executeCommand(
+          await vscode.commands.executeCommand(
             EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
             selectedItem
           );
