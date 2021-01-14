@@ -44,9 +44,10 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
       testConnectionController
     );
+    const ejsinId = { $oid: '5d973ae744376d2aae72a160' };
     const playgroundResult = {
       content: [{
-        _id: { $oid: '5d973ae744376d2aae72a160' },
+        _id: ejsinId,
         name: 'test name'
       }],
       namespace: 'db.coll',
@@ -68,6 +69,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     assert(!!codeLensesInfo.documentId);
     const bsonId = new ObjectId('5d973ae744376d2aae72a160');
 
+    assert(util.inspect(codeLensesInfo.documentId) !== util.inspect(ejsinId));
     assert(util.inspect(codeLensesInfo.documentId) === util.inspect(bsonId));
   });
 
@@ -75,9 +77,10 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
       testConnectionController
     );
+    const ejsinId = { $oid: '5d973ae744376d2aae72a160' };
     const playgroundResult = {
       content: {
-        _id: { $oid: '5d973ae744376d2aae72a160' },
+        _id: ejsinId,
         name: 'test name'
       },
       namespace: 'db.coll',
@@ -99,6 +102,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     assert(!!codeLensesInfo.documentId);
     const bsonId = new ObjectId('5d973ae744376d2aae72a160');
 
+    assert(util.inspect(codeLensesInfo.documentId) !== util.inspect(ejsinId));
     assert(util.inspect(codeLensesInfo.documentId) === util.inspect(bsonId));
   });
 
