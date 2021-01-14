@@ -5,6 +5,6 @@ export function sortTreeItemsByLabel(treeItems: vscode.TreeItem[]): vscode.TreeI
     (
       a: vscode.TreeItem,
       b: vscode.TreeItem
-    ) => (a.label || '').localeCompare(b.label || '')
+    ) => (a.label?.toString() || '').localeCompare(b.label?.toString() || '')
   );
 }
