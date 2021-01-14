@@ -4,9 +4,6 @@ import * as React from 'react';
 const styles = require('./radio-box-group.less');
 const formStyles = require('../form.less');
 
-
-//
-
 type props = {
   label: string;
   name: string;
