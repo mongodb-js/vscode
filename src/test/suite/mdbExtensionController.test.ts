@@ -1258,7 +1258,8 @@ suite('MDBExtensionController Test Suite', function () {
           query: [
             'namespace=waffle.house',
             'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+            'source=treeview'
           ].join('&')
         },
         getText: () => JSON.stringify(mockDocument),
@@ -1311,6 +1312,7 @@ suite('MDBExtensionController Test Suite', function () {
     assert(mockOpenTextDocument.firstArg.scheme === 'VIEW_DOCUMENT_SCHEME');
     assert(mockOpenTextDocument.firstArg.query.includes('documentId='));
     assert(mockOpenTextDocument.firstArg.query.includes('connectionId='));
+    assert(mockOpenTextDocument.firstArg.query.includes('source=treeview'));
     assert(
       mockOpenTextDocument.firstArg.query.includes('namespace=waffle.house')
     );
@@ -1331,6 +1333,151 @@ suite('MDBExtensionController Test Suite', function () {
       fakeShowInformationMessage.firstArg === expectedMessage,
       `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeShowInformationMessage.firstArg}"`
     );
+  });
+
+  test('document opened from a tree has treeview source', async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      name: '',
+      time: {
+        $time: '12345'
+      }
+    };
+    const documentItem = new DocumentTreeItem(mockDocument, 'waffle.house', 0);
+
+    const mockFetchDocument = sinon.fake.resolves(null);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController._mongoDBDocumentService,
+      'fetchDocument',
+      mockFetchDocument
+    );
+
+    await vscode.commands.executeCommand(
+      'mdb.openMongoDBDocumentFromTree',
+      documentItem
+    );
+
+    assert(mockFetchDocument.firstArg.source === 'treeview');
+  });
+
+  test('document opened from playground results has treeview source', async () => {
+    const documentItem = {
+      source: 'playground',
+      line: 1,
+      documentId: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+      namespace: 'db.coll',
+      connectionId: null
+    };
+
+    const mockFetchDocument = sinon.fake.resolves(null);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController._mongoDBDocumentService,
+      'fetchDocument',
+      mockFetchDocument
+    );
+
+    await vscode.commands.executeCommand(
+      'mdb.openMongoDBDocumentFromPlayground',
+      documentItem
+    );
+
+    assert(mockFetchDocument.firstArg.source === 'playground');
+  });
+
+  test('fetchDocument recieves treeview source if document opened from a tree', async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      name: '',
+      time: {
+        $time: '12345'
+      }
+    };
+
+    const mockShowTextDocument = sinon.fake.resolves();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    const mockGet = sinon.fake.returns('pancakes');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController
+        ._documentIdStore,
+      'get',
+      mockGet
+    );
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          scheme: 'VIEW_DOCUMENT_SCHEME',
+          query: [
+            'namespace=waffle.house',
+            'connectionId=tasty_sandwhich',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+            'source=treeview'
+          ].join('&')
+        },
+        getText: () => JSON.stringify(mockDocument),
+        save: () => {}
+      }
+    }));
+
+    const mockReplaceDocument = sinon.fake.resolves(null);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController._mongoDBDocumentService,
+      'replaceDocument',
+      mockReplaceDocument
+    );
+
+    await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
+
+    assert(mockReplaceDocument.firstArg.source === 'treeview');
+  });
+
+  test('fetchDocument recieves playground source if document opened from playground results', async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      name: '',
+      time: {
+        $time: '12345'
+      }
+    };
+
+    const mockShowTextDocument = sinon.fake.resolves();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    const mockGet = sinon.fake.returns('pancakes');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController
+        ._documentIdStore,
+      'get',
+      mockGet
+    );
+
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: {
+        uri: {
+          scheme: 'VIEW_DOCUMENT_SCHEME',
+          query: [
+            'namespace=waffle.house',
+            'connectionId=tasty_sandwhich',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+            'source=playground'
+          ].join('&')
+        },
+        getText: () => JSON.stringify(mockDocument),
+        save: () => {}
+      }
+    }));
+
+    const mockReplaceDocument = sinon.fake.resolves(null);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._editorsController._mongoDBDocumentService,
+      'replaceDocument',
+      mockReplaceDocument
+    );
+
+    await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
+
+    assert(mockReplaceDocument.firstArg.source === 'playground');
   });
 
   test('mdb.searchForDocuments should create a MongoDB playground with search template', async () => {

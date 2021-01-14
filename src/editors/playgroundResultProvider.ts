@@ -65,7 +65,7 @@ implements vscode.TextDocumentContentProvider {
       return this._playgroundResult.content as string;
     }
 
-    this._editDocumentCodeLensProvider?.updateCodeLensesPosition(
+    this._editDocumentCodeLensProvider?.updateCodeLensesForPlayground(
       this._playgroundResult
     );
 

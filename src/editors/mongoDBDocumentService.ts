@@ -3,12 +3,14 @@ import { EJSON } from 'bson';
 import DocumentIdStore from './documentIdStore';
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
-import TelemetryController from '../telemetry/telemetryController';
+import TelemetryService, { DocumentSource } from '../telemetry/telemetryService';
 import { createLogger } from '../logging';
 import util from 'util';
 import type { ResultCodeLensInfo } from '../utils/types';
 
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
+
+export const DOCUMENT_SOURCE_URI_IDENTIFIER = 'source';
 
 export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
@@ -19,20 +21,20 @@ export default class MongoDBDocumentService {
   _documentIdStore: DocumentIdStore;
   _connectionController: ConnectionController;
   _statusView: StatusView;
-  _telemetryController: TelemetryController;
+  _telemetryService: TelemetryService;
 
   constructor(
     context: vscode.ExtensionContext,
     documentIdStore: DocumentIdStore,
     connectionController: ConnectionController,
     statusView: StatusView,
-    telemetryController: TelemetryController
+    telemetryService: TelemetryService
   ) {
     this._context = context;
     this._documentIdStore = documentIdStore;
     this._connectionController = connectionController;
     this._statusView = statusView;
-    this._telemetryController = telemetryController;
+    this._telemetryService = telemetryService;
   }
 
   _fetchDocumentFailed(message: string): void {
@@ -44,8 +46,9 @@ export default class MongoDBDocumentService {
   _saveDocumentFailed(message: string): void {
     const errorMessage = `Unable to save document: ${message}`;
 
-    // Send a telemetry event that saving the document failed.
-    this._telemetryController.trackDocumentUpdated('treeview', false);
+    this._telemetryService.trackDocumentUpdated(
+      DocumentSource.DOCUMENT_SOURCE_TREEVIEW, false
+    );
 
     throw new Error(errorMessage);
   }
@@ -55,10 +58,11 @@ export default class MongoDBDocumentService {
     namespace: string;
     connectionId: string;
     newDocument: EJSON.SerializableTypes;
+    source: string;
   }): Promise<void> {
     log.info('replace document in MongoDB', data);
 
-    const { documentId, namespace, connectionId, newDocument } = data;
+    const { documentId, namespace, connectionId, newDocument, source } = data;
     const activeConnectionId = this._connectionController.getActiveConnectionId();
     const connectionName = this._connectionController.getSavedConnectionName(
       connectionId
@@ -97,11 +101,13 @@ export default class MongoDBDocumentService {
       );
 
       this._statusView.hideMessage();
-      this._telemetryController.trackDocumentUpdated('treeview', true);
+      this._telemetryService.trackDocumentUpdated(source, true);
     } catch (error) {
+      const printableError = error as { message: string };
+
       this._statusView.hideMessage();
 
-      return this._saveDocumentFailed(error.message);
+      return this._saveDocumentFailed(printableError.message);
     }
   }
 
@@ -155,9 +161,11 @@ export default class MongoDBDocumentService {
         EJSON.stringify(documents[0])
       ) as EJSON.SerializableTypes;
     } catch (error) {
+      const printableError = error as { message: string };
+
       this._statusView.hideMessage();
 
-      return this._fetchDocumentFailed(error.message);
+      return this._fetchDocumentFailed(printableError.message);
     }
   }
 }

@@ -3,7 +3,7 @@ import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
 import { LanguageServerController } from '../language';
-import TelemetryController from '../telemetry/telemetryController';
+import TelemetryService from '../telemetry/telemetryService';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
@@ -31,7 +31,7 @@ export default class PlaygroundController {
   playgroundResult?: OutputItem;
   _context: vscode.ExtensionContext;
   _languageServerController: LanguageServerController;
-  _telemetryController: TelemetryController;
+  _telemetryService: TelemetryService;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
   _outputChannel: OutputChannel;
@@ -49,7 +49,7 @@ export default class PlaygroundController {
     context: vscode.ExtensionContext,
     connectionController: ConnectionController,
     languageServerController: LanguageServerController,
-    telemetryController: TelemetryController,
+    telemetryService: TelemetryService,
     statusView: StatusView,
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
@@ -60,7 +60,7 @@ export default class PlaygroundController {
     this._isPartialRun = false;
     this.connectionController = connectionController;
     this._languageServerController = languageServerController;
-    this._telemetryController = telemetryController;
+    this._telemetryService = telemetryService;
     this._statusView = statusView;
     this._playgroundResultViewProvider = playgroundResultViewProvider;
     this._outputChannel = vscode.window.createOutputChannel(
@@ -251,7 +251,7 @@ export default class PlaygroundController {
     );
 
     this._statusView.hideMessage();
-    this._telemetryController.trackPlaygroundCodeExecuted(
+    this._telemetryService.trackPlaygroundCodeExecuted(
       result,
       this._isPartialRun,
       result ? false : true

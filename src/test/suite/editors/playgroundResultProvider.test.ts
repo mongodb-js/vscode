@@ -3,7 +3,7 @@ import { TestExtensionContext } from '../stubs';
 import { afterEach } from 'mocha';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
-import TelemetryController from '../../../telemetry/telemetryController';
+import TelemetryService from '../../../telemetry/telemetryService';
 import { StatusView } from '../../../views';
 
 const sinon = require('sinon');
@@ -13,7 +13,7 @@ const expect = chai.expect;
 suite('Playground Result Provider Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
   const mockStorageController = new StorageController(mockExtensionContext);
-  const testTelemetryController = new TelemetryController(
+  const testTelemetryService = new TelemetryService(
     mockStorageController,
     mockExtensionContext
   );
@@ -21,7 +21,7 @@ suite('Playground Result Provider Test Suite', () => {
   const testConnectionController = new ConnectionController(
     testStatusView,
     mockStorageController,
-    testTelemetryController
+    testTelemetryService
   );
 
   afterEach(() => {
@@ -207,7 +207,7 @@ suite('Playground Result Provider Test Suite', () => {
     const mockRefresh = sinon.fake.resolves();
     sinon.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
-      'updateCodeLensesPosition',
+      'updateCodeLensesForPlayground',
       mockRefresh
     );
 
@@ -238,7 +238,7 @@ suite('Playground Result Provider Test Suite', () => {
     const mockRefresh = sinon.fake.resolves();
     sinon.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
-      'updateCodeLensesPosition',
+      'updateCodeLensesForPlayground',
       mockRefresh
     );
 

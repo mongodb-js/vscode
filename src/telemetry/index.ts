@@ -1,3 +1,3 @@
-import TelemetryController from './telemetryController';
+import TelemetryService from './telemetryService';
 
-export { TelemetryController };
+export { TelemetryService };

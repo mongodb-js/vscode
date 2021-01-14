@@ -17,10 +17,11 @@ import PlaygroundController from './playgroundController';
 import DocumentIdStore from './documentIdStore';
 import MongoDBDocumentService, {
   DOCUMENT_ID_URI_IDENTIFIER,
+  DOCUMENT_SOURCE_URI_IDENTIFIER,
   VIEW_DOCUMENT_SCHEME
 } from './mongoDBDocumentService';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
-import TelemetryController from '../telemetry/telemetryController';
+import TelemetryService from '../telemetry/telemetryService';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME
 } from './playgroundResultProvider';
@@ -42,7 +43,7 @@ export default class EditorsController {
   _memoryFileSystemProvider: MemoryFileSystemProvider;
   _documentIdStore: DocumentIdStore;
   _mongoDBDocumentService: MongoDBDocumentService;
-  _telemetryController: TelemetryController;
+  _telemetryService: TelemetryService;
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
@@ -52,7 +53,7 @@ export default class EditorsController {
     connectionController: ConnectionController,
     playgroundController: PlaygroundController,
     statusView: StatusView,
-    telemetryController: TelemetryController,
+    telemetryService: TelemetryService,
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
     partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider
@@ -63,7 +64,7 @@ export default class EditorsController {
     this._playgroundController = playgroundController;
     this._context = context;
     this._statusView = statusView;
-    this._telemetryController = telemetryController;
+    this._telemetryService = telemetryService;
     this._memoryFileSystemProvider = new MemoryFileSystemProvider();
     this._documentIdStore = new DocumentIdStore();
     this._mongoDBDocumentService = new MongoDBDocumentService(
@@ -71,7 +72,7 @@ export default class EditorsController {
       this._documentIdStore,
       this._connectionController,
       this._statusView,
-      this._telemetryController
+      this._telemetryService
     );
     this._collectionViewProvider = new CollectionDocumentsProvider(
       connectionController,
@@ -123,8 +124,9 @@ export default class EditorsController {
       const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${activeConnectionId}`;
       const documentIdReference = this._documentIdStore.add(data.documentId);
       const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
+      const documentSourceUriQuery = `${DOCUMENT_SOURCE_URI_IDENTIFIER}=${data.source}`;
       const uri: vscode.Uri = vscode.Uri.parse(fileName).with({
-        query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}`
+        query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}&${documentSourceUriQuery}`
       });
       const document = await vscode.workspace.openTextDocument(uri);
 
@@ -154,6 +156,7 @@ export default class EditorsController {
     const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
     const documentId = this._documentIdStore.get(documentIdReference);
+    const source = uriParams.get(DOCUMENT_SOURCE_URI_IDENTIFIER) || '';
 
     // If not MongoDB document save to disk instead of MongoDB.
     if (
@@ -176,7 +179,8 @@ export default class EditorsController {
         namespace,
         connectionId,
         documentId,
-        newDocument
+        newDocument,
+        source
       });
 
       // Save document changes to active editor.

@@ -5,7 +5,7 @@ import ConnectionController from '../../../connectionController';
 import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
-import TelemetryController from '../../../telemetry/telemetryController';
+import TelemetryService from '../../../telemetry/telemetryService';
 import { afterEach } from 'mocha';
 import { EJSON } from 'bson';
 
@@ -18,21 +18,21 @@ suite('MongoDB Document Service Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
   const testStorageController = new StorageController(mockExtensionContext);
   const testStatusView = new StatusView(mockExtensionContext);
-  const testTelemetryController = new TelemetryController(
+  const testTelemetryService = new TelemetryService(
     testStorageController,
     mockExtensionContext
   );
   const testConnectionController = new ConnectionController(
     testStatusView,
     testStorageController,
-    testTelemetryController
+    testTelemetryService
   );
   const testMongoDBDocumentService = new MongoDBDocumentService(
     mockExtensionContext,
     testDocumentIdStore,
     testConnectionController,
     testStatusView,
-    testTelemetryController
+    testTelemetryService
   );
 
   const sandbox = sinon.createSandbox();
@@ -48,6 +48,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const document: EJSON.SerializableTypes = { _id: '123' };
     const newDocument = { _id: '123', price: 5000 };
+    const source = 'treeview';
 
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
@@ -86,7 +87,8 @@ suite('MongoDB Document Service Test Suite', () => {
       namespace,
       documentId,
       connectionId,
-      newDocument
+      newDocument,
+      source
     });
 
     expect(document).to.be.deep.equal(newDocument);
@@ -98,6 +100,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const line = 1;
     const documents = [{ _id: '123' }];
+    const source = 'playground';
 
     const mockGetActiveDataService = sinon.fake.returns({
       find: (
@@ -132,7 +135,8 @@ suite('MongoDB Document Service Test Suite', () => {
       namespace,
       documentId,
       line,
-      connectionId
+      connectionId,
+      source
     });
 
     expect(result).to.be.deep.equal(JSON.parse(EJSON.stringify(documents[0])));
@@ -143,6 +147,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const newDocument = { _id: '123', price: 5000 };
+    const source = 'playground';
 
     const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
@@ -166,7 +171,8 @@ suite('MongoDB Document Service Test Suite', () => {
         documentId,
         namespace,
         connectionId,
-        newDocument
+        newDocument,
+        source
       });
     } catch (error) {
       const expectedMessage =
@@ -181,6 +187,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const newDocument = { _id: '123', price: 5000 };
+    const source = 'playground';
 
     const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
@@ -204,7 +211,8 @@ suite('MongoDB Document Service Test Suite', () => {
         documentId,
         namespace,
         connectionId,
-        newDocument
+        newDocument,
+        source
       });
     } catch (error) {
       const expectedMessage =
@@ -219,6 +227,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const connectionId = '123';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const line = 1;
+    const source = 'playground';
 
     const mockGetActiveConnectionId = sinon.fake.returns('345');
     sinon.replace(
@@ -245,7 +254,8 @@ suite('MongoDB Document Service Test Suite', () => {
         namespace,
         documentId,
         line,
-        connectionId
+        connectionId,
+        source
       });
     } catch (error) {
       const expectedMessage =

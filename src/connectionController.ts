@@ -10,7 +10,7 @@ import { StatusView } from './views';
 import { EventEmitter } from 'events';
 import { StorageController, StorageVariables } from './storage';
 import { SavedConnection, StorageScope } from './storage/storageController';
-import TelemetryController from './telemetry/telemetryController';
+import TelemetryService from './telemetry/telemetryService';
 import { ext } from './extensionConstants';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import SSH_TUNNEL_TYPES from './views/webview-app/connection-model/constants/ssh-tunnel-types';
@@ -72,7 +72,7 @@ export default class ConnectionController {
 
   private _statusView: StatusView;
   private _storageController: StorageController;
-  private _telemetryController: TelemetryController;
+  private _telemetryService: TelemetryService;
 
   // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();
@@ -80,11 +80,11 @@ export default class ConnectionController {
   constructor(
     _statusView: StatusView,
     storageController: StorageController,
-    telemetryController: TelemetryController
+    telemetryService: TelemetryService
   ) {
     this._statusView = _statusView;
     this._storageController = storageController;
-    this._telemetryController = telemetryController;
+    this._telemetryService = telemetryService;
   }
 
   _loadSavedConnection = async (
@@ -250,8 +250,7 @@ export default class ConnectionController {
     newDataService: DataServiceType,
     connectionType: ConnectionTypes
   ): void {
-    // Send metrics to Segment
-    this._telemetryController.trackNewConnection(
+    this._telemetryService.trackNewConnection(
       newDataService,
       connectionType
     );

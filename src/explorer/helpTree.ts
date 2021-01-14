@@ -3,7 +3,7 @@ import { openLink } from '../utils/linkHelper';
 const path = require('path');
 
 import { getImagesPath } from '../extensionConstants';
-import { TelemetryController } from '../telemetry';
+import { TelemetryService } from '../telemetry';
 
 const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
@@ -51,13 +51,13 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
 
   activateTreeViewEventHandlers = (
     treeView: vscode.TreeView<vscode.TreeItem>,
-    telemetryController: TelemetryController
+    telemetryService: TelemetryService
   ): void => {
     treeView.onDidChangeSelection(async (event: any) => {
       if (event.selection && event.selection.length === 1) {
         const selectedItem = event.selection[0];
 
-        await this.onClickHelpItem(selectedItem, telemetryController);
+        await this.onClickHelpItem(selectedItem, telemetryService);
       }
     });
   };
@@ -121,9 +121,9 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     return element.getChildren();
   }
 
-  async onClickHelpItem(helpItem: HelpLinkTreeItem, telemetryController: TelemetryController): Promise<void> {
+  async onClickHelpItem(helpItem: HelpLinkTreeItem, telemetryService: TelemetryService): Promise<void> {
     if (helpItem.contextValue === HELP_LINK_CONTEXT_VALUE) {
-      telemetryController.trackLinkClicked(
+      telemetryService.trackLinkClicked(
         'helpPanel',
         helpItem.linkId
       );
