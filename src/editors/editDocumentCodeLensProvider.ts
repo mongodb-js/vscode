@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import type { OutputItem, ResultCodeLensInfo } from '../utils/types';
 import ConnectionController from '../connectionController';
-import { DOCUMENT_SOURCE_PLAYGROUND } from '../telemetry/telemetryService';
+import { DocumentSource } from '../telemetry/telemetryService';
 
 export default class EditDocumentCodeLensProvider
 implements vscode.CodeLensProvider {
@@ -24,7 +24,7 @@ implements vscode.CodeLensProvider {
   }
 
   updateCodeLensesForPlayground(playgroundResult: OutputItem) {
-    const source = DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
 
     if (!playgroundResult || !playgroundResult.content) {
       this._codeLensesInfo = [];

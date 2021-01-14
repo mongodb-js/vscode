@@ -15,10 +15,7 @@ import {
 } from './explorer';
 import EXTENSION_COMMANDS from './commands';
 import { LanguageServerController } from './language';
-import TelemetryService, {
-  DOCUMENT_SOURCE_PLAYGROUND,
-  DOCUMENT_SOURCE_TREEVIEW
-} from './telemetry/telemetryService';
+import TelemetryService, { DocumentSource } from './telemetry/telemetryService';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController, StorageVariables } from './storage';
@@ -184,7 +181,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_PLAYGROUND,
       (data: ResultCodeLensInfo) => {
         this._telemetryService.trackOpenMongoDBDocumentFromPlayground(
-          DOCUMENT_SOURCE_PLAYGROUND
+          DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
         );
 
         return this._editorsController.openMongoDBDocument(data);
@@ -462,7 +459,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
       (element: DocumentTreeItem): Promise<boolean> => {
         return this._editorsController.openMongoDBDocument({
-          source: DOCUMENT_SOURCE_TREEVIEW,
+          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
           documentId: element.documentId,
           namespace: element.namespace,
           connectionId: this._connectionController.getActiveConnectionId(),

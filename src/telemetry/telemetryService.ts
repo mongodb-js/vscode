@@ -11,10 +11,12 @@ import type { ExecuteAllResult, CloudInfoResult } from '../utils/types';
 import type { InstanceInfoResult } from '../instanceInfoResultType';
 import { ConnectionModelType } from '../connectionModelType';
 import fs from 'fs';
+import * as util from 'util';
 
-export const DOCUMENT_SOURCE_TREEVIEW = 'treeview';
-
-export const DOCUMENT_SOURCE_PLAYGROUND = 'playground';
+export enum DocumentSource {
+  DOCUMENT_SOURCE_TREEVIEW = 'treeview',
+  DOCUMENT_SOURCE_PLAYGROUND = 'playground'
+}
 
 const log = createLogger('telemetry');
 
@@ -111,7 +113,7 @@ export default class TelemetryService {
   ) {
     this._context = context;
     this._shouldTrackTelemetry = shouldTrackTelemetry || false;
-    this._segmentUserID = storageController.getUserID() || '';
+    this._segmentUserID = storageController.getUserID();
     this._segmentKey = this._readSegmentKey();
 
     vscode.workspace.onDidOpenTextDocument((document) => {
@@ -263,15 +265,14 @@ export default class TelemetryService {
     }
   }
 
-  trackNewConnection(
+  async trackNewConnection(
     dataService: DataServiceType,
     connectionType: ConnectionTypes
-  ): void {
-    dataService.instance({}, async (error: any, data: InstanceInfoResult) => {
-      if (error) {
-        log.error('TELEMETRY data service error', error);
-      }
+  ): Promise<void> {
+    const instance = util.promisify(dataService.instance.bind(dataService));
 
+    try {
+      const data = await instance({}) as InstanceInfoResult;
       const dataServiceClient = dataService.client as { model: ConnectionModelType };
 
       if (data) {
@@ -304,7 +305,9 @@ export default class TelemetryService {
 
         this.track(TelemetryEventTypes.NEW_CONNECTION, preparedProperties);
       }
-    });
+    } catch (error) {
+      log.error('TELEMETRY track new connection', error);
+    }
   }
 
   trackCommandRun(command: string): void {
@@ -369,7 +372,7 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.DOCUMENT_UPDATED, { source, success });
   }
 
-  trackOpenMongoDBDocumentFromPlayground(source: string): void {
+  trackOpenMongoDBDocumentFromPlayground(source: DocumentSource): void {
     this.track(TelemetryEventTypes.DOCUMENT_EDITED, { source });
   }
 }

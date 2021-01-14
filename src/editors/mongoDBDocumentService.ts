@@ -3,7 +3,7 @@ import { EJSON } from 'bson';
 import DocumentIdStore from './documentIdStore';
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
-import TelemetryService, { DOCUMENT_SOURCE_TREEVIEW } from '../telemetry/telemetryService';
+import TelemetryService, { DocumentSource } from '../telemetry/telemetryService';
 import { createLogger } from '../logging';
 import util from 'util';
 import type { ResultCodeLensInfo } from '../utils/types';
@@ -46,7 +46,9 @@ export default class MongoDBDocumentService {
   _saveDocumentFailed(message: string): void {
     const errorMessage = `Unable to save document: ${message}`;
 
-    this._telemetryService.trackDocumentUpdated(DOCUMENT_SOURCE_TREEVIEW, false);
+    this._telemetryService.trackDocumentUpdated(
+      DocumentSource.DOCUMENT_SOURCE_TREEVIEW, false
+    );
 
     throw new Error(errorMessage);
   }
