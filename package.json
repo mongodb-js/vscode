@@ -881,7 +881,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/sinon": "^9.0.10",
-    "@types/vscode": "^1.52.0",
+    "@types/vscode": "^1.49.0",
     "@types/ws": "^7.4.0",
     "@typescript-eslint/eslint-plugin": "^4.13.0",
     "@typescript-eslint/parser": "^4.13.0",
