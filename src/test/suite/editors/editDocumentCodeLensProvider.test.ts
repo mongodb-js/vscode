@@ -5,6 +5,12 @@ import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { StatusView } from '../../../views';
+import { ObjectId } from 'bson';
+import { afterEach } from 'mocha';
+
+import sinon from 'sinon';
+
+import * as util from 'util';
 
 suite('Edit Document Code Lens Provider Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
@@ -20,6 +26,10 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     testTelemetryService
   );
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
   test('provideCodeLenses returns an empty array if codeLensesInfo is empty', () => {
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
       testConnectionController
@@ -28,6 +38,68 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
 
     assert(!!codeLens);
     assert(codeLens.length === 0);
+  });
+
+  test('the _updateCodeLensesForCursor function deserialize document id', () => {
+    const testCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
+    const playgroundResult = {
+      content: [{
+        _id: { $oid: '5d973ae744376d2aae72a160' },
+        name: 'test name'
+      }],
+      namespace: 'db.coll',
+      source: 'playground'
+    };
+
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      testCodeLensProvider._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    const result = testCodeLensProvider._updateCodeLensesForCursor(playgroundResult);
+
+    assert(!!result);
+    const codeLensesInfo = result[0];
+    assert(!!codeLensesInfo);
+    assert(!!codeLensesInfo.documentId);
+    const bsonId = new ObjectId('5d973ae744376d2aae72a160');
+
+    assert(util.inspect(codeLensesInfo.documentId) === util.inspect(bsonId));
+  });
+
+  test('the _updateCodeLensesForDocument function deserialize document id', () => {
+    const testCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
+    const playgroundResult = {
+      content: {
+        _id: { $oid: '5d973ae744376d2aae72a160' },
+        name: 'test name'
+      },
+      namespace: 'db.coll',
+      source: 'playground'
+    };
+
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      testCodeLensProvider._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    const result = testCodeLensProvider._updateCodeLensesForDocument(playgroundResult);
+
+    assert(!!result);
+    const codeLensesInfo = result[0];
+    assert(!!codeLensesInfo);
+    assert(!!codeLensesInfo.documentId);
+    const bsonId = new ObjectId('5d973ae744376d2aae72a160');
+
+    assert(util.inspect(codeLensesInfo.documentId) === util.inspect(bsonId));
   });
 
   suite('after updateCodeLensesForPlayground', () => {
