@@ -318,7 +318,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstProvider);
     assert(firstProvider._codeLensesInfo.length === 1);
     assert(firstProvider._codeLensesInfo[0].documentId === '5ea8745ee4811fafe8b65ecb');
-    assert(firstProvider._codeLensesInfo[0].source === 'treeview');
+    assert(firstProvider._codeLensesInfo[0].source === 'collectionview');
     assert(firstProvider._codeLensesInfo[0].line === 2);
     assert(firstProvider._codeLensesInfo[0].namespace === firstCollectionNamespace);
     assert(firstProvider._codeLensesInfo[0].connectionId === connectionId);
@@ -360,7 +360,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondProvider);
     assert(secondProvider._codeLensesInfo.length === 2);
     assert(secondProvider._codeLensesInfo[1].documentId === '26');
-    assert(secondProvider._codeLensesInfo[1].source === 'treeview');
+    assert(secondProvider._codeLensesInfo[1].source === 'collectionview');
     assert(secondProvider._codeLensesInfo[1].line === 7);
     assert(secondProvider._codeLensesInfo[1].namespace === secondCollectionNamespace);
     assert(secondProvider._codeLensesInfo[1].connectionId === connectionId);

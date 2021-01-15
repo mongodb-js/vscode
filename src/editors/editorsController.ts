@@ -27,6 +27,7 @@ import PlaygroundResultProvider, {
 } from './playgroundResultProvider';
 import type { ResultCodeLensInfo } from '../utils/types';
 import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
+import { DocumentSource } from '../utils/documentSource';
 
 const log = createLogger('editors controller');
 
@@ -165,7 +166,7 @@ export default class EditorsController {
     const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
     const documentId = this._documentIdStore.get(documentIdReference);
-    const source = uriParams.get(DOCUMENT_SOURCE_URI_IDENTIFIER) || '';
+    const source = uriParams.get(DOCUMENT_SOURCE_URI_IDENTIFIER) as DocumentSource;
 
     // If not MongoDB document save to disk instead of MongoDB.
     if (

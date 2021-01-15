@@ -8,6 +8,7 @@ import { StatusView } from '../../../views';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { afterEach } from 'mocha';
 import { EJSON } from 'bson';
+import { DocumentSource } from '../../../utils/documentSource';
 
 import sinon from 'sinon';
 import chai from 'chai';
@@ -48,7 +49,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const document: EJSON.SerializableTypes = { _id: '123' };
     const newDocument = { _id: '123', price: 5000 };
-    const source = 'treeview';
+    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
 
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
@@ -100,7 +101,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const line = 1;
     const documents = [{ _id: '123' }];
-    const source = 'playground';
+    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
 
     const mockGetActiveDataService = sinon.fake.returns({
       find: (
@@ -147,7 +148,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const newDocument = { _id: '123', price: 5000 };
-    const source = 'playground';
+    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
 
     const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
@@ -187,7 +188,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const newDocument = { _id: '123', price: 5000 };
-    const source = 'playground';
+    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
 
     const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
@@ -227,7 +228,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const connectionId = '123';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const line = 1;
-    const source = 'playground';
+    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
 
     const mockGetActiveConnectionId = sinon.fake.returns('345');
     sinon.replace(

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import type { OutputItem, ResultCodeLensInfo } from '../utils/types';
 import ConnectionController from '../connectionController';
-import { DocumentSource } from '../telemetry/telemetryService';
+import { DocumentSource } from '../utils/documentSource';
 import { EJSON } from 'bson';
 
 export default class EditDocumentCodeLensProvider
@@ -32,7 +32,7 @@ implements vscode.CodeLensProvider {
 
     codeLensesInfo = this._updateCodeLensesForCursor({
       ...data,
-      source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW
+      source: DocumentSource.COLLECTION_VIEW
     });
 
     this._codeLensesInfo = codeLensesInfo;
@@ -65,7 +65,7 @@ implements vscode.CodeLensProvider {
   _updateCodeLensesForCursor(data: {
     content: any,
     namespace: string | null,
-    source: string
+    source: DocumentSource
   }): ResultCodeLensInfo[] {
     const codeLensesInfo: ResultCodeLensInfo[] = [];
 
@@ -103,7 +103,7 @@ implements vscode.CodeLensProvider {
   _updateCodeLensesForDocument(data: {
     content: any,
     namespace: string | null,
-    source: string
+    source: DocumentSource
   }): ResultCodeLensInfo[] {
     const { content, namespace, source } = data;
     const codeLensesInfo: ResultCodeLensInfo[] = [];
@@ -138,7 +138,7 @@ implements vscode.CodeLensProvider {
           arguments: ResultCodeLensInfo[];
         } = {
           title: 'Edit Document',
-          command: EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_PLAYGROUND,
+          command: EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
           arguments: [item]
         };
 

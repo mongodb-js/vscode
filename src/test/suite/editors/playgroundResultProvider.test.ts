@@ -298,26 +298,6 @@ suite('Playground Result Provider Test Suite', () => {
     expect(firstPlaygroundCodeLensesInfo[1].source).to.be.equal('playground');
     expect(firstPlaygroundCodeLensesInfo[1].line).to.be.equal(9);
 
-    /* const editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
-    );
-
-    mockExtensionContext.subscriptions.push(
-      vscode.languages.registerCodeLensProvider(
-        {
-          scheme: VIEW_COLLECTION_SCHEME,
-          language: 'json',
-          pattern: 'Results: berlin.cocktailbars.json'
-        },
-        editDocumentCodeLensProvider
-      )
-    );
-
-    editDocumentCodeLensProvider.updateCodeLensesForCollection({
-      content: [ { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' } ],
-      namespace: 'berlin.cocktailbars'
-    }); */
-
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(
       mockExtensionContext,
@@ -381,7 +361,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(mockRegisterCodeLensProvider.lastArg._codeLensesInfo).to.be.deep.equal([
       {
         documentId: '5ea8745ee4811fafe8b65ecb',
-        source: 'treeview',
+        source: 'collectionview',
         line: 2,
         namespace: 'berlin.cocktailbars',
         connectionId: '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487'

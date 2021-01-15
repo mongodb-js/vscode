@@ -7,6 +7,7 @@ import TelemetryService from '../../../telemetry/telemetryService';
 import { StatusView } from '../../../views';
 import { ObjectId } from 'bson';
 import { afterEach } from 'mocha';
+import { DocumentSource } from '../../../utils/documentSource';
 
 import sinon from 'sinon';
 
@@ -51,7 +52,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         name: 'test name'
       }],
       namespace: 'db.coll',
-      source: 'playground'
+      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
     };
 
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
@@ -84,7 +85,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         name: 'test name'
       },
       namespace: 'db.coll',
-      source: 'playground'
+      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
     };
 
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
@@ -135,7 +136,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       );
       assert(codeLens[0].command?.title === 'Edit Document');
       assert(!!codeLens[0].command?.command);
-      assert(codeLens[0].command?.command === 'mdb.openMongoDBDocumentFromPlayground');
+      assert(codeLens[0].command?.command === 'mdb.openMongoDBDocumentFromCodeLens');
       const commandArguments = codeLens[0].command?.arguments;
       assert(!!commandArguments);
       assert(commandArguments[0].source === 'playground');

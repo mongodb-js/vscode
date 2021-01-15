@@ -1,4 +1,5 @@
 import { EJSON } from 'bson';
+import { DocumentSource } from './documentSource';
 
 export type OutputItem = {
   namespace: string | null;
@@ -12,7 +13,7 @@ export type ExecuteAllResult = {
 };
 
 export type ResultCodeLensInfo = {
-  source: string;
+  source: DocumentSource;
   line: number;
   documentId: EJSON.SerializableTypes;
   namespace: string;

@@ -7,6 +7,7 @@ import { afterEach, beforeEach } from 'mocha';
 import Connection = require('mongodb-connection-model/lib/model');
 import { ConnectionTypes } from '../../../connectionController';
 import DataService = require('mongodb-data-service');
+import { DocumentSource } from '../../../utils/documentSource';
 
 const sinon = require('sinon');
 const chai = require('chai');
@@ -147,25 +148,27 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('track document saved form a tree-view event', () => {
-    testTelemetryService.trackDocumentUpdated('treeview', true);
+    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+
+    testTelemetryService.trackDocumentUpdated(source, true);
 
     sinon.assert.calledWith(
       mockTrack,
       sinon.match('Document Updated'),
-      sinon.match({ source: 'treeview', success: true })
+      sinon.match({ source, success: true })
     );
   });
 
   test('track document opened form playground results', async () => {
-    const mockTrackOpenMongoDBDocumentFromPlayground = sinon.fake.resolves();
+    const mockTrackDocumentOpenedInEditor = sinon.fake.resolves();
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
-      'trackOpenMongoDBDocumentFromPlayground',
-      mockTrackOpenMongoDBDocumentFromPlayground
+      'trackDocumentOpenedInEditor',
+      mockTrackDocumentOpenedInEditor
     );
 
     await vscode.commands.executeCommand(
-      'mdb.openMongoDBDocumentFromPlayground',
+      'mdb.openMongoDBDocumentFromCodeLens',
       {
         source: 'playground',
         line: 1,
@@ -175,7 +178,7 @@ suite('Telemetry Controller Test Suite', () => {
       }
     );
 
-    expect(mockTrackOpenMongoDBDocumentFromPlayground.firstArg).to.be.equal('playground');
+    expect(mockTrackDocumentOpenedInEditor.firstArg).to.be.equal('playground');
   });
 
   test('track playground code executed event', async () => {

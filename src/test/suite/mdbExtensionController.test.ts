@@ -1377,7 +1377,7 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     await vscode.commands.executeCommand(
-      'mdb.openMongoDBDocumentFromPlayground',
+      'mdb.openMongoDBDocumentFromCodeLens',
       documentItem
     );
 
