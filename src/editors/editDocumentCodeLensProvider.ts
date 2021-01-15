@@ -46,7 +46,6 @@ implements vscode.CodeLensProvider {
     }
 
     this._codeLensesInfo = codeLensesInfo;
-    this._onDidChangeCodeLenses.fire();
   }
 
   _updateCodeLensesForCursor(data: {
