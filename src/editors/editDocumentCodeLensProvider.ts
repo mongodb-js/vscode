@@ -24,6 +24,20 @@ implements vscode.CodeLensProvider {
     });
   }
 
+  updateCodeLensesForCollection(data: {
+    content: EJSON.SerializableTypes,
+    namespace: string | null
+  }) {
+    let codeLensesInfo: ResultCodeLensInfo[] = [];
+
+    codeLensesInfo = this._updateCodeLensesForCursor({
+      ...data,
+      source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW
+    });
+
+    this._codeLensesInfo = codeLensesInfo;
+  }
+
   updateCodeLensesForPlayground(playgroundResult: OutputItem) {
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
     let codeLensesInfo: ResultCodeLensInfo[] = [];

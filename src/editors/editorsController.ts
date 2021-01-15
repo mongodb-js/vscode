@@ -26,6 +26,7 @@ import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME
 } from './playgroundResultProvider';
 import type { ResultCodeLensInfo } from '../utils/types';
+import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 
 const log = createLogger('editors controller');
 
@@ -47,6 +48,8 @@ export default class EditorsController {
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
+  _editDocumentCodeLensProviderPlayground: EditDocumentCodeLensProvider;
+  _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -56,7 +59,8 @@ export default class EditorsController {
     telemetryService: TelemetryService,
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
-    partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider
+    partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider,
+    editDocumentCodeLensProviderPlayground: EditDocumentCodeLensProvider
   ) {
     log.info('activating...');
 
@@ -74,7 +78,9 @@ export default class EditorsController {
       this._statusView,
       this._telemetryService
     );
+    this._editDocumentCodeLensProviderPlayground = editDocumentCodeLensProviderPlayground;
     this._collectionViewProvider = new CollectionDocumentsProvider(
+      this._context,
       connectionController,
       this._collectionDocumentsOperationsStore,
       new StatusView(context)
@@ -82,6 +88,9 @@ export default class EditorsController {
     this._playgroundResultViewProvider = playgroundResultViewProvider;
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._partialExecutionCodeLensProvider = partialExecutionCodeLensProvider;
+    this._collectionDocumentsCodeLensProvider = new CollectionDocumentsCodeLensProvider(
+      this._collectionDocumentsOperationsStore
+    );
 
     vscode.workspace.onDidCloseTextDocument((e) => {
       const uriParams = new URLSearchParams(e.uri.query);
@@ -331,6 +340,7 @@ export default class EditorsController {
         }
       )
     );
+    // REGISTER CONTENT
     this._context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
         VIEW_COLLECTION_SCHEME,
@@ -338,20 +348,19 @@ export default class EditorsController {
       )
     );
     this._context.subscriptions.push(
+      vscode.workspace.registerTextDocumentContentProvider(
+        PLAYGROUND_RESULT_SCHEME,
+        this._playgroundResultViewProvider
+      )
+    );
+    // REGISTER CODE LENSES
+    this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
         {
           scheme: VIEW_COLLECTION_SCHEME,
           language: 'json'
         },
-        new CollectionDocumentsCodeLensProvider(
-          this._collectionDocumentsOperationsStore
-        )
-      )
-    );
-    this._context.subscriptions.push(
-      vscode.workspace.registerTextDocumentContentProvider(
-        PLAYGROUND_RESULT_SCHEME,
-        this._playgroundResultViewProvider
+        this._collectionDocumentsCodeLensProvider
       )
     );
     this._context.subscriptions.push(
@@ -364,6 +373,15 @@ export default class EditorsController {
       vscode.languages.registerCodeLensProvider(
         { language: 'mongodb' },
         this._partialExecutionCodeLensProvider
+      )
+    );
+    this._context.subscriptions.push(
+      vscode.languages.registerCodeLensProvider(
+        {
+          scheme: PLAYGROUND_RESULT_SCHEME,
+          language: 'json'
+        },
+        this._editDocumentCodeLensProviderPlayground
       )
     );
   }

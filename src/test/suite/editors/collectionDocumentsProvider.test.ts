@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
 
-import CollectionDocumentsProvider from '../../../editors/collectionDocumentsProvider';
+import CollectionDocumentsProvider, { VIEW_COLLECTION_SCHEME } from '../../../editors/collectionDocumentsProvider';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { TestExtensionContext } from '../stubs';
@@ -23,6 +23,13 @@ const mockDocumentsAsJsonString = `[
 ]`;
 
 suite('Collection Documents Provider Test Suite', () => {
+  const mockExtensionContext = new TestExtensionContext();
+  const mockStorageController = new StorageController(mockExtensionContext);
+  const testTelemetryService = new TelemetryService(
+    mockStorageController,
+    mockExtensionContext
+  );
+
   afterEach(() => {
     sinon.restore();
   });
@@ -44,12 +51,6 @@ suite('Collection Documents Provider Test Suite', () => {
       }
     };
 
-    const mockExtensionContext = new TestExtensionContext();
-    const mockStorageController = new StorageController(mockExtensionContext);
-    const testTelemetryService = new TelemetryService(
-      mockStorageController,
-      mockExtensionContext
-    );
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -59,6 +60,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(
+      mockExtensionContext,
       mockConnectionController,
       testQueryStore,
       new StatusView(mockExtensionContext)
@@ -99,13 +101,6 @@ suite('Collection Documents Provider Test Suite', () => {
         return callback(null, mockDocuments);
       }
     };
-
-    const mockExtensionContext = new TestExtensionContext();
-    const mockStorageController = new StorageController(mockExtensionContext);
-    const testTelemetryService = new TelemetryService(
-      mockStorageController,
-      mockExtensionContext
-    );
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -115,6 +110,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(
+      mockExtensionContext,
       mockConnectionController,
       testQueryStore,
       new StatusView(mockExtensionContext)
@@ -144,13 +140,6 @@ suite('Collection Documents Provider Test Suite', () => {
         return callback(null, ['Apollo', 'Gemini ']);
       }
     };
-
-    const mockExtensionContext = new TestExtensionContext();
-    const mockStorageController = new StorageController(mockExtensionContext);
-    const testTelemetryService = new TelemetryService(
-      mockStorageController,
-      mockExtensionContext
-    );
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -160,6 +149,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(
+      mockExtensionContext,
       mockConnectionController,
       testQueryStore,
       new StatusView(mockExtensionContext)
@@ -197,13 +187,6 @@ suite('Collection Documents Provider Test Suite', () => {
 
   test('provideTextDocumentContent shows a status bar item while it is running then hide it', (done) => {
     const mockActiveConnection = { find: {} };
-
-    const mockExtensionContext = new TestExtensionContext();
-    const mockStorageController = new StorageController(mockExtensionContext);
-    const testTelemetryService = new TelemetryService(
-      mockStorageController,
-      mockExtensionContext
-    );
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -215,6 +198,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(
+      mockExtensionContext,
       mockConnectionController,
       testQueryStore,
       testStatusView
@@ -251,5 +235,134 @@ suite('Collection Documents Provider Test Suite', () => {
         assert(mockHideMessage.called);
       })
       .then(done, done);
+  });
+
+  test('provideTextDocumentContent registers two code lens providers for two different collections', async () => {
+    const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
+    const mockConnectionController = new ConnectionController(
+      new StatusView(mockExtensionContext),
+      mockStorageController,
+      testTelemetryService
+    );
+    const testQueryStore = new CollectionDocumentsOperationsStore();
+    const testCollectionViewProvider = new CollectionDocumentsProvider(
+      mockExtensionContext,
+      mockConnectionController,
+      testQueryStore,
+      new StatusView(mockExtensionContext)
+    );
+
+    testCollectionViewProvider._operationsStore = new CollectionDocumentsOperationsStore();
+
+    const mockRegisterCodeLensProvider: any = sinon.fake.resolves([]);
+    sinon.replace(vscode.languages, 'registerCodeLensProvider', mockRegisterCodeLensProvider);
+
+    const mockActiveConnectionId = sinon.fake.returns(connectionId);
+    sinon.replace(
+      testCollectionViewProvider._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    const documents: any[] = [ { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' } ];
+    const mockGetActiveDataService = sinon.fake.returns({
+      find: (
+        namespace: string,
+        filter: object,
+        options: object,
+        callback: (error: Error | null, result: object) => void
+      ) => {
+        return callback(null, documents);
+      }
+    });
+    sinon.replace(
+      testCollectionViewProvider._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+
+    const mockShowMessage = sinon.fake();
+    sinon.replace(testCollectionViewProvider._statusView, 'showMessage', mockShowMessage);
+
+    const mockHideMessage = sinon.fake();
+    sinon.replace(testCollectionViewProvider._statusView, 'hideMessage', mockHideMessage);
+
+    const firstOperationId = testCollectionViewProvider._operationsStore.createNewOperation();
+    const firstCollectionNamespace = 'berlin.cocktailbars';
+    const firstCollectionQuery = [
+      `namespace=${firstCollectionNamespace}`,
+      `connectionId=${connectionId}`,
+      `operationId=${firstOperationId}`
+    ].join('&');
+    const firstCollectionUri = vscode.Uri.parse(
+      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`
+    );
+
+    testCollectionViewProvider._registerCodeLensProviderForCollection({
+      uri: firstCollectionUri,
+      documents,
+      namespace: firstCollectionNamespace
+    });
+
+    await testCollectionViewProvider.provideTextDocumentContent(firstCollectionUri);
+
+    const fisrtSelector = mockRegisterCodeLensProvider.firstArg;
+
+    assert(!!fisrtSelector);
+    assert(fisrtSelector.scheme === 'VIEW_COLLECTION_SCHEME');
+    assert(fisrtSelector.language === 'json');
+    assert(fisrtSelector.pattern === 'Results: berlin.cocktailbars.json');
+
+    const firstProvider = mockRegisterCodeLensProvider.lastArg;
+
+    assert(!!firstProvider);
+    assert(firstProvider._codeLensesInfo.length === 1);
+    assert(firstProvider._codeLensesInfo[0].documentId === '5ea8745ee4811fafe8b65ecb');
+    assert(firstProvider._codeLensesInfo[0].source === 'treeview');
+    assert(firstProvider._codeLensesInfo[0].line === 2);
+    assert(firstProvider._codeLensesInfo[0].namespace === firstCollectionNamespace);
+    assert(firstProvider._codeLensesInfo[0].connectionId === connectionId);
+
+    const secondOperationId = testCollectionViewProvider._operationsStore.createNewOperation();
+    const secondCollectionNamespace = 'companies.companies';
+    const secondCollectionQuery = [
+      `namespace=${secondCollectionNamespace}`,
+      `connectionId=${connectionId}`,
+      `operationId=${secondOperationId}`
+    ].join('&');
+    const secondCollectionUri = vscode.Uri.parse(
+      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`
+    );
+
+    documents.length = 0;
+    documents.push(
+      { _id: '25', name: 'some name', price: 1000 },
+      { _id: '26', name: 'another name', price: 500 }
+    );
+
+    testCollectionViewProvider._registerCodeLensProviderForCollection({
+      uri: secondCollectionUri,
+      documents,
+      namespace: secondCollectionNamespace
+    });
+
+    await testCollectionViewProvider.provideTextDocumentContent(secondCollectionUri);
+
+    const secondSelector = mockRegisterCodeLensProvider.firstArg;
+
+    assert(!!secondSelector);
+    assert(secondSelector.scheme === 'VIEW_COLLECTION_SCHEME');
+    assert(secondSelector.language === 'json');
+    assert(secondSelector.pattern === 'Results: companies.companies.json');
+
+    const secondProvider = mockRegisterCodeLensProvider.lastArg;
+
+    assert(!!secondProvider);
+    assert(secondProvider._codeLensesInfo.length === 2);
+    assert(secondProvider._codeLensesInfo[1].documentId === '26');
+    assert(secondProvider._codeLensesInfo[1].source === 'treeview');
+    assert(secondProvider._codeLensesInfo[1].line === 7);
+    assert(secondProvider._codeLensesInfo[1].namespace === secondCollectionNamespace);
+    assert(secondProvider._codeLensesInfo[1].connectionId === connectionId);
   });
 });
