@@ -3,6 +3,7 @@ import EXTENSION_COMMANDS from '../commands';
 import type { OutputItem, ResultCodeLensInfo } from '../utils/types';
 import ConnectionController from '../connectionController';
 import { DocumentSource } from '../telemetry/telemetryService';
+import { EJSON } from 'bson';
 
 export default class EditDocumentCodeLensProvider
 implements vscode.CodeLensProvider {
@@ -25,6 +26,7 @@ implements vscode.CodeLensProvider {
 
   updateCodeLensesForPlayground(playgroundResult: OutputItem) {
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    let codeLensesInfo: ResultCodeLensInfo[] = [];
 
     if (!playgroundResult || !playgroundResult.content) {
       this._codeLensesInfo = [];
@@ -38,17 +40,19 @@ implements vscode.CodeLensProvider {
     // Show code lenses only for the list of documents or a single document
     // that are returned by the find() method.
     if (type === 'Cursor') {
-      this._updateCodeLensesForCursor(data);
+      codeLensesInfo = this._updateCodeLensesForCursor(data);
     } else if (type === 'Document') {
-      this._updateCodeLensesForDocument(data);
+      codeLensesInfo = this._updateCodeLensesForDocument(data);
     }
+
+    this._codeLensesInfo = codeLensesInfo;
   }
 
   _updateCodeLensesForCursor(data: {
     content: any,
     namespace: string | null,
     source: string
-  }) {
+  }): ResultCodeLensInfo[] {
     const codeLensesInfo: ResultCodeLensInfo[] = [];
 
     if (Array.isArray(data.content)) {
@@ -64,7 +68,7 @@ implements vscode.CodeLensProvider {
         // to be able to save the editable document.
         if (item !== null && item._id && namespace) {
           codeLensesInfo.push({
-            documentId: item._id,
+            documentId: EJSON.deserialize(EJSON.serialize(item._id)),
             source,
             line,
             namespace,
@@ -79,17 +83,16 @@ implements vscode.CodeLensProvider {
       });
     }
 
-    this._codeLensesInfo = codeLensesInfo;
-    this._onDidChangeCodeLenses.fire();
+    return codeLensesInfo;
   }
 
   _updateCodeLensesForDocument(data: {
     content: any,
     namespace: string | null,
     source: string
-  }): void {
-    const codeLensesInfo: ResultCodeLensInfo[] = [];
+  }): ResultCodeLensInfo[] {
     const { content, namespace, source } = data;
+    const codeLensesInfo: ResultCodeLensInfo[] = [];
 
     if (content._id && namespace) {
       const connectionId = this._connectionController.getActiveConnectionId();
@@ -97,7 +100,7 @@ implements vscode.CodeLensProvider {
       // When the playground result is the single document,
       // show the single code lense after {.
       codeLensesInfo.push({
-        documentId: content._id,
+        documentId: EJSON.deserialize(EJSON.serialize(content._id)),
         source,
         line: 1,
         namespace,
@@ -105,8 +108,7 @@ implements vscode.CodeLensProvider {
       });
     }
 
-    this._codeLensesInfo = codeLensesInfo;
-    this._onDidChangeCodeLenses.fire();
+    return codeLensesInfo;
   }
 
   provideCodeLenses(): vscode.CodeLens[] {

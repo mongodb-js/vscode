@@ -9,8 +9,8 @@ import TelemetryService from '../../../telemetry/telemetryService';
 import { afterEach } from 'mocha';
 import { EJSON } from 'bson';
 
-const sinon = require('sinon');
-const chai = require('chai');
+import sinon from 'sinon';
+import chai from 'chai';
 const expect = chai.expect;
 
 suite('MongoDB Document Service Test Suite', () => {
