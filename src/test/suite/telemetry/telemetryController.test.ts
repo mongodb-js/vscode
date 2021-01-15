@@ -185,7 +185,7 @@ suite('Telemetry Controller Test Suite', () => {
     const mockPlaygroundController =
       mdbTestExtension.testExtensionController._playgroundController;
 
-    await mockPlaygroundController.evaluate('show dbs');
+    await mockPlaygroundController._evaluate('show dbs');
 
     sinon.assert.called(mockTrackPlaygroundCodeExecuted);
   });

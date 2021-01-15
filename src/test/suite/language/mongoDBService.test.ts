@@ -62,10 +62,10 @@ suite('MongoDBService Test Suite', () => {
     before(async () => {
       testMongoDBService = new MongoDBService(connection);
 
-      testMongoDBService.getDatabasesCompletionItems = (): void => {};
-      testMongoDBService.getCollectionsCompletionItems = (): Promise<boolean> =>
+      testMongoDBService._getDatabasesCompletionItems = (): void => {};
+      testMongoDBService._getCollectionsCompletionItems = (): Promise<boolean> =>
         Promise.resolve(true);
-      testMongoDBService.getFieldsCompletionItems = (): Promise<boolean> =>
+      testMongoDBService._getFieldsCompletionItems = (): Promise<boolean> =>
         Promise.resolve(true);
 
       await testMongoDBService.connectToServiceProvider(params);
@@ -256,7 +256,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion if has db, connection and is object key', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
@@ -275,7 +275,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion if text not formatted', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
@@ -294,7 +294,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion if functions are multi-lined', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
@@ -318,7 +318,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion if object is multi-lined', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
@@ -337,7 +337,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion if object key is surrounded by spaces', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
@@ -356,13 +356,13 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion for proper db', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
         }
       ]);
-      testMongoDBService.updateCurrentSessionFields('second.collection', [
+      testMongoDBService._updateCurrentSessionFields('second.collection', [
         {
           label: 'TypeScript',
           kind: CompletionItemKind.Field
@@ -386,7 +386,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion if function scope', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
@@ -406,7 +406,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion if snippets mode', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
@@ -426,13 +426,13 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion for proper collection', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.firstCollection', [
+      testMongoDBService._updateCurrentSessionFields('test.firstCollection', [
         {
           label: 'JavaScript First',
           kind: CompletionItemKind.Field
         }
       ]);
-      testMongoDBService.updateCurrentSessionFields('test.secondCollection', [
+      testMongoDBService._updateCurrentSessionFields('test.secondCollection', [
         {
           label: 'JavaScript Second',
           kind: CompletionItemKind.Field
@@ -452,7 +452,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide fields completion if has not db', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
@@ -471,7 +471,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide fields completion if not object id', async () => {
-      testMongoDBService.updateCurrentSessionFields('test.collection', [
+      testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
           kind: CompletionItemKind.Field
@@ -490,7 +490,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide db names completion for literal', async () => {
-      testMongoDBService.updateCurrentSessionDatabases([
+      testMongoDBService._updateCurrentSessionDatabases([
         {
           label: 'admin',
           kind: CompletionItemKind.Value
@@ -511,7 +511,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide db names completion for template start line', async () => {
-      testMongoDBService.updateCurrentSessionDatabases([
+      testMongoDBService._updateCurrentSessionDatabases([
         {
           label: 'admin',
           kind: CompletionItemKind.Value
@@ -532,7 +532,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide db names completion for template middle line', async () => {
-      testMongoDBService.updateCurrentSessionDatabases([
+      testMongoDBService._updateCurrentSessionDatabases([
         {
           label: 'admin',
           kind: CompletionItemKind.Value
@@ -553,7 +553,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide db names completion for template end line', async () => {
-      testMongoDBService.updateCurrentSessionDatabases([
+      testMongoDBService._updateCurrentSessionDatabases([
         {
           label: 'admin',
           kind: CompletionItemKind.Value
@@ -574,7 +574,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion for valid object names', async () => {
-      testMongoDBService.updateCurrentSessionCollections('test', [
+      testMongoDBService._updateCurrentSessionCollections('test', [
         { name: 'empty' }
       ]);
 
@@ -593,7 +593,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion for object names with dashes', async () => {
-      testMongoDBService.updateCurrentSessionCollections('berlin', [
+      testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
           name: 'coll-name'
         }
@@ -618,7 +618,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion in variable declarations', async () => {
-      testMongoDBService.updateCurrentSessionCollections('berlin', [
+      testMongoDBService._updateCurrentSessionCollections('berlin', [
         { name: 'cocktailbars' }
       ]);
 
@@ -641,7 +641,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names and shell db symbol completion for db symbol', async () => {
-      testMongoDBService.updateCurrentSessionCollections('berlin', [
+      testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
           name: 'coll-name'
         }
@@ -669,7 +669,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide only collection names and shell db symbol completion after find cursor', async () => {
-      testMongoDBService.updateCurrentSessionCollections('berlin', [
+      testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
           name: 'cocktailbars'
         }
@@ -707,7 +707,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide only collection names and shell db symbol completion after aggregate cursor', async () => {
-      testMongoDBService.updateCurrentSessionCollections('berlin', [
+      testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
           name: 'cocktailbars'
         }
@@ -745,7 +745,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide only collection names completion in the middle of expression', async () => {
-      testMongoDBService.updateCurrentSessionCollections('berlin', [
+      testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
           name: 'cocktails'
         }
@@ -774,7 +774,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names with dashes completion in the middle of expression', async () => {
-      testMongoDBService.updateCurrentSessionCollections('berlin', [
+      testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
           name: 'coll-name'
         }
@@ -794,7 +794,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion after single line comment', async () => {
-      testMongoDBService.updateCurrentSessionCollections('test', [
+      testMongoDBService._updateCurrentSessionCollections('test', [
         {
           name: 'collection'
         }
@@ -816,7 +816,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion after single line comment with new line character', async () => {
-      testMongoDBService.updateCurrentSessionCollections('test', [
+      testMongoDBService._updateCurrentSessionCollections('test', [
         {
           name: 'collection'
         }
@@ -838,7 +838,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion after multi-line comment', async () => {
-      testMongoDBService.updateCurrentSessionCollections('test', [
+      testMongoDBService._updateCurrentSessionCollections('test', [
         {
           name: 'collection'
         }
@@ -860,7 +860,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion after end of line comment', async () => {
-      testMongoDBService.updateCurrentSessionCollections('test', [
+      testMongoDBService._updateCurrentSessionCollections('test', [
         {
           name: 'collection'
         }
@@ -882,7 +882,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion at the same line block comment starts', async () => {
-      testMongoDBService.updateCurrentSessionCollections('test', [
+      testMongoDBService._updateCurrentSessionCollections('test', [
         {
           name: 'collection'
         }
@@ -904,7 +904,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion at the same line block comment ends', async () => {
-      testMongoDBService.updateCurrentSessionCollections('test', [
+      testMongoDBService._updateCurrentSessionCollections('test', [
         {
           name: 'collection'
         }
@@ -926,7 +926,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion at the same line with end line comment', async () => {
-      testMongoDBService.updateCurrentSessionCollections('test', [
+      testMongoDBService._updateCurrentSessionCollections('test', [
         {
           name: 'collection'
         }
@@ -948,7 +948,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide collection names completion if code without a semicolon', async () => {
-      testMongoDBService.updateCurrentSessionCollections('test', [
+      testMongoDBService._updateCurrentSessionCollections('test', [
         {
           name: 'collection'
         }

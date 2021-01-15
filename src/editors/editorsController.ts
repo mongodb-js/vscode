@@ -387,7 +387,7 @@ export default class EditorsController {
     );
   }
 
-  public deactivate(): void {
+  deactivate(): void {
     this._resetMemoryFileSystemProvider();
   }
 }

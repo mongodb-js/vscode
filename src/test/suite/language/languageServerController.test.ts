@@ -80,7 +80,7 @@ suite('Language Server Controller Test Suite', () => {
       getAttributes: () => CONNECTION
     });
 
-    await testPlaygroundController.connectToServiceProvider();
+    await testPlaygroundController._connectToServiceProvider();
   });
 
   after(() => {

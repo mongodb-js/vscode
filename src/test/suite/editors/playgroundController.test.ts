@@ -84,7 +84,7 @@ suite('Playground Controller Test Suite', function () {
   });
 
   suite('playground is not open', () => {
-    testPlaygroundController.activeTextEditor = undefined;
+    testPlaygroundController._activeTextEditor = undefined;
 
     test('run all playground blocks should throw the playground not found error', async () => {
       const errorMessage =
@@ -145,7 +145,7 @@ suite('Playground Controller Test Suite', function () {
     };
 
     beforeEach(() => {
-      testPlaygroundController.activeTextEditor = activeTestEditorMock as vscode.TextEditor;
+      testPlaygroundController._activeTextEditor = activeTestEditorMock as vscode.TextEditor;
     });
 
     suite('user is not connected', () => {
@@ -154,12 +154,12 @@ suite('Playground Controller Test Suite', function () {
         const mockGetActiveConnectionModel = sinon.fake.returns(null);
 
         sinon.replace(
-          testPlaygroundController.connectionController,
+          testPlaygroundController._connectionController,
           'getActiveConnectionName',
           mockGetActiveConnectionName
         );
         sinon.replace(
-          testPlaygroundController.connectionController,
+          testPlaygroundController._connectionController,
           'getActiveConnectionModel',
           mockGetActiveConnectionModel
         );
@@ -216,17 +216,17 @@ suite('Playground Controller Test Suite', function () {
         });
 
         sinon.replace(
-          testPlaygroundController.connectionController,
+          testPlaygroundController._connectionController,
           'getActiveConnectionName',
           mockGetActiveConnectionName
         );
         sinon.replace(
-          testPlaygroundController.connectionController,
+          testPlaygroundController._connectionController,
           'getActiveConnectionModel',
           mockGetActiveConnectionModel
         );
 
-        await testPlaygroundController.connectToServiceProvider();
+        await testPlaygroundController._connectToServiceProvider();
       });
 
       test('show a confirmation message if mdb.confirmRunAll is true', async () => {
@@ -238,14 +238,14 @@ suite('Playground Controller Test Suite', function () {
         });
         sinon.replace(
           testPlaygroundController,
-          'evaluateWithCancelModal',
+          '_evaluateWithCancelModal',
           mockEvaluateWithCancelModal
         );
 
         const mockOpenPlaygroundResult = sinon.fake();
         sinon.replace(
           testPlaygroundController,
-          'openPlaygroundResult',
+          '_openPlaygroundResult',
           mockOpenPlaygroundResult
         );
 
@@ -272,14 +272,14 @@ suite('Playground Controller Test Suite', function () {
         });
         sinon.replace(
           testPlaygroundController,
-          'evaluateWithCancelModal',
+          '_evaluateWithCancelModal',
           mockEvaluateWithCancelModal
         );
 
         const mockOpenPlaygroundResult = sinon.fake();
         sinon.replace(
           testPlaygroundController,
-          'openPlaygroundResult',
+          '_openPlaygroundResult',
           mockOpenPlaygroundResult
         );
 
@@ -312,12 +312,12 @@ suite('Playground Controller Test Suite', function () {
       test('close cancelation modal when a playground is canceled', async () => {
         sinon.replace(
           testPlaygroundController,
-          'evaluate',
+          '_evaluate',
           sinon.fake.rejects(false)
         );
 
         try {
-          const result = await testPlaygroundController.evaluateWithCancelModal();
+          const result = await testPlaygroundController._evaluateWithCancelModal();
 
           expect(result).to.deep.equal({
             outputLines: undefined,
@@ -346,9 +346,9 @@ suite('Playground Controller Test Suite', function () {
           ]
         };
 
-        testPlaygroundController.activeTextEditor = activeTestEditorWithSelectionMock as vscode.TextEditor;
+        testPlaygroundController._activeTextEditor = activeTestEditorWithSelectionMock as vscode.TextEditor;
 
-        testPlaygroundController.showCodeLensForSelection(
+        testPlaygroundController._showCodeLensForSelection(
           new vscode.Range(0, 5, 0, 11)
         );
 
@@ -358,7 +358,7 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('show code lens if whole line is selected', () => {
-        testPlaygroundController.showCodeLensForSelection(
+        testPlaygroundController._showCodeLensForSelection(
           new vscode.Range(0, 0, 0, 14)
         );
 
@@ -385,7 +385,7 @@ suite('Playground Controller Test Suite', function () {
           testPartialExecutionCodeLensProvider
         );
 
-        expect(playgroundControllerTest.activeTextEditor).to.deep.equal(
+        expect(playgroundControllerTest._activeTextEditor).to.deep.equal(
           activeTestEditorMock
         );
       });
@@ -394,7 +394,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController.getDocumentLanguage({
+        const language = testPlaygroundController._getDocumentLanguage({
           test: 'value'
         });
 
@@ -405,7 +405,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController.getDocumentLanguage([
+        const language = testPlaygroundController._getDocumentLanguage([
           { test: 'value' }
         ]);
 
@@ -416,7 +416,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController.getDocumentLanguage({
+        const language = testPlaygroundController._getDocumentLanguage({
           _id: {
             $oid: '5d973ae7443762aae72a160'
           }
@@ -429,7 +429,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController.getDocumentLanguage(
+        const language = testPlaygroundController._getDocumentLanguage(
           'I am a string'
         );
 
@@ -440,7 +440,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController.getDocumentLanguage(12);
+        const language = testPlaygroundController._getDocumentLanguage(12);
 
         expect(language).to.be.equal('plaintext');
       });
@@ -449,7 +449,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController.getDocumentLanguage(
+        const language = testPlaygroundController._getDocumentLanguage(
           undefined
         );
 
@@ -460,7 +460,7 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController.getDocumentLanguage(
+        const language = testPlaygroundController._getDocumentLanguage(
           undefined
         );
 
