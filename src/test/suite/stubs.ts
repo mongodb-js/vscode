@@ -170,6 +170,31 @@ const mockVSCodeTextDocument = {
     mockPosition
 };
 
+const mockSelection = new vscode.Selection(
+  new vscode.Position(0, 0),
+  new vscode.Position(0, 0)
+);
+
+const mockTextEditor = {
+  document: mockVSCodeTextDocument,
+  selection: mockSelection,
+  selections: [mockSelection],
+  visibleRanges: [new vscode.Range(0, 0, 0, 0)],
+  options: {
+    tabSize: '',
+    insertSpaces: '',
+    cursorStyle: vscode.TextEditorCursorStyle.Line,
+    lineNumbers: vscode.TextEditorLineNumbersStyle.Off
+  },
+  viewColumn: vscode.ViewColumn.Beside,
+  edit: () => Promise.resolve(true),
+  insertSnippet: () => Promise.resolve(true),
+  setDecorations: () => {},
+  revealRange: () => {},
+  show: () => {},
+  hide: () => {}
+};
+
 class MockLanguageServerController {
   _context: TestExtensionContext;
   _storageController?: StorageController;
@@ -224,7 +249,9 @@ class MockLanguageServerController {
 }
 
 export {
+  mockSelection,
   mockDocuments,
+  mockTextEditor,
   mockDatabaseNames,
   mockDatabases,
   mockVSCodeTextDocument,

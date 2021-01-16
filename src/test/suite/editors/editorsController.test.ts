@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
-import assert from 'assert';
 import { afterEach } from 'mocha';
+import assert from 'assert';
+import chai from 'chai';
+import { mockTextEditor } from '../stubs';
+import sinon from 'sinon';
 
 import { EditorsController } from '../../../editors';
 
-const sinon = require('sinon');
-const chai = require('chai');
 const expect = chai.expect;
 
 suite('Editors Controller Test Suite', () => {
@@ -53,18 +54,16 @@ suite('Editors Controller Test Suite', () => {
   });
 
   test('saveMongoDBDocument returns false if this is not a mongodb document', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        scheme: 'file',
-        uri: {
-          query: [
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
+    const activeTextEditor = mockTextEditor;
+    activeTextEditor.document.uri = vscode.Uri.parse([
+      'file:/',
+      'waffle.house:pancakes.json?',
+      'namespace=waffle.house&',
+      'connectionId=tasty_sandwhich&',
+      'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
+      'source=treeview'
+    ].join(''));
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
 
     const result = await vscode.commands.executeCommand(
       'mdb.saveMongoDBDocument'
@@ -74,17 +73,15 @@ suite('Editors Controller Test Suite', () => {
   });
 
   test('saveMongoDBDocument returns false if this is not a mongodb document and namespace is missing', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
+    const activeTextEditor = mockTextEditor;
+    activeTextEditor.document.uri = vscode.Uri.parse([
+      'VIEW_DOCUMENT_SCHEME:/',
+      'waffle.house:pancakes.json?',
+      'connectionId=tasty_sandwhich&',
+      'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
+      'source=treeview'
+    ].join(''));
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
 
     const result = await vscode.commands.executeCommand(
       'mdb.saveMongoDBDocument'
@@ -94,17 +91,15 @@ suite('Editors Controller Test Suite', () => {
   });
 
   test('saveMongoDBDocument returns false if this is not a mongodb document and connectionId is missing', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            'namespace=waffle.house',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        }
-      }
-    }));
+    const activeTextEditor = mockTextEditor;
+    activeTextEditor.document.uri = vscode.Uri.parse([
+      'VIEW_DOCUMENT_SCHEME:/',
+      'waffle.house:pancakes.json?',
+      'namespace=waffle.house&',
+      'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
+      'source=treeview'
+    ].join(''));
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
 
     const result = await vscode.commands.executeCommand(
       'mdb.saveMongoDBDocument'
@@ -114,17 +109,15 @@ suite('Editors Controller Test Suite', () => {
   });
 
   test('saveMongoDBDocument returns false if this is not a mongodb document and documentId is missing', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich'
-          ].join('&')
-        }
-      }
-    }));
+    const activeTextEditor = mockTextEditor;
+    activeTextEditor.document.uri = vscode.Uri.parse([
+      'VIEW_DOCUMENT_SCHEME:/',
+      'waffle.house:pancakes.json?',
+      'namespace=waffle.house&',
+      'connectionId=tasty_sandwhich&',
+      'source=treeview'
+    ].join(''));
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
 
     const result = await vscode.commands.executeCommand(
       'mdb.saveMongoDBDocument'
@@ -134,19 +127,17 @@ suite('Editors Controller Test Suite', () => {
   });
 
   test('saveMongoDBDocument returns false if a user saves an invalid javascript value', async () => {
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a'
-          ].join('&')
-        },
-        getText: () => '{'
-      }
-    }));
+    const activeTextEditor = mockTextEditor;
+    activeTextEditor.document.uri = vscode.Uri.parse([
+      'VIEW_DOCUMENT_SCHEME:/',
+      'waffle.house:pancakes.json?',
+      'namespace=waffle.house&',
+      'connectionId=tasty_sandwhich&',
+      'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
+      'source=treeview'
+    ].join(''));
+    activeTextEditor.document.getText = () => '{';
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
 
     const result = await vscode.commands.executeCommand(
       'mdb.saveMongoDBDocument'

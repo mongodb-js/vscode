@@ -1,17 +1,18 @@
 import * as vscode from 'vscode';
-import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
-import { TestExtensionContext } from '../stubs';
 import { afterEach } from 'mocha';
+import chai from 'chai';
+import sinon from 'sinon';
+
 import ConnectionController from '../../../connectionController';
+import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
+import CollectionDocumentsProvider, { VIEW_COLLECTION_SCHEME } from '../../../editors/collectionDocumentsProvider';
+import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
+import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
+import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
-import { StatusView } from '../../../views';
-import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import CollectionDocumentsProvider, { VIEW_COLLECTION_SCHEME } from '../../../editors/collectionDocumentsProvider';
-import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
+import { TestExtensionContext } from '../stubs';
 
-const sinon = require('sinon');
-const chai = require('chai');
 const expect = chai.expect;
 
 suite('Playground Result Provider Test Suite', () => {
@@ -30,7 +31,7 @@ suite('Playground Result Provider Test Suite', () => {
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
     testConnectionController
   );
-  const sandbox = sinon.createSandbox();
+  const sandbox: any = sinon.createSandbox();
 
   afterEach(() => {
     sandbox.restore();
@@ -213,7 +214,7 @@ suite('Playground Result Provider Test Suite', () => {
       content
     };
 
-    const mockRefresh = sinon.fake.resolves();
+    const mockRefresh: any = sinon.fake();
     sinon.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
@@ -244,7 +245,7 @@ suite('Playground Result Provider Test Suite', () => {
       content
     };
 
-    const mockRefresh = sinon.fake.resolves();
+    const mockRefresh: any = sinon.fake();
     sinon.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
@@ -276,14 +277,14 @@ suite('Playground Result Provider Test Suite', () => {
     };
 
     const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
-    const mockActiveConnectionId = sinon.fake.returns(connectionId);
+    const mockActiveConnectionId: any = sinon.fake.returns(connectionId);
     sinon.replace(
       testConnectionController,
       'getActiveConnectionId',
       mockActiveConnectionId
     );
 
-    const playgroundResultUri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:Playground Result');
+    const playgroundResultUri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:/Playground Result');
     const activeTextEditorDocument = { uri: playgroundResultUri };
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
       document: activeTextEditorDocument
@@ -335,7 +336,7 @@ suite('Playground Result Provider Test Suite', () => {
     testCollectionViewProvider._operationsStore = new CollectionDocumentsOperationsStore();
 
     const documents: any[] = [ { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' } ];
-    const mockGetActiveDataService = sinon.fake.returns({
+    const mockGetActiveDataService: any = sinon.fake.returns({
       find: (
         namespace: string,
         filter: object,
@@ -351,10 +352,10 @@ suite('Playground Result Provider Test Suite', () => {
       mockGetActiveDataService
     );
 
-    const mockShowMessage = sinon.fake();
+    const mockShowMessage: any = sinon.fake();
     sinon.replace(testCollectionViewProvider._statusView, 'showMessage', mockShowMessage);
 
-    const mockHideMessage = sinon.fake();
+    const mockHideMessage: any = sinon.fake();
     sinon.replace(testCollectionViewProvider._statusView, 'hideMessage', mockHideMessage);
 
     const operationId = testCollectionViewProvider._operationsStore.createNewOperation();

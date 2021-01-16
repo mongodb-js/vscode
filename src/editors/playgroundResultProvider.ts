@@ -6,7 +6,7 @@ import ConnectionController from '../connectionController';
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
 export const PLAYGROUND_RESULT_URI = vscode.Uri.parse(
-  `${PLAYGROUND_RESULT_SCHEME}:Playground Result`
+  `${PLAYGROUND_RESULT_SCHEME}:/Playground Result`
 );
 
 export default class PlaygroundResultProvider

@@ -1,22 +1,21 @@
-import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
+import assert from 'assert';
+import sinon from 'sinon';
+
 import { DocumentSource } from '../../../utils/documentSource';
-
-const sinon = require('sinon');
-
-import CollectionDocumentsProvider, { VIEW_COLLECTION_SCHEME } from '../../../editors/collectionDocumentsProvider';
-import ConnectionController from '../../../connectionController';
-import { StatusView } from '../../../views';
-import { TestExtensionContext } from '../stubs';
-import { StorageController } from '../../../storage';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
-import TelemetryService from '../../../telemetry/telemetryService';
-import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import { TEST_DATABASE_URI } from '../dbTestHelper';
-import { ConnectionModelType } from '../../../connectionModelType';
-import { StorageScope } from '../../../storage/storageController';
+import CollectionDocumentsProvider, { VIEW_COLLECTION_SCHEME } from '../../../editors/collectionDocumentsProvider';
 import Connection from 'mongodb-connection-model/lib/model';
+import ConnectionController from '../../../connectionController';
+import { ConnectionModelType } from '../../../connectionModelType';
+import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
+import { StatusView } from '../../../views';
+import { StorageController } from '../../../storage';
+import { StorageScope } from '../../../storage/storageController';
+import TelemetryService from '../../../telemetry/telemetryService';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
+import { TestExtensionContext, mockTextEditor } from '../stubs';
 
 const getConnection = (dbUri): Promise<ConnectionModelType> =>
   new Promise((resolve, reject) => {
@@ -335,9 +334,9 @@ suite('Collection Documents Provider Test Suite', () => {
       `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`
     );
 
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: { uri: firstCollectionUri }
-    }));
+    const activeTextEditor = mockTextEditor;
+    activeTextEditor.document.uri = firstCollectionUri;
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
 
     await testCollectionViewProvider.provideTextDocumentContent(firstCollectionUri);
 
@@ -503,10 +502,9 @@ suite('Collection Documents Provider Test Suite', () => {
       `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`
     );
 
-    const activeTextEditorDocument = { uri: firstCollectionUri };
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: activeTextEditorDocument
-    }));
+    const activeTextEditor = mockTextEditor;
+    activeTextEditor.document.uri = firstCollectionUri;
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
 
     await testCollectionViewProvider.provideTextDocumentContent(firstCollectionUri);
 
@@ -555,7 +553,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`
     );
 
-    activeTextEditorDocument.uri = secondCollectionUri;
+    mockTextEditor.document.uri = secondCollectionUri;
 
     // Fake a new response from find.
     documents.length = 0;
