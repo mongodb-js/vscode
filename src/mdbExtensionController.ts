@@ -55,7 +55,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
-  _editDocumentCodeLensProviderPlayground: EditDocumentCodeLensProvider;
+  _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -80,12 +80,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this._helpExplorer = new HelpExplorer();
     this._playgroundsExplorer = new PlaygroundsExplorer();
-    this._editDocumentCodeLensProviderPlayground = new EditDocumentCodeLensProvider(
+    this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
       this._connectionController
     );
     this._playgroundResultViewProvider = new PlaygroundResultProvider(
       this._connectionController,
-      this._editDocumentCodeLensProviderPlayground
+      this._editDocumentCodeLensProvider
     );
     this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(
       this._connectionController
@@ -110,7 +110,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
       this._partialExecutionCodeLensProvider,
-      this._editDocumentCodeLensProviderPlayground
+      this._editDocumentCodeLensProvider
     );
     this._webviewController = new WebviewController(
       this._connectionController,

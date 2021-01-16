@@ -30,6 +30,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
   provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
     const uriParams = new URLSearchParams(document.uri.query);
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
+
     if (!operationId) {
       return [];
     }
@@ -59,7 +60,6 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
 
   resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
     const uriParams = new URLSearchParams(this._uri.query);
-
     const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER);
     const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
@@ -67,12 +67,13 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     if (!operationId) {
       return codeLens;
     }
-    const operation = this._activeOperationsStore.operations[operationId];
 
+    const operation = this._activeOperationsStore.operations[operationId];
     const amountOfDocs = operation.currentLimit;
 
     let commandTitle;
     let commandTooltip;
+
     if (operation.isCurrentlyFetchingMoreDocuments) {
       commandTitle = `... Fetching ${amountOfDocs} documents...`;
       commandTooltip =

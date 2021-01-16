@@ -49,7 +49,7 @@ export default class EditorsController {
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
-  _editDocumentCodeLensProviderPlayground: EditDocumentCodeLensProvider;
+  _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
 
   constructor(
@@ -61,7 +61,7 @@ export default class EditorsController {
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
     partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider,
-    editDocumentCodeLensProviderPlayground: EditDocumentCodeLensProvider
+    editDocumentCodeLensProvider: EditDocumentCodeLensProvider
   ) {
     log.info('activating...');
 
@@ -79,12 +79,13 @@ export default class EditorsController {
       this._statusView,
       this._telemetryService
     );
-    this._editDocumentCodeLensProviderPlayground = editDocumentCodeLensProviderPlayground;
+    this._editDocumentCodeLensProvider = editDocumentCodeLensProvider;
     this._collectionViewProvider = new CollectionDocumentsProvider(
       this._context,
       connectionController,
       this._collectionDocumentsOperationsStore,
-      new StatusView(context)
+      new StatusView(context),
+      this._editDocumentCodeLensProvider
     );
     this._playgroundResultViewProvider = playgroundResultViewProvider;
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
@@ -341,7 +342,7 @@ export default class EditorsController {
         }
       )
     );
-    // REGISTER CONTENT
+    // REGISTER CONTENT PROVIDERS.
     this._context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
         VIEW_COLLECTION_SCHEME,
@@ -354,7 +355,7 @@ export default class EditorsController {
         this._playgroundResultViewProvider
       )
     );
-    // REGISTER CODE LENSES
+    // REGISTER CODE LENSES PROVIDERS.
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
         {
@@ -382,7 +383,16 @@ export default class EditorsController {
           scheme: PLAYGROUND_RESULT_SCHEME,
           language: 'json'
         },
-        this._editDocumentCodeLensProviderPlayground
+        this._editDocumentCodeLensProvider
+      )
+    );
+    this._context.subscriptions.push(
+      vscode.languages.registerCodeLensProvider(
+        {
+          scheme: VIEW_COLLECTION_SCHEME,
+          language: 'json'
+        },
+        this._editDocumentCodeLensProvider
       )
     );
   }

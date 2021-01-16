@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import assert from 'assert';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import ConnectionController from '../../../connectionController';
@@ -9,7 +10,7 @@ import { ObjectId } from 'bson';
 import { afterEach } from 'mocha';
 import { DocumentSource } from '../../../utils/documentSource';
 
-import sinon from 'sinon';
+const sinon = require('sinon');
 
 import * as util from 'util';
 
@@ -26,8 +27,10 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     mockStorageController,
     testTelemetryService
   );
+  const sandbox = sinon.createSandbox();
 
   afterEach(() => {
+    sandbox.restore();
     sinon.restore();
   });
 
@@ -113,6 +116,12 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         testConnectionController
       );
 
+      sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+        document: {
+          uri: vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:Playground Result')
+        }
+      }));
+
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
         type: 'Document',
@@ -146,6 +155,12 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController
       );
+
+      sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+        document: {
+          uri: vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:Playground Result')
+        }
+      }));
 
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
@@ -188,6 +203,12 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController
       );
+
+      sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+        document: {
+          uri: vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:Playground Result')
+        }
+      }));
 
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',

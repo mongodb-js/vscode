@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { TestExtensionContext } from '../stubs';
 import { afterEach } from 'mocha';
@@ -31,8 +30,10 @@ suite('Playground Result Provider Test Suite', () => {
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
     testConnectionController
   );
+  const sandbox = sinon.createSandbox();
 
   afterEach(() => {
+    sandbox.restore();
     sinon.restore();
   });
 
@@ -259,7 +260,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(mockRefresh.firstArg).to.be.deep.equal(playgroundResult);
   });
 
-  test('provideTextDocumentContent differentiates code lenses providers for playgrounds and collections', async () => {
+  test('provideTextDocumentContent sets different code lenses for the playground and the collection', async () => {
     const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
@@ -282,34 +283,56 @@ suite('Playground Result Provider Test Suite', () => {
       mockActiveConnectionId
     );
 
+    const playgroundResultUri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:Playground Result');
+    const activeTextEditorDocument = { uri: playgroundResultUri };
+    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
+      document: activeTextEditorDocument
+    }));
+
     testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
     testPlaygroundResultViewProvider.provideTextDocumentContent();
 
-    const firstPlaygroundCodeLensesInfo = testPlaygroundResultViewProvider._editDocumentCodeLensProvider._codeLensesInfo;
+    let codeLenses = testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
 
-    expect(firstPlaygroundCodeLensesInfo.length).to.be.equal(2);
-    expect(firstPlaygroundCodeLensesInfo[0].documentId).to.be.equal(1);
-    expect(firstPlaygroundCodeLensesInfo[0].source).to.be.equal('playground');
-    expect(firstPlaygroundCodeLensesInfo[0].line).to.be.equal(2);
-    expect(firstPlaygroundCodeLensesInfo[0].namespace).to.be.equal(playgroundNamespace);
-    expect(firstPlaygroundCodeLensesInfo[0].connectionId).to.be.equal('1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487');
+    expect(codeLenses.length).to.be.equal(2);
 
-    expect(firstPlaygroundCodeLensesInfo[1].documentId).to.be.equal(2);
-    expect(firstPlaygroundCodeLensesInfo[1].source).to.be.equal('playground');
-    expect(firstPlaygroundCodeLensesInfo[1].line).to.be.equal(9);
+    let firstCodeLensRange = codeLenses[0].range;
+
+    expect(firstCodeLensRange.start.line).to.be.equal(2);
+    expect(codeLenses[0].command?.title).to.be.equal('Edit Document');
+
+    const secondCodeLensRange = codeLenses[1].range;
+
+    expect(secondCodeLensRange.start.line).to.be.equal(9);
+
+    let codeLensesInfo = testPlaygroundResultViewProvider
+      ._editDocumentCodeLensProvider._codeLensesInfo;
+
+    expect(Object.keys(codeLensesInfo).length).to.be.equal(1);
+
+    let firstCodeLensesInfo = codeLensesInfo[playgroundResultUri.toString()];
+
+    expect(firstCodeLensesInfo.length).to.be.equal(2);
+    expect(firstCodeLensesInfo[0].documentId).to.be.equal(1);
+    expect(firstCodeLensesInfo[0].source).to.be.equal('playground');
+    expect(firstCodeLensesInfo[0].line).to.be.equal(2);
+    expect(firstCodeLensesInfo[0].namespace).to.be.equal(playgroundNamespace);
+    expect(firstCodeLensesInfo[0].connectionId).to.be.equal('1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487');
+
+    expect(firstCodeLensesInfo[1].documentId).to.be.equal(2);
+    expect(firstCodeLensesInfo[1].source).to.be.equal('playground');
+    expect(firstCodeLensesInfo[1].line).to.be.equal(9);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(
       mockExtensionContext,
       testConnectionController,
       testQueryStore,
-      testStatusView
+      testStatusView,
+      testEditDocumentCodeLensProvider
     );
 
     testCollectionViewProvider._operationsStore = new CollectionDocumentsOperationsStore();
-
-    const mockRegisterCodeLensProvider: any = sinon.fake.resolves([]);
-    sinon.replace(vscode.languages, 'registerCodeLensProvider', mockRegisterCodeLensProvider);
 
     const documents: any[] = [ { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' } ];
     const mockGetActiveDataService = sinon.fake.returns({
@@ -334,46 +357,53 @@ suite('Playground Result Provider Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testCollectionViewProvider._statusView, 'hideMessage', mockHideMessage);
 
-    const firstOperationId = testCollectionViewProvider._operationsStore.createNewOperation();
-    const firstCollectionNamespace = 'berlin.cocktailbars';
-    const firstCollectionQuery = [
-      `namespace=${firstCollectionNamespace}`,
+    const operationId = testCollectionViewProvider._operationsStore.createNewOperation();
+    const collectionNamespace = 'berlin.cocktailbars';
+    const collectionQuery = [
+      `namespace=${collectionNamespace}`,
       `connectionId=${connectionId}`,
-      `operationId=${firstOperationId}`
+      `operationId=${operationId}`
     ].join('&');
-    const firstCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`
+    const collectionUri = vscode.Uri.parse(
+      `${VIEW_COLLECTION_SCHEME}:Results: ${collectionNamespace}.json?${collectionQuery}`
     );
 
-    testCollectionViewProvider._registerCodeLensProviderForCollection({
-      uri: firstCollectionUri,
-      documents,
-      namespace: firstCollectionNamespace
-    });
+    activeTextEditorDocument.uri = collectionUri; // Switch active editor.
+    await testCollectionViewProvider.provideTextDocumentContent(collectionUri);
+    testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
+    codeLenses = testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
 
-    await testCollectionViewProvider.provideTextDocumentContent(firstCollectionUri);
+    expect(codeLenses.length).to.be.equal(1);
 
-    expect(mockRegisterCodeLensProvider.firstArg).to.be.deep.equal({
-      scheme: 'VIEW_COLLECTION_SCHEME',
-      language: 'json',
-      pattern: 'Results: berlin.cocktailbars.json'
-    });
-    expect(mockRegisterCodeLensProvider.lastArg._codeLensesInfo).to.be.deep.equal([
-      {
-        documentId: '5ea8745ee4811fafe8b65ecb',
-        source: 'collectionview',
-        line: 2,
-        namespace: 'berlin.cocktailbars',
-        connectionId: '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487'
-      }
-    ]);
+    firstCodeLensRange = codeLenses[0].range;
 
-    const secondPlaygroundCodeLensesInfo = testPlaygroundResultViewProvider
-      ._editDocumentCodeLensProvider._codeLensesInfo;
+    expect(firstCodeLensRange.start.line).to.be.equal(2);
+    expect(codeLenses[0].command?.title).to.be.equal('Edit Document');
 
-    expect(secondPlaygroundCodeLensesInfo.length).to.be.equal(2);
-    expect(secondPlaygroundCodeLensesInfo[1].documentId).to.be.equal(2);
-    expect(secondPlaygroundCodeLensesInfo[1].source).to.be.equal('playground');
-    expect(secondPlaygroundCodeLensesInfo[1].line).to.be.equal(9);
+    codeLensesInfo = testPlaygroundResultViewProvider._editDocumentCodeLensProvider._codeLensesInfo;
+
+    expect(Object.keys(codeLensesInfo).length).to.be.equal(2);
+
+    firstCodeLensesInfo = codeLensesInfo[playgroundResultUri.toString()];
+
+    expect(firstCodeLensesInfo.length).to.be.equal(2);
+    expect(firstCodeLensesInfo[0].documentId).to.be.equal(1);
+    expect(firstCodeLensesInfo[0].source).to.be.equal('playground');
+    expect(firstCodeLensesInfo[0].line).to.be.equal(2);
+    expect(firstCodeLensesInfo[0].namespace).to.be.equal(playgroundNamespace);
+    expect(firstCodeLensesInfo[0].connectionId).to.be.equal('1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487');
+
+    expect(firstCodeLensesInfo[1].documentId).to.be.equal(2);
+    expect(firstCodeLensesInfo[1].source).to.be.equal('playground');
+    expect(firstCodeLensesInfo[1].line).to.be.equal(9);
+
+    const secondCodeLensesInfo = codeLensesInfo[collectionUri.toString()];
+
+    expect(secondCodeLensesInfo.length).to.be.equal(1);
+    expect(secondCodeLensesInfo[0].documentId).to.be.equal('5ea8745ee4811fafe8b65ecb');
+    expect(secondCodeLensesInfo[0].source).to.be.equal('collectionview');
+    expect(secondCodeLensesInfo[0].line).to.be.equal(2);
+    expect(secondCodeLensesInfo[0].namespace).to.be.equal(collectionNamespace);
+    expect(secondCodeLensesInfo[0].connectionId).to.be.equal('1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487');
   });
 });

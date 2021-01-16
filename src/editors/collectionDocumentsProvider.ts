@@ -4,9 +4,8 @@ import * as vscode from 'vscode';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
-import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import * as util from 'util';
-import { EJSON } from 'bson';
+import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
@@ -20,47 +19,24 @@ implements vscode.TextDocumentContentProvider {
   _connectionController: ConnectionController;
   _operationsStore: CollectionDocumentsOperationsStore;
   _statusView: StatusView;
+  _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
 
   constructor(
     context: vscode.ExtensionContext,
     connectionController: ConnectionController,
     operationsStore: CollectionDocumentsOperationsStore,
-    statusView: StatusView
+    statusView: StatusView,
+    editDocumentCodeLensProvider: EditDocumentCodeLensProvider
   ) {
     this._context = context;
     this._connectionController = connectionController;
     this._operationsStore = operationsStore;
     this._statusView = statusView;
+    this._editDocumentCodeLensProvider = editDocumentCodeLensProvider;
   }
 
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this.onDidChangeEmitter.event;
-
-  _registerCodeLensProviderForCollection(data: {
-    uri: vscode.Uri,
-    documents: EJSON.SerializableTypes,
-    namespace: string
-  }) {
-    const editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-      this._connectionController
-    );
-
-    this._context.subscriptions.push(
-      vscode.languages.registerCodeLensProvider(
-        {
-          scheme: VIEW_COLLECTION_SCHEME,
-          language: 'json',
-          pattern: data.uri.path
-        },
-        editDocumentCodeLensProvider
-      )
-    );
-
-    editDocumentCodeLensProvider.updateCodeLensesForCollection({
-      content: data.documents,
-      namespace: data.namespace
-    });
-  }
 
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
     const uriParams = new URLSearchParams(uri.query);
@@ -121,7 +97,11 @@ implements vscode.TextDocumentContentProvider {
         operation.hasMoreDocumentsToShow = false;
       }
 
-      this._registerCodeLensProviderForCollection({ uri, documents, namespace });
+      this._editDocumentCodeLensProvider.updateCodeLensesForCollection({
+        content: documents,
+        namespace,
+        uri
+      });
 
       return JSON.stringify(documents, null, 2);
     } catch (error) {
