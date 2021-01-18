@@ -10,13 +10,9 @@ import { DataServiceType } from '../dataServiceType';
 import type { ExecuteAllResult, CloudInfoResult } from '../utils/types';
 import type { InstanceInfoResult } from '../instanceInfoResultType';
 import { ConnectionModelType } from '../connectionModelType';
+import { DocumentSource } from '../utils/documentSource';
 import fs from 'fs';
 import * as util from 'util';
-
-export enum DocumentSource {
-  DOCUMENT_SOURCE_TREEVIEW = 'treeview',
-  DOCUMENT_SOURCE_PLAYGROUND = 'playground'
-}
 
 const log = createLogger('telemetry');
 
@@ -69,12 +65,12 @@ type NewConnectionTelemetryEventProperties = {
 };
 
 type DocumentUpdatedTelemetryEventProperties = {
-  source: string;
+  source: DocumentSource;
   success: boolean;
 };
 
 type DocumentEditedTelemetryEventProperties = {
-  source: string;
+  source: DocumentSource;
 };
 
 export type TelemetryEventProperties =
@@ -368,11 +364,11 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
   }
 
-  trackDocumentUpdated(source: string, success: boolean): void {
+  trackDocumentUpdated(source: DocumentSource, success: boolean): void {
     this.track(TelemetryEventTypes.DOCUMENT_UPDATED, { source, success });
   }
 
-  trackOpenMongoDBDocumentFromPlayground(source: DocumentSource): void {
+  trackDocumentOpenedInEditor(source: DocumentSource): void {
     this.track(TelemetryEventTypes.DOCUMENT_EDITED, { source });
   }
 }

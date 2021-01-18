@@ -3,7 +3,8 @@ import { EJSON } from 'bson';
 import DocumentIdStore from './documentIdStore';
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
-import TelemetryService, { DocumentSource } from '../telemetry/telemetryService';
+import TelemetryService from '../telemetry/telemetryService';
+import { DocumentSource } from '../utils/documentSource';
 import { createLogger } from '../logging';
 import util from 'util';
 import type { ResultCodeLensInfo } from '../utils/types';
@@ -58,7 +59,7 @@ export default class MongoDBDocumentService {
     namespace: string;
     connectionId: string;
     newDocument: EJSON.SerializableTypes;
-    source: string;
+    source: DocumentSource;
   }): Promise<void> {
     log.info('replace document in MongoDB', data);
 

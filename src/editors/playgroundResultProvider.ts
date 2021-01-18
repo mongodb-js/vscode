@@ -6,38 +6,26 @@ import ConnectionController from '../connectionController';
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
 export const PLAYGROUND_RESULT_URI = vscode.Uri.parse(
-  `${PLAYGROUND_RESULT_SCHEME}:Playground Result`
+  `${PLAYGROUND_RESULT_SCHEME}:/Playground Result`
 );
 
 export default class PlaygroundResultProvider
 implements vscode.TextDocumentContentProvider {
+  _connectionController: ConnectionController;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _playgroundResult: OutputItem;
-  _connectionController: ConnectionController;
 
   constructor(
-    context: vscode.ExtensionContext,
-    connectionController: ConnectionController
+    connectionController: ConnectionController,
+    editDocumentCodeLensProvider: EditDocumentCodeLensProvider
   ) {
     this._connectionController = connectionController;
-    this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-      this._connectionController
-    );
+    this._editDocumentCodeLensProvider = editDocumentCodeLensProvider;
     this._playgroundResult = {
       namespace: null,
       type: null,
       content: undefined
     };
-
-    context.subscriptions.push(
-      vscode.languages.registerCodeLensProvider(
-        {
-          scheme: PLAYGROUND_RESULT_SCHEME,
-          language: 'json'
-        },
-        this._editDocumentCodeLensProvider
-      )
-    );
   }
 
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
@@ -54,8 +42,7 @@ implements vscode.TextDocumentContentProvider {
   }
 
   provideTextDocumentContent(): string {
-    const type = this._playgroundResult.type;
-    const content = this._playgroundResult.content;
+    const { type, content } = this._playgroundResult;
 
     if (type === 'undefined') {
       return 'undefined';

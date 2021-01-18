@@ -1,14 +1,15 @@
 import * as vscode from 'vscode';
+import { beforeEach, afterEach } from 'mocha';
+import chai from 'chai';
+import sinon from 'sinon';
+
+import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
-import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import { TestExtensionContext } from '../stubs';
 import { StorageController } from '../../../storage';
+import { TestExtensionContext } from '../stubs';
 import TelemetryService from '../../../telemetry/telemetryService';
-import { beforeEach, afterEach } from 'mocha';
 
-const sinon = require('sinon');
-const chai = require('chai');
 const expect = chai.expect;
 
 suite('Active DB CodeLens Provider Test Suite', () => {
@@ -29,7 +30,7 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController
     );
-    const mockShowQuickPick = sinon.fake.resolves();
+    const mockShowQuickPick = sinon.fake();
 
     beforeEach(() => {
       sinon.replace(vscode.window, 'showQuickPick', mockShowQuickPick);

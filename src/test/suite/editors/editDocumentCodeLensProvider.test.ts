@@ -1,16 +1,18 @@
-import assert from 'assert';
-import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import ConnectionController from '../../../connectionController';
-import { TestExtensionContext } from '../stubs';
-import { StorageController } from '../../../storage';
-import TelemetryService from '../../../telemetry/telemetryService';
-import { StatusView } from '../../../views';
-import { ObjectId } from 'bson';
+import * as vscode from 'vscode';
+import * as util from 'util';
 import { afterEach } from 'mocha';
-
+import assert from 'assert';
+import { ObjectId } from 'bson';
 import sinon from 'sinon';
 
-import * as util from 'util';
+import ConnectionController from '../../../connectionController';
+import { DocumentSource } from '../../../utils/documentSource';
+import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
+import { mockTextEditor } from '../stubs';
+import { StatusView } from '../../../views';
+import { StorageController } from '../../../storage';
+import TelemetryService from '../../../telemetry/telemetryService';
+import { TestExtensionContext } from '../stubs';
 
 suite('Edit Document Code Lens Provider Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
@@ -25,8 +27,10 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     mockStorageController,
     testTelemetryService
   );
+  const sandbox = sinon.createSandbox();
 
   afterEach(() => {
+    sandbox.restore();
     sinon.restore();
   });
 
@@ -51,7 +55,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         name: 'test name'
       }],
       namespace: 'db.coll',
-      source: 'playground'
+      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
     };
 
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
@@ -84,7 +88,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         name: 'test name'
       },
       namespace: 'db.coll',
-      source: 'playground'
+      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
     };
 
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
@@ -112,6 +116,10 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         testConnectionController
       );
 
+      const activeTextEditor = mockTextEditor;
+      mockTextEditor.document.uri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:/Playground Result');
+      sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
+
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
         type: 'Document',
@@ -135,7 +143,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       );
       assert(codeLens[0].command?.title === 'Edit Document');
       assert(!!codeLens[0].command?.command);
-      assert(codeLens[0].command?.command === 'mdb.openMongoDBDocumentFromPlayground');
+      assert(codeLens[0].command?.command === 'mdb.openMongoDBDocumentFromCodeLens');
       const commandArguments = codeLens[0].command?.arguments;
       assert(!!commandArguments);
       assert(commandArguments[0].source === 'playground');
@@ -145,6 +153,10 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController
       );
+
+      const activeTextEditor = mockTextEditor;
+      activeTextEditor.document.uri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:/Playground Result');
+      sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
 
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
@@ -187,6 +199,10 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController
       );
+
+      const activeTextEditor = mockTextEditor;
+      activeTextEditor.document.uri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:/Playground Result');
+      sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
 
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',

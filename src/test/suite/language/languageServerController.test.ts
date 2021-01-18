@@ -19,6 +19,7 @@ import { mdbTestExtension } from '../stubbableMdbExtension';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import PartialExecutionCodeLensProvider from '../../../editors/partialExecutionCodeLensProvider';
+import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 
 const CONNECTION = {
   driverUrlWithSsh: 'mongodb://localhost:27018',
@@ -44,9 +45,12 @@ suite('Language Server Controller Test Suite', () => {
     mockStorageController,
     testTelemetryService
   );
-  const testPlaygroundResultProvider = new PlaygroundResultProvider(
-    mockExtensionContext,
+  const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
     testConnectionController
+  );
+  const testPlaygroundResultProvider = new PlaygroundResultProvider(
+    testConnectionController,
+    testEditDocumentCodeLensProvider
   );
   const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
     testConnectionController
@@ -76,7 +80,7 @@ suite('Language Server Controller Test Suite', () => {
       getAttributes: () => CONNECTION
     });
 
-    await testPlaygroundController.connectToServiceProvider();
+    await testPlaygroundController._connectToServiceProvider();
   });
 
   after(() => {

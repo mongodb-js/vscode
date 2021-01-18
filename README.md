@@ -8,7 +8,7 @@ MongoDB for VS Code makes it easy to work with MongoDB, whether your own instanc
 
 ### Navigate your MongoDB Data
 
-- Navigate your database, collections and read-only views
+- Navigate your databases, collections, and read-only views
 - See the documents in your collections
 - Edit documents and save changes to the database
 - Get a quick overview of your schema and your indexes
@@ -21,8 +21,9 @@ MongoDB Playgrounds are the most convenient way to prototype and execute CRUD op
 
 - Prototype your queries, aggregations, and MongoDB commands with MongoDB syntax highlighting and intelligent autocomplete for MongoDB shell API, MongoDB operators, and for database, collection, and field names.
 - Run your playgrounds and see the results instantly. Click the play button in the tab bar to see the output.
-- Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB
-- Build aggregations quickly with helpful and well-commented stage snippets
+- Edit documents returned by your playground.
+- Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB.
+- Build aggregations quickly with helpful and well-commented stage snippets.
 
 ![Playgrounds](resources/screenshots/playground.png)
 

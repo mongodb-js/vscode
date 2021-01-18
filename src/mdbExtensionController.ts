@@ -15,7 +15,7 @@ import {
 } from './explorer';
 import EXTENSION_COMMANDS from './commands';
 import { LanguageServerController } from './language';
-import TelemetryService, { DocumentSource } from './telemetry/telemetryService';
+import TelemetryService from './telemetry/telemetryService';
 import { StatusView } from './views';
 import { createLogger } from './logging';
 import { StorageController, StorageVariables } from './storage';
@@ -32,6 +32,8 @@ import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
 import PartialExecutionCodeLensProvider from './editors/partialExecutionCodeLensProvider';
 import type { ResultCodeLensInfo } from './utils/types';
+import { DocumentSource } from './utils/documentSource';
+import EditDocumentCodeLensProvider from './editors/editDocumentCodeLensProvider';
 
 const log = createLogger('commands');
 
@@ -53,6 +55,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
+  _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -77,9 +80,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this._helpExplorer = new HelpExplorer();
     this._playgroundsExplorer = new PlaygroundsExplorer();
-    this._playgroundResultViewProvider = new PlaygroundResultProvider(
-      context,
+    this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
       this._connectionController
+    );
+    this._playgroundResultViewProvider = new PlaygroundResultProvider(
+      this._connectionController,
+      this._editDocumentCodeLensProvider
     );
     this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(
       this._connectionController
@@ -103,7 +109,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._telemetryService,
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
-      this._partialExecutionCodeLensProvider
+      this._partialExecutionCodeLensProvider,
+      this._editDocumentCodeLensProvider
     );
     this._webviewController = new WebviewController(
       this._connectionController,
@@ -178,11 +185,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundsExplorer.refresh()
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_PLAYGROUND,
+      EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
       (data: ResultCodeLensInfo) => {
-        this._telemetryService.trackOpenMongoDBDocumentFromPlayground(
-          DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
-        );
+        this._telemetryService.trackDocumentOpenedInEditor(data.source);
 
         return this._editorsController.openMongoDBDocument(data);
       }

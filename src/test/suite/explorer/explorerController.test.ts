@@ -1,15 +1,15 @@
-import assert from 'assert';
 import * as vscode from 'vscode';
+import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
-import Connection = require('mongodb-connection-model/lib/model');
-const sinon = require('sinon');
+import sinon from 'sinon';
 
+import Connection = require('mongodb-connection-model/lib/model');
 import {
   DefaultSavingLocations,
   StorageScope
 } from '../../../storage/storageController';
-import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=500&serverSelectionTimeoutMS=500';
@@ -29,7 +29,7 @@ suite('Explorer Controller Test Suite', function () {
       );
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.
-    sinon.replace(vscode.window, 'showInformationMessage', sinon.stub());
+    sinon.replace(vscode.window, 'showInformationMessage', sinon.fake.resolves(true));
   });
 
   afterEach(async () => {

@@ -10,13 +10,13 @@ import {
 } from './collectionDocumentsProvider';
 
 export default class CollectionDocumentsCodeLensProvider implements vscode.CodeLensProvider {
-  private _codeLenses: vscode.CodeLens[] = [];
-  private _activeOperationsStore: CollectionDocumentsOperationStore;
-  private uri: vscode.Uri = vscode.Uri.parse('');
-  private _onDidChangeCodeLenses: vscode.EventEmitter<
+  _codeLenses: vscode.CodeLens[] = [];
+  _activeOperationsStore: CollectionDocumentsOperationStore;
+  _uri: vscode.Uri = vscode.Uri.parse('');
+  _onDidChangeCodeLenses: vscode.EventEmitter<
     void
   > = new vscode.EventEmitter<void>();
-  public readonly onDidChangeCodeLenses: vscode.Event<void> = this
+  readonly onDidChangeCodeLenses: vscode.Event<void> = this
     ._onDidChangeCodeLenses.event;
 
   constructor(operationsStore: CollectionDocumentsOperationStore) {
@@ -27,9 +27,10 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     });
   }
 
-  public provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
+  provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
     const uriParams = new URLSearchParams(document.uri.query);
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
+
     if (!operationId) {
       return [];
     }
@@ -52,14 +53,13 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
       )
     ];
 
-    this.uri = document.uri;
+    this._uri = document.uri;
 
     return this._codeLenses;
   }
 
-  public resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
-    const uriParams = new URLSearchParams(this.uri.query);
-
+  resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
+    const uriParams = new URLSearchParams(this._uri.query);
     const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER);
     const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
@@ -67,12 +67,13 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
     if (!operationId) {
       return codeLens;
     }
-    const operation = this._activeOperationsStore.operations[operationId];
 
+    const operation = this._activeOperationsStore.operations[operationId];
     const amountOfDocs = operation.currentLimit;
 
     let commandTitle;
     let commandTooltip;
+
     if (operation.isCurrentlyFetchingMoreDocuments) {
       commandTitle = `... Fetching ${amountOfDocs} documents...`;
       commandTooltip =

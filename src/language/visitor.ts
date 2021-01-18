@@ -21,59 +21,59 @@ export class Visitor {
   _position: { line: number; character: number };
 
   constructor() {
-    this._state = this.getDefaultNodesValues();
+    this._state = this._getDefaultNodesValues();
     this._position = { line: 0, character: 0 };
   }
 
-  private visitCallExpression(node: any): void {
-    if (this.checkIsUseCall(node)) {
+  _visitCallExpression(node: any): void {
+    if (this._checkIsUseCall(node)) {
       this._state.isUseCallExpression = true;
     }
 
-    if (this.checkIsCollectionName(node)) {
+    if (this._checkIsCollectionName(node)) {
       this._state.isCollectionName = true;
     }
 
-    if (this.checkHasDatabaseName(node)) {
+    if (this._checkHasDatabaseName(node)) {
       this._state.databaseName = node.arguments[0].value;
     }
   }
 
-  private visitMemberExpression(node: any): void {
-    if (this.checkHasAggregationCall(node)) {
+  _visitMemberExpression(node: any): void {
+    if (this._checkHasAggregationCall(node)) {
       this._state.isAggregationCursor = true;
     }
 
-    if (this.checkHasFindCall(node)) {
+    if (this._checkHasFindCall(node)) {
       this._state.isFindCursor = true;
     }
 
-    if (this.checkIsShellMethod(node)) {
+    if (this._checkIsShellMethod(node)) {
       this._state.isShellMethod = true;
     }
 
-    if (this.checkIsCollectionName(node)) {
+    if (this._checkIsCollectionName(node)) {
       this._state.isCollectionName = true;
     }
 
-    if (this.checkHasCollectionName(node)) {
+    if (this._checkHasCollectionName(node)) {
       this._state.collectionName = node.object.property.name;
     }
   }
 
-  private visitExpressionStatement(node: any): void {
-    if (this.checkIsDbCall(node)) {
+  _visitExpressionStatement(node: any): void {
+    if (this._checkIsDbCall(node)) {
       this._state.isDbCallExpression = true;
     }
   }
 
-  private visitObjectExpression(node: any): void {
-    if (this.checkIsObjectKey(node)) {
+  _visitObjectExpression(node: any): void {
+    if (this._checkIsObjectKey(node)) {
       this._state.isObjectKey = true;
     }
   }
 
-  private handleTriggerCharacter(
+  _handleTriggerCharacter(
     textFromEditor: string,
     position: { line: number; character: number }
   ): string {
@@ -97,14 +97,14 @@ export class Visitor {
     return textLines.join('\n');
   }
 
-  public parseAST(
+  parseAST(
     textFromEditor: string,
     position: { line: number; character: number }
   ): CompletionState {
-    this._state = this.getDefaultNodesValues();
+    this._state = this._getDefaultNodesValues();
     this._position = position;
 
-    const textWithPlaceholder = this.handleTriggerCharacter(
+    const textWithPlaceholder = this._handleTriggerCharacter(
       textFromEditor,
       position
     );
@@ -123,16 +123,16 @@ export class Visitor {
       enter: (path) => {
         switch (path.node.type) {
           case 'CallExpression':
-            this.visitCallExpression(path.node);
+            this._visitCallExpression(path.node);
             break;
           case 'MemberExpression':
-            this.visitMemberExpression(path.node);
+            this._visitMemberExpression(path.node);
             break;
           case 'ExpressionStatement':
-            this.visitExpressionStatement(path.node);
+            this._visitExpressionStatement(path.node);
             break;
           case 'ObjectExpression':
-            this.visitObjectExpression(path.node);
+            this._visitObjectExpression(path.node);
             break;
           default:
             break;
@@ -143,7 +143,7 @@ export class Visitor {
     return this._state;
   }
 
-  public getDefaultNodesValues() {
+  _getDefaultNodesValues() {
     return {
       databaseName: null,
       collectionName: null,
@@ -158,7 +158,7 @@ export class Visitor {
   }
 
   // eslint-disable-next-line complexity
-  private checkIsUseCall(node: any): boolean {
+  _checkIsUseCall(node: any): boolean {
     if (
       (node.callee.name === 'use' &&
         node.arguments &&
@@ -182,7 +182,7 @@ export class Visitor {
     return false;
   }
 
-  private checkIsDbCall(node: any): boolean {
+  _checkIsDbCall(node: any): boolean {
     if (
       node.expression &&
       node.expression.object &&
@@ -194,7 +194,7 @@ export class Visitor {
     return false;
   }
 
-  private checkIsObjectKey(node: any): boolean {
+  _checkIsObjectKey(node: any): boolean {
     if (
       node.properties.find(
         (item: any) => !!(item.key.name && item.key.name.includes(PLACEHOLDER))
@@ -207,7 +207,7 @@ export class Visitor {
   }
 
   // eslint-disable-next-line complexity
-  private checkIsCollectionName(node: any): boolean {
+  _checkIsCollectionName(node: any): boolean {
     if (
       (node.object &&
         node.object.name === 'db' &&
@@ -228,7 +228,7 @@ export class Visitor {
     return false;
   }
 
-  private checkHasAggregationCall(node: any): boolean {
+  _checkHasAggregationCall(node: any): boolean {
     if (
       node.object &&
       node.object.type === 'CallExpression' &&
@@ -243,7 +243,7 @@ export class Visitor {
     return false;
   }
 
-  private checkHasFindCall(node: any): boolean {
+  _checkHasFindCall(node: any): boolean {
     if (
       node.object &&
       node.object.type === 'CallExpression' &&
@@ -258,7 +258,7 @@ export class Visitor {
     return false;
   }
 
-  private checkHasDatabaseName(node: any): boolean {
+  _checkHasDatabaseName(node: any): boolean {
     if (
       node.callee &&
       node.callee.name === 'use' &&
@@ -276,7 +276,7 @@ export class Visitor {
     return false;
   }
 
-  private checkHasCollectionName(node: any): boolean {
+  _checkHasCollectionName(node: any): boolean {
     if (
       node.object.object &&
       node.object.object.name === 'db' &&
@@ -288,7 +288,7 @@ export class Visitor {
     return false;
   }
 
-  private checkIsShellMethod(node: any): boolean {
+  _checkIsShellMethod(node: any): boolean {
     if (
       node.object.object &&
       node.object.object.name === 'db' &&

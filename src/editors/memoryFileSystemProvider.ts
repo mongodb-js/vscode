@@ -160,9 +160,9 @@ export class MemoryFileSystemProvider implements vscode.FileSystemProvider {
     );
   }
 
-  private _lookup(uri: vscode.Uri, silent: false): Entry;
-  private _lookup(uri: vscode.Uri, silent: boolean): Entry | undefined;
-  private _lookup(uri: vscode.Uri, silent: boolean): Entry | undefined {
+  _lookup(uri: vscode.Uri, silent: false): Entry;
+  _lookup(uri: vscode.Uri, silent: boolean): Entry | undefined;
+  _lookup(uri: vscode.Uri, silent: boolean): Entry | undefined {
     const parts = uri.path.split('/');
     let entry: Entry = this.root;
 
@@ -191,7 +191,7 @@ export class MemoryFileSystemProvider implements vscode.FileSystemProvider {
     return entry;
   }
 
-  private _lookupAsDirectory(uri: vscode.Uri, silent: boolean): Directory {
+  _lookupAsDirectory(uri: vscode.Uri, silent: boolean): Directory {
     const entry = this._lookup(uri, silent);
 
     if (entry instanceof Directory) {
@@ -201,7 +201,7 @@ export class MemoryFileSystemProvider implements vscode.FileSystemProvider {
     throw vscode.FileSystemError.FileNotADirectory(uri);
   }
 
-  private _lookupAsFile(uri: vscode.Uri, silent: boolean): File {
+  _lookupAsFile(uri: vscode.Uri, silent: boolean): File {
     const entry = this._lookup(uri, silent);
 
     if (entry instanceof File) {
@@ -211,15 +211,15 @@ export class MemoryFileSystemProvider implements vscode.FileSystemProvider {
     throw vscode.FileSystemError.FileIsADirectory(uri);
   }
 
-  private _lookupParentDirectory(uri: vscode.Uri): Directory {
+  _lookupParentDirectory(uri: vscode.Uri): Directory {
     const dirname = uri.with({ path: path.posix.dirname(uri.path) });
 
     return this._lookupAsDirectory(dirname, false);
   }
 
-  private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
-  private _bufferedEvents: vscode.FileChangeEvent[] = [];
-  private _fireSoonHandle?: NodeJS.Timer;
+  _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
+  _bufferedEvents: vscode.FileChangeEvent[] = [];
+  _fireSoonHandle?: NodeJS.Timer;
 
   readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this
     ._emitter.event;
@@ -229,7 +229,7 @@ export class MemoryFileSystemProvider implements vscode.FileSystemProvider {
     return new vscode.Disposable(() => {});
   }
 
-  private _fireSoon(...events: vscode.FileChangeEvent[]): void {
+  _fireSoon(...events: vscode.FileChangeEvent[]): void {
     this._bufferedEvents.push(...events);
 
     if (this._fireSoonHandle) {

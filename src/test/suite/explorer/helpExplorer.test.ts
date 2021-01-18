@@ -1,11 +1,11 @@
-import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
-import * as linkHelper from '../../../utils/linkHelper';
-const sinon = require('sinon');
+import assert from 'assert';
+import sinon from 'sinon';
 
-import { mdbTestExtension } from '../stubbableMdbExtension';
 import { HelpExplorer } from '../../../explorer';
+import * as linkHelper from '../../../utils/linkHelper';
+import { mdbTestExtension } from '../stubbableMdbExtension';
 
 suite('Help Explorer Test Suite', function () {
   afterEach(() => {
@@ -59,7 +59,7 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._telemetryService
     );
 
-    const stubExecuteCommand = sinon.fake.resolves();
+    const stubExecuteCommand = sinon.fake();
     sinon.replace(vscode.commands, 'executeCommand', stubExecuteCommand);
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[1];
@@ -87,7 +87,7 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._telemetryService
     );
 
-    const stubExecuteCommand = sinon.fake.resolves();
+    const stubExecuteCommand = sinon.fake();
     sinon.replace(linkHelper, 'openLink', stubExecuteCommand);
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
@@ -103,7 +103,7 @@ suite('Help Explorer Test Suite', function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
 
-    const stubLinkClickedTelemetry = sinon.fake.resolves();
+    const stubLinkClickedTelemetry = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackLinkClicked',
@@ -113,7 +113,7 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._telemetryService
     );
 
-    sinon.replace(vscode.commands, 'executeCommand', sinon.fake.resolves());
+    sinon.replace(vscode.commands, 'executeCommand', sinon.fake());
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
     testHelpExplorer._treeController.onClickHelpItem(

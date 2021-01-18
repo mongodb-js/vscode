@@ -14,7 +14,7 @@ enum EXTENSION_COMMANDS {
   MDB_RUN_ALL_PLAYGROUND_BLOCKS = 'mdb.runAllPlaygroundBlocks',
   MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runPlayground',
 
-  MDB_OPEN_MONGODB_DOCUMENT_FROM_PLAYGROUND = 'mdb.openMongoDBDocumentFromPlayground',
+  MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS = 'mdb.openMongoDBDocumentFromCodeLens',
   MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE = 'mdb.openMongoDBDocumentFromTree',
   MDB_SAVE_MONGODB_DOCUMENT = 'mdb.saveMongoDBDocument',
 

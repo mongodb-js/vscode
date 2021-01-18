@@ -39,7 +39,7 @@ export default class MongoDBService {
     return this._connectionOptions;
   }
 
-  isSslConnection(connectionOptions: any): boolean {
+  _isSslConnection(connectionOptions: any): boolean {
     return !!(
       connectionOptions &&
       (connectionOptions.sslCA ||
@@ -48,7 +48,7 @@ export default class MongoDBService {
     );
   }
 
-  readSslFileSync(sslOption: string | string[]): any {
+  _readSslFileSync(sslOption: string | string[]): any {
     if (Array.isArray(sslOption)) {
       return fs.readFileSync(sslOption[0]);
     }
@@ -60,21 +60,21 @@ export default class MongoDBService {
     return fs.readFileSync(sslOption);
   }
 
-  loadSslBinaries(): void {
+  _loadSslBinaries(): void {
     if (this._connectionOptions.sslCA) {
-      this._connectionOptions.sslCA = this.readSslFileSync(
+      this._connectionOptions.sslCA = this._readSslFileSync(
         this._connectionOptions.sslCA
       );
     }
 
     if (this._connectionOptions.sslKey) {
-      this._connectionOptions.sslKey = this.readSslFileSync(
+      this._connectionOptions.sslKey = this._readSslFileSync(
         this._connectionOptions.sslKey
       );
     }
 
     if (this._connectionOptions.sslCert) {
-      this._connectionOptions.sslCert = this.readSslFileSync(
+      this._connectionOptions.sslCert = this._readSslFileSync(
         this._connectionOptions.sslCert
       );
     }
@@ -85,10 +85,10 @@ export default class MongoDBService {
     connectionOptions?: any;
     extensionPath: string;
   }): Promise<boolean> {
-    this.clearCurrentSessionConnection();
-    this.clearCurrentSessionFields();
-    this.clearCurrentSessionDatabases();
-    this.clearCurrentSessionCollections();
+    this._clearCurrentSessionConnection();
+    this._clearCurrentSessionFields();
+    this._clearCurrentSessionDatabases();
+    this._clearCurrentSessionCollections();
 
     this._connectionString = params.connectionString;
     this._connectionOptions = params.connectionOptions || {};
@@ -98,9 +98,9 @@ export default class MongoDBService {
       return Promise.resolve(false);
     }
 
-    if (this.isSslConnection(this._connectionOptions)) {
+    if (this._isSslConnection(this._connectionOptions)) {
       try {
-        this.loadSslBinaries();
+        this._loadSslBinaries();
       } catch (error) {
         this._connection.console.log(
           `SSL FILES read error: ${util.inspect(error)}`
@@ -111,7 +111,7 @@ export default class MongoDBService {
     }
 
     try {
-      this.getDatabasesCompletionItems();
+      this._getDatabasesCompletionItems();
 
       return Promise.resolve(true);
     } catch (error) {
@@ -124,10 +124,10 @@ export default class MongoDBService {
   }
 
   disconnectFromServiceProvider(): void {
-    this.clearCurrentSessionConnection();
-    this.clearCurrentSessionFields();
-    this.clearCurrentSessionDatabases();
-    this.clearCurrentSessionCollections();
+    this._clearCurrentSessionConnection();
+    this._clearCurrentSessionFields();
+    this._clearCurrentSessionDatabases();
+    this._clearCurrentSessionCollections();
   }
 
   // ------ EXECUTION ------ //
@@ -135,7 +135,7 @@ export default class MongoDBService {
     executionParameters: PlaygroundRunParameters,
     token: CancellationToken
   ): Promise<any> {
-    this.clearCurrentSessionFields();
+    this._clearCurrentSessionFields();
 
     return new Promise((resolve) => {
       // Use Node worker threads to run a playground to be able to cancel infinite loops.
@@ -209,7 +209,7 @@ export default class MongoDBService {
   }
 
   // ------ GET DATA FOR COMPLETION ------ //
-  getDatabasesCompletionItems(): void {
+  _getDatabasesCompletionItems(): void {
     const worker = new WorkerThreads(
       path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
       {
@@ -232,12 +232,12 @@ export default class MongoDBService {
 
       worker.terminate().then(() => {
         this._connection.console.log(`MONGOSH found ${result.length} databases`);
-        this.updateCurrentSessionDatabases(result);
+        this._updateCurrentSessionDatabases(result);
       });
     });
   }
 
-  getCollectionsCompletionItems(databaseName: string): Promise<boolean> {
+  _getCollectionsCompletionItems(databaseName: string): Promise<boolean> {
     return new Promise((resolve) => {
       const worker = new WorkerThreads(
         path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
@@ -264,7 +264,7 @@ export default class MongoDBService {
           this._connection.console.log(
             `MONGOSH found ${result.length} collections`
           );
-          this.updateCurrentSessionCollections(databaseName, result);
+          this._updateCurrentSessionCollections(databaseName, result);
 
           return resolve(true);
         });
@@ -272,7 +272,7 @@ export default class MongoDBService {
     });
   }
 
-  getFieldsCompletionItems(
+  _getFieldsCompletionItems(
     databaseName: string,
     collectionName: string
   ): Promise<boolean> {
@@ -300,7 +300,7 @@ export default class MongoDBService {
 
         worker.terminate().then(() => {
           this._connection.console.log(`SCHEMA found ${fields.length} fields`);
-          this.updateCurrentSessionFields(namespace, fields);
+          this._updateCurrentSessionFields(namespace, fields);
 
           return resolve(true);
         });
@@ -325,13 +325,12 @@ export default class MongoDBService {
   }
 
   // ------ COMPLETION ------ //
-
   // Check if a string is a valid property name.
-  isValidPropertyName(str: string): boolean {
+  _isValidPropertyName(str: string): boolean {
     return /^(?![0-9])[a-zA-Z0-9$_]+$/.test(str);
   }
 
-  prepareCollectionsItems(
+  _prepareCollectionsItems(
     textFromEditor: string,
     collections: Array<any>,
     position: { line: number; character: number }
@@ -341,7 +340,7 @@ export default class MongoDBService {
     }
 
     return collections.map((item) => {
-      if (this.isValidPropertyName(item.name)) {
+      if (this._isValidPropertyName(item.name)) {
         return {
           label: item.name,
           kind: CompletionItemKind.Folder
@@ -399,14 +398,14 @@ export default class MongoDBService {
     );
 
     if (state.databaseName && !this._cachedCollections[state.databaseName]) {
-      await this.getCollectionsCompletionItems(state.databaseName);
+      await this._getCollectionsCompletionItems(state.databaseName);
     }
 
     if (state.databaseName && state.collectionName) {
       const namespace = `${state.databaseName}.${state.collectionName}`;
 
       if (!this._cachedFields[namespace]) {
-        await this.getFieldsCompletionItems(
+        await this._getFieldsCompletionItems(
           state.databaseName,
           state.collectionName
         );
@@ -451,7 +450,7 @@ export default class MongoDBService {
           'VISITOR found shell db methods and collection names completion'
         );
 
-        const collectionCompletions = this.prepareCollectionsItems(
+        const collectionCompletions = this._prepareCollectionsItems(
           textFromEditor,
           this._cachedCollections[state.databaseName],
           position
@@ -470,7 +469,7 @@ export default class MongoDBService {
     if (state.isCollectionName && state.databaseName) {
       this._connection.console.log('VISITOR found collection names completion');
 
-      const collectionCompletions = this.prepareCollectionsItems(
+      const collectionCompletions = this._prepareCollectionsItems(
         textFromEditor,
         this._cachedCollections[state.databaseName],
         position
@@ -491,11 +490,11 @@ export default class MongoDBService {
   }
 
   // ------ CURRENT SESSION ------ //
-  clearCurrentSessionFields(): void {
+  _clearCurrentSessionFields(): void {
     this._cachedFields = {};
   }
 
-  updateCurrentSessionFields(
+  _updateCurrentSessionFields(
     namespace: string,
     fields: [{ label: string; kind: number }]
   ): [] {
@@ -508,19 +507,19 @@ export default class MongoDBService {
     return this._cachedFields[namespace];
   }
 
-  clearCurrentSessionDatabases(): void {
+  _clearCurrentSessionDatabases(): void {
     this._cachedDatabases = [];
   }
 
-  updateCurrentSessionDatabases(databases: any): void {
+  _updateCurrentSessionDatabases(databases: any): void {
     this._cachedDatabases = databases ? databases : [];
   }
 
-  clearCurrentSessionCollections(): void {
+  _clearCurrentSessionCollections(): void {
     this._cachedCollections = {};
   }
 
-  updateCurrentSessionCollections(database: string, collections: any): [] {
+  _updateCurrentSessionCollections(database: string, collections: any): [] {
     if (database) {
       this._cachedCollections[database] = collections;
 
@@ -530,7 +529,7 @@ export default class MongoDBService {
     return [];
   }
 
-  clearCurrentSessionConnection(): void {
+  _clearCurrentSessionConnection(): void {
     this._connectionString = undefined;
     this._connectionOptions = undefined;
   }
