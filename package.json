@@ -216,8 +216,8 @@
         "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
         "title": "Create MongoDB Playground",
         "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
+          "light": "images/light/add.svg",
+          "dark": "images/dark/add.svg"
         }
       },
       {
@@ -248,16 +248,16 @@
         "command": "mdb.addConnection",
         "title": "Add MongoDB Connection",
         "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
+          "light": "images/light/add.svg",
+          "dark": "images/dark/add.svg"
         }
       },
       {
         "command": "mdb.addConnectionWithURI",
         "title": "Add MongoDB Connection with Connection String...",
         "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
+          "light": "images/light/add.svg",
+          "dark": "images/dark/add.svg"
         }
       },
       {
