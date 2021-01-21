@@ -198,7 +198,11 @@
       },
       {
         "command": "mdb.refreshPlaygroundsFromTreeView",
-        "title": "Refresh"
+        "title": "Refresh",
+        "icon": {
+          "light": "images/light/refresh.svg",
+          "dark": "images/dark/refresh.svg"
+        }
       },
       {
         "command": "mdb.createNewPlaygroundFromViewAction",
@@ -210,7 +214,11 @@
       },
       {
         "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
-        "title": "Create MongoDB Playground"
+        "title": "Create MongoDB Playground",
+        "icon": {
+          "light": "images/light/add.svg",
+          "dark": "images/dark/add.svg"
+        }
       },
       {
         "command": "mdb.changeActiveConnection",
@@ -240,16 +248,16 @@
         "command": "mdb.addConnection",
         "title": "Add MongoDB Connection",
         "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
+          "light": "images/light/add.svg",
+          "dark": "images/dark/add.svg"
         }
       },
       {
         "command": "mdb.addConnectionWithURI",
         "title": "Add MongoDB Connection with Connection String...",
         "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
+          "light": "images/light/add.svg",
+          "dark": "images/dark/add.svg"
         }
       },
       {
@@ -368,8 +376,19 @@
           "when": "view == mongoDBPlaygroundsExplorer"
         },
         {
+          "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
+          "when": "view == mongoDBPlaygroundsExplorer",
+          "group": "navigation@1"
+        },
+        {
           "command": "mdb.refreshPlaygroundsFromTreeView",
-          "when": "view == mongoDBPlaygroundsExplorer"
+          "when": "view == mongoDBPlaygroundsExplorer",
+          "group": "navigation@5"
+        },
+        {
+          "command": "mdb.addConnection",
+          "when": "view == mongoDBConnectionExplorer",
+          "group": "navigation@1"
         },
         {
           "command": "mdb.addConnection",
