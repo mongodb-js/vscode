@@ -7,7 +7,7 @@ const template = `// MongoDB Playground
 use('mongodbVSCodePlaygroundDB');
 
 // The drop() command destroys all data from a collection.
-// Make sure you run it against proper database and collection.
+// Make sure you run it against the correct database and collection.
 db.sales.drop();
 
 // Insert a few documents into the sales collection.
