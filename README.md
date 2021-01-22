@@ -29,6 +29,12 @@ MongoDB Playgrounds are the most convenient way to prototype and execute CRUD op
 
 _Make sure you are connected to a server or cluster before using a playground. You can't run a playground and you won't get completions if you are not connected._
 
+### Document Editing
+
+MongoDB for VS Code makes it extremely easy to make changes to documents in your collections. You can open documents in an editor tab, edit them and save the changes back to MongoDB.
+
+![Document editing](resources/screenshots/edit.png)
+
 ### Quick access to the MongoDB Shell
 
 Launch the MongoDB Shell from the command palette to quickly connect to the same cluster you have active in VS Code.
