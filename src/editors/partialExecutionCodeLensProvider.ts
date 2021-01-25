@@ -3,7 +3,6 @@ import EXTENSION_COMMANDS from '../commands';
 
 export default class PartialExecutionCodeLensProvider
 implements vscode.CodeLensProvider {
-  _codeLenses: vscode.CodeLens[] = [];
   _selection?: vscode.Range;
   _onDidChangeCodeLenses: vscode.EventEmitter<
     void
@@ -28,13 +27,8 @@ implements vscode.CodeLensProvider {
       return [];
     }
 
-    this._codeLenses = [new vscode.CodeLens(this._selection)];
-
-    return this._codeLenses;
-  }
-
-  resolveCodeLens?(codeLens: vscode.CodeLens): vscode.CodeLens {
     const message = '► Run Selected Lines From Playground';
+    const codeLens = new vscode.CodeLens(this._selection);
 
     codeLens.command = {
       title: message,
@@ -42,6 +36,6 @@ implements vscode.CodeLensProvider {
       arguments: [message]
     };
 
-    return codeLens;
+    return [codeLens];
   }
 }
