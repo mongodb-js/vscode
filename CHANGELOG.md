@@ -4,6 +4,27 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.4.0] - 2021-1-25
+
+### Added
+
+- Added the ability to edit documents opened from the explorer panel (VSCODE-219, #226, #239)
+- Added the ability to open and edit documents from playground results (VSCODE-222, #232)
+- Added icons for connect and playground panel actions (VSCODE-179, #240)
+- Added the ability to specify multiple hosts and ports in the connection form (VSCODE-208, #224)
+- Added a feature where we show the overview page when the extension is first installed (VSCODE-167, #225)
+
+### Changed
+
+- Changed how we generate default connection names for new connections to better represent multiple hosts and ports, and srv records (VSCODE-221, #227)
+- Changed how we show connectivity errors with the connection form (VSCODE-196, #217)
+
+### Fixed
+
+- Fix opening documents with a binary `_id` from the explorer panel (VSCODE-118, #220)
+- Fixed playground log output panel to not display when a playground is open and when a playground is run and there was no log output (#234)
+- Fixed code lenses for partial playground executions sometimes being missing (VSCODE-226, #243)
+
 ## [0.3.0] - 2020-11-24
 
 ### Added
