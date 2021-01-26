@@ -27,10 +27,10 @@ type PlaygroundTelemetryEventProperties = {
   error: boolean;
 };
 
-type SegmentProperties = {
+export type SegmentProperties = {
   event: string;
   userId: string;
-  properties?: any;
+  properties: any;
 };
 
 type CloudInfo = {
@@ -49,7 +49,6 @@ type ExtensionCommandRunTelemetryEventProperties = {
 
 export type NewConnectionTelemetryEventProperties = {
   /* eslint-disable camelcase */
-  extension_version: string;
   is_atlas: boolean;
   is_localhost: boolean;
   is_data_lake: boolean;
@@ -178,7 +177,7 @@ export default class TelemetryService {
 
   // Checks user settings and extension running mode
   // to determine whether or not we should track telemetry.
-  private isTelemetryFeatureEnabled(): boolean {
+  _isTelemetryFeatureEnabled(): boolean {
     // If tests run the extension we do not track telemetry.
     if (this._shouldTrackTelemetry !== true) {
       return false;
@@ -201,15 +200,15 @@ export default class TelemetryService {
     eventType: TelemetryEventTypes,
     properties?: TelemetryEventProperties
   ): void {
-    if (this.isTelemetryFeatureEnabled()) {
+    if (this._isTelemetryFeatureEnabled()) {
       const segmentProperties: SegmentProperties = {
         event: eventType,
-        userId: this._segmentUserID
+        userId: this._segmentUserID,
+        properties: {
+          ...properties,
+          extension_version: `${version}`
+        }
       };
-
-      if (properties) {
-        segmentProperties.properties = properties;
-      }
 
       log.info('TELEMETRY track', segmentProperties);
 
@@ -226,7 +225,7 @@ export default class TelemetryService {
   private async getCloudInfoFromDataService(
     firstServerHostname: string
   ): Promise<CloudInfo> {
-    if (!this.isTelemetryFeatureEnabled()) {
+    if (!this._isTelemetryFeatureEnabled()) {
       return {};
     }
 
@@ -283,7 +282,6 @@ export default class TelemetryService {
           ? null
           : data.genuineMongoDB.dbType;
         const preparedProperties: NewConnectionTelemetryEventProperties = {
-          extension_version: `${version}`,
           is_atlas: !!ATLAS_REGEX.exec(data.client.s.url),
           is_localhost: !!LOCALHOST_REGEX.exec(data.client.s.url),
           is_data_lake: data.dataLake.isDataLake,
