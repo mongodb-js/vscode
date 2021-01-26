@@ -6,12 +6,20 @@ import * as path from 'path';
 import { resolve } from 'path';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
-
-import Connection = require('mongodb-connection-model/lib/model');
-import { ConnectionTypes } from '../../../connectionController';
+import { promisify } from 'util';
+import Sinon = require('sinon');
 import DataService = require('mongodb-data-service');
+import Connection = require('mongodb-connection-model/lib/model');
+
+import { ConnectionTypes } from '../../../connectionController';
+import {
+  NewConnectionTelemetryEventProperties,
+  SegmentProperties,
+  TelemetryEventTypes
+} from '../../../telemetry/telemetryService';
 import { DocumentSource } from '../../../utils/documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
+const { version } = require('../../../../package.json');
 
 const expect = chai.expect;
 
@@ -20,8 +28,6 @@ chai.use(sinonChai);
 config({ path: resolve(__dirname, '../../../../.env') });
 
 suite('Telemetry Controller Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
-
   const dataService = new DataService(
     new Connection({
       hostname: 'localhost',
@@ -31,11 +37,11 @@ suite('Telemetry Controller Test Suite', () => {
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
 
-  let mockTrackNewConnection: any;
-  let mockTrackCommandRun: any;
-  let mockTrackPlaygroundCodeExecuted: any;
-  let mockTrackPlaygroundLoadedMethod: any;
-  let mockTrack: any;
+  let mockTrackNewConnection: Sinon.SinonSpy;
+  let mockTrackCommandRun: Sinon.SinonSpy;
+  let mockTrackPlaygroundCodeExecuted: Sinon.SinonSpy;
+  let mockTrackPlaygroundLoadedMethod: Sinon.SinonSpy;
+  let mockTrack: Sinon.SinonSpy;
 
   beforeEach(() => {
     mockTrackNewConnection = sinon.fake.resolves(true);
@@ -44,11 +50,6 @@ suite('Telemetry Controller Test Suite', () => {
     mockTrackPlaygroundLoadedMethod = sinon.fake();
     mockTrack = sinon.fake();
 
-    sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
-      'trackNewConnection',
-      mockTrackNewConnection
-    );
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackCommandRun',
@@ -69,11 +70,11 @@ suite('Telemetry Controller Test Suite', () => {
       'executeAll',
       sinon.fake.resolves([{ type: 'TEST', content: 'Result' }])
     );
-    sinon.replace(testTelemetryService, 'track', mockTrack);
   });
 
   afterEach(() => {
     sinon.restore();
+    mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
   });
 
   test('get segment key and user id', () => {
@@ -104,6 +105,12 @@ suite('Telemetry Controller Test Suite', () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackNewConnection',
+      mockTrackNewConnection
+    );
+
     mockConnectionController.sendTelemetry(
       dataService,
       ConnectionTypes.CONNECTION_STRING
@@ -119,6 +126,12 @@ suite('Telemetry Controller Test Suite', () => {
   test('track new connection event when connecting via connection form', () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
+
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackNewConnection',
+      mockTrackNewConnection
+    );
 
     mockConnectionController.sendTelemetry(
       dataService,
@@ -136,6 +149,12 @@ suite('Telemetry Controller Test Suite', () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackNewConnection',
+      mockTrackNewConnection
+    );
+
     mockConnectionController.sendTelemetry(
       dataService,
       ConnectionTypes.CONNECTION_ID
@@ -150,6 +169,8 @@ suite('Telemetry Controller Test Suite', () => {
 
   test('track document saved form a tree-view event', () => {
     const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+
+    sinon.replace(testTelemetryService, 'track', mockTrack);
 
     testTelemetryService.trackDocumentUpdated(source, true);
 
@@ -203,9 +224,106 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('track playground saved event', () => {
+    sinon.replace(testTelemetryService, 'track', mockTrack);
+
     testTelemetryService.trackPlaygroundSaved();
 
     sinon.assert.calledWith(mockTrack);
+  });
+
+  test('track adds extension version to event properties when there are no event properties', () => {
+    sinon.replace(
+      testTelemetryService,
+      '_isTelemetryFeatureEnabled',
+      sinon.fake.returns(true)
+    );
+    const fakeSegmentTrack = sinon.fake.yields(null);
+    sinon.replace(
+      testTelemetryService,
+      '_segmentAnalytics',
+      {
+        track: fakeSegmentTrack
+      } as any
+    );
+
+    testTelemetryService.track(
+      TelemetryEventTypes.EXTENSION_LINK_CLICKED
+    );
+
+    const telemetryEvent: SegmentProperties = fakeSegmentTrack.firstCall.args[0];
+
+    expect(telemetryEvent.properties).to.deep.equal({
+      extension_version: version
+    });
+    expect(telemetryEvent.event).to.equal('Link Clicked');
+  });
+
+  test('track adds extension version to existing event properties', () => {
+    sinon.replace(
+      testTelemetryService,
+      '_isTelemetryFeatureEnabled',
+      sinon.fake.returns(true)
+    );
+    const fakeSegmentTrack = sinon.fake.yields(null);
+    sinon.replace(
+      testTelemetryService,
+      '_segmentAnalytics',
+      {
+        track: fakeSegmentTrack
+      } as any
+    );
+
+    testTelemetryService.track(
+      TelemetryEventTypes.PLAYGROUND_LOADED,
+      {
+        source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
+      }
+    );
+
+    const telemetryEvent: SegmentProperties = fakeSegmentTrack.firstCall.args[0];
+
+    expect(telemetryEvent.properties).to.deep.equal({
+      extension_version: version,
+      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
+    });
+    expect(telemetryEvent.event).to.equal('Playground Loaded');
+  });
+
+  suite('with active connection', () => {
+    let dataServ;
+
+    beforeEach(async () => {
+      dataServ = new DataService(
+        new Connection({
+          hostname: 'localhost',
+          port: 27018
+        })
+      );
+      const runConnect = promisify(dataServ.connect.bind(dataServ));
+      await runConnect();
+    });
+
+    afterEach(async () => {
+      const runDisconnect = promisify(dataServ.disconnect.bind(dataServ));
+      await runDisconnect();
+    });
+
+    test('track new connection event fetches the connection instance information', async() => {
+      sinon.replace(testTelemetryService, 'track', mockTrack);
+      await mdbTestExtension.testExtensionController._telemetryService.trackNewConnection(
+        dataServ,
+        ConnectionTypes.CONNECTION_STRING
+      );
+
+      expect(mockTrack.firstCall.args[0]).to.equal('New Connection');
+      const instanceTelemetry: NewConnectionTelemetryEventProperties = mockTrack.firstCall.args[1];
+      expect(instanceTelemetry.is_localhost).to.equal(true);
+      expect(instanceTelemetry.is_atlas).to.equal(false);
+      expect(instanceTelemetry.is_used_connect_screen).to.equal(false);
+      expect(instanceTelemetry.is_used_command_palette).to.equal(true);
+      expect(instanceTelemetry.is_used_saved_connection).to.equal(false);
+      expect(instanceTelemetry.is_genuine).to.equal(true);
+    });
   });
 
   suite('prepare playground result types', () => {
