@@ -6,12 +6,17 @@ import * as path from 'path';
 import { resolve } from 'path';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
+import { promisify } from 'util';
 
 import Connection = require('mongodb-connection-model/lib/model');
 import { ConnectionTypes } from '../../../connectionController';
+import { NewConnectionTelemetryEventProperties } from '../../../telemetry/telemetryService';
 import DataService = require('mongodb-data-service');
 import { DocumentSource } from '../../../utils/documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
+import Sinon = require('sinon');
+
+const { version } = require('../../../../package.json');
 
 const expect = chai.expect;
 
@@ -20,8 +25,6 @@ chai.use(sinonChai);
 config({ path: resolve(__dirname, '../../../../.env') });
 
 suite('Telemetry Controller Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
-
   const dataService = new DataService(
     new Connection({
       hostname: 'localhost',
@@ -31,11 +34,11 @@ suite('Telemetry Controller Test Suite', () => {
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
 
-  let mockTrackNewConnection: any;
-  let mockTrackCommandRun: any;
-  let mockTrackPlaygroundCodeExecuted: any;
-  let mockTrackPlaygroundLoadedMethod: any;
-  let mockTrack: any;
+  let mockTrackNewConnection: Sinon.SinonSpy;
+  let mockTrackCommandRun: Sinon.SinonSpy;
+  let mockTrackPlaygroundCodeExecuted: Sinon.SinonSpy;
+  let mockTrackPlaygroundLoadedMethod: Sinon.SinonSpy;
+  let mockTrack: Sinon.SinonSpy;
 
   beforeEach(() => {
     mockTrackNewConnection = sinon.fake.resolves(true);
@@ -44,11 +47,6 @@ suite('Telemetry Controller Test Suite', () => {
     mockTrackPlaygroundLoadedMethod = sinon.fake();
     mockTrack = sinon.fake();
 
-    sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
-      'trackNewConnection',
-      mockTrackNewConnection
-    );
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackCommandRun',
@@ -74,6 +72,7 @@ suite('Telemetry Controller Test Suite', () => {
 
   afterEach(() => {
     sinon.restore();
+    mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
   });
 
   test('get segment key and user id', () => {
@@ -104,6 +103,12 @@ suite('Telemetry Controller Test Suite', () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackNewConnection',
+      mockTrackNewConnection
+    );
+
     mockConnectionController.sendTelemetry(
       dataService,
       ConnectionTypes.CONNECTION_STRING
@@ -120,6 +125,12 @@ suite('Telemetry Controller Test Suite', () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackNewConnection',
+      mockTrackNewConnection
+    );
+
     mockConnectionController.sendTelemetry(
       dataService,
       ConnectionTypes.CONNECTION_FORM
@@ -135,6 +146,12 @@ suite('Telemetry Controller Test Suite', () => {
   test('track new connection event when connecting via saved connection', () => {
     const mockConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
+
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackNewConnection',
+      mockTrackNewConnection
+    );
 
     mockConnectionController.sendTelemetry(
       dataService,
@@ -206,6 +223,43 @@ suite('Telemetry Controller Test Suite', () => {
     testTelemetryService.trackPlaygroundSaved();
 
     sinon.assert.calledWith(mockTrack);
+  });
+
+  suite('with active connection', () => {
+    let dataServ;
+
+    beforeEach(async () => {
+      dataServ = new DataService(
+        new Connection({
+          hostname: 'localhost',
+          port: 27018
+        })
+      );
+      const runConnect = promisify(dataServ.connect.bind(dataServ));
+      await runConnect();
+    });
+
+    afterEach(async () => {
+      const runDisconnect = promisify(dataServ.disconnect.bind(dataServ));
+      await runDisconnect();
+    });
+
+    test('track new connection event fetches the connection instance information', async() => {
+      await mdbTestExtension.testExtensionController._telemetryService.trackNewConnection(
+        dataServ,
+        ConnectionTypes.CONNECTION_STRING
+      );
+
+      expect(mockTrack.firstCall.args[0]).to.equal('New Connection');
+      const instanceTelemetry: NewConnectionTelemetryEventProperties = mockTrack.firstCall.args[1];
+      expect(instanceTelemetry.extension_version).to.equal(version);
+      expect(instanceTelemetry.is_localhost).to.equal(true);
+      expect(instanceTelemetry.is_atlas).to.equal(false);
+      expect(instanceTelemetry.is_used_connect_screen).to.equal(false);
+      expect(instanceTelemetry.is_used_command_palette).to.equal(true);
+      expect(instanceTelemetry.is_used_saved_connection).to.equal(false);
+      expect(instanceTelemetry.is_genuine).to.equal(true);
+    });
   });
 
   suite('prepare playground result types', () => {

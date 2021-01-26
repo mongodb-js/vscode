@@ -14,6 +14,8 @@ import { DocumentSource } from '../utils/documentSource';
 import fs from 'fs';
 import * as util from 'util';
 
+const { version } = require('../../package.json');
+
 const log = createLogger('telemetry');
 
 const ATLAS_REGEX = /mongodb.net[:/]/i;
@@ -45,8 +47,9 @@ type ExtensionCommandRunTelemetryEventProperties = {
   command: string;
 };
 
-type NewConnectionTelemetryEventProperties = {
+export type NewConnectionTelemetryEventProperties = {
   /* eslint-disable camelcase */
+  extension_version: string;
   is_atlas: boolean;
   is_localhost: boolean;
   is_data_lake: boolean;
@@ -279,7 +282,8 @@ export default class TelemetryService {
         const nonGenuineServerName = data.genuineMongoDB.isGenuine
           ? null
           : data.genuineMongoDB.dbType;
-        const preparedProperties = {
+        const preparedProperties: NewConnectionTelemetryEventProperties = {
+          extension_version: `${version}`,
           is_atlas: !!ATLAS_REGEX.exec(data.client.s.url),
           is_localhost: !!LOCALHOST_REGEX.exec(data.client.s.url),
           is_data_lake: data.dataLake.isDataLake,
