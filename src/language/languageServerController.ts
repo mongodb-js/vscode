@@ -33,7 +33,7 @@ export default class LanguageServerController {
 
     // The server is implemented in node.
     const serverModule = path.join(
-      context.extensionPath,
+      this._context.extensionPath,
       'dist',
       'languageServer.js'
     );

@@ -8,14 +8,15 @@ import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import parseSchema = require('mongodb-schema');
 import { parentPort, workerData } from 'worker_threads';
 
-import type { OutputItem } from '../utils/types';
 import { ServerCommands } from './serverCommands';
+
+import type { OutputItem, ExecuteAllResult } from '../utils/types';
 
 type EvaluationResult = {
   printable: any;
   type: string | null;
 };
-type WorkerResult = any;
+type WorkerResult = ExecuteAllResult | undefined;
 type WorkerError = any | null;
 
 const executeAll = async (

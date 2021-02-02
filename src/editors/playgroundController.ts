@@ -241,7 +241,7 @@ export default class PlaygroundController {
     }
   }
 
-  async _evaluate(codeToEvaluate: string): Promise<ExecuteAllResult> {
+  async _evaluate(codeToEvaluate: string): Promise<ExecuteAllResult | undefined> {
     this._statusView.showMessage('Getting results...');
 
     // Send a request to the language server to execute scripts from a playground.
@@ -267,7 +267,7 @@ export default class PlaygroundController {
     return this._activeTextEditor?.document.getText(selection) || '';
   }
 
-  _evaluateWithCancelModal(): Promise<ExecuteAllResult> {
+  _evaluateWithCancelModal(): Promise<ExecuteAllResult | undefined> {
     if (!this._connectionString) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
@@ -294,7 +294,7 @@ export default class PlaygroundController {
             });
 
             // Run all playground scripts.
-            const result: ExecuteAllResult = await this._evaluate(
+            const result: ExecuteAllResult | undefined = await this._evaluate(
               this._codeToEvaluate
             );
 
@@ -396,7 +396,7 @@ export default class PlaygroundController {
 
     this._outputChannel.clear();
 
-    const evaluateResponse: ExecuteAllResult = await this._evaluateWithCancelModal();
+    const evaluateResponse: ExecuteAllResult | undefined = await this._evaluateWithCancelModal();
 
     if (evaluateResponse?.outputLines?.length) {
       for (const line of evaluateResponse.outputLines) {

@@ -9,7 +9,8 @@ import {
   CompletionItem,
   TextDocumentPositionParams,
   RequestType,
-  TextDocumentSyncKind
+  TextDocumentSyncKind,
+  Connection
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -18,7 +19,7 @@ import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-const connection = createConnection(ProposedFeatures.all);
+const connection: Connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
 // The text document manager supports full document sync only.

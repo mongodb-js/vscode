@@ -1,33 +1,34 @@
-import { CompletionItemKind, CancellationToken } from 'vscode-languageserver';
-import { Worker as WorkerThreads } from 'worker_threads';
-import { signatures } from '@mongosh/shell-api';
+/* eslint-disable no-sync */
 import * as util from 'util';
-import { Visitor } from './visitor';
-import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
-
-import path from 'path';
+import { CompletionItemKind, CancellationToken, Connection, CompletionItem } from 'vscode-languageserver';
 import fs from 'fs';
+import path from 'path';
+import { signatures } from '@mongosh/shell-api';
+import { Worker as WorkerThreads } from 'worker_threads';
+
+import { NodeOptions, ExecuteAllResult, ShellCompletionItem, CollectionItem } from '../utils/types';
+import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
+import { Visitor } from './visitor';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
 export default class MongoDBService {
-  _connection: any;
+  _connection: Connection;
   _connectionString?: string;
-  _connectionOptions?: any;
-  _cachedFields: object;
-  _cachedDatabases: [];
-  _cachedCollections: object;
-  _cachedShellSymbols: any;
-  _extensionPath: string;
+  _connectionOptions?: NodeOptions;
+  _cachedDatabases: CompletionItem[] | [];
+  _cachedFields: { [namespace: string]: CompletionItem[] } | {};
+  _cachedCollections: { [database: string]: CollectionItem[] } | {};
+  _cachedShellSymbols: ShellCompletionItem;
+  _extensionPath?: string;
   _visitor: Visitor;
 
-  constructor(connection) {
+  constructor(connection: Connection) {
     this._connection = connection;
-    this._cachedFields = {};
     this._cachedDatabases = [];
-    this._cachedCollections = [];
+    this._cachedFields = {};
+    this._cachedCollections = {};
     this._cachedShellSymbols = this._getShellCompletionItems();
-    this._extensionPath = '';
     this._visitor = new Visitor();
   }
 
@@ -36,11 +37,11 @@ export default class MongoDBService {
     return this._connectionString;
   }
 
-  get connectionOptions(): object | undefined {
+  get connectionOptions(): NodeOptions | undefined {
     return this._connectionOptions;
   }
 
-  _isSslConnection(connectionOptions: any): boolean {
+  _isSslConnection(connectionOptions: NodeOptions): boolean {
     return !!(
       connectionOptions &&
       (connectionOptions.sslCA ||
@@ -49,41 +50,39 @@ export default class MongoDBService {
     );
   }
 
-  _readSslFileSync(sslOption: string | string[]): any {
+  _readSslFileSync(sslOption: string | string[]): string | undefined {
     if (Array.isArray(sslOption)) {
-      return fs.readFileSync(sslOption[0]);
+      sslOption = sslOption[0];
     }
 
-    if (typeof sslOption !== 'string') {
-      return;
+    if (typeof sslOption === 'string') {
+      return fs.readFileSync(sslOption).toString();
     }
-
-    return fs.readFileSync(sslOption);
   }
 
   _loadSslBinaries(): void {
-    if (this._connectionOptions.sslCA) {
+    if (this._connectionOptions?.sslCA) {
       this._connectionOptions.sslCA = this._readSslFileSync(
         this._connectionOptions.sslCA
       );
     }
 
-    if (this._connectionOptions.sslKey) {
+    if (this._connectionOptions?.sslKey) {
       this._connectionOptions.sslKey = this._readSslFileSync(
         this._connectionOptions.sslKey
       );
     }
 
-    if (this._connectionOptions.sslCert) {
+    if (this._connectionOptions?.sslCert) {
       this._connectionOptions.sslCert = this._readSslFileSync(
         this._connectionOptions.sslCert
       );
     }
   }
 
-  setExtensionPath(extensionPath): void {
+  setExtensionPath(extensionPath: string): void {
     if (!extensionPath) {
-      this._connection.console.log('Set extensionPath error: extensionPath is missing');
+      this._connection.console.log('Set extensionPath error: extensionPath is undefined');
     } else {
       this._extensionPath = extensionPath;
     }
@@ -91,7 +90,7 @@ export default class MongoDBService {
 
   async connectToServiceProvider(params: {
     connectionString?: string;
-    connectionOptions?: any;
+    connectionOptions?: NodeOptions;
   }): Promise<boolean> {
     this._clearCurrentSessionConnection();
     this._clearCurrentSessionFields();
@@ -141,10 +140,16 @@ export default class MongoDBService {
   executeAll(
     executionParameters: PlaygroundRunParameters,
     token: CancellationToken
-  ): Promise<any> {
+  ): Promise<ExecuteAllResult | undefined> {
     this._clearCurrentSessionFields();
 
     return new Promise((resolve) => {
+      if (!this._extensionPath) {
+        this._connection.console.log('MONGOSH execute all error: extensionPath is undefined');
+
+        return resolve(undefined);
+      }
+
       try {
         // Use Node worker threads to run a playground to be able to cancel infinite loops.
         //
@@ -175,12 +180,16 @@ export default class MongoDBService {
         worker.postMessage(ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND);
 
         // Listen for results from the worker thread.
-        worker.on('message', ([error, result]) => {
+        worker.on('message', (response: [Error, ExecuteAllResult | undefined]) => {
+          const [error, result] = response;
+
           if (error) {
+            const printableError = error as { message: string };
+
             this._connection.console.log(
               `MONGOSH execute all error: ${util.inspect(error)}`
             );
-            this._connection.sendNotification('showErrorMessage', error.message);
+            this._connection.sendNotification('showErrorMessage', printableError.message);
           }
 
           worker.terminate().then(() => {
@@ -213,19 +222,25 @@ export default class MongoDBService {
           // in the worker thread as soon as possible.
           await worker.terminate();
 
-          return resolve([]);
+          return resolve(undefined);
         });
       } catch (error) {
         this._connection.console.log(
           `MONGOSH execute all error: ${util.inspect(error)}`
         );
-        return resolve([]);
+        return resolve(undefined);
       }
     });
   }
 
   // ------ GET DATA FOR COMPLETION ------ //
   _getDatabasesCompletionItems(): void {
+    if (!this._extensionPath) {
+      this._connection.console.log('MONGOSH get list databases error: extensionPath is undefined');
+
+      return;
+    }
+
     try {
       const worker = new WorkerThreads(
         path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
@@ -240,7 +255,9 @@ export default class MongoDBService {
       this._connection.console.log('MONGOSH get list databases...');
       worker.postMessage(ServerCommands.GET_LIST_DATABASES);
 
-      worker.on('message', ([error, result]) => {
+      worker.on('message', (response: [Error, CompletionItem[] | []]) => {
+        const [error, result] = response;
+
         if (error) {
           this._connection.console.log(
             `MONGOSH get list databases error: ${util.inspect(error)}`
@@ -261,6 +278,12 @@ export default class MongoDBService {
 
   _getCollectionsCompletionItems(databaseName: string): Promise<boolean> {
     return new Promise((resolve) => {
+      if (!this._extensionPath) {
+        this._connection.console.log('MONGOSH get list collections error: extensionPath is undefined');
+
+        return resolve(false);
+      }
+
       try {
         const worker = new WorkerThreads(
           path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
@@ -276,7 +299,9 @@ export default class MongoDBService {
         this._connection.console.log('MONGOSH get list collections...');
         worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
 
-        worker.on('message', ([error, result]) => {
+        worker.on('message', (response: [Error, CollectionItem[] | []]) => {
+          const [error, result] = response;
+
           if (error) {
             this._connection.console.log(
               `MONGOSH get list collections error: ${util.inspect(error)}`
@@ -307,6 +332,12 @@ export default class MongoDBService {
     collectionName: string
   ): Promise<boolean> {
     return new Promise((resolve) => {
+      if (!this._extensionPath) {
+        this._connection.console.log('SCHEMA error: extensionPath is undefined');
+
+        return resolve(false);
+      }
+
       try {
         const namespace = `${databaseName}.${collectionName}`;
         const worker = new WorkerThreads(
@@ -324,14 +355,16 @@ export default class MongoDBService {
         this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
         worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
-        worker.on('message', ([error, fields]) => {
+        worker.on('message', (response: [Error, CompletionItem[] | []]) => {
+          const [error, result] = response;
+
           if (error) {
             this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
           }
 
           worker.terminate().then(() => {
-            this._connection.console.log(`SCHEMA found ${fields.length} fields`);
-            this._updateCurrentSessionFields(namespace, fields);
+            this._connection.console.log(`SCHEMA found ${result.length} fields`);
+            this._updateCurrentSessionFields(namespace, result);
 
             return resolve(true);
           });
@@ -345,7 +378,7 @@ export default class MongoDBService {
   }
 
   // Get shell API symbols/methods completion from mongosh.
-  _getShellCompletionItems(): object {
+  _getShellCompletionItems(): ShellCompletionItem {
     const shellSymbols = {};
 
     Object.keys(signatures).map((symbol) => {
@@ -368,12 +401,14 @@ export default class MongoDBService {
 
   _prepareCollectionsItems(
     textFromEditor: string,
-    collections: Array<any>,
+    collections: Array<CollectionItem>,
     position: { line: number; character: number }
-  ): any {
+  ): CompletionItem[] {
     if (!collections) {
       return [];
     }
+
+    this._connection.console.log(`collections: ${util.inspect(collections)}`);
 
     return collections.map((item) => {
       if (this._isValidPropertyName(item.name)) {
@@ -418,7 +453,7 @@ export default class MongoDBService {
   async provideCompletionItems(
     textFromEditor: string,
     position: { line: number; character: number }
-  ): Promise<[]> {
+  ): Promise<CompletionItem[]> {
     // eslint-disable-next-line complexity
     this._connection.console.log(
       `LS text from editor: ${util.inspect(textFromEditor)}`
@@ -450,7 +485,7 @@ export default class MongoDBService {
       if (state.isObjectKey) {
         this._connection.console.log('VISITOR found field names completion');
 
-        return this._cachedFields[namespace];
+        return this._cachedFields[namespace] as CompletionItem[];
       }
     }
 
@@ -479,7 +514,7 @@ export default class MongoDBService {
     }
 
     if (state.isDbCallExpression) {
-      let dbCompletions: any = [...this._cachedShellSymbols.Database];
+      let dbCompletions: CompletionItem[] = [...this._cachedShellSymbols.Database];
 
       if (state.databaseName) {
         this._connection.console.log(
@@ -530,24 +565,17 @@ export default class MongoDBService {
     this._cachedFields = {};
   }
 
-  _updateCurrentSessionFields(
-    namespace: string,
-    fields: [{ label: string; kind: number }]
-  ): [] {
-    if (!this._cachedFields[namespace]) {
-      this._cachedFields[namespace] = {};
+  _updateCurrentSessionFields(namespace: string, fields: CompletionItem[]): void {
+    if (namespace) {
+      this._cachedFields[namespace] = fields ? fields : [];
     }
-
-    this._cachedFields[namespace] = fields;
-
-    return this._cachedFields[namespace];
   }
 
   _clearCurrentSessionDatabases(): void {
     this._cachedDatabases = [];
   }
 
-  _updateCurrentSessionDatabases(databases: any): void {
+  _updateCurrentSessionDatabases(databases: CompletionItem[]): void {
     this._cachedDatabases = databases ? databases : [];
   }
 
@@ -555,14 +583,10 @@ export default class MongoDBService {
     this._cachedCollections = {};
   }
 
-  _updateCurrentSessionCollections(database: string, collections: any): [] {
+  _updateCurrentSessionCollections(database: string, collections: CollectionItem[]): void {
     if (database) {
-      this._cachedCollections[database] = collections;
-
-      return this._cachedFields[database];
+      this._cachedCollections[database] = collections ? collections : [];
     }
-
-    return [];
   }
 
   _clearCurrentSessionConnection(): void {
