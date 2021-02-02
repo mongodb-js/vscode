@@ -73,13 +73,13 @@ steps:
     displayName: 'Set extension_version variable from package.json version'
   - bash: |
       vsixFilename=./mongodb-vscode-$(extension_version).vsix
-      maxsize=5000000 # 5MB
+      maxsize=6000000 # 6MB
       filesize=$(stat -c%s "$vsixFilename")
 
       echo "Size of $vsixFilename = $filesize bytes."
 
       if (( filesize > maxsize )); then
-        echo "File is over 5MB."
+        echo "File is over 6MB."
         exit 1
       fi
     displayName: 'Check .vsix filesize'
