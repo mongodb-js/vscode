@@ -1,15 +1,15 @@
-import { parentPort, workerData } from 'worker_threads';
-import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import {
   CliServiceProvider,
   NodeOptions
 } from '@mongosh/service-provider-server';
-import parseSchema = require('mongodb-schema');
-import { ServerCommands } from './serverCommands';
 import { CompletionItemKind } from 'vscode-languageserver';
-import type { OutputItem } from '../utils/types';
+import { EJSON } from 'bson';
+import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
+import parseSchema = require('mongodb-schema');
+import { parentPort, workerData } from 'worker_threads';
 
-const { EJSON } = require('bson');
+import type { OutputItem } from '../utils/types';
+import { ServerCommands } from './serverCommands';
 
 type EvaluationResult = {
   printable: any;

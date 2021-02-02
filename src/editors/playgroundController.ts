@@ -164,8 +164,7 @@ export default class PlaygroundController {
 
       await this._languageServerController.connectToServiceProvider({
         connectionString: this._connectionString,
-        connectionOptions: this._connectionOptions,
-        extensionPath: this._context.extensionPath
+        connectionOptions: this._connectionOptions
       });
     }
 

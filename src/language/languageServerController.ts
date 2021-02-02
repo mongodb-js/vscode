@@ -118,6 +118,10 @@ export default class LanguageServerController {
 
     // Subscribe on notifications from the server when the client is ready
     await this._client.onReady();
+    await this._client.sendRequest(
+      ServerCommands.SET_EXTENSION_PATH,
+      this._context.extensionPath
+    );
 
     this._client.onNotification('showInformationMessage', (messsage) => {
       vscode.window.showInformationMessage(messsage);
@@ -164,7 +168,6 @@ export default class LanguageServerController {
   async connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: EJSON.SerializableTypes;
-    extensionPath: string;
   }): Promise<void> {
     await this._client.onReady();
     await this._client.sendRequest(

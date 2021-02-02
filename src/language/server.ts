@@ -237,6 +237,10 @@ connection.onRequest(
   }
 );
 
+connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
+  return mongoDBService.setExtensionPath(extensionPath);
+});
+
 // Connect to CliServiceProvider to enable shell completions.
 connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
   return mongoDBService.connectToServiceProvider(params);
