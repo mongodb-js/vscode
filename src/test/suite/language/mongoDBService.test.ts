@@ -1,7 +1,7 @@
 import { before } from 'mocha';
 import { CancellationTokenSource, CompletionItemKind, CompletionItem } from 'vscode-languageclient';
 import chai from 'chai';
-import { Connection, createConnection } from 'vscode-languageserver';
+import { createConnection } from 'vscode-languageserver';
 import fs from 'fs';
 import path from 'path';
 
@@ -13,18 +13,7 @@ const expect = chai.expect;
 const INCREASED_TEST_TIMEOUT = 5000;
 
 suite('MongoDBService Test Suite', () => {
-  const params = {
-    connectionString: 'mongodb://localhost:27018',
-    extensionPath: mdbTestExtension.testExtensionContext.extensionPath
-  };
-  let connection: Connection;
-
-  before(() => {
-    const up = new TestStream();
-    const down = new TestStream();
-    connection = createConnection(up, down);
-    connection.listen();
-  });
+  const params = { connectionString: 'mongodb://localhost:27018' };
 
   test('the language server worker dependency bundle exists', () => {
     const languageServerModuleBundlePath = path.join(
@@ -38,13 +27,20 @@ suite('MongoDBService Test Suite', () => {
   });
 
   suite('Extension path', () => {
-    test('catches error when executeAll is called and extension path is empty string', async () => {
-      const testMongoDBService = new MongoDBService(connection);
+    const up = new TestStream();
+    const down = new TestStream();
+    const connection = createConnection(up, down);
 
+    connection.listen();
+
+    const testMongoDBService = new MongoDBService(connection);
+
+    before(async () => {
       testMongoDBService._extensionPath = '';
-
       await testMongoDBService.connectToServiceProvider(params);
+    });
 
+    test('catches error when executeAll is called and extension path is empty string', async () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         { codeToEvaluate: '1 + 1' },
@@ -55,24 +51,12 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('catches error when _getCollectionsCompletionItems is called and extension path is empty string', async () => {
-      const testMongoDBService = new MongoDBService(connection);
-
-      testMongoDBService._extensionPath = '';
-
-      await testMongoDBService.connectToServiceProvider(params);
-
       const result = await testMongoDBService._getCollectionsCompletionItems('testDB');
 
       expect(result).to.be.equal(false);
     });
 
     test('catches error when _getFieldsCompletionItems is called and extension path is empty string', async () => {
-      const testMongoDBService = new MongoDBService(connection);
-
-      testMongoDBService._extensionPath = '';
-
-      await testMongoDBService.connectToServiceProvider(params);
-
       const result = await testMongoDBService._getFieldsCompletionItems('testDB', 'testCol');
 
       expect(result).to.be.equal(false);
@@ -80,9 +64,15 @@ suite('MongoDBService Test Suite', () => {
   });
 
   suite('Connect', () => {
-    test('connect and disconnect from cli service provider', async () => {
-      const testMongoDBService = new MongoDBService(connection);
+    const up = new TestStream();
+    const down = new TestStream();
+    const connection = createConnection(up, down);
 
+    connection.listen();
+
+    const testMongoDBService = new MongoDBService(connection);
+
+    test('connect and disconnect from cli service provider', async () => {
       await testMongoDBService.connectToServiceProvider(params);
 
       expect(testMongoDBService.connectionString).to.be.equal(
@@ -97,11 +87,15 @@ suite('MongoDBService Test Suite', () => {
   });
 
   suite('Complete', () => {
-    let testMongoDBService: MongoDBService;
+    const up = new TestStream();
+    const down = new TestStream();
+    const connection = createConnection(up, down);
+
+    connection.listen();
+
+    const testMongoDBService = new MongoDBService(connection);
 
     before(async () => {
-      testMongoDBService = new MongoDBService(connection);
-
       testMongoDBService._getDatabasesCompletionItems = (): void => {};
       testMongoDBService._getCollectionsCompletionItems = (): Promise<boolean> =>
         Promise.resolve(true);
@@ -936,21 +930,23 @@ suite('MongoDBService Test Suite', () => {
     });
   });
 
-  suite('Evaluate', () => {
-    let testMongoDBService: MongoDBService;
+  suite('Evaluate', function () {
+    this.timeout(INCREASED_TEST_TIMEOUT);
 
-    before(async function () {
-      this.timeout(INCREASED_TEST_TIMEOUT);
+    const up = new TestStream();
+    const down = new TestStream();
+    const connection = createConnection(up, down);
 
-      testMongoDBService = new MongoDBService(connection);
-      testMongoDBService._extensionPath = params.extensionPath;
+    connection.listen();
 
+    const testMongoDBService = new MongoDBService(connection);
+
+    before(async () => {
+      testMongoDBService._extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
       await testMongoDBService.connectToServiceProvider(params);
     });
 
-    test('evaluate should sum numbers', async function () {
-      this.timeout(INCREASED_TEST_TIMEOUT);
-
+    test('evaluate should sum numbers', async () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
@@ -966,9 +962,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate multiplies commands at once', async function () {
-      this.timeout(INCREASED_TEST_TIMEOUT);
-
+    test('evaluate multiplies commands at once', async () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
@@ -984,9 +978,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('create each time a new runtime', async function () {
-      this.timeout(INCREASED_TEST_TIMEOUT);
-
+    test('create each time a new runtime', async () => {
       const source = new CancellationTokenSource();
       const firstEvalResult = await testMongoDBService.executeAll(
         {
@@ -1015,9 +1007,7 @@ suite('MongoDBService Test Suite', () => {
       expect(secondEvalResult).to.deep.equal(secondRes);
     });
 
-    test('evaluate returns valid EJSON', async function () {
-      this.timeout(INCREASED_TEST_TIMEOUT);
-
+    test('evaluate returns valid EJSON', async () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
@@ -1043,9 +1033,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate returns single line strings', async function () {
-      this.timeout(INCREASED_TEST_TIMEOUT);
-
+    test('evaluate returns single line strings', async () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
@@ -1066,9 +1054,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate returns multiline strings', async function () {
-      this.timeout(INCREASED_TEST_TIMEOUT);
-
+    test('evaluate returns multiline strings', async () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
@@ -1093,9 +1079,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('includes results from print() and console.log()', async function () {
-      this.timeout(INCREASED_TEST_TIMEOUT);
-
+    test('includes results from print() and console.log()', async () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
