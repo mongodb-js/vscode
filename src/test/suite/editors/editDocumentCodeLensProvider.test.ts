@@ -6,7 +6,7 @@ import { ObjectId } from 'bson';
 import sinon from 'sinon';
 
 import ConnectionController from '../../../connectionController';
-import { DocumentSource } from '../../../utils/documentSource';
+import { DocumentSource } from '../../../documentSource';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { mockTextEditor } from '../stubs';
 import { StatusView } from '../../../views';

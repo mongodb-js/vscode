@@ -8,7 +8,7 @@ import { StatusView } from '../../../views';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { afterEach } from 'mocha';
 import { EJSON } from 'bson';
-import { DocumentSource } from '../../../utils/documentSource';
+import { DocumentSource } from '../../../documentSource';
 
 import sinon from 'sinon';
 import chai from 'chai';

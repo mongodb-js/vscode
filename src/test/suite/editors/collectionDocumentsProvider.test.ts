@@ -3,12 +3,12 @@ import { afterEach } from 'mocha';
 import assert from 'assert';
 import sinon from 'sinon';
 
-import { DocumentSource } from '../../../utils/documentSource';
+import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, { VIEW_COLLECTION_SCHEME } from '../../../editors/collectionDocumentsProvider';
 import Connection from 'mongodb-connection-model/lib/model';
 import ConnectionController from '../../../connectionController';
-import { ConnectionModelType } from '../../../connectionModelType';
+import { ConnectionModel } from '../../../types/connectionModelType';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
@@ -17,7 +17,7 @@ import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext, mockTextEditor } from '../stubs';
 
-const getConnection = (dbUri): Promise<ConnectionModelType> =>
+const getConnection = (dbUri): Promise<ConnectionModel> =>
   new Promise((resolve, reject) => {
     Connection.from(dbUri, (err, connectionModel) => {
       if (err) {

@@ -8,15 +8,14 @@ import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import parseSchema = require('mongodb-schema');
 import { parentPort, workerData } from 'worker_threads';
 
+import type { PlaygroundResult, PlaygroundDebug, ShellExecuteAllResult } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
-
-import type { OutputItem, ExecuteAllResult } from '../utils/types';
 
 type EvaluationResult = {
   printable: any;
   type: string | null;
 };
-type WorkerResult = ExecuteAllResult | undefined;
+type WorkerResult = ShellExecuteAllResult;
 type WorkerError = any | null;
 
 const executeAll = async (
@@ -34,7 +33,7 @@ const executeAll = async (
       connectionOptions
     );
 
-    const outputLines: OutputItem[] = [];
+    const outputLines: PlaygroundDebug = [];
     // Create a new instance of the runtime and evaluate code from a playground.
     const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
     runtime.setEvaluationListener({
@@ -57,7 +56,7 @@ const executeAll = async (
       typeof printable === 'string'
         ? printable
         : JSON.parse(EJSON.stringify(printable));
-    const result = {
+    const result: PlaygroundResult = {
       namespace,
       type: type ? type : typeof printable,
       content

@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
-import DocumentIdStore from './documentIdStore';
+import util from 'util';
+
 import ConnectionController from '../connectionController';
+import { createLogger } from '../logging';
+import DocumentIdStore from './documentIdStore';
+import { DocumentSource } from '../documentSource';
+import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
-import { DocumentSource } from '../utils/documentSource';
-import { createLogger } from '../logging';
-import util from 'util';
-import type { ResultCodeLensInfo } from '../utils/types';
 
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
@@ -113,7 +114,7 @@ export default class MongoDBDocumentService {
   }
 
   async fetchDocument(
-    data: ResultCodeLensInfo
+    data: EditDocumentInfo
   ): Promise<EJSON.SerializableTypes | void> {
     log.info('fetch document from MongoDB', data);
 

@@ -17,7 +17,7 @@ import {
 import { StatusView } from '../../views';
 import { TestExtensionContext } from './stubs';
 import { TEST_DATABASE_URI } from './dbTestHelper';
-import { ConnectionModelType } from '../../connectionModelType';
+import { ConnectionModel } from '../../types/connectionModelType';
 
 const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
@@ -27,7 +27,7 @@ const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-const getConnection = (dbUri): Promise<ConnectionModelType> =>
+const getConnection = (dbUri): Promise<ConnectionModel> =>
   new Promise((resolve, reject) => {
     Connection.from(dbUri, (err, connectionModel) => {
       if (err) {
@@ -538,7 +538,7 @@ suite('Connection Controller Test Suite', function () {
 
   test('"getConnectionNameFromConnectionModel" returns a connection\'s name', () => {
     const testConnections: {
-      model: ConnectionModelType;
+      model: ConnectionModel;
       name: string;
     }[] = [
       {

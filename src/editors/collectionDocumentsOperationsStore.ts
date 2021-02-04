@@ -20,7 +20,7 @@ export default class CollectionDocumentsOperationsStore {
   operations: { [key: string]: CollectionDocumentsOperation } = {};
 
   createNewOperation(): string {
-    const operationId = uuidv4() as string;
+    const operationId = uuidv4();
 
     const initialDocumentsLimit = vscode.workspace
       .getConfiguration('mdb')

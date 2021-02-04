@@ -6,28 +6,31 @@ import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import { Worker as WorkerThreads } from 'worker_threads';
 
-import { NodeOptions, ExecuteAllResult, ShellCompletionItem, CollectionItem } from '../utils/types';
-import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
+import { CollectionItem } from '../types/collectionItemType';
+import { ConnectionOptions } from '../types/connectionOptionsType';
+import { ServerCommands } from './serverCommands';
+import { ShellExecuteAllResult, PlaygroundExecuteParameters } from '../types/playgroundType';
 import { Visitor } from './visitor';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
+export type ShellCompletionItem = {
+  [symbol: string]: CompletionItem[] | []
+};
+
 export default class MongoDBService {
   _connection: Connection;
   _connectionString?: string;
-  _connectionOptions?: NodeOptions;
-  _cachedDatabases: CompletionItem[] | [];
-  _cachedFields: { [namespace: string]: CompletionItem[] } | {};
-  _cachedCollections: { [database: string]: CollectionItem[] } | {};
+  _connectionOptions?: ConnectionOptions;
+  _cachedDatabases: CompletionItem[] | [] = [];
+  _cachedFields: { [namespace: string]: CompletionItem[] } | {} = {};
+  _cachedCollections: { [database: string]: CollectionItem[] } | {} = {};
   _cachedShellSymbols: ShellCompletionItem;
   _extensionPath?: string;
   _visitor: Visitor;
 
   constructor(connection: Connection) {
     this._connection = connection;
-    this._cachedDatabases = [];
-    this._cachedFields = {};
-    this._cachedCollections = {};
     this._cachedShellSymbols = this._getShellCompletionItems();
     this._visitor = new Visitor();
   }
@@ -37,11 +40,11 @@ export default class MongoDBService {
     return this._connectionString;
   }
 
-  get connectionOptions(): NodeOptions | undefined {
+  get connectionOptions(): ConnectionOptions | undefined {
     return this._connectionOptions;
   }
 
-  _isSslConnection(connectionOptions: NodeOptions): boolean {
+  _isSslConnection(connectionOptions: ConnectionOptions): boolean {
     return !!(
       connectionOptions &&
       (connectionOptions.sslCA ||
@@ -90,7 +93,7 @@ export default class MongoDBService {
 
   async connectToServiceProvider(params: {
     connectionString?: string;
-    connectionOptions?: NodeOptions;
+    connectionOptions?: ConnectionOptions;
   }): Promise<boolean> {
     this._clearCurrentSessionConnection();
     this._clearCurrentSessionFields();
@@ -138,9 +141,9 @@ export default class MongoDBService {
 
   // ------ EXECUTION ------ //
   executeAll(
-    executionParameters: PlaygroundRunParameters,
+    executionParameters: PlaygroundExecuteParameters,
     token: CancellationToken
-  ): Promise<ExecuteAllResult | undefined> {
+  ): Promise<ShellExecuteAllResult | undefined> {
     this._clearCurrentSessionFields();
 
     return new Promise((resolve) => {
@@ -180,7 +183,7 @@ export default class MongoDBService {
         worker.postMessage(ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND);
 
         // Listen for results from the worker thread.
-        worker.on('message', (response: [Error, ExecuteAllResult | undefined]) => {
+        worker.on('message', (response: [Error, ShellExecuteAllResult | undefined]) => {
           const [error, result] = response;
 
           if (error) {

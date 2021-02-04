@@ -1,24 +1,24 @@
 import * as vscode from 'vscode';
+import { EJSON } from 'bson';
+
+import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
-import { LanguageServerController } from '../language';
-import TelemetryService from '../telemetry/telemetryService';
-import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
-import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
-import playgroundTemplate from '../templates/playgroundTemplate';
-import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
-import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import { createLogger } from '../logging';
-import type { ExecuteAllResult } from '../utils/types';
+import { LanguageServerController } from '../language';
+import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
+import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
+import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
+import type { PlaygroundResult, ShellExecuteAllResult } from '../types/playgroundType';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME,
   PLAYGROUND_RESULT_URI
 } from './playgroundResultProvider';
-import type { OutputItem } from '../utils/types';
+import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
+import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
-import { EJSON } from 'bson';
+import TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('playground controller');
 
@@ -28,7 +28,7 @@ const log = createLogger('playground controller');
 export default class PlaygroundController {
   _connectionController: ConnectionController;
   _activeTextEditor?: TextEditor;
-  _playgroundResult?: OutputItem;
+  _playgroundResult?: PlaygroundResult;
   _context: vscode.ExtensionContext;
   _languageServerController: LanguageServerController;
   _telemetryService: TelemetryService;
@@ -38,7 +38,7 @@ export default class PlaygroundController {
   _connectionString?: string;
   _connectionOptions?: EJSON.SerializableTypes;
   _selectedText?: string;
-  _codeToEvaluate: string;
+  _codeToEvaluate = '';
   _isPartialRun: boolean;
   _playgroundResultViewColumn?: vscode.ViewColumn;
   _playgroundResultTextDocument?: vscode.TextDocument;
@@ -56,7 +56,6 @@ export default class PlaygroundController {
     partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider
   ) {
     this._context = context;
-    this._codeToEvaluate = '';
     this._isPartialRun = false;
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
@@ -241,11 +240,11 @@ export default class PlaygroundController {
     }
   }
 
-  async _evaluate(codeToEvaluate: string): Promise<ExecuteAllResult | undefined> {
+  async _evaluate(codeToEvaluate: string): Promise<ShellExecuteAllResult> {
     this._statusView.showMessage('Getting results...');
 
     // Send a request to the language server to execute scripts from a playground.
-    const result: ExecuteAllResult = await this._languageServerController.executeAll(
+    const result: ShellExecuteAllResult = await this._languageServerController.executeAll(
       codeToEvaluate
     );
 
@@ -267,7 +266,7 @@ export default class PlaygroundController {
     return this._activeTextEditor?.document.getText(selection) || '';
   }
 
-  _evaluateWithCancelModal(): Promise<ExecuteAllResult | undefined> {
+  _evaluateWithCancelModal(): Promise<ShellExecuteAllResult> {
     if (!this._connectionString) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
@@ -294,7 +293,7 @@ export default class PlaygroundController {
             });
 
             // Run all playground scripts.
-            const result: ExecuteAllResult | undefined = await this._evaluate(
+            const result: ShellExecuteAllResult = await this._evaluate(
               this._codeToEvaluate
             );
 
@@ -396,7 +395,7 @@ export default class PlaygroundController {
 
     this._outputChannel.clear();
 
-    const evaluateResponse: ExecuteAllResult | undefined = await this._evaluateWithCancelModal();
+    const evaluateResponse: ShellExecuteAllResult = await this._evaluateWithCancelModal();
 
     if (evaluateResponse?.outputLines?.length) {
       for (const line of evaluateResponse.outputLines) {

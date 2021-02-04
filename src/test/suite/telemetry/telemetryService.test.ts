@@ -17,7 +17,7 @@ import {
   SegmentProperties,
   TelemetryEventTypes
 } from '../../../telemetry/telemetryService';
-import { DocumentSource } from '../../../utils/documentSource';
+import { DocumentSource } from '../../../documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 const { version } = require('../../../../package.json');
 

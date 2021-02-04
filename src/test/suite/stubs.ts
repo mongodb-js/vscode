@@ -5,7 +5,7 @@ import path = require('path');
 
 import { StorageController } from '../../storage';
 
-import type { ExecuteAllResult } from '../../utils/types';
+import type { ShellExecuteAllResult } from '../../types/playgroundType';
 
 // Bare mock of the extension context for vscode.
 class TestExtensionContext implements vscode.ExtensionContext {
@@ -222,7 +222,7 @@ class MockLanguageServerController {
     return;
   }
 
-  async executeAll(/* codeToEvaluate: string*/): Promise<ExecuteAllResult> {
+  async executeAll(/* codeToEvaluate: string*/): Promise<ShellExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
       result: { namespace: null, type: null, content: 'Result' }
