@@ -7,7 +7,7 @@ import { getCloudInfo } from 'mongodb-cloud-info';
 import SegmentAnalytics from 'analytics-node';
 
 import type { CloudInfo } from '../types/cloudInfoType';
-import { ConnectionModel } from '../types/ConnectionModelType';
+import { ConnectionModel } from '../types/connectionModelType';
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import { DataServiceType } from '../types/dataServiceType';

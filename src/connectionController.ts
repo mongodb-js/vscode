@@ -5,7 +5,7 @@ import DataService from 'mongodb-data-service';
 import { EventEmitter } from 'events';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
-import { ConnectionModel } from './types/ConnectionModelType';
+import { ConnectionModel } from './types/connectionModelType';
 import { createLogger } from './logging';
 import { DataServiceType } from './types/dataServiceType';
 import { ext } from './extensionConstants';
