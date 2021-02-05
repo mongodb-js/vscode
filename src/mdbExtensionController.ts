@@ -4,9 +4,18 @@
  * Activated from `./src/extension.ts`
  */
 import * as vscode from 'vscode';
+
+import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
 import ConnectionController from './connectionController';
-import launchMongoShell from './commands/launchMongoShell';
+import ConnectionTreeItem from './explorer/connectionTreeItem';
+import { createLogger } from './logging';
+import DatabaseTreeItem from './explorer/databaseTreeItem';
+import DocumentListTreeItem from './explorer/documentListTreeItem';
+import { DocumentSource } from './documentSource';
+import DocumentTreeItem from './explorer/documentTreeItem';
+import EditDocumentCodeLensProvider from './editors/editDocumentCodeLensProvider';
 import { EditorsController, PlaygroundController } from './editors';
+import type { EditDocumentInfo } from './types/editDocumentInfoType';
 import {
   ExplorerController,
   PlaygroundsExplorer,
@@ -14,26 +23,18 @@ import {
   CollectionTreeItem
 } from './explorer';
 import EXTENSION_COMMANDS from './commands';
-import { LanguageServerController } from './language';
-import TelemetryService from './telemetry/telemetryService';
-import { StatusView } from './views';
-import { createLogger } from './logging';
-import { StorageController, StorageVariables } from './storage';
-import ConnectionTreeItem from './explorer/connectionTreeItem';
-import DatabaseTreeItem from './explorer/databaseTreeItem';
-import SchemaTreeItem from './explorer/schemaTreeItem';
-import DocumentListTreeItem from './explorer/documentListTreeItem';
-import DocumentTreeItem from './explorer/documentTreeItem';
-import WebviewController from './views/webviewController';
 import FieldTreeItem from './explorer/fieldTreeItem';
 import IndexListTreeItem from './explorer/indexListTreeItem';
+import { LanguageServerController } from './language';
+import launchMongoShell from './commands/launchMongoShell';
+import SchemaTreeItem from './explorer/schemaTreeItem';
+import { StatusView } from './views';
+import { StorageController, StorageVariables } from './storage';
+import TelemetryService from './telemetry/telemetryService';
+import PartialExecutionCodeLensProvider from './editors/partialExecutionCodeLensProvider';
 import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
-import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
-import PartialExecutionCodeLensProvider from './editors/partialExecutionCodeLensProvider';
-import type { ResultCodeLensInfo } from './utils/types';
-import { DocumentSource } from './utils/documentSource';
-import EditDocumentCodeLensProvider from './editors/editDocumentCodeLensProvider';
+import WebviewController from './views/webviewController';
 
 const log = createLogger('commands');
 
@@ -186,7 +187,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
-      (data: ResultCodeLensInfo) => {
+      (data: EditDocumentInfo) => {
         this._telemetryService.trackDocumentOpenedInEditor(data.source);
 
         return this._editorsController.openMongoDBDocument(data);

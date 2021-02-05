@@ -9,16 +9,18 @@ import {
   CompletionItem,
   TextDocumentPositionParams,
   RequestType,
-  TextDocumentSyncKind
+  TextDocumentSyncKind,
+  Connection
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
-import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
+import { ServerCommands } from './serverCommands';
+import { PlaygroundExecuteParameters } from '../types/playgroundType';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-const connection = createConnection(ProposedFeatures.all);
+const connection: Connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
 // The text document manager supports full document sync only.
@@ -232,10 +234,14 @@ connection.onDidChangeWatchedFiles((/* _change */) => {
 // Execute the entire playground script.
 connection.onRequest(
   ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
-  (executionParameters: PlaygroundRunParameters, token) => {
+  (executionParameters: PlaygroundExecuteParameters, token) => {
     return mongoDBService.executeAll(executionParameters, token);
   }
 );
+
+connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
+  return mongoDBService.setExtensionPath(extensionPath);
+});
 
 // Connect to CliServiceProvider to enable shell completions.
 connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {

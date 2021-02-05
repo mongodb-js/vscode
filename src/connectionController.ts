@@ -1,19 +1,19 @@
-import { v4 as uuidv4 } from 'uuid';
 import * as vscode from 'vscode';
+import { v4 as uuidv4 } from 'uuid';
 import Connection from 'mongodb-connection-model/lib/model';
 import DataService from 'mongodb-data-service';
-
-import { ConnectionModelType } from './connectionModelType';
-import { DataServiceType } from './dataServiceType';
-import { createLogger } from './logging';
-import { StatusView } from './views';
 import { EventEmitter } from 'events';
-import { StorageController, StorageVariables } from './storage';
-import { SavedConnection, StorageScope } from './storage/storageController';
-import TelemetryService from './telemetry/telemetryService';
-import { ext } from './extensionConstants';
+
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
+import { ConnectionModel } from './types/connectionModelType';
+import { createLogger } from './logging';
+import { DataServiceType } from './types/dataServiceType';
+import { ext } from './extensionConstants';
+import { SavedConnection, StorageScope } from './storage/storageController';
 import SSH_TUNNEL_TYPES from './views/webview-app/connection-model/constants/ssh-tunnel-types';
+import { StatusView } from './views';
+import { StorageController, StorageVariables } from './storage';
+import TelemetryService from './telemetry/telemetryService';
 
 const { name, version } = require('../package.json');
 const log = createLogger('connection controller');
@@ -31,7 +31,7 @@ export enum ConnectionTypes {
 }
 
 export type SavedConnectionInformation = {
-  connectionModel: ConnectionModelType;
+  connectionModel: ConnectionModel;
 };
 
 // A loaded connection contains connection information.
@@ -57,7 +57,7 @@ export default class ConnectionController {
 
   private readonly _serviceName = 'mdb.vscode.savedConnections';
   _activeDataService: null | DataServiceType = null;
-  _activeConnectionModel: null | ConnectionModelType = null;
+  _activeConnectionModel: null | ConnectionModel = null;
   private _currentConnectionId: null | string = null;
 
   // When we are connecting to a server we save a connection version to
@@ -229,7 +229,7 @@ export default class ConnectionController {
     return new Promise((resolve, reject) => {
       Connection.from(
         connectionString,
-        (error: Error | undefined, newConnectionModel: ConnectionModelType) => {
+        (error: Error | undefined, newConnectionModel: ConnectionModel) => {
           if (error) {
             return reject(new Error(`Unable to create connection: ${error}`));
           }
@@ -257,11 +257,11 @@ export default class ConnectionController {
   }
 
   public parseNewConnection = (
-    newConnectionModel: ConnectionModelType
-  ): ConnectionModelType => {
+    newConnectionModel: ConnectionModel
+  ): ConnectionModel => {
     // Here we re-parse the connection, as it can be loaded from storage or
     // passed by the connection model without the class methods.
-    const connectionModel: ConnectionModelType = new Connection(
+    const connectionModel: ConnectionModel = new Connection(
       newConnectionModel
     );
 
@@ -269,7 +269,7 @@ export default class ConnectionController {
   };
 
   public getConnectionNameFromConnectionModel = (
-    connectionModel: ConnectionModelType
+    connectionModel: ConnectionModel
   ): string => {
     const { sshTunnelOptions } = connectionModel.getAttributes({
       derived: true
@@ -300,7 +300,7 @@ export default class ConnectionController {
   };
 
   public saveNewConnectionAndConnect = async (
-    connectionModel: ConnectionModelType,
+    connectionModel: ConnectionModel,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> => {
     const connectionId = uuidv4();
@@ -340,7 +340,7 @@ export default class ConnectionController {
 
   public connect = async (
     connectionId: string,
-    connectionModel: ConnectionModelType,
+    connectionModel: ConnectionModel,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> => {
     log.info(
@@ -424,7 +424,7 @@ export default class ConnectionController {
 
   public connectWithConnectionId = (connectionId: string): Promise<boolean> => {
     if (this._connections[connectionId]) {
-      let connectionModel: ConnectionModelType;
+      let connectionModel: ConnectionModel;
 
       try {
         const savedConnectionModel = this._connections[connectionId]
@@ -731,7 +731,7 @@ export default class ConnectionController {
     return this._activeDataService;
   }
 
-  public getActiveConnectionModel(): null | ConnectionModelType {
+  public getActiveConnectionModel(): null | ConnectionModel {
     return this._activeConnectionModel;
   }
 

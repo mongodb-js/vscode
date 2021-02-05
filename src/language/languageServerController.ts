@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { workspace, ExtensionContext, OutputChannel } from 'vscode';
+import { EJSON } from 'bson';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -9,11 +9,12 @@ import {
   CancellationTokenSource
 } from 'vscode-languageclient';
 import WebSocket from 'ws';
-import type { ExecuteAllResult } from '../utils/types';
+import { workspace, ExtensionContext, OutputChannel } from 'vscode';
 
 import { createLogger } from '../logging';
-import { ServerCommands, PlaygroundRunParameters } from './serverCommands';
-import { EJSON } from 'bson';
+import { PlaygroundExecuteParameters } from '../types/playgroundType';
+import { ServerCommands } from './serverCommands';
+import type { ShellExecuteAllResult } from '../types/playgroundType';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -24,16 +25,15 @@ let socket: WebSocket | null;
 export default class LanguageServerController {
   _context: ExtensionContext;
   _source?: CancellationTokenSource;
-  _isExecutingInProgress: boolean;
+  _isExecutingInProgress = false;
   _client: LanguageClient;
 
   constructor(context: ExtensionContext) {
     this._context = context;
-    this._isExecutingInProgress = false;
 
     // The server is implemented in node.
     const serverModule = path.join(
-      context.extensionPath,
+      this._context.extensionPath,
       'dist',
       'languageServer.js'
     );
@@ -118,6 +118,10 @@ export default class LanguageServerController {
 
     // Subscribe on notifications from the server when the client is ready
     await this._client.onReady();
+    await this._client.sendRequest(
+      ServerCommands.SET_EXTENSION_PATH,
+      this._context.extensionPath
+    );
 
     this._client.onNotification('showInformationMessage', (messsage) => {
       vscode.window.showInformationMessage(messsage);
@@ -137,7 +141,7 @@ export default class LanguageServerController {
     this._client.stop();
   }
 
-  async executeAll(codeToEvaluate: string): Promise<ExecuteAllResult> {
+  async executeAll(codeToEvaluate: string): Promise<ShellExecuteAllResult> {
     this._isExecutingInProgress = true;
 
     await this._client.onReady();
@@ -148,11 +152,11 @@ export default class LanguageServerController {
     // Send a request with a cancellation token
     // to the language server server to execute scripts from a playground
     // and return results to the playground controller when ready
-    const result: ExecuteAllResult = await this._client.sendRequest(
+    const result: ShellExecuteAllResult = await this._client.sendRequest(
       ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
       {
         codeToEvaluate
-      } as PlaygroundRunParameters,
+      } as PlaygroundExecuteParameters,
       this._source.token
     );
 
@@ -164,7 +168,6 @@ export default class LanguageServerController {
   async connectToServiceProvider(params: {
     connectionString?: string;
     connectionOptions?: EJSON.SerializableTypes;
-    extensionPath: string;
   }): Promise<void> {
     await this._client.onReady();
     await this._client.sendRequest(

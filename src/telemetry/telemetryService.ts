@@ -1,18 +1,20 @@
-import * as vscode from 'vscode';
-import { createLogger } from '../logging';
-import SegmentAnalytics from 'analytics-node';
 import * as path from 'path';
-import { config } from 'dotenv';
-import { StorageController } from '../storage';
-import { ConnectionTypes } from '../connectionController';
-import { getCloudInfo } from 'mongodb-cloud-info';
-import { DataServiceType } from '../dataServiceType';
-import type { ExecuteAllResult, CloudInfoResult } from '../utils/types';
-import type { InstanceInfoResult } from '../instanceInfoResultType';
-import { ConnectionModelType } from '../connectionModelType';
-import { DocumentSource } from '../utils/documentSource';
-import fs from 'fs';
 import * as util from 'util';
+import * as vscode from 'vscode';
+import { config } from 'dotenv';
+import fs from 'fs';
+import { getCloudInfo } from 'mongodb-cloud-info';
+import SegmentAnalytics from 'analytics-node';
+
+import type { CloudInfo } from '../types/cloudInfoType';
+import { ConnectionModel } from '../types/connectionModelType';
+import { ConnectionTypes } from '../connectionController';
+import { createLogger } from '../logging';
+import { DataServiceType } from '../types/dataServiceType';
+import { DocumentSource } from '../documentSource';
+import type { InstanceInfoResult } from '../types/instanceInfoResultType';
+import type { ShellExecuteAllResult } from '../types/playgroundType';
+import { StorageController } from '../storage';
 
 const { version } = require('../../package.json');
 
@@ -31,11 +33,6 @@ export type SegmentProperties = {
   event: string;
   userId: string;
   properties: any;
-};
-
-type CloudInfo = {
-  isPublicCloud?: boolean;
-  publicCloudName?: string | null;
 };
 
 type LinkClickedTelemetryEventProperties = {
@@ -224,14 +221,14 @@ export default class TelemetryService {
 
   private async getCloudInfoFromDataService(
     firstServerHostname: string
-  ): Promise<CloudInfo> {
+  ): Promise<{ isPublicCloud?: boolean; publicCloudName?: string | null }> {
     if (!this._isTelemetryFeatureEnabled()) {
       return {};
     }
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      const cloudInfo: CloudInfoResult = (await getCloudInfo(firstServerHostname)) as CloudInfoResult;
+      const cloudInfo = (await getCloudInfo(firstServerHostname)) as CloudInfo;
 
       if (cloudInfo.isAws) {
         return {
@@ -271,7 +268,7 @@ export default class TelemetryService {
 
     try {
       const data = await instance({}) as InstanceInfoResult;
-      const dataServiceClient = dataService.client as { model: ConnectionModelType };
+      const dataServiceClient = dataService.client as { model: ConnectionModel };
 
       if (data) {
         const firstServerHostname = dataServiceClient.model.hosts[0].host;
@@ -312,7 +309,7 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
   }
 
-  getPlaygroundResultType(res: ExecuteAllResult): string {
+  getPlaygroundResultType(res: ShellExecuteAllResult): string {
     if (!res || !res.result || !res.result.type) {
       return 'other';
     }
@@ -340,7 +337,7 @@ export default class TelemetryService {
   }
 
   trackPlaygroundCodeExecuted(
-    result: ExecuteAllResult,
+    result: ShellExecuteAllResult,
     partial: boolean,
     error: boolean
   ): void {

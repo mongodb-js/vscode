@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
+import { CancellationTokenSource } from 'vscode-languageclient';
+import { Duplex } from 'stream';
 import path = require('path');
 
-import { CancellationTokenSource } from 'vscode-languageclient';
 import { StorageController } from '../../storage';
-import type { ExecuteAllResult } from '../../utils/types';
+
+import type { ShellExecuteAllResult } from '../../types/playgroundType';
 
 // Bare mock of the extension context for vscode.
 class TestExtensionContext implements vscode.ExtensionContext {
@@ -220,7 +222,7 @@ class MockLanguageServerController {
     return;
   }
 
-  async executeAll(/* codeToEvaluate: string*/): Promise<ExecuteAllResult> {
+  async executeAll(/* codeToEvaluate: string*/): Promise<ShellExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
       result: { namespace: null, type: null, content: 'Result' }
@@ -248,6 +250,15 @@ class MockLanguageServerController {
   }
 }
 
+class TestStream extends Duplex {
+  _write(chunk: string, _encoding: string, done: () => void) {
+    this.emit('data', chunk);
+    done();
+  }
+
+  _read() {}
+}
+
 export {
   mockSelection,
   mockDocuments,
@@ -257,5 +268,6 @@ export {
   mockVSCodeTextDocument,
   DataServiceStub,
   TestExtensionContext,
-  MockLanguageServerController
+  MockLanguageServerController,
+  TestStream
 };

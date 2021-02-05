@@ -1,33 +1,34 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
+
+import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
+import ConnectionController from '../connectionController';
 import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
-import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
 import CollectionDocumentsProvider, {
   CONNECTION_ID_URI_IDENTIFIER,
   OPERATION_ID_URI_IDENTIFIER,
   NAMESPACE_URI_IDENTIFIER,
   VIEW_COLLECTION_SCHEME
 } from './collectionDocumentsProvider';
-import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import { StatusView } from '../views';
-import PlaygroundController from './playgroundController';
 import DocumentIdStore from './documentIdStore';
+import { DocumentSource } from '../documentSource';
+import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
+import type { EditDocumentInfo } from '../types/editDocumentInfoType';
+import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import MongoDBDocumentService, {
   DOCUMENT_ID_URI_IDENTIFIER,
   DOCUMENT_SOURCE_URI_IDENTIFIER,
   VIEW_DOCUMENT_SCHEME
 } from './mongoDBDocumentService';
-import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
-import TelemetryService from '../telemetry/telemetryService';
+import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
+import PlaygroundController from './playgroundController';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME
 } from './playgroundResultProvider';
-import type { ResultCodeLensInfo } from '../utils/types';
-import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
-import { DocumentSource } from '../utils/documentSource';
+import { StatusView } from '../views';
+import TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('editors controller');
 
@@ -105,7 +106,7 @@ export default class EditorsController {
     log.info('activated.');
   }
 
-  async openMongoDBDocument(data: ResultCodeLensInfo): Promise<boolean> {
+  async openMongoDBDocument(data: EditDocumentInfo): Promise<boolean> {
     try {
       let fileDocumentId = EJSON.stringify(data.documentId);
 

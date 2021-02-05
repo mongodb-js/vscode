@@ -1,21 +1,21 @@
-import { parentPort, workerData } from 'worker_threads';
-import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import {
   CliServiceProvider,
   NodeOptions
 } from '@mongosh/service-provider-server';
-import parseSchema = require('mongodb-schema');
-import { ServerCommands } from './serverCommands';
 import { CompletionItemKind } from 'vscode-languageserver';
-import type { OutputItem } from '../utils/types';
+import { EJSON } from 'bson';
+import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
+import parseSchema = require('mongodb-schema');
+import { parentPort, workerData } from 'worker_threads';
 
-const { EJSON } = require('bson');
+import type { PlaygroundResult, PlaygroundDebug, ShellExecuteAllResult } from '../types/playgroundType';
+import { ServerCommands } from './serverCommands';
 
 type EvaluationResult = {
   printable: any;
   type: string | null;
 };
-type WorkerResult = any;
+type WorkerResult = ShellExecuteAllResult;
 type WorkerError = any | null;
 
 const executeAll = async (
@@ -33,7 +33,7 @@ const executeAll = async (
       connectionOptions
     );
 
-    const outputLines: OutputItem[] = [];
+    const outputLines: PlaygroundDebug = [];
     // Create a new instance of the runtime and evaluate code from a playground.
     const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
     runtime.setEvaluationListener({
@@ -56,7 +56,7 @@ const executeAll = async (
       typeof printable === 'string'
         ? printable
         : JSON.parse(EJSON.stringify(printable));
-    const result = {
+    const result: PlaygroundResult = {
       namespace,
       type: type ? type : typeof printable,
       content

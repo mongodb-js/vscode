@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
-import type { OutputItem } from '../utils/types';
+
 import ConnectionController from '../connectionController';
+import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
+import type { PlaygroundResult } from '../types/playgroundType';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
@@ -13,7 +14,7 @@ export default class PlaygroundResultProvider
 implements vscode.TextDocumentContentProvider {
   _connectionController: ConnectionController;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
-  _playgroundResult: OutputItem;
+  _playgroundResult: PlaygroundResult;
 
   constructor(
     connectionController: ConnectionController,
@@ -31,7 +32,7 @@ implements vscode.TextDocumentContentProvider {
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this.onDidChangeEmitter.event;
 
-  setPlaygroundResult(playgroundResult?: OutputItem): void {
+  setPlaygroundResult(playgroundResult?: PlaygroundResult): void {
     if (playgroundResult) {
       this._playgroundResult = playgroundResult;
     }
@@ -42,6 +43,10 @@ implements vscode.TextDocumentContentProvider {
   }
 
   provideTextDocumentContent(): string {
+    if (!this._playgroundResult) {
+      return 'undefined';
+    }
+
     const { type, content } = this._playgroundResult;
 
     if (type === 'undefined') {
