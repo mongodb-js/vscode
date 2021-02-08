@@ -8,12 +8,19 @@ import path from 'path';
 import MongoDBService, { languageServerWorkerFileName } from '../../../language/mongoDBService';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestStream } from '../stubs';
+import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
 
 const expect = chai.expect;
 const INCREASED_TEST_TIMEOUT = 5000;
 
 suite('MongoDBService Test Suite', () => {
-  const params = { connectionString: 'mongodb://localhost:27018' };
+  const params = {
+    connectionId: 'pineapple',
+    connectionString: 'mongodb://localhost:27018',
+    connectionOptions: {
+      readPreference: READ_PREFERENCES.PRIMARY
+    }
+  };
 
   test('the language server worker dependency bundle exists', () => {
     const languageServerModuleBundlePath = path.join(
@@ -43,7 +50,10 @@ suite('MongoDBService Test Suite', () => {
     test('catches error when executeAll is called and extension path is empty string', async () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
-        { codeToEvaluate: '1 + 1' },
+        {
+          codeToEvaluate: '1 + 1',
+          connectionId: 'pineapple'
+        },
         source.token
       );
 
@@ -950,6 +960,7 @@ suite('MongoDBService Test Suite', () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
+          connectionId: 'pineapple',
           codeToEvaluate: '1 + 1'
         },
         source.token
@@ -962,10 +973,24 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
+    test('should not run when the connectionId does not match', async () => {
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll(
+        {
+          connectionId: 'not pineapple',
+          codeToEvaluate: '1 + 1'
+        },
+        source.token
+      );
+
+      expect(result).to.equal(undefined);
+    });
+
     test('evaluate multiplies commands at once', async () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
+          connectionId: 'pineapple',
           codeToEvaluate: 'const x = 1; x + 2'
         },
         source.token
@@ -982,6 +1007,7 @@ suite('MongoDBService Test Suite', () => {
       const source = new CancellationTokenSource();
       const firstEvalResult = await testMongoDBService.executeAll(
         {
+          connectionId: 'pineapple',
           codeToEvaluate: 'const x = 1 + 1; x'
         },
         source.token
@@ -995,6 +1021,7 @@ suite('MongoDBService Test Suite', () => {
 
       const secondEvalResult = await testMongoDBService.executeAll(
         {
+          connectionId: 'pineapple',
           codeToEvaluate: 'const x = 2 + 1; x'
         },
         source.token
@@ -1011,6 +1038,7 @@ suite('MongoDBService Test Suite', () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
+          connectionId: 'pineapple',
           codeToEvaluate: `const { ObjectId } = require('bson');
           const x = { _id: new ObjectId('5fb292760ece2dc9c0362075') };
           x`
@@ -1037,6 +1065,7 @@ suite('MongoDBService Test Suite', () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
+          connectionId: 'pineapple',
           codeToEvaluate: `const x = 'A single line string';
           x`
         },
@@ -1058,6 +1087,7 @@ suite('MongoDBService Test Suite', () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
+          connectionId: 'pineapple',
           codeToEvaluate: `const x = \`vscode
           is
           awesome\`;
@@ -1083,6 +1113,7 @@ suite('MongoDBService Test Suite', () => {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.executeAll(
         {
+          connectionId: 'pineapple',
           codeToEvaluate: 'print("Hello"); console.log(1,2,3); 42'
         },
         source.token

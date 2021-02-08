@@ -36,7 +36,6 @@ export default class PlaygroundController {
   _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
   _outputChannel: OutputChannel;
   _connectionString?: string;
-  _connectionOptions?: EJSON.SerializableTypes;
   _selectedText?: string;
   _codeToEvaluate = '';
   _isPartialRun: boolean;
@@ -135,11 +134,11 @@ export default class PlaygroundController {
       selectedText.length > 0 &&
       selectedText.length >= lastSelectedLine.length
     ) {
-      this._partialExecutionCodeLensProvider?.refresh(
+      this._partialExecutionCodeLensProvider.refresh(
         new vscode.Range(firstLine, 0, firstLine, 0)
       );
     } else {
-      this._partialExecutionCodeLensProvider?.refresh();
+      this._partialExecutionCodeLensProvider.refresh();
     }
   }
 
@@ -148,26 +147,25 @@ export default class PlaygroundController {
   }
 
   async _connectToServiceProvider(): Promise<void> {
-    const model = this._connectionController
-      .getActiveConnectionModel()
-      ?.getAttributes({ derived: true });
-
-    this._connectionString = undefined;
-    this._connectionOptions = undefined;
-
     await this._languageServerController.disconnectFromServiceProvider();
 
-    if (model && model.driverUrlWithSsh) {
-      this._connectionString = model.driverUrlWithSsh;
-      this._connectionOptions = model.driverOptions ? model.driverOptions : {};
+    const dataService = this._connectionController.getActiveDataService();
+    const connectionId = this._connectionController.getActiveConnectionId();
+    if (!dataService || !connectionId) {
+      this._activeConnectionCodeLensProvider.refresh();
 
-      await this._languageServerController.connectToServiceProvider({
-        connectionString: this._connectionString,
-        connectionOptions: this._connectionOptions
-      });
+      return;
     }
 
-    this._activeConnectionCodeLensProvider?.refresh();
+    const connectionOptions = dataService.getConnectionOptions();
+
+    await this._languageServerController.connectToServiceProvider({
+      connectionId,
+      connectionString: connectionOptions.url,
+      connectionOptions: connectionOptions.options,
+    });
+
+    this._activeConnectionCodeLensProvider.refresh();
   }
 
   async _createPlaygroundFileWithContent(
@@ -267,7 +265,7 @@ export default class PlaygroundController {
   }
 
   _evaluateWithCancelModal(): Promise<ShellExecuteAllResult> {
-    if (!this._connectionString) {
+    if (!this._connectionController.isCurrentlyConnected()) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
       );
@@ -372,7 +370,7 @@ export default class PlaygroundController {
       .getConfiguration('mdb')
       .get('confirmRunAll');
 
-    if (!this._connectionString) {
+    if (!this._connectionController.isCurrentlyConnected()) {
       vscode.window.showErrorMessage(
         'Please connect to a database before running a playground.'
       );

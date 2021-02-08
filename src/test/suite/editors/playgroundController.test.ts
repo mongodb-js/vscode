@@ -14,6 +14,7 @@ import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensP
 
 import sinon from 'sinon';
 import chai from 'chai';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
@@ -208,12 +209,18 @@ suite('Playground Controller Test Suite', function () {
     suite('user is connected', () => {
       beforeEach(async () => {
         const mockGetActiveConnectionName = sinon.fake.returns('fakeName');
-        const mockGetActiveConnectionModel = sinon.fake.returns({
-          appname: 'VSCode Playground Tests',
-          port: 27018,
-          disconnect: () => {},
-          getAttributes: () => CONNECTION
+        const mockGetActiveDataService = sinon.fake.returns({
+          getConnectionOptions: () => ({
+            url: TEST_DATABASE_URI,
+            options: {
+              appname: 'VSCode Playground Tests',
+              port: 27018,
+              disconnect: () => {},
+              getAttributes: () => CONNECTION
+            }
+          })
         });
+        const mockGetActiveConnectionId = sinon.fake.returns('pineapple');
 
         sinon.replace(
           testPlaygroundController._connectionController,
@@ -222,8 +229,18 @@ suite('Playground Controller Test Suite', function () {
         );
         sinon.replace(
           testPlaygroundController._connectionController,
-          'getActiveConnectionModel',
-          mockGetActiveConnectionModel
+          'isCurrentlyConnected',
+          () => true
+        );
+        sinon.replace(
+          testPlaygroundController._connectionController,
+          'getActiveDataService',
+          mockGetActiveDataService
+        );
+        sinon.replace(
+          testPlaygroundController._connectionController,
+          'getActiveConnectionId',
+          mockGetActiveConnectionId
         );
 
         await testPlaygroundController._connectToServiceProvider();
@@ -249,14 +266,10 @@ suite('Playground Controller Test Suite', function () {
           mockOpenPlaygroundResult
         );
 
-        try {
-          const result = await testPlaygroundController.runAllPlaygroundBlocks();
+        const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
-          expect(result).to.be.equal(true);
-          sinon.assert.called(fakeShowInformationMessage);
-        } catch (error) {
-          expect(error).to.be.equal(undefined);
-        }
+        expect(result).to.be.equal(true);
+        sinon.assert.called(fakeShowInformationMessage);
       });
 
       test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
@@ -283,14 +296,10 @@ suite('Playground Controller Test Suite', function () {
           mockOpenPlaygroundResult
         );
 
-        try {
-          const result = await testPlaygroundController.runAllPlaygroundBlocks();
+        const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
-          expect(result).to.be.equal(true);
-          sinon.assert.notCalled(fakeShowInformationMessage);
-        } catch (error) {
-          expect(error).to.be.equal(undefined);
-        }
+        expect(result).to.be.equal(true);
+        sinon.assert.notCalled(fakeShowInformationMessage);
       });
 
       test('do not run a playground if user selected No in the confirmation message', async () => {
@@ -300,13 +309,9 @@ suite('Playground Controller Test Suite', function () {
 
         fakeShowInformationMessage.resolves('No');
 
-        try {
-          const result = await testPlaygroundController.runAllPlaygroundBlocks();
+        const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
-          expect(result).to.be.false;
-        } catch (error) {
-          expect(error).to.be.equal(undefined);
-        }
+        expect(result).to.be.false;
       });
 
       test('close cancelation modal when a playground is canceled', async () => {
@@ -316,16 +321,12 @@ suite('Playground Controller Test Suite', function () {
           sinon.fake.rejects(false)
         );
 
-        try {
-          const result = await testPlaygroundController._evaluateWithCancelModal();
+        const result = await testPlaygroundController._evaluateWithCancelModal();
 
-          expect(result).to.deep.equal({
-            outputLines: undefined,
-            result: undefined
-          });
-        } catch (error) {
-          expect(error).to.be.equal(undefined);
-        }
+        expect(result).to.deep.equal({
+          outputLines: undefined,
+          result: undefined
+        });
       });
 
       test('do not show code lens if a part of a line is selected', () => {

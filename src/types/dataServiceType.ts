@@ -1,8 +1,14 @@
 import { EJSON } from 'bson';
+import { ConnectionOptions } from './connectionOptionsType';
 
 export type DataServiceType = {
   connect(callback: (error: Error | undefined) => void): void;
   disconnect(callback: (error: Error | undefined) => void): void;
+
+  getConnectionOptions(): {
+    options: ConnectionOptions;
+    url: string
+  }
 
   listDatabases(
     callback: (error: Error | undefined, databases: string[]) => void

@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { EJSON } from 'bson';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -123,11 +122,11 @@ export default class LanguageServerController {
       this._context.extensionPath
     );
 
-    this._client.onNotification('showInformationMessage', (messsage) => {
+    this._client.onNotification(ServerCommands.SHOW_INFO_MESSAGE, (messsage) => {
       vscode.window.showInformationMessage(messsage);
     });
 
-    this._client.onNotification('showErrorMessage', (messsage) => {
+    this._client.onNotification(ServerCommands.SHOW_ERROR_MESSAGE, (messsage) => {
       vscode.window.showErrorMessage(messsage);
     });
   }
@@ -166,8 +165,9 @@ export default class LanguageServerController {
   }
 
   async connectToServiceProvider(params: {
-    connectionString?: string;
-    connectionOptions?: EJSON.SerializableTypes;
+    connectionId: string,
+    connectionString: string;
+    connectionOptions: Object
   }): Promise<void> {
     await this._client.onReady();
     await this._client.sendRequest(

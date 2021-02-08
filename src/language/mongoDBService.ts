@@ -20,6 +20,7 @@ export type ShellCompletionItem = {
 
 export default class MongoDBService {
   _connection: Connection;
+  _connectionId?: string;
   _connectionString?: string;
   _connectionOptions?: ConnectionOptions;
   _cachedDatabases: CompletionItem[] | [] = [];
@@ -92,16 +93,18 @@ export default class MongoDBService {
   }
 
   async connectToServiceProvider(params: {
-    connectionString?: string;
-    connectionOptions?: ConnectionOptions;
+    connectionId: string;
+    connectionString: string;
+    connectionOptions: ConnectionOptions;
   }): Promise<boolean> {
     this._clearCurrentSessionConnection();
     this._clearCurrentSessionFields();
     this._clearCurrentSessionDatabases();
     this._clearCurrentSessionCollections();
 
+    this._connectionId = params.connectionId;
     this._connectionString = params.connectionString;
-    this._connectionOptions = params.connectionOptions || {};
+    this._connectionOptions = params.connectionOptions;
 
     if (!this._connectionString) {
       return Promise.resolve(false);
@@ -153,6 +156,15 @@ export default class MongoDBService {
         return resolve(undefined);
       }
 
+      if (this._connectionId !== executionParameters.connectionId) {
+        this._connection.sendNotification(
+          ServerCommands.SHOW_ERROR_MESSAGE,
+          'The playground\'s active connection does not match the extension\'s active connection. Please reconnect and try again.'
+        );
+
+        return resolve(undefined);
+      }
+
       try {
         // Use Node worker threads to run a playground to be able to cancel infinite loops.
         //
@@ -192,7 +204,10 @@ export default class MongoDBService {
             this._connection.console.log(
               `MONGOSH execute all error: ${util.inspect(error)}`
             );
-            this._connection.sendNotification('showErrorMessage', printableError.message);
+            this._connection.sendNotification(
+              ServerCommands.SHOW_ERROR_MESSAGE,
+              printableError.message
+            );
           }
 
           worker.terminate().then(() => {
@@ -204,7 +219,7 @@ export default class MongoDBService {
         token.onCancellationRequested(async () => {
           this._connection.console.log('PLAYGROUND cancellation requested');
           this._connection.sendNotification(
-            'showInformationMessage',
+            ServerCommands.SHOW_INFO_MESSAGE,
             'The running playground operation was canceled.'
           );
 
