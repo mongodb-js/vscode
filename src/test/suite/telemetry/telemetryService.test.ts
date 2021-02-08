@@ -182,7 +182,7 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('track document opened form playground results', async () => {
-    const mockTrackDocumentOpenedInEditor: any = sinon.fake();
+    const mockTrackDocumentOpenedInEditor = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackDocumentOpenedInEditor',
@@ -200,12 +200,19 @@ suite('Telemetry Controller Test Suite', () => {
       }
     );
 
-    expect(mockTrackDocumentOpenedInEditor.firstArg).to.be.equal('playground');
+    expect(mockTrackDocumentOpenedInEditor.firstCall.firstArg).to.be.equal('playground');
   });
 
   test('track playground code executed event', async () => {
     const mockPlaygroundController =
       mdbTestExtension.testExtensionController._playgroundController;
+
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._connectionController,
+      'getActiveConnectionId',
+      () => 'testconnectionId'
+    );
 
     await mockPlaygroundController._evaluate('show dbs');
 

@@ -20,11 +20,9 @@ import PlaygroundResultProvider from '../../../editors/playgroundResultProvider'
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import PartialExecutionCodeLensProvider from '../../../editors/partialExecutionCodeLensProvider';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-
-const CONNECTION = {
-  driverUrlWithSsh: 'mongodb://localhost:27018',
-  driverOptions: {}
-};
+import { TEST_DATABASE_URI } from '../dbTestHelper';
+import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
+import { DataServiceType } from '../../../types/dataServiceType';
 
 suite('Language Server Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
@@ -70,15 +68,30 @@ suite('Language Server Controller Test Suite', () => {
   before(async () => {
     await testLanguageServerController.startLanguageServer();
 
-    testConnectionController.getActiveConnectionName = sinon.fake.returns(
-      'fakeName'
+    sinon.replace(
+      testConnectionController,
+      'getActiveConnectionName',
+      () => 'fakeName'
     );
-    testConnectionController.getActiveConnectionModel = sinon.fake.returns({
-      appname: 'VSCode Playground Tests',
-      port: 27018,
-      disconnect: () => {},
-      getAttributes: () => CONNECTION
-    });
+    sinon.replace(
+      testConnectionController,
+      'getActiveDataService',
+      () => (({
+        getConnectionOptions: () => ({
+          url: TEST_DATABASE_URI,
+          options: {
+            appname: 'VSCode Playground Tests',
+            port: 27018,
+            readPreference: READ_PREFERENCES.PRIMARY
+          }
+        })
+      } as any) as DataServiceType)
+    );
+    sinon.replace(
+      testConnectionController,
+      'isCurrentlyConnected',
+      () => true
+    );
 
     await testPlaygroundController._connectToServiceProvider();
   });
@@ -90,23 +103,26 @@ suite('Language Server Controller Test Suite', () => {
   test('cancel a long-running script', async () => {
     expect(testLanguageServerController._isExecutingInProgress).to.equal(false);
 
-    await testLanguageServerController.executeAll(`
-      const names = [
-        "flour",
-        "butter",
-        "water",
-        "salt",
-        "onions",
-        "leek"
-      ];
-      let currentName = '';
-      names.forEach((name) => {
-        setTimeout(() => {
-          currentName = name;
-        }, 500);
-      });
-      currentName
-    `);
+    await testLanguageServerController.executeAll({
+      codeToEvaluate: `
+        const names = [
+          "flour",
+          "butter",
+          "water",
+          "salt",
+          "onions",
+          "leek"
+        ];
+        let currentName = '';
+        names.forEach((name) => {
+          setTimeout(() => {
+            currentName = name;
+          }, 500);
+        });
+        currentName
+      `,
+      connectionId: 'pineapple'
+    });
 
     testLanguageServerController.cancelAll();
     expect(testLanguageServerController._isExecutingInProgress).to.equal(false);

@@ -239,12 +239,21 @@ export default class PlaygroundController {
   }
 
   async _evaluate(codeToEvaluate: string): Promise<ShellExecuteAllResult> {
+    const connectionId = this._connectionController.getActiveConnectionId();
+
+    if (!connectionId) {
+      return Promise.reject(
+        new Error('Please connect to a database before running a playground.')
+      );
+    }
+
     this._statusView.showMessage('Getting results...');
 
     // Send a request to the language server to execute scripts from a playground.
-    const result: ShellExecuteAllResult = await this._languageServerController.executeAll(
-      codeToEvaluate
-    );
+    const result: ShellExecuteAllResult = await this._languageServerController.executeAll({
+      codeToEvaluate,
+      connectionId
+    });
 
     this._statusView.hideMessage();
     this._telemetryService.trackPlaygroundCodeExecuted(
