@@ -15,6 +15,7 @@ import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensP
 import sinon from 'sinon';
 import chai from 'chai';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
+import { ConnectionModel } from '../../../types/connectionModelType';
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
@@ -82,6 +83,101 @@ suite('Playground Controller Test Suite', function () {
   afterEach(() => {
     sandbox.restore();
     sinon.restore();
+  });
+
+  suite('passing connection details to service provider', () => {
+    let mockConnectToServiceProvider: sinon.SinonSpy;
+
+    beforeEach(async () => {
+      const mockGetActiveConnectionName = sinon.fake.returns('fakeName');
+      const mockGetActiveDataService = sinon.fake.returns({
+        getConnectionOptions: () => ({
+          url: TEST_DATABASE_URI,
+          options: {
+            appname: 'VSCode Playground Tests',
+            port: 27018,
+            sslKey: 'some buffer',
+            sslCert: 'not the file path',
+            sslCA: 'aaaa',
+          }
+        })
+      });
+      const mockGetActiveConnectionId = sinon.fake.returns('pineapple');
+      mockConnectToServiceProvider = sinon.fake.resolves(undefined);
+
+      sinon.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionName',
+        mockGetActiveConnectionName
+      );
+      sinon.replace(
+        testPlaygroundController._connectionController,
+        'isCurrentlyConnected',
+        () => true
+      );
+      sinon.replace(
+        testPlaygroundController._connectionController,
+        'getActiveDataService',
+        mockGetActiveDataService
+      );
+      sinon.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionId',
+        mockGetActiveConnectionId
+      );
+      sinon.replace(
+        testPlaygroundController._languageServerController,
+        'connectToServiceProvider',
+        mockConnectToServiceProvider
+      );
+      sinon.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionModel',
+        () => (({
+          getAttributes: () => ({
+            driverOptions: {
+              sslKey: 'sslKeyFile.pem',
+              sslCert: 'sslCertFile.pem',
+              sslCA: 'sslCAFile.pem'
+            }
+          })
+        } as any)as ConnectionModel)
+      );
+
+      await testPlaygroundController._connectToServiceProvider();
+    });
+
+    test('it should pass the active connection id to the language server for connecting', () => {
+      expect(
+        (mockConnectToServiceProvider.firstCall.firstArg as {
+          connectionId: string;
+        }).connectionId
+      ).to.equal('pineapple');
+    });
+
+    test('it should pass ssl strings to the language server for connecting', () => {
+      expect(
+        (mockConnectToServiceProvider.firstCall.firstArg as {
+          connectionOptions: {
+            sslKey: string;
+          }
+        }).connectionOptions.sslKey
+      ).to.equal('sslKeyFile.pem');
+      expect(
+        (mockConnectToServiceProvider.firstCall.firstArg as {
+          connectionOptions: {
+            sslCert: string;
+          }
+        }).connectionOptions.sslCert
+      ).to.equal('sslCertFile.pem');
+      expect(
+        (mockConnectToServiceProvider.firstCall.firstArg as {
+          connectionOptions: {
+            sslCA: string;
+          }
+        }).connectionOptions.sslCA
+      ).to.equal('sslCAFile.pem');
+    });
   });
 
   suite('playground is not open', () => {

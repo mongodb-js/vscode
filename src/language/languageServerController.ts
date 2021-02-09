@@ -14,6 +14,7 @@ import { createLogger } from '../logging';
 import { PlaygroundExecuteParameters } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
 import type { ShellExecuteAllResult } from '../types/playgroundType';
+import { ConnectionOptions } from '../types/connectionOptionsType';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -167,7 +168,7 @@ export default class LanguageServerController {
   async connectToServiceProvider(params: {
     connectionId: string,
     connectionString: string;
-    connectionOptions: Object
+    connectionOptions: ConnectionOptions
   }): Promise<void> {
     await this._client.onReady();
     await this._client.sendRequest(

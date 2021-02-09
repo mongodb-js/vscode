@@ -19,8 +19,28 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
+import { ConnectionOptions } from '../types/connectionOptionsType';
 
 const log = createLogger('playground controller');
+
+const getSSLFilePathsFromConnectionModel = (
+  connectionModelDriverOptions: ConnectionOptions
+): {
+  sslCA?: string | string[];
+  sslCert?: string | string[];
+  sslKey?: string | string[];
+} => {
+  const sslFilePaths = {};
+  ['sslCA', 'sslCert', 'sslKey'].forEach((key) => {
+    if (connectionModelDriverOptions[key]) {
+      sslFilePaths[key] = connectionModelDriverOptions[key] as (
+        string | string[]
+      );
+    }
+  });
+
+  return sslFilePaths;
+};
 
 /**
  * This controller manages playground.
@@ -151,18 +171,33 @@ export default class PlaygroundController {
 
     const dataService = this._connectionController.getActiveDataService();
     const connectionId = this._connectionController.getActiveConnectionId();
-    if (!dataService || !connectionId) {
+    const connectionModel = this._connectionController
+      .getActiveConnectionModel();
+    if (!dataService || !connectionId || !connectionModel) {
       this._activeConnectionCodeLensProvider.refresh();
 
       return;
     }
 
-    const connectionOptions = dataService.getConnectionOptions();
+    const connectionDetails = dataService.getConnectionOptions();
+    const connectionString = connectionDetails.url;
+    // We pass file paths to the language server since it doesn't
+    // handle being passsed buffers well.
+    // With driver version 4.0 we should be able to remove any use
+    // of buffers and just pass file paths.
+    const sslOptionsFilePaths = getSSLFilePathsFromConnectionModel(
+      connectionModel.getAttributes({ derived: true }).driverOptions
+    );
+
+    const connectionOptions: ConnectionOptions = {
+      ...connectionDetails.options,
+      ...sslOptionsFilePaths
+    };
 
     await this._languageServerController.connectToServiceProvider({
       connectionId,
-      connectionString: connectionOptions.url,
-      connectionOptions: connectionOptions.options,
+      connectionString,
+      connectionOptions
     });
 
     this._activeConnectionCodeLensProvider.refresh();
