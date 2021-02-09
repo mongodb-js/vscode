@@ -264,11 +264,6 @@ export interface UsernameChangedAction extends BaseAction {
   mongodbUsername: string;
 }
 
-export interface X509UsernameChangedAction extends BaseAction {
-  type: ActionTypes.X509_USERNAME_CHANGED;
-  x509Username: string;
-}
-
 export type FilePickerActions =
   | SSHTunnelIdentityFileChangedAction
   | SSLCAChangedAction
@@ -314,5 +309,4 @@ export type Actions =
   | ToggleShowConnectionFormAction
   | ToggleShowResourcesPanelAction
   | TrustedLinkClickedAction
-  | UsernameChangedAction
-  | X509UsernameChangedAction;
+  | UsernameChangedAction;

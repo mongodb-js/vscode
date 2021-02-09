@@ -106,7 +106,6 @@ export const rootReducer = (
           kerberosPrincipal: undefined,
           kerberosPassword: undefined,
           kerberosServiceName: undefined,
-          x509Username: undefined,
           ldapUsername: undefined,
           ldapPassword: undefined
         }
@@ -482,15 +481,6 @@ export const rootReducer = (
         currentConnection: {
           ...state.currentConnection,
           mongodbUsername: action.mongodbUsername
-        }
-      };
-
-    case ActionTypes.X509_USERNAME_CHANGED:
-      return {
-        ...state,
-        currentConnection: {
-          ...state.currentConnection,
-          x509Username: action.x509Username
         }
       };
 

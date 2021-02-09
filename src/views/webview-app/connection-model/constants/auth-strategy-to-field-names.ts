@@ -17,9 +17,7 @@ export default {
     'kerberosServiceName', // optional
     'kerberosCanonicalizeHostname'
   ],
-  X509: [
-    'x509Username' // required
-  ],
+  X509: [],
   LDAP: [
     'ldapUsername', // required
     'ldapPassword' // required

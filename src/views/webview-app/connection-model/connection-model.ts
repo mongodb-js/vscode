@@ -41,7 +41,6 @@ class ConnectionModel {
   mongodbDatabaseName?: string;
   mongodbPassword?: string;
   mongodbUsername?: string;
-  x509Username?: string;
 
   /**
    * SSL

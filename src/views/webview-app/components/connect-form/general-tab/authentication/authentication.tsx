@@ -10,7 +10,6 @@ import Kerberos from './kerberos';
 import LDAP from './ldap';
 import MongoDBAuth from './mongodb-authentication';
 import ScramSha256 from './scram-sha-256';
-import X509 from './x509';
 import { AppState } from '../../../../store/store';
 import RadioBoxGroup from '../../../form/radio-box-group/radio-box-group';
 
@@ -26,7 +25,6 @@ type StateProps = {
   mongodbDatabaseName?: string;
   mongodbPassword?: string;
   mongodbUsername?: string;
-  x509Username?: string;
 };
 
 type DispatchProps = {
@@ -112,10 +110,6 @@ export class Authentication extends React.Component<StateProps & DispatchProps> 
         />
       );
     }
-    if (authStrategy === AUTH_STRATEGIES.X509) {
-      const { x509Username } = this.props;
-      return <X509 x509Username={x509Username} />;
-    }
   }
 
   render(): React.ReactNode {
@@ -151,8 +145,7 @@ const mapStateToProps = (state: AppState): StateProps => {
     ldapUsername: state.currentConnection.ldapUsername,
     mongodbDatabaseName: state.currentConnection.mongodbDatabaseName,
     mongodbPassword: state.currentConnection.mongodbPassword,
-    mongodbUsername: state.currentConnection.mongodbUsername,
-    x509Username: state.currentConnection.x509Username
+    mongodbUsername: state.currentConnection.mongodbUsername
   };
 };
 
