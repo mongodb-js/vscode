@@ -15,4 +15,5 @@ export type ShellExecuteAllResult = {
 
 export type PlaygroundExecuteParameters = {
   codeToEvaluate: string;
+  connectionId: string;
 };

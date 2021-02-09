@@ -1,6 +1,6 @@
-import { EJSON } from 'bson';
 import { Host } from '../views/webview-app/connection-model/connection-model';
 import SSH_TUNNEL_TYPES from '../views/webview-app/connection-model/constants/ssh-tunnel-types';
+import { ConnectionOptions } from './connectionOptionsType';
 
 export type ConnectionModel = {
   appname: string;
@@ -11,10 +11,13 @@ export type ConnectionModel = {
   driverUrl: string;
   driverUrlWithSsh: string;
   sshTunnel?: SSH_TUNNEL_TYPES;
-  getAttributes(options?: EJSON.SerializableTypes): {
+  getAttributes(options: {
+    derived?: boolean,
+    props?: boolean
+  }): {
     driverUrl: string;
     driverUrlWithSsh: string;
-    driverOptions: EJSON.SerializableTypes;
+    driverOptions: ConnectionOptions;
     sshTunnelOptions: {
       host?: string;
       port?: number;

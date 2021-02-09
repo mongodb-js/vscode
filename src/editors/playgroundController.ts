@@ -19,8 +19,28 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
+import { ConnectionOptions } from '../types/connectionOptionsType';
 
 const log = createLogger('playground controller');
+
+const getSSLFilePathsFromConnectionModel = (
+  connectionModelDriverOptions: ConnectionOptions
+): {
+  sslCA?: string | string[];
+  sslCert?: string | string[];
+  sslKey?: string | string[];
+} => {
+  const sslFilePaths = {};
+  ['sslCA', 'sslCert', 'sslKey'].forEach((key) => {
+    if (connectionModelDriverOptions[key]) {
+      sslFilePaths[key] = connectionModelDriverOptions[key] as (
+        string | string[]
+      );
+    }
+  });
+
+  return sslFilePaths;
+};
 
 /**
  * This controller manages playground.
@@ -36,7 +56,6 @@ export default class PlaygroundController {
   _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
   _outputChannel: OutputChannel;
   _connectionString?: string;
-  _connectionOptions?: EJSON.SerializableTypes;
   _selectedText?: string;
   _codeToEvaluate = '';
   _isPartialRun: boolean;
@@ -135,11 +154,11 @@ export default class PlaygroundController {
       selectedText.length > 0 &&
       selectedText.length >= lastSelectedLine.length
     ) {
-      this._partialExecutionCodeLensProvider?.refresh(
+      this._partialExecutionCodeLensProvider.refresh(
         new vscode.Range(firstLine, 0, firstLine, 0)
       );
     } else {
-      this._partialExecutionCodeLensProvider?.refresh();
+      this._partialExecutionCodeLensProvider.refresh();
     }
   }
 
@@ -148,26 +167,40 @@ export default class PlaygroundController {
   }
 
   async _connectToServiceProvider(): Promise<void> {
-    const model = this._connectionController
-      .getActiveConnectionModel()
-      ?.getAttributes({ derived: true });
-
-    this._connectionString = undefined;
-    this._connectionOptions = undefined;
-
     await this._languageServerController.disconnectFromServiceProvider();
 
-    if (model && model.driverUrlWithSsh) {
-      this._connectionString = model.driverUrlWithSsh;
-      this._connectionOptions = model.driverOptions ? model.driverOptions : {};
+    const dataService = this._connectionController.getActiveDataService();
+    const connectionId = this._connectionController.getActiveConnectionId();
+    const connectionModel = this._connectionController
+      .getActiveConnectionModel();
+    if (!dataService || !connectionId || !connectionModel) {
+      this._activeConnectionCodeLensProvider.refresh();
 
-      await this._languageServerController.connectToServiceProvider({
-        connectionString: this._connectionString,
-        connectionOptions: this._connectionOptions
-      });
+      return;
     }
 
-    this._activeConnectionCodeLensProvider?.refresh();
+    const connectionDetails = dataService.getConnectionOptions();
+    const connectionString = connectionDetails.url;
+    // We pass file paths to the language server since it doesn't
+    // handle being passsed buffers well.
+    // With driver version 4.0 we should be able to remove any use
+    // of buffers and just pass file paths.
+    const sslOptionsFilePaths = getSSLFilePathsFromConnectionModel(
+      connectionModel.getAttributes({ derived: true }).driverOptions
+    );
+
+    const connectionOptions: ConnectionOptions = {
+      ...connectionDetails.options,
+      ...sslOptionsFilePaths
+    };
+
+    await this._languageServerController.connectToServiceProvider({
+      connectionId,
+      connectionString,
+      connectionOptions
+    });
+
+    this._activeConnectionCodeLensProvider.refresh();
   }
 
   async _createPlaygroundFileWithContent(
@@ -241,12 +274,21 @@ export default class PlaygroundController {
   }
 
   async _evaluate(codeToEvaluate: string): Promise<ShellExecuteAllResult> {
+    const connectionId = this._connectionController.getActiveConnectionId();
+
+    if (!connectionId) {
+      return Promise.reject(
+        new Error('Please connect to a database before running a playground.')
+      );
+    }
+
     this._statusView.showMessage('Getting results...');
 
     // Send a request to the language server to execute scripts from a playground.
-    const result: ShellExecuteAllResult = await this._languageServerController.executeAll(
-      codeToEvaluate
-    );
+    const result: ShellExecuteAllResult = await this._languageServerController.executeAll({
+      codeToEvaluate,
+      connectionId
+    });
 
     this._statusView.hideMessage();
     this._telemetryService.trackPlaygroundCodeExecuted(
@@ -267,7 +309,7 @@ export default class PlaygroundController {
   }
 
   _evaluateWithCancelModal(): Promise<ShellExecuteAllResult> {
-    if (!this._connectionString) {
+    if (!this._connectionController.isCurrentlyConnected()) {
       return Promise.reject(
         new Error('Please connect to a database before running a playground.')
       );
@@ -372,7 +414,7 @@ export default class PlaygroundController {
       .getConfiguration('mdb')
       .get('confirmRunAll');
 
-    if (!this._connectionString) {
+    if (!this._connectionController.isCurrentlyConnected()) {
       vscode.window.showErrorMessage(
         'Please connect to a database before running a playground.'
       );

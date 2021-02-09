@@ -1,4 +1,3 @@
-import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
@@ -59,7 +58,7 @@ class SSLServerClientValidation extends React.Component<props> {
     return (
       <div
         id="ssl-server-client-validation"
-        className={classnames(styles['form-group'])}
+        className={styles['form-group']}
       >
         <FileInputButton
           label="Certificate Authority (.pem)"

@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { EJSON } from 'bson';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -15,6 +14,7 @@ import { createLogger } from '../logging';
 import { PlaygroundExecuteParameters } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
 import type { ShellExecuteAllResult } from '../types/playgroundType';
+import { ConnectionOptions } from '../types/connectionOptionsType';
 
 const log = createLogger('LanguageServerController');
 let socket: WebSocket | null;
@@ -123,11 +123,11 @@ export default class LanguageServerController {
       this._context.extensionPath
     );
 
-    this._client.onNotification('showInformationMessage', (messsage) => {
+    this._client.onNotification(ServerCommands.SHOW_INFO_MESSAGE, (messsage) => {
       vscode.window.showInformationMessage(messsage);
     });
 
-    this._client.onNotification('showErrorMessage', (messsage) => {
+    this._client.onNotification(ServerCommands.SHOW_ERROR_MESSAGE, (messsage) => {
       vscode.window.showErrorMessage(messsage);
     });
   }
@@ -141,7 +141,9 @@ export default class LanguageServerController {
     this._client.stop();
   }
 
-  async executeAll(codeToEvaluate: string): Promise<ShellExecuteAllResult> {
+  async executeAll(
+    playgroundExecuteParameters: PlaygroundExecuteParameters
+  ): Promise<ShellExecuteAllResult> {
     this._isExecutingInProgress = true;
 
     await this._client.onReady();
@@ -154,9 +156,7 @@ export default class LanguageServerController {
     // and return results to the playground controller when ready
     const result: ShellExecuteAllResult = await this._client.sendRequest(
       ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
-      {
-        codeToEvaluate
-      } as PlaygroundExecuteParameters,
+      playgroundExecuteParameters,
       this._source.token
     );
 
@@ -166,8 +166,9 @@ export default class LanguageServerController {
   }
 
   async connectToServiceProvider(params: {
-    connectionString?: string;
-    connectionOptions?: EJSON.SerializableTypes;
+    connectionId: string,
+    connectionString: string;
+    connectionOptions: ConnectionOptions
   }): Promise<void> {
     await this._client.onReady();
     await this._client.sendRequest(
