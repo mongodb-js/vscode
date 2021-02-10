@@ -13,7 +13,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
 
 - Fixed an issue with playground connectivity not defaulting the `directConnection` option to true (VSCODE-234, #255)
-- Fixed an issue around showing an error while editing a playground file without an active MongoDB connection	(VSCODE-231, #251)
+- Fixed an issue around showing an error while editing a playground file without an active MongoDB connection (VSCODE-231, #251)
 
 ## [0.4.0] - 2021-1-25
 
