@@ -53,7 +53,9 @@ describe('Resources Panel Component Test Suite', () => {
       wrapper.find('a').at(1).simulate('click');
       assert(fakeVscodeWindowPostMessage.called);
       assert(fakeVscodeWindowPostMessage.firstCall.args[0].command === 'OPEN_TRUSTED_LINK');
-      assert(fakeVscodeWindowPostMessage.firstCall.args[0].linkTo === 'http://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product');
+      assert(fakeVscodeWindowPostMessage.firstCall.args[0].linkTo === 'https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product');
+      // The assert below is a bit redundant but will prevent us from redirecting to a non-https URL by mistake
+      assert(fakeVscodeWindowPostMessage.firstCall.args[0].linkTo.startsWith('https://') === true);
     });
   });
 });
