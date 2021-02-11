@@ -44,11 +44,13 @@ suite('Help Explorer Test Suite', function () {
     assert(atlasHelpItem.label === 'Create Free Atlas Cluster');
     assert(
       atlasHelpItem.url ===
-      'http://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product'
+      'https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product'
     );
     assert(atlasHelpItem.iconName === 'atlas');
     assert(atlasHelpItem.linkId === 'freeClusterCTA');
     assert(atlasHelpItem.useRedirect === true);
+    // The assert below is a bit redundant but will prevent us from redirecting to a non-https URL by mistake
+    assert(atlasHelpItem.url.startsWith('https://') === true);
   });
 
   test('when a help item that does not require a redirect is clicked on it should open the url with vscode', async () => {

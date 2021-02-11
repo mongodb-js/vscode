@@ -19,7 +19,7 @@ type DispatchProps = {
 class AtlasCTA extends React.Component<DispatchProps> {
   onAtlasCtaClicked = (): void => {
     this.props.openTrustedLink(
-      'http://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product'
+      'https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product'
     );
 
     this.onLinkClicked(
@@ -43,8 +43,7 @@ class AtlasCTA extends React.Component<DispatchProps> {
             <strong>New to MongoDB and don't have a cluster?</strong>
           </div>
           <div>
-            If you don't already have a cluster you can create one for free
-            using&nbsp;
+            Create one for free using&nbsp;
             <a
               className={styles['atlas-cta-text-link']}
               target="_blank"

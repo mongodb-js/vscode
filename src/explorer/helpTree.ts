@@ -101,7 +101,7 @@ export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem
 
       const atlas = new HelpLinkTreeItem(
         'Create Free Atlas Cluster',
-        'http://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product',
+        'https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product',
         'freeClusterCTA',
         'atlas',
         true
