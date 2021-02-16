@@ -86,7 +86,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
   // document list tree item, even when it hasn't been expanded.
   // When it is expanded, we want to ensure that number is up to date.
   // This function tells the parent collection folder to refresh the count.
-  refreshDocumentCount: () => Promise<boolean>;
+  refreshDocumentCount: () => Promise<number>;
 
   _documentCount: number | null;
   private _maxDocumentsToShow: number;
@@ -108,7 +108,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     isExpanded: boolean,
     maxDocumentsToShow: number,
     cachedDocumentCount: number | null,
-    refreshDocumentCount: () => Promise<boolean>,
+    refreshDocumentCount: () => Promise<number>,
     cacheIsUpToDate: boolean,
     existingCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem>
   ) {
@@ -267,11 +267,12 @@ export default class DocumentListTreeItem extends vscode.TreeItem
   }
 
   async resetCache(): Promise<void> {
-    this.isExpanded = false;
     this._childrenCache = [];
     this.cacheIsUpToDate = false;
 
-    await this.refreshDocumentCount();
+    const docCount = await this.refreshDocumentCount();
+    this._documentCount = docCount;
+    this.description = formatDocCount(docCount);
   }
 
   getChildrenCache(): Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> {
