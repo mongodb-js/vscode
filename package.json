@@ -330,7 +330,11 @@
       },
       {
         "command": "mdb.refreshDocumentList",
-        "title": "Refresh"
+        "title": "Refresh",
+        "icon": {
+          "light": "images/light/refresh.svg",
+          "dark": "images/dark/refresh.svg"
+        }
       },
       {
         "command": "mdb.copyCollectionName",
@@ -512,6 +516,11 @@
         },
         {
           "command": "mdb.searchForDocuments",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "inline"
+        },
+        {
+          "command": "mdb.refreshDocumentList",
           "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
           "group": "inline"
         },

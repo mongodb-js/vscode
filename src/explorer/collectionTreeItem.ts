@@ -325,7 +325,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     });
   }
 
-  refreshDocumentCount = async (): Promise<boolean> => {
+  refreshDocumentCount = async (): Promise<number> => {
     try {
       // We fetch the document when we expand in order to show
       // the document count in the document list tree item `description`.
@@ -334,10 +334,10 @@ export default class CollectionTreeItem extends vscode.TreeItem
       vscode.window.showInformationMessage(
         `Unable to fetch document count: ${err}`
       );
-      return false;
+      return 0;
     }
 
-    return true;
+    return this.documentCount;
   };
 
   async onDropCollectionClicked(): Promise<boolean> {

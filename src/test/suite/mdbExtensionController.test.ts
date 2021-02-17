@@ -481,10 +481,6 @@ suite('MDBExtensionController Test Suite', function () {
       'Expected document list cache to be out of date.'
     );
     assert(
-      docListTreeItem.isExpanded === false,
-      'Expected document list cache to be out of date.'
-    );
-    assert(
       mockTreeItem.documentCount === 10000,
       `Expected document count to be 10000, found ${mockTreeItem.documentCount}.`
     );

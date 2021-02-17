@@ -22,7 +22,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -48,7 +48,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -78,7 +78,7 @@ suite('DocumentListTreeItem Test Suite', () => {
         false,
         MAX_DOCUMENTS_VISIBLE,
         null,
-        (): Promise<boolean> => Promise.resolve(true),
+        (): Promise<number> => Promise.resolve(25),
         false,
         []
       );
@@ -99,7 +99,7 @@ suite('DocumentListTreeItem Test Suite', () => {
         false,
         MAX_DOCUMENTS_VISIBLE,
         null,
-        (): Promise<boolean> => Promise.resolve(true),
+        (): Promise<number> => Promise.resolve(25),
         false,
         []
       );
@@ -122,7 +122,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -142,7 +142,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -169,7 +169,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -196,7 +196,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -228,7 +228,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -261,9 +261,9 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       maxDocs,
-      (): Promise<boolean> => {
+      (): Promise<number> => {
         maxDocs = 25;
-        return Promise.resolve(true);
+        return Promise.resolve(25);
       },
       false,
       []
@@ -278,7 +278,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       maxDocs,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -303,7 +303,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -322,7 +322,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -343,7 +343,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
@@ -360,7 +360,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       false,
       MAX_DOCUMENTS_VISIBLE,
       2200000,
-      (): Promise<boolean> => Promise.resolve(true),
+      (): Promise<number> => Promise.resolve(25),
       false,
       []
     );
