@@ -4,6 +4,16 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.4.2] - 2021-2-17
+
+### Added
+
+- Add icon to refresh collection documents list (#264)
+
+### Changed
+
+- Updated the Atlas link to have https (#259)
+
 ## [0.4.1] - 2021-2-10
 
 ### Changed
