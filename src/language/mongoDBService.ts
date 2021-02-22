@@ -4,6 +4,7 @@ import { CompletionItemKind, CancellationToken, Connection, CompletionItem } fro
 import fs from 'fs';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
+import Translator from '@mongosh/i18n/lib/translator';
 import { Worker as WorkerThreads } from 'worker_threads';
 
 import { CollectionItem } from '../types/collectionItemType';
@@ -398,14 +399,21 @@ export default class MongoDBService {
   // Get shell API symbols/methods completion from mongosh.
   _getShellCompletionItems(): ShellCompletionItem {
     const shellSymbols = {};
+    const translator = new Translator();
 
     Object.keys(signatures).map((symbol) => {
       shellSymbols[symbol] = Object.keys(
         signatures[symbol].attributes || {}
-      ).map((item) => ({
-        label: item,
-        kind: CompletionItemKind.Method
-      }));
+      ).map((item) => {
+        const documentation = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.description`) || '';
+        const detail = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.example`) || '';
+        return {
+          label: item,
+          kind: CompletionItemKind.Method,
+          documentation,
+          detail
+        };
+      });
     });
 
     return shellSymbols;
