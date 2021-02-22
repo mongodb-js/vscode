@@ -1,9 +1,10 @@
 /* eslint-disable no-sync */
 import * as util from 'util';
-import { CompletionItemKind, CancellationToken, Connection, CompletionItem } from 'vscode-languageserver';
+import { CompletionItemKind, CancellationToken, Connection, CompletionItem, MarkupContent, MarkupKind } from 'vscode-languageserver';
 import fs from 'fs';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
+import Translator from '@mongosh/i18n/lib/translator';
 import { Worker as WorkerThreads } from 'worker_threads';
 
 import { CollectionItem } from '../types/collectionItemType';
@@ -398,14 +399,28 @@ export default class MongoDBService {
   // Get shell API symbols/methods completion from mongosh.
   _getShellCompletionItems(): ShellCompletionItem {
     const shellSymbols = {};
+    const translator = new Translator();
 
     Object.keys(signatures).map((symbol) => {
       shellSymbols[symbol] = Object.keys(
         signatures[symbol].attributes || {}
-      ).map((item) => ({
-        label: item,
-        kind: CompletionItemKind.Method
-      }));
+      ).map((item) => {
+        const documentation = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.description`) || '';
+        const link = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.link`) || '';
+        const detail = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.example`) || '';
+
+        const markdownDocumentation: MarkupContent = {
+          kind: MarkupKind.Markdown,
+          value: link ? `${documentation}\n\n[Read More](${link})` : documentation
+        };
+
+        return {
+          label: item,
+          kind: CompletionItemKind.Method,
+          documentation: markdownDocumentation,
+          detail
+        };
+      });
     });
 
     return shellSymbols;

@@ -106,7 +106,7 @@ suite('MongoDBService Test Suite', () => {
     const testMongoDBService = new MongoDBService(connection);
 
     before(async () => {
-      testMongoDBService._getDatabasesCompletionItems = (): void => {};
+      testMongoDBService._getDatabasesCompletionItems = (): void => { };
       testMongoDBService._getCollectionsCompletionItems = (): Promise<boolean> =>
         Promise.resolve(true);
       testMongoDBService._getFieldsCompletionItems = (): Promise<boolean> =>
@@ -642,6 +642,12 @@ suite('MongoDBService Test Suite', () => {
         'kind',
         CompletionItemKind.Method
       );
+      expect(findShellCompletion).to.have.property(
+        'documentation'
+      );
+      expect(findShellCompletion).to.have.property(
+        'detail'
+      );
     });
 
     test('provide only collection names and shell db symbol completion after find cursor', async () => {
@@ -672,6 +678,12 @@ suite('MongoDBService Test Suite', () => {
       expect(findShellCompletion).to.have.property(
         'kind',
         CompletionItemKind.Method
+      );
+      expect(findShellCompletion).to.have.property(
+        'documentation'
+      );
+      expect(findShellCompletion).to.have.property(
+        'detail'
       );
       expect(findCursorCompletion).to.be.undefined;
     });
@@ -710,6 +722,12 @@ suite('MongoDBService Test Suite', () => {
       expect(findShellCompletion).to.have.property(
         'kind',
         CompletionItemKind.Method
+      );
+      expect(findShellCompletion).to.have.property(
+        'documentation'
+      );
+      expect(findShellCompletion).to.have.property(
+        'detail'
       );
       expect(findCursorCompletion).to.be.undefined;
     });
