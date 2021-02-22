@@ -1,6 +1,6 @@
 /* eslint-disable no-sync */
 import * as util from 'util';
-import { CompletionItemKind, CancellationToken, Connection, CompletionItem } from 'vscode-languageserver';
+import { CompletionItemKind, CancellationToken, Connection, CompletionItem, MarkupContent, MarkupKind } from 'vscode-languageserver';
 import fs from 'fs';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
@@ -406,11 +406,18 @@ export default class MongoDBService {
         signatures[symbol].attributes || {}
       ).map((item) => {
         const documentation = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.description`) || '';
+        const link = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.link`) || '';
         const detail = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.example`) || '';
+
+        const markdownDocumentation: MarkupContent = {
+          kind: MarkupKind.Markdown,
+          value: link ? `${documentation}\n\n[Read More](${link})` : documentation
+        };
+
         return {
           label: item,
           kind: CompletionItemKind.Method,
-          documentation,
+          documentation: markdownDocumentation,
           detail
         };
       });
