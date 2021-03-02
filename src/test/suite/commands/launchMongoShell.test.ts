@@ -95,7 +95,10 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert(shellCommandText === 'mongo $MDB_CONNECTION_STRING;');
+      assert(
+        shellCommandText === 'mongo $MDB_CONNECTION_STRING;',
+        'Expected sendText to terminal to be equal mongo $MDB_CONNECTION_STRING;'
+      );
     });
 
     test('openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
