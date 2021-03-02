@@ -95,10 +95,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert(
-        shellCommandText === 'mongo $MDB_CONNECTION_STRING;',
-        'Expected sendText to terminal to use powershell env variable syntax'
-      );
+      assert(shellCommandText === 'mongo $MDB_CONNECTION_STRING;');
     });
 
     test('openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
@@ -126,7 +123,10 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert(shellCommandText === 'mongo $MDB_CONNECTION_STRING;');
+      assert(
+        shellCommandText === 'mongo $MDB_CONNECTION_STRING;',
+        'Expected sendText to terminal to be equal mongo $MDB_CONNECTION_STRING;'
+      );
     });
 
     test('openMongoDBShell should open a terminal with ssl config injected', async () => {
@@ -157,7 +157,10 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert(shellCommandText === 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_some_file" $MDB_CONNECTION_STRING;');
+      assert(
+        shellCommandText === 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_some_file" $MDB_CONNECTION_STRING;',
+        'Expected sendText to terminal to iclude tls options and ssl connection string'
+      );
     });
 
     test('openMongoDBShell should open a terminal with x509 config injected', async () => {
@@ -190,7 +193,10 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert(shellCommandText === 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_ca" --tlsCertificateKeyFile="./path_to_cert" $MDB_CONNECTION_STRING;');
+      assert(
+        shellCommandText === 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_ca" --tlsCertificateKeyFile="./path_to_cert" $MDB_CONNECTION_STRING;',
+        'Expected sendText to terminal to iclude tls options and x509 connection string'
+      );
     });
   });
 
