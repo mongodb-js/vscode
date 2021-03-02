@@ -47,7 +47,7 @@
     "watch": "npm run compile && npm-run-all -p watch:*",
     "watch:extension": "npm run compile:extension -- -watch",
     "watch:extension-bundles": "webpack --mode development --info-verbosity verbose --watch",
-    "pretest": "npm run compile && cross-env MONGODB_VERSION=4.4.0 mongodb-runner start --port=27018",
+    "pretest": "npm run compile && cross-env MONGODB_VERSION=4.2.13 mongodb-runner start --port=27018",
     "test": "npm run test-webview && npm run test-extension",
     "test-extension": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "test-webview": "jest",
