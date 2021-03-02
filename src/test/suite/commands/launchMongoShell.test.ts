@@ -88,13 +88,16 @@ suite('Commands Test Suite', () => {
       const terminalOptions: vscode.TerminalOptions =
         createTerminalStub.firstCall.args[0];
 
-      let shellArgs = terminalOptions.shellArgs;
-      assert(shellArgs !== undefined, 'Expected shell arguments to exist');
-      shellArgs = shellArgs || [];
+      assert(
+        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
+        `Expected open terminal to set shell arg as driver url "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+      );
+
+      const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
       assert(
-        shellArgs[0] === driverUri,
-        `Expected open terminal to set shell arg as driver url "${driverUri}" found "${shellArgs[0]}"`
+        shellCommandText === 'mongo $MDB_CONNECTION_STRING;',
+        'Expected sendText to terminal to use powershell env variable syntax'
       );
     });
 
@@ -114,18 +117,16 @@ suite('Commands Test Suite', () => {
 
       assert(createTerminalStub.called);
 
-      const terminalOptions: vscode.TerminalOptions =
-        createTerminalStub.firstCall.args[0];
+      const connectionString: string =
+        createTerminalStub.firstCall.args[0].env?.MDB_CONNECTION_STRING;
 
-      let shellArgs = terminalOptions.shellArgs;
-      assert(shellArgs !== undefined, 'Expected shell arguments to exist');
-      shellArgs = shellArgs || [];
+      assert(connectionString.includes('mongodb://127.0.0.1'));
+      assert(!connectionString.includes('27017'));
+      assert(connectionString.includes('?readPreference=primary&ssl=false'));
 
-      assert(
-        shellArgs[0].includes('mongodb://127.0.0.1') &&
-          shellArgs[0].includes('/?readPreference=primary&ssl=false'),
-        `Expected open terminal to set shell arg as driver url with ssh tunnel port injected found "${shellArgs[0]}"`
-      );
+      const shellCommandText = fakeSendTerminalText.firstCall.args[0];
+
+      assert(shellCommandText === 'mongo $MDB_CONNECTION_STRING;');
     });
 
     test('openMongoDBShell should open a terminal with ssl config injected', async () => {
@@ -149,27 +150,47 @@ suite('Commands Test Suite', () => {
       const terminalOptions: vscode.TerminalOptions =
         createTerminalStub.firstCall.args[0];
 
-      let shellArgs = terminalOptions.shellArgs;
-      assert(shellArgs !== undefined, 'Expected shell arguments to exist');
-      shellArgs = shellArgs || [];
-
       assert(
-        shellArgs[0] === driverUri,
-        `Expected open terminal to set shell arg as driver url with ssl injected "${driverUri}" found "${shellArgs[0]}"`
+        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
+        `Expected open terminal to set shell arg as driver url "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
 
-      assert(
-        shellArgs[1] === '--tls',
-        `Expected open terminal to set tls arg "--tls" found "${shellArgs[1]}"`
+      const shellCommandText = fakeSendTerminalText.firstCall.args[0];
+
+      assert(shellCommandText === 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_some_file" $MDB_CONNECTION_STRING;');
+    });
+
+    test('openMongoDBShell should open a terminal with x509 config injected', async () => {
+      const driverUri =
+        'mongodb://testing@localhost:27017/?authMechanism=MONGODB-X509&readPreference=primary&ssl=true&authSource=$external';
+
+      fakeGetActiveConnectionModel.returns(
+        new Connection({
+          sslMethod: 'ALL',
+          sslCA: './path_to_ca',
+          sslCert: './path_to_cert',
+          sslKey: './path_to_key',
+          authStrategy: 'X509',
+          x509Username: 'testing'
+        })
       );
+      fakeIsCurrentlyConnected.returns(true);
+
+      await launchMongoShell(mockConnectionController);
+
+      assert(createTerminalStub.called);
+
+      const terminalOptions: vscode.TerminalOptions =
+        createTerminalStub.firstCall.args[0];
+
       assert(
-        shellArgs[2] === '--tlsAllowInvalidHostnames',
-        `Expected open terminal to set tls arg "--tlsAllowInvalidHostnames" found "${shellArgs[2]}"`
+        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
+        `Expected open terminal to set shell arg as driver url "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
-      assert(
-        shellArgs[3] === '--tlsCAFile="./path_to_some_file"',
-        `Expected open terminal to set tlsCAFile arg "--tlsCAFile="./path_to_some_file"" found "${shellArgs[3]}"`
-      );
+
+      const shellCommandText = fakeSendTerminalText.firstCall.args[0];
+
+      assert(shellCommandText === 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_ca" --tlsCertificateKeyFile="./path_to_cert" $MDB_CONNECTION_STRING;');
     });
   });
 
