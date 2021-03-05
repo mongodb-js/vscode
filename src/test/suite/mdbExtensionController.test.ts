@@ -250,7 +250,7 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockCopyToClipboard: any = sinon.fake();
-    sinon.replace(vscode.env.clipboard, 'writeText', mockCopyToClipboard);
+    sinon.replaceGetter(vscode.env, 'clipboard', () => ({ writeText: mockCopyToClipboard, readText: sinon.fake() as any }));
 
     const mockStubUri: any = sinon.fake.returns('weStubThisUri');
     sinon.replace(
@@ -284,7 +284,7 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockCopyToClipboard: any = sinon.fake();
-    sinon.replace(vscode.env.clipboard, 'writeText', mockCopyToClipboard);
+    sinon.replaceGetter(vscode.env, 'clipboard', () => ({ writeText: mockCopyToClipboard, readText: sinon.fake() as any }));
 
     vscode.commands
       .executeCommand('mdb.copyDatabaseName', mockTreeItem)
@@ -315,7 +315,7 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockCopyToClipboard: any = sinon.fake();
-    sinon.replace(vscode.env.clipboard, 'writeText', mockCopyToClipboard);
+    sinon.replaceGetter(vscode.env, 'clipboard', () => ({ writeText: mockCopyToClipboard, readText: sinon.fake() as any }));
 
     vscode.commands
       .executeCommand('mdb.copyCollectionName', mockTreeItem)
@@ -345,7 +345,7 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockCopyToClipboard: any = sinon.fake();
-    sinon.replace(vscode.env.clipboard, 'writeText', mockCopyToClipboard);
+    sinon.replaceGetter(vscode.env, 'clipboard', () => ({ writeText: mockCopyToClipboard, readText: sinon.fake() as any }));
 
     const commandResult = await vscode.commands.executeCommand(
       'mdb.copySchemaFieldName',
