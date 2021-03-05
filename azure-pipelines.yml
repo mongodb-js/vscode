@@ -10,7 +10,7 @@ trigger:
 strategy:
   matrix:
     linux:
-      imageName: 'ubuntu-latest'
+      imageName: 'ubuntu-18.04'
     mac:
       imageName: 'macos-latest'
     windows:
