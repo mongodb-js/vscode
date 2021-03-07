@@ -82,7 +82,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       return [];
     }
 
-    if (this.cacheIsUpToDate) {
+    if (this.cacheIsUpToDate && Object.values(this._childrenCache).every(db => db.cacheIsUpToDate)) {
       const pastChildrenCache = this._childrenCache;
       this._childrenCache = {};
 
