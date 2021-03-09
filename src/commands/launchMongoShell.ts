@@ -19,10 +19,6 @@ function getSslOptions(driverOptions: any): string[] {
     mdbSslOptions.push('--tlsAllowInvalidHostnames');
   }
 
-  if (!driverOptions.sslValidate) {
-    mdbSslOptions.push('--tlsAllowInvalidCertificates');
-  }
-
   if (driverOptions.sslCA) {
     mdbSslOptions.push(`--tlsCAFile="${driverOptions.sslCA}"`);
   }
@@ -90,16 +86,7 @@ function launchMongoDBShellOnBash(
   mdbConnectionString: string,
   mdbSslOptions: string[]
 ): void {
-  const mongoDBShell = vscode.window.createTerminal({
-    name: 'MongoDB Shell',
-    shellPath: shellCommand,
-    shellArgs: [
-      mdbConnectionString,
-      ...mdbSslOptions
-    ]
-  });
-
-  mongoDBShell.show();
+  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '$MDB_CONNECTION_STRING');
 }
 
 export default function openMongoDBShell(connectionController: ConnectionController): Promise<boolean> {
