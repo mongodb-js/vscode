@@ -253,10 +253,10 @@ export default class ConnectionController {
   }
 
   parseNewConnection = (
-    newConnectionModel: ConnectionModel
+    newConnectionModel: any
   ): ConnectionModel => {
-    // Here we re-parse the connection, as it can be loaded from storage or
-    // passed by the connection model without the class methods.
+    // Parse the connection, as it can be loaded from storage or
+    // from the connection form input.
     const connectionModel = parseConnectionModel(
       newConnectionModel
     );

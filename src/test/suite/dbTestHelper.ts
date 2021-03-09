@@ -1,5 +1,4 @@
-import { EJSON } from 'bson';
-import { MongoClient } from 'mongodb';
+import { Document, MongoClient } from 'mongodb';
 import { buildConnectionModelFromConnectionString, buildConnectionStringFromConnectionModel, getDriverOptionsFromConnectionModel } from '../../views/webview-app/connection-model/connection-model';
 
 export const TEST_DATABASE_URI = 'mongodb://localhost:27018';
@@ -11,7 +10,7 @@ let testDatabaseConnectionModel;
 // Note: Be sure to disconnect from the dataservice to free up connections.
 export const seedDataAndCreateDataService = async (
   collectionName: string,
-  documentsArray: EJSON.SerializableTypes[]
+  documentsArray: Document[]
 ): Promise<MongoClient> => {
   if (!testDatabaseConnectionModel) {
     testDatabaseConnectionModel = buildConnectionModelFromConnectionString(

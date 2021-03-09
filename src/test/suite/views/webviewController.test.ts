@@ -1,9 +1,9 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import * as sinon from 'sinon';
-import * as path from 'path';
-import * as fs from 'fs';
+import sinon from 'sinon';
+import path from 'path';
+import fs from 'fs';
 
 import * as linkHelper from '../../../utils/linkHelper';
 import TelemetryService from '../../../telemetry/telemetryService';
@@ -150,15 +150,14 @@ suite('Webview Test Suite', () => {
       TEST_DATABASE_URI
     );
 
-      // Mock a connection call.
-      messageReceived({
-        command: MESSAGE_TYPES.CONNECT,
-        connectionModel: {
-          port: connectionModel.port,
-          hostname: connectionModel.hostname,
-          hosts: connectionModel.hosts
-        }
-      });
+    // Mock a connection call.
+    messageReceived({
+      command: MESSAGE_TYPES.CONNECT,
+      connectionModel: {
+        port: connectionModel.port,
+        hostname: connectionModel.hostname,
+        hosts: connectionModel.hosts
+      }
     });
   });
 

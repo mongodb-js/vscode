@@ -22,7 +22,6 @@ import PartialExecutionCodeLensProvider from '../../../editors/partialExecutionC
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
-import { DataServiceType } from '../../../types/dataServiceType';
 
 suite('Language Server Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
@@ -76,7 +75,7 @@ suite('Language Server Controller Test Suite', () => {
     sinon.replace(
       testConnectionController,
       'getActiveDataService',
-      () => (({
+      () => ({
         getConnectionOptions: () => ({
           url: TEST_DATABASE_URI,
           options: {
@@ -85,7 +84,7 @@ suite('Language Server Controller Test Suite', () => {
             readPreference: READ_PREFERENCES.PRIMARY
           }
         })
-      } as any) as DataServiceType)
+      } as any)
     );
     sinon.replace(
       testConnectionController,

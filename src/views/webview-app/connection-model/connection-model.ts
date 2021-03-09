@@ -2,7 +2,7 @@ import AUTH_STRATEGIES from './constants/auth-strategies';
 import READ_PREFERENCES from './constants/read-preferences';
 import SSL_METHODS from './constants/ssl-methods';
 import SSH_TUNNEL_TYPES from './constants/ssh-tunnel-types';
-import { MongoClient, MongoClientOptions } from 'mongodb';
+import { MongoClientOptions } from 'mongodb';
 
 const {
   name: appName,
@@ -95,6 +95,10 @@ class ConnectionModel {
   sshTunnelIdentityFile?: string[];
   // The optional passphrase for `sshTunnelIdentityFile`.
   sshTunnelPassphrase?: string;
+
+  constructor(model: any) {
+    this.isSrvRecord = model.isSrvRecord as boolean;
+  }
 }
 
 /**
@@ -260,7 +264,7 @@ export const validateConnectionModel = (attrs: ConnectionModel): Error | undefin
 export const parseConnectionModel = (
   model: any
 ): ConnectionModel => {
-  const newConnectionModel = new ConnectionModel();
+  const newConnectionModel = new ConnectionModel(model);
 
   // TODO: Parse connection model.
 
@@ -270,7 +274,11 @@ export const parseConnectionModel = (
 export const buildConnectionModelFromConnectionString = (
   connectionString: string
 ): ConnectionModel => {
-  const model = new ConnectionModel();
+  const model = new ConnectionModel({
+    isSrvRecord: true
+  });
+
+  console.log('build w/', connectionString);
 
   // TODO: Parse connection string into model.
 
@@ -284,19 +292,17 @@ export const buildConnectionStringFromConnectionModel = (
   }
 ): string => {
   // TODO
+  console.log('build w/', model, options);
 
-  return '';
+  return 'mongodb://localhost:27017';
 };
-
-// MongoClientOptions
-interface ConnectionOptions {
-  a: number;
-}
 
 export const getDriverOptionsFromConnectionModel = (
   model: ConnectionModel
 ): MongoClientOptions => {
   // TODO
+
+  console.log('build w/', model);
 
   return { };
 };

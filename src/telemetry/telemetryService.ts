@@ -296,7 +296,7 @@ export default class TelemetryService {
           is_used_saved_connection:
             connectionType === ConnectionTypes.CONNECTION_ID
         };
-        /* eslint-enable @typescript-eslint/camelcase */
+        /* eslint-enable camelcase */
 
         this.track(TelemetryEventTypes.NEW_CONNECTION, preparedProperties);
       }
@@ -351,7 +351,7 @@ export default class TelemetryService {
   trackLinkClicked(screen: string, linkId: string): void {
     this.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED, {
       screen,
-      // eslint-disable-next-line @typescript-eslint/camelcase
+      // eslint-disable-next-line camelcase
       link_id: linkId
     });
   }

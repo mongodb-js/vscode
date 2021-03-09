@@ -423,7 +423,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('a connection can be connected to by id', async () => {
-    const connectionModel = await buildConnectionModelFromConnectionString(
+    const connectionModel = buildConnectionModelFromConnectionString(
       TEST_DATABASE_URI
     );
 

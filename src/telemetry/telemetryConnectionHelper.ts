@@ -130,9 +130,9 @@ export async function getConnectionTelemetryProperties(
 
   const { isDataLake, dlVersion } = getMongoDBBuildInfo.getDataLake(buildInfo);
 
-  const connectionInfo = await dataService.db('admin').getConnectionInfo();
+  // const connectionInfo = await dataService.db('admin').getConnectionInfo();
 
-  /* eslint-disable @typescript-eslint/camelcase */
+  /* eslint-disable camelcase */
   const preparedProperties: NewConnectionTelemetryEventProperties = {
     is_atlas: !!data.client.s.url.match(ATLAS_REGEX),
     is_localhost: !!data.client.s.url.match(LOCALHOST_REGEX),
@@ -154,7 +154,7 @@ export async function getConnectionTelemetryProperties(
       connectionType === ConnectionTypes.CONNECTION_ID,
     vscode_mdb_extension_version: version
   };
-  /* eslint-enable @typescript-eslint/camelcase */
+  /* eslint-enable camelcase */
 
   return preparedProperties;
 }

@@ -4,7 +4,6 @@ import * as vscode from 'vscode';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import ConnectionController from '../connectionController';
 import { StatusView } from '../views';
-import * as util from 'util';
 import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
