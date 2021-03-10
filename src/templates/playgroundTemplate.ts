@@ -32,7 +32,7 @@ const aggregation = [
 ];
 
 // Run the aggregation and open a cursor to the results.
-// Use toArray() to exhaust the cursor return the whole result set.
+// Use toArray() to exhaust the cursor to return the whole result set.
 // You can use hasNext()/next() to iterate through the cursor page by page.
 db.sales.aggregate(aggregation);
 `;
