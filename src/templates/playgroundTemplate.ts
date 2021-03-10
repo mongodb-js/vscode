@@ -30,7 +30,7 @@ const aggregation = [
   { $match: { date: { $gte: new Date('2014-01-01'), $lt: new Date('2015-01-01') } } },
   { $group: { _id: '$item', totalSaleAmount: { $sum: { $multiply: [ '$price', '$quantity' ] } } } }
 ];
-db.sales.aggregate(aggregation);
+db.sales.aggregate(aggregation).toArray();
 `;
 
 export default template;
