@@ -4,6 +4,16 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.5.0] - 2021-3-10
+
+### Added
+
+- Add documentation details to playground auto completion items (#267)
+
+### Fixed
+
+- Fix launching mongodb shell with ssl in bash (VSCODE-227, #270)
+
 ## [0.4.2] - 2021-2-17
 
 ### Added
