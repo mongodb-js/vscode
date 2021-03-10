@@ -25,11 +25,15 @@ db.sales.insertMany([
 // Run a find command to view items sold on April 4th, 2014.
 db.sales.find({ date: { $gte: new Date('2014-04-04'), $lt: new Date('2014-04-05') } });
 
-// Run an aggregation to view total sales for each product in 2014.
+// Build an aggregation to view total sales for each product in 2014.
 const aggregation = [
   { $match: { date: { $gte: new Date('2014-01-01'), $lt: new Date('2015-01-01') } } },
   { $group: { _id: '$item', totalSaleAmount: { $sum: { $multiply: [ '$price', '$quantity' ] } } } }
 ];
+
+// Run the aggregation and open a cursor to the results.
+// Use toArray() to exhaust the cursor to return the whole result set.
+// You can use hasNext()/next() to iterate through the cursor page by page.
 db.sales.aggregate(aggregation);
 `;
 
