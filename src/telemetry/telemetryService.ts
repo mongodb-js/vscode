@@ -1,5 +1,4 @@
 import * as path from 'path';
-import * as util from 'util';
 import * as vscode from 'vscode';
 import { config } from 'dotenv';
 import fs from 'fs';
@@ -11,9 +10,14 @@ import type { CloudInfo } from '../types/cloudInfoType';
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
-import type { InstanceInfoResult } from '../types/instanceInfoResultType';
+// import type { InstanceInfoResult } from '../types/instanceInfoResultType';
 import type { ShellExecuteAllResult } from '../types/playgroundType';
 import { StorageController } from '../storage';
+import {
+  NewConnectionTelemetryEventProperties,
+  getConnectionTelemetryProperties
+} from './telemetryConnectionHelper';
+import ConnectionModel from '../views/webview-app/connection-model/connection-model';
 
 const { version } = require('../../package.json');
 
@@ -38,28 +42,6 @@ type LinkClickedTelemetryEventProperties = {
 
 type ExtensionCommandRunTelemetryEventProperties = {
   command: string;
-};
-
-const ATLAS_REGEX = /mongodb.net[:/]/i;
-const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
-
-export type NewConnectionTelemetryEventProperties = {
-  /* eslint-disable camelcase */
-  is_atlas: boolean;
-  is_localhost: boolean;
-  is_data_lake: boolean;
-  is_enterprise: boolean;
-  is_public_cloud?: boolean;
-  public_cloud_name?: string | null;
-  is_genuine: boolean;
-  non_genuine_server_name: string | null;
-  server_version?: string;
-  server_arch: string | null;
-  server_os: string | null;
-  is_used_connect_screen: boolean;
-  is_used_command_palette: boolean;
-  is_used_saved_connection: boolean;
-  /* eslint-enable camelcase */
 };
 
 type DocumentUpdatedTelemetryEventProperties = {
@@ -261,45 +243,17 @@ export default class TelemetryService {
 
   async trackNewConnection(
     dataService: MongoClient,
+    model: ConnectionModel,
     connectionType: ConnectionTypes
   ): Promise<void> {
-    const instance = util.promisify(dataService.instance.bind(dataService));
-
     try {
-      const data = await instance({}) as InstanceInfoResult;
-      const dataServiceClient = dataService.client as { model: ConnectionModel };
+      const connectionTelemetryProperties = await getConnectionTelemetryProperties(
+        dataService,
+        model,
+        connectionType
+      );
 
-      if (data) {
-        const firstServerHostname = dataServiceClient.model.hosts[0].host;
-        const cloudInfo = await this.getCloudInfoFromDataService(
-          firstServerHostname
-        );
-        const nonGenuineServerName = data.genuineMongoDB.isGenuine
-          ? null
-          : data.genuineMongoDB.dbType;
-        const preparedProperties: NewConnectionTelemetryEventProperties = {
-          is_atlas: !!ATLAS_REGEX.exec(data.client.s.url),
-          is_localhost: !!LOCALHOST_REGEX.exec(data.client.s.url),
-          is_data_lake: data.dataLake.isDataLake,
-          is_enterprise: data.build.enterprise_module,
-          is_public_cloud: cloudInfo.isPublicCloud,
-          public_cloud_name: cloudInfo.publicCloudName,
-          is_genuine: data.genuineMongoDB.isGenuine,
-          non_genuine_server_name: nonGenuineServerName,
-          server_version: data.build.version,
-          server_arch: data.build.raw.buildEnvironment.target_arch,
-          server_os: data.build.raw.buildEnvironment.target_os,
-          is_used_connect_screen:
-            connectionType === ConnectionTypes.CONNECTION_FORM,
-          is_used_command_palette:
-            connectionType === ConnectionTypes.CONNECTION_STRING,
-          is_used_saved_connection:
-            connectionType === ConnectionTypes.CONNECTION_ID
-        };
-        /* eslint-enable camelcase */
-
-        this.track(TelemetryEventTypes.NEW_CONNECTION, preparedProperties);
-      }
+      this.track(TelemetryEventTypes.NEW_CONNECTION, connectionTelemetryProperties);
     } catch (error) {
       log.error('TELEMETRY track new connection', error);
     }

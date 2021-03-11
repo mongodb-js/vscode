@@ -1,15 +1,17 @@
+import { Document } from 'bson';
 import { MongoClient } from 'mongodb';
 import { getCloudInfo } from 'mongodb-cloud-info';
-import getMongoDBBuildInfo from 'mongodb-build-info';
+import mongoDBBuildInfo from 'mongodb-build-info';
 
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
-import ConnectionModel from '../views/webview-app/connection-model/connection-model';
+import ConnectionModel, { buildConnectionStringFromConnectionModel } from '../views/webview-app/connection-model/connection-model';
 
 const { version } = require('../../package.json');
 
 export type NewConnectionTelemetryEventProperties = {
   /* eslint-disable camelcase */
+  auth_strategy: string;
   is_atlas: boolean;
   is_localhost: boolean;
   is_data_lake: boolean;
@@ -34,16 +36,17 @@ type CloudInfo = {
   publicCloudName?: string | null;
 };
 
-const ATLAS_REGEX = /mongodb.net[:/]/i;
-const LOCALHOST_REGEX = /(localhost|127\.0\.0\.1)/i;
-
 const log = createLogger('connection telemetry helper');
 
 async function getCloudInfoFromDataService(
   firstServerHostname: string
 ): Promise<CloudInfo> {
   try {
-    const cloudInfo = await getCloudInfo(firstServerHostname);
+    const cloudInfo: {
+      isAws?: boolean,
+      isAzure?: boolean,
+      isGcp?: boolean
+    } = await getCloudInfo(firstServerHostname);
 
     if (cloudInfo.isAws) {
       return {
@@ -75,77 +78,61 @@ async function getCloudInfoFromDataService(
   }
 }
 
-/*
-const buildInfo = await this.buildInfo();
-    const topology = await this.getTopology();
-    const { version } = require('../package.json');
-    let cmdLineOpts = null;
-    try {
-      cmdLineOpts = await this.getCmdLineOpts();
-      // eslint-disable-next-line no-empty
-    } catch (e) {
-    }
-
-    const connectInfo = getConnectInfo(
-      this.uri ? this.uri : '',
-      version,
-      buildInfo,
-      cmdLineOpts,
-      topology
-    );
-
-    return {
-      buildInfo: buildInfo,
-      topology: topology,
-      extraInfo: connectInfo
-    };
-
-*/
-
-async function getBuildInfo(dataService: MongoClient) {
-  const result: any = await this.runCommandWithCheck(
-    'admin',
-    {
-      buildInfo: 1
-    },
-    this.baseCmdOptions
-  );
-}
-
 export async function getConnectionTelemetryProperties(
-  connectionModel: ConnectionModel,
   dataService: MongoClient,
+  model: ConnectionModel,
   connectionType: ConnectionTypes
 ): Promise<NewConnectionTelemetryEventProperties> {
-  // dataService.instance({}, async (error: any, data: any) => {
+  const adminDb = dataService.db('admin');
 
-  const firstServerHostname = dataService.client.model.hosts[0].host;
-  const buildInfo = getBuildInfo;
+  // buildInfo doesn't require any privileges to run, so if it fails,
+  // something went wrong and we should throw the error.
+  const buildInfo = await adminDb.command({
+    buildInfo: 1
+  });
+
   const cloudInfo = await getCloudInfoFromDataService(
-    firstServerHostname
+    model.hosts[0].host
   );
-  const nonGenuineServerName = data.genuineMongoDB.isGenuine
-    ? null
-    : data.genuineMongoDB.dbType;
 
-  const { isDataLake, dlVersion } = getMongoDBBuildInfo.getDataLake(buildInfo);
+  let cmdLineOpts: null | Document = null;
+  try {
+    cmdLineOpts = await adminDb.command({
+      getCmdLineOpts: 1
+    }) as Document;
+  } catch (e) { /* Silently continue when can't retrieve command line opts. */ }
 
-  // const connectionInfo = await dataService.db('admin').getConnectionInfo();
+  const {
+    isGenuine,
+    serverName: nonGenuineServerName
+  } = mongoDBBuildInfo.getGenuineMongoDB(buildInfo, cmdLineOpts);
+  const {
+    isDataLake,
+    dlVersion
+  } = mongoDBBuildInfo.getDataLake(buildInfo);
+
+  const {
+    serverOs,
+    serverArch
+  } = mongoDBBuildInfo.getBuildEnv(buildInfo);
+
+  const uri = buildConnectionStringFromConnectionModel(model);
 
   /* eslint-disable camelcase */
   const preparedProperties: NewConnectionTelemetryEventProperties = {
-    is_atlas: !!data.client.s.url.match(ATLAS_REGEX),
-    is_localhost: !!data.client.s.url.match(LOCALHOST_REGEX),
+    auth_strategy: model.authStrategy,
+    is_atlas: mongoDBBuildInfo.isAtlas(uri),
+    is_localhost: mongoDBBuildInfo.isLocalhost(uri),
     is_data_lake: isDataLake,
-    is_enterprise: data.build.enterprise_module,
+    is_enterprise: mongoDBBuildInfo.isEnterprise(buildInfo),
     is_public_cloud: cloudInfo.isPublicCloud,
     dl_version: dlVersion,
     public_cloud_name: cloudInfo.publicCloudName,
-    is_genuine: data.genuineMongoDB.isGenuine,
+    is_genuine: isGenuine,
     non_genuine_server_name: nonGenuineServerName,
-    server_version: data.build.version,
-    server_arch: data.build.raw.buildEnvironment.target_arch,
-    server_os: data.build.raw.buildEnvironment.target_os,
+    server_version: buildInfo.version,
+    server_arch: serverArch,
+    server_os: serverOs,
     is_used_connect_screen:
       connectionType === ConnectionTypes.CONNECTION_FORM,
     is_used_command_palette:

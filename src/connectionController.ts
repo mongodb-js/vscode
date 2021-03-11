@@ -242,16 +242,6 @@ export default class ConnectionController {
     return connectResult.successfullyConnected;
   };
 
-  sendTelemetry(
-    newDataService: MongoClient,
-    connectionType: ConnectionTypes
-  ): void {
-    this._telemetryService.trackNewConnection(
-      newDataService,
-      connectionType
-    );
-  }
-
   parseNewConnection = (
     newConnectionModel: any
   ): ConnectionModel => {
@@ -396,8 +386,11 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
-    // Send metrics to Segment
-    this.sendTelemetry(dataService, connectionType);
+    this._telemetryService.trackNewConnection(
+      dataService,
+      connectionModel,
+      connectionType
+    );
 
     return {
       successfullyConnected: true,
