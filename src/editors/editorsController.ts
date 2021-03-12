@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
+import { Document } from 'mongodb';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ConnectionController from '../connectionController';
@@ -185,7 +186,7 @@ export default class EditorsController {
     }
 
     try {
-      const newDocument = EJSON.parse(activeEditor.document.getText() || '');
+      const newDocument = EJSON.parse(activeEditor.document.getText() || '') as Document;
 
       await this._mongoDBDocumentService.replaceDocument({
         namespace,

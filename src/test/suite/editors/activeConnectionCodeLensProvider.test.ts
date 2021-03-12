@@ -62,10 +62,16 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController
     );
-    const mockActiveConnection = {
-      find: (namespace, filter, options, callback): void => {
-        return callback(null, ['Text message']);
-      },
+    const mockActiveConnection: any = {
+      db: () => ({
+        collection: () => ({
+          find: () => ({
+            limit: () => ({
+              toArray: () => (['Text message'])
+            })
+          })
+        })
+      }),
       client: {}
     };
 

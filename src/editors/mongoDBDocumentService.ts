@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
-import util from 'util';
+import { Document } from 'mongodb';
 
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
@@ -59,7 +59,7 @@ export default class MongoDBDocumentService {
     documentId: EJSON.SerializableTypes;
     namespace: string;
     connectionId: string;
-    newDocument: EJSON.SerializableTypes;
+    newDocument: Document;
     source: DocumentSource;
   }): Promise<void> {
     log.info('replace document in MongoDB', data);
@@ -84,15 +84,21 @@ export default class MongoDBDocumentService {
       );
     }
 
-    const findOneAndReplace = util.promisify(
-      dataservice.findOneAndReplace.bind(dataservice)
-    );
+    // TODO: Pull db name and collection name seperate.
+
+    // const findOneAndReplace =
+    // util.promisify(
+    //   dataservice.findOneAndReplace.bind(dataservice)
+    // );
 
     this._statusView.showMessage('Saving document...');
 
     try {
-      await findOneAndReplace(
-        namespace,
+      await dataservice.db(
+        namespace.split('.')[0]
+      ).collection(
+        namespace.split('.')[1]
+      ).findOneAndReplace(
         {
           _id: documentId
         },
@@ -138,29 +144,27 @@ export default class MongoDBDocumentService {
       );
     }
 
-    const find = util.promisify(dataservice.find.bind(dataservice));
-
     this._statusView.showMessage('Fetching document...');
 
     try {
-      const documents = await find(
-        namespace,
-        {
-          _id: documentId
-        },
-        {
-          limit: 1
-        }
-      );
+      // TODO: better namespace - db and col
+      // TODO: does it return null if no doc?
+      const document = await dataservice.db(
+        namespace.split('.')[0]
+      ).collection(
+        namespace.split('.')[1]
+      ).findOne({
+        _id: documentId
+      });
 
       this._statusView.hideMessage();
 
-      if (!documents || documents.length === 0) {
-        return null;
+      if (!document) {
+        return;
       }
 
       return JSON.parse(
-        EJSON.stringify(documents[0])
+        EJSON.stringify(document)
       ) as EJSON.SerializableTypes;
     } catch (error) {
       const printableError = error as { message: string };

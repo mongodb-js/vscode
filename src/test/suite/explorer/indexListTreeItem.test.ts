@@ -1,5 +1,6 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
+import { Document } from 'mongodb';
 
 const { contributes } = require('../../../../package.json');
 
@@ -11,9 +12,7 @@ suite('IndexListTreeItem Test Suite', () => {
     const testIndexListTreeItem = new IndexListTreeItem(
       'pineapple',
       'tasty_fruits',
-      {
-        indexes: (): void => { }
-      },
+      {} as any,
       false,
       false,
       []
@@ -38,8 +37,7 @@ suite('IndexListTreeItem Test Suite', () => {
         key: {
           _id: 1
         },
-        name: '_id_',
-        ns: 'tasty_fruits.pineapple'
+        name: '_id_'
       },
       {
         v: 1,
@@ -47,8 +45,7 @@ suite('IndexListTreeItem Test Suite', () => {
           _id: 1,
           gnocchi: -1
         },
-        name: '_id_1_gnocchi_1',
-        ns: 'tasty_fruits.pineapple'
+        name: '_id_1_gnocchi_1'
       }
     ];
 
@@ -57,12 +54,16 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb): void => {
-          namespaceRequested = ns;
+        db: () => ({
+          collection: () => ({
+            indexes: (ns: string): Promise<Document> => {
+              namespaceRequested = ns;
 
-          cb(null, fakeFetchIndexes);
-        }
-      },
+              return Promise.resolve(fakeFetchIndexes);
+            }
+          })
+        })
+      } as any,
       false,
       false,
       []
@@ -70,7 +71,7 @@ suite('IndexListTreeItem Test Suite', () => {
 
     await testIndexListTreeItem.onDidExpand();
 
-    let indexTreeItems;
+    let indexTreeItems: vscode.TreeItem[];
 
     try {
       indexTreeItems = await testIndexListTreeItem.getChildren();
@@ -98,7 +99,7 @@ suite('IndexListTreeItem Test Suite', () => {
     const testIndexListTreeItem = new IndexListTreeItem(
       'pineapple',
       'tasty_fruits',
-      'fake data service',
+      {} as any,
       false,
       false,
       []
@@ -117,10 +118,14 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb): void => {
-          cb(new Error(expectedErrorMessage));
-        }
-      },
+        db: () => ({
+          collection: () => ({
+            indexes: (): Promise<Document> => {
+              throw new Error(expectedErrorMessage);
+            }
+          })
+        })
+      } as any,
       false,
       false,
       []
@@ -145,8 +150,7 @@ suite('IndexListTreeItem Test Suite', () => {
         key: {
           _id: 1
         },
-        name: '_id_',
-        ns: 'tasty_fruits.pineapple'
+        name: '_id_'
       },
       {
         v: 1,
@@ -154,8 +158,7 @@ suite('IndexListTreeItem Test Suite', () => {
           _id: 1,
           gnocchi: -1
         },
-        name: '_id_1_gnocchi_1',
-        ns: 'tasty_fruits.pineapple'
+        name: '_id_1_gnocchi_1'
       }
     ];
 
@@ -163,10 +166,14 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb): void => {
-          cb(null, fakeFetchIndexes);
-        }
-      },
+        db: () => ({
+          collection: () => ({
+            indexes: (): Promise<Document> => {
+              return Promise.resolve(fakeFetchIndexes);
+            }
+          })
+        })
+      } as any,
       false,
       false,
       []
@@ -188,10 +195,14 @@ suite('IndexListTreeItem Test Suite', () => {
       testIndexListTreeItem.collectionName,
       testIndexListTreeItem.databaseName,
       {
-        indexes: (ns, opts, cb): void => {
-          cb(null, []);
-        }
-      },
+        db: () => ({
+          collection: () => ({
+            indexes: (): Promise<Document> => {
+              return Promise.resolve([]);
+            }
+          })
+        })
+      } as any,
       testIndexListTreeItem.isExpanded,
       testIndexListTreeItem.cacheIsUpToDate,
       testIndexListTreeItem.getChildrenCache()

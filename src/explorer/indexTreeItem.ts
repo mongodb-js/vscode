@@ -20,7 +20,6 @@ export type IndexModel = {
     [key: string]: IndexKeyType;
   };
   name: string;
-  ns: string;
 };
 
 function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {

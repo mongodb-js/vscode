@@ -37,7 +37,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('when not expanded it does not show collections', (done) => {
+  test('when not expanded it does not show collections', async () => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub() as any,
@@ -46,18 +46,14 @@ suite('DatabaseTreeItem Test Suite', () => {
       {}
     );
 
-    testDatabaseTreeItem
-      .getChildren()
-      .then((collections) => {
-        assert(
-          collections.length === 0,
-          `Expected no collections to be returned, recieved ${collections.length}`
-        );
-      })
-      .then(done, done);
+    const collections = await testDatabaseTreeItem.getChildren();
+    assert(
+      collections.length === 0,
+      `Expected no collections to be returned, recieved ${collections.length}`
+    );
   });
 
-  test('when expanded shows the collections of a database in tree', (done) => {
+  test('when expanded shows the collections of a database in tree', async () => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub() as any,
@@ -68,22 +64,18 @@ suite('DatabaseTreeItem Test Suite', () => {
 
     testDatabaseTreeItem.onDidExpand();
 
-    testDatabaseTreeItem
-      .getChildren()
-      .then((collections) => {
-        assert(
-          collections.length > 0,
-          `Expected more than one collection to be returned, recieved ${collections.length}`
-        );
+    const collections = await testDatabaseTreeItem.getChildren();
+    assert(
+      collections.length > 0,
+      `Expected more than one collection to be returned, recieved ${collections.length}`
+    );
 
-        assert(
-          collections[1].label ===
-          mockDatabases[mockDatabaseNames[1]].collections[1].name,
-          `Expected a tree item child with the label collection name ${mockDatabases[mockDatabaseNames[1]].collections[1].name
-          } found ${collections[1].label}`
-        );
-      })
-      .then(done, done);
+    assert(
+      collections[1].label ===
+      mockDatabases[mockDatabaseNames[1]].collections[1].name,
+      `Expected a tree item child with the label collection name ${mockDatabases[mockDatabaseNames[1]].collections[1].name
+      } found ${collections[1].label}`
+    );
   });
 
   test('when expanded and collapsed its collections cache their expanded documents', async () => {
@@ -150,7 +142,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('collections are displayed in the alphanumerical case insensitive order', (done) => {
+  test('collections are displayed in the alphanumerical case insensitive order', async () => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[2],
       new DataServiceStub() as any,
@@ -168,18 +160,14 @@ suite('DatabaseTreeItem Test Suite', () => {
       'ZZZ'
     ];
 
-    testDatabaseTreeItem
-      .getChildren()
-      .then((collectionTreeItems: CollectionTreeItem[]) => {
-        assert.deepEqual(
-          collectionTreeItems
-            .map(({ collectionName }) => collectionName)
-            .join(),
-          expectedCollectionsOrder.join(),
-          'Expected collections to be in alphanumerical order but they were not'
-        );
-      })
-      .then(done, done);
+    const collectionTreeItems: CollectionTreeItem[] = await testDatabaseTreeItem.getChildren();
+    assert.deepEqual(
+      collectionTreeItems
+        .map(({ collectionName }) => collectionName)
+        .join(),
+      expectedCollectionsOrder.join(),
+      'Expected collections to be in alphanumerical order but they were not'
+    );
   });
 
   suite('Live Database Tests', function () {

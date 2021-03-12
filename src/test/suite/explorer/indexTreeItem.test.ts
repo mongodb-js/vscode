@@ -14,8 +14,7 @@ suite('IndexTreeItem Test Suite', () => {
           _id: 1,
           gnocchi: -1
         },
-        name: '_id_1_gnocchi_1',
-        ns: 'tasty_fruits.pineapple'
+        name: '_id_1_gnocchi_1'
       },
       'tasty_fruits.pineapple',
       false

@@ -39,10 +39,10 @@ function getIconPath(
   };
 }
 
-export type CollectionModelType = {
+export interface CollectionModelType {
   name: string;
   type: CollectionTypes;
-};
+}
 
 function isChildCacheOutOfSync(
   child: DocumentListTreeItem | SchemaTreeItem | IndexListTreeItem

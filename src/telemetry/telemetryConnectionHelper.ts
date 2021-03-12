@@ -1,5 +1,4 @@
-import { Document } from 'bson';
-import { MongoClient } from 'mongodb';
+import { Document, MongoClient } from 'mongodb';
 import { getCloudInfo } from 'mongodb-cloud-info';
 import mongoDBBuildInfo from 'mongodb-build-info';
 
@@ -99,7 +98,7 @@ export async function getConnectionTelemetryProperties(
   try {
     cmdLineOpts = await adminDb.command({
       getCmdLineOpts: 1
-    }) as Document;
+    });
   } catch (e) { /* Silently continue when can't retrieve command line opts. */ }
 
   const {

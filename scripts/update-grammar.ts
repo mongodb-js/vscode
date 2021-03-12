@@ -24,7 +24,7 @@ const cli = meow(
 
 	Examples
 	  $ ./update-grammar.ts
-	  ℹ Downlading latest mongodb.tmLanguage.json
+	  ℹ Downloading latest mongodb.tmLanguage.json
     ✔ Downloaded to /Users/lucas/vsc/syntaxes/mongodb.tmLanguage.json
 `,
   {
@@ -43,7 +43,7 @@ const cli = meow(
   await mkdirp(DEFAULT_DEST);
 
   const ui = ora()
-    .info('Downlading latest mongodb.tmLanguage.json')
+    .info('Downloading latest mongodb.tmLanguage.json')
     .start();
 
   try {

@@ -77,10 +77,13 @@ export default class IndexListTreeItem extends vscode.TreeItem
     log.info(`fetching indexes from namespace ${namespace}`);
 
     try {
+      // TODO: Looks like we don't need anything special
+      // that the https://github.com/mongodb-js/index-model was
+      // doing but lets double check.
       const indexes = await this._dataService
         .db(this.databaseName)
         .collection(this.collectionName)
-        .indexes();
+        .indexes() as IndexModel[];
 
       return indexes;
     } catch (err) {

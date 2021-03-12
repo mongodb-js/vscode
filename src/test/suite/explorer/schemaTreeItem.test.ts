@@ -30,7 +30,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'cheesePizza',
       TEST_DB_NAME,
-      {},
+      {} as any,
       false,
       false,
       false,
@@ -54,7 +54,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {},
+      {} as any,
       false,
       false,
       false,
@@ -87,10 +87,16 @@ suite('SchemaTreeItem Test Suite', function () {
       'peanutButter',
       TEST_DB_NAME,
       {
-        find: (ns, filter, options, callback): void => {
-          callback(null, []);
-        }
-      },
+        db: () => ({
+          collection: () => ({
+            find: () => ({
+              limit: () => ({
+                toArray: () => ([])
+              })
+            })
+          })
+        })
+      } as any,
       true,
       false,
       false,
@@ -116,7 +122,7 @@ suite('SchemaTreeItem Test Suite', function () {
     );
   });
 
-  test('it should show a show more item when there are more fields to show', (done) => {
+  test('it should show a show more item when there are more fields to show', async () => {
     const amountOfFieldsExpected = FIELDS_TO_SHOW;
     const mockDocWithTwentyFields = {};
     for (let i = 0; i < 20; i++) {
@@ -126,10 +132,16 @@ suite('SchemaTreeItem Test Suite', function () {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {
-        find: (ns, filter, options, callback): void => {
-          callback(null, [mockDocWithTwentyFields]);
-        }
-      },
+        db: () => ({
+          collection: () => ({
+            find: () => ({
+              limit: () => ({
+                toArray: () => ([mockDocWithTwentyFields])
+              })
+            })
+          })
+        })
+      } as any,
       true,
       false,
       false,
@@ -137,25 +149,21 @@ suite('SchemaTreeItem Test Suite', function () {
       {}
     );
 
-    testSchemaTreeItem
-      .getChildren()
-      .then((schemaFields) => {
-        assert(FIELDS_TO_SHOW === 15, 'Expeted FIELDS_TO_SHOW to be 15');
+    const schemaFields = await testSchemaTreeItem.getChildren();
+    assert(FIELDS_TO_SHOW === 15, 'Expeted FIELDS_TO_SHOW to be 15');
 
-        assert(
-          schemaFields.length === amountOfFieldsExpected + 1,
-          `Expected ${amountOfFieldsExpected + 1
-          } documents to be returned, found ${schemaFields.length}`
-        );
-        assert(
-          schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
-          `Expected a tree item child with the label "Show more fields..." found ${schemaFields[amountOfFieldsExpected].label}`
-        );
-      })
-      .then(done, done);
+    assert(
+      schemaFields.length === amountOfFieldsExpected + 1,
+      `Expected ${amountOfFieldsExpected + 1
+      } documents to be returned, found ${schemaFields.length}`
+    );
+    assert(
+      schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
+      `Expected a tree item child with the label "Show more fields..." found ${schemaFields[amountOfFieldsExpected].label}`
+    );
   });
 
-  test('it should show more fields after the show more click handler is called', (done) => {
+  test('it should show more fields after the show more click handler is called', async () => {
     const mockDocWithThirtyFields = {};
     for (let i = 0; i < 30; i++) {
       mockDocWithThirtyFields[`${i}`] = 'some value';
@@ -164,10 +172,16 @@ suite('SchemaTreeItem Test Suite', function () {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {
-        find: (ns, filter, options, callback): void => {
-          callback(null, [mockDocWithThirtyFields]);
-        }
-      },
+        db: () => ({
+          collection: () => ({
+            find: () => ({
+              limit: () => ({
+                toArray: () => ([mockDocWithThirtyFields])
+              })
+            })
+          })
+        })
+      } as any,
       true,
       false,
       false,
@@ -177,28 +191,30 @@ suite('SchemaTreeItem Test Suite', function () {
 
     testSchemaTreeItem.onShowMoreClicked();
 
-    testSchemaTreeItem
-      .getChildren()
-      .then((schemaFields) => {
-        const amountOfFieldsExpected = 30;
+    const schemaFields = await testSchemaTreeItem.getChildren();
+    const amountOfFieldsExpected = 30;
 
-        assert(
-          schemaFields.length === amountOfFieldsExpected,
-          `Expected ${amountOfFieldsExpected} documents to be returned, found ${schemaFields.length}`
-        );
-      })
-      .then(done, done);
+    assert(
+      schemaFields.length === amountOfFieldsExpected,
+      `Expected ${amountOfFieldsExpected} documents to be returned, found ${schemaFields.length}`
+    );
   });
 
-  test('When schema parsing fails it displays an error message', (done) => {
+  test('When schema parsing fails it displays an error message', async () => {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {
-        find: (ns, filter, options, callback): void => {
-          callback(null, 'invalid schema to parse');
-        }
-      },
+        db: () => ({
+          collection: () => ({
+            find: () => ({
+              limit: () => ({
+                toArray: () => ('invalid schema to parse')
+              })
+            })
+          })
+        })
+      } as any,
       true,
       false,
       false,
@@ -206,23 +222,18 @@ suite('SchemaTreeItem Test Suite', function () {
       {}
     );
 
-    testSchemaTreeItem
-      .getChildren()
-      .then(
-        () => {
-          assert(false, 'Didnt expect to succeed.');
-        },
-        (error) => {
-          const expectedMessage =
-            'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+    try {
+      await testSchemaTreeItem.getChildren();
+      assert(false, 'Didnt expect to succeed.');
+    } catch (err) {
+      const expectedMessage =
+        'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
 
-          assert(
-            error.message === expectedMessage,
-            `Expected error message to be "${expectedMessage}" found "${error.message}"`
-          );
-        }
-      )
-      .then(done, done);
+      assert(
+        err.message === expectedMessage,
+        `Expected error message to be "${expectedMessage}" found "${err.message}"`
+      );
+    }
   });
 
   suite('Live Database Tests', () => {
@@ -230,81 +241,71 @@ suite('SchemaTreeItem Test Suite', function () {
       await cleanupTestDB();
     });
 
-    test('when not expanded it has not yet pulled the schema', (done) => {
-      seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
+    test('when not expanded it has not yet pulled the schema', async () => {
+      const dataService = await seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
         {
           _id: 10,
           someField: 'applePie'
         }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'favoritePiesIWantToEatRightNow',
-          TEST_DB_NAME,
-          dataService,
-          false,
-          false,
-          false,
-          false,
-          {}
-        );
+      ]);
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'favoritePiesIWantToEatRightNow',
+        TEST_DB_NAME,
+        dataService,
+        false,
+        false,
+        false,
+        false,
+        {}
+      );
 
-        testSchemaTreeItem
-          .getChildren()
-          .then((schemaFields) => {
-            dataService.disconnect();
+      const schemaFields = await testSchemaTreeItem.getChildren();
+      dataService.close();
 
-            assert(
-              schemaFields.length === 0,
-              `Expected no schema tree items to be returned, recieved ${schemaFields.length}`
-            );
-          })
-          .then(done, done);
-      });
+      assert(
+        schemaFields.length === 0,
+        `Expected no schema tree items to be returned, recieved ${schemaFields.length}`
+      );
     });
 
-    test('when expanded shows the fields of a schema', (done) => {
-      seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
+    test('when expanded shows the fields of a schema', async () => {
+      const dataService = await seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
         {
           _id: 1,
           nameOfTastyPie: 'applePie'
         }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'favoritePiesIWantToEatRightNow',
-          TEST_DB_NAME,
-          dataService,
-          false,
-          false,
-          false,
-          false,
-          {}
-        );
+      ]);
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'favoritePiesIWantToEatRightNow',
+        TEST_DB_NAME,
+        dataService,
+        false,
+        false,
+        false,
+        false,
+        {}
+      );
 
-        testSchemaTreeItem.onDidExpand();
+      testSchemaTreeItem.onDidExpand();
 
-        testSchemaTreeItem
-          .getChildren()
-          .then((schemaFields) => {
-            dataService.disconnect();
-            assert(
-              schemaFields.length === 2,
-              `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
-            );
-            assert(
-              schemaFields[0].label === '_id',
-              `Expected label of schema tree item to be the field name, recieved ${schemaFields[0].label}`
-            );
-            assert(
-              schemaFields[1].label === 'nameOfTastyPie',
-              `Expected label of schema tree item to be the field name, recieved ${schemaFields[1].label}`
-            );
-          })
-          .then(done, done);
-      });
+      const schemaFields: vscode.TreeItem[] = await testSchemaTreeItem.getChildren();
+      dataService.close();
+      assert(
+        schemaFields.length === 2,
+        `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
+      );
+      assert(
+        schemaFields[0].label === '_id',
+        `Expected label of schema tree item to be the field name, recieved ${schemaFields[0].label}`
+      );
+      assert(
+        schemaFields[1].label === 'nameOfTastyPie',
+        `Expected label of schema tree item to be the field name, recieved ${schemaFields[1].label}`
+      );
     });
 
-    test('it only shows a dropdown for fields which are always documents - and not for polymorphic', (done) => {
-      seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
+    test('it only shows a dropdown for fields which are always documents - and not for polymorphic', async () => {
+      const dataService = await seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
         {
           _id: 1,
           alwaysDocument: {
@@ -321,39 +322,34 @@ suite('SchemaTreeItem Test Suite', function () {
           },
           notAlwaysADocument: 'A spy!'
         }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'favoritePiesIWantToEatRightNow',
-          TEST_DB_NAME,
-          dataService,
-          false,
-          false,
-          false,
-          false,
-          {}
-        );
+      ]);
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'favoritePiesIWantToEatRightNow',
+        TEST_DB_NAME,
+        dataService,
+        false,
+        false,
+        false,
+        false,
+        {}
+      );
 
-        testSchemaTreeItem.onDidExpand();
+      testSchemaTreeItem.onDidExpand();
 
-        testSchemaTreeItem
-          .getChildren()
-          .then((schemaFields) => {
-            dataService.disconnect();
-            assert(
-              schemaFields.length === 3,
-              `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}: ${inspect(schemaFields)}`
-            );
-            assert(
-              fieldIsExpandable(schemaFields[1].field),
-              'Expected field to have expandable state'
-            );
-            assert(
-              fieldIsExpandable(schemaFields[2].field) === false,
-              'Expected field to have none expandable state'
-            );
-          })
-          .then(done, done);
-      });
+      const schemaFields = await testSchemaTreeItem.getChildren();
+      dataService.close();
+      assert(
+        schemaFields.length === 3,
+        `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}: ${inspect(schemaFields)}`
+      );
+      assert(
+        fieldIsExpandable(schemaFields[1].field),
+        'Expected field to have expandable state'
+      );
+      assert(
+        fieldIsExpandable(schemaFields[2].field) === false,
+        'Expected field to have none expandable state'
+      );
     });
   });
 
@@ -363,7 +359,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {},
+      {} as any,
       false,
       false,
       false,

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+// TODO: remove ns.
 const ns = require('mongodb-ns');
 import * as path from 'path';
 
@@ -18,8 +19,6 @@ function getIconPath(): { light: string; dark: string } {
     dark: path.join(DARK, 'database.svg')
   };
 }
-
-type CollectionListResult = CollectionModelType[];
 
 export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
@@ -62,12 +61,12 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return element;
   }
 
-  async listCollections(): Promise<CollectionListResult> {
+  async listCollections(): Promise<CollectionModelType[]> {
     try {
-      const collections: CollectionListResult = await this._dataService
+      const collections: CollectionModelType[] = await this._dataService
         .db(this.databaseName)
         .listCollections()
-        .toArray();
+        .toArray() as CollectionModelType[];
 
       return collections;
     } catch (err) {
@@ -105,7 +104,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     }
 
     // List collections and build tree items.
-    const collections: CollectionListResult = await this.listCollections();
+    const collections: CollectionModelType[] = await this.listCollections();
 
     this.cacheIsUpToDate = true;
 

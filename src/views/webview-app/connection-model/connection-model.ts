@@ -96,7 +96,7 @@ class ConnectionModel {
   // The optional passphrase for `sshTunnelIdentityFile`.
   sshTunnelPassphrase?: string;
 
-  constructor(model: any) {
+  constructor(model?: any) {
     this.isSrvRecord = model.isSrvRecord as boolean;
   }
 }

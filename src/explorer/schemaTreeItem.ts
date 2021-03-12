@@ -7,7 +7,7 @@ import TreeItemParent from './treeItemParentInterface';
 import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
 import FieldTreeItem from './fieldTreeItem';
 import { getImagesPath } from '../extensionConstants';
-import { MongoClient } from 'mongodb';
+import { Document, MongoClient } from 'mongodb';
 
 const log = createLogger('tree view document list');
 
@@ -93,7 +93,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
     return element;
   }
 
-  async fetchDocumentsForSchema(): Promise<any[]> {
+  async fetchDocumentsForSchema(): Promise<Document[]> {
     try {
       const documents = await this._dataService
         .db(this.databaseName)
@@ -109,7 +109,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
   }
 
   async getSchema(): Promise<any[]> {
-    let documents;
+    let documents: Document[];
     try {
       documents = await this.fetchDocumentsForSchema();
     } catch (err) {

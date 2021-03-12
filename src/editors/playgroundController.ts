@@ -19,29 +19,30 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
-import { ConnectionOptions } from '../types/connectionOptionsType';
+// import { ConnectionOptions } from '../types/connectionOptionsType';
 import { buildConnectionStringFromConnectionModel, getDriverOptionsFromConnectionModel } from '../views/webview-app/connection-model/connection-model';
 
 const log = createLogger('playground controller');
 
-const getSSLFilePathsFromConnectionModel = (
-  connectionModelDriverOptions: ConnectionOptions
-): {
-  sslCA?: string | string[];
-  sslCert?: string | string[];
-  sslKey?: string | string[];
-} => {
-  const sslFilePaths = {};
-  ['sslCA', 'sslCert', 'sslKey'].forEach((key) => {
-    if (connectionModelDriverOptions[key]) {
-      sslFilePaths[key] = connectionModelDriverOptions[key] as (
-        string | string[]
-      );
-    }
-  });
+// TODO: Convert this for the old ones. Lets go tls.
+// const getSSLFilePathsFromConnectionModel = (
+//   connectionModelDriverOptions: ConnectionOptions
+// ): {
+//   sslCA?: string | string[];
+//   sslCert?: string | string[];
+//   sslKey?: string | string[];
+// } => {
+//   const sslFilePaths = {};
+//   ['sslCA', 'sslCert', 'sslKey'].forEach((key) => {
+//     if (connectionModelDriverOptions[key]) {
+//       sslFilePaths[key] = connectionModelDriverOptions[key] as (
+//         string | string[]
+//       );
+//     }
+//   });
 
-  return sslFilePaths;
-};
+//   return sslFilePaths;
+// };
 
 /**
  * This controller manages playground.
@@ -201,14 +202,14 @@ export default class PlaygroundController {
     // handle being passsed buffers well.
     // With driver version 4.0 we should be able to remove any use
     // of buffers and just pass file paths.
-    const sslOptionsFilePaths = getSSLFilePathsFromConnectionModel(
-      connectionModel.getAttributes({ derived: true }).driverOptions
-    );
+    // const sslOptionsFilePaths = getSSLFilePathsFromConnectionModel(
+    //   connectionModel.getAttributes({ derived: true }).driverOptions
+    // );
 
-    const connectionOptions: ConnectionOptions = {
-      ...connectionDetails.options,
-      ...sslOptionsFilePaths
-    };
+    // const connectionOptions: ConnectionOptions = {
+    //   ...connectionDetails.options,
+    //   ...sslOptionsFilePaths
+    // };
 
     await this._languageServerController.connectToServiceProvider({
       connectionId,

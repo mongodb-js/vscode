@@ -15,7 +15,7 @@ import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensP
 import sinon from 'sinon';
 import chai from 'chai';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-import { ConnectionModel } from '../../../types/connectionModelType';
+import ConnectionModel from '../../../views/webview-app/connection-model/connection-model';
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
