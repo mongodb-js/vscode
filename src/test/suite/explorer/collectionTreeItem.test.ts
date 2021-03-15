@@ -80,7 +80,15 @@ suite('CollectionTreeItem Test Suite', () => {
       },
       'mock_db_name',
       {
-        estimatedCount: (ns, options, cb): void => cb(null, 5000)
+        db: (dbName: string) => ({
+          collection: (colName: string) => ({
+            estimatedDocumentCount: () => {
+              if (dbName === 'airZebra' && colName === 'iSawACatThatLookedLikeALionToday') {
+                return 5000;
+              }
+            }
+          })
+        })
       } as any,
       false,
       false,

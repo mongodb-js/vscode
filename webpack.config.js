@@ -32,7 +32,8 @@ const extensionConfig = {
     // Currently connection-model has a keytar dependency, vscode provides its
     // own keytar dependency. Here we are telling it to use vscode's keytar.
     keytar: 'keytar',
-    electron: 'electron'
+    electron: 'electron',
+    'mongodb-client-encryption': 'mongodb-client-encryption'
   },
   module: {
     rules: [
@@ -72,7 +73,8 @@ const languageServerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode'
+    vscode: 'commonjs vscode',
+    'mongodb-client-encryption': 'mongodb-client-encryption'
   },
   module: {
     rules: [
@@ -112,7 +114,8 @@ const languageServerWorkerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode'
+    vscode: 'commonjs vscode',
+    'mongodb-client-encryption': 'mongodb-client-encryption'
   },
   module: {
     rules: [

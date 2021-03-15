@@ -446,9 +446,15 @@ suite('MDBExtensionController Test Suite', function () {
       },
       'airZebra',
       {
-        estimatedCount: (ns, opts, cb): void => {
-          cb(null, count);
-        }
+        db: (dbName: string) => ({
+          collection: (colName: string) => ({
+            estimatedDocumentCount: () => {
+              if (dbName === 'airZebra' && colName === 'iSawACatThatLookedLikeALionToday') {
+                return count;
+              }
+            }
+          })
+        })
       } as any,
       false,
       false,

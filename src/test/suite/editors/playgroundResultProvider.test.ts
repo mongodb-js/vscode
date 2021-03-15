@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
+import { Document } from 'mongodb';
 
 import ConnectionController from '../../../connectionController';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
@@ -335,16 +336,22 @@ suite('Playground Result Provider Test Suite', () => {
 
     testCollectionViewProvider._operationsStore = new CollectionDocumentsOperationsStore();
 
-    const documents: any[] = [ { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' } ];
+    const documents: Document[] = [{
+      _id: '5ea8745ee4811fafe8b65ecb',
+      koko: 'nothing5'
+    }];
     const mockGetActiveDataService: any = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
-        return callback(null, documents);
-      }
+      db: (dbName: string) => ({
+        collection: (colName: string) => ({
+          find: () => ({
+            toArray: () => {
+              if (dbName === 'db' && colName === 'berlin') {
+                return documents;
+              }
+            }
+          })
+        })
+      })
     });
     sinon.replace(
       testCollectionViewProvider._connectionController,

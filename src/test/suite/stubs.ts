@@ -116,20 +116,25 @@ for (let i = 0; i < numberOfDocumentsToMock; i++) {
 }
 
 class DataServiceStub {
-  listDatabases(callback: any): void {
-    callback(null, mockDatabaseNames);
-  }
-
-  listCollections(databaseName: string, filter: object, callback: any): void {
-    callback(null, mockDatabases[databaseName].collections);
-  }
-
-  find(namespace: string, filter: any, options: any, callback: any): void {
-    callback(null, mockDocuments.slice(0, options.limit));
-  }
-
-  estimatedCount(namespace: string, options: any, callback: any): void {
-    callback(null, mockDocuments.length);
+  db(dbName: string) {
+    return {
+      admin: () => ({
+        listDatabases(): string[] {
+          return mockDatabaseNames;
+        }
+      }),
+      listCollections: () => ({
+        toArray: () => mockDatabases[dbName].collections
+      }),
+      find: () => ({
+        limit: (limit: number) => ({
+          toArray: () => mockDocuments.slice(0, limit)
+        })
+      }),
+      collection: (/* colName: string */) => ({
+        estimatedDocumentCount: () => mockDocuments.length
+      })
+    };
   }
 }
 

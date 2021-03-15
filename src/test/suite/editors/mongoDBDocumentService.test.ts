@@ -59,18 +59,16 @@ suite('MongoDB Document Service Test Suite', () => {
     );
 
     const mockGetActiveDataService = sinon.fake.returns({
-      findOneAndReplace: async (
-        namespace: string,
-        filter: object,
-        replacement: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-        // eslint-disable-next-line @typescript-eslint/require-await
-      ) => {
-        document.price = 5000;
-
-        return callback(null, document);
-      }
+      db: (dbName: string) => ({
+        collection: (colName: string) => ({
+          findOneAndReplace: () => {
+            if (dbName === 'waffle' && colName === 'house') {
+              document.price = 5000;
+              return document;
+            }
+          }
+        })
+      })
     });
     sinon.replace(
       testConnectionController,
@@ -104,14 +102,17 @@ suite('MongoDB Document Service Test Suite', () => {
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
 
     const mockGetActiveDataService = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
-        return callback(null, [{ _id: '123' }]);
-      }
+      db: (dbName: string) => ({
+        collection: (colName: string) => ({
+          find: () => ({
+            toArray: () => {
+              if (dbName === 'waffle' && colName === 'house') {
+                return [{ _id: '123' }];
+              }
+            }
+          })
+        })
+      })
     });
     sinon.replace(
       testConnectionController,

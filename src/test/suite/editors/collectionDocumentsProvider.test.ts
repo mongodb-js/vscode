@@ -282,16 +282,32 @@ suite('Collection Documents Provider Test Suite', () => {
 
     testCollectionViewProvider._operationsStore = new CollectionDocumentsOperationsStore();
 
-    const documents: any[] = [ { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' } ];
-    const mockGetActiveDataService = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
-        return callback(null, documents);
+    const documents = {
+      berlin: {
+        cocktailbars: [{
+          _id: '5ea8745ee4811fafe8b65ecb',
+          koko: 'nothing5'
+        }]
+      },
+      companies: {
+        company: [
+          { _id: '25', name: 'some name', price: 1000 },
+          { _id: '26', name: 'another name', price: 500 }
+        ]
       }
+    };
+    const mockGetActiveDataService = sinon.fake.returns({
+      db: (dbName: string) => ({
+        collection: (colName: string) => ({
+          find: () => ({
+            toArray: () => {
+              if (dbName === 'waffle' && colName === 'house') {
+                return documents;
+              }
+            }
+          })
+        })
+      })
     });
     sinon.replace(
       testCollectionViewProvider._connectionController,
@@ -363,7 +379,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     // Connect to another connection.
     const secondCollectionOperationId = testCollectionViewProvider._operationsStore.createNewOperation();
-    const secondCollectionNamespace = 'companies.companies';
+    const secondCollectionNamespace = 'companies.company';
     const secondCollectionQuery = [
       `namespace=${secondCollectionNamespace}`,
       `connectionId=${connectionId}`,
@@ -371,13 +387,6 @@ suite('Collection Documents Provider Test Suite', () => {
     ].join('&');
     const secondCollectionUri = vscode.Uri.parse(
       `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`
-    );
-
-    // Fake a new response from find.
-    documents.length = 0;
-    documents.push(
-      { _id: '25', name: 'some name', price: 1000 },
-      { _id: '26', name: 'another name', price: 500 }
     );
 
     await testCollectionViewProvider.provideTextDocumentContent(secondCollectionUri);
@@ -437,16 +446,22 @@ suite('Collection Documents Provider Test Suite', () => {
 
     testCollectionViewProvider._operationsStore = new CollectionDocumentsOperationsStore();
 
-    const documents: any[] = [ { _id: '5ea8745ee4811fafe8b65ecb', location: 'alexanderplatz' } ];
+    const documents: any[] = [{
+      _id: '5ea8745ee4811fafe8b65ecb',
+      location: 'alexanderplatz'
+    }];
     const mockGetActiveDataService = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
-        return callback(null, documents);
-      }
+      db: (dbName: string) => ({
+        collection: (colName: string) => ({
+          find: () => ({
+            toArray: () => {
+              if (dbName === 'berlin' && colName === 'places') {
+                return documents;
+              }
+            }
+          })
+        })
+      })
     });
     sinon.replace(
       testCollectionViewProvider._connectionController,
