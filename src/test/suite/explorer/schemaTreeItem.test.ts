@@ -132,11 +132,15 @@ suite('SchemaTreeItem Test Suite', function () {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {
-        db: () => ({
-          collection: () => ({
+        db: (dbName: string) => ({
+          collection: (colName: string) => ({
             find: () => ({
               limit: () => ({
-                toArray: () => ([mockDocWithTwentyFields])
+                toArray: () => {
+                  if (dbName === TEST_DB_NAME && colName === 'favoritePiesIWantToEatRightNow') {
+                    return [mockDocWithTwentyFields];
+                  }
+                }
               })
             })
           })
@@ -209,7 +213,9 @@ suite('SchemaTreeItem Test Suite', function () {
           collection: () => ({
             find: () => ({
               limit: () => ({
-                toArray: () => ('invalid schema to parse')
+                toArray: () => {
+                  throw new Error('invalid schema to parse');
+                }
               })
             })
           })

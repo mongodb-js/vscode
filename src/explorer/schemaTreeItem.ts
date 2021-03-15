@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import * as parseSchema from 'mongodb-schema';
+import parseSchema from 'mongodb-schema';
 import * as path from 'path';
+import { promisify } from 'util';
 
 import { createLogger } from '../logging';
 import TreeItemParent from './treeItemParentInterface';
@@ -109,31 +110,24 @@ export default class SchemaTreeItem extends vscode.TreeItem
   }
 
   async getSchema(): Promise<any[]> {
-    let documents: Document[];
-    try {
-      documents = await this.fetchDocumentsForSchema();
-    } catch (err) {
-      return Promise.reject(err);
+    const documents: Document[] = await this.fetchDocumentsForSchema();
+
+    const namespace = `${this.databaseName}.${this.collectionName}`;
+
+    log.info(`parsing schema for namespace ${namespace}`);
+    if (!documents || documents.length === 0) {
+      return [];
     }
 
-    return new Promise((resolve, reject) => {
-      const namespace = `${this.databaseName}.${this.collectionName}`;
+    const runParseSchema = promisify(parseSchema);
 
-      log.info(`parsing schema for namespace ${namespace}`);
-      if (!documents || documents.length === 0) {
-        return resolve([]);
-      }
+    try {
+      const schema = await runParseSchema(documents);
 
-      parseSchema(documents, (parseError: Error | undefined, schema) => {
-        if (parseError) {
-          return reject(
-            new Error(`Unable to parse schema: ${parseError.message}`)
-          );
-        }
-
-        return resolve(schema);
-      });
-    });
+      return schema;
+    } catch (parseError) {
+      throw new Error(`Unable to parse schema: ${parseError.message}`);
+    }
   }
 
   buildFieldTreeItemsFromSchema(schema: any): any {

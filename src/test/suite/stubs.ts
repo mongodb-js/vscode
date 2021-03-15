@@ -126,12 +126,12 @@ class DataServiceStub {
       listCollections: () => ({
         toArray: () => mockDatabases[dbName].collections
       }),
-      find: () => ({
-        limit: (limit: number) => ({
-          toArray: () => mockDocuments.slice(0, limit)
-        })
-      }),
       collection: (/* colName: string */) => ({
+        find: () => ({
+          limit: (limit: number) => ({
+            toArray: () => mockDocuments.slice(0, limit)
+          })
+        }),
         estimatedDocumentCount: () => mockDocuments.length
       })
     };

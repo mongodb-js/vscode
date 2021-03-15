@@ -56,7 +56,7 @@ suite('Collection Documents Provider Test Suite', () => {
               `Expected find col name to be 'pineapple' found ${colName}`
             );
             return {
-              find: (options) => {
+              find: (filter, options) => {
                 assert(
                   options.limit === 10,
                   `Expected find limit to be 10, found ${options.limit}`
