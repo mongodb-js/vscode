@@ -97,7 +97,9 @@ class ConnectionModel {
   sshTunnelPassphrase?: string;
 
   constructor(model?: any) {
-    this.isSrvRecord = model.isSrvRecord as boolean;
+    if (model) {
+      this.isSrvRecord = !!model.isSrvRecord;
+    }
   }
 }
 

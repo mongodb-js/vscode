@@ -962,9 +962,6 @@
     "webpack-cli": "^3.3.11",
     "xvfb-maybe": "^0.2.1"
   },
-  "optionalDependencies": {
-    "mongodb-client-encryption": "^1.2.1"
-  },
   "precommit": [
     "check"
   ]
