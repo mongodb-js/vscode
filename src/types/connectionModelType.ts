@@ -16,6 +16,7 @@ export type ConnectionModel = {
     props?: boolean
   }): {
     driverUrl: string;
+    driverAuthMechanism: string;
     driverUrlWithSsh: string;
     driverOptions: ConnectionOptions;
     sshTunnelOptions: {
