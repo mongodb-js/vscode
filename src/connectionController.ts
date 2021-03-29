@@ -248,10 +248,12 @@ export default class ConnectionController {
 
   public sendTelemetry(
     newDataService: DataServiceType,
+    connectionModel: ConnectionModel,
     connectionType: ConnectionTypes
   ): void {
     this._telemetryService.trackNewConnection(
-      newDataService,
+      newDataService.client.client,
+      connectionModel,
       connectionType
     );
   }
@@ -412,7 +414,7 @@ export default class ConnectionController {
         this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
         // Send metrics to Segment
-        this.sendTelemetry(newDataService, connectionType);
+        this.sendTelemetry(newDataService, connectionModel, connectionType);
 
         return resolve({
           successfullyConnected: true,

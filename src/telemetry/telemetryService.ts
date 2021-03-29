@@ -203,6 +203,10 @@ export default class TelemetryService {
     connectionType: ConnectionTypes
   ): Promise<void> {
     try {
+      if (!this._isTelemetryFeatureEnabled()) {
+        return;
+      }
+
       const connectionTelemetryProperties = await getConnectionTelemetryProperties(
         dataService,
         model,
