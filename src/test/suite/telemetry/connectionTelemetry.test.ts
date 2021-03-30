@@ -3,17 +3,18 @@ import DataService = require('mongodb-data-service');
 import Connection = require('mongodb-connection-model/lib/model');
 import { expect } from 'chai';
 import { promisify } from 'util';
+import { beforeEach, afterEach } from 'mocha';
 
 import {
   getConnectionTelemetryProperties
 } from '../../../telemetry/connectionTelemetry';
 import { ConnectionTypes } from '../../../connectionController';
 
-suite('Telemetry Controller Test Suite', () => {
+suite('ConnectionTelemetry Controller Test Suite', () => {
   suite('with mock client', () => {
     const mockClient = {
       db: () => ({
-        command: ({})
+        command: () => ({})
       })
     };
     const testConnectionModel = new Connection({
@@ -91,14 +92,14 @@ suite('Telemetry Controller Test Suite', () => {
       expect(instanceTelemetry.is_atlas).to.equal(true);
       expect(instanceTelemetry.is_genuine).to.equal(true);
     });
-    test('it has a default driver auth mechanism "NONE"', async () => {
+    test('it has a default driver auth mechanism undefined', async () => {
       const instanceTelemetry = await getConnectionTelemetryProperties(
         mockClient,
         testConnectionModel,
         ConnectionTypes.CONNECTION_STRING
       );
 
-      expect(instanceTelemetry.auth_strategy).to.equal('NONE');
+      expect(instanceTelemetry.auth_strategy).to.equal(undefined);
     });
     test('it has the driver auth mechanism for x509', async () => {
       const connectionModel = new Connection({

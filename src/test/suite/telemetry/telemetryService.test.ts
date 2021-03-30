@@ -34,9 +34,6 @@ suite('Telemetry Controller Test Suite', () => {
     hostname: 'localhost',
     port: 27018
   });
-  const dataService = new DataService(
-    testConnectionModel
-  );
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
 
@@ -111,7 +108,7 @@ suite('Telemetry Controller Test Suite', () => {
     );
 
     mockConnectionController.sendTelemetry(
-      dataService.client.client,
+      { client: {} } as any,
       testConnectionModel,
       ConnectionTypes.CONNECTION_STRING
     );
@@ -119,6 +116,7 @@ suite('Telemetry Controller Test Suite', () => {
     sinon.assert.calledWith(
       mockTrackNewConnection,
       sinon.match.any,
+      testConnectionModel,
       sinon.match(ConnectionTypes.CONNECTION_STRING)
     );
   });
@@ -134,7 +132,7 @@ suite('Telemetry Controller Test Suite', () => {
     );
 
     mockConnectionController.sendTelemetry(
-      dataService.client.client,
+      { client: {} } as any,
       testConnectionModel,
       ConnectionTypes.CONNECTION_FORM
     );
@@ -142,6 +140,7 @@ suite('Telemetry Controller Test Suite', () => {
     sinon.assert.calledWith(
       mockTrackNewConnection,
       sinon.match.any,
+      testConnectionModel,
       sinon.match(ConnectionTypes.CONNECTION_FORM)
     );
   });
@@ -157,7 +156,7 @@ suite('Telemetry Controller Test Suite', () => {
     );
 
     mockConnectionController.sendTelemetry(
-      dataService.client.client,
+      { client: {} } as any,
       testConnectionModel,
       ConnectionTypes.CONNECTION_ID
     );
@@ -165,6 +164,7 @@ suite('Telemetry Controller Test Suite', () => {
     sinon.assert.calledWith(
       mockTrackNewConnection,
       sinon.match.any,
+      testConnectionModel,
       sinon.match(ConnectionTypes.CONNECTION_ID)
     );
   });
