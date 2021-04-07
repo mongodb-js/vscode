@@ -13,10 +13,12 @@ import Connection = require('mongodb-connection-model/lib/model');
 
 import { ConnectionTypes } from '../../../connectionController';
 import {
-  NewConnectionTelemetryEventProperties,
   SegmentProperties,
   TelemetryEventTypes
 } from '../../../telemetry/telemetryService';
+import {
+  NewConnectionTelemetryEventProperties
+} from '../../../telemetry/connectionTelemetry';
 import { DocumentSource } from '../../../documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 const { version } = require('../../../../package.json');
@@ -28,12 +30,10 @@ chai.use(sinonChai);
 config({ path: resolve(__dirname, '../../../../.env') });
 
 suite('Telemetry Controller Test Suite', () => {
-  const dataService = new DataService(
-    new Connection({
-      hostname: 'localhost',
-      port: 27018
-    })
-  );
+  const testConnectionModel = new Connection({
+    hostname: 'localhost',
+    port: 27018
+  });
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
 
@@ -92,13 +92,9 @@ suite('Telemetry Controller Test Suite', () => {
     expect(testTelemetryService._segmentUserID).to.be.a('string');
   });
 
-  test('track command run event', (done) => {
-    vscode.commands
-      .executeCommand('mdb.addConnection')
-      .then(() => {
-        sinon.assert.calledWith(mockTrackCommandRun, 'mdb.addConnection');
-      })
-      .then(done, done);
+  test('track command run event', async () => {
+    await vscode.commands.executeCommand('mdb.addConnection');
+    sinon.assert.calledWith(mockTrackCommandRun, 'mdb.addConnection');
   });
 
   test('track new connection event when connecting via connection string', () => {
@@ -112,13 +108,15 @@ suite('Telemetry Controller Test Suite', () => {
     );
 
     mockConnectionController.sendTelemetry(
-      dataService,
+      { client: {} } as any,
+      testConnectionModel,
       ConnectionTypes.CONNECTION_STRING
     );
 
     sinon.assert.calledWith(
       mockTrackNewConnection,
       sinon.match.any,
+      testConnectionModel,
       sinon.match(ConnectionTypes.CONNECTION_STRING)
     );
   });
@@ -134,13 +132,15 @@ suite('Telemetry Controller Test Suite', () => {
     );
 
     mockConnectionController.sendTelemetry(
-      dataService,
+      { client: {} } as any,
+      testConnectionModel,
       ConnectionTypes.CONNECTION_FORM
     );
 
     sinon.assert.calledWith(
       mockTrackNewConnection,
       sinon.match.any,
+      testConnectionModel,
       sinon.match(ConnectionTypes.CONNECTION_FORM)
     );
   });
@@ -156,13 +156,15 @@ suite('Telemetry Controller Test Suite', () => {
     );
 
     mockConnectionController.sendTelemetry(
-      dataService,
+      { client: {} } as any,
+      testConnectionModel,
       ConnectionTypes.CONNECTION_ID
     );
 
     sinon.assert.calledWith(
       mockTrackNewConnection,
       sinon.match.any,
+      testConnectionModel,
       sinon.match(ConnectionTypes.CONNECTION_ID)
     );
   });
@@ -298,27 +300,29 @@ suite('Telemetry Controller Test Suite', () => {
 
   suite('with active connection', () => {
     let dataServ;
+    const connectionModel = new Connection({
+      hostname: 'localhost',
+      port: 27018
+    });
 
     beforeEach(async () => {
-      dataServ = new DataService(
-        new Connection({
-          hostname: 'localhost',
-          port: 27018
-        })
-      );
+      dataServ = new DataService(connectionModel);
       const runConnect = promisify(dataServ.connect.bind(dataServ));
       await runConnect();
     });
 
     afterEach(async () => {
+      sinon.restore();
       const runDisconnect = promisify(dataServ.disconnect.bind(dataServ));
       await runDisconnect();
     });
 
     test('track new connection event fetches the connection instance information', async() => {
       sinon.replace(testTelemetryService, 'track', mockTrack);
+      sinon.replace(testTelemetryService, '_isTelemetryFeatureEnabled', () => true);
       await mdbTestExtension.testExtensionController._telemetryService.trackNewConnection(
-        dataServ,
+        dataServ.client.client,
+        connectionModel,
         ConnectionTypes.CONNECTION_STRING
       );
 
