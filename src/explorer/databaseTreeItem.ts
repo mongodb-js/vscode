@@ -30,6 +30,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
   databaseName: string;
   isExpanded: boolean;
 
+  isDropped = false;
+
   constructor(
     databaseName: string,
     dataService: any,
@@ -88,16 +90,22 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
       // We manually rebuild each node to ensure we update the expanded state.
       Object.keys(pastChildrenCache).forEach((collectionName) => {
+        const prevChild = pastChildrenCache[collectionName];
+
+        if (prevChild.isDropped) {
+          return;
+        }
+
         this._childrenCache[collectionName] = new CollectionTreeItem(
-          pastChildrenCache[collectionName].collection,
+          prevChild.collection,
           this.databaseName,
           this._dataService,
-          pastChildrenCache[collectionName].isExpanded,
-          pastChildrenCache[collectionName].cacheIsUpToDate,
-          pastChildrenCache[collectionName].documentCount,
-          pastChildrenCache[collectionName].getDocumentListChild(),
-          pastChildrenCache[collectionName].getSchemaChild(),
-          pastChildrenCache[collectionName].getIndexListChild()
+          prevChild.isExpanded,
+          prevChild.cacheIsUpToDate,
+          prevChild.documentCount,
+          prevChild.getDocumentListChild(),
+          prevChild.getSchemaChild(),
+          prevChild.getIndexListChild()
         );
       });
 
@@ -272,7 +280,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           return resolve(false);
         }
 
-        this.cacheIsUpToDate = false;
+        this.isDropped = true;
+
         return resolve(true);
       });
     });

@@ -74,6 +74,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
   cacheIsUpToDate = false;
 
+  isDropped = false;
+
   constructor(
     collection: CollectionModelType,
     databaseName: string,
@@ -380,6 +382,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
             );
             return resolve(false);
           }
+
+          this.isDropped = true;
 
           return resolve(successfullyDroppedCollection);
         }
