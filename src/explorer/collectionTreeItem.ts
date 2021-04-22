@@ -375,7 +375,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     return new Promise((resolve) => {
       this._dataService.dropCollection(
         `${this.databaseName}.${collectionName}`,
-        (err, successfullyDroppedCollection) => {
+        (err: Error | null, successfullyDroppedCollection = false) => {
           if (err) {
             vscode.window.showErrorMessage(
               `Drop collection failed: ${err.message}`
@@ -383,7 +383,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
             return resolve(false);
           }
 
-          this.isDropped = true;
+          this.isDropped = successfullyDroppedCollection;
 
           return resolve(successfullyDroppedCollection);
         }

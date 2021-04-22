@@ -272,18 +272,21 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     }
 
     return new Promise((resolve) => {
-      this._dataService.dropDatabase(databaseName, (err) => {
-        if (err) {
-          vscode.window.showErrorMessage(
-            `Drop database failed: ${err.message}`
-          );
-          return resolve(false);
+      this._dataService.dropDatabase(
+        databaseName,
+        (err: Error | null, successfullyDroppedDatabase = false) => {
+          if (err) {
+            vscode.window.showErrorMessage(
+              `Drop database failed: ${err.message}`
+            );
+            return resolve(false);
+          }
+
+          this.isDropped = successfullyDroppedDatabase;
+
+          return resolve(successfullyDroppedDatabase);
         }
-
-        this.isDropped = true;
-
-        return resolve(true);
-      });
+      );
     });
   }
 }
