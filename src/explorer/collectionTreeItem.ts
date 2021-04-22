@@ -74,6 +74,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
   cacheIsUpToDate = false;
 
+  isDropped = false;
+
   constructor(
     collection: CollectionModelType,
     databaseName: string,
@@ -373,13 +375,15 @@ export default class CollectionTreeItem extends vscode.TreeItem
     return new Promise((resolve) => {
       this._dataService.dropCollection(
         `${this.databaseName}.${collectionName}`,
-        (err, successfullyDroppedCollection) => {
+        (err: Error | null, successfullyDroppedCollection = false) => {
           if (err) {
             vscode.window.showErrorMessage(
               `Drop collection failed: ${err.message}`
             );
             return resolve(false);
           }
+
+          this.isDropped = successfullyDroppedCollection;
 
           return resolve(successfullyDroppedCollection);
         }

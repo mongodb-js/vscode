@@ -110,6 +110,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     }
 
     const dataService = this._connectionController.getActiveDataService();
+
     if (dataService === null) {
       throw new Error('Not currently connected.');
     }
@@ -121,12 +122,18 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       // We create a new database tree item here instead of reusing the
       // cached one in order to ensure the expanded state is set.
       Object.keys(pastChildrenCache).forEach((databaseName) => {
+        const prevChild = pastChildrenCache[databaseName];
+
+        if (prevChild.isDropped) {
+          return;
+        }
+
         this._childrenCache[databaseName] = new DatabaseTreeItem(
           databaseName,
           dataService,
-          pastChildrenCache[databaseName].isExpanded,
-          pastChildrenCache[databaseName].cacheIsUpToDate,
-          pastChildrenCache[databaseName].getChildrenCache()
+          prevChild.isExpanded,
+          prevChild.cacheIsUpToDate,
+          prevChild.getChildrenCache()
         );
       });
 
