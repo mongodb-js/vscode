@@ -391,6 +391,7 @@ export default class PlaygroundController {
   async _showResultAsVirtualDocument(): Promise<void> {
     await vscode.window.showTextDocument(PLAYGROUND_RESULT_URI, {
       preview: false,
+      preserveFocus: true,
       viewColumn: this._playgroundResultViewColumn || vscode.ViewColumn.Beside
     });
   }
