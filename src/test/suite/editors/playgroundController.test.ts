@@ -342,6 +342,19 @@ suite('Playground Controller Test Suite', function () {
         await testPlaygroundController._connectToServiceProvider();
       });
 
+      test('keep a playground in focus after running it', async () => {
+        const mockShowTextDocument: any = sinon.fake();
+        sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+        await testPlaygroundController._showResultAsVirtualDocument();
+
+        const showTextDocumentOptions = mockShowTextDocument.lastArg;
+
+        expect(showTextDocumentOptions.preview).to.be.equal(false);
+        expect(showTextDocumentOptions.preserveFocus).to.be.equal(true);
+        expect(showTextDocumentOptions.viewColumn).to.be.equal(-2);
+      });
+
       test('show a confirmation message if mdb.confirmRunAll is true', async () => {
         fakeShowInformationMessage.resolves('Yes');
 

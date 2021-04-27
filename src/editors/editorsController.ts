@@ -158,7 +158,7 @@ export default class EditorsController {
     const activeEditor = vscode.window.activeTextEditor;
 
     if (!activeEditor) {
-      vscode.window.showErrorMessage('Unable to save mongodb document: The active editor cannot be found');
+      await vscode.commands.executeCommand('workbench.action.files.save');
 
       return false;
     }
