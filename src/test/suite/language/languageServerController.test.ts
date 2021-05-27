@@ -1,5 +1,6 @@
 import { before, after } from 'mocha';
 import TelemetryService from '../../../telemetry/telemetryService';
+import { ExplorerController } from '../../../explorer';
 
 import path from 'path';
 import fs from 'fs';
@@ -54,6 +55,9 @@ suite('Language Server Controller Test Suite', () => {
     testConnectionController
   );
   const testPartialExecutionCodeLensProvider = new PartialExecutionCodeLensProvider();
+  const testExplorerController = new ExplorerController(
+    testConnectionController
+  );
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
@@ -62,7 +66,8 @@ suite('Language Server Controller Test Suite', () => {
     testStatusView,
     testPlaygroundResultProvider,
     testActiveDBCodeLensProvider,
-    testPartialExecutionCodeLensProvider
+    testPartialExecutionCodeLensProvider,
+    testExplorerController
   );
 
   before(async () => {

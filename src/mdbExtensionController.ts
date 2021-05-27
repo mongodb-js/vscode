@@ -100,7 +100,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._statusView,
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
-      this._partialExecutionCodeLensProvider
+      this._partialExecutionCodeLensProvider,
+      this._explorerController
     );
     this._editorsController = new EditorsController(
       context,
@@ -329,21 +330,8 @@ export default class MDBExtensionController implements vscode.Disposable {
           return false;
         }
 
-        const successfullyAddedDatabase = await element.onAddDatabaseClicked(
-          this._context
-        );
-
-        if (successfullyAddedDatabase) {
-          vscode.window.showInformationMessage(
-            'Database and collection successfully created.'
-          );
-
-          // When we successfully added a database & collection, we need
-          // to update the explorer view.
-          this._explorerController.refresh();
-        }
-
-        return successfullyAddedDatabase;
+        return this._playgroundController
+          .createPlaygroundForCreateCollection(element);
       }
     );
     this.registerCommand(
@@ -392,20 +380,8 @@ export default class MDBExtensionController implements vscode.Disposable {
           return Promise.resolve(false);
         }
 
-        const successfullyAddedCollection = await element.onAddCollectionClicked(
-          this._context
-        );
-
-        if (successfullyAddedCollection) {
-          vscode.window.showInformationMessage(
-            'Collection successfully created.'
-          );
-
-          // When we successfully added a collection, we need
-          // to update the explorer view.
-          this._explorerController.refresh();
-        }
-        return true;
+        return this._playgroundController
+          .createPlaygroundForCreateCollection(element);
       }
     );
     this.registerCommand(

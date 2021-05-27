@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
-import ns = require('mongodb-ns');
 import path = require('path');
 
 import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
 import TreeItemParent from './treeItemParentInterface';
-import { StatusView } from '../views';
 import { getImagesPath } from '../extensionConstants';
 
 enum ConnectionItemContextValues {
@@ -213,105 +211,5 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
   getChildrenCache(): { [key: string]: DatabaseTreeItem } {
     return this._childrenCache;
-  }
-
-  async onAddDatabaseClicked(
-    context: vscode.ExtensionContext
-  ): Promise<boolean> {
-    let databaseName;
-    try {
-      databaseName = await vscode.window.showInputBox({
-        value: '',
-        placeHolder: 'e.g. myNewDB',
-        prompt: 'Enter the new database name.',
-        validateInput: (inputDatabaseName: string) => {
-          if (
-            inputDatabaseName &&
-            inputDatabaseName.length > 0 &&
-            !ns(inputDatabaseName).validDatabaseName
-          ) {
-            return 'MongoDB database names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
-          }
-
-          return null;
-        }
-      });
-    } catch (e) {
-      return Promise.reject(
-        new Error(`An error occured parsing the database name: ${e}`)
-      );
-    }
-
-    if (!databaseName) {
-      return Promise.resolve(false);
-    }
-
-    let collectionName;
-    try {
-      collectionName = await vscode.window.showInputBox({
-        value: '',
-        placeHolder: 'e.g. myNewCollection',
-        prompt:
-          'Enter the new collection name. (A database must have a collection to be created.)',
-        validateInput: (inputCollectionName: string) => {
-          if (!inputCollectionName) {
-            return null;
-          }
-
-          if (
-            !ns(`${databaseName}.${inputCollectionName}`).validCollectionName
-          ) {
-            return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
-          }
-
-          if (ns(`${databaseName}.${inputCollectionName}`).system) {
-            return 'MongoDB collection names cannot start with "system.". (Reserved for internal use.)';
-          }
-
-          return null;
-        }
-      });
-    } catch (e) {
-      return Promise.reject(
-        new Error(`An error occured parsing the collection name: ${e}`)
-      );
-    }
-
-    if (!collectionName) {
-      return Promise.resolve(false);
-    }
-
-    const statusView = new StatusView(context);
-    statusView.showMessage('Creating new database and collection...');
-
-    return new Promise((resolve) => {
-      const dataService = this._connectionController.getActiveDataService();
-      if (dataService === null) {
-        vscode.window.showErrorMessage(
-          'Unable to create database, not currently connected.'
-        );
-        Promise.resolve(false);
-        return;
-      }
-      dataService.createCollection(
-        `${databaseName}.${collectionName}`,
-        {}, // No options.
-        (err) => {
-          statusView.hideMessage();
-
-          if (err) {
-            vscode.window.showErrorMessage(
-              `Create collection failed: ${err.message}`
-            );
-            resolve(false);
-            return;
-          }
-
-          this.cacheIsUpToDate = false;
-          resolve(true);
-          return;
-        }
-      );
-    });
   }
 }

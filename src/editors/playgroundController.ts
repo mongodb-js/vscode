@@ -1,15 +1,19 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
+import semver from 'semver';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
 import { createLogger } from '../logging';
+import { ExplorerController, ConnectionTreeItem, DatabaseTreeItem } from '../explorer';
 import { LanguageServerController } from '../language';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
+import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
+import playgroundCreateCollectionWithTSTemplate from '../templates/playgroundCreateCollectionWithTSTemplate';
 import type { PlaygroundResult, ShellExecuteAllResult } from '../types/playgroundType';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME,
@@ -63,6 +67,7 @@ export default class PlaygroundController {
   _playgroundResultTextDocument?: vscode.TextDocument;
   _statusView: StatusView;
   _playgroundResultViewProvider: PlaygroundResultProvider;
+  _explorerController: ExplorerController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -72,7 +77,8 @@ export default class PlaygroundController {
     statusView: StatusView,
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
-    partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider
+    partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider,
+    explorerController: ExplorerController
   ) {
     this._context = context;
     this._isPartialRun = false;
@@ -86,6 +92,7 @@ export default class PlaygroundController {
     );
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._partialExecutionCodeLensProvider = partialExecutionCodeLensProvider;
+    this._explorerController = explorerController;
 
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
@@ -233,6 +240,36 @@ export default class PlaygroundController {
     const content = playgroundSearchTemplate
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
+
+    return this._createPlaygroundFileWithContent(content);
+  }
+
+  async createPlaygroundForCreateCollection(
+    element: ConnectionTreeItem | DatabaseTreeItem
+  ): Promise<boolean> {
+    const dataService = this._connectionController.getActiveDataService();
+    let content = playgroundCreateCollectionTemplate;
+
+    if (dataService) {
+      const adminDb = dataService.client.client.db('admin');
+      const buildInfo = await adminDb.command({ buildInfo: 1 });
+
+      if (buildInfo) {
+        const serverVersion = buildInfo.version.replace(/-.*$/, '');
+
+        if (semver.satisfies(serverVersion, '>= 5.0')) {
+          content = playgroundCreateCollectionWithTSTemplate;
+        }
+      }
+    }
+
+    element.cacheIsUpToDate = false;
+
+    if (element instanceof DatabaseTreeItem) {
+      content = content
+        .replace('NEW_DATABASE_NAME', element.databaseName)
+        .replace('Create a new database', 'The current database to use');
+    }
 
     return this._createPlaygroundFileWithContent(content);
   }
@@ -457,6 +494,7 @@ export default class PlaygroundController {
 
     this._playgroundResult = evaluateResponse.result;
 
+    await this._explorerController?.refresh();
     await this._openPlaygroundResult();
 
     return true;
