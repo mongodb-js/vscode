@@ -10,7 +10,7 @@ use(database);
 // Create a new collection.
 db.createCollection(collection);
 
-// The prototype form to create a regular collection:
+// The prototype form to create a collection:
 /* db.createCollection( <name>,
   {
     capped: <boolean>,
