@@ -584,7 +584,7 @@ suite('MDBExtensionController Test Suite', function () {
       .then(done, done);
   });
 
-  test('mdb.addDatabase command calls the dataservice to add the database and collection the user inputs', (done) => {
+  test('mdb.addDatabase should create a MongoDB playground with create collection template without time-series', async () => {
     const mockTreeItem = new ConnectionTreeItem(
       'tasty_sandwhich',
       vscode.TreeItemCollapsibleState.None,
@@ -594,15 +594,15 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const mockInputBoxResolves: any = sinon.stub();
-    mockInputBoxResolves.onCall(0).resolves('theDbName');
-    mockInputBoxResolves.onCall(1).resolves('theCollectionName');
-    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
-
-    let returnedNamespaceArg = '';
     const mockGetActiveDataService: any = sinon.fake.returns({
+      client: {
+        client: {
+          db: () => ({
+            command: () => Promise.resolve({ versionArray: [4, 4, 4, 0] })
+          })
+        }
+      },
       createCollection: (namespace, options, callback) => {
-        returnedNamespaceArg = namespace;
         callback(null);
       }
     });
@@ -618,20 +618,76 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
-    vscode.commands
-      .executeCommand('mdb.addDatabase', mockTreeItem)
-      .then((succeeded) => {
-        assert(succeeded);
-        assert(
-          mockInputBoxResolves.called === true,
-          'Expected show input box to be called'
-        );
-        assert(
-          returnedNamespaceArg === 'theDbName.theCollectionName',
-          'Expected create collection to be called with the namespace supplied.'
-        );
-      })
-      .then(done, done);
+    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument: any = sinon.fake();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    await vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem);
+
+    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        '// Create a new database.'
+      )
+    );
+    assert(mockOpenTextDocument.firstArg.content.includes('NEW_DATABASE_NAME'));
+    assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
+    assert(!mockOpenTextDocument.firstArg.content.includes('time-series'));
+  });
+
+  test('mdb.addDatabase should create a MongoDB playground with create collection template with time-series', async () => {
+    const mockTreeItem = new ConnectionTreeItem(
+      'tasty_sandwhich',
+      vscode.TreeItemCollapsibleState.None,
+      false,
+      mdbTestExtension.testExtensionController._connectionController,
+      false,
+      {}
+    );
+
+    const mockGetActiveDataService: any = sinon.fake.returns({
+      client: {
+        client: {
+          db: () => ({
+            command: () => Promise.resolve({ versionArray: [5, 0, 0, 0] })
+          })
+        }
+      },
+      createCollection: (namespace, options, callback) => {
+        callback(null);
+      }
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+    const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
+
+    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument: any = sinon.fake();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    await vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem);
+
+    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        '// Create a new database.'
+      )
+    );
+    assert(mockOpenTextDocument.firstArg.content.includes('NEW_DATABASE_NAME'));
+    assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
+    assert(mockOpenTextDocument.firstArg.content.includes('time-series'));
   });
 
   test('mdb.addDatabase command fails when disconnecting', (done) => {
@@ -730,41 +786,28 @@ suite('MDBExtensionController Test Suite', function () {
       .then(done, done);
   });
 
-  test('mdb.addDatabase shows a status bar item while it is creating the collection then hide it', (done) => {
-    const stubShowMessage: any = sinon.fake();
-    const stubHideMessage: any = sinon.fake();
-
-    const testStatusViewObject = {
-      show: stubShowMessage,
-      hide: stubHideMessage,
-      text: ''
-    };
-    const mockSatusBarItem: any = sinon.fake.returns(testStatusViewObject);
-    sinon.replace(vscode.window, 'createStatusBarItem', mockSatusBarItem);
-
-    const mockTreeItem = new ConnectionTreeItem(
-      'tasty_sandwhich',
-      vscode.TreeItemCollapsibleState.None,
+  test('mdb.addCollection should create a MongoDB playground with create collection template without time-series', async () => {
+    const mockTreeItem = new DatabaseTreeItem(
+      'iceCreamDB',
+      {
+        createCollection: (namespace, options, callback): void => {
+          callback(null);
+        }
+      },
       false,
-      mdbTestExtension.testExtensionController._connectionController,
       false,
       {}
     );
 
-    const mockInputBoxResolves: any = sinon.stub();
-    mockInputBoxResolves.onCall(0).resolves('theDbName');
-    mockInputBoxResolves.onCall(1).resolves('theCollectionName');
-    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
     const mockGetActiveDataService: any = sinon.fake.returns({
+      client: {
+        client: {
+          db: () => ({
+            command: () => Promise.resolve({ versionArray: [4, 4, 4, 0] })
+          })
+        }
+      },
       createCollection: (namespace, options, callback) => {
-        assert(stubShowMessage.called);
-        assert(!stubHideMessage.called);
-        const expectedMessage = 'Creating new database and collection...';
-        assert(
-          testStatusViewObject.text === expectedMessage,
-          `Expected to show status bar message "${expectedMessage}", found ${stubShowMessage.firstArg}`
-        );
-
         callback(null);
       }
     });
@@ -780,21 +823,30 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
-    vscode.commands
-      .executeCommand('mdb.addDatabase', mockTreeItem)
-      .then(() => {
-        assert(stubHideMessage.called === true);
-      })
-      .then(done, done);
+    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument: any = sinon.fake();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    await vscode.commands.executeCommand('mdb.addCollection', mockTreeItem);
+
+    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        '// The current database to use.'
+      )
+    );
+    assert(mockOpenTextDocument.firstArg.content.includes('iceCreamDB'));
+    assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
+    assert(!mockOpenTextDocument.firstArg.content.includes('time-series'));
   });
 
-  test('mdb.addCollection command calls the dataservice to add the collection the user inputs', (done) => {
-    let returnedNamespaceArg = '';
+  test('mdb.addCollection should create a MongoDB playground with create collection template with time-series', async () => {
     const mockTreeItem = new DatabaseTreeItem(
       'iceCreamDB',
       {
         createCollection: (namespace, options, callback): void => {
-          returnedNamespaceArg = namespace;
           callback(null);
         }
       },
@@ -803,24 +855,47 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const mockInputBoxResolves: any = sinon.stub();
-    mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
-    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+    const mockGetActiveDataService: any = sinon.fake.returns({
+      client: {
+        client: {
+          db: () => ({
+            command: () => Promise.resolve({ versionArray: [5, 0, 0, 0] })
+          })
+        }
+      },
+      createCollection: (namespace, options, callback) => {
+        callback(null);
+      }
+    });
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveDataService',
+      mockGetActiveDataService
+    );
+    const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
+    sinon.replace(
+      mdbTestExtension.testExtensionController._connectionController,
+      'getActiveConnectionId',
+      mockActiveConnectionId
+    );
 
-    vscode.commands
-      .executeCommand('mdb.addCollection', mockTreeItem)
-      .then((addCollectionSucceeded) => {
-        assert(addCollectionSucceeded);
-        assert(
-          mockInputBoxResolves.called === true,
-          'Expected show input box to be called'
-        );
-        assert(
-          returnedNamespaceArg === 'iceCreamDB.mintChocolateChips',
-          `Expected create collection to be called with the namespace "iceCreamDB.mintChocolateChips" got ${returnedNamespaceArg}.`
-        );
-      })
-      .then(done, done);
+    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+
+    const mockShowTextDocument: any = sinon.fake();
+    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
+
+    await vscode.commands.executeCommand('mdb.addCollection', mockTreeItem);
+
+    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(
+      mockOpenTextDocument.firstArg.content.includes(
+        '// The current database to use.'
+      )
+    );
+    assert(mockOpenTextDocument.firstArg.content.includes('iceCreamDB'));
+    assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
+    assert(mockOpenTextDocument.firstArg.content.includes('time-series'));
   });
 
   test('mdb.addCollection command fails when disconnecting', (done) => {
@@ -859,50 +934,6 @@ suite('MDBExtensionController Test Suite', function () {
           fakeVscodeErrorMessage.firstArg === expectedMessage,
           `Expected "${expectedMessage}" when adding a database to a not connected connection, recieved "${fakeVscodeErrorMessage.firstArg}"`
         );
-      })
-      .then(done, done);
-  });
-
-  test('mdb.addCollection shows a status bar item while it is creating the collection then hide it', (done) => {
-    const stubShowMessage: any = sinon.stub();
-    const stubHideMessage: any = sinon.stub();
-
-    const testStatusViewObject = {
-      show: stubShowMessage,
-      hide: stubHideMessage,
-      text: ''
-    };
-    const mockSatusBarItem: any = sinon.fake.returns(testStatusViewObject);
-    sinon.replace(vscode.window, 'createStatusBarItem', mockSatusBarItem);
-
-    const mockTreeItem = new DatabaseTreeItem(
-      'iceCreamDB',
-      {
-        createCollection: (namespace, options, callback): void => {
-          assert(stubShowMessage.called);
-          assert(!stubHideMessage.called);
-          const expectedMessage = 'Creating new collection...';
-          assert(
-            testStatusViewObject.text === expectedMessage,
-            `Expected to show status bar message "${expectedMessage}", found ${stubShowMessage.firstArg}`
-          );
-
-          callback(null);
-        }
-      },
-      false,
-      false,
-      {}
-    );
-
-    const mockInputBoxResolves: any = sinon.stub();
-    mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
-    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
-
-    vscode.commands
-      .executeCommand('mdb.addCollection', mockTreeItem)
-      .then(() => {
-        assert(stubHideMessage.called === true);
       })
       .then(done, done);
   });

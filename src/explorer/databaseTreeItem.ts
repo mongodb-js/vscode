@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
-const ns = require('mongodb-ns');
-const path = require('path');
 
-import { StatusView } from '../views';
+const path = require('path');
 
 import CollectionTreeItem from './collectionTreeItem';
 import TreeItemParent from './treeItemParentInterface';
@@ -175,69 +173,6 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
   getChildrenCache(): { [key: string]: CollectionTreeItem } {
     return this._childrenCache;
-  }
-
-  async onAddCollectionClicked(
-    context: vscode.ExtensionContext
-  ): Promise<boolean> {
-    const databaseName = this.databaseName;
-
-    let collectionName;
-    try {
-      collectionName = await vscode.window.showInputBox({
-        value: '',
-        placeHolder: 'e.g. myNewCollection',
-        prompt: 'Enter the new collection name.',
-        validateInput: (inputCollectionName: any) => {
-          if (!inputCollectionName) {
-            return null;
-          }
-
-          if (
-            !ns(`${databaseName}.${inputCollectionName}`).validCollectionName
-          ) {
-            return 'MongoDB collection names cannot contain `/\\. "$` or the null character, and must be fewer than 64 characters';
-          }
-
-          if (ns(`${databaseName}.${inputCollectionName}`).system) {
-            return 'MongoDB collection names cannot start with "system.". (Reserved for internal use.)';
-          }
-
-          return null;
-        }
-      });
-    } catch (e) {
-      return Promise.reject(
-        new Error(`An error occured parsing the collection name: ${e}`)
-      );
-    }
-
-    if (!collectionName) {
-      return Promise.resolve(false);
-    }
-
-    const statusBarItem = new StatusView(context);
-    statusBarItem.showMessage('Creating new collection...');
-
-    return new Promise((resolve) => {
-      this._dataService.createCollection(
-        `${databaseName}.${collectionName}`,
-        {}, // No options.
-        (err) => {
-          statusBarItem.hideMessage();
-
-          if (err) {
-            vscode.window.showErrorMessage(
-              `Create collection failed: ${err.message}`
-            );
-            return resolve(false);
-          }
-
-          this.cacheIsUpToDate = false;
-          return resolve(true);
-        }
-      );
-    });
   }
 
   // Prompt the user to input the database name to confirm the drop, then drop.

@@ -11,6 +11,7 @@ import PlaygroundResultProvider from '../../../editors/playgroundResultProvider'
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import PartialExecutionCodeLensProvider from '../../../editors/partialExecutionCodeLensProvider';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
+import { ExplorerController } from '../../../explorer';
 
 import sinon from 'sinon';
 import chai from 'chai';
@@ -58,6 +59,9 @@ suite('Playground Controller Test Suite', function () {
     testConnectionController
   );
   const testPartialExecutionCodeLensProvider = new PartialExecutionCodeLensProvider();
+  const testExplorerController = new ExplorerController(
+    testConnectionController
+  );
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
@@ -66,7 +70,8 @@ suite('Playground Controller Test Suite', function () {
     testStatusView,
     testPlaygroundResultProvider,
     testActiveDBCodeLensProvider,
-    testPartialExecutionCodeLensProvider
+    testPartialExecutionCodeLensProvider,
+    testExplorerController
   );
   const sandbox = sinon.createSandbox();
   let fakeShowInformationMessage: sinon.SinonStub;
@@ -484,6 +489,9 @@ suite('Playground Controller Test Suite', function () {
           () => activeTestEditorMock as vscode.TextEditor
         );
 
+        const testExplorerController = new ExplorerController(
+          testConnectionController
+        );
         const playgroundControllerTest = new PlaygroundController(
           mockExtensionContext,
           testConnectionController,
@@ -492,7 +500,8 @@ suite('Playground Controller Test Suite', function () {
           testStatusView,
           testPlaygroundResultProvider,
           testActiveDBCodeLensProvider,
-          testPartialExecutionCodeLensProvider
+          testPartialExecutionCodeLensProvider,
+          testExplorerController
         );
 
         expect(playgroundControllerTest._activeTextEditor).to.deep.equal(
