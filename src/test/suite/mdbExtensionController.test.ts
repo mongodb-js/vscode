@@ -598,7 +598,7 @@ suite('MDBExtensionController Test Suite', function () {
       client: {
         client: {
           db: () => ({
-            command: () => Promise.resolve({ version: '4.4.4' })
+            command: () => Promise.resolve({ versionArray: [4, 4, 4, 0] })
           })
         }
       },
@@ -651,7 +651,7 @@ suite('MDBExtensionController Test Suite', function () {
       client: {
         client: {
           db: () => ({
-            command: () => Promise.resolve({ version: '5.0.0' })
+            command: () => Promise.resolve({ versionArray: [5, 0, 0, 0] })
           })
         }
       },
@@ -803,7 +803,7 @@ suite('MDBExtensionController Test Suite', function () {
       client: {
         client: {
           db: () => ({
-            command: () => Promise.resolve({ version: '4.4.4' })
+            command: () => Promise.resolve({ versionArray: [4, 4, 4, 0] })
           })
         }
       },
@@ -859,7 +859,7 @@ suite('MDBExtensionController Test Suite', function () {
       client: {
         client: {
           db: () => ({
-            command: () => Promise.resolve({ version: '5.0.0' })
+            command: () => Promise.resolve({ versionArray: [5, 0, 0, 0] })
           })
         }
       },

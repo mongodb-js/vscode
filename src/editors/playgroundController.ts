@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
-import semver from 'semver';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ConnectionController, {
@@ -255,9 +254,9 @@ export default class PlaygroundController {
       const buildInfo = await adminDb.command({ buildInfo: 1 });
 
       if (buildInfo) {
-        const serverVersion = buildInfo.version.replace(/-.*$/, '');
+        const serverVersion = buildInfo.versionArray[0];
 
-        if (semver.satisfies(serverVersion, '>= 5.0')) {
+        if (serverVersion >= 5) {
           content = playgroundCreateCollectionWithTSTemplate;
         }
       }
