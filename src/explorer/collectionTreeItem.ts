@@ -20,7 +20,12 @@ function getIconPath(
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
-  if (type === CollectionTypes.collection) {
+  if (type === CollectionTypes.timeseries) {
+    return {
+      light: path.join(LIGHT, 'collection-timeseries.svg'),
+      dark: path.join(DARK, 'collection-timeseries.svg')
+    };
+  } else if (type === CollectionTypes.collection) {
     if (isExpanded) {
       return {
         light: path.join(LIGHT, 'collection-folder-open.svg'),
