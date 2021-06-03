@@ -121,11 +121,57 @@ suite('CollectionTreeItem Test Suite', () => {
     const viewIconPath: any = testCollectionViewTreeItem.iconPath;
     assert(
       viewIconPath.light.includes('view-folder.svg'),
-      'Expected icon path to point to an svg by the name "view" with a light mode'
+      'Expected icon path to point to an svg by the name "view-folder" with a light mode'
     );
     assert(
       viewIconPath.dark.includes('view-folder.svg'),
-      'Expected icon path to point to an svg by the name "view" a dark mode'
+      'Expected icon path to point to an svg by the name "view-folder" a dark mode'
+    );
+
+    const testCollectionCollectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_1',
+        type: CollectionTypes.collection
+      },
+      'mock_db_name',
+      'imaginary data service',
+      false,
+      false,
+      null
+    );
+
+    const collectionIconPath: any = testCollectionCollectionTreeItem.iconPath;
+    assert(
+      collectionIconPath.light.includes('collection-folder-closed.svg'),
+      'Expected icon path to point to an svg by the name "collection" with a light mode'
+    );
+    assert(
+      collectionIconPath.dark.includes('collection-folder-closed.svg'),
+      'Expected icon path to point to an svg by the name "collection" with a light mode'
+    );
+  });
+
+  test('a time-series collection should show a different icon from a collection', () => {
+    const testCollectionViewTreeItem = new CollectionTreeItem(
+      {
+        name: 'mock_collection_name_1',
+        type: CollectionTypes.timeseries
+      },
+      'mock_db_name',
+      'imaginary data service',
+      false,
+      false,
+      null
+    );
+
+    const viewIconPath: any = testCollectionViewTreeItem.iconPath;
+    assert(
+      viewIconPath.light.includes('collection-timeseries.svg'),
+      'Expected icon path to point to an svg by the name "collection-timeseries" with a light mode'
+    );
+    assert(
+      viewIconPath.dark.includes('collection-timeseries.svg'),
+      'Expected icon path to point to an svg by the name "collection-timeseries" a dark mode'
     );
 
     const testCollectionCollectionTreeItem = new CollectionTreeItem(

@@ -16,7 +16,8 @@ export const MAX_DOCUMENTS_VISIBLE = 10;
 export const DOCUMENT_LIST_ITEM = 'documentListTreeItem';
 export enum CollectionTypes {
   collection = 'collection',
-  view = 'view'
+  view = 'view',
+  timeseries = 'timeseries'
 }
 
 const ITEM_LABEL = 'Documents';
