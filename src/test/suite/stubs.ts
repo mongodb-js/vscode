@@ -52,7 +52,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
           this._globalState[key] = value;
         });
       },
-      setKeysForSync: (/* keys: string[] */): void => {}
+      setKeysForSync: (/* keys: string[] */): void => { }
     };
     this.extensionPath = path.join(__dirname, '..', '..', '..');
     this.storagePath = '';
@@ -102,6 +102,15 @@ const mockDatabases = {
       },
       {
         name: 'aaa'
+      },
+      {
+        name: 'system.views'
+      },
+      {
+        name: 'system.buckets.zzz'
+      },
+      {
+        name: 'system.buckets.aaa'
       }
     ]
   }
@@ -191,10 +200,10 @@ const mockTextEditor = {
   viewColumn: vscode.ViewColumn.Beside,
   edit: () => Promise.resolve(true),
   insertSnippet: () => Promise.resolve(true),
-  setDecorations: () => {},
-  revealRange: () => {},
-  show: () => {},
-  hide: () => {}
+  setDecorations: () => { },
+  revealRange: () => { },
+  show: () => { },
+  hide: () => { }
 };
 
 class MockLanguageServerController {
@@ -218,7 +227,7 @@ class MockLanguageServerController {
     return Promise.resolve();
   }
 
-  deactivate(): void{
+  deactivate(): void {
     return;
   }
 
@@ -256,7 +265,7 @@ class TestStream extends Duplex {
     done();
   }
 
-  _read() {}
+  _read() { }
 }
 
 export {

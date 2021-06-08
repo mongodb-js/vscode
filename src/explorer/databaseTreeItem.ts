@@ -59,7 +59,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return element;
   }
 
-  listCollections(): Promise<string[]> {
+  listCollections(): Promise<any[]> {
     return new Promise((resolve, reject) => {
       this._dataService.listCollections(
         this.databaseName,
@@ -120,10 +120,26 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       this._childrenCache = {};
       // Create new collection tree items, using previously cached items
       // where possible.
-      collections
-        .sort((collectionA: any, collectionB: any) =>
-          (collectionA.name || '').localeCompare(collectionB.name || '')
-        )
+
+      const systemCollections: string[] = [];
+      const otherCollections: string[] = [];
+
+      collections.forEach(collection => {
+        if (collection.name.startsWith('system.')) {
+          systemCollections.push(collection);
+        } else {
+          otherCollections.push(collection);
+        }
+      });
+
+      const sortFunction = (collectionA: any, collectionB: any) => (collectionA.name || '').localeCompare(collectionB.name || '');
+
+      const collectionTreeEntries = [
+        ...otherCollections.sort(sortFunction),
+        ...systemCollections.sort(sortFunction)
+      ];
+
+      collectionTreeEntries
         .forEach((collection: any) => {
           if (pastChildrenCache[collection.name]) {
             this._childrenCache[collection.name] = new CollectionTreeItem(
