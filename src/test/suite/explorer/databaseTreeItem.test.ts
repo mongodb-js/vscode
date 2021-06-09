@@ -150,7 +150,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('collections are displayed in the alphanumerical case insensitive order', (done) => {
+  test('collections are displayed in the alphanumerical case insensitive order, with system collections last', (done) => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[2],
       new DataServiceStub(),
@@ -165,7 +165,10 @@ suite('DatabaseTreeItem Test Suite', () => {
       'aaa',
       'AAA',
       'zzz',
-      'ZZZ'
+      'ZZZ',
+      'system.buckets.aaa',
+      'system.buckets.zzz',
+      'system.views'
     ];
 
     testDatabaseTreeItem
