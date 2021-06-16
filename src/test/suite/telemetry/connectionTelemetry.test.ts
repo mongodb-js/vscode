@@ -12,7 +12,7 @@ import { ConnectionTypes } from '../../../connectionController';
 
 suite('ConnectionTelemetry Controller Test Suite', () => {
   suite('with mock client', () => {
-    const mockClient = {
+    const mockClient: any = {
       db: () => ({
         command: () => ({})
       })

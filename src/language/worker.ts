@@ -1,6 +1,6 @@
 import {
   CliServiceProvider,
-  NodeOptions
+  MongoClientOptions
 } from '@mongosh/service-provider-server';
 import { CompletionItemKind } from 'vscode-languageserver';
 import { EJSON } from 'bson';
@@ -21,7 +21,7 @@ type WorkerError = any | null;
 const executeAll = async (
   codeToEvaluate: string,
   connectionString: string,
-  connectionOptions: NodeOptions
+  connectionOptions: MongoClientOptions
 ): Promise<[WorkerError, WorkerResult?]> => {
   try {
     // Instantiate a data service provider.
