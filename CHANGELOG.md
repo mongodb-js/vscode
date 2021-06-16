@@ -4,6 +4,24 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.6.0] - 2021-3-16
+
+### Added
+
+- Added icons for time-series collections (VSCODE-263, #296)
+
+### Changed
+
+- Updated how collections and databases are created to use playgrounds instead of vscode inputs (VSCODE-262, #294)
+- Updated how playgrounds are run to preserve focus on the editor when the results are shown (VSCODE-214, #290, #222)
+- Updated the Atlas terraform snippet (#297)
+- Updated the collections list to sort system collections to the end of the list (#298)
+
+### Fixed
+
+- Fixed showing an error when large files are shown in vscode which have tokenization disabled (VSCODE-250, #290)
+- Fixed showing recently dropped collections and databases in the explorer (VSCODE-244, #288)
+
 ## [0.5.0] - 2021-3-10
 
 ### Added
