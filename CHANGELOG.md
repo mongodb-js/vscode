@@ -4,7 +4,7 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [0.6.0] - 2021-3-16
+## [0.6.0] - 2021-3-17
 
 ### Added
 
