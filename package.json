@@ -880,7 +880,7 @@
     "mongodb": "^3.6.3",
     "mongodb-cloud-info": "^1.1.2",
     "mongodb-connection-model": "^20.2.0",
-    "mongodb-data-service": "^19.0.0",
+    "mongodb-data-service": "^20.2.1",
     "mongodb-ns": "^2.2.0",
     "mongodb-schema": "^8.2.5",
     "numeral": "^2.0.6",
