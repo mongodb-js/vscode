@@ -8,6 +8,7 @@ import TelemetryService from '../telemetry/telemetryService';
 import {
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
   MESSAGE_TYPES,
+  USER_ID_GLOBAL_VARIABLE_NAME,
   OpenFilePickerMessage
 } from './webview-app/extension-app-message-constants';
 import { createLogger } from '../logging';
@@ -55,7 +56,7 @@ export const getWebviewContent = (
     </head>
     <body>
       <div id="root"></div>
-      <script>window.VSCODE_EXTENSION_SEGMENT_USER_ID = '${userId}';</script>
+      <script>window['${USER_ID_GLOBAL_VARIABLE_NAME}'] = '${userId}';</script>
       <script src="${jsAppFileUrl}"></script>
     </body>
   </html>`;

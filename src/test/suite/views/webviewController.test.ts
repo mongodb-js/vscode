@@ -99,7 +99,7 @@ suite('Webview Test Suite', () => {
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
     const htmlString = getWebviewContent(extensionPath, 'MOCK_USER_ID', fakeWebview);
 
-    assert(htmlString.includes('>window.VSCODE_EXTENSION_SEGMENT_USER_ID = \'MOCK_USER_ID\';'));
+    assert(htmlString.includes('>window[\'VSCODE_EXTENSION_SEGMENT_USER_ID\'] = \'MOCK_USER_ID\';'));
   });
 
   test('web view listens for a connect message and adds the connection', (done) => {
