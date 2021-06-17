@@ -44,6 +44,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       mdbTestExtension.testExtensionController._connectionController,
+      mdbTestExtension.testExtensionController._storageController,
       mdbTestExtension.testExtensionController._telemetryService
     );
 
@@ -76,7 +77,7 @@ suite('Webview Test Suite', () => {
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-    const htmlString = getWebviewContent(extensionPath, fakeWebview);
+    const htmlString = getWebviewContent(extensionPath, '', fakeWebview);
 
     assert(htmlString.includes('dist/webviewApp.js'));
 
@@ -86,6 +87,19 @@ suite('Webview Test Suite', () => {
     );
 
     assert(`${jsFileString}`.includes('OverviewPage'));
+  });
+
+  test('web view content sets the user id globally', () => {
+    const fakeWebview: any = {
+      asWebviewUri: (jsUri) => {
+        return jsUri;
+      }
+    };
+
+    const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
+    const htmlString = getWebviewContent(extensionPath, 'MOCK_USER_ID', fakeWebview);
+
+    assert(htmlString.includes('>window.VSCODE_EXTENSION_SEGMENT_USER_ID = \'MOCK_USER_ID\';'));
   });
 
   test('web view listens for a connect message and adds the connection', (done) => {
@@ -135,6 +149,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -207,6 +222,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -273,6 +289,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -331,6 +348,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -402,6 +420,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -461,6 +480,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -508,6 +528,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -566,6 +587,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -617,6 +639,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -673,6 +696,7 @@ suite('Webview Test Suite', () => {
 
     const testWebviewController = new WebviewController(
       testConnectionController,
+      testStorageController,
       testTelemetryService
     );
 
@@ -737,6 +761,7 @@ suite('Webview Test Suite', () => {
 
       testWebviewController = new WebviewController(
         testConnectionController,
+        testStorageController,
         testTelemetryService
       );
 

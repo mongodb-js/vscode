@@ -1,5 +1,4 @@
 import * as React from 'react';
-import classnames from 'classnames';
 import { connect } from 'react-redux';
 
 import {
@@ -7,6 +6,7 @@ import {
   LinkClickedAction,
   TrustedLinkClickedAction
 } from '../../store/actions';
+import { USER_ID_GLOBAL_VARIABLE_NAME } from '../../extension-app-message-constants';
 import AtlasLogo from './atlas-logo';
 
 const styles = require('./atlas-cta.less');
@@ -18,9 +18,9 @@ type DispatchProps = {
 
 class AtlasCTA extends React.Component<DispatchProps> {
   onAtlasCtaClicked = (): void => {
-    this.props.openTrustedLink(
-      'https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product'
-    );
+    const userId = window[USER_ID_GLOBAL_VARIABLE_NAME];
+    const atlasLink = `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${userId}`;
+    this.props.openTrustedLink(atlasLink);
 
     this.onLinkClicked(
       'overviewPage',
@@ -60,7 +60,7 @@ class AtlasCTA extends React.Component<DispatchProps> {
           </div>
         </div>
         <a
-          className={classnames(styles['atlas-cta-button'])}
+          className={styles['atlas-cta-button']}
           target="_blank"
           rel="noopener"
           href="#"

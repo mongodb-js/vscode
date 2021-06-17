@@ -14,6 +14,7 @@ import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
 import ConnectionModel from './webview-app/connection-model/connection-model';
 import { openLink } from '../utils/linkHelper';
+import { StorageController } from '../storage';
 
 const log = createLogger('webviewController');
 
@@ -40,6 +41,7 @@ export const getReactAppUri = (
 
 export const getWebviewContent = (
   extensionPath: string,
+  userId: string,
   webview: vscode.Webview
 ): string => {
   const jsAppFileUrl = getReactAppUri(extensionPath, webview);
@@ -53,6 +55,7 @@ export const getWebviewContent = (
     </head>
     <body>
       <div id="root"></div>
+      <script>window.VSCODE_EXTENSION_SEGMENT_USER_ID = '${userId}';</script>
       <script src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
@@ -60,13 +63,16 @@ export const getWebviewContent = (
 
 export default class WebviewController {
   _connectionController: ConnectionController;
+  _storageController: StorageController;
   _telemetryService: TelemetryService;
 
   constructor(
     connectionController: ConnectionController,
+    storageController: StorageController,
     telemetryService: TelemetryService
   ) {
     this._connectionController = connectionController;
+    this._storageController = storageController;
     this._telemetryService = telemetryService;
   }
 
@@ -235,7 +241,11 @@ export default class WebviewController {
       path.join(extensionPath, 'images', 'leaf.svg')
     );
 
-    panel.webview.html = getWebviewContent(extensionPath, panel.webview);
+    panel.webview.html = getWebviewContent(
+      extensionPath,
+      this._storageController.getUserID(),
+      panel.webview
+    );
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(

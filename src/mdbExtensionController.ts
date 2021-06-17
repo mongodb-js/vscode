@@ -116,6 +116,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this._webviewController = new WebviewController(
       this._connectionController,
+      this._storageController,
       this._telemetryService
     );
     this._editorsController.registerProviders();
