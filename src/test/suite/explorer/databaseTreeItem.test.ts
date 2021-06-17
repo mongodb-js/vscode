@@ -259,7 +259,7 @@ suite('DatabaseTreeItem Test Suite', () => {
                   testDatabaseTreeItem
                     .getChildren()
                     .then((newCollectionTreeItems) => {
-                      dataService.disconnect();
+                      dataService.disconnect(() => {});
 
                       const postCollapseSchemaTreeItem = newCollectionTreeItems[0].getSchemaChild();
                       assert(
