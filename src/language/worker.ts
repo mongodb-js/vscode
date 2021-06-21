@@ -53,9 +53,11 @@ const executeAll = async (
         ? `${source.namespace.db}.${source.namespace.collection}`
         : null;
     const content =
-      typeof printable === 'string'
-        ? printable
-        : JSON.parse(EJSON.stringify(printable));
+      type === 'Cursor' || type === 'AggregationCursor' ?
+        JSON.parse(EJSON.stringify(printable.documents)) :
+        typeof printable === 'string'
+          ? printable
+          : JSON.parse(EJSON.stringify(printable));
     const result: PlaygroundResult = {
       namespace,
       type: type ? type : typeof printable,
