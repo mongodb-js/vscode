@@ -10,6 +10,7 @@ import {
   rootReducer
 } from '../../../../../../views/webview-app/store/store';
 import AtlasCTA from '../../../../../../views/webview-app/components/atlas-cta/atlas-cta';
+import { USER_ID_GLOBAL_VARIABLE_NAME } from '../../../../../../views/webview-app/extension-app-message-constants';
 
 describe('Resources Panel Component Test Suite', () => {
   describe('when rendered', () => {
@@ -45,15 +46,16 @@ describe('Resources Panel Component Test Suite', () => {
       assert(!fakeVscodeWindowPostMessage.called);
       wrapper.find('a').at(0).simulate('click');
       assert(fakeVscodeWindowPostMessage.called);
-      assert(fakeVscodeWindowPostMessage.firstCall.args[0].command === 'EXTENSION_LINK_CLICKED');
+      assert.strictEqual(fakeVscodeWindowPostMessage.firstCall.args[0].command, 'EXTENSION_LINK_CLICKED');
     });
 
     test('when a trusted link is clicked it sends an event to the extension', () => {
       assert(!fakeVscodeWindowPostMessage.called);
+      window[USER_ID_GLOBAL_VARIABLE_NAME] = 'mockUserID';
       wrapper.find('a').at(1).simulate('click');
       assert(fakeVscodeWindowPostMessage.called);
-      assert(fakeVscodeWindowPostMessage.firstCall.args[0].command === 'OPEN_TRUSTED_LINK');
-      assert(fakeVscodeWindowPostMessage.firstCall.args[0].linkTo === 'https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product');
+      assert.strictEqual(fakeVscodeWindowPostMessage.firstCall.args[0].command, 'OPEN_TRUSTED_LINK');
+      assert.strictEqual(fakeVscodeWindowPostMessage.firstCall.args[0].linkTo, 'https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=mockUserID');
       // The assert below is a bit redundant but will prevent us from redirecting to a non-https URL by mistake
       assert(fakeVscodeWindowPostMessage.firstCall.args[0].linkTo.startsWith('https://') === true);
     });
