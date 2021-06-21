@@ -1,6 +1,6 @@
 import {
   CliServiceProvider,
-  NodeOptions
+  MongoClientOptions
 } from '@mongosh/service-provider-server';
 import { CompletionItemKind } from 'vscode-languageserver';
 import { EJSON } from 'bson';
@@ -21,7 +21,7 @@ type WorkerError = any | null;
 const executeAll = async (
   codeToEvaluate: string,
   connectionString: string,
-  connectionOptions: NodeOptions
+  connectionOptions: MongoClientOptions
 ): Promise<[WorkerError, WorkerResult?]> => {
   try {
     // Instantiate a data service provider.
@@ -53,9 +53,11 @@ const executeAll = async (
         ? `${source.namespace.db}.${source.namespace.collection}`
         : null;
     const content =
-      typeof printable === 'string'
-        ? printable
-        : JSON.parse(EJSON.stringify(printable));
+      type === 'Cursor' || type === 'AggregationCursor' ?
+        JSON.parse(EJSON.stringify(printable.documents)) :
+        typeof printable === 'string'
+          ? printable
+          : JSON.parse(EJSON.stringify(printable));
     const result: PlaygroundResult = {
       namespace,
       type: type ? type : typeof printable,

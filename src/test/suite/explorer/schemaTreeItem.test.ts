@@ -251,7 +251,7 @@ suite('SchemaTreeItem Test Suite', function () {
         testSchemaTreeItem
           .getChildren()
           .then((schemaFields) => {
-            dataService.disconnect();
+            dataService.disconnect(() => {});
 
             assert(
               schemaFields.length === 0,
@@ -285,7 +285,7 @@ suite('SchemaTreeItem Test Suite', function () {
         testSchemaTreeItem
           .getChildren()
           .then((schemaFields) => {
-            dataService.disconnect();
+            dataService.disconnect(() => {});
             assert(
               schemaFields.length === 2,
               `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
@@ -338,7 +338,7 @@ suite('SchemaTreeItem Test Suite', function () {
         testSchemaTreeItem
           .getChildren()
           .then((schemaFields) => {
-            dataService.disconnect();
+            dataService.disconnect(() => {});
             assert(
               schemaFields.length === 3,
               `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}: ${inspect(schemaFields)}`

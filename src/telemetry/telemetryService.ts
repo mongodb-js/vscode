@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { config } from 'dotenv';
 import fs from 'fs';
 import SegmentAnalytics from 'analytics-node';
-import { MongoClient } from 'mongodb';
+import type { MongoClient } from 'mongodb';
 
 import { ConnectionModel } from '../types/connectionModelType';
 import { ConnectionTypes } from '../connectionController';

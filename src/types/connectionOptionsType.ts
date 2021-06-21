@@ -7,7 +7,6 @@ export type ConnectionOptions = {
     password: string;
   };
   useUnifiedTopology?: boolean;
-  connectWithNoPrimary?: boolean;
   useNewUrlParser?: boolean;
   port?: number;
   authSource?: string;

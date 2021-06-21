@@ -156,7 +156,7 @@ suite('FieldTreeItem Test Suite', function () {
         testSchemaTreeItem
           .getChildren()
           .then((schemaFields) => {
-            dataService.disconnect();
+            dataService.disconnect(() => {});
 
             assert(
               schemaFields[0].label === '_id',
@@ -210,7 +210,7 @@ suite('FieldTreeItem Test Suite', function () {
         testSchemaTreeItem.onDidExpand();
 
         testSchemaTreeItem.getChildren().then((schemaFields) => {
-          dataService.disconnect();
+          dataService.disconnect(() => {});
           assert(
             schemaFields.length === 2,
             `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
@@ -274,7 +274,7 @@ suite('FieldTreeItem Test Suite', function () {
         testSchemaTreeItem.onDidExpand();
 
         testSchemaTreeItem.getChildren().then((schemaFields) => {
-          dataService.disconnect();
+          dataService.disconnect(() => {});
           assert(
             schemaFields.length === 2,
             `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
@@ -334,7 +334,7 @@ suite('FieldTreeItem Test Suite', function () {
         testSchemaTreeItem.onDidExpand();
 
         testSchemaTreeItem.getChildren().then((schemaFields) => {
-          dataService.disconnect();
+          dataService.disconnect(() => {});
 
           schemaFields[1].getChildren().then((nestedSubDocuments) => {
             assert(

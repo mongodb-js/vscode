@@ -1,4 +1,4 @@
-import { Document, MongoClient } from 'mongodb';
+import type { Document, MongoClient } from 'mongodb';
 import { getCloudInfo } from 'mongodb-cloud-info';
 import mongoDBBuildInfo from 'mongodb-build-info';
 

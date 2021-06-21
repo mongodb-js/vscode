@@ -95,10 +95,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert(
-        shellCommandText === 'mongo $MDB_CONNECTION_STRING;',
-        'Expected sendText to terminal to be equal mongo $MDB_CONNECTION_STRING;'
-      );
+      assert.strictEqual(shellCommandText, 'mongo $MDB_CONNECTION_STRING;');
     });
 
     test('openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
@@ -126,10 +123,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert(
-        shellCommandText === 'mongo $MDB_CONNECTION_STRING;',
-        'Expected sendText to terminal to be equal mongo $MDB_CONNECTION_STRING;'
-      );
+      assert.strictEqual(shellCommandText, 'mongo $MDB_CONNECTION_STRING;');
     });
 
     test('openMongoDBShell should open a terminal with ssl config injected', async () => {
@@ -160,10 +154,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert(
-        shellCommandText === 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_some_file" $MDB_CONNECTION_STRING;',
-        'Expected sendText to terminal to iclude tls options and ssl connection string'
-      );
+      assert.strictEqual(shellCommandText, 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_some_file" $MDB_CONNECTION_STRING;');
     });
 
     test('openMongoDBShell should open a terminal with x509 config injected', async () => {
@@ -189,17 +180,11 @@ suite('Commands Test Suite', () => {
       const terminalOptions: vscode.TerminalOptions =
         createTerminalStub.firstCall.args[0];
 
-      assert(
-        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
-        `Expected open terminal to set shell arg as driver url "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
-      );
+      assert.strictEqual(terminalOptions.env?.MDB_CONNECTION_STRING, driverUri);
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert(
-        shellCommandText === 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_ca" --tlsCertificateKeyFile="./path_to_cert" $MDB_CONNECTION_STRING;',
-        'Expected sendText to terminal to iclude tls options and x509 connection string'
-      );
+      assert.strictEqual(shellCommandText, 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_ca" --tlsCertificateKeyFile="./path_to_cert" $MDB_CONNECTION_STRING;');
     });
   });
 
@@ -235,7 +220,7 @@ suite('Commands Test Suite', () => {
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
       assert(
         shellCommandText.includes('$Env:MDB_CONNECTION_STRING'),
-        'Expected sendText to terminal to use powershell env variable syntax'
+        `Expected sendText to terminal (${shellCommandText}) to use powershell env variable syntax`
       );
     });
 

@@ -62,7 +62,7 @@ steps:
 
   - bash: |
       npm i -g vsce;
-      vsce package
+      env NODE_OPTIONS="--require ./scripts/no-npm-list-fail.js" vsce package
     displayName: 'Build .vsix'
     env:
       SEGMENT_KEY: $(segmentKey)
