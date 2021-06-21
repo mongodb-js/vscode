@@ -98,7 +98,7 @@ export default class MongoDBDocumentService {
         },
         newDocument,
         {
-          returnOriginal: false
+          returnDocument: 'after'
         }
       );
 
