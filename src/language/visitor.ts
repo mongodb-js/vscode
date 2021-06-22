@@ -1,3 +1,4 @@
+import type * as babel from '@babel/core';
 import * as parser from '@babel/parser';
 import traverse from '@babel/traverse';
 
@@ -16,7 +17,6 @@ export type CompletionState = {
 };
 
 export class Visitor {
-  _connection: any;
   _state: CompletionState;
   _position: { line: number; character: number };
 
@@ -25,7 +25,7 @@ export class Visitor {
     this._position = { line: 0, character: 0 };
   }
 
-  _visitCallExpression(node: any): void {
+  _visitCallExpression(node: babel.types.CallExpression): void {
     if (this._checkIsUseCall(node)) {
       this._state.isUseCallExpression = true;
     }
@@ -35,11 +35,11 @@ export class Visitor {
     }
 
     if (this._checkHasDatabaseName(node)) {
-      this._state.databaseName = node.arguments[0].value;
+      this._state.databaseName = (node.arguments[0] as babel.types.StringLiteral).value;
     }
   }
 
-  _visitMemberExpression(node: any): void {
+  _visitMemberExpression(node: babel.types.MemberExpression): void {
     if (this._checkHasAggregationCall(node)) {
       this._state.isAggregationCursor = true;
     }
@@ -57,17 +57,17 @@ export class Visitor {
     }
 
     if (this._checkHasCollectionName(node)) {
-      this._state.collectionName = node.object.property.name;
+      this._state.collectionName = ((node.object as babel.types.MemberExpression).property as babel.types.Identifier).name;
     }
   }
 
-  _visitExpressionStatement(node: any): void {
+  _visitExpressionStatement(node: babel.types.ExpressionStatement): void {
     if (this._checkIsDbCall(node)) {
       this._state.isDbCallExpression = true;
     }
   }
 
-  _visitObjectExpression(node: any): void {
+  _visitObjectExpression(node: babel.types.ObjectExpression): void {
     if (this._checkIsObjectKey(node)) {
       this._state.isObjectKey = true;
     }
@@ -120,7 +120,7 @@ export class Visitor {
     }
 
     traverse(ast, {
-      enter: (path) => {
+      enter: (path: babel.NodePath) => {
         switch (path.node.type) {
           case 'CallExpression':
             this._visitCallExpression(path.node);
@@ -158,18 +158,16 @@ export class Visitor {
   }
 
   // eslint-disable-next-line complexity
-  _checkIsUseCall(node: any): boolean {
+  _checkIsUseCall(node: babel.types.CallExpression): boolean {
     if (
-      (node.callee.name === 'use' &&
+      (node.callee.type === 'Identifier' &&
+        node.callee.name === 'use' &&
         node.arguments &&
         node.arguments.length === 1 &&
-        node.arguments[0] &&
         node.arguments[0].type === 'StringLiteral' &&
-        node.arguments[0].value &&
         node.arguments[0].value.includes(PLACEHOLDER)) ||
       (node.arguments &&
         node.arguments.length === 1 &&
-        node.arguments[0] &&
         node.arguments[0].type === 'TemplateLiteral' &&
         node.arguments[0].quasis &&
         node.arguments[0].quasis.length === 1 &&
@@ -182,10 +180,10 @@ export class Visitor {
     return false;
   }
 
-  _checkIsDbCall(node: any): boolean {
+  _checkIsDbCall(node: babel.types.ExpressionStatement): boolean {
     if (
-      node.expression &&
-      node.expression.object &&
+      node.expression.type === 'MemberExpression' &&
+      node.expression.object.type === 'Identifier' &&
       node.expression.object.name === 'db'
     ) {
       return true;
@@ -194,7 +192,7 @@ export class Visitor {
     return false;
   }
 
-  _checkIsObjectKey(node: any): boolean {
+  _checkIsObjectKey(node: babel.types.ObjectExpression): boolean {
     if (
       node.properties.find(
         (item: any) => !!(item.key.name && item.key.name.includes(PLACEHOLDER))
@@ -207,20 +205,16 @@ export class Visitor {
   }
 
   // eslint-disable-next-line complexity
-  _checkIsCollectionName(node: any): boolean {
+  _checkIsCollectionName(node: babel.types.CallExpression | babel.types.MemberExpression): boolean {
     if (
-      (node.object &&
+      (node.type === 'MemberExpression' &&
+        node.object.type === 'Identifier' &&
         node.object.name === 'db' &&
-        node.property &&
-        node.property.name &&
+        node.property.type === 'Identifier' &&
         node.property.name.includes(PLACEHOLDER)) ||
-      (node.callee &&
-        node.callee.object &&
-        node.callee.object.object &&
-        node.callee.object.object.name === 'db' &&
-        node.callee.object.property.name &&
-        node.callee.object.property.name.includes(PLACEHOLDER) &&
-        node.callee.property)
+      (node.type === 'CallExpression' &&
+        node.callee.type === 'MemberExpression' &&
+        this._checkIsCollectionName(node.callee))
     ) {
       return true;
     }
@@ -228,13 +222,14 @@ export class Visitor {
     return false;
   }
 
-  _checkHasAggregationCall(node: any): boolean {
+  _checkHasAggregationCall(node: babel.types.MemberExpression): boolean {
     if (
-      node.object &&
       node.object.type === 'CallExpression' &&
-      node.property.name &&
+      node.property.type === 'Identifier' &&
       node.property.name.includes(PLACEHOLDER) &&
-      node.object.callee &&
+      node.object.callee.type === 'MemberExpression' &&
+      !node.object.callee.computed &&
+      node.object.callee.property.type === 'Identifier' &&
       node.object.callee.property.name === 'aggregate'
     ) {
       return true;
@@ -243,13 +238,14 @@ export class Visitor {
     return false;
   }
 
-  _checkHasFindCall(node: any): boolean {
+  _checkHasFindCall(node: babel.types.MemberExpression): boolean {
     if (
-      node.object &&
       node.object.type === 'CallExpression' &&
-      node.property.name &&
+      node.property.type === 'Identifier' &&
       node.property.name.includes(PLACEHOLDER) &&
-      node.object.callee &&
+      node.object.callee.type === 'MemberExpression' &&
+      !node.object.callee.computed &&
+      node.object.callee.property.type === 'Identifier' &&
       node.object.callee.property.name === 'find'
     ) {
       return true;
@@ -258,14 +254,14 @@ export class Visitor {
     return false;
   }
 
-  _checkHasDatabaseName(node: any): boolean {
+  _checkHasDatabaseName(node: babel.types.CallExpression): boolean {
     if (
-      node.callee &&
+      node.callee.type === 'Identifier' &&
       node.callee.name === 'use' &&
       node.arguments &&
       node.arguments.length === 1 &&
-      node.arguments[0] &&
       node.arguments[0].type === 'StringLiteral' &&
+      node.loc &&
       (this._position.line > node.loc.end.line - 1 ||
         (this._position.line === node.loc.end.line - 1 &&
           this._position.character >= node.loc.end.column))
@@ -276,11 +272,11 @@ export class Visitor {
     return false;
   }
 
-  _checkHasCollectionName(node: any): boolean {
+  _checkHasCollectionName(node: babel.types.MemberExpression): boolean {
     if (
-      node.object.object &&
-      node.object.object.name === 'db' &&
-      node.object.property
+      node.object.type === 'MemberExpression' &&
+      node.object.object.type === 'Identifier' &&
+      node.object.object.name === 'db'
     ) {
       return true;
     }
@@ -288,11 +284,12 @@ export class Visitor {
     return false;
   }
 
-  _checkIsShellMethod(node: any): boolean {
+  _checkIsShellMethod(node: babel.types.MemberExpression): boolean {
     if (
-      node.object.object &&
+      node.object.type === 'MemberExpression' &&
+      node.object.object.type === 'Identifier' &&
       node.object.object.name === 'db' &&
-      node.property.name &&
+      node.property.type === 'Identifier' &&
       node.property.name.includes(PLACEHOLDER)
     ) {
       return true;

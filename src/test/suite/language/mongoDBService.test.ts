@@ -120,7 +120,7 @@ suite('MongoDBService Test Suite', () => {
         'db.test.',
         { line: 0, character: 8 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'find');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'find');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -133,7 +133,7 @@ suite('MongoDBService Test Suite', () => {
         'const name = () => { db.test. }',
         { line: 0, character: 29 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'find');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'find');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -141,12 +141,12 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('provide shell collection methods completion if collection name is array like', async () => {
+    test('provide shell collection methods completion if collection name is computed property', async () => {
       const result = await testMongoDBService.provideCompletionItems(
         ['use("test");', 'db["test"].'].join('\n'),
         { line: 1, character: 11 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'find');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'find');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -159,7 +159,7 @@ suite('MongoDBService Test Suite', () => {
         ["use('test');", "db['test']."].join('\n'),
         { line: 1, character: 11 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'find');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'find');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -172,7 +172,7 @@ suite('MongoDBService Test Suite', () => {
         line: 0,
         character: 3
       });
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'getCollectionNames');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -188,7 +188,7 @@ suite('MongoDBService Test Suite', () => {
           character: 1
         }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'getCollectionNames');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -201,7 +201,7 @@ suite('MongoDBService Test Suite', () => {
         line: 0,
         character: 4
       });
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'getCollectionNames');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -214,8 +214,8 @@ suite('MongoDBService Test Suite', () => {
         'db.collection.aggregate().',
         { line: 0, character: 26 }
       );
-      const aggCompletion = result.find((itme: CompletionItem) => itme.label === 'toArray');
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'allowPartialResults');
+      const aggCompletion = result.find((item: CompletionItem) => item.label === 'toArray');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'allowPartialResults');
 
       expect(aggCompletion).to.have.property('kind', CompletionItemKind.Method);
       expect(findCompletion).to.be.undefined;
@@ -226,7 +226,7 @@ suite('MongoDBService Test Suite', () => {
         'db.collection.find().',
         { line: 0, character: 21 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'allowPartialResults');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'allowPartialResults');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -241,7 +241,7 @@ suite('MongoDBService Test Suite', () => {
         ),
         { line: 2, character: 36 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'allowPartialResults');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'allowPartialResults');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -260,7 +260,7 @@ suite('MongoDBService Test Suite', () => {
         ].join('\n'),
         { line: 4, character: 3 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'allowPartialResults');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'allowPartialResults');
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -280,7 +280,7 @@ suite('MongoDBService Test Suite', () => {
         'use("test"); db.collection.find({ j});',
         { line: 0, character: 35 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -297,7 +297,7 @@ suite('MongoDBService Test Suite', () => {
         'use("test");db.collection.find({j});',
         { line: 0, character: 33 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -319,7 +319,7 @@ suite('MongoDBService Test Suite', () => {
         ].join('\n'),
         { line: 2, character: 24 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -336,7 +336,7 @@ suite('MongoDBService Test Suite', () => {
         ['use("test");', '', 'db.collection.find({', '  j', '});'].join('\n'),
         { line: 3, character: 3 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -353,7 +353,7 @@ suite('MongoDBService Test Suite', () => {
         'use("test"); db.collection.find({ j });',
         { line: 0, character: 35 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -377,8 +377,8 @@ suite('MongoDBService Test Suite', () => {
         { line: 0, character: 51 }
       );
 
-      const jsCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
-      const tsCompletion = result.find((itme: CompletionItem) => itme.label === 'TypeScript');
+      const jsCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const tsCompletion = result.find((item: CompletionItem) => item.label === 'TypeScript');
 
       expect(jsCompletion).to.be.undefined;
       expect(tsCompletion).to.have.property('kind', CompletionItemKind.Field);
@@ -396,7 +396,7 @@ suite('MongoDBService Test Suite', () => {
         'use("test"); const name = () => { db.collection.find({ j}); }',
         { line: 0, character: 56 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -413,7 +413,7 @@ suite('MongoDBService Test Suite', () => {
         'use("test"); db.collection.aggregate([ { $match: { j} } ])',
         { line: 0, character: 52 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -436,7 +436,7 @@ suite('MongoDBService Test Suite', () => {
         'use("test"); db.firstCollection.find({ j});',
         { line: 0, character: 40 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript First');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript First');
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -453,7 +453,7 @@ suite('MongoDBService Test Suite', () => {
         'db.collection.find({ j});',
         { line: 0, character: 22 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
 
       expect(findCompletion).to.be.undefined;
     });
@@ -470,7 +470,7 @@ suite('MongoDBService Test Suite', () => {
         'use("test"); db.collection(j);',
         { line: 0, character: 28 }
       );
-      const findCompletion = result.find((itme: CompletionItem) => itme.label === 'JavaScript');
+      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
 
       expect(findCompletion).to.be.undefined;
     });
@@ -568,7 +568,7 @@ suite('MongoDBService Test Suite', () => {
         'use("test"); db.',
         { line: 0, character: 16 }
       );
-      const findCollectionCompletion = result.find((itme: CompletionItem) => itme.label === 'empty');
+      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'empty');
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
@@ -587,7 +587,7 @@ suite('MongoDBService Test Suite', () => {
         "use('berlin'); db.",
         { line: 0, character: 18 }
       );
-      const findCollectionCompletion = result.find((itme: CompletionItem) => itme.label === 'coll-name');
+      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'coll-name');
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
@@ -608,7 +608,7 @@ suite('MongoDBService Test Suite', () => {
         ["use('berlin');", '', 'let a = db.'].join('\n'),
         { line: 2, character: 11 }
       );
-      const findCollectionCompletion = result.find((itme: CompletionItem) => itme.label === 'cocktailbars');
+      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'cocktailbars');
 
       expect(findCollectionCompletion).to.have.property(
         'label',
@@ -631,8 +631,8 @@ suite('MongoDBService Test Suite', () => {
         "use('berlin'); db.",
         { line: 0, character: 18 }
       );
-      const findCollectionCompletion = result.find((itme: CompletionItem) => itme.label === 'coll-name');
-      const findShellCompletion = result.find((itme: CompletionItem) => itme.label === 'getCollectionNames');
+      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'coll-name');
+      const findShellCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
@@ -667,9 +667,9 @@ suite('MongoDBService Test Suite', () => {
         ].join('\n'),
         { line: 4, character: 3 }
       );
-      const findCollectionCompletion = result.find((itme: CompletionItem) => itme.label === 'cocktailbars');
-      const findShellCompletion = result.find((itme: CompletionItem) => itme.label === 'getCollectionNames');
-      const findCursorCompletion = result.find((itme: CompletionItem) => itme.label === 'toArray');
+      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'cocktailbars');
+      const findShellCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
+      const findCursorCompletion = result.find((item: CompletionItem) => item.label === 'toArray');
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
@@ -706,13 +706,13 @@ suite('MongoDBService Test Suite', () => {
         { line: 4, character: 3 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'cocktailbars'
+        (item: CompletionItem) => item.label === 'cocktailbars'
       );
       const findShellCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'getCollectionNames'
+        (item: CompletionItem) => item.label === 'getCollectionNames'
       );
       const findCursorCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'toArray'
+        (item: CompletionItem) => item.label === 'toArray'
       );
 
       expect(findCollectionCompletion).to.have.property(
@@ -744,13 +744,13 @@ suite('MongoDBService Test Suite', () => {
         { line: 0, character: 18 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'cocktails'
+        (item: CompletionItem) => item.label === 'cocktails'
       );
       const findShellCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'getCollectionNames'
+        (item: CompletionItem) => item.label === 'getCollectionNames'
       );
       const findCursorCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'close'
+        (item: CompletionItem) => item.label === 'close'
       );
 
       expect(findCollectionCompletion).to.have.property(
@@ -773,7 +773,7 @@ suite('MongoDBService Test Suite', () => {
         { line: 0, character: 18 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'coll-name'
+        (item: CompletionItem) => item.label === 'coll-name'
       );
 
       expect(findCollectionCompletion)
@@ -793,7 +793,7 @@ suite('MongoDBService Test Suite', () => {
         { line: 3, character: 3 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'collection'
+        (item: CompletionItem) => item.label === 'collection'
       );
 
       expect(findCollectionCompletion).to.have.property('label', 'collection');
@@ -815,7 +815,7 @@ suite('MongoDBService Test Suite', () => {
         { line: 3, character: 3 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'collection'
+        (item: CompletionItem) => item.label === 'collection'
       );
 
       expect(findCollectionCompletion).to.have.property('label', 'collection');
@@ -837,7 +837,7 @@ suite('MongoDBService Test Suite', () => {
         { line: 5, character: 3 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'collection'
+        (item: CompletionItem) => item.label === 'collection'
       );
 
       expect(findCollectionCompletion).to.have.property('label', 'collection');
@@ -859,7 +859,7 @@ suite('MongoDBService Test Suite', () => {
         { line: 2, character: 3 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'collection'
+        (item: CompletionItem) => item.label === 'collection'
       );
 
       expect(findCollectionCompletion).to.have.property('label', 'collection');
@@ -881,7 +881,7 @@ suite('MongoDBService Test Suite', () => {
         { line: 2, character: 3 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'collection'
+        (item: CompletionItem) => item.label === 'collection'
       );
 
       expect(findCollectionCompletion).to.have.property('label', 'collection');
@@ -903,7 +903,7 @@ suite('MongoDBService Test Suite', () => {
         { line: 4, character: 6 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'collection'
+        (item: CompletionItem) => item.label === 'collection'
       );
 
       expect(findCollectionCompletion).to.have.property('label', 'collection');
@@ -925,7 +925,7 @@ suite('MongoDBService Test Suite', () => {
         { line: 2, character: 3 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'collection'
+        (item: CompletionItem) => item.label === 'collection'
       );
 
       expect(findCollectionCompletion).to.have.property('label', 'collection');
@@ -947,7 +947,7 @@ suite('MongoDBService Test Suite', () => {
         { line: 2, character: 3 }
       );
       const findCollectionCompletion = result.find(
-        (itme: CompletionItem) => itme.label === 'collection'
+        (item: CompletionItem) => item.label === 'collection'
       );
 
       expect(findCollectionCompletion).to.have.property('label', 'collection');
