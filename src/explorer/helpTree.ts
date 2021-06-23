@@ -43,6 +43,7 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
 
 export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem> {
   contextValue = 'helpTree';
+  _telemetryService?: TelemetryService;
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
     return element;
@@ -52,6 +53,7 @@ export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem
     treeView: vscode.TreeView<vscode.TreeItem>,
     telemetryService: TelemetryService
   ): void => {
+    this._telemetryService = telemetryService;
     treeView.onDidChangeSelection(async (event: any) => {
       if (event.selection && event.selection.length === 1) {
         const selectedItem = event.selection[0];
@@ -99,9 +101,11 @@ export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem
         'report'
       );
 
+      const userId = this._telemetryService?.getSegmentUserId();
+      const segmentId = userId ? `&ajs_aid=${userId}` : '';
       const atlas = new HelpLinkTreeItem(
         'Create Free Atlas Cluster',
-        'https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product',
+        `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product${segmentId}`,
         'freeClusterCTA',
         'atlas',
         true
