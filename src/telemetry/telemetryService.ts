@@ -250,6 +250,10 @@ export default class TelemetryService {
     return 'other';
   }
 
+  getSegmentUserId(): string {
+    return this._segmentUserID;
+  }
+
   trackPlaygroundCodeExecuted(
     result: ShellExecuteAllResult,
     partial: boolean,

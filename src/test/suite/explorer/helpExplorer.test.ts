@@ -41,13 +41,13 @@ suite('Help Explorer Test Suite', function () {
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
 
-    assert(atlasHelpItem.label === 'Create Free Atlas Cluster');
-    assert(
-      atlasHelpItem.url ===
-      'https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product'
+    assert.strictEqual(atlasHelpItem.label, 'Create Free Atlas Cluster');
+    assert.strictEqual(
+      atlasHelpItem.url,
+      `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${mdbTestExtension.testExtensionController._telemetryService.getSegmentUserId()}`
     );
-    assert(atlasHelpItem.iconName === 'atlas');
-    assert(atlasHelpItem.linkId === 'freeClusterCTA');
+    assert.strictEqual(atlasHelpItem.iconName, 'atlas');
+    assert.strictEqual(atlasHelpItem.linkId, 'freeClusterCTA');
     assert(atlasHelpItem.useRedirect === true);
     // The assert below is a bit redundant but will prevent us from redirecting to a non-https URL by mistake
     assert(atlasHelpItem.url.startsWith('https://') === true);
