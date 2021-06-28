@@ -61,7 +61,7 @@
   "engines": {
     "vscode": "^1.49.0",
     "node": "^12.4.0",
-    "npm": ">=6.13.0"
+    "npm": "^7.19.0"
   },
   "activationEvents": [
     "onCommand:mdb.connect",
@@ -942,7 +942,7 @@
     "mocha": "^8.2.1",
     "mocha-junit-reporter": "^2.0.0",
     "mocha-multi": "^1.1.3",
-    "mongodb-ace-autocompleter": "^0.4.14",
+    "mongodb-ace-autocompleter": "^0.6.0",
     "mongodb-build-info": "^1.1.1",
     "mongodb-runner": "^4.8.3",
     "node-loader": "^0.6.0",
