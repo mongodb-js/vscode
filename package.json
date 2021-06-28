@@ -767,14 +767,14 @@
         "mdb.shell": {
           "type": "string",
           "enum": [
-            "mongo",
-            "mongosh"
+            "mongosh",
+            "mongo"
           ],
           "enumDescriptions": [
-            "Use the legacy mongo shell",
-            "Use the new mongosh"
+            "Use the new mongosh",
+            "Use the legacy mongo shell"
           ],
-          "default": "mongo",
+          "default": "mongosh",
           "description": "The MongoDB shell to use."
         },
         "mdb.showMongoDBConnectionExplorer": {

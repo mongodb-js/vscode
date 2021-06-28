@@ -38,7 +38,7 @@ suite('Commands Test Suite', () => {
 
     createTerminalStub.returns({
       sendText: fakeSendTerminalText,
-      show: () => {}
+      show: () => { }
     });
     sandbox.replace(vscode.window, 'createTerminal', createTerminalStub);
   });
@@ -95,7 +95,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert.strictEqual(shellCommandText, 'mongo $MDB_CONNECTION_STRING;');
+      assert.strictEqual(shellCommandText, 'mongosh $MDB_CONNECTION_STRING;');
     });
 
     test('openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
@@ -123,7 +123,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert.strictEqual(shellCommandText, 'mongo $MDB_CONNECTION_STRING;');
+      assert.strictEqual(shellCommandText, 'mongosh $MDB_CONNECTION_STRING;');
     });
 
     test('openMongoDBShell should open a terminal with ssl config injected', async () => {
@@ -154,7 +154,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert.strictEqual(shellCommandText, 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_some_file" $MDB_CONNECTION_STRING;');
+      assert.strictEqual(shellCommandText, 'mongosh --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_some_file" $MDB_CONNECTION_STRING;');
     });
 
     test('openMongoDBShell should open a terminal with x509 config injected', async () => {
@@ -184,7 +184,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert.strictEqual(shellCommandText, 'mongo --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_ca" --tlsCertificateKeyFile="./path_to_cert" $MDB_CONNECTION_STRING;');
+      assert.strictEqual(shellCommandText, 'mongosh --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_ca" --tlsCertificateKeyFile="./path_to_cert" $MDB_CONNECTION_STRING;');
     });
   });
 
@@ -247,9 +247,9 @@ suite('Commands Test Suite', () => {
         terminalOptions.env?.MDB_CONNECTION_STRING?.includes(
           'mongodb://127.0.0.1'
         ) &&
-          terminalOptions.env?.MDB_CONNECTION_STRING.includes(
-            '/?readPreference=primary&ssl=false'
-          ),
+        terminalOptions.env?.MDB_CONNECTION_STRING.includes(
+          '/?readPreference=primary&ssl=false'
+        ),
         `Expected open terminal to set shell arg as driver url with ssh tunnel port injected found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
     });
@@ -349,9 +349,9 @@ suite('Commands Test Suite', () => {
         terminalOptions.env?.MDB_CONNECTION_STRING?.includes(
           'mongodb://127.0.0.1'
         ) &&
-          terminalOptions.env?.MDB_CONNECTION_STRING.includes(
-            '/?readPreference=primary&ssl=false'
-          ),
+        terminalOptions.env?.MDB_CONNECTION_STRING.includes(
+          '/?readPreference=primary&ssl=false'
+        ),
         `Expected open terminal to set shell arg as driver url with ssh tunnel port injected found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
     });

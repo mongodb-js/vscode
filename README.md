@@ -41,7 +41,7 @@ Launch the MongoDB Shell from the command palette to quickly connect to the same
 
 ![MongoDB Shell](resources/screenshots/shell-launcher.png)
 
-_The shell binary needs to be in your `$PATH`. The shell binary can be either the `mongo` shell or the new [MongoDB Shell](https://www.mongodb.com/products/shell) (`mongosh`). In the extension's settings you can switch between the two._
+_The shell binary needs to be in your `$PATH`. The shell binary can be either the new [MongoDB Shell](https://www.mongodb.com/products/shell) (`mongosh`) or the legacy `mongo` shell. In the extension's settings you can switch between the two._
 
 ### Terraform snippet for MongoDB Atlas
 
@@ -51,7 +51,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 
 ## Extension Settings
 
-- `mdb.shell`: The MongoDB shell to use (`mongo` or the new `mongosh`).
+- `mdb.shell`: The MongoDB shell to use (The new `mongosh` or the legacy `mongo`).
 - `mdb.show`: Show or hide the MongoDB view.
 - `mdb.defaultLimit`: The number of documents to fetch when viewing documents from a collection.
 - `mdb.confirmRunAll`: Show a confirmation message before running commands in a playground.
