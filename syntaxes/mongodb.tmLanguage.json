@@ -2706,6 +2706,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$setWindowFields\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggStageOperators.setWindowFields.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$sample\\b",
           "captures": {
             "0": {
@@ -3768,6 +3777,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$dateTrunc\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggExpressionOperators.dateTrunc.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$dateToString\\b",
           "captures": {
             "0": {
@@ -3786,6 +3804,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$dateSubtract\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggExpressionOperators.dateSubtract.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$dateFromString\\b",
           "captures": {
             "0": {
@@ -3799,6 +3826,24 @@
           "captures": {
             "0": {
               "name": "keyword.other.aggExpressionOperators.dateFromParts.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$dateDiff\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggExpressionOperators.dateDiff.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$dateAdd\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggExpressionOperators.dateAdd.mongodb"
             }
           }
         },
@@ -4029,6 +4074,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$shift\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.shift.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$stdDevSamp\\b",
           "captures": {
             "0": {
@@ -4042,6 +4096,15 @@
           "captures": {
             "0": {
               "name": "keyword.other.aggAccumulators.stdDevPop.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$rank\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.rank.mongodb"
             }
           }
         },
@@ -4083,10 +4146,82 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$integral\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.integral.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$first\\b",
           "captures": {
             "0": {
               "name": "keyword.other.aggAccumulators.first.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$expMovingAvg\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.expMovingAvg.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$documentNumber\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.documentNumber.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$denseRank\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.denseRank.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$derivative\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.derivative.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$count\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.count.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$covarianceSamp\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.covarianceSamp.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$covariancePop\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggAccumulators.covariancePop.mongodb"
             }
           }
         },
