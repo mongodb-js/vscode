@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-const path = require('path');
+import path from 'path';
 
 import { createLogger } from '../logging';
 import DocumentListTreeItem, {
@@ -338,9 +338,6 @@ export default class CollectionTreeItem extends vscode.TreeItem
       // the document count in the document list tree item `description`.
       this.documentCount = await this.getCount();
     } catch (err) {
-      vscode.window.showInformationMessage(
-        `Unable to fetch document count: ${err}`
-      );
       return 0;
     }
 
