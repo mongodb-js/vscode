@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-const path = require('path');
+import path from 'path';
 
 import { createLogger } from '../logging';
 import DocumentListTreeItem, {
@@ -73,7 +73,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
   private _dataService: any;
   private _type: CollectionTypes;
-  documentCount: number | null;
+  documentCount: number | null = null;
 
   isExpanded: boolean;
 
@@ -333,14 +333,20 @@ export default class CollectionTreeItem extends vscode.TreeItem
   }
 
   refreshDocumentCount = async (): Promise<number> => {
+    // Skip the count on views and time-series collections since it will error.
+    if (
+      this._type === CollectionTypes.view ||
+      this._type === CollectionTypes.timeseries
+    ) {
+      this.documentCount = null;
+      return 0;
+    }
+
     try {
       // We fetch the document when we expand in order to show
       // the document count in the document list tree item `description`.
       this.documentCount = await this.getCount();
     } catch (err) {
-      vscode.window.showInformationMessage(
-        `Unable to fetch document count: ${err}`
-      );
       return 0;
     }
 
