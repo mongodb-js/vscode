@@ -1,0 +1,93 @@
+# This action runs lint checks and tests against the code.
+name: Check and Test
+
+# Controls when the action will run.
+on:
+  pull_request:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  check-and-test:
+    name: Check and Test
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+      fail-fast: false
+
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Install Deps Ubuntu
+        if: ${{ runner.os == 'Linux' }}
+        run: sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v2.1.2
+        with:
+          # Version Spec of the version to use.  Examples: 12.x, 10.15.1, >=10.15.0
+          node-version: ^12.9.0
+
+      - name: Install npm@7
+        run: npm install -g npm@7
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+        shell: bash
+
+      - name: Run Checks
+        run: npm run check
+        shell: bash
+
+      - name: Run Tests
+        run: npm run test
+        shell: bash
+
+      - name: Install vsce
+        run: npm i -g vsce
+        shell: bash
+
+      - name: Build .vsix
+        env:
+          NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
+        run: vsce package
+        shell: bash
+
+      - name: Set extension_version variable from package.json version
+        run: |
+          echo "##vso[task.setvariable variable=extension_version]`npx json -f package.json version`"
+        shell: bash
+
+      - name: Check .vsix filesize
+        run: |
+          vsixFilename=./mongodb-vscode-$(extension_version).vsix
+          maxsize=6000000 # 6MB
+          filesize=$(stat -c%s "$vsixFilename")
+
+          echo "Size of $vsixFilename = $filesize bytes."
+
+          if (( filesize > maxsize )); then
+            echo "File is over 6MB."
+            exit 1
+          fi
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Compass Build ${{ runner.os }}
+          path: |
+            **/*.vsix
