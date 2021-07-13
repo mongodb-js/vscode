@@ -21,7 +21,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
+      SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -64,19 +64,16 @@ jobs:
         shell: bash
 
       - name: Build .vsix
-        # if: ${{ runner.os == 'macOS' }}
         env:
           NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
         run: vsce package
         shell: bash
 
       - name: Check .vsix filesize
-        # if: ${{ runner.os == 'macOS' }}
         run: npm run check-vsix-size
         shell: bash
 
       - name: Upload artifacts
-        # if: ${{ runner.os == 'macOS' }}
         uses: actions/upload-artifact@v2
         with:
           name: VSIX built on ${{ runner.os }}
