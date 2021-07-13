@@ -1,14 +1,6 @@
-# This action runs lint checks and tests against the code.
 name: Check and Test
+on: [push, pull_request, workflow_dispatch]
 
-# Controls when the action will run.
-on:
-  pull_request:
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   check-and-test:
     name: Check and Test
@@ -53,6 +45,8 @@ jobs:
 
       - name: Run Checks
         run: npm run check
+        # the glob here just fails
+        if: ${{ runner.os != 'Windows' }}
         shell: bash
 
       - name: Run Tests
@@ -64,26 +58,19 @@ jobs:
         shell: bash
 
       - name: Build .vsix
+        if: ${{ runner.os == 'macOS' }}
         env:
           NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
         run: vsce package
         shell: bash
 
       - name: Check .vsix filesize
-        run: |
-          vsixFilename=./mongodb-vscode-`npx json -f package.json version`.vsix
-          maxsize=6000000 # 6MB
-          filesize=$(stat -c%s "$vsixFilename")
-
-          echo "Size of $vsixFilename = $filesize bytes."
-
-          if (( filesize > maxsize )); then
-            echo "File is over 6MB."
-            exit 1
-          fi
+        if: ${{ runner.os == 'macOS' }}
+        run: npm run check-vsix-size
         shell: bash
 
       - name: Upload artifacts
+        if: ${{ runner.os == 'macOS' }}
         uses: actions/upload-artifact@v2
         with:
           name: Compass Build ${{ runner.os }}
