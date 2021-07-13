@@ -159,7 +159,7 @@ suite('Commands Test Suite', () => {
 
     test('openMongoDBShell should open a terminal with x509 config injected', async () => {
       const driverUri =
-        'mongodb://testing@localhost:27017/?authMechanism=MONGODB-X509&readPreference=primary&ssl=true&authSource=$external';
+        'mongodb://testing@localhost:27017/?authMechanism=MONGODB-X509&readPreference=primary&ssl=true&authSource=%24external';
 
       fakeGetActiveConnectionModel.returns(
         new Connection({

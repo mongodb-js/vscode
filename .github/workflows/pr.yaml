@@ -1,0 +1,80 @@
+name: Check and Test
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check-and-test:
+    name: Check and Test
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+      fail-fast: false
+
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+
+    env:
+      SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Install Deps Ubuntu
+        if: ${{ runner.os == 'Linux' }}
+        run: sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v2.1.2
+        with:
+          # Version Spec of the version to use.  Examples: 12.x, 10.15.1, >=10.15.0
+          node-version: ^12.9.0
+
+      - name: Install npm@7
+        run: npm install -g npm@7
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+        shell: bash
+
+      - name: Run Checks
+        run: npm run check
+        # the glob here just fails
+        if: ${{ runner.os != 'Windows' }}
+        shell: bash
+
+      - name: Run Tests
+        run: npm run test
+        shell: bash
+
+      - name: Install vsce
+        run: npm i -g vsce
+        shell: bash
+
+      - name: Build .vsix
+        env:
+          NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
+        run: vsce package
+        shell: bash
+
+      - name: Check .vsix filesize
+        run: npm run check-vsix-size
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: VSIX built on ${{ runner.os }}
+          path: "*.vsix"
