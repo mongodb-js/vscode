@@ -69,14 +69,9 @@ jobs:
         run: vsce package
         shell: bash
 
-      - name: Set extension_version variable from package.json version
-        run: |
-          echo "##vso[task.setvariable variable=extension_version]`npx json -f package.json version`"
-        shell: bash
-
       - name: Check .vsix filesize
         run: |
-          vsixFilename=./mongodb-vscode-$(extension_version).vsix
+          vsixFilename=./mongodb-vscode-`npx json -f package.json version`.vsix
           maxsize=6000000 # 6MB
           filesize=$(stat -c%s "$vsixFilename")
 
@@ -92,5 +87,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: Compass Build ${{ runner.os }}
-          path: |
-            **/*.vsix
+          path: "*.vsix"
