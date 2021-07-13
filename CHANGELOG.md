@@ -4,14 +4,17 @@ All notable changes to the "mongodb" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [0.6.0] - 2021-3-17
+## [0.6.0] - 2021-6-13
 
 ### Added
 
 - Added icons for time-series collections (VSCODE-263, #296)
+- Updated our mongosh dependency to 1.0.0 and MongoDB node driver to a fork of the 4.0.0 driver (VSCODE-264, #308)
+- Added support for load balanced connections (#311)
 
 ### Changed
 
+- Made mongosh the default shell when launching the shell from a saved connection (#306)
 - Updated how collections and databases are created to use playgrounds instead of vscode inputs (VSCODE-262, #294)
 - Updated how playgrounds are run to preserve focus on the editor when the results are shown (VSCODE-214, #290, #222)
 - Updated the Atlas terraform snippet (#297)
