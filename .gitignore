@@ -8,3 +8,4 @@ test-results.xml
 test-webview-results.xml
 constants.json
 .env
+.eslintcache

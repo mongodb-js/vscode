@@ -35,7 +35,7 @@
   "main": "./dist/extension.js",
   "scripts": {
     "clean": "rimraf ./out/* ./dist/* ",
-    "lint": "eslint '**/*.{js,ts,tsx}'",
+    "lint": "eslint --cache '**/*.{js,ts,tsx}'",
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
     "update-snippets": "ts-node ./scripts/update-snippets.ts",
     "precompile": "npm run clean",
