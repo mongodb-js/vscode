@@ -10,6 +10,8 @@ export type ConnectionModel = {
   port: number;
   driverUrl: string;
   driverUrlWithSsh: string;
+  ns: string;
+  mongodbDatabaseName: string;
   sshTunnel?: SSH_TUNNEL_TYPES;
   getAttributes(options: {
     derived?: boolean,

@@ -1,4 +1,6 @@
 import { EJSON } from 'bson';
+import { MongoClient } from 'mongodb';
+
 import { ConnectionOptions } from './connectionOptionsType';
 
 export type DataServiceType = {
@@ -37,5 +39,7 @@ export type DataServiceType = {
 
   instance(opts: any, callback: any): any;
 
-  client: any;
+  client: {
+    client: MongoClient
+  };
 };

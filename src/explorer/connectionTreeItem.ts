@@ -1,16 +1,42 @@
 import * as vscode from 'vscode';
-import path = require('path');
+import path from 'path';
+import { promisify } from 'util';
+import { isNotAuthorized } from 'mongodb-js-errors';
+import { ListDatabasesResult, MongoClient } from 'mongodb';
 
 import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
 import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
 
-enum ConnectionItemContextValues {
+export enum ConnectionItemContextValues {
   disconnected = 'disconnectedConnectionTreeItem',
   connected = 'connectedConnectionTreeItem',
 }
-export { ConnectionItemContextValues };
+
+function getDatabaseNamesFromPrivileges(
+  privileges: {
+    resource?: {
+      db?: string;
+    }
+  }[]
+): { name: string }[] {
+  return privileges
+    .filter((priv) => {
+      // Find all named databases in priv list.
+      return ((priv.resource || {}).db || '').length > 0;
+    })
+    .map((priv): string => {
+      // Return just the names.
+      return priv.resource!.db!;
+    })
+    .filter((db, idx, arr) => {
+      // Make sure the list is unique.
+      return arr.indexOf(db) === idx;
+    })
+    .sort()
+    .map((dbName: string) => ({ name: dbName }));
+}
 
 function getIconPath(isActiveConnection: boolean): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
@@ -81,21 +107,51 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     return element;
   }
 
-  async listDatabases(): Promise<any[]> {
+  async listDatabasesUserHasAccessTo(
+    dataService: MongoClient
+  ): Promise<ListDatabasesResult> {
+    const db = dataService.db();
+
+    const adminDb = db.databaseName === 'admin' ? db : db.admin();
+    const res = await adminDb.command({
+      connectionStatus: 1,
+      showPrivileges: 1
+    }, {
+      // `db.command` does not use the read preference set on the
+      // connection, so here we explicitly to specify it in the options.
+      readPreference: db.readPreference
+    });
+
+    const privileges = res.authInfo?.authenticatedUserPrivileges;
+    if (!privileges) {
+      return [];
+    }
+
+    return getDatabaseNamesFromPrivileges(privileges);
+  }
+
+  async listDatabases(): Promise<ListDatabasesResult> {
     const dataService = this._connectionController.getActiveDataService();
     if (dataService === null) {
       throw new Error('Not currently connected.');
     }
 
-    return new Promise((resolve, reject) => {
-      dataService.listDatabases((err: Error | undefined, databases: any[]) => {
-        if (err) {
-          return reject(new Error(`Unable to list databases: ${err.message}`));
-        }
+    try {
+      const runListDatabases = promisify(dataService.listDatabases.bind(dataService));
+      const dbs = await runListDatabases();
+      return dbs;
+    } catch (err) {
+      if (isNotAuthorized(err)) {
+        console.log('got auth error, try');
 
-        return resolve(databases);
-      });
-    });
+        // Check for which databases privilages this user has, and list those.
+        return this.listDatabasesUserHasAccessTo(dataService.client.client);
+      }
+      console.log('got error from list dbs', err);
+
+
+      throw new Error(`Unable to list databases: ${err.message}`);
+    }
   }
 
   async getChildren(): Promise<any[]> {
@@ -142,34 +198,35 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
     this.cacheIsUpToDate = true;
 
-    if (databases) {
-      const pastChildrenCache = this._childrenCache;
+    if (!databases) {
       this._childrenCache = {};
-
-      databases.forEach(({ name }: any) => {
-        if (pastChildrenCache[name]) {
-          // We create a new element here instead of reusing the cached one
-          // in order to ensure the expanded state is set.
-          this._childrenCache[name] = new DatabaseTreeItem(
-            name,
-            dataService,
-            pastChildrenCache[name].isExpanded,
-            pastChildrenCache[name].cacheIsUpToDate,
-            pastChildrenCache[name].getChildrenCache()
-          );
-        } else {
-          this._childrenCache[name] = new DatabaseTreeItem(
-            name,
-            dataService,
-            false, // Collapsed.
-            false, // Cache is not up to date (no cache).
-            {} // No existing cache.
-          );
-        }
-      });
-    } else {
-      this._childrenCache = {};
+      return [];
     }
+
+    const pastChildrenCache = this._childrenCache;
+    this._childrenCache = {};
+
+    databases.forEach(({ name }: any) => {
+      if (pastChildrenCache[name]) {
+        // We create a new element here instead of reusing the cached one
+        // in order to ensure the expanded state is set.
+        this._childrenCache[name] = new DatabaseTreeItem(
+          name,
+          dataService,
+          pastChildrenCache[name].isExpanded,
+          pastChildrenCache[name].cacheIsUpToDate,
+          pastChildrenCache[name].getChildrenCache()
+        );
+      } else {
+        this._childrenCache[name] = new DatabaseTreeItem(
+          name,
+          dataService,
+          false, // Collapsed.
+          false, // Cache is not up to date (no cache).
+          {} // No existing cache.
+        );
+      }
+    });
 
     return Object.values(this._childrenCache);
   }
