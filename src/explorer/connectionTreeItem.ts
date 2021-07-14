@@ -142,13 +142,9 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       return dbs;
     } catch (err) {
       if (isNotAuthorized(err)) {
-        console.log('got auth error, try');
-
         // Check for which databases privilages this user has, and list those.
         return this.listDatabasesUserHasAccessTo(dataService.client.client);
       }
-      console.log('got error from list dbs', err);
-
 
       throw new Error(`Unable to list databases: ${err.message}`);
     }
