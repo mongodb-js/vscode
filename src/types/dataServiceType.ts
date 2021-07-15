@@ -13,7 +13,10 @@ export type DataServiceType = {
   }
 
   listDatabases(
-    callback: (error: Error | undefined, databases: string[]) => void
+    callback: (
+      error: Error | undefined,
+      databases: { name: string }[]
+    ) => void
   ): void;
 
   createCollection(

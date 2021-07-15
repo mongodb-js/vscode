@@ -126,7 +126,7 @@ for (let i = 0; i < numberOfDocumentsToMock; i++) {
 
 class DataServiceStub {
   listDatabases(callback: any): void {
-    callback(null, mockDatabaseNames);
+    callback(null, mockDatabaseNames.map(dbName => ({ name: dbName })));
   }
 
   listCollections(databaseName: string, filter: object, callback: any): void {

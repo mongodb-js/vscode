@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import path from 'path';
 import { promisify } from 'util';
 import { isNotAuthorized } from 'mongodb-js-errors';
-import { ListDatabasesResult, MongoClient } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
@@ -14,13 +14,13 @@ export enum ConnectionItemContextValues {
   connected = 'connectedConnectionTreeItem',
 }
 
-function getDatabaseNamesFromPrivileges(
+export function getDatabaseNamesFromPrivileges(
   privileges: {
     resource?: {
       db?: string;
     }
   }[]
-): { name: string }[] {
+): string[] {
   return privileges
     .filter((priv) => {
       // Find all named databases in priv list.
@@ -34,8 +34,7 @@ function getDatabaseNamesFromPrivileges(
       // Make sure the list is unique.
       return arr.indexOf(db) === idx;
     })
-    .sort()
-    .map((dbName: string) => ({ name: dbName }));
+    .sort();
 }
 
 function getIconPath(isActiveConnection: boolean): { light: string; dark: string } {
@@ -109,7 +108,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
   async listDatabasesUserHasAccessTo(
     dataService: MongoClient
-  ): Promise<ListDatabasesResult> {
+  ): Promise<string[]> {
     const db = dataService.db();
 
     const adminDb = db.databaseName === 'admin' ? db : db.admin();
@@ -130,7 +129,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     return getDatabaseNamesFromPrivileges(privileges);
   }
 
-  async listDatabases(): Promise<ListDatabasesResult> {
+  async listDatabases(): Promise<string[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (dataService === null) {
       throw new Error('Not currently connected.');
@@ -139,7 +138,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     try {
       const runListDatabases = promisify(dataService.listDatabases.bind(dataService));
       const dbs = await runListDatabases();
-      return dbs;
+      return dbs.map(dbItem => dbItem.name);
     } catch (err) {
       if (isNotAuthorized(err)) {
         // Check for which databases privilages this user has, and list those.
@@ -202,7 +201,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     const pastChildrenCache = this._childrenCache;
     this._childrenCache = {};
 
-    databases.forEach(({ name }: any) => {
+    databases.forEach((name: string) => {
       if (pastChildrenCache[name]) {
         // We create a new element here instead of reusing the cached one
         // in order to ensure the expanded state is set.
