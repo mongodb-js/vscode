@@ -1,22 +1,22 @@
 import * as vscode from 'vscode';
-import { PlaygroundController } from '../../../editors';
-import { LanguageServerController } from '../../../language';
-import ConnectionController from '../../../connectionController';
-import { StatusView } from '../../../views';
-import { StorageController } from '../../../storage';
-import { TestExtensionContext, MockLanguageServerController } from '../stubs';
 import { before, beforeEach, afterEach } from 'mocha';
-import TelemetryService from '../../../telemetry/telemetryService';
-import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
+import chai from 'chai';
+import sinon from 'sinon';
+
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import PartialExecutionCodeLensProvider from '../../../editors/partialExecutionCodeLensProvider';
+import ConnectionController from '../../../connectionController';
+import { ConnectionModel } from '../../../types/connectionModelType';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { ExplorerController } from '../../../explorer';
-
-import sinon from 'sinon';
-import chai from 'chai';
+import { LanguageServerController } from '../../../language';
+import { PlaygroundController } from '../../../editors';
+import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
+import { StatusView } from '../../../views';
+import { StorageController } from '../../../storage';
+import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-import { ConnectionModel } from '../../../types/connectionModelType';
+import { TestExtensionContext, MockLanguageServerController } from '../stubs';
+
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
@@ -25,30 +25,6 @@ const CONNECTION = {
   driverUrlWithSsh: 'mongodb://localhost:27018',
   driverOptions: {}
 };
-
-const mockPlayground = 'use(\'dbName\');\n    a\n\n\n\ndb.find();';
-
-const activeTestEditorWithSelectionMock = {
-  document: {
-    languageId: 'mongodb',
-    uri: {
-      path: 'test'
-    } as vscode.Uri,
-    getText: (range: vscode.Range) => mockPlayground.split('\n')[range.start.line].substr(range.start.character, range.end.character),
-    lineAt: (lineNumber: number) => ({
-      text: mockPlayground.split('\n')[lineNumber]
-    }),
-    lineCount: mockPlayground.split('\n').length
-  },
-  selections: [
-    new vscode.Selection(
-      new vscode.Position(0, 5),
-      new vscode.Position(0, 11)
-    )
-  ],
-  edit: () => null
-} as unknown as vscode.TextEditor;
-
 
 suite('Playground Controller Test Suite', function () {
   this.timeout(5000);
@@ -82,7 +58,6 @@ suite('Playground Controller Test Suite', function () {
   const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
     testConnectionController
   );
-  const testPartialExecutionCodeLensProvider = new PartialExecutionCodeLensProvider();
   const testExplorerController = new ExplorerController(
     testConnectionController
   );
@@ -94,7 +69,6 @@ suite('Playground Controller Test Suite', function () {
     testStatusView,
     testPlaygroundResultProvider,
     testActiveDBCodeLensProvider,
-    testPartialExecutionCodeLensProvider,
     testExplorerController
   );
   const sandbox = sinon.createSandbox();
@@ -467,122 +441,6 @@ suite('Playground Controller Test Suite', function () {
         });
       });
 
-      test('do not show code lens if a part of a line with content is selected', () => {
-        testPlaygroundController._selectedText = 'db';
-        testPlaygroundController._activeTextEditor = activeTestEditorWithSelectionMock;
-
-        testPlaygroundController._showCodeLensForSelection(
-          [new vscode.Selection(
-            new vscode.Position(0, 5),
-            new vscode.Position(0, 11)
-          )],
-          activeTestEditorWithSelectionMock
-        );
-
-        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
-
-        expect(codeLens.length).to.be.equal(0);
-      });
-
-      test('do not show code lens when it has no content (multi-line)', () => {
-        testPlaygroundController._selectedText = '   \n\n ';
-        testPlaygroundController._activeTextEditor = activeTestEditorWithSelectionMock;
-
-        testPlaygroundController._showCodeLensForSelection(
-          [new vscode.Selection(
-            new vscode.Position(2, 0),
-            new vscode.Position(4, 0)
-          )],
-          activeTestEditorWithSelectionMock
-        );
-
-        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
-
-        expect(codeLens.length).to.be.equal(0);
-      });
-
-      test('show code lens if whole line is selected', () => {
-        testPlaygroundController._selectedText = 'use(\'dbName\');';
-        testPlaygroundController._showCodeLensForSelection(
-          [new vscode.Selection(
-            new vscode.Position(0, 0),
-            new vscode.Position(0, 15)
-          )],
-          activeTestEditorWithSelectionMock
-        );
-
-        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider.provideCodeLenses();
-
-        expect(codeLens.length).to.be.equal(1);
-        expect(codeLens[0].range.end.line).to.be.equal(1);
-      });
-
-      test('has the correct line number for code lens when the selection includes the last line', () => {
-        testPlaygroundController._selectedText = 'use(\'dbName\');\n\na';
-        const fakeEdit = sinon.fake.returns(() => ({ insert: sinon.fake() }));
-        sandbox.replace(
-          activeTestEditorWithSelectionMock,
-          'edit',
-          fakeEdit
-        );
-        testPlaygroundController._showCodeLensForSelection(
-          [new vscode.Selection(
-            new vscode.Position(0, 0),
-            new vscode.Position(5, 5)
-          )],
-          activeTestEditorWithSelectionMock
-        );
-
-        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider.provideCodeLenses();
-
-        expect(codeLens.length).to.be.equal(1);
-        expect(codeLens[0].range.start.line).to.be.equal(6);
-        expect(codeLens[0].range.end.line).to.be.equal(6);
-        expect(fakeEdit).to.be.called;
-      });
-
-      test('it calls to edit the document to add an empty line if the selection includes the last line with content', (done) => {
-        testPlaygroundController._selectedText = 'use(\'dbName\');\n\na';
-        sandbox.replace(
-          activeTestEditorWithSelectionMock,
-          'edit',
-          (cb) => {
-            cb({
-              insert: (position: vscode.Position, toInsert: string) => {
-                expect(position.line).to.equal(6);
-                expect(toInsert).to.equal('\n');
-                done();
-              }
-            } as unknown as vscode.TextEditorEdit);
-            return new Promise((resolve) => resolve(true));
-          }
-        );
-        testPlaygroundController._showCodeLensForSelection(
-          [new vscode.Selection(
-            new vscode.Position(0, 0),
-            new vscode.Position(5, 5)
-          )],
-          activeTestEditorWithSelectionMock
-        );
-      });
-
-      test('shows the codelens on the line above the last selected line when the last selected line is empty', () => {
-        testPlaygroundController._selectedText = 'use(\'dbName\');\n\n';
-        testPlaygroundController._showCodeLensForSelection(
-          [new vscode.Selection(
-            new vscode.Position(0, 0),
-            new vscode.Position(1, 3)
-          )],
-          activeTestEditorWithSelectionMock
-        );
-
-        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider.provideCodeLenses();
-
-        expect(codeLens.length).to.be.equal(1);
-        expect(codeLens[0].range.start.line).to.be.equal(2);
-        expect(codeLens[0].range.end.line).to.be.equal(2);
-      });
-
       test('playground controller loads the active editor on start', () => {
         sandbox.replaceGetter(
           vscode.window,
@@ -601,7 +459,6 @@ suite('Playground Controller Test Suite', function () {
           testStatusView,
           testPlaygroundResultProvider,
           testActiveDBCodeLensProvider,
-          testPartialExecutionCodeLensProvider,
           testExplorerController
         );
 
