@@ -968,7 +968,7 @@
     "webpack": "^4.46.0",
     "webpack-cli": "^3.3.11",
     "xvfb-maybe": "^0.2.1",
-    "yargs-parser": "^2.4.1"
+    "yargs-parser": "^5.0.1"
   },
   "precommit": [
     "check"
