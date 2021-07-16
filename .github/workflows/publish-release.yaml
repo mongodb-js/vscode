@@ -1,0 +1,41 @@
+name: Publish Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: ^12.9.0
+
+      - name: Install npm@7
+        run: npm install -g npm@7
+
+      - name: Download release assets
+        run: |
+          filename=$(basename -- "$ASSET_URL")
+          extension="${filename##*.}"
+
+          if [[ ! $extension != "vsix" ]]; then
+            echo "Wrong asset extension ${extension} in ${ASSET_URL}"
+            exit 1
+          else
+            curl "${ASSET_URL}" > ${filename}
+            ls -al ${filename}
+            echo "VSIX_PATH=${filename}" >> $GITHUB_ENV
+          fi
+        env:
+          ASSET_URL: ${{ github.event.release.assets[0].browser_download_url }}
+
+      - name: Publish to marketplace
+        run: |
+          echo "Publishing ${VSIX_PATH} to marketplace"
+          # npx vsce publish --packagePath ${VSIX_PATH}
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}

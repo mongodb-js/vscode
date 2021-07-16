@@ -1,15 +1,16 @@
-name: Check and Test
+name: Test and Build
 on:
   push:
     branches:
-      - master
       - main
+    tags:
+      - 'v*.*.*'
   pull_request:
   workflow_dispatch:
 
 jobs:
-  check-and-test:
-    name: Check and Test
+  test-and-build:
+    name: Test and Build
 
     strategy:
       matrix:
@@ -59,14 +60,23 @@ jobs:
         run: npm run test
         shell: bash
 
-      - name: Install vsce
-        run: npm i -g vsce
-        shell: bash
+      - name: Prepare build for release
+        run: |
+          export "RELEASE_TAG=${GITHUB_REF#refs/*/}"
+          export "RELEASE_VERSION=${RELEASE_TAG:1}"
+
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> $GITHUB_ENV
+
+          echo "See full release notes at: https://github.com/mongodb-js/vscode/releases/tag/${RELEASE_TAG}\n" > CHANGELOG.md
+          npx json -I -f package.json -e "this.version='${RELEASE_VERSION}'"
+          npx json -I -f package-lock.json -e "this.version='${RELEASE_VERSION}'"
+        if: startsWith(github.ref, 'refs/tags/')
 
       - name: Build .vsix
         env:
           NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
-        run: vsce package
+        run: npx vsce package
         shell: bash
 
       - name: Check .vsix filesize
@@ -78,3 +88,16 @@ jobs:
         with:
           name: VSIX built on ${{ runner.os }}
           path: "*.vsix"
+
+      - name: Create Draft Release
+        run: |
+          echo Creating draft release for: "${RELEASE_TAG}"
+          gh release create "${RELEASE_TAG}" \
+            --title "${RELEASE_VERSION}" \
+            --notes "Edit the release notes before publishing." \
+            --target main \
+            --draft \
+            *.vsxi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux' }}

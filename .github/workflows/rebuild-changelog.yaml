@@ -1,0 +1,58 @@
+name: Rebuild changelog
+
+on:
+  # Once a week or on release published
+  release:
+    types: [published]
+  schedule:
+    - cron: "0 3 * * 0"
+
+jobs:
+  rebuild-changelog:
+    name: Rebuild changelog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Git
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Update CHANGELOG.md
+        # List all the releases and rebuild
+        # the changelog with the last 30
+        # releases
+        # Use the `--limit` parameter in `gh release list`
+        # to tweak this number
+        run: |
+          echo "# Change Log" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+
+          gh release list | while read line; do
+            line=${line/Latest/" "}
+            tagName=$(echo $line | awk '{ print $2 }')
+            echo "line: $line --- tag: $tagName"
+
+            json=$(gh release view $tagName --json=name,publishedAt,url,body)
+            url=$(echo $json | jq -r .url)
+            name=$(echo $json | jq -r .name)
+            date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
+            body=$(echo $json | jq -r .body)
+            echo "## [$name]($url) - $date" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "$body" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit CHANGELOG.md changes
+        run: |
+          git add CHANGELOG.md
+          git commit --no-allow-empty -m "chore: update CHANGELOG.md" CHANGELOG.md || true
+      - name: Push updates
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
