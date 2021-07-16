@@ -1,5 +1,5 @@
-import assert from 'assert';
 import { beforeEach } from 'mocha';
+import chai from 'chai';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import CodeActionProvider from '../../../editors/codeActionProvider';
@@ -13,6 +13,8 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
+
+const expect = chai.expect;
 
 suite('Code Action Provider Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
@@ -66,14 +68,22 @@ suite('Code Action Provider Test Suite', () => {
     const testCodeActionProvider = new CodeActionProvider(testPlaygroundController);
     const codeActions = testCodeActionProvider.provideCodeActions();
 
-    assert(!codeActions);
+    expect(codeActions).to.be.undefined;
   });
 
   test('expected provideCodeActions to return a run selected playground blocks action', () => {
+    testPlaygroundController._selectedText = "use('test');";
+
     const testCodeActionProvider = new CodeActionProvider(testPlaygroundController);
     const codeActions = testCodeActionProvider.provideCodeActions();
 
-    assert(!!codeActions);
-    assert(codeActions.length === 1);
+    expect(codeActions).to.exist;
+
+    if (codeActions) {
+      expect(codeActions.length).to.be.equal(1);
+      const actionCommand = codeActions[0].command;
+      expect(actionCommand?.command).to.be.equal('mdb.runSelectedPlaygroundBlocks');
+      expect(actionCommand?.title).to.be.equal('Run selected playground blocks');
+    }
   });
 });
