@@ -1,4 +1,6 @@
 import { EJSON } from 'bson';
+import { MongoClient } from 'mongodb';
+
 import { ConnectionOptions } from './connectionOptionsType';
 
 export type DataServiceType = {
@@ -11,7 +13,10 @@ export type DataServiceType = {
   }
 
   listDatabases(
-    callback: (error: Error | undefined, databases: string[]) => void
+    callback: (
+      error: Error | undefined,
+      databases: { name: string }[]
+    ) => void
   ): void;
 
   createCollection(
@@ -37,5 +42,7 @@ export type DataServiceType = {
 
   instance(opts: any, callback: any): any;
 
-  client: any;
+  client: {
+    client: MongoClient
+  };
 };
