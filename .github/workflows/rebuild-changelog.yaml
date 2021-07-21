@@ -33,16 +33,19 @@ jobs:
             tagName=$(echo $line | awk '{ print $2 }')
             echo "line: $line --- tag: $tagName"
 
-            json=$(gh release view $tagName --json=name,publishedAt,url,body)
-            url=$(echo $json | jq -r .url)
-            name=$(echo $json | jq -r .name)
-            date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
-            body=$(echo $json | jq -r .body)
-            echo "## [$name]($url) - $date" >> CHANGELOG.md
-            echo "" >> CHANGELOG.md
-            echo "$body" >> CHANGELOG.md
-            echo "" >> CHANGELOG.md
-            echo "" >> CHANGELOG.md
+            if [ "$tagName" != "Pre-release" ] && [ "$tagName" != "Preview" ]; then
+
+              json=$(gh release view $tagName --json=name,publishedAt,url,body)
+              url=$(echo $json | jq -r .url)
+              name=$(echo $json | jq -r .name)
+              date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
+              body=$(echo $json | jq -r .body)
+              echo "## [$name]($url) - $date" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+              echo "$body" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+            fi
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

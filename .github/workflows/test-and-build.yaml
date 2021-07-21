@@ -71,7 +71,7 @@ jobs:
           echo "See full release notes at: https://github.com/mongodb-js/vscode/releases/tag/${RELEASE_TAG}\n" > CHANGELOG.md
           npx json -I -f package.json -e "this.version='${RELEASE_VERSION}'"
           npx json -I -f package-lock.json -e "this.version='${RELEASE_VERSION}'"
-        if: startsWith(github.ref, 'refs/tags/')
+        if: ${{ startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux' }}
 
       - name: Build .vsix
         env:
@@ -93,7 +93,7 @@ jobs:
         run: |
           echo Creating draft release for: "${RELEASE_TAG}"
           gh release create "${RELEASE_TAG}" \
-            --title "${RELEASE_VERSION}" \
+            --title "v${RELEASE_VERSION}" \
             --notes "Edit the release notes before publishing." \
             --target main \
             --draft \

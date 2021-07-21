@@ -22,7 +22,7 @@ jobs:
           filename=$(basename -- "$ASSET_URL")
           extension="${filename##*.}"
 
-          if [[ ! $extension != "vsix" ]]; then
+          if [[ $extension != "vsix" ]]; then
             echo "Wrong asset extension ${extension} in ${ASSET_URL}"
             exit 1
           else
