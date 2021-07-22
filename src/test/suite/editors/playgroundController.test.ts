@@ -26,6 +26,30 @@ const CONNECTION = {
   driverOptions: {}
 };
 
+const mockPlayground = 'use(\'dbName\');\n    a\n\n\n\ndb.find();';
+
+const activeTestEditorWithSelectionMock = {
+  document: {
+    languageId: 'mongodb',
+    uri: {
+      path: 'test'
+    } as vscode.Uri,
+    getText: (range: vscode.Range) => mockPlayground.split('\n')[range.start.line].substr(range.start.character, range.end.character),
+    lineAt: (lineNumber: number) => ({
+      text: mockPlayground.split('\n')[lineNumber]
+    }),
+    lineCount: mockPlayground.split('\n').length
+  },
+  selections: [
+    new vscode.Selection(
+      new vscode.Position(0, 5),
+      new vscode.Position(0, 11)
+    )
+  ],
+  edit: () => null
+} as unknown as vscode.TextEditor;
+
+
 suite('Playground Controller Test Suite', function () {
   this.timeout(5000);
 
@@ -443,43 +467,120 @@ suite('Playground Controller Test Suite', function () {
         });
       });
 
-      test('do not show code lens if a part of a line is selected', () => {
-        const activeTestEditorWithSelectionMock: unknown = {
-          document: {
-            languageId: 'mongodb',
-            uri: {
-              path: 'test'
-            },
-            getText: () => 'dbName',
-            lineAt: sinon.fake.returns({ text: "use('dbName');" })
-          },
-          selections: [
-            new vscode.Selection(
-              new vscode.Position(0, 5),
-              new vscode.Position(0, 11)
-            )
-          ]
-        };
-
-        testPlaygroundController._activeTextEditor = activeTestEditorWithSelectionMock as vscode.TextEditor;
+      test('do not show code lens if a part of a line with content is selected', () => {
+        testPlaygroundController._selectedText = 'db';
+        testPlaygroundController._activeTextEditor = activeTestEditorWithSelectionMock;
 
         testPlaygroundController._showCodeLensForSelection(
-          new vscode.Range(0, 5, 0, 11)
+          [new vscode.Selection(
+            new vscode.Position(0, 5),
+            new vscode.Position(0, 11)
+          )],
+          activeTestEditorWithSelectionMock
         );
 
         const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
 
-        expect(codeLens?.length).to.be.equal(0);
+        expect(codeLens.length).to.be.equal(0);
+      });
+
+      test('do not show code lens when it has no content (multi-line)', () => {
+        testPlaygroundController._selectedText = '   \n\n ';
+        testPlaygroundController._activeTextEditor = activeTestEditorWithSelectionMock;
+
+        testPlaygroundController._showCodeLensForSelection(
+          [new vscode.Selection(
+            new vscode.Position(2, 0),
+            new vscode.Position(4, 0)
+          )],
+          activeTestEditorWithSelectionMock
+        );
+
+        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
+
+        expect(codeLens.length).to.be.equal(0);
       });
 
       test('show code lens if whole line is selected', () => {
+        testPlaygroundController._selectedText = 'use(\'dbName\');';
         testPlaygroundController._showCodeLensForSelection(
-          new vscode.Range(0, 0, 0, 14)
+          [new vscode.Selection(
+            new vscode.Position(0, 0),
+            new vscode.Position(0, 15)
+          )],
+          activeTestEditorWithSelectionMock
         );
 
-        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider?.provideCodeLenses();
+        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider.provideCodeLenses();
 
-        expect(codeLens?.length).to.be.equal(1);
+        expect(codeLens.length).to.be.equal(1);
+        expect(codeLens[0].range.end.line).to.be.equal(1);
+      });
+
+      test('has the correct line number for code lens when the selection includes the last line', () => {
+        testPlaygroundController._selectedText = 'use(\'dbName\');\n\na';
+        const fakeEdit = sinon.fake.returns(() => ({ insert: sinon.fake() }));
+        sandbox.replace(
+          activeTestEditorWithSelectionMock,
+          'edit',
+          fakeEdit
+        );
+        testPlaygroundController._showCodeLensForSelection(
+          [new vscode.Selection(
+            new vscode.Position(0, 0),
+            new vscode.Position(5, 5)
+          )],
+          activeTestEditorWithSelectionMock
+        );
+
+        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider.provideCodeLenses();
+
+        expect(codeLens.length).to.be.equal(1);
+        expect(codeLens[0].range.start.line).to.be.equal(6);
+        expect(codeLens[0].range.end.line).to.be.equal(6);
+        expect(fakeEdit).to.be.called;
+      });
+
+      test('it calls to edit the document to add an empty line if the selection includes the last line with content', (done) => {
+        testPlaygroundController._selectedText = 'use(\'dbName\');\n\na';
+        sandbox.replace(
+          activeTestEditorWithSelectionMock,
+          'edit',
+          (cb) => {
+            cb({
+              insert: (position: vscode.Position, toInsert: string) => {
+                expect(position.line).to.equal(6);
+                expect(toInsert).to.equal('\n');
+                done();
+              }
+            } as unknown as vscode.TextEditorEdit);
+            return new Promise((resolve) => resolve(true));
+          }
+        );
+        testPlaygroundController._showCodeLensForSelection(
+          [new vscode.Selection(
+            new vscode.Position(0, 0),
+            new vscode.Position(5, 5)
+          )],
+          activeTestEditorWithSelectionMock
+        );
+      });
+
+      test('shows the codelens on the line above the last selected line when the last selected line is empty', () => {
+        testPlaygroundController._selectedText = 'use(\'dbName\');\n\n';
+        testPlaygroundController._showCodeLensForSelection(
+          [new vscode.Selection(
+            new vscode.Position(0, 0),
+            new vscode.Position(1, 3)
+          )],
+          activeTestEditorWithSelectionMock
+        );
+
+        const codeLens = testPlaygroundController._partialExecutionCodeLensProvider.provideCodeLenses();
+
+        expect(codeLens.length).to.be.equal(1);
+        expect(codeLens[0].range.start.line).to.be.equal(2);
+        expect(codeLens[0].range.end.line).to.be.equal(2);
       });
 
       test('playground controller loads the active editor on start', () => {

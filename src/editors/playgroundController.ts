@@ -9,7 +9,10 @@ import { createLogger } from '../logging';
 import { ExplorerController, ConnectionTreeItem, DatabaseTreeItem } from '../explorer';
 import { LanguageServerController } from '../language';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
-import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
+import PartialExecutionCodeLensProvider, {
+  isSelectionValidForCodeLens,
+  getCodeLensLineOffsetForSelection
+} from './partialExecutionCodeLensProvider';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCreateCollectionWithTSTemplate from '../templates/playgroundCreateCollectionWithTSTemplate';
@@ -125,47 +128,66 @@ export default class PlaygroundController {
     onDidChangeActiveTextEditor(vscode.window.activeTextEditor);
 
     vscode.window.onDidChangeTextEditorSelection(
-      (editor: vscode.TextEditorSelectionChangeEvent) => {
+      (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
         if (
-          editor &&
-          editor.textEditor &&
-          editor.textEditor.document &&
-          editor.textEditor.document.languageId === 'mongodb'
+          changeEvent?.textEditor?.document?.languageId === 'mongodb'
         ) {
-          this._selectedText = (editor.selections as Array<vscode.Selection>)
-            .sort((a, b) => (a.start.line > b.start.line ? 1 : -1)) // Sort lines selected as alt+click.
-            .map((item, index) => {
-              if (index === editor.selections.length - 1) {
-                this._showCodeLensForSelection(item);
-              }
+          // Sort lines selected as the may be mis-ordered from alt+click.
+          const sortedSelections = (changeEvent.selections as Array<vscode.Selection>)
+            .sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
 
-              return this._getSelectedText(item);
-            })
+          this._selectedText = sortedSelections
+            .map((selection) => this._getSelectedText(selection))
             .join('\n');
+
+          this._showCodeLensForSelection(
+            sortedSelections,
+            changeEvent.textEditor
+          );
         }
       }
     );
   }
 
-  _showCodeLensForSelection(item: vscode.Range): void {
-    const selectedText = this._getSelectedText(item).trim();
-    const lastSelectedLine =
-      this._activeTextEditor?.document.lineAt(item.end.line).text.trim() || '';
-    const selections = this._activeTextEditor?.selections.sort((a, b) =>
-      a.start.line > b.start.line ? 1 : -1
-    );
-    const firstLine = selections ? selections[0].start.line : 0;
-
-    if (
-      selectedText.length > 0 &&
-      selectedText.length >= lastSelectedLine.length
-    ) {
-      this._partialExecutionCodeLensProvider.refresh(
-        new vscode.Range(firstLine, 0, firstLine, 0)
-      );
-    } else {
+  _showCodeLensForSelection(
+    selections: vscode.Selection[],
+    editor: vscode.TextEditor
+  ): void {
+    if (!this._selectedText || this._selectedText.trim().length === 0) {
       this._partialExecutionCodeLensProvider.refresh();
+      return;
     }
+
+    if (!isSelectionValidForCodeLens(selections, editor.document)) {
+      this._partialExecutionCodeLensProvider.refresh();
+      return;
+    }
+
+    const lastSelection = selections[selections.length - 1];
+    const lastSelectedLineNumber = lastSelection.end.line;
+    const lastSelectedLineContent = editor.document.lineAt(lastSelectedLineNumber).text || '';
+    // Add an empty line to the end of the file when the selection includes
+    // the last line and it is not empty.
+    // We do this so that we can show the code lens after the line's contents.
+    if (
+      lastSelection.end.line === editor.document.lineCount - 1 &&
+      lastSelectedLineContent.trim().length > 0
+    ) {
+      editor.edit(edit => {
+        edit.insert(
+          new vscode.Position(lastSelection.end.line + 1, 0),
+          '\n'
+        );
+      });
+    }
+
+    const codeLensLineOffset = getCodeLensLineOffsetForSelection(selections, editor);
+    this._partialExecutionCodeLensProvider.refresh(
+      new vscode.Range(
+        lastSelectedLineNumber + codeLensLineOffset, 0,
+        lastSelectedLineNumber + codeLensLineOffset, 0
+      )
+    );
   }
 
   _disconnectFromServiceProvider(): void {
