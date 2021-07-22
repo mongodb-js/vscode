@@ -28,24 +28,21 @@ jobs:
           echo "# Change Log" > CHANGELOG.md
           echo "" >> CHANGELOG.md
 
-          gh release list | while read line; do
-            line=${line/Latest/" "}
-            tagName=$(echo $line | awk '{ print $2 }')
-            echo "line: $line --- tag: $tagName"
+          tags=$(gh api repos/mongodb-js/vscode/releases | jq -r .[].tag_name | grep -v internal | grep -v pre | grep -v beta)
 
-            if [ "$tagName" != "Pre-release" ] && [ "$tagName" != "Preview" ]; then
+          # NOTE: here the quotes around $tags are necessary
+          echo "$tags" | while read tagName; do
 
-              json=$(gh release view $tagName --json=name,publishedAt,url,body)
-              url=$(echo $json | jq -r .url)
-              name=$(echo $json | jq -r .name)
-              date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
-              body=$(echo $json | jq -r .body)
-              echo "## [$name]($url) - $date" >> CHANGELOG.md
-              echo "" >> CHANGELOG.md
-              echo "$body" >> CHANGELOG.md
-              echo "" >> CHANGELOG.md
-              echo "" >> CHANGELOG.md
-            fi
+            json=$(gh release view $tagName --json=name,publishedAt,url,body)
+            url=$(echo $json | jq -r .url)
+            name=$(echo $json | jq -r .name)
+            date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
+            body=$(echo $json | jq -r .body)
+            echo "## [$name]($url) - $date" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "$body" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
