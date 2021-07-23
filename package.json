@@ -62,7 +62,7 @@
   },
   "engines": {
     "vscode": "^1.49.0",
-    "node": "^12.4.0",
+    "node": "^14.17.3",
     "npm": "^7.19.0"
   },
   "activationEvents": [
