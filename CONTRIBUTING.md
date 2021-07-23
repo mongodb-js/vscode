@@ -54,11 +54,11 @@ The MongoDB VSCode extension is not released on a set schedule. A new version is
 Releases are automated using github actions, and published to the VSCode marketplace using a Personal Access Token (PAT).
 
 1. To kick off a release run `npm run release-draft *.*.*|major|minor|patch` on the main branch. This will run the [release draft script](https://github.com/mongodb-js/vscode/blob/main/scripts/release-draft.js) which creates a new tag for the release.
-1. When that tag has been created, the GitHub action for building the extension is automatically started: https://github.com/mongodb-js/vscode/blob/main/.github/workflows/test-and-build.yaml This creates the `.vsix` artifact for that release version and creates a draft GitHub release, with the .vsix artifact attached. At this point you can look in https://github.com/mongodb-js/vscode/releases and see the draft release.
+1. When that tag has been created, a GitHub action for building the extension is automatically started: https://github.com/mongodb-js/vscode/blob/main/.github/workflows/test-and-build.yaml This creates the `.vsix` artifact for that release version and creates a draft GitHub release, with the .vsix artifact attached. At this point you can look in https://github.com/mongodb-js/vscode/releases and see the draft release.
 1. Now is a good time to download the built artifact and ensure it works smoothly.
 1. Update the [release notes](https://github.com/mongodb-js/vscode/releases) in github, documenting user facing changes. Once you’re happy with the changes you can publish the release.
 1. When the release is published, the GitHub action https://github.com/mongodb-js/vscode/blob/main/.github/workflows/publish-release.yaml is automatically run, which downloads the release artifact and then publishes it to the VSCode marketplace.
-1. Nice! Now you can verify it all completed by visiting https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode and seeing the new version is up. You also try installing it in VSCode :)
+1. Nice! ✨ Now you can verify it all completed by visiting https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode and seeing the new version is up. You also try installing it in VSCode :) ✨
 
 For additional information and reading, VSCode has some great documentation on publishing extensions:
 https://code.visualstudio.com/api/working-with-extensions/publishing-extension
