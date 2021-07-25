@@ -1,10 +1,6 @@
 # Change Log
 
-All notable changes to the "mongodb" extension will be documented in this file.
-
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [0.6.0] - 2021-6-13
+## [v0.6.0](https://github.com/mongodb-js/vscode/releases/tag/v0.6.0) - 2021-07-13
 
 ### Added
 
@@ -25,7 +21,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Fixed showing an error when large files are shown in vscode which have tokenization disabled (VSCODE-250, #290)
 - Fixed showing recently dropped collections and databases in the explorer (VSCODE-244, #288)
 
-## [0.5.0] - 2021-3-10
+
+## [v0.5.0](https://github.com/mongodb-js/vscode/releases/tag/v0.5.0) - 2021-03-10
 
 ### Added
 
@@ -35,7 +32,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Fix launching mongodb shell with ssl in bash (VSCODE-227, #270)
 
-## [0.4.2] - 2021-2-17
+
+## [v0.4.2](https://github.com/mongodb-js/vscode/releases/tag/v0.4.2) - 2021-02-17
 
 ### Added
 
@@ -45,7 +43,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Updated the Atlas link to have https (#259)
 
-## [0.4.1] - 2021-2-10
+
+## [v0.4.1](https://github.com/mongodb-js/vscode/releases/tag/v0.4.1) - 2021-02-10
 
 ### Changed
 
@@ -56,7 +55,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Fixed an issue with playground connectivity not defaulting the `directConnection` option to true (VSCODE-234, #255)
 - Fixed an issue around showing an error while editing a playground file without an active MongoDB connection (VSCODE-231, #251)
 
-## [0.4.0] - 2021-1-25
+
+## [v0.4.0](https://github.com/mongodb-js/vscode/releases/tag/v0.4.0) - 2021-01-25
 
 ### Added
 
@@ -77,7 +77,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Fixed playground log output panel to not display when a playground is open and when a playground is run and there was no log output (#234)
 - Fixed code lenses for partial playground executions sometimes being missing (VSCODE-226, #243)
 
-## [0.3.0] - 2020-11-24
+
+## [v0.3.0](https://github.com/mongodb-js/vscode/releases/tag/v0.3.0) - 2020-11-24
 
 ### Added
 
@@ -92,11 +93,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Connection form shows in modal in overview page (VSCODE-173, #190)
 - Index creation template now uses `createIndex` instead of `ensureIndex` (#205)
 
-### Removed
-
-- Removed custom font in overview page (#192)
-- Removed sql pipeline stage operator (#211)
-
 ### Fixed
 
 - Fix x509 username being required in connection string building and parsing (VSCODE-202, #203)
@@ -105,7 +101,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Fix opening mongodb shell on windows with an ssl file with a space in it (#201)
 - Fix password encoding of connection strings when copying connection string and opening in mongodb shell (VSCODE-198, #207)
 
-## [0.2.1] - 2020-10-20
+### Removed
+
+- Removed custom font in overview page (#192)
+- Removed sql pipeline stage operator (#211)
+
+
+## [v0.2.1](https://github.com/mongodb-js/vscode/releases/tag/0.2.1) - 2020-10-20
 
 ### Added
 
@@ -113,24 +115,21 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Added an overview page (more to come on this in future versions) [#178](https://github.com/mongodb-js/vscode/pull/178)
 - Added a tooltip to fields in a collection's schema to show types found in the sampling for that field [#179](https://github.com/mongodb-js/vscode/pull/179)
 
-## [0.2.0] - 2020-10-1
+
+## [v0.2.0](https://github.com/mongodb-js/vscode/releases/tag/v0.2.0) - 2020-10-01
 
 ### Added
-
 - Added a Playgrounds panel that displays `.mongodb` playground files in the current VSCode workspace
 - Added a setting to configure which folders and files are excluded from the playgrounds panel file searching
 - Added a help and resources panel to the explorer with links to documentation and feedback portals
 - Added a button to the indexes folder in the tree view which creates a playground prefilled with an index creation script
-
 ### Changed
-
 - Updated our mongosh dependency to 0.4.2 to bring more functionality to playgrounds
-
 ### Fixed
-
 - Fixed indexes expanded state caching in the connection explorer panel tree view
 
-## [0.1.1] - 2020-08-10
+
+## [v0.1.1](https://github.com/mongodb-js/vscode/releases/tag/v0.1.1) - 2020-08-10
 
 ### Added
 
@@ -144,7 +143,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Allow connecting to a new connection while already connecting to another connection
 - Allow removing a new connection while it is connecting
 
-## [0.1.0] - 2020-07-15
+
+## [v0.1.0](https://github.com/mongodb-js/vscode/releases/tag/v0.1.0) - 2020-07-16
 
 ### Added
 
@@ -156,7 +156,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Fixed an issue with the launch shell command in powershell
 - Fixed an issue with the tree explorer freezing when double clicking an open schema
 
-## [0.0.4] - 2020-06-16
+
+## [v0.0.4](https://github.com/mongodb-js/vscode/releases/tag/v0.0.4) - 2020-06-17
 
 ### Added
 
@@ -173,7 +174,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - Connections in the tree view are now alphabetically sorted
 
-## [0.0.3] - 2020-05-26
+
+## [v0.0.3](https://github.com/mongodb-js/vscode/releases/tag/v0.0.3) - 2020-05-26
 
 ### Added
 
@@ -186,23 +188,17 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Fixed a connectivity issue with playgrounds and SSH connections
 - Fixed an issue with having a babel config in a workspace root
 
-### Changed
 
-- README copy tweaks.
+## [v0.0.2](https://github.com/mongodb-js/vscode/releases/tag/v0.0.2) - 2020-05-13
 
-## [0.0.2] - 2020-05-13
+This is the marketplace preview release of MongoDB for VS Code.
 
-### Changed
+* MongoDB data explorer
+* MongoDB Playgrounds
+* Quick access to the MongoDB Shell
 
-- Marketplace preview release
-- Marketplace README copy tweaks
+Take a look at [README.md](https://github.com/mongodb-js/vscode/blob/master/README.md) for an overview of the features.
 
-## [0.0.1] - 2020-04-20
+This release can be found on the VS Code marketplace: https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode
 
-- Internal preview release
 
-### Added
-
-- MongoDB data explorer
-- MongoDB Playgrounds
-- Quick access to the MongoDB Shell
