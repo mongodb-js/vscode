@@ -1,8 +1,6 @@
 # Change Log
 
-## [v0.6.3](https://github.com/mongodb-js/vscode/releases/tag/v0.6.3) - 2021-07-26
-
-*TEST RELEASE UNPUBLISHED*
+## [v0.6.4](https://github.com/mongodb-js/vscode/releases/tag/v0.6.4) - 2021-07-26
 
 ### Added
 
@@ -11,7 +9,7 @@
 ### Changed
 
 - Updated code lenses in playgrounds to now appear at the end of a selection for partially running (#324)
-- Update our CI release pipeline - this is the first automated release :)
+- Update our CI release pipeline - this is the first automated release ✨ 
 
 
 ## [v0.6.0](https://github.com/mongodb-js/vscode/releases/tag/v0.6.0) - 2021-07-13
