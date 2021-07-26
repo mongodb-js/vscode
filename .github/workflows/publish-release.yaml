@@ -17,6 +17,9 @@ jobs:
       - name: Install npm@7
         run: npm install -g npm@7
 
+      - name: Install VSCode publishing dependencies
+        run: npm install -g vsce
+
       - name: Download release assets
         run: |
           filename=$(basename -- "$ASSET_URL")
@@ -36,6 +39,6 @@ jobs:
       - name: Publish to marketplace
         run: |
           echo "Publishing ${VSIX_PATH} to marketplace"
-          npx vsce publish --packagePath ${VSIX_PATH}
+          npx vsce publish --packagePath "${VSIX_PATH}"
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
