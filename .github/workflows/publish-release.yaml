@@ -29,7 +29,7 @@ jobs:
             echo "Wrong asset extension ${extension} in ${ASSET_URL}"
             exit 1
           else
-            curl "${ASSET_URL}" > ${filename}
+            wget -O ${filename} "${ASSET_URL}"
             ls -al ${filename}
             echo "VSIX_PATH=${filename}" >> $GITHUB_ENV
           fi
