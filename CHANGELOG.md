@@ -209,8 +209,7 @@ This is the marketplace preview release of MongoDB for VS Code.
 * MongoDB Playgrounds
 * Quick access to the MongoDB Shell
 
-Take a look at [README.md](https://github.com/mongodb-js/vscode/blob/main/README.md) for an overview of the features.
+Take a look at [README.md](https://github.com/mongodb-js/vscode/blob/master/README.md) for an overview of the features.
 
 This release can be found on the VS Code marketplace: https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode
-
 
