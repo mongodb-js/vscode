@@ -230,7 +230,7 @@ export default class TelemetryService {
 
     const shellApiType = res.result.type.toLocaleLowerCase();
 
-    // See: https://github.com/mongodb-js/mongosh/blob/master/packages/shell-api/src/shell-api.js
+    // See: https://github.com/mongodb-js/mongosh/blob/main/packages/shell-api/src/shell-api.js
     if (shellApiType.includes('insert')) {
       return 'insert';
     }

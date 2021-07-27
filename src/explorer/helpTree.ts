@@ -68,7 +68,7 @@ export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem
     if (!element) {
       const whatsNew = new HelpLinkTreeItem(
         'What\'s New',
-        'https://github.com/mongodb-js/vscode/blob/master/CHANGELOG.md',
+        'https://github.com/mongodb-js/vscode/blob/main/CHANGELOG.md',
         'whatsNew',
         'megaphone'
       );
