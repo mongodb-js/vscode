@@ -1,6 +1,6 @@
 # Change Log
 
-## [v0.6.7](https://github.com/mongodb-js/vscode/releases/tag/v0.6.7) - 2021-07-27
+## [v0.6.8](https://github.com/mongodb-js/vscode/releases/tag/v0.6.8) - 2021-07-27
 
 ### Added
 
