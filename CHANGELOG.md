@@ -9,7 +9,7 @@
 ### Changed
 
 - Updated code lenses in playgrounds to now appear at the end of a selection for partially running (#324)
-- Update our CI release pipeline - this is the first automated release ✨ 
+- Update our CI release pipeline - this is the first automated release ✨
 
 
 ## [v0.6.0](https://github.com/mongodb-js/vscode/releases/tag/v0.6.0) - 2021-07-13
@@ -209,7 +209,7 @@ This is the marketplace preview release of MongoDB for VS Code.
 * MongoDB Playgrounds
 * Quick access to the MongoDB Shell
 
-Take a look at [README.md](https://github.com/mongodb-js/vscode/blob/master/README.md) for an overview of the features.
+Take a look at [README.md](https://github.com/mongodb-js/vscode/blob/main/README.md) for an overview of the features.
 
 This release can be found on the VS Code marketplace: https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode
 

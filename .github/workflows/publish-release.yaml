@@ -39,6 +39,6 @@ jobs:
       - name: Publish to marketplace
         run: |
           echo "Publishing ${VSIX_PATH} to marketplace"
-          npx vsce publish --packagePath "${VSIX_PATH}" -p ${VSCE_PAT}
+          npx vsce publish --packagePath "${VSIX_PATH}" --githubBranch main
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
