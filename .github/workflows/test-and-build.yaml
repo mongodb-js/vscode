@@ -77,7 +77,7 @@ jobs:
       - name: Build .vsix
         env:
           NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
-        run: npx vsce package
+        run: npx vsce package --githubBranch main
         shell: bash
 
       - name: Check .vsix filesize
