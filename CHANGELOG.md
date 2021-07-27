@@ -1,5 +1,13 @@
 # Change Log
 
+## [v0.6.10](https://github.com/mongodb-js/vscode/releases/tag/v0.6.10) - 2021-07-27
+
+### Fixed
+
+- Removed extra newline character at the end of the link in the generated changelog (VSCODE-282, #332)
+- Fixed image location referencing an incorrect branch in the generated VSCode marketplace README (VSCODE-281, #333)
+
+
 ## [v0.6.9](https://github.com/mongodb-js/vscode/releases/tag/v0.6.9) - 2021-07-27
 
 ### Fixed
