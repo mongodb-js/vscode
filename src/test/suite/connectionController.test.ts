@@ -26,8 +26,7 @@ const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
 const sleep = (ms: number): Promise<void> => {
-  const setTimeoutPromise = promisify(setTimeout);
-  return setTimeoutPromise(ms);
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 const getConnection = (dbUri): Promise<ConnectionModel> => {
