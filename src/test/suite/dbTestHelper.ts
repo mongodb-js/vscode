@@ -1,3 +1,5 @@
+import { promisify } from 'util';
+
 import Connection = require('mongodb-connection-model/lib/model');
 import DataService = require('mongodb-data-service');
 
@@ -70,23 +72,13 @@ export const seedDataAndCreateDataService = (
   });
 };
 
-export const cleanupTestDB = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const newConnection = new DataService(testDatabaseConnectionModel);
-    newConnection.connect((connectError: Error | undefined) => {
-      if (connectError) {
-        return reject(connectError);
-      }
+export const cleanupTestDB = async (): Promise<void> => {
+  const newConnection = new DataService(testDatabaseConnectionModel);
+  const connect = promisify(newConnection.connect.bind(newConnection));
+  const dropDatabase = promisify(newConnection.dropDatabase.bind(newConnection));
+  const disconnect = promisify(newConnection.disconnect.bind(newConnection));
 
-      newConnection.dropDatabase(
-        TEST_DB_NAME,
-        (dropError: Error | undefined) => {
-          if (dropError) {
-            return reject(dropError);
-          }
-          newConnection.disconnect(() => resolve());
-        }
-      );
-    });
-  });
+  await connect();
+  await dropDatabase(TEST_DB_NAME);
+  await disconnect();
 };
