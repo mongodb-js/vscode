@@ -223,7 +223,7 @@ class MockLanguageServerController {
     this._isExecutingInProgress = false;
   }
 
-  async startLanguageServer(): Promise<void> {
+  startLanguageServer(): Promise<void> {
     return Promise.resolve();
   }
 
@@ -231,14 +231,14 @@ class MockLanguageServerController {
     return;
   }
 
-  async executeAll(/* codeToEvaluate: string*/): Promise<ShellExecuteAllResult> {
+  executeAll(/* codeToEvaluate: string*/): Promise<ShellExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
       result: { namespace: null, type: null, content: 'Result' }
     });
   }
 
-  async connectToServiceProvider(/* params: {
+  connectToServiceProvider(/* params: {
     connectionString?: string;
     connectionOptions?: any;
     extensionPath: string;
@@ -246,7 +246,7 @@ class MockLanguageServerController {
     return Promise.resolve();
   }
 
-  async disconnectFromServiceProvider(): Promise<void> {
+  disconnectFromServiceProvider(): Promise<void> {
     return Promise.resolve();
   }
 

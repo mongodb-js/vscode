@@ -226,6 +226,8 @@ suite('SchemaTreeItem Test Suite', function () {
   });
 
   suite('Live Database Tests', () => {
+    this.timeout(5000);
+
     afterEach(async () => {
       await cleanupTestDB();
     });

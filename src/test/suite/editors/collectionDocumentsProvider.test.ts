@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import assert from 'assert';
 import sinon from 'sinon';
+import { promisify } from 'util';
 
 import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
@@ -17,16 +18,10 @@ import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext, mockTextEditor } from '../stubs';
 
-const getConnection = (dbUri): Promise<ConnectionModel> =>
-  new Promise((resolve, reject) => {
-    Connection.from(dbUri, (err, connectionModel) => {
-      if (err) {
-        return reject(err);
-      }
-
-      return resolve(connectionModel);
-    });
-  });
+const getConnection = (dbUri): Promise<ConnectionModel> => {
+  const connectionFrom = promisify(Connection.from.bind(Connection));
+  return connectionFrom(dbUri);
+};
 
 const mockDocumentsAsJsonString = `[
   {

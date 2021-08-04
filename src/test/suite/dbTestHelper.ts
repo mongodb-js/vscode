@@ -1,3 +1,5 @@
+import { promisify } from 'util';
+
 import Connection = require('mongodb-connection-model/lib/model');
 import DataService = require('mongodb-data-service');
 
@@ -12,81 +14,45 @@ export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 let testDatabaseConnectionModel;
 
 // Note: Be sure to disconnect from the dataservice to free up connections.
-export const seedDataAndCreateDataService = (
+export const seedDataAndCreateDataService = async (
   collectionName: string,
   documentsArray: any[]
-): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    if (testDatabaseConnectionModel) {
-      const newConnection = new DataService(testDatabaseConnectionModel);
-      newConnection.connect((connectError: Error | undefined) => {
-        if (connectError) {
-          return reject(connectError);
-        }
+): Promise<Connection> => {
+  if (!testDatabaseConnectionModel) {
+    const connectionFrom = promisify(Connection.from.bind(Connection));
 
-        newConnection.insertMany(
-          `${TEST_DB_NAME}.${collectionName}`,
-          documentsArray,
-          {},
-          (insertManyError: Error | undefined) => {
-            if (insertManyError) {
-              return reject(insertManyError);
-            }
-            return resolve(newConnection);
-          }
-        );
-      });
-    } else {
-      Connection.from(
-        TEST_DATABASE_URI,
-        (connectionModelError: Error | undefined, newConnectionConfig: any) => {
-          if (connectionModelError) {
-            return reject(connectionModelError);
-          }
-
-          testDatabaseConnectionModel = newConnectionConfig;
-          const newConnection = new DataService(newConnectionConfig);
-          newConnection.connect((connectError: Error | undefined) => {
-            if (connectError) {
-              return reject(connectError);
-            }
-
-            newConnection.insertMany(
-              `${TEST_DB_NAME}.${collectionName}`,
-              documentsArray,
-              {},
-              (insertManyError: Error | undefined) => {
-                if (insertManyError) {
-                  return reject(insertManyError);
-                }
-
-                return resolve(newConnection);
-              }
-            );
-          });
-        }
-      );
+    try {
+      testDatabaseConnectionModel = connectionFrom(TEST_DATABASE_URI);
+    } catch (error) {
+      throw new Error(`Error connecting to ${TEST_DATABASE_URI}: ${error}`);
     }
-  });
+  }
+
+  const newConnection = new DataService(testDatabaseConnectionModel);
+  const connect = promisify(newConnection.connect.bind(newConnection));
+  const insertMany = promisify(newConnection.insertMany.bind(newConnection));
+
+  try {
+    await connect();
+    await insertMany(`${TEST_DB_NAME}.${collectionName}`, documentsArray, {});
+
+    return newConnection;
+  } catch (error) {
+    throw new Error(`Inserting test documents error: ${error}`);
+  }
 };
 
-export const cleanupTestDB = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const newConnection = new DataService(testDatabaseConnectionModel);
-    newConnection.connect((connectError: Error | undefined) => {
-      if (connectError) {
-        return reject(connectError);
-      }
+export const cleanupTestDB = async (): Promise<void> => {
+  const newConnection = new DataService(testDatabaseConnectionModel);
+  const connect = promisify(newConnection.connect.bind(newConnection));
+  const dropDatabase = promisify(newConnection.dropDatabase.bind(newConnection));
+  const disconnect = promisify(newConnection.disconnect.bind(newConnection));
 
-      newConnection.dropDatabase(
-        TEST_DB_NAME,
-        (dropError: Error | undefined) => {
-          if (dropError) {
-            return reject(dropError);
-          }
-          newConnection.disconnect(() => resolve());
-        }
-      );
-    });
-  });
+  try {
+    await connect();
+    await dropDatabase(TEST_DB_NAME);
+    await disconnect();
+  } catch (error) {
+    throw new Error(`Cleaning up test db error: ${error}`);
+  }
 };

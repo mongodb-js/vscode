@@ -2,6 +2,8 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import * as sinon from 'sinon';
+import { promisify } from 'util';
+
 import Connection from 'mongodb-connection-model/lib/model';
 import DataService from 'mongodb-data-service';
 
@@ -24,19 +26,14 @@ const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
 const sleep = (ms: number): Promise<void> => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  const setTimeoutPromise = promisify(setTimeout);
+  return setTimeoutPromise(ms);
 };
 
-const getConnection = (dbUri): Promise<ConnectionModel> =>
-  new Promise((resolve, reject) => {
-    Connection.from(dbUri, (err, connectionModel) => {
-      if (err) {
-        return reject(err);
-      }
-
-      return resolve(connectionModel);
-    });
-  });
+const getConnection = (dbUri): Promise<ConnectionModel> => {
+  const connectionFrom = promisify(Connection.from.bind(Connection));
+  return connectionFrom(dbUri);
+};
 
 suite('Connection Controller Test Suite', function () {
   this.timeout(5000);

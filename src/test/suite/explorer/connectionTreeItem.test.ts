@@ -201,7 +201,7 @@ suite('ConnectionTreeItem Test Suite', () => {
           db: () => ({
             databaseName: 'admin',
             command: () => {
-              return new Promise(resolve => {
+              return new Promise((resolve) => {
                 resolve(mockDbCommandResult);
               });
             }
