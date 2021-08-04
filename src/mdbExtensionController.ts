@@ -262,7 +262,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_CONNECTION,
-      (connectionTreeItem: ConnectionTreeItem) => {
+      (connectionTreeItem: ConnectionTreeItem): Promise<boolean> => {
         connectionTreeItem.resetCache();
         this._explorerController.refresh();
 
@@ -378,7 +378,7 @@ export default class MDBExtensionController implements vscode.Disposable {
             'Unable to add collection: currently disconnecting.'
           );
 
-          return Promise.resolve(false);
+          return false;
         }
 
         return this._playgroundController
