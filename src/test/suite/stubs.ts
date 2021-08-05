@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CancellationTokenSource } from 'vscode-languageclient';
+import { CancellationTokenSource } from 'vscode-languageclient/node';
 import { Duplex } from 'stream';
 import path = require('path');
 

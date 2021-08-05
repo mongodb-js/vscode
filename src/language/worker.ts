@@ -2,7 +2,7 @@ import {
   CliServiceProvider,
   MongoClientOptions
 } from '@mongosh/service-provider-server';
-import { CompletionItemKind } from 'vscode-languageserver';
+import { CompletionItemKind } from 'vscode-languageserver/node';
 import { EJSON } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import parseSchema = require('mongodb-schema');

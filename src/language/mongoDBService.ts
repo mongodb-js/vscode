@@ -1,6 +1,6 @@
 /* eslint-disable no-sync */
 import * as util from 'util';
-import { CompletionItemKind, CancellationToken, Connection, CompletionItem, MarkupContent, MarkupKind } from 'vscode-languageserver';
+import { CompletionItemKind, CancellationToken, Connection, CompletionItem, MarkupContent, MarkupKind } from 'vscode-languageserver/node';
 import fs from 'fs';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
