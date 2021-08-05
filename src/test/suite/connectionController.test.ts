@@ -29,7 +29,7 @@ const sleep = (ms: number): Promise<void> => {
   return promisify(setTimeout)(ms);
 };
 
-const getConnection = (dbUri): Promise<ConnectionModel> => {
+const getConnection = (dbUri: string): Promise<ConnectionModel> => {
   const connectionFrom = promisify(Connection.from.bind(Connection));
   return connectionFrom(dbUri);
 };

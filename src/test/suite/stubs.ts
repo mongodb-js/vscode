@@ -24,6 +24,8 @@ class TestExtensionContext implements vscode.ExtensionContext {
   storageUri;
   globalStorageUri;
   logUri;
+  secrets;
+  extension;
 
   asAbsolutePath(relativePath: string): string {
     return relativePath;
@@ -33,7 +35,12 @@ class TestExtensionContext implements vscode.ExtensionContext {
     this.globalStoragePath = '';
     this.logPath = '';
     this.subscriptions = [];
+    this.secrets = {};
+    this.extension = '';
     this.workspaceState = {
+      keys: (): readonly string[] => {
+        return [];
+      },
       get: (key: string): any => {
         return this._workspaceState[key];
       },
@@ -44,6 +51,9 @@ class TestExtensionContext implements vscode.ExtensionContext {
       }
     };
     this.globalState = {
+      keys: (): readonly string[] => {
+        return [];
+      },
       get: (key: string): any => {
         return this._globalState[key];
       },
