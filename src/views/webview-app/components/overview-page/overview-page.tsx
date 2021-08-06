@@ -12,8 +12,8 @@ import ResourcesPanel from '../resources-panel/resources-panel';
 const styles = require('./overview-page.less');
 
 type StateProps = {
-  showConnectForm: boolean;
-  showResourcesPanel: boolean;
+  showConnectForm?: boolean;
+  showResourcesPanel?: boolean;
 };
 
 export class OverviewPage extends React.Component<StateProps> {

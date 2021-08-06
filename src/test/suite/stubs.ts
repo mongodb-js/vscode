@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CancellationTokenSource } from 'vscode-languageclient';
+import { CancellationTokenSource } from 'vscode-languageclient/node';
 import { Duplex } from 'stream';
 import path = require('path');
 
@@ -24,6 +24,8 @@ class TestExtensionContext implements vscode.ExtensionContext {
   storageUri;
   globalStorageUri;
   logUri;
+  secrets;
+  extension;
 
   asAbsolutePath(relativePath: string): string {
     return relativePath;
@@ -33,7 +35,12 @@ class TestExtensionContext implements vscode.ExtensionContext {
     this.globalStoragePath = '';
     this.logPath = '';
     this.subscriptions = [];
+    this.secrets = {};
+    this.extension = '';
     this.workspaceState = {
+      keys: (): readonly string[] => {
+        return [];
+      },
       get: (key: string): any => {
         return this._workspaceState[key];
       },
@@ -44,6 +51,9 @@ class TestExtensionContext implements vscode.ExtensionContext {
       }
     };
     this.globalState = {
+      keys: (): readonly string[] => {
+        return [];
+      },
       get: (key: string): any => {
         return this._globalState[key];
       },
@@ -223,7 +233,7 @@ class MockLanguageServerController {
     this._isExecutingInProgress = false;
   }
 
-  async startLanguageServer(): Promise<void> {
+  startLanguageServer(): Promise<void> {
     return Promise.resolve();
   }
 
@@ -231,14 +241,14 @@ class MockLanguageServerController {
     return;
   }
 
-  async executeAll(/* codeToEvaluate: string*/): Promise<ShellExecuteAllResult> {
+  executeAll(/* codeToEvaluate: string*/): Promise<ShellExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
       result: { namespace: null, type: null, content: 'Result' }
     });
   }
 
-  async connectToServiceProvider(/* params: {
+  connectToServiceProvider(/* params: {
     connectionString?: string;
     connectionOptions?: any;
     extensionPath: string;
@@ -246,7 +256,7 @@ class MockLanguageServerController {
     return Promise.resolve();
   }
 
-  async disconnectFromServiceProvider(): Promise<void> {
+  disconnectFromServiceProvider(): Promise<void> {
     return Promise.resolve();
   }
 

@@ -76,9 +76,7 @@ describe('Connection Status Component Test Suite', () => {
           <Provider
             store={store}
           >
-            <ConnectionStatus
-              requestConnectionStatus={(): void => {}}
-            />
+            <ConnectionStatus />
           </Provider>
         );
       });

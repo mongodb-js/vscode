@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import ConnectionController from '../connectionController';
 
-function isSslConnection(activeConnectionModel: any): boolean {
+const isSslConnection = (activeConnectionModel: any): boolean => {
   return !!(
     activeConnectionModel &&
     activeConnectionModel.driverOptions &&
@@ -10,9 +10,9 @@ function isSslConnection(activeConnectionModel: any): boolean {
       activeConnectionModel.driverOptions.sslCert ||
       activeConnectionModel.driverOptions.sslPass)
   );
-}
+};
 
-function getSslOptions(driverOptions: any): string[] {
+const getSslOptions = (driverOptions: any): string[] => {
   const mdbSslOptions = ['--tls'];
 
   if (!driverOptions.checkServerIdentity) {
@@ -32,14 +32,14 @@ function getSslOptions(driverOptions: any): string[] {
   }
 
   return mdbSslOptions;
-}
+};
 
-function launchMongoDBShellWithEnv(
+const launchMongoDBShellWithEnv = (
   shellCommand: string,
   mdbConnectionString: string,
   mdbSslOptions: string[],
   envVariableString: string
-) {
+) => {
   const mongoDBShell = vscode.window.createTerminal({
     name: 'MongoDB Shell',
     env: {
@@ -55,41 +55,41 @@ function launchMongoDBShellWithEnv(
     `${shellCommand} ${mdbSslOptionsString}${envVariableString};`
   );
   mongoDBShell.show();
-}
+};
 
-function launchMongoDBShellOnPowershell(
+const launchMongoDBShellOnPowershell = (
   shellCommand: string,
   mdbConnectionString: string,
   mdbSslOptions: string[]
-): void {
+): void => {
   launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '$Env:MDB_CONNECTION_STRING');
-}
+};
 
-function launchMongoDBShellOnCmd(
+const launchMongoDBShellOnCmd = (
   shellCommand: string,
   mdbConnectionString: string,
   mdbSslOptions: string[]
-): void {
+): void => {
   launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '%MDB_CONNECTION_STRING%');
-}
+};
 
-function launchMongoDBShellOnGitBash(
+const launchMongoDBShellOnGitBash = (
   shellCommand: string,
   mdbConnectionString: string,
   mdbSslOptions: string[]
-): void {
+): void => {
   launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '$MDB_CONNECTION_STRING');
-}
+};
 
-function launchMongoDBShellOnBash(
+const launchMongoDBShellOnBash = (
   shellCommand: string,
   mdbConnectionString: string,
   mdbSslOptions: string[]
-): void {
+): void => {
   launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '$MDB_CONNECTION_STRING');
-}
+};
 
-export default function openMongoDBShell(connectionController: ConnectionController): Promise<boolean> {
+const openMongoDBShell = (connectionController: ConnectionController): Promise<boolean> => {
   let mdbSslOptions: string[] = [];
 
   if (
@@ -145,4 +145,6 @@ export default function openMongoDBShell(connectionController: ConnectionControl
   }
 
   return Promise.resolve(true);
-}
+};
+
+export default openMongoDBShell;

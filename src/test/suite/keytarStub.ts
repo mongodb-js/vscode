@@ -1,3 +1,5 @@
+import { promisify } from 'util';
+
 import { KeytarInterface } from '../../utils/keytar';
 
 const retrievalDelay = 1; // ms simulated delay on keytar methods.
@@ -53,11 +55,7 @@ export default class KeytarStub implements KeytarInterface {
     return false;
   }
 
-  private async delay(): Promise<void> {
-    return new Promise<void>(resolve => {
-      setTimeout(() => {
-        resolve();
-      }, retrievalDelay);
-    });
+  private delay(): Promise<void> {
+    return promisify(setTimeout)(retrievalDelay);
   }
 }

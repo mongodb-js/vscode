@@ -335,9 +335,7 @@ export default class PlaygroundController {
     const connectionId = this._connectionController.getActiveConnectionId();
 
     if (!connectionId) {
-      return Promise.reject(
-        new Error('Please connect to a database before running a playground.')
-      );
+      throw new Error('Please connect to a database before running a playground.');
     }
 
     this._statusView.showMessage('Getting results...');
@@ -366,49 +364,44 @@ export default class PlaygroundController {
     return this._activeTextEditor?.document.getText(selection) || '';
   }
 
-  _evaluateWithCancelModal(): Promise<ShellExecuteAllResult> {
+  async _evaluateWithCancelModal(): Promise<ShellExecuteAllResult> {
     if (!this._connectionController.isCurrentlyConnected()) {
-      return Promise.reject(
-        new Error('Please connect to a database before running a playground.')
-      );
+      throw new Error('Please connect to a database before running a playground.');
     }
 
-    return new Promise((resolve) => {
-      vscode.window
-        .withProgress(
-          {
-            location: ProgressLocation.Notification,
-            title: 'Running MongoDB playground...',
-            cancellable: true
-          },
-          async (progress, token) => {
-            token.onCancellationRequested(() => {
-              // If a user clicked the cancel button terminate all playground scripts.
-              this._languageServerController.cancelAll();
+    try {
+      const progressResult = await vscode.window.withProgress(
+        {
+          location: ProgressLocation.Notification,
+          title: 'Running MongoDB playground...',
+          cancellable: true
+        },
+        async (progress, token) => {
+          token.onCancellationRequested(() => {
+            // If a user clicked the cancel button terminate all playground scripts.
+            this._languageServerController.cancelAll();
 
-              return resolve({
-                outputLines: undefined,
-                result: undefined
-              });
-            });
-
-            // Run all playground scripts.
-            const result: ShellExecuteAllResult = await this._evaluate(
-              this._codeToEvaluate
-            );
-
-            return resolve(result);
-          }
-        )
-        .then(undefined, (error) => {
-          log.error('Evaluate playground with cancel modal error', error);
-
-          return resolve({
-            outputLines: undefined,
-            result: undefined
+            return { outputLines: undefined, result: undefined };
           });
-        });
-    });
+
+          // Run all playground scripts.
+          const result: ShellExecuteAllResult = await this._evaluate(
+            this._codeToEvaluate
+          );
+
+          return result;
+        }
+      );
+
+      return progressResult;
+    } catch (error) {
+      log.error('Evaluate playground with cancel modal error', error);
+
+      return {
+        outputLines: undefined,
+        result: undefined
+      };
+    }
   }
 
   _getDocumentLanguage(content?: EJSON.SerializableTypes): string {

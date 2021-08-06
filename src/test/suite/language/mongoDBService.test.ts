@@ -1,7 +1,7 @@
 import { before } from 'mocha';
-import { CancellationTokenSource, CompletionItemKind, CompletionItem } from 'vscode-languageclient';
+import { CancellationTokenSource, CompletionItemKind, CompletionItem } from 'vscode-languageclient/node';
 import chai from 'chai';
-import { createConnection } from 'vscode-languageserver';
+import { createConnection } from 'vscode-languageserver/node';
 import fs from 'fs';
 import path from 'path';
 

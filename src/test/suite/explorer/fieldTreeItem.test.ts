@@ -131,6 +131,8 @@ suite('FieldTreeItem Test Suite', function () {
   });
 
   suite('Full database tests', () => {
+    this.timeout(5000);
+
     afterEach(async () => {
       await cleanupTestDB();
     });

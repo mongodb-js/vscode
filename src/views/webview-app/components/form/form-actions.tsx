@@ -17,12 +17,12 @@ type DispatchProps = {
 };
 
 type props = {
-  connectionMessage: string;
-  errorMessage: string;
-  isConnected: boolean;
-  isConnecting: boolean;
-  isValid: boolean;
-  syntaxErrorMessage: string;
+  connectionMessage?: string;
+  errorMessage?: string;
+  isConnected?: boolean;
+  isConnecting?: boolean;
+  isValid?: boolean;
+  syntaxErrorMessage?: string;
 } & DispatchProps;
 
 class FormActions extends React.Component<props> {

@@ -6,7 +6,7 @@ import {
   ServerOptions,
   TransportKind,
   CancellationTokenSource
-} from 'vscode-languageclient';
+} from 'vscode-languageclient/node';
 import WebSocket from 'ws';
 import { workspace, ExtensionContext, OutputChannel } from 'vscode';
 
