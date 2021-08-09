@@ -33,4 +33,4 @@ async function main(): Promise<any> {
   }
 }
 
-main();
+void main();

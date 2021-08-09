@@ -868,7 +868,7 @@ suite('Connection Controller Test Suite', function () {
 
   suite('connecting to a new connection when already connecting', () => {
     test('connects to the new connection', async () => {
-      testConnectionController.addNewConnectionStringAndConnect(
+      void testConnectionController.addNewConnectionStringAndConnect(
         testDatabaseURI2WithTimeout
       );
 
@@ -927,7 +927,7 @@ suite('Connection Controller Test Suite', function () {
 
       for (let i = 0; i < 5; i++) {
         const id = `${i}`;
-        testConnectionController.connectWithConnectionId(id);
+        void testConnectionController.connectWithConnectionId(id);
       }
 
       // Ensure the connections complete.
@@ -945,8 +945,8 @@ suite('Connection Controller Test Suite', function () {
     );
 
     try {
-      testConnectionController.disconnect();
-      testConnectionController.disconnect();
+      void testConnectionController.disconnect();
+      void testConnectionController.disconnect();
     } catch (err) {
       assert(
         false,
@@ -972,7 +972,7 @@ suite('Connection Controller Test Suite', function () {
       storageLocation: StorageScope.NONE
     };
 
-    testConnectionController.connectWithConnectionId(connectionId);
+    void testConnectionController.connectWithConnectionId(connectionId);
 
     // Ensure the connection starts but doesn't time out yet.
     await sleep(250);
@@ -1007,7 +1007,7 @@ suite('Connection Controller Test Suite', function () {
       })
     );
 
-    testConnectionController.connectWithConnectionId(connectionId);
+    void testConnectionController.connectWithConnectionId(connectionId);
 
     // Ensure the connection attempt has started.
     await sleep(10);

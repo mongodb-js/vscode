@@ -96,7 +96,7 @@ export default class WebviewController {
 
       try {
         // The webview may have been closed in which case this will throw.
-        panel.webview.postMessage({
+        void panel.webview.postMessage({
           command: MESSAGE_TYPES.CONNECT_RESULT,
           connectionAttemptId,
           connectionSuccess: successfullyConnected,
@@ -108,9 +108,9 @@ export default class WebviewController {
         log.error('Unable to send connection result to webview:', err);
       }
     } catch (error) {
-      vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
+      void vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
 
-      panel.webview.postMessage({
+      void panel.webview.postMessage({
         command: MESSAGE_TYPES.CONNECT_RESULT,
         connectionAttemptId,
         connectionSuccess: false,
@@ -127,7 +127,7 @@ export default class WebviewController {
       ...openFileOptions,
       canSelectMany: message.multi
     });
-    panel.webview.postMessage({
+    void panel.webview.postMessage({
       command: MESSAGE_TYPES.FILE_PICKER_RESULTS,
       action: message.action,
       files: (files && files.length > 0)
@@ -149,12 +149,12 @@ export default class WebviewController {
         );
         return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
-        vscode.commands.executeCommand(
+        void vscode.commands.executeCommand(
           EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE
         );
         return;
       case MESSAGE_TYPES.GET_CONNECTION_STATUS:
-        panel.webview.postMessage({
+        void panel.webview.postMessage({
           command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,
           connectionStatus: this._connectionController.getConnectionStatus(),
           activeConnectionName: this._connectionController.getActiveConnectionName()
@@ -164,7 +164,7 @@ export default class WebviewController {
         await this.handleWebviewOpenFilePickerRequest(message, panel);
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
-        vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI);
+        void vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI);
 
         return;
 
@@ -189,7 +189,7 @@ export default class WebviewController {
 
       case MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION:
         if (this._connectionController.isCurrentlyConnected()) {
-          this._connectionController.renameConnection(
+          void this._connectionController.renameConnection(
             this._connectionController.getActiveConnectionId() as string
           );
         }

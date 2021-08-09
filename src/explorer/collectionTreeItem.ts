@@ -388,9 +388,10 @@ export default class CollectionTreeItem extends vscode.TreeItem
         `${this.databaseName}.${collectionName}`,
         (err: Error | null, successfullyDroppedCollection = false) => {
           if (err) {
-            vscode.window.showErrorMessage(
+            void vscode.window.showErrorMessage(
               `Drop collection failed: ${err.message}`
             );
+
             return resolve(false);
           }
 

@@ -59,12 +59,12 @@ export default class ExplorerController {
     }
   }
 
-  refresh(): Promise<boolean> {
+  refresh(): boolean {
     if (this._treeController) {
       return this._treeController.refresh();
     }
 
-    return Promise.reject(new Error('No tree to refresh.'));
+    throw new Error('No tree to refresh.');
   }
 
   // Exposed for testing.

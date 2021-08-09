@@ -48,7 +48,7 @@ suite('Webview Test Suite', () => {
       mdbTestExtension.testExtensionController._telemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     assert(fakeVSCodeCreateWebviewPanel.called);
     assert(fakeWebview.html !== '');
@@ -118,7 +118,7 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (): void => {
+      postMessage: async (): Promise<void> => {
         assert(testConnectionController.isCurrentlyConnected());
         assert(
           testConnectionController.getActiveConnectionName() ===
@@ -128,7 +128,7 @@ suite('Webview Test Suite', () => {
           testConnectionController.getActiveConnectionModel()?.port === 27018
         );
 
-        testConnectionController.disconnect();
+        await testConnectionController.disconnect();
         done();
       },
       onDidReceiveMessage: (callback): void => {
@@ -153,7 +153,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     assert(
       messageReceivedSet,
@@ -193,7 +193,7 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message): void => {
+      postMessage: async (message): Promise<void> => {
         assert(message.connectionSuccess);
         const expectedMessage = 'Successfully connected to localhost:27018.';
         assert(
@@ -201,7 +201,7 @@ suite('Webview Test Suite', () => {
           `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
         );
 
-        testConnectionController.disconnect();
+        await testConnectionController.disconnect();
         done();
       },
       onDidReceiveMessage: (callback): void => {
@@ -226,7 +226,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     assert(
       messageReceivedSet,
@@ -265,11 +265,11 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message): void => {
+      postMessage: async (message): Promise<void> => {
         assert(!message.connectionSuccess);
         assert(message.connectionMessage.includes('Unable to load connection'));
 
-        testConnectionController.disconnect();
+        await testConnectionController.disconnect();
         done();
       },
       onDidReceiveMessage: (callback): void => {
@@ -293,7 +293,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection call.
     messageReceived({
@@ -320,7 +320,7 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message): void => {
+      postMessage: async (message): Promise<void> => {
         assert(!message.connectionSuccess);
         const expectedMessage = 'connection attempt overriden';
         assert(
@@ -328,7 +328,7 @@ suite('Webview Test Suite', () => {
           `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
         );
 
-        testConnectionController.disconnect();
+        await testConnectionController.disconnect();
         done();
       },
       onDidReceiveMessage: (callback): void => {
@@ -352,7 +352,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection call.
     messageReceived({
@@ -369,7 +369,7 @@ suite('Webview Test Suite', () => {
     setTimeout(() => {
       // Once the previous request has started, issue a successful connect
       // attempt to override the previous.
-      testConnectionController.addNewConnectionStringAndConnect(
+      void testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
       );
     }, 5);
@@ -394,11 +394,11 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (): void => {
+      postMessage: async (): Promise<void> => {
         assert(fakeVSCodeOpenDialog.called);
         assert(fakeVSCodeOpenDialog.firstCall.args[0].canSelectFiles);
 
-        testConnectionController.disconnect();
+        await testConnectionController.disconnect();
         done();
       },
       onDidReceiveMessage: (callback): void => {
@@ -424,7 +424,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection call.
     messageReceived({
@@ -448,11 +448,11 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message): void => {
+      postMessage: async (message): Promise<void> => {
         assert(message.action === 'file_action');
         assert(message.files[0] === path.resolve('somefilepath/test.text'));
 
-        testConnectionController.disconnect();
+        await testConnectionController.disconnect();
         done();
       },
       onDidReceiveMessage: (callback): void => {
@@ -484,7 +484,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     messageReceived({
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
@@ -532,7 +532,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     messageReceived({
       command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT
@@ -591,7 +591,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection status request call.
     messageReceived({
@@ -614,11 +614,11 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: (message): void => {
+      postMessage: async (message): Promise<void> => {
         assert(message.command === 'CONNECTION_STATUS_MESSAGE');
         assert(message.connectionStatus === 'CONNECTED');
         assert(message.activeConnectionName === 'localhost:27018');
-        testConnectionController.disconnect();
+        await testConnectionController.disconnect();
 
         done();
       },
@@ -643,9 +643,9 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
-    testConnectionController
+    void testConnectionController
       .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         // Mock a connection status request call.
@@ -700,7 +700,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
@@ -717,7 +717,7 @@ suite('Webview Test Suite', () => {
         testConnectionController.getActiveConnectionId()
     );
 
-    testConnectionController.disconnect();
+    await testConnectionController.disconnect();
   });
 
   suite('with a rendered webview', () => {

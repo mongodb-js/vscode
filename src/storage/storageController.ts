@@ -58,11 +58,11 @@ export default class StorageController {
     storageScope?: StorageScope
   ): Thenable<void> {
     if (storageScope === StorageScope.WORKSPACE) {
-      this._workspaceState.update(variableName, value);
+      void this._workspaceState.update(variableName, value);
       return Promise.resolve();
     }
 
-    this._globalState.update(variableName, value);
+    void this._globalState.update(variableName, value);
     return Promise.resolve();
   }
 
@@ -74,7 +74,7 @@ export default class StorageController {
     }
 
     globalUserId = uuidv4();
-    this.update(StorageVariables.GLOBAL_USER_ID, globalUserId);
+    void this.update(StorageVariables.GLOBAL_USER_ID, globalUserId);
 
     return globalUserId;
   }
@@ -154,7 +154,7 @@ export default class StorageController {
       const storeOnWorkspace = 'Save the connection on this workspace';
       const storeGlobally = 'Save the connection globally on vscode';
       // Prompt the user where they want to save the new connection.
-      vscode.window
+      void vscode.window
         .showQuickPick(
           [
             storeOnWorkspace,
@@ -191,7 +191,7 @@ export default class StorageController {
     );
     if (globalStoredConnections && globalStoredConnections[connectionId]) {
       delete globalStoredConnections[connectionId];
-      this.update(
+      void this.update(
         StorageVariables.GLOBAL_SAVED_CONNECTIONS,
         globalStoredConnections
       );
@@ -206,7 +206,7 @@ export default class StorageController {
       workspaceStoredConnections[connectionId]
     ) {
       delete workspaceStoredConnections[connectionId];
-      this.update(
+      void this.update(
         StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
         workspaceStoredConnections,
         StorageScope.WORKSPACE

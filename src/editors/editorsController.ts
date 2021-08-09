@@ -121,7 +121,7 @@ export default class EditorsController {
       )) as EJSON.SerializableTypes;
 
       if (mdbDocument === null) {
-        vscode.window.showErrorMessage(`
+        void vscode.window.showErrorMessage(`
           Unable to open mongodb document: document ${JSON.stringify(data.documentId)} not found
         `);
 
@@ -148,7 +148,7 @@ export default class EditorsController {
     } catch (error) {
       const printableError = error as { message: string };
 
-      vscode.window.showErrorMessage(printableError.message);
+      void vscode.window.showErrorMessage(printableError.message);
 
       return false;
     }
@@ -196,9 +196,9 @@ export default class EditorsController {
       });
 
       // Save document changes to active editor.
-      activeEditor?.document.save();
+      await activeEditor?.document.save();
 
-      vscode.window.showInformationMessage(
+      void vscode.window.showInformationMessage(
         `The document was saved successfully to '${namespace}'`
       );
 
@@ -206,7 +206,7 @@ export default class EditorsController {
     } catch (error) {
       const printableError = error as { message: string };
 
-      vscode.window.showErrorMessage(printableError.message);
+      void vscode.window.showErrorMessage(printableError.message);
 
       return false;
     }
@@ -251,7 +251,7 @@ export default class EditorsController {
     } catch (error) {
       const printableError = error as { message: string };
 
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `Unable to open documents: ${printableError.message}`
       );
 
@@ -272,7 +272,7 @@ export default class EditorsController {
       this._collectionDocumentsOperationsStore.operations[operationId]
         .isCurrentlyFetchingMoreDocuments
     ) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         'Already fetching more documents...'
       );
 
@@ -281,7 +281,7 @@ export default class EditorsController {
 
     // Ensure we're still connected to the correct connection.
     if (connectionId !== this._connectionController.getActiveConnectionId()) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `Unable to view more documents: no longer connected to ${connectionId}`
       );
 

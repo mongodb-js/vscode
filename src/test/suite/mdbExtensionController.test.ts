@@ -973,7 +973,7 @@ suite('MDBExtensionController Test Suite', function () {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    testConnectionController
+    void testConnectionController
       .addNewConnectionStringAndConnect(testDatabaseURI)
       .then(() => {
         const testCollectionTreeItem = new CollectionTreeItem(
@@ -1098,7 +1098,7 @@ suite('MDBExtensionController Test Suite', function () {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    testConnectionController
+    void testConnectionController
       .addNewConnectionStringAndConnect(testDatabaseURI)
       .then(() => {
         const testDatabaseTreeItem = new DatabaseTreeItem(
@@ -1730,7 +1730,7 @@ suite('MDBExtensionController Test Suite', function () {
           mockStorageControllerUpdate
         );
 
-        mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
+        void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
       });
 
       afterEach(() => {
@@ -1795,7 +1795,7 @@ suite('MDBExtensionController Test Suite', function () {
           mockStorageControllerUpdate
         );
 
-        mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
+        void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
       });
 
       test('they are not shown the overview page', () => {
@@ -1834,7 +1834,7 @@ suite('MDBExtensionController Test Suite', function () {
         mockVSCodeExecuteCommand
       );
 
-      mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
+      void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
     });
 
     test('they are not shown the overview page', () => {

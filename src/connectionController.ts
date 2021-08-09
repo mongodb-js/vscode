@@ -210,7 +210,7 @@ export default class ConnectionController {
     try {
       return this.addNewConnectionStringAndConnect(connectionString);
     } catch (error) {
-      vscode.window.showErrorMessage(error.message);
+      void vscode.window.showErrorMessage(error.message);
 
       return false;
     }
@@ -244,7 +244,7 @@ export default class ConnectionController {
     connectionModel: ConnectionModel,
     connectionType: ConnectionTypes
   ): void {
-    this._telemetryService.trackNewConnection(
+    void this._telemetryService.trackNewConnection(
       newDataService.client.client,
       connectionModel,
       connectionType
@@ -323,7 +323,7 @@ export default class ConnectionController {
         connectionId,
         connectionInfoAsString
       );
-      this._storageController.storeNewConnection(newLoadedConnection);
+      void this._storageController.storeNewConnection(newLoadedConnection);
     }
 
     return this.connect(connectionId, connectionModel, connectionType);
@@ -412,7 +412,7 @@ export default class ConnectionController {
     }
 
     log.info('Successfully connected');
-    vscode.window.showInformationMessage('MongoDB connection successful.');
+    void vscode.window.showInformationMessage('MongoDB connection successful.');
 
     this._activeDataService = newDataService;
     this._activeConnectionModel = connectionModel;
@@ -449,7 +449,7 @@ export default class ConnectionController {
           : savedConnectionModel
       );
     } catch (error) {
-      vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
+      void vscode.window.showErrorMessage(`Unable to load connection: ${error}`);
 
       return false;
     }
@@ -463,7 +463,7 @@ export default class ConnectionController {
 
       return connectResult.successfullyConnected;
     } catch (error) {
-      vscode.window.showErrorMessage(error.message);
+      void vscode.window.showErrorMessage(error.message);
 
       return false;
     }
@@ -476,7 +476,7 @@ export default class ConnectionController {
     );
 
     if (!this._activeDataService) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         'Unable to disconnect: no active connection.'
       );
 
@@ -502,10 +502,10 @@ export default class ConnectionController {
 
     try {
       await _disconnect();
-      vscode.window.showInformationMessage('MongoDB disconnected.');
+      void vscode.window.showInformationMessage('MongoDB disconnected.');
     } catch (error) {
       // Show an error, however we still reset the active connection to free up the extension.
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         'An error occured while disconnecting from the current connection.'
       );
     }
@@ -533,7 +533,7 @@ export default class ConnectionController {
   async removeMongoDBConnection(connectionId: string): Promise<boolean> {
     if (!this._connections[connectionId]) {
       // No active connection(s) to remove.
-      vscode.window.showErrorMessage('Connection does not exist.');
+      void vscode.window.showErrorMessage('Connection does not exist.');
 
       return false;
     }
@@ -559,7 +559,7 @@ export default class ConnectionController {
 
     await this.removeSavedConnection(connectionId);
 
-    vscode.window.showInformationMessage('MongoDB connection removed.');
+    void vscode.window.showInformationMessage('MongoDB connection removed.');
 
     return true;
   }
@@ -571,7 +571,7 @@ export default class ConnectionController {
 
     if (connectionIds.length === 0) {
       // No active connection(s) to remove.
-      vscode.window.showErrorMessage('No connections to remove.');
+      void vscode.window.showErrorMessage('No connections to remove.');
 
       return false;
     }

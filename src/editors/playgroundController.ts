@@ -99,14 +99,7 @@ export default class PlaygroundController {
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       () => {
-        this._disconnectFromServiceProvider();
-      }
-    );
-
-    this._connectionController.addEventListener(
-      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      () => {
-        this._connectToServiceProvider();
+        void this._connectToServiceProvider();
       }
     );
 
@@ -140,7 +133,7 @@ export default class PlaygroundController {
             .map((selection) => this._getSelectedText(selection))
             .join('\n');
 
-          this._showCodeLensForSelection(
+          void this._showCodeLensForSelection(
             sortedSelections,
             changeEvent.textEditor
           );
@@ -173,7 +166,7 @@ export default class PlaygroundController {
       lastSelection.end.line === editor.document.lineCount - 1 &&
       lastSelectedLineContent.trim().length > 0
     ) {
-      editor.edit(edit => {
+      void editor.edit(edit => {
         edit.insert(
           new vscode.Position(lastSelection.end.line + 1, 0),
           '\n'
@@ -188,10 +181,6 @@ export default class PlaygroundController {
         lastSelectedLineNumber + codeLensLineOffset, 0
       )
     );
-  }
-
-  _disconnectFromServiceProvider(): void {
-    this._languageServerController.disconnectFromServiceProvider();
   }
 
   async _connectToServiceProvider(): Promise<void> {
@@ -246,7 +235,7 @@ export default class PlaygroundController {
     } catch (error) {
       const printableError = error as { message: string };
 
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `Unable to create a playground: ${printableError.message}`
       );
 
@@ -323,7 +312,7 @@ export default class PlaygroundController {
     } catch (error) {
       const printableError = error as { message: string };
 
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `Unable to create a playground: ${printableError.message}`
       );
 
@@ -455,7 +444,7 @@ export default class PlaygroundController {
     } catch (error) {
       const printableError = error as { message: string };
 
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `Unable to open a result document: ${printableError.message}`
       );
     }
@@ -467,7 +456,7 @@ export default class PlaygroundController {
       .get('confirmRunAll');
 
     if (!this._connectionController.isCurrentlyConnected()) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         'Please connect to a database before running a playground.'
       );
 
@@ -508,7 +497,8 @@ export default class PlaygroundController {
 
     this._playgroundResult = evaluateResponse.result;
 
-    await this._explorerController.refresh();
+    this._explorerController.refresh();
+
     await this._openPlaygroundResult();
 
     return true;
@@ -519,7 +509,7 @@ export default class PlaygroundController {
       !this._activeTextEditor ||
       this._activeTextEditor.document.languageId !== 'mongodb'
     ) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         "Please open a '.mongodb' playground file before running it."
       );
 
@@ -533,7 +523,7 @@ export default class PlaygroundController {
       !Array.isArray(selections) ||
       (selections.length === 1 && this._getSelectedText(selections[0]) === '')
     ) {
-      vscode.window.showInformationMessage(
+      void vscode.window.showInformationMessage(
         'Please select one or more lines in the playground.'
       );
 
@@ -551,7 +541,7 @@ export default class PlaygroundController {
       !this._activeTextEditor ||
       this._activeTextEditor.document.languageId !== 'mongodb'
     ) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         "Please open a '.mongodb' playground file before running it."
       );
 
@@ -569,7 +559,7 @@ export default class PlaygroundController {
       !this._activeTextEditor ||
       this._activeTextEditor.document.languageId !== 'mongodb'
     ) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         "Please open a '.mongodb' playground file before running it."
       );
 
@@ -603,7 +593,7 @@ export default class PlaygroundController {
     } catch (error) {
       const printableError = error as { message: string };
 
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `Unable to open a playground: ${printableError.message}`
       );
 

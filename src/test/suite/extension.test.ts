@@ -5,7 +5,7 @@ import EXTENSION_COMMANDS from '../../commands';
 const { contributes } = require('../../../package.json');
 
 suite('Extension Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
+  void vscode.window.showInformationMessage('Starting tests...');
 
   test('there should be 3 views registered in the package.json', () => {
     assert(contributes.views.mongoDB.length === 3);

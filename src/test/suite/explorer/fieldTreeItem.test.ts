@@ -138,7 +138,7 @@ suite('FieldTreeItem Test Suite', function () {
     });
 
     test('field name is pulled from the name of a field', (done) => {
-      seedDataAndCreateDataService('pie', [
+      void seedDataAndCreateDataService('pie', [
         {
           _id: 1,
           blueberryPie: 'yes'
@@ -178,7 +178,7 @@ suite('FieldTreeItem Test Suite', function () {
     });
 
     test('it shows dropdowns for nested subdocuments', (done) => {
-      seedDataAndCreateDataService('gryffindor', [
+      void seedDataAndCreateDataService('gryffindor', [
         {
           _id: 1,
           alwaysDocument: {
@@ -209,9 +209,9 @@ suite('FieldTreeItem Test Suite', function () {
           {}
         );
 
-        testSchemaTreeItem.onDidExpand();
+        void testSchemaTreeItem.onDidExpand();
 
-        testSchemaTreeItem.getChildren().then((schemaFields) => {
+        void testSchemaTreeItem.getChildren().then((schemaFields) => {
           dataService.disconnect(() => {});
           assert(
             schemaFields.length === 2,
@@ -252,7 +252,7 @@ suite('FieldTreeItem Test Suite', function () {
     });
 
     test('it shows dropdowns for arrays', (done) => {
-      seedDataAndCreateDataService('gryffindor', [
+      void seedDataAndCreateDataService('gryffindor', [
         {
           _id: 1,
           testingArray: ['okay', 'nice']
@@ -273,7 +273,7 @@ suite('FieldTreeItem Test Suite', function () {
           {}
         );
 
-        testSchemaTreeItem.onDidExpand();
+        void testSchemaTreeItem.onDidExpand();
 
         testSchemaTreeItem.getChildren().then((schemaFields) => {
           dataService.disconnect(() => {});
@@ -302,7 +302,7 @@ suite('FieldTreeItem Test Suite', function () {
     });
 
     test('it shows dropdowns and fields for document fields in arrays', (done) => {
-      seedDataAndCreateDataService('beach', [
+      void seedDataAndCreateDataService('beach', [
         {
           _id: 1,
           testingArray: [
@@ -333,9 +333,9 @@ suite('FieldTreeItem Test Suite', function () {
           {}
         );
 
-        testSchemaTreeItem.onDidExpand();
+        void testSchemaTreeItem.onDidExpand();
 
-        testSchemaTreeItem.getChildren().then((schemaFields) => {
+        void testSchemaTreeItem.getChildren().then((schemaFields) => {
           dataService.disconnect(() => {});
 
           schemaFields[1].getChildren().then((nestedSubDocuments) => {

@@ -48,6 +48,8 @@ module.exports = {
     'restrict-template-expressions': 0,
     '@typescript-eslint/restrict-template-expressions': 0,
 
+    '@typescript-eslint/no-floating-promises': 2,
+
     // VV These rules we'd like to turn off one day so they error.
     '@typescript-eslint/no-unsafe-assignment': 0,
     '@typescript-eslint/no-unsafe-member-access': 0,

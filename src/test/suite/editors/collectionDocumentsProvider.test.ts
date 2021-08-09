@@ -190,7 +190,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=vostok.mercury&operationId=${operationId}`
     );
 
-    testCollectionViewProvider.provideTextDocumentContent(uri).then(() => {
+    void testCollectionViewProvider.provideTextDocumentContent(uri).then(() => {
       assert(
         testQueryStore.operations[operationId].hasMoreDocumentsToShow === false,
         'Expected not to have more documents to show.'

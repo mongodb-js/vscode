@@ -40,7 +40,7 @@ suite('Storage Controller Test Suite', () => {
     );
   });
 
-  test('addNewConnectionToGlobalStore adds the connection to preexisting connections on the global store', () => {
+  test('addNewConnectionToGlobalStore adds the connection to preexisting connections on the global store', async () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {
       [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
@@ -52,7 +52,7 @@ suite('Storage Controller Test Suite', () => {
       }
     };
     const testStorageController = new StorageController(testExtensionContext);
-    testStorageController.saveConnectionToGlobalStore({
+    await testStorageController.saveConnectionToGlobalStore({
       id: 'new_conn',
       name: 'saved2',
       storageLocation: StorageScope.NONE
@@ -81,7 +81,7 @@ suite('Storage Controller Test Suite', () => {
     assert(testStorageController.hasSavedConnections());
   });
 
-  test('addNewConnectionToWorkspaceStore adds the connection to preexisting connections on the workspace store', () => {
+  test('addNewConnectionToWorkspaceStore adds the connection to preexisting connections on the workspace store', async () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._workspaceState = {
       [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
@@ -92,7 +92,7 @@ suite('Storage Controller Test Suite', () => {
       }
     };
     const testStorageController = new StorageController(testExtensionContext);
-    testStorageController.saveConnectionToWorkspaceStore({
+    await testStorageController.saveConnectionToWorkspaceStore({
       id: 'new_conn',
       name: 'saved2',
       storageLocation: StorageScope.NONE

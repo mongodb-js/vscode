@@ -42,7 +42,7 @@ export function run(): Promise<void> {
           mdbTestExtension.testExtensionContext,
           { shouldTrackTelemetry: false }
         );
-        mdbTestExtension.testExtensionController.activate();
+        void mdbTestExtension.testExtensionController.activate();
 
         // We avoid using the user's credential store when running tests
         // in order to ensure we're not polluting the credential store
@@ -51,7 +51,7 @@ export function run(): Promise<void> {
         ext.keytarModule = new KeytarStub();
 
         // Disable the dialogue for prompting the user where to store the connection.
-        vscode.workspace
+        void vscode.workspace
           .getConfiguration('mdb.connectionSaving')
           .update('hideOptionToChooseWhereToSaveNewConnections', true)
           .then(() => {

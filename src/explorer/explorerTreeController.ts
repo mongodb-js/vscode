@@ -27,7 +27,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     this._connectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => {
-        this.refresh();
+        void this.refresh();
       }
     );
 
@@ -38,7 +38,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => {
-        this.refresh();
+        void this.refresh();
       }
     );
   }
@@ -124,10 +124,10 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   _onDidChangeTreeData: vscode.EventEmitter<any>;
   readonly onDidChangeTreeData: vscode.Event<any>;
 
-  public refresh = (): Promise<boolean> => {
+  refresh = (): boolean => {
     this._onDidChangeTreeData.fire(null);
 
-    return Promise.resolve(true);
+    return true;
   };
 
   onTreeItemUpdate(): void {
