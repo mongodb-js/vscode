@@ -133,7 +133,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommands();
 
-    await this.showOverviewPageIfRecentlyInstalled();
+    this.showOverviewPageIfRecentlyInstalled();
   }
 
   registerCommands = (): void => {
@@ -518,7 +518,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
   }
 
-  async showOverviewPageIfRecentlyInstalled(): Promise<void> {
+  showOverviewPageIfRecentlyInstalled(): void {
     const hasBeenShownViewAlready = !!this._storageController.get(
       StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
     );
@@ -532,7 +532,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         );
       }
 
-      await this._storageController.update(
+      void this._storageController.update(
         StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
         true
       );
