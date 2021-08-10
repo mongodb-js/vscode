@@ -38,7 +38,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => {
-        void this.refresh();
+        this.refresh();
       }
     );
   }
