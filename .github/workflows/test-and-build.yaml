@@ -75,6 +75,8 @@ jobs:
           npx json -I -f package-lock.json -e "this.version='${RELEASE_VERSION}'"
 
       - name: Build .vsix
+        env:
+          NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
         run: npx vsce package --githubBranch main
         shell: bash
 
