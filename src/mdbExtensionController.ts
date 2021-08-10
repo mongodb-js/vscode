@@ -539,8 +539,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
   }
 
-  dispose(): void {
-    void this.deactivate();
+  async dispose(): Promise<void> {
+    await this.deactivate();
   }
 
   async deactivate(): Promise<void> {
