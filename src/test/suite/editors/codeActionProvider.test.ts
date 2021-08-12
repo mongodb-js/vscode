@@ -16,7 +16,9 @@ const expect = chai.expect;
 
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 
-suite('Code Action Provider Test Suite', () => {
+suite('Code Action Provider Test Suite', function () {
+  this.timeout(5000);
+
   const testExtensionContext = new TestExtensionContext();
   testExtensionContext.extensionPath = '../../';
 
@@ -87,8 +89,7 @@ suite('Code Action Provider Test Suite', () => {
     expect(codeActions).to.be.undefined;
   });
 
-  test('expected provideCodeActions to return a run selected playground blocks action', async function () {
-    this.timeout(5000);
+  test('expected provideCodeActions to return a run selected playground blocks action', async () => {
     mdbTestExtension.testExtensionController._playgroundController._selectedText = '123';
 
     const testCodeActionProvider = new CodeActionProvider(mdbTestExtension.testExtensionController._playgroundController);
