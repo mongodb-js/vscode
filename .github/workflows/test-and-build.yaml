@@ -45,13 +45,6 @@ jobs:
       - name: Install npm@7
         run: npm install -g npm@7
 
-      - name: Patch node gyp on windows
-        if: ${{ runner.os == 'Windows' }}
-        run: |
-          npm install --global node-gyp@latest
-          npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
-        shell: bash
-
       - name: Install Dependencies
         run: |
           npm ci
