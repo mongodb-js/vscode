@@ -100,14 +100,18 @@ suite('Code Action Provider Test Suite', function () {
     if (codeActions) {
       expect(codeActions.length).to.be.equal(1);
       const actionCommand = codeActions[0].command;
-      expect(actionCommand?.command).to.be.equal('mdb.runSelectedPlaygroundBlocks');
-      expect(actionCommand?.title).to.be.equal('Run selected playground blocks');
+      expect(codeActions).to.exist;
 
-      await vscode.commands.executeCommand('mdb.runSelectedPlaygroundBlocks');
+      if (actionCommand) {
+        expect(actionCommand.command).to.be.equal('mdb.runSelectedPlaygroundBlocks');
+        expect(actionCommand.title).to.be.equal('Run selected playground blocks');
 
-      const expectedResult = { namespace: null, type: 'number', content: 123 };
-      expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
-      expect(mdbTestExtension.testExtensionController._playgroundController._isPartialRun).to.be.equal(true);
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        const expectedResult = { namespace: null, type: 'number', content: 123 };
+        expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
+        expect(mdbTestExtension.testExtensionController._playgroundController._isPartialRun).to.be.equal(true);
+      }
     }
   });
 });
