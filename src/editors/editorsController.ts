@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
+import CodeActionProvider from './codeActionProvider';
 import ConnectionController from '../connectionController';
 import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
@@ -22,7 +23,6 @@ import MongoDBDocumentService, {
   DOCUMENT_SOURCE_URI_IDENTIFIER,
   VIEW_DOCUMENT_SCHEME
 } from './mongoDBDocumentService';
-import PartialExecutionCodeLensProvider from './partialExecutionCodeLensProvider';
 import PlaygroundController from './playgroundController';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME
@@ -37,6 +37,7 @@ const log = createLogger('editors controller');
  * new editors and the data they need. It also manages active editors.
  */
 export default class EditorsController {
+  _codeActionProvider: CodeActionProvider;
   _connectionController: ConnectionController;
   _playgroundController: PlaygroundController;
   _collectionDocumentsOperationsStore = new CollectionDocumentsOperationsStore();
@@ -49,7 +50,6 @@ export default class EditorsController {
   _telemetryService: TelemetryService;
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
-  _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
 
@@ -61,7 +61,7 @@ export default class EditorsController {
     telemetryService: TelemetryService,
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
-    partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider,
+    codeActionProvider: CodeActionProvider,
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider
   ) {
     log.info('activating...');
@@ -90,10 +90,10 @@ export default class EditorsController {
     );
     this._playgroundResultViewProvider = playgroundResultViewProvider;
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
-    this._partialExecutionCodeLensProvider = partialExecutionCodeLensProvider;
     this._collectionDocumentsCodeLensProvider = new CollectionDocumentsCodeLensProvider(
       this._collectionDocumentsOperationsStore
     );
+    this._codeActionProvider = codeActionProvider;
 
     vscode.workspace.onDidCloseTextDocument((e) => {
       const uriParams = new URLSearchParams(e.uri.query);
@@ -374,12 +374,6 @@ export default class EditorsController {
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
-        { language: 'mongodb' },
-        this._partialExecutionCodeLensProvider
-      )
-    );
-    this._context.subscriptions.push(
-      vscode.languages.registerCodeLensProvider(
         {
           scheme: PLAYGROUND_RESULT_SCHEME,
           language: 'json'
@@ -395,6 +389,11 @@ export default class EditorsController {
         },
         this._editDocumentCodeLensProvider
       )
+    );
+    this._context.subscriptions.push(
+      vscode.languages.registerCodeActionsProvider('mongodb', this._codeActionProvider, {
+        providedCodeActionKinds: CodeActionProvider.providedCodeActionKinds
+      })
     );
   }
 

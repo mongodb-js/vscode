@@ -22,6 +22,7 @@ import {
   HelpExplorer,
   CollectionTreeItem
 } from './explorer';
+import CodeActionProvider from './editors/codeActionProvider';
 import EXTENSION_COMMANDS from './commands';
 import FieldTreeItem from './explorer/fieldTreeItem';
 import IndexListTreeItem from './explorer/indexListTreeItem';
@@ -31,7 +32,6 @@ import SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
 import { StorageController, StorageVariables } from './storage';
 import TelemetryService from './telemetry/telemetryService';
-import PartialExecutionCodeLensProvider from './editors/partialExecutionCodeLensProvider';
 import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
@@ -41,6 +41,7 @@ const log = createLogger('commands');
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
+  _codeActionProvider: CodeActionProvider;
   _connectionController: ConnectionController;
   _context: vscode.ExtensionContext;
   _editorsController: EditorsController;
@@ -55,7 +56,6 @@ export default class MDBExtensionController implements vscode.Disposable {
   _webviewController: WebviewController;
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
-  _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
 
   constructor(
@@ -91,7 +91,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(
       this._connectionController
     );
-    this._partialExecutionCodeLensProvider = new PartialExecutionCodeLensProvider();
     this._playgroundController = new PlaygroundController(
       context,
       this._connectionController,
@@ -100,9 +99,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._statusView,
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
-      this._partialExecutionCodeLensProvider,
       this._explorerController
     );
+    this._codeActionProvider = new CodeActionProvider(this._playgroundController);
     this._editorsController = new EditorsController(
       context,
       this._connectionController,
@@ -111,7 +110,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._telemetryService,
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
-      this._partialExecutionCodeLensProvider,
+      this._codeActionProvider,
       this._editDocumentCodeLensProvider
     );
     this._webviewController = new WebviewController(

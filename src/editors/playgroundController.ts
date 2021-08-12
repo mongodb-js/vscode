@@ -9,10 +9,6 @@ import { createLogger } from '../logging';
 import { ExplorerController, ConnectionTreeItem, DatabaseTreeItem } from '../explorer';
 import { LanguageServerController } from '../language';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
-import PartialExecutionCodeLensProvider, {
-  isSelectionValidForCodeLens,
-  getCodeLensLineOffsetForSelection
-} from './partialExecutionCodeLensProvider';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCreateCollectionWithTSTemplate from '../templates/playgroundCreateCollectionWithTSTemplate';
@@ -59,7 +55,6 @@ export default class PlaygroundController {
   _languageServerController: LanguageServerController;
   _telemetryService: TelemetryService;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
-  _partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider;
   _outputChannel: OutputChannel;
   _connectionString?: string;
   _selectedText?: string;
@@ -79,7 +74,6 @@ export default class PlaygroundController {
     statusView: StatusView,
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
-    partialExecutionCodeLensProvider: PartialExecutionCodeLensProvider,
     explorerController: ExplorerController
   ) {
     this._context = context;
@@ -93,7 +87,6 @@ export default class PlaygroundController {
       'Playground output'
     );
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
-    this._partialExecutionCodeLensProvider = partialExecutionCodeLensProvider;
     this._explorerController = explorerController;
 
     this._connectionController.addEventListener(
@@ -130,66 +123,22 @@ export default class PlaygroundController {
             .sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
 
           this._selectedText = sortedSelections
-            .map((selection) => this._getSelectedText(selection))
+            .map((item) => this._getSelectedText(item))
             .join('\n');
-
-          void this._showCodeLensForSelection(
-            sortedSelections,
-            changeEvent.textEditor
-          );
         }
       }
     );
   }
 
-  _showCodeLensForSelection(
-    selections: vscode.Selection[],
-    editor: vscode.TextEditor
-  ): void {
-    if (!this._selectedText || this._selectedText.trim().length === 0) {
-      this._partialExecutionCodeLensProvider.refresh();
-      return;
-    }
-
-    if (!isSelectionValidForCodeLens(selections, editor.document)) {
-      this._partialExecutionCodeLensProvider.refresh();
-      return;
-    }
-
-    const lastSelection = selections[selections.length - 1];
-    const lastSelectedLineNumber = lastSelection.end.line;
-    const lastSelectedLineContent = editor.document.lineAt(lastSelectedLineNumber).text || '';
-    // Add an empty line to the end of the file when the selection includes
-    // the last line and it is not empty.
-    // We do this so that we can show the code lens after the line's contents.
-    if (
-      lastSelection.end.line === editor.document.lineCount - 1 &&
-      lastSelectedLineContent.trim().length > 0
-    ) {
-      void editor.edit(edit => {
-        edit.insert(
-          new vscode.Position(lastSelection.end.line + 1, 0),
-          '\n'
-        );
-      });
-    }
-
-    const codeLensLineOffset = getCodeLensLineOffsetForSelection(selections, editor);
-    this._partialExecutionCodeLensProvider.refresh(
-      new vscode.Range(
-        lastSelectedLineNumber + codeLensLineOffset, 0,
-        lastSelectedLineNumber + codeLensLineOffset, 0
-      )
-    );
-  }
-
   async _connectToServiceProvider(): Promise<void> {
+    // Disconnect if already connected.
     await this._languageServerController.disconnectFromServiceProvider();
 
     const dataService = this._connectionController.getActiveDataService();
     const connectionId = this._connectionController.getActiveConnectionId();
     const connectionModel = this._connectionController
       .getActiveConnectionModel();
+
     if (!dataService || !connectionId || !connectionModel) {
       this._activeConnectionCodeLensProvider.refresh();
 
@@ -505,33 +454,16 @@ export default class PlaygroundController {
   }
 
   runSelectedPlaygroundBlocks(): Promise<boolean> {
-    if (
-      !this._activeTextEditor ||
-      this._activeTextEditor.document.languageId !== 'mongodb'
-    ) {
-      void vscode.window.showErrorMessage(
-        "Please open a '.mongodb' playground file before running it."
-      );
-
-      return Promise.resolve(false);
-    }
-
-    const selections = this._activeTextEditor.selections;
-
-    if (
-      !selections ||
-      !Array.isArray(selections) ||
-      (selections.length === 1 && this._getSelectedText(selections[0]) === '')
-    ) {
+    if (!this._selectedText) {
       void vscode.window.showInformationMessage(
         'Please select one or more lines in the playground.'
       );
 
       return Promise.resolve(true);
-    } else if (this._selectedText) {
-      this._isPartialRun = true;
-      this._codeToEvaluate = this._selectedText;
     }
+
+    this._isPartialRun = true;
+    this._codeToEvaluate = this._selectedText;
 
     return this._evaluatePlayground();
   }

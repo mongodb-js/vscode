@@ -1,29 +1,28 @@
 import { before, after } from 'mocha';
-import TelemetryService from '../../../telemetry/telemetryService';
-import { ExplorerController } from '../../../explorer';
-
-import path from 'path';
-import fs from 'fs';
-import sinon from 'sinon';
 import chai from 'chai';
+import fs from 'fs';
+import path from 'path';
+import sinon from 'sinon';
+
+import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
+import ConnectionController from '../../../connectionController';
+import { DataServiceType } from '../../../types/dataServiceType';
+import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
+import { ExplorerController } from '../../../explorer';
+import { LanguageServerController } from '../../../language';
+import { mdbTestExtension } from '../stubbableMdbExtension';
+import { PlaygroundController } from '../../../editors';
+import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
+import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
+import { StatusView } from '../../../views';
+import { StorageController } from '../../../storage';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
+import TelemetryService from '../../../telemetry/telemetryService';
+import { TestExtensionContext } from '../stubs';
+
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
-
-import { PlaygroundController } from '../../../editors';
-import { LanguageServerController } from '../../../language';
-import ConnectionController from '../../../connectionController';
-import { StatusView } from '../../../views';
-import { StorageController } from '../../../storage';
-import { TestExtensionContext } from '../stubs';
-import { mdbTestExtension } from '../stubbableMdbExtension';
-import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
-import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import PartialExecutionCodeLensProvider from '../../../editors/partialExecutionCodeLensProvider';
-import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import { TEST_DATABASE_URI } from '../dbTestHelper';
-import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
-import { DataServiceType } from '../../../types/dataServiceType';
 
 suite('Language Server Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
@@ -54,7 +53,6 @@ suite('Language Server Controller Test Suite', () => {
   const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
     testConnectionController
   );
-  const testPartialExecutionCodeLensProvider = new PartialExecutionCodeLensProvider();
   const testExplorerController = new ExplorerController(
     testConnectionController
   );
@@ -66,7 +64,6 @@ suite('Language Server Controller Test Suite', () => {
     testStatusView,
     testPlaygroundResultProvider,
     testActiveDBCodeLensProvider,
-    testPartialExecutionCodeLensProvider,
     testExplorerController
   );
 
