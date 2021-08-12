@@ -233,7 +233,7 @@ suite('SchemaTreeItem Test Suite', function () {
     });
 
     test('when not expanded it has not yet pulled the schema', (done) => {
-      seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
+      void seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
         {
           _id: 10,
           someField: 'applePie'
@@ -265,7 +265,7 @@ suite('SchemaTreeItem Test Suite', function () {
     });
 
     test('when expanded shows the fields of a schema', (done) => {
-      seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
+      void seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
         {
           _id: 1,
           nameOfTastyPie: 'applePie'
@@ -282,7 +282,7 @@ suite('SchemaTreeItem Test Suite', function () {
           {}
         );
 
-        testSchemaTreeItem.onDidExpand();
+        void testSchemaTreeItem.onDidExpand();
 
         testSchemaTreeItem
           .getChildren()
@@ -306,7 +306,7 @@ suite('SchemaTreeItem Test Suite', function () {
     });
 
     test('it only shows a dropdown for fields which are always documents - and not for polymorphic', (done) => {
-      seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
+      void seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
         {
           _id: 1,
           alwaysDocument: {
@@ -335,7 +335,7 @@ suite('SchemaTreeItem Test Suite', function () {
           {}
         );
 
-        testSchemaTreeItem.onDidExpand();
+        void testSchemaTreeItem.onDidExpand();
 
         testSchemaTreeItem
           .getChildren()

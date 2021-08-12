@@ -249,7 +249,8 @@ export default class ConnectionTreeItem extends vscode.TreeItem
           () => resolve(true),
           (err) => {
             this.isExpanded = false;
-            vscode.window.showErrorMessage(err);
+            void vscode.window.showErrorMessage(err);
+
             return resolve(false);
           }
         );

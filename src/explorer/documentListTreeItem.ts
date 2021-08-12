@@ -160,7 +160,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
         },
         (err: Error, documents: []) => {
           if (err) {
-            vscode.window.showErrorMessage(`Unable to list documents: ${err}`);
+            void vscode.window.showErrorMessage(`Unable to list documents: ${err}`);
             return reject(err);
           }
 

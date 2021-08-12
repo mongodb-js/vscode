@@ -124,10 +124,10 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   _onDidChangeTreeData: vscode.EventEmitter<any>;
   readonly onDidChangeTreeData: vscode.Event<any>;
 
-  public refresh = (): Promise<boolean> => {
+  refresh = (): boolean => {
     this._onDidChangeTreeData.fire(null);
 
-    return Promise.resolve(true);
+    return true;
   };
 
   onTreeItemUpdate(): void {

@@ -7,7 +7,7 @@ import launchMongoShell from '../../../commands/launchMongoShell';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 suite('Commands Test Suite', () => {
-  vscode.window.showInformationMessage('Starting tests...');
+  void vscode.window.showInformationMessage('Starting tests...');
 
   const mockConnectionController =
     mdbTestExtension.testExtensionController._connectionController;

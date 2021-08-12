@@ -173,7 +173,7 @@ const getListCollections = async (
   }
 };
 
-const handleMessageFromParentPort = async(message: string) => {
+const handleMessageFromParentPort = async(message: string): Promise<void> => {
   if (message === ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND) {
     parentPort?.postMessage(
       await executeAll(
@@ -219,6 +219,6 @@ const handleMessageFromParentPort = async(message: string) => {
 parentPort?.once(
   'message',
   (message: string): void => {
-    handleMessageFromParentPort(message);
+    void handleMessageFromParentPort(message);
   }
 );

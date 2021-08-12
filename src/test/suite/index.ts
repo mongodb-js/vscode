@@ -8,7 +8,7 @@ import KeytarStub from './keytarStub';
 import { TestExtensionContext } from './stubs';
 import { mdbTestExtension } from './stubbableMdbExtension';
 
-export function run(): Promise<void> {
+export async function run(): Promise<void> {
   const reporterOptions = {
     spec: '-',
     'mocha-junit-reporter': path.join(__dirname, './test-results.xml')
@@ -24,6 +24,15 @@ export function run(): Promise<void> {
 
   const testsRoot = path.join(__dirname, '..');
 
+  // Activate the extension.
+  mdbTestExtension.testExtensionContext = new TestExtensionContext();
+  mdbTestExtension.testExtensionController = new MDBExtensionController(
+    mdbTestExtension.testExtensionContext,
+    { shouldTrackTelemetry: false }
+  );
+
+  await mdbTestExtension.testExtensionController.activate();
+
   return new Promise((c, e) => {
     glob(
       '**/**.test.js',
@@ -36,14 +45,6 @@ export function run(): Promise<void> {
           return e(err);
         }
 
-        // Activate the extension.
-        mdbTestExtension.testExtensionContext = new TestExtensionContext();
-        mdbTestExtension.testExtensionController = new MDBExtensionController(
-          mdbTestExtension.testExtensionContext,
-          { shouldTrackTelemetry: false }
-        );
-        mdbTestExtension.testExtensionController.activate();
-
         // We avoid using the user's credential store when running tests
         // in order to ensure we're not polluting the credential store
         // and because its tough to get the credential store running on
@@ -51,7 +52,7 @@ export function run(): Promise<void> {
         ext.keytarModule = new KeytarStub();
 
         // Disable the dialogue for prompting the user where to store the connection.
-        vscode.workspace
+        void vscode.workspace
           .getConfiguration('mdb.connectionSaving')
           .update('hideOptionToChooseWhereToSaveNewConnections', true)
           .then(() => {

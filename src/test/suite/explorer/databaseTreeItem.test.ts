@@ -66,7 +66,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       {}
     );
 
-    testDatabaseTreeItem.onDidExpand();
+    void testDatabaseTreeItem.onDidExpand();
 
     const collections = await testDatabaseTreeItem.getChildren();
     assert(
@@ -213,13 +213,13 @@ suite('DatabaseTreeItem Test Suite', () => {
         'Expected collection tree item not to be expanded on default.'
       );
 
-      collectionTreeItems[0].onDidExpand();
+      void collectionTreeItems[0].onDidExpand();
       const schemaTreeItem = collectionTreeItems[0].getSchemaChild();
       if (!schemaTreeItem) {
         assert(false, 'No schema tree item found on collection.');
         return;
       }
-      schemaTreeItem.onDidExpand();
+      void schemaTreeItem.onDidExpand();
       schemaTreeItem.onShowMoreClicked();
 
       const fields: any[] = await schemaTreeItem.getChildren();
@@ -235,7 +235,7 @@ suite('DatabaseTreeItem Test Suite', () => {
         'Expected the subdocument field to be in the schema cache.'
       );
       // Expand the subdocument.
-      schemaTreeItem.childrenCache.testerObject.onDidExpand();
+      void schemaTreeItem.childrenCache.testerObject.onDidExpand();
 
       testDatabaseTreeItem.onDidCollapse();
       const postCollapseCollectionTreeItems = await testDatabaseTreeItem
@@ -245,7 +245,7 @@ suite('DatabaseTreeItem Test Suite', () => {
         `Expected the database tree to return no children when collapsed, found ${collectionTreeItems.length}`
       );
 
-      testDatabaseTreeItem.onDidExpand();
+      void testDatabaseTreeItem.onDidExpand();
       const newCollectionTreeItems = await testDatabaseTreeItem
         .getChildren();
       dataService.disconnect(() => {});

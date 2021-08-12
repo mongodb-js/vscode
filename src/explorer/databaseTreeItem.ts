@@ -227,7 +227,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         databaseName,
         (err: Error | null, successfullyDroppedDatabase = false) => {
           if (err) {
-            vscode.window.showErrorMessage(
+            void vscode.window.showErrorMessage(
               `Drop database failed: ${err.message}`
             );
             return resolve(false);

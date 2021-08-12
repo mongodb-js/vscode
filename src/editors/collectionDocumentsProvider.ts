@@ -45,7 +45,7 @@ implements vscode.TextDocumentContentProvider {
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
 
     if (!operationId) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         'Unable to list documents: invalid operation'
       );
 
@@ -58,7 +58,7 @@ implements vscode.TextDocumentContentProvider {
     // Ensure we're still connected to the correct connection.
     if (connectionId !== this._connectionController.getActiveConnectionId()) {
       operation.isCurrentlyFetchingMoreDocuments = false;
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `Unable to list documents: no longer connected to ${connectionId}`
       );
 
@@ -74,7 +74,7 @@ implements vscode.TextDocumentContentProvider {
     if (dataservice === null) {
       const errorMessage = `Unable to list documents: no longer connected to ${connectionId}`;
 
-      vscode.window.showErrorMessage(errorMessage);
+      void vscode.window.showErrorMessage(errorMessage);
 
       throw new Error(errorMessage);
     }
@@ -108,7 +108,7 @@ implements vscode.TextDocumentContentProvider {
       const printableError = error as { message: string };
       const errorMessage = `Unable to list documents: ${printableError.message}`;
 
-      vscode.window.showErrorMessage(errorMessage);
+      void vscode.window.showErrorMessage(errorMessage);
 
       throw Error(errorMessage);
     }

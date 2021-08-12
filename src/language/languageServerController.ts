@@ -124,11 +124,11 @@ export default class LanguageServerController {
     );
 
     this._client.onNotification(ServerCommands.SHOW_INFO_MESSAGE, (messsage) => {
-      vscode.window.showInformationMessage(messsage);
+      void vscode.window.showInformationMessage(messsage);
     });
 
     this._client.onNotification(ServerCommands.SHOW_ERROR_MESSAGE, (messsage) => {
-      vscode.window.showErrorMessage(messsage);
+      void vscode.window.showErrorMessage(messsage);
     });
   }
 
@@ -138,7 +138,7 @@ export default class LanguageServerController {
     }
 
     // Stop the language server
-    this._client.stop();
+    void this._client.stop();
   }
 
   async executeAll(

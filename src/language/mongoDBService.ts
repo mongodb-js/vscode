@@ -211,7 +211,7 @@ export default class MongoDBService {
             );
           }
 
-          worker.terminate().then(() => {
+          void worker.terminate().then(() => {
             resolve(result);
           });
         });
@@ -283,7 +283,7 @@ export default class MongoDBService {
           );
         }
 
-        worker.terminate().then(() => {
+        void worker.terminate().then(() => {
           this._connection.console.log(`MONGOSH found ${result.length} databases`);
           this._updateCurrentSessionDatabases(result);
         });
@@ -327,7 +327,7 @@ export default class MongoDBService {
             );
           }
 
-          worker.terminate().then(() => {
+          void worker.terminate().then(() => {
             this._connection.console.log(
               `MONGOSH found ${result.length} collections`
             );
@@ -381,7 +381,7 @@ export default class MongoDBService {
             this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
           }
 
-          worker.terminate().then(() => {
+          void worker.terminate().then(() => {
             this._connection.console.log(`SCHEMA found ${result.length} fields`);
             this._updateCurrentSessionFields(namespace, result);
 

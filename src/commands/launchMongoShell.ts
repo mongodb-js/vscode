@@ -95,7 +95,7 @@ const openMongoDBShell = (connectionController: ConnectionController): Promise<b
   if (
     !connectionController.isCurrentlyConnected()
   ) {
-    vscode.window.showErrorMessage(
+    void vscode.window.showErrorMessage(
       'You need to be connected before launching the MongoDB Shell.'
     );
 
@@ -106,7 +106,7 @@ const openMongoDBShell = (connectionController: ConnectionController): Promise<b
   const shellCommand: string | undefined = vscode.workspace.getConfiguration('mdb').get('shell');
 
   if (!userShell) {
-    vscode.window.showErrorMessage(
+    void vscode.window.showErrorMessage(
       'Error: No shell found, please set your default shell environment in vscode.'
     );
 
@@ -114,7 +114,7 @@ const openMongoDBShell = (connectionController: ConnectionController): Promise<b
   }
 
   if (!shellCommand) {
-    vscode.window.showErrorMessage(
+    void vscode.window.showErrorMessage(
       'No MongoDB shell command found. Please set the shell command in the MongoDB extension settings.'
     );
     return Promise.resolve(false);

@@ -24,7 +24,7 @@ let mdbExtension: MDBExtensionController;
 
 // Called when our extension is activated.
 // See "activationEvents" in `package.json` for the events that cause activation.
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
   log.info('activate extension called');
 
   ext.context = context;
@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext): void {
   mdbExtension = new MDBExtensionController(context, {
     shouldTrackTelemetry: true
   });
-  mdbExtension.activate();
+  await mdbExtension.activate();
 
   // Add our extension to a list of disposables for when we are deactivated.
   context.subscriptions.push(mdbExtension);
@@ -47,8 +47,8 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 // Called when our extension is deactivated.
-export function deactivate(): void {
+export async function deactivate(): Promise<void> {
   if (mdbExtension) {
-    mdbExtension.deactivate();
+    await mdbExtension.deactivate();
   }
 }

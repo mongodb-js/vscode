@@ -212,7 +212,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
     this.cacheIsUpToDate = true;
 
     if (!schema || !schema.fields || schema.fields.length < 1) {
-      vscode.window.showInformationMessage(
+      void vscode.window.showInformationMessage(
         'No documents were found when attempting to parse schema.'
       );
       this.childrenCache = {};

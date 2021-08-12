@@ -65,7 +65,7 @@ suite('Help Explorer Test Suite', function () {
     sinon.replace(vscode.commands, 'executeCommand', stubExecuteCommand);
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[1];
-    testHelpExplorer._treeController.onClickHelpItem(
+    void testHelpExplorer._treeController.onClickHelpItem(
       atlasHelpItem,
       mdbTestExtension.testExtensionController._telemetryService
     );
@@ -93,7 +93,7 @@ suite('Help Explorer Test Suite', function () {
     sinon.replace(linkHelper, 'openLink', stubExecuteCommand);
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
-    testHelpExplorer._treeController.onClickHelpItem(
+    void testHelpExplorer._treeController.onClickHelpItem(
       atlasHelpItem,
       mdbTestExtension.testExtensionController._telemetryService
     );
@@ -118,7 +118,7 @@ suite('Help Explorer Test Suite', function () {
     sinon.replace(vscode.commands, 'executeCommand', sinon.fake());
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
-    testHelpExplorer._treeController.onClickHelpItem(
+    void testHelpExplorer._treeController.onClickHelpItem(
       atlasHelpItem,
       mdbTestExtension.testExtensionController._telemetryService
     );
