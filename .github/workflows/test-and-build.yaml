@@ -45,11 +45,11 @@ jobs:
       - name: Install npm@7
         run: npm install -g npm@7
 
-      - name: patch node gyp on windows
+      - name: Patch node gyp on windows
+        if: ${{ runner.os == 'Windows' }}
         run: |
           npm install --global node-gyp@latest
           npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
-        if: ${{ runner.os != 'Windows' }}
         shell: bash
 
       - name: Install Dependencies
