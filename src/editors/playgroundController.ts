@@ -138,6 +138,7 @@ export default class PlaygroundController {
     const connectionId = this._connectionController.getActiveConnectionId();
     const connectionModel = this._connectionController
       .getActiveConnectionModel();
+
     if (!dataService || !connectionId || !connectionModel) {
       this._activeConnectionCodeLensProvider.refresh();
 
