@@ -32,6 +32,21 @@ import TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('editors controller');
 
+export function getFileDisplayNameForDocumentId(documentId) {
+  let displayName = EJSON.stringify(documentId);
+
+  // Strip out all special characters to ensure VSCode handles
+  // it correctly in a uri.
+  const regularExpression = /[^a-z0-9{}_-\s":,]/gi;
+  displayName = displayName.replace(regularExpression, '');
+
+  displayName = displayName.length > 50
+    ? displayName.substring(0, 50)
+    : displayName;
+
+  return displayName;
+}
+
 /**
  * This controller manages when our extension needs to open
  * new editors and the data they need. It also manages active editors.
@@ -108,12 +123,7 @@ export default class EditorsController {
 
   async openMongoDBDocument(data: EditDocumentInfo): Promise<boolean> {
     try {
-      let fileDocumentId = EJSON.stringify(data.documentId);
-
-      fileDocumentId =
-        fileDocumentId.length > 50
-          ? fileDocumentId.substring(0, 50)
-          : fileDocumentId;
+      const fileDocumentId = getFileDisplayNameForDocumentId(data.documentId);
 
       const fileName = `${VIEW_DOCUMENT_SCHEME}:/${data.namespace}:${fileDocumentId}.json`;
       const mdbDocument = (await this._mongoDBDocumentService.fetchDocument(
@@ -137,7 +147,7 @@ export default class EditorsController {
       const documentIdReference = this._documentIdStore.add(data.documentId);
       const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
       const documentSourceUriQuery = `${DOCUMENT_SOURCE_URI_IDENTIFIER}=${data.source}`;
-      const uri: vscode.Uri = vscode.Uri.parse(fileName).with({
+      const uri: vscode.Uri = vscode.Uri.parse(fileName, true).with({
         query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}&${documentSourceUriQuery}`
       });
       const document = await vscode.workspace.openTextDocument(uri);

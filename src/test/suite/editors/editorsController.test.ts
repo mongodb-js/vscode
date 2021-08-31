@@ -4,8 +4,11 @@ import assert from 'assert';
 import chai from 'chai';
 import { mockTextEditor } from '../stubs';
 import sinon from 'sinon';
+import { ObjectId } from 'bson';
 
-import { EditorsController } from '../../../editors';
+import EditorsController, {
+  getFileDisplayNameForDocumentId
+} from '../../../editors/editorsController';
 
 const expect = chai.expect;
 
@@ -15,6 +18,32 @@ suite('Editors Controller Test Suite', () => {
   afterEach(() => {
     sandbox.restore();
     sinon.restore();
+  });
+
+  suite('#getFileDisplayNameForDocumentId', () => {
+    test('it strips special characters from the document id', () => {
+      const str = 'abc//\\\nab  c$%%..@1s   df"';
+      const result = getFileDisplayNameForDocumentId(str);
+      const expected = '"abcnab  c1s   df""';
+      assert.strictEqual(result, expected);
+    });
+
+    test('it trims the string to 50 characters', () => {
+      const str = '123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf';
+      const result = getFileDisplayNameForDocumentId(str);
+      const expected = '"123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjv';
+      assert.strictEqual(result, expected);
+    });
+
+    test('it handles ids that are objects', () => {
+      const str = {
+        str: 'abc//\\\nab  c$%%..@1s   df"',
+        b: new ObjectId('5d973ae744376d2aae72a160')
+      };
+      const result = getFileDisplayNameForDocumentId(str);
+      const expected = '{"str":"abcnab  c1s   df"","b":{"oid":"5d973ae7443';
+      assert.strictEqual(result, expected);
+    });
   });
 
   test('getViewCollectionDocumentsUri builds a uri from the namespace and connection info', () => {

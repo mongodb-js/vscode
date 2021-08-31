@@ -54,18 +54,20 @@ suite('Playgrounds Controller Test Suite', function () {
     try {
       const children = await treeController.getPlaygrounds(rootUri);
 
-      assert(
-        Object.keys(children).length === 4,
-        `Tree playgrounds should have 4 child, found ${children.length}`
+      assert.strictEqual(
+        Object.keys(children).length,
+        5,
+        `Tree playgrounds should have 5 child, found ${children.length}`
       );
 
       const playgrounds = Object.values(children).filter(
         (item: any) => item.label && item.label.split('.').pop() === 'mongodb'
       );
 
-      assert(
-        Object.keys(playgrounds).length === 4,
-        `Tree playgrounds should have 4 playgrounds with mongodb extension, found ${children.length}`
+      assert.strictEqual(
+        Object.keys(playgrounds).length,
+        5,
+        `Tree playgrounds should have 5 playgrounds with mongodb extension, found ${children.length}`
       );
     } catch (error) {
       assert(false, error);
