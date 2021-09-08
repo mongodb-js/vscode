@@ -247,6 +247,14 @@
         }
       },
       {
+        "command": "mdb.exportPlayground",
+        "title": "MongoDB: Export All or Selection Aggregation From Playground",
+        "icon": {
+          "light": "images/light/schema.svg",
+          "dark": "images/dark/schema.svg"
+        }
+      },
+      {
         "command": "mdb.addConnection",
         "title": "Add MongoDB Connection",
         "icon": {
@@ -566,6 +574,11 @@
           "command": "mdb.runPlayground",
           "group": "navigation",
           "when": "editorLangId == mongodb"
+        },
+        {
+          "command": "mdb.exportPlayground",
+          "group": "navigation",
+          "when": "editorLangId == mongodb"
         }
       ],
       "commandPalette": [
@@ -691,6 +704,10 @@
         },
         {
           "command": "mdb.runPlayground",
+          "when": "false"
+        },
+        {
+          "command": "mdb.exportPlayground",
           "when": "false"
         },
         {
@@ -873,10 +890,14 @@
     "@mongosh/i18n": "^1.0.4",
     "@mongosh/service-provider-server": "^1.0.4",
     "@mongosh/shell-api": "^1.0.4",
+    "acorn": "^8.5.0",
+    "acorn-walk": "^8.2.0",
     "analytics-node": "^5.0.0",
     "bson": "^4.4.1",
+    "bson-transpilers": "^1.2.0",
     "classnames": "^2.3.1",
     "debug": "^4.3.2",
+    "decomment": "^0.9.4",
     "dotenv": "^8.2.0",
     "micromatch": "^4.0.4",
     "mongodb": "^4.1.0",
@@ -885,6 +906,7 @@
     "mongodb-data-service": "^21.5.4",
     "mongodb-js-errors": "^0.5.0",
     "mongodb-ns": "^2.2.0",
+    "mongodb-query-parser": "^2.4.3",
     "mongodb-schema": "^9.0.0",
     "numeral": "^2.0.6",
     "react": "^16.13.1",
@@ -927,6 +949,7 @@
     "chai-json-schema": "^1.5.1",
     "chalk": "^4.1.2",
     "cli-ux": "^5.6.3",
+    "context-map-webpack-plugin": "^0.1.0",
     "cross-env": "^7.0.3",
     "css-loader": "^3.4.2",
     "depcheck": "^1.4.2",

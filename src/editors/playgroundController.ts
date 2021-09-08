@@ -22,6 +22,7 @@ import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
 import { ConnectionOptions } from '../types/connectionOptionsType';
+import { Language, extractTranspilable, transpile } from '../utils/transpile';
 
 const log = createLogger('playground controller');
 
@@ -513,6 +514,65 @@ export default class PlaygroundController {
     }
 
     return this._evaluatePlayground();
+  }
+
+  exportAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
+    if (
+      !this._activeTextEditor ||
+      this._activeTextEditor.document.languageId !== 'mongodb'
+    ) {
+      void vscode.window.showErrorMessage(
+        "Please open a '.mongodb' playground file before running it."
+      );
+
+      return Promise.resolve(true);
+    }
+
+    const selections = this._activeTextEditor.selections;
+
+    let codeToEvaluate;
+
+    if (
+      !selections ||
+      !Array.isArray(selections) ||
+      (selections.length === 1 && this._getSelectedText(selections[0]) === '')
+    ) {
+      codeToEvaluate = this._getAllText();
+    } else if (this._selectedText) {
+      codeToEvaluate = this._selectedText;
+    }
+
+
+    let snippets;
+    try {
+      snippets = extractTranspilable(codeToEvaluate);
+    } catch (err) {
+      console.error(err);
+      this._outputChannel.appendLine('Finding an aggregation or filter snippet failed.');
+      this._outputChannel.show(true);
+      return Promise.resolve(true);
+    }
+
+    if (snippets.length !== 1) {
+      this._outputChannel.appendLine(`Found ${snippets.length} snippets.`);
+      this._outputChannel.show(true);
+      return Promise.resolve(true);
+    }
+
+    let output;
+    try {
+      output = transpile(snippets[0], Language.JAVA);
+    } catch (err) {
+      console.error(err);
+      this._outputChannel.appendLine(`Export to ${Language.JAVA} failed.`);
+      this._outputChannel.show(true);
+      return Promise.resolve(true);
+    }
+
+    this._outputChannel.appendLine(output);
+    this._outputChannel.show(true);
+
+    return Promise.resolve(true);
   }
 
   async openPlayground(filePath: string): Promise<boolean> {

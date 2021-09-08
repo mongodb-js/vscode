@@ -1,6 +1,6 @@
 // This is the webpack which builds our extension in the 'dist' folder.
 const path = require('path');
-
+const ContextMapPlugin = require('context-map-webpack-plugin');
 const autoprefixer = require('autoprefixer');
 const outputPath = path.join(__dirname, 'dist');
 
@@ -13,6 +13,12 @@ const baseConfig = {
 
 const extensionConfig = {
   ...baseConfig,
+  plugins: [
+    new ContextMapPlugin(
+      'node_modules/context-eval',
+      ['./lib/context-node']
+    )
+  ],
   output: {
     path: outputPath,
     filename: '[name].js',
