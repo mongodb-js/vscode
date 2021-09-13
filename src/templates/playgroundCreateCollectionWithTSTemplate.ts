@@ -35,8 +35,9 @@ db.createCollection(collection);
     timeseries: {
       timeField: <string>,
       metaField: <string>,
-      expireAfterSeconds: <number>
-    }
+      granularity: <string>
+    },
+    expireAfterSeconds: <number>
   }
 ) */
 `;
