@@ -4,6 +4,8 @@ const path = require('path');
 const autoprefixer = require('autoprefixer');
 const outputPath = path.join(__dirname, 'dist');
 
+const ContextMapPlugin = require('context-map-webpack-plugin');
+
 const baseConfig = {
   devtool: 'source-map'
   // performance: {
@@ -47,7 +49,13 @@ const extensionConfig = {
         loader: 'node-loader'
       }
     ]
-  }
+  },
+  plugins: [
+    new ContextMapPlugin(
+      'node_modules/context-eval',
+      ['./lib/context-node']
+    )
+  ]
 };
 
 const languageServerConfig = {

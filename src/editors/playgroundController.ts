@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { EJSON } from 'bson';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ConnectionController, {
@@ -23,6 +22,7 @@ import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
 import { ConnectionOptions } from '../types/connectionOptionsType';
 
+const transpiler = require('bson-transpilers');
 const log = createLogger('playground controller');
 
 const getSSLFilePathsFromConnectionModel = (
@@ -342,7 +342,29 @@ export default class PlaygroundController {
     }
   }
 
-  _getDocumentLanguage(content?: EJSON.SerializableTypes): string {
+  _getDocumentLanguage(playgroundResult: PlaygroundResult): string {
+    if (!playgroundResult) {
+      return 'plaintext';
+    }
+
+    const { type, content } = playgroundResult;
+
+    if (type === 'python') {
+      return 'python';
+    }
+
+    if (type === 'java') {
+      return 'java';
+    }
+
+    if (type === 'csharp') {
+      return 'csharp';
+    }
+
+    if (type === 'javascript') {
+      return 'javascript';
+    }
+
     if (typeof content === 'object' && content !== null) {
       return 'json';
     }
@@ -364,7 +386,7 @@ export default class PlaygroundController {
     await this._showResultAsVirtualDocument();
 
     if (this._playgroundResultTextDocument) {
-      const language = this._getDocumentLanguage(this._playgroundResult?.content);
+      const language = this._getDocumentLanguage(this._playgroundResult);
 
       await vscode.languages.setTextDocumentLanguage(
         this._playgroundResultTextDocument,
@@ -531,6 +553,31 @@ export default class PlaygroundController {
 
       return false;
     }
+  }
+
+  async exportToLanguage(language: string): Promise<boolean> {
+    log.info(`Start export to ${language} language`);
+
+    try {
+      const compiledString = transpiler.shell[language].compile(this._selectedText);
+
+      this._playgroundResult = {
+        namespace: null,
+        type: language,
+        content: compiledString
+      };
+      log.info(`Export to ${language} language result`, this._playgroundResult);
+      await this._openPlaygroundResult();
+    } catch (error) {
+      const printableError = error as { message: string };
+
+      log.error(`Export to ${language} language error`, error);
+      void vscode.window.showErrorMessage(
+        `Unable to export to ${language} language: ${printableError.message}`
+      );
+    }
+
+    return true;
   }
 
   deactivate(): void {

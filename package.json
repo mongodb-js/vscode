@@ -247,6 +247,10 @@
         }
       },
       {
+        "command": "mdb.exportToLanguage",
+        "title": "MongoDB: Export To Language"
+      },
+      {
         "command": "mdb.addConnection",
         "title": "Add MongoDB Connection",
         "icon": {
@@ -582,6 +586,10 @@
           "when": "editorLangId == mongodb"
         },
         {
+          "command": "mdb.exportToLanguage",
+          "when": "false"
+        },
+        {
           "command": "mdb.refreshPlaygroundsFromTreeView",
           "when": "false"
         },
@@ -876,6 +884,7 @@
     "@mongosh/shell-api": "^1.0.4",
     "analytics-node": "^5.0.0",
     "bson": "^4.4.1",
+    "bson-transpilers": "^1.2.0",
     "classnames": "^2.3.1",
     "debug": "^4.3.2",
     "dotenv": "^8.2.0",
@@ -928,6 +937,7 @@
     "chai-json-schema": "^1.5.1",
     "chalk": "^4.1.2",
     "cli-ux": "^5.6.3",
+    "context-map-webpack-plugin": "^0.1.0",
     "cross-env": "^7.0.3",
     "css-loader": "^3.4.2",
     "depcheck": "^1.4.2",

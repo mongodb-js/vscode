@@ -53,8 +53,14 @@ implements vscode.TextDocumentContentProvider {
       return 'undefined';
     }
 
-    if (type === 'string') {
-      return this._playgroundResult.content as string;
+    if (
+      type === 'string' ||
+      type === 'python' ||
+      type === 'java' ||
+      type === 'csharp' ||
+      type === 'javascript'
+    ) {
+      return this._playgroundResult.content;
     }
 
     this._editDocumentCodeLensProvider?.updateCodeLensesForPlayground(

@@ -472,7 +472,11 @@ suite('Playground Controller Test Suite', function () {
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
         const language = testPlaygroundController._getDocumentLanguage({
-          test: 'value'
+          namespace: null,
+          type: 'object',
+          content: {
+            test: 'value'
+          }
         });
 
         expect(language).to.be.equal('json');
@@ -482,9 +486,13 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage([
-          { test: 'value' }
-        ]);
+        const language = testPlaygroundController._getDocumentLanguage({
+          namespace: null,
+          type: 'object',
+          content: [{
+            test: 'value'
+          }]
+        });
 
         expect(language).to.be.equal('json');
       });
@@ -494,8 +502,12 @@ suite('Playground Controller Test Suite', function () {
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
         const language = testPlaygroundController._getDocumentLanguage({
-          _id: {
-            $oid: '5d973ae7443762aae72a160'
+          namespace: null,
+          type: 'object',
+          content: {
+            _id: {
+              $oid: '5d973ae7443762aae72a160'
+            }
           }
         });
 
@@ -506,9 +518,11 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage(
-          'I am a string'
-        );
+        const language = testPlaygroundController._getDocumentLanguage({
+          namespace: null,
+          type: 'string',
+          content: 'I am a string'
+        });
 
         expect(language).to.be.equal('plaintext');
       });
@@ -517,7 +531,11 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage(12);
+        const language = testPlaygroundController._getDocumentLanguage({
+          namespace: null,
+          type: 'number',
+          content: 12
+        });
 
         expect(language).to.be.equal('plaintext');
       });
@@ -526,9 +544,11 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage(
-          undefined
-        );
+        const language = testPlaygroundController._getDocumentLanguage({
+          namespace: null,
+          type: null,
+          content: undefined
+        });
 
         expect(language).to.be.equal('plaintext');
       });
@@ -537,9 +557,11 @@ suite('Playground Controller Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage(
-          undefined
-        );
+        const language = testPlaygroundController._getDocumentLanguage({
+          namespace: null,
+          type: null,
+          content: null
+        });
 
         expect(language).to.be.equal('plaintext');
       });

@@ -188,6 +188,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS, () =>
       this._playgroundsExplorer.refresh()
     );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_LANGUAGE, (language) =>
+      this._playgroundController.exportToLanguage(language)
+    );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
       (data: EditDocumentInfo) => {
