@@ -449,11 +449,19 @@ suite('Webview Test Suite', () => {
     const fakeWebview = {
       html: '',
       postMessage: async (message): Promise<void> => {
-        assert(message.action === 'file_action');
-        assert(message.files[0] === path.resolve('somefilepath/test.text'));
+        try {
+          assert.strictEqual(message.action, 'file_action');
+          assert.strictEqual(
+            message.files[0],
+            '/somefilepath/test.text'
+          );
+
+          done();
+        } catch (e) {
+          done(e);
+        }
 
         await testConnectionController.disconnect();
-        done();
       },
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
