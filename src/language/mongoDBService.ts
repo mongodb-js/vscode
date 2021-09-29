@@ -1,7 +1,6 @@
 /* eslint-disable no-sync */
 import * as util from 'util';
 import { CompletionItemKind, CancellationToken, Connection, CompletionItem, MarkupContent, MarkupKind } from 'vscode-languageserver/node';
-import fs from 'fs';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';
@@ -46,45 +45,6 @@ export default class MongoDBService {
     return this._connectionOptions;
   }
 
-  _isSslConnection(connectionOptions: ConnectionOptions): boolean {
-    return !!(
-      connectionOptions &&
-      (connectionOptions.sslCA ||
-        connectionOptions.sslCert ||
-        connectionOptions.sslPass)
-    );
-  }
-
-  _readSslFileSync(sslOption: string | string[]): string | undefined {
-    if (Array.isArray(sslOption)) {
-      sslOption = sslOption[0];
-    }
-
-    if (typeof sslOption === 'string') {
-      return fs.readFileSync(sslOption).toString();
-    }
-  }
-
-  _loadSslBinaries(): void {
-    if (this._connectionOptions?.sslCA) {
-      this._connectionOptions.sslCA = this._readSslFileSync(
-        this._connectionOptions.sslCA
-      );
-    }
-
-    if (this._connectionOptions?.sslKey) {
-      this._connectionOptions.sslKey = this._readSslFileSync(
-        this._connectionOptions.sslKey
-      );
-    }
-
-    if (this._connectionOptions?.sslCert) {
-      this._connectionOptions.sslCert = this._readSslFileSync(
-        this._connectionOptions.sslCert
-      );
-    }
-  }
-
   setExtensionPath(extensionPath: string): void {
     if (!extensionPath) {
       this._connection.console.log('Set extensionPath error: extensionPath is undefined');
@@ -109,18 +69,6 @@ export default class MongoDBService {
 
     if (!this._connectionString) {
       return Promise.resolve(false);
-    }
-
-    if (this._isSslConnection(this._connectionOptions)) {
-      try {
-        this._loadSslBinaries();
-      } catch (error) {
-        this._connection.console.log(
-          `SSL FILES read error: ${util.inspect(error)}`
-        );
-
-        return Promise.resolve(false);
-      }
     }
 
     try {
