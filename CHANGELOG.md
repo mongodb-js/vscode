@@ -1,5 +1,19 @@
 # Change Log
 
+## [v0.6.12](https://github.com/mongodb-js/vscode/releases/tag/v0.6.12) - 2021-10-04
+
+### Changed
+
+- Replaced code lenses with code actions for partially running playgrounds (VSCODE-247, #318)
+- Updated the MongoDB driver to 4.1.2 and mongosh to 1.0.4 (VSCODE-270, #337)
+- Updated the create collection time-series template to include granularity (VSCODE-292, #344)
+
+### Fixed
+
+- Fixed TLS/SSL files not resolving correctly when connecting with WSL(Windows Subsystem for Linux) (VSCODE-284, #343)
+- Fixed playgrounds not loading SSL/TLS files correctly with new MongoDB node driver (VSCODE-292, #347)
+
+
 ## [v0.6.11](https://github.com/mongodb-js/vscode/releases/tag/untagged-8729f8874e50f024aad5) - null
 
 Edit the release notes before publishing.
