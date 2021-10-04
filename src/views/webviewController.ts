@@ -131,7 +131,7 @@ export default class WebviewController {
       command: MESSAGE_TYPES.FILE_PICKER_RESULTS,
       action: message.action,
       files: (files && files.length > 0)
-        ? files.map((file) => file.path)
+        ? files.map((file) => file.fsPath)
         : undefined
     });
   };

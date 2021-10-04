@@ -480,7 +480,7 @@ suite('Webview Test Suite', () => {
 
     const fakeVSCodeOpenDialog = sinon.fake.resolves([
       {
-        path: '/somefilepath/test.text'
+        fsPath: '/somefilepath/test.text'
       }
     ]);
 
