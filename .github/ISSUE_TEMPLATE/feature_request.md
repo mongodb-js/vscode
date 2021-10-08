@@ -6,7 +6,7 @@ title: Feature Request
 
 <!--- Please note this repository's Issue Tracker is not being watched.
 Issues are instead being tracked in our public Jira project:
-https://jira.mongodb.org/projects/COMPASS/summary
+https://jira.mongodb.org/projects/VSCODE/summary
 -->
 
 <!--- Provide a general summary of the issue in the Title above -->
