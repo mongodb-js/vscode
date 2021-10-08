@@ -1,5 +1,5 @@
 <!-- Ticket number and a general summary of your changes in the Title above -->
-<!-- e.g. COMPASS-1111: updates ace editor width in agg pipeline view -->
+<!-- e.g. VSCODE-1111: updates ace editor width in agg pipeline view -->
 
 <!--- The following fields are not obligatory. Use your best judgement on what you think is applicable to the work you've done -->
 
