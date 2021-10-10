@@ -14,11 +14,6 @@
 - Fixed playgrounds not loading SSL/TLS files correctly with new MongoDB node driver (VSCODE-292, #347)
 
 
-## [v0.6.11](https://github.com/mongodb-js/vscode/releases/tag/untagged-8729f8874e50f024aad5) - null
-
-Edit the release notes before publishing.
-
-
 ## [v0.6.10](https://github.com/mongodb-js/vscode/releases/tag/v0.6.10) - 2021-07-27
 
 ### Fixed
