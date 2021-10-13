@@ -24,14 +24,14 @@ suite('Editors Controller Test Suite', () => {
     test('it strips special characters from the document id', () => {
       const str = 'abc//\\\nab  c$%%..@1s   df"';
       const result = getFileDisplayNameForDocumentId(str);
-      const expected = '"abcnab  c$@1s   df""';
+      const expected = '"abcnab  c$%%..@1s   df""';
       assert.strictEqual(result, expected);
     });
 
-    test('it trims the string to 50 characters', () => {
-      const str = '123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf';
+    test('it trims the string to 100 characters', () => {
+      const str = '123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf';
       const result = getFileDisplayNameForDocumentId(str);
-      const expected = '"123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjv';
+      const expected = '"123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkj';
       assert.strictEqual(result, expected);
     });
 
@@ -41,7 +41,7 @@ suite('Editors Controller Test Suite', () => {
         b: new ObjectId('5d973ae744376d2aae72a160')
       };
       const result = getFileDisplayNameForDocumentId(str);
-      const expected = '{"str":"abcnab  c$@1s   df"","b":{"$oid":"5d973ae7';
+      const expected = '{"str":"abcnab  c$%%..@1s   df"","b":{"$oid":"5d973ae744376d2aae72a160"}}';
       assert.strictEqual(result, expected);
     });
   });

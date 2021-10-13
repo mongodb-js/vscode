@@ -37,11 +37,11 @@ export function getFileDisplayNameForDocumentId(documentId) {
 
   // Strip out all special characters to ensure VSCode handles
   // it correctly in a uri.
-  const regularExpression = /[^a-z0-9{}_-\s":,$!*#@()]/gi;
+  const regularExpression = /[\\\/]/gi;
   displayName = displayName.replace(regularExpression, '');
 
-  displayName = displayName.length > 50
-    ? displayName.substring(0, 50)
+  displayName = displayName.length > 100
+    ? displayName.substring(0, 100)
     : displayName;
 
   return displayName;
