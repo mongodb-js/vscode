@@ -1,0 +1,56 @@
+// Playground for seeding the `mongodbVSCodePlaygroundDB.idTypeTesting` with
+// documents that have different kinds of ids.
+
+const databaseName = 'mongodbVSCodePlaygroundDB';
+const collectionName = 'idTypeTesting';
+
+use(databaseName);
+
+db[collectionName].insertOne({
+  description: 'auto generated default object id'
+});
+
+db[collectionName].insertOne({
+  _id: ObjectId(),
+  description: 'object id'
+});
+
+db[collectionName].insertOne({
+  _id: 'testString',
+  description: 'string'
+});
+
+db[collectionName].insertOne({
+  _id: 123,
+  description: 'number'
+});
+
+db[collectionName].insertOne({
+  _id: {
+    name: 'aaa'
+  },
+  description: 'object'
+});
+
+db[collectionName].insertOne({
+  _id: 'abc//\\\nab  c$%@1s   df',
+  description: 'string with special characters'
+});
+
+db[collectionName].insertOne({
+  _id: {
+    name: 'abc//\\\nab  c$%@1s   df',
+    2: 3
+  },
+  description: 'object with a string with special characters'
+});
+
+db[collectionName].insertOne({
+  _id: new Date(),
+  description: 'date'
+});
+
+db[collectionName].insertOne({
+  _id: Binary('pineapple'),
+  description: 'binary'
+});

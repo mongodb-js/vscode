@@ -4,8 +4,12 @@ import assert from 'assert';
 import chai from 'chai';
 import { mockTextEditor } from '../stubs';
 import sinon from 'sinon';
+import { ObjectId } from 'bson';
 
-import { EditorsController } from '../../../editors';
+import {
+  getFileDisplayNameForDocument,
+  getViewCollectionDocumentsUri
+} from '../../../editors/editorsController';
 
 const expect = chai.expect;
 
@@ -17,28 +21,72 @@ suite('Editors Controller Test Suite', () => {
     sinon.restore();
   });
 
+  suite('#getFileDisplayNameForDocumentId', () => {
+    test('it strips special characters from the document id', () => {
+      const str = 'abc//\\\nab  c"$%%..@1s   df""';
+      const result = getFileDisplayNameForDocument(str, 'a.b');
+      const expected = 'a.b:"abc%2f%2f%5c%5c%5cnab  c%5c"$%25%25..@1s   df%5c"%5c""';
+      assert.strictEqual(result, expected);
+    });
+
+    test('it trims the string to 200 characters', () => {
+      const str = '123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdffbnjiekbfdakjsdbfkjsabdfkjasbfbnjiekbfdakjsdbfkjsabdfkjasbkjasbfbnjiekbfdakjsdbfkjsabdfkjasb';
+      const result = getFileDisplayNameForDocument(str, 'db.col');
+      const expected = 'db.col:"123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdffbnjiekbfdakjsdbfkjsabdfkjasbfbnjiekbfdakjsdbfkjsabdfkjasbkjasbfbnjiekbfdakjsd';
+      assert.strictEqual(result, expected);
+    });
+
+    test('it handles ids that are objects', () => {
+      const str = {
+        str: 'abc//\\\nab  c$%%..@1s   df"',
+        b: new ObjectId('5d973ae744376d2aae72a160')
+      };
+      const result = getFileDisplayNameForDocument(str, 'db.col');
+      const expected = 'db.col:{"str":"abc%2f%2f%5c%5c%5cnab  c$%25%25..@1s   df%5c"","b":{"$oid":"5d973ae744376d2aae72a160"}}';
+      assert.strictEqual(result, expected);
+    });
+
+    test('has the namespace at the start of the display name', () => {
+      const str = 'pineapples';
+      const result = getFileDisplayNameForDocument(str, 'grilled');
+      const expected = 'grilled:"pineapples"';
+      assert.strictEqual(result, expected);
+    });
+  });
+
   test('getViewCollectionDocumentsUri builds a uri from the namespace and connection info', () => {
     const testOpId = '100011011101110011';
     const testNamespace = 'myFavoriteNamespace';
     const testConnectionId = 'alienSateliteConnection';
-    const testUri = EditorsController.getViewCollectionDocumentsUri(
+    const testUri = getViewCollectionDocumentsUri(
       testOpId,
       testNamespace,
       testConnectionId
     );
 
-    assert(
-      testUri.path === 'Results: myFavoriteNamespace.json',
-      `Expected uri path ${testUri.path} to equal 'Results: myFavoriteNamespace.json'.`
+    assert.strictEqual(testUri.path, 'Results: myFavoriteNamespace.json');
+    assert.strictEqual(testUri.scheme, 'VIEW_COLLECTION_SCHEME');
+    assert.strictEqual(
+      testUri.query,
+      'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
     );
-    assert(
-      testUri.scheme === 'VIEW_COLLECTION_SCHEME',
-      `Expected uri scheme ${testUri.scheme} to equal 'VIEW_COLLECTION_SCHEME'.`
+  });
+
+  test('getViewCollectionDocumentsUri handles / \\ and % in the namespace', () => {
+    const testOpId = '100011011101110011';
+    const testNamespace = 'myFa%%\\\\///\\%vorite%Namespace';
+    const testConnectionId = 'alienSateliteConnection';
+    const testUri = getViewCollectionDocumentsUri(
+      testOpId,
+      testNamespace,
+      testConnectionId
     );
-    assert(
-      testUri.query ===
-        'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
-      `Expected uri query ${testUri.query} to equal 'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011'.`
+
+    assert.strictEqual(testUri.path, 'Results: myFa%25%25%5c%5c%2f%2f%2f%5c%25vorite%25Namespace.json');
+    assert.strictEqual(testUri.scheme, 'VIEW_COLLECTION_SCHEME');
+    assert.strictEqual(
+      testUri.query,
+      'namespace=myFa%%\\\\///\\%vorite%Namespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
     );
   });
 
