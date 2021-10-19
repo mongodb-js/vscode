@@ -32,19 +32,49 @@ import TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('editors controller');
 
-export function getFileDisplayNameForDocumentId(documentId) {
-  let displayName = EJSON.stringify(documentId);
+export function getFileDisplayNameForDocument(
+  documentId: EJSON.SerializableTypes,
+  namespace: string
+) {
+  let displayName = `${namespace}:${EJSON.stringify(documentId)}`;
 
-  // Strip out all special characters to ensure VSCode handles
-  // it correctly in a uri.
-  const regularExpression = /[\\\/]/gi;
-  displayName = displayName.replace(regularExpression, '');
+  // Encode special file uri characters to ensure VSCode handles
+  // it correctly in a uri while avoiding collisions.
+  displayName = displayName.replace(/[\\/%]/gi, function(c) {
+    return `%${c.charCodeAt(0).toString(16)}`;
+  });
 
-  displayName = displayName.length > 100
-    ? displayName.substring(0, 100)
+  displayName = displayName.length > 200
+    ? displayName.substring(0, 200)
     : displayName;
 
   return displayName;
+}
+
+export function getViewCollectionDocumentsUri(
+  operationId: string,
+  namespace: string,
+  connectionId: string
+): vscode.Uri {
+  // We attach a unique id to the query so that it creates a new file in
+  // the editor and so that we can virtually manage the amount of docs shown.
+  const operationIdUriQuery = `${OPERATION_ID_URI_IDENTIFIER}=${operationId}`;
+  const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
+  const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
+  const uriQuery = `?${namespaceUriQuery}&${connectionIdUriQuery}&${operationIdUriQuery}`;
+
+  // Encode special file uri characters to ensure VSCode handles
+  // it correctly in a uri while avoiding collisions.
+  const namespaceDisplayName = encodeURIComponent(
+    namespace.replace(/[\\/%]/gi, function(c) {
+      return `%${c.charCodeAt(0).toString(16)}`;
+    })
+  );
+
+  // The part of the URI after the scheme and before the query is the file name.
+  return vscode.Uri.parse(
+    `${VIEW_COLLECTION_SCHEME}:Results: ${namespaceDisplayName}.json${uriQuery}`
+  );
 }
 
 /**
@@ -123,9 +153,6 @@ export default class EditorsController {
 
   async openMongoDBDocument(data: EditDocumentInfo): Promise<boolean> {
     try {
-      const fileDocumentId = getFileDisplayNameForDocumentId(data.documentId);
-
-      const fileName = `${VIEW_DOCUMENT_SCHEME}:/${data.namespace}:${fileDocumentId}.json`;
       const mdbDocument = (await this._mongoDBDocumentService.fetchDocument(
         data
       )) as EJSON.SerializableTypes;
@@ -138,8 +165,6 @@ export default class EditorsController {
         return false;
       }
 
-      this._saveDocumentToMemoryFileSystem(fileName, mdbDocument);
-
       const activeConnectionId =
         this._connectionController.getActiveConnectionId() || '';
       const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${data.namespace}`;
@@ -147,10 +172,20 @@ export default class EditorsController {
       const documentIdReference = this._documentIdStore.add(data.documentId);
       const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
       const documentSourceUriQuery = `${DOCUMENT_SOURCE_URI_IDENTIFIER}=${data.source}`;
-      const uri: vscode.Uri = vscode.Uri.parse(fileName, true).with({
+
+      const fileTitle = encodeURIComponent(getFileDisplayNameForDocument(
+        data.documentId,
+        data.namespace
+      ));
+      const fileName = `${VIEW_DOCUMENT_SCHEME}:/${fileTitle}.json`;
+
+      const fileUri = vscode.Uri.parse(fileName, true).with({
         query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}&${documentSourceUriQuery}`
       });
-      const document = await vscode.workspace.openTextDocument(uri);
+
+      this._saveDocumentToMemoryFileSystem(fileUri, mdbDocument);
+
+      const document = await vscode.workspace.openTextDocument(fileUri);
 
       await vscode.window.showTextDocument(document, { preview: false });
 
@@ -222,31 +257,13 @@ export default class EditorsController {
     }
   }
 
-  static getViewCollectionDocumentsUri(
-    operationId: string,
-    namespace: string,
-    connectionId: string
-  ): vscode.Uri {
-    // We attach a unique id to the query so that it creates a new file in
-    // the editor and so that we can virtually manage the amount of docs shown.
-    const operationIdUriQuery = `${OPERATION_ID_URI_IDENTIFIER}=${operationId}`;
-    const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
-    const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
-    const uriQuery = `?${namespaceUriQuery}&${connectionIdUriQuery}&${operationIdUriQuery}`;
-
-    // The part of the URI after the scheme and before the query is the file name.
-    return vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${namespace}.json${uriQuery}`
-    );
-  }
-
   async onViewCollectionDocuments(namespace: string): Promise<boolean> {
     log.info('view collection documents', namespace);
 
     const operationId = this._collectionDocumentsOperationsStore.createNewOperation();
     const activeConnectionId =
       this._connectionController.getActiveConnectionId() || '';
-    const uri = EditorsController.getViewCollectionDocumentsUri(
+    const uri = getViewCollectionDocumentsUri(
       operationId,
       namespace,
       activeConnectionId
@@ -304,7 +321,7 @@ export default class EditorsController {
       );
     }
 
-    const uri = EditorsController.getViewCollectionDocumentsUri(
+    const uri = getViewCollectionDocumentsUri(
       operationId,
       namespace,
       connectionId
@@ -321,11 +338,11 @@ export default class EditorsController {
   }
 
   _saveDocumentToMemoryFileSystem(
-    fileName: string,
+    fileUri: vscode.Uri,
     document: EJSON.SerializableTypes
   ): void {
     this._memoryFileSystemProvider.writeFile(
-      vscode.Uri.parse(fileName),
+      fileUri,
       Buffer.from(JSON.stringify(document, null, 2)),
       { create: true, overwrite: true }
     );
