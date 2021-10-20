@@ -82,6 +82,42 @@
     ],
     "description": "Returns a count of the number of documents at this stage of the aggregation pipeline."
   },
+  "MongoDB Aggregations $densify": {
+    "prefix": "$densify",
+    "body": [
+      "/**",
+      " * field: The required field to densify.",
+      " * partitionByFields: The set of fields that acts as a compound key to define each partition.",
+      " * range: {",
+      " *   step: The amount to increment the field value in each document.",
+      " *   unit: If specified field must evaluate to a date for every document in the collection, otherwise must evaluate to a numeric.",
+      " *   bounds: A string or array of numeric/date bounds, corresponding to the type of the field.",
+      " * }",
+      " */",
+      "\\$densify: {",
+      "  field: ${1:string},",
+      "  partitionByFields: [${2:string}, ${3:string}, ...],",
+      "  range: {",
+      "    step: ${4:number},",
+      "    unit: ${5:string},",
+      "    bounds: [${6:lowerbound}, ${7:upperbound}, ...]",
+      "  }",
+      "}"
+    ],
+    "description": "Creates new documents to eliminate the gaps in the time or numeric domain at the required granularity level."
+  },
+  "MongoDB Aggregations $documents": {
+    "prefix": "$documents",
+    "body": [
+      "/**",
+      " * expression: Any valid expression.",
+      " */",
+      "\\$documents: {",
+      "  ${1:expression}",
+      "}"
+    ],
+    "description": "Returns literal results for a full-text search."
+  },
   "MongoDB Aggregations $facet": {
     "prefix": "$facet",
     "body": [
@@ -318,7 +354,7 @@
     "prefix": "$search",
     "body": [
       "/** ",
-      " * index: the name of the Search index.",
+      " * index: The name of the Search index.",
       " * text: Analyzed search, with required fields of query and path, the analyzed field(s) to search.",
       " * term: Un-analyzed search.",
       " * compound: Combines ops.",
@@ -336,6 +372,48 @@
       "}"
     ],
     "description": "Performs a full-text search on the specified field(s)."
+  },
+  "MongoDB Aggregations $searchMeta": {
+    "prefix": "$searchMeta",
+    "body": [
+      "/**",
+      " * index: The name of the Search index.",
+      " * count: The count of the results.",
+      " * facet: {",
+      " *   operator: Analyzed search, with required fields of query and path, can either be replaced with the name of a valid operator.",
+      " *   facets: {",
+      " *     stringFacet: Narrows search results based on unique string values, with required fields of type and path.",
+      " *     numberFacet: Narrows search results by breaking them up into separate ranges of numbers, with required fields of type, path, and boundaries.",
+      " *     dateFacet: Narrows search results by breaking them up into separate ranges of dates, with required fields of type, path, and boundaries.",
+      " *   }",
+      " * }",
+      " */",
+      "\\$searchMeta: {",
+      "  index: ${1:string},",
+      "  facet: {",
+      "    operator: {",
+      "      text: {",
+      "        query: ${2:string},",
+      "        path: ${3:string}",
+      "      }",
+      "    },",
+      "    facets: {",
+      "      ${4:stringFacet}: {",
+      "        type: ${5:string},",
+      "        path: ${6:string},",
+      "        numBuckets: ${7:integer}",
+      "      },",
+      "      numberFacet: {",
+      "        type: 'number',",
+      "        path: ${8:string},",
+      "        boundaries: [${9:lowerbound}, ${10:upperbound}, ...],",
+      "        default: ${11:string}",
+      "      }",
+      "    }",
+      "  }",
+      "}"
+    ],
+    "description": "Performs a full-text search on the specified field(s) and gets back only the generated search meta data from a query."
   },
   "MongoDB Aggregations $set": {
     "prefix": "$set",
@@ -374,8 +452,8 @@
       "    ${3:path}: {",
       "      ${4:function}: ${5:functionArgs},",
       "      window: {",
-      "        documents: [${6:lowerBound}, ${7:upperBound}],",
-      "        range: [${8:lowerBound}, ${9:upperBound}],",
+      "        documents: [${6:lowerbound}, ${7:upperbound}],",
+      "        range: [${8:lowerbound}, ${9:upperbound}],",
       "        unit: ${10:string}",
       "      }",
       "    },",
