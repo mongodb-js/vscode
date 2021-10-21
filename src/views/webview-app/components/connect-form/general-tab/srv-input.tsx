@@ -36,13 +36,13 @@ class SRVInput extends React.PureComponent<StateProps & DispatchProps> {
           </label>
         </div>
         <Toggle
+          aria-labelledby="SRV Record"
           className={styles['form-toggle']}
           name="isSrvRecord"
           onChange={this.onSRVRecordToggled}
           checked={isSrvRecord}
           size="small"
           disabled={false}
-          variant="default"
         />
       </div>
     );

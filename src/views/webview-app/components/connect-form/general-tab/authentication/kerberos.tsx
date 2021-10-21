@@ -149,13 +149,13 @@ class Kerberos extends React.Component<props> {
             </label>
           </div>
           <Toggle
+            aria-labelledby="Kerberos Canonicalize Host Name"
             className={styles['form-toggle']}
             name="kerberosCanonicalizeHostname"
             onChange={this.onCnameToggle}
             checked={kerberosCanonicalizeHostname || false}
             size="small"
             disabled={false}
-            variant="default"
           />
         </div>
       </div>
