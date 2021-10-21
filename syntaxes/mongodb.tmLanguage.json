@@ -2715,6 +2715,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$searchMeta\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggStageOperators.searchMeta.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$sample\\b",
           "captures": {
             "0": {
@@ -2827,6 +2836,24 @@
           "captures": {
             "0": {
               "name": "keyword.other.aggStageOperators.facet.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$documents\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggStageOperators.documents.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$densify\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggStageOperators.densify.mongodb"
             }
           }
         },
@@ -3214,6 +3241,24 @@
           "captures": {
             "0": {
               "name": "keyword.other.aggExpressionOperators.trunc.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$tsIncrement\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggExpressionOperators.tsIncrement.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$tsSecond\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggExpressionOperators.tsSecond.mongodb"
             }
           }
         },
@@ -3700,6 +3745,15 @@
           "captures": {
             "0": {
               "name": "keyword.other.aggExpressionOperators.gt.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$getField\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.aggExpressionOperators.getField.mongodb"
             }
           }
         },
