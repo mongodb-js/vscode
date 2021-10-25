@@ -1,5 +1,20 @@
 # Change Log
 
+## [v0.6.14](https://github.com/mongodb-js/vscode/releases/tag/v0.6.14) - 2021-10-25
+
+### Added
+
+- Added syntax support for new 5.1 features (VSCODE-306, VSCODE-305, VSCODE-304, VSCODE-302, #357, #359)
+
+### Changed
+
+- Updated MongoDB branding (VSCODE-297, #358)
+
+### Fixed
+
+- Fixed opening files with special characters in their _ids (VSCODE-276, #342)
+
+
 ## [v0.6.12](https://github.com/mongodb-js/vscode/releases/tag/v0.6.12) - 2021-10-04
 
 ### Changed
