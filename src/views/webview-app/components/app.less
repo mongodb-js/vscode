@@ -1,0 +1,23 @@
+@import "~../styles/_variables";
+
+:root {
+  // NOTE: This green is updated in the code dynamically
+  // and updates on the current color theme of vscode (light vs dark).
+  --mongodb-green: @green;
+}
+
+a {
+  color: var(--mongodb-green);
+}
+
+a:hover {
+  color: var(--mongodb-green);
+}
+
+*:focus {
+  outline-color: @green-selected;
+}
+
+a:focus {
+  outline-color: @green-selected;
+}

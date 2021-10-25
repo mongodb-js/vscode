@@ -25,7 +25,7 @@
 }
 
 .connection-status-dot-connected:before {
-  background-color: @green;
+  background-color: var(--mongodb-green);
 }
 
 .connection-status-dot-disconnected:before {
@@ -47,19 +47,24 @@
 
 .connection-status-create-playground-button {
   display: inline-block;
-  border: none;
+  border: 1px solid rgb(21, 130, 66);
   border-radius: 3px;
   margin: 0 20px;
   margin-top: 20px;
   height: 32px;
   width: 161px;
+  transition: 150ms all;
   color: white;
-  background-color: #13aa52;
-  transition: 250ms all;
+  background-color: var(--mongodb-green);
+  background-image: linear-gradient(rgb(19, 170, 82), rgb(24, 150, 76));
+  box-shadow: rgb(21, 130, 66) 0px -1px 0px inset;
 
   &:hover {
     cursor: pointer;
-    background-color: #3F864B;
+    color: white;
+    background-color: #109648;
+    background-image: linear-gradient(#129f4c, #148040);
+    border-color: rgb(21, 130, 66);
   }
 }
 
