@@ -1,17 +1,5 @@
 @import "~./styles/_variables";
 
-a:hover {
-  color: @green;
-}
-
-*:focus {
-  outline-color: @green-selected;
-}
-
-a:focus {
-  outline-color: @green-selected;
-}
-
 .page {
   display: flex;
   flex-direction: row;
@@ -35,13 +23,6 @@ a:focus {
   }
 }
 
-label {
-  display: inline-block;
-  max-width: 100%;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
 .connect-form-help-panel {
   margin: 30px;
   display: inline-block;
@@ -51,8 +32,15 @@ label {
 .connect {
   min-width: 700px;
 
+  label {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
   &-is-connected {
-    border: 2px solid @green;
+    border: 2px solid var(--mongodb-green);
   }
 
   ::-webkit-scrollbar {

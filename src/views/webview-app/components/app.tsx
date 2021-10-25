@@ -17,6 +17,8 @@ import {
 
 const styles = require('../connect.module.less');
 
+import './app.less';
+
 type DispatchProps = {
   onConnectedEvent: (
     connectionAttemptId: string,
@@ -34,6 +36,23 @@ type DispatchProps = {
 };
 
 export class App extends React.Component<DispatchProps> {
+  constructor(props) {
+    super(props);
+
+    // Update the MongoDB green color we used based on the current
+    // theme kind of the VSCode user.
+    const element = document.querySelector('body');
+    if (element?.getAttribute('data-vscode-theme-kind') === 'vscode-light') {
+      document.documentElement.style.setProperty(
+        '--mongodb-green', '#00684A' // Forest green
+      );
+    } else {
+      document.documentElement.style.setProperty(
+        '--mongodb-green', '#00ED64' // Base green
+      );
+    }
+  }
+
   componentDidMount(): void {
     window.addEventListener('message', (event) => {
       const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
