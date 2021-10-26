@@ -59,6 +59,7 @@ Releases are automated using github actions, and published to the VSCode marketp
 1. Update the [release notes](https://github.com/mongodb-js/vscode/releases) in github, documenting user facing changes. Once you’re happy with the changes you can publish the release.
 1. When the release is published, the GitHub action https://github.com/mongodb-js/vscode/blob/main/.github/workflows/publish-release.yaml is automatically run, which downloads the release artifact and then publishes it to the VSCode marketplace.
 1. Nice! ✨ Now you can verify it all completed by visiting https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode and seeing the new version is up. You also try installing it in VSCode :) ✨
+1. Lastly, don't forget to post in slack, let all your friends know, and close the release ticket in jira if there is one.
 
 For additional information and reading, VSCode has some great documentation on publishing extensions:
 https://code.visualstudio.com/api/working-with-extensions/publishing-extension
