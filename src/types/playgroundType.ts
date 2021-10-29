@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 export type OutputItem = {
   namespace: string | null;
   type: string | null;
@@ -17,3 +19,30 @@ export type PlaygroundExecuteParameters = {
   codeToEvaluate: string;
   connectionId: string;
 };
+
+export interface ExportToLanguageAddons {
+  textFromEditor?: string;
+  selectedText?: string;
+  selection?: vscode.Range;
+  importStatements: boolean;
+  driverSyntax: boolean;
+  builders: boolean;
+  language: string;
+  mode?: string;
+}
+
+export interface PlaygroundSelection {
+  textFromEditor: string;
+  selection: vscode.Selection;
+}
+
+export enum ExportToLanguageMode {
+  QUERY = 'QUERY',
+  AGGREGATION = 'AGGREGATION',
+  OTHER = 'OTHER'
+}
+
+export interface ExportToLanguageNamespace {
+  databaseName: string | null;
+  collectionName: string | null;
+}

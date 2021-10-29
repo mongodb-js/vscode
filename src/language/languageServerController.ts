@@ -11,9 +11,14 @@ import WebSocket from 'ws';
 import { workspace, ExtensionContext, OutputChannel } from 'vscode';
 
 import { createLogger } from '../logging';
-import { PlaygroundExecuteParameters } from '../types/playgroundType';
+import {
+  PlaygroundExecuteParameters,
+  ShellExecuteAllResult,
+  ExportToLanguageMode,
+  ExportToLanguageNamespace,
+  PlaygroundSelection
+} from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
-import type { ShellExecuteAllResult } from '../types/playgroundType';
 import { ConnectionOptions } from '../types/connectionOptionsType';
 
 const log = createLogger('LanguageServerController');
@@ -163,6 +168,26 @@ export default class LanguageServerController {
     this._isExecutingInProgress = false;
 
     return result;
+  }
+
+  async getExportToLanguageMode(
+    params: PlaygroundSelection
+  ): Promise<ExportToLanguageMode> {
+    await this._client.onReady();
+    return this._client.sendRequest(
+      ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,
+      params
+    );
+  }
+
+  async getNamespaceForSelection(
+    params: PlaygroundSelection
+  ): Promise<ExportToLanguageNamespace> {
+    await this._client.onReady();
+    return this._client.sendRequest(
+      ServerCommands.GET_NAMESPACE_FOR_SELECTION,
+      params
+    );
   }
 
   async connectToServiceProvider(params: {

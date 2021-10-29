@@ -4,6 +4,7 @@ import chai from 'chai';
 import sinon from 'sinon';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import ConnectionController from '../../../connectionController';
 import { ConnectionModel } from '../../../types/connectionModelType';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
@@ -16,6 +17,7 @@ import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
+import CodeActionProvider from '../../../editors/codeActionProvider';
 
 const expect = chai.expect;
 
@@ -58,6 +60,8 @@ suite('Playground Controller Test Suite', function () {
   const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
     testConnectionController
   );
+  const testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
+  const testCodeActionProvider = new CodeActionProvider();
   const testExplorerController = new ExplorerController(
     testConnectionController
   );
@@ -69,6 +73,8 @@ suite('Playground Controller Test Suite', function () {
     testStatusView,
     testPlaygroundResultProvider,
     testActiveDBCodeLensProvider,
+    testExportToLanguageCodeLensProvider,
+    testCodeActionProvider,
     testExplorerController
   );
   const sandbox = sinon.createSandbox();
@@ -459,6 +465,8 @@ suite('Playground Controller Test Suite', function () {
           testStatusView,
           testPlaygroundResultProvider,
           testActiveDBCodeLensProvider,
+          testExportToLanguageCodeLensProvider,
+          testCodeActionProvider,
           testExplorerController
         );
 
