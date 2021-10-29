@@ -36,8 +36,6 @@ type DispatchProps = {
 };
 
 export class App extends React.Component<DispatchProps> {
-  observer?: MutationObserver;
-
   componentDidMount(): void {
     window.addEventListener('message', this.handleMessageFromExtension);
   }
