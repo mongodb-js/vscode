@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
 
 import EXTENSION_COMMANDS from '../commands';
-import { ExportToLanguageMode, ExportToLanguageAddons } from '../types/playgroundType';
+import {
+  ExportToLanguageMode,
+  ExportToLanguageAddons,
+  ExportToLanguages
+} from '../types/playgroundType';
 
 export default class ExportToLanguageCodeLensProvider
 implements vscode.CodeLensProvider {
@@ -60,7 +64,7 @@ implements vscode.CodeLensProvider {
     exportToLanguageCodeLenses.push(driverSyntaxCodeLens);
 
     if (
-      this._exportToLanguageAddons.language === 'java' &&
+      this._exportToLanguageAddons.language === ExportToLanguages.JAVA &&
       this._exportToLanguageAddons.mode === ExportToLanguageMode.QUERY
     ) {
       buildersCodeLens.command = {

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import ConnectionController from '../connectionController';
 import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
-import type { PlaygroundResult } from '../types/playgroundType';
+import { PlaygroundResult, ExportToLanguages } from '../types/playgroundType';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
@@ -53,13 +53,7 @@ implements vscode.TextDocumentContentProvider {
       return 'undefined';
     }
 
-    if (
-      type === 'string' ||
-      type === 'python' ||
-      type === 'java' ||
-      type === 'csharp' ||
-      type === 'javascript'
-    ) {
+    if (type && (type === 'string' || type in ExportToLanguages)) {
       return this._playgroundResult.content;
     }
 

@@ -36,6 +36,13 @@ export interface PlaygroundTextAndSelection {
   selection: vscode.Selection;
 }
 
+export enum ExportToLanguages {
+  PYTHON = 'python',
+  JAVA = 'java',
+  CSHARP = 'csharp',
+  JAVASCRIPT = 'javascript'
+}
+
 export enum ExportToLanguageMode {
   QUERY = 'QUERY',
   AGGREGATION = 'AGGREGATION',

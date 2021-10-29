@@ -36,6 +36,7 @@ import TelemetryService from './telemetry/telemetryService';
 import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
+import { ExportToLanguages } from './types/playgroundType';
 
 const log = createLogger('commands');
 
@@ -195,16 +196,16 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundsExplorer.refresh()
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
-      this._playgroundController.exportToLanguage('python')
+      this._playgroundController.exportToLanguage(ExportToLanguages.PYTHON)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA, () =>
-      this._playgroundController.exportToLanguage('java')
+      this._playgroundController.exportToLanguage(ExportToLanguages.JAVA)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP, () =>
-      this._playgroundController.exportToLanguage('csharp')
+      this._playgroundController.exportToLanguage(ExportToLanguages.CSHARP)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE, () =>
-      this._playgroundController.exportToLanguage('javascript')
+      this._playgroundController.exportToLanguage(ExportToLanguages.JAVASCRIPT)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS, (exportToLanguageAddons) =>
       this._playgroundController.changeExportToLanguageAddons(exportToLanguageAddons)

@@ -17,7 +17,8 @@ import {
   ShellExecuteAllResult,
   ExportToLanguageAddons,
   ExportToLanguageMode,
-  ExportToLanguageNamespace
+  ExportToLanguageNamespace,
+  ExportToLanguages
 } from '../types/playgroundType';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME,
@@ -370,27 +371,11 @@ export default class PlaygroundController {
 
     const { type, content } = playgroundResult;
 
-    if (type === 'python') {
-      return 'python';
+    if (type && type in ExportToLanguages) {
+      return type;
     }
 
-    if (type === 'java') {
-      return 'java';
-    }
-
-    if (type === 'csharp') {
-      return 'csharp';
-    }
-
-    if (type === 'javascript') {
-      return 'javascript';
-    }
-
-    if (typeof content === 'object' && content !== null) {
-      return 'json';
-    }
-
-    return 'plaintext';
+    return (typeof content === 'object' && content !== null) ? 'json' : 'plaintext';
   }
 
   async _openPlaygroundResult(): Promise<void> {
@@ -618,7 +603,11 @@ export default class PlaygroundController {
     }
 
     try {
-      const useBuilders = builders && language === 'java' && mode === ExportToLanguageMode.QUERY;
+      const useBuilders = (
+        builders &&
+        language === ExportToLanguages.JAVA &&
+        mode === ExportToLanguageMode.QUERY
+      );
       let transpiledExpression = '';
       let imports = '';
       let namespace: ExportToLanguageNamespace = {
