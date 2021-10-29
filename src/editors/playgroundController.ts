@@ -629,7 +629,7 @@ export default class PlaygroundController {
       if (driverSyntax) {
         namespace = await this._languageServerController.getNamespaceForSelection({
           textFromEditor,
-          selection: selection as vscode.Selection
+          selection
         });
 
         const dataService = this._connectionController.getActiveDataService();

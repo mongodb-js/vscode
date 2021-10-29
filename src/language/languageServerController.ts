@@ -16,7 +16,7 @@ import {
   ShellExecuteAllResult,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
-  PlaygroundSelection
+  PlaygroundTextAndSelection
 } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
 import { ConnectionOptions } from '../types/connectionOptionsType';
@@ -171,7 +171,7 @@ export default class LanguageServerController {
   }
 
   async getExportToLanguageMode(
-    params: PlaygroundSelection
+    params: PlaygroundTextAndSelection
   ): Promise<ExportToLanguageMode> {
     await this._client.onReady();
     return this._client.sendRequest(
@@ -181,7 +181,7 @@ export default class LanguageServerController {
   }
 
   async getNamespaceForSelection(
-    params: PlaygroundSelection
+    params: PlaygroundTextAndSelection
   ): Promise<ExportToLanguageNamespace> {
     await this._client.onReady();
     return this._client.sendRequest(

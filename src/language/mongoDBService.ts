@@ -21,7 +21,7 @@ import {
   PlaygroundExecuteParameters,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
-  PlaygroundSelection
+  PlaygroundTextAndSelection
 } from '../types/playgroundType';
 import { Visitor } from './visitor';
 
@@ -442,7 +442,7 @@ export default class MongoDBService {
     });
   }
 
-  getExportToLanguageMode(params: PlaygroundSelection): ExportToLanguageMode {
+  getExportToLanguageMode(params: PlaygroundTextAndSelection): ExportToLanguageMode {
     const state = this._visitor.parseAST(params);
 
     if (state.isArray) {
@@ -456,7 +456,7 @@ export default class MongoDBService {
     return ExportToLanguageMode.OTHER;
   }
 
-  getNamespaceForSelection(params: PlaygroundSelection): ExportToLanguageNamespace {
+  getNamespaceForSelection(params: PlaygroundTextAndSelection): ExportToLanguageNamespace {
     try {
       const state = this._visitor.parseAST(params);
       return { databaseName: state.databaseName, collectionName: state.collectionName };

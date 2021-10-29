@@ -14,7 +14,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
 import { ServerCommands } from './serverCommands';
-import { PlaygroundExecuteParameters, PlaygroundSelection } from '../types/playgroundType';
+import { PlaygroundExecuteParameters, PlaygroundTextAndSelection } from '../types/playgroundType';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -160,11 +160,11 @@ connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
   return mongoDBService.disconnectFromServiceProvider();
 });
 
-connection.onRequest(ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE, (params: PlaygroundSelection) => {
+connection.onRequest(ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE, (params: PlaygroundTextAndSelection) => {
   return mongoDBService.getExportToLanguageMode(params);
 });
 
-connection.onRequest(ServerCommands.GET_NAMESPACE_FOR_SELECTION, (params: PlaygroundSelection) => {
+connection.onRequest(ServerCommands.GET_NAMESPACE_FOR_SELECTION, (params: PlaygroundTextAndSelection) => {
   return mongoDBService.getNamespaceForSelection(params);
 });
 

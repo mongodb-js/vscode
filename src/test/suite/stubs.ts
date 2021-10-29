@@ -241,18 +241,18 @@ class MockLanguageServerController {
     return;
   }
 
-  executeAll(/* codeToEvaluate: string*/): Promise<ShellExecuteAllResult> {
+  executeAll(/* codeToEvaluate: string */): Promise<ShellExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
       result: { namespace: null, type: null, content: 'Result' }
     });
   }
 
-  getExportToLanguageMode(/* codeToEvaluate: string*/): Promise<ExportToLanguageMode> {
+  getExportToLanguageMode(/* params: PlaygroundTextAndSelection */): Promise<ExportToLanguageMode> {
     return Promise.resolve(ExportToLanguageMode.OTHER);
   }
 
-  getNamespaceForSelection(/* codeToEvaluate: string*/): Promise<ExportToLanguageNamespace> {
+  getNamespaceForSelection(/* params: PlaygroundTextAndSelection */): Promise<ExportToLanguageNamespace> {
     return Promise.resolve({ databaseName: null, collectionName: null });
   }
 

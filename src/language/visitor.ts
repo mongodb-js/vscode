@@ -1,13 +1,20 @@
-import * as vscode from 'vscode';
 import type * as babel from '@babel/core';
 import * as parser from '@babel/parser';
 import traverse from '@babel/traverse';
 import { Connection } from 'vscode-languageserver/node';
 import * as util from 'util';
 
-import { PlaygroundSelection } from '../types/playgroundType';
-
 const PLACEHOLDER = 'TRIGGER_CHARACTER';
+
+export interface VisitorSelection {
+  start: { line: number, character: number };
+  end: { line: number, character: number };
+}
+
+export interface VisitorTextAndSelection {
+  textFromEditor: string;
+  selection: VisitorSelection;
+}
 
 export interface CompletionState {
   databaseName: string | null;
@@ -25,12 +32,15 @@ export interface CompletionState {
 
 export class Visitor {
   _state: CompletionState;
-  _selection: vscode.Selection;
+  _selection: VisitorSelection;
   _connection: Connection;
 
   constructor(connection: Connection) {
     this._state = this._getDefaultNodesValues();
-    this._selection = { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } } as vscode.Selection;
+    this._selection = {
+      start: { line: 0, character: 0 },
+      end: { line: 0, character: 0 }
+    };
     this._connection = connection;
   }
 
@@ -120,7 +130,7 @@ export class Visitor {
     textFromEditor: string,
     position: { line: number; character: number }
   ): CompletionState {
-    const selection = { start: position, end: { line: 0, character: 0 } } as vscode.Selection;
+    const selection: VisitorSelection = { start: position, end: { line: 0, character: 0 } };
 
     textFromEditor = this._handleTriggerCharacter(
       textFromEditor,
@@ -130,7 +140,7 @@ export class Visitor {
     return this.parseAST({ textFromEditor, selection });
   }
 
-  parseAST({ textFromEditor, selection }: PlaygroundSelection): CompletionState {
+  parseAST({ textFromEditor, selection }: VisitorTextAndSelection): CompletionState {
     let ast: any;
 
     this._state = this._getDefaultNodesValues();

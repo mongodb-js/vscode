@@ -23,7 +23,7 @@ export type PlaygroundExecuteParameters = {
 export interface ExportToLanguageAddons {
   textFromEditor?: string;
   selectedText?: string;
-  selection?: vscode.Range;
+  selection?: vscode.Selection;
   importStatements: boolean;
   driverSyntax: boolean;
   builders: boolean;
@@ -31,7 +31,7 @@ export interface ExportToLanguageAddons {
   mode?: string;
 }
 
-export interface PlaygroundSelection {
+export interface PlaygroundTextAndSelection {
   textFromEditor: string;
   selection: vscode.Selection;
 }

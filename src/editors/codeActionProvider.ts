@@ -5,7 +5,7 @@ import { ExportToLanguageMode } from '../types/playgroundType';
 
 export default class CodeActionProvider implements vscode.CodeActionProvider {
   _onDidChangeCodeCodeAction: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
-  selection?: vscode.Range;
+  selection?: vscode.Selection;
   mode?: string;
 
   static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
@@ -19,7 +19,7 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
   readonly onDidChangeCodeLenses: vscode.Event<void> = this
     ._onDidChangeCodeCodeAction.event;
 
-  refresh({ selection, mode }: { selection?: vscode.Range, mode?: string }): void {
+  refresh({ selection, mode }: { selection?: vscode.Selection, mode?: string }): void {
     this.selection = selection;
     this.mode = mode;
     this._onDidChangeCodeCodeAction.fire();
