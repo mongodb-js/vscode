@@ -35,62 +35,15 @@ type DispatchProps = {
   ) => void;
 };
 
-function updateColorTheme() {
-  // Update the MongoDB green color we used based on the current
-  // theme kind of the VSCode user.
-  const element = document.querySelector('body');
-  if (element?.getAttribute('data-vscode-theme-kind') === 'vscode-light') {
-    document.documentElement.style.setProperty(
-      '--mongodb-green', '#00684A' // Forest green
-    );
-  } else {
-    document.documentElement.style.setProperty(
-      '--mongodb-green', '#00ED64' // Base green
-    );
-  }
-}
-
 export class App extends React.Component<DispatchProps> {
-  constructor(props) {
-    super(props);
-
-    updateColorTheme();
-  }
-
   observer?: MutationObserver;
 
   componentDidMount(): void {
     window.addEventListener('message', this.handleMessageFromExtension);
-
-    this.setupColorThemeListener();
   }
 
   componentWillUnmount() {
-    if (this.observer) {
-      this.observer.disconnect();
-    }
-
     window.removeEventListener('message', this.handleMessageFromExtension);
-  }
-
-  setupColorThemeListener() {
-    this.observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.type === 'attributes') {
-          // Ensure we're using the correct color theme if the user
-          // changes themes.
-          updateColorTheme();
-        }
-      });
-    });
-
-    const element = document.querySelector('body');
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.observer.observe(element!, {
-      // Listen to changes on the `body` attributes which happen when
-      // VSCode changes theme.
-      attributes: true
-    });
   }
 
   handleMessageFromExtension = (event) => {

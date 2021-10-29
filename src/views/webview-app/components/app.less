@@ -1,9 +1,18 @@
 @import "~../styles/_variables";
 
+// :root {
+//   // NOTE: This green is updated in the code dynamically
+//   // and updates on the current color theme of vscode (light vs dark).
+//   --mongodb-green: @green;
+// }
 :root {
   // NOTE: This green is updated in the code dynamically
   // and updates on the current color theme of vscode (light vs dark).
   --mongodb-green: @green;
+}
+
+:global(.vscode-light) {
+  --mongodb-green: @green-dark;
 }
 
 a {
