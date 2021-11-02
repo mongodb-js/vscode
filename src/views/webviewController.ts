@@ -239,7 +239,14 @@ export default class WebviewController {
     );
 
     panel.iconPath = vscode.Uri.file(
-      path.join(extensionPath, 'images', 'leaf.svg')
+      path.join(
+        extensionPath,
+        'images',
+        vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
+          ? 'dark'
+          : 'light',
+        'leaf.svg'
+      )
     );
 
     panel.webview.html = getWebviewContent(
