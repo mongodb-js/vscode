@@ -4,6 +4,7 @@ export type OutputItem = {
   namespace: string | null;
   type: string | null;
   content: any;
+  language: string | null;
 };
 
 export type PlaygroundDebug = OutputItem[] | undefined;
@@ -28,7 +29,7 @@ export interface ExportToLanguageAddons {
   driverSyntax: boolean;
   builders: boolean;
   language: string;
-  mode?: string;
+  mode?: ExportToLanguageMode;
 }
 
 export interface PlaygroundTextAndSelection {

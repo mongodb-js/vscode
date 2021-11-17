@@ -364,20 +364,6 @@ export default class PlaygroundController {
     }
   }
 
-  _getDocumentLanguage(playgroundResult: PlaygroundResult): string {
-    if (!playgroundResult) {
-      return 'plaintext';
-    }
-
-    const { type, content } = playgroundResult;
-
-    if (type && type in ExportToLanguages) {
-      return type;
-    }
-
-    return (typeof content === 'object' && content !== null) ? 'json' : 'plaintext';
-  }
-
   async _openPlaygroundResult(): Promise<void> {
     this._playgroundResultViewProvider.setPlaygroundResult(
       this._playgroundResult
@@ -392,7 +378,7 @@ export default class PlaygroundController {
     await this._showResultAsVirtualDocument();
 
     if (this._playgroundResultTextDocument) {
-      const language = this._getDocumentLanguage(this._playgroundResult);
+      const language = this._playgroundResult?.language || 'plaintext';
 
       await vscode.languages.setTextDocumentLanguage(
         this._playgroundResultTextDocument,
@@ -599,7 +585,7 @@ export default class PlaygroundController {
         'Please select one or more lines in the playground.'
       );
 
-      return Promise.resolve(true);
+      return true;
     }
 
     try {
@@ -645,8 +631,9 @@ export default class PlaygroundController {
         namespace: namespace.databaseName && namespace.collectionName
           ? `${namespace.databaseName}.${namespace.collectionName}`
           : null,
-        type: language,
-        content: imports ? `${imports}\n\n${transpiledExpression}` : transpiledExpression
+        type: null,
+        content: imports ? `${imports}\n\n${transpiledExpression}` : transpiledExpression,
+        language
       };
 
       log.info(`Export to ${language} language result`, this._playgroundResult);

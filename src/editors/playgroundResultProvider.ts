@@ -25,7 +25,8 @@ implements vscode.TextDocumentContentProvider {
     this._playgroundResult = {
       namespace: null,
       type: null,
-      content: undefined
+      content: undefined,
+      language: null
     };
   }
 
@@ -47,13 +48,13 @@ implements vscode.TextDocumentContentProvider {
       return 'undefined';
     }
 
-    const { type, content } = this._playgroundResult;
+    const { type, content, language } = this._playgroundResult;
 
     if (type === 'undefined') {
       return 'undefined';
     }
 
-    if (type && (type === 'string' || type in ExportToLanguages)) {
+    if (type === 'string' || (language && Object.values(ExportToLanguages).includes(language as ExportToLanguages))) {
       return this._playgroundResult.content;
     }
 

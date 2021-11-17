@@ -42,7 +42,8 @@ const executeAll = async (
           outputLines.push({
             type,
             content: printable,
-            namespace: null
+            namespace: null,
+            language: null
           });
         }
       }
@@ -52,16 +53,21 @@ const executeAll = async (
       source && source.namespace
         ? `${source.namespace.db}.${source.namespace.collection}`
         : null;
-    const content =
-      type === 'Cursor' || type === 'AggregationCursor' ?
-        JSON.parse(EJSON.stringify(printable.documents)) :
-        typeof printable === 'string'
-          ? printable
-          : JSON.parse(EJSON.stringify(printable));
+    let content = '';
+
+    if (type === 'Cursor' || type === 'AggregationCursor') {
+      content = JSON.parse(EJSON.stringify(printable.documents));
+    } else {
+      content = typeof printable === 'string'
+        ? printable
+        : JSON.parse(EJSON.stringify(printable));
+    }
+
     const result: PlaygroundResult = {
       namespace,
       type: type ? type : typeof printable,
-      content
+      content,
+      language: (typeof content === 'object' && content !== null) ? 'json' : 'plaintext'
     };
 
     return [null, { outputLines, result }];

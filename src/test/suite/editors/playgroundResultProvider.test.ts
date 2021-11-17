@@ -48,7 +48,8 @@ suite('Playground Result Provider Test Suite', () => {
       {
         namespace: null,
         type: null,
-        content: undefined
+        content: undefined,
+        language: null
       }
     );
   });
@@ -64,7 +65,8 @@ suite('Playground Result Provider Test Suite', () => {
       content: {
         _id: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
         name: 'Berlin'
-      }
+      },
+      language: 'json'
     };
 
     testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
@@ -83,7 +85,8 @@ suite('Playground Result Provider Test Suite', () => {
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'undefined',
-      content: null
+      content: null,
+      language: 'plaintext'
     };
 
     const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
@@ -100,7 +103,8 @@ suite('Playground Result Provider Test Suite', () => {
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'object',
-      content: null
+      content: null,
+      language: 'plaintext'
     };
 
     const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
@@ -117,7 +121,8 @@ suite('Playground Result Provider Test Suite', () => {
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'number',
-      content: 4
+      content: 4,
+      language: 'plaintext'
     };
 
     const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
@@ -134,7 +139,8 @@ suite('Playground Result Provider Test Suite', () => {
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'object',
-      content: []
+      content: [],
+      language: 'json'
     };
 
     const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
@@ -151,7 +157,8 @@ suite('Playground Result Provider Test Suite', () => {
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'object',
-      content: {}
+      content: {},
+      language: 'json'
     };
 
     const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
@@ -168,7 +175,8 @@ suite('Playground Result Provider Test Suite', () => {
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'boolean',
-      content: true
+      content: true,
+      language: 'plaintext'
     };
 
     const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
@@ -185,7 +193,8 @@ suite('Playground Result Provider Test Suite', () => {
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'string',
-      content: 'Berlin'
+      content: 'Berlin',
+      language: 'plaintext'
     };
 
     const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
@@ -211,7 +220,8 @@ suite('Playground Result Provider Test Suite', () => {
     const playgroundResult = {
       namespace: 'db.berlin',
       type: 'Cursor',
-      content
+      content,
+      language: 'json'
     };
 
     const mockRefresh: any = sinon.fake();
@@ -242,7 +252,8 @@ suite('Playground Result Provider Test Suite', () => {
     const playgroundResult = {
       namespace: 'db.berlin',
       type: 'Document',
-      content
+      content,
+      language: 'json'
     };
 
     const mockRefresh: any = sinon.fake();
@@ -273,7 +284,8 @@ suite('Playground Result Provider Test Suite', () => {
       content: [
         { _id: 1, item: 'abc', price: 10, quantity: 2, date: new Date('2014-03-01T08:00:00Z') },
         { _id: 2, item: 'jkl', price: 20, quantity: 1, date: new Date('2014-03-01T09:00:00Z') }
-      ]
+      ],
+      language: 'json'
     };
 
     const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';

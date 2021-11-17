@@ -1532,7 +1532,7 @@ suite('MDBExtensionController Test Suite', function () {
     );
   });
 
-  test('mdb.createIndexFromTreeView should create a MongoDB playground with search template', async () => {
+  test('mdb.createIndexFromTreeView should create a MongoDB playground with index template', async () => {
     const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 

@@ -2,6 +2,7 @@ import { beforeEach } from 'mocha';
 import chai from 'chai';
 
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
+import { ExportToLanguageMode } from '../../../types/playgroundType';
 
 const expect = chai.expect;
 
@@ -55,7 +56,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   });
 
   test('has the use builders code lens when builders is false, language is java, and mode is query', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, mode: 'QUERY', language: 'java' });
+    testExportToLanguageCodeLensProvider.refresh({ ...defaults, mode: ExportToLanguageMode.QUERY, language: 'java' });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
@@ -64,7 +65,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   });
 
   test('has the use raw query code lens when builders is true, language is java, and mode is query', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, builders: true, mode: 'QUERY', language: 'java' });
+    testExportToLanguageCodeLensProvider.refresh({ ...defaults, builders: true, mode: ExportToLanguageMode.QUERY, language: 'java' });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
@@ -73,7 +74,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   });
 
   test('does not have the use raw query code lens when builders is true, language is java, and mode is plain text', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, builders: true, mode: 'OTHER', language: 'java' });
+    testExportToLanguageCodeLensProvider.refresh({ ...defaults, builders: true, mode: ExportToLanguageMode.OTHER, language: 'java' });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 

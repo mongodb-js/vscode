@@ -244,7 +244,7 @@ class MockLanguageServerController {
   executeAll(/* codeToEvaluate: string */): Promise<ShellExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
-      result: { namespace: null, type: null, content: 'Result' }
+      result: { namespace: null, type: null, content: 'Result', language: 'plaintext' }
     });
   }
 

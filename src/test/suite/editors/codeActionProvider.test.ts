@@ -9,7 +9,7 @@ import CodeActionProvider from '../../../editors/codeActionProvider';
 import { ExplorerController } from '../../../explorer';
 import { LanguageServerController } from '../../../language';
 import { PlaygroundController } from '../../../editors';
-import { PlaygroundResult } from '../../../types/playgroundType';
+import { PlaygroundResult, ExportToLanguageMode } from '../../../types/playgroundType';
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
@@ -104,7 +104,7 @@ suite('Code Action Provider Test Suite', function () {
     } as vscode.Selection;
     const testCodeActionProvider = new CodeActionProvider();
 
-    testCodeActionProvider.refresh({ selection, mode: 'OTHER' });
+    testCodeActionProvider.refresh({ selection, mode: ExportToLanguageMode.OTHER });
 
     const codeActions = testCodeActionProvider.provideCodeActions();
 
@@ -120,7 +120,7 @@ suite('Code Action Provider Test Suite', function () {
 
         await vscode.commands.executeCommand(actionCommand.command);
 
-        const expectedResult = { namespace: null, type: 'number', content: 123 };
+        const expectedResult = { namespace: null, type: 'number', content: 123, language: 'plaintext' };
         expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
         expect(mdbTestExtension.testExtensionController._playgroundController._isPartialRun).to.be.equal(true);
       }
@@ -133,7 +133,7 @@ suite('Code Action Provider Test Suite', function () {
       start: { line: 0, character: 0 },
       end: { line: 0, character: 14 }
     } as vscode.Selection;
-    const mode = 'QUERY';
+    const mode = ExportToLanguageMode.QUERY;
 
     mdbTestExtension.testExtensionController._playgroundController._selectedText = textFromEditor;
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
@@ -163,12 +163,12 @@ suite('Code Action Provider Test Suite', function () {
 
         await vscode.commands.executeCommand(actionCommand.command);
 
-        const expectedResult = { namespace: null, type: 'java', content: 'new Document("name", "22")' };
+        const expectedResult = { namespace: null, type: null, content: 'new Document("name", "22")', language: 'java' };
 
         const codeLenses = mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
         expect(codeLenses.length).to.be.equal(3);
 
-        // Only java supports builders.
+        // Only java queries supports builders.
         await vscode.commands.executeCommand('mdb.changeExportToLanguageAddons', {
           ...mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons,
           builders: true
@@ -186,7 +186,7 @@ suite('Code Action Provider Test Suite', function () {
       start: { line: 0, character: 0 },
       end: { line: 0, character: 14 }
     } as vscode.Selection;
-    const mode = 'QUERY';
+    const mode = ExportToLanguageMode.QUERY;
 
     mdbTestExtension.testExtensionController._playgroundController._selectedText = textFromEditor;
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
@@ -218,8 +218,9 @@ suite('Code Action Provider Test Suite', function () {
 
         const expectedResult = {
           namespace: null,
-          type: 'csharp',
-          content: 'new BsonDocument(\"name\", \"22\")'
+          type: null,
+          content: 'new BsonDocument(\"name\", \"22\")',
+          language: 'csharp'
         };
         expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
 
@@ -244,7 +245,7 @@ suite('Code Action Provider Test Suite', function () {
       start: { line: 0, character: 24 },
       end: { line: 0, character: 38 }
     } as vscode.Selection;
-    const mode = 'QUERY';
+    const mode = ExportToLanguageMode.QUERY;
 
     mdbTestExtension.testExtensionController._playgroundController._selectedText = "{ name: '22' }";
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
@@ -276,8 +277,9 @@ suite('Code Action Provider Test Suite', function () {
 
         let expectedResult: PlaygroundResult = {
           namespace: null,
-          type: 'python',
-          content: "{\n    'name': '22'\n}"
+          type: null,
+          content: "{\n    'name': '22'\n}",
+          language: 'python'
         };
         expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
 
@@ -291,8 +293,9 @@ suite('Code Action Provider Test Suite', function () {
 
         expectedResult = {
           namespace: 'db.coll',
-          type: 'python',
-          content: "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&directConnection=true&ssl=false')\nresult = client['db']['coll'].aggregate({\n    'name': '22'\n})"
+          type: null,
+          content: "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&directConnection=true&ssl=false')\nresult = client['db']['coll'].aggregate({\n    'name': '22'\n})",
+          language: 'python'
         };
 
         expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
