@@ -985,7 +985,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         outputLines: [],
-        result: { namespace: null, type: 'number', content: 2 }
+        result: { namespace: null, type: 'number', content: 2, language: 'plaintext' }
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1015,7 +1015,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         outputLines: [],
-        result: { namespace: null, type: 'number', content: 3 }
+        result: { namespace: null, type: 'number', content: 3, language: 'plaintext' }
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1032,7 +1032,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const firstRes = {
         outputLines: [],
-        result: { namespace: null, type: 'number', content: 2 }
+        result: { namespace: null, type: 'number', content: 2, language: 'plaintext' }
       };
 
       expect(firstEvalResult).to.deep.equal(firstRes);
@@ -1046,7 +1046,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const secondRes = {
         outputLines: [],
-        result: { namespace: null, type: 'number', content: 3 }
+        result: { namespace: null, type: 'number', content: 3, language: 'plaintext' }
       };
 
       expect(secondEvalResult).to.deep.equal(secondRes);
@@ -1072,7 +1072,102 @@ suite('MongoDBService Test Suite', () => {
             _id: {
               $oid: '5fb292760ece2dc9c0362075'
             }
-          }
+          },
+          language: 'json'
+        }
+      };
+
+      expect(result).to.deep.equal(expectedResult);
+    });
+
+    test('evaluate returns an object', async () => {
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll(
+        {
+          connectionId: 'pineapple',
+          codeToEvaluate: `const obj = { name: "a short string" };
+          obj`
+        },
+        source.token
+      );
+      const expectedResult = {
+        outputLines: [],
+        result: {
+          namespace: null,
+          type: 'object',
+          content: {
+            name: 'a short string'
+          },
+          language: 'json'
+        }
+      };
+
+      expect(result).to.deep.equal(expectedResult);
+    });
+
+    test('evaluate returns an array', async () => {
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll(
+        {
+          connectionId: 'pineapple',
+          codeToEvaluate: `const arr = [{ name: "a short string" }];
+          arr`
+        },
+        source.token
+      );
+      const expectedResult = {
+        outputLines: [],
+        result: {
+          namespace: null,
+          type: 'object',
+          content: [{
+            name: 'a short string'
+          }],
+          language: 'json'
+        }
+      };
+
+      expect(result).to.deep.equal(expectedResult);
+    });
+
+    test('evaluate returns undefined', async () => {
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll(
+        {
+          connectionId: 'pineapple',
+          codeToEvaluate: 'undefined'
+        },
+        source.token
+      );
+      const expectedResult = {
+        outputLines: [],
+        result: {
+          namespace: null,
+          type: 'undefined',
+          content: undefined,
+          language: 'plaintext'
+        }
+      };
+
+      expect(result).to.deep.equal(expectedResult);
+    });
+
+    test('evaluate returns null', async () => {
+      const source = new CancellationTokenSource();
+      const result = await testMongoDBService.executeAll(
+        {
+          connectionId: 'pineapple',
+          codeToEvaluate: 'null'
+        },
+        source.token
+      );
+      const expectedResult = {
+        outputLines: [],
+        result: {
+          namespace: null,
+          type: 'object',
+          content: null,
+          language: 'plaintext'
         }
       };
 
@@ -1094,7 +1189,8 @@ suite('MongoDBService Test Suite', () => {
         result: {
           namespace: null,
           type: 'string',
-          content: 'A single line string'
+          content: 'A single line string',
+          language: 'plaintext'
         }
       };
 
@@ -1120,7 +1216,8 @@ suite('MongoDBService Test Suite', () => {
           type: 'string',
           content: `vscode
           is
-          awesome`
+          awesome`,
+          language: 'plaintext'
         }
       };
 
@@ -1138,12 +1235,12 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         outputLines: [
-          { namespace: null, type: null, content: 'Hello' },
-          { namespace: null, type: null, content: 1 },
-          { namespace: null, type: null, content: 2 },
-          { namespace: null, type: null, content: 3 }
+          { namespace: null, type: null, content: 'Hello', language: null },
+          { namespace: null, type: null, content: 1, language: null },
+          { namespace: null, type: null, content: 2, language: null },
+          { namespace: null, type: null, content: 3, language: null }
         ],
-        result: { namespace: null, type: 'number', content: 42 }
+        result: { namespace: null, type: 'number', content: 42, language: 'plaintext' }
       };
 
       expect(result).to.deep.equal(expectedResult);

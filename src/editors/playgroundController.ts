@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { EJSON } from 'bson';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ConnectionController, {
@@ -8,11 +7,17 @@ import ConnectionController, {
 import { createLogger } from '../logging';
 import { ExplorerController, ConnectionTreeItem, DatabaseTreeItem } from '../explorer';
 import { LanguageServerController } from '../language';
+import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCreateCollectionWithTSTemplate from '../templates/playgroundCreateCollectionWithTSTemplate';
-import type { PlaygroundResult, ShellExecuteAllResult } from '../types/playgroundType';
+import {
+  PlaygroundResult,
+  ShellExecuteAllResult,
+  ExportToLanguageAddons,
+  ExportToLanguageNamespace
+} from '../types/playgroundType';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME,
   PLAYGROUND_RESULT_URI
@@ -22,7 +27,9 @@ import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
 import { ConnectionOptions } from '../types/connectionOptionsType';
+import CodeActionProvider from './codeActionProvider';
 
+const transpiler = require('bson-transpilers');
 const log = createLogger('playground controller');
 
 const getSSLFilePathsFromConnectionModel = (
@@ -65,6 +72,8 @@ export default class PlaygroundController {
   _statusView: StatusView;
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _explorerController: ExplorerController;
+  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+  _codeActionProvider: CodeActionProvider;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -74,6 +83,8 @@ export default class PlaygroundController {
     statusView: StatusView,
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
+    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider,
+    codeActionProvider: CodeActionProvider,
     explorerController: ExplorerController
   ) {
     this._context = context;
@@ -87,6 +98,8 @@ export default class PlaygroundController {
       'Playground output'
     );
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
+    this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
+    this._codeActionProvider = codeActionProvider;
     this._explorerController = explorerController;
 
     this._connectionController.addEventListener(
@@ -114,7 +127,7 @@ export default class PlaygroundController {
     onDidChangeActiveTextEditor(vscode.window.activeTextEditor);
 
     vscode.window.onDidChangeTextEditorSelection(
-      (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
+      async (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
         if (
           changeEvent?.textEditor?.document?.languageId === 'mongodb'
         ) {
@@ -125,6 +138,13 @@ export default class PlaygroundController {
           this._selectedText = sortedSelections
             .map((item) => this._getSelectedText(item))
             .join('\n');
+
+          const mode = await this._languageServerController.getExportToLanguageMode({
+            textFromEditor: this._getAllText(),
+            selection: sortedSelections[0]
+          });
+
+          this._codeActionProvider.refresh({ selection: sortedSelections[0], mode });
         }
       }
     );
@@ -342,14 +362,6 @@ export default class PlaygroundController {
     }
   }
 
-  _getDocumentLanguage(content?: EJSON.SerializableTypes): string {
-    if (typeof content === 'object' && content !== null) {
-      return 'json';
-    }
-
-    return 'plaintext';
-  }
-
   async _openPlaygroundResult(): Promise<void> {
     this._playgroundResultViewProvider.setPlaygroundResult(
       this._playgroundResult
@@ -364,7 +376,7 @@ export default class PlaygroundController {
     await this._showResultAsVirtualDocument();
 
     if (this._playgroundResultTextDocument) {
-      const language = this._getDocumentLanguage(this._playgroundResult?.content);
+      const language = this._playgroundResult?.language || 'plaintext';
 
       await vscode.languages.setTextDocumentLanguage(
         this._playgroundResultTextDocument,
@@ -531,6 +543,103 @@ export default class PlaygroundController {
 
       return false;
     }
+  }
+
+  changeExportToLanguageAddons(exportToLanguageAddons: ExportToLanguageAddons): Promise<boolean> {
+    this._exportToLanguageCodeLensProvider.refresh(exportToLanguageAddons);
+
+    return this._transpile();
+  }
+
+  async exportToLanguage(language: string): Promise<boolean> {
+    this._exportToLanguageCodeLensProvider.refresh({
+      ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+      textFromEditor: this._getAllText(),
+      selectedText: this._selectedText,
+      selection: this._codeActionProvider.selection,
+      language,
+      mode: this._codeActionProvider.mode
+    });
+
+    return this._transpile();
+  }
+
+  async _transpile(): Promise<boolean> {
+    const {
+      textFromEditor,
+      selectedText,
+      selection,
+      importStatements,
+      driverSyntax,
+      builders,
+      language
+    } = this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
+
+    log.info(`Start export to ${language} language`);
+
+    if (!textFromEditor || !selection) {
+      void vscode.window.showInformationMessage(
+        'Please select one or more lines in the playground.'
+      );
+
+      return true;
+    }
+
+    try {
+      let transpiledExpression = '';
+      let imports = '';
+      let namespace: ExportToLanguageNamespace = {
+        databaseName: null,
+        collectionName: null
+      };
+
+      if (driverSyntax) {
+        namespace = await this._languageServerController.getNamespaceForSelection({
+          textFromEditor,
+          selection
+        });
+
+        const dataService = this._connectionController.getActiveDataService();
+        const connectionDetails = dataService?.getConnectionOptions();
+        const toCompile = {
+          aggregation: selectedText,
+          options: {
+            collection: namespace.collectionName,
+            database: namespace.databaseName,
+            uri: connectionDetails?.url
+          }
+        };
+
+        transpiledExpression = transpiler.shell[language].compileWithDriver(toCompile, builders);
+      } else {
+        transpiledExpression = transpiler.shell[language].compile(selectedText, builders, false);
+      }
+
+      if (importStatements) {
+        imports = transpiler.shell[language].getImports(driverSyntax);
+      }
+
+      this._playgroundResult = {
+        namespace: namespace.databaseName && namespace.collectionName
+          ? `${namespace.databaseName}.${namespace.collectionName}`
+          : null,
+        type: null,
+        content: imports ? `${imports}\n\n${transpiledExpression}` : transpiledExpression,
+        language
+      };
+
+      log.info(`Export to ${language} language result`, this._playgroundResult);
+      await this._openPlaygroundResult();
+    } catch (error) {
+      const printableError = error as { message: string };
+
+      log.error(`Export to ${language} language error`, error);
+      void vscode.window.showErrorMessage(
+        `Unable to export to ${language} language: ${printableError.message}`
+      );
+    }
+
+    return true;
   }
 
   deactivate(): void {

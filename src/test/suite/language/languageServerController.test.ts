@@ -5,6 +5,7 @@ import path from 'path';
 import sinon from 'sinon';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import ConnectionController from '../../../connectionController';
 import { DataServiceType } from '../../../types/dataServiceType';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
@@ -19,6 +20,7 @@ import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TestExtensionContext } from '../stubs';
+import CodeActionProvider from '../../../editors/codeActionProvider';
 
 const expect = chai.expect;
 
@@ -56,6 +58,8 @@ suite('Language Server Controller Test Suite', () => {
   const testExplorerController = new ExplorerController(
     testConnectionController
   );
+  const testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
+  const testCodeActionProvider = new CodeActionProvider();
   const testPlaygroundController = new PlaygroundController(
     mockExtensionContext,
     testConnectionController,
@@ -64,6 +68,8 @@ suite('Language Server Controller Test Suite', () => {
     testStatusView,
     testPlaygroundResultProvider,
     testActiveDBCodeLensProvider,
+    testExportToLanguageCodeLensProvider,
+    testCodeActionProvider,
     testExplorerController
   );
 

@@ -4,6 +4,7 @@ import chai from 'chai';
 import sinon from 'sinon';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import ConnectionController from '../../../connectionController';
 import { ConnectionModel } from '../../../types/connectionModelType';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
@@ -16,6 +17,7 @@ import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
+import CodeActionProvider from '../../../editors/codeActionProvider';
 
 const expect = chai.expect;
 
@@ -58,6 +60,8 @@ suite('Playground Controller Test Suite', function () {
   const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
     testConnectionController
   );
+  const testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
+  const testCodeActionProvider = new CodeActionProvider();
   const testExplorerController = new ExplorerController(
     testConnectionController
   );
@@ -69,6 +73,8 @@ suite('Playground Controller Test Suite', function () {
     testStatusView,
     testPlaygroundResultProvider,
     testActiveDBCodeLensProvider,
+    testExportToLanguageCodeLensProvider,
+    testCodeActionProvider,
     testExplorerController
   );
   const sandbox = sinon.createSandbox();
@@ -459,89 +465,14 @@ suite('Playground Controller Test Suite', function () {
           testStatusView,
           testPlaygroundResultProvider,
           testActiveDBCodeLensProvider,
+          testExportToLanguageCodeLensProvider,
+          testCodeActionProvider,
           testExplorerController
         );
 
         expect(playgroundControllerTest._activeTextEditor).to.deep.equal(
           activeTestEditorMock
         );
-      });
-
-      test('getDocumentLanguage returns json if content is object', async () => {
-        await vscode.workspace
-          .getConfiguration('mdb')
-          .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage({
-          test: 'value'
-        });
-
-        expect(language).to.be.equal('json');
-      });
-
-      test('getDocumentLanguage returns json if content is array', async () => {
-        await vscode.workspace
-          .getConfiguration('mdb')
-          .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage([
-          { test: 'value' }
-        ]);
-
-        expect(language).to.be.equal('json');
-      });
-
-      test('getDocumentLanguage returns json if content is object with BSON value', async () => {
-        await vscode.workspace
-          .getConfiguration('mdb')
-          .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage({
-          _id: {
-            $oid: '5d973ae7443762aae72a160'
-          }
-        });
-
-        expect(language).to.be.equal('json');
-      });
-
-      test('getDocumentLanguage returns plaintext if content is string', async () => {
-        await vscode.workspace
-          .getConfiguration('mdb')
-          .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage(
-          'I am a string'
-        );
-
-        expect(language).to.be.equal('plaintext');
-      });
-
-      test('getDocumentLanguage returns plaintext if content is number', async () => {
-        await vscode.workspace
-          .getConfiguration('mdb')
-          .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage(12);
-
-        expect(language).to.be.equal('plaintext');
-      });
-
-      test('getDocumentLanguage returns plaintext if content is undefined', async () => {
-        await vscode.workspace
-          .getConfiguration('mdb')
-          .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage(
-          undefined
-        );
-
-        expect(language).to.be.equal('plaintext');
-      });
-
-      test('getDocumentLanguage returns plaintext if content is null', async () => {
-        await vscode.workspace
-          .getConfiguration('mdb')
-          .update('confirmRunAll', false);
-        const language = testPlaygroundController._getDocumentLanguage(
-          undefined
-        );
-
-        expect(language).to.be.equal('plaintext');
       });
     });
   });

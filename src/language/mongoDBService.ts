@@ -1,6 +1,13 @@
 /* eslint-disable no-sync */
 import * as util from 'util';
-import { CompletionItemKind, CancellationToken, Connection, CompletionItem, MarkupContent, MarkupKind } from 'vscode-languageserver/node';
+import {
+  CompletionItemKind,
+  CancellationToken,
+  Connection,
+  CompletionItem,
+  MarkupContent,
+  MarkupKind
+} from 'vscode-languageserver/node';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';
@@ -9,7 +16,13 @@ import { Worker as WorkerThreads } from 'worker_threads';
 import { CollectionItem } from '../types/collectionItemType';
 import { ConnectionOptions } from '../types/connectionOptionsType';
 import { ServerCommands } from './serverCommands';
-import { ShellExecuteAllResult, PlaygroundExecuteParameters } from '../types/playgroundType';
+import {
+  ShellExecuteAllResult,
+  PlaygroundExecuteParameters,
+  ExportToLanguageMode,
+  ExportToLanguageNamespace,
+  PlaygroundTextAndSelection
+} from '../types/playgroundType';
 import { Visitor } from './visitor';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
@@ -33,7 +46,7 @@ export default class MongoDBService {
   constructor(connection: Connection) {
     this._connection = connection;
     this._cachedShellSymbols = this._getShellCompletionItems();
-    this._visitor = new Visitor();
+    this._visitor = new Visitor(connection.console);
   }
 
   // ------ CONNECTION ------ //
@@ -47,7 +60,7 @@ export default class MongoDBService {
 
   setExtensionPath(extensionPath: string): void {
     if (!extensionPath) {
-      this._connection.console.log('Set extensionPath error: extensionPath is undefined');
+      this._connection.console.error('Set extensionPath error: extensionPath is undefined');
     } else {
       this._extensionPath = extensionPath;
     }
@@ -76,7 +89,7 @@ export default class MongoDBService {
 
       return Promise.resolve(true);
     } catch (error) {
-      this._connection.console.log(
+      this._connection.console.error(
         `MONGOSH connect error: ${util.inspect(error)}`
       );
 
@@ -100,7 +113,7 @@ export default class MongoDBService {
 
     return new Promise((resolve) => {
       if (!this._extensionPath) {
-        this._connection.console.log('MONGOSH execute all error: extensionPath is undefined');
+        this._connection.console.error('MONGOSH execute all error: extensionPath is undefined');
 
         return resolve(undefined);
       }
@@ -150,7 +163,7 @@ export default class MongoDBService {
           if (error) {
             const printableError = error as { message: string };
 
-            this._connection.console.log(
+            this._connection.console.error(
               `MONGOSH execute all error: ${util.inspect(error)}`
             );
             this._connection.sendNotification(
@@ -192,7 +205,7 @@ export default class MongoDBService {
           return resolve(undefined);
         });
       } catch (error) {
-        this._connection.console.log(
+        this._connection.console.error(
           `MONGOSH execute all error: ${util.inspect(error)}`
         );
         return resolve(undefined);
@@ -203,7 +216,7 @@ export default class MongoDBService {
   // ------ GET DATA FOR COMPLETION ------ //
   _getDatabasesCompletionItems(): void {
     if (!this._extensionPath) {
-      this._connection.console.log('MONGOSH get list databases error: extensionPath is undefined');
+      this._connection.console.error('MONGOSH get list databases error: extensionPath is undefined');
 
       return;
     }
@@ -226,7 +239,7 @@ export default class MongoDBService {
         const [error, result] = response;
 
         if (error) {
-          this._connection.console.log(
+          this._connection.console.error(
             `MONGOSH get list databases error: ${util.inspect(error)}`
           );
         }
@@ -237,7 +250,7 @@ export default class MongoDBService {
         });
       });
     } catch (error) {
-      this._connection.console.log(
+      this._connection.console.error(
         `MONGOSH get list databases error: ${util.inspect(error)}`
       );
     }
@@ -429,10 +442,36 @@ export default class MongoDBService {
     });
   }
 
+  getExportToLanguageMode(params: PlaygroundTextAndSelection): ExportToLanguageMode {
+    const state = this._visitor.parseAST(params);
+
+    if (state.isArray) {
+      return ExportToLanguageMode.AGGREGATION;
+    }
+
+    if (state.isObject) {
+      return ExportToLanguageMode.QUERY;
+    }
+
+    return ExportToLanguageMode.OTHER;
+  }
+
+  getNamespaceForSelection(params: PlaygroundTextAndSelection): ExportToLanguageNamespace {
+    try {
+      const state = this._visitor.parseAST(params);
+      return { databaseName: state.databaseName, collectionName: state.collectionName };
+    } catch (error) {
+      this._connection.console.error(
+        `Get namespace for selection error: ${util.inspect(error)}`
+      );
+      return { databaseName: null, collectionName: null };
+    }
+  }
+
   // eslint-disable-next-line complexity
   async provideCompletionItems(
     textFromEditor: string,
-    position: { line: number; character: number }
+    position: { line: number, character: number }
   ): Promise<CompletionItem[]> {
     // eslint-disable-next-line complexity
     this._connection.console.log(
@@ -442,7 +481,7 @@ export default class MongoDBService {
       `LS current symbol position: ${util.inspect(position)}`
     );
 
-    const state = this._visitor.parseAST(textFromEditor, position);
+    const state = this._visitor.parseASTWithPlaceholder(textFromEditor, position);
 
     this._connection.console.log(
       `VISITOR completion state: ${util.inspect(state)}`

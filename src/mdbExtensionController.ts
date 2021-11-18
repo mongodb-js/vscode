@@ -26,6 +26,7 @@ import CodeActionProvider from './editors/codeActionProvider';
 import EXTENSION_COMMANDS from './commands';
 import FieldTreeItem from './explorer/fieldTreeItem';
 import IndexListTreeItem from './explorer/indexListTreeItem';
+import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
 import { LanguageServerController } from './language';
 import launchMongoShell from './commands/launchMongoShell';
 import SchemaTreeItem from './explorer/schemaTreeItem';
@@ -35,6 +36,7 @@ import TelemetryService from './telemetry/telemetryService';
 import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
+import { ExportToLanguages } from './types/playgroundType';
 
 const log = createLogger('commands');
 
@@ -57,6 +59,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
+  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -91,6 +94,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(
       this._connectionController
     );
+    this._exportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
+    this._codeActionProvider = new CodeActionProvider();
     this._playgroundController = new PlaygroundController(
       context,
       this._connectionController,
@@ -99,9 +104,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._statusView,
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
+      this._exportToLanguageCodeLensProvider,
+      this._codeActionProvider,
       this._explorerController
     );
-    this._codeActionProvider = new CodeActionProvider(this._playgroundController);
     this._editorsController = new EditorsController(
       context,
       this._connectionController,
@@ -110,6 +116,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._telemetryService,
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
+      this._exportToLanguageCodeLensProvider,
       this._codeActionProvider,
       this._editDocumentCodeLensProvider
     );
@@ -187,6 +194,21 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS, () =>
       this._playgroundsExplorer.refresh()
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
+      this._playgroundController.exportToLanguage(ExportToLanguages.PYTHON)
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA, () =>
+      this._playgroundController.exportToLanguage(ExportToLanguages.JAVA)
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP, () =>
+      this._playgroundController.exportToLanguage(ExportToLanguages.CSHARP)
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE, () =>
+      this._playgroundController.exportToLanguage(ExportToLanguages.JAVASCRIPT)
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS, (exportToLanguageAddons) =>
+      this._playgroundController.changeExportToLanguageAddons(exportToLanguageAddons)
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,

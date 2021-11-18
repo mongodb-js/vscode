@@ -5,7 +5,7 @@ import path = require('path');
 
 import { StorageController } from '../../storage';
 
-import type { ShellExecuteAllResult } from '../../types/playgroundType';
+import { ShellExecuteAllResult, ExportToLanguageMode, ExportToLanguageNamespace } from '../../types/playgroundType';
 
 // Bare mock of the extension context for vscode.
 class TestExtensionContext implements vscode.ExtensionContext {
@@ -241,11 +241,19 @@ class MockLanguageServerController {
     return;
   }
 
-  executeAll(/* codeToEvaluate: string*/): Promise<ShellExecuteAllResult> {
+  executeAll(/* codeToEvaluate: string */): Promise<ShellExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
-      result: { namespace: null, type: null, content: 'Result' }
+      result: { namespace: null, type: null, content: 'Result', language: 'plaintext' }
     });
+  }
+
+  getExportToLanguageMode(/* params: PlaygroundTextAndSelection */): Promise<ExportToLanguageMode> {
+    return Promise.resolve(ExportToLanguageMode.OTHER);
+  }
+
+  getNamespaceForSelection(/* params: PlaygroundTextAndSelection */): Promise<ExportToLanguageNamespace> {
+    return Promise.resolve({ databaseName: null, collectionName: null });
   }
 
   connectToServiceProvider(/* params: {

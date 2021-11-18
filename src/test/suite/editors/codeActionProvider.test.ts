@@ -4,10 +4,12 @@ import chai from 'chai';
 import sinon from 'sinon';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import CodeActionProvider from '../../../editors/codeActionProvider';
 import { ExplorerController } from '../../../explorer';
 import { LanguageServerController } from '../../../language';
 import { PlaygroundController } from '../../../editors';
+import { PlaygroundResult, ExportToLanguageMode } from '../../../types/playgroundType';
 
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestExtensionContext } from '../stubs';
@@ -43,6 +45,8 @@ suite('Code Action Provider Test Suite', function () {
     const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
       mdbTestExtension.testExtensionController._connectionController
     );
+    const testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
+    const testCodeActionProvider = new CodeActionProvider();
     const testExplorerController = new ExplorerController(
       mdbTestExtension.testExtensionController._connectionController
     );
@@ -55,6 +59,8 @@ suite('Code Action Provider Test Suite', function () {
       mdbTestExtension.testExtensionController._statusView,
       mdbTestExtension.testExtensionController._playgroundResultViewProvider,
       testActiveDBCodeLensProvider,
+      testExportToLanguageCodeLensProvider,
+      testCodeActionProvider,
       testExplorerController
     );
 
@@ -82,17 +88,24 @@ suite('Code Action Provider Test Suite', function () {
     sinon.restore();
   });
 
-  test('expected provideCodeActions to return undefined when text is not selected', () => {
-    const testCodeActionProvider = new CodeActionProvider(mdbTestExtension.testExtensionController._playgroundController);
+  test('returns undefined when text is not selected', () => {
+    const testCodeActionProvider = new CodeActionProvider();
     const codeActions = testCodeActionProvider.provideCodeActions();
 
     expect(codeActions).to.be.undefined;
   });
 
-  test('expected provideCodeActions to return a run selected playground blocks action', async () => {
+  test('returns a run selected playground blocks action', async () => {
     mdbTestExtension.testExtensionController._playgroundController._selectedText = '123';
 
-    const testCodeActionProvider = new CodeActionProvider(mdbTestExtension.testExtensionController._playgroundController);
+    const selection = {
+      start: { line: 0, character: 0 },
+      end: { line: 0, character: 4 }
+    } as vscode.Selection;
+    const testCodeActionProvider = new CodeActionProvider();
+
+    testCodeActionProvider.refresh({ selection, mode: ExportToLanguageMode.OTHER });
+
     const codeActions = testCodeActionProvider.provideCodeActions();
 
     expect(codeActions).to.exist;
@@ -100,7 +113,6 @@ suite('Code Action Provider Test Suite', function () {
     if (codeActions) {
       expect(codeActions.length).to.be.equal(1);
       const actionCommand = codeActions[0].command;
-      expect(codeActions).to.exist;
 
       if (actionCommand) {
         expect(actionCommand.command).to.be.equal('mdb.runSelectedPlaygroundBlocks');
@@ -108,9 +120,185 @@ suite('Code Action Provider Test Suite', function () {
 
         await vscode.commands.executeCommand(actionCommand.command);
 
-        const expectedResult = { namespace: null, type: 'number', content: 123 };
+        const expectedResult = { namespace: null, type: 'number', content: 123, language: 'plaintext' };
         expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
         expect(mdbTestExtension.testExtensionController._playgroundController._isPartialRun).to.be.equal(true);
+      }
+    }
+  });
+
+  test('exports to java and includes builders', async () => {
+    const textFromEditor = "{ name: '22' }";
+    const selection = {
+      start: { line: 0, character: 0 },
+      end: { line: 0, character: 14 }
+    } as vscode.Selection;
+    const mode = ExportToLanguageMode.QUERY;
+
+    mdbTestExtension.testExtensionController._playgroundController._selectedText = textFromEditor;
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
+
+    const fakeGetAllText = sinon.fake.returns(textFromEditor);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      '_getAllText',
+      fakeGetAllText
+    );
+    const testCodeActionProvider = new CodeActionProvider();
+
+    testCodeActionProvider.refresh({ selection, mode });
+
+    const codeActions = testCodeActionProvider.provideCodeActions();
+
+    expect(codeActions).to.exist;
+
+    if (codeActions) {
+      expect(codeActions.length).to.be.equal(5);
+      const actionCommand = codeActions[2].command;
+
+      if (actionCommand) {
+        expect(actionCommand.command).to.be.equal('mdb.exportToJava');
+        expect(actionCommand.title).to.be.equal('Export To Java');
+
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        const expectedResult = { namespace: null, type: null, content: 'new Document("name", "22")', language: 'java' };
+
+        const codeLenses = mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(3);
+
+        // Only java queries supports builders.
+        await vscode.commands.executeCommand('mdb.changeExportToLanguageAddons', {
+          ...mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+          builders: true
+        });
+
+        expectedResult.content = 'eq("name", "22")';
+        expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
+      }
+    }
+  });
+
+  test('exports to csharp and includes import statements', async () => {
+    const textFromEditor = "{ name: '22' }";
+    const selection = {
+      start: { line: 0, character: 0 },
+      end: { line: 0, character: 14 }
+    } as vscode.Selection;
+    const mode = ExportToLanguageMode.QUERY;
+
+    mdbTestExtension.testExtensionController._playgroundController._selectedText = textFromEditor;
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
+
+    const fakeGetAllText = sinon.fake.returns(textFromEditor);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      '_getAllText',
+      fakeGetAllText
+    );
+    const testCodeActionProvider = new CodeActionProvider();
+
+    testCodeActionProvider.refresh({ selection, mode });
+
+    const codeActions = testCodeActionProvider.provideCodeActions();
+
+    expect(codeActions).to.exist;
+
+    if (codeActions) {
+      expect(codeActions.length).to.be.equal(5);
+      const actionCommand = codeActions[3].command;
+
+      if (actionCommand) {
+        expect(actionCommand.command).to.be.equal('mdb.exportToCsharp');
+        expect(actionCommand.title).to.be.equal('Export To C#');
+
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        const expectedResult = {
+          namespace: null,
+          type: null,
+          content: 'new BsonDocument(\"name\", \"22\")',
+          language: 'csharp'
+        };
+        expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
+
+        const codeLenses = mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(2);
+
+        // Csharp does not support driver syntax.
+        await vscode.commands.executeCommand('mdb.changeExportToLanguageAddons', {
+          ...mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+          importStatements: true
+        });
+
+        expectedResult.content = 'using MongoDB.Bson;\nusing MongoDB.Driver;\n\nnew BsonDocument(\"name\", \"22\")';
+        expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
+      }
+    }
+  });
+
+  test('exports to python and includes driver syntax', async () => {
+    const textFromEditor = "use('db'); db.coll.find({ name: '22' })";
+    const selection = {
+      start: { line: 0, character: 24 },
+      end: { line: 0, character: 38 }
+    } as vscode.Selection;
+    const mode = ExportToLanguageMode.QUERY;
+
+    mdbTestExtension.testExtensionController._playgroundController._selectedText = "{ name: '22' }";
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
+
+    const fakeGetAllText = sinon.fake.returns(textFromEditor);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      '_getAllText',
+      fakeGetAllText
+    );
+    const testCodeActionProvider = new CodeActionProvider();
+
+    testCodeActionProvider.refresh({ selection, mode });
+
+    const codeActions = testCodeActionProvider.provideCodeActions();
+
+    expect(codeActions).to.exist;
+
+    if (codeActions) {
+      expect(codeActions.length).to.be.equal(5);
+      const actionCommand = codeActions[1].command;
+
+      if (actionCommand) {
+        expect(actionCommand.command).to.be.equal('mdb.exportToPython');
+        expect(actionCommand.title).to.be.equal('Export To Python 3');
+
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        let expectedResult: PlaygroundResult = {
+          namespace: null,
+          type: null,
+          content: "{\n    'name': '22'\n}",
+          language: 'python'
+        };
+        expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
+
+        const codeLenses = mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(2);
+
+        await vscode.commands.executeCommand('mdb.changeExportToLanguageAddons', {
+          ...mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+          driverSyntax: true
+        });
+
+        expectedResult = {
+          namespace: 'db.coll',
+          type: null,
+          content: "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&directConnection=true&ssl=false')\nresult = client['db']['coll'].aggregate({\n    'name': '22'\n})",
+          language: 'python'
+        };
+
+        expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
       }
     }
   });

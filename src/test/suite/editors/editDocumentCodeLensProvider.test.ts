@@ -123,7 +123,8 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
         type: 'Document',
-        content: { _id: '93333a0d-83f6-4e6f-a575-af7ea6187a4a' }
+        content: { _id: '93333a0d-83f6-4e6f-a575-af7ea6187a4a' },
+        language: 'json'
       });
 
       const codeLens = testCodeLensProvider.provideCodeLenses();
@@ -164,7 +165,8 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         content: [
           { _id: '93333a0d-83f6-4e6f-a575-af7ea6187a4a' },
           { _id: '21333a0d-83f6-4e6f-a575-af7ea6187444' }
-        ]
+        ],
+        language: 'json'
       });
 
       const codeLens = testCodeLensProvider.provideCodeLenses();
@@ -226,7 +228,8 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
               $date: '2014-04-04T21:23:13.331Z'
             }
           }
-        ]
+        ],
+        language: 'json'
       });
 
       const codeLens = testCodeLensProvider.provideCodeLenses();
