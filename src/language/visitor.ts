@@ -251,11 +251,11 @@ export class Visitor {
       node.loc?.start?.line &&
       node.loc.start.line - 1 === this._selection.start?.line &&
       node.loc?.start?.column &&
-      node.loc.start.column === this._selection.start?.character &&
+      node.loc.start.column >= this._selection.start?.character &&
       node.loc?.end?.line &&
       node.loc.end.line - 1 === this._selection.end?.line &&
       node.loc?.end?.column &&
-      node.loc.end.column === this._selection.end?.character
+      node.loc.end.column <= this._selection.end?.character
     ) {
       return true;
     }
