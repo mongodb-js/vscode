@@ -46,7 +46,7 @@ export default class MongoDBService {
   constructor(connection: Connection) {
     this._connection = connection;
     this._cachedShellSymbols = this._getShellCompletionItems();
-    this._visitor = new Visitor(connection);
+    this._visitor = new Visitor(connection.console);
   }
 
   // ------ CONNECTION ------ //

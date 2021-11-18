@@ -1,7 +1,7 @@
 import type * as babel from '@babel/core';
 import * as parser from '@babel/parser';
 import traverse from '@babel/traverse';
-import { Connection } from 'vscode-languageserver/node';
+import { RemoteConsole } from 'vscode-languageserver/node';
 import * as util from 'util';
 
 const PLACEHOLDER = 'TRIGGER_CHARACTER';
@@ -33,15 +33,15 @@ export interface CompletionState {
 export class Visitor {
   _state: CompletionState;
   _selection: VisitorSelection;
-  _connection: Connection;
+  _console: RemoteConsole;
 
-  constructor(connection: Connection) {
+  constructor(console: RemoteConsole) {
     this._state = this._getDefaultNodesValues();
     this._selection = {
       start: { line: 0, character: 0 },
       end: { line: 0, character: 0 }
     };
-    this._connection = connection;
+    this._console = console;
   }
 
   _visitCallExpression(node: babel.types.CallExpression): void {
@@ -152,7 +152,7 @@ export class Visitor {
         sourceType: 'module'
       });
     } catch (error) {
-      this._connection.console.error(`parseAST error: ${util.inspect(error)}`);
+      this._console.error(`parseAST error: ${util.inspect(error)}`);
       return this._state;
     }
 

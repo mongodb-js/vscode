@@ -16,9 +16,7 @@ import {
   PlaygroundResult,
   ShellExecuteAllResult,
   ExportToLanguageAddons,
-  ExportToLanguageMode,
-  ExportToLanguageNamespace,
-  ExportToLanguages
+  ExportToLanguageNamespace
 } from '../types/playgroundType';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME,
@@ -574,8 +572,7 @@ export default class PlaygroundController {
       importStatements,
       driverSyntax,
       builders,
-      language,
-      mode
+      language
     } = this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
 
     log.info(`Start export to ${language} language`);
@@ -589,11 +586,6 @@ export default class PlaygroundController {
     }
 
     try {
-      const useBuilders = (
-        builders &&
-        language === ExportToLanguages.JAVA &&
-        mode === ExportToLanguageMode.QUERY
-      );
       let transpiledExpression = '';
       let imports = '';
       let namespace: ExportToLanguageNamespace = {
@@ -618,9 +610,9 @@ export default class PlaygroundController {
           }
         };
 
-        transpiledExpression = transpiler.shell[language].compileWithDriver(toCompile, useBuilders);
+        transpiledExpression = transpiler.shell[language].compileWithDriver(toCompile, builders);
       } else {
-        transpiledExpression = transpiler.shell[language].compile(selectedText, useBuilders, false);
+        transpiledExpression = transpiler.shell[language].compile(selectedText, builders, false);
       }
 
       if (importStatements) {

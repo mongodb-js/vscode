@@ -1144,7 +1144,7 @@ suite('MongoDBService Test Suite', () => {
         result: {
           namespace: null,
           type: 'undefined',
-          content: null,
+          content: undefined,
           language: 'plaintext'
         }
       };

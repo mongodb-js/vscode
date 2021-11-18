@@ -18,18 +18,20 @@ interface EvaluationResult {
 type WorkerResult = ShellExecuteAllResult;
 type WorkerError = any | null;
 
-const content = ({ type, printable }: EvaluationResult) => {
+const getContent = ({ type, printable }: EvaluationResult) => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
     return JSON.parse(EJSON.stringify(printable.documents));
   }
 
-  return typeof printable === 'string'
+  return (typeof printable !== 'object' || printable === null)
     ? printable
     : JSON.parse(EJSON.stringify(printable));
 };
 
-const language = (evaluationResult: EvaluationResult) => {
-  if (typeof content(evaluationResult) === 'object' && content(evaluationResult) !== null) {
+const getLanguage = (evaluationResult: EvaluationResult) => {
+  const content = getContent(evaluationResult);
+
+  if (typeof content === 'object' && content !== null) {
     return 'json';
   }
 
@@ -74,8 +76,8 @@ const executeAll = async (
     const result: PlaygroundResult = {
       namespace,
       type: type ? type : typeof printable,
-      content: content({ type, printable }),
-      language: language({ type, printable })
+      content: getContent({ type, printable }),
+      language: getLanguage({ type, printable })
     };
 
     return [null, { outputLines, result }];
