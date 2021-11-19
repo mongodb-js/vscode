@@ -210,7 +210,8 @@ export default class ConnectionController {
     try {
       return this.addNewConnectionStringAndConnect(connectionString);
     } catch (error) {
-      void vscode.window.showErrorMessage(error.message);
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(printableError.message);
 
       return false;
     }
@@ -384,7 +385,7 @@ export default class ConnectionController {
     // Override the default connection `appname`.
     connectionModel.appname = `${name} ${version}`;
 
-    const newDataService: DataServiceType = new DataService(connectionModel);
+    const newDataService: any = new DataService(connectionModel);
     const _connect = promisify(newDataService.connect.bind(newDataService));
     let connectError;
 
@@ -463,7 +464,8 @@ export default class ConnectionController {
 
       return connectResult.successfullyConnected;
     } catch (error) {
-      void vscode.window.showErrorMessage(error.message);
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(printableError.message);
 
       return false;
     }

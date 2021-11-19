@@ -243,8 +243,8 @@ export const validateConnectionModel = (attrs: ConnectionModel): Error | undefin
     validateX509(attrs);
     validateLdap(attrs);
     validateSshTunnel(attrs);
-  } catch (err) {
-    return err;
+  } catch (error) {
+    return error as Error;
   }
 };
 

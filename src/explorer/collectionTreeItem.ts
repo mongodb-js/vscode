@@ -317,11 +317,12 @@ export default class CollectionTreeItem extends vscode.TreeItem
       this._dataService.estimatedCount(
         this.namespace,
         {}, // No options.
-        (err: Error | undefined, count: number) => {
-          if (err) {
+        (error: Error | undefined, count: number) => {
+          if (error) {
+            const printableError = error as { message: string };
             return reject(
               new Error(
-                `Unable to get collection document count: ${err.message}`
+                `Unable to get collection document count: ${printableError.message}`
               )
             );
           }
@@ -373,9 +374,9 @@ export default class CollectionTreeItem extends vscode.TreeItem
           return null;
         }
       });
-    } catch (e) {
+    } catch (error) {
       return Promise.reject(
-        new Error(`An error occured parsing the collection name: ${e}`)
+        new Error(`An error occured parsing the collection name: ${error}`)
       );
     }
 
@@ -386,10 +387,11 @@ export default class CollectionTreeItem extends vscode.TreeItem
     return new Promise((resolve) => {
       this._dataService.dropCollection(
         `${this.databaseName}.${collectionName}`,
-        (err: Error | null, successfullyDroppedCollection = false) => {
-          if (err) {
+        (error: Error | null, successfullyDroppedCollection = false) => {
+          if (error) {
+            const printableError = error as { message: string };
             void vscode.window.showErrorMessage(
-              `Drop collection failed: ${err.message}`
+              `Drop collection failed: ${printableError.message}`
             );
 
             return resolve(false);

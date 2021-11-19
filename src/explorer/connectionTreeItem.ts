@@ -139,13 +139,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
       const runListDatabases = promisify(dataService.listDatabases.bind(dataService));
       const dbs = await runListDatabases();
       return dbs.map(dbItem => dbItem.name);
-    } catch (err) {
-      if (isNotAuthorized(err)) {
+    } catch (error) {
+      if (isNotAuthorized(error)) {
         // Check for which databases privilages this user has, and list those.
         return this.listDatabasesUserHasAccessTo(dataService.client.client);
       }
-
-      throw new Error(`Unable to list databases: ${err.message}`);
+      const printableError = error as { message: string };
+      throw new Error(`Unable to list databases: ${printableError.message}`);
     }
   }
 

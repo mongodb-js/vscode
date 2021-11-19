@@ -64,10 +64,11 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       this._dataService.listCollections(
         this.databaseName,
         {}, // No filter.
-        (err: Error | undefined, collections: string[]) => {
-          if (err) {
+        (error: Error | undefined, collections: string[]) => {
+          if (error) {
+            const printableError = error as { message: string };
             return reject(
-              new Error(`Unable to list collections: ${err.message}`)
+              new Error(`Unable to list collections: ${printableError.message}`)
             );
           }
 
@@ -225,10 +226,11 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     return new Promise((resolve) => {
       this._dataService.dropDatabase(
         databaseName,
-        (err: Error | null, successfullyDroppedDatabase = false) => {
-          if (err) {
+        (error: Error | null, successfullyDroppedDatabase = false) => {
+          if (error) {
+            const printableError = error as { message: string };
             void vscode.window.showErrorMessage(
-              `Drop database failed: ${err.message}`
+              `Drop database failed: ${printableError.message}`
             );
             return resolve(false);
           }

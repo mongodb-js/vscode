@@ -176,10 +176,11 @@ suite('MongoDB Document Service Test Suite', () => {
         source
       });
     } catch (error) {
+      const printableError = error as { message: string };
       const expectedMessage =
         "Unable to save document: no longer connected to 'tasty_sandwhich'";
 
-      expect(error.message).to.be.equal(expectedMessage);
+      expect(printableError.message).to.be.equal(expectedMessage);
     }
   });
 
@@ -216,10 +217,11 @@ suite('MongoDB Document Service Test Suite', () => {
         source
       });
     } catch (error) {
+      const printableError = error as { message: string };
       const expectedMessage =
         "Unable to save document: no longer connected to 'tasty_sandwhich'";
 
-      expect(error.message).to.be.equal(expectedMessage);
+      expect(printableError.message).to.be.equal(expectedMessage);
     }
   });
 
@@ -259,10 +261,11 @@ suite('MongoDB Document Service Test Suite', () => {
         source
       });
     } catch (error) {
+      const printableError = error as { message: string };
       const expectedMessage =
         "Unable to fetch document: no longer connected to 'tasty_sandwhich'";
 
-      expect(error.message).to.be.equal(expectedMessage);
+      expect(printableError.message).to.be.equal(expectedMessage);
     }
   });
 });

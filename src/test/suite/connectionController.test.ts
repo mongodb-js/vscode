@@ -190,11 +190,12 @@ suite('Connection Controller Test Suite', function () {
 
       assert(false, 'Expected to fail the connection and succeeded.');
     } catch (error) {
+      const printableError = error as { message: string };
       const expectedError = 'Failed to connect';
 
       assert(
-        error.message.includes(expectedError),
-        `Expected error with message: ${expectedError}, got: ${error.message}`
+        printableError.message.includes(expectedError),
+        `Expected error with message: ${expectedError}, got: ${printableError.message}`
       );
       assert(
         testConnectionController.getActiveDataService() === null,
