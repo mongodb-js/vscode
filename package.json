@@ -264,7 +264,7 @@
       },
       {
         "command": "mdb.exportToNode",
-        "title": "MongoDB: Export To Node"
+        "title": "MongoDB: Export To Node.js"
       },
       {
         "command": "mdb.addConnection",
@@ -599,6 +599,22 @@
         },
         {
           "command": "mdb.runAllPlaygroundBlocks",
+          "when": "editorLangId == mongodb"
+        },
+        {
+          "command": "mdb.exportToPython",
+          "when": "editorLangId == mongodb"
+        },
+        {
+          "command": "mdb.exportToJava",
+          "when": "editorLangId == mongodb"
+        },
+        {
+          "command": "mdb.exportToCsharp",
+          "when": "editorLangId == mongodb"
+        },
+        {
+          "command": "mdb.exportToNode",
           "when": "editorLangId == mongodb"
         },
         {

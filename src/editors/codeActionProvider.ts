@@ -64,11 +64,11 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
       };
       codeActions.push(exportToCsharpCommand);
 
-      const exportToJSCommand = new vscode.CodeAction('Export To Node', vscode.CodeActionKind.Empty);
+      const exportToJSCommand = new vscode.CodeAction('Export To Node.js', vscode.CodeActionKind.Empty);
       exportToJSCommand.command = {
         command: EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE,
-        title: 'Export To Node',
-        tooltip: 'Export To Node'
+        title: 'Export To Node.js',
+        tooltip: 'Export To Node.js'
       };
       codeActions.push(exportToJSCommand);
     }
