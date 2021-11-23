@@ -53,15 +53,17 @@ implements vscode.CodeLensProvider {
     };
     exportToLanguageCodeLenses.push(importStatementsCodeLens);
 
-    driverSyntaxCodeLens.command = {
-      title: this._exportToLanguageAddons.driverSyntax ? 'Exclude Driver Syntax' : 'Include Driver Syntax',
-      command: EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
-      arguments: [{
-        ...this._exportToLanguageAddons,
-        driverSyntax: !this._exportToLanguageAddons.driverSyntax
-      }]
-    };
-    exportToLanguageCodeLenses.push(driverSyntaxCodeLens);
+    if (this._exportToLanguageAddons.language !== ExportToLanguages.CSHARP) {
+      driverSyntaxCodeLens.command = {
+        title: this._exportToLanguageAddons.driverSyntax ? 'Exclude Driver Syntax' : 'Include Driver Syntax',
+        command: EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
+        arguments: [{
+          ...this._exportToLanguageAddons,
+          driverSyntax: !this._exportToLanguageAddons.driverSyntax
+        }]
+      };
+      exportToLanguageCodeLenses.push(driverSyntaxCodeLens);
+    }
 
     if (
       this._exportToLanguageAddons.language === ExportToLanguages.JAVA &&

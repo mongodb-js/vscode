@@ -839,7 +839,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Files and folders to exclude while searching for playground in the the current workspace.",
+          "description": "Files and folders to exclude while searching for playgrounds in the the current workspace.",
           "default": [
             "**/.*",
             "**/_output/**",

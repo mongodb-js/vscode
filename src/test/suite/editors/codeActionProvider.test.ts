@@ -248,9 +248,8 @@ suite('Code Action Provider Test Suite', function () {
         expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
 
         const codeLenses = mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-        expect(codeLenses.length).to.be.equal(2);
+        expect(codeLenses.length).to.be.equal(1); // Csharp does not support driver syntax.
 
-        // Csharp does not support driver syntax.
         await vscode.commands.executeCommand('mdb.changeExportToLanguageAddons', {
           ...mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons,
           importStatements: true

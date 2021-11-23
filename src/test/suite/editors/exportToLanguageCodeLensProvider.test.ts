@@ -64,6 +64,15 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     expect(codeLenses[2].command?.title).to.be.equal('Use Builders');
   });
 
+  test('does not have the include driver syntax code lens when language is csharp', () => {
+    testExportToLanguageCodeLensProvider.refresh({ ...defaults, mode: ExportToLanguageMode.QUERY, language: 'csharp' });
+
+    const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
+
+    expect(codeLenses.length).to.be.equal(1); // Csharp does not support driver syntax.
+    expect(codeLenses[0].command?.title).to.be.equal('Include Import Statements');
+  });
+
   test('has the use raw query code lens when builders is true, language is java, and mode is query', () => {
     testExportToLanguageCodeLensProvider.refresh({ ...defaults, builders: true, mode: ExportToLanguageMode.QUERY, language: 'java' });
 
