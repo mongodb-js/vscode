@@ -51,7 +51,8 @@ const cli = meow(
     ui.succeed(
       `Downloaded to ${path.join(cli.flags.dest as string, 'mongodb.tmLanguage.json')}`
     );
-  } catch (err) {
-    ui.fail(`Download failed: ${err.message}`);
+  } catch (error) {
+    const printableError = error as { message: string };
+    ui.fail(`Download failed: ${printableError.message}`);
   }
 })();

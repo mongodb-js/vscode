@@ -315,7 +315,7 @@ export default class PlaygroundController {
   }
 
   _getAllText(): string {
-    return this._activeTextEditor?.document.getText() || '';
+    return this._activeTextEditor?.document.getText().trim() || '';
   }
 
   _getSelectedText(selection: vscode.Range): string {

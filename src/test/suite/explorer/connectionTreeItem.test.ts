@@ -105,8 +105,9 @@ suite('ConnectionTreeItem Test Suite', () => {
       try {
         await testConnectionTreeItem.getChildren();
         assert(false);
-      } catch (err) {
-        assert.strictEqual(err.message, 'Unable to list databases: peaches');
+      } catch (error) {
+        const printableError = error as { message: string };
+        assert.strictEqual(printableError.message, 'Unable to list databases: peaches');
       }
     });
   });

@@ -127,6 +127,38 @@ suite('Code Action Provider Test Suite', function () {
     }
   });
 
+  test('returns an export to java action with whitespaces around objects', () => {
+    const textFromEditor = ' { name: "Alena Khineika" } ';
+    const selection = {
+      start: { line: 0, character: 2 },
+      end: { line: 0, character: 27 }
+    } as vscode.Selection;
+    const mode = ExportToLanguageMode.QUERY;
+    const activeTextEditor = { document: { getText: () => textFromEditor } } as vscode.TextEditor;
+
+    mdbTestExtension.testExtensionController._playgroundController._selectedText = textFromEditor;
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
+    mdbTestExtension.testExtensionController._playgroundController._activeTextEditor = activeTextEditor;
+
+    const testCodeActionProvider = new CodeActionProvider();
+    testCodeActionProvider.refresh({ selection, mode });
+
+    const codeActions = testCodeActionProvider.provideCodeActions();
+
+    expect(codeActions).to.exist;
+
+    if (codeActions) {
+      expect(codeActions.length).to.be.equal(5);
+      const actionCommand = codeActions[2].command;
+
+      if (actionCommand) {
+        expect(actionCommand.command).to.be.equal('mdb.exportToJava');
+        expect(actionCommand.title).to.be.equal('Export To Java');
+      }
+    }
+  });
+
   test('exports to java and includes builders', async () => {
     const textFromEditor = "{ name: '22' }";
     const selection = {
@@ -134,19 +166,14 @@ suite('Code Action Provider Test Suite', function () {
       end: { line: 0, character: 14 }
     } as vscode.Selection;
     const mode = ExportToLanguageMode.QUERY;
+    const activeTextEditor = { document: { getText: () => textFromEditor } } as vscode.TextEditor;
 
     mdbTestExtension.testExtensionController._playgroundController._selectedText = textFromEditor;
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
+    mdbTestExtension.testExtensionController._playgroundController._activeTextEditor = activeTextEditor;
 
-    const fakeGetAllText = sinon.fake.returns(textFromEditor);
-    sinon.replace(
-      mdbTestExtension.testExtensionController._playgroundController,
-      '_getAllText',
-      fakeGetAllText
-    );
     const testCodeActionProvider = new CodeActionProvider();
-
     testCodeActionProvider.refresh({ selection, mode });
 
     const codeActions = testCodeActionProvider.provideCodeActions();
@@ -187,17 +214,13 @@ suite('Code Action Provider Test Suite', function () {
       end: { line: 0, character: 14 }
     } as vscode.Selection;
     const mode = ExportToLanguageMode.QUERY;
+    const activeTextEditor = { document: { getText: () => textFromEditor } } as vscode.TextEditor;
 
     mdbTestExtension.testExtensionController._playgroundController._selectedText = textFromEditor;
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
+    mdbTestExtension.testExtensionController._playgroundController._activeTextEditor = activeTextEditor;
 
-    const fakeGetAllText = sinon.fake.returns(textFromEditor);
-    sinon.replace(
-      mdbTestExtension.testExtensionController._playgroundController,
-      '_getAllText',
-      fakeGetAllText
-    );
     const testCodeActionProvider = new CodeActionProvider();
 
     testCodeActionProvider.refresh({ selection, mode });
@@ -225,9 +248,8 @@ suite('Code Action Provider Test Suite', function () {
         expect(mdbTestExtension.testExtensionController._playgroundController._playgroundResult).to.be.deep.equal(expectedResult);
 
         const codeLenses = mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-        expect(codeLenses.length).to.be.equal(2);
+        expect(codeLenses.length).to.be.equal(1); // Csharp does not support driver syntax.
 
-        // Csharp does not support driver syntax.
         await vscode.commands.executeCommand('mdb.changeExportToLanguageAddons', {
           ...mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons,
           importStatements: true
@@ -246,19 +268,14 @@ suite('Code Action Provider Test Suite', function () {
       end: { line: 0, character: 38 }
     } as vscode.Selection;
     const mode = ExportToLanguageMode.QUERY;
+    const activeTextEditor = { document: { getText: () => textFromEditor } } as vscode.TextEditor;
 
     mdbTestExtension.testExtensionController._playgroundController._selectedText = "{ name: '22' }";
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
+    mdbTestExtension.testExtensionController._playgroundController._activeTextEditor = activeTextEditor;
 
-    const fakeGetAllText = sinon.fake.returns(textFromEditor);
-    sinon.replace(
-      mdbTestExtension.testExtensionController._playgroundController,
-      '_getAllText',
-      fakeGetAllText
-    );
     const testCodeActionProvider = new CodeActionProvider();
-
     testCodeActionProvider.refresh({ selection, mode });
 
     const codeActions = testCodeActionProvider.provideCodeActions();

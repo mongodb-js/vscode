@@ -39,7 +39,7 @@ suite('Playgrounds Controller Test Suite', function () {
         `Tree controller should have 0 child, found ${treeControllerChildren.length}`
       );
     } catch (error) {
-      assert(false, error);
+      assert(false, error as Error);
     }
   });
 
@@ -70,7 +70,7 @@ suite('Playgrounds Controller Test Suite', function () {
         `Tree playgrounds should have 5 playgrounds with mongodb extension, found ${children.length}`
       );
     } catch (error) {
-      assert(false, error);
+      assert(false, error as Error);
     }
   });
 
@@ -97,7 +97,7 @@ suite('Playgrounds Controller Test Suite', function () {
         `Tree playgrounds should have 3 child, found ${children.length}`
       );
     } catch (error) {
-      assert(false, error);
+      assert(false, error as Error);
     }
   });
 
@@ -125,7 +125,7 @@ suite('Playgrounds Controller Test Suite', function () {
         )
       );
     } catch (error) {
-      assert(false, error);
+      assert(false, error as Error);
     }
   });
 });

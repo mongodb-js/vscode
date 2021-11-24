@@ -19,6 +19,7 @@ export interface VisitorTextAndSelection {
 export interface CompletionState {
   databaseName: string | null;
   collectionName: string | null;
+  selectionType: string | null;
   isObject: boolean;
   isArray: boolean;
   isObjectKey: boolean;
@@ -44,7 +45,23 @@ export class Visitor {
     this._console = console;
   }
 
+  _checkIsObjectSelection(node: babel.types.Node): boolean {
+    return (this._checkIsBSONSelection(node) && this._state.selectionType === 'ObjectExpression');
+  }
+
+  _checkIsArraySelection(node: babel.types.Node): boolean {
+    return (this._checkIsBSONSelection(node) && this._state.selectionType === 'ArrayExpression');
+  }
+
   _visitCallExpression(node: babel.types.CallExpression): void {
+    if (this._checkIsObjectSelection(node)) {
+      this._state.isObject = true;
+    }
+
+    if (this._checkIsArraySelection(node)) {
+      this._state.isArray = true;
+    }
+
     if (this._checkIsUseCall(node)) {
       this._state.isUseCallExpression = true;
     }
@@ -87,16 +104,36 @@ export class Visitor {
   }
 
   _visitObjectExpression(node: babel.types.ObjectExpression): void {
-    if (this._checkIsObjectSelection(node)) {
-      this._state.isObject = true;
-    }
-
     if (this._checkIsObjectKey(node)) {
       this._state.isObjectKey = true;
     }
   }
 
   _visitArrayExpression(node: babel.types.ArrayExpression): void {
+    if (this._checkIsObjectSelection(node)) {
+      this._state.isObject = true;
+    }
+
+    if (this._checkIsArraySelection(node)) {
+      this._state.isArray = true;
+    }
+  }
+
+  _visitVariableDeclarator(node: babel.types.VariableDeclarator): void {
+    if (this._checkIsObjectSelection(node)) {
+      this._state.isObject = true;
+    }
+
+    if (this._checkIsArraySelection(node)) {
+      this._state.isArray = true;
+    }
+  }
+
+  _visitObjectProperty(node: babel.types.ObjectProperty): void {
+    if (this._checkIsObjectSelection(node)) {
+      this._state.isObject = true;
+    }
+
     if (this._checkIsArraySelection(node)) {
       this._state.isArray = true;
     }
@@ -174,6 +211,12 @@ export class Visitor {
           case 'ArrayExpression':
             this._visitArrayExpression(path.node);
             break;
+          case 'VariableDeclarator':
+            this._visitVariableDeclarator(path.node);
+            break;
+          case 'ObjectProperty':
+            this._visitObjectProperty(path.node);
+            break;
           default:
             break;
         }
@@ -187,6 +230,7 @@ export class Visitor {
     return {
       databaseName: null,
       collectionName: null,
+      selectionType: null,
       isObject: false,
       isArray: false,
       isObjectKey: false,
@@ -246,38 +290,102 @@ export class Visitor {
     return false;
   }
 
+  _checkIsAroundSelection(node: babel.types.Node): boolean {
+    if (
+      node.loc?.start?.line &&
+      (
+        node.loc.start.line - 1 < this._selection.start?.line ||
+        node.loc.start.line - 1 === this._selection.start?.line && node.loc.start.column < this._selection.start?.character
+      ) &&
+      node.loc?.end?.line &&
+      (
+        node.loc.end.line - 1 > this._selection.end?.line ||
+        node.loc.end.line - 1 === this._selection.end?.line && node.loc.end.column > this._selection.end?.character
+      )
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  _checkIsObjectPropBeforeSelection(node: babel.types.ObjectProperty): boolean {
+    if (
+      node.key.loc?.end &&
+      (
+        node.key.loc?.end.line - 1 < this._selection.start?.line ||
+        (
+          node.key.loc?.end.line - 1 === this._selection.start?.line &&
+          node.key.loc?.end.column < this._selection.start?.character
+        )
+      )
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  _checkIsVariableIdentifierBeforeSelection(node: babel.types.VariableDeclarator): boolean {
+    if (
+      node.id.loc?.end &&
+      (
+        node.id.loc?.end.line - 1 < this._selection.start?.line ||
+        (
+          node.id.loc?.end.line - 1 === this._selection.start?.line &&
+          node.id.loc?.end.column < this._selection.start?.character
+        )
+      )
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  _checkIsAfterSelection(node: babel.types.ObjectExpression): boolean {
+    if (
+      node.loc?.start &&
+      (
+        node.loc?.start.line - 1 > this._selection.start?.line ||
+        (
+          node.loc?.start.line - 1 === this._selection.start?.line &&
+          node.loc?.start.column > this._selection.start?.character
+        )
+      )
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   _checkIsWithinSelection(node: babel.types.Node): boolean {
     if (
       node.loc?.start?.line &&
       node.loc.start.line - 1 === this._selection.start?.line &&
       node.loc?.start?.column &&
-      node.loc.start.column === this._selection.start?.character &&
+      node.loc.start.column >= this._selection.start?.character &&
       node.loc?.end?.line &&
       node.loc.end.line - 1 === this._selection.end?.line &&
       node.loc?.end?.column &&
-      node.loc.end.column === this._selection.end?.character
+      node.loc.end.column <= this._selection.end?.character
     ) {
+      this._state.selectionType = node.type;
       return true;
     }
 
     return false;
   }
 
-  _checkIsObjectSelection(node: babel.types.ObjectExpression): boolean {
-    if (
-      node.type === 'ObjectExpression' &&
-      this._checkIsWithinSelection(node)
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  _checkIsArraySelection(node: babel.types.ArrayExpression): boolean {
+  _checkIsSelectionInArray(node: babel.types.Node) {
     if (
       node.type === 'ArrayExpression' &&
-      this._checkIsWithinSelection(node)
+      node.elements &&
+      this._checkIsAroundSelection(node) &&
+      node.elements.find((item) => {
+        return item && this._checkIsWithinSelection(item);
+      })
     ) {
       return true;
     }
@@ -285,7 +393,73 @@ export class Visitor {
     return false;
   }
 
-  // eslint-disable-next-line complexity
+  _checkIsSelectionInFunction(node: babel.types.Node) {
+    if (
+      node.type === 'CallExpression' &&
+      node.arguments &&
+      this._checkIsAroundSelection(node) &&
+      node.arguments.find((item) => {
+        return item && this._checkIsWithinSelection(item);
+      })
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  _checkIsSelectionInVariable(node: babel.types.VariableDeclarator) {
+    if (
+      node.init &&
+      (
+        node.init.type === 'ObjectExpression' ||
+        node.init.type === 'ArrayExpression'
+      ) &&
+      this._checkIsVariableIdentifierBeforeSelection(node) &&
+      this._checkIsWithinSelection(node.init)
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  _checkIsSelectionInObject(node: babel.types.ObjectProperty) {
+    if (
+      node.value &&
+      (
+        node.value.type === 'ObjectExpression' ||
+        node.value.type === 'ArrayExpression'
+      ) &&
+      this._checkIsObjectPropBeforeSelection(node) &&
+      this._checkIsWithinSelection(node.value)
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  _checkIsBSONSelection(node: babel.types.Node): boolean {
+    if (node.type === 'CallExpression') {
+      return this._checkIsSelectionInFunction(node);
+    }
+
+    if (node.type === 'ArrayExpression') {
+      return this._checkIsSelectionInArray(node);
+    }
+
+    if (node.type === 'VariableDeclarator') {
+      return this._checkIsSelectionInVariable(node);
+    }
+
+    if (node.type === 'ObjectProperty') {
+      return this._checkIsSelectionInObject(node);
+    }
+
+    return false;
+  }
+
   _checkIsCollectionName(node: babel.types.CallExpression | babel.types.MemberExpression): boolean {
     if (
       (node.type === 'MemberExpression' &&

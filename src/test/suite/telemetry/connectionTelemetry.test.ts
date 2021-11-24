@@ -10,7 +10,9 @@ import {
 } from '../../../telemetry/connectionTelemetry';
 import { ConnectionTypes } from '../../../connectionController';
 
-suite('ConnectionTelemetry Controller Test Suite', () => {
+suite('ConnectionTelemetry Controller Test Suite', function () {
+  this.timeout(5000);
+
   suite('with mock client', () => {
     const mockClient: any = {
       db: () => ({

@@ -18,6 +18,7 @@ import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
 import CodeActionProvider from '../../../editors/codeActionProvider';
+import { ExportToLanguageMode } from '../../../types/playgroundType';
 
 const expect = chai.expect;
 
@@ -79,14 +80,12 @@ suite('Playground Controller Test Suite', function () {
   );
   const sandbox = sinon.createSandbox();
   let fakeShowInformationMessage: sinon.SinonStub;
-  let fakeShowErrorMessage: sinon.SinonStub;
 
   beforeEach(() => {
     fakeShowInformationMessage = sandbox.stub(
       vscode.window,
       'showInformationMessage'
     );
-    fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
   afterEach(() => {
@@ -193,41 +192,50 @@ suite('Playground Controller Test Suite', function () {
     testPlaygroundController._activeTextEditor = undefined;
 
     test('run all playground blocks should throw the playground not found error', async () => {
-      const errorMessage =
-        "Please open a '.mongodb' playground file before running it.";
-
-      fakeShowErrorMessage.resolves(errorMessage);
+      const expectedMessage = "Please open a '.mongodb' playground file before running it.";
+      const fakeShowErrorMessage: any = sinon.fake();
+      sinon.replace(
+        vscode.window,
+        'showErrorMessage',
+        fakeShowErrorMessage
+      );
 
       try {
         await testPlaygroundController.runAllPlaygroundBlocks();
       } catch (error) {
-        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+        expect(fakeShowErrorMessage.firstArg).to.be.equal(expectedMessage);
       }
     });
 
     test('run selected playground blocks should throw the playground not found error', async () => {
-      const errorMessage =
-        "Please open a '.mongodb' playground file before running it.";
-
-      fakeShowErrorMessage.resolves(errorMessage);
+      const expectedMessage = "Please open a '.mongodb' playground file before running it.";
+      const fakeShowErrorMessage: any = sinon.fake();
+      sinon.replace(
+        vscode.window,
+        'showErrorMessage',
+        fakeShowErrorMessage
+      );
 
       try {
         await testPlaygroundController.runSelectedPlaygroundBlocks();
       } catch (error) {
-        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+        expect(fakeShowErrorMessage.firstArg).to.be.equal(expectedMessage);
       }
     });
 
     test('run all or selected playground blocks should throw the playground not found error', async () => {
-      const errorMessage =
-        "Please open a '.mongodb' playground file before running it.";
-
-      fakeShowErrorMessage.resolves(errorMessage);
+      const expectedMessage = "Please open a '.mongodb' playground file before running it.";
+      const fakeShowErrorMessage: any = sinon.fake();
+      sinon.replace(
+        vscode.window,
+        'showErrorMessage',
+        fakeShowErrorMessage
+      );
 
       try {
         await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
       } catch (error) {
-        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+        expect(fakeShowErrorMessage.firstArg).to.be.equal(expectedMessage);
       }
     });
   });
@@ -272,41 +280,50 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('run all playground blocks should throw the error', async () => {
-        const errorMessage =
-          'Please connect to a database before running a playground.';
-
-        fakeShowErrorMessage.resolves(errorMessage);
+        const expectedMessage = 'Please connect to a database before running a playground.';
+        const fakeShowErrorMessage: any = sinon.fake();
+        sinon.replace(
+          vscode.window,
+          'showErrorMessage',
+          fakeShowErrorMessage
+        );
 
         try {
           await testPlaygroundController.runAllPlaygroundBlocks();
         } catch (error) {
-          sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+          expect(fakeShowErrorMessage.firstArg).to.be.equal(expectedMessage);
         }
       });
 
       test('run selected playground blocks should throw the error', async () => {
-        const errorMessage =
-          'Please connect to a database before running a playground.';
-
-        fakeShowErrorMessage.resolves(errorMessage);
+        const expectedMessage = 'Please connect to a database before running a playground.';
+        const fakeShowErrorMessage: any = sinon.fake();
+        sinon.replace(
+          vscode.window,
+          'showErrorMessage',
+          fakeShowErrorMessage
+        );
 
         try {
           await testPlaygroundController.runSelectedPlaygroundBlocks();
         } catch (error) {
-          sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+          expect(fakeShowErrorMessage.firstArg).to.be.equal(expectedMessage);
         }
       });
 
       test('run all or selected playground blocks should throw the error', async () => {
-        const errorMessage =
-          'Please connect to a database before running a playground.';
-
-        fakeShowErrorMessage.resolves(errorMessage);
+        const expectedMessage = 'Please connect to a database before running a playground.';
+        const fakeShowErrorMessage: any = sinon.fake();
+        sinon.replace(
+          vscode.window,
+          'showErrorMessage',
+          fakeShowErrorMessage
+        );
 
         try {
           await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
         } catch (error) {
-          sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
+          expect(fakeShowErrorMessage.firstArg).to.be.equal(expectedMessage);
         }
       });
     });
@@ -473,6 +490,48 @@ suite('Playground Controller Test Suite', function () {
         expect(playgroundControllerTest._activeTextEditor).to.deep.equal(
           activeTestEditorMock
         );
+      });
+
+      test('exportToLanguage thrown an error for invalid syntax', async () => {
+        const testExplorerController = new ExplorerController(
+          testConnectionController
+        );
+        const playgroundControllerTest = new PlaygroundController(
+          mockExtensionContext,
+          testConnectionController,
+          mockLanguageServerController as LanguageServerController,
+          testTelemetryService,
+          testStatusView,
+          testPlaygroundResultProvider,
+          testActiveDBCodeLensProvider,
+          testExportToLanguageCodeLensProvider,
+          testCodeActionProvider,
+          testExplorerController
+        );
+        const textFromEditor = 'var x = { name: qwerty }';
+        const selection = {
+          start: { line: 0, character: 8 },
+          end: { line: 0, character: 24 }
+        } as vscode.Selection;
+        const mode = ExportToLanguageMode.OTHER;
+        const activeTextEditor = { document: { getText: () => textFromEditor } } as vscode.TextEditor;
+
+        const fakeVscodeErrorMessage: any = sinon.fake();
+        sinon.replace(
+          vscode.window,
+          'showErrorMessage',
+          fakeVscodeErrorMessage
+        );
+
+        playgroundControllerTest._selectedText = '{ name: qwerty }';
+        playgroundControllerTest._codeActionProvider.selection = selection;
+        playgroundControllerTest._codeActionProvider.mode = mode;
+        playgroundControllerTest._activeTextEditor = activeTextEditor;
+
+        await playgroundControllerTest.exportToLanguage('csharp');
+
+        const expectedMessage = 'Unable to export to csharp language: Symbol \'qwerty\' is undefined';
+        expect(fakeVscodeErrorMessage.firstArg).to.be.equal(expectedMessage);
       });
     });
   });

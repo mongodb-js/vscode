@@ -74,8 +74,9 @@ suite('IndexListTreeItem Test Suite', () => {
 
     try {
       indexTreeItems = await testIndexListTreeItem.getChildren();
-    } catch (err) {
-      assert(false, `Expected no error, found: ${err.message}`);
+    } catch (error) {
+      const printableError = error as { message: string };
+      assert(false, `Expected no error, found: ${printableError.message}`);
     }
 
     assert(namespaceRequested === 'tasty_fruits.pineapple');
@@ -132,8 +133,9 @@ suite('IndexListTreeItem Test Suite', () => {
       await testIndexListTreeItem.getChildren();
 
       assert(false, 'Expected an error to be thrown');
-    } catch (err) {
-      assert(err.message === expectedErrorMessage, `Expected error message to be '${expectedErrorMessage}' found '${err.message}'`);
+    } catch (error) {
+      const printableError = error as { message: string };
+      assert(printableError.message === expectedErrorMessage, `Expected error message to be '${expectedErrorMessage}' found '${printableError.message}'`);
     }
   });
 
@@ -178,8 +180,9 @@ suite('IndexListTreeItem Test Suite', () => {
 
     try {
       indexTreeItems = await testIndexListTreeItem.getChildren();
-    } catch (err) {
-      assert(false, `Expected no error, found: ${err.message}`);
+    } catch (error) {
+      const printableError = error as { message: string };
+      assert(false, `Expected no error, found: ${printableError.message}`);
     }
 
     indexTreeItems[0].onDidExpand();
@@ -200,8 +203,9 @@ suite('IndexListTreeItem Test Suite', () => {
     let newIndexTreeItems;
     try {
       newIndexTreeItems = await newIndexListTreeItem.getChildren();
-    } catch (err) {
-      assert(false, `Expected no error, found: ${err.message}`);
+    } catch (error) {
+      const printableError = error as { message: string };
+      assert(false, `Expected no error, found: ${printableError.message}`);
     }
 
     assert(
