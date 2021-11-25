@@ -445,6 +445,8 @@ export default class MongoDBService {
   getExportToLanguageMode(params: PlaygroundTextAndSelection): ExportToLanguageMode {
     const state = this._visitor.parseAST(params);
 
+    this._connection.console.log(`EXPORT TO LANGUAGE state: ${util.inspect(state)}`);
+
     if (state.isArray) {
       return ExportToLanguageMode.AGGREGATION;
     }

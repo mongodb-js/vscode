@@ -19,7 +19,6 @@ export interface VisitorTextAndSelection {
 export interface CompletionState {
   databaseName: string | null;
   collectionName: string | null;
-  selectionType: string | null;
   isObject: boolean;
   isArray: boolean;
   isObjectKey: boolean;
@@ -45,97 +44,56 @@ export class Visitor {
     this._console = console;
   }
 
-  _checkIsObjectSelection(node: babel.types.Node): boolean {
-    return (this._checkIsBSONSelection(node) && this._state.selectionType === 'ObjectExpression');
+  _visitCallExpression(node: babel.types.Node): void {
+    if (node.type !== 'CallExpression') {
+      return;
+    }
+
+    this._checkIsBSONSelection(node);
+    this._checkIsUseCall(node);
+    this._checkIsCollectionName(node);
+    this._checkHasDatabaseName(node);
   }
 
-  _checkIsArraySelection(node: babel.types.Node): boolean {
-    return (this._checkIsBSONSelection(node) && this._state.selectionType === 'ArrayExpression');
+  _visitMemberExpression(node: babel.types.Node): void {
+    if (node.type !== 'MemberExpression') {
+      return;
+    }
+
+    this._checkHasAggregationCall(node);
+    this._checkHasFindCall(node);
+    this._checkIsShellMethod(node);
+    this._checkIsCollectionName(node);
+    this._checkHasCollectionName(node);
   }
 
-  _visitCallExpression(node: babel.types.CallExpression): void {
-    if (this._checkIsObjectSelection(node)) {
-      this._state.isObject = true;
-    }
-
-    if (this._checkIsArraySelection(node)) {
-      this._state.isArray = true;
-    }
-
-    if (this._checkIsUseCall(node)) {
-      this._state.isUseCallExpression = true;
-    }
-
-    if (this._checkIsCollectionName(node)) {
-      this._state.isCollectionName = true;
-    }
-
-    if (this._checkHasDatabaseName(node)) {
-      this._state.databaseName = (node.arguments[0] as babel.types.StringLiteral).value;
-    }
-  }
-
-  _visitMemberExpression(node: babel.types.MemberExpression): void {
-    if (this._checkHasAggregationCall(node)) {
-      this._state.isAggregationCursor = true;
-    }
-
-    if (this._checkHasFindCall(node)) {
-      this._state.isFindCursor = true;
-    }
-
-    if (this._checkIsShellMethod(node)) {
-      this._state.isShellMethod = true;
-    }
-
-    if (this._checkIsCollectionName(node)) {
-      this._state.isCollectionName = true;
-    }
-
-    if (this._checkHasCollectionName(node)) {
-      this._state.collectionName = ((node.object as babel.types.MemberExpression).property as babel.types.Identifier).name;
+  _visitExpressionStatement(node: babel.types.Node): void {
+    if (node.type === 'ExpressionStatement') {
+      this._checkIsDbCall(node);
     }
   }
 
-  _visitExpressionStatement(node: babel.types.ExpressionStatement): void {
-    if (this._checkIsDbCall(node)) {
-      this._state.isDbCallExpression = true;
+  _visitObjectExpression(node: babel.types.Node): void {
+    if (node.type === 'ObjectExpression') {
+      this._checkIsObjectKey(node);
     }
   }
 
-  _visitObjectExpression(node: babel.types.ObjectExpression): void {
-    if (this._checkIsObjectKey(node)) {
-      this._state.isObjectKey = true;
+  _visitArrayExpression(node: babel.types.Node): void {
+    if (node.type === 'ArrayExpression') {
+      this._checkIsBSONSelection(node);
     }
   }
 
-  _visitArrayExpression(node: babel.types.ArrayExpression): void {
-    if (this._checkIsObjectSelection(node)) {
-      this._state.isObject = true;
-    }
-
-    if (this._checkIsArraySelection(node)) {
-      this._state.isArray = true;
+  _visitVariableDeclarator(node: babel.types.Node): void {
+    if (node.type === 'VariableDeclarator') {
+      this._checkIsBSONSelection(node);
     }
   }
 
-  _visitVariableDeclarator(node: babel.types.VariableDeclarator): void {
-    if (this._checkIsObjectSelection(node)) {
-      this._state.isObject = true;
-    }
-
-    if (this._checkIsArraySelection(node)) {
-      this._state.isArray = true;
-    }
-  }
-
-  _visitObjectProperty(node: babel.types.ObjectProperty): void {
-    if (this._checkIsObjectSelection(node)) {
-      this._state.isObject = true;
-    }
-
-    if (this._checkIsArraySelection(node)) {
-      this._state.isArray = true;
+  _visitObjectProperty(node: babel.types.Node): void {
+    if (node.type === 'ObjectProperty') {
+      this._checkIsBSONSelection(node);
     }
   }
 
@@ -195,31 +153,13 @@ export class Visitor {
 
     traverse(ast, {
       enter: (path: babel.NodePath) => {
-        switch (path.node.type) {
-          case 'CallExpression':
-            this._visitCallExpression(path.node);
-            break;
-          case 'MemberExpression':
-            this._visitMemberExpression(path.node);
-            break;
-          case 'ExpressionStatement':
-            this._visitExpressionStatement(path.node);
-            break;
-          case 'ObjectExpression':
-            this._visitObjectExpression(path.node);
-            break;
-          case 'ArrayExpression':
-            this._visitArrayExpression(path.node);
-            break;
-          case 'VariableDeclarator':
-            this._visitVariableDeclarator(path.node);
-            break;
-          case 'ObjectProperty':
-            this._visitObjectProperty(path.node);
-            break;
-          default:
-            break;
-        }
+        this._visitCallExpression(path.node);
+        this._visitMemberExpression(path.node);
+        this._visitExpressionStatement(path.node);
+        this._visitObjectExpression(path.node);
+        this._visitArrayExpression(path.node);
+        this._visitVariableDeclarator(path.node);
+        this._visitObjectProperty(path.node);
       }
     });
 
@@ -230,7 +170,6 @@ export class Visitor {
     return {
       databaseName: null,
       collectionName: null,
-      selectionType: null,
       isObject: false,
       isArray: false,
       isObjectKey: false,
@@ -243,54 +182,59 @@ export class Visitor {
     };
   }
 
-  // eslint-disable-next-line complexity
-  _checkIsUseCall(node: babel.types.CallExpression): boolean {
+  _checkIsUseCallAsSimpleString(node: babel.types.CallExpression): void {
     if (
-      (node.callee.type === 'Identifier' &&
-        node.callee.name === 'use' &&
-        node.arguments &&
-        node.arguments.length === 1 &&
-        node.arguments[0].type === 'StringLiteral' &&
-        node.arguments[0].value.includes(PLACEHOLDER)) ||
-      (node.arguments &&
-        node.arguments.length === 1 &&
-        node.arguments[0].type === 'TemplateLiteral' &&
-        node.arguments[0].quasis &&
-        node.arguments[0].quasis.length === 1 &&
-        node.arguments[0].quasis[0].value?.raw &&
-        node.arguments[0].quasis[0].value?.raw.includes(PLACEHOLDER))
+      node.callee.type === 'Identifier' &&
+      node.callee.name === 'use' &&
+      node.arguments &&
+      node.arguments.length === 1 &&
+      node.arguments[0].type === 'StringLiteral' &&
+      node.arguments[0].value.includes(PLACEHOLDER)
     ) {
-      return true;
+      this._state.isUseCallExpression = true;
     }
-
-    return false;
   }
 
-  _checkIsDbCall(node: babel.types.ExpressionStatement): boolean {
+  _checkIsUseCallAsTemplate(node: babel.types.CallExpression): void {
+    if (
+      node.arguments &&
+      node.arguments.length === 1 &&
+      node.arguments[0].type === 'TemplateLiteral' &&
+      node.arguments[0].quasis &&
+      node.arguments[0].quasis.length === 1 &&
+      node.arguments[0].quasis[0].value?.raw &&
+      node.arguments[0].quasis[0].value?.raw.includes(PLACEHOLDER)
+    ) {
+      this._state.isUseCallExpression = true;
+    }
+  }
+
+  _checkIsUseCall(node: babel.types.CallExpression): void {
+    this._checkIsUseCallAsSimpleString(node);
+    this._checkIsUseCallAsTemplate(node);
+  }
+
+  _checkIsDbCall(node: babel.types.ExpressionStatement): void {
     if (
       node.expression.type === 'MemberExpression' &&
       node.expression.object.type === 'Identifier' &&
       node.expression.object.name === 'db'
     ) {
-      return true;
+      this._state.isDbCallExpression = true;
     }
-
-    return false;
   }
 
-  _checkIsObjectKey(node: babel.types.ObjectExpression): boolean {
-    if (
-      node.properties.find(
-        (item: any) => !!(item.key.name && item.key.name.includes(PLACEHOLDER))
-      )
-    ) {
-      return true;
-    }
+  _checkIsObjectKey(node: babel.types.ObjectExpression): void {
+    const objectKey = node.properties.find(
+      (item: any) => !!(item.key.name && item.key.name.includes(PLACEHOLDER))
+    );
 
-    return false;
+    if (objectKey) {
+      this._state.isObjectKey = true;
+    }
   }
 
-  _checkIsAroundSelection(node: babel.types.Node): boolean {
+  _isParentAroundSelection(node: babel.types.Node): boolean {
     if (
       node.loc?.start?.line &&
       (
@@ -309,7 +253,7 @@ export class Visitor {
     return false;
   }
 
-  _checkIsObjectPropBeforeSelection(node: babel.types.ObjectProperty): boolean {
+  _isObjectPropBeforeSelection(node: babel.types.ObjectProperty): boolean {
     if (
       node.key.loc?.end &&
       (
@@ -326,7 +270,7 @@ export class Visitor {
     return false;
   }
 
-  _checkIsVariableIdentifierBeforeSelection(node: babel.types.VariableDeclarator): boolean {
+  _isVariableIdentifierBeforeSelection(node: babel.types.VariableDeclarator): boolean {
     if (
       node.id.loc?.end &&
       (
@@ -343,24 +287,7 @@ export class Visitor {
     return false;
   }
 
-  _checkIsAfterSelection(node: babel.types.ObjectExpression): boolean {
-    if (
-      node.loc?.start &&
-      (
-        node.loc?.start.line - 1 > this._selection.start?.line ||
-        (
-          node.loc?.start.line - 1 === this._selection.start?.line &&
-          node.loc?.start.column > this._selection.start?.character
-        )
-      )
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  _checkIsWithinSelection(node: babel.types.Node): boolean {
+  _isWithinSelection(node: babel.types.Node): boolean {
     if (
       node.loc?.start?.line &&
       node.loc.start.line - 1 === this._selection.start?.line &&
@@ -371,113 +298,99 @@ export class Visitor {
       node.loc?.end?.column &&
       node.loc.end.column <= this._selection.end?.character
     ) {
-      this._state.selectionType = node.type;
       return true;
     }
 
     return false;
   }
 
-  _checkIsSelectionInArray(node: babel.types.Node) {
-    if (
-      node.type === 'ArrayExpression' &&
-      node.elements &&
-      this._checkIsAroundSelection(node) &&
-      node.elements.find((item) => {
-        return item && this._checkIsWithinSelection(item);
-      })
-    ) {
-      return true;
+  _checkIsArrayWithinSelection(node: babel.types.Node): void {
+    if (node.type === 'ArrayExpression' && this._isWithinSelection(node)) {
+      this._state.isArray = true;
     }
-
-    return false;
   }
 
-  _checkIsSelectionInFunction(node: babel.types.Node) {
-    if (
-      node.type === 'CallExpression' &&
-      node.arguments &&
-      this._checkIsAroundSelection(node) &&
-      node.arguments.find((item) => {
-        return item && this._checkIsWithinSelection(item);
-      })
-    ) {
-      return true;
+  _checkIsObjectWithinSelection(node: babel.types.Node): void {
+    if (node.type === 'ObjectExpression' && this._isWithinSelection(node)) {
+      this._state.isObject = true;
     }
-
-    return false;
   }
 
-  _checkIsSelectionInVariable(node: babel.types.VariableDeclarator) {
+  _checkIsBSONSelectionInArray(node: babel.types.Node): void {
+    if (node.type === 'ArrayExpression' && node.elements && this._isParentAroundSelection(node)) {
+      node.elements.forEach((item) => {
+        if (item) {
+          this._checkIsObjectWithinSelection(item);
+          this._checkIsArrayWithinSelection(item);
+        }
+      });
+    }
+  }
+
+  _checkIsBSONSelectionInFunction(node: babel.types.Node): void {
+    if (node.type === 'CallExpression' && node.arguments && this._isParentAroundSelection(node)) {
+      node.arguments.forEach((item) => {
+        if (item) {
+          this._checkIsObjectWithinSelection(item);
+          this._checkIsArrayWithinSelection(item);
+        }
+      });
+    }
+  }
+
+  _checkIsBSONSelectionInVariable(node: babel.types.Node) {
     if (
+      node.type === 'VariableDeclarator' &&
       node.init &&
-      (
-        node.init.type === 'ObjectExpression' ||
-        node.init.type === 'ArrayExpression'
-      ) &&
-      this._checkIsVariableIdentifierBeforeSelection(node) &&
-      this._checkIsWithinSelection(node.init)
+      this._isVariableIdentifierBeforeSelection(node)
     ) {
-      return true;
+      this._checkIsObjectWithinSelection(node.init);
+      this._checkIsArrayWithinSelection(node.init);
     }
-
-    return false;
   }
 
-  _checkIsSelectionInObject(node: babel.types.ObjectProperty) {
+  _checkIsBSONSelectionInObject(node: babel.types.Node) {
     if (
+      node.type === 'ObjectProperty' &&
       node.value &&
-      (
-        node.value.type === 'ObjectExpression' ||
-        node.value.type === 'ArrayExpression'
-      ) &&
-      this._checkIsObjectPropBeforeSelection(node) &&
-      this._checkIsWithinSelection(node.value)
+      this._isObjectPropBeforeSelection(node)
     ) {
-      return true;
+      this._checkIsObjectWithinSelection(node.value);
+      this._checkIsArrayWithinSelection(node.value);
     }
-
-    return false;
   }
 
-  _checkIsBSONSelection(node: babel.types.Node): boolean {
-    if (node.type === 'CallExpression') {
-      return this._checkIsSelectionInFunction(node);
-    }
-
-    if (node.type === 'ArrayExpression') {
-      return this._checkIsSelectionInArray(node);
-    }
-
-    if (node.type === 'VariableDeclarator') {
-      return this._checkIsSelectionInVariable(node);
-    }
-
-    if (node.type === 'ObjectProperty') {
-      return this._checkIsSelectionInObject(node);
-    }
-
-    return false;
+  _checkIsBSONSelection(node: babel.types.Node): void {
+    this._checkIsBSONSelectionInFunction(node);
+    this._checkIsBSONSelectionInArray(node);
+    this._checkIsBSONSelectionInVariable(node);
+    this._checkIsBSONSelectionInObject(node);
   }
 
-  _checkIsCollectionName(node: babel.types.CallExpression | babel.types.MemberExpression): boolean {
+  _checkIsCollectionNameAsMemberExpression(node: babel.types.Node): void {
     if (
-      (node.type === 'MemberExpression' &&
-        node.object.type === 'Identifier' &&
-        node.object.name === 'db' &&
-        node.property.type === 'Identifier' &&
-        node.property.name.includes(PLACEHOLDER)) ||
-      (node.type === 'CallExpression' &&
-        node.callee.type === 'MemberExpression' &&
-        this._checkIsCollectionName(node.callee))
+      node.type === 'MemberExpression' &&
+      node.object.type === 'Identifier' &&
+      node.object.name === 'db' &&
+      node.property.type === 'Identifier' &&
+      node.property.name.includes(PLACEHOLDER)
     ) {
-      return true;
+      this._state.isCollectionName = true;
     }
-
-    return false;
   }
 
-  _checkHasAggregationCall(node: babel.types.MemberExpression): boolean {
+  _checkIsCollectionNameAsCallExpression(node: babel.types.Node): void {
+    if (node.type === 'CallExpression' && node.callee.type === 'MemberExpression') {
+      this._checkIsCollectionName(node.callee);
+    }
+  }
+
+  _checkIsCollectionName(node: babel.types.CallExpression | babel.types.MemberExpression): void {
+    this._checkIsCollectionNameAsMemberExpression(node);
+    this._checkIsCollectionNameAsCallExpression(node);
+  }
+
+  _checkHasAggregationCall(node: babel.types.MemberExpression): void {
     if (
       node.object.type === 'CallExpression' &&
       node.property.type === 'Identifier' &&
@@ -487,13 +400,11 @@ export class Visitor {
       node.object.callee.property.type === 'Identifier' &&
       node.object.callee.property.name === 'aggregate'
     ) {
-      return true;
+      this._state.isAggregationCursor = true;
     }
-
-    return false;
   }
 
-  _checkHasFindCall(node: babel.types.MemberExpression): boolean {
+  _checkHasFindCall(node: babel.types.MemberExpression): void {
     if (
       node.object.type === 'CallExpression' &&
       node.property.type === 'Identifier' &&
@@ -503,13 +414,11 @@ export class Visitor {
       node.object.callee.property.type === 'Identifier' &&
       node.object.callee.property.name === 'find'
     ) {
-      return true;
+      this._state.isFindCursor = true;
     }
-
-    return false;
   }
 
-  _checkHasDatabaseName(node: babel.types.CallExpression): boolean {
+  _checkHasDatabaseName(node: babel.types.CallExpression): void {
     if (
       node.callee.type === 'Identifier' &&
       node.callee.name === 'use' &&
@@ -521,25 +430,21 @@ export class Visitor {
         (this._selection.start.line === node.loc.end.line - 1 &&
           this._selection.start.character >= node.loc.end.column))
     ) {
-      return true;
+      this._state.databaseName = node.arguments[0].value;
     }
-
-    return false;
   }
 
-  _checkHasCollectionName(node: babel.types.MemberExpression): boolean {
+  _checkHasCollectionName(node: babel.types.MemberExpression): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
       node.object.object.name === 'db'
     ) {
-      return true;
+      this._state.collectionName = (node.object.property as babel.types.Identifier).name;
     }
-
-    return false;
   }
 
-  _checkIsShellMethod(node: babel.types.MemberExpression): boolean {
+  _checkIsShellMethod(node: babel.types.MemberExpression): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
@@ -547,9 +452,7 @@ export class Visitor {
       node.property.type === 'Identifier' &&
       node.property.name.includes(PLACEHOLDER)
     ) {
-      return true;
+      this._state.isShellMethod = true;
     }
-
-    return false;
   }
 }
