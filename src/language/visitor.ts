@@ -225,13 +225,9 @@ export class Visitor {
   }
 
   _checkIsObjectKey(node: babel.types.ObjectExpression): void {
-    const objectKey = node.properties.find(
+    this._state.isObjectKey = !!node.properties.find(
       (item: any) => !!(item.key.name && item.key.name.includes(PLACEHOLDER))
     );
-
-    if (objectKey) {
-      this._state.isObjectKey = true;
-    }
   }
 
   _isParentAroundSelection(node: babel.types.Node): boolean {
