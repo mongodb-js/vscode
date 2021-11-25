@@ -61,7 +61,7 @@
     "release-draft": "node ./scripts/release-draft.js"
   },
   "engines": {
-    "vscode": "^1.62.0",
+    "vscode": "^1.58.1",
     "node": "^14.17.3",
     "npm": "^7.19.0"
   },
@@ -958,7 +958,7 @@
     "@types/react-dom": "^17.0.11",
     "@types/sinon": "^9.0.11",
     "@types/uuid": "^8.3.3",
-    "@types/vscode": "^1.62.0",
+    "@types/vscode": "^1.58.1",
     "@types/ws": "^7.4.7",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
