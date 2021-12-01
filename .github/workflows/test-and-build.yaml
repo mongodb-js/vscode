@@ -49,13 +49,12 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         shell: powershell
         run: |
-          npm install --global --production windows-build-tools
-          npm install --global node-gyp@7.1.2
+          npm install --global node-gyp
           npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
 
       - name: Install Dependencies
         run: |
-          npm ci
+          npm install
         shell: bash
 
       - name: Run Checks
