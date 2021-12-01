@@ -300,7 +300,9 @@ suite('Telemetry Controller Test Suite', () => {
     expect(telemetryEvent.event).to.equal('Playground Loaded');
   });
 
-  suite('with active connection', () => {
+  suite('with active connection', function () {
+    this.timeout(5000);
+
     let dataServ;
     const connectionModel = new Connection({
       hostname: 'localhost',
