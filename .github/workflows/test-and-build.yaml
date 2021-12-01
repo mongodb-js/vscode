@@ -53,9 +53,7 @@ jobs:
           npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
 
       - name: Install Dependencies
-        run: |
-          npm install
-        shell: bash
+        run: npm ci
 
       - name: Run Checks
         run: npm run check
