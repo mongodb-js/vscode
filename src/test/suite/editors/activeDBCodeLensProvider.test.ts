@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
+import { DataService } from 'mongodb-data-service';
 import chai from 'chai';
 import sinon from 'sinon';
 
@@ -64,12 +65,17 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     );
     const mockActiveConnection = {
       find: (namespace, filter, options, callback): void => {
-        return callback(null, ['Text message']);
+        return callback(null, [{ field: 'Text message' }]);
       },
-      client: {}
-    };
+      instance: () => Promise.resolve({
+        dataLake: {},
+        build: {},
+        genuineMongoDB: {},
+        host: {}
+      }),
+    } as DataService;
 
-    testConnectionController.setActiveConnection(mockActiveConnection);
+    testConnectionController.setActiveDataService(mockActiveConnection);
 
     beforeEach(() => {
       sinon.replace(

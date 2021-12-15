@@ -1,11 +1,11 @@
-import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
+import * as util from 'util';
+import { URLSearchParams } from 'url';
 
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import ConnectionController from '../connectionController';
-import { StatusView } from '../views';
-import * as util from 'util';
 import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
+import { StatusView } from '../views';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
@@ -79,15 +79,14 @@ implements vscode.TextDocumentContentProvider {
       throw new Error(errorMessage);
     }
 
-    const find = util.promisify(dataservice.find.bind(dataservice));
-
     try {
+      const find = util.promisify(
+        dataservice.find.bind(dataservice)
+      );
       const documents = await find(
         namespace,
         {}, // No filter.
-        {
-          limit: documentLimit
-        }
+        { limit: documentLimit }
       );
 
       operation.isCurrentlyFetchingMoreDocuments = false;

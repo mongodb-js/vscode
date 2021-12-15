@@ -4,18 +4,18 @@ import path from 'path';
 import ConnectionController, {
   ConnectionTypes
 } from '../connectionController';
-import TelemetryService from '../telemetry/telemetryService';
+import ConnectionModel from './webview-app/connection-model/connection-model';
+import { createLogger } from '../logging';
+import EXTENSION_COMMANDS from '../commands';
 import {
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
   MESSAGE_TYPES,
   USER_ID_GLOBAL_VARIABLE_NAME,
   OpenFilePickerMessage
 } from './webview-app/extension-app-message-constants';
-import { createLogger } from '../logging';
-import EXTENSION_COMMANDS from '../commands';
-import ConnectionModel from './webview-app/connection-model/connection-model';
 import { openLink } from '../utils/linkHelper';
 import { StorageController } from '../storage';
+import TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('webviewController');
 
@@ -83,8 +83,7 @@ export default class WebviewController {
     connectionAttemptId: string
   ): Promise<void> => {
     try {
-      const connectionModel = this._connectionController
-        .parseNewConnection(rawConnectionModel as any);
+      const connectionModel = this._connectionController.parseNewConnection(rawConnectionModel);
 
       const {
         successfullyConnected,
@@ -165,9 +164,7 @@ export default class WebviewController {
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
         void vscode.commands.executeCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI);
-
         return;
-
       case MESSAGE_TYPES.OPEN_TRUSTED_LINK:
         try {
           await openLink(message.linkTo);
@@ -184,16 +181,13 @@ export default class WebviewController {
           message.screen,
           message.linkId
         );
-
         return;
-
       case MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION:
         if (this._connectionController.isCurrentlyConnected()) {
           void this._connectionController.renameConnection(
             this._connectionController.getActiveConnectionId() as string
           );
         }
-
         return;
       default:
         // no-op.

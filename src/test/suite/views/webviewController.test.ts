@@ -1,21 +1,21 @@
-import assert from 'assert';
-import * as vscode from 'vscode';
-import { beforeEach, afterEach } from 'mocha';
-import * as sinon from 'sinon';
-import Connection = require('mongodb-connection-model/lib/model');
-
 import * as linkHelper from '../../../utils/linkHelper';
-import TelemetryService from '../../../telemetry/telemetryService';
+import * as sinon from 'sinon';
+import * as vscode from 'vscode';
+import assert from 'assert';
+import { beforeEach, afterEach } from 'mocha';
+import ConnectionModel from 'mongodb-connection-model';
+
 import ConnectionController from '../../../connectionController';
+import { mdbTestExtension } from '../stubbableMdbExtension';
+import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
+import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
+import TelemetryService from '../../../telemetry/telemetryService';
+import { TestExtensionContext } from '../stubs';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
 import WebviewController, {
   getWebviewContent
 } from '../../../views/webviewController';
-import { StatusView } from '../../../views';
-import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
-import { mdbTestExtension } from '../stubbableMdbExtension';
-import { TestExtensionContext } from '../stubs';
-import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 const fs = require('fs');
 const path = require('path');
@@ -124,9 +124,6 @@ suite('Webview Test Suite', () => {
           testConnectionController.getActiveConnectionName() ===
             'localhost:27018'
         );
-        assert(
-          testConnectionController.getActiveConnectionModel()?.port === 27018
-        );
 
         await testConnectionController.disconnect();
         done();
@@ -160,7 +157,7 @@ suite('Webview Test Suite', () => {
       'Ensure it starts listening for messages from the webview.'
     );
 
-    Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
+    ConnectionModel.from(TEST_DATABASE_URI, (err, connectionModel) => {
       if (err) {
         assert(false);
       }
@@ -233,7 +230,7 @@ suite('Webview Test Suite', () => {
       'Ensure it starts listening for messages from the webview.'
     );
 
-    Connection.from(TEST_DATABASE_URI, (err, connectionModel) => {
+    ConnectionModel.from(TEST_DATABASE_URI, (err, connectionModel) => {
       if (err) {
         assert(false);
       }

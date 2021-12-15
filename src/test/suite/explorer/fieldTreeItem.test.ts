@@ -1,21 +1,21 @@
-import assert from 'assert';
 import { afterEach } from 'mocha';
+import assert from 'assert';
 
-const { contributes } = require('../../../../package.json');
+import { ext } from '../../../extensionConstants';
 import FieldTreeItem, {
   FIELD_TREE_ITEM_CONTEXT_VALUE,
   fieldIsExpandable,
   getIconFileNameForField
 } from '../../../explorer/fieldTreeItem';
-import SchemaTreeItem from '../../../explorer/schemaTreeItem';
-import { ext } from '../../../extensionConstants';
-
 import {
   seedDataAndCreateDataService,
   cleanupTestDB,
   TEST_DB_NAME
 } from '../dbTestHelper';
+import SchemaTreeItem from '../../../explorer/schemaTreeItem';
 import { TestExtensionContext } from '../stubs';
+
+const { contributes } = require('../../../../package.json');
 
 suite('FieldTreeItem Test Suite', function () {
   this.timeout(10000);
@@ -158,7 +158,7 @@ suite('FieldTreeItem Test Suite', function () {
         testSchemaTreeItem
           .getChildren()
           .then((schemaFields) => {
-            dataService.disconnect(() => {});
+            void dataService.disconnect();
 
             assert(
               schemaFields[0].label === '_id',
@@ -212,7 +212,7 @@ suite('FieldTreeItem Test Suite', function () {
         void testSchemaTreeItem.onDidExpand();
 
         void testSchemaTreeItem.getChildren().then((schemaFields) => {
-          dataService.disconnect(() => {});
+          void dataService.disconnect();
           assert(
             schemaFields.length === 2,
             `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
@@ -276,7 +276,7 @@ suite('FieldTreeItem Test Suite', function () {
         void testSchemaTreeItem.onDidExpand();
 
         testSchemaTreeItem.getChildren().then((schemaFields) => {
-          dataService.disconnect(() => {});
+          void dataService.disconnect();
           assert(
             schemaFields.length === 2,
             `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
@@ -336,7 +336,7 @@ suite('FieldTreeItem Test Suite', function () {
         void testSchemaTreeItem.onDidExpand();
 
         void testSchemaTreeItem.getChildren().then((schemaFields) => {
-          dataService.disconnect(() => {});
+          void dataService.disconnect();
 
           schemaFields[1].getChildren().then((nestedSubDocuments) => {
             assert(

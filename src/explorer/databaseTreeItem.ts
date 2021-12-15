@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
-
-const path = require('path');
+import path from 'path';
 
 import CollectionTreeItem from './collectionTreeItem';
-import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
+import TreeItemParent from './treeItemParentInterface';
 
 function getIconPath(): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
@@ -15,6 +14,8 @@ function getIconPath(): { light: string; dark: string } {
     dark: path.join(DARK, 'database.svg')
   };
 }
+
+import * as util from 'util';
 
 export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
@@ -35,7 +36,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     dataService: any,
     isExpanded: boolean,
     cacheIsUpToDate: boolean,
-    existingChildrenCache: { [key: string]: CollectionTreeItem }
+    childrenCache: { [key: string]: CollectionTreeItem } // Existing cache.
   ) {
     super(
       databaseName,
@@ -49,7 +50,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
     this.isExpanded = isExpanded;
     this.cacheIsUpToDate = cacheIsUpToDate;
-    this._childrenCache = existingChildrenCache;
+    this._childrenCache = childrenCache;
 
     this.iconPath = getIconPath();
     this.tooltip = this.databaseName;
@@ -57,25 +58,6 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
   getTreeItem(element: DatabaseTreeItem): DatabaseTreeItem {
     return element;
-  }
-
-  listCollections(): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      this._dataService.listCollections(
-        this.databaseName,
-        {}, // No filter.
-        (error: Error | undefined, collections: string[]) => {
-          if (error) {
-            const printableError = error as { message: string };
-            return reject(
-              new Error(`Unable to list collections: ${printableError.message}`)
-            );
-          }
-
-          return resolve(collections);
-        }
-      );
-    });
   }
 
   async getChildren(): Promise<any[]> {
@@ -112,7 +94,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     }
 
     // List collections and build tree items.
-    const collections = await this.listCollections();
+    const collections = await this._dataService.listCollections(this.databaseName);
 
     this.cacheIsUpToDate = true;
 
@@ -223,23 +205,23 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve) => {
-      this._dataService.dropDatabase(
-        databaseName,
-        (error: Error | null, successfullyDroppedDatabase = false) => {
-          if (error) {
-            const printableError = error as { message: string };
-            void vscode.window.showErrorMessage(
-              `Drop database failed: ${printableError.message}`
-            );
-            return resolve(false);
-          }
-
-          this.isDropped = successfullyDroppedDatabase;
-
-          return resolve(successfullyDroppedDatabase);
-        }
+    try {
+      const dropDatabase = util.promisify(
+        this._dataService.dropDatabase.bind(this._dataService)
       );
-    });
+      const successfullyDroppedDatabase = await dropDatabase(
+        databaseName
+      );
+
+      this.isDropped = successfullyDroppedDatabase;
+
+      return successfullyDroppedDatabase;
+    } catch (error) {
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(
+        `Drop database failed: ${printableError.message}`
+      );
+      return false;
+    }
   }
 }

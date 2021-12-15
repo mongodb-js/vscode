@@ -4,11 +4,12 @@ import chai from 'chai';
 import sinon from 'sinon';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
+import CodeActionProvider from '../../../editors/codeActionProvider';
 import ConnectionController from '../../../connectionController';
-import { ConnectionModel } from '../../../types/connectionModelType';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { ExplorerController } from '../../../explorer';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
+import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { LanguageServerController } from '../../../language';
 import { PlaygroundController } from '../../../editors';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
@@ -17,8 +18,6 @@ import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext, MockLanguageServerController } from '../stubs';
-import CodeActionProvider from '../../../editors/codeActionProvider';
-import { ExportToLanguageMode } from '../../../types/playgroundType';
 
 const expect = chai.expect;
 
@@ -67,7 +66,6 @@ suite('Playground Controller Test Suite', function () {
     testConnectionController
   );
   const testPlaygroundController = new PlaygroundController(
-    mockExtensionContext,
     testConnectionController,
     mockLanguageServerController as LanguageServerController,
     testTelemetryService,
@@ -99,14 +97,14 @@ suite('Playground Controller Test Suite', function () {
     beforeEach(async () => {
       const mockGetActiveConnectionName = sinon.fake.returns('fakeName');
       const mockGetActiveDataService = sinon.fake.returns({
-        getConnectionOptions: () => ({
+        getMongoClientConnectionOptions: () => ({
           url: TEST_DATABASE_URI,
           options: {
             appname: 'VSCode Playground Tests',
             port: 27018,
-            sslKey: 'some buffer',
-            sslCert: 'not the file path',
-            sslCA: 'aaaa',
+            sslKey: ['path/to/key'],
+            sslCert: ['path/to/cert'],
+            sslCA: ['path/to/ca'],
           }
         })
       });
@@ -140,16 +138,14 @@ suite('Playground Controller Test Suite', function () {
       );
       sinon.replace(
         testPlaygroundController._connectionController,
-        'getActiveConnectionModel',
-        () => (({
-          getAttributes: () => ({
-            driverOptions: {
-              sslKey: 'sslKeyFile.pem',
-              sslCert: 'sslCertFile.pem',
-              sslCA: 'sslCAFile.pem'
-            }
-          })
-        } as any)as ConnectionModel)
+        'getActiveDerivedConnectionModel',
+        () => ({
+          driverOptions: {
+            sslKey: ['path/to/key'],
+            sslCert: ['path/to/cert'],
+            sslCA: ['path/to/ca']
+          }
+        })
       );
 
       await testPlaygroundController._connectToServiceProvider();
@@ -167,24 +163,24 @@ suite('Playground Controller Test Suite', function () {
       expect(
         (mockConnectToServiceProvider.firstCall.firstArg as {
           connectionOptions: {
-            sslKey: string;
+            sslKey: string[];
           }
         }).connectionOptions.sslKey
-      ).to.equal('sslKeyFile.pem');
+      ).to.deep.equal(['path/to/key']);
       expect(
         (mockConnectToServiceProvider.firstCall.firstArg as {
           connectionOptions: {
             sslCert: string;
           }
         }).connectionOptions.sslCert
-      ).to.equal('sslCertFile.pem');
+      ).to.deep.equal(['path/to/cert']);
       expect(
         (mockConnectToServiceProvider.firstCall.firstArg as {
           connectionOptions: {
             sslCA: string;
           }
         }).connectionOptions.sslCA
-      ).to.equal('sslCAFile.pem');
+      ).to.deep.equal(['path/to/ca']);
     });
   });
 
@@ -265,7 +261,7 @@ suite('Playground Controller Test Suite', function () {
     suite('user is not connected', () => {
       before(() => {
         const mockGetActiveConnectionName = sinon.fake.returns('');
-        const mockGetActiveConnectionModel = sinon.fake.returns(null);
+        const mockGetActiveDerivedConnectionModel = sinon.fake.returns(null);
 
         sinon.replace(
           testPlaygroundController._connectionController,
@@ -274,8 +270,8 @@ suite('Playground Controller Test Suite', function () {
         );
         sinon.replace(
           testPlaygroundController._connectionController,
-          'getActiveConnectionModel',
-          mockGetActiveConnectionModel
+          'getActiveDerivedConnectionModel',
+          mockGetActiveDerivedConnectionModel
         );
       });
 
@@ -332,7 +328,7 @@ suite('Playground Controller Test Suite', function () {
       beforeEach(async () => {
         const mockGetActiveConnectionName = sinon.fake.returns('fakeName');
         const mockGetActiveDataService = sinon.fake.returns({
-          getConnectionOptions: () => ({
+          getMongoClientConnectionOptions: () => ({
             url: TEST_DATABASE_URI,
             options: {
               appname: 'VSCode Playground Tests',
@@ -475,7 +471,6 @@ suite('Playground Controller Test Suite', function () {
           testConnectionController
         );
         const playgroundControllerTest = new PlaygroundController(
-          mockExtensionContext,
           testConnectionController,
           mockLanguageServerController as LanguageServerController,
           testTelemetryService,
@@ -497,7 +492,6 @@ suite('Playground Controller Test Suite', function () {
           testConnectionController
         );
         const playgroundControllerTest = new PlaygroundController(
-          mockExtensionContext,
           testConnectionController,
           mockLanguageServerController as LanguageServerController,
           testTelemetryService,

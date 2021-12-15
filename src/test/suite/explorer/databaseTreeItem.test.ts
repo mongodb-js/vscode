@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
-import assert from 'assert';
 import { afterEach } from 'mocha';
+import assert from 'assert';
 
-const { contributes } = require('../../../../package.json');
-
+import { CollectionTreeItem } from '../../../explorer';
 import DatabaseTreeItem from '../../../explorer/databaseTreeItem';
 import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
-import { CollectionTreeItem } from '../../../explorer';
 import {
   seedDataAndCreateDataService,
   cleanupTestDB,
   TEST_DB_NAME
 } from '../dbTestHelper';
+
+const { contributes } = require('../../../../package.json');
 
 suite('DatabaseTreeItem Test Suite', () => {
   test('its context value should be in the package json', () => {
@@ -192,6 +192,7 @@ suite('DatabaseTreeItem Test Suite', () => {
           aField: 1234567
         }
       };
+
       for (let i = 0; i < 28; i++) {
         mockDocWithThirtyFields[`field${i}`] = 'some value';
       }
@@ -206,8 +207,8 @@ suite('DatabaseTreeItem Test Suite', () => {
         false,
         {}
       );
-
       const collectionTreeItems: CollectionTreeItem[] = await testDatabaseTreeItem.getChildren();
+
       assert(
         collectionTreeItems[0].isExpanded === false,
         'Expected collection tree item not to be expanded on default.'
@@ -217,7 +218,6 @@ suite('DatabaseTreeItem Test Suite', () => {
       const schemaTreeItem = collectionTreeItems[0].getSchemaChild();
       if (!schemaTreeItem) {
         assert(false, 'No schema tree item found on collection.');
-        return;
       }
       void schemaTreeItem.onDidExpand();
       schemaTreeItem.onShowMoreClicked();
@@ -234,6 +234,7 @@ suite('DatabaseTreeItem Test Suite', () => {
         !!schemaTreeItem.childrenCache.testerObject,
         'Expected the subdocument field to be in the schema cache.'
       );
+
       // Expand the subdocument.
       void schemaTreeItem.childrenCache.testerObject.onDidExpand();
 
@@ -248,7 +249,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       void testDatabaseTreeItem.onDidExpand();
       const newCollectionTreeItems = await testDatabaseTreeItem
         .getChildren();
-      dataService.disconnect(() => {});
+      void dataService.disconnect();
 
       const postCollapseSchemaTreeItem = newCollectionTreeItems[0].getSchemaChild();
       assert(

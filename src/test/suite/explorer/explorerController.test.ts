@@ -3,7 +3,6 @@ import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 
-import Connection = require('mongodb-connection-model/lib/model');
 import {
   DefaultSavingLocations,
   StorageScope
@@ -53,17 +52,15 @@ suite('Explorer Controller Test Suite', function () {
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
-    const mockConnectionId = 'testConnectionId';
 
     testConnectionController._connections = {
       testConnectionId: {
         id: 'testConnectionId',
-        connectionModel: new Connection(),
+        connectionOptions: { connectionString: 'mongodb://localhost' },
         name: 'testConnectionName',
         storageLocation: StorageScope.NONE
       }
     };
-    testConnectionController.setConnnectingConnectionId(mockConnectionId);
     testConnectionController.setConnnecting(true);
 
     const connectionsItems = await treeController.getChildren();
@@ -194,16 +191,14 @@ suite('Explorer Controller Test Suite', function () {
     const connectionId = testConnectionController.getActiveConnectionId() || '';
 
     testConnectionController._connections.aaa = {
-      connectionModel:
-        testConnectionController._connections[connectionId].connectionModel,
+      connectionOptions: testConnectionController._connections[connectionId].connectionOptions,
       name: 'aaa',
       id: 'aaa',
       storageLocation: StorageScope.WORKSPACE
     };
 
     testConnectionController._connections.zzz = {
-      connectionModel:
-        testConnectionController._connections[connectionId].connectionModel,
+      connectionOptions: testConnectionController._connections[connectionId].connectionOptions,
       name: 'zzz',
       id: 'zzz',
       storageLocation: StorageScope.WORKSPACE

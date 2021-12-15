@@ -1,41 +1,45 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { afterEach, beforeEach } from 'mocha';
 import chai from 'chai';
+import { connect } from 'mongodb-data-service';
 import { config } from 'dotenv';
-import * as path from 'path';
 import { resolve } from 'path';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
-import { promisify } from 'util';
 import Sinon = require('sinon');
-import DataService = require('mongodb-data-service');
-import Connection = require('mongodb-connection-model/lib/model');
 
 import { ConnectionTypes } from '../../../connectionController';
+import { DocumentSource } from '../../../documentSource';
+import { mdbTestExtension } from '../stubbableMdbExtension';
+import {
+  NewConnectionTelemetryEventProperties
+} from '../../../telemetry/connectionTelemetry';
 import {
   SegmentProperties,
   TelemetryEventTypes
 } from '../../../telemetry/telemetryService';
-import {
-  NewConnectionTelemetryEventProperties
-} from '../../../telemetry/connectionTelemetry';
-import { DocumentSource } from '../../../documentSource';
-import { mdbTestExtension } from '../stubbableMdbExtension';
-const { version } = require('../../../../package.json');
 
 const expect = chai.expect;
+const { version } = require('../../../../package.json');
+
+const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
 chai.use(sinonChai);
 
 config({ path: resolve(__dirname, '../../../../.env') });
 
 suite('Telemetry Controller Test Suite', () => {
-  const testConnectionModel = new Connection({
-    hostname: 'localhost',
-    port: 27018
-  });
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
+  const mockDataService: any = sinon.fake.returns({
+    instance: () => Promise.resolve({
+      dataLake: {},
+      build: {},
+      genuineMongoDB: {},
+      host: {}
+    })
+  });
 
   let mockTrackNewConnection: Sinon.SinonSpy;
   let mockTrackCommandRun: Sinon.SinonSpy;
@@ -110,15 +114,13 @@ suite('Telemetry Controller Test Suite', () => {
     );
 
     mockConnectionController.sendTelemetry(
-      { client: {} } as any,
-      testConnectionModel,
+      mockDataService,
       ConnectionTypes.CONNECTION_STRING
     );
 
     sinon.assert.calledWith(
       mockTrackNewConnection,
       sinon.match.any,
-      testConnectionModel,
       sinon.match(ConnectionTypes.CONNECTION_STRING)
     );
   });
@@ -134,15 +136,13 @@ suite('Telemetry Controller Test Suite', () => {
     );
 
     mockConnectionController.sendTelemetry(
-      { client: {} } as any,
-      testConnectionModel,
+      mockDataService,
       ConnectionTypes.CONNECTION_FORM
     );
 
     sinon.assert.calledWith(
       mockTrackNewConnection,
       sinon.match.any,
-      testConnectionModel,
       sinon.match(ConnectionTypes.CONNECTION_FORM)
     );
   });
@@ -158,15 +158,13 @@ suite('Telemetry Controller Test Suite', () => {
     );
 
     mockConnectionController.sendTelemetry(
-      { client: {} } as any,
-      testConnectionModel,
+      mockDataService,
       ConnectionTypes.CONNECTION_ID
     );
 
     sinon.assert.calledWith(
       mockTrackNewConnection,
       sinon.match.any,
-      testConnectionModel,
       sinon.match(ConnectionTypes.CONNECTION_ID)
     );
   });
@@ -304,29 +302,21 @@ suite('Telemetry Controller Test Suite', () => {
     this.timeout(5000);
 
     let dataServ;
-    const connectionModel = new Connection({
-      hostname: 'localhost',
-      port: 27018
-    });
-
     beforeEach(async () => {
-      dataServ = new DataService(connectionModel);
-      const runConnect = promisify(dataServ.connect.bind(dataServ));
-      await runConnect();
+      dataServ = await connect({ connectionString: TEST_DATABASE_URI });
+      await dataServ.connect();
     });
 
     afterEach(async () => {
       sinon.restore();
-      const runDisconnect = promisify(dataServ.disconnect.bind(dataServ));
-      await runDisconnect();
+      await dataServ.disconnect();
     });
 
     test('track new connection event fetches the connection instance information', async() => {
       sinon.replace(testTelemetryService, 'track', mockTrack);
       sinon.replace(testTelemetryService, '_isTelemetryFeatureEnabled', () => true);
       await mdbTestExtension.testExtensionController._telemetryService.trackNewConnection(
-        dataServ.client.client,
-        connectionModel,
+        dataServ,
         ConnectionTypes.CONNECTION_STRING
       );
 

@@ -1,9 +1,10 @@
-import assert from 'assert';
 import * as vscode from 'vscode';
-
-const { contributes } = require('../../../../package.json');
+import assert from 'assert';
+import { DataService } from 'mongodb-data-service';
 
 import IndexListTreeItem from '../../../explorer/indexListTreeItem';
+
+const { contributes } = require('../../../../package.json');
 
 suite('IndexListTreeItem Test Suite', () => {
   test('its context value should be in the package json', () => {
@@ -12,8 +13,10 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (): void => { }
-      },
+        indexes: (ns, opts, cb): void => {
+          cb(null, []);
+        }
+      } as DataService,
       false,
       false,
       []
@@ -62,7 +65,7 @@ suite('IndexListTreeItem Test Suite', () => {
 
           cb(null, fakeFetchIndexes);
         }
-      },
+      } as DataService,
       false,
       false,
       []
@@ -99,13 +102,17 @@ suite('IndexListTreeItem Test Suite', () => {
     const testIndexListTreeItem = new IndexListTreeItem(
       'pineapple',
       'tasty_fruits',
-      'fake data service',
+      {
+        indexes: (ns, opts, cb): void => {
+          cb(null, []);
+        }
+      } as DataService,
       false,
       false,
       []
     );
 
-    const indexesIconPath: any = testIndexListTreeItem.iconPath;
+    const indexesIconPath = testIndexListTreeItem.iconPath as { light: string; dark: string };
     assert(
       indexesIconPath.dark.includes('indexes.svg'),
       'Expected icon path to point to an svg by the name "indexes" with a dark mode'
@@ -119,9 +126,9 @@ suite('IndexListTreeItem Test Suite', () => {
       'tasty_fruits',
       {
         indexes: (ns, opts, cb): void => {
-          cb(new Error(expectedErrorMessage));
+          cb(new Error(expectedErrorMessage), []);
         }
-      },
+      } as DataService,
       false,
       false,
       []
@@ -168,7 +175,7 @@ suite('IndexListTreeItem Test Suite', () => {
         indexes: (ns, opts, cb): void => {
           cb(null, fakeFetchIndexes);
         }
-      },
+      } as DataService,
       false,
       false,
       []
@@ -194,7 +201,7 @@ suite('IndexListTreeItem Test Suite', () => {
         indexes: (ns, opts, cb): void => {
           cb(null, []);
         }
-      },
+      } as DataService,
       testIndexListTreeItem.isExpanded,
       testIndexListTreeItem.cacheIsUpToDate,
       testIndexListTreeItem.getChildrenCache()

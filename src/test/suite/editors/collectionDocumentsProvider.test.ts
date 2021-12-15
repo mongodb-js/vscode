@@ -1,15 +1,13 @@
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import assert from 'assert';
+import { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
-import { promisify } from 'util';
 
 import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, { VIEW_COLLECTION_SCHEME } from '../../../editors/collectionDocumentsProvider';
-import Connection from 'mongodb-connection-model/lib/model';
 import ConnectionController from '../../../connectionController';
-import { ConnectionModel } from '../../../types/connectionModelType';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
@@ -17,11 +15,6 @@ import { StorageScope } from '../../../storage/storageController';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext, mockTextEditor } from '../stubs';
-
-const getConnection = (dbUri): Promise<ConnectionModel> => {
-  const connectionFrom = promisify(Connection.from.bind(Connection));
-  return connectionFrom(dbUri);
-};
 
 const mockDocumentsAsJsonString = `[
   {
@@ -61,16 +54,16 @@ suite('Collection Documents Provider Test Suite', () => {
           `Expected find limit to be 10, found ${options.limit}`
         );
 
-        return callback(null, ['Declaration of Independence']);
+        return callback(null, [{ field: 'Declaration of Independence' }]);
       }
-    };
+    } as DataService;
 
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveConnection(mockActiveConnection);
+    mockConnectionController.setActiveDataService(mockActiveConnection);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -118,13 +111,13 @@ suite('Collection Documents Provider Test Suite', () => {
       find: (namespace, filter, options, callback): void => {
         return callback(null, mockDocuments);
       }
-    };
+    } as DataService;
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveConnection(mockActiveConnection);
+    mockConnectionController.setActiveDataService(mockActiveConnection);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -159,15 +152,15 @@ suite('Collection Documents Provider Test Suite', () => {
   test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', (done) => {
     const mockActiveConnection = {
       find: (namespace, filter, options, callback): void => {
-        return callback(null, ['Apollo', 'Gemini ']);
+        return callback(null, [{ field: 'Apollo' }, { field: 'Gemini ' }]);
       }
-    };
+    } as DataService;
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveConnection(mockActiveConnection);
+    mockConnectionController.setActiveDataService(mockActiveConnection);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -212,13 +205,13 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent shows a status bar item while it is running then hide it', (done) => {
-    const mockActiveConnection = { find: {} };
+    const mockActiveConnection = { find: {} } as DataService;
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveConnection(mockActiveConnection);
+    mockConnectionController.setActiveDataService(mockActiveConnection);
 
     const testStatusView = new StatusView(mockExtensionContext);
 
@@ -256,7 +249,7 @@ suite('Collection Documents Provider Test Suite', () => {
       assert(!mockHideMessage.called);
       assert(mockShowMessage.firstCall.args[0] === 'Fetching documents...');
 
-      return callback(null, ['aaaaaaaaaaaaaaaaa']);
+      return callback(null, [{ field: 'aaaaaaaaaaaaaaaaa' }]);
     };
 
     testCollectionViewProvider
@@ -465,7 +458,6 @@ suite('Collection Documents Provider Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testCollectionViewProvider._statusView, 'hideMessage', mockHideMessage);
 
-    const connectionModel = await getConnection(TEST_DATABASE_URI);
     const firstConnectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
     const secondConnectionId = '333c2b06-hhhh-40b7-bd8a-bd1f8333a896';
 
@@ -473,13 +465,13 @@ suite('Collection Documents Provider Test Suite', () => {
       [firstConnectionId]: {
         id: firstConnectionId,
         name: 'localhost',
-        connectionModel,
+        connectionOptions: { connectionString: TEST_DATABASE_URI },
         storageLocation: StorageScope.NONE
       },
       [secondConnectionId]: {
         id: secondConnectionId,
         name: 'compass',
-        connectionModel,
+        connectionOptions: { connectionString: TEST_DATABASE_URI },
         storageLocation: StorageScope.NONE
       }
     };

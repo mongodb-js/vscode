@@ -1,17 +1,15 @@
+import * as util from 'util';
 import * as vscode from 'vscode';
 import path from 'path';
 
-import { createLogger } from '../logging';
 import DocumentListTreeItem, {
   CollectionTypes,
   MAX_DOCUMENTS_VISIBLE
 } from './documentListTreeItem';
+import { getImagesPath } from '../extensionConstants';
 import IndexListTreeItem from './indexListTreeItem';
 import TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
-import { getImagesPath } from '../extensionConstants';
-
-const log = createLogger('tree view collection folder');
 
 function getIconPath(
   type: CollectionTypes,
@@ -90,7 +88,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     cachedDocumentCount: number | null,
     existingDocumentListChild?: DocumentListTreeItem,
     existingSchemaChild?: SchemaTreeItem,
-    existingIndexListChild?: IndexListTreeItem
+    existingIndexListChild?: IndexListTreeItem // Existing cache.
   ) {
     super(
       collection.name,
@@ -103,16 +101,11 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this.collectionName = collection.name;
     this.databaseName = databaseName;
     this.namespace = `${this.databaseName}.${this.collectionName}`;
-
     this._type = collection.type; // Type can be `collection` or `view`.
     this._dataService = dataService;
-
     this.isExpanded = isExpanded;
-
     this.documentCount = cachedDocumentCount;
-
     this.cacheIsUpToDate = cacheIsUpToDate;
-
     this._documentListChild = existingDocumentListChild
       ? existingDocumentListChild
       : new DocumentListTreeItem(
@@ -310,29 +303,6 @@ export default class CollectionTreeItem extends vscode.TreeItem
     return this._documentListChild.getMaxDocumentsToShow();
   }
 
-  getCount(): Promise<number> {
-    log.info(`fetching document count from namespace ${this.namespace}`);
-
-    return new Promise((resolve, reject) => {
-      this._dataService.estimatedCount(
-        this.namespace,
-        {}, // No options.
-        (error: Error | undefined, count: number) => {
-          if (error) {
-            const printableError = error as { message: string };
-            return reject(
-              new Error(
-                `Unable to get collection document count: ${printableError.message}`
-              )
-            );
-          }
-
-          return resolve(count);
-        }
-      );
-    });
-  }
-
   refreshDocumentCount = async (): Promise<number> => {
     // Skip the count on views and time-series collections since it will error.
     if (
@@ -346,12 +316,20 @@ export default class CollectionTreeItem extends vscode.TreeItem
     try {
       // We fetch the document when we expand in order to show
       // the document count in the document list tree item `description`.
-      this.documentCount = await this.getCount();
+      const estimatedCount = util.promisify(
+        this._dataService.estimatedCount.bind(this._dataService)
+      );
+
+      this.documentCount = await estimatedCount(
+        this.namespace,
+        {} // No options.
+      );
+
+      return this.documentCount as number;
     } catch (err) {
+      this.documentCount = null;
       return 0;
     }
-
-    return this.documentCount;
   };
 
   async onDropCollectionClicked(): Promise<boolean> {
@@ -384,24 +362,24 @@ export default class CollectionTreeItem extends vscode.TreeItem
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve) => {
-      this._dataService.dropCollection(
-        `${this.databaseName}.${collectionName}`,
-        (error: Error | null, successfullyDroppedCollection = false) => {
-          if (error) {
-            const printableError = error as { message: string };
-            void vscode.window.showErrorMessage(
-              `Drop collection failed: ${printableError.message}`
-            );
-
-            return resolve(false);
-          }
-
-          this.isDropped = successfullyDroppedCollection;
-
-          return resolve(successfullyDroppedCollection);
-        }
+    try {
+      const dropCollection = util.promisify(
+        this._dataService.dropCollection.bind(this._dataService)
       );
-    });
+      const successfullyDroppedCollection = await dropCollection(
+        `${this.databaseName}.${collectionName}`
+      );
+
+      this.isDropped = successfullyDroppedCollection;
+
+      return successfullyDroppedCollection;
+    } catch (error) {
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(
+        `Drop collection failed: ${printableError.message}`
+      );
+
+      return false;
+    }
   }
 }

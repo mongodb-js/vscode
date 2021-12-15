@@ -1,24 +1,22 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { config } from 'dotenv';
+import { DataService } from 'mongodb-data-service';
 import fs from 'fs';
 import SegmentAnalytics from 'analytics-node';
-import type { MongoClient } from 'mongodb';
 
-import { ConnectionModel } from '../types/connectionModelType';
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
+import {
+  getConnectionTelemetryProperties,
+  NewConnectionTelemetryEventProperties
+} from './connectionTelemetry';
 import type { ShellExecuteAllResult } from '../types/playgroundType';
 import { StorageController } from '../storage';
-import {
-  NewConnectionTelemetryEventProperties,
-  getConnectionTelemetryProperties
-} from './connectionTelemetry';
-
-const { version } = require('../../package.json');
 
 const log = createLogger('telemetry');
+const { version } = require('../../package.json');
 
 type PlaygroundTelemetryEventProperties = {
   type: string | null;
@@ -29,7 +27,7 @@ type PlaygroundTelemetryEventProperties = {
 export type SegmentProperties = {
   event: string;
   userId: string;
-  properties: any;
+  properties: unknown;
 };
 
 type LinkClickedTelemetryEventProperties = {
@@ -73,11 +71,12 @@ export enum TelemetryEventTypes {
  * This controller manages telemetry.
  */
 export default class TelemetryService {
-  _context: vscode.ExtensionContext;
-  _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
   _segmentAnalytics?: SegmentAnalytics;
   _segmentUserID: string; // The user uuid from the global storage.
   _segmentKey?: string; // The segment API write key.
+
+  private _context: vscode.ExtensionContext;
+  private _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
 
   constructor(
     storageController: StorageController,
@@ -106,7 +105,7 @@ export default class TelemetryService {
     });
   }
 
-  _readSegmentKey(): string | undefined {
+  private _readSegmentKey(): string | undefined {
     config({ path: path.join(this._context.extensionPath, '.env') });
 
     try {
@@ -198,8 +197,7 @@ export default class TelemetryService {
   }
 
   async trackNewConnection(
-    dataService: MongoClient,
-    model: ConnectionModel,
+    dataService: DataService,
     connectionType: ConnectionTypes
   ): Promise<void> {
     try {
@@ -209,7 +207,6 @@ export default class TelemetryService {
 
       const connectionTelemetryProperties = await getConnectionTelemetryProperties(
         dataService,
-        model,
         connectionType
       );
 

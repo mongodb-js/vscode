@@ -8,13 +8,13 @@ import {
   MarkupContent,
   MarkupKind
 } from 'vscode-languageserver/node';
+import { MongoClientOptions } from 'mongodb';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';
 import { Worker as WorkerThreads } from 'worker_threads';
 
 import { CollectionItem } from '../types/collectionItemType';
-import { ConnectionOptions } from '../types/connectionOptionsType';
 import { ServerCommands } from './serverCommands';
 import {
   ShellExecuteAllResult,
@@ -35,7 +35,7 @@ export default class MongoDBService {
   _connection: Connection;
   _connectionId?: string;
   _connectionString?: string;
-  _connectionOptions?: ConnectionOptions;
+  _connectionOptions?: MongoClientOptions;
   _cachedDatabases: CompletionItem[] | [] = [];
   _cachedFields: { [namespace: string]: CompletionItem[] } | {} = {};
   _cachedCollections: { [database: string]: CollectionItem[] } | {} = {};
@@ -54,7 +54,7 @@ export default class MongoDBService {
     return this._connectionString;
   }
 
-  get connectionOptions(): ConnectionOptions | undefined {
+  get connectionOptions(): MongoClientOptions | undefined {
     return this._connectionOptions;
   }
 
@@ -69,7 +69,7 @@ export default class MongoDBService {
   async connectToServiceProvider(params: {
     connectionId: string;
     connectionString: string;
-    connectionOptions: ConnectionOptions;
+    connectionOptions: MongoClientOptions;
   }): Promise<boolean> {
     this._clearCurrentSessionConnection();
     this._clearCurrentSessionFields();

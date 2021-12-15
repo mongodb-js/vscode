@@ -120,10 +120,7 @@ const openMongoDBShell = (connectionController: ConnectionController): Promise<b
     return Promise.resolve(false);
   }
 
-  const activeConnectionModel = connectionController
-    .getActiveConnectionModel()
-    ?.getAttributes({ derived: true });
-
+  const activeConnectionModel = connectionController.getActiveDerivedConnectionModel();
   const mdbConnectionString = activeConnectionModel
     ? activeConnectionModel.driverUrlWithSsh
     : '';

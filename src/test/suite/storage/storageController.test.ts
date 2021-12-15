@@ -1,24 +1,27 @@
+import * as vscode from 'vscode';
 import assert from 'assert';
 
 import StorageController, {
   StorageVariables,
-  StorageScope
+  StorageScope,
+  DefaultSavingLocations
 } from '../../../storage/storageController';
-
 import { TestExtensionContext } from '../stubs';
 
 suite('Storage Controller Test Suite', () => {
   test('getting a variable gets it from the global context store', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {
-      [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: 'this_gonna_get_saved'
+      [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
+        'collOne': { name: 'this_gonna_get_saved' }
+      }
     };
     const testStorageController = new StorageController(testExtensionContext);
     const testVal = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS
     );
     assert(
-      testVal === 'this_gonna_get_saved',
+      testVal.collOne.name === 'this_gonna_get_saved',
       `Expected ${testVal} from global state to equal 'this_gonna_get_saved'.`
     );
   });
@@ -26,8 +29,9 @@ suite('Storage Controller Test Suite', () => {
   test('getting a variable from the workspace state gets it from the workspace context store', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._workspaceState = {
-      [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]:
-        'i_cant_believe_its_gonna_save_this'
+      [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
+        'collTwo': { name: 'i_cant_believe_its_gonna_save_this' }
+      }
     };
     const testStorageController = new StorageController(testExtensionContext);
     const testVal = testStorageController.get(
@@ -35,9 +39,96 @@ suite('Storage Controller Test Suite', () => {
       StorageScope.WORKSPACE
     );
     assert(
-      testVal === 'i_cant_believe_its_gonna_save_this',
+      testVal.collTwo.name === 'i_cant_believe_its_gonna_save_this',
       `Expected ${testVal} from workspace state to equal 'i_cant_believe_its_gonna_save_this'.`
     );
+  });
+
+  test('storeNewConnection adds the connection to preexisting connections on the global store', async () => {
+    await vscode.workspace
+      .getConfiguration('mdb.connectionSaving')
+      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
+
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._globalState = {
+      [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
+        conn1: {
+          id: 'conn1',
+          name: 'saved1',
+          storageLocation: StorageScope.GLOBAL,
+          connectionOptions: { connectionString: 'mongodb://localhost' }
+        }
+      }
+    };
+    const testStorageController = new StorageController(testExtensionContext);
+    void testStorageController.storeNewConnection(
+      {
+        id: 'conn2',
+        connectionOptions: { connectionString: 'mongodb://localhost' }
+      }
+    );
+
+    const updatedGlobalModels = testStorageController.get(
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+    ) || {};
+    assert(
+      Object.keys(updatedGlobalModels).length === 2,
+      `Expected 2 connections, found ${Object.keys(updatedGlobalModels).length
+      }.`
+    );
+    assert(
+      updatedGlobalModels.conn1.name === 'saved1',
+      'Expected connection data to persist.'
+    );
+    assert(
+      updatedGlobalModels.conn2.storageLocation === StorageScope.GLOBAL,
+      'Expected storage scope to be set.'
+    );
+    assert(testStorageController.hasSavedConnections());
+  });
+
+  test('storeNewConnection adds the connection to preexisting connections on the workspace store', async () => {
+    await vscode.workspace
+      .getConfiguration('mdb.connectionSaving')
+      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Workspace);
+
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._workspaceState = {
+      [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
+        conn1: {
+          id: 'conn1',
+          name: 'saved1',
+          storageLocation: StorageScope.WORKSPACE,
+          connectionOptions: { connectionString: 'mongodb://localhost' }
+        }
+      }
+    };
+    const testStorageController = new StorageController(testExtensionContext);
+    void testStorageController.storeNewConnection(
+      {
+        id: 'conn2',
+        connectionOptions: { connectionString: 'mongodb://localhost' }
+      }
+    );
+
+    const updatedWorkspaceModels = testStorageController.get(
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageScope.WORKSPACE
+    );
+    assert(
+      Object.keys(updatedWorkspaceModels).length === 2,
+      `Expected 2 connections, found ${Object.keys(updatedWorkspaceModels).length
+      }.`
+    );
+    assert(
+      updatedWorkspaceModels.conn1.name === 'saved1',
+      'Expected connection data to persist.'
+    );
+    assert(
+      updatedWorkspaceModels.conn2.storageLocation === StorageScope.WORKSPACE,
+      'Expected storage scope to be set.'
+    );
+    assert(testStorageController.hasSavedConnections());
   });
 
   test('addNewConnectionToGlobalStore adds the connection to preexisting connections on the global store', () => {
@@ -45,17 +136,19 @@ suite('Storage Controller Test Suite', () => {
     testExtensionContext._globalState = {
       [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
         conn1: {
-          driverUrl: 'so_saved',
           id: 'conn1',
-          name: 'so_saved'
+          name: 'saved1',
+          storageLocation: StorageScope.GLOBAL,
+          connectionOptions: { connectionString: 'mongodb://localhost' }
         }
       }
     };
     const testStorageController = new StorageController(testExtensionContext);
     void testStorageController.saveConnectionToGlobalStore({
-      id: 'new_conn',
+      id: 'conn2',
       name: 'saved2',
-      storageLocation: StorageScope.NONE
+      storageLocation: StorageScope.GLOBAL,
+      connectionOptions: { connectionString: 'mongodb://localhost' }
     });
 
     const updatedGlobalModels = testStorageController.get(
@@ -67,15 +160,11 @@ suite('Storage Controller Test Suite', () => {
       }.`
     );
     assert(
-      updatedGlobalModels.conn1.name === 'so_saved',
+      updatedGlobalModels.conn1.name === 'saved1',
       'Expected connection data to persist.'
     );
     assert(
-      !updatedGlobalModels.new_conn.driverUrl,
-      'Expected new connection data to not exist on the saved connection.'
-    );
-    assert(
-      updatedGlobalModels.new_conn.storageLocation === StorageScope.GLOBAL,
+      updatedGlobalModels.conn2.storageLocation === StorageScope.GLOBAL,
       'Expected storage scope to be set.'
     );
     assert(testStorageController.hasSavedConnections());
@@ -87,15 +176,18 @@ suite('Storage Controller Test Suite', () => {
       [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
         conn1: {
           id: 'conn1',
-          name: 'saved1'
+          name: 'saved1',
+          storageLocation: StorageScope.WORKSPACE,
+          connectionOptions: { connectionString: 'mongodb://localhost' }
         }
       }
     };
     const testStorageController = new StorageController(testExtensionContext);
     void testStorageController.saveConnectionToWorkspaceStore({
-      id: 'new_conn',
+      id: 'conn2',
       name: 'saved2',
-      storageLocation: StorageScope.NONE
+      storageLocation: StorageScope.WORKSPACE,
+      connectionOptions: { connectionString: 'mongodb://localhost:27018' }
     });
 
     const updatedWorkspaceModels = testStorageController.get(
@@ -112,19 +204,11 @@ suite('Storage Controller Test Suite', () => {
       'Expected connection id data to persist.'
     );
     assert(
-      !updatedWorkspaceModels.conn1.driverUrl,
-      'Expected connection string data to not persist.'
-    );
-    assert(
-      !updatedWorkspaceModels.new_conn.driverUrl,
-      'Expected new connection data to not exist.'
-    );
-    assert(
-      updatedWorkspaceModels.new_conn.name === 'saved2',
+      updatedWorkspaceModels.conn2.name === 'saved2',
       'Expected new connection data to exist.'
     );
     assert(
-      updatedWorkspaceModels.new_conn.storageLocation ===
+      updatedWorkspaceModels.conn2.storageLocation ===
       StorageScope.WORKSPACE,
       'Expected storage scope to be set.'
     );

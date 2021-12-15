@@ -26,7 +26,6 @@ enum EXTENSION_COMMANDS {
 
   MDB_CHANGE_ACTIVE_CONNECTION = 'mdb.changeActiveConnection',
   MDB_REFRESH_PLAYGROUNDS = 'mdb.refreshPlaygrounds',
-  MDB_START_LANGUAGE_STREAM_LOGS = 'mdb.startStreamLanguageServerLogs',
 
   MDB_CODELENS_SHOW_MORE_DOCUMENTS = 'mdb.codeLens.showMoreDocumentsClicked',
 

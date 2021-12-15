@@ -1,8 +1,9 @@
-import assert from 'assert';
 import * as vscode from 'vscode';
-import { beforeEach, afterEach } from 'mocha';
 import * as sinon from 'sinon';
-import Connection = require('mongodb-connection-model/lib/model');
+import assert from 'assert';
+import { beforeEach, afterEach } from 'mocha';
+import ConnectionModel from 'mongodb-connection-model';
+
 import launchMongoShell from '../../../commands/launchMongoShell';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
@@ -14,7 +15,7 @@ suite('Commands Test Suite', () => {
   const sandbox = sinon.createSandbox();
 
   let fakeShowErrorMessage: any;
-  let fakeGetActiveConnectionModel: any;
+  let fakeGetActiveDerivedConnectionModel: any;
   let fakeIsCurrentlyConnected: any;
   let createTerminalStub: any;
   let fakeSendTerminalText: any;
@@ -23,9 +24,9 @@ suite('Commands Test Suite', () => {
     sandbox.stub(vscode.window, 'showInformationMessage');
 
     fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
-    fakeGetActiveConnectionModel = sandbox.stub(
+    fakeGetActiveDerivedConnectionModel = sandbox.stub(
       mockConnectionController,
-      'getActiveConnectionModel'
+      'getActiveDerivedConnectionModel'
     );
 
     fakeIsCurrentlyConnected = sandbox.stub(
@@ -72,13 +73,12 @@ suite('Commands Test Suite', () => {
     test('openMongoDBShell should open a terminal with the active connection driver url', async () => {
       const driverUri =
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      const connectionModel = new ConnectionModel({
+        hostname: 'localhost',
+        port: 27018
+      });
 
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          hostname: 'localhost',
-          port: 27018
-        })
-      );
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -99,15 +99,15 @@ suite('Commands Test Suite', () => {
     });
 
     test('openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          hostname: '127.0.0.1',
-          sshTunnel: 'USER_PASSWORD',
-          sshTunnelHostname: 'my.ssh-server.com',
-          sshTunnelUsername: 'my-user',
-          sshTunnelPassword: 'password'
-        })
-      );
+      const connectionModel = new ConnectionModel({
+        hostname: '127.0.0.1',
+        sshTunnel: 'USER_PASSWORD',
+        sshTunnelHostname: 'my.ssh-server.com',
+        sshTunnelUsername: 'my-user',
+        sshTunnelPassword: 'password'
+      });
+
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -129,15 +129,14 @@ suite('Commands Test Suite', () => {
     test('openMongoDBShell should open a terminal with ssl config injected', async () => {
       const driverUri =
         'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
+      const connectionModel = new ConnectionModel({
+        hostname: '127.0.0.1',
+        ssl: true,
+        sslMethod: 'SERVER',
+        sslCA: './path_to_some_file'
+      });
 
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          hostname: '127.0.0.1',
-          ssl: true,
-          sslMethod: 'SERVER',
-          sslCA: './path_to_some_file'
-        })
-      );
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -160,17 +159,16 @@ suite('Commands Test Suite', () => {
     test('openMongoDBShell should open a terminal with x509 config injected', async () => {
       const driverUri =
         'mongodb://testing@localhost:27017/?authMechanism=MONGODB-X509&readPreference=primary&ssl=true&authSource=%24external';
+      const connectionModel = new ConnectionModel({
+        sslMethod: 'ALL',
+        sslKey: ['path/to/key'],
+        sslCert: ['path/to/cert'],
+        sslCA: ['path/to/ca'],
+        authStrategy: 'X509',
+        x509Username: 'testing'
+      });
 
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          sslMethod: 'ALL',
-          sslCA: './path_to_ca',
-          sslCert: './path_to_cert',
-          sslKey: './path_to_key',
-          authStrategy: 'X509',
-          x509Username: 'testing'
-        })
-      );
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -184,7 +182,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert.strictEqual(shellCommandText, 'mongosh --tls --tlsAllowInvalidHostnames --tlsCAFile="./path_to_ca" --tlsCertificateKeyFile="./path_to_cert" $MDB_CONNECTION_STRING;');
+      assert.strictEqual(shellCommandText, 'mongosh --tls --tlsAllowInvalidHostnames --tlsCAFile="path/to/ca" --tlsCertificateKeyFile="path/to/cert" $MDB_CONNECTION_STRING;');
     });
   });
 
@@ -196,13 +194,12 @@ suite('Commands Test Suite', () => {
     test('powershell openMongoDBShell should open a terminal with the active connection driver url', async () => {
       const driverUri =
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      const connectionModel = new ConnectionModel({
+        hostname: 'localhost',
+        port: 27018
+      });
 
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          hostname: 'localhost',
-          port: 27018
-        })
-      );
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -225,15 +222,15 @@ suite('Commands Test Suite', () => {
     });
 
     test('powershell openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          hostname: '127.0.0.1',
-          sshTunnel: 'USER_PASSWORD',
-          sshTunnelHostname: 'my.ssh-server.com',
-          sshTunnelUsername: 'my-user',
-          sshTunnelPassword: 'password'
-        })
-      );
+      const connectionModel = new ConnectionModel({
+        hostname: '127.0.0.1',
+        sshTunnel: 'USER_PASSWORD',
+        sshTunnelHostname: 'my.ssh-server.com',
+        sshTunnelUsername: 'my-user',
+        sshTunnelPassword: 'password'
+      });
+
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -257,15 +254,14 @@ suite('Commands Test Suite', () => {
     test('powershell openMongoDBShell should open a terminal with ssl config injected', async () => {
       const driverUri =
         'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
+      const connectionModel = new ConnectionModel({
+        hostname: '127.0.0.1',
+        ssl: true,
+        sslMethod: 'SERVER',
+        sslCA: './path_to_some_file'
+      });
 
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          hostname: '127.0.0.1',
-          ssl: true,
-          sslMethod: 'SERVER',
-          sslCA: './path_to_some_file'
-        })
-      );
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -304,13 +300,12 @@ suite('Commands Test Suite', () => {
     test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async () => {
       const driverUri =
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      const connectionModel = new ConnectionModel({
+        hostname: 'localhost',
+        port: 27018
+      });
 
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          hostname: 'localhost',
-          port: 27018
-        })
-      );
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -327,15 +322,15 @@ suite('Commands Test Suite', () => {
     });
 
     test('windows cmd openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          hostname: '127.0.0.1',
-          sshTunnel: 'USER_PASSWORD',
-          sshTunnelHostname: 'my.ssh-server.com',
-          sshTunnelUsername: 'my-user',
-          sshTunnelPassword: 'password'
-        })
-      );
+      const connectionModel = new ConnectionModel({
+        hostname: '127.0.0.1',
+        sshTunnel: 'USER_PASSWORD',
+        sshTunnelHostname: 'my.ssh-server.com',
+        sshTunnelUsername: 'my-user',
+        sshTunnelPassword: 'password'
+      });
+
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -359,15 +354,14 @@ suite('Commands Test Suite', () => {
     test('windows cmd openMongoDBShell should open a terminal with ssl config injected', async () => {
       const driverUri =
         'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
+      const connectionModel = new ConnectionModel({
+        hostname: '127.0.0.1',
+        ssl: true,
+        sslMethod: 'SERVER',
+        sslCA: './path_to_some_file'
+      });
 
-      fakeGetActiveConnectionModel.returns(
-        new Connection({
-          hostname: '127.0.0.1',
-          ssl: true,
-          sslMethod: 'SERVER',
-          sslCA: './path_to_some_file'
-        })
-      );
+      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);

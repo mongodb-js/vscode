@@ -1,23 +1,22 @@
-import assert from 'assert';
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
 import * as sinon from 'sinon';
+import { afterEach } from 'mocha';
+import assert from 'assert';
 import { inspect } from 'util';
 
-const { contributes } = require('../../../../package.json');
-
-import SchemaTreeItem, {
-  FIELDS_TO_SHOW
-} from '../../../explorer/schemaTreeItem';
-import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
 import { ext } from '../../../extensionConstants';
-
+import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
 import {
   seedDataAndCreateDataService,
   cleanupTestDB,
   TEST_DB_NAME
 } from '../dbTestHelper';
+import SchemaTreeItem, {
+  FIELDS_TO_SHOW
+} from '../../../explorer/schemaTreeItem';
 import { TestExtensionContext } from '../stubs';
+
+const { contributes } = require('../../../../package.json');
 
 suite('SchemaTreeItem Test Suite', function () {
   this.timeout(10000);
@@ -253,7 +252,7 @@ suite('SchemaTreeItem Test Suite', function () {
         testSchemaTreeItem
           .getChildren()
           .then((schemaFields) => {
-            dataService.disconnect(() => {});
+            void dataService.disconnect();
 
             assert(
               schemaFields.length === 0,
@@ -287,7 +286,7 @@ suite('SchemaTreeItem Test Suite', function () {
         testSchemaTreeItem
           .getChildren()
           .then((schemaFields) => {
-            dataService.disconnect(() => {});
+            void dataService.disconnect();
             assert(
               schemaFields.length === 2,
               `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
@@ -340,7 +339,7 @@ suite('SchemaTreeItem Test Suite', function () {
         testSchemaTreeItem
           .getChildren()
           .then((schemaFields) => {
-            dataService.disconnect(() => {});
+            void dataService.disconnect();
             assert(
               schemaFields.length === 3,
               `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}: ${inspect(schemaFields)}`
