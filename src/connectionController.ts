@@ -9,8 +9,8 @@ import {
   getConnectionTitle
 } from 'mongodb-data-service';
 import ConnectionModel from 'mongodb-connection-model';
+import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
-import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
@@ -112,15 +112,15 @@ export default class ConnectionController {
   ): Promise<StoreConnectionInfo> {
     // Transform a raw connection model from storage to an ampersand model.
     const newConnectionModelWithSecrets = new ConnectionModel(savedConnectionInfo.connectionModel);
-    // Convert the connection model to a connection info object.
-    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(newConnectionModelWithSecrets);
 
-    // Use connectionOptions instead of connectionModel.
+    // Further use connectionOptions instead of connectionModel.
     const newSavedConnectionInfoWithSecrets = {
       id: savedConnectionInfo.id,
       name: savedConnectionInfo.name,
       storageLocation: savedConnectionInfo.storageLocation,
-      connectionOptions: newConnectionInfoWithSecrets.connectionOptions
+      connectionOptions: {
+        connectionString: this.getDerivedConnectionOptionsByModel(newConnectionModelWithSecrets).driverUrlWithSsh
+      }
     };
 
     await this._saveConnection(newSavedConnectionInfoWithSecrets);
@@ -273,18 +273,17 @@ export default class ConnectionController {
   ): Promise<boolean> {
     log.info('Trying to connect to a new connection configuration');
 
-    const connectionFrom = promisify(ConnectionModel.from.bind(ConnectionModel));
+    const connectionStringData = new ConnectionString(connectionString);
+
+    connectionStringData.searchParams.set('appname', `${name} ${version}`);
 
     try {
-      const connectionModel = await connectionFrom(connectionString);
-
-      if (typeof connectionModel.appname === 'undefined') {
-        connectionModel.appname = `${name} ${version}`;
-      }
-
-      const connectionInfo = convertConnectionModelToInfo(connectionModel);
       const connectResult = await this.saveNewConnectionAndConnect(
-        connectionInfo,
+        {
+          connectionOptions: {
+            connectionString: connectionStringData.toString()
+          }
+        },
         ConnectionTypes.CONNECTION_STRING
       );
 
@@ -714,8 +713,12 @@ export default class ConnectionController {
     return this._activeDataService?.getMongoClientConnectionOptions() || {};
   }
 
+  getDerivedConnectionOptionsByModel(connectionModel: ConnectionModel): ConnectionModel {
+    return connectionModel?.getAttributes({ derived: true }) || {};
+  }
+
   getActiveDerivedConnectionModel(): ConnectionModel {
-    return this._activeConnectionModel?.getAttributes({ derived: true }) || {};
+    return this.getDerivedConnectionOptionsByModel(this._activeConnectionModel);
   }
 
   async getConnectionStringByConnectionId(connectionId: string): Promise<string> {

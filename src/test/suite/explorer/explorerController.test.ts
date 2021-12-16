@@ -172,8 +172,8 @@ suite('Explorer Controller Test Suite', function () {
       'Expected the first connection tree item to not be expanded'
     );
     assert(
-      connectionsItems[1].label === 'shouldfail:27017',
-      'Second connection tree item should have label "shouldfail:27017"'
+      connectionsItems[1].label === 'shouldfail',
+      'Second connection tree item should have label "shouldfail"'
     );
   });
 

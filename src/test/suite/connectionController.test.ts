@@ -270,8 +270,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('the connection model loads both global and workspace stored connection models', async () => {
-    const expectedDriverUri =
-      'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&directConnection=true&ssl=false';
+    const expectedDriverUri = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -477,8 +476,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('"getConnectionStringByConnectionId" returns the driver uri of a connection', async () => {
-    const expectedDriverUri =
-      'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.0.0-dev.0&directConnection=true&ssl=false';
+    const expectedDriverUri = 'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.0.0-dev.0&directConnection=true&ssl=true';
 
     await testConnectionController.loadSavedConnections();
     await testConnectionController.addNewConnectionStringAndConnect(
