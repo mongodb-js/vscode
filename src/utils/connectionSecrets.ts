@@ -1,8 +1,9 @@
-import { cloneDeep } from 'lodash';
 import ConnectionString, {
   CommaAndColonSeparatedRecord,
 } from 'mongodb-connection-string-url';
 import { ConnectionInfo } from 'mongodb-data-service';
+
+const cloneDeep = require('lodash.clonedeep');
 
 export interface ConnectionSecrets {
   password?: string;

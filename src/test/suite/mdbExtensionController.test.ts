@@ -20,7 +20,7 @@ import IndexListTreeItem from '../../explorer/indexListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { mockTextEditor } from './stubs';
 import {
-  StorageScope,
+  StorageLocation,
   StorageVariables
 } from '../../storage/storageController';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
@@ -1179,7 +1179,7 @@ suite('MDBExtensionController Test Suite', function () {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
       connectionOptions: { connectionString: 'mongodb://localhost' },
       name: 'NAAAME',
-      storageLocation: StorageScope.NONE
+      storageLocation: StorageLocation.NONE
     };
 
     const mockTreeItem = new ConnectionTreeItem(
@@ -1217,7 +1217,7 @@ suite('MDBExtensionController Test Suite', function () {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
       name: 'NAAAME',
       connectionOptions: { connectionString: 'mongodb://localhost' },
-      storageLocation: StorageScope.NONE
+      storageLocation: StorageLocation.NONE
     };
 
     const mockTreeItem = new ConnectionTreeItem(

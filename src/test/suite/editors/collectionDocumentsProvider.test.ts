@@ -11,7 +11,7 @@ import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-import { StorageScope } from '../../../storage/storageController';
+import { StorageLocation } from '../../../storage/storageController';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext, mockTextEditor } from '../stubs';
@@ -466,13 +466,13 @@ suite('Collection Documents Provider Test Suite', () => {
         id: firstConnectionId,
         name: 'localhost',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageScope.NONE
+        storageLocation: StorageLocation.NONE
       },
       [secondConnectionId]: {
         id: secondConnectionId,
         name: 'compass',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageScope.NONE
+        storageLocation: StorageLocation.NONE
       }
     };
 

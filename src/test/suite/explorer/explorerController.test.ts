@@ -5,7 +5,7 @@ import sinon from 'sinon';
 
 import {
   DefaultSavingLocations,
-  StorageScope
+  StorageLocation
 } from '../../../storage/storageController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -58,7 +58,7 @@ suite('Explorer Controller Test Suite', function () {
         id: 'testConnectionId',
         connectionOptions: { connectionString: 'mongodb://localhost' },
         name: 'testConnectionName',
-        storageLocation: StorageScope.NONE
+        storageLocation: StorageLocation.NONE
       }
     };
     testConnectionController.setConnnecting(true);
@@ -194,14 +194,14 @@ suite('Explorer Controller Test Suite', function () {
       connectionOptions: testConnectionController._connections[connectionId].connectionOptions,
       name: 'aaa',
       id: 'aaa',
-      storageLocation: StorageScope.WORKSPACE
+      storageLocation: StorageLocation.WORKSPACE
     };
 
     testConnectionController._connections.zzz = {
       connectionOptions: testConnectionController._connections[connectionId].connectionOptions,
       name: 'zzz',
       id: 'zzz',
-      storageLocation: StorageScope.WORKSPACE
+      storageLocation: StorageLocation.WORKSPACE
     };
 
     const connectionsItems = await treeController.getChildren();

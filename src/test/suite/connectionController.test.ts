@@ -10,7 +10,7 @@ import ConnectionController, {
 } from '../../connectionController';
 import { StorageController, StorageVariables } from '../../storage';
 import {
-  StorageScope,
+  StorageLocation,
   DefaultSavingLocations
 } from '../../storage/storageController';
 import { StatusView } from '../../views';
@@ -335,7 +335,7 @@ suite('Connection Controller Test Suite', function () {
 
     const globalStoreConnections = mockStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS
-    ) || {};
+    );
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
@@ -375,8 +375,8 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
-    ) || {};
+      StorageLocation.WORKSPACE
+    );
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
@@ -408,7 +408,7 @@ suite('Connection Controller Test Suite', function () {
         id: '25',
         name: 'tester',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageScope.NONE
+        storageLocation: StorageLocation.NONE
       }
     };
 
@@ -434,8 +434,8 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
-    ) || {};
+      StorageLocation.WORKSPACE
+    );
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
@@ -531,7 +531,7 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
+      StorageLocation.WORKSPACE
     );
 
     assert(
@@ -556,8 +556,8 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
-    ) || {};
+      StorageLocation.WORKSPACE
+    );
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
@@ -574,8 +574,8 @@ suite('Connection Controller Test Suite', function () {
 
     const postWorkspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
-    ) || {};
+      StorageLocation.WORKSPACE
+    );
 
     assert(
       Object.keys(postWorkspaceStoreConnections).length === 0,
@@ -596,7 +596,7 @@ suite('Connection Controller Test Suite', function () {
 
     const globalStoreConnections = mockStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS
-    ) || {};
+    );
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
@@ -611,7 +611,7 @@ suite('Connection Controller Test Suite', function () {
 
     const postGlobalStoreConnections = mockStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS
-    ) || {};
+    );
 
     assert(
       Object.keys(postGlobalStoreConnections).length === 0,
@@ -635,8 +635,8 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
-    ) || {};
+      StorageLocation.WORKSPACE
+    );
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
@@ -818,7 +818,7 @@ suite('Connection Controller Test Suite', function () {
           id,
           name: `test${i}`,
           connectionOptions: { connectionString: TEST_DATABASE_URI },
-          storageLocation: StorageScope.NONE
+          storageLocation: StorageLocation.NONE
         };
       }
 
@@ -864,7 +864,7 @@ suite('Connection Controller Test Suite', function () {
       id: connectionId,
       name: 'asdfasdg',
       connectionOptions: { connectionString: testDatabaseURI2WithTimeout },
-      storageLocation: StorageScope.NONE
+      storageLocation: StorageLocation.NONE
     };
 
     void testConnectionController.connectWithConnectionId(connectionId);
@@ -887,7 +887,7 @@ suite('Connection Controller Test Suite', function () {
       id: connectionId,
       name: 'asdfasdg',
       connectionOptions: { connectionString: TEST_DATABASE_URI },
-      storageLocation: StorageScope.NONE
+      storageLocation: StorageLocation.NONE
     };
 
     sinon.replace(

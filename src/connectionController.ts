@@ -5,21 +5,25 @@ import {
   convertConnectionInfoToModel,
   ConnectionInfo,
   ConnectionOptions,
-  DataService
+  DataService,
+  getConnectionTitle
 } from 'mongodb-data-service';
 import ConnectionModel from 'mongodb-connection-model';
 import { EventEmitter } from 'events';
 import { promisify } from 'util';
+import { v4 as uuidv4 } from 'uuid';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import { ext } from './extensionConstants';
-import { ConnectionSecrets, extractSecrets, mergeSecrets } from './utils/connectionSecrets';
 import RawConnectionModel from './views/webview-app/connection-model/connection-model';
-import { StorageScope, ConnectionsFromStorage } from './storage/storageController';
+import { StorageLocation, ConnectionsFromStorage } from './storage/storageController';
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
 import TelemetryService from './telemetry/telemetryService';
+
+// TODO: export these helpers from mongodb-data-service.
+import { ConnectionSecrets, extractSecrets, mergeSecrets } from './utils/connectionSecrets';
 
 const log = createLogger('connection controller');
 const { name, version } = require('../package.json');
@@ -37,11 +41,12 @@ export enum ConnectionTypes {
   CONNECTION_ID = 'CONNECTION_ID'
 }
 
-export interface SavedConnectionInfo {
+export interface StoreConnectionInfo {
   id: string; // Connection model id or a new uuid.
   name: string; // Possibly user given name, not unique.
-  storageLocation: StorageScope;
+  storageLocation: StorageLocation;
   connectionOptions: ConnectionOptions;
+  connectionModel?: ConnectionModel;
 }
 
 export enum NewConnectionType {
@@ -59,11 +64,16 @@ interface СonnectionQuickPicks {
   data: { type: NewConnectionType, connectionId?: string }
 }
 
+interface ConnectionSecretsInfo {
+  connectionId: string;
+  secrets: ConnectionSecrets
+}
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
-  _connections: { [key: string]: SavedConnectionInfo } = {};
+  _connections: { [key: string]: StoreConnectionInfo } = {};
   _activeDataService: DataService| null = null;
   _activeConnectionModel: ConnectionModel | null = null;
 
@@ -97,38 +107,78 @@ export default class ConnectionController {
     this._telemetryService = telemetryService;
   }
 
-  private _migratePreviouslySavedConnection () {}
+  private async _migratePreviouslySavedConnection(
+    savedConnectionInfo: StoreConnectionInfo
+  ): Promise<StoreConnectionInfo> {
+    // Transform a raw connection model from storage to an ampersand model.
+    const newConnectionModelWithSecrets = new ConnectionModel(savedConnectionInfo.connectionModel);
+    // Convert the connection model to a connection info object.
+    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(newConnectionModelWithSecrets);
 
-  private async _getConnectionOptionsWithSecrets(connectionId: string): Promise<ConnectionOptions|undefined> {
+    // Use connectionOptions instead of connectionModel.
+    const newSavedConnectionInfoWithSecrets = {
+      id: savedConnectionInfo.id,
+      name: savedConnectionInfo.name,
+      storageLocation: savedConnectionInfo.storageLocation,
+      connectionOptions: newConnectionInfoWithSecrets.connectionOptions
+    };
+
+    await this._saveConnection(newSavedConnectionInfoWithSecrets);
+
+    return newSavedConnectionInfoWithSecrets;
+  }
+
+  private async _getConnectionInfoWithSecrets(
+    savedConnectionInfo: StoreConnectionInfo
+  ): Promise<StoreConnectionInfo|undefined> {
+    // Migrate previously saved connections to a new format.
+    // Save only secrets to keychain.
+    // Remove connectionModel and use connectionOptions instead.
+    if (savedConnectionInfo.connectionModel) {
+      try {
+        return await this._migratePreviouslySavedConnection(
+          savedConnectionInfo
+        );
+      } catch (error) {
+        // Here we're leniant when loading connections in case their
+        // connections have become corrupted.
+        const printableError = error as { message: string };
+        log.error(`Connection migration failed: ${printableError.message}`);
+        return;
+      }
+    }
+
+    // If connection has a new format already and keytar module is undefined.
+    // Return saved connection as it is.
     if (!ext.keytarModule) {
       log.error('VSCode extension keytar module is undefined.');
-      return;
+      return savedConnectionInfo;
     }
 
     try {
       const unparsedSecrets = await ext.keytarModule.getPassword(
         this._serviceName,
-        connectionId
+        savedConnectionInfo.id
       );
 
+      // Ignore empty secrets.
       if (!unparsedSecrets) {
-        // Ignore empty secrets.
-        return;
+        return savedConnectionInfo;
       }
 
       const secrets = JSON.parse(unparsedSecrets);
-
-      if (secrets.connectionModel) {
-        this._migratePreviouslySavedConnection();
-      }
-
-      const connectionOptions = this._connections[connectionId].connectionOptions;
+      const connectionOptions = savedConnectionInfo.connectionOptions;
       const connectionInfoWithSecrets = mergeSecrets({ connectionOptions }, secrets);
 
-      return connectionInfoWithSecrets.connectionOptions;
+      return {
+        ...savedConnectionInfo,
+        connectionOptions: connectionInfoWithSecrets.connectionOptions
+      };
     } catch (error) {
       // Here we're leniant when loading connections in case their
       // connections have become corrupted.
+      const printableError = error as { message: string };
+      log.error(`Mergin connection with secrets failed: ${printableError.message}`);
       return;
     }
   }
@@ -136,20 +186,24 @@ export default class ConnectionController {
   private async _loadSavedConnectionsByStore(
     savedConnections: ConnectionsFromStorage
   ): Promise<void> {
-    if (Object.keys(savedConnections).length < 1) {
+    if (!Object.keys(savedConnections).length) {
       return;
     }
 
+    /** Users connections are being saved both in:
+     * 1. Vscode global/workspace storage (without secrets) + keychain (secrets)
+     * 2. Memory of the extension (with secrets)
+     */
     await Promise.all(
       Object.keys(savedConnections).map(async (connectionId) => {
-        this._connections[connectionId] = { ...savedConnections[connectionId] };
-
-        const connectionOptionsWithSecrets = await this._getConnectionOptionsWithSecrets(
-          connectionId
+        // Get connection info from vscode storage and merge with secrets.
+        const connectionInfoWithSecrets = await this._getConnectionInfoWithSecrets(
+          savedConnections[connectionId]
         );
 
-        if (connectionOptionsWithSecrets) {
-          this._connections[connectionId].connectionOptions = connectionOptionsWithSecrets;
+        // Save connection info with secrets to extension memory.
+        if (connectionInfoWithSecrets) {
+          this._connections[connectionId] = connectionInfoWithSecrets;
         }
 
         this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
@@ -159,18 +213,14 @@ export default class ConnectionController {
 
   async loadSavedConnections(): Promise<void> {
     // Try to pull in the connections previously saved in the global storage of vscode.
-    const existingGlobalConnections =
-      this._storageController.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS) ||
-      {};
+    const existingGlobalConnections = this._storageController.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS);
     await this._loadSavedConnectionsByStore(existingGlobalConnections);
 
     // Try to pull in the connections previously saved in the workspace storage of vscode.
-    const existingWorkspaceConnections =
-      this._storageController.get(
-        StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-        StorageScope.WORKSPACE
-      ) ||
-      {};
+    const existingWorkspaceConnections = this._storageController.get(
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageLocation.WORKSPACE
+    );
     await this._loadSavedConnectionsByStore(existingWorkspaceConnections);
   }
 
@@ -252,42 +302,61 @@ export default class ConnectionController {
   }
 
   private async _saveSecretsToKeychain(
-    { connectionId, secrets }: { connectionId: string, secrets: ConnectionSecrets }
+    { connectionId, secrets }: ConnectionSecretsInfo
   ): Promise<void> {
-    if (ext.keytarModule) {
-      const secretsAsString = JSON.stringify(secrets);
-
-      await ext.keytarModule.setPassword(
-        this._serviceName,
-        connectionId,
-        secretsAsString
-      );
+    if (!ext.keytarModule || !Object.keys(secrets).length) {
+      return;
     }
+
+    const secretsAsString = JSON.stringify(secrets);
+
+    await ext.keytarModule.setPassword(
+      this._serviceName,
+      connectionId,
+      secretsAsString
+    );
+  }
+
+  private async _saveConnection(
+    newStoreConnectionInfoWithSecrets: StoreConnectionInfo
+  ): Promise<StoreConnectionInfo> {
+    // We don't want to store secrets to disc.
+    const { connectionInfo: safeConnectionInfo, secrets } = extractSecrets(
+      newStoreConnectionInfoWithSecrets
+    );
+    const savedConnectionInfo = await this._storageController.saveConnection({
+      ...newStoreConnectionInfoWithSecrets,
+      connectionOptions: safeConnectionInfo.connectionOptions // The connection info without secrtes.
+    });
+
+    await this._saveSecretsToKeychain({
+      connectionId: savedConnectionInfo.id,
+      secrets // Only secrets.
+    });
+
+    return savedConnectionInfo;
   }
 
   async saveNewConnectionAndConnect(
     originalConnectionInfo: ConnectionInfo,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
-    // We don't want to store secrets to disc.
-    const { connectionInfo: safeConnectionInfo, secrets } = extractSecrets(
-      originalConnectionInfo
-    );
-    const savedConnectionInfo = await this._storageController.storeNewConnection(
-      safeConnectionInfo // The connection info without secrtes.
-    );
+    const name = getConnectionTitle(originalConnectionInfo);
+    const newConnectionInfo = {
+      id: uuidv4(),
+      name,
+      // To begin we just store it on the session, the storage controller
+      // handles changing this based on user preference.
+      storageLocation: StorageLocation.NONE,
+      connectionOptions: originalConnectionInfo.connectionOptions
+    };
 
-    // We want to keep secrets in memory tho.
+    const savedConnectionInfo = await this._saveConnection(newConnectionInfo);
+
     this._connections[savedConnectionInfo.id] = {
       ...savedConnectionInfo,
       connectionOptions: originalConnectionInfo.connectionOptions // The connection options with secrtes.
     };
-
-    // We also want to store secrets to keychain.
-    await this._saveSecretsToKeychain({
-      connectionId: savedConnectionInfo.id,
-      secrets
-    });
 
     log.info(`Connect called to connect to instance: ${savedConnectionInfo.name}`);
     return this._connect(savedConnectionInfo.id, connectionType);
@@ -574,24 +643,7 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
-    if (
-      this._connections[connectionId].storageLocation === StorageScope.GLOBAL
-    ) {
-      await this._storageController.saveConnectionToGlobalStore(
-        this._connections[connectionId]
-      );
-      return true;
-    }
-
-    if (
-      this._connections[connectionId].storageLocation === StorageScope.WORKSPACE
-    ) {
-      await this._storageController.saveConnectionToWorkspaceStore(
-        this._connections[connectionId]
-      );
-
-      return true;
-    }
+    await this._storageController.saveConnection(this._connections[connectionId]);
 
     // No storing needed.
     return true;
@@ -623,7 +675,7 @@ export default class ConnectionController {
     return this._activeDataService !== null;
   }
 
-  getSavedConnections(): SavedConnectionInfo[] {
+  getSavedConnections(): StoreConnectionInfo[] {
     return Object.values(this._connections);
   }
 
@@ -756,10 +808,10 @@ export default class ConnectionController {
         }
       },
       ...Object.values(this._connections)
-        .sort((connectionA: SavedConnectionInfo, connectionB: SavedConnectionInfo) =>
+        .sort((connectionA: StoreConnectionInfo, connectionB: StoreConnectionInfo) =>
           (connectionA.name || '').localeCompare(connectionB.name || '')
         )
-        .map((item: SavedConnectionInfo) => ({
+        .map((item: StoreConnectionInfo) => ({
           label: item.name,
           data: {
             type: NewConnectionType.SAVED_CONNECTION,

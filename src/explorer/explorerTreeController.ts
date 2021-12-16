@@ -8,7 +8,7 @@ import { createLogger } from '../logging';
 import { DOCUMENT_ITEM } from './documentTreeItem';
 import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 import EXTENSION_COMMANDS from '../commands';
-import { SavedConnectionInfo } from '../connectionController';
+import { StoreConnectionInfo } from '../connectionController';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 
 const log = createLogger('explorer controller');
@@ -146,7 +146,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
       this._connectionTreeItems = {};
 
       // Create new connection tree items, using cached children wherever possible.
-      connections.forEach((connection: SavedConnectionInfo) => {
+      connections.forEach((connection: StoreConnectionInfo) => {
         const isActiveConnection =
           connection.id === this._connectionController.getActiveConnectionId();
         const isBeingConnectedTo =

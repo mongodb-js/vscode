@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ConnectionInfo, getConnectionTitle } from 'mongodb-data-service';
-import { SavedConnectionInfo } from '../connectionController';
+import { StoreConnectionInfo } from '../connectionController';
 
 export enum StorageVariables {
   // Only exists on globalState.
@@ -14,7 +13,7 @@ export enum StorageVariables {
 }
 
 // Typically variables default to 'GLOBAL' scope.
-export enum StorageScope {
+export enum StorageLocation {
   GLOBAL = 'GLOBAL',
   WORKSPACE = 'WORKSPACE',
   NONE = 'NONE'
@@ -28,7 +27,7 @@ export enum DefaultSavingLocations {
 }
 
 export type ConnectionsFromStorage = {
-  [key: string]: SavedConnectionInfo
+  [key: string]: StoreConnectionInfo
 };
 
 type StoredVariableName = StorageVariables.GLOBAL_USER_ID |
@@ -44,26 +43,26 @@ type StoredItem<T> =
     never;
 
 export default class StorageController {
-  _storage: { [StorageScope.GLOBAL]: vscode.Memento, [StorageScope.WORKSPACE]: vscode.Memento };
+  _storage: { [StorageLocation.GLOBAL]: vscode.Memento, [StorageLocation.WORKSPACE]: vscode.Memento };
 
   constructor(context: vscode.ExtensionContext) {
     this._storage = {
-      [StorageScope.GLOBAL]: context.globalState,
-      [StorageScope.WORKSPACE]: context.workspaceState
+      [StorageLocation.GLOBAL]: context.globalState,
+      [StorageLocation.WORKSPACE]: context.workspaceState
     };
   }
 
-  get<T extends StoredVariableName>(variableName: T, storageScope: StorageScope = StorageScope.GLOBAL): StoredItem<T> {
-    return this._storage[storageScope].get(variableName);
+  get<T extends StoredVariableName>(variableName: T, storageLocation: StorageLocation = StorageLocation.GLOBAL): StoredItem<T> {
+    return this._storage[storageLocation].get(variableName);
   }
 
   // Update something in the storage. Defaults to global storage (not workspace).
   update(
     variableName: StorageVariables,
     value: boolean | string | ConnectionsFromStorage,
-    storageScope: StorageScope = StorageScope.GLOBAL
+    storageLocation: StorageLocation = StorageLocation.GLOBAL
   ): Thenable<void> {
-    this._storage[storageScope].update(variableName, value);
+    this._storage[storageLocation].update(variableName, value);
     return Promise.resolve();
   }
 
@@ -80,14 +79,12 @@ export default class StorageController {
     return globalUserId;
   }
 
-  async saveConnectionToGlobalStore(
-    savedConnectionInfo: SavedConnectionInfo
-  ): Promise<void> {
+  async saveConnectionToGlobalStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {
     // Get the current save connections.
-    const globalConnections = this.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS) || {};
+    const globalConnections = this.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS);
 
     // Add the new connection.
-    globalConnections[savedConnectionInfo.id] = savedConnectionInfo;
+    globalConnections[storeConnectionInfo.id] = storeConnectionInfo;
 
     // Update the store.
     return this.update(
@@ -96,40 +93,44 @@ export default class StorageController {
     );
   }
 
-  async saveConnectionToWorkspaceStore(
-    savedConnectionInfo: SavedConnectionInfo
-  ): Promise<void> {
+  async saveConnectionToWorkspaceStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {
     // Get the current save connections.
     const workspaceConnections = this.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
-    ) || {};
+      StorageLocation.WORKSPACE
+    );
 
     // Add the new connection.
-    workspaceConnections[savedConnectionInfo.id] = savedConnectionInfo;
+    workspaceConnections[storeConnectionInfo.id] = storeConnectionInfo;
 
     // Update the store.
     return this.update(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       workspaceConnections,
-      StorageScope.WORKSPACE
+      StorageLocation.WORKSPACE
     );
   }
 
-  getPreferedStorageLocationFromConfiguration(): StorageScope {
-    const defaultConnectionSavingLocation = vscode.workspace
+  async saveConnection(storeConnectionInfo: StoreConnectionInfo): Promise<StoreConnectionInfo> {
+    const dontShowSaveLocationPrompt = vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .get('defaultConnectionSavingLocation');
+      .get('hideOptionToChooseWhereToSaveNewConnections');
 
-    if (defaultConnectionSavingLocation === DefaultSavingLocations.Workspace) {
-      return StorageScope.WORKSPACE;
+    if (dontShowSaveLocationPrompt === true) {
+      // The user has chosen not to show the message on where to save the connection.
+      // Save the connection in their default preference.
+      storeConnectionInfo.storageLocation = this.getPreferedStorageLocationFromConfiguration();
+    } else {
+      storeConnectionInfo.storageLocation = await this.getStorageLocationFromPrompt();
     }
 
-    if (defaultConnectionSavingLocation === DefaultSavingLocations.Global) {
-      return StorageScope.GLOBAL;
+    if (storeConnectionInfo.storageLocation === StorageLocation.WORKSPACE) {
+      await this.saveConnectionToWorkspaceStore(storeConnectionInfo);
+    } else if (storeConnectionInfo.storageLocation === StorageLocation.GLOBAL) {
+      await this.saveConnectionToGlobalStore(storeConnectionInfo);
     }
 
-    return StorageScope.NONE;
+    return storeConnectionInfo;
   }
 
   async getStorageLocationFromPrompt() {
@@ -149,46 +150,14 @@ export default class StorageController {
     );
 
     if (chosenConnectionSavingLocation === DefaultSavingLocations.Workspace) {
-      return StorageScope.WORKSPACE;
+      return StorageLocation.WORKSPACE;
     }
 
     if (chosenConnectionSavingLocation === DefaultSavingLocations.Global) {
-      return StorageScope.GLOBAL;
+      return StorageLocation.GLOBAL;
     }
 
-    return StorageScope.NONE;
-  }
-
-  async storeNewConnection(safeConnectionInfo: ConnectionInfo): Promise<SavedConnectionInfo> {
-    const name = getConnectionTitle(safeConnectionInfo);
-    const savedConnectionInfo = {
-      id: safeConnectionInfo.id || uuidv4(),
-      name,
-      // To begin we just store it on the session, the storage controller
-      // handles changing this based on user preference.
-      storageLocation: StorageScope.NONE,
-      connectionOptions: safeConnectionInfo.connectionOptions
-    };
-
-    const dontShowSaveLocationPrompt = vscode.workspace
-      .getConfiguration('mdb.connectionSaving')
-      .get('hideOptionToChooseWhereToSaveNewConnections');
-
-    if (dontShowSaveLocationPrompt === true) {
-      // The user has chosen not to show the message on where to save the connection.
-      // Save the connection in their default preference.
-      savedConnectionInfo.storageLocation = this.getPreferedStorageLocationFromConfiguration();
-    } else {
-      savedConnectionInfo.storageLocation = await this.getStorageLocationFromPrompt();
-    }
-
-    if (savedConnectionInfo.storageLocation === StorageScope.WORKSPACE) {
-      await this.saveConnectionToWorkspaceStore(savedConnectionInfo);
-    } else if (savedConnectionInfo.storageLocation === StorageScope.GLOBAL) {
-      await this.saveConnectionToGlobalStore(savedConnectionInfo);
-    }
-
-    return savedConnectionInfo;
+    return StorageLocation.NONE;
   }
 
   removeConnection(connectionId: string): void {
@@ -207,7 +176,7 @@ export default class StorageController {
 
     const workspaceStoredConnections = this.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
+      StorageLocation.WORKSPACE
     );
     if (
       workspaceStoredConnections &&
@@ -217,18 +186,34 @@ export default class StorageController {
       void this.update(
         StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
         workspaceStoredConnections,
-        StorageScope.WORKSPACE
+        StorageLocation.WORKSPACE
       );
     }
   }
 
   hasSavedConnections(): boolean {
-    const savedWorkspaceConnections = this.get(StorageVariables.WORKSPACE_SAVED_CONNECTIONS, StorageScope.WORKSPACE);
-    const savedGlobalConnections = this.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS, StorageScope.GLOBAL);
+    const savedWorkspaceConnections = this.get(StorageVariables.WORKSPACE_SAVED_CONNECTIONS, StorageLocation.WORKSPACE);
+    const savedGlobalConnections = this.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS, StorageLocation.GLOBAL);
 
     return (
       (savedWorkspaceConnections && Object.keys(savedWorkspaceConnections).length > 0) ||
       (savedGlobalConnections && Object.keys(savedGlobalConnections).length > 0)
     );
+  }
+
+  getPreferedStorageLocationFromConfiguration(): StorageLocation {
+    const defaultConnectionSavingLocation = vscode.workspace
+      .getConfiguration('mdb.connectionSaving')
+      .get('defaultConnectionSavingLocation');
+
+    if (defaultConnectionSavingLocation === DefaultSavingLocations.Workspace) {
+      return StorageLocation.WORKSPACE;
+    }
+
+    if (defaultConnectionSavingLocation === DefaultSavingLocations.Global) {
+      return StorageLocation.GLOBAL;
+    }
+
+    return StorageLocation.NONE;
   }
 }
