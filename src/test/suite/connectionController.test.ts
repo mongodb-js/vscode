@@ -334,7 +334,8 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const globalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(
@@ -393,7 +394,8 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const globalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(
@@ -521,7 +523,8 @@ suite('Connection Controller Test Suite', function () {
 
     const objectString = JSON.stringify(undefined);
     const globalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(
@@ -595,7 +598,8 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const globalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(
@@ -610,7 +614,8 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.removeSavedConnection(connectionId);
 
     const postGlobalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(

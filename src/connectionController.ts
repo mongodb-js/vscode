@@ -186,7 +186,7 @@ export default class ConnectionController {
   private async _loadSavedConnectionsByStore(
     savedConnections: ConnectionsFromStorage
   ): Promise<void> {
-    if (!Object.keys(savedConnections).length) {
+    if (!savedConnections || !Object.keys(savedConnections).length) {
       return;
     }
 
@@ -213,7 +213,10 @@ export default class ConnectionController {
 
   async loadSavedConnections(): Promise<void> {
     // Try to pull in the connections previously saved in the global storage of vscode.
-    const existingGlobalConnections = this._storageController.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS);
+    const existingGlobalConnections = this._storageController.get(
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
+    );
     await this._loadSavedConnectionsByStore(existingGlobalConnections);
 
     // Try to pull in the connections previously saved in the workspace storage of vscode.

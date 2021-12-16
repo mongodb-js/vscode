@@ -16,7 +16,8 @@ suite('Storage Controller Test Suite', () => {
     };
     const testStorageController = new StorageController(testExtensionContext);
     const testVal = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
     assert(
       testVal.collOne.name === 'this_gonna_get_saved',
@@ -63,7 +64,8 @@ suite('Storage Controller Test Suite', () => {
     });
 
     const updatedGlobalModels = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
     assert(
       Object.keys(updatedGlobalModels).length === 2,

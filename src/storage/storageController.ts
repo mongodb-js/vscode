@@ -81,7 +81,14 @@ export default class StorageController {
 
   async saveConnectionToGlobalStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {
     // Get the current save connections.
-    const globalConnections = this.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS);
+    let globalConnections = this.get(
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
+    );
+
+    if (!globalConnections) {
+      globalConnections = {};
+    }
 
     // Add the new connection.
     globalConnections[storeConnectionInfo.id] = storeConnectionInfo;
@@ -95,10 +102,14 @@ export default class StorageController {
 
   async saveConnectionToWorkspaceStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {
     // Get the current save connections.
-    const workspaceConnections = this.get(
+    let workspaceConnections = this.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE
     );
+
+    if (!workspaceConnections) {
+      workspaceConnections = {};
+    }
 
     // Add the new connection.
     workspaceConnections[storeConnectionInfo.id] = storeConnectionInfo;
@@ -164,13 +175,15 @@ export default class StorageController {
     // See if the connection exists in the saved global or workspace connections
     // and remove it if it is.
     const globalStoredConnections = this.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
     if (globalStoredConnections && globalStoredConnections[connectionId]) {
       delete globalStoredConnections[connectionId];
       void this.update(
         StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-        globalStoredConnections
+        globalStoredConnections,
+        StorageLocation.GLOBAL
       );
     }
 
