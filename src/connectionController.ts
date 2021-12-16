@@ -710,10 +710,12 @@ export default class ConnectionController {
     return this._activeDataService;
   }
 
+  getMongoClientConnectionOptions(): ConnectionModel {
+    return this._activeDataService?.getMongoClientConnectionOptions() || {};
+  }
+
   getActiveDerivedConnectionModel(): ConnectionModel {
-    return this._activeConnectionModel
-      ? this._activeConnectionModel.getAttributes({ derived: true })
-      : null;
+    return this._activeConnectionModel?.getAttributes({ derived: true }) || {};
   }
 
   async getConnectionStringByConnectionId(connectionId: string): Promise<string> {

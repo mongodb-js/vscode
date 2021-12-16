@@ -14,7 +14,6 @@ import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';
 import { Worker as WorkerThreads } from 'worker_threads';
 
-import { CollectionItem } from '../types/collectionItemType';
 import { ServerCommands } from './serverCommands';
 import {
   ShellExecuteAllResult,
@@ -26,6 +25,14 @@ import {
 import { Visitor } from './visitor';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
+
+export type CollectionItem = {
+  name: string;
+  type?: string;
+  options?: object,
+  info?: { readOnly: boolean; uuid: object[] },
+  idIndex?: { v: number; key: object[]; name: string; ns: string }
+};
 
 export type ShellCompletionItem = {
   [symbol: string]: CompletionItem[] | []

@@ -1,3 +1,4 @@
+import * as util from 'util';
 import * as vscode from 'vscode';
 import path from 'path';
 
@@ -14,8 +15,6 @@ function getIconPath(): { light: string; dark: string } {
     dark: path.join(DARK, 'database.svg')
   };
 }
-
-import * as util from 'util';
 
 export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {

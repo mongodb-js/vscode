@@ -8,6 +8,7 @@ import {
   getConnectionTelemetryProperties
 } from '../../../telemetry/connectionTelemetry';
 
+
 const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
 suite('ConnectionTelemetry Controller Test Suite', function () {

@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
-import ConnectionModel from 'mongodb-connection-model';
 
 import launchMongoShell from '../../../commands/launchMongoShell';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -58,8 +57,7 @@ suite('Commands Test Suite', () => {
     });
 
     test('openMongoDBShell should display an error message when not connected', async () => {
-      const errorMessage =
-        'You need to be connected before launching the MongoDB Shell.';
+      const errorMessage = 'You need to be connected before launching the MongoDB Shell.';
 
       fakeShowErrorMessage.resolves(errorMessage);
 
@@ -71,14 +69,19 @@ suite('Commands Test Suite', () => {
     });
 
     test('openMongoDBShell should open a terminal with the active connection driver url', async () => {
-      const driverUri =
-        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
-      const connectionModel = new ConnectionModel({
-        hostname: 'localhost',
-        port: 27018
-      });
+      const driverUri = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: 'localhost:27018',
+        driverAuthMechanism: undefined,
+        safeUrl: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        driverUrl: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        driverUrlWithSsh: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        driverOptions: { readPreference: 'primary' },
+        sshTunnelOptions: {},
+        username: '',
+        title: 'localhost:27018'
+      });
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -99,15 +102,31 @@ suite('Commands Test Suite', () => {
     });
 
     test('openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
-      const connectionModel = new ConnectionModel({
-        hostname: '127.0.0.1',
-        sshTunnel: 'USER_PASSWORD',
-        sshTunnelHostname: 'my.ssh-server.com',
-        sshTunnelUsername: 'my-user',
-        sshTunnelPassword: 'password'
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: '127.0.0.1:27017',
+        driverAuthMechanism: undefined,
+        safeUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=false',
+        driverUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=false',
+        driverUrlWithSsh: 'mongodb://127.0.0.1:29309/?readPreference=primary&ssl=false',
+        driverOptions: { readPreference: 'primary' },
+        sshTunnelOptions: {
+          readyTimeout: 20000,
+          forwardTimeout: 20000,
+          keepaliveInterval: 20000,
+          srcAddr: '127.0.0.1',
+          dstPort: 27017,
+          dstAddr: '127.0.0.1',
+          localPort: 29309,
+          localAddr: '127.0.0.1',
+          host: 'my.ssh-server.com',
+          port: 22,
+          username: 'my-user',
+          password: 'password'
+        },
+        username: '',
+        title: '127.0.0.1:27017'
       });
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -127,16 +146,24 @@ suite('Commands Test Suite', () => {
     });
 
     test('openMongoDBShell should open a terminal with ssl config injected', async () => {
-      const driverUri =
-        'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
-      const connectionModel = new ConnectionModel({
-        hostname: '127.0.0.1',
-        ssl: true,
-        sslMethod: 'SERVER',
-        sslCA: './path_to_some_file'
+      const driverUri = 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
+
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: '127.0.0.1:27017',
+        driverAuthMechanism: undefined,
+        safeUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true',
+        driverUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true',
+        driverUrlWithSsh: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true',
+        driverOptions: {
+          sslValidate: true,
+          sslCA: ['./path_to_some_file'],
+          readPreference: 'primary'
+        },
+        sshTunnelOptions: {},
+        username: '',
+        title: '127.0.0.1:27017'
       });
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -157,18 +184,27 @@ suite('Commands Test Suite', () => {
     });
 
     test('openMongoDBShell should open a terminal with x509 config injected', async () => {
-      const driverUri =
-        'mongodb://testing@localhost:27017/?authMechanism=MONGODB-X509&readPreference=primary&ssl=true&authSource=%24external';
-      const connectionModel = new ConnectionModel({
-        sslMethod: 'ALL',
-        sslKey: ['path/to/key'],
-        sslCert: ['path/to/cert'],
-        sslCA: ['path/to/ca'],
-        authStrategy: 'X509',
-        x509Username: 'testing'
+      const driverUri = 'mongodb://testing@localhost:27017/?authMechanism=MONGODB-X509&readPreference=primary&ssl=true&authSource=%24external';
+
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: 'localhost:27017',
+        driverAuthMechanism: 'MONGODB-X509',
+        safeUrl: 'mongodb://testing@localhost:27017/?authMechanism=MONGODB-X509&readPreference=primary&ssl=true&authSource=%24external',
+        driverUrl: 'mongodb://testing@localhost:27017/?authMechanism=MONGODB-X509&readPreference=primary&ssl=true&authSource=%24external',
+        driverUrlWithSsh: 'mongodb://testing@localhost:27017/?authMechanism=MONGODB-X509&readPreference=primary&ssl=true&authSource=%24external',
+        driverOptions: {
+          sslValidate: false,
+          sslCA: ['./path/to/ca'],
+          sslKey: './path/to/key',
+          sslCert: './path/to/cert',
+          tlsAllowInvalidHostnames: true,
+          readPreference: 'primary'
+        },
+        sshTunnelOptions: {},
+        username: 'testing',
+        title: 'localhost:27017'
       });
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -182,7 +218,7 @@ suite('Commands Test Suite', () => {
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
 
-      assert.strictEqual(shellCommandText, 'mongosh --tls --tlsAllowInvalidHostnames --tlsCAFile="path/to/ca" --tlsCertificateKeyFile="path/to/cert" $MDB_CONNECTION_STRING;');
+      assert.strictEqual(shellCommandText, 'mongosh --tls --tlsAllowInvalidHostnames --tlsCAFile="./path/to/ca" --tlsCertificateKeyFile="./path/to/cert" $MDB_CONNECTION_STRING;');
     });
   });
 
@@ -192,14 +228,20 @@ suite('Commands Test Suite', () => {
     });
 
     test('powershell openMongoDBShell should open a terminal with the active connection driver url', async () => {
-      const driverUri =
-        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
-      const connectionModel = new ConnectionModel({
-        hostname: 'localhost',
-        port: 27018
+      const driverUri = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: 'localhost:27018',
+        driverAuthMechanism: undefined,
+        safeUrl: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        driverUrl: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        driverUrlWithSsh: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        driverOptions: { readPreference: 'primary' },
+        sshTunnelOptions: {},
+        username: '',
+        title: 'localhost:27018'
       });
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -222,15 +264,31 @@ suite('Commands Test Suite', () => {
     });
 
     test('powershell openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
-      const connectionModel = new ConnectionModel({
-        hostname: '127.0.0.1',
-        sshTunnel: 'USER_PASSWORD',
-        sshTunnelHostname: 'my.ssh-server.com',
-        sshTunnelUsername: 'my-user',
-        sshTunnelPassword: 'password'
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: '127.0.0.1:27017',
+        driverAuthMechanism: undefined,
+        safeUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=false',
+        driverUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=false',
+        driverUrlWithSsh: 'mongodb://127.0.0.1:29500/?readPreference=primary&ssl=false',
+        driverOptions: { readPreference: 'primary' },
+        sshTunnelOptions: {
+          readyTimeout: 20000,
+          forwardTimeout: 20000,
+          keepaliveInterval: 20000,
+          srcAddr: '127.0.0.1',
+          dstPort: 27017,
+          dstAddr: '127.0.0.1',
+          localPort: 29500,
+          localAddr: '127.0.0.1',
+          host: 'my.ssh-server.com',
+          port: 22,
+          username: 'my-user',
+          password: 'password'
+        },
+        username: '',
+        title: '127.0.0.1:27017'
       });
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -252,16 +310,24 @@ suite('Commands Test Suite', () => {
     });
 
     test('powershell openMongoDBShell should open a terminal with ssl config injected', async () => {
-      const driverUri =
-        'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
-      const connectionModel = new ConnectionModel({
-        hostname: '127.0.0.1',
-        ssl: true,
-        sslMethod: 'SERVER',
-        sslCA: './path_to_some_file'
+      const driverUri = 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
+
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: '127.0.0.1:27017',
+        driverAuthMechanism: undefined,
+        safeUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true',
+        driverUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true',
+        driverUrlWithSsh: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true',
+        driverOptions: {
+          sslValidate: true,
+          sslCA: ['./path_to_some_file'],
+          readPreference: 'primary'
+        },
+        sshTunnelOptions: {},
+        username: '',
+        title: '127.0.0.1:27017'
       });
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -277,6 +343,7 @@ suite('Commands Test Suite', () => {
       );
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
+
       assert(
         shellCommandText.includes('--tls'),
         `Expected open terminal to have tls arg "--tls" found "${shellCommandText}"`
@@ -298,14 +365,20 @@ suite('Commands Test Suite', () => {
     });
 
     test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async () => {
-      const driverUri =
-        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
-      const connectionModel = new ConnectionModel({
-        hostname: 'localhost',
-        port: 27018
+      const driverUri = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: 'localhost:27018',
+        driverAuthMechanism: undefined,
+        safeUrl: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        driverUrl: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        driverUrlWithSsh: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        driverOptions: { readPreference: 'primary' },
+        sshTunnelOptions: {},
+        username: '',
+        title: 'localhost:27018'
       });
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -322,15 +395,31 @@ suite('Commands Test Suite', () => {
     });
 
     test('windows cmd openMongoDBShell should open a terminal with ssh tunnel port injected', async () => {
-      const connectionModel = new ConnectionModel({
-        hostname: '127.0.0.1',
-        sshTunnel: 'USER_PASSWORD',
-        sshTunnelHostname: 'my.ssh-server.com',
-        sshTunnelUsername: 'my-user',
-        sshTunnelPassword: 'password'
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: '127.0.0.1:27017',
+        driverAuthMechanism: undefined,
+        safeUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=false',
+        driverUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=false',
+        driverUrlWithSsh: 'mongodb://127.0.0.1:29278/?readPreference=primary&ssl=false',
+        driverOptions: { readPreference: 'primary' },
+        sshTunnelOptions: {
+          readyTimeout: 20000,
+          forwardTimeout: 20000,
+          keepaliveInterval: 20000,
+          srcAddr: '127.0.0.1',
+          dstPort: 27017,
+          dstAddr: '127.0.0.1',
+          localPort: 29278,
+          localAddr: '127.0.0.1',
+          host: 'my.ssh-server.com',
+          port: 22,
+          username: 'my-user',
+          password: 'password'
+        },
+        username: '',
+        title: '127.0.0.1:27017'
       });
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -352,16 +441,24 @@ suite('Commands Test Suite', () => {
     });
 
     test('windows cmd openMongoDBShell should open a terminal with ssl config injected', async () => {
-      const driverUri =
-        'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
-      const connectionModel = new ConnectionModel({
-        hostname: '127.0.0.1',
-        ssl: true,
-        sslMethod: 'SERVER',
-        sslCA: './path_to_some_file'
+      const driverUri = 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true';
+
+      fakeGetActiveDerivedConnectionModel.returns({
+        instanceId: '127.0.0.1:27017',
+        driverAuthMechanism: undefined,
+        safeUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true',
+        driverUrl: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true',
+        driverUrlWithSsh: 'mongodb://127.0.0.1:27017/?readPreference=primary&ssl=true',
+        driverOptions: {
+          sslValidate: true,
+          sslCA: ['./path_to_some_file'],
+          readPreference: 'primary'
+        },
+        sshTunnelOptions: {},
+        username: '',
+        title: '127.0.0.1:27017'
       });
 
-      fakeGetActiveDerivedConnectionModel.returns(connectionModel.getAttributes({ derived: true }));
       fakeIsCurrentlyConnected.returns(true);
 
       await launchMongoShell(mockConnectionController);
@@ -377,6 +474,7 @@ suite('Commands Test Suite', () => {
       );
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
+
       assert(
         shellCommandText.includes('--tls'),
         `Expected open terminal to have tls arg "--tls" found "${shellCommandText}"`

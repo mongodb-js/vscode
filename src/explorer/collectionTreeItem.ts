@@ -88,7 +88,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
     cachedDocumentCount: number | null,
     existingDocumentListChild?: DocumentListTreeItem,
     existingSchemaChild?: SchemaTreeItem,
-    existingIndexListChild?: IndexListTreeItem // Existing cache.
+    existingIndexListChild?: IndexListTreeItem
   ) {
     super(
       collection.name,

@@ -102,9 +102,9 @@ suite('Playground Controller Test Suite', function () {
           options: {
             appname: 'VSCode Playground Tests',
             port: 27018,
-            sslKey: ['path/to/key'],
-            sslCert: ['path/to/cert'],
-            sslCA: ['path/to/ca'],
+            sslKey: './path/to/key',
+            sslCert: './path/to/cert',
+            sslCA: ['./path/to/ca'],
           }
         })
       });
@@ -138,13 +138,9 @@ suite('Playground Controller Test Suite', function () {
       );
       sinon.replace(
         testPlaygroundController._connectionController,
-        'getActiveDerivedConnectionModel',
+        'getMongoClientConnectionOptions',
         () => ({
-          driverOptions: {
-            sslKey: ['path/to/key'],
-            sslCert: ['path/to/cert'],
-            sslCA: ['path/to/ca']
-          }
+          url: 'mongodb://localhost'
         })
       );
 
@@ -166,21 +162,21 @@ suite('Playground Controller Test Suite', function () {
             sslKey: string[];
           }
         }).connectionOptions.sslKey
-      ).to.deep.equal(['path/to/key']);
+      ).to.equal('./path/to/key');
       expect(
         (mockConnectToServiceProvider.firstCall.firstArg as {
           connectionOptions: {
             sslCert: string;
           }
         }).connectionOptions.sslCert
-      ).to.deep.equal(['path/to/cert']);
+      ).to.equal('./path/to/cert');
       expect(
         (mockConnectToServiceProvider.firstCall.firstArg as {
           connectionOptions: {
             sslCA: string;
           }
         }).connectionOptions.sslCA
-      ).to.deep.equal(['path/to/ca']);
+      ).to.deep.equal(['./path/to/ca']);
     });
   });
 
@@ -261,17 +257,11 @@ suite('Playground Controller Test Suite', function () {
     suite('user is not connected', () => {
       before(() => {
         const mockGetActiveConnectionName = sinon.fake.returns('');
-        const mockGetActiveDerivedConnectionModel = sinon.fake.returns(null);
 
         sinon.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionName',
           mockGetActiveConnectionName
-        );
-        sinon.replace(
-          testPlaygroundController._connectionController,
-          'getActiveDerivedConnectionModel',
-          mockGetActiveDerivedConnectionModel
         );
       });
 

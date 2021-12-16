@@ -69,7 +69,6 @@ suite('Connection Controller Test Suite', function () {
     const connnectionId =
       testConnectionController.getActiveConnectionId() || '';
     const name = testConnectionController._connections[connnectionId].name;
-    const connectionModel = testConnectionController.getActiveDerivedConnectionModel();
     const dataService = testConnectionController.getActiveDataService();
 
     assert(
@@ -80,12 +79,10 @@ suite('Connection Controller Test Suite', function () {
       testConnectionController.getSavedConnections().length === 1,
       'Expected there to be 1 connection in the connection list.'
     );
-
     assert(
       name === 'localhost:27018',
       `Expected active connection to be 'localhost:27018' found ${name}`
     );
-    assert(connectionModel !== null);
     assert(dataService !== null);
     assert(testConnectionController.isCurrentlyConnected());
   });
@@ -107,7 +104,6 @@ suite('Connection Controller Test Suite', function () {
     const connectionsCount = testConnectionController.getSavedConnections()
       .length;
     const connnectionId = testConnectionController.getActiveConnectionId();
-    const connectionModel = testConnectionController.getActiveDerivedConnectionModel();
     const dataService = testConnectionController.getActiveDataService();
 
     assert(testConnectionController.getConnectionStatus() === 'DISCONNECTED');
@@ -123,7 +119,6 @@ suite('Connection Controller Test Suite', function () {
       connnectionId === null,
       `Expected the active connection id to be null, found ${connnectionId}`
     );
-    assert(connectionModel === null);
     assert(dataService === null);
     assert(!testConnectionController.isCurrentlyConnected());
   });

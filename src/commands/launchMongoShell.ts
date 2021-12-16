@@ -1,14 +1,13 @@
 import * as vscode from 'vscode';
+import ConnectionModel from 'mongodb-connection-model';
 
 import ConnectionController from '../connectionController';
 
-const isSslConnection = (activeConnectionModel: any): boolean => {
+const isSslConnection = (activeDerivedConnectionModel: ConnectionModel): boolean => {
   return !!(
-    activeConnectionModel &&
-    activeConnectionModel.driverOptions &&
-    (activeConnectionModel.driverOptions.sslCA ||
-      activeConnectionModel.driverOptions.sslCert ||
-      activeConnectionModel.driverOptions.sslPass)
+    activeDerivedConnectionModel?.driverOptions?.sslCA ||
+    activeDerivedConnectionModel?.driverOptions?.sslCert ||
+    activeDerivedConnectionModel?.driverOptions?.sslPass
   );
 };
 
@@ -120,13 +119,11 @@ const openMongoDBShell = (connectionController: ConnectionController): Promise<b
     return Promise.resolve(false);
   }
 
-  const activeConnectionModel = connectionController.getActiveDerivedConnectionModel();
-  const mdbConnectionString = activeConnectionModel
-    ? activeConnectionModel.driverUrlWithSsh
-    : '';
+  const activeDerivedConnectionModel = connectionController.getActiveDerivedConnectionModel();
+  const mdbConnectionString = activeDerivedConnectionModel.driverUrlWithSsh || '';
 
-  if (activeConnectionModel && isSslConnection(activeConnectionModel)) {
-    mdbSslOptions = getSslOptions(activeConnectionModel.driverOptions);
+  if (isSslConnection(activeDerivedConnectionModel)) {
+    mdbSslOptions = getSslOptions(activeDerivedConnectionModel.driverOptions);
   }
 
   if (userShell.includes('powershell.exe')) {

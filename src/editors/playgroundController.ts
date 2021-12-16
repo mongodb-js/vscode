@@ -574,13 +574,13 @@ export default class PlaygroundController {
           selection
         });
 
-        const connectionModel = this._connectionController.getActiveDerivedConnectionModel();
+        const mongoClientOptions = this._connectionController.getMongoClientConnectionOptions();
         const toCompile = {
           aggregation: selectedText,
           options: {
             collection: namespace.collectionName,
             database: namespace.databaseName,
-            uri: connectionModel?.driverUrlWithSsh
+            uri: mongoClientOptions?.url
           }
         };
 
