@@ -112,15 +112,14 @@ export default class ConnectionController {
   ): Promise<StoreConnectionInfo> {
     // Transform a raw connection model from storage to an ampersand model.
     const newConnectionModelWithSecrets = new ConnectionModel(savedConnectionInfo.connectionModel);
+    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(newConnectionModelWithSecrets);
 
     // Further use connectionOptions instead of connectionModel.
     const newSavedConnectionInfoWithSecrets = {
       id: savedConnectionInfo.id,
       name: savedConnectionInfo.name,
       storageLocation: savedConnectionInfo.storageLocation,
-      connectionOptions: {
-        connectionString: this.getDerivedConnectionOptionsByModel(newConnectionModelWithSecrets).driverUrlWithSsh
-      }
+      connectionOptions: newConnectionInfoWithSecrets.connectionOptions
     };
 
     await this._saveConnection(newSavedConnectionInfoWithSecrets);
@@ -713,12 +712,8 @@ export default class ConnectionController {
     return this._activeDataService?.getMongoClientConnectionOptions() || {};
   }
 
-  getDerivedConnectionOptionsByModel(connectionModel: ConnectionModel): ConnectionModel {
-    return connectionModel?.getAttributes({ derived: true }) || {};
-  }
-
   getActiveDerivedConnectionModel(): ConnectionModel {
-    return this.getDerivedConnectionOptionsByModel(this._activeConnectionModel);
+    return this._activeConnectionModel?.getAttributes({ derived: true }) || {};
   }
 
   async getConnectionStringByConnectionId(connectionId: string): Promise<string> {
