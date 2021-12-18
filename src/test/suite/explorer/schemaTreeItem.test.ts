@@ -1,15 +1,17 @@
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import { afterEach } from 'mocha';
+import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
 import { inspect } from 'util';
 
 import { ext } from '../../../extensionConstants';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
 import {
-  seedDataAndCreateDataService,
+  createTestDataService,
+  seedTestDB,
   cleanupTestDB,
-  TEST_DB_NAME
+  TEST_DB_NAME,
+  disconnectFromTestDB
 } from '../dbTestHelper';
 import SchemaTreeItem, {
   FIELDS_TO_SHOW
@@ -226,135 +228,136 @@ suite('SchemaTreeItem Test Suite', function () {
 
   suite('Live Database Tests', () => {
     this.timeout(5000);
+    let dataService;
+
+    before(async () => {
+      dataService = await createTestDataService();
+    });
 
     afterEach(async () => {
       await cleanupTestDB();
     });
 
-    test('when not expanded it has not yet pulled the schema', (done) => {
-      void seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
-        {
+    after(async () => {
+      await disconnectFromTestDB();
+    });
+
+    test('when not expanded it has not yet pulled the schema', async () => {
+      await seedTestDB(
+        'favoritePiesIWantToEatRightNow',
+        [{
           _id: 10,
           someField: 'applePie'
-        }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'favoritePiesIWantToEatRightNow',
-          TEST_DB_NAME,
-          dataService,
-          false,
-          false,
-          false,
-          false,
-          {}
-        );
+        }]
+      );
 
-        testSchemaTreeItem
-          .getChildren()
-          .then((schemaFields) => {
-            void dataService.disconnect();
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'favoritePiesIWantToEatRightNow',
+        TEST_DB_NAME,
+        dataService,
+        false,
+        false,
+        false,
+        false,
+        {}
+      );
 
-            assert(
-              schemaFields.length === 0,
-              `Expected no schema tree items to be returned, recieved ${schemaFields.length}`
-            );
-          })
-          .then(done, done);
-      });
+      const schemaFields = await testSchemaTreeItem.getChildren();
+
+      assert(
+        schemaFields.length === 0,
+        `Expected no schema tree items to be returned, recieved ${schemaFields.length}`
+      );
     });
 
-    test('when expanded shows the fields of a schema', (done) => {
-      void seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
-        {
+    test('when expanded shows the fields of a schema', async () => {
+      await seedTestDB(
+        'favoritePiesIWantToEatRightNow',
+        [{
           _id: 1,
           nameOfTastyPie: 'applePie'
-        }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'favoritePiesIWantToEatRightNow',
-          TEST_DB_NAME,
-          dataService,
-          false,
-          false,
-          false,
-          false,
-          {}
-        );
+        }]
+      );
 
-        void testSchemaTreeItem.onDidExpand();
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'favoritePiesIWantToEatRightNow',
+        TEST_DB_NAME,
+        dataService,
+        false,
+        false,
+        false,
+        false,
+        {}
+      );
 
-        testSchemaTreeItem
-          .getChildren()
-          .then((schemaFields) => {
-            void dataService.disconnect();
-            assert(
-              schemaFields.length === 2,
-              `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
-            );
-            assert(
-              schemaFields[0].label === '_id',
-              `Expected label of schema tree item to be the field name, recieved ${schemaFields[0].label}`
-            );
-            assert(
-              schemaFields[1].label === 'nameOfTastyPie',
-              `Expected label of schema tree item to be the field name, recieved ${schemaFields[1].label}`
-            );
-          })
-          .then(done, done);
-      });
+      await testSchemaTreeItem.onDidExpand();
+
+      const schemaFields = await testSchemaTreeItem.getChildren();
+
+      assert(
+        schemaFields.length === 2,
+        `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
+      );
+      assert(
+        schemaFields[0].label === '_id',
+        `Expected label of schema tree item to be the field name, recieved ${schemaFields[0].label}`
+      );
+      assert(
+        schemaFields[1].label === 'nameOfTastyPie',
+        `Expected label of schema tree item to be the field name, recieved ${schemaFields[1].label}`
+      );
     });
 
-    test('it only shows a dropdown for fields which are always documents - and not for polymorphic', (done) => {
-      void seedDataAndCreateDataService('favoritePiesIWantToEatRightNow', [
-        {
-          _id: 1,
-          alwaysDocument: {
-            fieldName: 'nice'
+    test('it only shows a dropdown for fields which are always documents - and not for polymorphic', async () => {
+      await seedTestDB(
+        'favoritePiesIWantToEatRightNow',
+        [
+          {
+            _id: 1,
+            alwaysDocument: {
+              fieldName: 'nice'
+            },
+            notAlwaysADocument: {
+              sureImADocument: 'hmmmm'
+            }
           },
-          notAlwaysADocument: {
-            sureImADocument: 'hmmmm'
+          {
+            _id: 2,
+            alwaysDocument: {
+              fieldName: 'nice'
+            },
+            notAlwaysADocument: 'A spy!'
           }
-        },
-        {
-          _id: 2,
-          alwaysDocument: {
-            fieldName: 'nice'
-          },
-          notAlwaysADocument: 'A spy!'
-        }
-      ]).then((dataService) => {
-        const testSchemaTreeItem = new SchemaTreeItem(
-          'favoritePiesIWantToEatRightNow',
-          TEST_DB_NAME,
-          dataService,
-          false,
-          false,
-          false,
-          false,
-          {}
-        );
+        ]
+      );
 
-        void testSchemaTreeItem.onDidExpand();
+      const testSchemaTreeItem = new SchemaTreeItem(
+        'favoritePiesIWantToEatRightNow',
+        TEST_DB_NAME,
+        dataService,
+        false,
+        false,
+        false,
+        false,
+        {}
+      );
 
-        testSchemaTreeItem
-          .getChildren()
-          .then((schemaFields) => {
-            void dataService.disconnect();
-            assert(
-              schemaFields.length === 3,
-              `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}: ${inspect(schemaFields)}`
-            );
-            assert(
-              fieldIsExpandable(schemaFields[1].field),
-              'Expected field to have expandable state'
-            );
-            assert(
-              fieldIsExpandable(schemaFields[2].field) === false,
-              'Expected field to have none expandable state'
-            );
-          })
-          .then(done, done);
-      });
+      await testSchemaTreeItem.onDidExpand();
+
+      const schemaFields = await testSchemaTreeItem.getChildren();
+
+      assert(
+        schemaFields.length === 3,
+        `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}: ${inspect(schemaFields)}`
+      );
+      assert(
+        fieldIsExpandable(schemaFields[1].field),
+        'Expected field to have expandable state'
+      );
+      assert(
+        fieldIsExpandable(schemaFields[2].field) === false,
+        'Expected field to have none expandable state'
+      );
     });
   });
 

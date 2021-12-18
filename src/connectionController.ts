@@ -364,10 +364,7 @@ export default class ConnectionController {
   }
 
   async getDataServiceAndConnect(connectionOptions: ConnectionOptions) {
-    const dataService = await connect(connectionOptions);
-    await dataService.connect();
-
-    return dataService;
+    return connect(connectionOptions);
   }
 
   private async _connect(
@@ -712,20 +709,13 @@ export default class ConnectionController {
     return this._activeDataService?.getMongoClientConnectionOptions() || {};
   }
 
+
   getActiveDerivedConnectionModel(): ConnectionModel {
     return this._activeConnectionModel?.getAttributes({ derived: true }) || {};
   }
 
-  async getConnectionStringByConnectionId(connectionId: string): Promise<string> {
-    const connectionOptions = this._connections[connectionId].connectionOptions;
-
-    if (!connectionOptions) {
-      throw new Error('Connection not found.');
-    }
-
-    const connectionModel = await convertConnectionInfoToModel({ connectionOptions });
-
-    return connectionModel.driverUrlWithSsh || '';
+  getConnectionStringByConnectionId(connectionId: string): string {
+    return this._connections[connectionId].connectionOptions.connectionString;
   }
 
   getConnectionStatus(): CONNECTION_STATUS {

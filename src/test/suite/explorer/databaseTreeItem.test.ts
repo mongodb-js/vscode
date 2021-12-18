@@ -1,13 +1,15 @@
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { after, before } from 'mocha';
 import assert from 'assert';
 
 import { CollectionTreeItem } from '../../../explorer';
 import DatabaseTreeItem from '../../../explorer/databaseTreeItem';
 import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
 import {
-  seedDataAndCreateDataService,
+  createTestDataService,
+  seedTestDB,
   cleanupTestDB,
+  disconnectFromTestDB,
   TEST_DB_NAME
 } from '../dbTestHelper';
 
@@ -66,7 +68,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       {}
     );
 
-    void testDatabaseTreeItem.onDidExpand();
+    await testDatabaseTreeItem.onDidExpand();
 
     const collections = await testDatabaseTreeItem.getChildren();
     assert(
@@ -180,9 +182,15 @@ suite('DatabaseTreeItem Test Suite', () => {
 
   suite('Live Database Tests', function () {
     this.timeout(5000);
+    let dataService;
 
-    afterEach(async () => {
+    before(async () => {
+      dataService = await createTestDataService();
+    });
+
+    after(async () => {
       await cleanupTestDB();
+      await disconnectFromTestDB();
     });
 
     test('schema is cached when a database is collapsed and expanded', async () => {
@@ -197,9 +205,8 @@ suite('DatabaseTreeItem Test Suite', () => {
         mockDocWithThirtyFields[`field${i}`] = 'some value';
       }
 
-      const dataService = await seedDataAndCreateDataService('ramenNoodles', [
-        mockDocWithThirtyFields
-      ]);
+      await seedTestDB('ramenNoodles', [mockDocWithThirtyFields]);
+
       const testDatabaseTreeItem = new DatabaseTreeItem(
         TEST_DB_NAME,
         dataService,
@@ -214,12 +221,12 @@ suite('DatabaseTreeItem Test Suite', () => {
         'Expected collection tree item not to be expanded on default.'
       );
 
-      void collectionTreeItems[0].onDidExpand();
+      await collectionTreeItems[0].onDidExpand();
       const schemaTreeItem = collectionTreeItems[0].getSchemaChild();
       if (!schemaTreeItem) {
         assert(false, 'No schema tree item found on collection.');
       }
-      void schemaTreeItem.onDidExpand();
+      await schemaTreeItem.onDidExpand();
       schemaTreeItem.onShowMoreClicked();
 
       const fields: any[] = await schemaTreeItem.getChildren();
@@ -236,20 +243,18 @@ suite('DatabaseTreeItem Test Suite', () => {
       );
 
       // Expand the subdocument.
-      void schemaTreeItem.childrenCache.testerObject.onDidExpand();
+      await schemaTreeItem.childrenCache.testerObject.onDidExpand();
 
       testDatabaseTreeItem.onDidCollapse();
-      const postCollapseCollectionTreeItems = await testDatabaseTreeItem
-        .getChildren();
+      const postCollapseCollectionTreeItems = await testDatabaseTreeItem.getChildren();
       assert(
         postCollapseCollectionTreeItems.length === 0,
         `Expected the database tree to return no children when collapsed, found ${collectionTreeItems.length}`
       );
 
-      void testDatabaseTreeItem.onDidExpand();
+      await testDatabaseTreeItem.onDidExpand();
       const newCollectionTreeItems = await testDatabaseTreeItem
         .getChildren();
-      void dataService.disconnect();
 
       const postCollapseSchemaTreeItem = newCollectionTreeItems[0].getSchemaChild();
       assert(

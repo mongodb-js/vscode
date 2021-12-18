@@ -476,7 +476,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('"getConnectionStringByConnectionId" returns the driver uri of a connection', async () => {
-    const expectedDriverUri = 'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.0.0-dev.0&directConnection=true&ssl=true';
+    const expectedDriverUri = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
 
     await testConnectionController.loadSavedConnections();
     await testConnectionController.addNewConnectionStringAndConnect(
@@ -490,7 +490,7 @@ suite('Connection Controller Test Suite', function () {
       'Expected active connection to not be null'
     );
 
-    const testDriverUri = await testConnectionController.getConnectionStringByConnectionId(
+    const testDriverUri = testConnectionController.getConnectionStringByConnectionId(
       activeConnectionId || ''
     );
 
@@ -893,11 +893,7 @@ suite('Connection Controller Test Suite', function () {
       'getDataServiceAndConnect',
       sinon.fake(async (connectionOptions) => {
         await sleep(50);
-
-        const dataService = await connect(connectionOptions);
-        await dataService.connect();
-
-        return dataService;
+        return await connect(connectionOptions);
       })
     );
 

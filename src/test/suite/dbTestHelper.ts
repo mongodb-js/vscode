@@ -1,6 +1,6 @@
 import { connect, DataService } from 'mongodb-data-service';
 import { EJSON } from 'bson';
-import { promisify } from 'util';
+import * as util from 'util';
 
 export const TEST_USER_USERNAME = 'testUser';
 export const TEST_USER_PASSWORD = 'password';
@@ -12,31 +12,24 @@ export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 
 let testDataService;
 
-// Note: Be sure to disconnect from the dataservice to free up connections.
-export const seedDataAndCreateDataService = async (
-  collectionName: string,
-  documentsArray: EJSON.SerializableTypes[]
-): Promise<DataService> => {
-  if (!testDataService) {
-    testDataService = await connect({ connectionString: TEST_DATABASE_URI });
-  }
-
-  const insertMany = promisify(testDataService.insertMany.bind(testDataService));
-
-  await testDataService.connect();
-  await insertMany(`${TEST_DB_NAME}.${collectionName}`, documentsArray, {});
-
+export const createTestDataService = async (): Promise<DataService> => {
+  testDataService = await connect({ connectionString: TEST_DATABASE_URI });
   return testDataService;
 };
 
+export const seedTestDB = async (
+  collectionName: string,
+  documentsArray: EJSON.SerializableTypes[]
+): Promise<void> => {
+  const insertMany = util.promisify(testDataService.insertMany.bind(testDataService));
+  await insertMany(`${TEST_DB_NAME}.${collectionName}`, documentsArray, {});
+};
+
 export const cleanupTestDB = async (): Promise<void> => {
-  if (!testDataService) {
-    testDataService = await connect({ connectionString: TEST_DATABASE_URI });
-  }
-
-  const dropDatabase = promisify(testDataService.dropDatabase.bind(testDataService));
-
-  await testDataService.connect();
+  const dropDatabase = util.promisify(testDataService.dropDatabase.bind(testDataService));
   await dropDatabase(TEST_DB_NAME);
+};
+
+export const disconnectFromTestDB = async (): Promise<void> => {
   await testDataService.disconnect();
 };

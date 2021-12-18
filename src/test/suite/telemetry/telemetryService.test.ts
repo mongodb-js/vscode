@@ -304,7 +304,6 @@ suite('Telemetry Controller Test Suite', () => {
     let dataServ;
     beforeEach(async () => {
       dataServ = await connect({ connectionString: TEST_DATABASE_URI });
-      await dataServ.connect();
     });
 
     afterEach(async () => {

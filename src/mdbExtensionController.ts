@@ -296,7 +296,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_CONNECTION_STRING,
       async (element: ConnectionTreeItem): Promise<boolean> => {
-        const connectionString = await this._connectionController.getConnectionStringByConnectionId(
+        const connectionString = this._connectionController.getConnectionStringByConnectionId(
           element.connectionId
         );
 
