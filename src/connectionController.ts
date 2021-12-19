@@ -11,6 +11,7 @@ import {
 import ConnectionModel from 'mongodb-connection-model';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
+import { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
@@ -26,7 +27,7 @@ import TelemetryService from './telemetry/telemetryService';
 import { ConnectionSecrets, extractSecrets, mergeSecrets } from './utils/connectionSecrets';
 
 const log = createLogger('connection controller');
-const { name, version } = require('../package.json');
+const packageJSON = require('../package.json');
 
 const MAX_CONNECTION_NAME_LENGTH = 512;
 
@@ -139,7 +140,7 @@ export default class ConnectionController {
           savedConnectionInfo
         );
       } catch (error) {
-        // Here we're leniant when loading connections in case their
+        // Here we're lenient when loading connections in case their
         // connections have become corrupted.
         const printableError = error as { message: string };
         log.error(`Connection migration failed: ${printableError.message}`);
@@ -174,7 +175,7 @@ export default class ConnectionController {
         connectionOptions: connectionInfoWithSecrets.connectionOptions
       };
     } catch (error) {
-      // Here we're leniant when loading connections in case their
+      // Here we're lenient when loading connections in case their
       // connections have become corrupted.
       const printableError = error as { message: string };
       log.error(`Mergin connection with secrets failed: ${printableError.message}`);
@@ -189,7 +190,7 @@ export default class ConnectionController {
       return;
     }
 
-    /** Users connections are being saved both in:
+    /** User connections are being saved both in:
      * 1. Vscode global/workspace storage (without secrets) + keychain (secrets)
      * 2. Memory of the extension (with secrets)
      */
@@ -239,8 +240,11 @@ export default class ConnectionController {
           'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
         validateInput: (uri: string) => {
-          if (!ConnectionModel.isURI(uri)) {
-            return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
+          try {
+            // eslint-disable-next-line no-new
+            new ConnectionString(uri);
+          } catch (err) {
+            return (err as { message: string }).message;
           }
 
           return null;
@@ -274,7 +278,9 @@ export default class ConnectionController {
 
     const connectionStringData = new ConnectionString(connectionString);
 
-    connectionStringData.searchParams.set('appname', `${name} ${version}`);
+    // TODO: Allow overriding appname + use driverInfo instead
+    // (https://jira.mongodb.org/browse/MONGOSH-1015)
+    connectionStringData.searchParams.set('appname', `${packageJSON.name} ${packageJSON.version}`);
 
     try {
       const connectResult = await this.saveNewConnectionAndConnect(
@@ -298,14 +304,15 @@ export default class ConnectionController {
 
   parseNewConnection(rawConnectionModel: RawConnectionModel): ConnectionInfo {
     const connectionModel = new ConnectionModel(rawConnectionModel);
+    const connectionInfo = convertConnectionModelToInfo(connectionModel);
 
-    return convertConnectionModelToInfo(connectionModel);
+    return connectionInfo;
   }
 
   private async _saveSecretsToKeychain(
     { connectionId, secrets }: ConnectionSecretsInfo
   ): Promise<void> {
-    if (!ext.keytarModule || !Object.keys(secrets).length) {
+    if (!ext.keytarModule) {
       return;
     }
 
@@ -327,7 +334,7 @@ export default class ConnectionController {
     );
     const savedConnectionInfo = await this._storageController.saveConnection({
       ...newStoreConnectionInfoWithSecrets,
-      connectionOptions: safeConnectionInfo.connectionOptions // The connection info without secrtes.
+      connectionOptions: safeConnectionInfo.connectionOptions // The connection info without secrets.
     });
 
     await this._saveSecretsToKeychain({
@@ -356,7 +363,7 @@ export default class ConnectionController {
 
     this._connections[savedConnectionInfo.id] = {
       ...savedConnectionInfo,
-      connectionOptions: originalConnectionInfo.connectionOptions // The connection options with secrtes.
+      connectionOptions: originalConnectionInfo.connectionOptions // The connection options with secrets.
     };
 
     log.info(`Connect called to connect to instance: ${savedConnectionInfo.name}`);
@@ -386,10 +393,6 @@ export default class ConnectionController {
     this._statusView.showMessage('Connecting to MongoDB...');
 
     const connectionOptions = this._connections[connectionId].connectionOptions;
-
-    if (!connectionOptions) {
-      throw new Error('Connection not found.');
-    }
 
     let newDataService;
     let connectError;
@@ -705,8 +708,8 @@ export default class ConnectionController {
     return this._activeDataService;
   }
 
-  getMongoClientConnectionOptions(): ConnectionModel {
-    return this._activeDataService?.getMongoClientConnectionOptions() || {};
+  getMongoClientConnectionOptions(): { url: string; options: MongoClientOptions; } | undefined {
+    return this._activeDataService?.getMongoClientConnectionOptions();
   }
 
 

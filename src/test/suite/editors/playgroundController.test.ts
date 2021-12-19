@@ -140,7 +140,8 @@ suite('Playground Controller Test Suite', function () {
         testPlaygroundController._connectionController,
         'getMongoClientConnectionOptions',
         () => ({
-          url: 'mongodb://localhost'
+          url: 'mongodb://localhost',
+          options: {}
         })
       );
 

@@ -3,7 +3,6 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
-import ConnectionModel from 'mongodb-connection-model';
 
 import ConnectionController from '../../../connectionController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -134,6 +133,7 @@ suite('Webview Test Suite', () => {
       },
       asWebviewUri: sinon.fake.returns('')
     };
+
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
     });
@@ -157,20 +157,14 @@ suite('Webview Test Suite', () => {
       'Ensure it starts listening for messages from the webview.'
     );
 
-    ConnectionModel.from(TEST_DATABASE_URI, (err, connectionModel) => {
-      if (err) {
-        assert(false);
+    // Mock a connection call.
+    messageReceived({
+      command: MESSAGE_TYPES.CONNECT,
+      connectionModel: {
+        port: 27018,
+        hostname: 'localhost',
+        hosts: [{ host: 'localhost', port: 27018 }]
       }
-
-      // Mock a connection call.
-      messageReceived({
-        command: MESSAGE_TYPES.CONNECT,
-        connectionModel: {
-          port: connectionModel.port,
-          hostname: connectionModel.hostname,
-          hosts: connectionModel.hosts
-        }
-      });
     });
   });
 
@@ -230,20 +224,14 @@ suite('Webview Test Suite', () => {
       'Ensure it starts listening for messages from the webview.'
     );
 
-    ConnectionModel.from(TEST_DATABASE_URI, (err, connectionModel) => {
-      if (err) {
-        assert(false);
+    // Mock a connection call.
+    messageReceived({
+      command: MESSAGE_TYPES.CONNECT,
+      connectionModel: {
+        port: 27018,
+        hostname: 'localhost',
+        hosts: [{ host: 'localhost', port: 27018 }]
       }
-
-      // Mock a connection call.
-      messageReceived({
-        command: MESSAGE_TYPES.CONNECT,
-        connectionModel: {
-          port: connectionModel.port,
-          hostname: connectionModel.hostname,
-          hosts: connectionModel.hosts
-        }
-      });
     });
   });
 
