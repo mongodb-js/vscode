@@ -89,7 +89,7 @@ export class IndexFieldTreeItem extends vscode.TreeItem
 
 export default class IndexTreeItem extends vscode.TreeItem
   implements vscode.TreeDataProvider<IndexTreeItem>, TreeItemParent {
-  contextValue = 'indexTreeItem';
+  contextValue = 'indexTreeItem' as const;
 
   index: IndexModel;
 

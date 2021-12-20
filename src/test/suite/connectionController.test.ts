@@ -2,7 +2,7 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
-import { connect } from 'mongodb-data-service';
+import { DataService } from 'mongodb-data-service';
 import { promisify } from 'util';
 
 import ConnectionController, {
@@ -270,7 +270,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('the connection model loads both global and workspace stored connection models', async () => {
-    const expectedDriverUri = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
+    const expectedDriverUrl = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -311,8 +311,8 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(
       connections[Object.keys(connections)[2]].connectionOptions?.connectionString ===
-        expectedDriverUri,
-      `Expected loaded connection to include driver url '${expectedDriverUri}' found '${
+      expectedDriverUrl,
+      `Expected loaded connection to include driver url '${expectedDriverUrl}' found '${
         connections[Object.keys(connections)[2]].connectionOptions?.connectionString
       }'`
     );
@@ -476,7 +476,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('"getConnectionStringByConnectionId" returns the driver uri of a connection', async () => {
-    const expectedDriverUri = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
+    const expectedDriverUrl = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
 
     await testConnectionController.loadSavedConnections();
     await testConnectionController.addNewConnectionStringAndConnect(
@@ -490,13 +490,13 @@ suite('Connection Controller Test Suite', function () {
       'Expected active connection to not be null'
     );
 
-    const testDriverUri = testConnectionController.getConnectionStringByConnectionId(
+    const testDriverUrl = testConnectionController.getConnectionStringByConnectionId(
       activeConnectionId || ''
     );
 
     assert(
-      testDriverUri === expectedDriverUri,
-      `Expected to be returned the driver uri "${expectedDriverUri}" found ${testDriverUri}`
+      testDriverUrl === expectedDriverUrl,
+      `Expected to be returned the driver uri "${expectedDriverUrl}" found ${testDriverUrl}`
     );
   });
 
@@ -889,11 +889,12 @@ suite('Connection Controller Test Suite', function () {
     };
 
     sinon.replace(
-      testConnectionController,
-      'getDataServiceAndConnect',
-      sinon.fake(async (connectionOptions) => {
+      DataService.prototype,
+      'connect',
+      sinon.fake(async (callback) => {
         await sleep(50);
-        return await connect(connectionOptions);
+
+        return callback(null, DataService);
       })
     );
 

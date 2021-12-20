@@ -69,7 +69,7 @@ suite('Commands Test Suite', () => {
     });
 
     test('openMongoDBShell should open a terminal with the active connection driver url', async () => {
-      const driverUri = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      const expectedDriverUrl = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
       fakeGetMongoClientConnectionOptions.returns({
         url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
@@ -85,8 +85,8 @@ suite('Commands Test Suite', () => {
         createTerminalStub.firstCall.args[0];
 
       assert(
-        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
-        `Expected open terminal to set shell arg as driver url "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+        terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
+        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
@@ -101,7 +101,7 @@ suite('Commands Test Suite', () => {
     });
 
     test('powershell openMongoDBShell should open a terminal with the active connection driver url', async () => {
-      const driverUri = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      const expectedDriverUrl = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
       fakeGetMongoClientConnectionOptions.returns({
         url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
@@ -118,8 +118,8 @@ suite('Commands Test Suite', () => {
         createTerminalStub.firstCall.args[0];
 
       assert(
-        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
-        `Expected open terminal to set shell arg as driver url "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+        terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
+        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
 
       const shellCommandText = fakeSendTerminalText.firstCall.args[0];
@@ -136,7 +136,7 @@ suite('Commands Test Suite', () => {
     });
 
     test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async () => {
-      const driverUri = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      const expectedDriverUrl = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
       fakeGetMongoClientConnectionOptions.returns({
         url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
@@ -153,8 +153,8 @@ suite('Commands Test Suite', () => {
         createTerminalStub.firstCall.args[0];
 
       assert(
-        terminalOptions.env?.MDB_CONNECTION_STRING === driverUri,
-        `Expected open terminal to set shell arg as driver url "${driverUri}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+        terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
+        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
     });
   });

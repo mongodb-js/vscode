@@ -8,7 +8,7 @@ import {
   MarkupContent,
   MarkupKind
 } from 'vscode-languageserver/node';
-import { MongoClientOptions } from 'mongodb';
+import type { MongoClientOptions } from 'mongodb';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';

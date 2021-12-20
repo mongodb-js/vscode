@@ -60,7 +60,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
   readonly onDidChangeTreeData: vscode.Event<any>;
 
-  contextValue = 'playgroundsTree';
+  contextValue = 'playgroundsTree' as const;
 
   constructor() {
     this.excludeFromPlaygroundsSearch =

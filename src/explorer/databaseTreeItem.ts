@@ -18,7 +18,7 @@ function getIconPath(): { light: string; dark: string } {
 
 export default class DatabaseTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
-  contextValue = 'databaseTreeItem';
+  contextValue = 'databaseTreeItem' as const;
 
   cacheIsUpToDate: boolean;
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };

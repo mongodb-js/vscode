@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import {
-  connect,
   convertConnectionModelToInfo,
   convertConnectionInfoToModel,
   ConnectionInfo,
@@ -11,7 +10,7 @@ import {
 import ConnectionModel from 'mongodb-connection-model';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
-import { MongoClientOptions } from 'mongodb';
+import type { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
@@ -304,6 +303,10 @@ export default class ConnectionController {
 
   parseNewConnection(rawConnectionModel: RawConnectionModel): ConnectionInfo {
     const connectionModel = new ConnectionModel(rawConnectionModel);
+
+    // Override the default connection `appname`.
+    connectionModel.appname = `${packageJSON.name} ${packageJSON.version}`;
+
     const connectionInfo = convertConnectionModelToInfo(connectionModel);
 
     return connectionInfo;
@@ -370,10 +373,6 @@ export default class ConnectionController {
     return this._connect(savedConnectionInfo.id, connectionType);
   }
 
-  async getDataServiceAndConnect(connectionOptions: ConnectionOptions) {
-    return connect(connectionOptions);
-  }
-
   private async _connect(
     connectionId: string,
     connectionType: ConnectionTypes
@@ -393,12 +392,11 @@ export default class ConnectionController {
     this._statusView.showMessage('Connecting to MongoDB...');
 
     const connectionOptions = this._connections[connectionId].connectionOptions;
-
-    let newDataService;
+    const newDataService = new DataService(connectionOptions);
     let connectError;
 
     try {
-      newDataService = await this.getDataServiceAndConnect(connectionOptions);
+      await newDataService.connect();
     } catch (error) {
       connectError = error;
     }
@@ -454,11 +452,7 @@ export default class ConnectionController {
       // If the current attempt is no longer the most recent attempt
       // or the connection no longer exists we silently end the connection
       // and return.
-      try {
-        void newDataService.disconnect();
-      } catch (e) {
-        /* */
-      }
+      void newDataService.disconnect().catch(() => { /* ignore */ });
 
       return true;
     }
@@ -476,7 +470,7 @@ export default class ConnectionController {
 
       return true;
     } catch (error) {
-      throw new Error(`Unable to connection: ${error}`);
+      throw new Error(`Unable to connect: ${error}`);
     }
   }
 

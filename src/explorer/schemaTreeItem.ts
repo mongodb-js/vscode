@@ -44,7 +44,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
   cacheIsUpToDate: boolean;
   childrenCache: { [fieldName: string]: FieldTreeItem };
 
-  contextValue = 'schemaTreeItem';
+  contextValue = 'schemaTreeItem' as const;
 
   collectionName: string;
   databaseName: string;

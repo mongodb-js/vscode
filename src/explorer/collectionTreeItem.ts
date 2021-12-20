@@ -58,7 +58,7 @@ function isChildCacheOutOfSync(
 
 export default class CollectionTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
-  contextValue = 'collectionTreeItem';
+  contextValue = 'collectionTreeItem' as const;
 
   private _documentListChild: DocumentListTreeItem;
   private _schemaChild: SchemaTreeItem;

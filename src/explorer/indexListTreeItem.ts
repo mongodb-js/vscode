@@ -27,7 +27,7 @@ export default class IndexListTreeItem extends vscode.TreeItem
   isExpanded: boolean;
 
   cacheIsUpToDate = false;
-  contextValue = 'indexListTreeItem';
+  contextValue = 'indexListTreeItem' as const;
 
   private _namespace: string;
   private _dataService: DataService;

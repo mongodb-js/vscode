@@ -1,7 +1,5 @@
-import {
-  CliServiceProvider,
-  MongoClientOptions
-} from '@mongosh/service-provider-server';
+import { CliServiceProvider } from '@mongosh/service-provider-server';
+import type { MongoClientOptions } from '@mongosh/service-provider-server';
 import { CompletionItemKind } from 'vscode-languageserver/node';
 import { EJSON, Document } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
