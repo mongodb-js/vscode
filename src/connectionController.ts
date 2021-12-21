@@ -4,7 +4,10 @@ import {
   ConnectionInfo,
   ConnectionOptions,
   DataService,
-  getConnectionTitle
+  getConnectionTitle,
+  ConnectionSecrets,
+  extractSecrets,
+  mergeSecrets
 } from 'mongodb-data-service';
 import ConnectionModel from 'mongodb-connection-model';
 import ConnectionString from 'mongodb-connection-string-url';
@@ -20,9 +23,6 @@ import { StorageLocation, ConnectionsFromStorage } from './storage/storageContro
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
 import TelemetryService from './telemetry/telemetryService';
-
-// TODO: export these helpers from mongodb-data-service.
-import { ConnectionSecrets, extractSecrets, mergeSecrets } from './utils/connectionSecrets';
 
 const log = createLogger('connection controller');
 const packageJSON = require('../package.json');
@@ -166,7 +166,13 @@ export default class ConnectionController {
 
       const secrets = JSON.parse(unparsedSecrets);
       const connectionOptions = savedConnectionInfo.connectionOptions;
-      const connectionInfoWithSecrets = mergeSecrets({ connectionOptions }, secrets);
+      const connectionInfoWithSecrets = mergeSecrets(
+        {
+          id: savedConnectionInfo.id,
+          connectionOptions
+        },
+        secrets
+      );
 
       return {
         ...savedConnectionInfo,
@@ -240,6 +246,10 @@ export default class ConnectionController {
           'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
         validateInput: (uri: string) => {
+          if (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://')) {
+            return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
+          }
+
           try {
             // eslint-disable-next-line no-new
             new ConnectionString(uri);
@@ -285,6 +295,7 @@ export default class ConnectionController {
     try {
       const connectResult = await this.saveNewConnectionAndConnect(
         {
+          id: uuidv4(),
           connectionOptions: {
             connectionString: connectionStringData.toString()
           }
@@ -355,7 +366,7 @@ export default class ConnectionController {
   ): Promise<ConnectionAttemptResult> {
     const name = getConnectionTitle(originalConnectionInfo);
     const newConnectionInfo = {
-      id: uuidv4(),
+      id: originalConnectionInfo.id,
       name,
       // To begin we just store it on the session, the storage controller
       // handles changing this based on user preference.
