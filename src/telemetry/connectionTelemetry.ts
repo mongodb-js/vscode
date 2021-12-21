@@ -84,7 +84,7 @@ export async function getConnectionTelemetryProperties(
   const [hostname] = firstHost.split(':');
   const authMechanism = connectionString.searchParams.get('authMechanism');
   const username = connectionString.username ? 'DEFAULT' : 'NONE';
-  const authStrategy = authMechanism ? authMechanism : username;
+  const authStrategy = authMechanism ?? username;
   const instance = await dataService.instance();
   const cloudInfo = await getCloudInfoFromDataService(hostname);
   const preparedProperties: NewConnectionTelemetryEventProperties = {

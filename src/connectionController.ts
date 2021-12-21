@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import {
   convertConnectionModelToInfo,
-  convertConnectionInfoToModel,
   ConnectionInfo,
   ConnectionOptions,
   DataService,
@@ -73,7 +72,7 @@ export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
-  _connections: { [key: string]: StoreConnectionInfo } = {};
+  _connections: { [connectionId: string]: StoreConnectionInfo } = {};
   _activeDataService: DataService| null = null;
   _activeConnectionModel: ConnectionModel | null = null;
 
@@ -177,7 +176,7 @@ export default class ConnectionController {
       // Here we're lenient when loading connections in case their
       // connections have become corrupted.
       const printableError = error as { message: string };
-      log.error(`Mergin connection with secrets failed: ${printableError.message}`);
+      log.error(`Merging connection with secrets failed: ${printableError.message}`);
       return;
     }
   }
@@ -211,19 +210,21 @@ export default class ConnectionController {
   }
 
   async loadSavedConnections(): Promise<void> {
-    // Try to pull in the connections previously saved in the global storage of vscode.
-    const existingGlobalConnections = this._storageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL
-    );
-    await this._loadSavedConnectionsByStore(existingGlobalConnections);
-
-    // Try to pull in the connections previously saved in the workspace storage of vscode.
-    const existingWorkspaceConnections = this._storageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE
-    );
-    await this._loadSavedConnectionsByStore(existingWorkspaceConnections);
+    await Promise.all([(async() => {
+      // Try to pull in the connections previously saved in the global storage of vscode.
+      const existingGlobalConnections = this._storageController.get(
+        StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+        StorageLocation.GLOBAL
+      );
+      await this._loadSavedConnectionsByStore(existingGlobalConnections);
+    })(), (async() => {
+      // Try to pull in the connections previously saved in the workspace storage of vscode.
+      const existingWorkspaceConnections = this._storageController.get(
+        StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+        StorageLocation.WORKSPACE
+      );
+      await this._loadSavedConnectionsByStore(existingWorkspaceConnections);
+    })()]);
   }
 
   async connectWithURI(): Promise<boolean> {
@@ -422,7 +423,6 @@ export default class ConnectionController {
     void vscode.window.showInformationMessage('MongoDB connection successful.');
 
     this._activeDataService = newDataService;
-    this._activeConnectionModel = await convertConnectionInfoToModel({ connectionOptions });
     this._currentConnectionId = connectionId;
     this._connecting = false;
     this._connectingConnectionId = null;
@@ -442,7 +442,7 @@ export default class ConnectionController {
     connectionId: string,
     connectingAttemptVersion: null | string,
     newDataService: DataService
-  }): Boolean {
+  }): boolean {
     const { connectionId, connectingAttemptVersion, newDataService } = attempt;
 
     if (
@@ -500,9 +500,7 @@ export default class ConnectionController {
       // Disconnect from the active connection.
       await this._activeDataService.disconnect();
       void vscode.window.showInformationMessage('MongoDB disconnected.');
-
       this._activeDataService = null;
-      this._activeConnectionModel = null;
     } catch (error) {
       // Show an error, however we still reset the active connection to free up the extension.
       void vscode.window.showErrorMessage(
@@ -706,11 +704,6 @@ export default class ConnectionController {
     return this._activeDataService?.getMongoClientConnectionOptions();
   }
 
-
-  getActiveDerivedConnectionModel(): ConnectionModel {
-    return this._activeConnectionModel?.getAttributes({ derived: true }) || {};
-  }
-
   getConnectionStringByConnectionId(connectionId: string): string {
     return this._connections[connectionId].connectionOptions.connectionString;
   }
@@ -754,7 +747,6 @@ export default class ConnectionController {
   clearAllConnections(): void {
     this._connections = {};
     this._activeDataService = null;
-    this._activeConnectionModel = null;
     this._currentConnectionId = null;
     this._connecting = false;
     this._disconnecting = false;

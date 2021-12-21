@@ -56,7 +56,7 @@ suite('Storage Controller Test Suite', () => {
       }
     };
     const testStorageController = new StorageController(testExtensionContext);
-    void testStorageController.saveConnectionToGlobalStore({
+    void testStorageController.saveConnectionToStore({
       id: 'conn2',
       name: 'saved2',
       storageLocation: StorageLocation.GLOBAL,
@@ -96,7 +96,7 @@ suite('Storage Controller Test Suite', () => {
       }
     };
     const testStorageController = new StorageController(testExtensionContext);
-    void testStorageController.saveConnectionToWorkspaceStore({
+    void testStorageController.saveConnectionToStore({
       id: 'conn2',
       name: 'saved2',
       storageLocation: StorageLocation.WORKSPACE,

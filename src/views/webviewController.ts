@@ -83,12 +83,12 @@ export default class WebviewController {
     connectionAttemptId: string
   ): Promise<void> => {
     try {
-      const connectionModel = this._connectionController.parseNewConnection(rawConnectionModel);
+      const connectionInfo = this._connectionController.parseNewConnection(rawConnectionModel);
       const {
         successfullyConnected,
         connectionErrorMessage
       } = await this._connectionController.saveNewConnectionAndConnect(
-        connectionModel,
+        connectionInfo,
         ConnectionTypes.CONNECTION_FORM
       );
 

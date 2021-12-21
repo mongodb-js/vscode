@@ -27,20 +27,17 @@ export enum DefaultSavingLocations {
 }
 
 export type ConnectionsFromStorage = {
-  [key: string]: StoreConnectionInfo
+  [connectionId: string]: StoreConnectionInfo
 };
 
-type StoredVariableName = StorageVariables.GLOBAL_USER_ID |
-  StorageVariables.GLOBAL_SAVED_CONNECTIONS |
-  StorageVariables.WORKSPACE_SAVED_CONNECTIONS |
-  StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW;
-
-type StoredItem<T> =
-    T extends StorageVariables.GLOBAL_USER_ID ? string :
-    T extends StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW ? boolean :
-    T extends StorageVariables.GLOBAL_SAVED_CONNECTIONS ? ConnectionsFromStorage :
-    T extends StorageVariables.WORKSPACE_SAVED_CONNECTIONS ? ConnectionsFromStorage :
-    never;
+interface StorageVariableContents {
+  [StorageVariables.GLOBAL_USER_ID]: string;
+  [StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW]: boolean;
+  [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: ConnectionsFromStorage;
+  [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: ConnectionsFromStorage;
+}
+type StoredVariableName = keyof StorageVariableContents;
+type StoredItem<T extends StoredVariableName> = StorageVariableContents[T];
 
 export default class StorageController {
   _storage: { [StorageLocation.GLOBAL]: vscode.Memento, [StorageLocation.WORKSPACE]: vscode.Memento };
@@ -57,9 +54,9 @@ export default class StorageController {
   }
 
   // Update something in the storage. Defaults to global storage (not workspace).
-  update(
-    variableName: StorageVariables,
-    value: boolean | string | ConnectionsFromStorage,
+  update<T extends StoredVariableName>(
+    variableName: T,
+    value: StoredItem<T>,
     storageLocation: StorageLocation = StorageLocation.GLOBAL
   ): Thenable<void> {
     this._storage[storageLocation].update(variableName, value);
@@ -79,46 +76,26 @@ export default class StorageController {
     return globalUserId;
   }
 
-  async saveConnectionToGlobalStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {
-    // Get the current save connections.
-    let globalConnections = this.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL
-    );
+  async saveConnectionToStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {
+    const variableName = (storeConnectionInfo.storageLocation === StorageLocation.GLOBAL)
+      ? StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      : StorageVariables.WORKSPACE_SAVED_CONNECTIONS;
 
-    if (!globalConnections) {
-      globalConnections = {};
+    // Get the current saved connections.
+    let savedConnections = this.get(variableName, storeConnectionInfo.storageLocation);
+
+    if (!savedConnections) {
+      savedConnections = {};
     }
 
     // Add the new connection.
-    globalConnections[storeConnectionInfo.id] = storeConnectionInfo;
+    savedConnections[storeConnectionInfo.id] = storeConnectionInfo;
 
     // Update the store.
     return this.update(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      globalConnections
-    );
-  }
-
-  async saveConnectionToWorkspaceStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {
-    // Get the current save connections.
-    let workspaceConnections = this.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE
-    );
-
-    if (!workspaceConnections) {
-      workspaceConnections = {};
-    }
-
-    // Add the new connection.
-    workspaceConnections[storeConnectionInfo.id] = storeConnectionInfo;
-
-    // Update the store.
-    return this.update(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      workspaceConnections,
-      StorageLocation.WORKSPACE
+      variableName,
+      savedConnections,
+      storeConnectionInfo.storageLocation
     );
   }
 
@@ -135,10 +112,8 @@ export default class StorageController {
       storeConnectionInfo.storageLocation = await this.getStorageLocationFromPrompt();
     }
 
-    if (storeConnectionInfo.storageLocation === StorageLocation.WORKSPACE) {
-      await this.saveConnectionToWorkspaceStore(storeConnectionInfo);
-    } else if (storeConnectionInfo.storageLocation === StorageLocation.GLOBAL) {
-      await this.saveConnectionToGlobalStore(storeConnectionInfo);
+    if ([StorageLocation.GLOBAL, StorageLocation.WORKSPACE].includes(storeConnectionInfo.storageLocation)) {
+      await this.saveConnectionToStore(storeConnectionInfo);
     }
 
     return storeConnectionInfo;
