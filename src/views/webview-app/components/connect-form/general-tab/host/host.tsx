@@ -14,7 +14,7 @@ import FormInput from '../../../form/form-input';
 import { AppState } from '../../../../store/store';
 import FormGroup from '../../../form/form-group';
 import RadioBoxGroup from '../../../form/radio-box-group/radio-box-group';
-import { DEFAULT_HOST, Host } from '../../../../connection-model/connection-model';
+import { DEFAULT_HOST, Host } from '../../../../connection-model/legacy-connection-model';
 import ReplicaSetInput from './replica-set-input';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';

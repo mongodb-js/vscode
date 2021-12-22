@@ -3,6 +3,8 @@ import READ_PREFERENCES from './constants/read-preferences';
 import SSL_METHODS from './constants/ssl-methods';
 import SSH_TUNNEL_TYPES from './constants/ssh-tunnel-types';
 
+import { v4 as uuidv4 } from 'uuid';
+
 // Defaults.
 const AUTH_STRATEGY_DEFAULT = AUTH_STRATEGIES.NONE;
 const READ_PREFERENCE_DEFAULT = READ_PREFERENCES.PRIMARY;
@@ -19,7 +21,10 @@ export interface Host {
 export const DEFAULT_HOST: Host = { host: 'localhost', port: 27017 };
 
 // NOTE: This is currently tightly coupled with `mongodb-connection-model`.
-class ConnectionModel {
+class LegacyConnectionModel {
+  _id = uuidv4();
+  isFavorite = false;
+  name = 'Local';
   isSrvRecord = false;
   hostname = 'localhost';
   port: port = 27017;
@@ -32,7 +37,9 @@ class ConnectionModel {
    * Authentication.
    */
   authStrategy: AUTH_STRATEGIES = AUTH_STRATEGY_DEFAULT;
-  kerberosCanonicalizeHostname = false;
+  // TODO: Fix kerberosCanonicalizeHostname type in DataService, should be boolean instaead of string.
+  // https://github.com/mongodb-js/compass/blob/main/packages/data-service/src/legacy/legacy-connection-model.ts#L94
+  kerberosCanonicalizeHostname: any = false;
   kerberosPassword?: string;
   kerberosPrincipal?: string;
   kerberosServiceName?: string;
@@ -92,7 +99,7 @@ class ConnectionModel {
  * Enforce constraints for SSL.
  * @param {Object} attrs - Incoming attributes.
  */
-const validateSsl = (attrs: ConnectionModel): void => {
+const validateSsl = (attrs: LegacyConnectionModel): void => {
   if (
     !attrs.sslMethod ||
     ['NONE', 'UNVALIDATED', 'IFAVAILABLE', 'SYSTEMCA'].includes(attrs.sslMethod)
@@ -113,7 +120,7 @@ const validateSsl = (attrs: ConnectionModel): void => {
   }
 };
 
-const validateMongodb = (attrs: ConnectionModel): void => {
+const validateMongodb = (attrs: LegacyConnectionModel): void => {
   if (
     attrs.authStrategy === AUTH_STRATEGIES.MONGODB ||
     attrs.authStrategy === AUTH_STRATEGIES['SCRAM-SHA-256']
@@ -138,7 +145,7 @@ const validateMongodb = (attrs: ConnectionModel): void => {
  * Enforce constraints for Kerberos.
  * @param {Object} attrs - Incoming attributes.
  */
-const validateKerberos = (attrs: ConnectionModel): void => {
+const validateKerberos = (attrs: LegacyConnectionModel): void => {
   if (attrs.authStrategy !== AUTH_STRATEGIES.KERBEROS) {
     if (attrs.kerberosServiceName) {
       throw new TypeError(
@@ -162,7 +169,7 @@ const validateKerberos = (attrs: ConnectionModel): void => {
   }
 };
 
-const validateX509 = (attrs: ConnectionModel): void => {
+const validateX509 = (attrs: LegacyConnectionModel): void => {
   if (attrs.authStrategy === AUTH_STRATEGIES.X509 && attrs.sslMethod !== SSL_METHODS.ALL) {
     throw new TypeError(
       'SSL method is required to be set to \'Server and Client\' when using x509 authentication'
@@ -170,7 +177,7 @@ const validateX509 = (attrs: ConnectionModel): void => {
   }
 };
 
-const validateLdap = (attrs: ConnectionModel): void => {
+const validateLdap = (attrs: LegacyConnectionModel): void => {
   if (attrs.authStrategy === AUTH_STRATEGIES.LDAP) {
     if (!attrs.ldapUsername) {
       throw new TypeError(
@@ -185,7 +192,7 @@ const validateLdap = (attrs: ConnectionModel): void => {
   }
 };
 
-const validateStandardSshTunnelOptions = (attrs: ConnectionModel): void => {
+const validateStandardSshTunnelOptions = (attrs: LegacyConnectionModel): void => {
   if (attrs.sshTunnel !== SSH_TUNNEL_TYPES.NONE && attrs.isSrvRecord) {
     throw new TypeError(
       'SSH Tunnel connections are not currently supported with srv records, please specify an individual server to connect to.'
@@ -211,7 +218,7 @@ const validateStandardSshTunnelOptions = (attrs: ConnectionModel): void => {
   }
 };
 
-const validateSshTunnel = (attrs: ConnectionModel): void => {
+const validateSshTunnel = (attrs: LegacyConnectionModel): void => {
   if (!attrs.sshTunnel || attrs.sshTunnel === SSH_TUNNEL_DEFAULT) {
     return;
   }
@@ -235,7 +242,7 @@ const validateSshTunnel = (attrs: ConnectionModel): void => {
   }
 };
 
-export const validateConnectionModel = (attrs: ConnectionModel): Error | undefined => {
+export const validateConnectionModel = (attrs: LegacyConnectionModel): Error | undefined => {
   try {
     validateSsl(attrs);
     validateMongodb(attrs);
@@ -248,4 +255,4 @@ export const validateConnectionModel = (attrs: ConnectionModel): Error | undefin
   }
 };
 
-export default ConnectionModel;
+export default LegacyConnectionModel;

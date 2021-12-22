@@ -4,7 +4,7 @@ import path from 'path';
 import ConnectionController, {
   ConnectionTypes
 } from '../connectionController';
-import ConnectionModel from './webview-app/connection-model/connection-model';
+import LegacyConnectionModel from './webview-app/connection-model/legacy-connection-model';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
 import {
@@ -79,7 +79,7 @@ export default class WebviewController {
 
   handleWebviewConnectAttempt = async (
     panel: vscode.WebviewPanel,
-    rawConnectionModel: ConnectionModel,
+    rawConnectionModel: LegacyConnectionModel,
     connectionAttemptId: string
   ): Promise<void> => {
     try {

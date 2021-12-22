@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import { ext } from './extensionConstants';
-import RawConnectionModel from './views/webview-app/connection-model/connection-model';
+import LegacyConnectionModel from './views/webview-app/connection-model/legacy-connection-model';
 import { StorageLocation, ConnectionsFromStorage } from './storage/storageController';
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
@@ -74,7 +74,6 @@ export default class ConnectionController {
   // on the workspace, or globally in vscode.
   _connections: { [connectionId: string]: StoreConnectionInfo } = {};
   _activeDataService: DataService| null = null;
-  _activeConnectionModel: ConnectionModel | null = null;
 
   private readonly _serviceName = 'mdb.vscode.savedConnections';
   private _currentConnectionId: null | string = null;
@@ -110,8 +109,7 @@ export default class ConnectionController {
     savedConnectionInfo: StoreConnectionInfo
   ): Promise<StoreConnectionInfo> {
     // Transform a raw connection model from storage to an ampersand model.
-    const newConnectionModelWithSecrets = new ConnectionModel(savedConnectionInfo.connectionModel);
-    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(newConnectionModelWithSecrets);
+    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(savedConnectionInfo.connectionModel);
 
     // Further use connectionOptions instead of connectionModel.
     const newSavedConnectionInfoWithSecrets = {
@@ -313,15 +311,11 @@ export default class ConnectionController {
     void this._telemetryService.trackNewConnection(newDataService, connectionType);
   }
 
-  parseNewConnection(rawConnectionModel: RawConnectionModel): ConnectionInfo {
-    const connectionModel = new ConnectionModel(rawConnectionModel);
-
-    // Override the default connection `appname`.
-    connectionModel.appname = `${packageJSON.name} ${packageJSON.version}`;
-
-    const connectionInfo = convertConnectionModelToInfo(connectionModel);
-
-    return connectionInfo;
+  parseNewConnection(rawConnectionModel: LegacyConnectionModel): ConnectionInfo {
+    return convertConnectionModelToInfo({
+      ...rawConnectionModel,
+      appname: `${packageJSON.name} ${packageJSON.version}` // Override the default connection appname.
+    });
   }
 
   private async _saveSecretsToKeychain(

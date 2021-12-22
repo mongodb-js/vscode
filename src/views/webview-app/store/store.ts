@@ -1,10 +1,10 @@
 import { Actions, ActionTypes, FilePickerActionTypes } from './actions';
 import { v4 as uuidv4 } from 'uuid';
 
-import ConnectionModel, {
+import LegacyConnectionModel, {
   DEFAULT_HOST,
   validateConnectionModel
-} from '../connection-model/connection-model';
+} from '../connection-model/legacy-connection-model';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import {
   CONNECTION_STATUS,
@@ -26,7 +26,7 @@ export interface AppState {
   connectionFormTab: CONNECTION_FORM_TABS;
   connectionMessage: string;
   connectionStatus: CONNECTION_STATUS;
-  currentConnection: ConnectionModel;
+  currentConnection: LegacyConnectionModel;
   isValid: boolean;
   isConnecting: boolean;
   isConnected: boolean;
@@ -43,7 +43,7 @@ export const initialState: AppState = {
   connectionFormTab: CONNECTION_FORM_TABS.GENERAL,
   connectionMessage: '',
   connectionStatus: CONNECTION_STATUS.LOADING,
-  currentConnection: new ConnectionModel(),
+  currentConnection: new LegacyConnectionModel(),
   isValid: true,
   isConnecting: false,
   isConnected: false,
@@ -65,7 +65,7 @@ const showFilePicker = (
   });
 };
 
-const sendConnectToExtension = (connectionModel: ConnectionModel): string => {
+const sendConnectToExtension = (connectionModel: LegacyConnectionModel): string => {
   const connectionAttemptId = uuidv4();
 
   vscode.postMessage({
