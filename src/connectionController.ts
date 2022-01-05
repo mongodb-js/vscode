@@ -709,8 +709,13 @@ export default class ConnectionController {
     return this._activeDataService?.getMongoClientConnectionOptions();
   }
 
-  getConnectionStringByConnectionId(connectionId: string): string {
-    return this._connections[connectionId].connectionOptions.connectionString;
+  // Copy connection string from the sidebar does not need appname in it.
+  copyConnectionStringByConnectionId(connectionId: string): string {
+    const url = new ConnectionString(
+      this._connections[connectionId].connectionOptions.connectionString
+    );
+    url.searchParams.delete('appname');
+    return url.toString();
   }
 
   getConnectionStatus(): CONNECTION_STATUS {

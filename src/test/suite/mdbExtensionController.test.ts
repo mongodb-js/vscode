@@ -255,7 +255,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockStubUri: any = sinon.fake.returns('weStubThisUri');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getConnectionStringByConnectionId',
+      'copyConnectionStringByConnectionId',
       mockStubUri
     );
 
