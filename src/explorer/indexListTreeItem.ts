@@ -88,15 +88,26 @@ export default class IndexListTreeItem extends vscode.TreeItem
       return this._childrenCache;
     }
 
-    const fetchIndexes = util.promisify(
-      this._dataService.indexes.bind(this._dataService)
-    );
-    const indexes = await fetchIndexes(
-      this._namespace,
-      {} // No options.
-    );
-
     this.cacheIsUpToDate = true;
+    this._childrenCache = [];
+
+    let indexes;
+
+    try {
+      const fetchIndexes = util.promisify(
+        this._dataService.indexes.bind(this._dataService)
+      );
+      indexes = await fetchIndexes(
+        this._namespace,
+        {} // No options.
+      );
+    } catch (error) {
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(
+        `Fetch indexes failed: ${printableError.message}`
+      );
+      return [];
+    }
 
     if (indexes) {
       this._childrenCache = sortTreeItemsByLabel(

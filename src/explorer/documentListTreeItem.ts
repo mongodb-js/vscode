@@ -188,6 +188,9 @@ export default class DocumentListTreeItem extends vscode.TreeItem
       return this._childrenCache;
     }
 
+    this.cacheIsUpToDate = true;
+    this._childrenCache = [];
+
     let documents;
 
     try {
@@ -197,12 +200,13 @@ export default class DocumentListTreeItem extends vscode.TreeItem
         {}, // No filter.
         { limit: this._maxDocumentsToShow }
       );
-    } catch (err) {
-      return Promise.reject(err);
+    } catch (error) {
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(
+        `Fetch documents failed: ${printableError.message}`
+      );
+      return [];
     }
-
-    this.cacheIsUpToDate = true;
-    this._childrenCache = [];
 
     if (documents) {
       documents.forEach((document, index) => {

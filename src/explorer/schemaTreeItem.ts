@@ -103,8 +103,12 @@ export default class SchemaTreeItem extends vscode.TreeItem
         {}, // No filter.
         { limit: MAX_DOCUMENTS_VISIBLE }
       );
-    } catch (err) {
-      return Promise.reject(err);
+    } catch (error) {
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(
+        `Get schema failed: ${printableError.message}`
+      );
+      return [];
     }
 
     return new Promise((resolve, reject) => {
