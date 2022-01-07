@@ -1,6 +1,6 @@
+import * as util from 'util';
 import * as vscode from 'vscode';
-import { EJSON } from 'bson';
-import util from 'util';
+import { EJSON, Document } from 'bson';
 
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
@@ -10,13 +10,13 @@ import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
 
+const log = createLogger('document controller');
+
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
 export const DOCUMENT_SOURCE_URI_IDENTIFIER = 'source';
 
 export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
-
-const log = createLogger('document controller');
 
 export default class MongoDBDocumentService {
   _context: vscode.ExtensionContext;
@@ -84,22 +84,17 @@ export default class MongoDBDocumentService {
       );
     }
 
-    const findOneAndReplace = util.promisify(
-      dataservice.findOneAndReplace.bind(dataservice)
-    );
-
     this._statusView.showMessage('Saving document...');
 
     try {
+      const findOneAndReplace = util.promisify(
+        dataservice.findOneAndReplace.bind(dataservice)
+      );
       await findOneAndReplace(
         namespace,
-        {
-          _id: documentId
-        },
-        newDocument,
-        {
-          returnDocument: 'after'
-        }
+        { _id: documentId },
+        newDocument as Document,
+        { returnDocument: 'after' }
       );
 
       this._statusView.hideMessage();
@@ -138,19 +133,14 @@ export default class MongoDBDocumentService {
       );
     }
 
-    const find = util.promisify(dataservice.find.bind(dataservice));
-
     this._statusView.showMessage('Fetching document...');
 
     try {
+      const find = util.promisify(dataservice.find.bind(dataservice));
       const documents = await find(
         namespace,
-        {
-          _id: documentId
-        },
-        {
-          limit: 1
-        }
+        { _id: documentId },
+        { limit: 1 }
       );
 
       this._statusView.hideMessage();

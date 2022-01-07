@@ -1,4 +1,4 @@
-import ConnectionModel from './connection-model/connection-model';
+import LegacyConnectionModel from './connection-model/legacy-connection-model';
 import { FilePickerActionTypes } from './store/actions';
 
 export enum CONNECTION_STATUS {
@@ -41,7 +41,7 @@ export interface ConnectionStatusMessage extends BasicWebviewMessage {
 
 export interface ConnectMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT;
-  connectionModel: ConnectionModel;
+  connectionModel: LegacyConnectionModel;
   connectionAttemptId: string;
 }
 

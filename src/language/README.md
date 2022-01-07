@@ -42,23 +42,6 @@ You can also configure logging from VSCode setting interface.
 
 The logs will be printed in the `MongoDB Language Server` Output Channel.
 
-These logs are useful for developing and testing the Language Server, but they can be lengthy and hard to read. To visualize Cleint/Server logs use the [Language Server Protocol Inspector](https://github.com/Microsoft/language-server-protocol-inspector).
-
-#### Strem Logs To LSP Inspector
-
-- Install the [Language Server Protocol Inspector](https://marketplace.visualstudio.com/items?itemName=octref.lsp-inspector-webview) webview extension.
-- Run the MongoDB extension.
-- Activate the extension using any activation command.
-- Open a playground.
-- Check `mongodbLanguageServer.trace.server` settings.
-- Run command "LSP Inspector: Start LSP Inspector" to open the LSP inspector webview.
-- Run command "LSP Inspector: Start Stream LSP Logs" to start streaming logs to the LSP inspector port specified by the `languageServerExample.port` setting (The default value is 7000).
-
-![MongoDB Language Server log settings](./lsp-stream-logs.png)
-
-https://github.com/microsoft/vscode-extension-samples/tree/master/lsp-log-streaming-sample
-https://github.com/microsoft/vscode-extension-samples/tree/master/lsp-sample
-
 #### LSP Notifications
 
 From the server:

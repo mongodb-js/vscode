@@ -7,7 +7,7 @@ export default class PlaygroundsTreeHeader extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
   private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
 
-  contextValue = 'playgroundsTreeHeader';
+  contextValue = 'playgroundsTreeHeader' as const;
   isExpanded = true;
   doesNotRequireTreeUpdate = true;
   cacheIsUpToDate = true;

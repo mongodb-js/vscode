@@ -2,42 +2,9 @@ import * as vscode from 'vscode';
 
 import ConnectionController from '../connectionController';
 
-const isSslConnection = (activeConnectionModel: any): boolean => {
-  return !!(
-    activeConnectionModel &&
-    activeConnectionModel.driverOptions &&
-    (activeConnectionModel.driverOptions.sslCA ||
-      activeConnectionModel.driverOptions.sslCert ||
-      activeConnectionModel.driverOptions.sslPass)
-  );
-};
-
-const getSslOptions = (driverOptions: any): string[] => {
-  const mdbSslOptions = ['--tls'];
-
-  if (!driverOptions.checkServerIdentity) {
-    mdbSslOptions.push('--tlsAllowInvalidHostnames');
-  }
-
-  if (driverOptions.sslCA) {
-    mdbSslOptions.push(`--tlsCAFile="${driverOptions.sslCA}"`);
-  }
-
-  if (driverOptions.sslCert) {
-    mdbSslOptions.push(`--tlsCertificateKeyFile="${driverOptions.sslCert}"`);
-  }
-
-  if (driverOptions.sslPass) {
-    mdbSslOptions.push(`--tlsCertificateKeyFilePassword="${driverOptions.sslPass}"`);
-  }
-
-  return mdbSslOptions;
-};
-
 const launchMongoDBShellWithEnv = (
   shellCommand: string,
   mdbConnectionString: string,
-  mdbSslOptions: string[],
   envVariableString: string
 ) => {
   const mongoDBShell = vscode.window.createTerminal({
@@ -47,51 +14,41 @@ const launchMongoDBShellWithEnv = (
     }
   });
 
-  const mdbSslOptionsString = mdbSslOptions.length > 0
-    ? `${mdbSslOptions.join(' ')} `
-    : '';
-
   mongoDBShell.sendText(
-    `${shellCommand} ${mdbSslOptionsString}${envVariableString};`
+    `${shellCommand} ${envVariableString};`
   );
   mongoDBShell.show();
 };
 
 const launchMongoDBShellOnPowershell = (
   shellCommand: string,
-  mdbConnectionString: string,
-  mdbSslOptions: string[]
+  mdbConnectionString: string
 ): void => {
-  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '$Env:MDB_CONNECTION_STRING');
+  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, '$Env:MDB_CONNECTION_STRING');
 };
 
 const launchMongoDBShellOnCmd = (
   shellCommand: string,
-  mdbConnectionString: string,
-  mdbSslOptions: string[]
+  mdbConnectionString: string
 ): void => {
-  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '%MDB_CONNECTION_STRING%');
+  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, '%MDB_CONNECTION_STRING%');
 };
 
 const launchMongoDBShellOnGitBash = (
   shellCommand: string,
-  mdbConnectionString: string,
-  mdbSslOptions: string[]
+  mdbConnectionString: string
 ): void => {
-  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '$MDB_CONNECTION_STRING');
+  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, '$MDB_CONNECTION_STRING');
 };
 
 const launchMongoDBShellOnBash = (
   shellCommand: string,
-  mdbConnectionString: string,
-  mdbSslOptions: string[]
+  mdbConnectionString: string
 ): void => {
-  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, mdbSslOptions, '$MDB_CONNECTION_STRING');
+  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, '$MDB_CONNECTION_STRING');
 };
 
 const openMongoDBShell = (connectionController: ConnectionController): Promise<boolean> => {
-  let mdbSslOptions: string[] = [];
-
   if (
     !connectionController.isCurrentlyConnected()
   ) {
@@ -120,28 +77,28 @@ const openMongoDBShell = (connectionController: ConnectionController): Promise<b
     return Promise.resolve(false);
   }
 
-  const activeConnectionModel = connectionController
-    .getActiveConnectionModel()
-    ?.getAttributes({ derived: true });
+  const activeMongoClientOptions = connectionController.getMongoClientConnectionOptions();
 
-  const mdbConnectionString = activeConnectionModel
-    ? activeConnectionModel.driverUrlWithSsh
-    : '';
+  if (!activeMongoClientOptions) {
+    void vscode.window.showErrorMessage(
+      'No active connection found.'
+    );
 
-  if (activeConnectionModel && isSslConnection(activeConnectionModel)) {
-    mdbSslOptions = getSslOptions(activeConnectionModel.driverOptions);
+    return Promise.resolve(false);
   }
 
+  const mdbConnectionString = activeMongoClientOptions.url || '';
+
   if (userShell.includes('powershell.exe')) {
-    launchMongoDBShellOnPowershell(shellCommand, mdbConnectionString, mdbSslOptions);
+    launchMongoDBShellOnPowershell(shellCommand, mdbConnectionString);
   } else if (userShell.includes('cmd.exe')) {
-    launchMongoDBShellOnCmd(shellCommand, mdbConnectionString, mdbSslOptions);
+    launchMongoDBShellOnCmd(shellCommand, mdbConnectionString);
   } else if (userShell.toLocaleLowerCase().includes('git\\bin\\bash.exe')) {
-    launchMongoDBShellOnGitBash(shellCommand, mdbConnectionString, mdbSslOptions);
+    launchMongoDBShellOnGitBash(shellCommand, mdbConnectionString);
   } else {
     // Assume it's a bash environment. This may fail on certain
     // shells but should cover most cases.
-    launchMongoDBShellOnBash(shellCommand, mdbConnectionString, mdbSslOptions);
+    launchMongoDBShellOnBash(shellCommand, mdbConnectionString);
   }
 
   return Promise.resolve(true);

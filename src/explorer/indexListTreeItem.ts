@@ -1,13 +1,12 @@
+import * as util from 'util';
 import * as vscode from 'vscode';
-const path = require('path');
+import { DataService } from 'mongodb-data-service';
+import path from 'path';
 
-import { createLogger } from '../logging';
-import IndexTreeItem, { IndexModel } from './indexTreeItem';
-import TreeItemParent from './treeItemParentInterface';
-import { sortTreeItemsByLabel } from './treeItemUtils';
 import { getImagesPath } from '../extensionConstants';
-
-const log = createLogger('tree view indexes list');
+import IndexTreeItem, { IndexModel } from './indexTreeItem';
+import { sortTreeItemsByLabel } from './treeItemUtils';
+import TreeItemParent from './treeItemParentInterface';
 
 const ITEM_LABEL = 'Indexes';
 
@@ -23,26 +22,25 @@ function getIconPath(): { light: string; dark: string } {
 
 export default class IndexListTreeItem extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<IndexListTreeItem> {
-  cacheIsUpToDate = false;
-  private _childrenCache: IndexTreeItem[] = [];
-
-  contextValue = 'indexListTreeItem';
-
   collectionName: string;
   databaseName: string;
-  namespace: string;
-
-  private _dataService: any;
-
   isExpanded: boolean;
+
+  cacheIsUpToDate = false;
+  contextValue = 'indexListTreeItem' as const;
+
+  private _namespace: string;
+  private _dataService: DataService;
+
+  private _childrenCache: IndexTreeItem[] = [];
 
   constructor(
     collectionName: string,
     databaseName: string,
-    dataService: any,
+    dataService: DataService,
     isExpanded: boolean,
     cacheIsUpToDate: boolean,
-    existingCache: IndexTreeItem[]
+    childrenCache: IndexTreeItem[] // Existing cache.
   ) {
     super(
       ITEM_LABEL,
@@ -53,14 +51,11 @@ export default class IndexListTreeItem extends vscode.TreeItem
 
     this.collectionName = collectionName;
     this.databaseName = databaseName;
-    this.namespace = `${databaseName}.${collectionName}`;
-
+    this._namespace = `${databaseName}.${collectionName}`;
     this._dataService = dataService;
-
     this.isExpanded = isExpanded;
-
-    this._childrenCache = existingCache;
     this.cacheIsUpToDate = cacheIsUpToDate;
+    this._childrenCache = childrenCache;
 
     this.iconPath = getIconPath();
     this.tooltip = 'Collection Indexes';
@@ -68,28 +63,6 @@ export default class IndexListTreeItem extends vscode.TreeItem
 
   getTreeItem(element: IndexListTreeItem): IndexListTreeItem {
     return element;
-  }
-
-  getIndexes(): Promise<IndexModel[]> {
-    const namespace = this.namespace;
-
-    log.info(`fetching indexes from namespace ${namespace}`);
-
-    return new Promise((resolve, reject) => {
-      this._dataService.indexes(
-        namespace,
-        {
-          /* No options */
-        },
-        (err: Error, indexes: IndexModel[]) => {
-          if (err) {
-            return reject(err);
-          }
-
-          return resolve(indexes);
-        }
-      );
-    });
   }
 
   async getChildren(): Promise<any[]> {
@@ -115,16 +88,31 @@ export default class IndexListTreeItem extends vscode.TreeItem
       return this._childrenCache;
     }
 
-    const indexes = await this.getIndexes();
-
     this.cacheIsUpToDate = true;
+    this._childrenCache = [];
+
+    let indexes;
+
+    try {
+      const fetchIndexes = util.promisify(
+        this._dataService.indexes.bind(this._dataService)
+      );
+      indexes = await fetchIndexes(
+        this._namespace,
+        {} // No options.
+      );
+    } catch (error) {
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(
+        `Fetch indexes failed: ${printableError.message}`
+      );
+      return [];
+    }
 
     if (indexes) {
-      const namespace = this.namespace;
-
       this._childrenCache = sortTreeItemsByLabel(
         indexes.map((index: IndexModel) => {
-          return new IndexTreeItem(index, namespace, false /* Not expanded. */);
+          return new IndexTreeItem(index, this._namespace, false /* Not expanded. */);
         })
       ) as IndexTreeItem[];
     } else {

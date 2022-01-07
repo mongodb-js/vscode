@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
+import { DataService } from 'mongodb-data-service';
 import sinon, { SinonSpy } from 'sinon';
 
 import {
@@ -13,14 +14,13 @@ import {
   DocumentTreeItem,
   SchemaTreeItem
 } from '../../explorer';
-import Connection = require('mongodb-connection-model/lib/model');
 import EXTENSION_COMMANDS from '../../commands';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
 import IndexListTreeItem from '../../explorer/indexListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { mockTextEditor } from './stubs';
 import {
-  StorageScope,
+  StorageLocation,
   StorageVariables
 } from '../../storage/storageController';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
@@ -255,7 +255,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockStubUri: any = sinon.fake.returns('weStubThisUri');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
-      'getConnectionStringFromConnectionId',
+      'copyConnectionStringByConnectionId',
       mockStubUri
     );
 
@@ -445,9 +445,7 @@ suite('MDBExtensionController Test Suite', function () {
         type: CollectionTypes.collection
       },
       'airZebra',
-      {
-        estimatedCount: (ns, opts, cb): void => cb(null, count)
-      },
+      { estimatedCount: (ns, opts, cb): void => cb(null, count) },
       false,
       false,
       null
@@ -527,7 +525,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new IndexListTreeItem(
       'zebraWearwolf',
       'giraffeVampire',
-      {},
+      {} as DataService,
       false,
       false,
       []
@@ -595,13 +593,12 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockGetActiveDataService: any = sinon.fake.returns({
-      client: {
-        client: {
-          db: () => ({
-            command: () => Promise.resolve({ versionArray: [4, 4, 4, 0] })
-          })
-        }
-      },
+      instance: () => Promise.resolve({
+        dataLake: {},
+        build: { version: '4.9.7' },
+        genuineMongoDB: {},
+        host: {}
+      }),
       createCollection: (namespace, options, callback) => {
         callback(null);
       }
@@ -648,13 +645,12 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockGetActiveDataService: any = sinon.fake.returns({
-      client: {
-        client: {
-          db: () => ({
-            command: () => Promise.resolve({ versionArray: [5, 0, 0, 0] })
-          })
-        }
-      },
+      instance: () => Promise.resolve({
+        dataLake: {},
+        build: { version: '5.0.1' },
+        genuineMongoDB: {},
+        host: {}
+      }),
       createCollection: (namespace, options, callback) => {
         callback(null);
       }
@@ -787,30 +783,25 @@ suite('MDBExtensionController Test Suite', function () {
   });
 
   test('mdb.addCollection should create a MongoDB playground with create collection template without time-series', async () => {
+    const mockGetActiveDataService: any = sinon.fake.returns({
+      instance: () => Promise.resolve({
+        dataLake: {},
+        build: { version: '4.9.7' },
+        genuineMongoDB: {},
+        host: {}
+      }),
+      createCollection: (namespace, options, callback) => {
+        callback(null);
+      }
+    });
     const mockTreeItem = new DatabaseTreeItem(
       'iceCreamDB',
-      {
-        createCollection: (namespace, options, callback): void => {
-          callback(null);
-        }
-      },
+      mockGetActiveDataService,
       false,
       false,
       {}
     );
 
-    const mockGetActiveDataService: any = sinon.fake.returns({
-      client: {
-        client: {
-          db: () => ({
-            command: () => Promise.resolve({ versionArray: [4, 4, 4, 0] })
-          })
-        }
-      },
-      createCollection: (namespace, options, callback) => {
-        callback(null);
-      }
-    });
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveDataService',
@@ -856,13 +847,12 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockGetActiveDataService: any = sinon.fake.returns({
-      client: {
-        client: {
-          db: () => ({
-            command: () => Promise.resolve({ versionArray: [5, 0, 0, 0] })
-          })
-        }
-      },
+      instance: () => Promise.resolve({
+        dataLake: {},
+        build: { version: '5.0.1' },
+        genuineMongoDB: {},
+        host: {}
+      }),
       createCollection: (namespace, options, callback) => {
         callback(null);
       }
@@ -1187,9 +1177,9 @@ suite('MDBExtensionController Test Suite', function () {
   test('mdb.renameConnection fails when the name input is empty', (done) => {
     mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon = {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
-      connectionModel: new Connection(),
+      connectionOptions: { connectionString: 'mongodb://localhost' },
       name: 'NAAAME',
-      storageLocation: StorageScope.NONE
+      storageLocation: StorageLocation.NONE
     };
 
     const mockTreeItem = new ConnectionTreeItem(
@@ -1226,8 +1216,8 @@ suite('MDBExtensionController Test Suite', function () {
     mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon = {
       id: 'blueBerryPancakesAndTheSmellOfBacon',
       name: 'NAAAME',
-      connectionModel: new Connection(),
-      storageLocation: StorageScope.NONE
+      connectionOptions: { connectionString: 'mongodb://localhost' },
+      storageLocation: StorageLocation.NONE
     };
 
     const mockTreeItem = new ConnectionTreeItem(

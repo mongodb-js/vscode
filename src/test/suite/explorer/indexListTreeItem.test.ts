@@ -1,19 +1,28 @@
-import assert from 'assert';
 import * as vscode from 'vscode';
-
-const { contributes } = require('../../../../package.json');
+import { afterEach } from 'mocha';
+import assert from 'assert';
+import sinon from 'sinon';
+import { DataService } from 'mongodb-data-service';
 
 import IndexListTreeItem from '../../../explorer/indexListTreeItem';
 
+const { contributes } = require('../../../../package.json');
+
 suite('IndexListTreeItem Test Suite', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
   test('its context value should be in the package json', () => {
     let indexListRegisteredCommandInPackageJson = false;
     const testIndexListTreeItem = new IndexListTreeItem(
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (): void => { }
-      },
+        indexes: (ns, opts, cb): void => {
+          cb(null, []);
+        }
+      } as DataService,
       false,
       false,
       []
@@ -62,7 +71,7 @@ suite('IndexListTreeItem Test Suite', () => {
 
           cb(null, fakeFetchIndexes);
         }
-      },
+      } as DataService,
       false,
       false,
       []
@@ -99,13 +108,17 @@ suite('IndexListTreeItem Test Suite', () => {
     const testIndexListTreeItem = new IndexListTreeItem(
       'pineapple',
       'tasty_fruits',
-      'fake data service',
+      {
+        indexes: (ns, opts, cb): void => {
+          cb(null, []);
+        }
+      } as DataService,
       false,
       false,
       []
     );
 
-    const indexesIconPath: any = testIndexListTreeItem.iconPath;
+    const indexesIconPath = testIndexListTreeItem.iconPath as { light: string; dark: string };
     assert(
       indexesIconPath.dark.includes('indexes.svg'),
       'Expected icon path to point to an svg by the name "indexes" with a dark mode'
@@ -113,15 +126,19 @@ suite('IndexListTreeItem Test Suite', () => {
   });
 
   test('when theres an error fetching indexes, the error is thrown in the caller (no timeout)', async () => {
-    const expectedErrorMessage = 'Some error message indexes could throw';
+    const expectedMessage = 'Some error message indexes could throw';
+    const fakeVscodeErrorMessage = sinon.fake();
+
+    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
+
     const testIndexListTreeItem = new IndexListTreeItem(
       'pineapple',
       'tasty_fruits',
       {
         indexes: (ns, opts, cb): void => {
-          cb(new Error(expectedErrorMessage));
+          cb(new Error(expectedMessage), []);
         }
-      },
+      } as DataService,
       false,
       false,
       []
@@ -132,10 +149,12 @@ suite('IndexListTreeItem Test Suite', () => {
     try {
       await testIndexListTreeItem.getChildren();
 
-      assert(false, 'Expected an error to be thrown');
+      assert(
+        fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+        `Expected error message "${expectedMessage}" when disconnecting with no active connection, recieved "${fakeVscodeErrorMessage.firstCall.args[0]}"`
+      );
     } catch (error) {
-      const printableError = error as { message: string };
-      assert(printableError.message === expectedErrorMessage, `Expected error message to be '${expectedErrorMessage}' found '${printableError.message}'`);
+      assert(!!error, 'Expected an error disconnect response.');
     }
   });
 
@@ -168,7 +187,7 @@ suite('IndexListTreeItem Test Suite', () => {
         indexes: (ns, opts, cb): void => {
           cb(null, fakeFetchIndexes);
         }
-      },
+      } as DataService,
       false,
       false,
       []
@@ -194,7 +213,7 @@ suite('IndexListTreeItem Test Suite', () => {
         indexes: (ns, opts, cb): void => {
           cb(null, []);
         }
-      },
+      } as DataService,
       testIndexListTreeItem.isExpanded,
       testIndexListTreeItem.cacheIsUpToDate,
       testIndexListTreeItem.getChildrenCache()

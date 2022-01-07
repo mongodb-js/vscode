@@ -1,9 +1,11 @@
+import * as util from 'util';
 import * as vscode from 'vscode';
 import numeral from 'numeral';
+
 import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
-import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
+import TreeItemParent from './treeItemParentInterface';
 
 const path = require('path');
 const log = createLogger('tree view document list');
@@ -111,7 +113,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     cachedDocumentCount: number | null,
     refreshDocumentCount: () => Promise<number>,
     cacheIsUpToDate: boolean,
-    existingCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem>
+    childrenCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> // Existing cache.
   ) {
     super(ITEM_LABEL, getCollapsableStateForDocumentList(isExpanded, type));
 
@@ -129,7 +131,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
     this.refreshDocumentCount = refreshDocumentCount;
 
-    this._childrenCache = existingCache;
+    this._childrenCache = childrenCache;
     this.cacheIsUpToDate = cacheIsUpToDate;
 
     if (this._documentCount !== null) {
@@ -142,32 +144,6 @@ export default class DocumentListTreeItem extends vscode.TreeItem
 
   getTreeItem(element: DocumentListTreeItem): DocumentListTreeItem {
     return element;
-  }
-
-  async getDocuments(): Promise<[]> {
-    log.info(
-      `fetching ${this._maxDocumentsToShow} documents from namespace ${this.namespace}`
-    );
-
-    return new Promise((resolve, reject) => {
-      this._dataService.find(
-        this.namespace,
-        {
-          /* No filter */
-        },
-        {
-          limit: this._maxDocumentsToShow
-        },
-        (err: Error, documents: []) => {
-          if (err) {
-            void vscode.window.showErrorMessage(`Unable to list documents: ${err}`);
-            return reject(err);
-          }
-
-          resolve(documents);
-        }
-      );
-    });
   }
 
   hasMoreDocumentsToShow(): boolean {
@@ -212,16 +188,25 @@ export default class DocumentListTreeItem extends vscode.TreeItem
       return this._childrenCache;
     }
 
+    this.cacheIsUpToDate = true;
+    this._childrenCache = [];
+
     let documents;
 
     try {
-      documents = await this.getDocuments();
-    } catch (err) {
-      return Promise.reject(err);
+      const find = util.promisify(this._dataService.find.bind(this._dataService));
+      documents = await find(
+        this.namespace,
+        {}, // No filter.
+        { limit: this._maxDocumentsToShow }
+      );
+    } catch (error) {
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(
+        `Fetch documents failed: ${printableError.message}`
+      );
+      return [];
     }
-
-    this.cacheIsUpToDate = true;
-    this._childrenCache = [];
 
     if (documents) {
       documents.forEach((document, index) => {

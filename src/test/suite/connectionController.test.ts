@@ -1,25 +1,22 @@
-import assert from 'assert';
+import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
-import * as sinon from 'sinon';
+import assert from 'assert';
+import { DataService } from 'mongodb-data-service';
 import { promisify } from 'util';
 
-import Connection from 'mongodb-connection-model/lib/model';
-import DataService from 'mongodb-data-service';
-
-import TelemetryService from '../../telemetry/telemetryService';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../../connectionController';
 import { StorageController, StorageVariables } from '../../storage';
 import {
-  StorageScope,
+  StorageLocation,
   DefaultSavingLocations
 } from '../../storage/storageController';
 import { StatusView } from '../../views';
+import TelemetryService from '../../telemetry/telemetryService';
 import { TestExtensionContext } from './stubs';
 import { TEST_DATABASE_URI } from './dbTestHelper';
-import { ConnectionModel } from '../../types/connectionModelType';
 
 const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
@@ -27,11 +24,6 @@ const testDatabaseURI2WithTimeout =
 
 const sleep = (ms: number): Promise<void> => {
   return promisify(setTimeout)(ms);
-};
-
-const getConnection = (dbUri: string): Promise<ConnectionModel> => {
-  const connectionFrom = promisify(Connection.from.bind(Connection));
-  return connectionFrom(dbUri);
 };
 
 suite('Connection Controller Test Suite', function () {
@@ -77,7 +69,6 @@ suite('Connection Controller Test Suite', function () {
     const connnectionId =
       testConnectionController.getActiveConnectionId() || '';
     const name = testConnectionController._connections[connnectionId].name;
-    const connectionModel = testConnectionController.getActiveConnectionModel();
     const dataService = testConnectionController.getActiveDataService();
 
     assert(
@@ -92,18 +83,7 @@ suite('Connection Controller Test Suite', function () {
       name === 'localhost:27018',
       `Expected active connection to be 'localhost:27018' found ${name}`
     );
-    assert(connectionModel !== null);
-    assert(
-      testConnectionController.getConnectionNameFromConnectionModel(
-        connectionModel
-      ) === 'localhost:27018'
-    );
     assert(dataService !== null);
-    assert(
-      testConnectionController._activeConnectionModel?.appname.startsWith(
-        'mongodb-vscode'
-      )
-    );
     assert(testConnectionController.isCurrentlyConnected());
   });
 
@@ -124,7 +104,6 @@ suite('Connection Controller Test Suite', function () {
     const connectionsCount = testConnectionController.getSavedConnections()
       .length;
     const connnectionId = testConnectionController.getActiveConnectionId();
-    const connectionModel = testConnectionController.getActiveConnectionModel();
     const dataService = testConnectionController.getActiveDataService();
 
     assert(testConnectionController.getConnectionStatus() === 'DISCONNECTED');
@@ -140,7 +119,6 @@ suite('Connection Controller Test Suite', function () {
       connnectionId === null,
       `Expected the active connection id to be null, found ${connnectionId}`
     );
-    assert(connectionModel === null);
     assert(dataService === null);
     assert(!testConnectionController.isCurrentlyConnected());
   });
@@ -292,8 +270,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('the connection model loads both global and workspace stored connection models', async () => {
-    const expectedDriverUri =
-      'mongodb://localhost:27018/?readPreference=primary&directConnection=true&ssl=false';
+    const expectedDriverUrl = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -333,10 +310,10 @@ suite('Connection Controller Test Suite', function () {
       "Expected loaded connection to include name 'localhost:27018'"
     );
     assert(
-      connections[Object.keys(connections)[2]].connectionModel.driverUrl ===
-        expectedDriverUri,
-      `Expected loaded connection to include driver url '${expectedDriverUri}' found '${
-        connections[Object.keys(connections)[2]].connectionModel.driverUrl
+      connections[Object.keys(connections)[2]].connectionOptions?.connectionString ===
+      expectedDriverUrl,
+      `Expected loaded connection to include driver url '${expectedDriverUrl}' found '${
+        connections[Object.keys(connections)[2]].connectionOptions?.connectionString
       }'`
     );
   });
@@ -351,7 +328,8 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const globalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(
@@ -392,7 +370,7 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
+      StorageLocation.WORKSPACE
     );
 
     assert(
@@ -410,7 +388,8 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const globalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(
@@ -420,14 +399,12 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('a connection can be connected to by id', async () => {
-    const connectionModel = await getConnection(TEST_DATABASE_URI);
-
     testConnectionController._connections = {
       '25': {
         id: '25',
         name: 'tester',
-        connectionModel,
-        storageLocation: StorageScope.NONE
+        connectionOptions: { connectionString: TEST_DATABASE_URI },
+        storageLocation: StorageLocation.NONE
       }
     };
 
@@ -453,7 +430,7 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
+      StorageLocation.WORKSPACE
     );
 
     assert(
@@ -496,20 +473,10 @@ suite('Connection Controller Test Suite', function () {
       name === 'localhost:27018',
       `Expected the active connection name to be 'localhost:27018', found ${name}.`
     );
-
-    const port =
-      testConnectionController._connections[activeId || ''].connectionModel
-        .port;
-
-    assert(
-      port === 27018,
-      `Expected the active connection port to be '27018', found ${port}.`
-    );
   });
 
-  test('"getConnectionStringFromConnectionId" returns the driver uri of a connection', async () => {
-    const expectedDriverUri =
-      'mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode%200.0.0-dev.0&directConnection=true&ssl=false';
+  test('"copyConnectionStringByConnectionId" returns the driver uri of a connection', async () => {
+    const expectedDriverUrl = 'mongodb://localhost:27018/';
 
     await testConnectionController.loadSavedConnections();
     await testConnectionController.addNewConnectionStringAndConnect(
@@ -523,88 +490,14 @@ suite('Connection Controller Test Suite', function () {
       'Expected active connection to not be null'
     );
 
-    const testDriverUri = testConnectionController.getConnectionStringFromConnectionId(
+    const testDriverUrl = testConnectionController.copyConnectionStringByConnectionId(
       activeConnectionId || ''
     );
 
     assert(
-      testDriverUri === expectedDriverUri,
-      `Expected to be returned the driver uri "${expectedDriverUri}" found ${testDriverUri}`
+      testDriverUrl === expectedDriverUrl,
+      `Expected to be returned the driver uri "${expectedDriverUrl}" found ${testDriverUrl}`
     );
-  });
-
-  test('"getConnectionNameFromConnectionModel" returns a connection\'s name', () => {
-    const testConnections: {
-      model: ConnectionModel;
-      name: string;
-    }[] = [
-      {
-        model: new Connection({
-          hosts: [
-            {
-              host: 'pineapple',
-              port: 27020
-            }
-          ]
-        }),
-        name: 'pineapple:27020'
-      },
-      {
-        model: new Connection({
-          hostname: 'alaska',
-          port: 27020,
-          hosts: [
-            {
-              host: 'wyoming',
-              port: 28001
-            }
-          ],
-          isSrvRecord: true
-        }),
-        name: 'alaska'
-      },
-      {
-        model: new Connection({
-          hostname: 'pineapple',
-          port: 27020,
-          hosts: [
-            {
-              host: 'kentucky',
-              port: 28001
-            },
-            {
-              host: 'nebraska',
-              port: 28002
-            }
-          ]
-        }),
-        name: 'kentucky:28001,nebraska:28002'
-      },
-      {
-        model: new Connection({
-          sshTunnel: 'USER_PASSWORD',
-          sshTunnelHostname: 'california',
-          sshTunnelPort: 29222,
-          hosts: [
-            {
-              host: 'alabama',
-              port: 28123
-            }
-          ]
-        }),
-        name: 'SSH to alabama:28123'
-      }
-    ];
-
-    testConnections.forEach((connection) => {
-      const name = testConnectionController.getConnectionNameFromConnectionModel(
-        connection.model
-      );
-      assert(
-        name === connection.name,
-        `Expected to be returned the name "${connection.name}" found ${name}`
-      );
-    });
   });
 
   test('when a connection is added and the user has set it to not save on default it is not saved', async () => {
@@ -623,7 +516,8 @@ suite('Connection Controller Test Suite', function () {
 
     const objectString = JSON.stringify(undefined);
     const globalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(
@@ -633,7 +527,7 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
+      StorageLocation.WORKSPACE
     );
 
     assert(
@@ -658,7 +552,7 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
+      StorageLocation.WORKSPACE
     );
 
     assert(
@@ -676,7 +570,7 @@ suite('Connection Controller Test Suite', function () {
 
     const postWorkspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
+      StorageLocation.WORKSPACE
     );
 
     assert(
@@ -697,7 +591,8 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const globalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(
@@ -712,7 +607,8 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.removeSavedConnection(connectionId);
 
     const postGlobalStoreConnections = mockStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
     );
 
     assert(
@@ -737,7 +633,7 @@ suite('Connection Controller Test Suite', function () {
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageScope.WORKSPACE
+      StorageLocation.WORKSPACE
     );
 
     assert(
@@ -855,15 +751,15 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(
       connectionQuickPicks[0].label === 'Add new connection',
-      `Expected the first quick pick label to be 'Add new connection', found '${connectionQuickPicks[0].name}'.`
+      `Expected the first quick pick label to be 'Add new connection', found '${connectionQuickPicks[0].label}'.`
     );
     assert(
       connectionQuickPicks[1].label === 'localhost:27018',
-      `Expected the second quick pick label to be 'localhost:27018', found '${connectionQuickPicks[1].name}'.`
+      `Expected the second quick pick label to be 'localhost:27018', found '${connectionQuickPicks[1].label}'.`
     );
     assert(
       connectionQuickPicks[2].label === 'Lynx',
-      `Expected the third quick pick labele to be 'Lynx', found '${connectionQuickPicks[2].name}'.`
+      `Expected the third quick pick labele to be 'Lynx', found '${connectionQuickPicks[2].label}'.`
     );
   });
 
@@ -914,15 +810,13 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('it only connects to the most recent connection attempt', async () => {
-      const connectionModel = await getConnection(TEST_DATABASE_URI);
-
       for (let i = 0; i < 5; i++) {
         const id = `${i}`;
         testConnectionController._connections[id] = {
           id,
           name: `test${i}`,
-          connectionModel,
-          storageLocation: StorageScope.NONE
+          connectionOptions: { connectionString: TEST_DATABASE_URI },
+          storageLocation: StorageLocation.NONE
         };
       }
 
@@ -963,14 +857,12 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('a connection which fails can be removed while it is being connected to', async () => {
-    const connectionModel = await getConnection(testDatabaseURI2WithTimeout);
-
     const connectionId = 'skateboard';
     testConnectionController._connections[connectionId] = {
       id: connectionId,
       name: 'asdfasdg',
-      connectionModel,
-      storageLocation: StorageScope.NONE
+      connectionOptions: { connectionString: testDatabaseURI2WithTimeout },
+      storageLocation: StorageLocation.NONE
     };
 
     void testConnectionController.connectWithConnectionId(connectionId);
@@ -988,14 +880,12 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('a successfully connecting connection can be removed while it is being connected to', async () => {
-    const connectionModel = await getConnection(TEST_DATABASE_URI);
-
     const connectionId = 'skateboard2';
     testConnectionController._connections[connectionId] = {
       id: connectionId,
       name: 'asdfasdg',
-      connectionModel,
-      storageLocation: StorageScope.NONE
+      connectionOptions: { connectionString: TEST_DATABASE_URI },
+      storageLocation: StorageLocation.NONE
     };
 
     sinon.replace(

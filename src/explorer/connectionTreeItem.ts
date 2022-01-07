@@ -1,40 +1,14 @@
 import * as vscode from 'vscode';
 import path from 'path';
-import { promisify } from 'util';
-import { isNotAuthorized } from 'mongodb-js-errors';
-import { MongoClient } from 'mongodb';
 
 import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
-import TreeItemParent from './treeItemParentInterface';
 import { getImagesPath } from '../extensionConstants';
+import TreeItemParent from './treeItemParentInterface';
 
 export enum ConnectionItemContextValues {
   disconnected = 'disconnectedConnectionTreeItem',
   connected = 'connectedConnectionTreeItem',
-}
-
-export function getDatabaseNamesFromPrivileges(
-  privileges: {
-    resource?: {
-      db?: string;
-    }
-  }[]
-): string[] {
-  return privileges
-    .filter((priv) => {
-      // Find all named databases in priv list.
-      return ((priv.resource || {}).db || '').length > 0;
-    })
-    .map((priv): string => {
-      // Return just the names.
-      return priv.resource!.db!;
-    })
-    .filter((db, idx, arr) => {
-      // Make sure the list is unique.
-      return arr.indexOf(db) === idx;
-    })
-    .sort();
 }
 
 function getIconPath(isActiveConnection: boolean): { light: string; dark: string } {
@@ -68,7 +42,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     isExpanded: boolean,
     connectionController: ConnectionController,
     cacheIsUpToDate: boolean,
-    existingChildrenCache: { [key: string]: DatabaseTreeItem }
+    childrenCache: { [key: string]: DatabaseTreeItem } // Existing cache.
   ) {
     super(
       connectionController.getSavedConnectionName(connectionId),
@@ -86,7 +60,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     this.connectionId = connectionId;
     this._connectionController = connectionController;
     this.isExpanded = isExpanded;
-    this._childrenCache = existingChildrenCache;
+    this._childrenCache = childrenCache;
     this.cacheIsUpToDate = cacheIsUpToDate;
 
     // Create a unique id to ensure the tree updates the expanded property.
@@ -106,44 +80,18 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     return element;
   }
 
-  async listDatabasesUserHasAccessTo(
-    dataService: MongoClient
-  ): Promise<string[]> {
-    const db = dataService.db();
-
-    const adminDb = db.databaseName === 'admin' ? db : db.admin();
-    const res = await adminDb.command({
-      connectionStatus: 1,
-      showPrivileges: 1
-    }, {
-      // `db.command` does not use the read preference set on the
-      // connection, so here we explicitly to specify it in the options.
-      readPreference: db.readPreference
-    });
-
-    const privileges = res.authInfo?.authenticatedUserPrivileges;
-    if (!privileges) {
-      return [];
-    }
-
-    return getDatabaseNamesFromPrivileges(privileges);
-  }
-
   async listDatabases(): Promise<string[]> {
     const dataService = this._connectionController.getActiveDataService();
+
     if (dataService === null) {
       throw new Error('Not currently connected.');
     }
 
     try {
-      const runListDatabases = promisify(dataService.listDatabases.bind(dataService));
-      const dbs = await runListDatabases();
+      const dbs = await dataService.listDatabases();
+
       return dbs.map(dbItem => dbItem.name);
     } catch (error) {
-      if (isNotAuthorized(error)) {
-        // Check for which databases privilages this user has, and list those.
-        return this.listDatabasesUserHasAccessTo(dataService.client.client);
-      }
       const printableError = error as { message: string };
       throw new Error(`Unable to list databases: ${printableError.message}`);
     }

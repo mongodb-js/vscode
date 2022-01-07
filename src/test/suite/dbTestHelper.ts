@@ -1,7 +1,6 @@
-import { promisify } from 'util';
-
-import Connection = require('mongodb-connection-model/lib/model');
-import DataService = require('mongodb-data-service');
+import { connect, DataService } from 'mongodb-data-service';
+import { EJSON } from 'bson';
+import * as util from 'util';
 
 export const TEST_USER_USERNAME = 'testUser';
 export const TEST_USER_PASSWORD = 'password';
@@ -11,40 +10,26 @@ export const TEST_DATABASE_URI_USER = `mongodb://${TEST_USER_USERNAME}:${TEST_US
 
 export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 
-let testDatabaseConnectionModel;
+let testDataService;
 
-// Note: Be sure to disconnect from the dataservice to free up connections.
-export const seedDataAndCreateDataService = async (
+export const createTestDataService = async (): Promise<DataService> => {
+  testDataService = await connect({ connectionString: TEST_DATABASE_URI });
+  return testDataService;
+};
+
+export const seedTestDB = async (
   collectionName: string,
-  documentsArray: any[]
-): Promise<Connection> => {
-  if (!testDatabaseConnectionModel) {
-    const connectionFrom = promisify(Connection.from.bind(Connection));
-
-    try {
-      testDatabaseConnectionModel = await connectionFrom(TEST_DATABASE_URI);
-    } catch (error) {
-      throw new Error(`Error connecting to ${TEST_DATABASE_URI}: ${error}`);
-    }
-  }
-
-  const newConnection = new DataService(testDatabaseConnectionModel);
-  const connect = promisify(newConnection.connect.bind(newConnection));
-  const insertMany = promisify(newConnection.insertMany.bind(newConnection));
-
-  await connect();
+  documentsArray: EJSON.SerializableTypes[]
+): Promise<void> => {
+  const insertMany = util.promisify(testDataService.insertMany.bind(testDataService));
   await insertMany(`${TEST_DB_NAME}.${collectionName}`, documentsArray, {});
-
-  return newConnection;
 };
 
 export const cleanupTestDB = async (): Promise<void> => {
-  const newConnection = new DataService(testDatabaseConnectionModel);
-  const connect = promisify(newConnection.connect.bind(newConnection));
-  const dropDatabase = promisify(newConnection.dropDatabase.bind(newConnection));
-  const disconnect = promisify(newConnection.disconnect.bind(newConnection));
-
-  await connect();
+  const dropDatabase = util.promisify(testDataService.dropDatabase.bind(testDataService));
   await dropDatabase(TEST_DB_NAME);
-  await disconnect();
+};
+
+export const disconnectFromTestDB = async (): Promise<void> => {
+  await testDataService.disconnect();
 };

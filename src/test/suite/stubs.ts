@@ -135,12 +135,16 @@ for (let i = 0; i < numberOfDocumentsToMock; i++) {
 }
 
 class DataServiceStub {
-  listDatabases(callback: any): void {
-    callback(null, mockDatabaseNames.map(dbName => ({ name: dbName })));
+  listDatabases(): Promise<any> {
+    return new Promise((resolve) => {
+      resolve(mockDatabaseNames.map(dbName => ({ name: dbName })));
+    });
   }
 
-  listCollections(databaseName: string, filter: object, callback: any): void {
-    callback(null, mockDatabases[databaseName].collections);
+  listCollections(databaseName: string): Promise<any> {
+    return new Promise((resolve) => {
+      resolve(mockDatabases[databaseName].collections);
+    });
   }
 
   find(namespace: string, filter: any, options: any, callback: any): void {
@@ -258,7 +262,7 @@ class MockLanguageServerController {
 
   connectToServiceProvider(/* params: {
     connectionString?: string;
-    connectionOptions?: any;
+    connectionOptions?: MongoClientOptions;
     extensionPath: string;
   }*/): Promise<void> {
     return Promise.resolve();
@@ -266,10 +270,6 @@ class MockLanguageServerController {
 
   disconnectFromServiceProvider(): Promise<void> {
     return Promise.resolve();
-  }
-
-  startStreamLanguageServerLogs(): Promise<boolean> {
-    return Promise.resolve(true);
   }
 
   cancelAll(): void {

@@ -3,10 +3,9 @@ import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 
-import Connection = require('mongodb-connection-model/lib/model');
 import {
   DefaultSavingLocations,
-  StorageScope
+  StorageLocation
 } from '../../../storage/storageController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -53,17 +52,15 @@ suite('Explorer Controller Test Suite', function () {
     const testExplorerController =
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
-    const mockConnectionId = 'testConnectionId';
 
     testConnectionController._connections = {
       testConnectionId: {
         id: 'testConnectionId',
-        connectionModel: new Connection(),
+        connectionOptions: { connectionString: 'mongodb://localhost' },
         name: 'testConnectionName',
-        storageLocation: StorageScope.NONE
+        storageLocation: StorageLocation.NONE
       }
     };
-    testConnectionController.setConnnectingConnectionId(mockConnectionId);
     testConnectionController.setConnnecting(true);
 
     const connectionsItems = await treeController.getChildren();
@@ -175,8 +172,8 @@ suite('Explorer Controller Test Suite', function () {
       'Expected the first connection tree item to not be expanded'
     );
     assert(
-      connectionsItems[1].label === 'shouldfail:27017',
-      'Second connection tree item should have label "shouldfail:27017"'
+      connectionsItems[1].label === 'shouldfail',
+      'Second connection tree item should have label "shouldfail"'
     );
   });
 
@@ -194,19 +191,17 @@ suite('Explorer Controller Test Suite', function () {
     const connectionId = testConnectionController.getActiveConnectionId() || '';
 
     testConnectionController._connections.aaa = {
-      connectionModel:
-        testConnectionController._connections[connectionId].connectionModel,
+      connectionOptions: testConnectionController._connections[connectionId].connectionOptions,
       name: 'aaa',
       id: 'aaa',
-      storageLocation: StorageScope.WORKSPACE
+      storageLocation: StorageLocation.WORKSPACE
     };
 
     testConnectionController._connections.zzz = {
-      connectionModel:
-        testConnectionController._connections[connectionId].connectionModel,
+      connectionOptions: testConnectionController._connections[connectionId].connectionOptions,
       name: 'zzz',
       id: 'zzz',
-      storageLocation: StorageScope.WORKSPACE
+      storageLocation: StorageLocation.WORKSPACE
     };
 
     const connectionsItems = await treeController.getChildren();

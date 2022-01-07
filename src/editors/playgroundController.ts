@@ -1,13 +1,15 @@
 import * as vscode from 'vscode';
+import semver from 'semver';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
+import CodeActionProvider from './codeActionProvider';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
 import { createLogger } from '../logging';
 import { ExplorerController, ConnectionTreeItem, DatabaseTreeItem } from '../explorer';
-import { LanguageServerController } from '../language';
 import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
+import { LanguageServerController } from '../language';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
@@ -26,29 +28,18 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
-import { ConnectionOptions } from '../types/connectionOptionsType';
-import CodeActionProvider from './codeActionProvider';
 
-const transpiler = require('bson-transpilers');
 const log = createLogger('playground controller');
+const transpiler = require('bson-transpilers');
 
-const getSSLFilePathsFromConnectionModel = (
-  connectionModelDriverOptions: ConnectionOptions
-): {
-  sslCA?: string | string[];
-  sslCert?: string | string[];
-  sslKey?: string | string[];
-} => {
-  const sslFilePaths = {};
-  ['sslCA', 'sslCert', 'sslKey'].forEach((key) => {
-    if (connectionModelDriverOptions[key]) {
-      sslFilePaths[key] = connectionModelDriverOptions[key] as (
-        string | string[]
-      );
-    }
-  });
+const MIN_TIME_SERIES_SERVER_VERSION = '5.0.0-alpha0';
 
-  return sslFilePaths;
+const hasTimeSeriesSupport = (serverVersion) => {
+  try {
+    return semver.gte(serverVersion, MIN_TIME_SERIES_SERVER_VERSION);
+  } catch (e) {
+    return true;
+  }
 };
 
 /**
@@ -58,25 +49,25 @@ export default class PlaygroundController {
   _connectionController: ConnectionController;
   _activeTextEditor?: TextEditor;
   _playgroundResult?: PlaygroundResult;
-  _context: vscode.ExtensionContext;
   _languageServerController: LanguageServerController;
-  _telemetryService: TelemetryService;
-  _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
-  _outputChannel: OutputChannel;
-  _connectionString?: string;
   _selectedText?: string;
-  _codeToEvaluate = '';
-  _isPartialRun: boolean;
-  _playgroundResultViewColumn?: vscode.ViewColumn;
-  _playgroundResultTextDocument?: vscode.TextDocument;
-  _statusView: StatusView;
-  _playgroundResultViewProvider: PlaygroundResultProvider;
-  _explorerController: ExplorerController;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _codeActionProvider: CodeActionProvider;
 
+  _isPartialRun = false;
+
+  private _telemetryService: TelemetryService;
+  private _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
+  private _outputChannel: OutputChannel;
+  private _playgroundResultViewColumn?: vscode.ViewColumn;
+  private _playgroundResultTextDocument?: vscode.TextDocument;
+  private _statusView: StatusView;
+  private _playgroundResultViewProvider: PlaygroundResultProvider;
+  private _explorerController: ExplorerController;
+
+  private _codeToEvaluate = '';
+
   constructor(
-    context: vscode.ExtensionContext,
     connectionController: ConnectionController,
     languageServerController: LanguageServerController,
     telemetryService: TelemetryService,
@@ -87,8 +78,6 @@ export default class PlaygroundController {
     codeActionProvider: CodeActionProvider,
     explorerController: ExplorerController
   ) {
-    this._context = context;
-    this._isPartialRun = false;
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryService = telemetryService;
@@ -156,34 +145,25 @@ export default class PlaygroundController {
 
     const dataService = this._connectionController.getActiveDataService();
     const connectionId = this._connectionController.getActiveConnectionId();
-    const connectionModel = this._connectionController
-      .getActiveConnectionModel();
 
-    if (!dataService || !connectionId || !connectionModel) {
+    if (!dataService || !connectionId) {
       this._activeConnectionCodeLensProvider.refresh();
 
       return;
     }
 
-    const connectionDetails = dataService.getConnectionOptions();
-    const connectionString = connectionDetails.url;
-    // We pass file paths to the language server since it doesn't
-    // handle being passsed buffers well.
-    // With driver version 4.0 we should be able to remove any use
-    // of buffers and just pass file paths.
-    const sslOptionsFilePaths = getSSLFilePathsFromConnectionModel(
-      connectionModel.getAttributes({ derived: true }).driverOptions
-    );
+    const mongoClientOption = dataService.getMongoClientConnectionOptions();
 
-    const connectionOptions: ConnectionOptions = {
-      ...connectionDetails.options,
-      ...sslOptionsFilePaths
-    };
+    if (!mongoClientOption) {
+      this._activeConnectionCodeLensProvider.refresh();
+
+      return;
+    }
 
     await this._languageServerController.connectToServiceProvider({
       connectionId,
-      connectionString,
-      connectionOptions
+      connectionString: mongoClientOption.url,
+      connectionOptions: mongoClientOption.options
     });
 
     this._activeConnectionCodeLensProvider.refresh();
@@ -230,15 +210,10 @@ export default class PlaygroundController {
     let content = playgroundCreateCollectionTemplate;
 
     if (dataService) {
-      const adminDb = dataService.client.client.db('admin');
-      const buildInfo = await adminDb.command({ buildInfo: 1 });
+      const instance = await dataService.instance();
 
-      if (buildInfo) {
-        const serverVersion = buildInfo.versionArray[0];
-
-        if (serverVersion >= 5) {
-          content = playgroundCreateCollectionWithTSTemplate;
-        }
+      if (hasTimeSeriesSupport(instance.build.version)) {
+        content = playgroundCreateCollectionWithTSTemplate;
       }
     }
 
@@ -599,14 +574,13 @@ export default class PlaygroundController {
           selection
         });
 
-        const dataService = this._connectionController.getActiveDataService();
-        const connectionDetails = dataService?.getConnectionOptions();
+        const mongoClientOptions = this._connectionController.getMongoClientConnectionOptions();
         const toCompile = {
           aggregation: selectedText,
           options: {
             collection: namespace.collectionName,
             database: namespace.databaseName,
-            uri: connectionDetails?.url
+            uri: mongoClientOptions?.url
           }
         };
 

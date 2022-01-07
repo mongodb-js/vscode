@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 
 import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
+import CodeActionProvider from './editors/codeActionProvider';
 import ConnectionController from './connectionController';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
 import { createLogger } from './logging';
@@ -22,11 +23,11 @@ import {
   HelpExplorer,
   CollectionTreeItem
 } from './explorer';
-import CodeActionProvider from './editors/codeActionProvider';
+import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
+import { ExportToLanguages } from './types/playgroundType';
 import EXTENSION_COMMANDS from './commands';
 import FieldTreeItem from './explorer/fieldTreeItem';
 import IndexListTreeItem from './explorer/indexListTreeItem';
-import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
 import { LanguageServerController } from './language';
 import launchMongoShell from './commands/launchMongoShell';
 import SchemaTreeItem from './explorer/schemaTreeItem';
@@ -36,7 +37,6 @@ import TelemetryService from './telemetry/telemetryService';
 import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
-import { ExportToLanguages } from './types/playgroundType';
 
 const log = createLogger('commands');
 
@@ -97,7 +97,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._exportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
     this._codeActionProvider = new CodeActionProvider();
     this._playgroundController = new PlaygroundController(
-      context,
       this._connectionController,
       this._languageServerController,
       this._telemetryService,
@@ -147,14 +146,15 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
+    // ------ CONNECTION ------ //
+    this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE, () =>
+      this._webviewController.openWebview(this._context)
+    );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT, () =>
       this._webviewController.openWebview(this._context)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, () =>
       this._connectionController.connectWithURI()
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE, () =>
-      this._webviewController.openWebview(this._context)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_DISCONNECT, () =>
       this._connectionController.disconnect()
@@ -166,6 +166,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController.changeActiveConnection()
     );
 
+    // ------ SHELL ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL, () =>
       launchMongoShell(this._connectionController)
     );
@@ -174,6 +175,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => launchMongoShell(this._connectionController)
     );
 
+    // ------ PLAYGROUND ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND, () =>
       this._playgroundController.createPlayground()
     );
@@ -195,6 +197,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS, () =>
       this._playgroundsExplorer.refresh()
     );
+
+    // ------ EXPORT TO LANGUAGE ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
       this._playgroundController.exportToLanguage(ExportToLanguages.PYTHON)
     );
@@ -210,6 +214,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS, (exportToLanguageAddons) =>
       this._playgroundController.changeExportToLanguageAddons(exportToLanguageAddons)
     );
+
+    // ------ DOCUMENTS ------ //
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
       (data: EditDocumentInfo) => {
@@ -220,11 +226,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_SAVE_MONGODB_DOCUMENT, () =>
       this._editorsController.saveMongoDBDocument()
-    );
-
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_START_LANGUAGE_STREAM_LOGS,
-      () => this._languageServerController.startStreamLanguageServerLogs()
     );
 
     this.registerEditorCommands();
@@ -295,7 +296,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_CONNECTION_STRING,
       async (element: ConnectionTreeItem): Promise<boolean> => {
-        const connectionString = this._connectionController.getConnectionStringFromConnectionId(
+        const connectionString = this._connectionController.copyConnectionStringByConnectionId(
           element.connectionId
         );
 
@@ -315,7 +316,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       (element: ConnectionTreeItem) =>
         this._connectionController.renameConnection(element.connectionId)
     );
-
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_ADD_DATABASE,
       async (element: ConnectionTreeItem): Promise<boolean> => {

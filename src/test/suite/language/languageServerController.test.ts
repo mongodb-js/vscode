@@ -5,11 +5,11 @@ import path from 'path';
 import sinon from 'sinon';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
+import CodeActionProvider from '../../../editors/codeActionProvider';
 import ConnectionController from '../../../connectionController';
-import { DataServiceType } from '../../../types/dataServiceType';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { ExplorerController } from '../../../explorer';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
@@ -20,7 +20,6 @@ import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TestExtensionContext } from '../stubs';
-import CodeActionProvider from '../../../editors/codeActionProvider';
 
 const expect = chai.expect;
 
@@ -61,7 +60,6 @@ suite('Language Server Controller Test Suite', () => {
   const testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
   const testCodeActionProvider = new CodeActionProvider();
   const testPlaygroundController = new PlaygroundController(
-    mockExtensionContext,
     testConnectionController,
     testLanguageServerController,
     testTelemetryService,
@@ -84,8 +82,8 @@ suite('Language Server Controller Test Suite', () => {
     sinon.replace(
       testConnectionController,
       'getActiveDataService',
-      () => (({
-        getConnectionOptions: () => ({
+      () => ({
+        getMongoClientConnectionOptions: () => ({
           url: TEST_DATABASE_URI,
           options: {
             appname: 'VSCode Playground Tests',
@@ -93,7 +91,7 @@ suite('Language Server Controller Test Suite', () => {
             readPreference: READ_PREFERENCES.PRIMARY
           }
         })
-      } as any) as DataServiceType)
+      } as any)
     );
     sinon.replace(
       testConnectionController,

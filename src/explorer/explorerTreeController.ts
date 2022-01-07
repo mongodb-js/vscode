@@ -1,22 +1,22 @@
 import * as vscode from 'vscode';
+
 import ConnectionController, {
   DataServiceEventTypes
 } from '../connectionController';
-import { DOCUMENT_ITEM } from './documentTreeItem';
-import { createLogger } from '../logging';
-import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 import ConnectionTreeItem from './connectionTreeItem';
-import { SavedConnection } from '../storage/storageController';
-import { sortTreeItemsByLabel } from './treeItemUtils';
+import { createLogger } from '../logging';
+import { DOCUMENT_ITEM } from './documentTreeItem';
+import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 import EXTENSION_COMMANDS from '../commands';
+import { StoreConnectionInfo } from '../connectionController';
+import { sortTreeItemsByLabel } from './treeItemUtils';
 
 const log = createLogger('explorer controller');
 
 export default class ExplorerTreeController
 implements vscode.TreeDataProvider<vscode.TreeItem> {
-  _connectionController: ConnectionController;
-  _connectionTreeItems: { [key: string]: ConnectionTreeItem };
-  contextValue = 'explorerTreeController';
+  private _connectionController: ConnectionController;
+  private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
 
   constructor(connectionController: ConnectionController) {
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
@@ -59,7 +59,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
         return;
       }
 
-      this.onTreeItemUpdate();
+      this._onTreeItemUpdate();
     });
 
     treeView.onDidExpandElement(
@@ -79,7 +79,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
                 return resolve();
               }
 
-              this.onTreeItemUpdate();
+              this._onTreeItemUpdate();
 
               resolve();
             },
@@ -98,10 +98,10 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
         if (selectedItem.isShowMoreItem) {
           selectedItem.onShowMoreClicked();
 
-          this.onTreeItemUpdate();
+          this._onTreeItemUpdate();
         }
 
-        if (selectedItem.contextValue === DOCUMENT_ITEM) {
+        if (selectedItem._contextValue === DOCUMENT_ITEM) {
           await vscode.commands.executeCommand(
             EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
             event.selection[0]
@@ -109,7 +109,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
 
         if (
-          selectedItem.contextValue === DOCUMENT_LIST_ITEM &&
+          selectedItem._contextValue === DOCUMENT_LIST_ITEM &&
           selectedItem.type === CollectionTypes.view
         ) {
           await vscode.commands.executeCommand(
@@ -130,7 +130,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
     return true;
   };
 
-  onTreeItemUpdate(): void {
+  private _onTreeItemUpdate(): void {
     this._onDidChangeTreeData.fire(null);
   }
 
@@ -146,7 +146,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
       this._connectionTreeItems = {};
 
       // Create new connection tree items, using cached children wherever possible.
-      connections.forEach((connection: SavedConnection) => {
+      connections.forEach((connection: StoreConnectionInfo) => {
         const isActiveConnection =
           connection.id === this._connectionController.getActiveConnectionId();
         const isBeingConnectedTo =

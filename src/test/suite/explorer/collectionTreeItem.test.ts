@@ -1,12 +1,11 @@
 import assert from 'assert';
 
-const { contributes } = require('../../../../package.json');
-
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import { CollectionTypes } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
-
 import { TestExtensionContext, DataServiceStub } from '../stubs';
+
+const { contributes } = require('../../../../package.json');
 
 suite('CollectionTreeItem Test Suite', () => {
   ext.context = new TestExtensionContext();
@@ -79,9 +78,7 @@ suite('CollectionTreeItem Test Suite', () => {
         type: CollectionTypes.collection
       },
       'mock_db_name',
-      {
-        estimatedCount: (ns, options, cb): void => cb(null, 5000)
-      },
+      { estimatedCount: (ns, options, cb): void => cb(null, 5000) },
       false,
       false,
       null

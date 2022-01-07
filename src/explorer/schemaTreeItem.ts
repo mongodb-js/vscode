@@ -1,12 +1,13 @@
+import * as util from 'util';
 import * as vscode from 'vscode';
 import parseSchema = require('mongodb-schema');
-const path = require('path');
+import path from 'path';
 
 import { createLogger } from '../logging';
-import TreeItemParent from './treeItemParentInterface';
-import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
 import FieldTreeItem from './fieldTreeItem';
 import { getImagesPath } from '../extensionConstants';
+import TreeItemParent from './treeItemParentInterface';
+import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
 
 const log = createLogger('tree view document list');
 
@@ -43,7 +44,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
   cacheIsUpToDate: boolean;
   childrenCache: { [fieldName: string]: FieldTreeItem };
 
-  contextValue = 'schemaTreeItem';
+  contextValue = 'schemaTreeItem' as const;
 
   collectionName: string;
   databaseName: string;
@@ -92,35 +93,22 @@ export default class SchemaTreeItem extends vscode.TreeItem
     return element;
   }
 
-  async fetchDocumentsForSchema(): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const namespace = `${this.databaseName}.${this.collectionName}`;
-
-      this._dataService.find(
-        namespace,
-        {
-          /* No filter */
-        },
-        {
-          limit: MAX_DOCUMENTS_VISIBLE
-        },
-        (findError: Error | undefined, documents: any[]) => {
-          if (findError) {
-            return reject(new Error(`Unable to list documents: ${findError}`));
-          }
-
-          return resolve(documents);
-        }
-      );
-    });
-  }
-
   async getSchema(): Promise<any[]> {
+    const namespace = `${this.databaseName}.${this.collectionName}`;
     let documents;
     try {
-      documents = await this.fetchDocumentsForSchema();
-    } catch (err) {
-      return Promise.reject(err);
+      const find = util.promisify(this._dataService.find.bind(this._dataService));
+      documents = await find(
+        namespace,
+        {}, // No filter.
+        { limit: MAX_DOCUMENTS_VISIBLE }
+      );
+    } catch (error) {
+      const printableError = error as { message: string };
+      void vscode.window.showErrorMessage(
+        `Get schema failed: ${printableError.message}`
+      );
+      return [];
     }
 
     return new Promise((resolve, reject) => {

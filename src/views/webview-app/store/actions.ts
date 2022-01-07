@@ -4,7 +4,7 @@ import SSL_METHODS from '../connection-model/constants/ssl-methods';
 import SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
 import { CONNECTION_STATUS } from '../extension-app-message-constants';
 import { CONNECTION_FORM_TABS } from './constants';
-import { Host } from '../connection-model/connection-model';
+import { Host } from '../connection-model/legacy-connection-model';
 
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',

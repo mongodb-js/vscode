@@ -8,15 +8,13 @@ import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageC
 import CodeActionProvider from '../../../editors/codeActionProvider';
 import { ExplorerController } from '../../../explorer';
 import { LanguageServerController } from '../../../language';
+import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
 import { PlaygroundResult, ExportToLanguageMode } from '../../../types/playgroundType';
-
-import { mdbTestExtension } from '../stubbableMdbExtension';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TestExtensionContext } from '../stubs';
 
 const expect = chai.expect;
-
-import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 suite('Code Action Provider Test Suite', function () {
   this.timeout(5000);
@@ -52,7 +50,6 @@ suite('Code Action Provider Test Suite', function () {
     );
 
     mdbTestExtension.testExtensionController._playgroundController = new PlaygroundController(
-      testExtensionContext,
       mdbTestExtension.testExtensionController._connectionController,
       mdbTestExtension.testExtensionController._languageServerController,
       mdbTestExtension.testExtensionController._telemetryService,
@@ -311,7 +308,7 @@ suite('Code Action Provider Test Suite', function () {
         expectedResult = {
           namespace: 'db.coll',
           type: null,
-          content: "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&directConnection=true&ssl=false')\nresult = client['db']['coll'].aggregate({\n    'name': '22'\n})",
+          content: "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&directConnection=true')\nresult = client['db']['coll'].aggregate({\n    'name': '22'\n})",
           language: 'python'
         };
 
