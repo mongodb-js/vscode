@@ -37,9 +37,7 @@ class LegacyConnectionModel {
    * Authentication.
    */
   authStrategy: AUTH_STRATEGIES = AUTH_STRATEGY_DEFAULT;
-  // TODO: Fix kerberosCanonicalizeHostname type in DataService, should be boolean instaead of string.
-  // https://github.com/mongodb-js/compass/blob/main/packages/data-service/src/legacy/legacy-connection-model.ts#L94
-  kerberosCanonicalizeHostname: any = false;
+  kerberosCanonicalizeHostname = false;
   kerberosPassword?: string;
   kerberosPrincipal?: string;
   kerberosServiceName?: string;
