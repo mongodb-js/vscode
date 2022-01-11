@@ -1,10 +1,11 @@
 import * as sinon from 'sinon';
+import * as util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import { DataService } from 'mongodb-data-service';
-import { promisify } from 'util';
 
+import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/constants/auth-strategies';
 import ConnectionController, {
   DataServiceEventTypes
 } from '../../connectionController';
@@ -13,17 +14,25 @@ import {
   StorageLocation,
   DefaultSavingLocations
 } from '../../storage/storageController';
+import READ_PREFERENCES from '../../views/webview-app/connection-model/constants/read-preferences';
+import SSH_TUNNEL_TYPES from '../../views/webview-app/connection-model/constants/ssh-tunnel-types';
+import SSL_METHODS from '../../views/webview-app/connection-model/constants/ssl-methods';
 import { StatusView } from '../../views';
 import TelemetryService from '../../telemetry/telemetryService';
 import { TestExtensionContext } from './stubs';
-import { TEST_DATABASE_URI } from './dbTestHelper';
+import {
+  TEST_DATABASE_URI,
+  TEST_DATABASE_URI_USER,
+  TEST_USER_USERNAME,
+  TEST_USER_PASSWORD
+} from './dbTestHelper';
 
 const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
 const sleep = (ms: number): Promise<void> => {
-  return promisify(setTimeout)(ms);
+  return util.promisify(setTimeout)(ms);
 };
 
 suite('Connection Controller Test Suite', function () {
@@ -416,7 +425,7 @@ suite('Connection Controller Test Suite', function () {
     assert(testConnectionController.getActiveConnectionId() === '25');
   });
 
-  test('a saved connection can be loaded and connected to', async () => {
+  test('a saved connection can be loaded and connected to workspace storage', async () => {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -581,7 +590,7 @@ suite('Connection Controller Test Suite', function () {
     );
   });
 
-  test('when a connection is removed it is also removed from global storage', async () => {
+  test('when a connection is removed it is also removed from global store', async () => {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -619,7 +628,7 @@ suite('Connection Controller Test Suite', function () {
     );
   });
 
-  test('a saved connection can be renamed and loaded', async () => {
+  test('a saved to workspace connection can be renamed and loaded', async () => {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -684,7 +693,7 @@ suite('Connection Controller Test Suite', function () {
     );
   });
 
-  test('СonnectionQuickPicks list is displayed in the alphanumerical case insensitive order', async () => {
+  test('СonnectionQuickPicks workspace connections list is displayed in the alphanumerical case insensitive order', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update(
@@ -914,5 +923,331 @@ suite('Connection Controller Test Suite', function () {
       !testConnectionController.isCurrentlyConnected(),
       'Did not expect to connect to the connection which was removed.'
     );
+  });
+
+  suite('secrets', () => {
+    test('_migratePreviouslySavedConnection converts an old previously saved connection model without secrets to a new connection info format', async () => {
+      const oldSavedConnectionInfo = {
+        id: '1d700f37-ba57-4568-9552-0ea23effea89',
+        name: 'localhost:27017',
+        storageLocation: StorageLocation.GLOBAL,
+        connectionModel: {
+          isSrvRecord: false,
+          hostname: 'localhost',
+          port: 27017,
+          hosts: [{ host: 'localhost', port: 27017 }],
+          extraOptions: {},
+          connectionType: 'NODE_DRIVER',
+          authStrategy: 'NONE',
+          readPreference: 'primary',
+          kerberosCanonicalizeHostname: false,
+          sslMethod: 'NONE',
+          sshTunnel: 'NONE',
+          sshTunnelPort: 22
+        }
+      };
+      const newSavedConnectionInfoWithSecrets = await testConnectionController._migratePreviouslySavedConnection(oldSavedConnectionInfo);
+
+      assert.deepStrictEqual(
+        newSavedConnectionInfoWithSecrets,
+        {
+          id: '1d700f37-ba57-4568-9552-0ea23effea89',
+          name: 'localhost:27017',
+          storageLocation: 'GLOBAL',
+          connectionOptions: {
+            connectionString: 'mongodb://localhost:27017/?readPreference=primary&ssl=false'
+          }
+        }
+      );
+    });
+
+    test('_migratePreviouslySavedConnection converts an old previously saved connection model with secrets to a new connection info format', async () => {
+      const oldSavedConnectionInfo = {
+        id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
+        name: 'host.u88dd.test.test',
+        storageLocation: StorageLocation.WORKSPACE,
+        connectionModel: {
+          ns: 'test',
+          isSrvRecord: true,
+          hostname: 'compass-data-sets.e06dc.mongodb.net',
+          port: 27017,
+          hosts: [
+            { host: 'host-shard-00-00.u88dd.test.test', port: 27017 },
+            { host: 'host-shard-00-01.u88dd.test.test', port: 27017 },
+            { host: 'host-shard-00-02.u88dd.test.test', port: 27017 }
+          ],
+          extraOptions: {},
+          connectionType: 'NODE_DRIVER',
+          authStrategy: 'MONGODB',
+          replicaSet: 'host-shard-0',
+          readPreference: 'primary',
+          authSource: 'admin',
+          appname: 'mongodb-vscode 0.6.14',
+          mongodbUsername: 'username',
+          mongodbPassword: 'password',
+          mongodbDatabaseName: 'admin',
+          kerberosCanonicalizeHostname: false,
+          ssl: true,
+          sslMethod: 'SYSTEMCA',
+          sshTunnel: 'NONE',
+          sshTunnelPort: 22
+        }
+      };
+
+      const newSavedConnectionInfoWithSecrets = await testConnectionController._migratePreviouslySavedConnection(oldSavedConnectionInfo);
+
+      assert.deepStrictEqual(
+        newSavedConnectionInfoWithSecrets,
+        {
+          id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
+          name: 'host.u88dd.test.test',
+          storageLocation: 'WORKSPACE',
+          connectionOptions: {
+            connectionString: 'mongodb+srv://username:password@compass-data-sets.e06dc.mongodb.net/test?authSource=admin&replicaSet=host-shard-0&readPreference=primary&appname=mongodb-vscode+0.6.14&ssl=true'
+          }
+        }
+      );
+    });
+
+    test('_migratePreviouslySavedConnection does not store secrets to disc', async () => {
+      const oldSavedConnectionInfo = {
+        id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
+        name: 'host.u88dd.test.test',
+        storageLocation: StorageLocation.WORKSPACE,
+        connectionModel: {
+          ns: 'test',
+          isSrvRecord: true,
+          hostname: 'compass-data-sets.e06dc.mongodb.net',
+          port: 27017,
+          hosts: [
+            { host: 'host-shard-00-00.u88dd.test.test', port: 27017 },
+            { host: 'host-shard-00-01.u88dd.test.test', port: 27017 },
+            { host: 'host-shard-00-02.u88dd.test.test', port: 27017 }
+          ],
+          extraOptions: {},
+          connectionType: 'NODE_DRIVER',
+          authStrategy: 'MONGODB',
+          replicaSet: 'host-shard-0',
+          readPreference: 'primary',
+          authSource: 'admin',
+          appname: 'mongodb-vscode 0.6.14',
+          mongodbUsername: TEST_USER_USERNAME,
+          mongodbPassword: TEST_USER_PASSWORD,
+          mongodbDatabaseName: 'admin',
+          kerberosCanonicalizeHostname: false,
+          ssl: true,
+          sslMethod: 'SYSTEMCA',
+          sshTunnel: 'NONE',
+          sshTunnelPort: 22
+        }
+      };
+      const mockSaveConnection: any = sinon.fake.resolves({
+        id: 'fb210b47-f85d-4823-8552-aa6d7825156b'
+      });
+
+      sinon.replace(
+        testConnectionController._storageController,
+        'saveConnection',
+        mockSaveConnection
+      );
+
+      await testConnectionController._migratePreviouslySavedConnection(oldSavedConnectionInfo);
+
+      assert(
+        mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString.includes(TEST_USER_USERNAME) === true,
+        `Expected saveConnection arg includes username found ${mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString}`
+      );
+      assert(
+        mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD) === false,
+        `Expected saveConnection arg does not include password found ${mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString}`
+      );
+    });
+
+    test('_getConnectionInfoWithSecrets runs a migration for old connections', async () => {
+      const oldSavedConnectionInfo = {
+        id: '1d700f37-ba57-4568-9552-0ea23effea89',
+        name: 'localhost:27017',
+        storageLocation: StorageLocation.GLOBAL,
+        connectionModel: {
+          isSrvRecord: false,
+          hostname: 'localhost',
+          port: 27017,
+          hosts: [{ host: 'localhost', port: 27017 }],
+          extraOptions: {},
+          connectionType: 'NODE_DRIVER',
+          authStrategy: 'NONE',
+          readPreference: 'primary',
+          kerberosCanonicalizeHostname: false,
+          sslMethod: 'NONE',
+          sshTunnel: 'NONE',
+          sshTunnelPort: 22
+        }
+      };
+      const mockMigratePreviouslySavedConnection: any = sinon.fake.resolves({
+        id: '1d700f37-ba57-4568-9552-0ea23effea89',
+        name: 'localhost:27017',
+        storageLocation: 'GLOBAL',
+        connectionOptions: {
+          connectionString: 'mongodb://localhost:27017/?readPreference=primary&ssl=false'
+        }
+      });
+
+      sinon.replace(
+        testConnectionController,
+        '_migratePreviouslySavedConnection',
+        mockMigratePreviouslySavedConnection
+      );
+
+      await testConnectionController._getConnectionInfoWithSecrets(oldSavedConnectionInfo);
+
+      assert(
+        mockMigratePreviouslySavedConnection.called === true,
+        'Expected _migratePreviouslySavedConnection to be called.'
+      );
+    });
+
+    test('_getConnectionInfoWithSecrets does not run a migration for new connections', async () => {
+      const connectionInfo = {
+        id: '1d700f37-ba57-4568-9552-0ea23effea89',
+        name: 'localhost:27017',
+        storageLocation: StorageLocation.GLOBAL,
+        connectionOptions: {
+          connectionString: 'mongodb://localhost:27017/?readPreference=primary&ssl=false'
+        }
+      };
+      await testConnectionController._storageController.saveConnectionToStore(connectionInfo);
+      await testConnectionController.loadSavedConnections();
+
+      const connections = testConnectionController.getSavedConnections();
+
+      assert(
+        connections.length === 1,
+        `Expected connections to be 1 found ${connections.length}`
+      );
+
+      const mockMigratePreviouslySavedConnection: any = sinon.fake();
+
+      sinon.replace(
+        testConnectionController,
+        '_migratePreviouslySavedConnection',
+        mockMigratePreviouslySavedConnection
+      );
+
+      const newSavedConnectionInfoWithSecrets = await testConnectionController._getConnectionInfoWithSecrets(connections[0]);
+
+      assert.deepStrictEqual(
+        newSavedConnectionInfoWithSecrets,
+        connectionInfo
+      );
+      assert(
+        mockMigratePreviouslySavedConnection.called === false,
+        'Expected _migratePreviouslySavedConnection to not be called.'
+      );
+    });
+
+    test('addNewConnectionStringAndConnect saves connection without secrets to the global store', async () => {
+      const mockConnect: any = sinon.fake.resolves({ successfullyConnected: true });
+
+      sinon.replace(
+        testConnectionController,
+        '_connect',
+        mockConnect
+      );
+
+      await vscode.workspace
+        .getConfiguration('mdb.connectionSaving')
+        .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI_USER
+      );
+
+      const workspaceStoreConnections = testConnectionController._storageController.get(
+        StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      );
+
+      assert(
+        workspaceStoreConnections,
+        `Expected workspace store has onnections found ${workspaceStoreConnections}`
+      );
+
+      const connections = Object.values(workspaceStoreConnections);
+
+      assert(
+        connections.length === 1,
+        `Expected connections to be 1 found ${connections.length}`
+      );
+      assert(
+        connections[0].connectionOptions?.connectionString.includes(TEST_USER_USERNAME) === true,
+        `Expected a connection on disc includes username found ${connections[0].connectionOptions?.connectionString}`
+      );
+      assert(
+        connections[0].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD) === false,
+        `Expected a connection on disc does not include password found ${connections[0].connectionOptions?.connectionString}`
+      );
+      assert(
+        connections[0].connectionOptions?.connectionString.includes('appname=mongodb-vscode+0.0.0-dev.0') === true,
+        `Expected a connection on disc has appname found ${connections[0].connectionOptions?.connectionString}`
+      );
+      assert(
+        testConnectionController._connections[connections[0].id].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD) === true,
+        `Expected a connection in memory includes password found ${connections[0].connectionOptions?.connectionString}`
+      );
+      assert(
+        testConnectionController._connections[connections[0].id].name === 'localhost:27018',
+        `Expected a connection has the 'localhost:27018' name found ${testConnectionController._connections[connections[0].id].name}`
+      );
+    });
+
+    test('parseNewConnection converts a connection model to a connaction info and overrides a default appname', () => {
+      const connectionInfo = testConnectionController.parseNewConnection({
+        _id: 'c4871b21-92c4-40e2-a2c2-fdd551cff114',
+        isFavorite: false,
+        name: 'Local',
+        isSrvRecord: true,
+        hostname: 'host.u88dd.test.test',
+        port: 27017,
+        hosts: [
+          { host: 'host-shard-00-00.u88dd.test.test', port: 27017 },
+          { host: 'host-shard-00-01.u88dd.test.test', port: 27017 },
+          { host: 'host-shard-00-02.u88dd.test.test', port: 27017 }
+        ],
+        extraOptions: {},
+        readPreference: READ_PREFERENCES.PRIMARY,
+        authStrategy: AUTH_STRATEGY_VALUES.MONGODB,
+        kerberosCanonicalizeHostname: false,
+        sslMethod: SSL_METHODS.SYSTEMCA,
+        sshTunnel: SSH_TUNNEL_TYPES.NONE,
+        sshTunnelPort: 22,
+        mongodbUsername: 'username',
+        mongodbPassword: 'somepassword',
+        mongodbDatabaseName: 'admin'
+      });
+
+      assert.deepStrictEqual(
+        connectionInfo,
+        {
+          id: 'c4871b21-92c4-40e2-a2c2-fdd551cff114',
+          connectionOptions: {
+            connectionString: 'mongodb+srv://username:somepassword@host.u88dd.test.test/?authSource=admin&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true'
+          }
+        }
+      );
+    });
+
+    test('getMongoClientConnectionOptions returns url and options properties', async () => {
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
+
+      const mongoClientConnectionOptions = testConnectionController.getMongoClientConnectionOptions();
+
+      assert.deepStrictEqual(
+        mongoClientConnectionOptions,
+        {
+          url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&directConnection=true',
+          options: { monitorCommands: true }
+        }
+      );
+    });
   });
 });
