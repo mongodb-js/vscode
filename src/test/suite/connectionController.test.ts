@@ -425,7 +425,7 @@ suite('Connection Controller Test Suite', function () {
     assert(testConnectionController.getActiveConnectionId() === '25');
   });
 
-  test('a saved connection can be loaded and connected to workspace storage', async () => {
+  test('a saved connection can be loaded and connected to workspace store', async () => {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -547,7 +547,7 @@ suite('Connection Controller Test Suite', function () {
     );
   });
 
-  test('when a connection is removed it is also removed from workspace storage', async () => {
+  test('when a connection is removed it is also removed from workspace store', async () => {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
