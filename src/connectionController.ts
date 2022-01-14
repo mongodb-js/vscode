@@ -68,11 +68,13 @@ interface ConnectionSecretsInfo {
   secrets: ConnectionSecrets
 }
 
+type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo & Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
-  _connections: { [connectionId: string]: StoreConnectionInfo } = {};
+  _connections: { [connectionId: string]: StoreConnectionInfoWithConnectionOptions } = {};
   _activeDataService: DataService| null = null;
   _storageController: StorageController;
 
@@ -107,7 +109,7 @@ export default class ConnectionController {
 
   async _migratePreviouslySavedConnection(
     savedConnectionInfo: StoreConnectionInfo
-  ): Promise<StoreConnectionInfo> {
+  ): Promise<StoreConnectionInfoWithConnectionOptions> {
     // Transform a raw connection model from storage to an ampersand model.
     const newConnectionInfoWithSecrets = convertConnectionModelToInfo(savedConnectionInfo.connectionModel);
 
@@ -126,7 +128,7 @@ export default class ConnectionController {
 
   async _getConnectionInfoWithSecrets(
     savedConnectionInfo: StoreConnectionInfo
-  ): Promise<StoreConnectionInfo|undefined> {
+  ): Promise<StoreConnectionInfoWithConnectionOptions|undefined> {
     // Migrate previously saved connections to a new format.
     // Save only secrets to keychain.
     // Remove connectionModel and use connectionOptions instead.
@@ -148,7 +150,7 @@ export default class ConnectionController {
     // Return saved connection as it is.
     if (!ext.keytarModule) {
       log.error('Load saved connections failed: VSCode extension keytar module is undefined.');
-      return savedConnectionInfo;
+      return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
     }
 
     try {
@@ -159,7 +161,7 @@ export default class ConnectionController {
 
       // Ignore empty secrets.
       if (!unparsedSecrets) {
-        return savedConnectionInfo;
+        return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
       }
 
       const secrets = JSON.parse(unparsedSecrets);

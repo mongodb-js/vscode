@@ -90,7 +90,7 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(
       name === 'localhost:27018',
-      `Expected active connection to be 'localhost:27018' found ${name}`
+      `Expected active connection to be 'localhost:27018', found ${name}`
     );
     assert(dataService !== null);
     assert(testConnectionController.isCurrentlyConnected());
@@ -122,7 +122,7 @@ suite('Connection Controller Test Suite', function () {
     );
     assert(
       connectionsCount === 1,
-      `Expected the amount of connections to be 1 found ${connectionsCount}.`
+      `Expected the amount of connections to be 1, found ${connectionsCount}.`
     );
     assert(
       connnectionId === null,
@@ -274,7 +274,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       connectionsCount === 0,
-      `Expected connections to be 0 found ${connectionsCount}`
+      `Expected connections to be 0, found ${connectionsCount}`
     );
   });
 
@@ -310,7 +310,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(connections).length === 4,
-      `Expected 4 connection configurations found ${
+      `Expected 4 connection configurations, found ${
         Object.keys(connections).length
       }`
     );
@@ -321,7 +321,7 @@ suite('Connection Controller Test Suite', function () {
     assert(
       connections[Object.keys(connections)[2]].connectionOptions?.connectionString ===
       expectedDriverUrl,
-      `Expected loaded connection to include driver url '${expectedDriverUrl}' found '${
+      `Expected loaded connection to include driver url '${expectedDriverUrl}', found '${
         connections[Object.keys(connections)[2]].connectionOptions?.connectionString
       }'`
     );
@@ -343,7 +343,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected global store connections to have 1 connection found ${
+      `Expected global store connections to have 1 connection, found ${
         Object.keys(globalStoreConnections).length
       }`
     );
@@ -352,7 +352,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       globalStoreConnections[id].name === testDatabaseConnectionName,
-      `Expected global stored connection to have correct name '${testDatabaseConnectionName}' found ${globalStoreConnections[id].name}`
+      `Expected global stored connection to have correct name '${testDatabaseConnectionName}', found ${globalStoreConnections[id].name}`
     );
 
     const workspaceStoreConnections = mockStorageController.get(
@@ -361,7 +361,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       workspaceStoreConnections === undefined,
-      `Expected workspace store connections to be 'undefined' found ${workspaceStoreConnections}`
+      `Expected workspace store connections to be 'undefined', found ${workspaceStoreConnections}`
     );
   });
 
@@ -384,7 +384,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
+      `Expected workspace store connections to have 1 connection, found ${
         Object.keys(workspaceStoreConnections).length
       }`
     );
@@ -393,7 +393,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       workspaceStoreConnections[id].name === testDatabaseConnectionName,
-      `Expected workspace stored connection to have correct name '${testDatabaseConnectionName}' found ${workspaceStoreConnections[id].name}`
+      `Expected workspace stored connection to have correct name '${testDatabaseConnectionName}', found ${workspaceStoreConnections[id].name}`
     );
 
     const globalStoreConnections = mockStorageController.get(
@@ -403,7 +403,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       globalStoreConnections === undefined,
-      `Expected global store connections to be 'undefined' found ${globalStoreConnections}`
+      `Expected global store connections to be 'undefined', found ${globalStoreConnections}`
     );
   });
 
@@ -444,7 +444,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
+      `Expected workspace store connections to have 1 connection, found ${
         Object.keys(workspaceStoreConnections).length
       }`
     );
@@ -505,7 +505,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       testDriverUrl === expectedDriverUrl,
-      `Expected to be returned the driver uri "${expectedDriverUrl}" found ${testDriverUrl}`
+      `Expected to be returned the driver uri "${expectedDriverUrl}", found ${testDriverUrl}`
     );
   });
 
@@ -531,7 +531,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       JSON.stringify(globalStoreConnections) === objectString,
-      `Expected global store connections to be an empty object found ${globalStoreConnections}`
+      `Expected global store connections to be an empty object, found ${globalStoreConnections}`
     );
 
     const workspaceStoreConnections = mockStorageController.get(
@@ -541,7 +541,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       JSON.stringify(workspaceStoreConnections) === objectString,
-      `Expected workspace store connections to be an empty object found ${JSON.stringify(
+      `Expected workspace store connections to be an empty object, found ${JSON.stringify(
         workspaceStoreConnections
       )}`
     );
@@ -566,7 +566,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
+      `Expected workspace store connections to have 1 connection, found ${
         Object.keys(workspaceStoreConnections).length
       }`
     );
@@ -584,7 +584,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(postWorkspaceStoreConnections).length === 0,
-      `Expected workspace store connections to have 0 connections found ${
+      `Expected workspace store connections to have 0 connections, found ${
         Object.keys(postWorkspaceStoreConnections).length
       }`
     );
@@ -606,7 +606,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(globalStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
+      `Expected workspace store connections to have 1 connection, found ${
         Object.keys(globalStoreConnections).length
       }`
     );
@@ -622,7 +622,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(postGlobalStoreConnections).length === 0,
-      `Expected global store connections to have 0 connections found ${
+      `Expected global store connections to have 0 connections, found ${
         Object.keys(postGlobalStoreConnections).length
       }`
     );
@@ -647,7 +647,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       Object.keys(workspaceStoreConnections).length === 1,
-      `Expected workspace store connections to have 1 connection found ${
+      `Expected workspace store connections to have 1 connection, found ${
         Object.keys(workspaceStoreConnections).length
       }`
     );
@@ -717,7 +717,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       connectionIds.length === 2,
-      `Expected 2 connection configurations found ${connectionIds.length}`
+      `Expected 2 connection configurations, found ${connectionIds.length}`
     );
     assert(
       connections[connectionIds[0]].name === 'localhost:27018',
@@ -749,14 +749,14 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       connectionIds.length === 2,
-      `Expected 2 connection configurations found ${connectionIds.length}`
+      `Expected 2 connection configurations, found ${connectionIds.length}`
     );
 
     const connectionQuickPicks = testConnectionController.getСonnectionQuickPicks();
 
     assert(
       connectionQuickPicks.length === 3,
-      `Expected 3 connections found ${connectionIds.length} in connectionQuickPicks`
+      `Expected 3 connections, found ${connectionIds.length} in connectionQuickPicks`
     );
     assert(
       connectionQuickPicks[0].label === 'Add new connection',
@@ -1054,11 +1054,11 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString.includes(TEST_USER_USERNAME) === true,
-      `Expected saveConnection arg includes username found ${mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString}`
+      `Expected saveConnection arg includes username, found ${mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString}`
     );
     assert(
       mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD) === false,
-      `Expected saveConnection arg does not include password found ${mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString}`
+      `Expected saveConnection arg does not include password, found ${mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString}`
     );
   });
 
@@ -1121,7 +1121,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       connections.length === 1,
-      `Expected connections to be 1 found ${connections.length}`
+      `Expected connections to be 1, found ${connections.length}`
     );
 
     const mockMigratePreviouslySavedConnection: any = sinon.fake();
@@ -1166,34 +1166,34 @@ suite('Connection Controller Test Suite', function () {
 
     assert(
       workspaceStoreConnections,
-      `Expected workspace store has onnections found ${workspaceStoreConnections}`
+      `Expected workspace store to have connections, found ${workspaceStoreConnections}`
     );
 
     const connections = Object.values(workspaceStoreConnections);
 
     assert(
       connections.length === 1,
-      `Expected connections to be 1 found ${connections.length}`
+      `Expected connections to be 1, found ${connections.length}`
     );
     assert(
       connections[0].connectionOptions?.connectionString.includes(TEST_USER_USERNAME) === true,
-      `Expected a connection on disc includes username found ${connections[0].connectionOptions?.connectionString}`
+      `Expected a connection on disc includes username, found ${connections[0].connectionOptions?.connectionString}`
     );
     assert(
       connections[0].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD) === false,
-      `Expected a connection on disc does not include password found ${connections[0].connectionOptions?.connectionString}`
+      `Expected a connection on disc does not include password, found ${connections[0].connectionOptions?.connectionString}`
     );
     assert(
       connections[0].connectionOptions?.connectionString.includes('appname=mongodb-vscode+0.0.0-dev.0') === true,
-      `Expected a connection on disc has appname found ${connections[0].connectionOptions?.connectionString}`
+      `Expected a connection on disc has appname, found ${connections[0].connectionOptions?.connectionString}`
     );
     assert(
       testConnectionController._connections[connections[0].id].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD) === true,
-      `Expected a connection in memory includes password found ${connections[0].connectionOptions?.connectionString}`
+      `Expected a connection in memory includes password, found ${connections[0].connectionOptions?.connectionString}`
     );
-    assert(
-      testConnectionController._connections[connections[0].id].name === 'localhost:27018',
-      `Expected a connection has the 'localhost:27018' name found ${testConnectionController._connections[connections[0].id].name}`
+    assert.strictEqual(
+      testConnectionController._connections[connections[0].id].name,
+      'localhost:27018'
     );
   });
 
