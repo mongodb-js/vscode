@@ -12,8 +12,8 @@ export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 
 let testDataService;
 
-export const createTestDataService = async (): Promise<DataService> => {
-  testDataService = await connect({ connectionString: TEST_DATABASE_URI });
+export const createTestDataService = async (connectionString: string): Promise<DataService> => {
+  testDataService = await connect({ connectionString });
   return testDataService;
 };
 

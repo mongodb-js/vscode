@@ -12,7 +12,8 @@ import {
   seedTestDB,
   cleanupTestDB,
   disconnectFromTestDB,
-  TEST_DB_NAME
+  TEST_DB_NAME,
+  TEST_DATABASE_URI
 } from '../dbTestHelper';
 import SchemaTreeItem from '../../../explorer/schemaTreeItem';
 import { TestExtensionContext } from '../stubs';
@@ -137,7 +138,7 @@ suite('FieldTreeItem Test Suite', function () {
     let dataService;
 
     before(async () => {
-      dataService = await createTestDataService();
+      dataService = await createTestDataService(TEST_DATABASE_URI);
     });
 
     afterEach(async () => {

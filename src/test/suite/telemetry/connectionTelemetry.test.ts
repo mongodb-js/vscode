@@ -12,7 +12,7 @@ import {
 const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
 suite('ConnectionTelemetry Controller Test Suite', function () {
-  this.timeout(5000);
+  this.timeout(8000);
 
   suite('with mock data service', () => {
     const mockDataService: any = {

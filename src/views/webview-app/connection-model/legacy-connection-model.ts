@@ -30,7 +30,7 @@ class LegacyConnectionModel {
   port: port = 27017;
   hosts: Host[] = [{ ...DEFAULT_HOST }];
   extraOptions = {};
-  replicaSet: undefined | string;
+  replicaSet?: string;
   readPreference: READ_PREFERENCES = READ_PREFERENCE_DEFAULT;
 
   /**

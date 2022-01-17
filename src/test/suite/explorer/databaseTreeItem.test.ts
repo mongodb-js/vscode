@@ -10,7 +10,8 @@ import {
   seedTestDB,
   cleanupTestDB,
   disconnectFromTestDB,
-  TEST_DB_NAME
+  TEST_DB_NAME,
+  TEST_DATABASE_URI
 } from '../dbTestHelper';
 
 const { contributes } = require('../../../../package.json');
@@ -171,7 +172,7 @@ suite('DatabaseTreeItem Test Suite', () => {
 
     const collectionTreeItems: CollectionTreeItem[] = await testDatabaseTreeItem
       .getChildren();
-    assert.deepEqual(
+    assert.deepStrictEqual(
       collectionTreeItems
         .map(({ collectionName }) => collectionName)
         .join(),
@@ -185,7 +186,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     let dataService;
 
     before(async () => {
-      dataService = await createTestDataService();
+      dataService = await createTestDataService(TEST_DATABASE_URI);
     });
 
     after(async () => {

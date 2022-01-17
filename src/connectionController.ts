@@ -44,7 +44,7 @@ export interface StoreConnectionInfo {
   id: string; // Connection model id or a new uuid.
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
-  connectionOptions: ConnectionOptions;
+  connectionOptions?: ConnectionOptions;
   connectionModel?: ConnectionModel;
 }
 
@@ -68,12 +68,15 @@ interface ConnectionSecretsInfo {
   secrets: ConnectionSecrets
 }
 
+type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo & Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
-  _connections: { [connectionId: string]: StoreConnectionInfo } = {};
+  _connections: { [connectionId: string]: StoreConnectionInfoWithConnectionOptions } = {};
   _activeDataService: DataService| null = null;
+  _storageController: StorageController;
 
   private readonly _serviceName = 'mdb.vscode.savedConnections';
   private _currentConnectionId: null | string = null;
@@ -89,7 +92,6 @@ export default class ConnectionController {
   private _disconnecting = false;
 
   private _statusView: StatusView;
-  private _storageController: StorageController;
   private _telemetryService: TelemetryService;
 
   // Used by other parts of the extension that respond to changes in the connections.
@@ -105,9 +107,9 @@ export default class ConnectionController {
     this._telemetryService = telemetryService;
   }
 
-  private async _migratePreviouslySavedConnection(
+  async _migratePreviouslySavedConnection(
     savedConnectionInfo: StoreConnectionInfo
-  ): Promise<StoreConnectionInfo> {
+  ): Promise<StoreConnectionInfoWithConnectionOptions> {
     // Transform a raw connection model from storage to an ampersand model.
     const newConnectionInfoWithSecrets = convertConnectionModelToInfo(savedConnectionInfo.connectionModel);
 
@@ -124,9 +126,9 @@ export default class ConnectionController {
     return newSavedConnectionInfoWithSecrets;
   }
 
-  private async _getConnectionInfoWithSecrets(
+  async _getConnectionInfoWithSecrets(
     savedConnectionInfo: StoreConnectionInfo
-  ): Promise<StoreConnectionInfo|undefined> {
+  ): Promise<StoreConnectionInfoWithConnectionOptions|undefined> {
     // Migrate previously saved connections to a new format.
     // Save only secrets to keychain.
     // Remove connectionModel and use connectionOptions instead.
@@ -147,8 +149,8 @@ export default class ConnectionController {
     // If connection has a new format already and keytar module is undefined.
     // Return saved connection as it is.
     if (!ext.keytarModule) {
-      log.error('VSCode extension keytar module is undefined.');
-      return savedConnectionInfo;
+      log.error('Load saved connections failed: VSCode extension keytar module is undefined.');
+      return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
     }
 
     try {
@@ -159,7 +161,7 @@ export default class ConnectionController {
 
       // Ignore empty secrets.
       if (!unparsedSecrets) {
-        return savedConnectionInfo;
+        return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
       }
 
       const secrets = JSON.parse(unparsedSecrets);
@@ -168,7 +170,7 @@ export default class ConnectionController {
         {
           id: savedConnectionInfo.id,
           connectionOptions
-        },
+        } as ConnectionInfo,
         secrets
       );
 
@@ -339,7 +341,7 @@ export default class ConnectionController {
   ): Promise<StoreConnectionInfo> {
     // We don't want to store secrets to disc.
     const { connectionInfo: safeConnectionInfo, secrets } = extractSecrets(
-      newStoreConnectionInfoWithSecrets
+      newStoreConnectionInfoWithSecrets as ConnectionInfo
     );
     const savedConnectionInfo = await this._storageController.saveConnection({
       ...newStoreConnectionInfoWithSecrets,
@@ -379,7 +381,7 @@ export default class ConnectionController {
     return this._connect(savedConnectionInfo.id, connectionType);
   }
 
-  private async _connect(
+  async _connect(
     connectionId: string,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
@@ -398,6 +400,11 @@ export default class ConnectionController {
     this._statusView.showMessage('Connecting to MongoDB...');
 
     const connectionOptions = this._connections[connectionId].connectionOptions;
+
+    if (!connectionOptions) {
+      throw new Error('Connect failed: connectionOptions are missing.');
+    }
+
     const newDataService = new DataService(connectionOptions);
     let connectError;
 
@@ -711,9 +718,14 @@ export default class ConnectionController {
 
   // Copy connection string from the sidebar does not need appname in it.
   copyConnectionStringByConnectionId(connectionId: string): string {
-    const url = new ConnectionString(
-      this._connections[connectionId].connectionOptions.connectionString
-    );
+    const connectionOptions = this._connections[connectionId].connectionOptions;
+
+    if (!connectionOptions) {
+      throw new Error('Copy connection string failed: connectionOptions are missing.');
+    }
+
+    const url = new ConnectionString(connectionOptions.connectionString);
+
     url.searchParams.delete('appname');
     return url.toString();
   }

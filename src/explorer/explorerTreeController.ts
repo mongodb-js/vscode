@@ -101,7 +101,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
           this._onTreeItemUpdate();
         }
 
-        if (selectedItem._contextValue === DOCUMENT_ITEM) {
+        if (selectedItem.contextValue === DOCUMENT_ITEM) {
           await vscode.commands.executeCommand(
             EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
             event.selection[0]
@@ -109,7 +109,7 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
         }
 
         if (
-          selectedItem._contextValue === DOCUMENT_LIST_ITEM &&
+          selectedItem.contextValue === DOCUMENT_LIST_ITEM &&
           selectedItem.type === CollectionTypes.view
         ) {
           await vscode.commands.executeCommand(

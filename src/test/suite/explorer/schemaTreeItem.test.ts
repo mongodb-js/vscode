@@ -10,8 +10,9 @@ import {
   createTestDataService,
   seedTestDB,
   cleanupTestDB,
+  disconnectFromTestDB,
   TEST_DB_NAME,
-  disconnectFromTestDB
+  TEST_DATABASE_URI
 } from '../dbTestHelper';
 import SchemaTreeItem, {
   FIELDS_TO_SHOW
@@ -231,7 +232,7 @@ suite('SchemaTreeItem Test Suite', function () {
     let dataService;
 
     before(async () => {
-      dataService = await createTestDataService();
+      dataService = await createTestDataService(TEST_DATABASE_URI);
     });
 
     afterEach(async () => {
