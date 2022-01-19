@@ -1,9 +1,10 @@
 # Change Log
 
-## [v0.7.0](https://github.com/mongodb-js/vscode/releases/tag/v0.7.0) - 2021-12-01
+## [v0.8.0](https://github.com/mongodb-js/vscode/releases/tag/v0.8.0) - 2022-01-19
 
-### Added
-- Added export to language for selected query content and aggregation content in playgrounds (VSCODE-296, #366)
+### Changed
+
+- Use new data service and connection model (VSCODE-297, #377)
 
 
 ## [v0.7.0](https://github.com/mongodb-js/vscode/releases/tag/v0.7.0) - 2021-12-01
