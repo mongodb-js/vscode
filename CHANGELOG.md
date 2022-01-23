@@ -5,6 +5,7 @@
 ### Changed
 
 - Use new data service and connection model (VSCODE-297, #377)
+- Use the connection-secrets module to protect all secrets (VSCODE-313). Addresses CVE-2021-32039 - Users with appropriate file access may be able to access unencrypted user credentials saved by MongoDB Extension for VS Code in a binary file. These credentials may be used by malicious attackers to perform unauthorized actions. This vulnerability affects all MongoDB Extension for VS Code including and prior to version 0.7.0.
 
 
 ## [v0.7.0](https://github.com/mongodb-js/vscode/releases/tag/v0.7.0) - 2021-12-01
