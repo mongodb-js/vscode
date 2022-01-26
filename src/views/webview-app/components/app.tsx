@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import classnames from 'classnames';
 
 import OverviewPage from './overview-page/overview-page';
 import {
@@ -16,6 +17,9 @@ import {
 } from '../extension-app-message-constants';
 
 const styles = require('../connect.module.less');
+
+import ConnectForm from '@mongodb-js/connect-form';
+import * as compassComponents from '@mongodb-js/compass-components';
 
 import './app.less';
 
@@ -73,9 +77,34 @@ export class App extends React.Component<DispatchProps> {
   };
 
   render(): React.ReactNode {
+    const vscodeComponents = {
+      ...compassComponents,
+      Button: () => (
+        <button
+          type="submit"
+          id="connectButton"
+          name="connect"
+          className={classnames(styles.btn, styles['btn-primary'])}
+          onClick={() => {}}
+        >
+          Connect
+        </button>
+      )
+    }
+
     return (
       <div className={styles.page}>
         <OverviewPage />
+        <ConnectForm
+          onConnectClicked={() => {}}
+          initialConnectionInfo={{
+            id: '111',
+            connectionOptions: {
+              connectionString: 'mongodb://localhost'
+            }
+          }}
+          compassComponents={vscodeComponents}
+        />
       </div>
     );
   }
