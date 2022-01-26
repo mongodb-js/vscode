@@ -299,8 +299,7 @@ suite('Telemetry Controller Test Suite', () => {
     expect(telemetryEvent.event).to.equal('Playground Loaded');
   });
 
-  test('track query exported to language', async function () {
-    this.timeout(5000);
+  test('track query exported to language', async () => {
     const mockTrackQueryExported = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
@@ -315,17 +314,15 @@ suite('Telemetry Controller Test Suite', () => {
     } as vscode.Selection;
     const mode = ExportToLanguageMode.QUERY;
     const language = 'python';
+    const activeTextEditor = { document: { getText: () => textFromEditor } } as vscode.TextEditor;
 
+    mdbTestExtension.testExtensionController._playgroundController._selectedText = textFromEditor;
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
-    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons = {
-      textFromEditor,
-      selectedText: textFromEditor,
-      selection,
-      importStatements: false,
-      driverSyntax: false,
-      builders: false,
-      language
-    };
+    mdbTestExtension.testExtensionController._playgroundController._activeTextEditor = activeTextEditor;
+    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons.driverSyntax = false;
+    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons.selectedText = textFromEditor;
+    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons.language = language;
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
@@ -352,17 +349,15 @@ suite('Telemetry Controller Test Suite', () => {
     } as vscode.Selection;
     const mode = ExportToLanguageMode.AGGREGATION;
     const language = 'java';
+    const activeTextEditor = { document: { getText: () => textFromEditor } } as vscode.TextEditor;
 
+    mdbTestExtension.testExtensionController._playgroundController._selectedText = textFromEditor;
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.selection = selection;
     mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
-    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons = {
-      textFromEditor,
-      selectedText: textFromEditor,
-      selection,
-      importStatements: false,
-      driverSyntax: true,
-      builders: false,
-      language
-    };
+    mdbTestExtension.testExtensionController._playgroundController._activeTextEditor = activeTextEditor;
+    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons.driverSyntax = true;
+    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons.selectedText = textFromEditor;
+    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons.language = language;
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
