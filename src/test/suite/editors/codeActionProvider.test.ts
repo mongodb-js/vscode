@@ -187,7 +187,7 @@ suite('Code Action Provider Test Suite', function () {
 
         await vscode.commands.executeCommand(actionCommand.command);
 
-        const expectedResult = { namespace: null, type: null, content: 'new Document("name", "22")', language: 'java' };
+        const expectedResult = { namespace: 'DATABASE_NAME.COLLECTION_NAME', type: null, content: 'new Document("name", "22")', language: 'java' };
 
         const codeLenses = mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
         expect(codeLenses.length).to.be.equal(3);
@@ -237,7 +237,7 @@ suite('Code Action Provider Test Suite', function () {
         await vscode.commands.executeCommand(actionCommand.command);
 
         const expectedResult = {
-          namespace: null,
+          namespace: 'DATABASE_NAME.COLLECTION_NAME',
           type: null,
           content: 'new BsonDocument(\"name\", \"22\")',
           language: 'csharp'
@@ -290,7 +290,7 @@ suite('Code Action Provider Test Suite', function () {
         await vscode.commands.executeCommand(actionCommand.command);
 
         let expectedResult: PlaygroundResult = {
-          namespace: null,
+          namespace: 'DATABASE_NAME.COLLECTION_NAME',
           type: null,
           content: "{\n    'name': '22'\n}",
           language: 'python'
@@ -308,7 +308,7 @@ suite('Code Action Provider Test Suite', function () {
         expectedResult = {
           namespace: 'db.coll',
           type: null,
-          content: "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&directConnection=true')\nresult = client['db']['coll'].aggregate({\n    'name': '22'\n})",
+          content: "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&directConnection=true')\nfilter={\n    'name': '22'\n}\n\nresult = client['db']['coll'].find(\n  filter=filter\n)",
           language: 'python'
         };
 
