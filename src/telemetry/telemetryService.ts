@@ -48,13 +48,15 @@ type DocumentEditedTelemetryEventProperties = {
   source: DocumentSource;
 };
 
+/* eslint-disable camelcase */
 type QueryExportedTelemetryEventProperties = {
   language: string;
   num_stages?: number;
   with_import_statements: boolean;
   with_builders: boolean;
   with_driver_syntax: boolean;
-}
+};
+/* eslint-enable camelcase */
 
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
