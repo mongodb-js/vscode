@@ -31,8 +31,6 @@ import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
 
-import * as util from 'util';
-
 const log = createLogger('playground controller');
 const transpiler = require('bson-transpilers');
 
@@ -54,7 +52,7 @@ interface ToCompile {
     database: string|null;
     uri?: string;
   }
-};
+}
 
 let dummySandbox;
 
@@ -78,7 +76,7 @@ const countAggregationStagesInString = (str: string) => {
     '(' + str + ')',
     dummySandbox,
     { timeout: 100 }).length;
-}
+};
 
 /**
  * This controller manages playground.
@@ -577,11 +575,64 @@ export default class PlaygroundController {
     return this._transpile();
   }
 
-  async _transpile(): Promise<boolean> {
+  async getTranspiledContent(): Promise<{ namespace: ExportToLanguageNamespace, expression: string } | undefined> {
     const {
       textFromEditor,
       selectedText,
       selection,
+      driverSyntax,
+      builders,
+      language
+    } = this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
+    let namespace: ExportToLanguageNamespace = {
+      databaseName: 'DATABASE_NAME',
+      collectionName: 'COLLECTION_NAME'
+    };
+    let expression = '';
+
+    if (!textFromEditor || !selection) {
+      return;
+    }
+
+    if (driverSyntax) {
+      const connectionId = this._connectionController.getActiveConnectionId();
+      let driverUrl = 'mongodb://localhost:27017';
+
+      if (connectionId) {
+        namespace = await this._languageServerController.getNamespaceForSelection({
+          textFromEditor,
+          selection
+        });
+
+        const mongoClientOptions = this._connectionController.getMongoClientConnectionOptions();
+        driverUrl = mongoClientOptions?.url || '';
+      }
+
+      const toCompile: ToCompile = {
+        options: {
+          collection: namespace.collectionName,
+          database: namespace.databaseName,
+          uri: driverUrl
+        }
+      };
+
+      if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
+        toCompile.aggregation = selectedText;
+      } else if (this._codeActionProvider.mode === ExportToLanguageMode.QUERY) {
+        toCompile.filter = selectedText;
+      }
+
+      expression = transpiler.shell[language].compileWithDriver(toCompile, builders);
+    } else {
+      expression = transpiler.shell[language].compile(selectedText, builders, false);
+    }
+
+    return { namespace, expression };
+  }
+
+  async _transpile(): Promise<boolean> {
+    const {
+      selectedText,
       importStatements,
       driverSyntax,
       builders,
@@ -590,54 +641,19 @@ export default class PlaygroundController {
 
     log.info(`Start export to ${language} language`);
 
-    if (!textFromEditor || !selection) {
-      void vscode.window.showInformationMessage(
-        'Please select one or more lines in the playground.'
-      );
-
-      return true;
-    }
-
     try {
-      let transpiledExpression = '';
-      let imports = '';
-      let namespace: ExportToLanguageNamespace = {
-        databaseName: 'DATABASE_NAME',
-        collectionName: 'COLLECTION_NAME'
-      };
-      let driverUrl = 'mongodb://localhost:27017';
+      const transpiledContent = await this.getTranspiledContent();
 
-      if (driverSyntax) {
-        const connectionId = this._connectionController.getActiveConnectionId();
-
-        if (connectionId) {
-          namespace = await this._languageServerController.getNamespaceForSelection({
-            textFromEditor,
-            selection
-          });
-
-          const mongoClientOptions = this._connectionController.getMongoClientConnectionOptions();
-          driverUrl = mongoClientOptions?.url || '';
-        }
-
-        const toCompile: ToCompile = {
-          options: {
-            collection: namespace.collectionName,
-            database: namespace.databaseName,
-            uri: driverUrl
-          }
-        };
-
-        if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
-          toCompile.aggregation = selectedText;
-        } else if (this._codeActionProvider.mode === ExportToLanguageMode.QUERY) {
-          toCompile.filter = selectedText;
-        }
-
-        transpiledExpression = transpiler.shell[language].compileWithDriver(toCompile, builders);
-      } else {
-        transpiledExpression = transpiler.shell[language].compile(selectedText, builders, false);
+      if (!transpiledContent) {
+        void vscode.window.showInformationMessage(
+          'Please select one or more lines in the playground.'
+        );
+        return true;
       }
+
+      const { namespace, expression } = transpiledContent;
+
+      let imports = '';
 
       if (importStatements) {
         imports = transpiler.shell[language].getImports(driverSyntax);
@@ -648,12 +664,13 @@ export default class PlaygroundController {
           ? `${namespace.databaseName}.${namespace.collectionName}`
           : null,
         type: null,
-        content: imports ? `${imports}\n\n${transpiledExpression}` : transpiledExpression,
+        content: imports ? `${imports}\n\n${expression}` : expression,
         language
       };
 
       log.info(`Export to ${language} language result`, this._playgroundResult);
 
+      /* eslint-disable camelcase */
       if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
         const aggExportedProps = {
           language,
@@ -670,10 +687,11 @@ export default class PlaygroundController {
           with_import_statements: importStatements,
           with_builders: builders,
           with_driver_syntax: driverSyntax
-        }
+        };
 
         this._telemetryService.trackQueryExported(queryExportedProps);
       }
+      /* eslint-enable camelcase */
 
       await this._openPlaygroundResult();
     } catch (error) {
