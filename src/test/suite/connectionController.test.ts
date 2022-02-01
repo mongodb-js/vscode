@@ -749,11 +749,11 @@ suite('Connection Controller Test Suite', function () {
         hosts: [{ host: 'localhost', port: 27017 }],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
-        authStrategy: 'NONE',
-        readPreference: 'primary',
+        authStrategy: AUTH_STRATEGY_VALUES.NONE,
+        readPreference: READ_PREFERENCES.PRIMARY,
         kerberosCanonicalizeHostname: false,
-        sslMethod: 'NONE',
-        sshTunnel: 'NONE',
+        sslMethod: SSL_METHODS.NONE,
+        sshTunnel: SSH_TUNNEL_TYPES.NONE,
         sshTunnelPort: 22
       }
     };
@@ -789,9 +789,9 @@ suite('Connection Controller Test Suite', function () {
         ],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
-        authStrategy: 'MONGODB',
+        authStrategy: AUTH_STRATEGY_VALUES.MONGODB,
         replicaSet: 'host-shard-0',
-        readPreference: 'primary',
+        readPreference: READ_PREFERENCES.PRIMARY,
         authSource: 'admin',
         appname: 'mongodb-vscode 0.6.14',
         mongodbUsername: 'username',
@@ -799,8 +799,8 @@ suite('Connection Controller Test Suite', function () {
         mongodbDatabaseName: 'admin',
         kerberosCanonicalizeHostname: false,
         ssl: true,
-        sslMethod: 'SYSTEMCA',
-        sshTunnel: 'NONE',
+        sslMethod: SSL_METHODS.SYSTEMCA,
+        sshTunnel: SSH_TUNNEL_TYPES.NONE,
         sshTunnelPort: 22
       }
     };
@@ -837,9 +837,9 @@ suite('Connection Controller Test Suite', function () {
         ],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
-        authStrategy: 'MONGODB',
+        authStrategy: AUTH_STRATEGY_VALUES.MONGODB,
         replicaSet: 'host-shard-0',
-        readPreference: 'primary',
+        readPreference: READ_PREFERENCES.PRIMARY,
         authSource: 'admin',
         appname: 'mongodb-vscode 0.6.14',
         mongodbUsername: TEST_USER_USERNAME,
@@ -847,8 +847,8 @@ suite('Connection Controller Test Suite', function () {
         mongodbDatabaseName: 'admin',
         kerberosCanonicalizeHostname: false,
         ssl: true,
-        sslMethod: 'SYSTEMCA',
-        sshTunnel: 'NONE',
+        sslMethod: SSL_METHODS.SYSTEMCA,
+        sshTunnel: SSH_TUNNEL_TYPES.NONE,
         sshTunnelPort: 22
       }
     };
@@ -882,11 +882,11 @@ suite('Connection Controller Test Suite', function () {
         hosts: [{ host: 'localhost', port: 27017 }],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
-        authStrategy: 'NONE',
-        readPreference: 'primary',
+        authStrategy: AUTH_STRATEGY_VALUES.NONE,
+        readPreference: READ_PREFERENCES.PRIMARY,
         kerberosCanonicalizeHostname: false,
-        sslMethod: 'NONE',
-        sshTunnel: 'NONE',
+        sslMethod: SSL_METHODS.NONE,
+        sshTunnel: SSH_TUNNEL_TYPES.NONE,
         sshTunnelPort: 22
       }
     };

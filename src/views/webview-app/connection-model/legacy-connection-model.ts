@@ -22,9 +22,9 @@ export const DEFAULT_HOST: Host = { host: 'localhost', port: 27017 };
 
 // NOTE: This is currently tightly coupled with `mongodb-connection-model`.
 class LegacyConnectionModel {
-  _id = uuidv4();
-  isFavorite = false;
-  name = 'Local';
+  _id? = uuidv4();
+  isFavorite? = false;
+  name? = 'Local';
   isSrvRecord = false;
   hostname = 'localhost';
   port: port = 27017;

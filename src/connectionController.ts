@@ -9,7 +9,6 @@ import {
   extractSecrets,
   mergeSecrets
 } from 'mongodb-data-service';
-import ConnectionModel from 'mongodb-connection-model';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
@@ -45,7 +44,7 @@ export interface StoreConnectionInfo {
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
   connectionOptions?: ConnectionOptions;
-  connectionModel?: ConnectionModel;
+  connectionModel?: LegacyConnectionModel;
 }
 
 export enum NewConnectionType {
@@ -110,8 +109,17 @@ export default class ConnectionController {
   async _migratePreviouslySavedConnection(
     savedConnectionInfo: StoreConnectionInfo
   ): Promise<StoreConnectionInfoWithConnectionOptions> {
+    if (!savedConnectionInfo.connectionModel) {
+      throw new Error('The connectionModel object is missing in saved connection info.');
+    }
+
     // Transform a raw connection model from storage to an ampersand model.
-    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(savedConnectionInfo.connectionModel);
+    const newConnectionInfoWithSecrets = convertConnectionModelToInfo({
+      ...savedConnectionInfo.connectionModel,
+      _id: savedConnectionInfo.id,
+      name: savedConnectionInfo.name,
+      isFavorite: true
+    });
 
     // Further use connectionOptions instead of connectionModel.
     const newSavedConnectionInfoWithSecrets = {
@@ -316,7 +324,10 @@ export default class ConnectionController {
   parseNewConnection(rawConnectionModel: LegacyConnectionModel): ConnectionInfo {
     return convertConnectionModelToInfo({
       ...rawConnectionModel,
-      appname: `${packageJSON.name} ${packageJSON.version}` // Override the default connection appname.
+      appname: `${packageJSON.name} ${packageJSON.version}`, // Override the default connection appname.,
+      _id: uuidv4(),
+      name: 'Local',
+      isFavorite: true
     });
   }
 
