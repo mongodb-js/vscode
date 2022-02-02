@@ -743,6 +743,9 @@ suite('Connection Controller Test Suite', function () {
       name: 'localhost:27017',
       storageLocation: StorageLocation.GLOBAL,
       connectionModel: {
+        _id: '1',
+        isFavorite: false,
+        name: 'Local 1',
         isSrvRecord: false,
         hostname: 'localhost',
         port: 27017,
@@ -778,6 +781,9 @@ suite('Connection Controller Test Suite', function () {
       name: 'host.u88dd.test.test',
       storageLocation: StorageLocation.WORKSPACE,
       connectionModel: {
+        _id: '2',
+        isFavorite: false,
+        name: 'Local 2',
         ns: 'test',
         isSrvRecord: true,
         hostname: 'compass-data-sets.e06dc.mongodb.net',
@@ -826,6 +832,9 @@ suite('Connection Controller Test Suite', function () {
       name: 'host.u88dd.test.test',
       storageLocation: StorageLocation.WORKSPACE,
       connectionModel: {
+        _id: '3',
+        isFavorite: false,
+        name: 'Local 3',
         ns: 'test',
         isSrvRecord: true,
         hostname: 'compass-data-sets.e06dc.mongodb.net',
@@ -876,6 +885,9 @@ suite('Connection Controller Test Suite', function () {
       name: 'localhost:27017',
       storageLocation: StorageLocation.GLOBAL,
       connectionModel: {
+        _id: '4',
+        isFavorite: false,
+        name: 'Local 4',
         isSrvRecord: false,
         hostname: 'localhost',
         port: 27017,

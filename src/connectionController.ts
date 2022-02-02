@@ -114,12 +114,7 @@ export default class ConnectionController {
     }
 
     // Transform a raw connection model from storage to an ampersand model.
-    const newConnectionInfoWithSecrets = convertConnectionModelToInfo({
-      ...savedConnectionInfo.connectionModel,
-      _id: savedConnectionInfo.id,
-      name: savedConnectionInfo.name,
-      isFavorite: true
-    });
+    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(savedConnectionInfo.connectionModel);
 
     // Further use connectionOptions instead of connectionModel.
     const newSavedConnectionInfoWithSecrets = {
@@ -324,10 +319,7 @@ export default class ConnectionController {
   parseNewConnection(rawConnectionModel: LegacyConnectionModel): ConnectionInfo {
     return convertConnectionModelToInfo({
       ...rawConnectionModel,
-      appname: `${packageJSON.name} ${packageJSON.version}`, // Override the default connection appname.,
-      _id: uuidv4(),
-      name: 'Local',
-      isFavorite: true
+      appname: `${packageJSON.name} ${packageJSON.version}` // Override the default connection appname.,
     });
   }
 
