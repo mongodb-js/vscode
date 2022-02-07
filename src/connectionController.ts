@@ -315,7 +315,7 @@ export default class ConnectionController {
   parseNewConnection(rawConnectionModel: LegacyConnectionModel): ConnectionInfo {
     return convertConnectionModelToInfo({
       ...rawConnectionModel,
-      appname: `${packageJSON.name} ${packageJSON.version}` // Override the default connection appname.,
+      appname: `${packageJSON.name} ${packageJSON.version}` // Override the default connection appname.
     });
   }
 
