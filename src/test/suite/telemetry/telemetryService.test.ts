@@ -300,7 +300,9 @@ suite('Telemetry Controller Test Suite', () => {
     expect(telemetryEvent.event).to.equal('Playground Loaded');
   });
 
-  test('track query exported to language', async () => {
+  test('track query exported to language', async function () {
+    this.timeout(5000);
+
     const mockTrackQueryExported = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
@@ -337,7 +339,9 @@ suite('Telemetry Controller Test Suite', () => {
     });
   });
 
-  test('track aggregation exported to language', async () => {
+  test('track aggregation exported to language', async function () {
+    this.timeout(5000);
+
     const mockTrackAggregationExported = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
