@@ -8,6 +8,7 @@ import { resolve } from 'path';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import Sinon = require('sinon');
+import { ExportToLanguageMode } from '../../../types/playgroundType';
 
 import { ConnectionTypes } from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';
@@ -296,6 +297,82 @@ suite('Telemetry Controller Test Suite', () => {
       source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
     });
     expect(telemetryEvent.event).to.equal('Playground Loaded');
+  });
+
+  test('track query exported to language', async function () {
+    this.timeout(5000);
+    const mockTrackQueryExported = sinon.fake();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackQueryExported',
+      mockTrackQueryExported
+    );
+
+    const textFromEditor = "{ '_id': 1, 'item': 'abc', 'price': 10 }";
+    const selection = {
+      start: { line: 0, character: 0 },
+      end: { line: 0, character: 40 }
+    } as vscode.Selection;
+    const mode = ExportToLanguageMode.QUERY;
+    const language = 'python';
+
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
+    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons = {
+      textFromEditor,
+      selectedText: textFromEditor,
+      selection,
+      importStatements: false,
+      driverSyntax: false,
+      builders: false,
+      language
+    };
+
+    await mdbTestExtension.testExtensionController._playgroundController._transpile();
+
+    expect(mockTrackQueryExported.firstCall.firstArg).to.be.deep.equal({
+      language,
+      with_import_statements: false,
+      with_builders: false,
+      with_driver_syntax: false
+    });
+  });
+
+  test('track aggregation exported to language', async () => {
+    const mockTrackAggregationExported = sinon.fake();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackAggregationExported',
+      mockTrackAggregationExported
+    );
+
+    const textFromEditor = "[{ '_id': 1, 'item': 'abc', 'price': 10 }]";
+    const selection = {
+      start: { line: 0, character: 0 },
+      end: { line: 0, character: 42 }
+    } as vscode.Selection;
+    const mode = ExportToLanguageMode.AGGREGATION;
+    const language = 'java';
+
+    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode = mode;
+    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons = {
+      textFromEditor,
+      selectedText: textFromEditor,
+      selection,
+      importStatements: false,
+      driverSyntax: true,
+      builders: false,
+      language
+    };
+
+    await mdbTestExtension.testExtensionController._playgroundController._transpile();
+
+    expect(mockTrackAggregationExported.firstCall.firstArg).to.be.deep.equal({
+      language,
+      num_stages: 1,
+      with_import_statements: false,
+      with_builders: false,
+      with_driver_syntax: true
+    });
   });
 
   suite('with active connection', function () {

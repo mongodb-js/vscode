@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import vm from 'vm';
 import semver from 'semver';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
@@ -18,7 +19,8 @@ import {
   PlaygroundResult,
   ShellExecuteAllResult,
   ExportToLanguageAddons,
-  ExportToLanguageNamespace
+  ExportToLanguageNamespace,
+  ExportToLanguageMode
 } from '../types/playgroundType';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME,
@@ -40,6 +42,40 @@ const hasTimeSeriesSupport = (serverVersion) => {
   } catch (e) {
     return true;
   }
+};
+
+interface ToCompile {
+  filter?: string;
+  aggregation?: string;
+  options: {
+    collection: string|null;
+    database: string|null;
+    uri?: string;
+  }
+}
+
+let dummySandbox;
+
+// TODO: this function was copied from the compass-export-to-language module
+// https://github.com/mongodb-js/compass/blob/7c4bc0789a7b66c01bb7ba63955b3b11ed40c094/packages/compass-export-to-language/src/modules/count-aggregation-stages-in-string.js
+// and should be updated as well when the better solution for the problem will be found.
+const countAggregationStagesInString = (str: string) => {
+  if (!dummySandbox) {
+    dummySandbox = vm.createContext(Object.create(null), {
+      codeGeneration: { strings: false, wasm: false },
+      microtaskMode: 'afterEvaluate'
+    });
+    vm.runInContext([
+      'BSONRegExp', 'DBRef', 'Decimal128', 'Double', 'Int32',
+      'Long', 'Int64', 'MaxKey', 'MinKey', 'ObjectID', 'ObjectId',
+      'BSONSymbol', 'Timestamp', 'Code', 'Buffer', 'Binary'
+    ].map(name => `function ${name}() {}`).join('\n'), dummySandbox);
+  }
+
+  return vm.runInContext(
+    '(' + str + ')',
+    dummySandbox,
+    { timeout: 100 }).length;
 };
 
 /**
@@ -539,11 +575,64 @@ export default class PlaygroundController {
     return this._transpile();
   }
 
-  async _transpile(): Promise<boolean> {
+  async getTranspiledContent(): Promise<{ namespace: ExportToLanguageNamespace, expression: string } | undefined> {
     const {
       textFromEditor,
       selectedText,
       selection,
+      driverSyntax,
+      builders,
+      language
+    } = this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
+    let namespace: ExportToLanguageNamespace = {
+      databaseName: 'DATABASE_NAME',
+      collectionName: 'COLLECTION_NAME'
+    };
+    let expression = '';
+
+    if (!textFromEditor || !selection) {
+      return;
+    }
+
+    if (driverSyntax) {
+      const connectionId = this._connectionController.getActiveConnectionId();
+      let driverUrl = 'mongodb://localhost:27017';
+
+      if (connectionId) {
+        namespace = await this._languageServerController.getNamespaceForSelection({
+          textFromEditor,
+          selection
+        });
+
+        const mongoClientOptions = this._connectionController.getMongoClientConnectionOptions();
+        driverUrl = mongoClientOptions?.url || '';
+      }
+
+      const toCompile: ToCompile = {
+        options: {
+          collection: namespace.collectionName,
+          database: namespace.databaseName,
+          uri: driverUrl
+        }
+      };
+
+      if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
+        toCompile.aggregation = selectedText;
+      } else if (this._codeActionProvider.mode === ExportToLanguageMode.QUERY) {
+        toCompile.filter = selectedText;
+      }
+
+      expression = transpiler.shell[language].compileWithDriver(toCompile, builders);
+    } else {
+      expression = transpiler.shell[language].compile(selectedText, builders, false);
+    }
+
+    return { namespace, expression };
+  }
+
+  async _transpile(): Promise<boolean> {
+    const {
+      selectedText,
       importStatements,
       driverSyntax,
       builders,
@@ -552,42 +641,19 @@ export default class PlaygroundController {
 
     log.info(`Start export to ${language} language`);
 
-    if (!textFromEditor || !selection) {
-      void vscode.window.showInformationMessage(
-        'Please select one or more lines in the playground.'
-      );
-
-      return true;
-    }
-
     try {
-      let transpiledExpression = '';
-      let imports = '';
-      let namespace: ExportToLanguageNamespace = {
-        databaseName: null,
-        collectionName: null
-      };
+      const transpiledContent = await this.getTranspiledContent();
 
-      if (driverSyntax) {
-        namespace = await this._languageServerController.getNamespaceForSelection({
-          textFromEditor,
-          selection
-        });
-
-        const mongoClientOptions = this._connectionController.getMongoClientConnectionOptions();
-        const toCompile = {
-          aggregation: selectedText,
-          options: {
-            collection: namespace.collectionName,
-            database: namespace.databaseName,
-            uri: mongoClientOptions?.url
-          }
-        };
-
-        transpiledExpression = transpiler.shell[language].compileWithDriver(toCompile, builders);
-      } else {
-        transpiledExpression = transpiler.shell[language].compile(selectedText, builders, false);
+      if (!transpiledContent) {
+        void vscode.window.showInformationMessage(
+          'Please select one or more lines in the playground.'
+        );
+        return true;
       }
+
+      const { namespace, expression } = transpiledContent;
+
+      let imports = '';
 
       if (importStatements) {
         imports = transpiler.shell[language].getImports(driverSyntax);
@@ -598,11 +664,35 @@ export default class PlaygroundController {
           ? `${namespace.databaseName}.${namespace.collectionName}`
           : null,
         type: null,
-        content: imports ? `${imports}\n\n${transpiledExpression}` : transpiledExpression,
+        content: imports ? `${imports}\n\n${expression}` : expression,
         language
       };
 
       log.info(`Export to ${language} language result`, this._playgroundResult);
+
+      /* eslint-disable camelcase */
+      if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
+        const aggExportedProps = {
+          language,
+          num_stages: selectedText ? countAggregationStagesInString(selectedText) : null,
+          with_import_statements: importStatements,
+          with_builders: builders,
+          with_driver_syntax: driverSyntax
+        };
+
+        this._telemetryService.trackAggregationExported(aggExportedProps);
+      } else if (this._codeActionProvider.mode === ExportToLanguageMode.QUERY) {
+        const queryExportedProps = {
+          language,
+          with_import_statements: importStatements,
+          with_builders: builders,
+          with_driver_syntax: driverSyntax
+        };
+
+        this._telemetryService.trackQueryExported(queryExportedProps);
+      }
+      /* eslint-enable camelcase */
+
       await this._openPlaygroundResult();
     } catch (error) {
       const printableError = error as { message: string };

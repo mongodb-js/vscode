@@ -48,13 +48,24 @@ type DocumentEditedTelemetryEventProperties = {
   source: DocumentSource;
 };
 
+/* eslint-disable camelcase */
+type QueryExportedTelemetryEventProperties = {
+  language: string;
+  num_stages?: number;
+  with_import_statements: boolean;
+  with_builders: boolean;
+  with_driver_syntax: boolean;
+};
+/* eslint-enable camelcase */
+
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
   | LinkClickedTelemetryEventProperties
   | ExtensionCommandRunTelemetryEventProperties
   | NewConnectionTelemetryEventProperties
   | DocumentUpdatedTelemetryEventProperties
-  | DocumentEditedTelemetryEventProperties;
+  | DocumentEditedTelemetryEventProperties
+  | QueryExportedTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -64,7 +75,9 @@ export enum TelemetryEventTypes {
   PLAYGROUND_SAVED = 'Playground Saved',
   PLAYGROUND_LOADED = 'Playground Loaded',
   DOCUMENT_UPDATED = 'Document Updated',
-  DOCUMENT_EDITED = 'Document Edited'
+  DOCUMENT_EDITED = 'Document Edited',
+  QUERY_EXPORTED = 'Query Exported',
+  AGGREGATION_EXPORTED = 'Aggregation Exported'
 }
 
 /**
@@ -284,5 +297,13 @@ export default class TelemetryService {
 
   trackDocumentOpenedInEditor(source: DocumentSource): void {
     this.track(TelemetryEventTypes.DOCUMENT_EDITED, { source });
+  }
+
+  trackQueryExported(queryExportedProps: QueryExportedTelemetryEventProperties): void {
+    this.track(TelemetryEventTypes.QUERY_EXPORTED, queryExportedProps);
+  }
+
+  trackAggregationExported(aggExportedProps: QueryExportedTelemetryEventProperties): void {
+    this.track(TelemetryEventTypes.AGGREGATION_EXPORTED, aggExportedProps);
   }
 }
