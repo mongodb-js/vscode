@@ -3,6 +3,7 @@ import path from 'path';
 
 import DatabaseTreeItem from './databaseTreeItem';
 import ConnectionController from '../connectionController';
+import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
 
@@ -92,8 +93,7 @@ export default class ConnectionTreeItem extends vscode.TreeItem
 
       return dbs.map(dbItem => dbItem.name);
     } catch (error) {
-      const printableError = error as { message: string };
-      throw new Error(`Unable to list databases: ${printableError.message}`);
+      throw new Error(`Unable to list databases: ${formatError(error).message}`);
     }
   }
 

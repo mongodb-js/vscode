@@ -5,6 +5,7 @@ import path from 'path';
 
 import { createLogger } from '../logging';
 import FieldTreeItem from './fieldTreeItem';
+import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
 import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
@@ -104,9 +105,8 @@ export default class SchemaTreeItem extends vscode.TreeItem
         { limit: MAX_DOCUMENTS_VISIBLE }
       );
     } catch (error) {
-      const printableError = error as { message: string };
       void vscode.window.showErrorMessage(
-        `Get schema failed: ${printableError.message}`
+        `Get schema failed: ${formatError(error).message}`
       );
       return [];
     }

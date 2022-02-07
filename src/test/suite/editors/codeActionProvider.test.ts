@@ -308,7 +308,7 @@ suite('Code Action Provider Test Suite', function () {
         expectedResult = {
           namespace: 'db.coll',
           type: null,
-          content: "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&directConnection=true')\nfilter={\n    'name': '22'\n}\n\nresult = client['db']['coll'].find(\n  filter=filter\n)",
+          content: "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0')\nfilter={\n    'name': '22'\n}\n\nresult = client['db']['coll'].find(\n  filter=filter\n)",
           language: 'python'
         };
 

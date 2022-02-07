@@ -14,6 +14,7 @@ import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';
 import { Worker as WorkerThreads } from 'worker_threads';
 
+import formatError from '../utils/formatError';
 import { ServerCommands } from './serverCommands';
 import {
   ShellExecuteAllResult,
@@ -168,10 +169,10 @@ export default class MongoDBService {
           const [error, result] = response;
 
           if (error) {
-            const printableError = error as { message: string };
+            const printableError = formatError(error);
 
             this._connection.console.error(
-              `MONGOSH execute all error: ${util.inspect(error)}`
+              `MONGOSH execute all error: ${util.inspect(printableError)}`
             );
             this._connection.sendNotification(
               ServerCommands.SHOW_ERROR_MESSAGE,

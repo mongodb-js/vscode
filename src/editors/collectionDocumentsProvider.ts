@@ -5,6 +5,7 @@ import { URLSearchParams } from 'url';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import ConnectionController from '../connectionController';
 import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
+import formatError from '../utils/formatError';
 import { StatusView } from '../views';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
@@ -104,8 +105,7 @@ implements vscode.TextDocumentContentProvider {
 
       return JSON.stringify(documents, null, 2);
     } catch (error) {
-      const printableError = error as { message: string };
-      const errorMessage = `Unable to list documents: ${printableError.message}`;
+      const errorMessage = `Unable to list documents: ${formatError(error).message}`;
 
       void vscode.window.showErrorMessage(errorMessage);
 

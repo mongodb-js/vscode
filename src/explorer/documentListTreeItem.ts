@@ -4,6 +4,7 @@ import numeral from 'numeral';
 
 import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
+import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
 
@@ -201,9 +202,8 @@ export default class DocumentListTreeItem extends vscode.TreeItem
         { limit: this._maxDocumentsToShow }
       );
     } catch (error) {
-      const printableError = error as { message: string };
       void vscode.window.showErrorMessage(
-        `Fetch documents failed: ${printableError.message}`
+        `Fetch documents failed: ${formatError(error).message}`
       );
       return [];
     }

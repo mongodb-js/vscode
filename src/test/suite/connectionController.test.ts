@@ -9,6 +9,7 @@ import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/const
 import ConnectionController, {
   DataServiceEventTypes
 } from '../../connectionController';
+import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
 import {
   StorageLocation,
@@ -148,10 +149,9 @@ suite('Connection Controller Test Suite', function () {
         testDatabaseURI2WithTimeout
       );
     } catch (error) {
-      const printableError = error as { message: string };
       const expectedError = 'Failed to connect';
 
-      assert.strictEqual(printableError.message.includes(expectedError), true);
+      assert.strictEqual(formatError(error).message.includes(expectedError), true);
       assert.strictEqual(testConnectionController.getActiveDataService(), null);
       assert.strictEqual(testConnectionController.getActiveConnectionId(), null);
     }
@@ -689,17 +689,13 @@ suite('Connection Controller Test Suite', function () {
 
     void testConnectionController.connectWithConnectionId(connectionId);
 
-    // Ensure the connection starts but doesn't time out yet.
-    await sleep(250);
-
     assert.strictEqual(testConnectionController.isConnecting(), true);
     assert.strictEqual(testConnectionController.getConnectionStatus(), 'CONNECTING');
 
     try {
       await testConnectionController.removeSavedConnection(connectionId);
     } catch (error) {
-      const printableError = error as { message: string };
-      assert.strictEqual(printableError, false);
+      assert.strictEqual(formatError(error), false);
     }
   });
 
@@ -1037,7 +1033,7 @@ suite('Connection Controller Test Suite', function () {
     assert.deepStrictEqual(
       mongoClientConnectionOptions,
       {
-        url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&directConnection=true',
+        url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
         options: { monitorCommands: true }
       }
     );

@@ -16,6 +16,7 @@ const baseConfig = {
 const extensionConfig = {
   ...baseConfig,
   output: {
+    strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
     libraryTarget: 'commonjs2',
@@ -61,6 +62,7 @@ const extensionConfig = {
 const languageServerConfig = {
   ...baseConfig,
   output: {
+    strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
     libraryTarget: 'commonjs2',
@@ -101,6 +103,7 @@ const languageServerConfig = {
 const languageServerWorkerConfig = {
   ...baseConfig,
   output: {
+    strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
     libraryTarget: 'commonjs2',

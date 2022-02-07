@@ -18,6 +18,7 @@ import DocumentIdStore from './documentIdStore';
 import { DocumentSource } from '../documentSource';
 import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
+import formatError from '../utils/formatError';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import MongoDBDocumentService, {
   DOCUMENT_ID_URI_IDENTIFIER,
@@ -195,9 +196,7 @@ export default class EditorsController {
 
       return true;
     } catch (error) {
-      const printableError = error as { message: string };
-
-      void vscode.window.showErrorMessage(printableError.message);
+      void vscode.window.showErrorMessage(formatError(error).message);
 
       return false;
     }
@@ -253,9 +252,7 @@ export default class EditorsController {
 
       return true;
     } catch (error) {
-      const printableError = error as { message: string };
-
-      void vscode.window.showErrorMessage(printableError.message);
+      void vscode.window.showErrorMessage(formatError(error).message);
 
       return false;
     }
@@ -280,10 +277,8 @@ export default class EditorsController {
 
       return true;
     } catch (error) {
-      const printableError = error as { message: string };
-
       void vscode.window.showErrorMessage(
-        `Unable to open documents: ${printableError.message}`
+        `Unable to open documents: ${formatError(error).message}`
       );
 
       return false;
