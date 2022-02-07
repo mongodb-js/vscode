@@ -75,7 +75,7 @@ export default class ConnectionController {
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
   _connections: { [connectionId: string]: StoreConnectionInfoWithConnectionOptions } = {};
-  _activeDataService: DataService| null = null;
+  _activeDataService: DataService | null = null;
   _storageController: StorageController;
 
   private readonly _serviceName = 'mdb.vscode.savedConnections';

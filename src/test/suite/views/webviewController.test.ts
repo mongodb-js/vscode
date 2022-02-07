@@ -305,7 +305,7 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: async (message): Promise<void> => {
+      postMessage: (message): void => {
         assert(!message.connectionSuccess);
         const expectedMessage = 'connection attempt overriden';
         assert(
@@ -313,7 +313,7 @@ suite('Webview Test Suite', () => {
           `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
         );
 
-        await testConnectionController.disconnect();
+        void testConnectionController.disconnect();
         done();
       },
       onDidReceiveMessage: (callback): void => {

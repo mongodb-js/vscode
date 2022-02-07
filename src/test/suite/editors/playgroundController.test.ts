@@ -23,11 +23,6 @@ const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
 
-const CONNECTION = {
-  driverUrlWithSsh: 'mongodb://localhost:27018',
-  driverOptions: {}
-};
-
 suite('Playground Controller Test Suite', function () {
   this.timeout(5000);
 
@@ -296,12 +291,7 @@ suite('Playground Controller Test Suite', function () {
         const mockGetActiveDataService = sinon.fake.returns({
           getMongoClientConnectionOptions: () => ({
             url: TEST_DATABASE_URI,
-            options: {
-              appname: 'VSCode Playground Tests',
-              port: 27018,
-              disconnect: () => {},
-              getAttributes: () => CONNECTION
-            }
+            options: {}
           })
         });
         const mockGetActiveConnectionId = sinon.fake.returns('pineapple');
