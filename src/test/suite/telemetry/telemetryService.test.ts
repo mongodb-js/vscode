@@ -375,7 +375,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
   });
 
-  suite.skip('with active connection', function () {
+  suite('with active connection', function () {
     this.timeout(5000);
 
     let dataServ;

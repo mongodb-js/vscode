@@ -98,14 +98,8 @@ suite('Playground Controller Test Suite', function () {
       const mockGetActiveConnectionName = sinon.fake.returns('fakeName');
       const mockGetActiveDataService = sinon.fake.returns({
         getMongoClientConnectionOptions: () => ({
-          url: TEST_DATABASE_URI,
-          options: {
-            appname: 'VSCode Playground Tests',
-            port: 27018,
-            sslKey: './path/to/key',
-            sslCert: './path/to/cert',
-            sslCA: ['./path/to/ca'],
-          }
+          url: 'mongodb://username@ldaphost:27017/?authMechanism=MONGODB-X509&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true&authSource=%24external&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsCAFile=./path/to/ca&tlsCertificateKeyFile=./path/to/cert',
+          options: { monitorCommands: true }
         })
       });
       const mockGetActiveConnectionId = sinon.fake.returns('pineapple');
@@ -136,14 +130,6 @@ suite('Playground Controller Test Suite', function () {
         'connectToServiceProvider',
         mockConnectToServiceProvider
       );
-      sinon.replace(
-        testPlaygroundController._connectionController,
-        'getMongoClientConnectionOptions',
-        () => ({
-          url: 'mongodb://localhost',
-          options: {}
-        })
-      );
 
       await testPlaygroundController._connectToServiceProvider();
     });
@@ -159,25 +145,14 @@ suite('Playground Controller Test Suite', function () {
     test('it should pass ssl strings to the language server for connecting', () => {
       expect(
         (mockConnectToServiceProvider.firstCall.firstArg as {
-          connectionOptions: {
-            sslKey: string[];
-          }
-        }).connectionOptions.sslKey
-      ).to.equal('./path/to/key');
+          connectionString: string
+        }).connectionString
+      ).includes('./path/to/cert');
       expect(
         (mockConnectToServiceProvider.firstCall.firstArg as {
-          connectionOptions: {
-            sslCert: string;
-          }
-        }).connectionOptions.sslCert
-      ).to.equal('./path/to/cert');
-      expect(
-        (mockConnectToServiceProvider.firstCall.firstArg as {
-          connectionOptions: {
-            sslCA: string;
-          }
-        }).connectionOptions.sslCA
-      ).to.deep.equal(['./path/to/ca']);
+          connectionString: string
+        }).connectionString
+      ).includes('./path/to/ca');
     });
   });
 

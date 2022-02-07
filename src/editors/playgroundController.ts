@@ -189,7 +189,7 @@ export default class PlaygroundController {
       return;
     }
 
-    const mongoClientOption = dataService.getMongoClientConnectionOptions();
+    const mongoClientOption = this._connectionController.getMongoClientConnectionOptions();
 
     if (!mongoClientOption) {
       this._activeConnectionCodeLensProvider.refresh();
