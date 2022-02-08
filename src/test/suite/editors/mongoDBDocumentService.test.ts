@@ -1,17 +1,20 @@
 import * as vscode from 'vscode';
-import MongoDBDocumentService from '../../../editors/mongoDBDocumentService';
-import DocumentIdStore from '../../../editors/documentIdStore';
+import { afterEach } from 'mocha';
+import chai from 'chai';
+import { EJSON } from 'bson';
+import sinon from 'sinon';
+
 import ConnectionController from '../../../connectionController';
-import { TestExtensionContext } from '../stubs';
+import DocumentIdStore from '../../../editors/documentIdStore';
+import { DocumentSource } from '../../../documentSource';
+import formatError from '../../../utils/formatError';
+import MongoDBDocumentService from '../../../editors/mongoDBDocumentService';
+
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
 import TelemetryService from '../../../telemetry/telemetryService';
-import { afterEach } from 'mocha';
-import { EJSON } from 'bson';
-import { DocumentSource } from '../../../documentSource';
+import { TestExtensionContext } from '../stubs';
 
-import sinon from 'sinon';
-import chai from 'chai';
 const expect = chai.expect;
 
 suite('MongoDB Document Service Test Suite', () => {
@@ -176,11 +179,10 @@ suite('MongoDB Document Service Test Suite', () => {
         source
       });
     } catch (error) {
-      const printableError = error as { message: string };
       const expectedMessage =
         "Unable to save document: no longer connected to 'tasty_sandwhich'";
 
-      expect(printableError.message).to.be.equal(expectedMessage);
+      expect(formatError(error).message).to.be.equal(expectedMessage);
     }
   });
 
@@ -217,11 +219,10 @@ suite('MongoDB Document Service Test Suite', () => {
         source
       });
     } catch (error) {
-      const printableError = error as { message: string };
       const expectedMessage =
         "Unable to save document: no longer connected to 'tasty_sandwhich'";
 
-      expect(printableError.message).to.be.equal(expectedMessage);
+      expect(formatError(error).message).to.be.equal(expectedMessage);
     }
   });
 
@@ -261,11 +262,10 @@ suite('MongoDB Document Service Test Suite', () => {
         source
       });
     } catch (error) {
-      const printableError = error as { message: string };
       const expectedMessage =
         "Unable to fetch document: no longer connected to 'tasty_sandwhich'";
 
-      expect(printableError.message).to.be.equal(expectedMessage);
+      expect(formatError(error).message).to.be.equal(expectedMessage);
     }
   });
 });

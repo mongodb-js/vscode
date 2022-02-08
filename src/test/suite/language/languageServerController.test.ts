@@ -14,7 +14,6 @@ import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
-import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -85,11 +84,7 @@ suite('Language Server Controller Test Suite', () => {
       () => ({
         getMongoClientConnectionOptions: () => ({
           url: TEST_DATABASE_URI,
-          options: {
-            appname: 'VSCode Playground Tests',
-            port: 27018,
-            readPreference: READ_PREFERENCES.PRIMARY
-          }
+          options: {}
         })
       } as any)
     );

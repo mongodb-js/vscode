@@ -9,6 +9,7 @@ import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/const
 import ConnectionController, {
   DataServiceEventTypes
 } from '../../connectionController';
+import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
 import {
   StorageLocation,
@@ -148,10 +149,9 @@ suite('Connection Controller Test Suite', function () {
         testDatabaseURI2WithTimeout
       );
     } catch (error) {
-      const printableError = error as { message: string };
       const expectedError = 'Failed to connect';
 
-      assert.strictEqual(printableError.message.includes(expectedError), true);
+      assert.strictEqual(formatError(error).message.includes(expectedError), true);
       assert.strictEqual(testConnectionController.getActiveDataService(), null);
       assert.strictEqual(testConnectionController.getActiveConnectionId(), null);
     }
@@ -689,17 +689,13 @@ suite('Connection Controller Test Suite', function () {
 
     void testConnectionController.connectWithConnectionId(connectionId);
 
-    // Ensure the connection starts but doesn't time out yet.
-    await sleep(250);
-
     assert.strictEqual(testConnectionController.isConnecting(), true);
     assert.strictEqual(testConnectionController.getConnectionStatus(), 'CONNECTING');
 
     try {
       await testConnectionController.removeSavedConnection(connectionId);
     } catch (error) {
-      const printableError = error as { message: string };
-      assert.strictEqual(printableError, false);
+      assert.strictEqual(formatError(error), false);
     }
   });
 
@@ -743,17 +739,20 @@ suite('Connection Controller Test Suite', function () {
       name: 'localhost:27017',
       storageLocation: StorageLocation.GLOBAL,
       connectionModel: {
+        _id: '1',
+        isFavorite: false,
+        name: 'Local 1',
         isSrvRecord: false,
         hostname: 'localhost',
         port: 27017,
         hosts: [{ host: 'localhost', port: 27017 }],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
-        authStrategy: 'NONE',
-        readPreference: 'primary',
+        authStrategy: AUTH_STRATEGY_VALUES.NONE,
+        readPreference: READ_PREFERENCES.PRIMARY,
         kerberosCanonicalizeHostname: false,
-        sslMethod: 'NONE',
-        sshTunnel: 'NONE',
+        sslMethod: SSL_METHODS.NONE,
+        sshTunnel: SSH_TUNNEL_TYPES.NONE,
         sshTunnelPort: 22
       }
     };
@@ -778,6 +777,9 @@ suite('Connection Controller Test Suite', function () {
       name: 'host.u88dd.test.test',
       storageLocation: StorageLocation.WORKSPACE,
       connectionModel: {
+        _id: '2',
+        isFavorite: false,
+        name: 'Local 2',
         ns: 'test',
         isSrvRecord: true,
         hostname: 'compass-data-sets.e06dc.mongodb.net',
@@ -789,9 +791,9 @@ suite('Connection Controller Test Suite', function () {
         ],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
-        authStrategy: 'MONGODB',
+        authStrategy: AUTH_STRATEGY_VALUES.MONGODB,
         replicaSet: 'host-shard-0',
-        readPreference: 'primary',
+        readPreference: READ_PREFERENCES.PRIMARY,
         authSource: 'admin',
         appname: 'mongodb-vscode 0.6.14',
         mongodbUsername: 'username',
@@ -799,8 +801,8 @@ suite('Connection Controller Test Suite', function () {
         mongodbDatabaseName: 'admin',
         kerberosCanonicalizeHostname: false,
         ssl: true,
-        sslMethod: 'SYSTEMCA',
-        sshTunnel: 'NONE',
+        sslMethod: SSL_METHODS.SYSTEMCA,
+        sshTunnel: SSH_TUNNEL_TYPES.NONE,
         sshTunnelPort: 22
       }
     };
@@ -826,6 +828,9 @@ suite('Connection Controller Test Suite', function () {
       name: 'host.u88dd.test.test',
       storageLocation: StorageLocation.WORKSPACE,
       connectionModel: {
+        _id: '3',
+        isFavorite: false,
+        name: 'Local 3',
         ns: 'test',
         isSrvRecord: true,
         hostname: 'compass-data-sets.e06dc.mongodb.net',
@@ -837,9 +842,9 @@ suite('Connection Controller Test Suite', function () {
         ],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
-        authStrategy: 'MONGODB',
+        authStrategy: AUTH_STRATEGY_VALUES.MONGODB,
         replicaSet: 'host-shard-0',
-        readPreference: 'primary',
+        readPreference: READ_PREFERENCES.PRIMARY,
         authSource: 'admin',
         appname: 'mongodb-vscode 0.6.14',
         mongodbUsername: TEST_USER_USERNAME,
@@ -847,8 +852,8 @@ suite('Connection Controller Test Suite', function () {
         mongodbDatabaseName: 'admin',
         kerberosCanonicalizeHostname: false,
         ssl: true,
-        sslMethod: 'SYSTEMCA',
-        sshTunnel: 'NONE',
+        sslMethod: SSL_METHODS.SYSTEMCA,
+        sshTunnel: SSH_TUNNEL_TYPES.NONE,
         sshTunnelPort: 22
       }
     };
@@ -876,17 +881,20 @@ suite('Connection Controller Test Suite', function () {
       name: 'localhost:27017',
       storageLocation: StorageLocation.GLOBAL,
       connectionModel: {
+        _id: '4',
+        isFavorite: false,
+        name: 'Local 4',
         isSrvRecord: false,
         hostname: 'localhost',
         port: 27017,
         hosts: [{ host: 'localhost', port: 27017 }],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
-        authStrategy: 'NONE',
-        readPreference: 'primary',
+        authStrategy: AUTH_STRATEGY_VALUES.NONE,
+        readPreference: READ_PREFERENCES.PRIMARY,
         kerberosCanonicalizeHostname: false,
-        sslMethod: 'NONE',
-        sshTunnel: 'NONE',
+        sslMethod: SSL_METHODS.NONE,
+        sshTunnel: SSH_TUNNEL_TYPES.NONE,
         sshTunnelPort: 22
       }
     };
@@ -1025,7 +1033,7 @@ suite('Connection Controller Test Suite', function () {
     assert.deepStrictEqual(
       mongoClientConnectionOptions,
       {
-        url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&directConnection=true',
+        url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
         options: { monitorCommands: true }
       }
     );

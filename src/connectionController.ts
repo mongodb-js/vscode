@@ -9,7 +9,6 @@ import {
   extractSecrets,
   mergeSecrets
 } from 'mongodb-data-service';
-import ConnectionModel from 'mongodb-connection-model';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
@@ -18,6 +17,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import { ext } from './extensionConstants';
+import formatError from './utils/formatError';
 import LegacyConnectionModel from './views/webview-app/connection-model/legacy-connection-model';
 import { StorageLocation, ConnectionsFromStorage } from './storage/storageController';
 import { StorageController, StorageVariables } from './storage';
@@ -45,7 +45,7 @@ export interface StoreConnectionInfo {
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
   connectionOptions?: ConnectionOptions;
-  connectionModel?: ConnectionModel;
+  connectionModel?: LegacyConnectionModel;
 }
 
 export enum NewConnectionType {
@@ -75,7 +75,7 @@ export default class ConnectionController {
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
   _connections: { [connectionId: string]: StoreConnectionInfoWithConnectionOptions } = {};
-  _activeDataService: DataService| null = null;
+  _activeDataService: DataService | null = null;
   _storageController: StorageController;
 
   private readonly _serviceName = 'mdb.vscode.savedConnections';
@@ -110,6 +110,10 @@ export default class ConnectionController {
   async _migratePreviouslySavedConnection(
     savedConnectionInfo: StoreConnectionInfo
   ): Promise<StoreConnectionInfoWithConnectionOptions> {
+    if (!savedConnectionInfo.connectionModel) {
+      throw new Error('The connectionModel object is missing in saved connection info.');
+    }
+
     // Transform a raw connection model from storage to an ampersand model.
     const newConnectionInfoWithSecrets = convertConnectionModelToInfo(savedConnectionInfo.connectionModel);
 
@@ -140,8 +144,7 @@ export default class ConnectionController {
       } catch (error) {
         // Here we're lenient when loading connections in case their
         // connections have become corrupted.
-        const printableError = error as { message: string };
-        log.error(`Connection migration failed: ${printableError.message}`);
+        log.error(`Connection migration failed: ${formatError(error).message}`);
         return;
       }
     }
@@ -181,8 +184,7 @@ export default class ConnectionController {
     } catch (error) {
       // Here we're lenient when loading connections in case their
       // connections have become corrupted.
-      const printableError = error as { message: string };
-      log.error(`Merging connection with secrets failed: ${printableError.message}`);
+      log.error(`Merging connection with secrets failed: ${formatError(error).message}`);
       return;
     }
   }
@@ -253,8 +255,8 @@ export default class ConnectionController {
           try {
             // eslint-disable-next-line no-new
             new ConnectionString(uri);
-          } catch (err) {
-            return (err as { message: string }).message;
+          } catch (error) {
+            return formatError(error).message;
           }
 
           return null;
@@ -268,14 +270,7 @@ export default class ConnectionController {
       return false;
     }
 
-    try {
-      return this.addNewConnectionStringAndConnect(connectionString);
-    } catch (error) {
-      const printableError = error as { message: string };
-      void vscode.window.showErrorMessage(printableError.message);
-
-      return false;
-    }
+    return this.addNewConnectionStringAndConnect(connectionString);
   }
 
   // Resolves the new connection id when the connection is successfully added.
@@ -305,7 +300,11 @@ export default class ConnectionController {
 
       return connectResult.successfullyConnected;
     } catch (error) {
-      throw new Error(`Unable to create connection: ${error}`);
+      const printableError = formatError(error);
+      log.error('Failed to connect', printableError);
+      void vscode.window.showErrorMessage(`Unable to connect: ${printableError.message}`);
+
+      return false;
     }
   }
 
@@ -378,6 +377,7 @@ export default class ConnectionController {
     };
 
     log.info(`Connect called to connect to instance: ${savedConnectionInfo.name}`);
+
     return this._connect(savedConnectionInfo.id, connectionType);
   }
 
@@ -414,7 +414,9 @@ export default class ConnectionController {
       connectError = error;
     }
 
-    if (this._endPrevConnectAttempt({ connectionId, connectingAttemptVersion, newDataService })) {
+    const shouldEndPrevConnectAttempt = this._endPrevConnectAttempt({ connectionId, connectingAttemptVersion, newDataService });
+
+    if (shouldEndPrevConnectAttempt) {
       return {
         successfullyConnected: false,
         connectionErrorMessage: 'connection attempt overriden'
@@ -425,10 +427,9 @@ export default class ConnectionController {
 
     if (connectError) {
       this._connecting = false;
-      log.info('Failed to connect');
       this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
-      throw new Error(`Failed to connect: ${connectError.message}`);
+      throw connectError;
     }
 
     log.info('Successfully connected');
@@ -482,7 +483,11 @@ export default class ConnectionController {
 
       return true;
     } catch (error) {
-      throw new Error(`Unable to connect: ${error}`);
+      const printableError = formatError(error);
+      log.error('Failed to connect', printableError);
+      void vscode.window.showErrorMessage(`Unable to connect: ${printableError.message}`);
+
+      return false;
     }
   }
 

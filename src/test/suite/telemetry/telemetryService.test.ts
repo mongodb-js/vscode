@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-exclusive-tests */
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { afterEach, beforeEach } from 'mocha';
@@ -8,10 +9,10 @@ import { resolve } from 'path';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import Sinon = require('sinon');
-import { ExportToLanguageMode } from '../../../types/playgroundType';
 
 import { ConnectionTypes } from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';
+import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import {
   NewConnectionTelemetryEventProperties
@@ -301,6 +302,7 @@ suite('Telemetry Controller Test Suite', () => {
 
   test('track query exported to language', async function () {
     this.timeout(5000);
+
     const mockTrackQueryExported = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
@@ -337,7 +339,9 @@ suite('Telemetry Controller Test Suite', () => {
     });
   });
 
-  test('track aggregation exported to language', async () => {
+  test('track aggregation exported to language', async function () {
+    this.timeout(5000);
+
     const mockTrackAggregationExported = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
@@ -380,7 +384,11 @@ suite('Telemetry Controller Test Suite', () => {
 
     let dataServ;
     beforeEach(async () => {
-      dataServ = await connect({ connectionString: TEST_DATABASE_URI });
+      try {
+        dataServ = await connect({ connectionString: TEST_DATABASE_URI });
+      } catch (error) {
+        expect(error).to.be.undefined;
+      }
     });
 
     afterEach(async () => {

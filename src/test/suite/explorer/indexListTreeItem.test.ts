@@ -4,6 +4,7 @@ import assert from 'assert';
 import sinon from 'sinon';
 import { DataService } from 'mongodb-data-service';
 
+import formatError from '../../../utils/formatError';
 import IndexListTreeItem from '../../../explorer/indexListTreeItem';
 
 const { contributes } = require('../../../../package.json');
@@ -84,8 +85,7 @@ suite('IndexListTreeItem Test Suite', () => {
     try {
       indexTreeItems = await testIndexListTreeItem.getChildren();
     } catch (error) {
-      const printableError = error as { message: string };
-      assert(false, `Expected no error, found: ${printableError.message}`);
+      assert(false, `Expected no error, found: ${formatError(error).message}`);
     }
 
     assert(namespaceRequested === 'tasty_fruits.pineapple');
@@ -200,8 +200,7 @@ suite('IndexListTreeItem Test Suite', () => {
     try {
       indexTreeItems = await testIndexListTreeItem.getChildren();
     } catch (error) {
-      const printableError = error as { message: string };
-      assert(false, `Expected no error, found: ${printableError.message}`);
+      assert(false, `Expected no error, found: ${formatError(error).message}`);
     }
 
     indexTreeItems[0].onDidExpand();
@@ -223,8 +222,7 @@ suite('IndexListTreeItem Test Suite', () => {
     try {
       newIndexTreeItems = await newIndexListTreeItem.getChildren();
     } catch (error) {
-      const printableError = error as { message: string };
-      assert(false, `Expected no error, found: ${printableError.message}`);
+      assert(false, `Expected no error, found: ${formatError(error).message}`);
     }
 
     assert(

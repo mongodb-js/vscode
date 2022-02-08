@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import path from 'path';
 
 import CollectionTreeItem from './collectionTreeItem';
+import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
 
@@ -216,9 +217,8 @@ export default class DatabaseTreeItem extends vscode.TreeItem
 
       return successfullyDroppedDatabase;
     } catch (error) {
-      const printableError = error as { message: string };
       void vscode.window.showErrorMessage(
-        `Drop database failed: ${printableError.message}`
+        `Drop database failed: ${formatError(error).message}`
       );
       return false;
     }

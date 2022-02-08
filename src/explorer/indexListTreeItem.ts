@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { DataService } from 'mongodb-data-service';
 import path from 'path';
 
+import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import IndexTreeItem, { IndexModel } from './indexTreeItem';
 import { sortTreeItemsByLabel } from './treeItemUtils';
@@ -102,9 +103,8 @@ export default class IndexListTreeItem extends vscode.TreeItem
         {} // No options.
       );
     } catch (error) {
-      const printableError = error as { message: string };
       void vscode.window.showErrorMessage(
-        `Fetch indexes failed: ${printableError.message}`
+        `Fetch indexes failed: ${formatError(error).message}`
       );
       return [];
     }

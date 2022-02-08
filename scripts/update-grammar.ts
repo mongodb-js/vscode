@@ -6,6 +6,8 @@ import ora = require('ora');
 import download = require('download');
 import meow = require('meow');
 
+import formatError from '../src/utils/formatError';
+
 const DEFAULT_DEST = path.join(__dirname, '..', 'syntaxes');
 
 const languageURL =
@@ -52,7 +54,6 @@ const cli = meow(
       `Downloaded to ${path.join(cli.flags.dest as string, 'mongodb.tmLanguage.json')}`
     );
   } catch (error) {
-    const printableError = error as { message: string };
-    ui.fail(`Download failed: ${printableError.message}`);
+    ui.fail(`Download failed: ${formatError(error).message}`);
   }
 })();

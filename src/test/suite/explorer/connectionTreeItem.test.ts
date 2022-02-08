@@ -8,6 +8,7 @@ import ConnectionTreeItem, {
   ConnectionItemContextValues
 } from '../../../explorer/connectionTreeItem';
 import { DataServiceStub } from '../stubs';
+import formatError from '../../../utils/formatError';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 const { contributes } = require('../../../../package.json');
@@ -81,8 +82,7 @@ suite('ConnectionTreeItem Test Suite', () => {
         await testConnectionTreeItem.getChildren();
         assert(false);
       } catch (error) {
-        const printableError = error as { message: string };
-        assert.strictEqual(printableError.message, 'Unable to list databases: peaches');
+        assert.strictEqual(formatError(error).message, 'Unable to list databases: peaches');
       }
     });
   });

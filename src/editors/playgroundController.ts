@@ -10,6 +10,7 @@ import ConnectionController, {
 import { createLogger } from '../logging';
 import { ExplorerController, ConnectionTreeItem, DatabaseTreeItem } from '../explorer';
 import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
+import formatError from '../utils/formatError';
 import { LanguageServerController } from '../language';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
@@ -188,7 +189,7 @@ export default class PlaygroundController {
       return;
     }
 
-    const mongoClientOption = dataService.getMongoClientConnectionOptions();
+    const mongoClientOption = this._connectionController.getMongoClientConnectionOptions();
 
     if (!mongoClientOption) {
       this._activeConnectionCodeLensProvider.refresh();
@@ -218,10 +219,8 @@ export default class PlaygroundController {
 
       return true;
     } catch (error) {
-      const printableError = error as { message: string };
-
       void vscode.window.showErrorMessage(
-        `Unable to create a playground: ${printableError.message}`
+        `Unable to create a playground: ${formatError(error).message}`
       );
 
       return false;
@@ -290,10 +289,8 @@ export default class PlaygroundController {
 
       return true;
     } catch (error) {
-      const printableError = error as { message: string };
-
       void vscode.window.showErrorMessage(
-        `Unable to create a playground: ${printableError.message}`
+        `Unable to create a playground: ${formatError(error).message}`
       );
 
       return false;
@@ -414,10 +411,8 @@ export default class PlaygroundController {
         PLAYGROUND_RESULT_URI
       );
     } catch (error) {
-      const printableError = error as { message: string };
-
       void vscode.window.showErrorMessage(
-        `Unable to open a result document: ${printableError.message}`
+        `Unable to open a result document: ${formatError(error).message}`
       );
     }
   }
@@ -546,10 +541,8 @@ export default class PlaygroundController {
 
       return true;
     } catch (error) {
-      const printableError = error as { message: string };
-
       void vscode.window.showErrorMessage(
-        `Unable to open a playground: ${printableError.message}`
+        `Unable to open a playground: ${formatError(error).message}`
       );
 
       return false;
@@ -695,9 +688,8 @@ export default class PlaygroundController {
 
       await this._openPlaygroundResult();
     } catch (error) {
-      const printableError = error as { message: string };
-
-      log.error(`Export to ${language} language error`, error);
+      const printableError = formatError(error);
+      log.error(`Export to ${language} language error`, printableError);
       void vscode.window.showErrorMessage(
         `Unable to export to ${language} language: ${printableError.message}`
       );

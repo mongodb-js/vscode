@@ -6,6 +6,7 @@ import DocumentListTreeItem, {
   CollectionTypes,
   MAX_DOCUMENTS_VISIBLE
 } from './documentListTreeItem';
+import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import IndexListTreeItem from './indexListTreeItem';
 import TreeItemParent from './treeItemParentInterface';
@@ -374,9 +375,8 @@ export default class CollectionTreeItem extends vscode.TreeItem
 
       return successfullyDroppedCollection;
     } catch (error) {
-      const printableError = error as { message: string };
       void vscode.window.showErrorMessage(
-        `Drop collection failed: ${printableError.message}`
+        `Drop collection failed: ${formatError(error).message}`
       );
 
       return false;

@@ -290,7 +290,9 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  test('web view sends an unsuccessful connect result on an attempt that is overridden', (done) => {
+  test('web view sends an unsuccessful connect result on an attempt that is overridden', function (done) {
+    this.timeout(5000);
+
     const testExtensionContext = new TestExtensionContext();
     const testStorageController = new StorageController(testExtensionContext);
     const testTelemetryService = new TelemetryService(
@@ -305,7 +307,7 @@ suite('Webview Test Suite', () => {
     let messageReceived;
     const fakeWebview = {
       html: '',
-      postMessage: async (message): Promise<void> => {
+      postMessage: (message): void => {
         assert(!message.connectionSuccess);
         const expectedMessage = 'connection attempt overriden';
         assert(
@@ -313,7 +315,7 @@ suite('Webview Test Suite', () => {
           `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
         );
 
-        await testConnectionController.disconnect();
+        void testConnectionController.disconnect();
         done();
       },
       onDidReceiveMessage: (callback): void => {
@@ -324,19 +326,16 @@ suite('Webview Test Suite', () => {
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
       webview: fakeWebview
     });
-
     sinon.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
     );
-
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
       testTelemetryService
     );
-
     void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection call.
@@ -351,13 +350,9 @@ suite('Webview Test Suite', () => {
       }
     });
 
-    setTimeout(() => {
-      // Once the previous request has started, issue a successful connect
-      // attempt to override the previous.
-      void testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
-    }, 5);
+    void testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
   });
 
   test('web view opens file picker on file picker request', (done) => {
