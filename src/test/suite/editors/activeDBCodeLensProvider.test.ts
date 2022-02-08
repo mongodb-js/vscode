@@ -63,7 +63,7 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController
     );
-    const mockActiveConnection = {
+    const mockActiveDataService = {
       find: (namespace, filter, options, callback): void => {
         return callback(null, [{ field: 'Text message' }]);
       },
@@ -75,7 +75,7 @@ suite('Active DB CodeLens Provider Test Suite', () => {
       }),
     } as DataService;
 
-    testConnectionController.setActiveDataService(mockActiveConnection);
+    testConnectionController.setActiveDataService(mockActiveDataService);
 
     beforeEach(() => {
       sinon.replace(

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { before, beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
+import { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
@@ -91,12 +92,12 @@ suite('Playground Controller Test Suite', function () {
 
     beforeEach(async () => {
       const mockGetActiveConnectionName = sinon.fake.returns('fakeName');
-      const mockGetActiveDataService = sinon.fake.returns({
+      const mockActiveDataService = {
         getMongoClientConnectionOptions: () => ({
           url: 'mongodb://username@ldaphost:27017/?authMechanism=MONGODB-X509&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true&authSource=%24external&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsCAFile=./path/to/ca&tlsCertificateKeyFile=./path/to/cert',
           options: { monitorCommands: true }
         })
-      });
+      } as DataService;
       const mockGetActiveConnectionId = sinon.fake.returns('pineapple');
       mockConnectToServiceProvider = sinon.fake.resolves(undefined);
 
@@ -112,11 +113,6 @@ suite('Playground Controller Test Suite', function () {
       );
       sinon.replace(
         testPlaygroundController._connectionController,
-        'getActiveDataService',
-        mockGetActiveDataService
-      );
-      sinon.replace(
-        testPlaygroundController._connectionController,
         'getActiveConnectionId',
         mockGetActiveConnectionId
       );
@@ -126,6 +122,7 @@ suite('Playground Controller Test Suite', function () {
         mockConnectToServiceProvider
       );
 
+      testPlaygroundController._connectionController.setActiveDataService(mockActiveDataService);
       await testPlaygroundController._connectToServiceProvider();
     });
 

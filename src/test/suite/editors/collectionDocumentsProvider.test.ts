@@ -42,7 +42,7 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', (done) => {
-    const mockActiveConnection = {
+    const mockActiveDataService = {
       find: (namespace, filter, options, callback): void => {
         assert(
           namespace === 'my-favorite-fruit-is.pineapple',
@@ -63,7 +63,7 @@ suite('Collection Documents Provider Test Suite', () => {
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveConnection);
+    mockConnectionController.setActiveDataService(mockActiveDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -107,7 +107,7 @@ suite('Collection Documents Provider Test Suite', () => {
       }
     ];
 
-    const mockActiveConnection = {
+    const mockActiveDataService = {
       find: (namespace, filter, options, callback): void => {
         return callback(null, mockDocuments);
       }
@@ -117,7 +117,7 @@ suite('Collection Documents Provider Test Suite', () => {
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveConnection);
+    mockConnectionController.setActiveDataService(mockActiveDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -150,7 +150,7 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', (done) => {
-    const mockActiveConnection = {
+    const mockActiveDataService = {
       find: (namespace, filter, options, callback): void => {
         return callback(null, [{ field: 'Apollo' }, { field: 'Gemini ' }]);
       }
@@ -160,7 +160,7 @@ suite('Collection Documents Provider Test Suite', () => {
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveConnection);
+    mockConnectionController.setActiveDataService(mockActiveDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -205,13 +205,13 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent shows a status bar item while it is running then hide it', (done) => {
-    const mockActiveConnection = { find: {} } as DataService;
+    const mockActiveDataService = { find: {} } as DataService;
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveConnection);
+    mockConnectionController.setActiveDataService(mockActiveDataService);
 
     const testStatusView = new StatusView(mockExtensionContext);
 
@@ -239,7 +239,7 @@ suite('Collection Documents Provider Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
 
-    mockActiveConnection.find = (
+    mockActiveDataService.find = (
       namespace,
       filter,
       options,

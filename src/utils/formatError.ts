@@ -1,14 +1,14 @@
-export default (err: any, message?: string): {
+export default (error: any, message?: string): {
   name?: string;
   message: string;
   stack?: string;
 } => {
-  if (err instanceof Error) {
-    return err;
-  } else if (typeof err === 'string') {
-    return { message: err };
-  } else if (err) {
-    return { message: err.toString() };
+  if (typeof error?.name === 'string' && typeof error?.message === 'string' && typeof error?.stack === 'string') {
+    return error;
+  } else if (typeof error === 'string') {
+    return { message: error };
+  } else if (error) {
+    return { message: error.toString() };
   } else if (message) {
     return { message };
   }

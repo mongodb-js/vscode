@@ -718,7 +718,7 @@ export default class ConnectionController {
   }
 
   getMongoClientConnectionOptions(): { url: string; options: MongoClientOptions; } | undefined {
-    return this.getActiveDataService()?.getMongoClientConnectionOptions();
+    return this._activeDataService?.getMongoClientConnectionOptions();
   }
 
   // Copy connection string from the sidebar does not need appname in it.
