@@ -267,6 +267,10 @@
         "title": "MongoDB: Export To Node.js"
       },
       {
+        "command": "mdb.exportToRuby",
+        "title": "MongoDB: Export To Ruby"
+      },
+      {
         "command": "mdb.addConnection",
         "title": "Add MongoDB Connection",
         "icon": {

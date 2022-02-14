@@ -41,7 +41,8 @@ export enum ExportToLanguages {
   PYTHON = 'python',
   JAVA = 'java',
   CSHARP = 'csharp',
-  JAVASCRIPT = 'javascript'
+  JAVASCRIPT = 'javascript',
+  RUBY = 'ruby'
 }
 
 export enum ExportToLanguageMode {
