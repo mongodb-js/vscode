@@ -71,6 +71,14 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
         tooltip: 'Export To Node.js'
       };
       codeActions.push(exportToJSCommand);
+
+      const exportToRubyCommand = new vscode.CodeAction('Export To Ruby', vscode.CodeActionKind.Empty);
+      exportToRubyCommand.command = {
+        command: EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY,
+        title: 'Export To Ruby',
+        tooltip: 'Export To Ruby'
+      };
+      codeActions.push(exportToRubyCommand);
     }
 
     return codeActions;

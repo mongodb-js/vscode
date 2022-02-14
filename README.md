@@ -24,11 +24,23 @@ MongoDB Playgrounds are the most convenient way to prototype and execute CRUD op
 - Edit documents returned by your playground.
 - Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB.
 - Build aggregations quickly with helpful and well-commented stage snippets.
-- Export your queries and aggregations to one of the supported languages: Java, Node, C#, and Python 3
 
 ![Playgrounds](resources/screenshots/playground.png)
 
 _Make sure you are connected to a server or cluster before using a playground. You can't run a playground and you won't get completions if you are not connected._
+
+#### From Query API to your favorite language
+
+Select queries and aggregations within your Playground files and translate them into your favorite programming language. Supported languages are:
+
+ * Java
+ * Node.js
+ * C#
+ * Python 3
+ * Ruby
+
+![Query Translator](resources/screenshots/query-translator.png)
+
 
 ### Document Editing
 
