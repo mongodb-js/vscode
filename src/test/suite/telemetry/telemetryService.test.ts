@@ -76,6 +76,27 @@ suite('Telemetry Controller Test Suite', () => {
       'executeAll',
       sinon.fake.resolves([{ type: 'TEST', content: 'Result' }])
     );
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._connectionController,
+      'getActiveConnectionId',
+      () => 'testconnectionId'
+    );
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._languageServerController,
+      'getNamespaceForSelection',
+      sinon.fake.resolves({
+        collectionName: 'coll',
+        databaseName: 'db'
+      })
+    );
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._connectionController,
+      'getMongoClientConnectionOptions',
+      sinon.fake.returns('mongodb://localhost')
+    );
   });
 
   afterEach(() => {
@@ -207,13 +228,6 @@ suite('Telemetry Controller Test Suite', () => {
   test('track playground code executed event', async () => {
     const mockPlaygroundController =
       mdbTestExtension.testExtensionController._playgroundController;
-
-    sinon.replace(
-      mdbTestExtension.testExtensionController._playgroundController
-        ._connectionController,
-      'getActiveConnectionId',
-      () => 'testconnectionId'
-    );
 
     await mockPlaygroundController._evaluate('show dbs');
 
