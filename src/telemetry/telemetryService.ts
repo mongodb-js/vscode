@@ -26,7 +26,8 @@ type PlaygroundTelemetryEventProperties = {
 
 export type SegmentProperties = {
   event: string;
-  userId: string;
+  userId?: string;
+  anonymousId: string;
   properties: unknown;
 };
 
@@ -85,7 +86,8 @@ export enum TelemetryEventTypes {
  */
 export default class TelemetryService {
   _segmentAnalytics?: SegmentAnalytics;
-  _segmentUserID: string; // The user uuid from the global storage.
+  _segmentUserId?: string; // Should exist only for users prior v0.9.0.
+  _segmentAnonymousId: string; // The randomly generated uuid.
   _segmentKey?: string; // The segment API write key.
 
   private _context: vscode.ExtensionContext;
@@ -96,9 +98,11 @@ export default class TelemetryService {
     context: vscode.ExtensionContext,
     shouldTrackTelemetry?: boolean
   ) {
+    const { userId, anonymousId } = storageController.getUserIdentity();
     this._context = context;
     this._shouldTrackTelemetry = shouldTrackTelemetry || false;
-    this._segmentUserID = storageController.getUserID();
+    this._segmentUserId = userId;
+    this._segmentAnonymousId = anonymousId;
     this._segmentKey = this._readSegmentKey();
 
     vscode.workspace.onDidOpenTextDocument((document) => {
@@ -153,7 +157,10 @@ export default class TelemetryService {
         flushInterval: 10000 // 10 seconds is the default libraries' value.
       });
 
-      this._segmentAnalytics.identify({ userId: this._segmentUserID });
+      this._segmentAnalytics.identify({
+        userId: this._segmentUserId,
+        anonymousId: this._segmentAnonymousId
+      });
     }
   }
 
@@ -190,7 +197,8 @@ export default class TelemetryService {
     if (this._isTelemetryFeatureEnabled()) {
       const segmentProperties: SegmentProperties = {
         event: eventType,
-        userId: this._segmentUserID,
+        userId: this._segmentUserId,
+        anonymousId: this._segmentAnonymousId,
         properties: {
           ...properties,
           extension_version: `${version}`
@@ -260,8 +268,8 @@ export default class TelemetryService {
     return 'other';
   }
 
-  getSegmentUserId(): string {
-    return this._segmentUserID;
+  getSegmentAnonymousId(): string {
+    return this._segmentAnonymousId;
   }
 
   trackPlaygroundCodeExecuted(

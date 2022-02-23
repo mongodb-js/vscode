@@ -83,7 +83,7 @@ suite('Telemetry Controller Test Suite', () => {
     mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
   });
 
-  test('get segment key and user id', () => {
+  test('get segment key', () => {
     let segmentKey: string | undefined;
 
     try {
@@ -95,9 +95,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     expect(segmentKey).to.be.equal(process.env.SEGMENT_KEY);
     expect(testTelemetryService._segmentKey).to.be.a('string');
-    expect(testTelemetryService._segmentUserID).to.be.a('string');
-    expect(testTelemetryService.getSegmentUserId()).to.be.a('string');
-    expect(testTelemetryService.getSegmentUserId()).to.equal(testTelemetryService._segmentUserID);
   });
 
   test('track command run event', async () => {

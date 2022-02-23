@@ -1,4 +1,5 @@
 import assert from 'assert';
+import { v4 as uuidv4 } from 'uuid';
 
 import StorageController, {
   StorageVariables,
@@ -43,7 +44,7 @@ suite('Storage Controller Test Suite', () => {
     );
   });
 
-  test('addNewConnectionToGlobalStore adds the connection to preexisting connections on the global store', () => {
+  test('addNewConnectionToGlobalStore adds the connection to preexisting connections on the global storage', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {
       [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
@@ -127,26 +128,62 @@ suite('Storage Controller Test Suite', () => {
     );
   });
 
-  test('getUserID adds user uuid to the global store if it does not exist there', () => {
+  test('getUserId returns user id from the global storage if it exists there', async () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {};
     const testStorageController = new StorageController(testExtensionContext);
-    testStorageController.getUserID();
-    const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
-    assert(userId);
+    const newUserId = uuidv4();
+    await testStorageController.update(
+      StorageVariables.GLOBAL_USER_ID,
+      newUserId,
+      StorageLocation.GLOBAL
+    );
+    const existingUserId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
+    assert(newUserId === existingUserId);
   });
 
-  test('getUserID does not update the user id in the global store if it already exist there', () => {
+  test('getUserId does not add user id to the global storage if it does not exist there', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {};
     const testStorageController = new StorageController(testExtensionContext);
-    testStorageController.getUserID();
     const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
-    testStorageController.getUserID();
-    const userIdAfterSecondCall = testStorageController.get(
+    assert(!userId);
+  });
+
+  test('getAnonymousId adds anonymous id to the global storage if it does not exist there', () => {
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._globalState = {};
+    const testStorageController = new StorageController(testExtensionContext);
+    testStorageController.getAnonymousId();
+    const anonymousId = testStorageController.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
+    assert(anonymousId);
+  });
+
+  test('getAnonymousId does not update anonymous id in the global storage if it already exist there', () => {
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._globalState = {};
+    const testStorageController = new StorageController(testExtensionContext);
+    testStorageController.getUserId();
+    const anonymousId = testStorageController.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
+    testStorageController.getAnonymousId();
+    const anonymousIdAfterSecondCall = testStorageController.get(
       StorageVariables.GLOBAL_USER_ID
     );
-    assert(userId === userIdAfterSecondCall);
+    assert(anonymousId === anonymousIdAfterSecondCall);
+  });
+
+  test('getUserIdentity returns identical user id and anonymous id if user id exists in the global storage', async () => {
+    const testExtensionContext = new TestExtensionContext();
+    testExtensionContext._globalState = {};
+    const testStorageController = new StorageController(testExtensionContext);
+    const userId = uuidv4();
+    await testStorageController.update(
+      StorageVariables.GLOBAL_USER_ID,
+      userId,
+      StorageLocation.GLOBAL
+    );
+    const userIdentify = testStorageController.getUserIdentity();
+    assert.deepStrictEqual(userIdentify, { userId, anonymousId: userId });
   });
 
   test('when there are saved workspace connections, hasSavedConnections returns true', () => {

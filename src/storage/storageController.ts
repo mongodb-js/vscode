@@ -7,7 +7,9 @@ export enum StorageVariables {
   // Only exists on globalState.
   GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW = 'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW',
   GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS',
+  // Analytics user identify.
   GLOBAL_USER_ID = 'GLOBAL_USER_ID',
+  GLOBAL_ANONYMOUS_ID = 'GLOBAL_ANONYMOUS_ID',
   // Only exists on workspaceState.
   WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS'
 }
@@ -32,6 +34,7 @@ export type ConnectionsFromStorage = {
 
 interface StorageVariableContents {
   [StorageVariables.GLOBAL_USER_ID]: string;
+  [StorageVariables.GLOBAL_ANONYMOUS_ID]: string;
   [StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW]: boolean;
   [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: ConnectionsFromStorage;
   [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: ConnectionsFromStorage;
@@ -63,17 +66,35 @@ export default class StorageController {
     return Promise.resolve();
   }
 
-  getUserID(): string {
-    let globalUserId = this.get(StorageVariables.GLOBAL_USER_ID);
+  getUserIdentity() {
+    return {
+      userId: this.getUserId(),
+      anonymousId: this.getAnonymousId()
+    };
+  }
 
-    if (globalUserId && typeof globalUserId === 'string') {
-      return globalUserId;
+  getAnonymousId() {
+    let globalAnonymousId = this.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
+
+    if (globalAnonymousId && typeof globalAnonymousId === 'string') {
+      return globalAnonymousId;
     }
 
-    globalUserId = uuidv4();
-    void this.update(StorageVariables.GLOBAL_USER_ID, globalUserId);
+    const globalUserId = this.get(StorageVariables.GLOBAL_USER_ID);
 
-    return globalUserId;
+    if (globalUserId && typeof globalUserId === 'string') {
+      globalAnonymousId = globalUserId;
+    } else {
+      globalAnonymousId = uuidv4();
+    }
+
+    void this.update(StorageVariables.GLOBAL_ANONYMOUS_ID, globalAnonymousId);
+
+    return globalAnonymousId;
+  }
+
+  getUserId(): string | undefined {
+    return this.get(StorageVariables.GLOBAL_USER_ID);
   }
 
   async saveConnectionToStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {

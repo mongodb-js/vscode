@@ -6,7 +6,7 @@ import {
   LinkClickedAction,
   TrustedLinkClickedAction
 } from '../../store/actions';
-import { USER_ID_GLOBAL_VARIABLE_NAME } from '../../extension-app-message-constants';
+import { VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID } from '../../extension-app-message-constants';
 import AtlasLogo from './atlas-logo';
 
 const styles = require('./atlas-cta.less');
@@ -18,7 +18,7 @@ type DispatchProps = {
 
 class AtlasCTA extends React.Component<DispatchProps> {
   onAtlasCtaClicked = (): void => {
-    const userId = window[USER_ID_GLOBAL_VARIABLE_NAME];
+    const userId = window[VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID];
     const atlasLink = `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${userId}`;
     this.props.openTrustedLink(atlasLink);
 
