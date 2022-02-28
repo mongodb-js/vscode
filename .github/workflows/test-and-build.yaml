@@ -40,7 +40,7 @@ jobs:
         uses: actions/setup-node@v2.1.2
         with:
           # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0
-          node-version: ^14.17.3
+          node-version: 14.15.0
 
       - name: Install npm@7
         run: npm install -g npm@7
@@ -49,7 +49,6 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         shell: powershell
         run: |
-          npm config set msvs_version 2019
           npm config delete node_gyp
           npm uninstall --global node-gyp
           npm install --global node-gyp
