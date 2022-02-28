@@ -374,7 +374,7 @@ suite('Telemetry Controller Test Suite', () => {
       selectedText: textFromEditor,
       selection,
       importStatements: false,
-      driverSyntax: true,
+      driverSyntax: false,
       builders: false,
       language
     };
@@ -386,7 +386,7 @@ suite('Telemetry Controller Test Suite', () => {
       num_stages: 1,
       with_import_statements: false,
       with_builders: false,
-      with_driver_syntax: true
+      with_driver_syntax: false
     });
   });
 
