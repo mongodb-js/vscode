@@ -51,6 +51,7 @@ jobs:
         run: |
           npm config delete node_gyp
           npm uninstall --global node-gyp
+          npx --yes rimraf $LOCALAPPDATA/node-gyp/Cache || true
           npm install --global node-gyp@latest
           npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
 
