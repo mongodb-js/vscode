@@ -362,13 +362,6 @@ suite('Telemetry Controller Test Suite', () => {
       fakeSegmentTrack
     );
 
-    const fakeCountAggregationStagesInString = sinon.fake.returns(1);
-    sinon.replace(
-      mdbTestExtension.testExtensionController._playgroundController,
-      '_countAggregationStagesInString',
-      fakeCountAggregationStagesInString
-    );
-
     const textFromEditor = "[{ '_id': 1, 'item': 'abc', 'price': 10 }]";
     const selection = {
       start: { line: 0, character: 0 },
@@ -383,7 +376,7 @@ suite('Telemetry Controller Test Suite', () => {
       selectedText: textFromEditor,
       selection,
       importStatements: false,
-      driverSyntax: true,
+      driverSyntax: false,
       builders: false,
       language
     };
@@ -397,7 +390,7 @@ suite('Telemetry Controller Test Suite', () => {
       num_stages: 1,
       with_import_statements: false,
       with_builders: false,
-      with_driver_syntax: true
+      with_driver_syntax: false
     });
   });
 
