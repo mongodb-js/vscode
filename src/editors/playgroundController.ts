@@ -55,30 +55,6 @@ interface ToCompile {
   }
 }
 
-let dummySandbox;
-
-// TODO: this function was copied from the compass-export-to-language module
-// https://github.com/mongodb-js/compass/blob/7c4bc0789a7b66c01bb7ba63955b3b11ed40c094/packages/compass-export-to-language/src/modules/count-aggregation-stages-in-string.js
-// and should be updated as well when the better solution for the problem will be found.
-const countAggregationStagesInString = (str: string) => {
-  if (!dummySandbox) {
-    dummySandbox = vm.createContext(Object.create(null), {
-      codeGeneration: { strings: false, wasm: false },
-      microtaskMode: 'afterEvaluate'
-    });
-    vm.runInContext([
-      'BSONRegExp', 'DBRef', 'Decimal128', 'Double', 'Int32',
-      'Long', 'Int64', 'MaxKey', 'MinKey', 'ObjectID', 'ObjectId',
-      'BSONSymbol', 'Timestamp', 'Code', 'Buffer', 'Binary'
-    ].map(name => `function ${name}() {}`).join('\n'), dummySandbox);
-  }
-
-  return vm.runInContext(
-    '(' + str + ')',
-    dummySandbox,
-    { timeout: 100 }).length;
-};
-
 /**
  * This controller manages playground.
  */
@@ -103,6 +79,7 @@ export default class PlaygroundController {
   private _explorerController: ExplorerController;
 
   private _codeToEvaluate = '';
+  private _dummySandbox;
 
   constructor(
     connectionController: ConnectionController,
@@ -175,6 +152,28 @@ export default class PlaygroundController {
       }
     );
   }
+
+  // TODO: this function was copied from the compass-export-to-language module
+  // https://github.com/mongodb-js/compass/blob/7c4bc0789a7b66c01bb7ba63955b3b11ed40c094/packages/compass-export-to-language/src/modules/count-aggregation-stages-in-string.js
+  // and should be updated as well when the better solution for the problem will be found.
+  _countAggregationStagesInString = (str: string) => {
+    if (!this._dummySandbox) {
+      this._dummySandbox = vm.createContext(Object.create(null), {
+        codeGeneration: { strings: false, wasm: false },
+        microtaskMode: 'afterEvaluate'
+      });
+      vm.runInContext([
+        'BSONRegExp', 'DBRef', 'Decimal128', 'Double', 'Int32',
+        'Long', 'Int64', 'MaxKey', 'MinKey', 'ObjectID', 'ObjectId',
+        'BSONSymbol', 'Timestamp', 'Code', 'Buffer', 'Binary'
+      ].map(name => `function ${name}() {}`).join('\n'), this._dummySandbox);
+    }
+
+    return vm.runInContext(
+      '(' + str + ')',
+      this._dummySandbox,
+      { timeout: 100 }).length;
+  };
 
   async _connectToServiceProvider(): Promise<void> {
     // Disconnect if already connected.
@@ -667,7 +666,7 @@ export default class PlaygroundController {
       if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
         const aggExportedProps = {
           language,
-          num_stages: selectedText ? countAggregationStagesInString(selectedText) : null,
+          num_stages: selectedText ? this._countAggregationStagesInString(selectedText) : null,
           with_import_statements: importStatements,
           with_builders: builders,
           with_driver_syntax: driverSyntax

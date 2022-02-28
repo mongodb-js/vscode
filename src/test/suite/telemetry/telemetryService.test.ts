@@ -362,6 +362,13 @@ suite('Telemetry Controller Test Suite', () => {
       fakeSegmentTrack
     );
 
+    const fakeCountAggregationStagesInString = sinon.fake.returns(1);
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      '_countAggregationStagesInString',
+      fakeCountAggregationStagesInString
+    );
+
     const textFromEditor = "[{ '_id': 1, 'item': 'abc', 'price': 10 }]";
     const selection = {
       start: { line: 0, character: 0 },
