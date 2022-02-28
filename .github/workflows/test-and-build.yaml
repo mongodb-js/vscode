@@ -40,10 +40,12 @@ jobs:
         uses: actions/setup-node@v2.1.2
         with:
           # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0
-          node-version: 14.17.3
+          node-version: ^14.17.3
 
-      - name: Install npm@7
-        run: npm install -g npm@7
+      - name: Install npm@8.3.1
+        run: |
+          npm install -g npm@8.3.1
+          npx --yes rimraf $LOCALAPPDATA/node-gyp/Cache || true
 
       - name: Patch node gyp on Windows
         if: ${{ runner.os == 'Windows' }}
@@ -56,7 +58,9 @@ jobs:
           npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
 
       - name: Install Dependencies
-        run: npm ci
+        run: |
+          npm -v
+          npm ci
 
       - name: Run Checks
         run: npm run check
