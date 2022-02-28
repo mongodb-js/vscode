@@ -901,8 +901,8 @@
     }
   },
   "dependencies": {
-    "@babel/parser": "^7.17.0",
-    "@babel/traverse": "^7.17.0",
+    "@babel/parser": "^7.17.3",
+    "@babel/traverse": "^7.17.3",
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.17",

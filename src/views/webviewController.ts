@@ -10,7 +10,7 @@ import EXTENSION_COMMANDS from '../commands';
 import {
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
   MESSAGE_TYPES,
-  USER_ID_GLOBAL_VARIABLE_NAME,
+  VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
   OpenFilePickerMessage
 } from './webview-app/extension-app-message-constants';
 import { openLink } from '../utils/linkHelper';
@@ -42,7 +42,7 @@ export const getReactAppUri = (
 
 export const getWebviewContent = (
   extensionPath: string,
-  userId: string,
+  anonymousId: string,
   webview: vscode.Webview
 ): string => {
   const jsAppFileUrl = getReactAppUri(extensionPath, webview);
@@ -56,7 +56,7 @@ export const getWebviewContent = (
     </head>
     <body>
       <div id="root"></div>
-      <script>window['${USER_ID_GLOBAL_VARIABLE_NAME}'] = '${userId}';</script>
+      <script>window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${anonymousId}';</script>
       <script src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
@@ -244,7 +244,7 @@ export default class WebviewController {
 
     panel.webview.html = getWebviewContent(
       extensionPath,
-      this._storageController.getUserID(),
+      this._storageController.getAnonymousId(),
       panel.webview
     );
 

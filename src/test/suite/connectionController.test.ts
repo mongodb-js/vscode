@@ -262,7 +262,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(connections[Object.keys(connections)[2]].connectionOptions?.connectionString, expectedDriverUrl);
   });
 
-  test('when a connection is added it is saved to the global store', async () => {
+  test('when a connection is added it is saved to the global storage', async () => {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -460,7 +460,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(Object.keys(postWorkspaceStoreConnections).length, 0);
   });
 
-  test('when a connection is removed it is also removed from global store', async () => {
+  test('when a connection is removed it is also removed from global storage', async () => {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -951,7 +951,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(mockMigratePreviouslySavedConnection.called, false);
   });
 
-  test('addNewConnectionStringAndConnect saves connection without secrets to the global store', async () => {
+  test('addNewConnectionStringAndConnect saves connection without secrets to the global storage', async () => {
     const mockConnect: any = sinon.fake.resolves({ successfullyConnected: true });
 
     sinon.replace(

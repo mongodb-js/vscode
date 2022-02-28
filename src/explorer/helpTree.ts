@@ -101,11 +101,11 @@ export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem
         'report'
       );
 
-      const userId = this._telemetryService?.getSegmentUserId();
-      const segmentId = userId ? `&ajs_aid=${userId}` : '';
+      const segmentAnonymousId = this._telemetryService?.getSegmentAnonymousId();
+      const ajsAid = segmentAnonymousId ? `&ajs_aid=${segmentAnonymousId}` : '';
       const atlas = new HelpLinkTreeItem(
         'Create Free Atlas Cluster',
-        `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product${segmentId}`,
+        `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product${ajsAid}`,
         'freeClusterCTA',
         'atlas',
         true

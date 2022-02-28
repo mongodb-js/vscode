@@ -44,7 +44,7 @@ suite('Help Explorer Test Suite', function () {
     assert.strictEqual(atlasHelpItem.label, 'Create Free Atlas Cluster');
     assert.strictEqual(
       atlasHelpItem.url,
-      `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${mdbTestExtension.testExtensionController._telemetryService.getSegmentUserId()}`
+      `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${mdbTestExtension.testExtensionController._telemetryService.getSegmentAnonymousId()}`
     );
     assert.strictEqual(atlasHelpItem.iconName, 'atlas');
     assert.strictEqual(atlasHelpItem.linkId, 'freeClusterCTA');

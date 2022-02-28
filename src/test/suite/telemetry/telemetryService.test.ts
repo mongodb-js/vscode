@@ -76,6 +76,27 @@ suite('Telemetry Controller Test Suite', () => {
       'executeAll',
       sinon.fake.resolves([{ type: 'TEST', content: 'Result' }])
     );
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._connectionController,
+      'getActiveConnectionId',
+      () => 'testconnectionId'
+    );
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._languageServerController,
+      'getNamespaceForSelection',
+      sinon.fake.resolves({
+        collectionName: 'coll',
+        databaseName: 'db'
+      })
+    );
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._connectionController,
+      'getMongoClientConnectionOptions',
+      sinon.fake.returns('mongodb://localhost')
+    );
   });
 
   afterEach(() => {
@@ -83,7 +104,7 @@ suite('Telemetry Controller Test Suite', () => {
     mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
   });
 
-  test('get segment key and user id', () => {
+  test('get segment key', () => {
     let segmentKey: string | undefined;
 
     try {
@@ -95,9 +116,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     expect(segmentKey).to.be.equal(process.env.SEGMENT_KEY);
     expect(testTelemetryService._segmentKey).to.be.a('string');
-    expect(testTelemetryService._segmentUserID).to.be.a('string');
-    expect(testTelemetryService.getSegmentUserId()).to.be.a('string');
-    expect(testTelemetryService.getSegmentUserId()).to.equal(testTelemetryService._segmentUserID);
   });
 
   test('track command run event', async () => {
@@ -210,13 +228,6 @@ suite('Telemetry Controller Test Suite', () => {
   test('track playground code executed event', async () => {
     const mockPlaygroundController =
       mdbTestExtension.testExtensionController._playgroundController;
-
-    sinon.replace(
-      mdbTestExtension.testExtensionController._playgroundController
-        ._connectionController,
-      'getActiveConnectionId',
-      () => 'testconnectionId'
-    );
 
     await mockPlaygroundController._evaluate('show dbs');
 

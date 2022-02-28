@@ -88,7 +88,7 @@ suite('Webview Test Suite', () => {
     assert(`${jsFileString}`.includes('OverviewPage'));
   });
 
-  test('web view content sets the user id globally', () => {
+  test('web view content sets the segment anonymous id globally', () => {
     const fakeWebview: any = {
       asWebviewUri: (jsUri) => {
         return jsUri;
@@ -96,9 +96,9 @@ suite('Webview Test Suite', () => {
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-    const htmlString = getWebviewContent(extensionPath, 'MOCK_USER_ID', fakeWebview);
+    const htmlString = getWebviewContent(extensionPath, 'MOCK_ANONYMOU_ID', fakeWebview);
 
-    assert(htmlString.includes('>window[\'VSCODE_EXTENSION_SEGMENT_USER_ID\'] = \'MOCK_USER_ID\';'));
+    assert(htmlString.includes('>window[\'VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID\'] = \'MOCK_ANONYMOU_ID\';'));
   });
 
   test('web view listens for a connect message and adds the connection', (done) => {
