@@ -314,11 +314,11 @@ suite('Telemetry Controller Test Suite', () => {
   test('track query exported to language', async function () {
     this.timeout(5000);
 
-    const mockTrackQueryExported = sinon.fake();
+    const fakeSegmentTrack = sinon.fake.yields(null);
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackQueryExported',
-      mockTrackQueryExported
+      fakeSegmentTrack
     );
 
     const textFromEditor = "{ '_id': 1, 'item': 'abc', 'price': 10 }";
@@ -342,7 +342,9 @@ suite('Telemetry Controller Test Suite', () => {
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
-    expect(mockTrackQueryExported.firstCall.firstArg).to.be.deep.equal({
+    const telemetryArgs = fakeSegmentTrack.firstCall.args[0];
+
+    expect(telemetryArgs).to.deep.equal({
       language,
       with_import_statements: false,
       with_builders: false,
@@ -353,11 +355,11 @@ suite('Telemetry Controller Test Suite', () => {
   test('track aggregation exported to language', async function () {
     this.timeout(5000);
 
-    const mockTrackAggregationExported = sinon.fake();
+    const fakeSegmentTrack = sinon.fake.yields(null);
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackAggregationExported',
-      mockTrackAggregationExported
+      fakeSegmentTrack
     );
 
     const textFromEditor = "[{ '_id': 1, 'item': 'abc', 'price': 10 }]";
@@ -374,19 +376,21 @@ suite('Telemetry Controller Test Suite', () => {
       selectedText: textFromEditor,
       selection,
       importStatements: false,
-      driverSyntax: false,
+      driverSyntax: true,
       builders: false,
       language
     };
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
-    expect(mockTrackAggregationExported.firstCall.firstArg).to.be.deep.equal({
+    const telemetryArgs = fakeSegmentTrack.firstCall.args[0];
+
+    expect(telemetryArgs).to.deep.equal({
       language,
       num_stages: 1,
       with_import_statements: false,
       with_builders: false,
-      with_driver_syntax: false
+      with_driver_syntax: true
     });
   });
 
