@@ -49,6 +49,7 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         shell: powershell
         run: |
+          where node
           npm config delete node_gyp
           npm uninstall --global node-gyp
           npm install --global node-gyp@latest
