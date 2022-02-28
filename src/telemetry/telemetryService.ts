@@ -18,6 +18,11 @@ import { StorageController } from '../storage';
 const log = createLogger('telemetry');
 const { version } = require('../../package.json');
 
+interface AnalyticsNodeIdentity {
+  userId?: string;
+  anonymousId: string;
+}
+
 type PlaygroundTelemetryEventProperties = {
   type: string | null;
   partial: boolean;
@@ -157,10 +162,13 @@ export default class TelemetryService {
         flushInterval: 10000 // 10 seconds is the default libraries' value.
       });
 
-      this._segmentAnalytics.identify({
-        userId: this._segmentUserId,
+      const identity: AnalyticsNodeIdentity = {
         anonymousId: this._segmentAnonymousId
-      });
+      };
+      if (this._segmentUserId) {
+        identity.userId = this._segmentUserId;
+      }
+      this._segmentAnalytics.identify(identity);
     }
   }
 
