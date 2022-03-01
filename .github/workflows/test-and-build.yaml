@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-node@v2.1.2
         with:
           # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0
-          node-version: ^14.17.3
+          node-version: ^14.17.5
 
       - name: Install npm@7
         run: npm install -g npm@7
@@ -54,16 +54,22 @@ jobs:
           # npm uninstall --global node-gyp
           # npm install --global node-gyp@latest
           # npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
-          echo "node-gyp versions:"
-          npx node-gyp --version
+          # npx node-gyp --version
           # ls "$_\node_modules" | grep version
           # cat .\node_modules\node-gyp\package.json | grep version
           # cat ./node_modules/node-gyp/package.json | grep version
           # cat "node_modules\node-gyp\package.json" | grep version
           npx --yes rimraf $LOCALAPPDATA/node-gyp/Cache
+          echo "node-gyp versions:"
+          npm install --global node-gyp@latest
+          npx node-gyp --version
 
       - name: Install Dependencies
-        run: npm ci
+        shell: bash
+        run: |
+          npm -v
+          npx node-gyp --version
+          npm ci
 
       - name: Run Checks
         run: npm run check
