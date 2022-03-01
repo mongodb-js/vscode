@@ -63,7 +63,7 @@
   "engines": {
     "vscode": "^1.58.1",
     "node": "^14.17.3",
-    "npm": "^7.19.0"
+    "npm": "^8.3.1"
   },
   "activationEvents": [
     "onCommand:mdb.connect",
