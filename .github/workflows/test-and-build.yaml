@@ -45,17 +45,6 @@ jobs:
       - name: Install npm@7
         run: npm install -g npm@7
 
-      - name: Patch node gyp on Windows
-        if: ${{ runner.os == 'Windows' }}
-        shell: powershell
-        run: |
-          npm config delete node_gyp
-          npm uninstall --global node-gyp
-          npm install --global node-gyp@latest
-          npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
-          echo "version set in config:"
-          cat "$_\node_modules\node-gyp\package.json" | grep version
-
       - name: Install Dependencies
         run: npm ci
 
