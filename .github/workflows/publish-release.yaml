@@ -19,7 +19,7 @@ jobs:
 
       - name: Run node-gyp bug workaround script
         run: |
-          bash ./github/workflows/node-gyp-bug-workaround.sh
+          bash .github/workflows/node-gyp-bug-workaround.sh
 
       - name: Install VSCode publishing dependencies
         run: npm install -g vsce
