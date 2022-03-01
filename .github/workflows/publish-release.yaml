@@ -17,6 +17,10 @@ jobs:
       - name: Install npm@7
         run: npm install -g npm@7
 
+      - name: Run node-gyp bug workaround script
+        run: |
+          bash ./github/workflows/node-gyp-bug-workaround.sh
+
       - name: Install VSCode publishing dependencies
         run: npm install -g vsce
 
