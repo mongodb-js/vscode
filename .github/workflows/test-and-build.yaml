@@ -45,7 +45,7 @@ jobs:
 
       - name: Run node-gyp bug workaround script
         run: |
-          bash .github/workflows/node-gyp-bug-workaround.sh
+          bash .github/workflows/node-gyp-workaround.sh
 
       - name: Install npm@8.3.1
         run: npm install -g npm@8.3.1
