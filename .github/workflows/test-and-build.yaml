@@ -44,7 +44,7 @@ jobs:
           node-version: ^14.17.5
 
       - name: Install npm@8
-        run: npm install -g npm@8
+        run: npm install -g npm@8.3.1
 
       - name: Install Dependencies
         shell: bash
