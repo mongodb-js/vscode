@@ -515,11 +515,10 @@
     "prefix": "$unset",
     "body": [
       "/**",
-      " * fields: The field name(s).",
+      " * Provide the field name to exclude.",
+      " * To exclude multiple fields, pass the field names in an array.",
       " */",
-      "\\$unset: {",
-      "  ${1:field}",
-      "}"
+      "\\$unset: '${1:string}'"
     ],
     "description": "Excludes fields from the result document."
   },
