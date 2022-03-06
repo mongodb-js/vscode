@@ -1,5 +1,15 @@
 # Change Log
 
+## [v0.9.2](https://github.com/mongodb-js/vscode/releases/tag/untagged-5fae2d28d450fae19b40) - null
+
+Edit the release notes before publishing.
+
+
+## [v0.9.1](https://github.com/mongodb-js/vscode/releases/tag/untagged-19e0617d6099d963f530) - null
+
+Edit the release notes before publishing.
+
+
 ## [v0.8.0](https://github.com/mongodb-js/vscode/releases/tag/v0.8.0) - 2022-01-19
 
 ### Changed
