@@ -1,0 +1,10 @@
+ignores:
+ - "vscode"
+ - "keytar"
+ - "@types/jest"
+ - "mocha-junit-reporter"
+ - "mocha-multi"
+ - "pre-commit"
+ - "webpack-cli"
+ - "vscode-languageserver-textdocument"
+ - "@babel/core"
