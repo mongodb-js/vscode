@@ -1,13 +1,12 @@
 # Change Log
 
-## [v0.9.2](https://github.com/mongodb-js/vscode/releases/tag/untagged-5fae2d28d450fae19b40) - null
+## [v0.9.2](https://github.com/mongodb-js/vscode/releases/tag/v0.9.2) - 2022-03-08
 
-Edit the release notes before publishing.
+## Changed
 
-
-## [v0.9.1](https://github.com/mongodb-js/vscode/releases/tag/untagged-19e0617d6099d963f530) - null
-
-Edit the release notes before publishing.
+- Bumped our MongoDB node driver and mongosh dependencies (#385)
+- Updated our connection logic to share the connection logic from mongosh (#390)
+- Exposed export to Ruby as a language in the export to language feature (VSCODE-323, #391) 
 
 
 ## [v0.8.0](https://github.com/mongodb-js/vscode/releases/tag/v0.8.0) - 2022-01-19
