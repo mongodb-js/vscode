@@ -1038,4 +1038,18 @@ suite('Connection Controller Test Suite', function () {
       }
     );
   });
+
+  test('_getConnectionStringWithProxy returns string with proxy options', () => {
+    const expectedConnectionStringWithProxy = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test';
+    const connectionString = testConnectionController._getConnectionStringWithProxy({
+      url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
+      options: {
+        proxyHost: 'localhost',
+        proxyPassword: 'gwce7tr8733ujbr',
+        proxyPort: 3378,
+        proxyUsername: 'test',
+      }
+    });
+    assert.strictEqual(connectionString, expectedConnectionStringWithProxy);
+  });
 });

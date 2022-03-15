@@ -131,6 +131,29 @@
     ],
     "description": "Allows for multiple parellel aggregations to be specified."
   },
+  "MongoDB Aggregations $fill": {
+    "prefix": "$fill",
+    "body": [
+      "/**",
+      " * sortBy: Syntax is the same as \\$sort, required if \"method\" is used in at least one output spec otherwise optional",
+      " * partitionBy: Optional, default is a single partition. Specification is the same as _id in \\$group (same as partitionBy in window functions).",
+      " * partitionByFields: Optional, set of fields that acts as a compound key to define each partition.",
+      " * output - Required, object for each field to fill in. For a single field, can be a single object.",
+      " * output.<field> - A field to be filled with value, if missing or null in the current document.",
+      " */",
+      "\\$fill: {",
+      "  sortBy: ${1:sortSpec},",
+      "  partitionBy: ${2:expression},",
+      "  partitionByFields: [${3:string}, ${4:string}, ...],",
+      "  output: {",
+      "    field1: {value: ${5:expression}},",
+      "    field2: {method: ${6:string}},",
+      "    ...",
+      "  }",
+      "}"
+    ],
+    "description": "Populates null and missing field values within documents."
+  },
   "MongoDB Aggregations $geoNear": {
     "prefix": "$geoNear",
     "body": [

@@ -67,34 +67,27 @@ export default class StorageController {
   }
 
   getUserIdentity() {
-    return {
-      userId: this.getUserId(),
-      anonymousId: this.getAnonymousId()
-    };
-  }
-
-  getAnonymousId() {
-    let globalAnonymousId = this.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
-
-    if (globalAnonymousId && typeof globalAnonymousId === 'string') {
-      return globalAnonymousId;
-    }
-
+    const globalAnonymousId = this.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
     const globalUserId = this.get(StorageVariables.GLOBAL_USER_ID);
 
+    // Initially, we used `userId` as Segment user identifier, but this usage is being deprecated.
+    // The `anonymousId` should be used instead.
+    // We keep sending `userId` to Segment for old users though to preserve their analytics.
     if (globalUserId && typeof globalUserId === 'string') {
-      globalAnonymousId = globalUserId;
-    } else {
-      globalAnonymousId = uuidv4();
+      return {
+        userId: globalUserId
+      };
     }
 
-    void this.update(StorageVariables.GLOBAL_ANONYMOUS_ID, globalAnonymousId);
+    if (globalAnonymousId && typeof globalAnonymousId === 'string') {
+      return {
+        anonymousId: globalAnonymousId
+      };
+    }
 
-    return globalAnonymousId;
-  }
-
-  getUserId(): string | undefined {
-    return this.get(StorageVariables.GLOBAL_USER_ID);
+    const anonymousId = uuidv4();
+    void this.update(StorageVariables.GLOBAL_ANONYMOUS_ID, anonymousId);
+    return { anonymousId };
   }
 
   async saveConnectionToStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {

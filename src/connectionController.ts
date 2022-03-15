@@ -713,6 +713,43 @@ export default class ConnectionController {
       : '';
   }
 
+  _getConnectionStringWithProxy(mongoClientConnectionOptions: { url: string; options: MongoClientOptions; }): string {
+    const connectionStringData = new ConnectionString(mongoClientConnectionOptions.url);
+
+    if (mongoClientConnectionOptions.options.proxyHost) {
+      connectionStringData.searchParams.set('proxyHost', mongoClientConnectionOptions.options.proxyHost);
+    }
+
+    if (mongoClientConnectionOptions.options.proxyPassword) {
+      connectionStringData.searchParams.set('proxyPassword', mongoClientConnectionOptions.options.proxyPassword);
+    }
+
+    if (mongoClientConnectionOptions.options.proxyPort) {
+      connectionStringData.searchParams.set('proxyPort', `${mongoClientConnectionOptions.options.proxyPort}`);
+    }
+
+    if (mongoClientConnectionOptions.options.proxyUsername) {
+      connectionStringData.searchParams.set('proxyUsername', mongoClientConnectionOptions.options.proxyUsername);
+    }
+
+    return connectionStringData.toString();
+  }
+
+  getActiveConnectionString(): string {
+    const mongoClientConnectionOptions = this.getMongoClientConnectionOptions();
+    const connectionString = mongoClientConnectionOptions?.url;
+
+    if (!connectionString) {
+      throw new Error('Connection string not found.');
+    }
+
+    if (mongoClientConnectionOptions?.options.proxyHost) {
+      return this._getConnectionStringWithProxy(mongoClientConnectionOptions);
+    }
+
+    return connectionString;
+  }
+
   getActiveDataService(): DataService | null {
     return this._activeDataService;
   }
@@ -730,7 +767,6 @@ export default class ConnectionController {
     }
 
     const url = new ConnectionString(connectionOptions.connectionString);
-
     url.searchParams.delete('appname');
     return url.toString();
   }

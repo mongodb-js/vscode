@@ -18,11 +18,6 @@ import { StorageController } from '../storage';
 const log = createLogger('telemetry');
 const { version } = require('../../package.json');
 
-interface AnalyticsNodeIdentity {
-  userId?: string;
-  anonymousId: string;
-}
-
 type PlaygroundTelemetryEventProperties = {
   type: string | null;
   partial: boolean;
@@ -32,7 +27,7 @@ type PlaygroundTelemetryEventProperties = {
 export type SegmentProperties = {
   event: string;
   userId?: string;
-  anonymousId: string;
+  anonymousId?: string;
   properties: unknown;
 };
 
@@ -91,8 +86,8 @@ export enum TelemetryEventTypes {
  */
 export default class TelemetryService {
   _segmentAnalytics?: SegmentAnalytics;
-  _segmentUserId?: string; // Should exist only for users prior v0.9.0.
-  _segmentAnonymousId: string; // The randomly generated uuid.
+  _segmentUserId?: string;
+  _segmentAnonymousId?: string;
   _segmentKey?: string; // The segment API write key.
 
   private _context: vscode.ExtensionContext;
@@ -162,13 +157,9 @@ export default class TelemetryService {
         flushInterval: 10000 // 10 seconds is the default libraries' value.
       });
 
-      const identity: AnalyticsNodeIdentity = {
-        anonymousId: this._segmentAnonymousId
-      };
-      if (this._segmentUserId) {
-        identity.userId = this._segmentUserId;
-      }
-      this._segmentAnalytics.identify(identity);
+      const segmentProperties = this.getTelemetryUserIdentity();
+      this._segmentAnalytics.identify(segmentProperties);
+      log.info('TELEMETRY identify', segmentProperties);
     }
   }
 
@@ -204,9 +195,8 @@ export default class TelemetryService {
   ): void {
     if (this._isTelemetryFeatureEnabled()) {
       const segmentProperties: SegmentProperties = {
+        ...this.getTelemetryUserIdentity(),
         event: eventType,
-        userId: this._segmentUserId,
-        anonymousId: this._segmentAnonymousId,
         properties: {
           ...properties,
           extension_version: `${version}`
@@ -276,8 +266,16 @@ export default class TelemetryService {
     return 'other';
   }
 
-  getSegmentAnonymousId(): string {
-    return this._segmentAnonymousId;
+  getTelemetryUserIdentity() {
+    if (this._segmentUserId) {
+      return {
+        userId: this._segmentUserId
+      };
+    }
+
+    return {
+      anonymousId: this._segmentAnonymousId
+    };
   }
 
   trackPlaygroundCodeExecuted(
