@@ -76,7 +76,11 @@ suite('Webview Test Suite', () => {
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-    const htmlString = getWebviewContent(extensionPath, '', fakeWebview);
+    const htmlString = getWebviewContent({
+      extensionPath,
+      telemetryUserId: '',
+      webview: fakeWebview
+    });
 
     assert(htmlString.includes('dist/webviewApp.js'));
 
@@ -96,7 +100,11 @@ suite('Webview Test Suite', () => {
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-    const htmlString = getWebviewContent(extensionPath, 'MOCK_ANONYMOU_ID', fakeWebview);
+    const htmlString = getWebviewContent({
+      extensionPath,
+      telemetryUserId: 'MOCK_ANONYMOU_ID',
+      webview: fakeWebview
+    });
 
     assert(htmlString.includes('>window[\'VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID\'] = \'MOCK_ANONYMOU_ID\';'));
   });

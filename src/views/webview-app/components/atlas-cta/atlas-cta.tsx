@@ -18,8 +18,8 @@ type DispatchProps = {
 
 class AtlasCTA extends React.Component<DispatchProps> {
   onAtlasCtaClicked = (): void => {
-    const userId = window[VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID];
-    const atlasLink = `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${userId}`;
+    const telemetryUserId = window[VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID];
+    const atlasLink = `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${telemetryUserId}`;
     this.props.openTrustedLink(atlasLink);
 
     this.onLinkClicked(

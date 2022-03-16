@@ -77,17 +77,7 @@ const openMongoDBShell = (connectionController: ConnectionController): Promise<b
     return Promise.resolve(false);
   }
 
-  const activeMongoClientOptions = connectionController.getMongoClientConnectionOptions();
-
-  if (!activeMongoClientOptions) {
-    void vscode.window.showErrorMessage(
-      'No active connection found.'
-    );
-
-    return Promise.resolve(false);
-  }
-
-  const mdbConnectionString = activeMongoClientOptions.url || '';
+  const mdbConnectionString = connectionController.getActiveConnectionString();
 
   if (userShell.includes('powershell.exe')) {
     launchMongoDBShellOnPowershell(shellCommand, mdbConnectionString);

@@ -40,11 +40,15 @@ export const getReactAppUri = (
   return jsAppFileWebviewUri;
 };
 
-export const getWebviewContent = (
+export const getWebviewContent = ({
+  extensionPath,
+  telemetryUserId,
+  webview
+}: {
   extensionPath: string,
-  anonymousId: string,
+  telemetryUserId?: string,
   webview: vscode.Webview
-): string => {
+}): string => {
   const jsAppFileUrl = getReactAppUri(extensionPath, webview);
 
   return `<!DOCTYPE html>
@@ -56,7 +60,7 @@ export const getWebviewContent = (
     </head>
     <body>
       <div id="root"></div>
-      <script>window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${anonymousId}';</script>
+      <script>window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
       <script src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
@@ -242,11 +246,13 @@ export default class WebviewController {
       )
     );
 
-    panel.webview.html = getWebviewContent(
+    const telemetryUserIdentity = this._storageController.getUserIdentity();
+
+    panel.webview.html = getWebviewContent({
       extensionPath,
-      this._storageController.getAnonymousId(),
-      panel.webview
-    );
+      telemetryUserId: telemetryUserIdentity.anonymousId || telemetryUserIdentity.userId,
+      webview: panel.webview
+    });
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(

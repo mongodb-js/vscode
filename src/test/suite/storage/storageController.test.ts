@@ -1,4 +1,5 @@
 import assert from 'assert';
+import { before } from 'mocha';
 import { v4 as uuidv4 } from 'uuid';
 
 import StorageController, {
@@ -128,62 +129,42 @@ suite('Storage Controller Test Suite', () => {
     );
   });
 
-  test('getUserId returns user id from the global storage if it exists there', async () => {
+  suite('for a new user that does not have anonymousId or userId', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {};
     const testStorageController = new StorageController(testExtensionContext);
-    const newUserId = uuidv4();
-    await testStorageController.update(
-      StorageVariables.GLOBAL_USER_ID,
-      newUserId,
-      StorageLocation.GLOBAL
-    );
-    const existingUserId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
-    assert(newUserId === existingUserId);
+
+    test('getUserIdentity adds anonymousId to the global storage and returns it to telemetry', () => {
+      const userIdentity = testStorageController.getUserIdentity();
+      const anonymousId = testStorageController.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
+      const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
+      assert.deepStrictEqual(userIdentity, { anonymousId });
+      assert(!userId);
+    });
   });
 
-  test('getUserId does not add user id to the global storage if it does not exist there', () => {
+  suite('for an old user that does not have anonymousId but has userId', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {};
     const testStorageController = new StorageController(testExtensionContext);
-    const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
-    assert(!userId);
-  });
+    const id = uuidv4();
 
-  test('getAnonymousId adds anonymous id to the global storage if it does not exist there', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._globalState = {};
-    const testStorageController = new StorageController(testExtensionContext);
-    testStorageController.getAnonymousId();
-    const anonymousId = testStorageController.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
-    assert(anonymousId);
-  });
+    before(async () => {
+      await testStorageController.update(
+        StorageVariables.GLOBAL_USER_ID,
+        id,
+        StorageLocation.GLOBAL
+      );
+    });
 
-  test('getAnonymousId does not update anonymous id in the global storage if it already exist there', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._globalState = {};
-    const testStorageController = new StorageController(testExtensionContext);
-    testStorageController.getUserId();
-    const anonymousId = testStorageController.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
-    testStorageController.getAnonymousId();
-    const anonymousIdAfterSecondCall = testStorageController.get(
-      StorageVariables.GLOBAL_USER_ID
-    );
-    assert(anonymousId === anonymousIdAfterSecondCall);
-  });
-
-  test('getUserIdentity returns identical user id and anonymous id if user id exists in the global storage', async () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._globalState = {};
-    const testStorageController = new StorageController(testExtensionContext);
-    const userId = uuidv4();
-    await testStorageController.update(
-      StorageVariables.GLOBAL_USER_ID,
-      userId,
-      StorageLocation.GLOBAL
-    );
-    const userIdentify = testStorageController.getUserIdentity();
-    assert.deepStrictEqual(userIdentify, { userId, anonymousId: userId });
+    test('getUserIdentity returns userId from the global storage and returns it to telemetry', () => {
+      const userIdentity = testStorageController.getUserIdentity();
+      const anonymousId = testStorageController.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
+      const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
+      assert(userId === id);
+      assert.deepStrictEqual(userIdentity, { userId });
+      assert(!anonymousId);
+    });
   });
 
   test('when there are saved workspace connections, hasSavedConnections returns true', () => {

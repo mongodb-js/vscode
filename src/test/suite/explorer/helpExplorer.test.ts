@@ -42,9 +42,10 @@ suite('Help Explorer Test Suite', function () {
     const atlasHelpItem = helpTreeItems[5];
 
     assert.strictEqual(atlasHelpItem.label, 'Create Free Atlas Cluster');
+    const telemetryUserIdentity = mdbTestExtension.testExtensionController._telemetryService.getTelemetryUserIdentity();
     assert.strictEqual(
       atlasHelpItem.url,
-      `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${mdbTestExtension.testExtensionController._telemetryService.getSegmentAnonymousId()}`
+      `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${telemetryUserIdentity[0]}`
     );
     assert.strictEqual(atlasHelpItem.iconName, 'atlas');
     assert.strictEqual(atlasHelpItem.linkId, 'freeClusterCTA');
