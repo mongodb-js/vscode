@@ -1,5 +1,4 @@
 import { CliServiceProvider } from '@mongosh/service-provider-server';
-import type { MongoClientOptions } from '@mongosh/service-provider-server';
 import { CompletionItemKind } from 'vscode-languageserver/node';
 import { EJSON, Document } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
@@ -7,6 +6,9 @@ import parseSchema = require('mongodb-schema');
 import { parentPort, workerData } from 'worker_threads';
 import { PlaygroundResult, PlaygroundDebug, ShellExecuteAllResult } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
+
+// MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options)
+type MongoClientOptions = NonNullable<Parameters<(typeof CliServiceProvider)['connect']>[1]>;
 
 interface EvaluationResult {
   printable: any;
