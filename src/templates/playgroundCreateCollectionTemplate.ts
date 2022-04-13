@@ -35,6 +35,9 @@ db.createCollection(collection);
     clusteredIndex: <document>, // Added in MongoDB 5.3
   }
 )*/
+
+// More information on the \`createCollection\` command can be found at:
+// https://www.mongodb.com/docs/manual/reference/method/db.createCollection/
 `;
 
 export default template;
