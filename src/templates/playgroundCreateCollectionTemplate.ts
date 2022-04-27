@@ -25,9 +25,19 @@ db.createCollection(collection);
     viewOn: <string>,
     pipeline: <pipeline>,
     collation: <document>,
-    writeConcern: <document>
+    writeConcern: <document>,
+    timeseries: { // Added in MongoDB 5.0
+      timeField: <string>, // required for time series collections
+      metaField: <string>,
+      granularity: <string>
+    },
+    expireAfterSeconds: <number>,
+    clusteredIndex: <document>, // Added in MongoDB 5.3
   }
 )*/
+
+// More information on the \`createCollection\` command can be found at:
+// https://www.mongodb.com/docs/manual/reference/method/db.createCollection/
 `;
 
 export default template;

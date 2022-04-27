@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import vm from 'vm';
-import semver from 'semver';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import CodeActionProvider from './codeActionProvider';
@@ -15,7 +14,6 @@ import { LanguageServerController } from '../language';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
-import playgroundCreateCollectionWithTSTemplate from '../templates/playgroundCreateCollectionWithTSTemplate';
 import {
   PlaygroundResult,
   ShellExecuteAllResult,
@@ -34,16 +32,6 @@ import TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('playground controller');
 const transpiler = require('bson-transpilers');
-
-const MIN_TIME_SERIES_SERVER_VERSION = '5.0.0-alpha0';
-
-const hasTimeSeriesSupport = (serverVersion) => {
-  try {
-    return semver.gte(serverVersion, MIN_TIME_SERIES_SERVER_VERSION);
-  } catch (e) {
-    return true;
-  }
-};
 
 interface ToCompile {
   filter?: string;
@@ -241,16 +229,7 @@ export default class PlaygroundController {
   async createPlaygroundForCreateCollection(
     element: ConnectionTreeItem | DatabaseTreeItem
   ): Promise<boolean> {
-    const dataService = this._connectionController.getActiveDataService();
     let content = playgroundCreateCollectionTemplate;
-
-    if (dataService) {
-      const instance = await dataService.instance();
-
-      if (hasTimeSeriesSupport(instance.build.version)) {
-        content = playgroundCreateCollectionWithTSTemplate;
-      }
-    }
 
     element.cacheIsUpToDate = false;
 

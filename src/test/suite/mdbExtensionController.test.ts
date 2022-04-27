@@ -582,7 +582,7 @@ suite('MDBExtensionController Test Suite', function () {
       .then(done, done);
   });
 
-  test('mdb.addDatabase should create a MongoDB playground with create collection template without time-series', async () => {
+  test('mdb.addDatabase should create a MongoDB playground with create collection template', async () => {
     const mockTreeItem = new ConnectionTreeItem(
       'tasty_sandwhich',
       vscode.TreeItemCollapsibleState.None,
@@ -592,22 +592,6 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const mockGetActiveDataService: any = sinon.fake.returns({
-      instance: () => Promise.resolve({
-        dataLake: {},
-        build: { version: '4.9.7' },
-        genuineMongoDB: {},
-        host: {}
-      }),
-      createCollection: (namespace, options, callback) => {
-        callback(null);
-      }
-    });
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
     const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
@@ -631,59 +615,6 @@ suite('MDBExtensionController Test Suite', function () {
     );
     assert(mockOpenTextDocument.firstArg.content.includes('NEW_DATABASE_NAME'));
     assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
-    assert(!mockOpenTextDocument.firstArg.content.includes('time-series'));
-  });
-
-  test('mdb.addDatabase should create a MongoDB playground with create collection template with time-series', async () => {
-    const mockTreeItem = new ConnectionTreeItem(
-      'tasty_sandwhich',
-      vscode.TreeItemCollapsibleState.None,
-      false,
-      mdbTestExtension.testExtensionController._connectionController,
-      false,
-      {}
-    );
-
-    const mockGetActiveDataService: any = sinon.fake.returns({
-      instance: () => Promise.resolve({
-        dataLake: {},
-        build: { version: '5.0.1' },
-        genuineMongoDB: {},
-        host: {}
-      }),
-      createCollection: (namespace, options, callback) => {
-        callback(null);
-      }
-    });
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
-    const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionId',
-      mockActiveConnectionId
-    );
-
-    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
-    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
-
-    const mockShowTextDocument: any = sinon.fake();
-    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
-
-    await vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem);
-
-    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-    assert(
-      mockOpenTextDocument.firstArg.content.includes(
-        '// Create a new database.'
-      )
-    );
-    assert(mockOpenTextDocument.firstArg.content.includes('NEW_DATABASE_NAME'));
-    assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
-    assert(mockOpenTextDocument.firstArg.content.includes('time-series'));
   });
 
   test('mdb.addDatabase command fails when disconnecting', (done) => {
@@ -782,31 +713,15 @@ suite('MDBExtensionController Test Suite', function () {
       .then(done, done);
   });
 
-  test('mdb.addCollection should create a MongoDB playground with create collection template without time-series', async () => {
-    const mockGetActiveDataService: any = sinon.fake.returns({
-      instance: () => Promise.resolve({
-        dataLake: {},
-        build: { version: '4.9.7' },
-        genuineMongoDB: {},
-        host: {}
-      }),
-      createCollection: (namespace, options, callback) => {
-        callback(null);
-      }
-    });
+  test('mdb.addCollection should create a MongoDB playground with create collection template', async () => {
     const mockTreeItem = new DatabaseTreeItem(
       'iceCreamDB',
-      mockGetActiveDataService,
+      {},
       false,
       false,
       {}
     );
 
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
     const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
@@ -831,61 +746,6 @@ suite('MDBExtensionController Test Suite', function () {
     assert(mockOpenTextDocument.firstArg.content.includes('iceCreamDB'));
     assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
     assert(!mockOpenTextDocument.firstArg.content.includes('time-series'));
-  });
-
-  test('mdb.addCollection should create a MongoDB playground with create collection template with time-series', async () => {
-    const mockTreeItem = new DatabaseTreeItem(
-      'iceCreamDB',
-      {
-        createCollection: (namespace, options, callback): void => {
-          callback(null);
-        }
-      },
-      false,
-      false,
-      {}
-    );
-
-    const mockGetActiveDataService: any = sinon.fake.returns({
-      instance: () => Promise.resolve({
-        dataLake: {},
-        build: { version: '5.0.1' },
-        genuineMongoDB: {},
-        host: {}
-      }),
-      createCollection: (namespace, options, callback) => {
-        callback(null);
-      }
-    });
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
-    const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
-    sinon.replace(
-      mdbTestExtension.testExtensionController._connectionController,
-      'getActiveConnectionId',
-      mockActiveConnectionId
-    );
-
-    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
-    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
-
-    const mockShowTextDocument: any = sinon.fake();
-    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
-
-    await vscode.commands.executeCommand('mdb.addCollection', mockTreeItem);
-
-    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-    assert(
-      mockOpenTextDocument.firstArg.content.includes(
-        '// The current database to use.'
-      )
-    );
-    assert(mockOpenTextDocument.firstArg.content.includes('iceCreamDB'));
-    assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
-    assert(mockOpenTextDocument.firstArg.content.includes('time-series'));
   });
 
   test('mdb.addCollection command fails when disconnecting', (done) => {
