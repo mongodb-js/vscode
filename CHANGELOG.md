@@ -1,8 +1,10 @@
 # Change Log
 
-## [v0.9.3](https://github.com/mongodb-js/vscode/releases/tag/untagged-98c10942dd94c1679558) - null
+## [v0.9.3](https://github.com/mongodb-js/vscode/releases/tag/v0.9.3) - 2022-04-26
 
-Edit the release notes before publishing.
+## Fixed
+
+- fix(shell): Fixed launching shell with SSH connections (VSCODE-327, #402)
 
 
 ## [v0.9.2](https://github.com/mongodb-js/vscode/releases/tag/v0.9.2) - 2022-03-08
