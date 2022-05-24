@@ -37,6 +37,7 @@ import TelemetryService from './telemetry/telemetryService';
 import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
+import { createIdFactory, generateId } from './utils/objectIdHelper';
 
 const log = createLogger('commands');
 
@@ -539,6 +540,37 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
       (playgroundsTreeItem: PlaygroundsTreeItem) =>
         this._playgroundController.openPlayground(playgroundsTreeItem.filePath)
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_INSERT_OBJECTID_TO_EDITOR,
+      async (): Promise<boolean> => {
+        const editor = vscode.window.activeTextEditor;
+
+        if (!editor) {
+          void vscode.window.showInformationMessage('No active editor to insert to.');
+          return false;
+        }
+
+        const objectIdFactory = createIdFactory();
+
+        await editor.edit((editBuilder) => {
+          const { selections } = editor;
+
+          for (const selection of selections) {
+            editBuilder.replace(selection, objectIdFactory().toHexString());
+          }
+        });
+        return true;
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_GENERATE_OBJECTID_TO_CLIPBOARD,
+      async (): Promise<boolean> => {
+        await vscode.env.clipboard.writeText(generateId().toHexString());
+        void vscode.window.showInformationMessage('Copied to clipboard.');
+
+        return true;
+      }
     );
   }
 
