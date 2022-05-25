@@ -233,7 +233,7 @@ export class Visitor {
   }
 
   _checkIsObjectKey(node: babel.types.ObjectExpression): void {
-    this._state.isObjectKey = !!node.properties.find(
+    this._state.isObjectKey ||= !!node.properties.find(
       (item: any) => !!(item.key.name && item.key.name.includes(PLACEHOLDER))
     );
   }
