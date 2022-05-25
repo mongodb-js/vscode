@@ -344,7 +344,7 @@ export default class MongoDBService {
         worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
         worker.on('message', (response: [Error, CompletionItem[] | []]) => {
-          const [error, result] = response;
+          const [error, result = []] = response;
 
           if (error) {
             this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
@@ -403,7 +403,8 @@ export default class MongoDBService {
   _prepareCollectionsItems(
     textFromEditor: string,
     collections: Array<CollectionItem>,
-    position: { line: number; character: number }
+    position: { line: number; character: number },
+    isProperty = true,
   ): CompletionItem[] {
     if (!collections) {
       return [];
@@ -411,8 +412,8 @@ export default class MongoDBService {
 
     this._connection.console.log(`collections: ${util.inspect(collections)}`);
 
-    return collections.map((item) => {
-      if (this._isValidPropertyName(item.name)) {
+    return collections.map((item): CompletionItem => {
+      if (!isProperty || this._isValidPropertyName(item.name)) {
         return {
           label: item.name,
           kind: CompletionItemKind.Folder
@@ -553,8 +554,15 @@ export default class MongoDBService {
         const collectionCompletions = this._prepareCollectionsItems(
           textFromEditor,
           this._cachedCollections[state.databaseName],
-          position
+          position,
+          state.isDbCallExpression === true
         );
+
+        if (state.isCollectionString) {
+          collectionCompletions.forEach((item) => {
+            item.insertText = `'${item.label}'`;
+          });
+        }
 
         dbCompletions = dbCompletions.concat(collectionCompletions);
       } else {
@@ -572,8 +580,14 @@ export default class MongoDBService {
       const collectionCompletions = this._prepareCollectionsItems(
         textFromEditor,
         this._cachedCollections[state.databaseName],
-        position
+        position,
+        state.isCollectionName === true
       );
+      if (state.isCollectionString) {
+        collectionCompletions.forEach((item) => {
+          item.insertText = `'${item.label}'`;
+        });
+      }
 
       return collectionCompletions;
     }

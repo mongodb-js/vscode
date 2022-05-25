@@ -24,8 +24,9 @@ export interface CompletionState {
   isObjectKey: boolean;
   isShellMethod: boolean;
   isUseCallExpression: boolean;
-  isDbCallExpression: boolean;
-  isCollectionName: boolean;
+  isDbCallExpression: boolean | 'computed';
+  isCollectionName: boolean | 'computed' | 'getCollection';
+  isCollectionString: boolean;
   isAggregationCursor: boolean;
   isFindCursor: boolean;
 }
@@ -170,6 +171,7 @@ export class Visitor {
     return {
       databaseName: null,
       collectionName: null,
+      collectionNameType: null,
       isObject: false,
       isArray: false,
       isObjectKey: false,
@@ -177,6 +179,7 @@ export class Visitor {
       isUseCallExpression: false,
       isDbCallExpression: false,
       isCollectionName: false,
+      isCollectionString: false,
       isAggregationCursor: false,
       isFindCursor: false
     };
@@ -220,7 +223,12 @@ export class Visitor {
       node.expression.object.type === 'Identifier' &&
       node.expression.object.name === 'db'
     ) {
-      this._state.isDbCallExpression = true;
+      if (node.expression.computed) {
+        this._state.isDbCallExpression = 'computed';
+        this._state.isCollectionString = node.expression.property.type === 'Identifier';
+      } else {
+        this._state.isDbCallExpression = true;
+      }
     }
   }
 
@@ -371,13 +379,37 @@ export class Visitor {
       node.property.type === 'Identifier' &&
       node.property.name.includes(PLACEHOLDER)
     ) {
-      this._state.isCollectionName = true;
+      if (node.computed) {
+        this._state.isDbCallExpression = 'computed';
+        this._state.isCollectionString = node.object.type === 'Identifier';
+      } else {
+        this._state.isDbCallExpression = true;
+      }
     }
   }
 
+
   _checkIsCollectionNameAsCallExpression(node: babel.types.Node): void {
     if (node.type === 'CallExpression' && node.callee.type === 'MemberExpression') {
+      if (
+        node.callee.object.type === 'Identifier' &&
+        node.callee.object.name === 'db' &&
+        node.callee.property.type === 'Identifier' &&
+        node.callee.property.name === 'getCollection' &&
+        node.arguments[0]
+      ) {
+        this._checkIsCollectionNameAsGetCollectionArgument(node.arguments[0]);
+      }
       this._checkIsCollectionName(node.callee);
+    }
+  }
+
+  _checkIsCollectionNameAsGetCollectionArgument(node: babel.types.Node): void {
+    if (node.type === 'StringLiteral' && node.value.includes(PLACEHOLDER)) {
+      this._state.isCollectionName = 'getCollection';
+    } else if (node.type === 'Identifier' && node.name.includes(PLACEHOLDER)) {
+      this._state.isCollectionName = 'getCollection';
+      this._state.isCollectionString = true;
     }
   }
 
@@ -438,15 +470,43 @@ export class Visitor {
     ) {
       this._state.collectionName = (node.object.property as babel.types.Identifier).name;
     }
+    if (
+      node.object.type === 'CallExpression' &&
+      node.object.callee.type === 'MemberExpression' &&
+      node.object.callee.object.type === 'Identifier' &&
+      node.object.callee.object.name === 'db' &&
+      node.object.callee.property.type === 'Identifier' &&
+      node.object.callee.property.name === 'getCollection' &&
+      node.object.arguments[0]
+    ) {
+      this._checkHasCollectionNameAsGetCollectionArgument(node.object.arguments[0]);
+    }
+  }
+  _checkHasCollectionNameAsGetCollectionArgument(node: babel.types.Node): void {
+    if (node.type === 'StringLiteral') {
+      this._state.collectionName = node.value;
+    }
   }
 
   _checkIsShellMethod(node: babel.types.MemberExpression): void {
+    const isDbIdentifier = (node: babel.types.Node) =>
+      node.type === 'Identifier' && node.name === 'db';
+    const isPlaceholderIdentifier = (node: babel.types.Node) =>
+      node.type === 'Identifier' && node.name.includes(PLACEHOLDER);
     if (
       node.object.type === 'MemberExpression' &&
-      node.object.object.type === 'Identifier' &&
-      node.object.object.name === 'db' &&
-      node.property.type === 'Identifier' &&
-      node.property.name.includes(PLACEHOLDER)
+      isDbIdentifier(node.object.object) &&
+      isPlaceholderIdentifier(node.property)
+    ) {
+      this._state.isShellMethod = true;
+    }
+    if (
+      node.object.type === 'CallExpression' &&
+      node.object.callee.type === 'MemberExpression' &&
+      isDbIdentifier(node.object.callee.object) &&
+      node.object.callee.property.type === 'Identifier' &&
+      node.object.callee.property.name === 'getCollection' &&
+      isPlaceholderIdentifier(node.property)
     ) {
       this._state.isShellMethod = true;
     }
