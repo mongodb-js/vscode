@@ -537,7 +537,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(name, 'new connection name');
   });
 
-  test('СonnectionQuickPicks workspace connections list is displayed in the alphanumerical case insensitive order', async () => {
+  test('ConnectionQuickPicks workspace connections list is displayed in the alphanumerical case insensitive order', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update(
@@ -556,7 +556,7 @@ suite('Connection Controller Test Suite', function () {
 
     await testConnectionController.loadSavedConnections();
 
-    let connections = testConnectionController._connections;
+    const connections = testConnectionController._connections;
     const connectionIds = Object.keys(connections);
 
     assert.strictEqual(connectionIds.length, 2);
@@ -576,11 +576,9 @@ suite('Connection Controller Test Suite', function () {
 
     await testConnectionController.loadSavedConnections();
 
-    connections = testConnectionController._connections;
-
     assert.strictEqual(connectionIds.length, 2);
 
-    const connectionQuickPicks = testConnectionController.getСonnectionQuickPicks();
+    const connectionQuickPicks = testConnectionController.getConnectionQuickPicks();
 
     assert.strictEqual(connectionQuickPicks.length, 3);
     assert.strictEqual(connectionQuickPicks[0].label, 'Add new connection');
