@@ -315,6 +315,14 @@
         }
       },
       {
+        "command": "mdb.copyDocumentIdFromTree",
+        "title": "Copy Document ID"
+      },
+      {
+        "command": "mdb.copyDocumentFromTree",
+        "title": "Copy Document"
+      },
+      {
         "command": "mdb.openPlaygroundFromTreeItem",
         "title": "Open Playground"
       },
@@ -560,6 +568,16 @@
           "group": "2@1"
         },
         {
+          "command": "mdb.copyDocumentIdFromTree",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
+          "group": "1@1"
+        },
+        {
+          "command": "mdb.copyDocumentFromTree",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
+          "group": "1@2"
+        },
+        {
           "command": "mdb.refreshSchema",
           "when": "view == mongoDBConnectionExplorer && viewItem == schemaTreeItem"
         },
@@ -623,6 +641,14 @@
         },
         {
           "command": "mdb.searchForDocuments",
+          "when": "false"
+        },
+        {
+          "command": "mdb.copyDocumentIdFromTree",
+          "when": "false"
+        },
+        {
+          "command": "mdb.copyDocumentFromTree",
           "when": "false"
         },
         {

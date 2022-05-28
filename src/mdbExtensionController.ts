@@ -488,6 +488,38 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_COPY_DOCUMENT_ID_FROM_TREE,
+      async (element: DocumentTreeItem): Promise<boolean> => {
+        const { documentId } = element;
+
+        if (!documentId) {
+          void vscode.window.showWarningMessage('Can\'t copy ID from document that has no ID.');
+          return false;
+        }
+
+        let body = JSON.stringify(documentId);
+
+        if (body.startsWith('"')) {
+          body = body.slice(1, body.length - 1);
+        }
+
+        await vscode.env.clipboard.writeText(body);
+        return true;
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_COPY_DOCUMENT_FROM_TREE,
+      async (element: DocumentTreeItem): Promise<boolean> => {
+        const { document } = element;
+        const tabSize = vscode.workspace
+          .getConfiguration('editor')
+          .get('tabSize', 2);
+        const body = JSON.stringify(document, undefined, tabSize);
+        await vscode.env.clipboard.writeText(body);
+        return true;
+      }
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_SCHEMA,
       (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
         schemaTreeItem.resetCache();
