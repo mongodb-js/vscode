@@ -393,8 +393,10 @@ export default class ConnectionController {
     this._connectingConnectionId = connectionId;
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
-    if (this._activeDataService) {
-      await this.disconnect();
+    const oldConnectionId = this._currentConnectionId;
+
+    if (oldConnectionId) {
+      await this.disconnect(true);
     }
 
     this._statusView.showMessage('Connecting to MongoDB...');
@@ -433,7 +435,17 @@ export default class ConnectionController {
     }
 
     log.info('Successfully connected');
-    void vscode.window.showInformationMessage('MongoDB connection successful.');
+
+    if (oldConnectionId) {
+      const currentConnectionName = oldConnectionId
+        ? this.getSavedConnectionName(oldConnectionId)
+        : 'previous server';
+      const nextConnectionName = this.getSavedConnectionName(connectionId);
+
+      void vscode.window.showInformationMessage(`Disconnected from ${currentConnectionName} and connected to ${nextConnectionName}.`);
+    } else {
+      void vscode.window.showInformationMessage('MongoDB connection successful.');
+    }
 
     this._activeDataService = newDataService;
     this._currentConnectionId = connectionId;
@@ -491,7 +503,11 @@ export default class ConnectionController {
     }
   }
 
-  async disconnect(): Promise<boolean> {
+  /**
+   * @param quiet Don't display non-error notifications to the user.
+   * @returns If we disconnected from MongoDB succesfully.
+   */
+  async disconnect(quiet = false): Promise<boolean> {
     log.info(
       'Disconnect called, currently connected to:',
       this._currentConnectionId
@@ -516,8 +532,11 @@ export default class ConnectionController {
     try {
       // Disconnect from the active connection.
       await this._activeDataService.disconnect();
-      void vscode.window.showInformationMessage('MongoDB disconnected.');
       this._activeDataService = null;
+
+      if (!quiet) {
+        void vscode.window.showInformationMessage('MongoDB disconnected.');
+      }
     } catch (error) {
       // Show an error, however we still reset the active connection to free up the extension.
       void vscode.window.showErrorMessage(
