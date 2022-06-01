@@ -58,7 +58,7 @@ interface ConnectionAttemptResult {
   connectionErrorMessage: string;
 }
 
-interface СonnectionQuickPicks {
+interface ConnectionQuickPicks {
   label: string;
   data: { type: NewConnectionType, connectionId?: string }
 }
@@ -833,7 +833,7 @@ export default class ConnectionController {
     this._disconnecting = disconnecting;
   }
 
-  getСonnectionQuickPicks(): СonnectionQuickPicks[] {
+  getConnectionQuickPicks(): ConnectionQuickPicks[] {
     if (!this._connections) {
       return [
         {
@@ -868,7 +868,7 @@ export default class ConnectionController {
 
   async changeActiveConnection(): Promise<boolean> {
     const selectedQuickPickItem = await vscode.window.showQuickPick(
-      this.getСonnectionQuickPicks(),
+      this.getConnectionQuickPicks(),
       {
         placeHolder: 'Select new connection...'
       }

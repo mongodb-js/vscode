@@ -12,7 +12,7 @@
 
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
-<!--- If it's updating a dependancy, link to the Pull Request that originally introduced the fix -->
+<!--- If it's updating a dependency, link to the Pull Request that originally introduced the fix -->
 - [ ] Bugfix
 - [ ] New feature
 - [ ] Dependency update
