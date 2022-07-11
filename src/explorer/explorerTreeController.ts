@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 
 import ConnectionController, {
-  DataServiceEventTypes
+  DataServiceEventTypes,
+  StoreConnectionInfo
 } from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import { createLogger } from '../logging';
 import { DOCUMENT_ITEM } from './documentTreeItem';
 import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 import EXTENSION_COMMANDS from '../commands';
-import { StoreConnectionInfo } from '../connectionController';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 
 const log = createLogger('explorer controller');
