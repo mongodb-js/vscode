@@ -76,6 +76,8 @@
     "onCommand:mdb.removeConnection",
     "onCommand:mdb.openMongoDBShell",
     "onCommand:mdb.saveMongoDBDocument",
+    "onCommand:mdb.insertObjectIdToEditor",
+    "onCommand:mdb.generateObjectIdToClipboard",
     "onView:mongoDB",
     "onView:mongoDBConnectionExplorer",
     "onView:mongoDBPlaygroundsExplorer",
@@ -393,6 +395,14 @@
           "light": "images/light/plus-circle.svg",
           "dark": "images/dark/plus-circle.svg"
         }
+      },
+      {
+        "command": "mdb.insertObjectIdToEditor",
+        "title": "MongoDB: Insert ObjectId to Editor"
+      },
+      {
+        "command": "mdb.generateObjectIdToClipboard",
+        "title": "MongoDB: Generate ObjectId to Clipboard"
       }
     ],
     "menus": {
@@ -896,6 +906,11 @@
           "type": "boolean",
           "default": true,
           "description": "Use default template for playground files."
+        },
+        "mdb.uniqueObjectIdPerCursor": {
+          "type": "boolean",
+          "default": false,
+          "description": "The default behavior is to generate a single ObjectId and insert it on all cursors. Set to true to generate a unique ObjectId per cursor instead."
         }
       }
     }

@@ -50,6 +50,8 @@ suite('Extension Test Suite', () => {
       'mdb.copySchemaFieldName',
       'mdb.refreshIndexes',
       'mdb.createIndexFromTreeView',
+      'mdb.insertObjectIdToEditor',
+      'mdb.generateObjectIdToClipboard',
 
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked',
@@ -57,11 +59,11 @@ suite('Extension Test Suite', () => {
       ...Object.values(EXTENSION_COMMANDS)
     ];
 
-    for (let i = 0; i < expectedCommands.length; i++) {
-      assert.notEqual(
-        registeredCommands.indexOf(expectedCommands[i]),
+    for (const expectedCommand of expectedCommands) {
+      assert.notStrictEqual(
+        registeredCommands.indexOf(expectedCommand),
         -1,
-        `command ${expectedCommands[i]} not registered and was expected`
+        `command ${expectedCommand} not registered and was expected`
       );
     }
   });

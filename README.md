@@ -71,6 +71,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 - `mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections`: When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used.
 - `mdb.connectionSaving.defaultConnectionSavingLocation`: When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved.
 - `mdb.useDefaultTemplateForPlayground`: Choose whether to use the default template for playground files or to start with an empty playground editor.
+- `mdb.uniqueObjectIdPerCursor`: The default behavior is to generate a single ObjectId and insert it on all cursors. Set to true to generate a unique ObjectId per cursor instead.
 - `mdb.sendTelemetry`: Opt-in and opt-out for diagnostic and telemetry collection.
 
 ![Settings](resources/screenshots/settings.png)
