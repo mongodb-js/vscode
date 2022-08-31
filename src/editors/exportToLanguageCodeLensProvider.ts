@@ -43,6 +43,10 @@ implements vscode.CodeLensProvider {
     const buildersCodeLens = this.createCodeLens();
     const exportToLanguageCodeLenses: vscode.CodeLens[] = [];
 
+    if (['json', 'plaintext'].includes(this._exportToLanguageAddons.language)) {
+      return [];
+    }
+
     importStatementsCodeLens.command = {
       title: this._exportToLanguageAddons.importStatements ? 'Exclude Import Statements' : 'Include Import Statements',
       command: EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,

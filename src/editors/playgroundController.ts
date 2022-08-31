@@ -369,6 +369,11 @@ export default class PlaygroundController {
         this._playgroundResultTextDocument,
         language
       );
+
+      this._exportToLanguageCodeLensProvider.refresh({
+        ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+        language,
+      });
     }
   }
 
