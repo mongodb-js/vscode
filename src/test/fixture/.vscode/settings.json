@@ -15,4 +15,9 @@
   },
   "security.workspace.trust.enabled": false,
   "extensions.enabled": ["mongodb.mongodb-vscode"],
+  "mdb": {
+    "connectionSaving": {
+      "hideOptionToChooseWhereToSaveNewConnections": true
+    }
+  }
 }
