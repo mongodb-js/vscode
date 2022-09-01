@@ -82,7 +82,8 @@
     "onView:mongoDBConnectionExplorer",
     "onView:mongoDBPlaygroundsExplorer",
     "onLanguage:json",
-    "onLanguage:mongodb"
+    "onLanguage:mongodb",
+    "onStartupFinished"
   ],
   "contributes": {
     "viewsContainers": {
