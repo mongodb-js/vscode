@@ -13,5 +13,6 @@
     "comments": false,
     "strings": true
   },
-  "security.workspace.trust.enabled": false
+  "security.workspace.trust.enabled": false,
+  "extensions.enabled": ["mongodb.mongodb-vscode"],
 }
