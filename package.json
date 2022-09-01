@@ -61,7 +61,7 @@
 		"release-draft": "node ./scripts/release-draft.js"
 	},
 	"engines": {
-		"vscode": "^1.70.2",
+		"vscode": "^1.65.2",
 		"node": "^14.17.5",
 		"npm": "^8.3.1"
 	},
