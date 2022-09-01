@@ -1027,11 +1027,5 @@
   },
   "precommit": [
     "check"
-  ],
-  "__metadata": {
-    "id": "4b6540da-bfa3-4b88-b9e3-df8f2d161124",
-    "publisherDisplayName": "MongoDB",
-    "publisherId": "96be5892-f133-40ba-88dd-d450cff649f0",
-    "isPreReleaseVersion": false
-  }
+  ]
 }
