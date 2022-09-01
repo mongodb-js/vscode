@@ -54,7 +54,7 @@ export async function run(): Promise<void> {
         // Disable the dialogue for prompting the user where to store the connection.
         void vscode.workspace
           .getConfiguration('mdb.connectionSaving')
-          .update('hideOptionToChooseWhereToSaveNewConnections', true)
+          .update('hideOptionToChooseWhereToSaveNewConnections', true, vscode.ConfigurationTarget.Global)
           .then(() => {
             // Add files to the test suite.
             files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
