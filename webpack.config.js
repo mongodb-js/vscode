@@ -35,7 +35,12 @@ const extensionConfig = {
     // Currently connection-model has a keytar dependency, vscode provides its
     // own keytar dependency. Here we are telling it to use vscode's keytar.
     keytar: 'keytar',
-    electron: 'electron'
+    electron: 'electron',
+    snappy: 'commonjs2 snappy',
+    'snappy/package.json': 'commonjs2 snappy/package.json',
+    'bson-ext': 'commonjs2 bson-ext',
+    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    encoding: 'utf-8'
   },
   module: {
     rules: [
@@ -87,7 +92,12 @@ const languageServerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode'
+    vscode: 'commonjs vscode',
+    snappy: 'commonjs2 snappy',
+    'snappy/package.json': 'commonjs2 snappy/package.json',
+    'bson-ext': 'commonjs2 bson-ext',
+    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    encoding: 'utf-8'
   },
   module: {
     rules: [
@@ -133,7 +143,12 @@ const languageServerWorkerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode'
+    vscode: 'commonjs vscode',
+    snappy: 'commonjs2 snappy',
+    'snappy/package.json': 'commonjs2 snappy/package.json',
+    'bson-ext': 'commonjs2 bson-ext',
+    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    encoding: 'utf-8'
   },
   module: {
     rules: [
@@ -169,7 +184,10 @@ const webviewConfig = {
     webviewApp: './src/views/webview-app/index.tsx'
   },
   resolve: {
-    extensions: ['.js', '.ts', '.tsx', '.json']
+    extensions: ['.js', '.ts', '.tsx', '.json'],
+    fallback: {
+      stream: require.resolve('stream-browserify'),
+    }
   },
   module: {
     rules: [
