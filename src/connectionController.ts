@@ -3,11 +3,14 @@ import {
   convertConnectionModelToInfo,
   ConnectionInfo,
   ConnectionOptions,
-  DataService,
   getConnectionTitle,
   ConnectionSecrets,
   extractSecrets,
-  mergeSecrets
+  mergeSecrets,
+  connect
+} from 'mongodb-data-service';
+import type {
+  DataService
 } from 'mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
@@ -381,6 +384,10 @@ export default class ConnectionController {
     return this._connect(savedConnectionInfo.id, connectionType);
   }
 
+  async _connectWithDataService(connectionOptions: ConnectionOptions) {
+    return connect(connectionOptions);
+  }
+
   async _connect(
     connectionId: string,
     connectionType: ConnectionTypes
@@ -405,11 +412,11 @@ export default class ConnectionController {
       throw new Error('Connect failed: connectionOptions are missing.');
     }
 
-    const newDataService = new DataService(connectionOptions);
+    let newDataService;
     let connectError;
 
     try {
-      await newDataService.connect();
+      newDataService = await this._connectWithDataService(connectionOptions);
     } catch (error) {
       connectError = error;
     }

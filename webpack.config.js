@@ -16,6 +16,7 @@ const baseConfig = {
 const extensionConfig = {
   ...baseConfig,
   output: {
+    strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
@@ -39,7 +40,9 @@ const extensionConfig = {
     snappy: 'commonjs2 snappy',
     'snappy/package.json': 'commonjs2 snappy/package.json',
     'bson-ext': 'commonjs2 bson-ext',
-    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    'win-export-certificate-and-key': 'commonjs2 win-export-certificate-and-key',
+    'os_dns_native': 'commonjs2 os_dns_native',
+    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
     encoding: 'utf-8'
   },
   module: {
@@ -72,6 +75,7 @@ const extensionConfig = {
 const languageServerConfig = {
   ...baseConfig,
   output: {
+    strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
@@ -96,7 +100,9 @@ const languageServerConfig = {
     snappy: 'commonjs2 snappy',
     'snappy/package.json': 'commonjs2 snappy/package.json',
     'bson-ext': 'commonjs2 bson-ext',
-    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    'win-export-certificate-and-key': 'commonjs2 win-export-certificate-and-key',
+    'os_dns_native': 'commonjs2 os_dns_native',
+    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
     encoding: 'utf-8'
   },
   module: {
@@ -123,6 +129,7 @@ const languageServerConfig = {
 const languageServerWorkerConfig = {
   ...baseConfig,
   output: {
+    strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
@@ -147,7 +154,9 @@ const languageServerWorkerConfig = {
     snappy: 'commonjs2 snappy',
     'snappy/package.json': 'commonjs2 snappy/package.json',
     'bson-ext': 'commonjs2 bson-ext',
-    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    'win-export-certificate-and-key': 'commonjs2 win-export-certificate-and-key',
+    'os_dns_native': 'commonjs2 os_dns_native',
+    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
     encoding: 'utf-8'
   },
   module: {
@@ -174,6 +183,7 @@ const languageServerWorkerConfig = {
 const webviewConfig = {
   ...baseConfig,
   output: {
+    strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
@@ -187,7 +197,12 @@ const webviewConfig = {
     extensions: ['.js', '.ts', '.tsx', '.json'],
     fallback: {
       stream: require.resolve('stream-browserify'),
+      util: require.resolve('util/')
     }
+  },
+  externals: {
+    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
+    'os_dns_native': 'commonjs2 os_dns_native',
   },
   module: {
     rules: [
