@@ -135,7 +135,7 @@ export default class ConnectionController {
 
   async _getConnectionInfoWithSecrets(
     savedConnectionInfo: StoreConnectionInfo
-  ): Promise<StoreConnectionInfoWithConnectionOptions|undefined> {
+  ): Promise<StoreConnectionInfoWithConnectionOptions | undefined> {
     // Migrate previously saved connections to a new format.
     // Save only secrets to keychain.
     // Remove connectionModel and use connectionOptions instead.
@@ -421,7 +421,7 @@ export default class ConnectionController {
       connectError = error;
     }
 
-    const shouldEndPrevConnectAttempt = this._endPrevConnectAttempt({ connectionId, connectingAttemptVersion, newDataService });
+    const shouldEndPrevConnectAttempt = this._endPrevConnectAttempt({ connectionId, connectingAttemptVersion, dataService: newDataService });
 
     if (shouldEndPrevConnectAttempt) {
       return {
@@ -458,13 +458,15 @@ export default class ConnectionController {
     };
   }
 
-  private _endPrevConnectAttempt (attempt: {
+  private _endPrevConnectAttempt ({
+    connectionId,
+    connectingAttemptVersion,
+    dataService
+  }: {
     connectionId: string,
     connectingAttemptVersion: null | string,
-    newDataService: DataService
+    dataService: DataService | null
   }): boolean {
-    const { connectionId, connectingAttemptVersion, newDataService } = attempt;
-
     if (
       connectingAttemptVersion !== this._connectingVersion ||
       !this._connections[connectionId]
@@ -472,7 +474,7 @@ export default class ConnectionController {
       // If the current attempt is no longer the most recent attempt
       // or the connection no longer exists we silently end the connection
       // and return.
-      void newDataService.disconnect().catch(() => { /* ignore */ });
+      void dataService?.disconnect().catch(() => { /* ignore */ });
 
       return true;
     }
@@ -720,23 +722,23 @@ export default class ConnectionController {
       : '';
   }
 
-  _getConnectionStringWithProxy(mongoClientConnectionOptions: { url: string; options: MongoClientOptions; }): string {
-    const connectionStringData = new ConnectionString(mongoClientConnectionOptions.url);
+  _getConnectionStringWithProxy({ url, options }: { url: string; options: MongoClientOptions; }): string {
+    const connectionStringData = new ConnectionString(url);
 
-    if (mongoClientConnectionOptions.options.proxyHost) {
-      connectionStringData.searchParams.set('proxyHost', mongoClientConnectionOptions.options.proxyHost);
+    if (options.proxyHost) {
+      connectionStringData.searchParams.set('proxyHost', options.proxyHost);
     }
 
-    if (mongoClientConnectionOptions.options.proxyPassword) {
-      connectionStringData.searchParams.set('proxyPassword', mongoClientConnectionOptions.options.proxyPassword);
+    if (options.proxyPassword) {
+      connectionStringData.searchParams.set('proxyPassword', options.proxyPassword);
     }
 
-    if (mongoClientConnectionOptions.options.proxyPort) {
-      connectionStringData.searchParams.set('proxyPort', `${mongoClientConnectionOptions.options.proxyPort}`);
+    if (options.proxyPort) {
+      connectionStringData.searchParams.set('proxyPort', `${options.proxyPort}`);
     }
 
-    if (mongoClientConnectionOptions.options.proxyUsername) {
-      connectionStringData.searchParams.set('proxyUsername', mongoClientConnectionOptions.options.proxyUsername);
+    if (options.proxyUsername) {
+      connectionStringData.searchParams.set('proxyUsername', options.proxyUsername);
     }
 
     return connectionStringData.toString();
@@ -761,7 +763,7 @@ export default class ConnectionController {
     return this._activeDataService;
   }
 
-  getMongoClientConnectionOptions(): { url: string; options: MongoClientOptions; } | undefined {
+  getMongoClientConnectionOptions(): { url: string, options: MongoClientOptions } | undefined {
     return this._activeDataService?.getMongoClientConnectionOptions();
   }
 

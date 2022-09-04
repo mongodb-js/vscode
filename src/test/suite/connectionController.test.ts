@@ -3,6 +3,7 @@ import * as util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
+import { connect } from 'mongodb-data-service';
 
 import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/constants/auth-strategies';
 import ConnectionController, {
@@ -696,7 +697,7 @@ suite('Connection Controller Test Suite', function () {
     }
   });
 
-  test.skip('a successfully connecting connection can be removed while it is being connected to', async () => {
+  test('a successfully connecting connection can be removed while it is being connected to', async () => {
     const connectionId = 'skateboard2';
     testConnectionController._connections[connectionId] = {
       id: connectionId,
@@ -705,15 +706,15 @@ suite('Connection Controller Test Suite', function () {
       storageLocation: StorageLocation.NONE
     };
 
-    /* sinon.replace(
-      DataServicCreator.prototype,
-      'connect',
-      sinon.fake(async (callback) => {
+    sinon.replace(
+      testConnectionController,
+      '_connectWithDataService',
+      async (connectionOptions) => {
         await sleep(50);
 
-        return callback(null, DataServicCreator);
-      })
-    ); */
+        return connect(connectionOptions);
+      }
+    );
 
     void testConnectionController.connectWithConnectionId(connectionId);
 

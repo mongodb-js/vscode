@@ -298,7 +298,7 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  test.skip('web view sends an unsuccessful connect result on an attempt that is overridden', function (done) {
+  test('web view sends an unsuccessful connect result on an attempt that is overridden', function (done) {
     this.timeout(5000);
 
     const testExtensionContext = new TestExtensionContext();
@@ -322,7 +322,6 @@ suite('Webview Test Suite', () => {
           message.connectionMessage === expectedMessage,
           `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
         );
-
         void testConnectionController.disconnect();
         done();
       },
@@ -344,6 +343,7 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryService
     );
+
     void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
 
     // Mock a connection call.
