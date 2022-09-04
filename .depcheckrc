@@ -8,3 +8,5 @@ ignores:
  - "webpack-cli"
  - "vscode-languageserver-textdocument"
  - "@babel/core"
+ - "mongodb-client-encryption"
+ - "@leafygreen-ui/palette"
