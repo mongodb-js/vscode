@@ -1,5 +1,6 @@
 // This is the webpack which builds our extension in the 'dist' folder.
 const path = require('path');
+const webpack = require('webpack');
 
 const autoprefixer = require('autoprefixer');
 const outputPath = path.join(__dirname, 'dist');
@@ -28,7 +29,10 @@ const extensionConfig = {
     extension: './src/extension.ts'
   },
   resolve: {
-    extensions: ['.js', '.ts', '.json']
+    extensions: ['.js', '.ts', '.json'],
+    fallback: {
+      stream: require.resolve('stream-browserify')
+    }
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
@@ -197,7 +201,7 @@ const webviewConfig = {
     extensions: ['.js', '.ts', '.tsx', '.json'],
     fallback: {
       stream: require.resolve('stream-browserify'),
-      util: require.resolve('util/')
+      buffer: require.resolve('buffer')
     }
   },
   externals: {
@@ -242,7 +246,19 @@ const webviewConfig = {
         ]
       }
     ]
-  }
+  },
+  plugins: [
+    new ContextMapPlugin(
+      'node_modules/context-eval',
+      ['./lib/context-node']
+    ),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    }),
+    new webpack.ProvidePlugin({
+      process: 'process/browser'
+    }),
+  ]
 };
 
 module.exports = [

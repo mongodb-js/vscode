@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-// import Toggle from '@leafygreen-ui/toggle';
+import Toggle from '@leafygreen-ui/toggle';
 
 import {
   ActionTypes,
@@ -111,7 +111,7 @@ class Kerberos extends React.Component<props> {
   render(): React.ReactNode {
     const {
       isValid,
-      // kerberosCanonicalizeHostname,
+      kerberosCanonicalizeHostname,
       kerberosPassword,
       kerberosPrincipal,
       kerberosServiceName
@@ -148,8 +148,7 @@ class Kerberos extends React.Component<props> {
               <span>Canonicalize Host Name</span>
             </label>
           </div>
-          Toggle Kerberos Canonicalize Host Name
-          {/* <Toggle
+          <Toggle
             aria-labelledby="Kerberos Canonicalize Host Name"
             className={styles['form-toggle']}
             name="kerberosCanonicalizeHostname"
@@ -157,7 +156,7 @@ class Kerberos extends React.Component<props> {
             checked={kerberosCanonicalizeHostname || false}
             size="small"
             disabled={false}
-          /> */}
+          />
         </div>
       </div>
     );

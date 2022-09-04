@@ -298,7 +298,7 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  test('web view sends an unsuccessful connect result on an attempt that is overridden', function (done) {
+  test.skip('web view sends an unsuccessful connect result on an attempt that is overridden', function (done) {
     this.timeout(5000);
 
     const testExtensionContext = new TestExtensionContext();
