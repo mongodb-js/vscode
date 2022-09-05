@@ -16,15 +16,10 @@ import { StorageController } from '../storage';
 import TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('webviewController');
+const crypto = require('crypto');
 
 const getNonce = () => {
-  let text = '';
-  const possible =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
+  return crypto.randomBytes(16).toString('base64');
 };
 
 const openFileOptions = {
@@ -59,7 +54,7 @@ export const getWebviewContent = ({
 }): string => {
   const jsAppFileUrl = getReactAppUri(extensionPath, webview);
 
-  // Use a nonce to only allow specific scripts to be run
+  // Use a nonce to only allow specific scripts to be run.
   const nonce = getNonce();
 
   return `<!DOCTYPE html>
@@ -67,9 +62,9 @@ export const getWebviewContent = ({
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="Content-Security-Policy" content="default-src 'none';
-            script-src vscode-resource: 'self' 'unsafe-inline' 'unsafe-eval' https:; script-src;
+            script-src 'nonce-${nonce}' vscode-resource: 'self' 'unsafe-inline' https:;
             style-src vscode-resource: 'self' 'unsafe-inline';
-            img-src vscode-resource: 'self' "/>
+            img-src vscode-resource: 'self'"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>MongoDB</title>
     </head>
