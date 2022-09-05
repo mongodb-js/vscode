@@ -11,45 +11,8 @@ import RadioBoxGroup from '../../../../../../../views/webview-app/components/for
 
 describe('Host Component Test Suite', () => {
   test('it shows a form group', () => {
-    const wrapper = shallow(<HostInput
-      hostname="localhost"
-      hosts={[{ host: 'localhost', port: 27020 }]}
-      isSrvRecord={false}
-      port={27019}
-      replicaSet={undefined}
-      onHostnameChanged={(): void => {}}
-      onPortChanged={(): void => {}}
-      setReplicaSet={(): void => {}}
-      toggleSRVRecord={(): void => {}}
-      updateHosts={(): void => {}}
-    />);
-    assert(wrapper.find(FormGroup).exists());
-  });
-
-  test('it shows the three connection types (standalone, replicaset, srv)', () => {
-    const wrapper = shallow(<HostInput
-      hostname="localhost"
-      hosts={[{ host: 'localhost', port: 27020 }]}
-      isSrvRecord={false}
-      port={27019}
-      replicaSet={undefined}
-      onHostnameChanged={(): void => {}}
-      onPortChanged={(): void => {}}
-      setReplicaSet={(): void => {}}
-      toggleSRVRecord={(): void => {}}
-      updateHosts={(): void => {}}
-    />);
-    assert(wrapper.find(RadioBoxGroup).exists());
-    assert(wrapper.find(RadioBoxGroup).props().options[0].label === 'Standalone');
-    assert(wrapper.find(RadioBoxGroup).props().options[1].label === 'Replica Set');
-    assert(wrapper.find(RadioBoxGroup).props().options[2].label === 'SRV Record');
-  });
-
-  describe('when there is no replicaSet and only one host', () => {
-    let wrapper: ShallowWrapper;
-
-    beforeEach(() => {
-      wrapper = shallow(<HostInput
+    const wrapper = shallow(
+      <HostInput
         hostname="localhost"
         hosts={[{ host: 'localhost', port: 27020 }]}
         isSrvRecord={false}
@@ -60,7 +23,56 @@ describe('Host Component Test Suite', () => {
         setReplicaSet={(): void => {}}
         toggleSRVRecord={(): void => {}}
         updateHosts={(): void => {}}
-      />);
+      />
+    );
+    assert(wrapper.find(FormGroup).exists());
+  });
+
+  test('it shows the three connection types (standalone, replicaset, srv)', () => {
+    const wrapper = shallow(
+      <HostInput
+        hostname="localhost"
+        hosts={[{ host: 'localhost', port: 27020 }]}
+        isSrvRecord={false}
+        port={27019}
+        replicaSet={undefined}
+        onHostnameChanged={(): void => {}}
+        onPortChanged={(): void => {}}
+        setReplicaSet={(): void => {}}
+        toggleSRVRecord={(): void => {}}
+        updateHosts={(): void => {}}
+      />
+    );
+    assert(wrapper.find(RadioBoxGroup).exists());
+    assert(
+      wrapper.find(RadioBoxGroup).props().options[0].label === 'Standalone'
+    );
+    assert(
+      wrapper.find(RadioBoxGroup).props().options[1].label === 'Replica Set'
+    );
+    assert(
+      wrapper.find(RadioBoxGroup).props().options[2].label === 'SRV Record'
+    );
+  });
+
+  describe('when there is no replicaSet and only one host', () => {
+    let wrapper: ShallowWrapper;
+
+    beforeEach(() => {
+      wrapper = shallow(
+        <HostInput
+          hostname="localhost"
+          hosts={[{ host: 'localhost', port: 27020 }]}
+          isSrvRecord={false}
+          port={27019}
+          replicaSet={undefined}
+          onHostnameChanged={(): void => {}}
+          onPortChanged={(): void => {}}
+          setReplicaSet={(): void => {}}
+          toggleSRVRecord={(): void => {}}
+          updateHosts={(): void => {}}
+        />
+      );
     });
 
     test('it shows the port input', () => {
@@ -85,11 +97,11 @@ describe('Host Component Test Suite', () => {
 
         wrapper.setProps({
           setReplicaSet: fakeSetReplicaSet,
-          updateHosts: fakeUpdateHosts
+          updateHosts: fakeUpdateHosts,
         });
 
         wrapper.find('button').simulate('click', {
-          preventDefault: () => { }
+          preventDefault: () => {},
         });
       });
 
@@ -111,18 +123,20 @@ describe('Host Component Test Suite', () => {
     let wrapper: ShallowWrapper;
 
     beforeEach(() => {
-      wrapper = shallow(<HostInput
-        hostname="localhost"
-        hosts={[{ host: 'localhost', port: 27020 }]}
-        isSrvRecord={false}
-        port={27019}
-        replicaSet={''}
-        onHostnameChanged={(): void => {}}
-        onPortChanged={(): void => {}}
-        setReplicaSet={(): void => {}}
-        toggleSRVRecord={(): void => {}}
-        updateHosts={(): void => {}}
-      />);
+      wrapper = shallow(
+        <HostInput
+          hostname="localhost"
+          hosts={[{ host: 'localhost', port: 27020 }]}
+          isSrvRecord={false}
+          port={27019}
+          replicaSet={''}
+          onHostnameChanged={(): void => {}}
+          onPortChanged={(): void => {}}
+          setReplicaSet={(): void => {}}
+          toggleSRVRecord={(): void => {}}
+          updateHosts={(): void => {}}
+        />
+      );
     });
 
     test('it shows hostname input', () => {
@@ -144,13 +158,16 @@ describe('Host Component Test Suite', () => {
     describe('when there is more than one host', () => {
       beforeEach(() => {
         wrapper.setProps({
-          hosts: [{
-            host: 'underwaterhost',
-            port: 27020
-          }, {
-            host: 'outerspacehost',
-            port: 27029
-          }]
+          hosts: [
+            {
+              host: 'underwaterhost',
+              port: 27020,
+            },
+            {
+              host: 'outerspacehost',
+              port: 27029,
+            },
+          ],
         });
       });
 
@@ -160,7 +177,12 @@ describe('Host Component Test Suite', () => {
 
       it('shows host name input for each host', () => {
         assert(wrapper.find('#host-name-0').exists());
-        assert(wrapper.find('#host-name-0').props().value === 'underwaterhost', `Expected '${wrapper.find('#host-name-0').text()}' to equal 'underwaterhost'`);
+        assert(
+          wrapper.find('#host-name-0').props().value === 'underwaterhost',
+          `Expected '${wrapper
+            .find('#host-name-0')
+            .text()}' to equal 'underwaterhost'`
+        );
         assert(wrapper.find('#host-name-1').exists());
         assert(wrapper.find('#host-name-1').props().value === 'outerspacehost');
       });
@@ -179,18 +201,23 @@ describe('Host Component Test Suite', () => {
           fakeUpdateHosts = sinon.fake.returns(undefined);
 
           wrapper.setProps({
-            updateHosts: fakeUpdateHosts
+            updateHosts: fakeUpdateHosts,
           });
 
-          wrapper.find('button').at(1).simulate('click', {
-            preventDefault: () => { }
-          });
+          wrapper
+            .find('button')
+            .at(1)
+            .simulate('click', {
+              preventDefault: () => {},
+            });
         });
 
         test('it calls to update hosts to with one less host', () => {
           assert(fakeUpdateHosts.called);
           assert(fakeUpdateHosts.firstCall.args[0].length === 1);
-          assert(fakeUpdateHosts.firstCall.args[0][0].host === 'outerspacehost');
+          assert(
+            fakeUpdateHosts.firstCall.args[0][0].host === 'outerspacehost'
+          );
           assert(fakeUpdateHosts.firstCall.args[0][0].port === 27029);
         });
       });
@@ -201,18 +228,20 @@ describe('Host Component Test Suite', () => {
     let wrapper: ShallowWrapper;
 
     beforeEach(() => {
-      wrapper = shallow(<HostInput
-        hostname="localhost"
-        hosts={[{ host: 'localhost', port: 27020 }]}
-        isSrvRecord
-        port={27019}
-        replicaSet={undefined}
-        onHostnameChanged={(): void => {}}
-        onPortChanged={(): void => {}}
-        setReplicaSet={(): void => {}}
-        toggleSRVRecord={(): void => {}}
-        updateHosts={(): void => {}}
-      />);
+      wrapper = shallow(
+        <HostInput
+          hostname="localhost"
+          hosts={[{ host: 'localhost', port: 27020 }]}
+          isSrvRecord
+          port={27019}
+          replicaSet={undefined}
+          onHostnameChanged={(): void => {}}
+          onPortChanged={(): void => {}}
+          setReplicaSet={(): void => {}}
+          toggleSRVRecord={(): void => {}}
+          updateHosts={(): void => {}}
+        />
+      );
     });
 
     test('it shows hostname input', () => {

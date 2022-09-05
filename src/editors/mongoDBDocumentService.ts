@@ -50,7 +50,8 @@ export default class MongoDBDocumentService {
     const errorMessage = `Unable to save document: ${message}`;
 
     this._telemetryService.trackDocumentUpdated(
-      DocumentSource.DOCUMENT_SOURCE_TREEVIEW, false
+      DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+      false
     );
 
     throw new Error(errorMessage);
@@ -66,10 +67,10 @@ export default class MongoDBDocumentService {
     log.info('replace document in MongoDB', data);
 
     const { documentId, namespace, connectionId, newDocument, source } = data;
-    const activeConnectionId = this._connectionController.getActiveConnectionId();
-    const connectionName = this._connectionController.getSavedConnectionName(
-      connectionId
-    );
+    const activeConnectionId =
+      this._connectionController.getActiveConnectionId();
+    const connectionName =
+      this._connectionController.getSavedConnectionName(connectionId);
 
     if (activeConnectionId !== connectionId) {
       return this._saveDocumentFailed(
@@ -113,7 +114,8 @@ export default class MongoDBDocumentService {
     log.info('fetch document from MongoDB', data);
 
     const { documentId, namespace, connectionId } = data;
-    const activeConnectionId = this._connectionController.getActiveConnectionId();
+    const activeConnectionId =
+      this._connectionController.getActiveConnectionId();
     const connectionName = connectionId
       ? this._connectionController.getSavedConnectionName(connectionId)
       : '';

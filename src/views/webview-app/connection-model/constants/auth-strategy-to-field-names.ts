@@ -4,24 +4,24 @@ export default {
   MONGODB: [
     'mongodbUsername', // required
     'mongodbPassword', // required
-    'mongodbDatabaseName' // optional
+    'mongodbDatabaseName', // optional
   ],
   'SCRAM-SHA-256': [
     'mongodbUsername', // required
     'mongodbPassword', // required
-    'mongodbDatabaseName' // optional
+    'mongodbDatabaseName', // optional
   ],
   KERBEROS: [
     'kerberosPrincipal', // required
     'kerberosPassword', // optional
     'kerberosServiceName', // optional
-    'kerberosCanonicalizeHostname'
+    'kerberosCanonicalizeHostname',
   ],
   X509: [
-    'x509Username' // required
+    'x509Username', // required
   ],
   LDAP: [
     'ldapUsername', // required
-    'ldapPassword' // required
-  ]
+    'ldapPassword', // required
+  ],
 };

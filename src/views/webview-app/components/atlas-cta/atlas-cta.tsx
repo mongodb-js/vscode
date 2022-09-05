@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import {
   ActionTypes,
   LinkClickedAction,
-  TrustedLinkClickedAction
+  TrustedLinkClickedAction,
 } from '../../store/actions';
 import { VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID } from '../../extension-app-message-constants';
 import AtlasLogo from './atlas-logo';
@@ -22,10 +22,7 @@ class AtlasCTA extends React.Component<DispatchProps> {
     const atlasLink = `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${telemetryUserId}`;
     this.props.openTrustedLink(atlasLink);
 
-    this.onLinkClicked(
-      'overviewPage',
-      'freeClusterCTA'
-    );
+    this.onLinkClicked('overviewPage', 'freeClusterCTA');
   };
 
   onLinkClicked = (screen: string, linkId: string): void => {
@@ -35,9 +32,7 @@ class AtlasCTA extends React.Component<DispatchProps> {
   render(): React.ReactNode {
     return (
       <div className={styles['atlas-cta']}>
-        <div className={styles['atlas-cta-logo']}>
-          {<AtlasLogo />}
-        </div>
+        <div className={styles['atlas-cta-logo']}>{<AtlasLogo />}</div>
         <div className={styles['atlas-cta-text']}>
           <div>
             <strong>New to MongoDB and don't have a cluster?</strong>
@@ -56,7 +51,8 @@ class AtlasCTA extends React.Component<DispatchProps> {
               )}
             >
               MongoDB Atlas
-            </a>.
+            </a>
+            .
           </div>
         </div>
         <a
@@ -77,12 +73,12 @@ const mapDispatchToProps: DispatchProps = {
   onLinkClicked: (screen, linkId): LinkClickedAction => ({
     type: ActionTypes.EXTENSION_LINK_CLICKED,
     screen,
-    linkId
+    linkId,
   }),
   openTrustedLink: (linkTo: string): TrustedLinkClickedAction => ({
     type: ActionTypes.TRUSTED_LINK_CLICKED,
-    linkTo
-  })
+    linkTo,
+  }),
 };
 
 export default connect(() => ({}), mapDispatchToProps)(AtlasCTA);

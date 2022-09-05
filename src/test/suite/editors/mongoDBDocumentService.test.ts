@@ -73,7 +73,7 @@ suite('MongoDB Document Service Test Suite', () => {
         document.price = 5000;
 
         return callback(null, document);
-      }
+      },
     });
     sinon.replace(
       testConnectionController,
@@ -92,7 +92,7 @@ suite('MongoDB Document Service Test Suite', () => {
       documentId,
       connectionId,
       newDocument,
-      source
+      source,
     });
 
     expect(document).to.be.deep.equal(newDocument);
@@ -114,7 +114,7 @@ suite('MongoDB Document Service Test Suite', () => {
         callback: (error: Error | null, result: object) => void
       ) => {
         return callback(null, [{ _id: '123' }]);
-      }
+      },
     });
     sinon.replace(
       testConnectionController,
@@ -140,7 +140,7 @@ suite('MongoDB Document Service Test Suite', () => {
       documentId,
       line,
       connectionId,
-      source
+      source,
     });
 
     expect(result).to.be.deep.equal(JSON.parse(EJSON.stringify(documents[0])));
@@ -176,7 +176,7 @@ suite('MongoDB Document Service Test Suite', () => {
         namespace,
         connectionId,
         newDocument,
-        source
+        source,
       });
     } catch (error) {
       const expectedMessage =
@@ -216,7 +216,7 @@ suite('MongoDB Document Service Test Suite', () => {
         namespace,
         connectionId,
         newDocument,
-        source
+        source,
       });
     } catch (error) {
       const expectedMessage =
@@ -259,7 +259,7 @@ suite('MongoDB Document Service Test Suite', () => {
         documentId,
         line,
         connectionId,
-        source
+        source,
       });
     } catch (error) {
       const expectedMessage =

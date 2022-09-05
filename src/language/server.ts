@@ -8,13 +8,16 @@ import {
   TextDocumentPositionParams,
   RequestType,
   TextDocumentSyncKind,
-  Connection
+  Connection,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
 import { ServerCommands } from './serverCommands';
-import { PlaygroundExecuteParameters, PlaygroundTextAndSelection } from '../types/playgroundType';
+import {
+  PlaygroundExecuteParameters,
+  PlaygroundTextAndSelection,
+} from '../types/playgroundType';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -54,14 +57,14 @@ connection.onInitialize((params: InitializeParams) => {
       // Tell the client that the server supports code completion
       completionProvider: {
         resolveProvider: true,
-        triggerCharacters: ['.']
-      }
+        triggerCharacters: ['.'],
+      },
       // documentFormattingProvider: true,
       // documentRangeFormattingProvider: true,
       // codeLensProvider: {
       //   resolveProvider: true
       // }
-    }
+    },
   };
 });
 
@@ -160,13 +163,19 @@ connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
   return mongoDBService.disconnectFromServiceProvider();
 });
 
-connection.onRequest(ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE, (params: PlaygroundTextAndSelection) => {
-  return mongoDBService.getExportToLanguageMode(params);
-});
+connection.onRequest(
+  ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,
+  (params: PlaygroundTextAndSelection) => {
+    return mongoDBService.getExportToLanguageMode(params);
+  }
+);
 
-connection.onRequest(ServerCommands.GET_NAMESPACE_FOR_SELECTION, (params: PlaygroundTextAndSelection) => {
-  return mongoDBService.getNamespaceForSelection(params);
-});
+connection.onRequest(
+  ServerCommands.GET_NAMESPACE_FOR_SELECTION,
+  (params: PlaygroundTextAndSelection) => {
+    return mongoDBService.getNamespaceForSelection(params);
+  }
+);
 
 // This handler provides the list of the completion items.
 connection.onCompletion((params: TextDocumentPositionParams) => {
@@ -180,21 +189,19 @@ connection.onCompletion((params: TextDocumentPositionParams) => {
 
 // This handler resolves additional information for the item selected in
 // the completion list.
-connection.onCompletionResolve(
-  (item: CompletionItem): CompletionItem => {
-    // connection.console.log(`onCompletionResolve: ${JSON.stringify(item)}`);
+connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
+  // connection.console.log(`onCompletionResolve: ${JSON.stringify(item)}`);
 
-    // if (item.data === 1) {
-    //   item.detail = 'TypeScript details';
-    //   item.documentation = 'TypeScript documentation';
-    // } else if (item.data === 2) {
-    //   item.detail = 'JavaScript details';
-    //   item.documentation = 'JavaScript documentation';
-    // }
+  // if (item.data === 1) {
+  //   item.detail = 'TypeScript details';
+  //   item.documentation = 'TypeScript documentation';
+  // } else if (item.data === 2) {
+  //   item.detail = 'JavaScript details';
+  //   item.documentation = 'JavaScript documentation';
+  // }
 
-    return item;
-  }
-);
+  return item;
+});
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {
   // connection.console.log(

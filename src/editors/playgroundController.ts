@@ -4,10 +4,14 @@ import vm from 'vm';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import CodeActionProvider from './codeActionProvider';
 import ConnectionController, {
-  DataServiceEventTypes
+  DataServiceEventTypes,
 } from '../connectionController';
 import { createLogger } from '../logging';
-import { ExplorerController, ConnectionTreeItem, DatabaseTreeItem } from '../explorer';
+import {
+  ExplorerController,
+  ConnectionTreeItem,
+  DatabaseTreeItem,
+} from '../explorer';
 import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import formatError from '../utils/formatError';
 import { LanguageServerController } from '../language';
@@ -19,11 +23,11 @@ import {
   ShellExecuteAllResult,
   ExportToLanguageAddons,
   ExportToLanguageNamespace,
-  ExportToLanguageMode
+  ExportToLanguageMode,
 } from '../types/playgroundType';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME,
-  PLAYGROUND_RESULT_URI
+  PLAYGROUND_RESULT_URI,
 } from './playgroundResultProvider';
 import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
@@ -37,10 +41,10 @@ interface ToCompile {
   filter?: string;
   aggregation?: string;
   options: {
-    collection: string|null;
-    database: string|null;
+    collection: string | null;
+    database: string | null;
     uri?: string;
-  }
+  };
 }
 
 let dummySandbox;
@@ -52,19 +56,35 @@ const countAggregationStagesInString = (str: string) => {
   if (!dummySandbox) {
     dummySandbox = vm.createContext(Object.create(null), {
       codeGeneration: { strings: false, wasm: false },
-      microtaskMode: 'afterEvaluate'
+      microtaskMode: 'afterEvaluate',
     });
-    vm.runInContext([
-      'BSONRegExp', 'DBRef', 'Decimal128', 'Double', 'Int32',
-      'Long', 'Int64', 'MaxKey', 'MinKey', 'ObjectID', 'ObjectId',
-      'BSONSymbol', 'Timestamp', 'Code', 'Buffer', 'Binary'
-    ].map(name => `function ${name}() {}`).join('\n'), dummySandbox);
+    vm.runInContext(
+      [
+        'BSONRegExp',
+        'DBRef',
+        'Decimal128',
+        'Double',
+        'Int32',
+        'Long',
+        'Int64',
+        'MaxKey',
+        'MinKey',
+        'ObjectID',
+        'ObjectId',
+        'BSONSymbol',
+        'Timestamp',
+        'Code',
+        'Buffer',
+        'Binary',
+      ]
+        .map((name) => `function ${name}() {}`)
+        .join('\n'),
+      dummySandbox
+    );
   }
 
-  return vm.runInContext(
-    '(' + str + ')',
-    dummySandbox,
-    { timeout: 100 }).length;
+  return vm.runInContext('(' + str + ')', dummySandbox, { timeout: 100 })
+    .length;
 };
 
 /**
@@ -108,9 +128,8 @@ export default class PlaygroundController {
     this._telemetryService = telemetryService;
     this._statusView = statusView;
     this._playgroundResultViewProvider = playgroundResultViewProvider;
-    this._outputChannel = vscode.window.createOutputChannel(
-      'Playground output'
-    );
+    this._outputChannel =
+      vscode.window.createOutputChannel('Playground output');
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._codeActionProvider = codeActionProvider;
@@ -142,23 +161,26 @@ export default class PlaygroundController {
 
     vscode.window.onDidChangeTextEditorSelection(
       async (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
-        if (
-          changeEvent?.textEditor?.document?.languageId === 'mongodb'
-        ) {
+        if (changeEvent?.textEditor?.document?.languageId === 'mongodb') {
           // Sort lines selected as the may be mis-ordered from alt+click.
-          const sortedSelections = (changeEvent.selections as Array<vscode.Selection>)
-            .sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
+          const sortedSelections = (
+            changeEvent.selections as Array<vscode.Selection>
+          ).sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
 
           this._selectedText = sortedSelections
             .map((item) => this._getSelectedText(item))
             .join('\n');
 
-          const mode = await this._languageServerController.getExportToLanguageMode({
-            textFromEditor: this._getAllText(),
-            selection: sortedSelections[0]
-          });
+          const mode =
+            await this._languageServerController.getExportToLanguageMode({
+              textFromEditor: this._getAllText(),
+              selection: sortedSelections[0],
+            });
 
-          this._codeActionProvider.refresh({ selection: sortedSelections[0], mode });
+          this._codeActionProvider.refresh({
+            selection: sortedSelections[0],
+            mode,
+          });
         }
       }
     );
@@ -177,7 +199,8 @@ export default class PlaygroundController {
       return;
     }
 
-    const mongoClientOption = this._connectionController.getMongoClientConnectionOptions();
+    const mongoClientOption =
+      this._connectionController.getMongoClientConnectionOptions();
 
     if (!mongoClientOption) {
       this._activeConnectionCodeLensProvider.refresh();
@@ -188,7 +211,7 @@ export default class PlaygroundController {
     await this._languageServerController.connectToServiceProvider({
       connectionId,
       connectionString: mongoClientOption.url,
-      connectionOptions: mongoClientOption.options
+      connectionOptions: mongoClientOption.options,
     });
 
     this._activeConnectionCodeLensProvider.refresh();
@@ -200,7 +223,7 @@ export default class PlaygroundController {
     try {
       const document = await vscode.workspace.openTextDocument({
         language: 'mongodb',
-        content
+        content,
       });
 
       await vscode.window.showTextDocument(document);
@@ -261,7 +284,7 @@ export default class PlaygroundController {
     try {
       const document = await vscode.workspace.openTextDocument({
         language: 'mongodb',
-        content: useDefaultTemplate ? playgroundTemplate : ''
+        content: useDefaultTemplate ? playgroundTemplate : '',
       });
 
       await vscode.window.showTextDocument(document);
@@ -280,16 +303,19 @@ export default class PlaygroundController {
     const connectionId = this._connectionController.getActiveConnectionId();
 
     if (!connectionId) {
-      throw new Error('Please connect to a database before running a playground.');
+      throw new Error(
+        'Please connect to a database before running a playground.'
+      );
     }
 
     this._statusView.showMessage('Getting results...');
 
     // Send a request to the language server to execute scripts from a playground.
-    const result: ShellExecuteAllResult = await this._languageServerController.executeAll({
-      codeToEvaluate,
-      connectionId
-    });
+    const result: ShellExecuteAllResult =
+      await this._languageServerController.executeAll({
+        codeToEvaluate,
+        connectionId,
+      });
 
     this._statusView.hideMessage();
     this._telemetryService.trackPlaygroundCodeExecuted(
@@ -311,7 +337,9 @@ export default class PlaygroundController {
 
   async _evaluateWithCancelModal(): Promise<ShellExecuteAllResult> {
     if (!this._connectionController.isCurrentlyConnected()) {
-      throw new Error('Please connect to a database before running a playground.');
+      throw new Error(
+        'Please connect to a database before running a playground.'
+      );
     }
 
     try {
@@ -319,7 +347,7 @@ export default class PlaygroundController {
         {
           location: ProgressLocation.Notification,
           title: 'Running MongoDB playground...',
-          cancellable: true
+          cancellable: true,
         },
         async (progress, token) => {
           token.onCancellationRequested(() => {
@@ -344,7 +372,7 @@ export default class PlaygroundController {
 
       return {
         outputLines: undefined,
-        result: undefined
+        result: undefined,
       };
     }
   }
@@ -380,15 +408,14 @@ export default class PlaygroundController {
     await vscode.window.showTextDocument(PLAYGROUND_RESULT_URI, {
       preview: false,
       preserveFocus: true,
-      viewColumn: this._playgroundResultViewColumn || vscode.ViewColumn.Beside
+      viewColumn: this._playgroundResultViewColumn || vscode.ViewColumn.Beside,
     });
   }
 
   async _openResultAsVirtualDocument(): Promise<void> {
     try {
-      this._playgroundResultTextDocument = await vscode.workspace.openTextDocument(
-        PLAYGROUND_RESULT_URI
-      );
+      this._playgroundResultTextDocument =
+        await vscode.workspace.openTextDocument(PLAYGROUND_RESULT_URI);
     } catch (error) {
       void vscode.window.showErrorMessage(
         `Unable to open a result document: ${formatError(error).message}`
@@ -424,7 +451,8 @@ export default class PlaygroundController {
 
     this._outputChannel.clear();
 
-    const evaluateResponse: ShellExecuteAllResult = await this._evaluateWithCancelModal();
+    const evaluateResponse: ShellExecuteAllResult =
+      await this._evaluateWithCancelModal();
 
     if (evaluateResponse?.outputLines?.length) {
       for (const line of evaluateResponse.outputLines) {
@@ -528,7 +556,9 @@ export default class PlaygroundController {
     }
   }
 
-  changeExportToLanguageAddons(exportToLanguageAddons: ExportToLanguageAddons): Promise<boolean> {
+  changeExportToLanguageAddons(
+    exportToLanguageAddons: ExportToLanguageAddons
+  ): Promise<boolean> {
     this._exportToLanguageCodeLensProvider.refresh(exportToLanguageAddons);
 
     return this._transpile();
@@ -541,24 +571,26 @@ export default class PlaygroundController {
       selectedText: this._selectedText,
       selection: this._codeActionProvider.selection,
       language,
-      mode: this._codeActionProvider.mode
+      mode: this._codeActionProvider.mode,
     });
 
     return this._transpile();
   }
 
-  async getTranspiledContent(): Promise<{ namespace: ExportToLanguageNamespace, expression: string } | undefined> {
+  async getTranspiledContent(): Promise<
+    { namespace: ExportToLanguageNamespace; expression: string } | undefined
+  > {
     const {
       textFromEditor,
       selectedText,
       selection,
       driverSyntax,
       builders,
-      language
+      language,
     } = this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
     let namespace: ExportToLanguageNamespace = {
       databaseName: 'DATABASE_NAME',
-      collectionName: 'COLLECTION_NAME'
+      collectionName: 'COLLECTION_NAME',
     };
     let expression = '';
 
@@ -571,12 +603,14 @@ export default class PlaygroundController {
       let driverUrl = 'mongodb://localhost:27017';
 
       if (connectionId) {
-        namespace = await this._languageServerController.getNamespaceForSelection({
-          textFromEditor,
-          selection
-        });
+        namespace =
+          await this._languageServerController.getNamespaceForSelection({
+            textFromEditor,
+            selection,
+          });
 
-        const mongoClientOptions = this._connectionController.getMongoClientConnectionOptions();
+        const mongoClientOptions =
+          this._connectionController.getMongoClientConnectionOptions();
         driverUrl = mongoClientOptions?.url || '';
       }
 
@@ -584,8 +618,8 @@ export default class PlaygroundController {
         options: {
           collection: namespace.collectionName,
           database: namespace.databaseName,
-          uri: driverUrl
-        }
+          uri: driverUrl,
+        },
       };
 
       if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
@@ -594,22 +628,24 @@ export default class PlaygroundController {
         toCompile.filter = selectedText;
       }
 
-      expression = transpiler.shell[language].compileWithDriver(toCompile, builders);
+      expression = transpiler.shell[language].compileWithDriver(
+        toCompile,
+        builders
+      );
     } else {
-      expression = transpiler.shell[language].compile(selectedText, builders, false);
+      expression = transpiler.shell[language].compile(
+        selectedText,
+        builders,
+        false
+      );
     }
 
     return { namespace, expression };
   }
 
   async _transpile(): Promise<boolean> {
-    const {
-      selectedText,
-      importStatements,
-      driverSyntax,
-      builders,
-      language
-    } = this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
+    const { selectedText, importStatements, driverSyntax, builders, language } =
+      this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
 
     log.info(`Start export to ${language} language`);
 
@@ -632,12 +668,13 @@ export default class PlaygroundController {
       }
 
       this._playgroundResult = {
-        namespace: namespace.databaseName && namespace.collectionName
-          ? `${namespace.databaseName}.${namespace.collectionName}`
-          : null,
+        namespace:
+          namespace.databaseName && namespace.collectionName
+            ? `${namespace.databaseName}.${namespace.collectionName}`
+            : null,
         type: null,
         content: imports ? `${imports}\n\n${expression}` : expression,
-        language
+        language,
       };
 
       log.info(`Export to ${language} language result`, this._playgroundResult);
@@ -646,10 +683,12 @@ export default class PlaygroundController {
       if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
         const aggExportedProps = {
           language,
-          num_stages: selectedText ? countAggregationStagesInString(selectedText) : null,
+          num_stages: selectedText
+            ? countAggregationStagesInString(selectedText)
+            : null,
           with_import_statements: importStatements,
           with_builders: builders,
-          with_driver_syntax: driverSyntax
+          with_driver_syntax: driverSyntax,
         };
 
         this._telemetryService.trackAggregationExported(aggExportedProps);
@@ -658,7 +697,7 @@ export default class PlaygroundController {
           language,
           with_import_statements: importStatements,
           with_builders: builders,
-          with_driver_syntax: driverSyntax
+          with_driver_syntax: driverSyntax,
         };
 
         this._telemetryService.trackQueryExported(queryExportedProps);

@@ -63,14 +63,14 @@ class FormInput extends React.PureComponent<props> {
       name,
       placeholder,
       type,
-      value
+      value,
     } = this.props;
 
     return (
       <div
         className={classnames(className, {
           [styles['form-item']]: true,
-          [styles['form-item-has-error']]: this.props.error
+          [styles['form-item-has-error']]: this.props.error,
         })}
       >
         {label && (

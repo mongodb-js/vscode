@@ -7,9 +7,9 @@ import { TelemetryService } from '../telemetry';
 
 const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
-function getIconPath(iconName?: string):
-  | string
-  | { light: string; dark: string } {
+function getIconPath(
+  iconName?: string
+): string | { light: string; dark: string } {
   if (!iconName || iconName === '') {
     return '';
   }
@@ -19,7 +19,7 @@ function getIconPath(iconName?: string):
 
   return {
     light: path.join(LIGHT, 'help', `${iconName}.svg`),
-    dark: path.join(DARK, 'help', `${iconName}.svg`)
+    dark: path.join(DARK, 'help', `${iconName}.svg`),
   };
 }
 
@@ -30,7 +30,13 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
   url: string;
   useRedirect: boolean;
 
-  constructor(title: string, url: string, linkId: string, iconName?: string, useRedirect = false) {
+  constructor(
+    title: string,
+    url: string,
+    linkId: string,
+    iconName?: string,
+    useRedirect = false
+  ) {
     super(title, vscode.TreeItemCollapsibleState.None);
 
     this.linkId = linkId;
@@ -41,7 +47,9 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
   }
 }
 
-export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem> {
+export default class HelpTree
+  implements vscode.TreeDataProvider<vscode.TreeItem>
+{
   contextValue = 'helpTree' as const;
   _telemetryService?: TelemetryService;
 
@@ -67,7 +75,7 @@ export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem
     // When no element is present we are at the root.
     if (!element) {
       const whatsNew = new HelpLinkTreeItem(
-        'What\'s New',
+        "What's New",
         'https://github.com/mongodb-js/vscode/blob/main/CHANGELOG.md',
         'whatsNew',
         'megaphone'
@@ -101,8 +109,11 @@ export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem
         'report'
       );
 
-      const telemetryUserIdentity = this._telemetryService?.getTelemetryUserIdentity();
-      const ajsAid = telemetryUserIdentity ? `&ajs_aid=${telemetryUserIdentity[0]}` : '';
+      const telemetryUserIdentity =
+        this._telemetryService?.getTelemetryUserIdentity();
+      const ajsAid = telemetryUserIdentity
+        ? `&ajs_aid=${telemetryUserIdentity[0]}`
+        : '';
       const atlas = new HelpLinkTreeItem(
         'Create Free Atlas Cluster',
         `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product${ajsAid}`,
@@ -117,19 +128,19 @@ export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem
         mdbDocs,
         feedback,
         reportBug,
-        atlas
+        atlas,
       ]);
     }
 
     return element.getChildren();
   }
 
-  async onClickHelpItem(helpItem: HelpLinkTreeItem, telemetryService: TelemetryService): Promise<void> {
+  async onClickHelpItem(
+    helpItem: HelpLinkTreeItem,
+    telemetryService: TelemetryService
+  ): Promise<void> {
     if (helpItem.contextValue === HELP_LINK_CONTEXT_VALUE) {
-      telemetryService.trackLinkClicked(
-        'helpPanel',
-        helpItem.linkId
-      );
+      telemetryService.trackLinkClicked('helpPanel', helpItem.linkId);
 
       if (helpItem.useRedirect) {
         try {

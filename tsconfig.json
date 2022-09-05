@@ -4,13 +4,8 @@
     "noImplicitAny": false,
     "target": "es6",
     "outDir": "out",
-    "lib": [
-      "es6",
-      "dom"
-    ],
-    "types": [
-      "node"
-    ],
+    "lib": ["es6", "dom"],
+    "types": ["node"],
     "jsx": "react",
     "sourceMap": true,
     "rootDir": "src",
@@ -21,11 +16,5 @@
     // "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
     // "noUnusedParameters": true,  /* Report errors on unused parameters. */
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "out",
-    ".vscode-test",
-    "scripts"
-  ]
+  "exclude": ["node_modules", "dist", "out", ".vscode-test", "scripts"]
 }

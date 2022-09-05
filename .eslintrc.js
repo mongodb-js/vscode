@@ -1,8 +1,11 @@
 const typescriptEslintEslintPlugin = require('@typescript-eslint/eslint-plugin');
 
 // Overrides do not work with extends.
-const ruleOverridesForJs = Object.keys(typescriptEslintEslintPlugin.rules).reduce(
-  (overrides, rule) => ({ ...overrides, [`@typescript-eslint/${rule}`]: 0 }), {}
+const ruleOverridesForJs = Object.keys(
+  typescriptEslintEslintPlugin.rules
+).reduce(
+  (overrides, rule) => ({ ...overrides, [`@typescript-eslint/${rule}`]: 0 }),
+  {}
 );
 
 module.exports = {
@@ -11,15 +14,13 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2018,
     sourceType: 'module',
-    project: [
-      './tsconfig.json'
-    ]
+    project: ['./tsconfig.json'],
   },
   extends: [
     'eslint-config-mongodb-js/react',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking'
+    'plugin:@typescript-eslint/recommended-requiring-type-checking',
   ],
   rules: {
     'chai-friendly/no-unused-expressions': 0,
@@ -36,7 +37,7 @@ module.exports = {
     '@typescript-eslint/ban-types': 0,
     'mocha/no-skipped-tests': 1,
     'mocha/no-exclusive-tests': 2,
-    'semi': 0,
+    semi: 0,
     '@typescript-eslint/semi': [2, 'always'],
     'no-console': [1, { allow: ['warn', 'error', 'info'] }],
     'no-shadow': 0,
@@ -54,13 +55,15 @@ module.exports = {
     '@typescript-eslint/no-unsafe-assignment': 0,
     '@typescript-eslint/no-unsafe-member-access': 0,
     '@typescript-eslint/no-unsafe-call': 0,
-    '@typescript-eslint/no-unsafe-return': 0
+    '@typescript-eslint/no-unsafe-return': 0,
   },
-  overrides: [{
-    files: ['**/*.js'],
-    rules: {
-      ...ruleOverridesForJs,
-      semi: [2, 'always']
-    }
-  }]
+  overrides: [
+    {
+      files: ['**/*.js'],
+      rules: {
+        ...ruleOverridesForJs,
+        semi: [2, 'always'],
+      },
+    },
+  ],
 };

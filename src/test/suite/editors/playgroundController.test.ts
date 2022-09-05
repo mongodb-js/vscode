@@ -56,7 +56,8 @@ suite('Playground Controller Test Suite', function () {
   const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
     testConnectionController
   );
-  const testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
+  const testExportToLanguageCodeLensProvider =
+    new ExportToLanguageCodeLensProvider();
   const testCodeActionProvider = new CodeActionProvider();
   const testExplorerController = new ExplorerController(
     testConnectionController
@@ -95,8 +96,8 @@ suite('Playground Controller Test Suite', function () {
       const mockActiveDataService = {
         getMongoClientConnectionOptions: () => ({
           url: 'mongodb://username@ldaphost:27017/?authMechanism=MONGODB-X509&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true&authSource=%24external&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsCAFile=./path/to/ca&tlsCertificateKeyFile=./path/to/cert',
-          options: { monitorCommands: true }
-        })
+          options: { monitorCommands: true },
+        }),
       } as DataService;
       const mockGetActiveConnectionId = sinon.fake.returns('pineapple');
       mockConnectToServiceProvider = sinon.fake.resolves(undefined);
@@ -122,28 +123,36 @@ suite('Playground Controller Test Suite', function () {
         mockConnectToServiceProvider
       );
 
-      testPlaygroundController._connectionController.setActiveDataService(mockActiveDataService);
+      testPlaygroundController._connectionController.setActiveDataService(
+        mockActiveDataService
+      );
       await testPlaygroundController._connectToServiceProvider();
     });
 
     test('it should pass the active connection id to the language server for connecting', () => {
       expect(
-        (mockConnectToServiceProvider.firstCall.firstArg as {
-          connectionId: string;
-        }).connectionId
+        (
+          mockConnectToServiceProvider.firstCall.firstArg as {
+            connectionId: string;
+          }
+        ).connectionId
       ).to.equal('pineapple');
     });
 
     test('it should pass ssl strings to the language server for connecting', () => {
       expect(
-        (mockConnectToServiceProvider.firstCall.firstArg as {
-          connectionString: string
-        }).connectionString
+        (
+          mockConnectToServiceProvider.firstCall.firstArg as {
+            connectionString: string;
+          }
+        ).connectionString
       ).includes('./path/to/cert');
       expect(
-        (mockConnectToServiceProvider.firstCall.firstArg as {
-          connectionString: string
-        }).connectionString
+        (
+          mockConnectToServiceProvider.firstCall.firstArg as {
+            connectionString: string;
+          }
+        ).connectionString
       ).includes('./path/to/ca');
     });
   });
@@ -152,13 +161,10 @@ suite('Playground Controller Test Suite', function () {
     testPlaygroundController._activeTextEditor = undefined;
 
     test('run all playground blocks should throw the playground not found error', async () => {
-      const expectedMessage = "Please open a '.mongodb' playground file before running it.";
+      const expectedMessage =
+        "Please open a '.mongodb' playground file before running it.";
       const fakeShowErrorMessage: any = sinon.fake();
-      sinon.replace(
-        vscode.window,
-        'showErrorMessage',
-        fakeShowErrorMessage
-      );
+      sinon.replace(vscode.window, 'showErrorMessage', fakeShowErrorMessage);
 
       try {
         await testPlaygroundController.runAllPlaygroundBlocks();
@@ -168,13 +174,10 @@ suite('Playground Controller Test Suite', function () {
     });
 
     test('run selected playground blocks should throw the playground not found error', async () => {
-      const expectedMessage = "Please open a '.mongodb' playground file before running it.";
+      const expectedMessage =
+        "Please open a '.mongodb' playground file before running it.";
       const fakeShowErrorMessage: any = sinon.fake();
-      sinon.replace(
-        vscode.window,
-        'showErrorMessage',
-        fakeShowErrorMessage
-      );
+      sinon.replace(vscode.window, 'showErrorMessage', fakeShowErrorMessage);
 
       try {
         await testPlaygroundController.runSelectedPlaygroundBlocks();
@@ -184,13 +187,10 @@ suite('Playground Controller Test Suite', function () {
     });
 
     test('run all or selected playground blocks should throw the playground not found error', async () => {
-      const expectedMessage = "Please open a '.mongodb' playground file before running it.";
+      const expectedMessage =
+        "Please open a '.mongodb' playground file before running it.";
       const fakeShowErrorMessage: any = sinon.fake();
-      sinon.replace(
-        vscode.window,
-        'showErrorMessage',
-        fakeShowErrorMessage
-      );
+      sinon.replace(vscode.window, 'showErrorMessage', fakeShowErrorMessage);
 
       try {
         await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
@@ -205,21 +205,22 @@ suite('Playground Controller Test Suite', function () {
       document: {
         languageId: 'mongodb',
         uri: {
-          path: 'test'
+          path: 'test',
         },
         getText: () => "use('dbName');",
-        lineAt: sinon.fake.returns({ text: "use('dbName');" })
+        lineAt: sinon.fake.returns({ text: "use('dbName');" }),
       },
       selections: [
         new vscode.Selection(
           new vscode.Position(0, 0),
           new vscode.Position(0, 0)
-        )
-      ]
+        ),
+      ],
     };
 
     beforeEach(() => {
-      testPlaygroundController._activeTextEditor = activeTestEditorMock as vscode.TextEditor;
+      testPlaygroundController._activeTextEditor =
+        activeTestEditorMock as vscode.TextEditor;
     });
 
     suite('user is not connected', () => {
@@ -234,13 +235,10 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('run all playground blocks should throw the error', async () => {
-        const expectedMessage = 'Please connect to a database before running a playground.';
+        const expectedMessage =
+          'Please connect to a database before running a playground.';
         const fakeShowErrorMessage: any = sinon.fake();
-        sinon.replace(
-          vscode.window,
-          'showErrorMessage',
-          fakeShowErrorMessage
-        );
+        sinon.replace(vscode.window, 'showErrorMessage', fakeShowErrorMessage);
 
         try {
           await testPlaygroundController.runAllPlaygroundBlocks();
@@ -250,13 +248,10 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('run selected playground blocks should throw the error', async () => {
-        const expectedMessage = 'Please connect to a database before running a playground.';
+        const expectedMessage =
+          'Please connect to a database before running a playground.';
         const fakeShowErrorMessage: any = sinon.fake();
-        sinon.replace(
-          vscode.window,
-          'showErrorMessage',
-          fakeShowErrorMessage
-        );
+        sinon.replace(vscode.window, 'showErrorMessage', fakeShowErrorMessage);
 
         try {
           await testPlaygroundController.runSelectedPlaygroundBlocks();
@@ -266,13 +261,10 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('run all or selected playground blocks should throw the error', async () => {
-        const expectedMessage = 'Please connect to a database before running a playground.';
+        const expectedMessage =
+          'Please connect to a database before running a playground.';
         const fakeShowErrorMessage: any = sinon.fake();
-        sinon.replace(
-          vscode.window,
-          'showErrorMessage',
-          fakeShowErrorMessage
-        );
+        sinon.replace(vscode.window, 'showErrorMessage', fakeShowErrorMessage);
 
         try {
           await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
@@ -288,8 +280,8 @@ suite('Playground Controller Test Suite', function () {
         const mockGetActiveDataService = sinon.fake.returns({
           getMongoClientConnectionOptions: () => ({
             url: TEST_DATABASE_URI,
-            options: {}
-          })
+            options: {},
+          }),
         });
         const mockGetActiveConnectionId = sinon.fake.returns('pineapple');
 
@@ -335,7 +327,7 @@ suite('Playground Controller Test Suite', function () {
 
         const mockEvaluateWithCancelModal = sinon.fake.resolves({
           outputLines: [],
-          result: '123'
+          result: '123',
         });
         sinon.replace(
           testPlaygroundController,
@@ -365,7 +357,7 @@ suite('Playground Controller Test Suite', function () {
 
         const mockEvaluateWithCancelModal = sinon.fake.resolves({
           outputLines: [],
-          result: '123'
+          result: '123',
         });
         sinon.replace(
           testPlaygroundController,
@@ -405,11 +397,12 @@ suite('Playground Controller Test Suite', function () {
           sinon.fake.rejects(false)
         );
 
-        const result = await testPlaygroundController._evaluateWithCancelModal();
+        const result =
+          await testPlaygroundController._evaluateWithCancelModal();
 
         expect(result).to.deep.equal({
           outputLines: undefined,
-          result: undefined
+          result: undefined,
         });
       });
 
@@ -458,10 +451,12 @@ suite('Playground Controller Test Suite', function () {
         const textFromEditor = 'var x = { name: qwerty }';
         const selection = {
           start: { line: 0, character: 8 },
-          end: { line: 0, character: 24 }
+          end: { line: 0, character: 24 },
         } as vscode.Selection;
         const mode = ExportToLanguageMode.OTHER;
-        const activeTextEditor = { document: { getText: () => textFromEditor } } as vscode.TextEditor;
+        const activeTextEditor = {
+          document: { getText: () => textFromEditor },
+        } as vscode.TextEditor;
 
         const fakeVscodeErrorMessage: any = sinon.fake();
         sinon.replace(
@@ -477,7 +472,8 @@ suite('Playground Controller Test Suite', function () {
 
         await playgroundControllerTest.exportToLanguage('csharp');
 
-        const expectedMessage = 'Unable to export to csharp language: Symbol \'qwerty\' is undefined';
+        const expectedMessage =
+          "Unable to export to csharp language: Symbol 'qwerty' is undefined";
         expect(fakeVscodeErrorMessage.firstArg).to.be.equal(expectedMessage);
       });
     });

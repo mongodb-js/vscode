@@ -9,14 +9,16 @@ import { PLAYGROUND_RESULT_URI } from './playgroundResultProvider';
 import type { PlaygroundResult } from '../types/playgroundType';
 
 export default class EditDocumentCodeLensProvider
-implements vscode.CodeLensProvider {
-  _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+  implements vscode.CodeLensProvider
+{
+  _onDidChangeCodeLenses: vscode.EventEmitter<void> =
+    new vscode.EventEmitter<void>();
   _codeLenses: vscode.CodeLens[] = [];
   _codeLensesInfo: { [name: string]: EditDocumentInfo[] } | {} = {};
   _connectionController: ConnectionController;
 
-  readonly onDidChangeCodeLenses: vscode.Event<void> = this
-    ._onDidChangeCodeLenses.event;
+  readonly onDidChangeCodeLenses: vscode.Event<void> =
+    this._onDidChangeCodeLenses.event;
 
   constructor(connectionController: ConnectionController) {
     this._connectionController = connectionController;
@@ -27,15 +29,15 @@ implements vscode.CodeLensProvider {
   }
 
   updateCodeLensesForCollection(data: {
-    content: EJSON.SerializableTypes,
-    namespace: string | null,
-    uri: vscode.Uri
+    content: EJSON.SerializableTypes;
+    namespace: string | null;
+    uri: vscode.Uri;
   }) {
     let resultCodeLensesInfo: EditDocumentInfo[] = [];
 
     resultCodeLensesInfo = this._updateCodeLensesForCursor({
       ...data,
-      source: DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW
+      source: DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
     });
 
     this._codeLensesInfo[data.uri.toString()] = resultCodeLensesInfo;
@@ -62,13 +64,14 @@ implements vscode.CodeLensProvider {
       resultCodeLensesInfo = this._updateCodeLensesForDocument(data);
     }
 
-    this._codeLensesInfo[PLAYGROUND_RESULT_URI.toString()] = resultCodeLensesInfo;
+    this._codeLensesInfo[PLAYGROUND_RESULT_URI.toString()] =
+      resultCodeLensesInfo;
   }
 
   _updateCodeLensesForCursor(data: {
-    content: any,
-    namespace: string | null,
-    source: DocumentSource
+    content: any;
+    namespace: string | null;
+    source: DocumentSource;
   }): EditDocumentInfo[] {
     const resultCodeLensesInfo: EditDocumentInfo[] = [];
 
@@ -89,7 +92,7 @@ implements vscode.CodeLensProvider {
             source,
             line,
             namespace,
-            connectionId
+            connectionId,
           });
 
           // To calculate the position of the next open curly bracket,
@@ -104,9 +107,9 @@ implements vscode.CodeLensProvider {
   }
 
   _updateCodeLensesForDocument(data: {
-    content: any,
-    namespace: string | null,
-    source: DocumentSource
+    content: any;
+    namespace: string | null;
+    source: DocumentSource;
   }): EditDocumentInfo[] {
     const { content, namespace, source } = data;
     const resultCodeLensesInfo: EditDocumentInfo[] = [];
@@ -121,7 +124,7 @@ implements vscode.CodeLensProvider {
         source,
         line: 1,
         namespace,
-        connectionId
+        connectionId,
       });
     }
 
@@ -131,7 +134,8 @@ implements vscode.CodeLensProvider {
   provideCodeLenses(): vscode.CodeLens[] {
     this._codeLenses = [];
 
-    const activeEditorUri = vscode.window.activeTextEditor?.document.uri.toString();
+    const activeEditorUri =
+      vscode.window.activeTextEditor?.document.uri.toString();
 
     if (activeEditorUri && this._codeLensesInfo[activeEditorUri]) {
       this._codeLensesInfo[activeEditorUri].forEach((item) => {
@@ -144,7 +148,7 @@ implements vscode.CodeLensProvider {
         } = {
           title: 'Edit Document',
           command: EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
-          arguments: [item]
+          arguments: [item],
         };
 
         this._codeLenses.push(new vscode.CodeLens(range, command));

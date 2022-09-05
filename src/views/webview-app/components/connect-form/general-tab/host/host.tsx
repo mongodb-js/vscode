@@ -8,13 +8,16 @@ import {
   HostsChangedAction,
   IsSrvRecordToggledAction,
   PortChangedAction,
-  ReplicaSetChangedAction
+  ReplicaSetChangedAction,
 } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
 import { AppState } from '../../../../store/store';
 import FormGroup from '../../../form/form-group';
 import RadioBoxGroup from '../../../form/radio-box-group/radio-box-group';
-import { DEFAULT_HOST, Host } from '../../../../connection-model/legacy-connection-model';
+import {
+  DEFAULT_HOST,
+  Host,
+} from '../../../../connection-model/legacy-connection-model';
 import ReplicaSetInput from './replica-set-input';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';
@@ -24,27 +27,27 @@ const styles = require('./host.less');
 enum CONNECTION_TYPE {
   STANDALONE = 'STANDALONE',
   REPLICA_SET = 'REPLICA_SET',
-  SRV_RECORD = 'SRV_RECORD'
+  SRV_RECORD = 'SRV_RECORD',
 }
 
 const CONNECTION_TYPE_OPTIONS: {
   [connectionType in CONNECTION_TYPE]: {
     label: string;
     value: CONNECTION_TYPE;
-  }
+  };
 } = {
   [CONNECTION_TYPE.STANDALONE]: {
     label: 'Standalone',
-    value: CONNECTION_TYPE.STANDALONE
+    value: CONNECTION_TYPE.STANDALONE,
   },
   [CONNECTION_TYPE.REPLICA_SET]: {
     label: 'Replica Set',
-    value: CONNECTION_TYPE.REPLICA_SET
+    value: CONNECTION_TYPE.REPLICA_SET,
   },
   [CONNECTION_TYPE.SRV_RECORD]: {
     label: 'SRV Record',
-    value: CONNECTION_TYPE.SRV_RECORD
-  }
+    value: CONNECTION_TYPE.SRV_RECORD,
+  },
 };
 
 type StateProps = {
@@ -64,7 +67,9 @@ type DispatchProps = {
 };
 
 export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
-  onConnectionTypeChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  onConnectionTypeChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): void => {
     switch (event.target.value as CONNECTION_TYPE) {
       case CONNECTION_TYPE.STANDALONE:
         this.props.setReplicaSet();
@@ -101,7 +106,7 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
   onHostChanged = (updatedHost: Host, hostIndex: number): void => {
     const { hosts } = this.props;
 
-    const newHosts = [ ...hosts ];
+    const newHosts = [...hosts];
 
     newHosts[hostIndex] = updatedHost;
 
@@ -122,8 +127,8 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
     this.props.updateHosts([
       ...hosts,
       {
-        ...DEFAULT_HOST
-      }
+        ...DEFAULT_HOST,
+      },
     ]);
 
     if (!replicaSet) {
@@ -133,19 +138,25 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
 
   onHostnameChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onHostnameChanged(event.target.value);
-    this.onHostChanged({
-      host: event.target.value,
-      port: this.props.hosts[0].port
-    }, 0);
+    this.onHostChanged(
+      {
+        host: event.target.value,
+        port: this.props.hosts[0].port,
+      },
+      0
+    );
   };
 
   onPortChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const port = +event.target.value;
     this.props.onPortChanged(port);
-    this.onHostChanged({
-      host: this.props.hosts[0].host,
-      port
-    }, 0);
+    this.onHostChanged(
+      {
+        host: this.props.hosts[0].host,
+        port,
+      },
+      0
+    );
   };
 
   onRemoveHost = (
@@ -156,17 +167,14 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
 
     const { hosts } = this.props;
 
-    const newHosts = [ ...hosts ];
+    const newHosts = [...hosts];
     newHosts.splice(hostIndex, 1);
 
     this.props.updateHosts(newHosts);
   };
 
   getCurrentConnectionType = (): CONNECTION_TYPE => {
-    const {
-      isSrvRecord,
-      replicaSet
-    } = this.props;
+    const { isSrvRecord, replicaSet } = this.props;
 
     if (isSrvRecord) {
       return CONNECTION_TYPE.SRV_RECORD;
@@ -190,15 +198,10 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
   }
 
   renderStandaloneHost(): React.ReactNode {
-    const {
-      hostname,
-      port
-    } = this.props;
+    const { hostname, port } = this.props;
 
     return (
-      <div
-        className={styles['host-input-area']}
-      >
+      <div className={styles['host-input-area']}>
         <FormInput
           className={styles['host-input-host']}
           id="hostname"
@@ -222,36 +225,36 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
           className={`${styles['host-add-host-button']} ${styles['first-host']}`}
           onClick={this.onAddNewHost}
         >
-          <FontAwesomeIcon
-            icon={faPlus}
-          />
+          <FontAwesomeIcon icon={faPlus} />
         </button>
       </div>
     );
   }
 
   renderReplicaSetOptions(): React.ReactNode {
-    const {
-      hosts
-    } = this.props;
+    const { hosts } = this.props;
 
     return (
       <React.Fragment>
         {hosts.map((host, index) => (
-          <div
-            className={styles['host-input-area']}
-            key={`host-${index}`}
-          >
+          <div className={styles['host-input-area']} key={`host-${index}`}>
             <FormInput
               className={styles['host-input-host']}
               id={`host-name-${index}`}
               label={index === 0 ? 'Hostname' : undefined}
               name={`host-name-${index}`}
               placeholder="localhost"
-              changeHandler={(event: React.ChangeEvent<HTMLInputElement>): void => this.onHostChanged({
-                host: event.target.value,
-                port: host.port
-              }, index)}
+              changeHandler={(
+                event: React.ChangeEvent<HTMLInputElement>
+              ): void =>
+                this.onHostChanged(
+                  {
+                    host: event.target.value,
+                    port: host.port,
+                  },
+                  index
+                )
+              }
               value={host.host}
             />
             <FormInput
@@ -260,33 +263,38 @@ export class HostInput extends React.PureComponent<StateProps & DispatchProps> {
               label={index === 0 ? 'Port' : undefined}
               name={`host-port-${index}`}
               placeholder="27017"
-              changeHandler={(event: React.ChangeEvent<HTMLInputElement>): void => this.onHostChanged({
-                host: host.host,
-                port: +event.target.value
-              }, index)}
+              changeHandler={(
+                event: React.ChangeEvent<HTMLInputElement>
+              ): void =>
+                this.onHostChanged(
+                  {
+                    host: host.host,
+                    port: +event.target.value,
+                  },
+                  index
+                )
+              }
               value={host.port}
               type="number"
             />
             <button
               className={classnames(styles['host-add-host-button'], {
-                [styles['first-host']]: index === 0
+                [styles['first-host']]: index === 0,
               })}
               onClick={this.onAddNewHost}
             >
-              <FontAwesomeIcon
-                icon={faPlus}
-              />
+              <FontAwesomeIcon icon={faPlus} />
             </button>
-            {hosts.length > 1 && (<button
-              className={classnames(styles['host-remove-host-button'], {
-                [styles['first-host']]: index === 0
-              })}
-              onClick={(event): void => this.onRemoveHost(event, index)}
-            >
-              <FontAwesomeIcon
-                icon={faMinus}
-              />
-            </button>)}
+            {hosts.length > 1 && (
+              <button
+                className={classnames(styles['host-remove-host-button'], {
+                  [styles['first-host']]: index === 0,
+                })}
+                onClick={(event): void => this.onRemoveHost(event, index)}
+              >
+                <FontAwesomeIcon icon={faMinus} />
+              </button>
+            )}
           </div>
         ))}
         <ReplicaSetInput />
@@ -338,30 +346,30 @@ const mapStateToProps = (state: AppState): StateProps => {
     hosts: state.currentConnection.hosts,
     isSrvRecord: state.currentConnection.isSrvRecord,
     port: state.currentConnection.port,
-    replicaSet: state.currentConnection.replicaSet
+    replicaSet: state.currentConnection.replicaSet,
   };
 };
 
 const mapDispatchToProps: DispatchProps = {
   onHostnameChanged: (newHostname: string): HostnameChangedAction => ({
     type: ActionTypes.HOSTNAME_CHANGED,
-    hostname: newHostname
+    hostname: newHostname,
   }),
   onPortChanged: (port: number): PortChangedAction => ({
     type: ActionTypes.PORT_CHANGED,
-    port
+    port,
   }),
   setReplicaSet: (replicaSet?: string): ReplicaSetChangedAction => ({
     type: ActionTypes.REPLICA_SET_CHANGED,
-    replicaSet
+    replicaSet,
   }),
   toggleSRVRecord: (): IsSrvRecordToggledAction => ({
-    type: ActionTypes.IS_SRV_RECORD_TOGGLED
+    type: ActionTypes.IS_SRV_RECORD_TOGGLED,
   }),
   updateHosts: (hosts: Host[]): HostsChangedAction => ({
     type: ActionTypes.HOSTS_CHANGED,
-    hosts
-  })
+    hosts,
+  }),
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(HostInput);

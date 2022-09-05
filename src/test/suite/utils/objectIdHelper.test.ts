@@ -17,10 +17,7 @@ suite('ObjectId Test Suite', () => {
       .update(CONFIG_NAME, false);
 
     const idFactory = createIdFactory();
-    const ids = [
-      idFactory(),
-      idFactory()
-    ];
+    const ids = [idFactory(), idFactory()];
 
     expect(ids[0]).to.equal(ids[1]);
   });
@@ -31,10 +28,7 @@ suite('ObjectId Test Suite', () => {
       .update(CONFIG_NAME, true);
 
     const idFactory = createIdFactory();
-    const ids = [
-      idFactory(),
-      idFactory()
-    ];
+    const ids = [idFactory(), idFactory()];
 
     expect(ids[0]).to.not.equal(ids[1]);
   });

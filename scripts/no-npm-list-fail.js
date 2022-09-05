@@ -5,7 +5,9 @@
 const child_process = require('child_process');
 const origExec = child_process.exec;
 child_process.exec = (cmd, options, cb) => {
-  if (cmd === 'npm list --production --parseable --depth=99999 --loglevel=error') {
+  if (
+    cmd === 'npm list --production --parseable --depth=99999 --loglevel=error'
+  ) {
     origExec(cmd, options, (err, stdout, stderr) => {
       cb(null, stdout, stderr);
     });
@@ -13,4 +15,3 @@ child_process.exec = (cmd, options, cb) => {
     origExec(cmd, options, cb);
   }
 };
-

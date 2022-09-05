@@ -67,12 +67,13 @@ suite('Active DB CodeLens Provider Test Suite', () => {
       find: (namespace, filter, options, callback): void => {
         return callback(null, [{ field: 'Text message' }]);
       },
-      instance: () => Promise.resolve({
-        dataLake: {},
-        build: {},
-        genuineMongoDB: {},
-        host: {}
-      }),
+      instance: () =>
+        Promise.resolve({
+          dataLake: {},
+          build: {},
+          genuineMongoDB: {},
+          host: {},
+        }),
     } as DataService;
 
     testConnectionController.setActiveDataService(mockActiveDataService);

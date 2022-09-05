@@ -22,7 +22,7 @@ suite('IndexListTreeItem Test Suite', () => {
       {
         indexes: (ns, opts, cb): void => {
           cb(null, []);
-        }
+        },
       } as DataService,
       false,
       false,
@@ -46,20 +46,20 @@ suite('IndexListTreeItem Test Suite', () => {
       {
         v: 1,
         key: {
-          _id: 1
+          _id: 1,
         },
         name: '_id_',
-        ns: 'tasty_fruits.pineapple'
+        ns: 'tasty_fruits.pineapple',
       },
       {
         v: 1,
         key: {
           _id: 1,
-          gnocchi: -1
+          gnocchi: -1,
         },
         name: '_id_1_gnocchi_1',
-        ns: 'tasty_fruits.pineapple'
-      }
+        ns: 'tasty_fruits.pineapple',
+      },
     ];
 
     let namespaceRequested = '';
@@ -71,7 +71,7 @@ suite('IndexListTreeItem Test Suite', () => {
           namespaceRequested = ns;
 
           cb(null, fakeFetchIndexes);
-        }
+        },
       } as DataService,
       false,
       false,
@@ -111,14 +111,17 @@ suite('IndexListTreeItem Test Suite', () => {
       {
         indexes: (ns, opts, cb): void => {
           cb(null, []);
-        }
+        },
       } as DataService,
       false,
       false,
       []
     );
 
-    const indexesIconPath = testIndexListTreeItem.iconPath as { light: string; dark: string };
+    const indexesIconPath = testIndexListTreeItem.iconPath as {
+      light: string;
+      dark: string;
+    };
     assert(
       indexesIconPath.dark.includes('indexes.svg'),
       'Expected icon path to point to an svg by the name "indexes" with a dark mode'
@@ -137,7 +140,7 @@ suite('IndexListTreeItem Test Suite', () => {
       {
         indexes: (ns, opts, cb): void => {
           cb(new Error(expectedMessage), []);
-        }
+        },
       } as DataService,
       false,
       false,
@@ -158,26 +161,25 @@ suite('IndexListTreeItem Test Suite', () => {
     }
   });
 
-
   test('when rebuilt it maintains the expanded state of the cached indexes', async () => {
     const fakeFetchIndexes = [
       {
         v: 1,
         key: {
-          _id: 1
+          _id: 1,
         },
         name: '_id_',
-        ns: 'tasty_fruits.pineapple'
+        ns: 'tasty_fruits.pineapple',
       },
       {
         v: 1,
         key: {
           _id: 1,
-          gnocchi: -1
+          gnocchi: -1,
         },
         name: '_id_1_gnocchi_1',
-        ns: 'tasty_fruits.pineapple'
-      }
+        ns: 'tasty_fruits.pineapple',
+      },
     ];
 
     const testIndexListTreeItem = new IndexListTreeItem(
@@ -186,7 +188,7 @@ suite('IndexListTreeItem Test Suite', () => {
       {
         indexes: (ns, opts, cb): void => {
           cb(null, fakeFetchIndexes);
-        }
+        },
       } as DataService,
       false,
       false,
@@ -211,7 +213,7 @@ suite('IndexListTreeItem Test Suite', () => {
       {
         indexes: (ns, opts, cb): void => {
           cb(null, []);
-        }
+        },
       } as DataService,
       testIndexListTreeItem.isExpanded,
       testIndexListTreeItem.cacheIsUpToDate,
@@ -234,7 +236,8 @@ suite('IndexListTreeItem Test Suite', () => {
       'Expected the first index in list to be expanded'
     );
     assert(
-      newIndexTreeItems[0].collapsibleState === vscode.TreeItemCollapsibleState.Expanded,
+      newIndexTreeItems[0].collapsibleState ===
+        vscode.TreeItemCollapsibleState.Expanded,
       'Expected the first index in list have expanded tree state'
     );
   });

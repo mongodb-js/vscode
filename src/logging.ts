@@ -3,9 +3,8 @@ import * as vscode from 'vscode';
 import * as util from 'util';
 
 class Logger implements ILogger {
-  static channel: vscode.OutputChannel = vscode.window.createOutputChannel(
-    'mongodb'
-  );
+  static channel: vscode.OutputChannel =
+    vscode.window.createOutputChannel('mongodb');
 
   private name: string;
 

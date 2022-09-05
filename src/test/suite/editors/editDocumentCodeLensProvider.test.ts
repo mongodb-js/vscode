@@ -50,12 +50,14 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     );
     const ejsinId = { $oid: '5d973ae744376d2aae72a160' };
     const playgroundResult = {
-      content: [{
-        _id: ejsinId,
-        name: 'test name'
-      }],
+      content: [
+        {
+          _id: ejsinId,
+          name: 'test name',
+        },
+      ],
       namespace: 'db.coll',
-      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
+      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
@@ -65,7 +67,8 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       mockActiveConnectionId
     );
 
-    const result = testCodeLensProvider._updateCodeLensesForCursor(playgroundResult);
+    const result =
+      testCodeLensProvider._updateCodeLensesForCursor(playgroundResult);
 
     assert(!!result);
     const codeLensesInfo = result[0];
@@ -85,10 +88,10 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     const playgroundResult = {
       content: {
         _id: ejsinId,
-        name: 'test name'
+        name: 'test name',
       },
       namespace: 'db.coll',
-      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND
+      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
     const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
@@ -98,7 +101,8 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       mockActiveConnectionId
     );
 
-    const result = testCodeLensProvider._updateCodeLensesForDocument(playgroundResult);
+    const result =
+      testCodeLensProvider._updateCodeLensesForDocument(playgroundResult);
 
     assert(!!result);
     const codeLensesInfo = result[0];
@@ -117,14 +121,20 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       );
 
       const activeTextEditor = mockTextEditor;
-      mockTextEditor.document.uri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:/Playground Result');
-      sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
+      mockTextEditor.document.uri = vscode.Uri.parse(
+        'PLAYGROUND_RESULT_SCHEME:/Playground Result'
+      );
+      sandbox.replaceGetter(
+        vscode.window,
+        'activeTextEditor',
+        () => activeTextEditor
+      );
 
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
         type: 'Document',
         content: { _id: '93333a0d-83f6-4e6f-a575-af7ea6187a4a' },
-        language: 'json'
+        language: 'json',
       });
 
       const codeLens = testCodeLensProvider.provideCodeLenses();
@@ -144,7 +154,9 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       );
       assert(codeLens[0].command?.title === 'Edit Document');
       assert(!!codeLens[0].command?.command);
-      assert(codeLens[0].command?.command === 'mdb.openMongoDBDocumentFromCodeLens');
+      assert(
+        codeLens[0].command?.command === 'mdb.openMongoDBDocumentFromCodeLens'
+      );
       const commandArguments = codeLens[0].command?.arguments;
       assert(!!commandArguments);
       assert(commandArguments[0].source === 'playground');
@@ -156,17 +168,23 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       );
 
       const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:/Playground Result');
-      sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
+      activeTextEditor.document.uri = vscode.Uri.parse(
+        'PLAYGROUND_RESULT_SCHEME:/Playground Result'
+      );
+      sandbox.replaceGetter(
+        vscode.window,
+        'activeTextEditor',
+        () => activeTextEditor
+      );
 
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
         type: 'Cursor',
         content: [
           { _id: '93333a0d-83f6-4e6f-a575-af7ea6187a4a' },
-          { _id: '21333a0d-83f6-4e6f-a575-af7ea6187444' }
+          { _id: '21333a0d-83f6-4e6f-a575-af7ea6187444' },
         ],
-        language: 'json'
+        language: 'json',
       });
 
       const codeLens = testCodeLensProvider.provideCodeLenses();
@@ -203,8 +221,14 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       );
 
       const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:/Playground Result');
-      sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
+      activeTextEditor.document.uri = vscode.Uri.parse(
+        'PLAYGROUND_RESULT_SCHEME:/Playground Result'
+      );
+      sandbox.replaceGetter(
+        vscode.window,
+        'activeTextEditor',
+        () => activeTextEditor
+      );
 
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
@@ -216,8 +240,8 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
             price: 5,
             quantity: 20,
             date: {
-              $date: '2014-04-04T11:21:39.736Z'
-            }
+              $date: '2014-04-04T11:21:39.736Z',
+            },
           },
           {
             _id: 5,
@@ -225,11 +249,11 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
             price: 10,
             quantity: 10,
             date: {
-              $date: '2014-04-04T21:23:13.331Z'
-            }
-          }
+              $date: '2014-04-04T21:23:13.331Z',
+            },
+          },
         ],
-        language: 'json'
+        language: 'json',
       });
 
       const codeLens = testCodeLensProvider.provideCodeLenses();

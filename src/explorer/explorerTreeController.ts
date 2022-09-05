@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import ConnectionController, {
   DataServiceEventTypes,
-  StoreConnectionInfo
+  StoreConnectionInfo,
 } from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import { createLogger } from '../logging';
@@ -14,7 +14,8 @@ import { sortTreeItemsByLabel } from './treeItemUtils';
 const log = createLogger('explorer controller');
 
 export default class ExplorerTreeController
-implements vscode.TreeDataProvider<vscode.TreeItem> {
+  implements vscode.TreeDataProvider<vscode.TreeItem>
+{
   private _connectionController: ConnectionController;
   private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
 
@@ -62,34 +63,32 @@ implements vscode.TreeDataProvider<vscode.TreeItem> {
       this._onTreeItemUpdate();
     });
 
-    treeView.onDidExpandElement(
-      (event: any): Promise<void> => {
-        log.info('Tree item was expanded:', event.element.label);
+    treeView.onDidExpandElement((event: any): Promise<void> => {
+      log.info('Tree item was expanded:', event.element.label);
 
-        return new Promise((resolve, reject) => {
-          if (!event.element.onDidExpand) {
-            return resolve();
-          }
+      return new Promise((resolve, reject) => {
+        if (!event.element.onDidExpand) {
+          return resolve();
+        }
 
-          event.element.onDidExpand().then(
-            () => {
-              if (event.element.doesNotRequireTreeUpdate) {
-                // When the element is already loaded (synchronous), we do not
-                // need to fully refresh the tree.
-                return resolve();
-              }
-
-              this._onTreeItemUpdate();
-
-              resolve();
-            },
-            (err: Error) => {
-              reject(err);
+        event.element.onDidExpand().then(
+          () => {
+            if (event.element.doesNotRequireTreeUpdate) {
+              // When the element is already loaded (synchronous), we do not
+              // need to fully refresh the tree.
+              return resolve();
             }
-          );
-        });
-      }
-    );
+
+            this._onTreeItemUpdate();
+
+            resolve();
+          },
+          (err: Error) => {
+            reject(err);
+          }
+        );
+      });
+    });
 
     treeView.onDidChangeSelection(async (event: any) => {
       if (event.selection && event.selection.length === 1) {

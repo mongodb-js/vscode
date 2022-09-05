@@ -6,7 +6,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
   TransportKind,
-  CancellationTokenSource
+  CancellationTokenSource,
 } from 'vscode-languageclient/node';
 import { workspace, ExtensionContext } from 'vscode';
 
@@ -16,7 +16,7 @@ import {
   ShellExecuteAllResult,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
-  PlaygroundTextAndSelection
+  PlaygroundTextAndSelection,
 } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
 
@@ -53,8 +53,8 @@ export default class LanguageServerController {
       debug: {
         module: serverModule,
         transport: TransportKind.ipc,
-        options: debugOptions
-      }
+        options: debugOptions,
+      },
     };
 
     // Options to control the language client
@@ -62,20 +62,20 @@ export default class LanguageServerController {
       // Register the server for mongodb documents
       documentSelector: [
         { scheme: 'untitled', language: 'mongodb' },
-        { scheme: 'file', language: 'mongodb' }
+        { scheme: 'file', language: 'mongodb' },
       ],
       synchronize: {
         // Notify the server about file changes in the workspace
-        fileEvents: workspace.createFileSystemWatcher('**/*')
+        fileEvents: workspace.createFileSystemWatcher('**/*'),
       },
       outputChannel: vscode.window.createOutputChannel(
         'MongoDB Language Server'
-      )
+      ),
     };
 
     log.info('Creating MongoDB Language Server', {
       serverOptions,
-      clientOptions
+      clientOptions,
     });
 
     // Create the language server client
@@ -102,13 +102,19 @@ export default class LanguageServerController {
       this._context.extensionPath
     );
 
-    this._client.onNotification(ServerCommands.SHOW_INFO_MESSAGE, (messsage) => {
-      void vscode.window.showInformationMessage(messsage);
-    });
+    this._client.onNotification(
+      ServerCommands.SHOW_INFO_MESSAGE,
+      (messsage) => {
+        void vscode.window.showInformationMessage(messsage);
+      }
+    );
 
-    this._client.onNotification(ServerCommands.SHOW_ERROR_MESSAGE, (messsage) => {
-      void vscode.window.showErrorMessage(messsage);
-    });
+    this._client.onNotification(
+      ServerCommands.SHOW_ERROR_MESSAGE,
+      (messsage) => {
+        void vscode.window.showErrorMessage(messsage);
+      }
+    );
   }
 
   deactivate(): void {
@@ -165,9 +171,9 @@ export default class LanguageServerController {
   }
 
   async connectToServiceProvider(params: {
-    connectionId: string,
+    connectionId: string;
     connectionString: string;
-    connectionOptions: MongoClientOptions
+    connectionOptions: MongoClientOptions;
   }): Promise<void> {
     await this._client.onReady();
     await this._client.sendRequest(

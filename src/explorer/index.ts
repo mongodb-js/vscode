@@ -17,5 +17,5 @@ export {
   ExplorerController,
   HelpExplorer,
   PlaygroundsExplorer,
-  SchemaTreeItem
+  SchemaTreeItem,
 };

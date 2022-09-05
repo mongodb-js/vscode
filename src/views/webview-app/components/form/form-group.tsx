@@ -17,7 +17,7 @@ class FormGroup extends React.PureComponent<props> {
         id={id}
         className={classnames({
           [styles['form-group']]: true,
-          [styles['form-group-separator']]: separator
+          [styles['form-group-separator']]: separator,
         })}
       >
         {children}

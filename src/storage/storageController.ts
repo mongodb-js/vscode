@@ -11,25 +11,25 @@ export enum StorageVariables {
   GLOBAL_USER_ID = 'GLOBAL_USER_ID',
   GLOBAL_ANONYMOUS_ID = 'GLOBAL_ANONYMOUS_ID',
   // Only exists on workspaceState.
-  WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS'
+  WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS',
 }
 
 // Typically variables default to 'GLOBAL' scope.
 export enum StorageLocation {
   GLOBAL = 'GLOBAL',
   WORKSPACE = 'WORKSPACE',
-  NONE = 'NONE'
+  NONE = 'NONE',
 }
 
 // Coupled with the `defaultConnectionSavingLocation` configuration in `package.json`.
 export enum DefaultSavingLocations {
   'Workspace' = 'Workspace',
   'Global' = 'Global',
-  'Session Only' = 'Session Only'
+  'Session Only' = 'Session Only',
 }
 
 export type ConnectionsFromStorage = {
-  [connectionId: string]: StoreConnectionInfo
+  [connectionId: string]: StoreConnectionInfo;
 };
 
 interface StorageVariableContents {
@@ -43,16 +43,22 @@ type StoredVariableName = keyof StorageVariableContents;
 type StoredItem<T extends StoredVariableName> = StorageVariableContents[T];
 
 export default class StorageController {
-  _storage: { [StorageLocation.GLOBAL]: vscode.Memento, [StorageLocation.WORKSPACE]: vscode.Memento };
+  _storage: {
+    [StorageLocation.GLOBAL]: vscode.Memento;
+    [StorageLocation.WORKSPACE]: vscode.Memento;
+  };
 
   constructor(context: vscode.ExtensionContext) {
     this._storage = {
       [StorageLocation.GLOBAL]: context.globalState,
-      [StorageLocation.WORKSPACE]: context.workspaceState
+      [StorageLocation.WORKSPACE]: context.workspaceState,
     };
   }
 
-  get<T extends StoredVariableName>(variableName: T, storageLocation: StorageLocation = StorageLocation.GLOBAL): StoredItem<T> {
+  get<T extends StoredVariableName>(
+    variableName: T,
+    storageLocation: StorageLocation = StorageLocation.GLOBAL
+  ): StoredItem<T> {
     return this._storage[storageLocation].get(variableName);
   }
 
@@ -75,13 +81,13 @@ export default class StorageController {
     // We keep sending `userId` to Segment for old users though to preserve their analytics.
     if (globalUserId && typeof globalUserId === 'string') {
       return {
-        userId: globalUserId
+        userId: globalUserId,
       };
     }
 
     if (globalAnonymousId && typeof globalAnonymousId === 'string') {
       return {
-        anonymousId: globalAnonymousId
+        anonymousId: globalAnonymousId,
       };
     }
 
@@ -90,13 +96,19 @@ export default class StorageController {
     return { anonymousId };
   }
 
-  async saveConnectionToStore(storeConnectionInfo: StoreConnectionInfo): Promise<void> {
-    const variableName = (storeConnectionInfo.storageLocation === StorageLocation.GLOBAL)
-      ? StorageVariables.GLOBAL_SAVED_CONNECTIONS
-      : StorageVariables.WORKSPACE_SAVED_CONNECTIONS;
+  async saveConnectionToStore(
+    storeConnectionInfo: StoreConnectionInfo
+  ): Promise<void> {
+    const variableName =
+      storeConnectionInfo.storageLocation === StorageLocation.GLOBAL
+        ? StorageVariables.GLOBAL_SAVED_CONNECTIONS
+        : StorageVariables.WORKSPACE_SAVED_CONNECTIONS;
 
     // Get the current saved connections.
-    let savedConnections = this.get(variableName, storeConnectionInfo.storageLocation);
+    let savedConnections = this.get(
+      variableName,
+      storeConnectionInfo.storageLocation
+    );
 
     if (!savedConnections) {
       savedConnections = {};
@@ -113,7 +125,9 @@ export default class StorageController {
     );
   }
 
-  async saveConnection(storeConnectionInfo: StoreConnectionInfo): Promise<StoreConnectionInfo> {
+  async saveConnection(
+    storeConnectionInfo: StoreConnectionInfo
+  ): Promise<StoreConnectionInfo> {
     const dontShowSaveLocationPrompt = vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .get('hideOptionToChooseWhereToSaveNewConnections');
@@ -121,12 +135,18 @@ export default class StorageController {
     if (dontShowSaveLocationPrompt === true) {
       // The user has chosen not to show the message on where to save the connection.
       // Save the connection in their default preference.
-      storeConnectionInfo.storageLocation = this.getPreferedStorageLocationFromConfiguration();
+      storeConnectionInfo.storageLocation =
+        this.getPreferedStorageLocationFromConfiguration();
     } else {
-      storeConnectionInfo.storageLocation = await this.getStorageLocationFromPrompt();
+      storeConnectionInfo.storageLocation =
+        await this.getStorageLocationFromPrompt();
     }
 
-    if ([StorageLocation.GLOBAL, StorageLocation.WORKSPACE].includes(storeConnectionInfo.storageLocation)) {
+    if (
+      [StorageLocation.GLOBAL, StorageLocation.WORKSPACE].includes(
+        storeConnectionInfo.storageLocation
+      )
+    ) {
       await this.saveConnectionToStore(storeConnectionInfo);
     }
 
@@ -141,11 +161,11 @@ export default class StorageController {
       [
         storeOnWorkspace,
         storeGlobally,
-        "Don't save this connection (it will be lost when the session is closed)"
+        "Don't save this connection (it will be lost when the session is closed)",
       ],
       {
         placeHolder:
-          'Where would you like to save this new connection? (This message can be disabled in the extension settings.)'
+          'Where would you like to save this new connection? (This message can be disabled in the extension settings.)',
       }
     );
 
@@ -194,11 +214,18 @@ export default class StorageController {
   }
 
   hasSavedConnections(): boolean {
-    const savedWorkspaceConnections = this.get(StorageVariables.WORKSPACE_SAVED_CONNECTIONS, StorageLocation.WORKSPACE);
-    const savedGlobalConnections = this.get(StorageVariables.GLOBAL_SAVED_CONNECTIONS, StorageLocation.GLOBAL);
+    const savedWorkspaceConnections = this.get(
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageLocation.WORKSPACE
+    );
+    const savedGlobalConnections = this.get(
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
+    );
 
     return (
-      (savedWorkspaceConnections && Object.keys(savedWorkspaceConnections).length > 0) ||
+      (savedWorkspaceConnections &&
+        Object.keys(savedWorkspaceConnections).length > 0) ||
       (savedGlobalConnections && Object.keys(savedGlobalConnections).length > 0)
     );
   }
