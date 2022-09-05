@@ -9,7 +9,7 @@ import FormActions from '../../../../../../views/webview-app/components/form/for
 import {
   AppState,
   initialState,
-  rootReducer
+  rootReducer,
 } from '../../../../../../views/webview-app/store/store';
 
 describe('Connect Form Actions Component Test Suite', () => {
@@ -29,13 +29,11 @@ describe('Connect Form Actions Component Test Suite', () => {
 
       store = createStore(rootReducer, {
         ...initialState,
-        showConnectForm: true
+        showConnectForm: true,
       } as AppState);
 
       wrapper = mount(
-        <Provider
-          store={store}
-        >
+        <Provider store={store}>
           <FormActions />
         </Provider>
       );
@@ -49,7 +47,9 @@ describe('Connect Form Actions Component Test Suite', () => {
       assert(!fakeVscodeWindowPostMessage.called);
       wrapper.find('#connectButton').simulate('click');
       assert(fakeVscodeWindowPostMessage.called);
-      assert(fakeVscodeWindowPostMessage.firstCall.args[0].command === 'CONNECT');
+      assert(
+        fakeVscodeWindowPostMessage.firstCall.args[0].command === 'CONNECT'
+      );
       assert.deepStrictEqual(
         fakeVscodeWindowPostMessage.firstCall.args[0].connectionModel,
         store.getState().currentConnection

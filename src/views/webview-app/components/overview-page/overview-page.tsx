@@ -18,10 +18,7 @@ type StateProps = {
 
 export class OverviewPage extends React.Component<StateProps> {
   render(): React.ReactNode {
-    const {
-      showConnectForm,
-      showResourcesPanel
-    } = this.props;
+    const { showConnectForm, showResourcesPanel } = this.props;
 
     return (
       <div className={styles.overview}>
@@ -41,7 +38,7 @@ export class OverviewPage extends React.Component<StateProps> {
 const mapStateToProps = (state: AppState): StateProps => {
   return {
     showConnectForm: state.showConnectForm,
-    showResourcesPanel: state.showResourcesPanel
+    showResourcesPanel: state.showResourcesPanel,
   };
 };
 

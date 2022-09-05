@@ -1,9 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, AuthStrategyChangedAction } from '../../../../store/actions';
+import {
+  ActionTypes,
+  AuthStrategyChangedAction,
+} from '../../../../store/actions';
 import AUTH_STRATEGIES, {
-  AuthStrategies
+  AuthStrategies,
 } from '../../../../connection-model/constants/auth-strategies';
 import FormGroup from '../../../form/form-group';
 import Kerberos from './kerberos';
@@ -33,7 +36,9 @@ type DispatchProps = {
   onAuthStrategyChanged: (authStrategy: AUTH_STRATEGIES) => void;
 };
 
-export class Authentication extends React.Component<StateProps & DispatchProps> {
+export class Authentication extends React.Component<
+  StateProps & DispatchProps
+> {
   /**
    * Changes an authentication strategy.
    *
@@ -56,7 +61,7 @@ export class Authentication extends React.Component<StateProps & DispatchProps> 
         kerberosCanonicalizeHostname,
         kerberosPassword,
         kerberosPrincipal,
-        kerberosServiceName
+        kerberosServiceName,
       } = this.props;
 
       return (
@@ -81,11 +86,8 @@ export class Authentication extends React.Component<StateProps & DispatchProps> 
       );
     }
     if (authStrategy === AUTH_STRATEGIES.MONGODB) {
-      const {
-        mongodbDatabaseName,
-        mongodbPassword,
-        mongodbUsername
-      } = this.props;
+      const { mongodbDatabaseName, mongodbPassword, mongodbUsername } =
+        this.props;
 
       return (
         <MongoDBAuth
@@ -97,11 +99,8 @@ export class Authentication extends React.Component<StateProps & DispatchProps> 
       );
     }
     if (authStrategy === AUTH_STRATEGIES['SCRAM-SHA-256']) {
-      const {
-        mongodbDatabaseName,
-        mongodbPassword,
-        mongodbUsername
-      } = this.props;
+      const { mongodbDatabaseName, mongodbPassword, mongodbUsername } =
+        this.props;
 
       return (
         <ScramSha256
@@ -128,7 +127,7 @@ export class Authentication extends React.Component<StateProps & DispatchProps> 
           name="authStrategy"
           options={AuthStrategies.map((authStrat) => ({
             label: authStrat.title,
-            value: authStrat.id
+            value: authStrat.id,
           }))}
           onChange={this.onAuthStrategyChanged}
           value={authStrategy}
@@ -143,7 +142,8 @@ const mapStateToProps = (state: AppState): StateProps => {
   return {
     authStrategy: state.currentConnection.authStrategy,
     isValid: state.isValid,
-    kerberosCanonicalizeHostname: state.currentConnection.kerberosCanonicalizeHostname,
+    kerberosCanonicalizeHostname:
+      state.currentConnection.kerberosCanonicalizeHostname,
     kerberosPassword: state.currentConnection.kerberosPassword,
     kerberosPrincipal: state.currentConnection.kerberosPrincipal,
     kerberosServiceName: state.currentConnection.kerberosServiceName,
@@ -152,15 +152,15 @@ const mapStateToProps = (state: AppState): StateProps => {
     mongodbDatabaseName: state.currentConnection.mongodbDatabaseName,
     mongodbPassword: state.currentConnection.mongodbPassword,
     mongodbUsername: state.currentConnection.mongodbUsername,
-    x509Username: state.currentConnection.x509Username
+    x509Username: state.currentConnection.x509Username,
   };
 };
 
 const mapDispatchToProps: DispatchProps = {
   onAuthStrategyChanged: (newAuthStrategy): AuthStrategyChangedAction => ({
     type: ActionTypes.AUTH_STRATEGY_CHANGED,
-    authStrategy: newAuthStrategy
-  })
+    authStrategy: newAuthStrategy,
+  }),
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Authentication);

@@ -25,7 +25,7 @@ export default class DocumentIdStore {
       documentId: EJSON.SerializableTypes;
     } = {
       documentIdReference: uuidv4(),
-      documentId
+      documentId,
     };
 
     this._documents.push(newDocument);

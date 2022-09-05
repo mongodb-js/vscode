@@ -9,7 +9,7 @@ import ConnectHelper from '../../../../../../views/webview-app/components/connec
 import {
   AppState,
   initialState,
-  rootReducer
+  rootReducer,
 } from '../../../../../../views/webview-app/store/store';
 
 describe('Connect Helper Component Test Suite', () => {
@@ -28,13 +28,11 @@ describe('Connect Helper Component Test Suite', () => {
       );
 
       store = createStore(rootReducer, {
-        ...initialState
+        ...initialState,
       } as AppState);
 
       wrapper = mount(
-        <Provider
-          store={store}
-        >
+        <Provider store={store}>
           <ConnectHelper />
         </Provider>
       );
@@ -47,7 +45,10 @@ describe('Connect Helper Component Test Suite', () => {
     test('when onOpenConnectionStringInput is clicked it posts a message to vscode to open the input', () => {
       wrapper.find('button').at(0).simulate('click');
       assert(fakeVscodeWindowPostMessage.called);
-      assert(fakeVscodeWindowPostMessage.firstCall.args[0].command === 'OPEN_CONNECTION_STRING_INPUT');
+      assert(
+        fakeVscodeWindowPostMessage.firstCall.args[0].command ===
+          'OPEN_CONNECTION_STRING_INPUT'
+      );
     });
 
     test('when onOpenConnectionFrom is clicked it shows the connect form modal', () => {

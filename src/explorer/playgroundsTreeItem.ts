@@ -10,12 +10,14 @@ function getIconPath(): { light: string; dark: string } {
 
   return {
     light: path.join(LIGHT, 'file-light.svg'),
-    dark: path.join(DARK, 'file-light.svg')
+    dark: path.join(DARK, 'file-light.svg'),
   };
 }
 
-export default class PlaygroundsTreeItem extends vscode.TreeItem
-  implements vscode.TreeDataProvider<PlaygroundsTreeItem> {
+export default class PlaygroundsTreeItem
+  extends vscode.TreeItem
+  implements vscode.TreeDataProvider<PlaygroundsTreeItem>
+{
   public filePath: string;
 
   contextValue = PLAYGROUND_ITEM;

@@ -13,19 +13,24 @@ describe('Radio Box Group Component Test Suite', () => {
       changeHandlerCalledValue = evt.target.value;
     };
 
-    const wrapper = mount(<RadioBoxGroup
-      name=""
-      label="Box form label"
-      options={[{
-        value: 'pineapple',
-        label: 'Pineapple!!'
-      }, {
-        value: 'watermelon',
-        label: 'Watermelon!!'
-      }]}
-      onChange={changeHandler}
-      value={'watermelon'}
-    />);
+    const wrapper = mount(
+      <RadioBoxGroup
+        name=""
+        label="Box form label"
+        options={[
+          {
+            value: 'pineapple',
+            label: 'Pineapple!!',
+          },
+          {
+            value: 'watermelon',
+            label: 'Watermelon!!',
+          },
+        ]}
+        onChange={changeHandler}
+        value={'watermelon'}
+      />
+    );
 
     test('it shows an input for each option', () => {
       assert(wrapper.find('input').length === 2);

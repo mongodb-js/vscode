@@ -2,7 +2,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import { AppState } from '../../../store/store';
-import { ActionTypes, ReadPreferenceChangedAction } from '../../../store/actions';
+import {
+  ActionTypes,
+  ReadPreferenceChangedAction,
+} from '../../../store/actions';
 import RadioBoxGroup from '../../form/radio-box-group/radio-box-group';
 import READ_PREFERENCES from '../../../connection-model/constants/read-preferences';
 
@@ -14,24 +17,24 @@ type ReadPreferenceOption = {
 const ReadPreferencesOptions: ReadPreferenceOption[] = [
   {
     label: 'Primary',
-    value: READ_PREFERENCES.PRIMARY
+    value: READ_PREFERENCES.PRIMARY,
   },
   {
     label: 'Primary Preferred',
-    value: READ_PREFERENCES.PRIMARY_PREFERRED
+    value: READ_PREFERENCES.PRIMARY_PREFERRED,
   },
   {
     label: 'Secondary',
-    value: READ_PREFERENCES.SECONDARY
+    value: READ_PREFERENCES.SECONDARY,
   },
   {
     label: 'Secondary Preferred',
-    value: READ_PREFERENCES.SECONDARY_PREFERRED
+    value: READ_PREFERENCES.SECONDARY_PREFERRED,
   },
   {
     label: 'Nearest',
-    value: READ_PREFERENCES.NEAREST
-  }
+    value: READ_PREFERENCES.NEAREST,
+  },
 ];
 
 type StateProps = {
@@ -42,7 +45,9 @@ type DispatchProps = {
   onReadPreferenceChanged: (newReadPreference: READ_PREFERENCES) => void;
 };
 
-class ReadPreferenceSelect extends React.PureComponent<StateProps & DispatchProps> {
+class ReadPreferenceSelect extends React.PureComponent<
+  StateProps & DispatchProps
+> {
   /**
    * Handles a read preference change.
    *
@@ -69,7 +74,7 @@ class ReadPreferenceSelect extends React.PureComponent<StateProps & DispatchProp
 
 const mapStateToProps = (state: AppState): StateProps => {
   return {
-    readPreference: state.currentConnection.readPreference
+    readPreference: state.currentConnection.readPreference,
   };
 };
 
@@ -78,8 +83,11 @@ const mapDispatchToProps: DispatchProps = {
     newReadPreference: READ_PREFERENCES
   ): ReadPreferenceChangedAction => ({
     type: ActionTypes.READ_PREFERENCE_CHANGED,
-    readPreference: newReadPreference
-  })
+    readPreference: newReadPreference,
+  }),
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ReadPreferenceSelect);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ReadPreferenceSelect);

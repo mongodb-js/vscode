@@ -59,7 +59,7 @@ enum EXTENSION_COMMANDS {
   MDB_REFRESH_INDEXES = 'mdb.refreshIndexes',
   MDB_CREATE_INDEX_TREE_VIEW = 'mdb.createIndexFromTreeView',
   MDB_INSERT_OBJECTID_TO_EDITOR = 'mdb.insertObjectIdToEditor',
-  MDB_GENERATE_OBJECTID_TO_CLIPBOARD = 'mdb.generateObjectIdToClipboard'
+  MDB_GENERATE_OBJECTID_TO_CLIPBOARD = 'mdb.generateObjectIdToClipboard',
 }
 
 export default EXTENSION_COMMANDS;

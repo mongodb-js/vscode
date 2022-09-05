@@ -12,21 +12,28 @@ export enum ConnectionItemContextValues {
   connected = 'connectedConnectionTreeItem',
 }
 
-function getIconPath(isActiveConnection: boolean): { light: string; dark: string } {
+function getIconPath(isActiveConnection: boolean): {
+  light: string;
+  dark: string;
+} {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
-  return isActiveConnection ? {
-    light: path.join(LIGHT, 'connection-active.svg'),
-    dark: path.join(DARK, 'connection-active.svg')
-  } : {
-    light: path.join(LIGHT, 'connection-inactive.svg'),
-    dark: path.join(DARK, 'connection-inactive.svg')
-  };
+  return isActiveConnection
+    ? {
+        light: path.join(LIGHT, 'connection-active.svg'),
+        dark: path.join(DARK, 'connection-active.svg'),
+      }
+    : {
+        light: path.join(LIGHT, 'connection-inactive.svg'),
+        dark: path.join(DARK, 'connection-inactive.svg'),
+      };
 }
 
-export default class ConnectionTreeItem extends vscode.TreeItem
-  implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem> {
+export default class ConnectionTreeItem
+  extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem>
+{
   contextValue = ConnectionItemContextValues.disconnected;
 
   private _childrenCache: { [key: string]: DatabaseTreeItem };
@@ -68,10 +75,13 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     // (Without an id it treats this tree item like a previous tree item with the same label).
     this.id = `${connectionId}-${Date.now()}`;
 
-    this.tooltip = connectionController.getSavedConnectionName(this.connectionId);
-    this.description = connectionController.getConnectionStatusStringForConnection(
+    this.tooltip = connectionController.getSavedConnectionName(
       this.connectionId
     );
+    this.description =
+      connectionController.getConnectionStatusStringForConnection(
+        this.connectionId
+      );
     this.iconPath = getIconPath(
       connectionController.getActiveConnectionId() === this.connectionId
     );
@@ -91,9 +101,11 @@ export default class ConnectionTreeItem extends vscode.TreeItem
     try {
       const dbs = await dataService.listDatabases();
 
-      return dbs.map(dbItem => dbItem.name);
+      return dbs.map((dbItem) => dbItem.name);
     } catch (error) {
-      throw new Error(`Unable to list databases: ${formatError(error).message}`);
+      throw new Error(
+        `Unable to list databases: ${formatError(error).message}`
+      );
     }
   }
 

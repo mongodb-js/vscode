@@ -21,7 +21,7 @@ import {
   ExplorerController,
   PlaygroundsExplorer,
   HelpExplorer,
-  CollectionTreeItem
+  CollectionTreeItem,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
 import { ExportToLanguages } from './types/playgroundType';
@@ -92,10 +92,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController,
       this._editDocumentCodeLensProvider
     );
-    this._activeConnectionCodeLensProvider = new ActiveConnectionCodeLensProvider(
-      this._connectionController
-    );
-    this._exportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
+    this._activeConnectionCodeLensProvider =
+      new ActiveConnectionCodeLensProvider(this._connectionController);
+    this._exportToLanguageCodeLensProvider =
+      new ExportToLanguageCodeLensProvider();
     this._codeActionProvider = new CodeActionProvider();
     this._playgroundController = new PlaygroundController(
       this._connectionController,
@@ -215,8 +215,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY, () =>
       this._playgroundController.exportToLanguage(ExportToLanguages.RUBY)
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS, (exportToLanguageAddons) =>
-      this._playgroundController.changeExportToLanguageAddons(exportToLanguageAddons)
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
+      (exportToLanguageAddons) =>
+        this._playgroundController.changeExportToLanguageAddons(
+          exportToLanguageAddons
+        )
     );
 
     // ------ DOCUMENTS ------ //
@@ -300,9 +304,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_CONNECTION_STRING,
       async (element: ConnectionTreeItem): Promise<boolean> => {
-        const connectionString = this._connectionController.copyConnectionStringByConnectionId(
-          element.connectionId
-        );
+        const connectionString =
+          this._connectionController.copyConnectionStringByConnectionId(
+            element.connectionId
+          );
 
         await vscode.env.clipboard.writeText(connectionString);
         void vscode.window.showInformationMessage('Copied to clipboard.');
@@ -358,8 +363,9 @@ export default class MDBExtensionController implements vscode.Disposable {
           return false;
         }
 
-        return this._playgroundController
-          .createPlaygroundForCreateCollection(element);
+        return this._playgroundController.createPlaygroundForCreateCollection(
+          element
+        );
       }
     );
     this.registerCommand(
@@ -374,7 +380,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_DROP_DATABASE,
       async (element: DatabaseTreeItem): Promise<boolean> => {
-        const successfullyDroppedDatabase = await element.onDropDatabaseClicked();
+        const successfullyDroppedDatabase =
+          await element.onDropDatabaseClicked();
 
         if (successfullyDroppedDatabase) {
           void vscode.window.showInformationMessage(
@@ -409,8 +416,9 @@ export default class MDBExtensionController implements vscode.Disposable {
           return false;
         }
 
-        return this._playgroundController
-          .createPlaygroundForCreateCollection(element);
+        return this._playgroundController.createPlaygroundForCreateCollection(
+          element
+        );
       }
     );
     this.registerCommand(
@@ -425,7 +433,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_DROP_COLLECTION,
       async (element: CollectionTreeItem): Promise<boolean> => {
-        const successfullyDroppedCollection = await element.onDropCollectionClicked();
+        const successfullyDroppedCollection =
+          await element.onDropCollectionClicked();
 
         if (successfullyDroppedCollection) {
           void vscode.window.showInformationMessage(
@@ -475,7 +484,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           documentId: element.documentId,
           namespace: element.namespace,
           connectionId: this._connectionController.getActiveConnectionId(),
-          line: 1
+          line: 1,
         });
       }
     );
@@ -547,7 +556,9 @@ export default class MDBExtensionController implements vscode.Disposable {
         const editor = vscode.window.activeTextEditor;
 
         if (!editor) {
-          void vscode.window.showInformationMessage('No active editor to insert to.');
+          void vscode.window.showInformationMessage(
+            'No active editor to insert to.'
+          );
           return false;
         }
 

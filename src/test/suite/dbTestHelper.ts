@@ -12,7 +12,9 @@ export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 
 let testDataService;
 
-export const createTestDataService = async (connectionString: string): Promise<DataService> => {
+export const createTestDataService = async (
+  connectionString: string
+): Promise<DataService> => {
   testDataService = await connect({ connectionString });
   return testDataService;
 };
@@ -21,12 +23,16 @@ export const seedTestDB = async (
   collectionName: string,
   documentsArray: EJSON.SerializableTypes[]
 ): Promise<void> => {
-  const insertMany = util.promisify(testDataService.insertMany.bind(testDataService));
+  const insertMany = util.promisify(
+    testDataService.insertMany.bind(testDataService)
+  );
   await insertMany(`${TEST_DB_NAME}.${collectionName}`, documentsArray, {});
 };
 
 export const cleanupTestDB = async (): Promise<void> => {
-  const dropDatabase = util.promisify(testDataService.dropDatabase.bind(testDataService));
+  const dropDatabase = util.promisify(
+    testDataService.dropDatabase.bind(testDataService)
+  );
   await dropDatabase(TEST_DB_NAME);
 };
 

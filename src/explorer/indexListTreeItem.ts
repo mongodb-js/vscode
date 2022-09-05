@@ -17,12 +17,14 @@ function getIconPath(): { light: string; dark: string } {
 
   return {
     light: path.join(LIGHT, 'indexes.svg'),
-    dark: path.join(DARK, 'indexes.svg')
+    dark: path.join(DARK, 'indexes.svg'),
   };
 }
 
-export default class IndexListTreeItem extends vscode.TreeItem
-  implements TreeItemParent, vscode.TreeDataProvider<IndexListTreeItem> {
+export default class IndexListTreeItem
+  extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<IndexListTreeItem>
+{
   collectionName: string;
   databaseName: string;
   isExpanded: boolean;
@@ -112,7 +114,11 @@ export default class IndexListTreeItem extends vscode.TreeItem
     if (indexes) {
       this._childrenCache = sortTreeItemsByLabel(
         indexes.map((index: IndexModel) => {
-          return new IndexTreeItem(index, this._namespace, false /* Not expanded. */);
+          return new IndexTreeItem(
+            index,
+            this._namespace,
+            false /* Not expanded. */
+          );
         })
       ) as IndexTreeItem[];
     } else {

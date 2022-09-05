@@ -5,7 +5,11 @@ import path = require('path');
 
 import { StorageController } from '../../storage';
 
-import { ShellExecuteAllResult, ExportToLanguageMode, ExportToLanguageNamespace } from '../../types/playgroundType';
+import {
+  ShellExecuteAllResult,
+  ExportToLanguageMode,
+  ExportToLanguageNamespace,
+} from '../../types/playgroundType';
 
 // Bare mock of the extension context for vscode.
 class TestExtensionContext implements vscode.ExtensionContext {
@@ -48,7 +52,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
         return new Promise<void>(() => {
           this._workspaceState[key] = value;
         });
-      }
+      },
     };
     this.globalState = {
       keys: (): readonly string[] => {
@@ -62,7 +66,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
           this._globalState[key] = value;
         });
       },
-      setKeysForSync: (/* keys: string[] */): void => { }
+      setKeysForSync: (/* keys: string[] */): void => {},
     };
     this.extensionPath = path.join(__dirname, '..', '..', '..');
     this.storagePath = '';
@@ -74,70 +78,70 @@ const mockDatabases = {
     databaseName: 'mockDatabase1',
     collections: [
       {
-        name: 'mock_db_1_collection_1'
+        name: 'mock_db_1_collection_1',
       },
       {
-        name: 'mock_db_1_collection_2'
-      }
-    ]
+        name: 'mock_db_1_collection_2',
+      },
+    ],
   },
   mockDatabase2: {
     databaseName: 'mockDatabase2',
     collections: [
       {
-        name: 'mock_db_2_collection_1'
+        name: 'mock_db_2_collection_1',
       },
       {
-        name: 'mock_db_2_collection_2'
-      }
-    ]
+        name: 'mock_db_2_collection_2',
+      },
+    ],
   },
   mockDatabase3: {
     databaseName: 'mockDatabase3',
     collections: [
       {
-        name: 'ZZZ'
+        name: 'ZZZ',
       },
       {
-        name: 'AAA'
+        name: 'AAA',
       },
       {
-        name: '111_abc'
+        name: '111_abc',
       },
       {
-        name: '222_abc'
+        name: '222_abc',
       },
       {
-        name: 'zzz'
+        name: 'zzz',
       },
       {
-        name: 'aaa'
+        name: 'aaa',
       },
       {
-        name: 'system.views'
+        name: 'system.views',
       },
       {
-        name: 'system.buckets.zzz'
+        name: 'system.buckets.zzz',
       },
       {
-        name: 'system.buckets.aaa'
-      }
-    ]
-  }
+        name: 'system.buckets.aaa',
+      },
+    ],
+  },
 };
 const mockDatabaseNames = Object.keys(mockDatabases);
 const mockDocuments: any[] = [];
 const numberOfDocumentsToMock = 25;
 for (let i = 0; i < numberOfDocumentsToMock; i++) {
   mockDocuments.push({
-    _id: `mock_document_${i}`
+    _id: `mock_document_${i}`,
   });
 }
 
 class DataServiceStub {
   listDatabases(): Promise<any> {
     return new Promise((resolve) => {
-      resolve(mockDatabaseNames.map(dbName => ({ name: dbName })));
+      resolve(mockDatabaseNames.map((dbName) => ({ name: dbName })));
     });
   }
 
@@ -166,7 +170,7 @@ const mockTextLine = {
   range: mockRange,
   rangeIncludingLineBreak: mockRange,
   firstNonWhitespaceCharacterIndex: 0,
-  isEmptyOrWhitespace: false
+  isEmptyOrWhitespace: false,
 };
 
 const mockVSCodeTextDocument = {
@@ -192,7 +196,7 @@ const mockVSCodeTextDocument = {
     undefined,
   validateRange: (/* range: vscode.Range */): vscode.Range => mockRange,
   validatePosition: (/* position: vscode.Position */): vscode.Position =>
-    mockPosition
+    mockPosition,
 };
 
 const mockSelection = new vscode.Selection(
@@ -209,15 +213,15 @@ const mockTextEditor = {
     tabSize: '',
     insertSpaces: '',
     cursorStyle: vscode.TextEditorCursorStyle.Line,
-    lineNumbers: vscode.TextEditorLineNumbersStyle.Off
+    lineNumbers: vscode.TextEditorLineNumbersStyle.Off,
   },
   viewColumn: vscode.ViewColumn.Beside,
   edit: () => Promise.resolve(true),
   insertSnippet: () => Promise.resolve(true),
-  setDecorations: () => { },
-  revealRange: () => { },
-  show: () => { },
-  hide: () => { }
+  setDecorations: () => {},
+  revealRange: () => {},
+  show: () => {},
+  hide: () => {},
 };
 
 class MockLanguageServerController {
@@ -248,7 +252,12 @@ class MockLanguageServerController {
   executeAll(/* codeToEvaluate: string */): Promise<ShellExecuteAllResult> {
     return Promise.resolve({
       outputLines: [],
-      result: { namespace: null, type: null, content: 'Result', language: 'plaintext' }
+      result: {
+        namespace: null,
+        type: null,
+        content: 'Result',
+        language: 'plaintext',
+      },
     });
   }
 
@@ -283,7 +292,7 @@ class TestStream extends Duplex {
     done();
   }
 
-  _read() { }
+  _read() {}
 }
 
 export {
@@ -296,5 +305,5 @@ export {
   DataServiceStub,
   TestExtensionContext,
   MockLanguageServerController,
-  TestStream
+  TestStream,
 };

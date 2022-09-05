@@ -21,7 +21,7 @@ suite('Collection Documents Provider Test Suite', () => {
     const mockDocument = {
       ...mockVSCodeTextDocument,
       uri,
-      lineCount: 50
+      lineCount: 50,
     };
 
     const codeLens = testCodeLensProvider.provideCodeLenses(mockDocument);
@@ -55,7 +55,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const mockDocument = {
       ...mockVSCodeTextDocument,
-      uri
+      uri,
     };
 
     const codeLens = testCodeLensProvider.provideCodeLenses(mockDocument);

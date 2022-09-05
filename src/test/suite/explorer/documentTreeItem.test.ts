@@ -5,7 +5,7 @@ import DocumentTreeItem from '../../../explorer/documentTreeItem';
 suite('DocumentTreeItem Test Suite', () => {
   test('it makes the document _id the label of the document tree item', function () {
     const mockDocument = {
-      _id: 'mock_document_id'
+      _id: 'mock_document_id',
     };
 
     const testCollectionTreeItem = new DocumentTreeItem(
@@ -25,8 +25,8 @@ suite('DocumentTreeItem Test Suite', () => {
     const mockDocument = {
       _id: {
         someIdField: 'mock_document_id',
-        anotherIdField: 'mock_document_id_field_2'
-      }
+        anotherIdField: 'mock_document_id_field_2',
+      },
     };
 
     const expectedLabel = JSON.stringify(mockDocument._id);
@@ -46,7 +46,7 @@ suite('DocumentTreeItem Test Suite', () => {
 
   test('when the document does not have an _id, its label is the supplied index', function () {
     const mockDocument = {
-      noIdField: true
+      noIdField: true,
     };
 
     const expectedLabel = 'Document 2';

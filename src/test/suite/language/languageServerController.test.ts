@@ -56,7 +56,8 @@ suite('Language Server Controller Test Suite', () => {
   const testExplorerController = new ExplorerController(
     testConnectionController
   );
-  const testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
+  const testExportToLanguageCodeLensProvider =
+    new ExportToLanguageCodeLensProvider();
   const testCodeActionProvider = new CodeActionProvider();
   const testPlaygroundController = new PlaygroundController(
     testConnectionController,
@@ -81,18 +82,15 @@ suite('Language Server Controller Test Suite', () => {
     sinon.replace(
       testConnectionController,
       'getActiveDataService',
-      () => ({
-        getMongoClientConnectionOptions: () => ({
-          url: TEST_DATABASE_URI,
-          options: {}
-        })
-      } as any)
+      () =>
+        ({
+          getMongoClientConnectionOptions: () => ({
+            url: TEST_DATABASE_URI,
+            options: {},
+          }),
+        } as any)
     );
-    sinon.replace(
-      testConnectionController,
-      'isCurrentlyConnected',
-      () => true
-    );
+    sinon.replace(testConnectionController, 'isCurrentlyConnected', () => true);
 
     await testPlaygroundController._connectToServiceProvider();
   });
@@ -122,7 +120,7 @@ suite('Language Server Controller Test Suite', () => {
         });
         currentName
       `,
-      connectionId: 'pineapple'
+      connectionId: 'pineapple',
     });
 
     testLanguageServerController.cancelAll();

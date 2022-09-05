@@ -17,7 +17,7 @@ export default class HelpExplorer {
   activateHelpTreeView(telemetryService: TelemetryService): void {
     if (!this._treeView) {
       this._treeView = vscode.window.createTreeView('mongoDBHelpExplorer', {
-        treeDataProvider: this._treeController
+        treeDataProvider: this._treeController,
       });
       this._treeController.activateTreeViewEventHandlers(
         this._treeView,

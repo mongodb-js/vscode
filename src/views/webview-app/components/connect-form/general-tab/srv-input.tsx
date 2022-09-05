@@ -51,14 +51,14 @@ class SRVInput extends React.PureComponent<StateProps & DispatchProps> {
 
 const mapStateToProps = (state: AppState): StateProps => {
   return {
-    isSrvRecord: state.currentConnection.isSrvRecord
+    isSrvRecord: state.currentConnection.isSrvRecord,
   };
 };
 
 const mapDispatchToProps: DispatchProps = {
   onSRVRecordToggled: (): IsSrvRecordToggledAction => ({
-    type: ActionTypes.IS_SRV_RECORD_TOGGLED
-  })
+    type: ActionTypes.IS_SRV_RECORD_TOGGLED,
+  }),
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SRVInput);

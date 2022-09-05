@@ -7,12 +7,12 @@ import {
   ConnectionEventOccuredAction,
   FilePickerActions,
   FilePickerActionTypes,
-  SetConnectionStatusAction
+  SetConnectionStatusAction,
 } from '../store/actions';
 import {
   CONNECTION_STATUS,
   MESSAGE_FROM_EXTENSION_TO_WEBVIEW,
-  MESSAGE_TYPES
+  MESSAGE_TYPES,
 } from '../extension-app-message-constants';
 
 const styles = require('../connect.module.less');
@@ -90,14 +90,14 @@ const mapDispatchToProps: DispatchProps = {
     type: ActionTypes.CONNECTION_EVENT_OCCURED,
     connectionAttemptId,
     successfullyConnected,
-    connectionMessage
+    connectionMessage,
   }),
   onFilePickerEvent: (
     action: FilePickerActionTypes,
     files: string[] | undefined
   ): FilePickerActions => ({
     type: action,
-    files
+    files,
   }),
   setConnectionStatus: (
     connectionStatus: CONNECTION_STATUS,
@@ -105,8 +105,8 @@ const mapDispatchToProps: DispatchProps = {
   ): SetConnectionStatusAction => ({
     type: ActionTypes.SET_CONNECTION_STATUS,
     activeConnectionName,
-    connectionStatus
-  })
+    connectionStatus,
+  }),
 };
 
 export default connect(null, mapDispatchToProps)(App);

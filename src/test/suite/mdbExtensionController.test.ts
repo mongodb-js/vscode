@@ -12,7 +12,7 @@ import {
   ConnectionTreeItem,
   DatabaseTreeItem,
   DocumentTreeItem,
-  SchemaTreeItem
+  SchemaTreeItem,
 } from '../../explorer';
 import EXTENSION_COMMANDS from '../../commands';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
@@ -21,7 +21,7 @@ import { mdbTestExtension } from './stubbableMdbExtension';
 import { mockTextEditor } from './stubs';
 import {
   StorageLocation,
-  StorageVariables
+  StorageVariables,
 } from '../../storage/storageController';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 
@@ -58,7 +58,7 @@ suite('MDBExtensionController Test Suite', function () {
     const textCollectionTree = new CollectionTreeItem(
       {
         name: 'testColName',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'testDbName',
       {},
@@ -101,7 +101,7 @@ suite('MDBExtensionController Test Suite', function () {
     const textCollectionTree = new CollectionTreeItem(
       {
         name: 'testColName',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'testDbName',
       {},
@@ -250,7 +250,10 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockCopyToClipboard: any = sinon.fake();
-    sinon.replaceGetter(vscode.env, 'clipboard', () => ({ writeText: mockCopyToClipboard, readText: sinon.fake() as any }));
+    sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      writeText: mockCopyToClipboard,
+      readText: sinon.fake() as any,
+    }));
 
     const mockStubUri: any = sinon.fake.returns('weStubThisUri');
     sinon.replace(
@@ -284,7 +287,10 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockCopyToClipboard: any = sinon.fake();
-    sinon.replaceGetter(vscode.env, 'clipboard', () => ({ writeText: mockCopyToClipboard, readText: sinon.fake() as any }));
+    sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      writeText: mockCopyToClipboard,
+      readText: sinon.fake() as any,
+    }));
 
     vscode.commands
       .executeCommand('mdb.copyDatabaseName', mockTreeItem)
@@ -305,7 +311,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new CollectionTreeItem(
       {
         name: 'waterBuffalo',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'airZebra',
       {},
@@ -315,7 +321,10 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockCopyToClipboard: any = sinon.fake();
-    sinon.replaceGetter(vscode.env, 'clipboard', () => ({ writeText: mockCopyToClipboard, readText: sinon.fake() as any }));
+    sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      writeText: mockCopyToClipboard,
+      readText: sinon.fake() as any,
+    }));
 
     vscode.commands
       .executeCommand('mdb.copyCollectionName', mockTreeItem)
@@ -338,14 +347,17 @@ suite('MDBExtensionController Test Suite', function () {
         name: 'dolphins are sentient',
         probability: 1,
         type: 'String',
-        types: []
+        types: [],
       },
       false,
       {}
     );
 
     const mockCopyToClipboard: any = sinon.fake();
-    sinon.replaceGetter(vscode.env, 'clipboard', () => ({ writeText: mockCopyToClipboard, readText: sinon.fake() as any }));
+    sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      writeText: mockCopyToClipboard,
+      readText: sinon.fake() as any,
+    }));
 
     const commandResult = await vscode.commands.executeCommand(
       'mdb.copySchemaFieldName',
@@ -400,7 +412,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new CollectionTreeItem(
       {
         name: 'iSawACatThatLookedLikeALionToday',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'airZebra',
       {},
@@ -442,7 +454,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new CollectionTreeItem(
       {
         name: 'iSawACatThatLookedLikeALionToday',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'airZebra',
       { estimatedCount: (ns, opts, cb): void => cb(null, count) },
@@ -614,7 +626,9 @@ suite('MDBExtensionController Test Suite', function () {
       )
     );
     assert(mockOpenTextDocument.firstArg.content.includes('NEW_DATABASE_NAME'));
-    assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
+    assert(
+      mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME')
+    );
   });
 
   test('mdb.addDatabase command fails when disconnecting', (done) => {
@@ -744,7 +758,9 @@ suite('MDBExtensionController Test Suite', function () {
       )
     );
     assert(mockOpenTextDocument.firstArg.content.includes('iceCreamDB'));
-    assert(mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME'));
+    assert(
+      mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME')
+    );
     assert(!mockOpenTextDocument.firstArg.content.includes('time-series'));
   });
 
@@ -799,7 +815,7 @@ suite('MDBExtensionController Test Suite', function () {
         dropCollection: (namespace, callback): void => {
           calledNamespace = namespace;
           callback(null, true);
-        }
+        },
       },
       false,
       false,
@@ -924,7 +940,7 @@ suite('MDBExtensionController Test Suite', function () {
         dropDatabase: (dbName, callback): void => {
           calledDatabaseName = dbName;
           callback(null, true);
-        }
+        },
       },
       false,
       false,
@@ -1035,12 +1051,13 @@ suite('MDBExtensionController Test Suite', function () {
   });
 
   test('mdb.renameConnection fails when the name input is empty', (done) => {
-    mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon = {
-      id: 'blueBerryPancakesAndTheSmellOfBacon',
-      connectionOptions: { connectionString: 'mongodb://localhost' },
-      name: 'NAAAME',
-      storageLocation: StorageLocation.NONE
-    };
+    mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon =
+      {
+        id: 'blueBerryPancakesAndTheSmellOfBacon',
+        connectionOptions: { connectionString: 'mongodb://localhost' },
+        name: 'NAAAME',
+        storageLocation: StorageLocation.NONE,
+      };
 
     const mockTreeItem = new ConnectionTreeItem(
       'blueBerryPancakesAndTheSmellOfBacon',
@@ -1073,12 +1090,13 @@ suite('MDBExtensionController Test Suite', function () {
   });
 
   test('mdb.renameConnection updates the name of a connection', (done) => {
-    mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon = {
-      id: 'blueBerryPancakesAndTheSmellOfBacon',
-      name: 'NAAAME',
-      connectionOptions: { connectionString: 'mongodb://localhost' },
-      storageLocation: StorageLocation.NONE
-    };
+    mdbTestExtension.testExtensionController._connectionController._connections.blueBerryPancakesAndTheSmellOfBacon =
+      {
+        id: 'blueBerryPancakesAndTheSmellOfBacon',
+        name: 'NAAAME',
+        connectionOptions: { connectionString: 'mongodb://localhost' },
+        storageLocation: StorageLocation.NONE,
+      };
 
     const mockTreeItem = new ConnectionTreeItem(
       'blueBerryPancakesAndTheSmellOfBacon',
@@ -1113,8 +1131,8 @@ suite('MDBExtensionController Test Suite', function () {
       _id: 'pancakes',
       name: '',
       time: {
-        $time: '12345'
-      }
+        $time: '12345',
+      },
     };
 
     const mockOpenTextDocument: any = sinon.fake.resolves('magna carta');
@@ -1132,16 +1150,22 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const activeTextEditor = mockTextEditor;
-    activeTextEditor.document.uri = vscode.Uri.parse([
-      'VIEW_DOCUMENT_SCHEME:/',
-      'waffle.house:pancakes.json?',
-      'namespace=waffle.house&',
-      'connectionId=tasty_sandwhich&',
-      'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
-      'source=treeview'
-    ].join(''));
+    activeTextEditor.document.uri = vscode.Uri.parse(
+      [
+        'VIEW_DOCUMENT_SCHEME:/',
+        'waffle.house:pancakes.json?',
+        'namespace=waffle.house&',
+        'connectionId=tasty_sandwhich&',
+        'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
+        'source=treeview',
+      ].join('')
+    );
     activeTextEditor.document.getText = () => JSON.stringify(mockDocument);
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => activeTextEditor);
+    sandbox.replaceGetter(
+      vscode.window,
+      'activeTextEditor',
+      () => activeTextEditor
+    );
 
     const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
@@ -1169,7 +1193,7 @@ suite('MDBExtensionController Test Suite', function () {
         mockDocument.name = 'something sweet';
 
         return callback(null, mockDocument);
-      }
+      },
     });
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
@@ -1216,14 +1240,15 @@ suite('MDBExtensionController Test Suite', function () {
       _id: 'pancakes',
       name: '',
       time: {
-        $time: '12345'
-      }
+        $time: '12345',
+      },
     };
     const documentItem = new DocumentTreeItem(mockDocument, 'waffle.house', 0);
 
     const mockFetchDocument: any = sinon.fake.resolves(null);
     sinon.replace(
-      mdbTestExtension.testExtensionController._editorsController._mongoDBDocumentService,
+      mdbTestExtension.testExtensionController._editorsController
+        ._mongoDBDocumentService,
       'fetchDocument',
       mockFetchDocument
     );
@@ -1242,12 +1267,13 @@ suite('MDBExtensionController Test Suite', function () {
       line: 1,
       documentId: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
       namespace: 'db.coll',
-      connectionId: null
+      connectionId: null,
     };
 
     const mockFetchDocument: any = sinon.fake.resolves(null);
     sinon.replace(
-      mdbTestExtension.testExtensionController._editorsController._mongoDBDocumentService,
+      mdbTestExtension.testExtensionController._editorsController
+        ._mongoDBDocumentService,
       'fetchDocument',
       mockFetchDocument
     );
@@ -1265,8 +1291,8 @@ suite('MDBExtensionController Test Suite', function () {
       _id: 'pancakes',
       name: '',
       time: {
-        $time: '12345'
-      }
+        $time: '12345',
+      },
     };
 
     const mockShowTextDocument: any = sinon.fake();
@@ -1288,17 +1314,18 @@ suite('MDBExtensionController Test Suite', function () {
             'namespace=waffle.house',
             'connectionId=tasty_sandwhich',
             'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-            'source=treeview'
-          ].join('&')
+            'source=treeview',
+          ].join('&'),
         },
         getText: () => JSON.stringify(mockDocument),
-        save: () => {}
-      }
+        save: () => {},
+      },
     }));
 
     const mockReplaceDocument: any = sinon.fake.resolves(null);
     sinon.replace(
-      mdbTestExtension.testExtensionController._editorsController._mongoDBDocumentService,
+      mdbTestExtension.testExtensionController._editorsController
+        ._mongoDBDocumentService,
       'replaceDocument',
       mockReplaceDocument
     );
@@ -1313,8 +1340,8 @@ suite('MDBExtensionController Test Suite', function () {
       _id: 'pancakes',
       name: '',
       time: {
-        $time: '12345'
-      }
+        $time: '12345',
+      },
     };
 
     const mockShowTextDocument: any = sinon.fake();
@@ -1336,17 +1363,18 @@ suite('MDBExtensionController Test Suite', function () {
             'namespace=waffle.house',
             'connectionId=tasty_sandwhich',
             'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-            'source=playground'
-          ].join('&')
+            'source=playground',
+          ].join('&'),
         },
         getText: () => JSON.stringify(mockDocument),
-        save: () => {}
-      }
+        save: () => {},
+      },
     }));
 
     const mockReplaceDocument: any = sinon.fake.resolves(null);
     sinon.replace(
-      mdbTestExtension.testExtensionController._editorsController._mongoDBDocumentService,
+      mdbTestExtension.testExtensionController._editorsController
+        ._mongoDBDocumentService,
       'replaceDocument',
       mockReplaceDocument
     );
@@ -1365,7 +1393,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.searchForDocuments', {
       databaseName: 'dbbbbbName',
-      collectionName: 'colllllllllName'
+      collectionName: 'colllllllllName',
     });
 
     assert(mockOpenTextDocument.firstArg.language === 'mongodb');
@@ -1391,7 +1419,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.createIndexFromTreeView', {
       databaseName: 'dbbbbbName',
-      collectionName: 'colllllllllName'
+      collectionName: 'colllllllllName',
     });
 
     assert(mockOpenTextDocument.firstArg.language === 'mongodb');
@@ -1416,7 +1444,7 @@ suite('MDBExtensionController Test Suite', function () {
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
     const mockGetConfiguration: any = sinon.fake.returns({
-      get: () => true
+      get: () => true,
     });
     sinon.replace(vscode.workspace, 'getConfiguration', mockGetConfiguration);
 
@@ -1459,7 +1487,7 @@ suite('MDBExtensionController Test Suite', function () {
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
     const mockGetConfiguration: any = sinon.fake.returns({
-      get: () => false
+      get: () => false,
     });
     sinon.replace(vscode.workspace, 'getConfiguration', mockGetConfiguration);
 

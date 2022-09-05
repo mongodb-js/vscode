@@ -168,9 +168,12 @@ const validateKerberos = (attrs: LegacyConnectionModel): void => {
 };
 
 const validateX509 = (attrs: LegacyConnectionModel): void => {
-  if (attrs.authStrategy === AUTH_STRATEGIES.X509 && attrs.sslMethod !== SSL_METHODS.ALL) {
+  if (
+    attrs.authStrategy === AUTH_STRATEGIES.X509 &&
+    attrs.sslMethod !== SSL_METHODS.ALL
+  ) {
     throw new TypeError(
-      'SSL method is required to be set to \'Server and Client\' when using x509 authentication'
+      "SSL method is required to be set to 'Server and Client' when using x509 authentication"
     );
   }
 };
@@ -190,7 +193,9 @@ const validateLdap = (attrs: LegacyConnectionModel): void => {
   }
 };
 
-const validateStandardSshTunnelOptions = (attrs: LegacyConnectionModel): void => {
+const validateStandardSshTunnelOptions = (
+  attrs: LegacyConnectionModel
+): void => {
   if (attrs.sshTunnel !== SSH_TUNNEL_TYPES.NONE && attrs.isSrvRecord) {
     throw new TypeError(
       'SSH Tunnel connections are not currently supported with srv records, please specify an individual server to connect to.'
@@ -240,7 +245,9 @@ const validateSshTunnel = (attrs: LegacyConnectionModel): void => {
   }
 };
 
-export const validateConnectionModel = (attrs: LegacyConnectionModel): Error | undefined => {
+export const validateConnectionModel = (
+  attrs: LegacyConnectionModel
+): Error | undefined => {
   try {
     validateSsl(attrs);
     validateMongodb(attrs);

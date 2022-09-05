@@ -56,7 +56,7 @@ suite('Extension Test Suite', () => {
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked',
 
-      ...Object.values(EXTENSION_COMMANDS)
+      ...Object.values(EXTENSION_COMMANDS),
     ];
 
     for (const expectedCommand of expectedCommands) {
