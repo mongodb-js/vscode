@@ -71,7 +71,7 @@ module.exports = {
         'object-curly-spacing': [2, 'always'],
         'no-empty-function': 0,
         'valid-jsdoc': 0,
-        'react/sort-comp': 0, // Does not seem work as expected with TypeScript.
+        'react/sort-comp': 0,
         'mocha/no-exclusive-tests': 2,
         'no-console': [1, { allow: ['warn', 'error', 'info'] }],
         'no-shadow': 0,

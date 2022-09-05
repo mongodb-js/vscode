@@ -48,7 +48,6 @@ const extensionConfig = {
       'commonjs2 win-export-certificate-and-key',
     os_dns_native: 'commonjs2 os_dns_native',
     'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
-    encoding: 'utf-8',
   },
   module: {
     rules: [
@@ -106,7 +105,6 @@ const languageServerConfig = {
       'commonjs2 win-export-certificate-and-key',
     os_dns_native: 'commonjs2 os_dns_native',
     'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
-    encoding: 'utf-8',
   },
   module: {
     rules: [
@@ -161,7 +159,6 @@ const languageServerWorkerConfig = {
       'commonjs2 win-export-certificate-and-key',
     os_dns_native: 'commonjs2 os_dns_native',
     'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
-    encoding: 'utf-8',
   },
   module: {
     rules: [

@@ -334,6 +334,7 @@ suite('Webview Test Suite', () => {
           message.connectionMessage === expectedMessage,
           `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
         );
+
         void testConnectionController.disconnect();
         done();
       },
@@ -355,7 +356,6 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryService
     );
-
     void testWebviewController.openWebview(
       mdbTestExtension.testExtensionContext
     );
