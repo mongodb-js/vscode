@@ -3,8 +3,10 @@ import TreeItemParent from './treeItemParentInterface';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 
-export default class PlaygroundsTreeHeader extends vscode.TreeItem
-  implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem> {
+export default class PlaygroundsTreeHeader
+  extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<vscode.TreeItem>
+{
   private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
 
   contextValue = 'playgroundsTreeHeader' as const;

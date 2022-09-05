@@ -11,10 +11,9 @@ import ResourcesPanel from '../../../../../../views/webview-app/components/resou
 
 describe('Overview Page Component Test Suite', () => {
   describe('when rendered', () => {
-    const wrapper = shallow(<OverviewPage
-      showConnectForm={false}
-      showResourcesPanel={false}
-    />);
+    const wrapper = shallow(
+      <OverviewPage showConnectForm={false} showResourcesPanel={false} />
+    );
 
     test('it shows an overview header', () => {
       assert(wrapper.find(OverviewHeader).exists());
@@ -38,10 +37,9 @@ describe('Overview Page Component Test Suite', () => {
   });
 
   describe('when rendered with showConnectForm', () => {
-    const wrapper = shallow(<OverviewPage
-      showConnectForm
-      showResourcesPanel={false}
-    />);
+    const wrapper = shallow(
+      <OverviewPage showConnectForm showResourcesPanel={false} />
+    );
 
     test('it shows the connect form', () => {
       assert(wrapper.find(ConnectionFormModal).exists());
@@ -49,10 +47,9 @@ describe('Overview Page Component Test Suite', () => {
   });
 
   describe('when rendered with showResourcesPanel', () => {
-    const wrapper = shallow(<OverviewPage
-      showConnectForm={false}
-      showResourcesPanel
-    />);
+    const wrapper = shallow(
+      <OverviewPage showConnectForm={false} showResourcesPanel />
+    );
 
     test('it shows the resources panel', () => {
       assert(wrapper.find(ResourcesPanel).exists());

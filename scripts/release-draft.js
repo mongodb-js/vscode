@@ -40,7 +40,7 @@ async function pushTags() {
 async function main() {
   const args = yargsParser(process.argv.slice(2));
 
-  if (await getCurrentBranch() !== 'main') {
+  if ((await getCurrentBranch()) !== 'main') {
     fail('You can only run this script from the main branch');
   }
 
@@ -48,9 +48,14 @@ async function main() {
     fail('You have untracked or staged changes.');
   }
 
-  if (!args.skipCheckHead && await revParse('HEAD') !== await revParse('origin/HEAD')) {
-    fail('The current commit is not up to date with origin/HEAD.' +
-      ' Rerun this script with --skipCheckHead to suppress this check');
+  if (
+    !args.skipCheckHead &&
+    (await revParse('HEAD')) !== (await revParse('origin/HEAD'))
+  ) {
+    fail(
+      'The current commit is not up to date with origin/HEAD.' +
+        ' Rerun this script with --skipCheckHead to suppress this check'
+    );
   }
 
   if (args._.length !== 1) {
@@ -62,11 +67,16 @@ async function main() {
   const lastReleaseVersion = await getLastReleaseVersion();
 
   if (['major', 'minor', 'patch'].includes(versionOrBumpType)) {
-    return await startRelease(semver.inc(lastReleaseVersion, versionOrBumpType))
+    return await startRelease(
+      semver.inc(lastReleaseVersion, versionOrBumpType)
+    );
   }
 
-  if(semver.valid(versionOrBumpType) && !semver.prerelease(versionOrBumpType)) {
-    return await startRelease(new semver.SemVer(versionOrBumpType).version)
+  if (
+    semver.valid(versionOrBumpType) &&
+    !semver.prerelease(versionOrBumpType)
+  ) {
+    return await startRelease(new semver.SemVer(versionOrBumpType).version);
   }
 
   fail(USAGE);
@@ -81,7 +91,8 @@ async function getLastReleaseVersion() {
 
 async function startRelease(version) {
   const answer = await cli.confirm(
-    `Are you sure you want to create the release ${chalk.bold(version)}?`);
+    `Are you sure you want to create the release ${chalk.bold(version)}?`
+  );
   if (!answer) {
     return;
   }
@@ -100,8 +111,7 @@ ${chalk.green('Done!')}
 A release draft will be created at https://github.com/${REPO}/releases
 
 You can follow the build at https://github.com/${REPO}/actions/workflows/test-and-build.yaml
-`)
+`);
 }
 
 main();
-

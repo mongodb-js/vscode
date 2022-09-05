@@ -10,13 +10,11 @@ const launchMongoDBShellWithEnv = (
   const mongoDBShell = vscode.window.createTerminal({
     name: 'MongoDB Shell',
     env: {
-      MDB_CONNECTION_STRING: mdbConnectionString
-    }
+      MDB_CONNECTION_STRING: mdbConnectionString,
+    },
   });
 
-  mongoDBShell.sendText(
-    `${shellCommand} ${envVariableString};`
-  );
+  mongoDBShell.sendText(`${shellCommand} ${envVariableString};`);
   mongoDBShell.show();
 };
 
@@ -24,34 +22,50 @@ const launchMongoDBShellOnPowershell = (
   shellCommand: string,
   mdbConnectionString: string
 ): void => {
-  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, '$Env:MDB_CONNECTION_STRING');
+  launchMongoDBShellWithEnv(
+    shellCommand,
+    mdbConnectionString,
+    '$Env:MDB_CONNECTION_STRING'
+  );
 };
 
 const launchMongoDBShellOnCmd = (
   shellCommand: string,
   mdbConnectionString: string
 ): void => {
-  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, '%MDB_CONNECTION_STRING%');
+  launchMongoDBShellWithEnv(
+    shellCommand,
+    mdbConnectionString,
+    '%MDB_CONNECTION_STRING%'
+  );
 };
 
 const launchMongoDBShellOnGitBash = (
   shellCommand: string,
   mdbConnectionString: string
 ): void => {
-  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, '$MDB_CONNECTION_STRING');
+  launchMongoDBShellWithEnv(
+    shellCommand,
+    mdbConnectionString,
+    '$MDB_CONNECTION_STRING'
+  );
 };
 
 const launchMongoDBShellOnBash = (
   shellCommand: string,
   mdbConnectionString: string
 ): void => {
-  launchMongoDBShellWithEnv(shellCommand, mdbConnectionString, '$MDB_CONNECTION_STRING');
+  launchMongoDBShellWithEnv(
+    shellCommand,
+    mdbConnectionString,
+    '$MDB_CONNECTION_STRING'
+  );
 };
 
-const openMongoDBShell = (connectionController: ConnectionController): Promise<boolean> => {
-  if (
-    !connectionController.isCurrentlyConnected()
-  ) {
+const openMongoDBShell = (
+  connectionController: ConnectionController
+): Promise<boolean> => {
+  if (!connectionController.isCurrentlyConnected()) {
     void vscode.window.showErrorMessage(
       'You need to be connected before launching the MongoDB Shell.'
     );
@@ -60,7 +74,9 @@ const openMongoDBShell = (connectionController: ConnectionController): Promise<b
   }
 
   const userShell = vscode.env.shell;
-  const shellCommand: string | undefined = vscode.workspace.getConfiguration('mdb').get('shell');
+  const shellCommand: string | undefined = vscode.workspace
+    .getConfiguration('mdb')
+    .get('shell');
 
   if (!userShell) {
     void vscode.window.showErrorMessage(

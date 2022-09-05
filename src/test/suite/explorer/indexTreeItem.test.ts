@@ -2,7 +2,7 @@ import assert from 'assert';
 
 import IndexTreeItem, {
   IndexFieldTreeItem,
-  IndexKeyType
+  IndexKeyType,
 } from '../../../explorer/indexTreeItem';
 
 suite('IndexTreeItem Test Suite', () => {
@@ -12,10 +12,10 @@ suite('IndexTreeItem Test Suite', () => {
         v: 1,
         key: {
           _id: 1,
-          gnocchi: -1
+          gnocchi: -1,
         },
         name: '_id_1_gnocchi_1',
-        ns: 'tasty_fruits.pineapple'
+        ns: 'tasty_fruits.pineapple',
       },
       'tasty_fruits.pineapple',
       false
@@ -46,7 +46,8 @@ suite('IndexTreeItem Test Suite', () => {
 
       const iconPath: any = testIndexFieldTreeItem.iconPath;
       assert(
-        iconPath.dark.includes('index') && iconPath.dark.includes('geospatial.svg'),
+        iconPath.dark.includes('index') &&
+          iconPath.dark.includes('geospatial.svg'),
         'Expected icon path to point to an svg by the name "geospatial" in the index folder'
       );
     });

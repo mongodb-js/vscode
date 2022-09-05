@@ -12,10 +12,10 @@ import {
   cleanupTestDB,
   disconnectFromTestDB,
   TEST_DB_NAME,
-  TEST_DATABASE_URI
+  TEST_DATABASE_URI,
 } from '../dbTestHelper';
 import SchemaTreeItem, {
-  FIELDS_TO_SHOW
+  FIELDS_TO_SHOW,
 } from '../../../explorer/schemaTreeItem';
 import { TestExtensionContext } from '../stubs';
 
@@ -83,7 +83,8 @@ suite('SchemaTreeItem Test Suite', function () {
   });
 
   test('when there are no documents in the schema it should show a message', async () => {
-    const expectedMessage = 'No documents were found when attempting to parse schema.';
+    const expectedMessage =
+      'No documents were found when attempting to parse schema.';
 
     const testSchemaTreeItem = new SchemaTreeItem(
       'peanutButter',
@@ -91,7 +92,7 @@ suite('SchemaTreeItem Test Suite', function () {
       {
         find: (ns, filter, options, callback): void => {
           callback(null, []);
-        }
+        },
       },
       true,
       false,
@@ -130,7 +131,7 @@ suite('SchemaTreeItem Test Suite', function () {
       {
         find: (ns, filter, options, callback): void => {
           callback(null, [mockDocWithTwentyFields]);
-        }
+        },
       },
       true,
       false,
@@ -146,7 +147,8 @@ suite('SchemaTreeItem Test Suite', function () {
 
         assert(
           schemaFields.length === amountOfFieldsExpected + 1,
-          `Expected ${amountOfFieldsExpected + 1
+          `Expected ${
+            amountOfFieldsExpected + 1
           } documents to be returned, found ${schemaFields.length}`
         );
         assert(
@@ -168,7 +170,7 @@ suite('SchemaTreeItem Test Suite', function () {
       {
         find: (ns, filter, options, callback): void => {
           callback(null, [mockDocWithThirtyFields]);
-        }
+        },
       },
       true,
       false,
@@ -199,7 +201,7 @@ suite('SchemaTreeItem Test Suite', function () {
       {
         find: (ns, filter, options, callback): void => {
           callback(null, 'invalid schema to parse');
-        }
+        },
       },
       true,
       false,
@@ -244,13 +246,12 @@ suite('SchemaTreeItem Test Suite', function () {
     });
 
     test('when not expanded it has not yet pulled the schema', async () => {
-      await seedTestDB(
-        'favoritePiesIWantToEatRightNow',
-        [{
+      await seedTestDB('favoritePiesIWantToEatRightNow', [
+        {
           _id: 10,
-          someField: 'applePie'
-        }]
-      );
+          someField: 'applePie',
+        },
+      ]);
 
       const testSchemaTreeItem = new SchemaTreeItem(
         'favoritePiesIWantToEatRightNow',
@@ -272,13 +273,12 @@ suite('SchemaTreeItem Test Suite', function () {
     });
 
     test('when expanded shows the fields of a schema', async () => {
-      await seedTestDB(
-        'favoritePiesIWantToEatRightNow',
-        [{
+      await seedTestDB('favoritePiesIWantToEatRightNow', [
+        {
           _id: 1,
-          nameOfTastyPie: 'applePie'
-        }]
-      );
+          nameOfTastyPie: 'applePie',
+        },
+      ]);
 
       const testSchemaTreeItem = new SchemaTreeItem(
         'favoritePiesIWantToEatRightNow',
@@ -310,27 +310,24 @@ suite('SchemaTreeItem Test Suite', function () {
     });
 
     test('it only shows a dropdown for fields which are always documents - and not for polymorphic', async () => {
-      await seedTestDB(
-        'favoritePiesIWantToEatRightNow',
-        [
-          {
-            _id: 1,
-            alwaysDocument: {
-              fieldName: 'nice'
-            },
-            notAlwaysADocument: {
-              sureImADocument: 'hmmmm'
-            }
+      await seedTestDB('favoritePiesIWantToEatRightNow', [
+        {
+          _id: 1,
+          alwaysDocument: {
+            fieldName: 'nice',
           },
-          {
-            _id: 2,
-            alwaysDocument: {
-              fieldName: 'nice'
-            },
-            notAlwaysADocument: 'A spy!'
-          }
-        ]
-      );
+          notAlwaysADocument: {
+            sureImADocument: 'hmmmm',
+          },
+        },
+        {
+          _id: 2,
+          alwaysDocument: {
+            fieldName: 'nice',
+          },
+          notAlwaysADocument: 'A spy!',
+        },
+      ]);
 
       const testSchemaTreeItem = new SchemaTreeItem(
         'favoritePiesIWantToEatRightNow',
@@ -349,7 +346,9 @@ suite('SchemaTreeItem Test Suite', function () {
 
       assert(
         schemaFields.length === 3,
-        `Expected 3 schema tree items to be returned, recieved ${schemaFields.length}: ${inspect(schemaFields)}`
+        `Expected 3 schema tree items to be returned, recieved ${
+          schemaFields.length
+        }: ${inspect(schemaFields)}`
       );
       assert(
         fieldIsExpandable(schemaFields[1].field),

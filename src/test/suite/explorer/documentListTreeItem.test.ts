@@ -6,7 +6,7 @@ const { contributes } = require('../../../../package.json');
 import DocumentListTreeItem, {
   CollectionTypes,
   formatDocCount,
-  MAX_DOCUMENTS_VISIBLE
+  MAX_DOCUMENTS_VISIBLE,
 } from '../../../explorer/documentListTreeItem';
 
 import { DataServiceStub, mockDocuments } from '../stubs';
@@ -61,7 +61,8 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     testDocumentListTreeItem.onShowMoreClicked();
 
-    const newMaxDocumentsToShow = testDocumentListTreeItem.getMaxDocumentsToShow();
+    const newMaxDocumentsToShow =
+      testDocumentListTreeItem.getMaxDocumentsToShow();
     assert(
       newMaxDocumentsToShow === 20,
       `Expected max documents to show to be 20, found ${newMaxDocumentsToShow}.`
@@ -129,7 +130,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     assert(
       testDocumentListTreeItem.collapsibleState ===
-      vscode.TreeItemCollapsibleState.None
+        vscode.TreeItemCollapsibleState.None
     );
   });
 

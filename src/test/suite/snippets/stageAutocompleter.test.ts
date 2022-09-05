@@ -39,7 +39,7 @@ const STAGE_LABELS = [
   'MongoDB Aggregations $sort',
   'MongoDB Aggregations $sortByCount',
   'MongoDB Aggregations $unset',
-  'MongoDB Aggregations $unwind'
+  'MongoDB Aggregations $unwind',
 ];
 
 suite('Stage Autocompleter Test Suite', () => {
@@ -49,18 +49,16 @@ suite('Stage Autocompleter Test Suite', () => {
     STAGE_LABELS.forEach((prop: string) => {
       properties[prop] = {
         type: 'object',
-        properties: { prefix: 'string', body: 'array', description: 'string' }
+        properties: { prefix: 'string', body: 'array', description: 'string' },
       };
     });
 
     const jsonSchema = {
       type: 'object',
-      properties
+      properties,
     };
 
     expect(SNIPPETS_DIR).to.be.a.path();
-    expect(SNIPPETS_FILE)
-      .to.be.a.file()
-      .with.json.using.schema(jsonSchema);
+    expect(SNIPPETS_FILE).to.be.a.file().with.json.using.schema(jsonSchema);
   });
 });

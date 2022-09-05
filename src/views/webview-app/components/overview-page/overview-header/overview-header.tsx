@@ -6,7 +6,7 @@ import bookIcon from '@iconify-icons/codicon/book';
 import MongoDBLogo from '../../mongodb-logo/mongodb-logo';
 import {
   ActionTypes,
-  ToggleShowResourcesPanelAction
+  ToggleShowResourcesPanelAction,
 } from '../../../store/actions';
 
 const styles = require('./overview-header.less');
@@ -22,13 +22,8 @@ class OverviewHeader extends React.Component<DispatchProps> {
         className={styles['resources-button']}
         onClick={(): void => this.props.toggleShowResourcesPanel()}
       >
-        <Icon
-          className={styles['resources-button-icon']}
-          icon={bookIcon}
-        />
-        <div className={styles['resources-button-title']}>
-          Resources
-        </div>
+        <Icon className={styles['resources-button-icon']} icon={bookIcon} />
+        <div className={styles['resources-button-title']}>Resources</div>
       </button>
     );
   }
@@ -36,16 +31,15 @@ class OverviewHeader extends React.Component<DispatchProps> {
   render(): React.ReactNode {
     return (
       <div className={styles['overview-header']}>
-        <div
-          className={styles['overview-header-content-area']}
-        >
+        <div className={styles['overview-header-content-area']}>
           <MongoDBLogo />
           <div className={styles['overview-header-description']}>
-            Navigate your databases and collections, use playgrounds for exploring and transforming your data
+            Navigate your databases and collections, use playgrounds for
+            exploring and transforming your data
           </div>
           {this.renderResourcesButton()}
         </div>
-        <div className={styles['overview-header-bar']}/>
+        <div className={styles['overview-header-bar']} />
       </div>
     );
   }
@@ -53,8 +47,8 @@ class OverviewHeader extends React.Component<DispatchProps> {
 
 const mapDispatchToProps: DispatchProps = {
   toggleShowResourcesPanel: (): ToggleShowResourcesPanelAction => ({
-    type: ActionTypes.TOGGLE_SHOW_RESOURCES_PANEL
-  })
+    type: ActionTypes.TOGGLE_SHOW_RESOURCES_PANEL,
+  }),
 };
 
 export default connect(null, mapDispatchToProps)(OverviewHeader);

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import ConnectionController, {
-  DataServiceEventTypes
+  DataServiceEventTypes,
 } from '../connectionController';
 import ExplorerTreeController from './explorerTreeController';
 
@@ -32,7 +32,7 @@ export default class ExplorerController {
       this._treeView = vscode.window.createTreeView(
         'mongoDBConnectionExplorer',
         {
-          treeDataProvider: this._treeController
+          treeDataProvider: this._treeController,
         }
       );
       this._treeController.activateTreeViewEventHandlers(this._treeView);

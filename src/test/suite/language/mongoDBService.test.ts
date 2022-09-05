@@ -1,12 +1,18 @@
 import * as vscode from 'vscode';
 import { before } from 'mocha';
-import { CancellationTokenSource, CompletionItemKind, CompletionItem } from 'vscode-languageclient/node';
+import {
+  CancellationTokenSource,
+  CompletionItemKind,
+  CompletionItem,
+} from 'vscode-languageclient/node';
 import chai from 'chai';
 import { createConnection } from 'vscode-languageserver/node';
 import fs from 'fs';
 import path from 'path';
 
-import MongoDBService, { languageServerWorkerFileName } from '../../../language/mongoDBService';
+import MongoDBService, {
+  languageServerWorkerFileName,
+} from '../../../language/mongoDBService';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TestStream } from '../stubs';
 import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
@@ -19,8 +25,8 @@ suite('MongoDBService Test Suite', () => {
     connectionId: 'pineapple',
     connectionString: 'mongodb://localhost:27018',
     connectionOptions: {
-      readPreference: READ_PREFERENCES.PRIMARY
-    }
+      readPreference: READ_PREFERENCES.PRIMARY,
+    },
   };
 
   test('the language server worker dependency bundle exists', () => {
@@ -51,7 +57,7 @@ suite('MongoDBService Test Suite', () => {
       const result = await testMongoDBService.executeAll(
         {
           codeToEvaluate: '1 + 1',
-          connectionId: 'pineapple'
+          connectionId: 'pineapple',
         },
         source.token
       );
@@ -60,13 +66,18 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('catches error when _getCollectionsCompletionItems is called and extension path is empty string', async () => {
-      const result = await testMongoDBService._getCollectionsCompletionItems('testDB');
+      const result = await testMongoDBService._getCollectionsCompletionItems(
+        'testDB'
+      );
 
       expect(result).to.be.equal(false);
     });
 
     test('catches error when _getFieldsCompletionItems is called and extension path is empty string', async () => {
-      const result = await testMongoDBService._getFieldsCompletionItems('testDB', 'testCol');
+      const result = await testMongoDBService._getFieldsCompletionItems(
+        'testDB',
+        'testCol'
+      );
 
       expect(result).to.be.equal(false);
     });
@@ -105,9 +116,9 @@ suite('MongoDBService Test Suite', () => {
     const testMongoDBService = new MongoDBService(connection);
 
     before(async () => {
-      testMongoDBService._getDatabasesCompletionItems = (): void => { };
-      testMongoDBService._getCollectionsCompletionItems = (): Promise<boolean> =>
-        Promise.resolve(true);
+      testMongoDBService._getDatabasesCompletionItems = (): void => {};
+      testMongoDBService._getCollectionsCompletionItems =
+        (): Promise<boolean> => Promise.resolve(true);
       testMongoDBService._getFieldsCompletionItems = (): Promise<boolean> =>
         Promise.resolve(true);
 
@@ -119,7 +130,9 @@ suite('MongoDBService Test Suite', () => {
         'db.test.',
         { line: 0, character: 8 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'find');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'find'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -132,7 +145,9 @@ suite('MongoDBService Test Suite', () => {
         'const name = () => { db.test. }',
         { line: 0, character: 29 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'find');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'find'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -145,7 +160,9 @@ suite('MongoDBService Test Suite', () => {
         ['use("test");', 'db["test"].'].join('\n'),
         { line: 1, character: 11 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'find');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'find'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -158,7 +175,9 @@ suite('MongoDBService Test Suite', () => {
         ["use('test');", "db['test']."].join('\n'),
         { line: 1, character: 11 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'find');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'find'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -169,9 +188,11 @@ suite('MongoDBService Test Suite', () => {
     test('provide shell db methods completion with dot the same line', async () => {
       const result = await testMongoDBService.provideCompletionItems('db.', {
         line: 0,
-        character: 3
+        character: 3,
       });
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'getCollectionNames'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -184,10 +205,12 @@ suite('MongoDBService Test Suite', () => {
         ['db', '.'].join('\n'),
         {
           line: 1,
-          character: 1
+          character: 1,
         }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'getCollectionNames'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -198,9 +221,11 @@ suite('MongoDBService Test Suite', () => {
     test('provide shell db methods completion with dot after space', async () => {
       const result = await testMongoDBService.provideCompletionItems('db .', {
         line: 0,
-        character: 4
+        character: 4,
       });
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'getCollectionNames'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -213,8 +238,12 @@ suite('MongoDBService Test Suite', () => {
         'db.collection.aggregate().',
         { line: 0, character: 26 }
       );
-      const aggCompletion = result.find((item: CompletionItem) => item.label === 'toArray');
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'allowPartialResults');
+      const aggCompletion = result.find(
+        (item: CompletionItem) => item.label === 'toArray'
+      );
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'allowPartialResults'
+      );
 
       expect(aggCompletion).to.have.property('kind', CompletionItemKind.Method);
       expect(findCompletion).to.be.undefined;
@@ -225,7 +254,9 @@ suite('MongoDBService Test Suite', () => {
         'db.collection.find().',
         { line: 0, character: 21 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'allowPartialResults');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'allowPartialResults'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -240,7 +271,9 @@ suite('MongoDBService Test Suite', () => {
         ),
         { line: 2, character: 36 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'allowPartialResults');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'allowPartialResults'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -255,11 +288,13 @@ suite('MongoDBService Test Suite', () => {
           '',
           'const name = () => { db.companies.find({',
           '  blog_feed_url',
-          '}).}'
+          '}).}',
         ].join('\n'),
         { line: 4, character: 3 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'allowPartialResults');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'allowPartialResults'
+      );
 
       expect(findCompletion).to.have.property(
         'kind',
@@ -271,15 +306,17 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection.find({ j});',
         { line: 0, character: 35 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -288,15 +325,17 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test");db.collection.find({j});',
         { line: 0, character: 33 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -305,8 +344,8 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -314,11 +353,13 @@ suite('MongoDBService Test Suite', () => {
           'use("test");',
           'const name = () => {',
           '  db.collection.find({ j});',
-          '}'
+          '}',
         ].join('\n'),
         { line: 2, character: 24 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -327,15 +368,17 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         ['use("test");', '', 'db.collection.find({', '  j', '});'].join('\n'),
         { line: 3, character: 3 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -344,15 +387,17 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection.find({ j });',
         { line: 0, character: 35 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -361,14 +406,14 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
       testMongoDBService._updateCurrentSessionFields('second.collection', [
         {
           label: 'TypeScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -376,8 +421,12 @@ suite('MongoDBService Test Suite', () => {
         { line: 0, character: 51 }
       );
 
-      const jsCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
-      const tsCompletion = result.find((item: CompletionItem) => item.label === 'TypeScript');
+      const jsCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
+      const tsCompletion = result.find(
+        (item: CompletionItem) => item.label === 'TypeScript'
+      );
 
       expect(jsCompletion).to.be.undefined;
       expect(tsCompletion).to.have.property('kind', CompletionItemKind.Field);
@@ -387,15 +436,17 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); const name = () => { db.collection.find({ j}); }',
         { line: 0, character: 56 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -404,15 +455,17 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection.aggregate([ { $match: { j} } ])',
         { line: 0, character: 52 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -421,21 +474,23 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.firstCollection', [
         {
           label: 'JavaScript First',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
       testMongoDBService._updateCurrentSessionFields('test.secondCollection', [
         {
           label: 'JavaScript Second',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.firstCollection.find({ j});',
         { line: 0, character: 40 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript First');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript First'
+      );
 
       expect(findCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
@@ -444,15 +499,17 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'db.collection.find({ j});',
         { line: 0, character: 22 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
 
       expect(findCompletion).to.be.undefined;
     });
@@ -461,15 +518,17 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
         {
           label: 'JavaScript',
-          kind: CompletionItemKind.Field
-        }
+          kind: CompletionItemKind.Field,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection(j);',
         { line: 0, character: 28 }
       );
-      const findCompletion = result.find((item: CompletionItem) => item.label === 'JavaScript');
+      const findCompletion = result.find(
+        (item: CompletionItem) => item.label === 'JavaScript'
+      );
 
       expect(findCompletion).to.be.undefined;
     });
@@ -478,8 +537,8 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionDatabases([
         {
           label: 'admin',
-          kind: CompletionItemKind.Value
-        }
+          kind: CompletionItemKind.Value,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -499,8 +558,8 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionDatabases([
         {
           label: 'admin',
-          kind: CompletionItemKind.Value
-        }
+          kind: CompletionItemKind.Value,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -520,8 +579,8 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionDatabases([
         {
           label: 'admin',
-          kind: CompletionItemKind.Value
-        }
+          kind: CompletionItemKind.Value,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -541,8 +600,8 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._updateCurrentSessionDatabases([
         {
           label: 'admin',
-          kind: CompletionItemKind.Value
-        }
+          kind: CompletionItemKind.Value,
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -560,14 +619,16 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide collection names completion for valid object names', async () => {
       testMongoDBService._updateCurrentSessionCollections('test', [
-        { name: 'empty' }
+        { name: 'empty' },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.',
         { line: 0, character: 16 }
       );
-      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'empty');
+      const findCollectionCompletion = result.find(
+        (item: CompletionItem) => item.label === 'empty'
+      );
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
@@ -578,15 +639,17 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names completion for object names with dashes', async () => {
       testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
-          name: 'coll-name'
-        }
+          name: 'coll-name',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         "use('berlin'); db.",
         { line: 0, character: 18 }
       );
-      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'coll-name');
+      const findCollectionCompletion = result.find(
+        (item: CompletionItem) => item.label === 'coll-name'
+      );
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
@@ -600,14 +663,16 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide collection names completion in variable declarations', async () => {
       testMongoDBService._updateCurrentSessionCollections('berlin', [
-        { name: 'cocktailbars' }
+        { name: 'cocktailbars' },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         ["use('berlin');", '', 'let a = db.'].join('\n'),
         { line: 2, character: 11 }
       );
-      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'cocktailbars');
+      const findCollectionCompletion = result.find(
+        (item: CompletionItem) => item.label === 'cocktailbars'
+      );
 
       expect(findCollectionCompletion).to.have.property(
         'label',
@@ -622,16 +687,20 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names and shell db symbol completion for db symbol', async () => {
       testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
-          name: 'coll-name'
-        }
+          name: 'coll-name',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
         "use('berlin'); db.",
         { line: 0, character: 18 }
       );
-      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'coll-name');
-      const findShellCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
+      const findCollectionCompletion = result.find(
+        (item: CompletionItem) => item.label === 'coll-name'
+      );
+      const findShellCompletion = result.find(
+        (item: CompletionItem) => item.label === 'getCollectionNames'
+      );
 
       expect(findCollectionCompletion).to.have.property(
         'kind',
@@ -641,19 +710,15 @@ suite('MongoDBService Test Suite', () => {
         'kind',
         CompletionItemKind.Method
       );
-      expect(findShellCompletion).to.have.property(
-        'documentation'
-      );
-      expect(findShellCompletion).to.have.property(
-        'detail'
-      );
+      expect(findShellCompletion).to.have.property('documentation');
+      expect(findShellCompletion).to.have.property('detail');
     });
 
     test('provide only collection names and shell db symbol completion after find cursor', async () => {
       testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
-          name: 'cocktailbars'
-        }
+          name: 'cocktailbars',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -662,45 +727,7 @@ suite('MongoDBService Test Suite', () => {
           '',
           'let a = db.cocktailbars.find({}).toArray();',
           '',
-          'db.'
-        ].join('\n'),
-        { line: 4, character: 3 }
-      );
-      const findCollectionCompletion = result.find((item: CompletionItem) => item.label === 'cocktailbars');
-      const findShellCompletion = result.find((item: CompletionItem) => item.label === 'getCollectionNames');
-      const findCursorCompletion = result.find((item: CompletionItem) => item.label === 'toArray');
-
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-      expect(findShellCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Method
-      );
-      expect(findShellCompletion).to.have.property(
-        'documentation'
-      );
-      expect(findShellCompletion).to.have.property(
-        'detail'
-      );
-      expect(findCursorCompletion).to.be.undefined;
-    });
-
-    test('provide only collection names and shell db symbol completion after aggregate cursor', async () => {
-      testMongoDBService._updateCurrentSessionCollections('berlin', [
-        {
-          name: 'cocktailbars'
-        }
-      ]);
-
-      const result = await testMongoDBService.provideCompletionItems(
-        [
-          "use('berlin');",
-          '',
-          'let a = db.cocktailbars.aggregate({}).toArray();',
-          '',
-          'db.'
+          'db.',
         ].join('\n'),
         { line: 4, character: 3 }
       );
@@ -722,20 +749,56 @@ suite('MongoDBService Test Suite', () => {
         'kind',
         CompletionItemKind.Method
       );
-      expect(findShellCompletion).to.have.property(
-        'documentation'
+      expect(findShellCompletion).to.have.property('documentation');
+      expect(findShellCompletion).to.have.property('detail');
+      expect(findCursorCompletion).to.be.undefined;
+    });
+
+    test('provide only collection names and shell db symbol completion after aggregate cursor', async () => {
+      testMongoDBService._updateCurrentSessionCollections('berlin', [
+        {
+          name: 'cocktailbars',
+        },
+      ]);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        [
+          "use('berlin');",
+          '',
+          'let a = db.cocktailbars.aggregate({}).toArray();',
+          '',
+          'db.',
+        ].join('\n'),
+        { line: 4, character: 3 }
+      );
+      const findCollectionCompletion = result.find(
+        (item: CompletionItem) => item.label === 'cocktailbars'
+      );
+      const findShellCompletion = result.find(
+        (item: CompletionItem) => item.label === 'getCollectionNames'
+      );
+      const findCursorCompletion = result.find(
+        (item: CompletionItem) => item.label === 'toArray'
+      );
+
+      expect(findCollectionCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Folder
       );
       expect(findShellCompletion).to.have.property(
-        'detail'
+        'kind',
+        CompletionItemKind.Method
       );
+      expect(findShellCompletion).to.have.property('documentation');
+      expect(findShellCompletion).to.have.property('detail');
       expect(findCursorCompletion).to.be.undefined;
     });
 
     test('provide only collection names completion in the middle of expression', async () => {
       testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
-          name: 'cocktails'
-        }
+          name: 'cocktails',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -763,8 +826,8 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names with dashes completion in the middle of expression', async () => {
       testMongoDBService._updateCurrentSessionCollections('berlin', [
         {
-          name: 'coll-name'
-        }
+          name: 'coll-name',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -783,8 +846,8 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names completion after single line comment', async () => {
       testMongoDBService._updateCurrentSessionCollections('test', [
         {
-          name: 'collection'
-        }
+          name: 'collection',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -805,8 +868,8 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names completion after single line comment with new line character', async () => {
       testMongoDBService._updateCurrentSessionCollections('test', [
         {
-          name: 'collection'
-        }
+          name: 'collection',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -827,8 +890,8 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names completion after multi-line comment', async () => {
       testMongoDBService._updateCurrentSessionCollections('test', [
         {
-          name: 'collection'
-        }
+          name: 'collection',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -849,8 +912,8 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names completion after end of line comment', async () => {
       testMongoDBService._updateCurrentSessionCollections('test', [
         {
-          name: 'collection'
-        }
+          name: 'collection',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -871,8 +934,8 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names completion at the same line block comment starts', async () => {
       testMongoDBService._updateCurrentSessionCollections('test', [
         {
-          name: 'collection'
-        }
+          name: 'collection',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -893,8 +956,8 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names completion at the same line block comment ends', async () => {
       testMongoDBService._updateCurrentSessionCollections('test', [
         {
-          name: 'collection'
-        }
+          name: 'collection',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -915,8 +978,8 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names completion at the same line with end line comment', async () => {
       testMongoDBService._updateCurrentSessionCollections('test', [
         {
-          name: 'collection'
-        }
+          name: 'collection',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -937,8 +1000,8 @@ suite('MongoDBService Test Suite', () => {
     test('provide collection names completion if code without a semicolon', async () => {
       testMongoDBService._updateCurrentSessionCollections('test', [
         {
-          name: 'collection'
-        }
+          name: 'collection',
+        },
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -969,7 +1032,8 @@ suite('MongoDBService Test Suite', () => {
     const testMongoDBService = new MongoDBService(connection);
 
     before(async () => {
-      testMongoDBService._extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
+      testMongoDBService._extensionPath =
+        mdbTestExtension.testExtensionContext.extensionPath;
       await testMongoDBService.connectToServiceProvider(params);
     });
 
@@ -978,13 +1042,18 @@ suite('MongoDBService Test Suite', () => {
       const result = await testMongoDBService.executeAll(
         {
           connectionId: 'pineapple',
-          codeToEvaluate: '1 + 1'
+          codeToEvaluate: '1 + 1',
         },
         source.token
       );
       const expectedResult = {
         outputLines: [],
-        result: { namespace: null, type: 'number', content: 2, language: 'plaintext' }
+        result: {
+          namespace: null,
+          type: 'number',
+          content: 2,
+          language: 'plaintext',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -995,7 +1064,7 @@ suite('MongoDBService Test Suite', () => {
       const result = await testMongoDBService.executeAll(
         {
           connectionId: 'not pineapple',
-          codeToEvaluate: '1 + 1'
+          codeToEvaluate: '1 + 1',
         },
         source.token
       );
@@ -1008,13 +1077,18 @@ suite('MongoDBService Test Suite', () => {
       const result = await testMongoDBService.executeAll(
         {
           connectionId: 'pineapple',
-          codeToEvaluate: 'const x = 1; x + 2'
+          codeToEvaluate: 'const x = 1; x + 2',
         },
         source.token
       );
       const expectedResult = {
         outputLines: [],
-        result: { namespace: null, type: 'number', content: 3, language: 'plaintext' }
+        result: {
+          namespace: null,
+          type: 'number',
+          content: 3,
+          language: 'plaintext',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1025,13 +1099,18 @@ suite('MongoDBService Test Suite', () => {
       const firstEvalResult = await testMongoDBService.executeAll(
         {
           connectionId: 'pineapple',
-          codeToEvaluate: 'const x = 1 + 1; x'
+          codeToEvaluate: 'const x = 1 + 1; x',
         },
         source.token
       );
       const firstRes = {
         outputLines: [],
-        result: { namespace: null, type: 'number', content: 2, language: 'plaintext' }
+        result: {
+          namespace: null,
+          type: 'number',
+          content: 2,
+          language: 'plaintext',
+        },
       };
 
       expect(firstEvalResult).to.deep.equal(firstRes);
@@ -1039,13 +1118,18 @@ suite('MongoDBService Test Suite', () => {
       const secondEvalResult = await testMongoDBService.executeAll(
         {
           connectionId: 'pineapple',
-          codeToEvaluate: 'const x = 2 + 1; x'
+          codeToEvaluate: 'const x = 2 + 1; x',
         },
         source.token
       );
       const secondRes = {
         outputLines: [],
-        result: { namespace: null, type: 'number', content: 3, language: 'plaintext' }
+        result: {
+          namespace: null,
+          type: 'number',
+          content: 3,
+          language: 'plaintext',
+        },
       };
 
       expect(secondEvalResult).to.deep.equal(secondRes);
@@ -1058,7 +1142,7 @@ suite('MongoDBService Test Suite', () => {
           connectionId: 'pineapple',
           codeToEvaluate: `const { ObjectId } = require('bson');
           const x = { _id: new ObjectId('5fb292760ece2dc9c0362075') };
-          x`
+          x`,
         },
         source.token
       );
@@ -1069,11 +1153,11 @@ suite('MongoDBService Test Suite', () => {
           type: 'object',
           content: {
             _id: {
-              $oid: '5fb292760ece2dc9c0362075'
-            }
+              $oid: '5fb292760ece2dc9c0362075',
+            },
           },
-          language: 'json'
-        }
+          language: 'json',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1085,7 +1169,7 @@ suite('MongoDBService Test Suite', () => {
         {
           connectionId: 'pineapple',
           codeToEvaluate: `const obj = { name: "a short string" };
-          obj`
+          obj`,
         },
         source.token
       );
@@ -1095,10 +1179,10 @@ suite('MongoDBService Test Suite', () => {
           namespace: null,
           type: 'object',
           content: {
-            name: 'a short string'
+            name: 'a short string',
           },
-          language: 'json'
-        }
+          language: 'json',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1110,7 +1194,7 @@ suite('MongoDBService Test Suite', () => {
         {
           connectionId: 'pineapple',
           codeToEvaluate: `const arr = [{ name: "a short string" }];
-          arr`
+          arr`,
         },
         source.token
       );
@@ -1119,11 +1203,13 @@ suite('MongoDBService Test Suite', () => {
         result: {
           namespace: null,
           type: 'object',
-          content: [{
-            name: 'a short string'
-          }],
-          language: 'json'
-        }
+          content: [
+            {
+              name: 'a short string',
+            },
+          ],
+          language: 'json',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1134,7 +1220,7 @@ suite('MongoDBService Test Suite', () => {
       const result = await testMongoDBService.executeAll(
         {
           connectionId: 'pineapple',
-          codeToEvaluate: 'undefined'
+          codeToEvaluate: 'undefined',
         },
         source.token
       );
@@ -1144,8 +1230,8 @@ suite('MongoDBService Test Suite', () => {
           namespace: null,
           type: 'undefined',
           content: undefined,
-          language: 'plaintext'
-        }
+          language: 'plaintext',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1156,7 +1242,7 @@ suite('MongoDBService Test Suite', () => {
       const result = await testMongoDBService.executeAll(
         {
           connectionId: 'pineapple',
-          codeToEvaluate: 'null'
+          codeToEvaluate: 'null',
         },
         source.token
       );
@@ -1166,8 +1252,8 @@ suite('MongoDBService Test Suite', () => {
           namespace: null,
           type: 'object',
           content: null,
-          language: 'plaintext'
-        }
+          language: 'plaintext',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1179,7 +1265,7 @@ suite('MongoDBService Test Suite', () => {
         {
           connectionId: 'pineapple',
           codeToEvaluate: `const x = 'A single line string';
-          x`
+          x`,
         },
         source.token
       );
@@ -1189,8 +1275,8 @@ suite('MongoDBService Test Suite', () => {
           namespace: null,
           type: 'string',
           content: 'A single line string',
-          language: 'plaintext'
-        }
+          language: 'plaintext',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1204,7 +1290,7 @@ suite('MongoDBService Test Suite', () => {
           codeToEvaluate: `const x = \`vscode
           is
           awesome\`;
-          x`
+          x`,
         },
         source.token
       );
@@ -1216,8 +1302,8 @@ suite('MongoDBService Test Suite', () => {
           content: `vscode
           is
           awesome`,
-          language: 'plaintext'
-        }
+          language: 'plaintext',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1228,7 +1314,7 @@ suite('MongoDBService Test Suite', () => {
       const result = await testMongoDBService.executeAll(
         {
           connectionId: 'pineapple',
-          codeToEvaluate: 'print("Hello"); console.log(1,2,3); 42'
+          codeToEvaluate: 'print("Hello"); console.log(1,2,3); 42',
         },
         source.token
       );
@@ -1237,9 +1323,14 @@ suite('MongoDBService Test Suite', () => {
           { namespace: null, type: null, content: 'Hello', language: null },
           { namespace: null, type: null, content: 1, language: null },
           { namespace: null, type: null, content: 2, language: null },
-          { namespace: null, type: null, content: 3, language: null }
+          { namespace: null, type: null, content: 3, language: null },
         ],
-        result: { namespace: null, type: 'number', content: 42, language: 'plaintext' }
+        result: {
+          namespace: null,
+          type: 'number',
+          content: 42,
+          language: 'plaintext',
+        },
       };
 
       expect(result).to.deep.equal(expectedResult);
@@ -1270,57 +1361,60 @@ suite('MongoDBService Test Suite', () => {
       ]);`;
       const selection = {
         start: { line: 0, character: 0 },
-        end: { line: 9, character: 3 }
+        end: { line: 9, character: 3 },
       } as vscode.Selection;
 
       const mode = testMongoDBService.getExportToLanguageMode({
         textFromEditor,
-        selection
+        selection,
       });
 
       expect(mode).to.be.equal('OTHER');
     });
 
     test('returns query for an object', () => {
-      const textFromEditor = "db.sales.insertMany([{ '_id': 1, 'item': 'abc', 'price': 10, 'quantity': 2, 'date': new Date('2014-03-01T08:00:00Z') }]);";
+      const textFromEditor =
+        "db.sales.insertMany([{ '_id': 1, 'item': 'abc', 'price': 10, 'quantity': 2, 'date': new Date('2014-03-01T08:00:00Z') }]);";
       const selection = {
         start: { line: 0, character: 21 },
-        end: { line: 0, character: 118 }
+        end: { line: 0, character: 118 },
       } as vscode.Selection;
 
       const mode = testMongoDBService.getExportToLanguageMode({
         textFromEditor,
-        selection
+        selection,
       });
 
       expect(mode).to.be.equal('QUERY');
     });
 
     test('returns aggregation for an array as function argument', () => {
-      const textFromEditor = "db.sales.insertMany([{ '_id': 1, 'item': 'abc', 'price': 10, 'quantity': 2, 'date': new Date('2014-03-01T08:00:00Z') }]);";
+      const textFromEditor =
+        "db.sales.insertMany([{ '_id': 1, 'item': 'abc', 'price': 10, 'quantity': 2, 'date': new Date('2014-03-01T08:00:00Z') }]);";
       const selection = {
         start: { line: 0, character: 20 },
-        end: { line: 0, character: 119 }
+        end: { line: 0, character: 119 },
       } as vscode.Selection;
 
       const mode = testMongoDBService.getExportToLanguageMode({
         textFromEditor,
-        selection
+        selection,
       });
 
       expect(mode).to.be.equal('AGGREGATION');
     });
 
     test('returns query for an object as function argument', () => {
-      const textFromEditor = "db.sales.insertMany({ '_id': 1, 'item': 'abc' });";
+      const textFromEditor =
+        "db.sales.insertMany({ '_id': 1, 'item': 'abc' });";
       const selection = {
         start: { line: 0, character: 20 },
-        end: { line: 0, character: 47 }
+        end: { line: 0, character: 47 },
       } as vscode.Selection;
 
       const mode = testMongoDBService.getExportToLanguageMode({
         textFromEditor,
-        selection
+        selection,
       });
 
       expect(mode).to.be.equal('QUERY');
@@ -1330,12 +1424,12 @@ suite('MongoDBService Test Suite', () => {
       const textFromEditor = "const arr = [{ '_id': 1, 'item': 'abc' }];";
       const selection = {
         start: { line: 0, character: 12 },
-        end: { line: 0, character: 41 }
+        end: { line: 0, character: 41 },
       } as vscode.Selection;
 
       const mode = testMongoDBService.getExportToLanguageMode({
         textFromEditor,
-        selection
+        selection,
       });
 
       expect(mode).to.be.equal('AGGREGATION');
@@ -1345,12 +1439,12 @@ suite('MongoDBService Test Suite', () => {
       const textFromEditor = "const obj = { '_id': 1 };";
       const selection = {
         start: { line: 0, character: 12 },
-        end: { line: 0, character: 24 }
+        end: { line: 0, character: 24 },
       } as vscode.Selection;
 
       const mode = testMongoDBService.getExportToLanguageMode({
         textFromEditor,
-        selection
+        selection,
       });
 
       expect(mode).to.be.equal('QUERY');
@@ -1360,27 +1454,28 @@ suite('MongoDBService Test Suite', () => {
       const textFromEditor = "const arr = [{ '_id': 1, 'item': 'abc' }];";
       const selection = {
         start: { line: 0, character: 0 },
-        end: { line: 0, character: 42 }
+        end: { line: 0, character: 42 },
       } as vscode.Selection;
 
       const mode = testMongoDBService.getExportToLanguageMode({
         textFromEditor,
-        selection
+        selection,
       });
 
       expect(mode).to.be.equal('OTHER');
     });
 
     test('returns query for an object used as another object property', () => {
-      const textFromEditor = "const obj = { prop: { '_id': 1, 'item': 'abc' } };";
+      const textFromEditor =
+        "const obj = { prop: { '_id': 1, 'item': 'abc' } };";
       const selection = {
         start: { line: 0, character: 20 },
-        end: { line: 0, character: 47 }
+        end: { line: 0, character: 47 },
       } as vscode.Selection;
 
       const mode = testMongoDBService.getExportToLanguageMode({
         textFromEditor,
-        selection
+        selection,
       });
 
       expect(mode).to.be.equal('QUERY');
@@ -1390,12 +1485,12 @@ suite('MongoDBService Test Suite', () => {
       const textFromEditor = 'const arr = [[]];';
       const selection = {
         start: { line: 0, character: 13 },
-        end: { line: 0, character: 15 }
+        end: { line: 0, character: 15 },
       } as vscode.Selection;
 
       const mode = testMongoDBService.getExportToLanguageMode({
         textFromEditor,
-        selection
+        selection,
       });
 
       expect(mode).to.be.equal('AGGREGATION');

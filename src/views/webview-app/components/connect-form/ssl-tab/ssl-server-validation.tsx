@@ -52,14 +52,14 @@ class SSLServerValidation extends React.Component<props> {
 const mapStateToProps = (state: AppState): StateProps => {
   return {
     isValid: state.isValid,
-    sslCA: state.currentConnection.sslCA
+    sslCA: state.currentConnection.sslCA,
   };
 };
 
 const mapDispatchToProps: DispatchProps = {
   onChangeSSLCA: (): OnChangeSSLCAAction => ({
-    type: ActionTypes.ON_CHANGE_SSL_CA
-  })
+    type: ActionTypes.ON_CHANGE_SSL_CA,
+  }),
 };
 
 export default connect(

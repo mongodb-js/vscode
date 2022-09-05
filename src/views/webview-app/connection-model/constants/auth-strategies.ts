@@ -24,7 +24,7 @@ export enum AUTH_STRATEGY_VALUES {
    * @see http://bit.ly/mongodb-node-driver-ldap
    */
   LDAP = 'LDAP',
-  'SCRAM-SHA-256' = 'SCRAM-SHA-256'
+  'SCRAM-SHA-256' = 'SCRAM-SHA-256',
 }
 
 type AuthStrategy = {
@@ -35,15 +35,15 @@ type AuthStrategy = {
 export const AuthStrategies: AuthStrategy[] = [
   {
     id: AUTH_STRATEGY_VALUES.NONE,
-    title: 'None'
+    title: 'None',
   },
   {
     id: AUTH_STRATEGY_VALUES.MONGODB,
-    title: 'Username / Password'
+    title: 'Username / Password',
   },
   {
     id: AUTH_STRATEGY_VALUES['SCRAM-SHA-256'],
-    title: 'SCRAM-SHA-256'
+    title: 'SCRAM-SHA-256',
   },
   // Currently disabled.
   // {
@@ -52,12 +52,12 @@ export const AuthStrategies: AuthStrategy[] = [
   // },
   {
     id: AUTH_STRATEGY_VALUES.LDAP,
-    title: 'LDAP'
+    title: 'LDAP',
   },
   {
     id: AUTH_STRATEGY_VALUES.X509,
-    title: 'X.509'
-  }
+    title: 'X.509',
+  },
 ];
 
 export default AUTH_STRATEGY_VALUES;

@@ -1,10 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
-  ConnectionFormChangedAction
-} from '../../store/actions';
+import { ActionTypes, ConnectionFormChangedAction } from '../../store/actions';
 import SSLMethodTab from './ssl-tab/ssl-tab';
 import SSHTunnelTab from './ssh-tab/ssh-tunnel-tab';
 import FormActions from '../form/form-actions';
@@ -42,7 +39,7 @@ export class ConnectionForm extends React.Component<props> {
       isConnecting,
       isValid,
       onConnectionFormChanged,
-      syntaxErrorMessage
+      syntaxErrorMessage,
     } = this.props;
 
     return (
@@ -57,7 +54,9 @@ export class ConnectionForm extends React.Component<props> {
           {connectionFormTab === CONNECTION_FORM_TABS.GENERAL && <GeneralTab />}
           {connectionFormTab === CONNECTION_FORM_TABS.SSL && <SSLMethodTab />}
           {connectionFormTab === CONNECTION_FORM_TABS.SSH && <SSHTunnelTab />}
-          {connectionFormTab === CONNECTION_FORM_TABS.ADVANCED && <AdvancedTab />}
+          {connectionFormTab === CONNECTION_FORM_TABS.ADVANCED && (
+            <AdvancedTab />
+          )}
         </div>
 
         <FormActions
@@ -81,15 +80,15 @@ const mapStateToProps = (state: AppState): StateProps => {
     isConnected: state.isConnected,
     isConnecting: state.isConnecting,
     isValid: state.isValid,
-    syntaxErrorMessage: state.syntaxErrorMessage
+    syntaxErrorMessage: state.syntaxErrorMessage,
   };
 };
 
 const mapDispatchToProps: DispatchProps = {
   // Resets URL validation if form was changed.
   onConnectionFormChanged: (): ConnectionFormChangedAction => ({
-    type: ActionTypes.CONNECTION_FORM_CHANGED
-  })
+    type: ActionTypes.CONNECTION_FORM_CHANGED,
+  }),
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ConnectionForm);

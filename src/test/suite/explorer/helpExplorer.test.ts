@@ -42,7 +42,8 @@ suite('Help Explorer Test Suite', function () {
     const atlasHelpItem = helpTreeItems[5];
 
     assert.strictEqual(atlasHelpItem.label, 'Create Free Atlas Cluster');
-    const telemetryUserIdentity = mdbTestExtension.testExtensionController._telemetryService.getTelemetryUserIdentity();
+    const telemetryUserIdentity =
+      mdbTestExtension.testExtensionController._telemetryService.getTelemetryUserIdentity();
     assert.strictEqual(
       atlasHelpItem.url,
       `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${telemetryUserIdentity[0]}`
@@ -74,11 +75,11 @@ suite('Help Explorer Test Suite', function () {
     assert(stubExecuteCommand.firstCall.args[0] === 'vscode.open');
     assert(
       stubExecuteCommand.firstCall.args[1].path ===
-      vscode.Uri.parse(atlasHelpItem.url).path
+        vscode.Uri.parse(atlasHelpItem.url).path
     );
     assert(
       stubExecuteCommand.firstCall.args[1].authority ===
-      vscode.Uri.parse(atlasHelpItem.url).authority
+        vscode.Uri.parse(atlasHelpItem.url).authority
     );
   });
 

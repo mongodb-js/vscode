@@ -8,7 +8,7 @@ const outputPath = path.join(__dirname, 'dist');
 const ContextMapPlugin = require('context-map-webpack-plugin');
 
 const baseConfig = {
-  devtool: 'source-map'
+  devtool: 'source-map',
   // performance: {
   //   hints: false
   // }
@@ -22,17 +22,17 @@ const extensionConfig = {
     path: outputPath,
     filename: '[name].js',
     libraryTarget: 'commonjs2',
-    devtoolModuleFilenameTemplate: '../[resource-path]'
+    devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'node',
   entry: {
-    extension: './src/extension.ts'
+    extension: './src/extension.ts',
   },
   resolve: {
     extensions: ['.js', '.ts', '.json'],
     fallback: {
-      stream: require.resolve('stream-browserify')
-    }
+      stream: require.resolve('stream-browserify'),
+    },
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
@@ -44,10 +44,11 @@ const extensionConfig = {
     snappy: 'commonjs2 snappy',
     'snappy/package.json': 'commonjs2 snappy/package.json',
     'bson-ext': 'commonjs2 bson-ext',
-    'win-export-certificate-and-key': 'commonjs2 win-export-certificate-and-key',
-    'os_dns_native': 'commonjs2 os_dns_native',
+    'win-export-certificate-and-key':
+      'commonjs2 win-export-certificate-and-key',
+    os_dns_native: 'commonjs2 os_dns_native',
     'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   },
   module: {
     rules: [
@@ -60,20 +61,17 @@ const extensionConfig = {
         test: /\.(ts|tsx)$/,
         loader: 'ts-loader',
         exclude: /node_modules/,
-        options: {}
+        options: {},
       },
       {
         test: /\.node$/,
-        loader: 'node-loader'
-      }
-    ]
+        loader: 'node-loader',
+      },
+    ],
   },
   plugins: [
-    new ContextMapPlugin(
-      'node_modules/context-eval',
-      ['./lib/context-node']
-    )
-  ]
+    new ContextMapPlugin('node_modules/context-eval', ['./lib/context-node']),
+  ],
 };
 
 const languageServerConfig = {
@@ -84,19 +82,19 @@ const languageServerConfig = {
     path: outputPath,
     filename: '[name].js',
     libraryTarget: 'commonjs2',
-    devtoolModuleFilenameTemplate: '../[resource-path]'
+    devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'node',
   entry: {
-    languageServer: './src/language/server.ts'
+    languageServer: './src/language/server.ts',
   },
   optimization: {
     // Don't minimize in order to preserve
     // the signature names from @mongosh/shell-api.
-    minimize: false
+    minimize: false,
   },
   resolve: {
-    extensions: ['.js', '.ts', '.json']
+    extensions: ['.js', '.ts', '.json'],
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
@@ -104,10 +102,11 @@ const languageServerConfig = {
     snappy: 'commonjs2 snappy',
     'snappy/package.json': 'commonjs2 snappy/package.json',
     'bson-ext': 'commonjs2 bson-ext',
-    'win-export-certificate-and-key': 'commonjs2 win-export-certificate-and-key',
-    'os_dns_native': 'commonjs2 os_dns_native',
+    'win-export-certificate-and-key':
+      'commonjs2 win-export-certificate-and-key',
+    os_dns_native: 'commonjs2 os_dns_native',
     'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   },
   module: {
     rules: [
@@ -120,14 +119,14 @@ const languageServerConfig = {
         test: /\.(ts|tsx)$/,
         loader: 'ts-loader',
         exclude: /node_modules/,
-        options: {}
+        options: {},
       },
       {
         test: /\.node$/,
-        loader: 'node-loader'
-      }
-    ]
-  }
+        loader: 'node-loader',
+      },
+    ],
+  },
 };
 
 const languageServerWorkerConfig = {
@@ -138,19 +137,19 @@ const languageServerWorkerConfig = {
     path: outputPath,
     filename: '[name].js',
     libraryTarget: 'commonjs2',
-    devtoolModuleFilenameTemplate: '../[resource-path]'
+    devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'node',
   entry: {
-    languageServerWorker: './src/language/worker.ts'
+    languageServerWorker: './src/language/worker.ts',
   },
   optimization: {
     // Don't minimize in order to preserve
     // the signature names from @mongosh/shell-api.
-    minimize: false
+    minimize: false,
   },
   resolve: {
-    extensions: ['.js', '.ts', '.json']
+    extensions: ['.js', '.ts', '.json'],
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
@@ -158,10 +157,11 @@ const languageServerWorkerConfig = {
     snappy: 'commonjs2 snappy',
     'snappy/package.json': 'commonjs2 snappy/package.json',
     'bson-ext': 'commonjs2 bson-ext',
-    'win-export-certificate-and-key': 'commonjs2 win-export-certificate-and-key',
-    'os_dns_native': 'commonjs2 os_dns_native',
+    'win-export-certificate-and-key':
+      'commonjs2 win-export-certificate-and-key',
+    os_dns_native: 'commonjs2 os_dns_native',
     'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   },
   module: {
     rules: [
@@ -174,14 +174,14 @@ const languageServerWorkerConfig = {
         test: /\.(ts|tsx)$/,
         loader: 'ts-loader',
         exclude: /node_modules/,
-        options: {}
+        options: {},
       },
       {
         test: /\.node$/,
-        loader: 'node-loader'
-      }
-    ]
-  }
+        loader: 'node-loader',
+      },
+    ],
+  },
 };
 
 const webviewConfig = {
@@ -191,22 +191,22 @@ const webviewConfig = {
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
-    devtoolModuleFilenameTemplate: '../[resource-path]'
+    devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'web',
   entry: {
-    webviewApp: './src/views/webview-app/index.tsx'
+    webviewApp: './src/views/webview-app/index.tsx',
   },
   resolve: {
     extensions: ['.js', '.ts', '.tsx', '.json'],
     fallback: {
       stream: require.resolve('stream-browserify'),
-      buffer: require.resolve('buffer')
-    }
+      buffer: require.resolve('buffer'),
+    },
   },
   externals: {
     'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
-    'os_dns_native': 'commonjs2 os_dns_native',
+    os_dns_native: 'commonjs2 os_dns_native',
   },
   module: {
     rules: [
@@ -214,7 +214,7 @@ const webviewConfig = {
         test: /\.(ts|tsx)$/,
         loader: 'ts-loader',
         exclude: /node_modules/,
-        options: {}
+        options: {},
       },
       {
         test: /\.less$/,
@@ -225,44 +225,41 @@ const webviewConfig = {
             loader: 'css-loader',
             options: {
               modules: true,
-              importLoaders: 1
-            }
+              importLoaders: 1,
+            },
           },
           {
             loader: 'postcss-loader',
             options: {
-              plugins: function() {
+              plugins: function () {
                 return [autoprefixer()];
-              }
-            }
+              },
+            },
           },
           {
             loader: 'less-loader',
             options: {
-              noIeCompat: true
-            }
-          }
-        ]
-      }
-    ]
+              noIeCompat: true,
+            },
+          },
+        ],
+      },
+    ],
   },
   plugins: [
-    new ContextMapPlugin(
-      'node_modules/context-eval',
-      ['./lib/context-node']
-    ),
+    new ContextMapPlugin('node_modules/context-eval', ['./lib/context-node']),
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
     }),
     new webpack.ProvidePlugin({
-      process: 'process/browser'
+      process: 'process/browser',
     }),
-  ]
+  ],
 };
 
 module.exports = [
   extensionConfig,
   languageServerConfig,
   languageServerWorkerConfig,
-  webviewConfig
+  webviewConfig,
 ];

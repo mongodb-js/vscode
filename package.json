@@ -35,7 +35,7 @@
   "main": "./dist/extension.js",
   "scripts": {
     "clean": "rimraf ./out/* ./dist/* ",
-    "lint": "eslint --cache '**/*.{js,ts,tsx}'",
+    "lint": "eslint . && prettier --check .",
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
     "update-snippets": "ts-node ./scripts/update-snippets.ts",
     "precompile": "npm run clean",
@@ -58,7 +58,8 @@
     "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && vsce package --githubBranch main",
     "local-install": "npm run package && code --install-extension ./mongodb-vscode-*.vsix",
     "check-vsix-size": "ts-node ./scripts/check-vsix-size.ts",
-    "release-draft": "node ./scripts/release-draft.js"
+    "release-draft": "node ./scripts/release-draft.js",
+    "reformat": "prettier --write ."
   },
   "engines": {
     "vscode": "^1.71.0",
@@ -955,6 +956,7 @@
     "vscode-languageserver-textdocument": "^1.0.7"
   },
   "devDependencies": {
+    "@mongodb-js/prettier-config-compass": "^1.0.0",
     "@types/analytics-node": "^3.1.7",
     "@types/babel__core": "^7.1.18",
     "@types/babel__traverse": "^7.14.2",
@@ -1014,6 +1016,7 @@
     "ora": "^5.4.1",
     "postcss-loader": "^3.0.0",
     "pre-commit": "^1.2.2",
+    "prettier": "^2.7.1",
     "process": "^0.11.10",
     "semver": "^7.3.7",
     "sinon": "^9.2.4",

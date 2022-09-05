@@ -4,7 +4,7 @@ import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 
 import ConnectionTreeItem, {
-  ConnectionItemContextValues
+  ConnectionItemContextValues,
 } from '../../../explorer/connectionTreeItem';
 import { DataServiceStub } from '../stubs';
 import formatError from '../../../utils/formatError';
@@ -72,16 +72,23 @@ suite('ConnectionTreeItem Test Suite', () => {
       sinon.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
-        () => ({
-          listDatabases: () => new Promise(() => { throw Error('peaches'); })
-        }) as any
+        () =>
+          ({
+            listDatabases: () =>
+              new Promise(() => {
+                throw Error('peaches');
+              }),
+          } as any)
       );
 
       try {
         await testConnectionTreeItem.getChildren();
         assert(false);
       } catch (error) {
-        assert.strictEqual(formatError(error).message, 'Unable to list databases: peaches');
+        assert.strictEqual(
+          formatError(error).message,
+          'Unable to list databases: peaches'
+        );
       }
     });
   });

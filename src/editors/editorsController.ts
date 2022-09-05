@@ -11,7 +11,7 @@ import CollectionDocumentsProvider, {
   CONNECTION_ID_URI_IDENTIFIER,
   OPERATION_ID_URI_IDENTIFIER,
   NAMESPACE_URI_IDENTIFIER,
-  VIEW_COLLECTION_SCHEME
+  VIEW_COLLECTION_SCHEME,
 } from './collectionDocumentsProvider';
 import { createLogger } from '../logging';
 import DocumentIdStore from './documentIdStore';
@@ -23,11 +23,11 @@ import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import MongoDBDocumentService, {
   DOCUMENT_ID_URI_IDENTIFIER,
   DOCUMENT_SOURCE_URI_IDENTIFIER,
-  VIEW_DOCUMENT_SCHEME
+  VIEW_DOCUMENT_SCHEME,
 } from './mongoDBDocumentService';
 import PlaygroundController from './playgroundController';
 import PlaygroundResultProvider, {
-  PLAYGROUND_RESULT_SCHEME
+  PLAYGROUND_RESULT_SCHEME,
 } from './playgroundResultProvider';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
@@ -42,13 +42,12 @@ export function getFileDisplayNameForDocument(
 
   // Encode special file uri characters to ensure VSCode handles
   // it correctly in a uri while avoiding collisions.
-  displayName = displayName.replace(/[\\/%]/gi, function(c) {
+  displayName = displayName.replace(/[\\/%]/gi, function (c) {
     return `%${c.charCodeAt(0).toString(16)}`;
   });
 
-  displayName = displayName.length > 200
-    ? displayName.substring(0, 200)
-    : displayName;
+  displayName =
+    displayName.length > 200 ? displayName.substring(0, 200) : displayName;
 
   return displayName;
 }
@@ -68,7 +67,7 @@ export function getViewCollectionDocumentsUri(
   // Encode special file uri characters to ensure VSCode handles
   // it correctly in a uri while avoiding collisions.
   const namespaceDisplayName = encodeURIComponent(
-    namespace.replace(/[\\/%]/gi, function(c) {
+    namespace.replace(/[\\/%]/gi, function (c) {
       return `%${c.charCodeAt(0).toString(16)}`;
     })
   );
@@ -87,7 +86,8 @@ export default class EditorsController {
   _codeActionProvider: CodeActionProvider;
   _connectionController: ConnectionController;
   _playgroundController: PlaygroundController;
-  _collectionDocumentsOperationsStore = new CollectionDocumentsOperationsStore();
+  _collectionDocumentsOperationsStore =
+    new CollectionDocumentsOperationsStore();
   _collectionViewProvider: CollectionDocumentsProvider;
   _context: vscode.ExtensionContext;
   _statusView: StatusView;
@@ -140,9 +140,10 @@ export default class EditorsController {
     this._playgroundResultViewProvider = playgroundResultViewProvider;
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
-    this._collectionDocumentsCodeLensProvider = new CollectionDocumentsCodeLensProvider(
-      this._collectionDocumentsOperationsStore
-    );
+    this._collectionDocumentsCodeLensProvider =
+      new CollectionDocumentsCodeLensProvider(
+        this._collectionDocumentsOperationsStore
+      );
     this._codeActionProvider = codeActionProvider;
 
     vscode.workspace.onDidCloseTextDocument((e) => {
@@ -164,7 +165,9 @@ export default class EditorsController {
 
       if (mdbDocument === null) {
         void vscode.window.showErrorMessage(`
-          Unable to open mongodb document: document ${JSON.stringify(data.documentId)} not found
+          Unable to open mongodb document: document ${JSON.stringify(
+            data.documentId
+          )} not found
         `);
 
         return false;
@@ -178,14 +181,13 @@ export default class EditorsController {
       const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
       const documentSourceUriQuery = `${DOCUMENT_SOURCE_URI_IDENTIFIER}=${data.source}`;
 
-      const fileTitle = encodeURIComponent(getFileDisplayNameForDocument(
-        data.documentId,
-        data.namespace
-      ));
+      const fileTitle = encodeURIComponent(
+        getFileDisplayNameForDocument(data.documentId, data.namespace)
+      );
       const fileName = `${VIEW_DOCUMENT_SCHEME}:/${fileTitle}.json`;
 
       const fileUri = vscode.Uri.parse(fileName, true).with({
-        query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}&${documentSourceUriQuery}`
+        query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}&${documentSourceUriQuery}`,
       });
 
       this._saveDocumentToMemoryFileSystem(fileUri, mdbDocument);
@@ -216,7 +218,9 @@ export default class EditorsController {
     const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
     const documentId = this._documentIdStore.get(documentIdReference);
-    const source = uriParams.get(DOCUMENT_SOURCE_URI_IDENTIFIER) as DocumentSource;
+    const source = uriParams.get(
+      DOCUMENT_SOURCE_URI_IDENTIFIER
+    ) as DocumentSource;
 
     // If not MongoDB document save to disk instead of MongoDB.
     if (
@@ -240,7 +244,7 @@ export default class EditorsController {
         connectionId,
         documentId,
         newDocument,
-        source
+        source,
       });
 
       // Save document changes to active editor.
@@ -261,7 +265,8 @@ export default class EditorsController {
   async onViewCollectionDocuments(namespace: string): Promise<boolean> {
     log.info('view collection documents', namespace);
 
-    const operationId = this._collectionDocumentsOperationsStore.createNewOperation();
+    const operationId =
+      this._collectionDocumentsOperationsStore.createNewOperation();
     const activeConnectionId =
       this._connectionController.getActiveConnectionId() || '';
     const uri = getViewCollectionDocumentsUri(
@@ -298,9 +303,7 @@ export default class EditorsController {
       this._collectionDocumentsOperationsStore.operations[operationId]
         .isCurrentlyFetchingMoreDocuments
     ) {
-      void vscode.window.showErrorMessage(
-        'Already fetching more documents...'
-      );
+      void vscode.window.showErrorMessage('Already fetching more documents...');
 
       return Promise.resolve(false);
     }
@@ -365,7 +368,7 @@ export default class EditorsController {
         VIEW_DOCUMENT_SCHEME,
         this._memoryFileSystemProvider,
         {
-          isCaseSensitive: true
+          isCaseSensitive: true,
         }
       )
     );
@@ -387,7 +390,7 @@ export default class EditorsController {
       vscode.languages.registerCodeLensProvider(
         {
           scheme: VIEW_COLLECTION_SCHEME,
-          language: 'json'
+          language: 'json',
         },
         this._collectionDocumentsCodeLensProvider
       )
@@ -401,7 +404,7 @@ export default class EditorsController {
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
         {
-          scheme: PLAYGROUND_RESULT_SCHEME
+          scheme: PLAYGROUND_RESULT_SCHEME,
         },
         this._exportToLanguageCodeLensProvider
       )
@@ -410,7 +413,7 @@ export default class EditorsController {
       vscode.languages.registerCodeLensProvider(
         {
           scheme: PLAYGROUND_RESULT_SCHEME,
-          language: 'json'
+          language: 'json',
         },
         this._editDocumentCodeLensProvider
       )
@@ -419,15 +422,19 @@ export default class EditorsController {
       vscode.languages.registerCodeLensProvider(
         {
           scheme: VIEW_COLLECTION_SCHEME,
-          language: 'json'
+          language: 'json',
         },
         this._editDocumentCodeLensProvider
       )
     );
     this._context.subscriptions.push(
-      vscode.languages.registerCodeActionsProvider('mongodb', this._codeActionProvider, {
-        providedCodeActionKinds: CodeActionProvider.providedCodeActionKinds
-      })
+      vscode.languages.registerCodeActionsProvider(
+        'mongodb',
+        this._codeActionProvider,
+        {
+          providedCodeActionKinds: CodeActionProvider.providedCodeActionKinds,
+        }
+      )
     );
   }
 

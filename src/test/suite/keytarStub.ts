@@ -5,9 +5,14 @@ import { KeytarInterface } from '../../utils/keytar';
 const retrievalDelay = 1; // ms simulated delay on keytar methods.
 
 export default class KeytarStub implements KeytarInterface {
-  private _services: Map<string, Map<string, string>> = new Map<string, Map<string, string>>();
+  private _services: Map<string, Map<string, string>> = new Map<
+    string,
+    Map<string, string>
+  >();
 
-  public async findCredentials(service: string): Promise<Map<string, string> | undefined> {
+  public async findCredentials(
+    service: string
+  ): Promise<Map<string, string> | undefined> {
     await this.delay();
     const savedServices = this._services.get(service);
     if (savedServices) {
@@ -17,7 +22,10 @@ export default class KeytarStub implements KeytarInterface {
     return undefined;
   }
 
-  public async getPassword(service: string, account: string): Promise<string | null> {
+  public async getPassword(
+    service: string,
+    account: string
+  ): Promise<string | null> {
     await this.delay();
     const savedService = this._services.get(service);
     if (savedService) {
@@ -31,7 +39,11 @@ export default class KeytarStub implements KeytarInterface {
     return null;
   }
 
-  public async setPassword(service: string, account: string, password: string): Promise<void> {
+  public async setPassword(
+    service: string,
+    account: string,
+    password: string
+  ): Promise<void> {
     await this.delay();
     let savedService = this._services.get(service);
     if (!savedService) {
@@ -42,7 +54,10 @@ export default class KeytarStub implements KeytarInterface {
     savedService.set(account, password);
   }
 
-  public async deletePassword(service: string, account: string): Promise<boolean> {
+  public async deletePassword(
+    service: string,
+    account: string
+  ): Promise<boolean> {
     await this.delay();
     const savedService = this._services.get(service);
     if (savedService) {

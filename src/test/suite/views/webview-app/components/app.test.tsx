@@ -7,22 +7,27 @@ import { createStore } from 'redux';
 
 import {
   initialState,
-  rootReducer
+  rootReducer,
 } from '../../../../../views/webview-app/store/store';
 import App, {
-  App as NotConnectedApp
+  App as NotConnectedApp,
 } from '../../../../../views/webview-app/components/app';
 import OverviewPage from '../../../../../views/webview-app/components/overview-page/overview-page';
-import { CONNECTION_STATUS, MESSAGE_TYPES } from '../../../../../views/webview-app/extension-app-message-constants';
+import {
+  CONNECTION_STATUS,
+  MESSAGE_TYPES,
+} from '../../../../../views/webview-app/extension-app-message-constants';
 
 describe('App Component Test Suite', () => {
   describe('when rendered', () => {
     test('it shows the overview page', () => {
-      const wrapper = shallow(<NotConnectedApp
-        onConnectedEvent={(): void => { }}
-        onFilePickerEvent={(): void => { }}
-        setConnectionStatus={(): void => { }}
-      />);
+      const wrapper = shallow(
+        <NotConnectedApp
+          onConnectedEvent={(): void => {}}
+          onFilePickerEvent={(): void => {}}
+          setConnectionStatus={(): void => {}}
+        />
+      );
       assert(wrapper.find(OverviewPage).exists());
     });
   });
@@ -47,18 +52,12 @@ describe('App Component Test Suite', () => {
         fakeVscodeWindowPostMessage
       );
 
-      sinon.replace(
-        window,
-        'addEventListener',
-        fakeAddEventListener
-      );
+      sinon.replace(window, 'addEventListener', fakeAddEventListener);
 
       store = createStore(rootReducer, initialState);
 
       mount(
-        <Provider
-          store={store}
-        >
+        <Provider store={store}>
           <App />
         </Provider>
       );
@@ -75,8 +74,8 @@ describe('App Component Test Suite', () => {
         data: {
           command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,
           connectionStatus: CONNECTION_STATUS.CONNECTED,
-          activeConnectionName: 'Nice connection'
-        }
+          activeConnectionName: 'Nice connection',
+        },
       });
       assert(store.getState().connectionStatus === CONNECTION_STATUS.CONNECTED);
       assert(store.getState().activeConnectionName === 'Nice connection');

@@ -6,7 +6,7 @@ import {
   SSHTunnelHostnameChangedAction,
   SSHTunnelPasswordChangedAction,
   SSHTunnelPortChangedAction,
-  SSHTunnelUsernameChangedAction
+  SSHTunnelUsernameChangedAction,
 } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 import FormInput from '../../form/form-input';
@@ -72,7 +72,7 @@ class SSHTunnelPasswordValidation extends React.Component<props> {
       sshTunnelHostname,
       sshTunnelPassword,
       sshTunnelPort,
-      sshTunnelUsername
+      sshTunnelUsername,
     } = this.props;
 
     return (
@@ -119,7 +119,7 @@ const mapStateToProps = (state: AppState): StateProps => {
     sshTunnelHostname: state.currentConnection.sshTunnelHostname,
     sshTunnelPassword: state.currentConnection.sshTunnelPassword,
     sshTunnelPort: state.currentConnection.sshTunnelPort,
-    sshTunnelUsername: state.currentConnection.sshTunnelUsername
+    sshTunnelUsername: state.currentConnection.sshTunnelUsername,
   };
 };
 
@@ -128,26 +128,26 @@ const mapDispatchToProps: DispatchProps = {
     sshTunnelHostname: string
   ): SSHTunnelHostnameChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_HOSTNAME_CHANGED,
-    sshTunnelHostname
+    sshTunnelHostname,
   }),
   onSSHTunnelPasswordChanged: (
     sshTunnelPassword: string
   ): SSHTunnelPasswordChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_PASSWORD_CHANGED,
-    sshTunnelPassword
+    sshTunnelPassword,
   }),
   onSSHTunnelPortChanged: (
     sshTunnelPort: number
   ): SSHTunnelPortChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_PORT_CHANGED,
-    sshTunnelPort
+    sshTunnelPort,
   }),
   onSSHTunnelUsernameChanged: (
     sshTunnelUsername: string
   ): SSHTunnelUsernameChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_USERNAME_CHANGED,
-    sshTunnelUsername
-  })
+    sshTunnelUsername,
+  }),
 };
 
 export default connect(

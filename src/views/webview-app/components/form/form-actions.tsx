@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import {
   ActionTypes,
   ConnectAction,
-  ToggleShowConnectionFormAction
+  ToggleShowConnectionFormAction,
 } from '../../store/actions';
 import FormGroup from './form-group';
 
@@ -112,7 +112,11 @@ class FormActions extends React.Component<props> {
             type="submit"
             id="connectButton"
             name="connect"
-            className={classnames(styles.btn, styles['btn-primary'], syntaxError)}
+            className={classnames(
+              styles.btn,
+              styles['btn-primary'],
+              syntaxError
+            )}
             onClick={this.onConnectClicked}
           >
             Connect
@@ -125,11 +129,11 @@ class FormActions extends React.Component<props> {
 
 const mapDispatchToProps: DispatchProps = {
   onConnectClicked: (): ConnectAction => ({
-    type: ActionTypes.CONNECT
+    type: ActionTypes.CONNECT,
   }),
   toggleShowConnectForm: (): ToggleShowConnectionFormAction => ({
-    type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM
-  })
+    type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM,
+  }),
 };
 
 export default connect(null, mapDispatchToProps)(FormActions);

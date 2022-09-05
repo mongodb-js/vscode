@@ -9,7 +9,7 @@ Enzyme.configure({ adapter: new Adapter() });
 jest.mock('@iconify-icons/codicon/book', () => {});
 
 global.vscodeFake = {
-  postMessage: (message) => { }
+  postMessage: (message) => {},
 };
 
 global.acquireVsCodeApi = () => {
