@@ -29,8 +29,6 @@ suite('MongoDBService Test Suite', () => {
       'dist',
       languageServerWorkerFileName
     );
-
-    // eslint-disable-next-line no-sync
     expect(fs.existsSync(languageServerModuleBundlePath)).to.equal(true);
   });
 

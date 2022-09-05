@@ -62,13 +62,12 @@ suite('MongoDB Document Service Test Suite', () => {
     );
 
     const mockGetActiveDataService = sinon.fake.returns({
-      findOneAndReplace: async (
+      findOneAndReplace: (
         namespace: string,
         filter: object,
         replacement: object,
         options: object,
         callback: (error: Error | null, result: object) => void
-        // eslint-disable-next-line @typescript-eslint/require-await
       ) => {
         document.price = 5000;
 

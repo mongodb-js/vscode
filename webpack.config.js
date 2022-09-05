@@ -231,8 +231,7 @@ const webviewConfig = {
           {
             loader: 'postcss-loader',
             options: {
-              // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-              plugins: function () {
+              plugins: function() {
                 return [autoprefixer()];
               }
             }

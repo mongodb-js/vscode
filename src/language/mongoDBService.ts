@@ -1,4 +1,3 @@
-/* eslint-disable no-sync */
 import * as util from 'util';
 import {
   CompletionItemKind,
@@ -483,7 +482,6 @@ export default class MongoDBService {
     textFromEditor: string,
     position: { line: number, character: number }
   ): Promise<CompletionItem[]> {
-    // eslint-disable-next-line complexity
     this._connection.console.log(
       `LS text from editor: ${util.inspect(textFromEditor)}`
     );

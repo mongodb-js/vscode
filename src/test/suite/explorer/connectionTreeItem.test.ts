@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import * as vscode from 'vscode';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
