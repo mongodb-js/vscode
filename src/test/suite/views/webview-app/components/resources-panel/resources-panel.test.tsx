@@ -8,7 +8,7 @@ import { Provider } from 'react-redux';
 import {
   AppState,
   initialState,
-  rootReducer
+  rootReducer,
 } from '../../../../../../views/webview-app/store/store';
 import ResourcesPanel from '../../../../../../views/webview-app/components/resources-panel/resources-panel';
 
@@ -29,13 +29,11 @@ describe('Resources Panel Component Test Suite', () => {
 
       store = createStore(rootReducer, {
         ...initialState,
-        showResourcesPanel: true
+        showResourcesPanel: true,
       } as AppState);
 
       wrapper = mount(
-        <Provider
-          store={store}
-        >
+        <Provider store={store}>
           <ResourcesPanel />
         </Provider>
       );
@@ -55,7 +53,10 @@ describe('Resources Panel Component Test Suite', () => {
       assert(!fakeVscodeWindowPostMessage.called);
       wrapper.find('a').at(0).simulate('click');
       assert(fakeVscodeWindowPostMessage.called);
-      assert(fakeVscodeWindowPostMessage.firstCall.args[0].command === 'EXTENSION_LINK_CLICKED');
+      assert(
+        fakeVscodeWindowPostMessage.firstCall.args[0].command ===
+          'EXTENSION_LINK_CLICKED'
+      );
     });
   });
 });

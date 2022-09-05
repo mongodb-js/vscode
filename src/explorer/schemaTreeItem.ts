@@ -36,12 +36,14 @@ function getIconPath(): { light: string; dark: string } {
 
   return {
     light: path.join(LIGHT, 'schema.svg'),
-    dark: path.join(DARK, 'schema.svg')
+    dark: path.join(DARK, 'schema.svg'),
   };
 }
 
-export default class SchemaTreeItem extends vscode.TreeItem
-  implements TreeItemParent, vscode.TreeDataProvider<SchemaTreeItem> {
+export default class SchemaTreeItem
+  extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<SchemaTreeItem>
+{
   cacheIsUpToDate: boolean;
   childrenCache: { [fieldName: string]: FieldTreeItem };
 
@@ -98,7 +100,9 @@ export default class SchemaTreeItem extends vscode.TreeItem
     const namespace = `${this.databaseName}.${this.collectionName}`;
     let documents;
     try {
-      const find = util.promisify(this._dataService.find.bind(this._dataService));
+      const find = util.promisify(
+        this._dataService.find.bind(this._dataService)
+      );
       documents = await find(
         namespace,
         {}, // No filter.
@@ -182,7 +186,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
       if (!this.hasClickedShowMoreFields && this.hasMoreFieldsToShow) {
         return [
           ...Object.values(this.childrenCache),
-          new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
+          new ShowAllFieldsTreeItem(() => this.onShowMoreClicked()),
         ];
       }
 
@@ -218,7 +222,7 @@ export default class SchemaTreeItem extends vscode.TreeItem
       this.hasMoreFieldsToShow = true;
       return [
         ...Object.values(this.childrenCache),
-        new ShowAllFieldsTreeItem(() => this.onShowMoreClicked())
+        new ShowAllFieldsTreeItem(() => this.onShowMoreClicked()),
       ];
     }
 

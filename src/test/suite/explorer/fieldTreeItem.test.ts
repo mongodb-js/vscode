@@ -5,7 +5,7 @@ import { ext } from '../../../extensionConstants';
 import FieldTreeItem, {
   FIELD_TREE_ITEM_CONTEXT_VALUE,
   fieldIsExpandable,
-  getIconFileNameForField
+  getIconFileNameForField,
 } from '../../../explorer/fieldTreeItem';
 import {
   createTestDataService,
@@ -13,7 +13,7 @@ import {
   cleanupTestDB,
   disconnectFromTestDB,
   TEST_DB_NAME,
-  TEST_DATABASE_URI
+  TEST_DATABASE_URI,
 } from '../dbTestHelper';
 import SchemaTreeItem from '../../../explorer/schemaTreeItem';
 import { TestExtensionContext } from '../stubs';
@@ -45,7 +45,7 @@ suite('FieldTreeItem Test Suite', function () {
         name: 'test',
         probability: 1,
         type: 'String',
-        types: []
+        types: [],
       },
       false,
       {}
@@ -60,7 +60,7 @@ suite('FieldTreeItem Test Suite', function () {
         name: 'test',
         probability: 1,
         type: 'Number',
-        types: []
+        types: [],
       },
       false,
       {}
@@ -79,14 +79,14 @@ suite('FieldTreeItem Test Suite', function () {
         {
           name: 'a',
           probability: 0.5,
-          bsonType: 'String'
+          bsonType: 'String',
         },
         {
           name: 'b',
           probability: 0.5,
-          bsonType: 'Number'
-        }
-      ]
+          bsonType: 'Number',
+        },
+      ],
     };
     assert(getIconFileNameForField(notFullProbability) === 'mixed-type');
   });
@@ -99,9 +99,9 @@ suite('FieldTreeItem Test Suite', function () {
         {
           name: 'a',
           probability: 1,
-          bsonType: 'String'
-        }
-      ]
+          bsonType: 'String',
+        },
+      ],
     };
     assert(getIconFileNameForField(notFullProbability) === 'mixed-type');
   });
@@ -116,21 +116,24 @@ suite('FieldTreeItem Test Suite', function () {
           {
             name: 'a',
             probability: 0.5,
-            bsonType: 'String'
+            bsonType: 'String',
           },
           {
             name: 'b',
             probability: 0.5,
-            bsonType: 'Number'
-          }
-        ]
+            bsonType: 'Number',
+          },
+        ],
       },
       false,
       {}
     );
 
     const tooltipMatches = testField.tooltip === 'test - mixed-type';
-    assert(tooltipMatches, `Expected tooltip '${testField.tooltip}' to equal 'test - mixed-type'`);
+    assert(
+      tooltipMatches,
+      `Expected tooltip '${testField.tooltip}' to equal 'test - mixed-type'`
+    );
   });
 
   suite('Full database tests', () => {
@@ -150,10 +153,7 @@ suite('FieldTreeItem Test Suite', function () {
     });
 
     test('field name is pulled from the name of a field', async () => {
-      await seedTestDB(
-        'pie',
-        [{ _id: 1, blueberryPie: 'yes' }]
-      );
+      await seedTestDB('pie', [{ _id: 1, blueberryPie: 'yes' }]);
       const testSchemaTreeItem = new SchemaTreeItem(
         'pie',
         TEST_DB_NAME,
@@ -181,29 +181,26 @@ suite('FieldTreeItem Test Suite', function () {
     });
 
     test('it shows dropdowns for nested subdocuments', async () => {
-      await seedTestDB(
-        'gryffindor',
-        [
-          {
-            _id: 1,
-            alwaysDocument: {
-              nestedSubDocument: {
-                magic: true,
-                harry: 'potter'
-              }
-            }
+      await seedTestDB('gryffindor', [
+        {
+          _id: 1,
+          alwaysDocument: {
+            nestedSubDocument: {
+              magic: true,
+              harry: 'potter',
+            },
           },
-          {
-            _id: 2,
-            alwaysDocument: {
-              nestedSubDocument: {
-                magic: true,
-                hermione: 'granger'
-              }
-            }
-          }
-        ]
-      );
+        },
+        {
+          _id: 2,
+          alwaysDocument: {
+            nestedSubDocument: {
+              magic: true,
+              hermione: 'granger',
+            },
+          },
+        },
+      ]);
 
       const testSchemaTreeItem = new SchemaTreeItem(
         'gryffindor',
@@ -253,19 +250,16 @@ suite('FieldTreeItem Test Suite', function () {
     });
 
     test('it shows dropdowns for arrays', async () => {
-      await seedTestDB(
-        'gryffindor',
-        [
-          {
-            _id: 1,
-            testingArray: ['okay', 'nice']
-          },
-          {
-            _id: 2,
-            testingArray: ['dobby']
-          }
-        ]
-      );
+      await seedTestDB('gryffindor', [
+        {
+          _id: 1,
+          testingArray: ['okay', 'nice'],
+        },
+        {
+          _id: 2,
+          testingArray: ['dobby'],
+        },
+      ]);
 
       const testSchemaTreeItem = new SchemaTreeItem(
         'gryffindor',
@@ -304,29 +298,26 @@ suite('FieldTreeItem Test Suite', function () {
     });
 
     test('it shows dropdowns and fields for document fields in arrays', async () => {
-      await seedTestDB(
-        'beach',
-        [
-          {
-            _id: 1,
-            testingArray: [
-              {
-                color: 'orange',
-                sunset: false
-              }
-            ]
-          },
-          {
-            _id: 2,
-            testingArray: [
-              {
-                color: 'violet',
-                sunset: true
-              }
-            ]
-          }
-        ]
-      );
+      await seedTestDB('beach', [
+        {
+          _id: 1,
+          testingArray: [
+            {
+              color: 'orange',
+              sunset: false,
+            },
+          ],
+        },
+        {
+          _id: 2,
+          testingArray: [
+            {
+              color: 'violet',
+              sunset: true,
+            },
+          ],
+        },
+      ]);
 
       const testSchemaTreeItem = new SchemaTreeItem(
         'beach',

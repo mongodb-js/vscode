@@ -5,7 +5,7 @@ import sinon from 'sinon';
 
 import {
   DefaultSavingLocations,
-  StorageLocation
+  StorageLocation,
 } from '../../../storage/storageController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -28,7 +28,11 @@ suite('Explorer Controller Test Suite', function () {
       );
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.
-    sinon.replace(vscode.window, 'showInformationMessage', sinon.fake.resolves(true));
+    sinon.replace(
+      vscode.window,
+      'showInformationMessage',
+      sinon.fake.resolves(true)
+    );
   });
 
   afterEach(async () => {
@@ -58,8 +62,8 @@ suite('Explorer Controller Test Suite', function () {
         id: 'testConnectionId',
         connectionOptions: { connectionString: 'mongodb://localhost' },
         name: 'testConnectionName',
-        storageLocation: StorageLocation.NONE
-      }
+        storageLocation: StorageLocation.NONE,
+      },
     };
     testConnectionController.setConnnecting(true);
 
@@ -82,9 +86,10 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    const succesfullyConnected =
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
 
     assert(
       succesfullyConnected === true,
@@ -127,9 +132,10 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    const succesfullyConnected =
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
 
     assert(
       succesfullyConnected === true,
@@ -191,17 +197,19 @@ suite('Explorer Controller Test Suite', function () {
     const connectionId = testConnectionController.getActiveConnectionId() || '';
 
     testConnectionController._connections.aaa = {
-      connectionOptions: testConnectionController._connections[connectionId].connectionOptions,
+      connectionOptions:
+        testConnectionController._connections[connectionId].connectionOptions,
       name: 'aaa',
       id: 'aaa',
-      storageLocation: StorageLocation.WORKSPACE
+      storageLocation: StorageLocation.WORKSPACE,
     };
 
     testConnectionController._connections.zzz = {
-      connectionOptions: testConnectionController._connections[connectionId].connectionOptions,
+      connectionOptions:
+        testConnectionController._connections[connectionId].connectionOptions,
       name: 'zzz',
       id: 'zzz',
-      storageLocation: StorageLocation.WORKSPACE
+      storageLocation: StorageLocation.WORKSPACE,
     };
 
     const connectionsItems = await treeController.getChildren();

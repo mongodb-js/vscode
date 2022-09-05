@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import {
   ActionTypes,
   LDAPPasswordChangedAction,
-  LDAPUsernameChangedAction
+  LDAPUsernameChangedAction,
 } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
 
@@ -76,12 +76,12 @@ class LDAP extends React.Component<props> {
 const mapDispatchToProps: DispatchProps = {
   onLDAPPasswordChanged: (newPassword): LDAPPasswordChangedAction => ({
     type: ActionTypes.LDAP_PASSWORD_CHANGED,
-    ldapPassword: newPassword
+    ldapPassword: newPassword,
   }),
   onLDAPUsernameChanged: (newPassword): LDAPUsernameChangedAction => ({
     type: ActionTypes.LDAP_USERNAME_CHANGED,
-    ldapUsername: newPassword
-  })
+    ldapUsername: newPassword,
+  }),
 };
 
 export default connect(null, mapDispatchToProps)(LDAP);

@@ -4,7 +4,7 @@ import path from 'path';
 
 import DocumentListTreeItem, {
   CollectionTypes,
-  MAX_DOCUMENTS_VISIBLE
+  MAX_DOCUMENTS_VISIBLE,
 } from './documentListTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
@@ -22,23 +22,23 @@ function getIconPath(
   if (type === CollectionTypes.timeseries) {
     return {
       light: path.join(LIGHT, 'collection-timeseries.svg'),
-      dark: path.join(DARK, 'collection-timeseries.svg')
+      dark: path.join(DARK, 'collection-timeseries.svg'),
     };
   } else if (type === CollectionTypes.collection) {
     if (isExpanded) {
       return {
         light: path.join(LIGHT, 'collection-folder-open.svg'),
-        dark: path.join(DARK, 'collection-folder-open.svg')
+        dark: path.join(DARK, 'collection-folder-open.svg'),
       };
     }
     return {
       light: path.join(LIGHT, 'collection-folder-closed.svg'),
-      dark: path.join(DARK, 'collection-folder-closed.svg')
+      dark: path.join(DARK, 'collection-folder-closed.svg'),
     };
   }
   return {
     light: path.join(LIGHT, 'view-folder.svg'),
-    dark: path.join(DARK, 'view-folder.svg')
+    dark: path.join(DARK, 'view-folder.svg'),
   };
 }
 
@@ -57,8 +57,10 @@ function isChildCacheOutOfSync(
     : collapsibleState !== vscode.TreeItemCollapsibleState.Collapsed;
 }
 
-export default class CollectionTreeItem extends vscode.TreeItem
-  implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem> {
+export default class CollectionTreeItem
+  extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem>
+{
   contextValue = 'collectionTreeItem' as const;
 
   private _documentListChild: DocumentListTreeItem;
@@ -110,43 +112,44 @@ export default class CollectionTreeItem extends vscode.TreeItem
     this._documentListChild = existingDocumentListChild
       ? existingDocumentListChild
       : new DocumentListTreeItem(
-        this.collectionName,
-        this.databaseName,
-        this._type,
-        this._dataService,
-        false, // Collapsed.
-        MAX_DOCUMENTS_VISIBLE,
-        this.documentCount,
-        this.refreshDocumentCount,
-        false, // Cache is not up to date.
-        [] // Empty cache.
-      );
+          this.collectionName,
+          this.databaseName,
+          this._type,
+          this._dataService,
+          false, // Collapsed.
+          MAX_DOCUMENTS_VISIBLE,
+          this.documentCount,
+          this.refreshDocumentCount,
+          false, // Cache is not up to date.
+          [] // Empty cache.
+        );
     this._schemaChild = existingSchemaChild
       ? existingSchemaChild
       : new SchemaTreeItem(
-        this.collectionName,
-        this.databaseName,
-        this._dataService,
-        false, // Collapsed.
-        false, // Hasn't been clicked to show more documents.
-        false, // No more fields to show.
-        false, // Cached is not up to date.
-        {} // Empty cache.
-      );
+          this.collectionName,
+          this.databaseName,
+          this._dataService,
+          false, // Collapsed.
+          false, // Hasn't been clicked to show more documents.
+          false, // No more fields to show.
+          false, // Cached is not up to date.
+          {} // Empty cache.
+        );
     this._indexListChild = existingIndexListChild
       ? existingIndexListChild
       : new IndexListTreeItem(
-        this.collectionName,
-        this.databaseName,
-        this._dataService,
-        false, // Collapsed.
-        false, // Cache is not up to date.
-        [] // Empty cache.
-      );
+          this.collectionName,
+          this.databaseName,
+          this._dataService,
+          false, // Collapsed.
+          false, // Cache is not up to date.
+          [] // Empty cache.
+        );
 
-    this.tooltip = collection.type === CollectionTypes.view
-      ? 'Read only view'
-      : collection.name;
+    this.tooltip =
+      collection.type === CollectionTypes.view
+        ? 'Read only view'
+        : collection.name;
     this.iconPath = getIconPath(collection.type, isExpanded);
   }
 
@@ -351,7 +354,7 @@ export default class CollectionTreeItem extends vscode.TreeItem
           }
 
           return null;
-        }
+        },
       });
     } catch (error) {
       return Promise.reject(

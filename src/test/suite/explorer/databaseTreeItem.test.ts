@@ -11,7 +11,7 @@ import {
   cleanupTestDB,
   disconnectFromTestDB,
   TEST_DB_NAME,
-  TEST_DATABASE_URI
+  TEST_DATABASE_URI,
 } from '../dbTestHelper';
 
 const { contributes } = require('../../../../package.json');
@@ -79,8 +79,9 @@ suite('DatabaseTreeItem Test Suite', () => {
 
     assert(
       collections[1].label ===
-      mockDatabases[mockDatabaseNames[1]].collections[1].name,
-      `Expected a tree item child with the label collection name ${mockDatabases[mockDatabaseNames[1]].collections[1].name
+        mockDatabases[mockDatabaseNames[1]].collections[1].name,
+      `Expected a tree item child with the label collection name ${
+        mockDatabases[mockDatabaseNames[1]].collections[1].name
       } found ${collections[1].label}`
     );
   });
@@ -121,7 +122,8 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
 
     testDatabaseTreeItem.onDidCollapse();
-    const postCollapseCollectionTreeItems = await testDatabaseTreeItem.getChildren();
+    const postCollapseCollectionTreeItems =
+      await testDatabaseTreeItem.getChildren();
 
     assert(
       postCollapseCollectionTreeItems.length === 0,
@@ -167,15 +169,13 @@ suite('DatabaseTreeItem Test Suite', () => {
       'ZZZ',
       'system.buckets.aaa',
       'system.buckets.zzz',
-      'system.views'
+      'system.views',
     ];
 
-    const collectionTreeItems: CollectionTreeItem[] = await testDatabaseTreeItem
-      .getChildren();
+    const collectionTreeItems: CollectionTreeItem[] =
+      await testDatabaseTreeItem.getChildren();
     assert.deepStrictEqual(
-      collectionTreeItems
-        .map(({ collectionName }) => collectionName)
-        .join(),
+      collectionTreeItems.map(({ collectionName }) => collectionName).join(),
       expectedCollectionsOrder.join(),
       'Expected collections to be in alphanumerical order but they were not'
     );
@@ -198,8 +198,8 @@ suite('DatabaseTreeItem Test Suite', () => {
       const mockDocWithThirtyFields = {
         _id: 32,
         testerObject: {
-          aField: 1234567
-        }
+          aField: 1234567,
+        },
       };
 
       for (let i = 0; i < 28; i++) {
@@ -215,7 +215,8 @@ suite('DatabaseTreeItem Test Suite', () => {
         false,
         {}
       );
-      const collectionTreeItems: CollectionTreeItem[] = await testDatabaseTreeItem.getChildren();
+      const collectionTreeItems: CollectionTreeItem[] =
+        await testDatabaseTreeItem.getChildren();
 
       assert(
         collectionTreeItems[0].isExpanded === false,
@@ -247,27 +248,27 @@ suite('DatabaseTreeItem Test Suite', () => {
       await schemaTreeItem.childrenCache.testerObject.onDidExpand();
 
       testDatabaseTreeItem.onDidCollapse();
-      const postCollapseCollectionTreeItems = await testDatabaseTreeItem.getChildren();
+      const postCollapseCollectionTreeItems =
+        await testDatabaseTreeItem.getChildren();
       assert(
         postCollapseCollectionTreeItems.length === 0,
         `Expected the database tree to return no children when collapsed, found ${collectionTreeItems.length}`
       );
 
       await testDatabaseTreeItem.onDidExpand();
-      const newCollectionTreeItems = await testDatabaseTreeItem
-        .getChildren();
+      const newCollectionTreeItems = await testDatabaseTreeItem.getChildren();
 
-      const postCollapseSchemaTreeItem = newCollectionTreeItems[0].getSchemaChild();
+      const postCollapseSchemaTreeItem =
+        newCollectionTreeItems[0].getSchemaChild();
       assert(
         postCollapseSchemaTreeItem.isExpanded === true,
         'Expected collection tree item to be expanded from cache.'
       );
 
-      const fieldsPostCollapseExpand = await postCollapseSchemaTreeItem
-        .getChildren();
+      const fieldsPostCollapseExpand =
+        await postCollapseSchemaTreeItem.getChildren();
       // It should cache that we activated show more.
-      const amountOfCachedFields =
-        fieldsPostCollapseExpand.length;
+      const amountOfCachedFields = fieldsPostCollapseExpand.length;
       const expectedCachedFields = 30;
       assert(
         amountOfCachedFields === expectedCachedFields,
@@ -288,7 +289,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       );
       assert(
         testerObjectField.collapsibleState ===
-        vscode.TreeItemCollapsibleState.Expanded,
+          vscode.TreeItemCollapsibleState.Expanded,
         `Expected the subdocument field to have an expanded state (2), found ${postCollapseSchemaTreeItem.childrenCache.testerObject.collapsibleState}.`
       );
     });

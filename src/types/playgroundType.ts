@@ -11,10 +11,12 @@ export type PlaygroundDebug = OutputItem[] | undefined;
 
 export type PlaygroundResult = OutputItem | undefined;
 
-export type ShellExecuteAllResult = {
-  outputLines: PlaygroundDebug;
-  result: PlaygroundResult
-} | undefined;
+export type ShellExecuteAllResult =
+  | {
+      outputLines: PlaygroundDebug;
+      result: PlaygroundResult;
+    }
+  | undefined;
 
 export type PlaygroundExecuteParameters = {
   codeToEvaluate: string;
@@ -42,13 +44,13 @@ export enum ExportToLanguages {
   JAVA = 'java',
   CSHARP = 'csharp',
   JAVASCRIPT = 'javascript',
-  RUBY = 'ruby'
+  RUBY = 'ruby',
 }
 
 export enum ExportToLanguageMode {
   QUERY = 'QUERY',
   AGGREGATION = 'AGGREGATION',
-  OTHER = 'OTHER'
+  OTHER = 'OTHER',
 }
 
 export interface ExportToLanguageNamespace {

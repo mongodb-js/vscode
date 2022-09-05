@@ -5,7 +5,7 @@ import {
   Connection,
   CompletionItem,
   MarkupContent,
-  MarkupKind
+  MarkupKind,
 } from 'vscode-languageserver/node';
 import type { MongoClientOptions } from 'mongodb';
 import path from 'path';
@@ -20,7 +20,7 @@ import {
   PlaygroundExecuteParameters,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
-  PlaygroundTextAndSelection
+  PlaygroundTextAndSelection,
 } from '../types/playgroundType';
 import { Visitor } from './visitor';
 
@@ -29,13 +29,13 @@ export const languageServerWorkerFileName = 'languageServerWorker.js';
 export type CollectionItem = {
   name: string;
   type?: string;
-  options?: object,
-  info?: { readOnly: boolean; uuid: object[] },
-  idIndex?: { v: number; key: object[]; name: string; ns: string }
+  options?: object;
+  info?: { readOnly: boolean; uuid: object[] };
+  idIndex?: { v: number; key: object[]; name: string; ns: string };
 };
 
 export type ShellCompletionItem = {
-  [symbol: string]: CompletionItem[] | []
+  [symbol: string]: CompletionItem[] | [];
 };
 
 export default class MongoDBService {
@@ -67,7 +67,9 @@ export default class MongoDBService {
 
   setExtensionPath(extensionPath: string): void {
     if (!extensionPath) {
-      this._connection.console.error('Set extensionPath error: extensionPath is undefined');
+      this._connection.console.error(
+        'Set extensionPath error: extensionPath is undefined'
+      );
     } else {
       this._extensionPath = extensionPath;
     }
@@ -120,7 +122,9 @@ export default class MongoDBService {
 
     return new Promise((resolve) => {
       if (!this._extensionPath) {
-        this._connection.console.error('MONGOSH execute all error: extensionPath is undefined');
+        this._connection.console.error(
+          'MONGOSH execute all error: extensionPath is undefined'
+        );
 
         return resolve(undefined);
       }
@@ -128,7 +132,7 @@ export default class MongoDBService {
       if (this._connectionId !== executionParameters.connectionId) {
         void this._connection.sendNotification(
           ServerCommands.SHOW_ERROR_MESSAGE,
-          'The playground\'s active connection does not match the extension\'s active connection. Please reconnect and try again.'
+          "The playground's active connection does not match the extension's active connection. Please reconnect and try again."
         );
 
         return resolve(undefined);
@@ -145,14 +149,18 @@ export default class MongoDBService {
         // TODO: After webpackifying the extension replace
         // the workaround with some similar 3rd-party plugin.
         const worker = new WorkerThreads(
-          path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+          path.resolve(
+            this._extensionPath,
+            'dist',
+            languageServerWorkerFileName
+          ),
           {
             // The workerData parameter sends data to the created worker.
             workerData: {
               codeToEvaluate: executionParameters.codeToEvaluate,
               connectionString: this._connectionString,
-              connectionOptions: this._connectionOptions
-            }
+              connectionOptions: this._connectionOptions,
+            },
           }
         );
 
@@ -164,25 +172,28 @@ export default class MongoDBService {
         worker.postMessage(ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND);
 
         // Listen for results from the worker thread.
-        worker.on('message', (response: [Error, ShellExecuteAllResult | undefined]) => {
-          const [error, result] = response;
+        worker.on(
+          'message',
+          (response: [Error, ShellExecuteAllResult | undefined]) => {
+            const [error, result] = response;
 
-          if (error) {
-            const printableError = formatError(error);
+            if (error) {
+              const printableError = formatError(error);
 
-            this._connection.console.error(
-              `MONGOSH execute all error: ${util.inspect(printableError)}`
-            );
-            void this._connection.sendNotification(
-              ServerCommands.SHOW_ERROR_MESSAGE,
-              printableError.message
-            );
+              this._connection.console.error(
+                `MONGOSH execute all error: ${util.inspect(printableError)}`
+              );
+              void this._connection.sendNotification(
+                ServerCommands.SHOW_ERROR_MESSAGE,
+                printableError.message
+              );
+            }
+
+            void worker.terminate().then(() => {
+              resolve(result);
+            });
           }
-
-          void worker.terminate().then(() => {
-            resolve(result);
-          });
-        });
+        );
 
         // Listen for cancellation request from the language server client.
         token.onCancellationRequested(async () => {
@@ -223,7 +234,9 @@ export default class MongoDBService {
   // ------ GET DATA FOR COMPLETION ------ //
   _getDatabasesCompletionItems(): void {
     if (!this._extensionPath) {
-      this._connection.console.error('MONGOSH get list databases error: extensionPath is undefined');
+      this._connection.console.error(
+        'MONGOSH get list databases error: extensionPath is undefined'
+      );
 
       return;
     }
@@ -234,8 +247,8 @@ export default class MongoDBService {
         {
           workerData: {
             connectionString: this._connectionString,
-            connectionOptions: this._connectionOptions
-          }
+            connectionOptions: this._connectionOptions,
+          },
         }
       );
 
@@ -252,7 +265,9 @@ export default class MongoDBService {
         }
 
         void worker.terminate().then(() => {
-          this._connection.console.log(`MONGOSH found ${result.length} databases`);
+          this._connection.console.log(
+            `MONGOSH found ${result.length} databases`
+          );
           this._updateCurrentSessionDatabases(result);
         });
       });
@@ -266,20 +281,26 @@ export default class MongoDBService {
   _getCollectionsCompletionItems(databaseName: string): Promise<boolean> {
     return new Promise((resolve) => {
       if (!this._extensionPath) {
-        this._connection.console.log('MONGOSH get list collections error: extensionPath is undefined');
+        this._connection.console.log(
+          'MONGOSH get list collections error: extensionPath is undefined'
+        );
 
         return resolve(false);
       }
 
       try {
         const worker = new WorkerThreads(
-          path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+          path.resolve(
+            this._extensionPath,
+            'dist',
+            languageServerWorkerFileName
+          ),
           {
             workerData: {
               connectionString: this._connectionString,
               connectionOptions: this._connectionOptions,
-              databaseName
-            }
+              databaseName,
+            },
           }
         );
 
@@ -320,7 +341,9 @@ export default class MongoDBService {
   ): Promise<boolean> {
     return new Promise((resolve) => {
       if (!this._extensionPath) {
-        this._connection.console.log('SCHEMA error: extensionPath is undefined');
+        this._connection.console.log(
+          'SCHEMA error: extensionPath is undefined'
+        );
 
         return resolve(false);
       }
@@ -328,14 +351,18 @@ export default class MongoDBService {
       try {
         const namespace = `${databaseName}.${collectionName}`;
         const worker = new WorkerThreads(
-          path.resolve(this._extensionPath, 'dist', languageServerWorkerFileName),
+          path.resolve(
+            this._extensionPath,
+            'dist',
+            languageServerWorkerFileName
+          ),
           {
             workerData: {
               connectionString: this._connectionString,
               connectionOptions: this._connectionOptions,
               databaseName,
-              collectionName
-            }
+              collectionName,
+            },
           }
         );
 
@@ -346,11 +373,15 @@ export default class MongoDBService {
           const [error, result] = response;
 
           if (error) {
-            this._connection.console.log(`SCHEMA error: ${util.inspect(error)}`);
+            this._connection.console.log(
+              `SCHEMA error: ${util.inspect(error)}`
+            );
           }
 
           void worker.terminate().then(() => {
-            this._connection.console.log(`SCHEMA found ${result.length} fields`);
+            this._connection.console.log(
+              `SCHEMA found ${result.length} fields`
+            );
             this._updateCurrentSessionFields(namespace, result);
 
             return resolve(true);
@@ -372,20 +403,31 @@ export default class MongoDBService {
       shellSymbols[symbol] = Object.keys(
         signatures[symbol].attributes || {}
       ).map((item) => {
-        const documentation = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.description`) || '';
-        const link = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.link`) || '';
-        const detail = translator.translate(`shell-api.classes.${symbol}.help.attributes.${item}.example`) || '';
+        const documentation =
+          translator.translate(
+            `shell-api.classes.${symbol}.help.attributes.${item}.description`
+          ) || '';
+        const link =
+          translator.translate(
+            `shell-api.classes.${symbol}.help.attributes.${item}.link`
+          ) || '';
+        const detail =
+          translator.translate(
+            `shell-api.classes.${symbol}.help.attributes.${item}.example`
+          ) || '';
 
         const markdownDocumentation: MarkupContent = {
           kind: MarkupKind.Markdown,
-          value: link ? `${documentation}\n\n[Read More](${link})` : documentation
+          value: link
+            ? `${documentation}\n\n[Read More](${link})`
+            : documentation,
         };
 
         return {
           label: item,
           kind: CompletionItemKind.Method,
           documentation: markdownDocumentation,
-          detail
+          detail,
         };
       });
     });
@@ -414,7 +456,7 @@ export default class MongoDBService {
       if (this._isValidPropertyName(item.name)) {
         return {
           label: item.name,
-          kind: CompletionItemKind.Folder
+          kind: CompletionItemKind.Folder,
         };
       }
 
@@ -428,31 +470,35 @@ export default class MongoDBService {
         filterText: [
           filterText.slice(0, position.character),
           `.${item.name}`,
-          filterText.slice(position.character, filterText.length)
+          filterText.slice(position.character, filterText.length),
         ].join(''),
         textEdit: {
           range: {
             start: { line: position.line, character: 0 },
             end: {
               line: position.line,
-              character: filterText.length
-            }
+              character: filterText.length,
+            },
           },
           // Replace with array-like format
           newText: [
             filterText.slice(0, position.character - 1),
             `['${item.name}']`,
-            filterText.slice(position.character, filterText.length)
-          ].join('')
-        }
+            filterText.slice(position.character, filterText.length),
+          ].join(''),
+        },
       };
     });
   }
 
-  getExportToLanguageMode(params: PlaygroundTextAndSelection): ExportToLanguageMode {
+  getExportToLanguageMode(
+    params: PlaygroundTextAndSelection
+  ): ExportToLanguageMode {
     const state = this._visitor.parseAST(params);
 
-    this._connection.console.log(`EXPORT TO LANGUAGE state: ${util.inspect(state)}`);
+    this._connection.console.log(
+      `EXPORT TO LANGUAGE state: ${util.inspect(state)}`
+    );
 
     if (state.isArray) {
       return ExportToLanguageMode.AGGREGATION;
@@ -465,10 +511,15 @@ export default class MongoDBService {
     return ExportToLanguageMode.OTHER;
   }
 
-  getNamespaceForSelection(params: PlaygroundTextAndSelection): ExportToLanguageNamespace {
+  getNamespaceForSelection(
+    params: PlaygroundTextAndSelection
+  ): ExportToLanguageNamespace {
     try {
       const state = this._visitor.parseAST(params);
-      return { databaseName: state.databaseName, collectionName: state.collectionName };
+      return {
+        databaseName: state.databaseName,
+        collectionName: state.collectionName,
+      };
     } catch (error) {
       this._connection.console.error(
         `Get namespace for selection error: ${util.inspect(error)}`
@@ -480,7 +531,7 @@ export default class MongoDBService {
   // eslint-disable-next-line complexity
   async provideCompletionItems(
     textFromEditor: string,
-    position: { line: number, character: number }
+    position: { line: number; character: number }
   ): Promise<CompletionItem[]> {
     this._connection.console.log(
       `LS text from editor: ${util.inspect(textFromEditor)}`
@@ -489,13 +540,20 @@ export default class MongoDBService {
       `LS current symbol position: ${util.inspect(position)}`
     );
 
-    const state = this._visitor.parseASTWithPlaceholder(textFromEditor, position);
+    const state = this._visitor.parseASTWithPlaceholder(
+      textFromEditor,
+      position
+    );
 
     this._connection.console.log(
       `VISITOR completion state: ${util.inspect(state)}`
     );
 
-    if (this.connectionString && state.databaseName && !this._cachedCollections[state.databaseName]) {
+    if (
+      this.connectionString &&
+      state.databaseName &&
+      !this._cachedCollections[state.databaseName]
+    ) {
       await this._getCollectionsCompletionItems(state.databaseName);
     }
 
@@ -541,7 +599,9 @@ export default class MongoDBService {
     }
 
     if (state.isDbCallExpression) {
-      let dbCompletions: CompletionItem[] = [...this._cachedShellSymbols.Database];
+      let dbCompletions: CompletionItem[] = [
+        ...this._cachedShellSymbols.Database,
+      ];
 
       if (state.databaseName) {
         this._connection.console.log(
@@ -592,7 +652,10 @@ export default class MongoDBService {
     this._cachedFields = {};
   }
 
-  _updateCurrentSessionFields(namespace: string, fields: CompletionItem[]): void {
+  _updateCurrentSessionFields(
+    namespace: string,
+    fields: CompletionItem[]
+  ): void {
     if (namespace) {
       this._cachedFields[namespace] = fields ? fields : [];
     }
@@ -610,7 +673,10 @@ export default class MongoDBService {
     this._cachedCollections = {};
   }
 
-  _updateCurrentSessionCollections(database: string, collections: CollectionItem[]): void {
+  _updateCurrentSessionCollections(
+    database: string,
+    collections: CollectionItem[]
+  ): void {
     if (database) {
       this._cachedCollections[database] = collections ? collections : [];
     }

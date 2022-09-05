@@ -15,7 +15,8 @@ export const CONNECTION_ID_URI_IDENTIFIER = 'connectionId';
 export const VIEW_COLLECTION_SCHEME = 'VIEW_COLLECTION_SCHEME';
 
 export default class CollectionViewProvider
-implements vscode.TextDocumentContentProvider {
+  implements vscode.TextDocumentContentProvider
+{
   _context: vscode.ExtensionContext;
   _connectionController: ConnectionController;
   _operationsStore: CollectionDocumentsOperationsStore;
@@ -81,9 +82,7 @@ implements vscode.TextDocumentContentProvider {
     }
 
     try {
-      const find = util.promisify(
-        dataservice.find.bind(dataservice)
-      );
+      const find = util.promisify(dataservice.find.bind(dataservice));
       const documents = await find(
         namespace,
         {}, // No filter.
@@ -100,12 +99,14 @@ implements vscode.TextDocumentContentProvider {
       this._editDocumentCodeLensProvider.updateCodeLensesForCollection({
         content: documents,
         namespace,
-        uri
+        uri,
       });
 
       return JSON.stringify(documents, null, 2);
     } catch (error) {
-      const errorMessage = `Unable to list documents: ${formatError(error).message}`;
+      const errorMessage = `Unable to list documents: ${
+        formatError(error).message
+      }`;
 
       void vscode.window.showErrorMessage(errorMessage);
 

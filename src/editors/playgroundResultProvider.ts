@@ -11,7 +11,8 @@ export const PLAYGROUND_RESULT_URI = vscode.Uri.parse(
 );
 
 export default class PlaygroundResultProvider
-implements vscode.TextDocumentContentProvider {
+  implements vscode.TextDocumentContentProvider
+{
   _connectionController: ConnectionController;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _playgroundResult: PlaygroundResult;
@@ -26,7 +27,7 @@ implements vscode.TextDocumentContentProvider {
       namespace: null,
       type: null,
       content: undefined,
-      language: null
+      language: null,
     };
   }
 
@@ -54,7 +55,13 @@ implements vscode.TextDocumentContentProvider {
       return 'undefined';
     }
 
-    if (type === 'string' || (language && Object.values(ExportToLanguages).includes(language as ExportToLanguages))) {
+    if (
+      type === 'string' ||
+      (language &&
+        Object.values(ExportToLanguages).includes(
+          language as ExportToLanguages
+        ))
+    ) {
       return this._playgroundResult.content;
     }
 

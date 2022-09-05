@@ -13,12 +13,14 @@ function getIconPath(): { light: string; dark: string } {
 
   return {
     light: path.join(LIGHT, 'database.svg'),
-    dark: path.join(DARK, 'database.svg')
+    dark: path.join(DARK, 'database.svg'),
   };
 }
 
-export default class DatabaseTreeItem extends vscode.TreeItem
-  implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem> {
+export default class DatabaseTreeItem
+  extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<DatabaseTreeItem>
+{
   contextValue = 'databaseTreeItem' as const;
 
   cacheIsUpToDate: boolean;
@@ -94,7 +96,9 @@ export default class DatabaseTreeItem extends vscode.TreeItem
     }
 
     // List collections and build tree items.
-    const collections = await this._dataService.listCollections(this.databaseName);
+    const collections = await this._dataService.listCollections(
+      this.databaseName
+    );
 
     this.cacheIsUpToDate = true;
 
@@ -107,7 +111,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       const systemCollections: string[] = [];
       const otherCollections: string[] = [];
 
-      collections.forEach(collection => {
+      collections.forEach((collection) => {
         if (collection.name.startsWith('system.')) {
           systemCollections.push(collection);
         } else {
@@ -115,38 +119,38 @@ export default class DatabaseTreeItem extends vscode.TreeItem
         }
       });
 
-      const sortFunction = (collectionA: any, collectionB: any) => (collectionA.name || '').localeCompare(collectionB.name || '');
+      const sortFunction = (collectionA: any, collectionB: any) =>
+        (collectionA.name || '').localeCompare(collectionB.name || '');
 
       const collectionTreeEntries = [
         ...otherCollections.sort(sortFunction),
-        ...systemCollections.sort(sortFunction)
+        ...systemCollections.sort(sortFunction),
       ];
 
-      collectionTreeEntries
-        .forEach((collection: any) => {
-          if (pastChildrenCache[collection.name]) {
-            this._childrenCache[collection.name] = new CollectionTreeItem(
-              collection,
-              this.databaseName,
-              this._dataService,
-              pastChildrenCache[collection.name].isExpanded,
-              pastChildrenCache[collection.name].cacheIsUpToDate,
-              pastChildrenCache[collection.name].documentCount,
-              pastChildrenCache[collection.name].getDocumentListChild(),
-              pastChildrenCache[collection.name].getSchemaChild(),
-              pastChildrenCache[collection.name].getIndexListChild()
-            );
-          } else {
-            this._childrenCache[collection.name] = new CollectionTreeItem(
-              collection,
-              this.databaseName,
-              this._dataService,
-              false, // Not expanded.
-              false, // No cache.
-              null // No document count yet.
-            );
-          }
-        });
+      collectionTreeEntries.forEach((collection: any) => {
+        if (pastChildrenCache[collection.name]) {
+          this._childrenCache[collection.name] = new CollectionTreeItem(
+            collection,
+            this.databaseName,
+            this._dataService,
+            pastChildrenCache[collection.name].isExpanded,
+            pastChildrenCache[collection.name].cacheIsUpToDate,
+            pastChildrenCache[collection.name].documentCount,
+            pastChildrenCache[collection.name].getDocumentListChild(),
+            pastChildrenCache[collection.name].getSchemaChild(),
+            pastChildrenCache[collection.name].getIndexListChild()
+          );
+        } else {
+          this._childrenCache[collection.name] = new CollectionTreeItem(
+            collection,
+            this.databaseName,
+            this._dataService,
+            false, // Not expanded.
+            false, // No cache.
+            null // No document count yet.
+          );
+        }
+      });
     } else {
       this._childrenCache = {};
     }
@@ -193,7 +197,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
           }
 
           return null;
-        }
+        },
       });
     } catch (e) {
       return Promise.reject(
@@ -209,9 +213,7 @@ export default class DatabaseTreeItem extends vscode.TreeItem
       const dropDatabase = util.promisify(
         this._dataService.dropDatabase.bind(this._dataService)
       );
-      const successfullyDroppedDatabase = await dropDatabase(
-        databaseName
-      );
+      const successfullyDroppedDatabase = await dropDatabase(databaseName);
 
       this.isDropped = successfullyDroppedDatabase;
 

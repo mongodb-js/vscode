@@ -1,13 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
-  SSLMethodChangedAction
-} from '../../../store/actions';
+import { ActionTypes, SSLMethodChangedAction } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 import SSL_METHODS, {
-  SSLMethodOptions
+  SSLMethodOptions,
 } from '../../../connection-model/constants/ssl-methods';
 import FormGroup from '../../form/form-group';
 import RadioBoxGroup from '../../form/radio-box-group/radio-box-group';
@@ -58,7 +55,7 @@ class SSLTab extends React.Component<StateProps & DispatchProps> {
           name="sslMethod"
           options={SSLMethodOptions.map((sslMethodOption) => ({
             label: sslMethodOption.title,
-            value: sslMethodOption.id
+            value: sslMethodOption.id,
           }))}
           onChange={this.onSSLMethodChanged}
           value={sslMethod}
@@ -71,15 +68,15 @@ class SSLTab extends React.Component<StateProps & DispatchProps> {
 
 const mapStateToProps = (state: AppState): StateProps => {
   return {
-    sslMethod: state.currentConnection.sslMethod
+    sslMethod: state.currentConnection.sslMethod,
   };
 };
 
 const mapDispatchToProps: DispatchProps = {
   onSSLMethodChanged: (newSSLMethod): SSLMethodChangedAction => ({
     type: ActionTypes.SSL_METHOD_CHANGED,
-    sslMethod: newSSLMethod
-  })
+    sslMethod: newSSLMethod,
+  }),
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SSLTab);

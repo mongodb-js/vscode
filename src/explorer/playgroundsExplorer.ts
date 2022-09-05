@@ -18,7 +18,7 @@ export default class PlaygroundsExplorer {
       this._treeView = vscode.window.createTreeView(
         'mongoDBPlaygroundsExplorer',
         {
-          treeDataProvider: this._treeController
+          treeDataProvider: this._treeController,
         }
       );
       this._treeController.activateTreeViewEventHandlers(this._treeView);

@@ -11,7 +11,7 @@ export enum SSH_TUNNEL_TYPES {
   /**
    * The tunnel is created using an identity file.
    */
-  IDENTITY_FILE = 'IDENTITY_FILE'
+  IDENTITY_FILE = 'IDENTITY_FILE',
 }
 
 type SSHTunnelOption = {
@@ -22,16 +22,16 @@ type SSHTunnelOption = {
 export const SSHTunnelOptions: SSHTunnelOption[] = [
   {
     id: SSH_TUNNEL_TYPES.NONE,
-    title: 'None'
+    title: 'None',
   },
   {
     id: SSH_TUNNEL_TYPES.USER_PASSWORD,
-    title: 'Use Password'
+    title: 'Use Password',
   },
   {
     id: SSH_TUNNEL_TYPES.IDENTITY_FILE,
-    title: 'Use Identity File'
-  }
+    title: 'Use Identity File',
+  },
 ];
 
 export default SSH_TUNNEL_TYPES;

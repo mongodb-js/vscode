@@ -6,18 +6,19 @@ import CollectionDocumentsOperationStore from './collectionDocumentsOperationsSt
 import {
   CONNECTION_ID_URI_IDENTIFIER,
   NAMESPACE_URI_IDENTIFIER,
-  OPERATION_ID_URI_IDENTIFIER
+  OPERATION_ID_URI_IDENTIFIER,
 } from './collectionDocumentsProvider';
 
-export default class CollectionDocumentsCodeLensProvider implements vscode.CodeLensProvider {
+export default class CollectionDocumentsCodeLensProvider
+  implements vscode.CodeLensProvider
+{
   _codeLenses: vscode.CodeLens[] = [];
   _activeOperationsStore: CollectionDocumentsOperationStore;
   _uri: vscode.Uri = vscode.Uri.parse('');
-  _onDidChangeCodeLenses: vscode.EventEmitter<
-    void
-  > = new vscode.EventEmitter<void>();
-  readonly onDidChangeCodeLenses: vscode.Event<void> = this
-    ._onDidChangeCodeLenses.event;
+  _onDidChangeCodeLenses: vscode.EventEmitter<void> =
+    new vscode.EventEmitter<void>();
+  readonly onDidChangeCodeLenses: vscode.Event<void> =
+    this._onDidChangeCodeLenses.event;
 
   constructor(operationsStore: CollectionDocumentsOperationStore) {
     this._activeOperationsStore = operationsStore;
@@ -50,7 +51,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
           new vscode.Position(document.lineCount - 1, 0),
           new vscode.Position(document.lineCount, 0)
         )
-      )
+      ),
     ];
 
     this._uri = document.uri;
@@ -91,7 +92,7 @@ export default class CollectionDocumentsCodeLensProvider implements vscode.CodeL
       title: commandTitle,
       tooltip: commandTooltip,
       command: EXTENSION_COMMANDS.MDB_CODELENS_SHOW_MORE_DOCUMENTS,
-      arguments: [{ operationId, connectionId, namespace }]
+      arguments: [{ operationId, connectionId, namespace }],
     };
 
     return codeLens;

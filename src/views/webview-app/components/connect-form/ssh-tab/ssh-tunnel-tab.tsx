@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 
 import { ActionTypes, SSHTunnelChangedAction } from '../../../store/actions';
 import SSH_TUNNEL_TYPES, {
-  SSHTunnelOptions
+  SSHTunnelOptions,
 } from '../../../connection-model/constants/ssh-tunnel-types';
 import FormGroup from '../../form/form-group';
 import RadioBoxGroup from '../../form/radio-box-group/radio-box-group';
@@ -56,7 +56,7 @@ class SSHTunnelTab extends React.Component<StateProps & DispatchProps> {
           name="sshTunnel"
           options={SSHTunnelOptions.map((sshTunnelOption) => ({
             label: sshTunnelOption.title,
-            value: sshTunnelOption.id
+            value: sshTunnelOption.id,
           }))}
           onChange={this.onSSHTunnelChanged}
           value={sshTunnel}
@@ -68,14 +68,14 @@ class SSHTunnelTab extends React.Component<StateProps & DispatchProps> {
 }
 
 const mapStateToProps = (state: AppState): StateProps => ({
-  sshTunnel: state.currentConnection.sshTunnel
+  sshTunnel: state.currentConnection.sshTunnel,
 });
 
 const mapDispatchToProps: DispatchProps = {
   onSSHTunnelChanged: (newSSHTunnel): SSHTunnelChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_CHANGED,
-    sshTunnel: newSSHTunnel
-  })
+    sshTunnel: newSSHTunnel,
+  }),
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SSHTunnelTab);

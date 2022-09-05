@@ -7,7 +7,7 @@ import {
   SSHTunnelHostnameChangedAction,
   SSHTunnelPassphraseChangedAction,
   SSHTunnelPortChangedAction,
-  SSHTunnelUsernameChangedAction
+  SSHTunnelUsernameChangedAction,
 } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 import FormInput from '../../form/form-input';
@@ -86,7 +86,7 @@ class SSHTunnelIdentityFileValidation extends React.Component<props> {
       sshTunnelIdentityFile,
       sshTunnelPassphrase,
       sshTunnelPort,
-      sshTunnelUsername
+      sshTunnelUsername,
     } = this.props;
 
     return (
@@ -140,38 +140,38 @@ const mapStateToProps = (state: AppState): StateProps => {
     sshTunnelIdentityFile: state.currentConnection.sshTunnelIdentityFile,
     sshTunnelPassphrase: state.currentConnection.sshTunnelPassphrase,
     sshTunnelPort: state.currentConnection.sshTunnelPort,
-    sshTunnelUsername: state.currentConnection.sshTunnelUsername
+    sshTunnelUsername: state.currentConnection.sshTunnelUsername,
   };
 };
 
 const mapDispatchToProps: DispatchProps = {
   onChangeSSHTunnelIdentityFile: (): OnChangeSSHTunnelIdentityFileAction => ({
-    type: ActionTypes.ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE
+    type: ActionTypes.ON_CHANGE_SSH_TUNNEL_IDENTITY_FILE,
   }),
   onSSHTunnelHostnameChanged: (
     sshTunnelHostname: string
   ): SSHTunnelHostnameChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_HOSTNAME_CHANGED,
-    sshTunnelHostname
+    sshTunnelHostname,
   }),
   onSSHTunnelPassphraseChanged: (
     sshTunnelPassphrase: string
   ): SSHTunnelPassphraseChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_PASSPHRASE_CHANGED,
-    sshTunnelPassphrase
+    sshTunnelPassphrase,
   }),
   onSSHTunnelPortChanged: (
     sshTunnelPort: number
   ): SSHTunnelPortChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_PORT_CHANGED,
-    sshTunnelPort
+    sshTunnelPort,
   }),
   onSSHTunnelUsernameChanged: (
     sshTunnelUsername: string
   ): SSHTunnelUsernameChangedAction => ({
     type: ActionTypes.SSH_TUNNEL_USERNAME_CHANGED,
-    sshTunnelUsername
-  })
+    sshTunnelUsername,
+  }),
 };
 
 export default connect(

@@ -7,7 +7,7 @@ import {
   ActionTypes,
   OnChangeSSLCAAction,
   OnChangeSSLCertAction,
-  SSLPassChangedAction
+  SSLPassChangedAction,
 } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 
@@ -56,10 +56,7 @@ class SSLServerClientValidation extends React.Component<props> {
     const { isValid, sslCA, sslCert, sslPass } = this.props;
 
     return (
-      <div
-        id="ssl-server-client-validation"
-        className={styles['form-group']}
-      >
+      <div id="ssl-server-client-validation" className={styles['form-group']}>
         <FileInputButton
           label="Certificate Authority (.pem)"
           id="sslCA"
@@ -95,21 +92,21 @@ const mapStateToProps = (state: AppState): StateProps => {
     isValid: state.isValid,
     sslCA: state.currentConnection.sslCA,
     sslCert: state.currentConnection.sslCert,
-    sslPass: state.currentConnection.sslPass
+    sslPass: state.currentConnection.sslPass,
   };
 };
 
 const mapDispatchToProps: DispatchProps = {
   onChangeSSLCA: (): OnChangeSSLCAAction => ({
-    type: ActionTypes.ON_CHANGE_SSL_CA
+    type: ActionTypes.ON_CHANGE_SSL_CA,
   }),
   onChangeSSLCertificate: (): OnChangeSSLCertAction => ({
-    type: ActionTypes.ON_CHANGE_SSL_CERT
+    type: ActionTypes.ON_CHANGE_SSL_CERT,
   }),
   sslPrivateKeyPasswordChanged: (newSSLPass: string): SSLPassChangedAction => ({
     type: ActionTypes.SSL_PASS_CHANGED,
-    sslPass: newSSLPass
-  })
+    sslPass: newSSLPass,
+  }),
 };
 
 export default connect(

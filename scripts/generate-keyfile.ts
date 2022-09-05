@@ -25,4 +25,4 @@ config({ path: resolve(__dirname, '../.env') });
   }
 })().catch((error) => {
   ui.fail(`Failed to generate segment constants file: ${error.message}`);
-})
+});

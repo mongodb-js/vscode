@@ -15,7 +15,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'mock_db_name',
       'imaginary data service',
@@ -40,7 +40,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'mock_db_name',
       new DataServiceStub(),
@@ -75,7 +75,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'mock_db_name',
       { estimatedCount: (ns, options, cb): void => cb(null, 5000) },
@@ -106,7 +106,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionViewTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.view
+        type: CollectionTypes.view,
       },
       'mock_db_name',
       'imaginary data service',
@@ -128,7 +128,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionCollectionTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'mock_db_name',
       'imaginary data service',
@@ -152,7 +152,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionViewTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.timeseries
+        type: CollectionTypes.timeseries,
       },
       'mock_db_name',
       'imaginary data service',
@@ -174,7 +174,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionCollectionTreeItem = new CollectionTreeItem(
       {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection
+        type: CollectionTypes.collection,
       },
       'mock_db_name',
       'imaginary data service',

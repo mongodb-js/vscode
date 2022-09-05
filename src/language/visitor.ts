@@ -7,8 +7,8 @@ import * as util from 'util';
 const PLACEHOLDER = 'TRIGGER_CHARACTER';
 
 export interface VisitorSelection {
-  start: { line: number, character: number };
-  end: { line: number, character: number };
+  start: { line: number; character: number };
+  end: { line: number; character: number };
 }
 
 export interface VisitorTextAndSelection {
@@ -39,7 +39,7 @@ export class Visitor {
     this._state = this._getDefaultNodesValues();
     this._selection = {
       start: { line: 0, character: 0 },
-      end: { line: 0, character: 0 }
+      end: { line: 0, character: 0 },
     };
     this._console = console;
   }
@@ -125,17 +125,20 @@ export class Visitor {
     textFromEditor: string,
     position: { line: number; character: number }
   ): CompletionState {
-    const selection: VisitorSelection = { start: position, end: { line: 0, character: 0 } };
+    const selection: VisitorSelection = {
+      start: position,
+      end: { line: 0, character: 0 },
+    };
 
-    textFromEditor = this._handleTriggerCharacter(
-      textFromEditor,
-      position
-    );
+    textFromEditor = this._handleTriggerCharacter(textFromEditor, position);
 
     return this.parseAST({ textFromEditor, selection });
   }
 
-  parseAST({ textFromEditor, selection }: VisitorTextAndSelection): CompletionState {
+  parseAST({
+    textFromEditor,
+    selection,
+  }: VisitorTextAndSelection): CompletionState {
     let ast: any;
 
     this._state = this._getDefaultNodesValues();
@@ -144,7 +147,7 @@ export class Visitor {
     try {
       ast = parser.parse(textFromEditor, {
         // Parse in strict mode and allow module declarations
-        sourceType: 'module'
+        sourceType: 'module',
       });
     } catch (error) {
       this._console.error(`parseAST error: ${util.inspect(error)}`);
@@ -160,7 +163,7 @@ export class Visitor {
         this._visitArrayExpression(path.node);
         this._visitVariableDeclarator(path.node);
         this._visitObjectProperty(path.node);
-      }
+      },
     });
 
     return this._state;
@@ -178,7 +181,7 @@ export class Visitor {
       isDbCallExpression: false,
       isCollectionName: false,
       isAggregationCursor: false,
-      isFindCursor: false
+      isFindCursor: false,
     };
   }
 
@@ -233,15 +236,13 @@ export class Visitor {
   _isParentAroundSelection(node: babel.types.Node): boolean {
     if (
       node.loc?.start?.line &&
-      (
-        node.loc.start.line - 1 < this._selection.start?.line ||
-        node.loc.start.line - 1 === this._selection.start?.line && node.loc.start.column < this._selection.start?.character
-      ) &&
+      (node.loc.start.line - 1 < this._selection.start?.line ||
+        (node.loc.start.line - 1 === this._selection.start?.line &&
+          node.loc.start.column < this._selection.start?.character)) &&
       node.loc?.end?.line &&
-      (
-        node.loc.end.line - 1 > this._selection.end?.line ||
-        node.loc.end.line - 1 === this._selection.end?.line && node.loc.end.column > this._selection.end?.character
-      )
+      (node.loc.end.line - 1 > this._selection.end?.line ||
+        (node.loc.end.line - 1 === this._selection.end?.line &&
+          node.loc.end.column > this._selection.end?.character))
     ) {
       return true;
     }
@@ -252,13 +253,9 @@ export class Visitor {
   _isObjectPropBeforeSelection(node: babel.types.ObjectProperty): boolean {
     if (
       node.key.loc?.end &&
-      (
-        node.key.loc?.end.line - 1 < this._selection.start?.line ||
-        (
-          node.key.loc?.end.line - 1 === this._selection.start?.line &&
-          node.key.loc?.end.column < this._selection.start?.character
-        )
-      )
+      (node.key.loc?.end.line - 1 < this._selection.start?.line ||
+        (node.key.loc?.end.line - 1 === this._selection.start?.line &&
+          node.key.loc?.end.column < this._selection.start?.character))
     ) {
       return true;
     }
@@ -266,16 +263,14 @@ export class Visitor {
     return false;
   }
 
-  _isVariableIdentifierBeforeSelection(node: babel.types.VariableDeclarator): boolean {
+  _isVariableIdentifierBeforeSelection(
+    node: babel.types.VariableDeclarator
+  ): boolean {
     if (
       node.id.loc?.end &&
-      (
-        node.id.loc?.end.line - 1 < this._selection.start?.line ||
-        (
-          node.id.loc?.end.line - 1 === this._selection.start?.line &&
-          node.id.loc?.end.column < this._selection.start?.character
-        )
-      )
+      (node.id.loc?.end.line - 1 < this._selection.start?.line ||
+        (node.id.loc?.end.line - 1 === this._selection.start?.line &&
+          node.id.loc?.end.column < this._selection.start?.character))
     ) {
       return true;
     }
@@ -313,7 +308,11 @@ export class Visitor {
   }
 
   _checkIsBSONSelectionInArray(node: babel.types.Node): void {
-    if (node.type === 'ArrayExpression' && node.elements && this._isParentAroundSelection(node)) {
+    if (
+      node.type === 'ArrayExpression' &&
+      node.elements &&
+      this._isParentAroundSelection(node)
+    ) {
       node.elements.forEach((item) => {
         if (item) {
           this._checkIsObjectWithinSelection(item);
@@ -324,7 +323,11 @@ export class Visitor {
   }
 
   _checkIsBSONSelectionInFunction(node: babel.types.Node): void {
-    if (node.type === 'CallExpression' && node.arguments && this._isParentAroundSelection(node)) {
+    if (
+      node.type === 'CallExpression' &&
+      node.arguments &&
+      this._isParentAroundSelection(node)
+    ) {
       node.arguments.forEach((item) => {
         if (item) {
           this._checkIsObjectWithinSelection(item);
@@ -376,12 +379,17 @@ export class Visitor {
   }
 
   _checkIsCollectionNameAsCallExpression(node: babel.types.Node): void {
-    if (node.type === 'CallExpression' && node.callee.type === 'MemberExpression') {
+    if (
+      node.type === 'CallExpression' &&
+      node.callee.type === 'MemberExpression'
+    ) {
       this._checkIsCollectionName(node.callee);
     }
   }
 
-  _checkIsCollectionName(node: babel.types.CallExpression | babel.types.MemberExpression): void {
+  _checkIsCollectionName(
+    node: babel.types.CallExpression | babel.types.MemberExpression
+  ): void {
     this._checkIsCollectionNameAsMemberExpression(node);
     this._checkIsCollectionNameAsCallExpression(node);
   }
@@ -436,7 +444,9 @@ export class Visitor {
       node.object.object.type === 'Identifier' &&
       node.object.object.name === 'db'
     ) {
-      this._state.collectionName = (node.object.property as babel.types.Identifier).name;
+      this._state.collectionName = (
+        node.object.property as babel.types.Identifier
+      ).name;
     }
   }
 

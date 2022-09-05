@@ -4,11 +4,17 @@ import { EJSON, Document } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import parseSchema = require('mongodb-schema');
 import { parentPort, workerData } from 'worker_threads';
-import { PlaygroundResult, PlaygroundDebug, ShellExecuteAllResult } from '../types/playgroundType';
+import {
+  PlaygroundResult,
+  PlaygroundDebug,
+  ShellExecuteAllResult,
+} from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
 
 // MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options)
-type MongoClientOptions = NonNullable<Parameters<(typeof CliServiceProvider)['connect']>[1]>;
+type MongoClientOptions = NonNullable<
+  Parameters<typeof CliServiceProvider['connect']>[1]
+>;
 
 interface EvaluationResult {
   printable: any;
@@ -23,7 +29,7 @@ const getContent = ({ type, printable }: EvaluationResult) => {
     return JSON.parse(EJSON.stringify(printable.documents));
   }
 
-  return (typeof printable !== 'object' || printable === null)
+  return typeof printable !== 'object' || printable === null
     ? printable
     : JSON.parse(EJSON.stringify(printable));
 };
@@ -48,10 +54,8 @@ const executeAll = async (
     //
     // TODO: update when `mongosh` will start to support cancellationToken.
     // See: https://github.com/mongodb/node-mongodb-native/commit/2014b7b/#diff-46fff96a6e12b2b0b904456571ce308fR132
-    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
-      connectionString,
-      connectionOptions
-    );
+    const serviceProvider: CliServiceProvider =
+      await CliServiceProvider.connect(connectionString, connectionOptions);
     const outputLines: PlaygroundDebug = [];
 
     // Create a new instance of the runtime and evaluate code from a playground.
@@ -64,20 +68,21 @@ const executeAll = async (
             type,
             content: printable,
             namespace: null,
-            language: null
+            language: null,
           });
         }
-      }
+      },
     });
     const { source, type, printable } = await runtime.evaluate(codeToEvaluate);
-    const namespace = (source && source.namespace)
-      ? `${source.namespace.db}.${source.namespace.collection}`
-      : null;
+    const namespace =
+      source && source.namespace
+        ? `${source.namespace.db}.${source.namespace.collection}`
+        : null;
     const result: PlaygroundResult = {
       namespace,
       type: type ? type : typeof printable,
       content: getContent({ type, printable }),
-      language: getLanguage({ type, printable })
+      language: getLanguage({ type, printable }),
     };
 
     return [null, { outputLines, result }];
@@ -111,7 +116,7 @@ const findAndParse = async (
 
       const fields = schema.fields.map((item) => ({
         label: item.name,
-        kind: CompletionItemKind.Field
+        kind: CompletionItemKind.Field,
       }));
 
       return resolve(fields);
@@ -126,10 +131,8 @@ const getFieldsFromSchema = async (
   collectionName: string
 ): Promise<any> => {
   try {
-    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
-      connectionString,
-      connectionOptions
-    );
+    const serviceProvider: CliServiceProvider =
+      await CliServiceProvider.connect(connectionString, connectionOptions);
 
     const result = await findAndParse(
       serviceProvider,
@@ -150,7 +153,7 @@ const prepareCompletionItems = (result: Document) => {
 
   return result.databases.map((item) => ({
     label: item.name,
-    kind: CompletionItemKind.Value
+    kind: CompletionItemKind.Value,
   }));
 };
 
@@ -159,10 +162,8 @@ const getListDatabases = async (
   connectionOptions: any
 ) => {
   try {
-    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
-      connectionString,
-      connectionOptions
-    );
+    const serviceProvider: CliServiceProvider =
+      await CliServiceProvider.connect(connectionString, connectionOptions);
 
     // TODO: There is a mistake in the service provider interface
     // Use `admin` as arguments to get list of dbs
@@ -182,10 +183,8 @@ const getListCollections = async (
   databaseName: string
 ) => {
   try {
-    const serviceProvider: CliServiceProvider = await CliServiceProvider.connect(
-      connectionString,
-      connectionOptions
-    );
+    const serviceProvider: CliServiceProvider =
+      await CliServiceProvider.connect(connectionString, connectionOptions);
     const result = await serviceProvider.listCollections(databaseName);
     const collections = result ? result : [];
 
@@ -195,7 +194,7 @@ const getListCollections = async (
   }
 };
 
-const handleMessageFromParentPort = async(message: string): Promise<void> => {
+const handleMessageFromParentPort = async (message: string): Promise<void> => {
   if (message === ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND) {
     parentPort?.postMessage(
       await executeAll(
@@ -238,9 +237,6 @@ const handleMessageFromParentPort = async(message: string): Promise<void> => {
 };
 
 // parentPort allows communication with the parent thread.
-parentPort?.once(
-  'message',
-  (message: string): void => {
-    void handleMessageFromParentPort(message);
-  }
-);
+parentPort?.once('message', (message: string): void => {
+  void handleMessageFromParentPort(message);
+});

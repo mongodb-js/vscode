@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import {
   ActionTypes,
   OpenConnectionStringInputAction,
-  ToggleShowConnectionFormAction
+  ToggleShowConnectionFormAction,
 } from '../../store/actions';
 
 const styles = require('./connect-helper.less');
@@ -26,18 +26,18 @@ function getOSCommandShortcutName(): string {
 
 export class ConnectHelper extends React.Component<props> {
   render(): React.ReactNode {
-    const {
-      onOpenConnectionForm,
-      onOpenConnectionStringInput
-    } = this.props;
+    const { onOpenConnectionForm, onOpenConnectionStringInput } = this.props;
 
     return (
       <div className={styles['connect-helper']}>
         <div className={styles['connect-helper-connect-area']}>
-          <div className={classnames(styles['connect-helper-connect-option'], styles['connect-connection-string-area'])}>
-            <div>
-              Connect with
-            </div>
+          <div
+            className={classnames(
+              styles['connect-helper-connect-option'],
+              styles['connect-connection-string-area']
+            )}
+          >
+            <div>Connect with</div>
             <div>
               <strong>Connection String</strong>
             </div>
@@ -51,13 +51,13 @@ export class ConnectHelper extends React.Component<props> {
               Connect
             </button>
           </div>
-          <div className={classnames(
-            styles['connect-helper-connect-option'],
-            styles['connect-connection-form-area']
-          )}>
-            <div>
-              Advanced
-            </div>
+          <div
+            className={classnames(
+              styles['connect-helper-connect-option'],
+              styles['connect-connection-form-area']
+            )}
+          >
+            <div>Advanced</div>
             <div>
               <strong>Connection Settings</strong>
             </div>
@@ -74,7 +74,8 @@ export class ConnectHelper extends React.Component<props> {
           </div>
         </div>
         <div className={styles['connect-helper-message']}>
-          <strong>{getOSCommandShortcutName()} + Shift + P</strong> for all MongoDB Command Palette options
+          <strong>{getOSCommandShortcutName()} + Shift + P</strong> for all
+          MongoDB Command Palette options
         </div>
       </div>
     );
@@ -83,11 +84,11 @@ export class ConnectHelper extends React.Component<props> {
 
 const mapDispatchToProps: DispatchProps = {
   onOpenConnectionStringInput: (): OpenConnectionStringInputAction => ({
-    type: ActionTypes.OPEN_CONNECTION_STRING_INPUT
+    type: ActionTypes.OPEN_CONNECTION_STRING_INPUT,
   }),
   onOpenConnectionForm: (): ToggleShowConnectionFormAction => ({
-    type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM
-  })
+    type: ActionTypes.TOGGLE_SHOW_CONNECTION_FORM,
+  }),
 };
 
 export default connect(() => ({}), mapDispatchToProps)(ConnectHelper);

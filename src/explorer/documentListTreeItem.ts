@@ -20,7 +20,7 @@ export const DOCUMENT_LIST_ITEM = 'documentListTreeItem';
 export enum CollectionTypes {
   collection = 'collection',
   view = 'view',
-  timeseries = 'timeseries'
+  timeseries = 'timeseries',
 }
 
 const ITEM_LABEL = 'Documents';
@@ -65,11 +65,14 @@ function getIconPath(): { light: string; dark: string } {
 
   return {
     light: path.join(LIGHT, 'documents.svg'),
-    dark: path.join(DARK, 'documents.svg')
+    dark: path.join(DARK, 'documents.svg'),
   };
 }
 
-function getTooltip(type: CollectionTypes, documentCount: number | null): string {
+function getTooltip(
+  type: CollectionTypes,
+  documentCount: number | null
+): string {
   const typeString = type === CollectionTypes.view ? 'View' : 'Collection';
   if (documentCount !== null) {
     return `${typeString} Documents - ${documentCount}`;
@@ -77,12 +80,13 @@ function getTooltip(type: CollectionTypes, documentCount: number | null): string
   return `${typeString} Documents`;
 }
 
-export default class DocumentListTreeItem extends vscode.TreeItem
-  implements TreeItemParent, vscode.TreeDataProvider<DocumentListTreeItem> {
+export default class DocumentListTreeItem
+  extends vscode.TreeItem
+  implements TreeItemParent, vscode.TreeDataProvider<DocumentListTreeItem>
+{
   cacheIsUpToDate = false;
-  private _childrenCache: Array<
-    DocumentTreeItem | ShowMoreDocumentsTreeItem
-  > = [];
+  private _childrenCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> =
+    [];
 
   contextValue = DOCUMENT_LIST_ITEM;
 
@@ -182,7 +186,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
             this.namespace,
             () => this.onShowMoreClicked(),
             this._maxDocumentsToShow
-          )
+          ),
         ];
       }
 
@@ -195,7 +199,9 @@ export default class DocumentListTreeItem extends vscode.TreeItem
     let documents;
 
     try {
-      const find = util.promisify(this._dataService.find.bind(this._dataService));
+      const find = util.promisify(
+        this._dataService.find.bind(this._dataService)
+      );
       documents = await find(
         this.namespace,
         {}, // No filter.
@@ -223,7 +229,7 @@ export default class DocumentListTreeItem extends vscode.TreeItem
           this.namespace,
           () => this.onShowMoreClicked(),
           this._maxDocumentsToShow
-        )
+        ),
       ];
     }
 

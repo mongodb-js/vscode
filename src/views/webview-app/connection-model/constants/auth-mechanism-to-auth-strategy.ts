@@ -8,5 +8,5 @@ export default {
   GSSAPI: 'KERBEROS',
   SSPI: 'KERBEROS',
   PLAIN: 'LDAP',
-  LDAP: 'LDAP'
+  LDAP: 'LDAP',
 };

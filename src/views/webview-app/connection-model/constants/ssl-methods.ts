@@ -23,7 +23,7 @@ export enum SSL_METHODS {
   /**
    * The driver must present a valid certificate and validate the server certificate.
    */
-  ALL = 'ALL'
+  ALL = 'ALL',
 }
 
 type SSLMethod = {
@@ -34,24 +34,24 @@ type SSLMethod = {
 export const SSLMethodOptions: SSLMethod[] = [
   {
     id: SSL_METHODS.NONE,
-    title: 'None'
+    title: 'None',
   },
   {
     id: SSL_METHODS.SYSTEMCA,
-    title: 'System CA / Atlas Deployment'
+    title: 'System CA / Atlas Deployment',
   },
   {
     id: SSL_METHODS.SERVER,
-    title: 'Server Validation'
+    title: 'Server Validation',
   },
   {
     id: SSL_METHODS.ALL,
-    title: 'Server and Client Validation'
+    title: 'Server and Client Validation',
   },
   {
     id: SSL_METHODS.UNVALIDATED,
-    title: 'Unvalidated (insecure)'
-  }
+    title: 'Unvalidated (insecure)',
+  },
 ];
 
 export default SSL_METHODS;
