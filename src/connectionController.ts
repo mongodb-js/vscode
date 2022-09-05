@@ -412,16 +412,16 @@ export default class ConnectionController {
       throw new Error('Connect failed: connectionOptions are missing.');
     }
 
-    let newDataService;
+    let dataService;
     let connectError;
 
     try {
-      newDataService = await this._connectWithDataService(connectionOptions);
+      dataService = await this._connectWithDataService(connectionOptions);
     } catch (error) {
       connectError = error;
     }
 
-    const shouldEndPrevConnectAttempt = this._endPrevConnectAttempt({ connectionId, connectingAttemptVersion, dataService: newDataService });
+    const shouldEndPrevConnectAttempt = this._endPrevConnectAttempt({ connectionId, connectingAttemptVersion, dataService });
 
     if (shouldEndPrevConnectAttempt) {
       return {
@@ -442,7 +442,7 @@ export default class ConnectionController {
     log.info('Successfully connected');
     void vscode.window.showInformationMessage('MongoDB connection successful.');
 
-    this._activeDataService = newDataService;
+    this._activeDataService = dataService;
     this._currentConnectionId = connectionId;
     this._connecting = false;
     this._connectingConnectionId = null;
@@ -450,7 +450,7 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
     // Send metrics to Segment
-    this.sendTelemetry(newDataService, connectionType);
+    this.sendTelemetry(dataService, connectionType);
 
     return {
       successfullyConnected: true,

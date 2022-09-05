@@ -10,3 +10,6 @@ ignores:
  - "@babel/core"
  - "mongodb-client-encryption"
  - "@leafygreen-ui/palette"
+ - "buffer"
+ - "process"
+ - "eslint-config-mongodb-js"

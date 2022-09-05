@@ -127,7 +127,7 @@ export default class MongoDBService {
       }
 
       if (this._connectionId !== executionParameters.connectionId) {
-        this._connection.sendNotification(
+        void this._connection.sendNotification(
           ServerCommands.SHOW_ERROR_MESSAGE,
           'The playground\'s active connection does not match the extension\'s active connection. Please reconnect and try again.'
         );
@@ -174,7 +174,7 @@ export default class MongoDBService {
             this._connection.console.error(
               `MONGOSH execute all error: ${util.inspect(printableError)}`
             );
-            this._connection.sendNotification(
+            void this._connection.sendNotification(
               ServerCommands.SHOW_ERROR_MESSAGE,
               printableError.message
             );
@@ -188,7 +188,7 @@ export default class MongoDBService {
         // Listen for cancellation request from the language server client.
         token.onCancellationRequested(async () => {
           this._connection.console.log('PLAYGROUND cancellation requested');
-          this._connection.sendNotification(
+          void this._connection.sendNotification(
             ServerCommands.SHOW_INFO_MESSAGE,
             'The running playground operation was canceled.'
           );

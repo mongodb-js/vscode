@@ -19,6 +19,15 @@ import TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('webviewController');
 
+const getNonce = () => {
+  let text = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+};
+
 const openFileOptions = {
   canSelectFiles: true,
   canSelectFolders: false,
@@ -51,17 +60,24 @@ export const getWebviewContent = ({
 }): string => {
   const jsAppFileUrl = getReactAppUri(extensionPath, webview);
 
+  // Use a nonce to only allow specific scripts to be run
+  const nonce = getNonce();
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none';
+            script-src vscode-resource: 'self' 'unsafe-inline' 'unsafe-eval' https:; script-src;
+            style-src vscode-resource: 'self' 'unsafe-inline';
+            img-src vscode-resource: 'self' "/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>MongoDB</title>
     </head>
     <body>
       <div id="root"></div>
-      <script>window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
-      <script src="${jsAppFileUrl}"></script>
+      <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
+      <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
 };

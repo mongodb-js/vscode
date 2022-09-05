@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-exclusive-tests */
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { afterEach, beforeEach } from 'mocha';

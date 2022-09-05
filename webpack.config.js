@@ -36,7 +36,7 @@ const extensionConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
+    vscode: 'commonjs2 vscode',
     // Currently connection-model has a keytar dependency, vscode provides its
     // own keytar dependency. Here we are telling it to use vscode's keytar.
     keytar: 'keytar',
@@ -100,7 +100,7 @@ const languageServerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
+    vscode: 'commonjs2 vscode',
     snappy: 'commonjs2 snappy',
     'snappy/package.json': 'commonjs2 snappy/package.json',
     'bson-ext': 'commonjs2 bson-ext',
@@ -154,7 +154,7 @@ const languageServerWorkerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
+    vscode: 'commonjs2 vscode',
     snappy: 'commonjs2 snappy',
     'snappy/package.json': 'commonjs2 snappy/package.json',
     'bson-ext': 'commonjs2 bson-ext',
