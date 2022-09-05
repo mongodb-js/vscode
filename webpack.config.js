@@ -247,8 +247,6 @@ const webviewConfig = {
     new ContextMapPlugin('node_modules/context-eval', ['./lib/context-node']),
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
-    }),
-    new webpack.ProvidePlugin({
       process: 'process/browser',
     }),
   ],
