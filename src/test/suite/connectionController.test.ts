@@ -3,7 +3,7 @@ import * as util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
-import { DataService } from 'mongodb-data-service';
+import { connect } from 'mongodb-data-service';
 
 import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/constants/auth-strategies';
 import ConnectionController, {
@@ -777,13 +777,13 @@ suite('Connection Controller Test Suite', function () {
     };
 
     sinon.replace(
-      DataService.prototype,
-      'connect',
-      sinon.fake(async (callback) => {
+      testConnectionController,
+      '_connectWithDataService',
+      async (connectionOptions) => {
         await sleep(50);
 
-        return callback(null, DataService);
-      })
+        return connect(connectionOptions);
+      }
     );
 
     void testConnectionController.connectWithConnectionId(connectionId);
@@ -835,7 +835,7 @@ suite('Connection Controller Test Suite', function () {
       storageLocation: 'GLOBAL',
       connectionOptions: {
         connectionString:
-          'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+          'mongodb://localhost:27017/?readPreference=primary&ssl=false&directConnection=true',
       },
     });
   });
@@ -1132,7 +1132,11 @@ suite('Connection Controller Test Suite', function () {
 
     assert.deepStrictEqual(mongoClientConnectionOptions, {
       url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
-      options: { monitorCommands: true },
+      options: {
+        autoEncryption: undefined,
+        monitorCommands: true,
+        useSystemCA: undefined,
+      },
     });
   });
 

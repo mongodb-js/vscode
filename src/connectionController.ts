@@ -3,12 +3,13 @@ import {
   convertConnectionModelToInfo,
   ConnectionInfo,
   ConnectionOptions,
-  DataService,
   getConnectionTitle,
   ConnectionSecrets,
   extractSecrets,
   mergeSecrets,
+  connect,
 } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
@@ -418,6 +419,10 @@ export default class ConnectionController {
     return this._connect(savedConnectionInfo.id, connectionType);
   }
 
+  async _connectWithDataService(connectionOptions: ConnectionOptions) {
+    return connect(connectionOptions);
+  }
+
   async _connect(
     connectionId: string,
     connectionType: ConnectionTypes
@@ -442,11 +447,11 @@ export default class ConnectionController {
       throw new Error('Connect failed: connectionOptions are missing.');
     }
 
-    const newDataService = new DataService(connectionOptions);
+    let dataService;
     let connectError;
 
     try {
-      await newDataService.connect();
+      dataService = await this._connectWithDataService(connectionOptions);
     } catch (error) {
       connectError = error;
     }
@@ -454,7 +459,7 @@ export default class ConnectionController {
     const shouldEndPrevConnectAttempt = this._endPrevConnectAttempt({
       connectionId,
       connectingAttemptVersion,
-      newDataService,
+      dataService,
     });
 
     if (shouldEndPrevConnectAttempt) {
@@ -476,7 +481,7 @@ export default class ConnectionController {
     log.info('Successfully connected');
     void vscode.window.showInformationMessage('MongoDB connection successful.');
 
-    this._activeDataService = newDataService;
+    this._activeDataService = dataService;
     this._currentConnectionId = connectionId;
     this._connecting = false;
     this._connectingConnectionId = null;
@@ -484,7 +489,7 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
     // Send metrics to Segment
-    this.sendTelemetry(newDataService, connectionType);
+    this.sendTelemetry(dataService, connectionType);
 
     return {
       successfullyConnected: true,
@@ -492,13 +497,15 @@ export default class ConnectionController {
     };
   }
 
-  private _endPrevConnectAttempt(attempt: {
+  private _endPrevConnectAttempt({
+    connectionId,
+    connectingAttemptVersion,
+    dataService,
+  }: {
     connectionId: string;
     connectingAttemptVersion: null | string;
-    newDataService: DataService;
+    dataService: DataService | null;
   }): boolean {
-    const { connectionId, connectingAttemptVersion, newDataService } = attempt;
-
     if (
       connectingAttemptVersion !== this._connectingVersion ||
       !this._connections[connectionId]
@@ -506,7 +513,7 @@ export default class ConnectionController {
       // If the current attempt is no longer the most recent attempt
       // or the connection no longer exists we silently end the connection
       // and return.
-      void newDataService.disconnect().catch(() => {
+      void dataService?.disconnect().catch(() => {
         /* ignore */
       });
 
@@ -760,39 +767,37 @@ export default class ConnectionController {
       : '';
   }
 
-  _getConnectionStringWithProxy(mongoClientConnectionOptions: {
+  _getConnectionStringWithProxy({
+    url,
+    options,
+  }: {
     url: string;
     options: MongoClientOptions;
   }): string {
-    const connectionStringData = new ConnectionString(
-      mongoClientConnectionOptions.url
-    );
+    const connectionStringData = new ConnectionString(url);
 
-    if (mongoClientConnectionOptions.options.proxyHost) {
-      connectionStringData.searchParams.set(
-        'proxyHost',
-        mongoClientConnectionOptions.options.proxyHost
-      );
+    if (options.proxyHost) {
+      connectionStringData.searchParams.set('proxyHost', options.proxyHost);
     }
 
-    if (mongoClientConnectionOptions.options.proxyPassword) {
+    if (options.proxyPassword) {
       connectionStringData.searchParams.set(
         'proxyPassword',
-        mongoClientConnectionOptions.options.proxyPassword
+        options.proxyPassword
       );
     }
 
-    if (mongoClientConnectionOptions.options.proxyPort) {
+    if (options.proxyPort) {
       connectionStringData.searchParams.set(
         'proxyPort',
-        `${mongoClientConnectionOptions.options.proxyPort}`
+        `${options.proxyPort}`
       );
     }
 
-    if (mongoClientConnectionOptions.options.proxyUsername) {
+    if (options.proxyUsername) {
       connectionStringData.searchParams.set(
         'proxyUsername',
-        mongoClientConnectionOptions.options.proxyUsername
+        options.proxyUsername
       );
     }
 

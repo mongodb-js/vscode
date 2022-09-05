@@ -129,14 +129,11 @@ suite('Language Server Controller Test Suite', () => {
 
   test('the language server dependency bundle exists', () => {
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
-
     const languageServerModuleBundlePath = path.join(
       extensionPath,
       'dist',
       'languageServer.js'
     );
-
-    // eslint-disable-next-line no-sync
     expect(fs.existsSync(languageServerModuleBundlePath)).to.equal(true);
   });
 });

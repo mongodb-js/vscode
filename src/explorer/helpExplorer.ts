@@ -23,6 +23,10 @@ export default class HelpExplorer {
         this._treeView,
         telemetryService
       );
+      vscode.window.registerTreeDataProvider(
+        'mongoDBHelpExplorer',
+        this._treeController
+      );
     }
   }
 

@@ -6,6 +6,7 @@ const styles = require('./form.less');
 type props = {
   id: string;
   separator?: boolean;
+  children?: React.ReactNode;
 };
 
 class FormGroup extends React.PureComponent<props> {

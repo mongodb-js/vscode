@@ -1,5 +1,6 @@
 // This is the webpack which builds our extension in the 'dist' folder.
 const path = require('path');
+const webpack = require('webpack');
 
 const autoprefixer = require('autoprefixer');
 const outputPath = path.join(__dirname, 'dist');
@@ -16,6 +17,7 @@ const baseConfig = {
 const extensionConfig = {
   ...baseConfig,
   output: {
+    strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
@@ -28,14 +30,24 @@ const extensionConfig = {
   },
   resolve: {
     extensions: ['.js', '.ts', '.json'],
+    fallback: {
+      stream: require.resolve('stream-browserify'),
+    },
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
+    vscode: 'commonjs2 vscode',
     // Currently connection-model has a keytar dependency, vscode provides its
     // own keytar dependency. Here we are telling it to use vscode's keytar.
     keytar: 'keytar',
     electron: 'electron',
+    snappy: 'commonjs2 snappy',
+    'snappy/package.json': 'commonjs2 snappy/package.json',
+    'bson-ext': 'commonjs2 bson-ext',
+    'win-export-certificate-and-key':
+      'commonjs2 win-export-certificate-and-key',
+    os_dns_native: 'commonjs2 os_dns_native',
+    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
   },
   module: {
     rules: [
@@ -64,6 +76,7 @@ const extensionConfig = {
 const languageServerConfig = {
   ...baseConfig,
   output: {
+    strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
@@ -84,7 +97,14 @@ const languageServerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
+    vscode: 'commonjs2 vscode',
+    snappy: 'commonjs2 snappy',
+    'snappy/package.json': 'commonjs2 snappy/package.json',
+    'bson-ext': 'commonjs2 bson-ext',
+    'win-export-certificate-and-key':
+      'commonjs2 win-export-certificate-and-key',
+    os_dns_native: 'commonjs2 os_dns_native',
+    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
   },
   module: {
     rules: [
@@ -110,6 +130,7 @@ const languageServerConfig = {
 const languageServerWorkerConfig = {
   ...baseConfig,
   output: {
+    strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
@@ -130,7 +151,14 @@ const languageServerWorkerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
+    vscode: 'commonjs2 vscode',
+    snappy: 'commonjs2 snappy',
+    'snappy/package.json': 'commonjs2 snappy/package.json',
+    'bson-ext': 'commonjs2 bson-ext',
+    'win-export-certificate-and-key':
+      'commonjs2 win-export-certificate-and-key',
+    os_dns_native: 'commonjs2 os_dns_native',
+    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
   },
   module: {
     rules: [
@@ -156,6 +184,7 @@ const languageServerWorkerConfig = {
 const webviewConfig = {
   ...baseConfig,
   output: {
+    strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
@@ -167,6 +196,14 @@ const webviewConfig = {
   },
   resolve: {
     extensions: ['.js', '.ts', '.tsx', '.json'],
+    fallback: {
+      stream: require.resolve('stream-browserify'),
+      buffer: require.resolve('buffer'),
+    },
+  },
+  externals: {
+    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
+    os_dns_native: 'commonjs2 os_dns_native',
   },
   module: {
     rules: [
@@ -191,7 +228,6 @@ const webviewConfig = {
           {
             loader: 'postcss-loader',
             options: {
-              // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
               plugins: function () {
                 return [autoprefixer()];
               },
@@ -207,6 +243,13 @@ const webviewConfig = {
       },
     ],
   },
+  plugins: [
+    new ContextMapPlugin('node_modules/context-eval', ['./lib/context-node']),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+      process: 'process/browser',
+    }),
+  ],
 };
 
 module.exports = [
