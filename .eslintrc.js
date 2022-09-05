@@ -64,7 +64,19 @@ module.exports = {
       files: ['**/*.js'],
       rules: {
         ...ruleOverridesForJs,
-        semi: [2, 'always']
+        'chai-friendly/no-unused-expressions': 0,
+        'object-curly-spacing': [2, 'always'],
+        'no-empty-function': 0,
+        'valid-jsdoc': 0,
+        'react/sort-comp': 0, // Does not seem work as expected with TypeScript.
+        'mocha/no-exclusive-tests': 2,
+        'no-console': [1, { allow: ['warn', 'error', 'info'] }],
+        'no-shadow': 0,
+        'no-use-before-define': 0,
+        'no-cond-assign': [2, 'except-parens'],
+        'space-before-function-paren': 0,
+        'restrict-template-expressions': 0,
+        'semi': [2, 'always']
       }
     },
   ]
