@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import path from 'path';
+import crypto from 'crypto';
 
 import ConnectionController, { ConnectionTypes } from '../connectionController';
 import LegacyConnectionModel from './webview-app/connection-model/legacy-connection-model';
@@ -16,7 +17,6 @@ import { StorageController } from '../storage';
 import TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('webviewController');
-const crypto = require('crypto');
 
 const getNonce = () => {
   return crypto.randomBytes(16).toString('base64');
