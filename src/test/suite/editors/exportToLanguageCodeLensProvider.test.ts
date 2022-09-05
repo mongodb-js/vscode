@@ -11,12 +11,13 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     importStatements: false,
     driverSyntax: false,
     builders: false,
-    language: 'shell'
+    language: 'shell',
   };
   let testExportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
 
   beforeEach(() => {
-    testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider();
+    testExportToLanguageCodeLensProvider =
+      new ExportToLanguageCodeLensProvider();
   });
 
   test('has the include import statements code lens when importStatements is false', () => {
@@ -25,16 +26,23 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
     expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[0].command?.title).to.be.equal('Include Import Statements');
+    expect(codeLenses[0].command?.title).to.be.equal(
+      'Include Import Statements'
+    );
   });
 
   test('has the exclude import statements code lens when importStatements is true', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, importStatements: true });
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      importStatements: true,
+    });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
     expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[0].command?.title).to.be.equal('Exclude Import Statements');
+    expect(codeLenses[0].command?.title).to.be.equal(
+      'Exclude Import Statements'
+    );
   });
 
   test('has the include import statements code lens when driverSyntax is false', () => {
@@ -47,7 +55,10 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   });
 
   test('has the exclude import statements code lens when driverSyntax is true', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, driverSyntax: true });
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      driverSyntax: true,
+    });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
@@ -56,7 +67,11 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   });
 
   test('has the use builders code lens when builders is false, language is java, and mode is query', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, mode: ExportToLanguageMode.QUERY, language: 'java' });
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      mode: ExportToLanguageMode.QUERY,
+      language: 'java',
+    });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
@@ -65,16 +80,27 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   });
 
   test('does not have the include driver syntax code lens when language is csharp', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, mode: ExportToLanguageMode.QUERY, language: 'csharp' });
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      mode: ExportToLanguageMode.QUERY,
+      language: 'csharp',
+    });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
     expect(codeLenses.length).to.be.equal(1); // Csharp does not support driver syntax.
-    expect(codeLenses[0].command?.title).to.be.equal('Include Import Statements');
+    expect(codeLenses[0].command?.title).to.be.equal(
+      'Include Import Statements'
+    );
   });
 
   test('has the use raw query code lens when builders is true, language is java, and mode is query', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, builders: true, mode: ExportToLanguageMode.QUERY, language: 'java' });
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      builders: true,
+      mode: ExportToLanguageMode.QUERY,
+      language: 'java',
+    });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
@@ -83,7 +109,12 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   });
 
   test('does not have the use raw query code lens when builders is true, language is java, and mode is plain text', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, builders: true, mode: ExportToLanguageMode.OTHER, language: 'java' });
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      builders: true,
+      mode: ExportToLanguageMode.OTHER,
+      language: 'java',
+    });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
@@ -91,7 +122,12 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   });
 
   test('does not render code lenses for json text', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, builders: true, mode: ExportToLanguageMode.OTHER, language: 'json' });
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      builders: true,
+      mode: ExportToLanguageMode.OTHER,
+      language: 'json',
+    });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 
@@ -99,7 +135,12 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   });
 
   test('does not render code lenses for plain text text', () => {
-    testExportToLanguageCodeLensProvider.refresh({ ...defaults, builders: true, mode: ExportToLanguageMode.OTHER, language: 'plaintext' });
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      builders: true,
+      mode: ExportToLanguageMode.OTHER,
+      language: 'plaintext',
+    });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
 

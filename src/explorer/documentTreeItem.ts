@@ -3,8 +3,10 @@ import * as vscode from 'vscode';
 
 export const DOCUMENT_ITEM = 'documentTreeItem';
 
-export default class DocumentTreeItem extends vscode.TreeItem
-  implements vscode.TreeDataProvider<DocumentTreeItem> {
+export default class DocumentTreeItem
+  extends vscode.TreeItem
+  implements vscode.TreeDataProvider<DocumentTreeItem>
+{
   contextValue = DOCUMENT_ITEM;
 
   namespace: string;

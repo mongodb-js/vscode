@@ -3,12 +3,13 @@ import {
   convertConnectionModelToInfo,
   ConnectionInfo,
   ConnectionOptions,
-  DataService,
   getConnectionTitle,
   ConnectionSecrets,
   extractSecrets,
-  mergeSecrets
+  mergeSecrets,
+  connect,
 } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
@@ -19,7 +20,10 @@ import { createLogger } from './logging';
 import { ext } from './extensionConstants';
 import formatError from './utils/formatError';
 import LegacyConnectionModel from './views/webview-app/connection-model/legacy-connection-model';
-import { StorageLocation, ConnectionsFromStorage } from './storage/storageController';
+import {
+  StorageLocation,
+  ConnectionsFromStorage,
+} from './storage/storageController';
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
 import TelemetryService from './telemetry/telemetryService';
@@ -31,13 +35,13 @@ const MAX_CONNECTION_NAME_LENGTH = 512;
 
 export enum DataServiceEventTypes {
   CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
-  ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED'
+  ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
 }
 
 export enum ConnectionTypes {
   CONNECTION_FORM = 'CONNECTION_FORM',
   CONNECTION_STRING = 'CONNECTION_STRING',
-  CONNECTION_ID = 'CONNECTION_ID'
+  CONNECTION_ID = 'CONNECTION_ID',
 }
 
 export interface StoreConnectionInfo {
@@ -50,7 +54,7 @@ export interface StoreConnectionInfo {
 
 export enum NewConnectionType {
   NEW_CONNECTION = 'NEW_CONNECTION',
-  SAVED_CONNECTION = 'SAVED_CONNECTION'
+  SAVED_CONNECTION = 'SAVED_CONNECTION',
 }
 
 interface ConnectionAttemptResult {
@@ -60,21 +64,24 @@ interface ConnectionAttemptResult {
 
 interface ConnectionQuickPicks {
   label: string;
-  data: { type: NewConnectionType, connectionId?: string }
+  data: { type: NewConnectionType; connectionId?: string };
 }
 
 interface ConnectionSecretsInfo {
   connectionId: string;
-  secrets: ConnectionSecrets
+  secrets: ConnectionSecrets;
 }
 
-type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo & Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
+type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
+  Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
 
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
-  _connections: { [connectionId: string]: StoreConnectionInfoWithConnectionOptions } = {};
+  _connections: {
+    [connectionId: string]: StoreConnectionInfoWithConnectionOptions;
+  } = {};
   _activeDataService: DataService | null = null;
   _storageController: StorageController;
 
@@ -111,18 +118,22 @@ export default class ConnectionController {
     savedConnectionInfo: StoreConnectionInfo
   ): Promise<StoreConnectionInfoWithConnectionOptions> {
     if (!savedConnectionInfo.connectionModel) {
-      throw new Error('The connectionModel object is missing in saved connection info.');
+      throw new Error(
+        'The connectionModel object is missing in saved connection info.'
+      );
     }
 
     // Transform a raw connection model from storage to an ampersand model.
-    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(savedConnectionInfo.connectionModel);
+    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(
+      savedConnectionInfo.connectionModel
+    );
 
     // Further use connectionOptions instead of connectionModel.
     const newSavedConnectionInfoWithSecrets = {
       id: savedConnectionInfo.id,
       name: savedConnectionInfo.name,
       storageLocation: savedConnectionInfo.storageLocation,
-      connectionOptions: newConnectionInfoWithSecrets.connectionOptions
+      connectionOptions: newConnectionInfoWithSecrets.connectionOptions,
     };
 
     await this._saveConnection(newSavedConnectionInfoWithSecrets);
@@ -132,7 +143,7 @@ export default class ConnectionController {
 
   async _getConnectionInfoWithSecrets(
     savedConnectionInfo: StoreConnectionInfo
-  ): Promise<StoreConnectionInfoWithConnectionOptions|undefined> {
+  ): Promise<StoreConnectionInfoWithConnectionOptions | undefined> {
     // Migrate previously saved connections to a new format.
     // Save only secrets to keychain.
     // Remove connectionModel and use connectionOptions instead.
@@ -152,7 +163,9 @@ export default class ConnectionController {
     // If connection has a new format already and keytar module is undefined.
     // Return saved connection as it is.
     if (!ext.keytarModule) {
-      log.error('Load saved connections failed: VSCode extension keytar module is undefined.');
+      log.error(
+        'Load saved connections failed: VSCode extension keytar module is undefined.'
+      );
       return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
     }
 
@@ -172,19 +185,21 @@ export default class ConnectionController {
       const connectionInfoWithSecrets = mergeSecrets(
         {
           id: savedConnectionInfo.id,
-          connectionOptions
+          connectionOptions,
         } as ConnectionInfo,
         secrets
       );
 
       return {
         ...savedConnectionInfo,
-        connectionOptions: connectionInfoWithSecrets.connectionOptions
+        connectionOptions: connectionInfoWithSecrets.connectionOptions,
       };
     } catch (error) {
       // Here we're lenient when loading connections in case their
       // connections have become corrupted.
-      log.error(`Merging connection with secrets failed: ${formatError(error).message}`);
+      log.error(
+        `Merging connection with secrets failed: ${formatError(error).message}`
+      );
       return;
     }
   }
@@ -203,9 +218,10 @@ export default class ConnectionController {
     await Promise.all(
       Object.keys(savedConnections).map(async (connectionId) => {
         // Get connection info from vscode storage and merge with secrets.
-        const connectionInfoWithSecrets = await this._getConnectionInfoWithSecrets(
-          savedConnections[connectionId]
-        );
+        const connectionInfoWithSecrets =
+          await this._getConnectionInfoWithSecrets(
+            savedConnections[connectionId]
+          );
 
         // Save connection info with secrets to extension memory.
         if (connectionInfoWithSecrets) {
@@ -218,21 +234,24 @@ export default class ConnectionController {
   }
 
   async loadSavedConnections(): Promise<void> {
-    await Promise.all([(async() => {
-      // Try to pull in the connections previously saved in the global storage of vscode.
-      const existingGlobalConnections = this._storageController.get(
-        StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-        StorageLocation.GLOBAL
-      );
-      await this._loadSavedConnectionsByStore(existingGlobalConnections);
-    })(), (async() => {
-      // Try to pull in the connections previously saved in the workspace storage of vscode.
-      const existingWorkspaceConnections = this._storageController.get(
-        StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-        StorageLocation.WORKSPACE
-      );
-      await this._loadSavedConnectionsByStore(existingWorkspaceConnections);
-    })()]);
+    await Promise.all([
+      (async () => {
+        // Try to pull in the connections previously saved in the global storage of vscode.
+        const existingGlobalConnections = this._storageController.get(
+          StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+          StorageLocation.GLOBAL
+        );
+        await this._loadSavedConnectionsByStore(existingGlobalConnections);
+      })(),
+      (async () => {
+        // Try to pull in the connections previously saved in the workspace storage of vscode.
+        const existingWorkspaceConnections = this._storageController.get(
+          StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+          StorageLocation.WORKSPACE
+        );
+        await this._loadSavedConnectionsByStore(existingWorkspaceConnections);
+      })(),
+    ]);
   }
 
   async connectWithURI(): Promise<boolean> {
@@ -248,7 +267,10 @@ export default class ConnectionController {
           'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
         prompt: 'Enter your connection string (SRV or standard)',
         validateInput: (uri: string) => {
-          if (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://')) {
+          if (
+            !uri.startsWith('mongodb://') &&
+            !uri.startsWith('mongodb+srv://')
+          ) {
             return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
           }
 
@@ -260,7 +282,7 @@ export default class ConnectionController {
           }
 
           return null;
-        }
+        },
       });
     } catch (e) {
       return false;
@@ -285,15 +307,18 @@ export default class ConnectionController {
 
     // TODO: Allow overriding appname + use driverInfo instead
     // (https://jira.mongodb.org/browse/MONGOSH-1015)
-    connectionStringData.searchParams.set('appname', `${packageJSON.name} ${packageJSON.version}`);
+    connectionStringData.searchParams.set(
+      'appname',
+      `${packageJSON.name} ${packageJSON.version}`
+    );
 
     try {
       const connectResult = await this.saveNewConnectionAndConnect(
         {
           id: uuidv4(),
           connectionOptions: {
-            connectionString: connectionStringData.toString()
-          }
+            connectionString: connectionStringData.toString(),
+          },
         },
         ConnectionTypes.CONNECTION_STRING
       );
@@ -302,26 +327,37 @@ export default class ConnectionController {
     } catch (error) {
       const printableError = formatError(error);
       log.error('Failed to connect', printableError);
-      void vscode.window.showErrorMessage(`Unable to connect: ${printableError.message}`);
+      void vscode.window.showErrorMessage(
+        `Unable to connect: ${printableError.message}`
+      );
 
       return false;
     }
   }
 
-  public sendTelemetry(newDataService: DataService, connectionType: ConnectionTypes): void {
-    void this._telemetryService.trackNewConnection(newDataService, connectionType);
+  public sendTelemetry(
+    newDataService: DataService,
+    connectionType: ConnectionTypes
+  ): void {
+    void this._telemetryService.trackNewConnection(
+      newDataService,
+      connectionType
+    );
   }
 
-  parseNewConnection(rawConnectionModel: LegacyConnectionModel): ConnectionInfo {
+  parseNewConnection(
+    rawConnectionModel: LegacyConnectionModel
+  ): ConnectionInfo {
     return convertConnectionModelToInfo({
       ...rawConnectionModel,
-      appname: `${packageJSON.name} ${packageJSON.version}` // Override the default connection appname.
+      appname: `${packageJSON.name} ${packageJSON.version}`, // Override the default connection appname.
     });
   }
 
-  private async _saveSecretsToKeychain(
-    { connectionId, secrets }: ConnectionSecretsInfo
-  ): Promise<void> {
+  private async _saveSecretsToKeychain({
+    connectionId,
+    secrets,
+  }: ConnectionSecretsInfo): Promise<void> {
     if (!ext.keytarModule) {
       return;
     }
@@ -344,12 +380,12 @@ export default class ConnectionController {
     );
     const savedConnectionInfo = await this._storageController.saveConnection({
       ...newStoreConnectionInfoWithSecrets,
-      connectionOptions: safeConnectionInfo.connectionOptions // The connection info without secrets.
+      connectionOptions: safeConnectionInfo.connectionOptions, // The connection info without secrets.
     });
 
     await this._saveSecretsToKeychain({
       connectionId: savedConnectionInfo.id,
-      secrets // Only secrets.
+      secrets, // Only secrets.
     });
 
     return savedConnectionInfo;
@@ -366,19 +402,25 @@ export default class ConnectionController {
       // To begin we just store it on the session, the storage controller
       // handles changing this based on user preference.
       storageLocation: StorageLocation.NONE,
-      connectionOptions: originalConnectionInfo.connectionOptions
+      connectionOptions: originalConnectionInfo.connectionOptions,
     };
 
     const savedConnectionInfo = await this._saveConnection(newConnectionInfo);
 
     this._connections[savedConnectionInfo.id] = {
       ...savedConnectionInfo,
-      connectionOptions: originalConnectionInfo.connectionOptions // The connection options with secrets.
+      connectionOptions: originalConnectionInfo.connectionOptions, // The connection options with secrets.
     };
 
-    log.info(`Connect called to connect to instance: ${savedConnectionInfo.name}`);
+    log.info(
+      `Connect called to connect to instance: ${savedConnectionInfo.name}`
+    );
 
     return this._connect(savedConnectionInfo.id, connectionType);
+  }
+
+  async _connectWithDataService(connectionOptions: ConnectionOptions) {
+    return connect(connectionOptions);
   }
 
   async _connect(
@@ -405,21 +447,25 @@ export default class ConnectionController {
       throw new Error('Connect failed: connectionOptions are missing.');
     }
 
-    const newDataService = new DataService(connectionOptions);
+    let dataService;
     let connectError;
 
     try {
-      await newDataService.connect();
+      dataService = await this._connectWithDataService(connectionOptions);
     } catch (error) {
       connectError = error;
     }
 
-    const shouldEndPrevConnectAttempt = this._endPrevConnectAttempt({ connectionId, connectingAttemptVersion, newDataService });
+    const shouldEndPrevConnectAttempt = this._endPrevConnectAttempt({
+      connectionId,
+      connectingAttemptVersion,
+      dataService,
+    });
 
     if (shouldEndPrevConnectAttempt) {
       return {
         successfullyConnected: false,
-        connectionErrorMessage: 'connection attempt overriden'
+        connectionErrorMessage: 'connection attempt overriden',
       };
     }
 
@@ -435,7 +481,7 @@ export default class ConnectionController {
     log.info('Successfully connected');
     void vscode.window.showInformationMessage('MongoDB connection successful.');
 
-    this._activeDataService = newDataService;
+    this._activeDataService = dataService;
     this._currentConnectionId = connectionId;
     this._connecting = false;
     this._connectingConnectionId = null;
@@ -443,21 +489,23 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
     // Send metrics to Segment
-    this.sendTelemetry(newDataService, connectionType);
+    this.sendTelemetry(dataService, connectionType);
 
     return {
       successfullyConnected: true,
-      connectionErrorMessage: ''
+      connectionErrorMessage: '',
     };
   }
 
-  private _endPrevConnectAttempt (attempt: {
-    connectionId: string,
-    connectingAttemptVersion: null | string,
-    newDataService: DataService
+  private _endPrevConnectAttempt({
+    connectionId,
+    connectingAttemptVersion,
+    dataService,
+  }: {
+    connectionId: string;
+    connectingAttemptVersion: null | string;
+    dataService: DataService | null;
   }): boolean {
-    const { connectionId, connectingAttemptVersion, newDataService } = attempt;
-
     if (
       connectingAttemptVersion !== this._connectingVersion ||
       !this._connections[connectionId]
@@ -465,7 +513,9 @@ export default class ConnectionController {
       // If the current attempt is no longer the most recent attempt
       // or the connection no longer exists we silently end the connection
       // and return.
-      void newDataService.disconnect().catch(() => { /* ignore */ });
+      void dataService?.disconnect().catch(() => {
+        /* ignore */
+      });
 
       return true;
     }
@@ -485,7 +535,9 @@ export default class ConnectionController {
     } catch (error) {
       const printableError = formatError(error);
       log.error('Failed to connect', printableError);
-      void vscode.window.showErrorMessage(`Unable to connect: ${printableError.message}`);
+      void vscode.window.showErrorMessage(
+        `Unable to connect: ${printableError.message}`
+      );
 
       return false;
     }
@@ -555,11 +607,12 @@ export default class ConnectionController {
       return false;
     }
 
-    const removeConfirmationResponse = await vscode.window.showInformationMessage(
-      `Are you sure to want to remove connection ${this._connections[connectionId].name}?`,
-      { modal: true },
-      'Yes'
-    );
+    const removeConfirmationResponse =
+      await vscode.window.showInformationMessage(
+        `Are you sure to want to remove connection ${this._connections[connectionId].name}?`,
+        { modal: true },
+        'Yes'
+      );
 
     if (removeConfirmationResponse !== 'Yes') {
       return false;
@@ -599,14 +652,13 @@ export default class ConnectionController {
 
     // There is more than 1 possible connection to remove.
     // We attach the index of the connection so that we can infer their pick.
-    const connectionNameToRemove:
-      | string
-      | undefined = await vscode.window.showQuickPick(
+    const connectionNameToRemove: string | undefined =
+      await vscode.window.showQuickPick(
         connectionIds.map(
           (id, index) => `${index + 1}: ${this._connections[id].name}`
         ),
         {
-          placeHolder: 'Choose a connection to remove...'
+          placeHolder: 'Choose a connection to remove...',
         }
       );
 
@@ -639,7 +691,7 @@ export default class ConnectionController {
           }
 
           return null;
-        }
+        },
       });
     } catch (e) {
       throw new Error(`An error occured parsing the connection name: ${e}`);
@@ -653,7 +705,9 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
-    await this._storageController.saveConnection(this._connections[connectionId]);
+    await this._storageController.saveConnection(
+      this._connections[connectionId]
+    );
 
     // No storing needed.
     return true;
@@ -713,23 +767,38 @@ export default class ConnectionController {
       : '';
   }
 
-  _getConnectionStringWithProxy(mongoClientConnectionOptions: { url: string; options: MongoClientOptions; }): string {
-    const connectionStringData = new ConnectionString(mongoClientConnectionOptions.url);
+  _getConnectionStringWithProxy({
+    url,
+    options,
+  }: {
+    url: string;
+    options: MongoClientOptions;
+  }): string {
+    const connectionStringData = new ConnectionString(url);
 
-    if (mongoClientConnectionOptions.options.proxyHost) {
-      connectionStringData.searchParams.set('proxyHost', mongoClientConnectionOptions.options.proxyHost);
+    if (options.proxyHost) {
+      connectionStringData.searchParams.set('proxyHost', options.proxyHost);
     }
 
-    if (mongoClientConnectionOptions.options.proxyPassword) {
-      connectionStringData.searchParams.set('proxyPassword', mongoClientConnectionOptions.options.proxyPassword);
+    if (options.proxyPassword) {
+      connectionStringData.searchParams.set(
+        'proxyPassword',
+        options.proxyPassword
+      );
     }
 
-    if (mongoClientConnectionOptions.options.proxyPort) {
-      connectionStringData.searchParams.set('proxyPort', `${mongoClientConnectionOptions.options.proxyPort}`);
+    if (options.proxyPort) {
+      connectionStringData.searchParams.set(
+        'proxyPort',
+        `${options.proxyPort}`
+      );
     }
 
-    if (mongoClientConnectionOptions.options.proxyUsername) {
-      connectionStringData.searchParams.set('proxyUsername', mongoClientConnectionOptions.options.proxyUsername);
+    if (options.proxyUsername) {
+      connectionStringData.searchParams.set(
+        'proxyUsername',
+        options.proxyUsername
+      );
     }
 
     return connectionStringData.toString();
@@ -754,7 +823,9 @@ export default class ConnectionController {
     return this._activeDataService;
   }
 
-  getMongoClientConnectionOptions(): { url: string; options: MongoClientOptions; } | undefined {
+  getMongoClientConnectionOptions():
+    | { url: string; options: MongoClientOptions }
+    | undefined {
     return this._activeDataService?.getMongoClientConnectionOptions();
   }
 
@@ -763,7 +834,9 @@ export default class ConnectionController {
     const connectionOptions = this._connections[connectionId].connectionOptions;
 
     if (!connectionOptions) {
-      throw new Error('Copy connection string failed: connectionOptions are missing.');
+      throw new Error(
+        'Copy connection string failed: connectionOptions are missing.'
+      );
     }
 
     const url = new ConnectionString(connectionOptions.connectionString);
@@ -839,9 +912,9 @@ export default class ConnectionController {
         {
           label: 'Add new connection',
           data: {
-            type: NewConnectionType.NEW_CONNECTION
-          }
-        }
+            type: NewConnectionType.NEW_CONNECTION,
+          },
+        },
       ];
     }
 
@@ -849,20 +922,23 @@ export default class ConnectionController {
       {
         label: 'Add new connection',
         data: {
-          type: NewConnectionType.NEW_CONNECTION
-        }
+          type: NewConnectionType.NEW_CONNECTION,
+        },
       },
       ...Object.values(this._connections)
-        .sort((connectionA: StoreConnectionInfo, connectionB: StoreConnectionInfo) =>
-          (connectionA.name || '').localeCompare(connectionB.name || '')
+        .sort(
+          (
+            connectionA: StoreConnectionInfo,
+            connectionB: StoreConnectionInfo
+          ) => (connectionA.name || '').localeCompare(connectionB.name || '')
         )
         .map((item: StoreConnectionInfo) => ({
           label: item.name,
           data: {
             type: NewConnectionType.SAVED_CONNECTION,
-            connectionId: item.id
-          }
-        }))
+            connectionId: item.id,
+          },
+        })),
     ];
   }
 
@@ -870,7 +946,7 @@ export default class ConnectionController {
     const selectedQuickPickItem = await vscode.window.showQuickPick(
       this.getConnectionQuickPicks(),
       {
-        placeHolder: 'Select new connection...'
+        placeHolder: 'Select new connection...',
       }
     );
 
@@ -886,6 +962,8 @@ export default class ConnectionController {
       return true;
     }
 
-    return this.connectWithConnectionId(selectedQuickPickItem.data.connectionId);
+    return this.connectWithConnectionId(
+      selectedQuickPickItem.data.connectionId
+    );
   }
 }

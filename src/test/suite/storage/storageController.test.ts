@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import StorageController, {
   StorageVariables,
-  StorageLocation
+  StorageLocation,
 } from '../../../storage/storageController';
 import { TestExtensionContext } from '../stubs';
 
@@ -13,8 +13,8 @@ suite('Storage Controller Test Suite', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._globalState = {
       [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
-        'collOne': { name: 'this_gonna_get_saved' }
-      }
+        collOne: { name: 'this_gonna_get_saved' },
+      },
     };
     const testStorageController = new StorageController(testExtensionContext);
     const testVal = testStorageController.get(
@@ -31,8 +31,8 @@ suite('Storage Controller Test Suite', () => {
     const testExtensionContext = new TestExtensionContext();
     testExtensionContext._workspaceState = {
       [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
-        'collTwo': { name: 'i_cant_believe_its_gonna_save_this' }
-      }
+        collTwo: { name: 'i_cant_believe_its_gonna_save_this' },
+      },
     };
     const testStorageController = new StorageController(testExtensionContext);
     const testVal = testStorageController.get(
@@ -53,16 +53,16 @@ suite('Storage Controller Test Suite', () => {
           id: 'conn1',
           name: 'saved1',
           storageLocation: StorageLocation.GLOBAL,
-          connectionOptions: { connectionString: 'mongodb://localhost' }
-        }
-      }
+          connectionOptions: { connectionString: 'mongodb://localhost' },
+        },
+      },
     };
     const testStorageController = new StorageController(testExtensionContext);
     void testStorageController.saveConnectionToStore({
       id: 'conn2',
       name: 'saved2',
       storageLocation: StorageLocation.GLOBAL,
-      connectionOptions: { connectionString: 'mongodb://localhost' }
+      connectionOptions: { connectionString: 'mongodb://localhost' },
     });
 
     const updatedGlobalModels = testStorageController.get(
@@ -71,7 +71,8 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       Object.keys(updatedGlobalModels).length === 2,
-      `Expected 2 connections, found ${Object.keys(updatedGlobalModels).length
+      `Expected 2 connections, found ${
+        Object.keys(updatedGlobalModels).length
       }.`
     );
     assert(
@@ -93,16 +94,16 @@ suite('Storage Controller Test Suite', () => {
           id: 'conn1',
           name: 'saved1',
           storageLocation: StorageLocation.WORKSPACE,
-          connectionOptions: { connectionString: 'mongodb://localhost' }
-        }
-      }
+          connectionOptions: { connectionString: 'mongodb://localhost' },
+        },
+      },
     };
     const testStorageController = new StorageController(testExtensionContext);
     void testStorageController.saveConnectionToStore({
       id: 'conn2',
       name: 'saved2',
       storageLocation: StorageLocation.WORKSPACE,
-      connectionOptions: { connectionString: 'mongodb://localhost:27018' }
+      connectionOptions: { connectionString: 'mongodb://localhost:27018' },
     });
 
     const updatedWorkspaceModels = testStorageController.get(
@@ -111,7 +112,8 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       Object.keys(updatedWorkspaceModels).length === 2,
-      `Expected 2 connections, found ${Object.keys(updatedWorkspaceModels).length
+      `Expected 2 connections, found ${
+        Object.keys(updatedWorkspaceModels).length
       }.`
     );
     assert(
@@ -124,7 +126,7 @@ suite('Storage Controller Test Suite', () => {
     );
     assert(
       updatedWorkspaceModels.conn2.storageLocation ===
-      StorageLocation.WORKSPACE,
+        StorageLocation.WORKSPACE,
       'Expected storage scope to be set.'
     );
   });
@@ -136,7 +138,9 @@ suite('Storage Controller Test Suite', () => {
 
     test('getUserIdentity adds anonymousId to the global storage and returns it to telemetry', () => {
       const userIdentity = testStorageController.getUserIdentity();
-      const anonymousId = testStorageController.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
+      const anonymousId = testStorageController.get(
+        StorageVariables.GLOBAL_ANONYMOUS_ID
+      );
       const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
       assert.deepStrictEqual(userIdentity, { anonymousId });
       assert(!userId);
@@ -159,7 +163,9 @@ suite('Storage Controller Test Suite', () => {
 
     test('getUserIdentity returns userId from the global storage and returns it to telemetry', () => {
       const userIdentity = testStorageController.getUserIdentity();
-      const anonymousId = testStorageController.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
+      const anonymousId = testStorageController.get(
+        StorageVariables.GLOBAL_ANONYMOUS_ID
+      );
       const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
       assert(userId === id);
       assert.deepStrictEqual(userIdentity, { userId });
@@ -173,9 +179,9 @@ suite('Storage Controller Test Suite', () => {
       [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
         conn1: {
           id: 'conn1',
-          name: 'saved1'
-        }
-      }
+          name: 'saved1',
+        },
+      },
     };
     const testStorageController = new StorageController(testExtensionContext);
     assert(testStorageController.hasSavedConnections());
@@ -187,9 +193,9 @@ suite('Storage Controller Test Suite', () => {
       [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
         conn1: {
           id: 'conn1',
-          name: 'saved1'
-        }
-      }
+          name: 'saved1',
+        },
+      },
     };
     const testStorageController = new StorageController(testExtensionContext);
     assert(testStorageController.hasSavedConnections());

@@ -3,17 +3,17 @@ import * as util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach, before } from 'mocha';
 import assert from 'assert';
-import { DataService } from 'mongodb-data-service';
+import { connect } from 'mongodb-data-service';
 
 import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/constants/auth-strategies';
 import ConnectionController, {
-  DataServiceEventTypes
+  DataServiceEventTypes,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
 import {
   StorageLocation,
-  DefaultSavingLocations
+  DefaultSavingLocations,
 } from '../../storage/storageController';
 import READ_PREFERENCES from '../../views/webview-app/connection-model/constants/read-preferences';
 import SSH_TUNNEL_TYPES from '../../views/webview-app/connection-model/constants/ssh-tunnel-types';
@@ -25,7 +25,7 @@ import {
   TEST_DATABASE_URI,
   TEST_DATABASE_URI_USER,
   TEST_USER_USERNAME,
-  TEST_USER_PASSWORD
+  TEST_USER_PASSWORD,
 } from './dbTestHelper';
 
 const testDatabaseConnectionName = 'localhost:27018';
@@ -53,8 +53,14 @@ suite('Connection Controller Test Suite', function () {
 
   before(async () => {
     // Disable the dialogue for prompting the user where to store the connection.
-    const connectionSaving = vscode.workspace.getConfiguration('mdb.connectionSaving');
-    await connectionSaving.update('hideOptionToChooseWhereToSaveNewConnections', true, vscode.ConfigurationTarget.Global);
+    const connectionSaving = vscode.workspace.getConfiguration(
+      'mdb.connectionSaving'
+    );
+    await connectionSaving.update(
+      'hideOptionToChooseWhereToSaveNewConnections',
+      true,
+      vscode.ConfigurationTarget.Global
+    );
   });
 
   beforeEach(() => {
@@ -79,16 +85,20 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('it connects to mongodb', async () => {
-    const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    const succesfullyConnected =
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
     const connnectionId =
       testConnectionController.getActiveConnectionId() || '';
     const name = testConnectionController._connections[connnectionId].name;
     const dataService = testConnectionController.getActiveDataService();
 
     assert.strictEqual(succesfullyConnected, true);
-    assert.strictEqual(testConnectionController.getSavedConnections().length, 1);
+    assert.strictEqual(
+      testConnectionController.getSavedConnections().length,
+      1
+    );
     assert.strictEqual(name, 'localhost:27018');
     assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
 
@@ -96,22 +106,30 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('"disconnect()" disconnects from the active connection', async () => {
-    const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    const succesfullyConnected =
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
 
     assert.strictEqual(succesfullyConnected, true);
-    assert.strictEqual(testConnectionController.getConnectionStatus(), 'CONNECTED');
+    assert.strictEqual(
+      testConnectionController.getConnectionStatus(),
+      'CONNECTED'
+    );
 
-    const successfullyDisconnected = await testConnectionController.disconnect();
+    const successfullyDisconnected =
+      await testConnectionController.disconnect();
 
     // Disconnecting should keep the connection contract, just disconnected.
-    const connectionsCount = testConnectionController.getSavedConnections()
-      .length;
+    const connectionsCount =
+      testConnectionController.getSavedConnections().length;
     const connnectionId = testConnectionController.getActiveConnectionId();
     const dataService = testConnectionController.getActiveDataService();
 
-    assert.strictEqual(testConnectionController.getConnectionStatus(), 'DISCONNECTED');
+    assert.strictEqual(
+      testConnectionController.getConnectionStatus(),
+      'DISCONNECTED'
+    );
     assert.strictEqual(successfullyDisconnected, true);
     assert.strictEqual(connectionsCount, 1);
     assert.strictEqual(connnectionId, null);
@@ -125,9 +143,13 @@ suite('Connection Controller Test Suite', function () {
 
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
-    const successfullyRemovedMongoDBConnection = await testConnectionController.onRemoveMongoDBConnection();
+    const successfullyRemovedMongoDBConnection =
+      await testConnectionController.onRemoveMongoDBConnection();
 
-    assert.strictEqual(fakeVscodeErrorMessage.firstCall.args[0], expectedMessage);
+    assert.strictEqual(
+      fakeVscodeErrorMessage.firstCall.args[0],
+      expectedMessage
+    );
     assert.strictEqual(successfullyRemovedMongoDBConnection, false);
   });
 
@@ -137,16 +159,21 @@ suite('Connection Controller Test Suite', function () {
 
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
-    const successfullyDisconnected = await testConnectionController.disconnect();
+    const successfullyDisconnected =
+      await testConnectionController.disconnect();
 
-    assert.strictEqual(fakeVscodeErrorMessage.firstCall.args[0], expectedMessage);
+    assert.strictEqual(
+      fakeVscodeErrorMessage.firstCall.args[0],
+      expectedMessage
+    );
     assert.strictEqual(successfullyDisconnected, false);
   });
 
   test('when adding a new connection it disconnects from the current connection', async () => {
-    const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    const succesfullyConnected =
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
 
     assert.strictEqual(succesfullyConnected, true);
 
@@ -157,16 +184,23 @@ suite('Connection Controller Test Suite', function () {
     } catch (error) {
       const expectedError = 'Failed to connect';
 
-      assert.strictEqual(formatError(error).message.includes(expectedError), true);
+      assert.strictEqual(
+        formatError(error).message.includes(expectedError),
+        true
+      );
       assert.strictEqual(testConnectionController.getActiveDataService(), null);
-      assert.strictEqual(testConnectionController.getActiveConnectionId(), null);
+      assert.strictEqual(
+        testConnectionController.getActiveConnectionId(),
+        null
+      );
     }
   });
 
   test('when adding a new connection it sets the connection controller as connecting while it disconnects from the current connection', async () => {
-    const succesfullyConnected = await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    const succesfullyConnected =
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
 
     assert.strictEqual(succesfullyConnected, true);
 
@@ -177,9 +211,10 @@ suite('Connection Controller Test Suite', function () {
       return Promise.resolve(true);
     });
 
-    const succesfullyConnected2 = await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    const succesfullyConnected2 =
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
 
     assert.strictEqual(succesfullyConnected2, true);
     assert.strictEqual(wasSetToConnectingWhenDisconnecting, true);
@@ -227,14 +262,15 @@ suite('Connection Controller Test Suite', function () {
   test('when there are no existing connections in the store and the connection controller loads connections', async () => {
     await testConnectionController.loadSavedConnections();
 
-    const connectionsCount = testConnectionController.getSavedConnections()
-      .length;
+    const connectionsCount =
+      testConnectionController.getSavedConnections().length;
 
     assert.strictEqual(connectionsCount, 0);
   });
 
   test('the connection model loads both global and workspace stored connection models', async () => {
-    const expectedDriverUrl = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
+    const expectedDriverUrl =
+      'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -264,8 +300,15 @@ suite('Connection Controller Test Suite', function () {
     const connections = testConnectionController._connections;
 
     assert.strictEqual(Object.keys(connections).length, 4);
-    assert.strictEqual(connections[Object.keys(connections)[0]].name, 'localhost:27018');
-    assert.strictEqual(connections[Object.keys(connections)[2]].connectionOptions?.connectionString, expectedDriverUrl);
+    assert.strictEqual(
+      connections[Object.keys(connections)[0]].name,
+      'localhost:27018'
+    );
+    assert.strictEqual(
+      connections[Object.keys(connections)[2]].connectionOptions
+        ?.connectionString,
+      expectedDriverUrl
+    );
   });
 
   test('when a connection is added it is saved to the global storage', async () => {
@@ -286,7 +329,10 @@ suite('Connection Controller Test Suite', function () {
 
     const id = Object.keys(globalStoreConnections)[0];
 
-    assert.strictEqual(globalStoreConnections[id].name, testDatabaseConnectionName);
+    assert.strictEqual(
+      globalStoreConnections[id].name,
+      testDatabaseConnectionName
+    );
 
     const workspaceStoreConnections = mockStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS
@@ -316,7 +362,10 @@ suite('Connection Controller Test Suite', function () {
 
     const id = Object.keys(workspaceStoreConnections)[0];
 
-    assert.strictEqual(workspaceStoreConnections[id].name, testDatabaseConnectionName);
+    assert.strictEqual(
+      workspaceStoreConnections[id].name,
+      testDatabaseConnectionName
+    );
 
     const globalStoreConnections = mockStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
@@ -332,13 +381,12 @@ suite('Connection Controller Test Suite', function () {
         id: '25',
         name: 'tester',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE
-      }
+        storageLocation: StorageLocation.NONE,
+      },
     };
 
-    const successfulConnection = await testConnectionController.connectWithConnectionId(
-      '25'
-    );
+    const successfulConnection =
+      await testConnectionController.connectWithConnectionId('25');
 
     assert.strictEqual(successfulConnection, true);
     assert.strictEqual(testConnectionController.getActiveConnectionId(), '25');
@@ -366,12 +414,18 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
 
-    assert.strictEqual(testConnectionController.getSavedConnections().length, 0);
+    assert.strictEqual(
+      testConnectionController.getSavedConnections().length,
+      0
+    );
 
     // Activate (which will load the past connection).
     await testConnectionController.loadSavedConnections();
 
-    assert.strictEqual(testConnectionController.getSavedConnections().length, 1);
+    assert.strictEqual(
+      testConnectionController.getSavedConnections().length,
+      1
+    );
 
     const id = testConnectionController.getSavedConnections()[0].id;
 
@@ -396,9 +450,10 @@ suite('Connection Controller Test Suite', function () {
 
     assert.notStrictEqual(activeConnectionId, null);
 
-    const testDriverUrl = testConnectionController.copyConnectionStringByConnectionId(
-      activeConnectionId || ''
-    );
+    const testDriverUrl =
+      testConnectionController.copyConnectionStringByConnectionId(
+        activeConnectionId || ''
+      );
 
     assert.strictEqual(testDriverUrl, expectedDriverUrl);
   });
@@ -530,12 +585,18 @@ suite('Connection Controller Test Suite', function () {
 
     testConnectionController.clearAllConnections();
 
-    assert.strictEqual(testConnectionController.getSavedConnections().length, 0);
+    assert.strictEqual(
+      testConnectionController.getSavedConnections().length,
+      0
+    );
 
     // Activate (which will load the past connection).
     await testConnectionController.loadSavedConnections();
 
-    assert.strictEqual(testConnectionController.getSavedConnections().length, 1);
+    assert.strictEqual(
+      testConnectionController.getSavedConnections().length,
+      1
+    );
 
     const id = testConnectionController.getSavedConnections()[0].id;
     const name = testConnectionController._connections[id || 'x'].name;
@@ -584,7 +645,8 @@ suite('Connection Controller Test Suite', function () {
 
     assert.strictEqual(connectionIds.length, 2);
 
-    const connectionQuickPicks = testConnectionController.getConnectionQuickPicks();
+    const connectionQuickPicks =
+      testConnectionController.getConnectionQuickPicks();
 
     assert.strictEqual(connectionQuickPicks.length, 3);
     assert.strictEqual(connectionQuickPicks[0].label, 'Add new connection');
@@ -608,7 +670,10 @@ suite('Connection Controller Test Suite', function () {
       await sleep(1050);
 
       assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
-      assert.strictEqual(testConnectionController.getActiveConnectionName(), 'localhost:27018');
+      assert.strictEqual(
+        testConnectionController.getActiveConnectionName(),
+        'localhost:27018'
+      );
     });
 
     test('updates the connecting version on each new connection attempt', async () => {
@@ -618,13 +683,15 @@ suite('Connection Controller Test Suite', function () {
         TEST_DATABASE_URI
       );
 
-      const currentConnectingVersion = testConnectionController.getConnectingVersion();
+      const currentConnectingVersion =
+        testConnectionController.getConnectingVersion();
 
       assert.notStrictEqual(currentConnectingVersion, null);
 
-      const id = testConnectionController._connections[
-        Object.keys(testConnectionController._connections)[0]
-      ].id;
+      const id =
+        testConnectionController._connections[
+          Object.keys(testConnectionController._connections)[0]
+        ].id;
 
       assert.strictEqual(currentConnectingVersion, id);
 
@@ -632,7 +699,10 @@ suite('Connection Controller Test Suite', function () {
         TEST_DATABASE_URI
       );
 
-      assert.notStrictEqual(testConnectionController.getConnectingVersion(), currentConnectingVersion);
+      assert.notStrictEqual(
+        testConnectionController.getConnectingVersion(),
+        currentConnectingVersion
+      );
     });
 
     test('it only connects to the most recent connection attempt', async () => {
@@ -642,7 +712,7 @@ suite('Connection Controller Test Suite', function () {
           id,
           name: `test${i}`,
           connectionOptions: { connectionString: TEST_DATABASE_URI },
-          storageLocation: StorageLocation.NONE
+          storageLocation: StorageLocation.NONE,
         };
       }
 
@@ -656,7 +726,10 @@ suite('Connection Controller Test Suite', function () {
 
       assert.strictEqual(testConnectionController.isConnecting(), false);
       assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
-      assert.strictEqual(testConnectionController.getActiveConnectionName(), 'test4');
+      assert.strictEqual(
+        testConnectionController.getActiveConnectionName(),
+        'test4'
+      );
     });
   });
 
@@ -688,13 +761,16 @@ suite('Connection Controller Test Suite', function () {
       id: connectionId,
       name: 'asdfasdg',
       connectionOptions: { connectionString: testDatabaseURI2WithTimeout },
-      storageLocation: StorageLocation.NONE
+      storageLocation: StorageLocation.NONE,
     };
 
     void testConnectionController.connectWithConnectionId(connectionId);
 
     assert.strictEqual(testConnectionController.isConnecting(), true);
-    assert.strictEqual(testConnectionController.getConnectionStatus(), 'CONNECTING');
+    assert.strictEqual(
+      testConnectionController.getConnectionStatus(),
+      'CONNECTING'
+    );
 
     try {
       await testConnectionController.removeSavedConnection(connectionId);
@@ -709,17 +785,17 @@ suite('Connection Controller Test Suite', function () {
       id: connectionId,
       name: 'asdfasdg',
       connectionOptions: { connectionString: TEST_DATABASE_URI },
-      storageLocation: StorageLocation.NONE
+      storageLocation: StorageLocation.NONE,
     };
 
     sinon.replace(
-      DataService.prototype,
-      'connect',
-      sinon.fake(async (callback) => {
+      testConnectionController,
+      '_connectWithDataService',
+      async (connectionOptions) => {
         await sleep(50);
 
-        return callback(null, DataService);
-      })
+        return connect(connectionOptions);
+      }
     );
 
     void testConnectionController.connectWithConnectionId(connectionId);
@@ -757,22 +833,23 @@ suite('Connection Controller Test Suite', function () {
         kerberosCanonicalizeHostname: false,
         sslMethod: SSL_METHODS.NONE,
         sshTunnel: SSH_TUNNEL_TYPES.NONE,
-        sshTunnelPort: 22
-      }
+        sshTunnelPort: 22,
+      },
     };
-    const newSavedConnectionInfoWithSecrets = await testConnectionController._migratePreviouslySavedConnection(oldSavedConnectionInfo);
+    const newSavedConnectionInfoWithSecrets =
+      await testConnectionController._migratePreviouslySavedConnection(
+        oldSavedConnectionInfo
+      );
 
-    assert.deepStrictEqual(
-      newSavedConnectionInfoWithSecrets,
-      {
-        id: '1d700f37-ba57-4568-9552-0ea23effea89',
-        name: 'localhost:27017',
-        storageLocation: 'GLOBAL',
-        connectionOptions: {
-          connectionString: 'mongodb://localhost:27017/?readPreference=primary&ssl=false'
-        }
-      }
-    );
+    assert.deepStrictEqual(newSavedConnectionInfoWithSecrets, {
+      id: '1d700f37-ba57-4568-9552-0ea23effea89',
+      name: 'localhost:27017',
+      storageLocation: 'GLOBAL',
+      connectionOptions: {
+        connectionString:
+          'mongodb://localhost:27017/?readPreference=primary&ssl=false&directConnection=true',
+      },
+    });
   });
 
   test('_migratePreviouslySavedConnection converts an old previously saved connection model with secrets to a new connection info format', async () => {
@@ -791,7 +868,7 @@ suite('Connection Controller Test Suite', function () {
         hosts: [
           { host: 'host-shard-00-00.u88dd.test.test', port: 27017 },
           { host: 'host-shard-00-01.u88dd.test.test', port: 27017 },
-          { host: 'host-shard-00-02.u88dd.test.test', port: 27017 }
+          { host: 'host-shard-00-02.u88dd.test.test', port: 27017 },
         ],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
@@ -807,23 +884,24 @@ suite('Connection Controller Test Suite', function () {
         ssl: true,
         sslMethod: SSL_METHODS.SYSTEMCA,
         sshTunnel: SSH_TUNNEL_TYPES.NONE,
-        sshTunnelPort: 22
-      }
+        sshTunnelPort: 22,
+      },
     };
 
-    const newSavedConnectionInfoWithSecrets = await testConnectionController._migratePreviouslySavedConnection(oldSavedConnectionInfo);
+    const newSavedConnectionInfoWithSecrets =
+      await testConnectionController._migratePreviouslySavedConnection(
+        oldSavedConnectionInfo
+      );
 
-    assert.deepStrictEqual(
-      newSavedConnectionInfoWithSecrets,
-      {
-        id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
-        name: 'host.u88dd.test.test',
-        storageLocation: 'WORKSPACE',
-        connectionOptions: {
-          connectionString: 'mongodb+srv://username:password@compass-data-sets.e06dc.mongodb.net/test?authSource=admin&replicaSet=host-shard-0&readPreference=primary&appname=mongodb-vscode+0.6.14&ssl=true'
-        }
-      }
-    );
+    assert.deepStrictEqual(newSavedConnectionInfoWithSecrets, {
+      id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
+      name: 'host.u88dd.test.test',
+      storageLocation: 'WORKSPACE',
+      connectionOptions: {
+        connectionString:
+          'mongodb+srv://username:password@compass-data-sets.e06dc.mongodb.net/test?authSource=admin&replicaSet=host-shard-0&readPreference=primary&appname=mongodb-vscode+0.6.14&ssl=true',
+      },
+    });
   });
 
   test('_migratePreviouslySavedConnection does not store secrets to disc', async () => {
@@ -842,7 +920,7 @@ suite('Connection Controller Test Suite', function () {
         hosts: [
           { host: 'host-shard-00-00.u88dd.test.test', port: 27017 },
           { host: 'host-shard-00-01.u88dd.test.test', port: 27017 },
-          { host: 'host-shard-00-02.u88dd.test.test', port: 27017 }
+          { host: 'host-shard-00-02.u88dd.test.test', port: 27017 },
         ],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
@@ -858,11 +936,11 @@ suite('Connection Controller Test Suite', function () {
         ssl: true,
         sslMethod: SSL_METHODS.SYSTEMCA,
         sshTunnel: SSH_TUNNEL_TYPES.NONE,
-        sshTunnelPort: 22
-      }
+        sshTunnelPort: 22,
+      },
     };
     const mockSaveConnection: any = sinon.fake.resolves({
-      id: 'fb210b47-f85d-4823-8552-aa6d7825156b'
+      id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
     });
 
     sinon.replace(
@@ -871,9 +949,12 @@ suite('Connection Controller Test Suite', function () {
       mockSaveConnection
     );
 
-    await testConnectionController._migratePreviouslySavedConnection(oldSavedConnectionInfo);
+    await testConnectionController._migratePreviouslySavedConnection(
+      oldSavedConnectionInfo
+    );
 
-    const connectionString = mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString;
+    const connectionString =
+      mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString;
 
     assert.strictEqual(connectionString.includes(TEST_USER_USERNAME), true);
     assert.strictEqual(connectionString.includes(TEST_USER_PASSWORD), false);
@@ -899,16 +980,17 @@ suite('Connection Controller Test Suite', function () {
         kerberosCanonicalizeHostname: false,
         sslMethod: SSL_METHODS.NONE,
         sshTunnel: SSH_TUNNEL_TYPES.NONE,
-        sshTunnelPort: 22
-      }
+        sshTunnelPort: 22,
+      },
     };
     const mockMigratePreviouslySavedConnection: any = sinon.fake.resolves({
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
       storageLocation: 'GLOBAL',
       connectionOptions: {
-        connectionString: 'mongodb://localhost:27017/?readPreference=primary&ssl=false'
-      }
+        connectionString:
+          'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+      },
     });
 
     sinon.replace(
@@ -917,7 +999,9 @@ suite('Connection Controller Test Suite', function () {
       mockMigratePreviouslySavedConnection
     );
 
-    await testConnectionController._getConnectionInfoWithSecrets(oldSavedConnectionInfo);
+    await testConnectionController._getConnectionInfoWithSecrets(
+      oldSavedConnectionInfo
+    );
 
     assert.strictEqual(mockMigratePreviouslySavedConnection.called, true);
   });
@@ -928,10 +1012,13 @@ suite('Connection Controller Test Suite', function () {
       name: 'localhost:27017',
       storageLocation: StorageLocation.GLOBAL,
       connectionOptions: {
-        connectionString: 'mongodb://localhost:27017/?readPreference=primary&ssl=false'
-      }
+        connectionString:
+          'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+      },
     };
-    await testConnectionController._storageController.saveConnectionToStore(connectionInfo);
+    await testConnectionController._storageController.saveConnectionToStore(
+      connectionInfo
+    );
     await testConnectionController.loadSavedConnections();
 
     const connections = testConnectionController.getSavedConnections();
@@ -946,23 +1033,21 @@ suite('Connection Controller Test Suite', function () {
       mockMigratePreviouslySavedConnection
     );
 
-    const newSavedConnectionInfoWithSecrets = await testConnectionController._getConnectionInfoWithSecrets(connections[0]);
+    const newSavedConnectionInfoWithSecrets =
+      await testConnectionController._getConnectionInfoWithSecrets(
+        connections[0]
+      );
 
-    assert.deepStrictEqual(
-      newSavedConnectionInfoWithSecrets,
-      connectionInfo
-    );
+    assert.deepStrictEqual(newSavedConnectionInfoWithSecrets, connectionInfo);
     assert.strictEqual(mockMigratePreviouslySavedConnection.called, false);
   });
 
   test('addNewConnectionStringAndConnect saves connection without secrets to the global storage', async () => {
-    const mockConnect: any = sinon.fake.resolves({ successfullyConnected: true });
+    const mockConnect: any = sinon.fake.resolves({
+      successfullyConnected: true,
+    });
 
-    sinon.replace(
-      testConnectionController,
-      '_connect',
-      mockConnect
-    );
+    sinon.replace(testConnectionController, '_connect', mockConnect);
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -971,9 +1056,10 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI_USER
     );
 
-    const workspaceStoreConnections = testConnectionController._storageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
-    );
+    const workspaceStoreConnections =
+      testConnectionController._storageController.get(
+        StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      );
 
     assert.strictEqual(
       !!workspaceStoreConnections,
@@ -984,11 +1070,34 @@ suite('Connection Controller Test Suite', function () {
     const connections = Object.values(workspaceStoreConnections);
 
     assert.strictEqual(connections.length, 1);
-    assert.strictEqual(connections[0].connectionOptions?.connectionString.includes(TEST_USER_USERNAME), true);
-    assert.strictEqual(connections[0].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD), false);
-    assert.strictEqual(connections[0].connectionOptions?.connectionString.includes('appname=mongodb-vscode+0.0.0-dev.0'), true);
-    assert.strictEqual(testConnectionController._connections[connections[0].id].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD), true);
-    assert.strictEqual(testConnectionController._connections[connections[0].id].name, 'localhost:27018');
+    assert.strictEqual(
+      connections[0].connectionOptions?.connectionString.includes(
+        TEST_USER_USERNAME
+      ),
+      true
+    );
+    assert.strictEqual(
+      connections[0].connectionOptions?.connectionString.includes(
+        TEST_USER_PASSWORD
+      ),
+      false
+    );
+    assert.strictEqual(
+      connections[0].connectionOptions?.connectionString.includes(
+        'appname=mongodb-vscode+0.0.0-dev.0'
+      ),
+      true
+    );
+    assert.strictEqual(
+      testConnectionController._connections[
+        connections[0].id
+      ].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD),
+      true
+    );
+    assert.strictEqual(
+      testConnectionController._connections[connections[0].id].name,
+      'localhost:27018'
+    );
   });
 
   test('parseNewConnection converts a connection model to a connaction info and overrides a default appname', () => {
@@ -1002,7 +1111,7 @@ suite('Connection Controller Test Suite', function () {
       hosts: [
         { host: 'host-shard-00-00.u88dd.test.test', port: 27017 },
         { host: 'host-shard-00-01.u88dd.test.test', port: 27017 },
-        { host: 'host-shard-00-02.u88dd.test.test', port: 27017 }
+        { host: 'host-shard-00-02.u88dd.test.test', port: 27017 },
       ],
       extraOptions: {},
       readPreference: READ_PREFERENCES.PRIMARY,
@@ -1013,18 +1122,16 @@ suite('Connection Controller Test Suite', function () {
       sshTunnelPort: 22,
       mongodbUsername: 'username',
       mongodbPassword: 'somepassword',
-      mongodbDatabaseName: 'admin'
+      mongodbDatabaseName: 'admin',
     });
 
-    assert.deepStrictEqual(
-      connectionInfo,
-      {
-        id: 'c4871b21-92c4-40e2-a2c2-fdd551cff114',
-        connectionOptions: {
-          connectionString: 'mongodb+srv://username:somepassword@host.u88dd.test.test/?authSource=admin&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true'
-        }
-      }
-    );
+    assert.deepStrictEqual(connectionInfo, {
+      id: 'c4871b21-92c4-40e2-a2c2-fdd551cff114',
+      connectionOptions: {
+        connectionString:
+          'mongodb+srv://username:somepassword@host.u88dd.test.test/?authSource=admin&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true',
+      },
+    });
   });
 
   test('getMongoClientConnectionOptions returns url and options properties', async () => {
@@ -1032,28 +1139,32 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    const mongoClientConnectionOptions = testConnectionController.getMongoClientConnectionOptions();
+    const mongoClientConnectionOptions =
+      testConnectionController.getMongoClientConnectionOptions();
 
-    assert.deepStrictEqual(
-      mongoClientConnectionOptions,
-      {
-        url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
-        options: { monitorCommands: true }
-      }
-    );
+    assert.deepStrictEqual(mongoClientConnectionOptions, {
+      url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
+      options: {
+        autoEncryption: undefined,
+        monitorCommands: true,
+        useSystemCA: undefined,
+      },
+    });
   });
 
   test('_getConnectionStringWithProxy returns string with proxy options', () => {
-    const expectedConnectionStringWithProxy = 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test';
-    const connectionString = testConnectionController._getConnectionStringWithProxy({
-      url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
-      options: {
-        proxyHost: 'localhost',
-        proxyPassword: 'gwce7tr8733ujbr',
-        proxyPort: 3378,
-        proxyUsername: 'test',
-      }
-    });
+    const expectedConnectionStringWithProxy =
+      'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test';
+    const connectionString =
+      testConnectionController._getConnectionStringWithProxy({
+        url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
+        options: {
+          proxyHost: 'localhost',
+          proxyPassword: 'gwce7tr8733ujbr',
+          proxyPort: 3378,
+          proxyUsername: 'test',
+        },
+      });
     assert.strictEqual(connectionString, expectedConnectionStringWithProxy);
   });
 });

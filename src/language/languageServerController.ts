@@ -6,7 +6,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
   TransportKind,
-  CancellationTokenSource
+  CancellationTokenSource,
 } from 'vscode-languageclient/node';
 import { workspace, ExtensionContext } from 'vscode';
 
@@ -16,7 +16,7 @@ import {
   ShellExecuteAllResult,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
-  PlaygroundTextAndSelection
+  PlaygroundTextAndSelection,
 } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
 
@@ -53,8 +53,8 @@ export default class LanguageServerController {
       debug: {
         module: serverModule,
         transport: TransportKind.ipc,
-        options: debugOptions
-      }
+        options: debugOptions,
+      },
     };
 
     // Options to control the language client
@@ -62,20 +62,20 @@ export default class LanguageServerController {
       // Register the server for mongodb documents
       documentSelector: [
         { scheme: 'untitled', language: 'mongodb' },
-        { scheme: 'file', language: 'mongodb' }
+        { scheme: 'file', language: 'mongodb' },
       ],
       synchronize: {
         // Notify the server about file changes in the workspace
-        fileEvents: workspace.createFileSystemWatcher('**/*')
+        fileEvents: workspace.createFileSystemWatcher('**/*'),
       },
       outputChannel: vscode.window.createOutputChannel(
         'MongoDB Language Server'
-      )
+      ),
     };
 
     log.info('Creating MongoDB Language Server', {
       serverOptions,
-      clientOptions
+      clientOptions,
     });
 
     // Create the language server client
@@ -88,27 +88,29 @@ export default class LanguageServerController {
   }
 
   async startLanguageServer(): Promise<void> {
-    // Start the client. This will also launch the server
-    const disposable = this._client.start();
-
-    // Push the disposable to the context's subscriptions so that the
+    // Push the disposable client to the context's subscriptions so that the
     // client can be deactivated on extension deactivation
-    this._context.subscriptions.push(disposable);
+    this._context.subscriptions.push(this._client);
 
     // Subscribe on notifications from the server when the client is ready
-    await this._client.onReady();
     await this._client.sendRequest(
       ServerCommands.SET_EXTENSION_PATH,
       this._context.extensionPath
     );
 
-    this._client.onNotification(ServerCommands.SHOW_INFO_MESSAGE, (messsage) => {
-      void vscode.window.showInformationMessage(messsage);
-    });
+    this._client.onNotification(
+      ServerCommands.SHOW_INFO_MESSAGE,
+      (messsage) => {
+        void vscode.window.showInformationMessage(messsage);
+      }
+    );
 
-    this._client.onNotification(ServerCommands.SHOW_ERROR_MESSAGE, (messsage) => {
-      void vscode.window.showErrorMessage(messsage);
-    });
+    this._client.onNotification(
+      ServerCommands.SHOW_ERROR_MESSAGE,
+      (messsage) => {
+        void vscode.window.showErrorMessage(messsage);
+      }
+    );
   }
 
   deactivate(): void {
@@ -125,7 +127,6 @@ export default class LanguageServerController {
   ): Promise<ShellExecuteAllResult> {
     this._isExecutingInProgress = true;
 
-    await this._client.onReady();
     // Instantiate a new CancellationTokenSource object
     // that generates a cancellation token for each run of a playground
     this._source = new CancellationTokenSource();
@@ -147,7 +148,6 @@ export default class LanguageServerController {
   async getExportToLanguageMode(
     params: PlaygroundTextAndSelection
   ): Promise<ExportToLanguageMode> {
-    await this._client.onReady();
     return this._client.sendRequest(
       ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,
       params
@@ -157,7 +157,6 @@ export default class LanguageServerController {
   async getNamespaceForSelection(
     params: PlaygroundTextAndSelection
   ): Promise<ExportToLanguageNamespace> {
-    await this._client.onReady();
     return this._client.sendRequest(
       ServerCommands.GET_NAMESPACE_FOR_SELECTION,
       params
@@ -165,11 +164,10 @@ export default class LanguageServerController {
   }
 
   async connectToServiceProvider(params: {
-    connectionId: string,
+    connectionId: string;
     connectionString: string;
-    connectionOptions: MongoClientOptions
+    connectionOptions: MongoClientOptions;
   }): Promise<void> {
-    await this._client.onReady();
     await this._client.sendRequest(
       ServerCommands.CONNECT_TO_SERVICE_PROVIDER,
       params
@@ -177,7 +175,6 @@ export default class LanguageServerController {
   }
 
   async disconnectFromServiceProvider(): Promise<void> {
-    await this._client.onReady();
     await this._client.sendRequest(
       ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER
     );

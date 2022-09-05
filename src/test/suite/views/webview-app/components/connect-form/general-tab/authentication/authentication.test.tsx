@@ -10,34 +10,40 @@ import ScramSha256 from '../../../../../../../../views/webview-app/components/co
 
 describe('Authentication Component Test Suite', () => {
   test('it shows a select for the authentication method', () => {
-    const wrapper = shallow(<Authentication
-      authStrategy={AUTH_STRATEGIES.NONE}
-      isValid
-      kerberosCanonicalizeHostname
-      onAuthStrategyChanged={(): void => {}}
-    />);
+    const wrapper = shallow(
+      <Authentication
+        authStrategy={AUTH_STRATEGIES.NONE}
+        isValid
+        kerberosCanonicalizeHostname
+        onAuthStrategyChanged={(): void => {}}
+      />
+    );
     assert(wrapper.find(RadioBoxGroup).exists());
     assert(!wrapper.find(MongodbAuthentication).exists());
     assert(!wrapper.find(ScramSha256).exists());
   });
 
   test('it renders mongodb auth when the authStrategy is set', () => {
-    const wrapper = shallow(<Authentication
-      authStrategy={AUTH_STRATEGIES.MONGODB}
-      isValid
-      kerberosCanonicalizeHostname
-      onAuthStrategyChanged={(): void => {}}
-    />);
+    const wrapper = shallow(
+      <Authentication
+        authStrategy={AUTH_STRATEGIES.MONGODB}
+        isValid
+        kerberosCanonicalizeHostname
+        onAuthStrategyChanged={(): void => {}}
+      />
+    );
     assert(wrapper.find(MongodbAuthentication).exists());
   });
 
   test('it renders SCRAM-SHA-256 when the auth strategy is set', () => {
-    const wrapper = shallow(<Authentication
-      authStrategy={AUTH_STRATEGIES['SCRAM-SHA-256']}
-      isValid
-      kerberosCanonicalizeHostname
-      onAuthStrategyChanged={(): void => {}}
-    />);
+    const wrapper = shallow(
+      <Authentication
+        authStrategy={AUTH_STRATEGIES['SCRAM-SHA-256']}
+        isValid
+        kerberosCanonicalizeHostname
+        onAuthStrategyChanged={(): void => {}}
+      />
+    );
     assert(wrapper.find(ScramSha256).exists());
   });
 });

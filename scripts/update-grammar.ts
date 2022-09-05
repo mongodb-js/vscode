@@ -32,26 +32,27 @@ const cli = meow(
   {
     flags: {
       dest: {
-        default: DEFAULT_DEST
+        default: DEFAULT_DEST,
       },
       url: {
-        default: languageURL
-      }
-    }
+        default: languageURL,
+      },
+    },
   }
 );
 
 (async () => {
   await mkdirp(DEFAULT_DEST);
 
-  const ui = ora()
-    .info('Downlading latest mongodb.tmLanguage.json')
-    .start();
+  const ui = ora().info('Downlading latest mongodb.tmLanguage.json').start();
 
   try {
     await download(cli.flags.url, cli.flags.dest);
     ui.succeed(
-      `Downloaded to ${path.join(cli.flags.dest as string, 'mongodb.tmLanguage.json')}`
+      `Downloaded to ${path.join(
+        cli.flags.dest as string,
+        'mongodb.tmLanguage.json'
+      )}`
     );
   } catch (error) {
     ui.fail(`Download failed: ${formatError(error).message}`);

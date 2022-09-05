@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, ReplicaSetChangedAction } from '../../../../store/actions';
+import {
+  ActionTypes,
+  ReplicaSetChangedAction,
+} from '../../../../store/actions';
 import { AppState } from '../../../../store/store';
 import FormInput from '../../../form/form-input';
 
@@ -34,7 +37,7 @@ class ReplicaSetInput extends React.PureComponent<StateProps & DispatchProps> {
 
 const mapStateToProps = (state: AppState): StateProps => {
   return {
-    replicaSet: state.currentConnection.replicaSet
+    replicaSet: state.currentConnection.replicaSet,
   };
 };
 
@@ -43,8 +46,8 @@ const mapDispatchToProps: DispatchProps = {
     newReplicaSetName: string
   ): ReplicaSetChangedAction => ({
     type: ActionTypes.REPLICA_SET_CHANGED,
-    replicaSet: newReplicaSetName
-  })
+    replicaSet: newReplicaSetName,
+  }),
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ReplicaSetInput);

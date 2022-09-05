@@ -38,7 +38,7 @@ suite('Commands Test Suite', () => {
 
     createTerminalStub.returns({
       sendText: fakeSendTerminalText,
-      show: () => { }
+      show: () => {},
     });
     sandbox.replace(vscode.window, 'createTerminal', createTerminalStub);
   });
@@ -57,7 +57,8 @@ suite('Commands Test Suite', () => {
     });
 
     test('openMongoDBShell should display an error message when not connected', async () => {
-      const errorMessage = 'You need to be connected before launching the MongoDB Shell.';
+      const errorMessage =
+        'You need to be connected before launching the MongoDB Shell.';
 
       fakeShowErrorMessage.resolves(errorMessage);
 
@@ -69,11 +70,12 @@ suite('Commands Test Suite', () => {
     });
 
     test('openMongoDBShell should open a terminal with the active connection driver url', async () => {
-      const expectedDriverUrl = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      const expectedDriverUrl =
+        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
       fakeGetMongoClientConnectionOptions.returns({
         url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
-        options: {}
+        options: {},
       });
       fakeIsCurrentlyConnected.returns(true);
 
@@ -101,7 +103,8 @@ suite('Commands Test Suite', () => {
     });
 
     test('powershell openMongoDBShell should open a terminal with the active connection driver url', async () => {
-      const expectedDriverUrl = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      const expectedDriverUrl =
+        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
       fakeGetMongoClientConnectionOptions.returns({
         url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
@@ -136,11 +139,12 @@ suite('Commands Test Suite', () => {
     });
 
     test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async () => {
-      const expectedDriverUrl = 'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+      const expectedDriverUrl =
+        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
       fakeGetMongoClientConnectionOptions.returns({
         url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
-        options: {}
+        options: {},
       });
 
       fakeIsCurrentlyConnected.returns(true);

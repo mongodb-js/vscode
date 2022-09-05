@@ -77,7 +77,7 @@ class FileInputButton extends React.Component<props> {
       <div
         className={classnames({
           [styles['form-item']]: true,
-          [styles['form-item-has-error']]: this.props.error
+          [styles['form-item-has-error']]: this.props.error,
         })}
       >
         <label>

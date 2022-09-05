@@ -10,7 +10,7 @@ import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
 import {
   getConnectionTelemetryProperties,
-  NewConnectionTelemetryEventProperties
+  NewConnectionTelemetryEventProperties,
 } from './connectionTelemetry';
 import type { ShellExecuteAllResult } from '../types/playgroundType';
 import { StorageController } from '../storage';
@@ -78,7 +78,7 @@ export enum TelemetryEventTypes {
   DOCUMENT_UPDATED = 'Document Updated',
   DOCUMENT_EDITED = 'Document Edited',
   QUERY_EXPORTED = 'Query Exported',
-  AGGREGATION_EXPORTED = 'Aggregation Exported'
+  AGGREGATION_EXPORTED = 'Aggregation Exported',
 }
 
 /**
@@ -130,7 +130,6 @@ export default class TelemetryService {
         this._context.extensionPath,
         './constants.json'
       );
-      // eslint-disable-next-line no-sync
       const constantsFile = fs.readFileSync(segmentKeyFileLocation).toString();
       const constants = JSON.parse(constantsFile) as { segmentKey: string };
 
@@ -154,7 +153,7 @@ export default class TelemetryService {
         flushAt: process.env.MODE === 'development' ? 1 : 20,
         // The number of milliseconds to wait
         // before flushing the queue automatically.
-        flushInterval: 10000 // 10 seconds is the default libraries' value.
+        flushInterval: 10000, // 10 seconds is the default libraries' value.
       });
 
       const segmentProperties = this.getTelemetryUserIdentity();
@@ -199,8 +198,8 @@ export default class TelemetryService {
         event: eventType,
         properties: {
           ...properties,
-          extension_version: `${version}`
-        }
+          extension_version: `${version}`,
+        },
       };
 
       log.info('TELEMETRY track', segmentProperties);
@@ -224,12 +223,13 @@ export default class TelemetryService {
         return;
       }
 
-      const connectionTelemetryProperties = await getConnectionTelemetryProperties(
-        dataService,
-        connectionType
-      );
+      const connectionTelemetryProperties =
+        await getConnectionTelemetryProperties(dataService, connectionType);
 
-      this.track(TelemetryEventTypes.NEW_CONNECTION, connectionTelemetryProperties);
+      this.track(
+        TelemetryEventTypes.NEW_CONNECTION,
+        connectionTelemetryProperties
+      );
     } catch (error) {
       log.error('TELEMETRY track new connection', error);
     }
@@ -269,12 +269,12 @@ export default class TelemetryService {
   getTelemetryUserIdentity() {
     if (this._segmentUserId) {
       return {
-        userId: this._segmentUserId
+        userId: this._segmentUserId,
       };
     }
 
     return {
-      anonymousId: this._segmentAnonymousId
+      anonymousId: this._segmentAnonymousId,
     };
   }
 
@@ -286,14 +286,14 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED, {
       type: result ? this.getPlaygroundResultType(result) : null,
       partial,
-      error
+      error,
     });
   }
 
   trackLinkClicked(screen: string, linkId: string): void {
     this.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED, {
       screen,
-      link_id: linkId
+      link_id: linkId,
     });
   }
 
@@ -313,11 +313,15 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.DOCUMENT_EDITED, { source });
   }
 
-  trackQueryExported(queryExportedProps: QueryExportedTelemetryEventProperties): void {
+  trackQueryExported(
+    queryExportedProps: QueryExportedTelemetryEventProperties
+  ): void {
     this.track(TelemetryEventTypes.QUERY_EXPORTED, queryExportedProps);
   }
 
-  trackAggregationExported(aggExportedProps: QueryExportedTelemetryEventProperties): void {
+  trackAggregationExported(
+    aggExportedProps: QueryExportedTelemetryEventProperties
+  ): void {
     this.track(TelemetryEventTypes.AGGREGATION_EXPORTED, aggExportedProps);
   }
 }

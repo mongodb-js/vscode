@@ -40,33 +40,33 @@ async function getCloudInfoFromDataService(
 ): Promise<CloudInfo> {
   try {
     const cloudInfo: {
-      isAws?: boolean,
-      isAzure?: boolean,
-      isGcp?: boolean
+      isAws?: boolean;
+      isAzure?: boolean;
+      isGcp?: boolean;
     } = await getCloudInfo(firstServerHostname);
 
     if (cloudInfo.isAws) {
       return {
         isPublicCloud: true,
-        publicCloudName: 'aws'
+        publicCloudName: 'aws',
       };
     }
     if (cloudInfo.isGcp) {
       return {
         isPublicCloud: true,
-        publicCloudName: 'gcp'
+        publicCloudName: 'gcp',
       };
     }
     if (cloudInfo.isAzure) {
       return {
         isPublicCloud: true,
-        publicCloudName: 'azure'
+        publicCloudName: 'azure',
       };
     }
 
     return {
       isPublicCloud: false,
-      publicCloudName: null
+      publicCloudName: null,
     };
   } catch (error) {
     log.error('TELEMETRY cloud info error', error);
@@ -101,13 +101,11 @@ export async function getConnectionTelemetryProperties(
     server_version: instance.build.version,
     server_arch: instance.host.arch,
     server_os: instance.host.os,
-    is_used_connect_screen:
-      connectionType === ConnectionTypes.CONNECTION_FORM,
+    is_used_connect_screen: connectionType === ConnectionTypes.CONNECTION_FORM,
     is_used_command_palette:
       connectionType === ConnectionTypes.CONNECTION_STRING,
-    is_used_saved_connection:
-      connectionType === ConnectionTypes.CONNECTION_ID,
-    vscode_mdb_extension_version: version
+    is_used_saved_connection: connectionType === ConnectionTypes.CONNECTION_ID,
+    vscode_mdb_extension_version: version,
   };
 
   return preparedProperties;

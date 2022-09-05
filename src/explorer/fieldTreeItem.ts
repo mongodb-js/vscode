@@ -133,7 +133,9 @@ function getFieldTypeString(field: SchemaFieldType): string {
   return fieldType;
 }
 
-function getIconPath(field: SchemaFieldType): string | { light: string; dark: string } {
+function getIconPath(
+  field: SchemaFieldType
+): string | { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
@@ -146,14 +148,16 @@ function getIconPath(field: SchemaFieldType): string | { light: string; dark: st
 
   return {
     light: path.join(LIGHT, 'schema', `${iconFileName}.svg`),
-    dark: path.join(DARK, 'schema', `${iconFileName}.svg`)
+    dark: path.join(DARK, 'schema', `${iconFileName}.svg`),
   };
 }
 
 export const FIELD_TREE_ITEM_CONTEXT_VALUE = 'fieldTreeItem';
 
-export default class FieldTreeItem extends vscode.TreeItem
-  implements vscode.TreeDataProvider<FieldTreeItem>, TreeItemParent {
+export default class FieldTreeItem
+  extends vscode.TreeItem
+  implements vscode.TreeDataProvider<FieldTreeItem>, TreeItemParent
+{
   // This is a flag which notes that when this tree element is updated,
   // the tree view does not have to fully update like it does with
   // asynchronous resources.

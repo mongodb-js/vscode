@@ -1,6 +1,6 @@
 import path = require('path');
 
-import { runTests } from 'vscode-test';
+import { runTests } from '@vscode/test-electron';
 
 // More information on vscode specific tests: https://github.com/microsoft/vscode-test
 
@@ -21,10 +21,7 @@ async function main(): Promise<any> {
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: [
-        testWorkspace,
-        '--disable-extensions'
-      ]
+      launchArgs: [testWorkspace, '--disable-extensions'],
     });
   } catch (err) {
     console.error('Failed to run tests:');

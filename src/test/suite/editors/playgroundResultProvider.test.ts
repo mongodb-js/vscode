@@ -5,7 +5,9 @@ import sinon from 'sinon';
 
 import ConnectionController from '../../../connectionController';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
-import CollectionDocumentsProvider, { VIEW_COLLECTION_SCHEME } from '../../../editors/collectionDocumentsProvider';
+import CollectionDocumentsProvider, {
+  VIEW_COLLECTION_SCHEME,
+} from '../../../editors/collectionDocumentsProvider';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { StatusView } from '../../../views';
@@ -49,7 +51,7 @@ suite('Playground Result Provider Test Suite', () => {
         namespace: null,
         type: null,
         content: undefined,
-        language: null
+        language: null,
       }
     );
   });
@@ -64,9 +66,9 @@ suite('Playground Result Provider Test Suite', () => {
       type: 'Cursor',
       content: {
         _id: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-        name: 'Berlin'
+        name: 'Berlin',
       },
-      language: 'json'
+      language: 'json',
     };
 
     testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
@@ -86,10 +88,11 @@ suite('Playground Result Provider Test Suite', () => {
       namespace: 'db.berlin',
       type: 'undefined',
       content: null,
-      language: 'plaintext'
+      language: 'plaintext',
     };
 
-    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result =
+      testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('undefined');
   });
@@ -104,10 +107,11 @@ suite('Playground Result Provider Test Suite', () => {
       namespace: 'db.berlin',
       type: 'object',
       content: null,
-      language: 'plaintext'
+      language: 'plaintext',
     };
 
-    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result =
+      testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('null');
   });
@@ -122,10 +126,11 @@ suite('Playground Result Provider Test Suite', () => {
       namespace: 'db.berlin',
       type: 'number',
       content: 4,
-      language: 'plaintext'
+      language: 'plaintext',
     };
 
-    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result =
+      testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('4');
   });
@@ -140,10 +145,11 @@ suite('Playground Result Provider Test Suite', () => {
       namespace: 'db.berlin',
       type: 'object',
       content: [],
-      language: 'json'
+      language: 'json',
     };
 
-    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result =
+      testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('[]');
   });
@@ -158,10 +164,11 @@ suite('Playground Result Provider Test Suite', () => {
       namespace: 'db.berlin',
       type: 'object',
       content: {},
-      language: 'json'
+      language: 'json',
     };
 
-    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result =
+      testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('{}');
   });
@@ -176,10 +183,11 @@ suite('Playground Result Provider Test Suite', () => {
       namespace: 'db.berlin',
       type: 'boolean',
       content: true,
-      language: 'plaintext'
+      language: 'plaintext',
     };
 
-    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result =
+      testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('true');
   });
@@ -194,10 +202,11 @@ suite('Playground Result Provider Test Suite', () => {
       namespace: 'db.berlin',
       type: 'string',
       content: 'Berlin',
-      language: 'plaintext'
+      language: 'plaintext',
     };
 
-    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result =
+      testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     expect(result).to.be.equal('Berlin');
   });
@@ -210,18 +219,18 @@ suite('Playground Result Provider Test Suite', () => {
     const content = [
       {
         _id: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-        name: 'Berlin'
+        name: 'Berlin',
       },
       {
         _id: '55333a0d-83f6-4e6f-a575-af7ea6187a55',
-        name: 'Rome'
-      }
+        name: 'Rome',
+      },
     ];
     const playgroundResult = {
       namespace: 'db.berlin',
       type: 'Cursor',
       content,
-      language: 'json'
+      language: 'json',
     };
 
     const mockRefresh: any = sinon.fake();
@@ -233,7 +242,8 @@ suite('Playground Result Provider Test Suite', () => {
 
     testPlaygroundResultViewProvider._playgroundResult = playgroundResult;
 
-    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result =
+      testPlaygroundResultViewProvider.provideTextDocumentContent();
     mockRefresh.firstArg;
 
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
@@ -247,13 +257,13 @@ suite('Playground Result Provider Test Suite', () => {
     );
     const content = {
       _id: '20213a0d-83f6-4e6f-a575-af7ea6187lala',
-      name: 'Minsk'
+      name: 'Minsk',
     };
     const playgroundResult = {
       namespace: 'db.berlin',
       type: 'Document',
       content,
-      language: 'json'
+      language: 'json',
     };
 
     const mockRefresh: any = sinon.fake();
@@ -265,7 +275,8 @@ suite('Playground Result Provider Test Suite', () => {
 
     testPlaygroundResultViewProvider._playgroundResult = playgroundResult;
 
-    const result = testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result =
+      testPlaygroundResultViewProvider.provideTextDocumentContent();
     mockRefresh.firstArg;
 
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
@@ -282,10 +293,22 @@ suite('Playground Result Provider Test Suite', () => {
       namespace: playgroundNamespace,
       type: 'Cursor',
       content: [
-        { _id: 1, item: 'abc', price: 10, quantity: 2, date: new Date('2014-03-01T08:00:00Z') },
-        { _id: 2, item: 'jkl', price: 20, quantity: 1, date: new Date('2014-03-01T09:00:00Z') }
+        {
+          _id: 1,
+          item: 'abc',
+          price: 10,
+          quantity: 2,
+          date: new Date('2014-03-01T08:00:00Z'),
+        },
+        {
+          _id: 2,
+          item: 'jkl',
+          price: 20,
+          quantity: 1,
+          date: new Date('2014-03-01T09:00:00Z'),
+        },
       ],
-      language: 'json'
+      language: 'json',
     };
 
     const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
@@ -296,16 +319,19 @@ suite('Playground Result Provider Test Suite', () => {
       mockActiveConnectionId
     );
 
-    const playgroundResultUri = vscode.Uri.parse('PLAYGROUND_RESULT_SCHEME:/Playground Result');
+    const playgroundResultUri = vscode.Uri.parse(
+      'PLAYGROUND_RESULT_SCHEME:/Playground Result'
+    );
     const activeTextEditorDocument = { uri: playgroundResultUri };
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: activeTextEditorDocument
+      document: activeTextEditorDocument,
     }));
 
     testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
     testPlaygroundResultViewProvider.provideTextDocumentContent();
 
-    let codeLenses = testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
+    let codeLenses =
+      testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
 
     expect(codeLenses.length).to.be.equal(2);
 
@@ -318,8 +344,9 @@ suite('Playground Result Provider Test Suite', () => {
 
     expect(secondCodeLensRange.start.line).to.be.equal(9);
 
-    let codeLensesInfo = testPlaygroundResultViewProvider
-      ._editDocumentCodeLensProvider._codeLensesInfo;
+    let codeLensesInfo =
+      testPlaygroundResultViewProvider._editDocumentCodeLensProvider
+        ._codeLensesInfo;
 
     expect(Object.keys(codeLensesInfo).length).to.be.equal(1);
 
@@ -330,7 +357,9 @@ suite('Playground Result Provider Test Suite', () => {
     expect(firstCodeLensesInfo[0].source).to.be.equal('playground');
     expect(firstCodeLensesInfo[0].line).to.be.equal(2);
     expect(firstCodeLensesInfo[0].namespace).to.be.equal(playgroundNamespace);
-    expect(firstCodeLensesInfo[0].connectionId).to.be.equal('1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487');
+    expect(firstCodeLensesInfo[0].connectionId).to.be.equal(
+      '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487'
+    );
 
     expect(firstCodeLensesInfo[1].documentId).to.be.equal(2);
     expect(firstCodeLensesInfo[1].source).to.be.equal('playground');
@@ -345,9 +374,12 @@ suite('Playground Result Provider Test Suite', () => {
       testEditDocumentCodeLensProvider
     );
 
-    testCollectionViewProvider._operationsStore = new CollectionDocumentsOperationsStore();
+    testCollectionViewProvider._operationsStore =
+      new CollectionDocumentsOperationsStore();
 
-    const documents: any[] = [ { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' } ];
+    const documents: any[] = [
+      { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' },
+    ];
     const mockGetActiveDataService: any = sinon.fake.returns({
       find: (
         namespace: string,
@@ -356,7 +388,7 @@ suite('Playground Result Provider Test Suite', () => {
         callback: (error: Error | null, result: object) => void
       ) => {
         return callback(null, documents);
-      }
+      },
     });
     sinon.replace(
       testCollectionViewProvider._connectionController,
@@ -365,17 +397,26 @@ suite('Playground Result Provider Test Suite', () => {
     );
 
     const mockShowMessage: any = sinon.fake();
-    sinon.replace(testCollectionViewProvider._statusView, 'showMessage', mockShowMessage);
+    sinon.replace(
+      testCollectionViewProvider._statusView,
+      'showMessage',
+      mockShowMessage
+    );
 
     const mockHideMessage: any = sinon.fake();
-    sinon.replace(testCollectionViewProvider._statusView, 'hideMessage', mockHideMessage);
+    sinon.replace(
+      testCollectionViewProvider._statusView,
+      'hideMessage',
+      mockHideMessage
+    );
 
-    const operationId = testCollectionViewProvider._operationsStore.createNewOperation();
+    const operationId =
+      testCollectionViewProvider._operationsStore.createNewOperation();
     const collectionNamespace = 'berlin.cocktailbars';
     const collectionQuery = [
       `namespace=${collectionNamespace}`,
       `connectionId=${connectionId}`,
-      `operationId=${operationId}`
+      `operationId=${operationId}`,
     ].join('&');
     const collectionUri = vscode.Uri.parse(
       `${VIEW_COLLECTION_SCHEME}:Results: ${collectionNamespace}.json?${collectionQuery}`
@@ -384,7 +425,8 @@ suite('Playground Result Provider Test Suite', () => {
     activeTextEditorDocument.uri = collectionUri; // Switch active editor.
     await testCollectionViewProvider.provideTextDocumentContent(collectionUri);
     testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
-    codeLenses = testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
+    codeLenses =
+      testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
 
     expect(codeLenses.length).to.be.equal(1);
 
@@ -393,7 +435,9 @@ suite('Playground Result Provider Test Suite', () => {
     expect(firstCodeLensRange.start.line).to.be.equal(2);
     expect(codeLenses[0].command?.title).to.be.equal('Edit Document');
 
-    codeLensesInfo = testPlaygroundResultViewProvider._editDocumentCodeLensProvider._codeLensesInfo;
+    codeLensesInfo =
+      testPlaygroundResultViewProvider._editDocumentCodeLensProvider
+        ._codeLensesInfo;
 
     expect(Object.keys(codeLensesInfo).length).to.be.equal(2);
 
@@ -404,7 +448,9 @@ suite('Playground Result Provider Test Suite', () => {
     expect(firstCodeLensesInfo[0].source).to.be.equal('playground');
     expect(firstCodeLensesInfo[0].line).to.be.equal(2);
     expect(firstCodeLensesInfo[0].namespace).to.be.equal(playgroundNamespace);
-    expect(firstCodeLensesInfo[0].connectionId).to.be.equal('1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487');
+    expect(firstCodeLensesInfo[0].connectionId).to.be.equal(
+      '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487'
+    );
 
     expect(firstCodeLensesInfo[1].documentId).to.be.equal(2);
     expect(firstCodeLensesInfo[1].source).to.be.equal('playground');
@@ -413,10 +459,14 @@ suite('Playground Result Provider Test Suite', () => {
     const secondCodeLensesInfo = codeLensesInfo[collectionUri.toString()];
 
     expect(secondCodeLensesInfo.length).to.be.equal(1);
-    expect(secondCodeLensesInfo[0].documentId).to.be.equal('5ea8745ee4811fafe8b65ecb');
+    expect(secondCodeLensesInfo[0].documentId).to.be.equal(
+      '5ea8745ee4811fafe8b65ecb'
+    );
     expect(secondCodeLensesInfo[0].source).to.be.equal('collectionview');
     expect(secondCodeLensesInfo[0].line).to.be.equal(2);
     expect(secondCodeLensesInfo[0].namespace).to.be.equal(collectionNamespace);
-    expect(secondCodeLensesInfo[0].connectionId).to.be.equal('1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487');
+    expect(secondCodeLensesInfo[0].connectionId).to.be.equal(
+      '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487'
+    );
   });
 });

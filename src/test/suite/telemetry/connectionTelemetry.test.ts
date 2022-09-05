@@ -4,10 +4,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 
 import { ConnectionTypes } from '../../../connectionController';
-import {
-  getConnectionTelemetryProperties
-} from '../../../telemetry/connectionTelemetry';
-
+import { getConnectionTelemetryProperties } from '../../../telemetry/connectionTelemetry';
 
 const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
@@ -19,14 +16,15 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionString: () => ({
         hosts: ['localhost:27018'],
         searchParams: { get: () => null },
-        username: 'authMechanism'
+        username: 'authMechanism',
       }),
-      instance: () => Promise.resolve({
-        dataLake: {},
-        build: {},
-        genuineMongoDB: {},
-        host: {}
-      })
+      instance: () =>
+        Promise.resolve({
+          dataLake: {},
+          build: {},
+          genuineMongoDB: {},
+          host: {},
+        }),
     };
 
     test('it returns is_used_connect_screen true when the connection type is form', async () => {
@@ -102,7 +100,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       await dataServ.disconnect();
     });
 
-    test('track new connection event fetches the connection instance information', async() => {
+    test('track new connection event fetches the connection instance information', async () => {
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServ,
         ConnectionTypes.CONNECTION_STRING

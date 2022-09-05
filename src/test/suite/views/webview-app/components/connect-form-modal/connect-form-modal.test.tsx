@@ -9,18 +9,18 @@ import { createStore } from 'redux';
 import {
   AppState,
   initialState,
-  rootReducer
+  rootReducer,
 } from '../../../../../../views/webview-app/store/store';
 import ConnectForm from '../../../../../../views/webview-app/components/connect-form/connection-form';
 import ConnectFormModal, {
-  ConnectFormModal as NoStoreConnectFormModal
+  ConnectFormModal as NoStoreConnectFormModal,
 } from '../../../../../../views/webview-app/components/connect-form-modal/connect-form-modal';
 
 describe('Connect Form Modal Component Test Suite', () => {
   describe('when rendered', () => {
-    const wrapper = shallow(<NoStoreConnectFormModal
-      toggleShowConnectForm={(): void => {}}
-    />);
+    const wrapper = shallow(
+      <NoStoreConnectFormModal toggleShowConnectForm={(): void => {}} />
+    );
 
     test('it shows the connection form', () => {
       assert(wrapper.find(ConnectForm).exists());
@@ -47,13 +47,11 @@ describe('Connect Form Modal Component Test Suite', () => {
 
       store = createStore(rootReducer, {
         ...initialState,
-        showConnectForm: true
+        showConnectForm: true,
       } as AppState);
 
       wrapper = mount(
-        <Provider
-          store={store}
-        >
+        <Provider store={store}>
           <ConnectFormModal />
         </Provider>
       );

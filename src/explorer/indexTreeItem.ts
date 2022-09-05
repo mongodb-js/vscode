@@ -11,7 +11,7 @@ export enum IndexKeyType {
   HASHED = 'hashed',
   GEO = '2d', // flat, cartesian geometry
   GEOSPHERE = '2dsphere', // index assuming a spherical geometry
-  GEOHAYSTACK = 'geoHaystack'
+  GEOHAYSTACK = 'geoHaystack',
 }
 
 export type IndexModel = {
@@ -51,7 +51,10 @@ function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {
   return '';
 }
 
-function getIndexFieldIconPath(indexKeyType: IndexKeyType): { light: string; dark: string } {
+function getIndexFieldIconPath(indexKeyType: IndexKeyType): {
+  light: string;
+  dark: string;
+} {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
@@ -59,12 +62,14 @@ function getIndexFieldIconPath(indexKeyType: IndexKeyType): { light: string; dar
 
   return {
     light: path.join(LIGHT, 'index', `${iconName}.svg`),
-    dark: path.join(DARK, 'index', `${iconName}.svg`)
+    dark: path.join(DARK, 'index', `${iconName}.svg`),
   };
 }
 
-export class IndexFieldTreeItem extends vscode.TreeItem
-  implements vscode.TreeDataProvider<IndexFieldTreeItem> {
+export class IndexFieldTreeItem
+  extends vscode.TreeItem
+  implements vscode.TreeDataProvider<IndexFieldTreeItem>
+{
   indexKey: string;
   indexKeyType: IndexKeyType;
 
@@ -87,8 +92,10 @@ export class IndexFieldTreeItem extends vscode.TreeItem
   }
 }
 
-export default class IndexTreeItem extends vscode.TreeItem
-  implements vscode.TreeDataProvider<IndexTreeItem>, TreeItemParent {
+export default class IndexTreeItem
+  extends vscode.TreeItem
+  implements vscode.TreeDataProvider<IndexTreeItem>, TreeItemParent
+{
   contextValue = 'indexTreeItem' as const;
 
   index: IndexModel;

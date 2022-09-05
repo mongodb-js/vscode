@@ -30,10 +30,7 @@ class RadioBoxGroup extends React.Component<props> {
   };
 
   renderOptions(): React.ReactNode {
-    const {
-      options,
-      value
-    } = this.props;
+    const { options, value } = this.props;
 
     return options.map((option, i) => {
       const checked = value === option.value;
@@ -41,7 +38,7 @@ class RadioBoxGroup extends React.Component<props> {
       return (
         <label
           className={classnames(styles['radio-box-item'], {
-            [styles['radio-box-item-selected']]: checked
+            [styles['radio-box-item-selected']]: checked,
           })}
           key={i}
           htmlFor={`radio-box-group-${option.value}`}
@@ -56,9 +53,7 @@ class RadioBoxGroup extends React.Component<props> {
             onChange={this.handleChange}
             value={option.value}
           />
-          <div
-            className={styles['radio-box-item-label']}
-          >{option.label}</div>
+          <div className={styles['radio-box-item-label']}>{option.label}</div>
         </label>
       );
     });

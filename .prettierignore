@@ -1,0 +1,15 @@
+.github
+.vscode
+.vscode-test
+dist
+images
+languages
+node_modules
+out
+playgrounds
+resources
+snippets
+syntaxes
+CHANGELOG.md
+README.md
+constants.json

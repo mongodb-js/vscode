@@ -6,6 +6,7 @@ const styles = require('./form.less');
 type props = {
   id: string;
   separator?: boolean;
+  children?: React.ReactNode;
 };
 
 class FormGroup extends React.PureComponent<props> {
@@ -17,7 +18,7 @@ class FormGroup extends React.PureComponent<props> {
         id={id}
         className={classnames({
           [styles['form-group']]: true,
-          [styles['form-group-separator']]: separator
+          [styles['form-group-separator']]: separator,
         })}
       >
         {children}

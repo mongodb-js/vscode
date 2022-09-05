@@ -5,7 +5,7 @@ import {
   ActionTypes,
   AuthSourceChangedAction,
   PasswordChangedAction,
-  UsernameChangedAction
+  UsernameChangedAction,
 } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
 
@@ -51,12 +51,8 @@ class ScramSha256 extends React.Component<props> {
   };
 
   render(): React.ReactNode {
-    const {
-      isValid,
-      mongodbDatabaseName,
-      mongodbPassword,
-      mongodbUsername
-    } = this.props;
+    const { isValid, mongodbDatabaseName, mongodbPassword, mongodbUsername } =
+      this.props;
 
     return (
       <div>
@@ -92,16 +88,16 @@ class ScramSha256 extends React.Component<props> {
 const mapDispatchToProps: DispatchProps = {
   onAuthSourceChanged: (newAuthSource: string): AuthSourceChangedAction => ({
     type: ActionTypes.AUTH_SOURCE_CHANGED,
-    mongodbDatabaseName: newAuthSource
+    mongodbDatabaseName: newAuthSource,
   }),
   onPasswordChanged: (newPassword: string): PasswordChangedAction => ({
     type: ActionTypes.PASSWORD_CHANGED,
-    mongodbPassword: newPassword
+    mongodbPassword: newPassword,
   }),
   onUsernameChanged: (newPassword: string): UsernameChangedAction => ({
     type: ActionTypes.USERNAME_CHANGED,
-    mongodbUsername: newPassword
-  })
+    mongodbUsername: newPassword,
+  }),
 };
 
 export default connect(null, mapDispatchToProps)(ScramSha256);

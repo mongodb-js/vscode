@@ -13,7 +13,7 @@ import TelemetryService from '../../../telemetry/telemetryService';
 import { TestExtensionContext } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import WebviewController, {
-  getWebviewContent
+  getWebviewContent,
 } from '../../../views/webviewController';
 
 const fs = require('fs');
@@ -29,10 +29,10 @@ suite('Webview Test Suite', () => {
     const fakeWebview = {
       html: '',
       onDidReceiveMessage: stubOnDidRecieveMessage,
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     sinon.replace(
@@ -47,7 +47,9 @@ suite('Webview Test Suite', () => {
       mdbTestExtension.testExtensionController._telemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     assert(fakeVSCodeCreateWebviewPanel.called);
     assert(fakeWebview.html !== '');
@@ -72,14 +74,14 @@ suite('Webview Test Suite', () => {
     const fakeWebview: any = {
       asWebviewUri: (jsUri) => {
         return jsUri;
-      }
+      },
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
     const htmlString = getWebviewContent({
       extensionPath,
       telemetryUserId: '',
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     assert(htmlString.includes('dist/webviewApp.js'));
@@ -96,17 +98,21 @@ suite('Webview Test Suite', () => {
     const fakeWebview: any = {
       asWebviewUri: (jsUri) => {
         return jsUri;
-      }
+      },
     };
 
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
     const htmlString = getWebviewContent({
       extensionPath,
       telemetryUserId: 'MOCK_ANONYMOU_ID',
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
-    assert(htmlString.includes('>window[\'VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID\'] = \'MOCK_ANONYMOU_ID\';'));
+    assert(
+      htmlString.includes(
+        ">window['VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID'] = 'MOCK_ANONYMOU_ID';"
+      )
+    );
   });
 
   test('web view listens for a connect message and adds the connection', (done) => {
@@ -139,11 +145,11 @@ suite('Webview Test Suite', () => {
         messageReceived = callback;
         messageReceivedSet = true;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     sinon.replace(
@@ -158,7 +164,9 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     assert(
       messageReceivedSet,
@@ -171,8 +179,8 @@ suite('Webview Test Suite', () => {
       connectionModel: {
         port: 27018,
         hostname: 'localhost',
-        hosts: [{ host: 'localhost', port: 27018 }]
-      }
+        hosts: [{ host: 'localhost', port: 27018 }],
+      },
     });
   });
 
@@ -207,10 +215,10 @@ suite('Webview Test Suite', () => {
         messageReceived = callback;
         messageReceivedSet = true;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     sinon.replace(
@@ -225,7 +233,9 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     assert(
       messageReceivedSet,
@@ -238,8 +248,8 @@ suite('Webview Test Suite', () => {
       connectionModel: {
         port: 27018,
         hostname: 'localhost',
-        hosts: [{ host: 'localhost', port: 27018 }]
-      }
+        hosts: [{ host: 'localhost', port: 27018 }],
+      },
     });
   });
 
@@ -268,10 +278,10 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     sinon.replace(
@@ -286,15 +296,17 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     // Mock a connection call.
     messageReceived({
       command: MESSAGE_TYPES.CONNECT,
       connectionModel: {
         port: 2700002, // Bad port number.
-        hostname: 'localhost'
-      }
+        hostname: 'localhost',
+      },
     });
   });
 
@@ -329,10 +341,10 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
     sinon.replace(
       vscode.window,
@@ -344,7 +356,9 @@ suite('Webview Test Suite', () => {
       testStorageController,
       testTelemetryService
     );
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     // Mock a connection call.
     messageReceived({
@@ -354,8 +368,8 @@ suite('Webview Test Suite', () => {
         hostname: 'shouldfail',
         connectTimeoutMS: 500,
         socketTimeoutMS: 500,
-        serverSelectionTimeoutMS: 500
-      }
+        serverSelectionTimeoutMS: 500,
+      },
     });
 
     void testConnectionController.addNewConnectionStringAndConnect(
@@ -376,7 +390,7 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
     const fakeVSCodeOpenDialog = sinon.fake.resolves({
-      path: '/somefilepath/test.text'
+      path: '/somefilepath/test.text',
     });
 
     let messageReceived;
@@ -392,11 +406,11 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
     sinon.replace(
       vscode.window,
@@ -412,12 +426,14 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     // Mock a connection call.
     messageReceived({
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
-      action: 'file_action'
+      action: 'file_action',
     });
   });
 
@@ -439,10 +455,7 @@ suite('Webview Test Suite', () => {
       postMessage: async (message): Promise<void> => {
         try {
           assert.strictEqual(message.action, 'file_action');
-          assert.strictEqual(
-            message.files[0],
-            '/somefilepath/test.text'
-          );
+          assert.strictEqual(message.files[0], '/somefilepath/test.text');
 
           done();
         } catch (e) {
@@ -454,10 +467,10 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     sinon.replace(
@@ -468,8 +481,8 @@ suite('Webview Test Suite', () => {
 
     const fakeVSCodeOpenDialog = sinon.fake.resolves([
       {
-        fsPath: '/somefilepath/test.text'
-      }
+        fsPath: '/somefilepath/test.text',
+      },
     ]);
 
     sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
@@ -480,11 +493,13 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     messageReceived({
       command: MESSAGE_TYPES.OPEN_FILE_PICKER,
-      action: 'file_action'
+      action: 'file_action',
     });
   });
 
@@ -506,14 +521,14 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
     const fakeVSCodeExecuteCommand = sinon.fake.resolves(false);
 
     sinon.replace(vscode.commands, 'executeCommand', fakeVSCodeExecuteCommand);
 
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     sinon.replace(
@@ -528,10 +543,12 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     messageReceived({
-      command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT
+      command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT,
     });
 
     setTimeout(() => {
@@ -569,10 +586,10 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     sinon.replace(
@@ -587,11 +604,13 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     // Mock a connection status request call.
     messageReceived({
-      command: MESSAGE_TYPES.GET_CONNECTION_STATUS
+      command: MESSAGE_TYPES.GET_CONNECTION_STATUS,
     });
   });
 
@@ -621,10 +640,10 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     sinon.replace(
@@ -639,14 +658,16 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     void testConnectionController
       .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
       .then(() => {
         // Mock a connection status request call.
         messageReceived({
-          command: MESSAGE_TYPES.GET_CONNECTION_STATUS
+          command: MESSAGE_TYPES.GET_CONNECTION_STATUS,
         });
       });
   });
@@ -670,10 +691,10 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns('')
+      asWebviewUri: sinon.fake.returns(''),
     };
     const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-      webview: fakeWebview
+      webview: fakeWebview,
     });
 
     sinon.replace(
@@ -696,7 +717,9 @@ suite('Webview Test Suite', () => {
       testTelemetryService
     );
 
-    void testWebviewController.openWebview(mdbTestExtension.testExtensionContext);
+    void testWebviewController.openWebview(
+      mdbTestExtension.testExtensionContext
+    );
 
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
@@ -704,7 +727,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection status request call.
     messageReceived({
-      command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION
+      command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION,
     });
 
     assert(mockRenameConnectionOnConnectionController.called);
@@ -743,11 +766,11 @@ suite('Webview Test Suite', () => {
         onDidReceiveMessage: (callback): void => {
           messageReceived = callback;
         },
-        asWebviewUri: sinon.fake.returns('')
+        asWebviewUri: sinon.fake.returns(''),
       };
 
       const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
-        webview: fakeWebview
+        webview: fakeWebview,
       });
       sinon.replace(
         vscode.window,
@@ -770,7 +793,7 @@ suite('Webview Test Suite', () => {
 
       messageReceived({
         command: MESSAGE_TYPES.OPEN_TRUSTED_LINK,
-        linkTo: 'https://mongodb.com/test'
+        linkTo: 'https://mongodb.com/test',
       });
 
       assert(stubOpenLink.called);

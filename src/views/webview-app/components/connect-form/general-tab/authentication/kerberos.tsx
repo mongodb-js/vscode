@@ -5,7 +5,7 @@ import Toggle from '@leafygreen-ui/toggle';
 import {
   ActionTypes,
   KerberosParameters,
-  KerberosParametersChanged
+  KerberosParametersChanged,
 } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
 
@@ -36,14 +36,14 @@ class Kerberos extends React.Component<props> {
     const {
       kerberosCanonicalizeHostname,
       kerberosPassword,
-      kerberosServiceName
+      kerberosServiceName,
     } = this.props;
 
     this.props.kerberosParametersChanged({
       kerberosCanonicalizeHostname,
       kerberosPassword,
       kerberosPrincipal: evt.target.value.trim(),
-      kerberosServiceName
+      kerberosServiceName,
     });
   };
 
@@ -56,14 +56,14 @@ class Kerberos extends React.Component<props> {
     const {
       kerberosCanonicalizeHostname,
       kerberosPrincipal,
-      kerberosServiceName
+      kerberosServiceName,
     } = this.props;
 
     this.props.kerberosParametersChanged({
       kerberosCanonicalizeHostname,
       kerberosPassword: evt.target.value,
       kerberosPrincipal,
-      kerberosServiceName
+      kerberosServiceName,
     });
   };
 
@@ -76,14 +76,14 @@ class Kerberos extends React.Component<props> {
     const {
       kerberosCanonicalizeHostname,
       kerberosPassword,
-      kerberosPrincipal
+      kerberosPrincipal,
     } = this.props;
 
     this.props.kerberosParametersChanged({
       kerberosCanonicalizeHostname,
       kerberosPassword,
       kerberosPrincipal,
-      kerberosServiceName: evt.target.value
+      kerberosServiceName: evt.target.value,
     });
   };
 
@@ -92,14 +92,14 @@ class Kerberos extends React.Component<props> {
       kerberosCanonicalizeHostname,
       kerberosPassword,
       kerberosPrincipal,
-      kerberosServiceName
+      kerberosServiceName,
     } = this.props;
 
     this.props.kerberosParametersChanged({
       kerberosCanonicalizeHostname: !kerberosCanonicalizeHostname,
       kerberosPassword,
       kerberosPrincipal,
-      kerberosServiceName
+      kerberosServiceName,
     });
   };
 
@@ -114,7 +114,7 @@ class Kerberos extends React.Component<props> {
       kerberosCanonicalizeHostname,
       kerberosPassword,
       kerberosPrincipal,
-      kerberosServiceName
+      kerberosServiceName,
     } = this.props;
 
     return (
@@ -168,8 +168,8 @@ const mapDispatchToProps: DispatchProps = {
     newKerberosParams
   ): KerberosParametersChanged => ({
     type: ActionTypes.KERBEROS_PARAMETERS_CHANGED,
-    ...newKerberosParams
-  })
+    ...newKerberosParams,
+  }),
 };
 
 export default connect(null, mapDispatchToProps)(Kerberos);
