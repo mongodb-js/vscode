@@ -68,8 +68,8 @@ module.exports = {
     {
       files: ['**/*.js'],
       rules: {
-        ...sharedRules,
         ...ruleOverridesForJs,
+        ...sharedRules,
         semi: [2, 'always'],
       },
     },
