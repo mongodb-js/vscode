@@ -1,6 +1,5 @@
 import Mocha from 'mocha';
 import glob from 'glob';
-import * as vscode from 'vscode';
 import path = require('path');
 import MDBExtensionController from '../../mdbExtensionController';
 import { ext } from '../../extensionConstants';
@@ -51,28 +50,22 @@ export async function run(): Promise<void> {
         // headless linux.
         ext.keytarModule = new KeytarStub();
 
-        // Disable the dialogue for prompting the user where to store the connection.
-        void vscode.workspace
-          .getConfiguration('mdb.connectionSaving')
-          .update('hideOptionToChooseWhereToSaveNewConnections', true)
-          .then(() => {
-            // Add files to the test suite.
-            files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
-            try {
-              // Run the mocha test.
-              mocha.run((failures) => {
-                if (failures > 0) {
-                  e(new Error(`${failures} tests failed.`));
-                } else {
-                  c();
-                }
-              });
-            } catch (mochaRunErr) {
-              console.error('Error running mocha tests:');
-              console.error(mochaRunErr);
-              e(mochaRunErr);
+        // Add files to the test suite.
+        files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+        try {
+          // Run the mocha test.
+          mocha.run((failures) => {
+            if (failures > 0) {
+              e(new Error(`${failures} tests failed.`));
+            } else {
+              c();
             }
           });
+        } catch (mochaRunErr) {
+          console.error('Error running mocha tests:');
+          console.error(mochaRunErr);
+          e(mochaRunErr);
+        }
       }
     );
   });

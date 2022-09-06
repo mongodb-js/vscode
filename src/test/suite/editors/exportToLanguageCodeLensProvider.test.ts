@@ -120,4 +120,30 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
 
     expect(codeLenses.length).to.be.equal(2);
   });
+
+  test('does not render code lenses for json text', () => {
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      builders: true,
+      mode: ExportToLanguageMode.OTHER,
+      language: 'json',
+    });
+
+    const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
+
+    expect(codeLenses.length).to.be.equal(0);
+  });
+
+  test('does not render code lenses for plain text text', () => {
+    testExportToLanguageCodeLensProvider.refresh({
+      ...defaults,
+      builders: true,
+      mode: ExportToLanguageMode.OTHER,
+      language: 'plaintext',
+    });
+
+    const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
+
+    expect(codeLenses.length).to.be.equal(0);
+  });
 });

@@ -45,6 +45,10 @@ export default class ExportToLanguageCodeLensProvider
     const buildersCodeLens = this.createCodeLens();
     const exportToLanguageCodeLenses: vscode.CodeLens[] = [];
 
+    if (['json', 'plaintext'].includes(this._exportToLanguageAddons.language)) {
+      return [];
+    }
+
     importStatementsCodeLens.command = {
       title: this._exportToLanguageAddons.importStatements
         ? 'Exclude Import Statements'
