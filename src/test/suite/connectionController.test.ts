@@ -1,7 +1,7 @@
 import * as sinon from 'sinon';
 import * as util from 'util';
 import * as vscode from 'vscode';
-import { afterEach, beforeEach, before } from 'mocha';
+import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import { connect } from 'mongodb-data-service';
 
@@ -50,18 +50,6 @@ suite('Connection Controller Test Suite', function () {
     mockStorageController,
     testTelemetryService
   );
-
-  before(async () => {
-    // Disable the dialogue for prompting the user where to store the connection.
-    const connectionSaving = vscode.workspace.getConfiguration(
-      'mdb.connectionSaving'
-    );
-    await connectionSaving.update(
-      'hideOptionToChooseWhereToSaveNewConnections',
-      true,
-      vscode.ConfigurationTarget.Global
-    );
-  });
 
   beforeEach(() => {
     // Here we stub the showInformationMessage process because it is too much
