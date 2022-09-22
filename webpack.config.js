@@ -21,7 +21,9 @@ const extensionConfig = {
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
-    libraryTarget: 'commonjs',
+    library: {
+      type: 'commonjs',
+    },
     devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'node',
@@ -36,19 +38,18 @@ const extensionConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
+    vscode: 'vscode',
     // Currently connection-model has a keytar dependency, vscode provides its
     // own keytar dependency. Here we are telling it to use vscode's keytar.
-    keytar: 'commonjs keytar',
-    electron: 'commonjs electron',
-    snappy: 'commonjs snappy',
-    'snappy/package.json': 'commonjs snappy/package.json',
-    'bson-ext': 'commonjs bson-ext',
-    'win-export-certificate-and-key':
-      'commonjs win-export-certificate-and-key',
-    'os-dns-native': 'commonjs os-dns-native',
-    'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
-    'compass-preferences-model': 'commonjs compass-preferences-model',
+    keytar: 'keytar',
+    electron: 'electron',
+    snappy: 'snappy',
+    'snappy/package.json': 'snappy/package.json',
+    'bson-ext': 'bson-ext',
+    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    'os-dns-native': 'os-dns-native',
+    'mongodb-client-encryption': 'mongodb-client-encryption',
+    'compass-preferences-model': 'compass-preferences-model',
   },
   module: {
     rules: [
@@ -81,7 +82,9 @@ const languageServerConfig = {
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
-    libraryTarget: 'commonjs',
+    library: {
+      type: 'commonjs',
+    },
     devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'node',
@@ -98,15 +101,14 @@ const languageServerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
-    snappy: 'commonjs snappy',
-    'snappy/package.json': 'commonjs snappy/package.json',
-    'bson-ext': 'commonjs bson-ext',
-    'win-export-certificate-and-key':
-      'commonjs win-export-certificate-and-key',
-    'os-dns-native': 'commonjs os-dns-native',
-    'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
-    'compass-preferences-model': 'commonjs compass-preferences-model',
+    vscode: 'vscode',
+    snappy: 'snappy',
+    'snappy/package.json': 'snappy/package.json',
+    'bson-ext': 'bson-ext',
+    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    'os-dns-native': 'os-dns-native',
+    'mongodb-client-encryption': 'mongodb-client-encryption',
+    'compass-preferences-model': 'compass-preferences-model',
   },
   module: {
     rules: [
@@ -136,7 +138,9 @@ const languageServerWorkerConfig = {
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
-    libraryTarget: 'commonjs',
+    library: {
+      type: 'commonjs',
+    },
     devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'node',
@@ -153,15 +157,14 @@ const languageServerWorkerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs vscode',
-    snappy: 'commonjs snappy',
-    'snappy/package.json': 'commonjs snappy/package.json',
-    'bson-ext': 'commonjs bson-ext',
-    'win-export-certificate-and-key':
-      'commonjs win-export-certificate-and-key',
-    'os-dns-native': 'commonjs os-dns-native',
-    'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
-    'compass-preferences-model': 'commonjs compass-preferences-model',
+    vscode: 'vscode',
+    snappy: 'snappy',
+    'snappy/package.json': 'snappy/package.json',
+    'bson-ext': 'bson-ext',
+    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    'os-dns-native': 'os-dns-native',
+    'mongodb-client-encryption': 'mongodb-client-encryption',
+    'compass-preferences-model': 'compass-preferences-model',
   },
   module: {
     rules: [
@@ -191,6 +194,9 @@ const webviewConfig = {
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
+    library: {
+      type: 'commonjs',
+    },
     devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'web',
@@ -205,9 +211,9 @@ const webviewConfig = {
     },
   },
   externals: {
-    'os-dns-native': 'commonjs os-dns-native',
-    'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
-    'compass-preferences-model': 'commonjs compass-preferences-model',
+    'os-dns-native': 'os-dns-native',
+    'mongodb-client-encryption': 'mongodb-client-encryption',
+    'compass-preferences-model': 'compass-preferences-model',
   },
   module: {
     rules: [
