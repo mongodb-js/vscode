@@ -21,7 +21,7 @@ const extensionConfig = {
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
-    libraryTarget: 'commonjs2',
+    libraryTarget: 'commonjs',
     devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'node',
@@ -36,18 +36,19 @@ const extensionConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs2 vscode',
+    vscode: 'commonjs vscode',
     // Currently connection-model has a keytar dependency, vscode provides its
     // own keytar dependency. Here we are telling it to use vscode's keytar.
-    keytar: 'keytar',
-    electron: 'electron',
-    snappy: 'commonjs2 snappy',
-    'snappy/package.json': 'commonjs2 snappy/package.json',
-    'bson-ext': 'commonjs2 bson-ext',
+    keytar: 'commonjs keytar',
+    electron: 'commonjs electron',
+    snappy: 'commonjs snappy',
+    'snappy/package.json': 'commonjs snappy/package.json',
+    'bson-ext': 'commonjs bson-ext',
     'win-export-certificate-and-key':
-      'commonjs2 win-export-certificate-and-key',
-    os_dns_native: 'commonjs2 os_dns_native',
-    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
+      'commonjs win-export-certificate-and-key',
+    'os-dns-native': 'commonjs os-dns-native',
+    'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
+    'compass-preferences-model': 'commonjs compass-preferences-model',
   },
   module: {
     rules: [
@@ -80,7 +81,7 @@ const languageServerConfig = {
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
-    libraryTarget: 'commonjs2',
+    libraryTarget: 'commonjs',
     devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'node',
@@ -97,14 +98,15 @@ const languageServerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs2 vscode',
-    snappy: 'commonjs2 snappy',
-    'snappy/package.json': 'commonjs2 snappy/package.json',
-    'bson-ext': 'commonjs2 bson-ext',
+    vscode: 'commonjs vscode',
+    snappy: 'commonjs snappy',
+    'snappy/package.json': 'commonjs snappy/package.json',
+    'bson-ext': 'commonjs bson-ext',
     'win-export-certificate-and-key':
-      'commonjs2 win-export-certificate-and-key',
-    os_dns_native: 'commonjs2 os_dns_native',
-    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
+      'commonjs win-export-certificate-and-key',
+    'os-dns-native': 'commonjs os-dns-native',
+    'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
+    'compass-preferences-model': 'commonjs compass-preferences-model',
   },
   module: {
     rules: [
@@ -134,7 +136,7 @@ const languageServerWorkerConfig = {
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
-    libraryTarget: 'commonjs2',
+    libraryTarget: 'commonjs',
     devtoolModuleFilenameTemplate: '../[resource-path]',
   },
   target: 'node',
@@ -151,14 +153,15 @@ const languageServerWorkerConfig = {
   },
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
-    vscode: 'commonjs2 vscode',
-    snappy: 'commonjs2 snappy',
-    'snappy/package.json': 'commonjs2 snappy/package.json',
-    'bson-ext': 'commonjs2 bson-ext',
+    vscode: 'commonjs vscode',
+    snappy: 'commonjs snappy',
+    'snappy/package.json': 'commonjs snappy/package.json',
+    'bson-ext': 'commonjs bson-ext',
     'win-export-certificate-and-key':
-      'commonjs2 win-export-certificate-and-key',
-    os_dns_native: 'commonjs2 os_dns_native',
-    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
+      'commonjs win-export-certificate-and-key',
+    'os-dns-native': 'commonjs os-dns-native',
+    'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
+    'compass-preferences-model': 'commonjs compass-preferences-model',
   },
   module: {
     rules: [
@@ -202,8 +205,9 @@ const webviewConfig = {
     },
   },
   externals: {
-    'mongodb-client-encryption': 'commonjs2 mongodb-client-encryption',
-    os_dns_native: 'commonjs2 os_dns_native',
+    'os-dns-native': 'commonjs os-dns-native',
+    'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
+    'compass-preferences-model': 'commonjs compass-preferences-model',
   },
   module: {
     rules: [
