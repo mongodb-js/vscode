@@ -164,7 +164,7 @@ export default class TelemetryService {
 
   deactivate(): void {
     // Flush on demand to make sure that nothing is left in the queue.
-    this._segmentAnalytics?.flush();
+    void this._segmentAnalytics?.flush();
   }
 
   // Checks user settings and extension running mode

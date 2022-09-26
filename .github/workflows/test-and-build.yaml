@@ -52,7 +52,7 @@ jobs:
 
       - name: Install Dependencies
         shell: bash
-        run: npm ci
+        run: npm ci --omit=optional
 
       - name: Run Checks
         run: npm run check
