@@ -51,16 +51,14 @@ The MongoDB VSCode extension is not released on a set schedule. A new version is
 
 ### Releasing
 
-Releases are automated using github actions, and published to the VSCode marketplace using a Personal Access Token (PAT).
+Releases are automated using github actions, and published to the VSCode marketplace using a Personal Access Token (PAT). For additional information and reading, VSCode has some great documentation on publishing extensions:
+https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+https://code.visualstudio.com/api/working-with-extensions/continuous-integration
 
 1. To kick off a release run `npm run release-draft *.*.*|major|minor|patch` on the main branch. This will run the [release draft script](https://github.com/mongodb-js/vscode/blob/main/scripts/release-draft.js) which creates a new tag for the release.
-1. When that tag has been created, a GitHub action for building the extension is automatically started: https://github.com/mongodb-js/vscode/blob/main/.github/workflows/test-and-build.yaml This creates the `.vsix` artifact for that release version and creates a draft GitHub release, with the .vsix artifact attached. At this point you can look in https://github.com/mongodb-js/vscode/releases and see the draft release.
-1. Now is a good time to download the built artifact and ensure it works smoothly.
-1. Update the [release notes](https://github.com/mongodb-js/vscode/releases) in github, documenting user facing changes. Once you’re happy with the changes you can publish the release.
+1. When that tag has been created, a GitHub action for building the extension is automatically started: https://github.com/mongodb-js/vscode/blob/main/.github/workflows/test-and-build.yaml This creates the `.vsix` artifact for that release version and creates a draft GitHub release, with the `.vsix` artifact attached. At this point you can look in https://github.com/mongodb-js/vscode/releases and see the draft release.
+1. Now is a good time to download the built `.vsix` artifact in the new [GitHub release draft](https://github.com/mongodb-js/vscode/releases) and ensure it works smoothly. https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix
+1. Update the [release notes](https://github.com/mongodb-js/vscode/releases) in GitHub, documenting user facing changes. Once you’re happy with the changes you can publish the release.
 1. When the release is published, the GitHub action https://github.com/mongodb-js/vscode/blob/main/.github/workflows/publish-release.yaml is automatically run, which downloads the release artifact and then publishes it to the VSCode marketplace.
 1. Nice! ✨ Now you can verify it all completed by visiting https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode and seeing the new version is up. You also try installing it in VSCode :) ✨
 1. Lastly, don't forget to post in slack, let all your friends know, and close the release ticket in jira if there is one.
-
-For additional information and reading, VSCode has some great documentation on publishing extensions:
-https://code.visualstudio.com/api/working-with-extensions/publishing-extension
-https://code.visualstudio.com/api/working-with-extensions/continuous-integration
