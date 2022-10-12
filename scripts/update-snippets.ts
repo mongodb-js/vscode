@@ -1,18 +1,17 @@
 #! /usr/bin/env ts-node
 
-import path = require('path');
-import mkdirp = require('mkdirp');
-import ora = require('ora');
-import fs = require('fs');
+import path from 'path';
+import mkdirp from 'mkdirp';
+import ora from 'ora';
+import fs from 'fs';
+import { promisify } from 'util';
+import { STAGE_OPERATORS } from '@mongodb-js/mongodb-constants';
 
-const { promisify } = require('util');
 const writeFile = promisify(fs.writeFile);
-const { STAGE_OPERATORS } = require('mongodb-ace-autocompleter');
 const SNIPPETS_DIR = path.join(__dirname, '..', 'snippets');
 
 /**
- * Transforms `mongodb-ace-autocompleter` snippets
- * into the vscode snippets.
+ * Transforms stage operator metadata into the vscode snippets.
  *
  * @param {String} prefix - The stage operator.
  * @param {String} description - The stage description.
@@ -31,10 +30,9 @@ const snippetTemplate = (
   const re = new RegExp(find, 'g');
   let body = snippet.split('\n');
 
-  // The `mongodb-ace-autocompleter` stores the stage prefix separately
-  // from the stage body. In vscode extension we want to autopopulate
-  // the body together with the prefix.
-  // We also need to escape the `$` symbol in prefix.
+  // Stage operators store stage name separate from the stage body. In vscode
+  // extension we want to autopopulate the body together with the prefix. We
+  // also need to escape the `$` symbol in prefix.
   body[0] = `\\${prefix}: ${body[0]}`;
 
   // The stage comments are also stored separately
