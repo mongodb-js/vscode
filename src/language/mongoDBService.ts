@@ -114,7 +114,7 @@ export default class MongoDBService {
   }
 
   // ------ EXECUTION ------ //
-  executeAll(
+  async executeAll(
     executionParameters: PlaygroundExecuteParameters,
     token: CancellationToken
   ): Promise<ShellExecuteAllResult | undefined> {

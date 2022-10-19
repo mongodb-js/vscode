@@ -93,31 +93,22 @@ export default class PlaygroundsTree
       this.onTreeItemUpdate();
     });
 
-    treeView.onDidExpandElement((event: any): Promise<void> => {
+    treeView.onDidExpandElement(async (event: any): Promise<void> => {
       log.info('Tree item was expanded:', event.element.label);
 
-      return new Promise((resolve, reject) => {
-        if (!event.element.onDidExpand) {
-          return resolve();
-        }
+      if (!event.element.onDidExpand) {
+        return;
+      }
 
-        event.element.onDidExpand().then(
-          () => {
-            if (event.element.doesNotRequireTreeUpdate) {
-              // When the element is already loaded (synchronous), we do not
-              // need to fully refresh the tree.
-              return resolve();
-            }
+      await event.element.onDidExpand();
 
-            this.onTreeItemUpdate();
+      if (event.element.doesNotRequireTreeUpdate) {
+        // When the element is already loaded (synchronous), we do not
+        // need to fully refresh the tree.
+        return;
+      }
 
-            resolve();
-          },
-          (err: Error) => {
-            reject(err);
-          }
-        );
-      });
+      this.onTreeItemUpdate();
     });
 
     treeView.onDidChangeSelection(async (event: any) => {
@@ -153,28 +144,12 @@ export default class PlaygroundsTree
     return element;
   }
 
-  private getFileNames(filePath: string): Promise<string[]> {
-    return new Promise<string[]>((resolve, reject) => {
-      fs.readdir(filePath, (error, files) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(files);
-        }
-      });
-    });
+  private async getFileNames(filePath: string): Promise<string[]> {
+    return await fs.promises.readdir(filePath);
   }
 
-  private stat(filePath: string): Promise<fs.Stats> {
-    return new Promise<fs.Stats>((resolve, reject) => {
-      fs.stat(filePath, (error, stat) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(stat);
-        }
-      });
-    });
+  private async stat(filePath: string): Promise<fs.Stats> {
+    return await fs.promises.stat(filePath);
   }
 
   private async getStat(filePath: string): Promise<vscode.FileStat> {

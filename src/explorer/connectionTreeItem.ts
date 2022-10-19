@@ -191,30 +191,31 @@ export default class ConnectionTreeItem
     this.cacheIsUpToDate = false;
   }
 
-  onDidExpand(): Promise<boolean> {
+  async onDidExpand(): Promise<boolean> {
     this.cacheIsUpToDate = false;
     this.isExpanded = true;
 
     if (
       this._connectionController.getActiveConnectionId() === this.connectionId
     ) {
-      return Promise.resolve(true);
+      return true;
     }
 
     // If we aren't the active connection, we reconnect.
-    return new Promise((resolve) => {
-      this._connectionController
-        .connectWithConnectionId(this.connectionId)
-        .then(
-          () => resolve(true),
-          (err) => {
-            this.isExpanded = false;
-            void vscode.window.showErrorMessage(err);
-
-            return resolve(false);
-          }
+    try {
+      const connectSuccess =
+        await this._connectionController.connectWithConnectionId(
+          this.connectionId
         );
-    });
+      return connectSuccess;
+    } catch (err) {
+      this.isExpanded = false;
+      void vscode.window.showErrorMessage(
+        (err as Error).message || (err as string)
+      );
+
+      return false;
+    }
   }
 
   resetCache(): void {

@@ -49,8 +49,9 @@ class TestExtensionContext implements vscode.ExtensionContext {
         return this._workspaceState[key];
       },
       update: (key: string, value: any): Thenable<void> => {
-        return new Promise<void>(() => {
+        return new Promise<void>((resolve) => {
           this._workspaceState[key] = value;
+          resolve();
         });
       },
     };
@@ -62,8 +63,9 @@ class TestExtensionContext implements vscode.ExtensionContext {
         return this._globalState[key];
       },
       update: (key: string, value: any): Thenable<void> => {
-        return new Promise<void>(() => {
+        return new Promise<void>((resolve) => {
           this._globalState[key] = value;
+          resolve();
         });
       },
       setKeysForSync: (/* keys: string[] */): void => {},

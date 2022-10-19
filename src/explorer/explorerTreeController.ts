@@ -63,31 +63,22 @@ export default class ExplorerTreeController
       this._onTreeItemUpdate();
     });
 
-    treeView.onDidExpandElement((event: any): Promise<void> => {
+    treeView.onDidExpandElement(async (event: any): Promise<void> => {
       log.info('Tree item was expanded:', event.element.label);
 
-      return new Promise((resolve, reject) => {
-        if (!event.element.onDidExpand) {
-          return resolve();
-        }
+      if (!event.element.onDidExpand) {
+        return;
+      }
 
-        event.element.onDidExpand().then(
-          () => {
-            if (event.element.doesNotRequireTreeUpdate) {
-              // When the element is already loaded (synchronous), we do not
-              // need to fully refresh the tree.
-              return resolve();
-            }
+      await event.element.onDidExpand();
 
-            this._onTreeItemUpdate();
+      if (event.element.doesNotRequireTreeUpdate) {
+        // When the element is already loaded (synchronous), we do not
+        // need to fully refresh the tree.
+        return;
+      }
 
-            resolve();
-          },
-          (err: Error) => {
-            reject(err);
-          }
-        );
-      });
+      this._onTreeItemUpdate();
     });
 
     treeView.onDidChangeSelection(async (event: any) => {
