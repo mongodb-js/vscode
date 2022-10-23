@@ -1,8 +1,22 @@
 # Change Log
 
-## [v0.9.5](https://github.com/mongodb-js/vscode/releases/tag/untagged-1232d08656afb34350a8) - null
+## [v0.9.5](https://github.com/mongodb-js/vscode/releases/tag/v0.9.5) - 2022-10-18
 
-Edit the release notes before publishing.
+## Added
+
+* feat: add command to generate objectid by @SethFalco in https://github.com/mongodb-js/vscode/pull/416
+* feat: update MongoDB driver to ^4.10.0 VSCODE-342 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/439
+* feat(playground): Add `clusteredIndex` option to createCollection playground template VSCODE-330 by @Anemy in https://github.com/mongodb-js/vscode/pull/409
+
+## Fixed
+
+* fix: correct order of enum docs by @SethFalco in https://github.com/mongodb-js/vscode/pull/426
+* fix: export to language actions appear for regular playground results VSCODE-334 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/434
+
+## New Contributors
+* @SethFalco made their first contribution in https://github.com/mongodb-js/vscode/pull/418
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v0.9.3...v0.9.5
 
 
 ## [v0.9.3](https://github.com/mongodb-js/vscode/releases/tag/v0.9.3) - 2022-04-26
