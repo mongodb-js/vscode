@@ -404,6 +404,14 @@
       {
         "command": "mdb.generateObjectIdToClipboard",
         "title": "MongoDB: Generate ObjectId to Clipboard"
+      },
+      {
+        "command": "mdb.openMongoDBDocumentFromTree",
+        "title": "Open Document"
+      },
+      {
+        "command": "mdb.copyDocumentContentsFromTreeView",
+        "title": "Copy Document"
       }
     ],
     "menus": {
@@ -590,6 +598,16 @@
         {
           "command": "mdb.createIndexFromTreeView",
           "when": "view == mongoDBConnectionExplorer && viewItem == indexListTreeItem"
+        },
+        {
+          "command": "mdb.openMongoDBDocumentFromTree",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
+          "group": "1@1"
+        },
+        {
+          "command": "mdb.copyDocumentContentsFromTreeView",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
+          "group": "2@1"
         }
       ],
       "editor/title": [
@@ -754,6 +772,14 @@
         },
         {
           "command": "mdb.copySchemaFieldName",
+          "when": "false"
+        },
+        {
+          "command": "mdb.openMongoDBDocumentFromTree",
+          "when": "false"
+        },
+        {
+          "command": "mdb.copyDocumentContentsFromTreeView",
           "when": "false"
         }
       ]

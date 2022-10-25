@@ -551,6 +551,17 @@ export default class MDBExtensionController implements vscode.Disposable {
         this._playgroundController.openPlayground(playgroundsTreeItem.filePath)
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_COPY_DOCUMENT_CONTENTS_FROM_TREE_VIEW,
+      async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
+        const documentContents =
+          await documentTreeItem.getStringifiedEJSONDocumentContents();
+        await vscode.env.clipboard.writeText(documentContents);
+        void vscode.window.showInformationMessage('Copied to clipboard.');
+
+        return true;
+      }
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_INSERT_OBJECTID_TO_EDITOR,
       async (): Promise<boolean> => {
         const editor = vscode.window.activeTextEditor;

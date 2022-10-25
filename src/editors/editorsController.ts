@@ -124,7 +124,6 @@ export default class EditorsController {
     this._documentIdStore = new DocumentIdStore();
     this._mongoDBDocumentService = new MongoDBDocumentService(
       this._context,
-      this._documentIdStore,
       this._connectionController,
       this._statusView,
       this._telemetryService

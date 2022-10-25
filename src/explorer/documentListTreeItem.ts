@@ -7,6 +7,7 @@ import DocumentTreeItem from './documentTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
+import type { DataService } from 'mongodb-data-service';
 
 const path = require('path');
 const log = createLogger('tree view document list');
@@ -104,7 +105,7 @@ export default class DocumentListTreeItem
   namespace: string;
   type: CollectionTypes;
 
-  private _dataService: any;
+  private _dataService: DataService;
 
   isExpanded: boolean;
 
@@ -112,7 +113,7 @@ export default class DocumentListTreeItem
     collectionName: string,
     databaseName: string,
     type: CollectionTypes,
-    dataService: any,
+    dataService: DataService,
     isExpanded: boolean,
     maxDocumentsToShow: number,
     cachedDocumentCount: number | null,
@@ -173,7 +174,8 @@ export default class DocumentListTreeItem
           new DocumentTreeItem(
             (pastTreeItem as DocumentTreeItem).document,
             this.namespace,
-            index
+            index,
+            this._dataService
           )
         );
       });
@@ -217,7 +219,12 @@ export default class DocumentListTreeItem
     if (documents) {
       documents.forEach((document, index) => {
         this._childrenCache.push(
-          new DocumentTreeItem(document, this.namespace, index)
+          new DocumentTreeItem(
+            document,
+            this.namespace,
+            index,
+            this._dataService
+          )
         );
       });
     }

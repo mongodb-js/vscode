@@ -52,6 +52,9 @@ suite('Extension Test Suite', () => {
       'mdb.createIndexFromTreeView',
       'mdb.insertObjectIdToEditor',
       'mdb.generateObjectIdToClipboard',
+      'mdb.openMongoDBDocumentFromTree',
+      'mdb.openMongoDBDocumentFromCodeLens',
+      'mdb.copyDocumentContentsFromTreeView',
 
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked',
