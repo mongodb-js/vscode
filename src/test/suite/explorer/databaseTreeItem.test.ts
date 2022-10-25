@@ -40,7 +40,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('when not expanded it does not show collections', (done) => {
+  test('when not expanded it does not show collections', async () => {
     const testDatabaseTreeItem = new DatabaseTreeItem(
       mockDatabaseNames[1],
       new DataServiceStub(),
@@ -49,15 +49,12 @@ suite('DatabaseTreeItem Test Suite', () => {
       {}
     );
 
-    testDatabaseTreeItem
-      .getChildren()
-      .then((collections) => {
-        assert(
-          collections.length === 0,
-          `Expected no collections to be returned, recieved ${collections.length}`
-        );
-      })
-      .then(done, done);
+    const collections = await testDatabaseTreeItem.getChildren();
+    assert.strictEqual(
+      collections.length,
+      0,
+      `Expected no collections to be returned, recieved ${collections.length}`
+    );
   });
 
   test('when expanded shows the collections of a database in tree', async () => {

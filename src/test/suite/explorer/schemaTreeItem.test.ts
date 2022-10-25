@@ -119,7 +119,7 @@ suite('SchemaTreeItem Test Suite', function () {
     );
   });
 
-  test('it should show a show more item when there are more fields to show', (done) => {
+  test('it should show a show more item when there are more fields to show', async () => {
     const amountOfFieldsExpected = FIELDS_TO_SHOW;
     const mockDocWithTwentyFields = {};
     for (let i = 0; i < 20; i++) {
@@ -140,26 +140,23 @@ suite('SchemaTreeItem Test Suite', function () {
       {}
     );
 
-    testSchemaTreeItem
-      .getChildren()
-      .then((schemaFields) => {
-        assert(FIELDS_TO_SHOW === 15, 'Expeted FIELDS_TO_SHOW to be 15');
+    const schemaFields = await testSchemaTreeItem.getChildren();
+    assert.strictEqual(FIELDS_TO_SHOW, 15, 'Expeted FIELDS_TO_SHOW to be 15');
 
-        assert(
-          schemaFields.length === amountOfFieldsExpected + 1,
-          `Expected ${
-            amountOfFieldsExpected + 1
-          } documents to be returned, found ${schemaFields.length}`
-        );
-        assert(
-          schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
-          `Expected a tree item child with the label "Show more fields..." found ${schemaFields[amountOfFieldsExpected].label}`
-        );
-      })
-      .then(done, done);
+    assert.strictEqual(
+      schemaFields.length,
+      amountOfFieldsExpected + 1,
+      `Expected ${amountOfFieldsExpected + 1} documents to be returned, found ${
+        schemaFields.length
+      }`
+    );
+    assert(
+      schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
+      `Expected a tree item child with the label "Show more fields..." found ${schemaFields[amountOfFieldsExpected].label}`
+    );
   });
 
-  test('it should show more fields after the show more click handler is called', (done) => {
+  test('it should show more fields after the show more click handler is called', async () => {
     const mockDocWithThirtyFields = {};
     for (let i = 0; i < 30; i++) {
       mockDocWithThirtyFields[`${i}`] = 'some value';
@@ -181,20 +178,16 @@ suite('SchemaTreeItem Test Suite', function () {
 
     testSchemaTreeItem.onShowMoreClicked();
 
-    testSchemaTreeItem
-      .getChildren()
-      .then((schemaFields) => {
-        const amountOfFieldsExpected = 30;
+    const schemaFields = await testSchemaTreeItem.getChildren();
+    const amountOfFieldsExpected = 30;
 
-        assert(
-          schemaFields.length === amountOfFieldsExpected,
-          `Expected ${amountOfFieldsExpected} documents to be returned, found ${schemaFields.length}`
-        );
-      })
-      .then(done, done);
+    assert(
+      schemaFields.length === amountOfFieldsExpected,
+      `Expected ${amountOfFieldsExpected} documents to be returned, found ${schemaFields.length}`
+    );
   });
 
-  test('When schema parsing fails it displays an error message', (done) => {
+  test('When schema parsing fails it displays an error message', async () => {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
@@ -210,23 +203,19 @@ suite('SchemaTreeItem Test Suite', function () {
       {}
     );
 
-    testSchemaTreeItem
-      .getChildren()
-      .then(
-        () => {
-          assert(false, 'Didnt expect to succeed.');
-        },
-        (error) => {
-          const expectedMessage =
-            'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+    try {
+      await testSchemaTreeItem.getChildren();
+      assert(false, 'Didnt expect to succeed.');
+    } catch (error: any) {
+      const expectedMessage =
+        'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
 
-          assert(
-            error.message === expectedMessage,
-            `Expected error message to be "${expectedMessage}" found "${error.message}"`
-          );
-        }
-      )
-      .then(done, done);
+      assert.strictEqual(
+        error.message,
+        expectedMessage,
+        `Expected error message to be "${expectedMessage}" found "${error.message}"`
+      );
+    }
   });
 
   suite('Live Database Tests', () => {

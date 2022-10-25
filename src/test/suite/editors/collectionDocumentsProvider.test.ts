@@ -43,7 +43,7 @@ suite('Collection Documents Provider Test Suite', () => {
     sinon.restore();
   });
 
-  test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', (done) => {
+  test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async () => {
     const mockActiveDataService = {
       find: (namespace, filter, options, callback): void => {
         assert(
@@ -85,19 +85,15 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple&operationId=${operationId}`
     );
 
-    testCollectionViewProvider
-      .provideTextDocumentContent(uri)
-      .then((documents) => {
-        assert(
-          documents.includes('Declaration of Independence'),
-          `Expected provideTextDocumentContent to return documents string, found ${documents}`
-        );
-        done();
-      })
-      .catch(done);
+    const documents =
+      await testCollectionViewProvider.provideTextDocumentContent(uri);
+    assert(
+      documents.includes('Declaration of Independence'),
+      `Expected provideTextDocumentContent to return documents string, found ${documents}`
+    );
   });
 
-  test('provideTextDocumentContent returns a ejson.stringify string', (done) => {
+  test('provideTextDocumentContent returns a ejson.stringify string', async () => {
     const mockDocuments = [
       {
         _id: 'first_id',
@@ -139,19 +135,16 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}`
     );
 
-    testCollectionViewProvider
-      .provideTextDocumentContent(uri)
-      .then((documents) => {
-        assert(
-          documents === mockDocumentsAsJsonString,
-          `Expected provideTextDocumentContent to return ejson stringified string, found ${documents}`
-        );
-        done();
-      })
-      .catch(done);
+    const documents =
+      await testCollectionViewProvider.provideTextDocumentContent(uri);
+    assert.strictEqual(
+      documents,
+      mockDocumentsAsJsonString,
+      `Expected provideTextDocumentContent to return ejson stringified string, found ${documents}`
+    );
   });
 
-  test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', (done) => {
+  test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async () => {
     const mockActiveDataService = {
       find: (namespace, filter, options, callback): void => {
         return callback(null, [{ field: 'Apollo' }, { field: 'Gemini ' }]);
@@ -185,28 +178,21 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=vostok.mercury&operationId=${operationId}`
     );
 
-    void testCollectionViewProvider.provideTextDocumentContent(uri).then(() => {
-      assert(
-        testQueryStore.operations[operationId].hasMoreDocumentsToShow === false,
-        'Expected not to have more documents to show.'
-      );
+    await testCollectionViewProvider.provideTextDocumentContent(uri);
+    assert(
+      testQueryStore.operations[operationId].hasMoreDocumentsToShow === false,
+      'Expected not to have more documents to show.'
+    );
 
-      // Reset and test inverse.
-      testQueryStore.operations[operationId].currentLimit = 2;
-      testQueryStore.operations[operationId].hasMoreDocumentsToShow = true;
+    // Reset and test inverse.
+    testQueryStore.operations[operationId].currentLimit = 2;
+    testQueryStore.operations[operationId].hasMoreDocumentsToShow = true;
 
-      testCollectionViewProvider
-        .provideTextDocumentContent(uri)
-        .then(() => {
-          assert(testQueryStore.operations[operationId].hasMoreDocumentsToShow);
-
-          done();
-        })
-        .catch(done);
-    });
+    await testCollectionViewProvider.provideTextDocumentContent(uri);
+    assert(testQueryStore.operations[operationId].hasMoreDocumentsToShow);
   });
 
-  test('provideTextDocumentContent shows a status bar item while it is running then hide it', (done) => {
+  test('provideTextDocumentContent shows a status bar item while it is running then hide it', async () => {
     const mockActiveDataService = { find: {} } as DataService;
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
@@ -254,12 +240,8 @@ suite('Collection Documents Provider Test Suite', () => {
       return callback(null, [{ field: 'aaaaaaaaaaaaaaaaa' }]);
     };
 
-    testCollectionViewProvider
-      .provideTextDocumentContent(uri)
-      .then(() => {
-        assert(mockHideMessage.called);
-      })
-      .then(done, done);
+    await testCollectionViewProvider.provideTextDocumentContent(uri);
+    assert(mockHideMessage.called);
   });
 
   test('provideTextDocumentContent sets different code lenses for different namespaces from the same connection', async () => {
