@@ -115,24 +115,20 @@ export default class SchemaTreeItem
       return [];
     }
 
-    return new Promise((resolve, reject) => {
-      const namespace = `${this.databaseName}.${this.collectionName}`;
+    log.info(`parsing schema for namespace ${namespace}`);
+    if (!documents || documents.length === 0) {
+      return [];
+    }
 
-      log.info(`parsing schema for namespace ${namespace}`);
-      if (!documents || documents.length === 0) {
-        return resolve([]);
-      }
-
-      parseSchema(documents, (parseError: Error | undefined, schema) => {
-        if (parseError) {
-          return reject(
-            new Error(`Unable to parse schema: ${parseError.message}`)
-          );
-        }
-
-        return resolve(schema);
-      });
-    });
+    try {
+      const runParseSchema = util.promisify(parseSchema);
+      const schema = await runParseSchema(documents);
+      return schema;
+    } catch (parseError) {
+      throw new Error(
+        `Unable to parse schema: ${(parseError as Error)?.message}`
+      );
+    }
   }
 
   buildFieldTreeItemsFromSchema(schema: any): any {

@@ -2,6 +2,7 @@ import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { CompletionItemKind } from 'vscode-languageserver/node';
 import { EJSON, Document } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
+import { promisify } from 'util';
 import parseSchema = require('mongodb-schema');
 import { parentPort, workerData } from 'worker_threads';
 import {
@@ -104,24 +105,23 @@ const findAndParse = async (
     return [];
   }
 
-  return new Promise((resolve, reject) => {
-    parseSchema(documents, (error: Error | undefined, schema) => {
-      if (error) {
-        return reject(documents);
-      }
+  try {
+    const runParseSchema = promisify(parseSchema);
+    const schema = await runParseSchema(documents);
 
-      if (!schema || !schema.fields) {
-        return resolve([]);
-      }
+    if (!schema || !schema.fields) {
+      return [];
+    }
 
-      const fields = schema.fields.map((item) => ({
-        label: item.name,
-        kind: CompletionItemKind.Field,
-      }));
+    const fields = schema.fields.map((item) => ({
+      label: item.name,
+      kind: CompletionItemKind.Field,
+    }));
 
-      return resolve(fields);
-    });
-  });
+    return fields;
+  } catch (parseError) {
+    return [];
+  }
 };
 
 const getFieldsFromSchema = async (
