@@ -731,9 +731,9 @@ suite('Webview Test Suite', () => {
     });
 
     assert(mockRenameConnectionOnConnectionController.called);
-    assert(
-      mockRenameConnectionOnConnectionController.firstCall.args[0] ===
-        testConnectionController.getActiveConnectionId()
+    assert.strictEqual(
+      mockRenameConnectionOnConnectionController.firstCall.args[0],
+      testConnectionController.getActiveConnectionId()
     );
 
     await testConnectionController.disconnect();
@@ -797,7 +797,10 @@ suite('Webview Test Suite', () => {
       });
 
       assert(stubOpenLink.called);
-      assert(stubOpenLink.firstCall.args[0] === 'https://mongodb.com/test');
+      assert.strictEqual(
+        stubOpenLink.firstCall.args[0],
+        'https://mongodb.com/test'
+      );
     });
   });
 });
