@@ -4,7 +4,6 @@ import { EJSON, Document } from 'bson';
 
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import DocumentIdStore from './documentIdStore';
 import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
@@ -21,20 +20,17 @@ export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
 export default class MongoDBDocumentService {
   _context: vscode.ExtensionContext;
-  _documentIdStore: DocumentIdStore;
   _connectionController: ConnectionController;
   _statusView: StatusView;
   _telemetryService: TelemetryService;
 
   constructor(
     context: vscode.ExtensionContext,
-    documentIdStore: DocumentIdStore,
     connectionController: ConnectionController,
     statusView: StatusView,
     telemetryService: TelemetryService
   ) {
     this._context = context;
-    this._documentIdStore = documentIdStore;
     this._connectionController = connectionController;
     this._statusView = statusView;
     this._telemetryService = telemetryService;

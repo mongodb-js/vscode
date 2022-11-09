@@ -142,15 +142,13 @@ for (let i = 0; i < numberOfDocumentsToMock; i++) {
 
 class DataServiceStub {
   listDatabases(): Promise<any> {
-    return new Promise((resolve) => {
-      resolve(mockDatabaseNames.map((dbName) => ({ name: dbName })));
-    });
+    return Promise.resolve(
+      mockDatabaseNames.map((dbName) => ({ name: dbName }))
+    );
   }
 
   listCollections(databaseName: string): Promise<any> {
-    return new Promise((resolve) => {
-      resolve(mockDatabases[databaseName].collections);
-    });
+    return Promise.resolve(mockDatabases[databaseName].collections);
   }
 
   find(namespace: string, filter: any, options: any, callback: any): void {

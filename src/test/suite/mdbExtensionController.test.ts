@@ -1147,7 +1147,12 @@ suite('MDBExtensionController Test Suite', function () {
       mockGetActiveDataService
     );
 
-    const documentItem = new DocumentTreeItem(mockDocument, 'waffle.house', 0);
+    const documentItem = new DocumentTreeItem(
+      mockDocument,
+      'waffle.house',
+      0,
+      {} as any as DataService
+    );
 
     await vscode.commands.executeCommand(
       'mdb.openMongoDBDocumentFromTree',
@@ -1189,7 +1194,12 @@ suite('MDBExtensionController Test Suite', function () {
         $time: '12345',
       },
     };
-    const documentItem = new DocumentTreeItem(mockDocument, 'waffle.house', 0);
+    const documentItem = new DocumentTreeItem(
+      mockDocument,
+      'waffle.house',
+      0,
+      {} as any as DataService
+    );
 
     const mockFetchDocument: any = sinon.fake.resolves(null);
     sinon.replace(
@@ -1501,6 +1511,58 @@ suite('MDBExtensionController Test Suite', function () {
       mockRefreshPlaygrounds.called,
       'Expected "refreshPlaygrounds" to be called on the playground controller.'
     );
+  });
+
+  test("mdb.copyDocumentContentsFromTreeView should copy a document's content to the clipboard", async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      time: {
+        $time: '12345',
+      },
+    };
+
+    let namespaceUsed = '';
+
+    const mockDataService: DataService = {
+      find: (
+        namespace: string,
+        filter: object,
+        options: object,
+        callback: (error: Error | undefined, documents: object[]) => void
+      ) => {
+        namespaceUsed = namespace;
+        callback(undefined, [mockDocument]);
+      },
+    } as any;
+
+    const documentTreeItem = new DocumentTreeItem(
+      mockDocument,
+      'waffle.house',
+      0,
+      mockDataService
+    );
+
+    const mockCopyToClipboard: any = sinon.fake();
+    sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      writeText: mockCopyToClipboard,
+      readText: sinon.fake() as any,
+    }));
+
+    await vscode.commands.executeCommand(
+      'mdb.copyDocumentContentsFromTreeView',
+      documentTreeItem
+    );
+    assert.strictEqual(mockCopyToClipboard.called, true);
+    assert.strictEqual(
+      mockCopyToClipboard.firstArg,
+      `{
+  "_id": "pancakes",
+  "time": {
+    "$time": "12345"
+  }
+}`
+    );
+    assert.strictEqual(namespaceUsed, 'waffle.house');
   });
 
   suite(

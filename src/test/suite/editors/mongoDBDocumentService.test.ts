@@ -5,7 +5,6 @@ import { EJSON } from 'bson';
 import sinon from 'sinon';
 
 import ConnectionController from '../../../connectionController';
-import DocumentIdStore from '../../../editors/documentIdStore';
 import { DocumentSource } from '../../../documentSource';
 import formatError from '../../../utils/formatError';
 import MongoDBDocumentService from '../../../editors/mongoDBDocumentService';
@@ -18,7 +17,6 @@ import { TestExtensionContext } from '../stubs';
 const expect = chai.expect;
 
 suite('MongoDB Document Service Test Suite', () => {
-  const testDocumentIdStore = new DocumentIdStore();
   const mockExtensionContext = new TestExtensionContext();
   const testStorageController = new StorageController(mockExtensionContext);
   const testStatusView = new StatusView(mockExtensionContext);
@@ -33,7 +31,6 @@ suite('MongoDB Document Service Test Suite', () => {
   );
   const testMongoDBDocumentService = new MongoDBDocumentService(
     mockExtensionContext,
-    testDocumentIdStore,
     testConnectionController,
     testStatusView,
     testTelemetryService

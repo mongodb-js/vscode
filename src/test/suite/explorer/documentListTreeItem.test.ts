@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
+import { before } from 'mocha';
 import assert from 'assert';
+import type { DataService } from 'mongodb-data-service';
 
 const { contributes } = require('../../../../package.json');
 
@@ -12,13 +14,19 @@ import DocumentListTreeItem, {
 import { DataServiceStub, mockDocuments } from '../stubs';
 
 suite('DocumentListTreeItem Test Suite', () => {
+  let dataServiceMock: DataService;
+
+  before(() => {
+    dataServiceMock = new DataServiceStub() as any as DataService;
+  });
+
   test('its context value should be in the package json', () => {
     let documentListRegisteredCommandInPackageJson = false;
     const testDocumentListTreeItem = new DocumentListTreeItem(
       'collectionName',
       'databaseName',
       CollectionTypes.collection,
-      'not_real_dataservice',
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
@@ -44,7 +52,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'collectionName',
       'databaseName',
       CollectionTypes.collection,
-      'not_real_dataservice',
+      'not_real_dataservice' as any as DataService,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
@@ -75,7 +83,7 @@ suite('DocumentListTreeItem Test Suite', () => {
         'mock_collection_name',
         'mock_db_name',
         CollectionTypes.collection,
-        new DataServiceStub(),
+        dataServiceMock,
         false,
         MAX_DOCUMENTS_VISIBLE,
         null,
@@ -96,7 +104,7 @@ suite('DocumentListTreeItem Test Suite', () => {
         'mock_collection_name',
         'mock_db_name',
         CollectionTypes.collection,
-        new DataServiceStub(),
+        dataServiceMock,
         false,
         MAX_DOCUMENTS_VISIBLE,
         null,
@@ -119,7 +127,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name',
       'mock_db_name',
       CollectionTypes.view,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
@@ -139,7 +147,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_1',
       'mock_db_name',
       CollectionTypes.collection,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -166,7 +174,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_2',
       'mock_db_name',
       CollectionTypes.collection,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -193,7 +201,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_3',
       'mock_db_name',
       CollectionTypes.collection,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -225,7 +233,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -258,7 +266,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_1',
       'mock_db_name',
       CollectionTypes.collection,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       maxDocs,
@@ -275,7 +283,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       maxDocs,
@@ -300,7 +308,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.view,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
@@ -319,7 +327,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
@@ -340,7 +348,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -357,7 +365,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      new DataServiceStub(),
+      dataServiceMock,
       false,
       MAX_DOCUMENTS_VISIBLE,
       2200000,

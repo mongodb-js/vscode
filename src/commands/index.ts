@@ -60,6 +60,7 @@ enum EXTENSION_COMMANDS {
   MDB_CREATE_INDEX_TREE_VIEW = 'mdb.createIndexFromTreeView',
   MDB_INSERT_OBJECTID_TO_EDITOR = 'mdb.insertObjectIdToEditor',
   MDB_GENERATE_OBJECTID_TO_CLIPBOARD = 'mdb.generateObjectIdToClipboard',
+  MDB_COPY_DOCUMENT_CONTENTS_FROM_TREE_VIEW = 'mdb.copyDocumentContentsFromTreeView',
 }
 
 export default EXTENSION_COMMANDS;
