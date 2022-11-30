@@ -17,12 +17,14 @@ export default class DocumentTreeItem
   dataService: DataService;
   document: Document;
   documentId: EJSON.SerializableTypes;
+  resetDocumentListCache: () => Promise<void>;
 
   constructor(
     document: Document,
     namespace: string,
     documentIndexInTree: number,
-    dataService: DataService
+    dataService: DataService,
+    resetDocumentListCache: () => Promise<void>
   ) {
     // A document can not have a `_id` when it is in a view. In this instance
     // we just show the document's index in the tree.
@@ -41,6 +43,7 @@ export default class DocumentTreeItem
     this.document = document;
     this.documentId = document._id;
     this.namespace = namespace;
+    this.resetDocumentListCache = resetDocumentListCache;
 
     this.tooltip = documentLabel;
   }
@@ -67,6 +70,47 @@ export default class DocumentTreeItem
       }
 
       return EJSON.stringify(documents[0], undefined, 2);
+    } catch (error) {
+      throw new Error(formatError(error).message);
+    }
+  }
+
+  async onDeleteDocumentClicked(): Promise<boolean> {
+    const shouldConfirmDeleteDocument = vscode.workspace
+      .getConfiguration('mdb')
+      .get('confirmDeleteDocument');
+
+    if (shouldConfirmDeleteDocument === true) {
+      const confirmationResult = await vscode.window.showInformationMessage(
+        `Are you sure you wish to drop this document "${this.tooltip}"?  This confirmation can be disabled in the extension settings.`,
+        {
+          modal: true,
+        },
+        'Yes'
+      );
+
+      if (confirmationResult !== 'Yes') {
+        return false;
+      }
+    }
+
+    try {
+      const deleteOne = promisify(
+        this.dataService.deleteOne.bind(this.dataService)
+      );
+      const deleteResult = await deleteOne(
+        this.namespace,
+        { _id: this.documentId },
+        {}
+      );
+
+      if (deleteResult.deletedCount !== 1) {
+        throw new Error('document not found');
+      }
+
+      await this.resetDocumentListCache();
+
+      return true;
     } catch (error) {
       throw new Error(formatError(error).message);
     }

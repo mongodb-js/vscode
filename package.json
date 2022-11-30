@@ -412,6 +412,10 @@
       {
         "command": "mdb.copyDocumentContentsFromTreeView",
         "title": "Copy Document"
+      },
+      {
+        "command": "mdb.deleteDocumentFromTreeView",
+        "title": "Delete Document..."
       }
     ],
     "menus": {
@@ -608,6 +612,11 @@
           "command": "mdb.copyDocumentContentsFromTreeView",
           "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
           "group": "2@1"
+        },
+        {
+          "command": "mdb.deleteDocumentFromTreeView",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
+          "group": "3@1"
         }
       ],
       "editor/title": [
@@ -781,6 +790,10 @@
         {
           "command": "mdb.copyDocumentContentsFromTreeView",
           "when": "false"
+        },
+        {
+          "command": "mdb.deleteDocumentFromTreeView",
+          "when": "false"
         }
       ]
     },
@@ -903,6 +916,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show a confirmation message before running commands in a playground."
+        },
+        "mdb.confirmDeleteDocument": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a confirmation message before deleting a document from the tree view."
         },
         "mdb.sendTelemetry": {
           "type": "boolean",

@@ -175,7 +175,8 @@ export default class DocumentListTreeItem
             (pastTreeItem as DocumentTreeItem).document,
             this.namespace,
             index,
-            this._dataService
+            this._dataService,
+            () => this.resetCache()
           )
         );
       });
@@ -223,7 +224,8 @@ export default class DocumentListTreeItem
             document,
             this.namespace,
             index,
-            this._dataService
+            this._dataService,
+            () => this.resetCache()
           )
         );
       });
