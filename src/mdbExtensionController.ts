@@ -575,7 +575,6 @@ export default class MDBExtensionController implements vscode.Disposable {
           // When we successfully drop a document, we need
           // to update the explorer view.
           this._explorerController.refresh();
-          // TODO ^^ Do we need to refresh the whole explorer controller.
         }
 
         return successfullyDropped;
