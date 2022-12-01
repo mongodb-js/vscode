@@ -309,8 +309,12 @@ export default class EditorsController {
 
     // Ensure we're still connected to the correct connection.
     if (connectionId !== this._connectionController.getActiveConnectionId()) {
+      const oldConnectionName =
+        this._connectionController.getSavedConnectionName(connectionId || '') ||
+        'the connection';
+
       void vscode.window.showErrorMessage(
-        `Unable to view more documents: no longer connected to ${connectionId}`
+        `Unable to view more documents: no longer connected to ${oldConnectionName}`
       );
 
       return Promise.resolve(false);
