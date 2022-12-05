@@ -161,27 +161,35 @@ export default class PlaygroundController {
 
     vscode.window.onDidChangeTextEditorSelection(
       async (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
-        if (changeEvent?.textEditor?.document?.languageId === 'mongodb') {
-          // Sort lines selected as the may be mis-ordered from alt+click.
-          const sortedSelections = (
-            changeEvent.selections as Array<vscode.Selection>
-          ).sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
-
-          this._selectedText = sortedSelections
-            .map((item) => this._getSelectedText(item))
-            .join('\n');
-
-          const mode =
-            await this._languageServerController.getExportToLanguageMode({
-              textFromEditor: this._getAllText(),
-              selection: sortedSelections[0],
-            });
-
-          this._codeActionProvider.refresh({
-            selection: sortedSelections[0],
-            mode,
-          });
+        if (changeEvent?.textEditor?.document?.languageId !== 'mongodb') {
+          return;
         }
+
+        // Sort lines selected as the may be mis-ordered from alt+click.
+        const sortedSelections = (
+          changeEvent.selections as Array<vscode.Selection>
+        ).sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
+
+        const selectedText = sortedSelections
+          .map((item) => this._getSelectedText(item))
+          .join('\n');
+
+        if (selectedText === this._selectedText) {
+          return;
+        }
+
+        this._selectedText = selectedText;
+
+        const mode =
+          await this._languageServerController.getExportToLanguageMode({
+            textFromEditor: this._getAllText(),
+            selection: sortedSelections[0],
+          });
+
+        this._codeActionProvider.refresh({
+          selection: sortedSelections[0],
+          mode,
+        });
       }
     );
   }
