@@ -62,7 +62,7 @@ export default class CollectionViewProvider
       operation.isCurrentlyFetchingMoreDocuments = false;
       const oldConnectionName =
         this._connectionController.getSavedConnectionName(connectionId || '') ||
-        'the connection';
+        'the database';
       void vscode.window.showErrorMessage(
         `Unable to list documents: no longer connected to ${oldConnectionName}`
       );

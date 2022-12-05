@@ -114,7 +114,7 @@ export default class MongoDBDocumentService {
       this._connectionController.getActiveConnectionId();
     const connectionName = connectionId
       ? this._connectionController.getSavedConnectionName(connectionId)
-      : '';
+      : 'the database';
 
     if (activeConnectionId !== connectionId) {
       return this._fetchDocumentFailed(
