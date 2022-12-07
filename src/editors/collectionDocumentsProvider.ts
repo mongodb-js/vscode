@@ -60,12 +60,15 @@ export default class CollectionViewProvider
     // Ensure we're still connected to the correct connection.
     if (connectionId !== this._connectionController.getActiveConnectionId()) {
       operation.isCurrentlyFetchingMoreDocuments = false;
+      const oldConnectionName =
+        this._connectionController.getSavedConnectionName(connectionId || '') ||
+        'the database';
       void vscode.window.showErrorMessage(
-        `Unable to list documents: no longer connected to ${connectionId}`
+        `Unable to list documents: no longer connected to ${oldConnectionName}`
       );
 
       throw new Error(
-        `Unable to list documents: no longer connected to ${connectionId}`
+        `Unable to list documents: no longer connected to ${oldConnectionName}`
       );
     }
 
@@ -74,7 +77,7 @@ export default class CollectionViewProvider
     const dataservice = this._connectionController.getActiveDataService();
 
     if (dataservice === null) {
-      const errorMessage = `Unable to list documents: no longer connected to ${connectionId}`;
+      const errorMessage = 'Unable to list documents: no longer connected';
 
       void vscode.window.showErrorMessage(errorMessage);
 
