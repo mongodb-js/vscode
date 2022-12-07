@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import { DataService } from 'mongodb-data-service';
+import { ObjectId } from 'mongodb';
 import sinon, { SinonSpy } from 'sinon';
 
 import {
@@ -28,7 +29,7 @@ const testDatabaseURI = 'mongodb://localhost:27018';
 suite('MDBExtensionController Test Suite', function () {
   this.timeout(10000);
 
-  const sandbox: any = sinon.createSandbox();
+  const sandbox = sinon.createSandbox();
   let fakeShowInformationMessage: sinon.SinonStub;
 
   beforeEach(() => {
@@ -46,10 +47,10 @@ suite('MDBExtensionController Test Suite', function () {
   });
 
   test('mdb.viewCollectionDocuments command should call onViewCollectionDocuments on the editor controller with the collection namespace', async () => {
-    const mockOpenTextDocument: any = sinon.fake.resolves('magna carta');
+    const mockOpenTextDocument = sinon.fake.resolves('magna carta');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
     const textCollectionTree = new CollectionTreeItem(
@@ -68,30 +69,31 @@ suite('MDBExtensionController Test Suite', function () {
       'mdb.viewCollectionDocuments',
       textCollectionTree
     );
-    assert(
-      mockOpenTextDocument.firstArg.path.indexOf(
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].path.indexOf(
         'Results: testDbName.testColName'
-      ) === 0
+      ),
+      0
     );
-    assert(mockOpenTextDocument.firstArg.path.includes('.json'));
-    assert(mockOpenTextDocument.firstArg.scheme === VIEW_COLLECTION_SCHEME);
+    assert(mockOpenTextDocument.firstCall.args[0].path.includes('.json'));
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].scheme,
+      VIEW_COLLECTION_SCHEME
+    );
     assert(
-      mockOpenTextDocument.firstArg.query.includes(
+      mockOpenTextDocument.firstCall.args[0].query.includes(
         'namespace=testDbName.testColName'
       )
     );
 
-    assert(
-      mockShowTextDocument.firstArg === 'magna carta',
-      'Expected it to call vscode to show the returned documents from the provider'
-    );
+    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'magna carta');
   });
 
   test('mdb.viewCollectionDocuments command should also work with the documents list', async () => {
-    const mockOpenTextDocument: any = sinon.fake.resolves('magna carta');
+    const mockOpenTextDocument = sinon.fake.resolves('magna carta');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
     const textCollectionTree = new CollectionTreeItem(
@@ -110,27 +112,28 @@ suite('MDBExtensionController Test Suite', function () {
       'mdb.viewCollectionDocuments',
       textCollectionTree
     );
-    assert(
-      mockOpenTextDocument.firstArg.path.indexOf(
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].path.indexOf(
         'Results: testDbName.testColName'
-      ) === 0
+      ),
+      0
     );
-    assert(mockOpenTextDocument.firstArg.path.includes('.json'));
-    assert(mockOpenTextDocument.firstArg.scheme === VIEW_COLLECTION_SCHEME);
+    assert(mockOpenTextDocument.firstCall.args[0].path.includes('.json'));
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].scheme,
+      VIEW_COLLECTION_SCHEME
+    );
     assert(
-      mockOpenTextDocument.firstArg.query.includes(
+      mockOpenTextDocument.firstCall.args[0].query.includes(
         'namespace=testDbName.testColName'
       )
     );
 
-    assert(
-      mockShowTextDocument.firstArg === 'magna carta',
-      'Expected it to call vscode to show the returned documents from the provider'
-    );
+    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'magna carta');
   });
 
   test('mdb.addConnection command should call openWebview on the webview controller', async () => {
-    const mockOpenWebview: any = sinon.fake();
+    const mockOpenWebview = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._webviewController,
       'openWebview',
@@ -138,14 +141,11 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     await vscode.commands.executeCommand('mdb.addConnection');
-    assert(
-      mockOpenWebview.called,
-      'Expected "mockOpenWebview" to be called on the webview controller.'
-    );
+    assert.strictEqual(mockOpenWebview.calledOnce, true);
   });
 
   test('mdb.addConnectionWithURI command should call connectWithURI on the connection controller', async () => {
-    const mockConnectWithUri: any = sinon.fake();
+    const mockConnectWithUri = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'connectWithURI',
@@ -153,10 +153,7 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     await vscode.commands.executeCommand('mdb.addConnectionWithURI');
-    assert(
-      mockConnectWithUri.called,
-      'Expected "connectWithURI" to be called on the connection controller.'
-    );
+    assert.strictEqual(mockConnectWithUri.calledOnce, true);
   });
 
   test('mdb.refreshConnection command should reset the cache on a connection tree item', async () => {
@@ -171,7 +168,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     mockTreeItem.cacheIsUpToDate = true;
 
-    const mockExplorerControllerRefresh: any = sinon.fake();
+    const mockExplorerControllerRefresh = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._explorerController,
       'refresh',
@@ -201,7 +198,7 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const mockRemoveMongoDBConnection: any = sinon.fake();
+    const mockRemoveMongoDBConnection = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'removeMongoDBConnection',
@@ -212,14 +209,10 @@ suite('MDBExtensionController Test Suite', function () {
       'mdb.treeItemRemoveConnection',
       mockTreeItem
     );
-    assert(
-      mockRemoveMongoDBConnection.called,
-      'Expected "removeMongoDBConnection" to be called on the connection controller.'
-    );
-    assert(
-      mockRemoveMongoDBConnection.firstArg ===
-        'craving_for_pancakes_with_maple_syrup',
-      `Expected the mock connection controller to be called to remove the connection with the id "craving_for_pancakes_with_maple_syrup", found ${mockRemoveMongoDBConnection.firstArg}.`
+    assert.strictEqual(mockRemoveMongoDBConnection.calledOnce, true);
+    assert.strictEqual(
+      mockRemoveMongoDBConnection.firstCall.args[0],
+      'craving_for_pancakes_with_maple_syrup'
     );
   });
 
@@ -233,13 +226,13 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const mockCopyToClipboard: any = sinon.fake();
+    const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
       readText: sinon.fake() as any,
     }));
 
-    const mockStubUri: any = sinon.fake.returns('weStubThisUri');
+    const mockStubUri = sinon.fake.returns('weStubThisUri');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'copyConnectionStringByConnectionId',
@@ -250,14 +243,8 @@ suite('MDBExtensionController Test Suite', function () {
       'mdb.copyConnectionString',
       mockTreeItem
     );
-    assert(
-      mockCopyToClipboard.called,
-      'Expected "writeText" to be called on "vscode.env.clipboard".'
-    );
-    assert(
-      mockCopyToClipboard.firstArg === 'weStubThisUri',
-      `Expected the clipboard to be sent the uri string "weStubThisUri", found ${mockCopyToClipboard.firstArg}.`
-    );
+    assert.strictEqual(mockCopyToClipboard.calledOnce, true);
+    assert.strictEqual(mockCopyToClipboard.firstCall.args[0], 'weStubThisUri');
   });
 
   test('mdb.copyDatabaseName command should try to copy the database name to the vscode env clipboard', async () => {
@@ -269,20 +256,17 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const mockCopyToClipboard: any = sinon.fake();
+    const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
       readText: sinon.fake() as any,
     }));
 
     await vscode.commands.executeCommand('mdb.copyDatabaseName', mockTreeItem);
-    assert(
-      mockCopyToClipboard.called,
-      'Expected "writeText" to be called on "vscode.env.clipboard".'
-    );
-    assert(
-      mockCopyToClipboard.firstArg === 'isClubMateTheBestDrinkEver',
-      `Expected the clipboard to be sent the uri string "isClubMateTheBestDrinkEver", found ${mockCopyToClipboard.firstArg}.`
+    assert.strictEqual(mockCopyToClipboard.calledOnce, true);
+    assert.strictEqual(
+      mockCopyToClipboard.firstCall.args[0],
+      'isClubMateTheBestDrinkEver'
     );
   });
 
@@ -299,7 +283,7 @@ suite('MDBExtensionController Test Suite', function () {
       null
     );
 
-    const mockCopyToClipboard: any = sinon.fake();
+    const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
       readText: sinon.fake() as any,
@@ -314,8 +298,8 @@ suite('MDBExtensionController Test Suite', function () {
       'Expected "writeText" to be called on "vscode.env.clipboard".'
     );
     assert(
-      mockCopyToClipboard.firstArg === 'waterBuffalo',
-      `Expected the clipboard to be sent the uri string "waterBuffalo", found ${mockCopyToClipboard.firstArg}.`
+      mockCopyToClipboard.firstCall.args[0] === 'waterBuffalo',
+      `Expected the clipboard to be sent the uri string "waterBuffalo", found ${mockCopyToClipboard.firstCall.args[0]}.`
     );
   });
 
@@ -331,7 +315,7 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const mockCopyToClipboard: any = sinon.fake();
+    const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
       readText: sinon.fake() as any,
@@ -348,8 +332,8 @@ suite('MDBExtensionController Test Suite', function () {
       'Expected "writeText" to be called on "vscode.env.clipboard".'
     );
     assert(
-      mockCopyToClipboard.firstArg === 'dolphins are sentient',
-      `Expected the clipboard to be sent the schema field name "dolphins are sentient", found ${mockCopyToClipboard.firstArg}.`
+      mockCopyToClipboard.firstCall.args[0] === 'dolphins are sentient',
+      `Expected the clipboard to be sent the schema field name "dolphins are sentient", found ${mockCopyToClipboard.firstCall.args[0]}.`
     );
   });
 
@@ -364,7 +348,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     mockTreeItem.cacheIsUpToDate = true;
 
-    const mockExplorerControllerRefresh: any = sinon.fake();
+    const mockExplorerControllerRefresh = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._explorerController,
       'refresh',
@@ -402,7 +386,7 @@ suite('MDBExtensionController Test Suite', function () {
     mockTreeItem.getSchemaChild().isExpanded = true;
     mockTreeItem.getDocumentListChild().isExpanded = true;
 
-    const mockExplorerControllerRefresh: any = sinon.fake();
+    const mockExplorerControllerRefresh = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._explorerController,
       'refresh',
@@ -445,7 +429,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     docListTreeItem.isExpanded = true;
 
-    const mockExplorerControllerRefresh: any = sinon.fake();
+    const mockExplorerControllerRefresh = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._explorerController,
       'refresh',
@@ -486,7 +470,7 @@ suite('MDBExtensionController Test Suite', function () {
     // Set cached.
     mockTreeItem.cacheIsUpToDate = true;
 
-    const mockExplorerControllerRefresh: any = sinon.fake();
+    const mockExplorerControllerRefresh = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._explorerController,
       'refresh',
@@ -517,7 +501,7 @@ suite('MDBExtensionController Test Suite', function () {
     // Set cached.
     mockTreeItem.cacheIsUpToDate = true;
 
-    const mockExplorerControllerRefresh: any = sinon.fake();
+    const mockExplorerControllerRefresh = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._explorerController,
       'refresh',
@@ -545,7 +529,7 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const fakeVscodeErrorMessage: any = sinon.fake();
+    const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
     const addDatabaseSucceeded = await vscode.commands.executeCommand(
@@ -559,8 +543,8 @@ suite('MDBExtensionController Test Suite', function () {
     const expectedMessage =
       'Please connect to this connection before adding a database.';
     assert(
-      fakeVscodeErrorMessage.firstArg === expectedMessage,
-      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstArg}"`
+      fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeVscodeErrorMessage.firstCall.args[0]}"`
     );
   });
 
@@ -574,30 +558,36 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveConnectionId',
       mockActiveConnectionId
     );
 
-    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
     await vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem);
 
-    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(mockOpenTextDocument.firstCall.args[0].language === 'mongodb');
     assert(
-      mockOpenTextDocument.firstArg.content.includes(
+      mockOpenTextDocument.firstCall.args[0].content.includes(
         '// Create a new database.'
       )
     );
-    assert(mockOpenTextDocument.firstArg.content.includes('NEW_DATABASE_NAME'));
     assert(
-      mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME')
+      mockOpenTextDocument.firstCall.args[0].content.includes(
+        'NEW_DATABASE_NAME'
+      )
+    );
+    assert(
+      mockOpenTextDocument.firstCall.args[0].content.includes(
+        'NEW_COLLECTION_NAME'
+      )
     );
   });
 
@@ -616,17 +606,17 @@ suite('MDBExtensionController Test Suite', function () {
     mockInputBoxResolves.onCall(1).resolves('theCollectionName');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    const mockIsDisconnecting: any = sinon.fake.returns(true);
+    const mockIsDisconnecting = sinon.fake.returns(true);
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'isDisconnecting',
       mockIsDisconnecting
     );
 
-    const fakeVscodeErrorMessage: any = sinon.fake();
+    const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
-    const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveConnectionId',
@@ -643,8 +633,8 @@ suite('MDBExtensionController Test Suite', function () {
     );
     const expectedMessage = 'Unable to add database: currently disconnecting.';
     assert(
-      fakeVscodeErrorMessage.firstArg === expectedMessage,
-      `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${fakeVscodeErrorMessage.firstArg}"`
+      fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+      `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${fakeVscodeErrorMessage.firstCall.args[0]}"`
     );
   });
 
@@ -663,16 +653,16 @@ suite('MDBExtensionController Test Suite', function () {
     mockInputBoxResolves.onCall(1).resolves('theCollectionName');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    const mockIsConnecting: any = sinon.fake.returns(true);
+    const mockIsConnecting = sinon.fake.returns(true);
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'isConnecting',
       mockIsConnecting
     );
 
-    const fakeVscodeErrorMessage: any = sinon.fake();
+    const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-    const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveConnectionId',
@@ -689,8 +679,8 @@ suite('MDBExtensionController Test Suite', function () {
     );
     const expectedMessage = 'Unable to add database: currently connecting.';
     assert(
-      fakeVscodeErrorMessage.firstArg === expectedMessage,
-      `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${fakeVscodeErrorMessage.firstArg}"`
+      fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+      `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${fakeVscodeErrorMessage.firstCall.args[0]}"`
     );
   });
 
@@ -703,32 +693,38 @@ suite('MDBExtensionController Test Suite', function () {
       {}
     );
 
-    const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveConnectionId',
       mockActiveConnectionId
     );
 
-    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
     await vscode.commands.executeCommand('mdb.addCollection', mockTreeItem);
 
-    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert(mockOpenTextDocument.firstCall.args[0].language === 'mongodb');
     assert(
-      mockOpenTextDocument.firstArg.content.includes(
+      mockOpenTextDocument.firstCall.args[0].content.includes(
         '// The current database to use.'
       )
     );
-    assert(mockOpenTextDocument.firstArg.content.includes('iceCreamDB'));
     assert(
-      mockOpenTextDocument.firstArg.content.includes('NEW_COLLECTION_NAME')
+      mockOpenTextDocument.firstCall.args[0].content.includes('iceCreamDB')
     );
-    assert(!mockOpenTextDocument.firstArg.content.includes('time-series'));
+    assert(
+      mockOpenTextDocument.firstCall.args[0].content.includes(
+        'NEW_COLLECTION_NAME'
+      )
+    );
+    assert(
+      !mockOpenTextDocument.firstCall.args[0].content.includes('time-series')
+    );
   });
 
   test('mdb.addCollection command fails when disconnecting', async () => {
@@ -744,14 +740,14 @@ suite('MDBExtensionController Test Suite', function () {
     mockInputBoxResolves.onCall(0).resolves('mintChocolateChips');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    const mockIsDisconnecting: any = sinon.fake.returns(true);
+    const mockIsDisconnecting = sinon.fake.returns(true);
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'isDisconnecting',
       mockIsDisconnecting
     );
 
-    const fakeVscodeErrorMessage: any = sinon.fake();
+    const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
     const addCollectionSucceeded = await vscode.commands.executeCommand(
@@ -765,8 +761,8 @@ suite('MDBExtensionController Test Suite', function () {
     const expectedMessage =
       'Unable to add collection: currently disconnecting.';
     assert(
-      fakeVscodeErrorMessage.firstArg === expectedMessage,
-      `Expected "${expectedMessage}" when adding a database to a not connected connection, recieved "${fakeVscodeErrorMessage.firstArg}"`
+      fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+      `Expected "${expectedMessage}" when adding a database to a not connected connection, recieved "${fakeVscodeErrorMessage.firstCall.args[0]}"`
     );
   });
 
@@ -820,7 +816,7 @@ suite('MDBExtensionController Test Suite', function () {
     mockInputBoxResolves.onCall(0).resolves('doesntExistColName');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    const fakeVscodeErrorMessage: any = sinon.fake();
+    const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
     const successfullyDropped = await vscode.commands.executeCommand(
@@ -833,8 +829,8 @@ suite('MDBExtensionController Test Suite', function () {
     );
     const expectedMessage = 'Drop collection failed: ns not found';
     assert(
-      fakeVscodeErrorMessage.firstArg === expectedMessage,
-      `Expected "${expectedMessage}" when dropping a collection that doesn't exist, recieved "${fakeVscodeErrorMessage.firstArg}"`
+      fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
+      `Expected "${expectedMessage}" when dropping a collection that doesn't exist, recieved "${fakeVscodeErrorMessage.firstCall.args[0]}"`
     );
 
     await testConnectionController.disconnect();
@@ -935,7 +931,7 @@ suite('MDBExtensionController Test Suite', function () {
     mockInputBoxResolves.onCall(0).resolves('narnia____a');
     sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
 
-    const fakeVscodeErrorMessage: any = sinon.fake();
+    const fakeVscodeErrorMessage = sinon.fake();
     sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
 
     const successfullyDropped = await vscode.commands.executeCommand(
@@ -1080,13 +1076,13 @@ suite('MDBExtensionController Test Suite', function () {
       },
     };
 
-    const mockOpenTextDocument: any = sinon.fake.resolves('magna carta');
+    const mockOpenTextDocument = sinon.fake.resolves('magna carta');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    const mockGet: any = sinon.fake.returns('pancakes');
+    const mockGet = sinon.fake.returns('pancakes');
     sinon.replace(
       mdbTestExtension.testExtensionController._editorsController
         ._documentIdStore,
@@ -1112,14 +1108,14 @@ suite('MDBExtensionController Test Suite', function () {
       () => activeTextEditor
     );
 
-    const mockActiveConnectionId: any = sinon.fake.returns('tasty_sandwhich');
+    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveConnectionId',
       mockActiveConnectionId
     );
 
-    const mockGetActiveDataService: any = sinon.fake.returns({
+    const mockGetActiveDataService = sinon.fake.returns({
       find: (
         namespace: string,
         filter: object,
@@ -1159,18 +1155,26 @@ suite('MDBExtensionController Test Suite', function () {
       documentItem
     );
 
-    assert(mockOpenTextDocument.firstArg.path.includes('.json'));
-    assert(mockOpenTextDocument.firstArg.scheme === 'VIEW_DOCUMENT_SCHEME');
-    assert(mockOpenTextDocument.firstArg.query.includes('documentId='));
-    assert(mockOpenTextDocument.firstArg.query.includes('connectionId='));
-    assert(mockOpenTextDocument.firstArg.query.includes('source=treeview'));
-    assert(
-      mockOpenTextDocument.firstArg.query.includes('namespace=waffle.house')
+    assert(mockOpenTextDocument.firstCall.args[0].path.includes('.json'));
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].scheme,
+      'VIEW_DOCUMENT_SCHEME'
     );
     assert(
-      mockShowTextDocument.firstArg === 'magna carta',
-      'Expected it to call vscode to show the returned document from the provider'
+      mockOpenTextDocument.firstCall.args[0].query.includes('documentId=')
     );
+    assert(
+      mockOpenTextDocument.firstCall.args[0].query.includes('connectionId=')
+    );
+    assert(
+      mockOpenTextDocument.firstCall.args[0].query.includes('source=treeview')
+    );
+    assert(
+      mockOpenTextDocument.firstCall.args[0].query.includes(
+        'namespace=waffle.house'
+      )
+    );
+    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'magna carta');
 
     await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
 
@@ -1181,7 +1185,7 @@ suite('MDBExtensionController Test Suite', function () {
       "The document was saved successfully to 'waffle.house'";
 
     assert.strictEqual(
-      fakeShowInformationMessage.firstCall.firstArg,
+      fakeShowInformationMessage.firstCall.args[0],
       expectedMessage
     );
   });
@@ -1202,7 +1206,7 @@ suite('MDBExtensionController Test Suite', function () {
       () => Promise.resolve()
     );
 
-    const mockFetchDocument: any = sinon.fake.resolves(null);
+    const mockFetchDocument = sinon.fake.resolves(null);
     sinon.replace(
       mdbTestExtension.testExtensionController._editorsController
         ._mongoDBDocumentService,
@@ -1215,7 +1219,7 @@ suite('MDBExtensionController Test Suite', function () {
       documentItem
     );
 
-    assert(mockFetchDocument.firstArg.source === 'treeview');
+    assert.strictEqual(mockFetchDocument.firstCall.args[0].source, 'treeview');
   });
 
   test('document opened from playground results has treeview source', async () => {
@@ -1227,7 +1231,7 @@ suite('MDBExtensionController Test Suite', function () {
       connectionId: null,
     };
 
-    const mockFetchDocument: any = sinon.fake.resolves(null);
+    const mockFetchDocument = sinon.fake.resolves(null);
     sinon.replace(
       mdbTestExtension.testExtensionController._editorsController
         ._mongoDBDocumentService,
@@ -1240,7 +1244,10 @@ suite('MDBExtensionController Test Suite', function () {
       documentItem
     );
 
-    assert(mockFetchDocument.firstArg.source === 'playground');
+    assert.strictEqual(
+      mockFetchDocument.firstCall.args[0].source,
+      'playground'
+    );
   });
 
   test('fetchDocument recieves treeview source if document opened from a tree', async () => {
@@ -1252,10 +1259,10 @@ suite('MDBExtensionController Test Suite', function () {
       },
     };
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    const mockGet: any = sinon.fake.returns('pancakes');
+    const mockGet = sinon.fake.returns('pancakes');
     sinon.replace(
       mdbTestExtension.testExtensionController._editorsController
         ._documentIdStore,
@@ -1263,23 +1270,28 @@ suite('MDBExtensionController Test Suite', function () {
       mockGet
     );
 
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-            'source=treeview',
-          ].join('&'),
-        },
-        getText: () => JSON.stringify(mockDocument),
-        save: () => {},
-      },
-    }));
+    sandbox.replaceGetter(
+      vscode.window,
+      'activeTextEditor',
+      () =>
+        ({
+          document: {
+            uri: {
+              scheme: 'VIEW_DOCUMENT_SCHEME',
+              query: [
+                'namespace=waffle.house',
+                'connectionId=tasty_sandwhich',
+                'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+                'source=treeview',
+              ].join('&'),
+            },
+            getText: () => JSON.stringify(mockDocument),
+            save: () => {},
+          },
+        } as any)
+    );
 
-    const mockReplaceDocument: any = sinon.fake.resolves(null);
+    const mockReplaceDocument = sinon.fake.resolves(null);
     sinon.replace(
       mdbTestExtension.testExtensionController._editorsController
         ._mongoDBDocumentService,
@@ -1289,7 +1301,10 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
 
-    assert(mockReplaceDocument.firstArg.source === 'treeview');
+    assert.strictEqual(
+      mockReplaceDocument.firstCall.args[0].source,
+      'treeview'
+    );
   });
 
   test('fetchDocument recieves playground source if document opened from playground results', async () => {
@@ -1301,10 +1316,10 @@ suite('MDBExtensionController Test Suite', function () {
       },
     };
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    const mockGet: any = sinon.fake.returns('pancakes');
+    const mockGet = sinon.fake.returns('pancakes');
     sinon.replace(
       mdbTestExtension.testExtensionController._editorsController
         ._documentIdStore,
@@ -1312,23 +1327,28 @@ suite('MDBExtensionController Test Suite', function () {
       mockGet
     );
 
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: {
-        uri: {
-          scheme: 'VIEW_DOCUMENT_SCHEME',
-          query: [
-            'namespace=waffle.house',
-            'connectionId=tasty_sandwhich',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-            'source=playground',
-          ].join('&'),
-        },
-        getText: () => JSON.stringify(mockDocument),
-        save: () => {},
-      },
-    }));
+    sandbox.replaceGetter(
+      vscode.window,
+      'activeTextEditor',
+      () =>
+        ({
+          document: {
+            uri: {
+              scheme: 'VIEW_DOCUMENT_SCHEME',
+              query: [
+                'namespace=waffle.house',
+                'connectionId=tasty_sandwhich',
+                'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+                'source=playground',
+              ].join('&'),
+            },
+            getText: () => JSON.stringify(mockDocument),
+            save: () => {},
+          },
+        } as any)
+    );
 
-    const mockReplaceDocument: any = sinon.fake.resolves(null);
+    const mockReplaceDocument = sinon.fake.resolves(null);
     sinon.replace(
       mdbTestExtension.testExtensionController._editorsController
         ._mongoDBDocumentService,
@@ -1338,14 +1358,17 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
 
-    assert(mockReplaceDocument.firstArg.source === 'playground');
+    assert.strictEqual(
+      mockReplaceDocument.firstCall.args[0].source,
+      'playground'
+    );
   });
 
   test('mdb.searchForDocuments should create a MongoDB playground with search template', async () => {
-    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
     await vscode.commands.executeCommand('mdb.searchForDocuments', {
@@ -1353,25 +1376,29 @@ suite('MDBExtensionController Test Suite', function () {
       collectionName: 'colllllllllName',
     });
 
-    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].language,
+      'mongodb'
+    );
     assert(
-      mockOpenTextDocument.firstArg.content.includes(
+      mockOpenTextDocument.firstCall.args[0].content.includes(
         'Search for documents in the current collection.'
       )
     );
-    assert(mockOpenTextDocument.firstArg.content.includes('dbbbbbName'));
-    assert(mockOpenTextDocument.firstArg.content.includes('colllllllllName'));
     assert(
-      mockShowTextDocument.firstArg === 'untitled',
-      'Expected it to call vscode to show the playground'
+      mockOpenTextDocument.firstCall.args[0].content.includes('dbbbbbName')
     );
+    assert(
+      mockOpenTextDocument.firstCall.args[0].content.includes('colllllllllName')
+    );
+    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
   });
 
   test('mdb.createIndexFromTreeView should create a MongoDB playground with index template', async () => {
-    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
     await vscode.commands.executeCommand('mdb.createIndexFromTreeView', {
@@ -1379,83 +1406,89 @@ suite('MDBExtensionController Test Suite', function () {
       collectionName: 'colllllllllName',
     });
 
-    assert(mockOpenTextDocument.firstArg.language === 'mongodb');
-    assert(mockOpenTextDocument.firstArg.content.includes('dbbbbbName'));
-    assert(mockOpenTextDocument.firstArg.content.includes('colllllllllName'));
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].language,
+      'mongodb'
+    );
     assert(
-      mockOpenTextDocument.firstArg.content.includes(
+      mockOpenTextDocument.firstCall.args[0].content.includes('dbbbbbName')
+    );
+    assert(
+      mockOpenTextDocument.firstCall.args[0].content.includes('colllllllllName')
+    );
+    assert(
+      mockOpenTextDocument.firstCall.args[0].content.includes(
         'Create a new index in the collection.'
       )
     );
-    assert(
-      mockShowTextDocument.firstArg === 'untitled',
-      'Expected it to call vscode to show the playground'
-    );
+    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
   });
 
   test('mdb.createPlayground should create a MongoDB playground with default template', async () => {
-    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    const mockGetConfiguration: any = sinon.fake.returns({
+    const mockGetConfiguration = sinon.fake.returns({
       get: () => true,
     });
     sinon.replace(vscode.workspace, 'getConfiguration', mockGetConfiguration);
 
     await vscode.commands.executeCommand('mdb.createPlayground');
 
-    assert.strictEqual(mockOpenTextDocument.firstArg.language, 'mongodb');
-    assert(
-      mockOpenTextDocument.firstArg.content.startsWith('// MongoDB Playground')
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].language,
+      'mongodb'
     );
     assert(
-      mockShowTextDocument.firstArg === 'untitled',
-      'Expected it to call vscode to show the playground'
+      mockOpenTextDocument.firstCall.args[0].content.startsWith(
+        '// MongoDB Playground'
+      )
     );
+    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
   });
 
   test('mdb.createNewPlaygroundFromViewAction should create a MongoDB playground', async () => {
-    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
     await vscode.commands.executeCommand('mdb.createPlayground');
-    assert.strictEqual(mockOpenTextDocument.firstArg.language, 'mongodb');
-    assert(
-      mockShowTextDocument.firstArg === 'untitled',
-      'Expected it to call vscode to show the playground'
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].language,
+      'mongodb'
     );
+    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
   });
 
   test('mdb.createPlayground command should create a MongoDB playground without template', async () => {
-    const mockOpenTextDocument: any = sinon.fake.resolves('untitled');
+    const mockOpenTextDocument = sinon.fake.resolves('untitled');
     sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
 
-    const mockShowTextDocument: any = sinon.fake();
+    const mockShowTextDocument = sinon.fake();
     sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
 
-    const mockGetConfiguration: any = sinon.fake.returns({
+    const mockGetConfiguration = sinon.fake.returns({
       get: () => false,
     });
     sinon.replace(vscode.workspace, 'getConfiguration', mockGetConfiguration);
 
     await vscode.commands.executeCommand('mdb.createPlayground');
 
-    assert.strictEqual(mockOpenTextDocument.firstArg.language, 'mongodb');
-    assert.strictEqual(mockOpenTextDocument.firstArg.content, '');
-    assert(
-      mockShowTextDocument.firstArg === 'untitled',
-      'Expected it to call vscode to show the playground'
+    assert.strictEqual(
+      mockOpenTextDocument.firstCall.args[0].language,
+      'mongodb'
     );
+    assert.strictEqual(mockOpenTextDocument.firstCall.args[0].content, '');
+    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
   });
 
   test('mdb.runSelectedPlaygroundBlocks command should call runSelectedPlaygroundBlocks on the playground controller', async () => {
-    const mockRunSelectedPlaygroundBlocks: any = sinon.fake();
+    const mockRunSelectedPlaygroundBlocks = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._playgroundController,
       'runSelectedPlaygroundBlocks',
@@ -1464,13 +1497,13 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.runSelectedPlaygroundBlocks');
     assert(
-      mockRunSelectedPlaygroundBlocks.called,
+      mockRunSelectedPlaygroundBlocks.calledOnce,
       'Expected "runSelectedPlaygroundBlocks" to be called on the playground controller.'
     );
   });
 
   test('mdb.runAllPlaygroundBlocks command should call runAllPlaygroundBlocks on the playground controller', async () => {
-    const mockRunAllPlaygroundBlocks: any = sinon.fake();
+    const mockRunAllPlaygroundBlocks = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._playgroundController,
       'runAllPlaygroundBlocks',
@@ -1479,13 +1512,13 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.runAllPlaygroundBlocks');
     assert(
-      mockRunAllPlaygroundBlocks.called,
+      mockRunAllPlaygroundBlocks.calledOnce,
       'Expected "runAllPlaygroundBlocks" to be called on the playground controller.'
     );
   });
 
   test('mdb.changeActiveConnection command should call changeActiveConnection on the playground controller', async () => {
-    const mockChangeActiveConnection: any = sinon.fake();
+    const mockChangeActiveConnection = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'changeActiveConnection',
@@ -1494,13 +1527,13 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.changeActiveConnection');
     assert(
-      mockChangeActiveConnection.called,
+      mockChangeActiveConnection.calledOnce,
       'Expected "changeActiveConnection" to be called on the playground controller.'
     );
   });
 
   test('mdb.refreshPlaygrounds command should call refreshPlaygrounds on the playgrounds explorer controller', async () => {
-    const mockRefreshPlaygrounds: any = sinon.fake();
+    const mockRefreshPlaygrounds = sinon.fake();
     sinon.replace(
       mdbTestExtension.testExtensionController._playgroundsExplorer,
       'refresh',
@@ -1509,7 +1542,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.refreshPlaygrounds');
     assert(
-      mockRefreshPlaygrounds.called,
+      mockRefreshPlaygrounds.calledOnce,
       'Expected "refreshPlaygrounds" to be called on the playground controller.'
     );
   });
@@ -1544,7 +1577,7 @@ suite('MDBExtensionController Test Suite', function () {
       () => Promise.resolve()
     );
 
-    const mockCopyToClipboard: any = sinon.fake();
+    const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
       readText: sinon.fake() as any,
@@ -1556,13 +1589,73 @@ suite('MDBExtensionController Test Suite', function () {
     );
     assert.strictEqual(mockCopyToClipboard.called, true);
     assert.strictEqual(
-      mockCopyToClipboard.firstArg,
+      mockCopyToClipboard.firstCall.args[0],
       `{
   "_id": "pancakes",
   "time": {
     "$time": "12345"
   }
 }`
+    );
+    assert.strictEqual(namespaceUsed, 'waffle.house');
+  });
+
+  test("mdb.cloneDocumentFromTreeView event should open a playground with a document's content", async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      time: new Date('3001-01-01T05:00:00.000Z'),
+      objectIdField: new ObjectId('57e193d7a9cc81b4027498b2'),
+    };
+
+    let namespaceUsed = '';
+
+    const mockDataService: DataService = {
+      find: (
+        namespace: string,
+        filter: object,
+        options: object,
+        callback: (error: Error | undefined, documents: object[]) => void
+      ) => {
+        namespaceUsed = namespace;
+        callback(undefined, [mockDocument]);
+      },
+    } as any;
+
+    const documentTreeItem = new DocumentTreeItem(
+      mockDocument,
+      'waffle.house',
+      0,
+      mockDataService,
+      () => Promise.resolve()
+    );
+
+    const mockCreatePlaygroundForCloneDocument = sinon.fake();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      'createPlaygroundForCloneDocument',
+      mockCreatePlaygroundForCloneDocument
+    );
+
+    await vscode.commands.executeCommand(
+      'mdb.cloneDocumentFromTreeView',
+      documentTreeItem
+    );
+    assert.strictEqual(mockCreatePlaygroundForCloneDocument.calledOnce, true);
+    assert.strictEqual(
+      mockCreatePlaygroundForCloneDocument.firstCall.args[0],
+      `{
+  _id: 'pancakes',
+  time: ISODate('3001-01-01T05:00:00.000Z'),
+  objectIdField: ObjectId('57e193d7a9cc81b4027498b2')
+}`
+    );
+    assert.strictEqual(
+      mockCreatePlaygroundForCloneDocument.firstCall.args[1],
+      'waffle'
+    );
+    assert.strictEqual(
+      mockCreatePlaygroundForCloneDocument.firstCall.args[2],
+      'house'
     );
     assert.strictEqual(namespaceUsed, 'waffle.house');
   });

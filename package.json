@@ -414,6 +414,10 @@
         "title": "Copy Document"
       },
       {
+        "command": "mdb.cloneDocumentFromTreeView",
+        "title": "Clone Document..."
+      },
+      {
         "command": "mdb.deleteDocumentFromTreeView",
         "title": "Delete Document..."
       }
@@ -614,6 +618,11 @@
           "group": "2@1"
         },
         {
+          "command": "mdb.cloneDocumentFromTreeView",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
+          "group": "2@2"
+        },
+        {
           "command": "mdb.deleteDocumentFromTreeView",
           "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
           "group": "3@1"
@@ -789,6 +798,10 @@
         },
         {
           "command": "mdb.copyDocumentContentsFromTreeView",
+          "when": "false"
+        },
+        {
+          "command": "mdb.cloneDocumentFromTreeView",
           "when": "false"
         },
         {
@@ -988,6 +1001,7 @@
     "mongodb-connection-string-url": "^2.5.3",
     "mongodb-data-service": "^22.1.1",
     "mongodb-ns": "^2.4.0",
+    "mongodb-query-parser": "^2.4.6",
     "mongodb-schema": "^9.0.0",
     "numeral": "^2.0.6",
     "react": "^16.14.0",
