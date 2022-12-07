@@ -16,7 +16,8 @@ suite('DocumentTreeItem Test Suite', () => {
       mockDocument,
       'namespace',
       1,
-      {} as any
+      {} as any,
+      () => Promise.resolve()
     );
 
     const documentTreeItemLabel = testCollectionTreeItem.label;
@@ -40,7 +41,8 @@ suite('DocumentTreeItem Test Suite', () => {
       mockDocument,
       'namespace',
       1,
-      mockDataService
+      mockDataService,
+      () => Promise.resolve()
     );
 
     const documentTreeItemLabel = testCollectionTreeItem.label;
@@ -61,7 +63,8 @@ suite('DocumentTreeItem Test Suite', () => {
       mockDocument,
       'namespace',
       1,
-      mockDataService
+      mockDataService,
+      () => Promise.resolve()
     );
 
     const documentTreeItemLabel = testCollectionTreeItem.label;

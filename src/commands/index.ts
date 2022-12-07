@@ -61,6 +61,7 @@ enum EXTENSION_COMMANDS {
   MDB_INSERT_OBJECTID_TO_EDITOR = 'mdb.insertObjectIdToEditor',
   MDB_GENERATE_OBJECTID_TO_CLIPBOARD = 'mdb.generateObjectIdToClipboard',
   MDB_COPY_DOCUMENT_CONTENTS_FROM_TREE_VIEW = 'mdb.copyDocumentContentsFromTreeView',
+  MDB_DELETE_DOCUMENT_FROM_TREE_VIEW = 'mdb.deleteDocumentFromTreeView',
 }
 
 export default EXTENSION_COMMANDS;

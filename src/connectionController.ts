@@ -819,7 +819,7 @@ export default class ConnectionController {
     return connectionString;
   }
 
-  getActiveDataService(): DataService | null {
+  getActiveDataService() {
     return this._activeDataService;
   }
 

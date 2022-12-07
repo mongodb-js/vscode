@@ -29,15 +29,14 @@ suite('MDBExtensionController Test Suite', function () {
   this.timeout(10000);
 
   const sandbox: any = sinon.createSandbox();
-  const fakeShowInformationMessage: any = sinon.fake();
+  let fakeShowInformationMessage: sinon.SinonStub;
 
   beforeEach(() => {
     // Here we stub the showInformationMessage process because it is too much
     // for the render process and leads to crashes while testing.
-    sinon.replace(
+    fakeShowInformationMessage = sinon.stub(
       vscode.window,
-      'showInformationMessage',
-      fakeShowInformationMessage
+      'showInformationMessage'
     );
   });
 
@@ -1151,7 +1150,8 @@ suite('MDBExtensionController Test Suite', function () {
       mockDocument,
       'waffle.house',
       0,
-      {} as any as DataService
+      {} as any as DataService,
+      () => Promise.resolve()
     );
 
     await vscode.commands.executeCommand(
@@ -1180,9 +1180,9 @@ suite('MDBExtensionController Test Suite', function () {
     const expectedMessage =
       "The document was saved successfully to 'waffle.house'";
 
-    assert(
-      fakeShowInformationMessage.firstArg === expectedMessage,
-      `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${fakeShowInformationMessage.firstArg}"`
+    assert.strictEqual(
+      fakeShowInformationMessage.firstCall.firstArg,
+      expectedMessage
     );
   });
 
@@ -1198,7 +1198,8 @@ suite('MDBExtensionController Test Suite', function () {
       mockDocument,
       'waffle.house',
       0,
-      {} as any as DataService
+      {} as any as DataService,
+      () => Promise.resolve()
     );
 
     const mockFetchDocument: any = sinon.fake.resolves(null);
@@ -1539,7 +1540,8 @@ suite('MDBExtensionController Test Suite', function () {
       mockDocument,
       'waffle.house',
       0,
-      mockDataService
+      mockDataService,
+      () => Promise.resolve()
     );
 
     const mockCopyToClipboard: any = sinon.fake();
@@ -1563,6 +1565,95 @@ suite('MDBExtensionController Test Suite', function () {
 }`
     );
     assert.strictEqual(namespaceUsed, 'waffle.house');
+  });
+
+  test('mdb.deleteDocumentFromTreeView should not delete a document when the confirmation is cancelled', async () => {
+    const mockDocument = {
+      _id: 'pancakes',
+      time: {
+        $time: '12345',
+      },
+    };
+
+    let calledDelete = false;
+
+    const mockDataService: DataService = {
+      deleteOne: (
+        namespace: string,
+        _id: any,
+        options: object,
+        callback: (error: Error | undefined, documents: object[]) => void
+      ) => {
+        calledDelete = true;
+        callback(undefined, [mockDocument]);
+      },
+    } as any;
+
+    const documentTreeItem = new DocumentTreeItem(
+      mockDocument,
+      'waffle.house',
+      0,
+      mockDataService,
+      () => Promise.resolve()
+    );
+
+    const result = await vscode.commands.executeCommand(
+      'mdb.deleteDocumentFromTreeView',
+      documentTreeItem
+    );
+
+    assert.strictEqual(result, false);
+    assert.strictEqual(calledDelete, false);
+  });
+
+  test('mdb.deleteDocumentFromTreeView deletes a document after confirmation', async () => {
+    fakeShowInformationMessage.resolves('Yes');
+
+    const mockDocument = {
+      _id: 'pancakes',
+      time: {
+        $time: '12345',
+      },
+    };
+
+    let namespaceUsed = '';
+    let _idUsed;
+
+    const mockDataService: DataService = {
+      deleteOne: (
+        namespace: string,
+        query: any,
+        options: object,
+        callback: (
+          error: Error | undefined,
+          result: { deletedCount: number }
+        ) => void
+      ) => {
+        _idUsed = query;
+        namespaceUsed = namespace;
+        callback(undefined, {
+          deletedCount: 1,
+        });
+      },
+    } as any;
+
+    const documentTreeItem = new DocumentTreeItem(
+      mockDocument,
+      'waffle.house',
+      0,
+      mockDataService,
+      () => Promise.resolve()
+    );
+
+    const result = await vscode.commands.executeCommand(
+      'mdb.deleteDocumentFromTreeView',
+      documentTreeItem
+    );
+    assert.deepStrictEqual(_idUsed, {
+      _id: 'pancakes',
+    });
+    assert.strictEqual(namespaceUsed, 'waffle.house');
+    assert.strictEqual(result, true);
   });
 
   suite(

@@ -55,6 +55,7 @@ suite('Extension Test Suite', () => {
       'mdb.openMongoDBDocumentFromTree',
       'mdb.openMongoDBDocumentFromCodeLens',
       'mdb.copyDocumentContentsFromTreeView',
+      'mdb.deleteDocumentFromTreeView',
 
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked',
