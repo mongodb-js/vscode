@@ -562,6 +562,25 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_DELETE_DOCUMENT_FROM_TREE_VIEW,
+      async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
+        const successfullyDropped =
+          await documentTreeItem.onDeleteDocumentClicked();
+
+        if (successfullyDropped) {
+          void vscode.window.showInformationMessage(
+            'Document successfully deleted.'
+          );
+
+          // When we successfully drop a document, we need
+          // to update the explorer view.
+          this._explorerController.refresh();
+        }
+
+        return successfullyDropped;
+      }
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_INSERT_OBJECTID_TO_EDITOR,
       async (): Promise<boolean> => {
         const editor = vscode.window.activeTextEditor;
