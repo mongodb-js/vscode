@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import vm from 'vm';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
@@ -15,9 +16,9 @@ import {
 import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import formatError from '../utils/formatError';
 import { LanguageServerController } from '../language';
-import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
+import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumentTemplate';
 import {
   PlaygroundResult,
   ShellExecuteAllResult,
@@ -280,6 +281,19 @@ export default class PlaygroundController {
     const content = playgroundCreateIndexTemplate
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
+
+    return this._createPlaygroundFileWithContent(content);
+  }
+
+  createPlaygroundForCloneDocument(
+    documentContents: string,
+    databaseName: string,
+    collectionName: string
+  ): Promise<boolean> {
+    const content = playgroundCloneDocumentTemplate
+      .replace('CURRENT_DATABASE', databaseName)
+      .replace('CURRENT_COLLECTION', collectionName)
+      .replace('DOCUMENT_CONTENTS', documentContents);
 
     return this._createPlaygroundFileWithContent(content);
   }

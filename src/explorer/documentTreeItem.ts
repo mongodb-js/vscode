@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import type { Document } from 'mongodb';
 import type { DataService } from 'mongodb-data-service';
 import { promisify } from 'util';
+import { toJSString } from 'mongodb-query-parser';
+
 import formatError from '../utils/formatError';
 
 export const DOCUMENT_ITEM = 'documentTreeItem';
@@ -56,23 +58,31 @@ export default class DocumentTreeItem
     return Promise.resolve([]);
   }
 
-  async getStringifiedEJSONDocumentContents(): Promise<string> {
-    try {
-      const find = promisify(this.dataService.find.bind(this.dataService));
-      const documents = await find(
-        this.namespace,
-        { _id: this.documentId },
-        { limit: 1 }
-      );
+  async getDocumentContents(): Promise<Document> {
+    const find = promisify(this.dataService.find.bind(this.dataService));
+    const documents = await find(
+      this.namespace,
+      { _id: this.documentId },
+      { limit: 1 }
+    );
 
-      if (!documents || documents.length === 0) {
-        throw new Error('document not found');
-      }
-
-      return EJSON.stringify(documents[0], undefined, 2);
-    } catch (error) {
-      throw new Error(formatError(error).message);
+    if (!documents || documents.length === 0) {
+      throw new Error('document not found');
     }
+
+    return documents[0];
+  }
+
+  async getStringifiedEJSONDocumentContents(): Promise<string> {
+    const document = await this.getDocumentContents();
+
+    return EJSON.stringify(document, undefined, 2);
+  }
+
+  async getJSStringDocumentContents(): Promise<string> {
+    const ejsonDocument = await this.getDocumentContents();
+
+    return toJSString(ejsonDocument, 2);
   }
 
   async onDeleteDocumentClicked(): Promise<boolean> {

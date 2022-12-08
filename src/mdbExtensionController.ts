@@ -562,6 +562,22 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CLONE_DOCUMENT_FROM_TREE_VIEW,
+      async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
+        const documentContents =
+          await documentTreeItem.getJSStringDocumentContents();
+
+        const [databaseName, collectionName] =
+          documentTreeItem.namespace.split(/\.(.*)/s);
+
+        return this._playgroundController.createPlaygroundForCloneDocument(
+          documentContents,
+          databaseName,
+          collectionName
+        );
+      }
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_DELETE_DOCUMENT_FROM_TREE_VIEW,
       async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
         const successfullyDropped =
