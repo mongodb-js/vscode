@@ -332,21 +332,40 @@ export default class PlaygroundController {
 
     this._statusView.showMessage('Getting results...');
 
-    // Send a request to the language server to execute scripts from a playground.
-    const result: ShellExecuteAllResult =
-      await this._languageServerController.executeAll({
-        codeToEvaluate,
-        connectionId,
-      });
+    try {
+      // Send a request to the language server to execute scripts from a playground.
+      const result: ShellExecuteAllResult =
+        await this._languageServerController.executeAll({
+          codeToEvaluate,
+          connectionId,
+        });
 
-    this._statusView.hideMessage();
-    this._telemetryService.trackPlaygroundCodeExecuted(
-      result,
-      this._isPartialRun,
-      result ? false : true
-    );
+      this._statusView.hideMessage();
+      this._telemetryService.trackPlaygroundCodeExecuted(
+        result,
+        this._isPartialRun,
+        result ? false : true
+      );
 
-    return result;
+      return result;
+    } catch (err: any) {
+      // We re-initialize the language server when we encounter an error.
+      // This happens when the language server worker runs out of memory, can't be revitalized, and restarts.
+      if (
+        err?.message?.includes(
+          'Pending response rejected since connection got disposed'
+        )
+      ) {
+        void vscode.window.showErrorMessage(
+          'An error occurred when running the playground. This can occur when the playground runner runs out of memory.'
+        );
+
+        await this._languageServerController.startLanguageServer();
+        void this._connectToServiceProvider();
+      }
+
+      throw err;
+    }
   }
 
   _getAllText(): string {

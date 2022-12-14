@@ -406,6 +406,45 @@ suite('Playground Controller Test Suite', function () {
         });
       });
 
+      test('it shows an error message and restarts, and connects the language server when an error occurs in executeAll (out of memory can cause this)', async () => {
+        sinon
+          .stub(mockLanguageServerController, 'executeAll')
+          .rejects(
+            new Error('Pending response rejected since connection got disposed')
+          );
+
+        const stubStartLanguageServer = sinon
+          .stub(mockLanguageServerController, 'startLanguageServer')
+          .resolves();
+
+        const stubConnectToServiceProvider = sinon
+          .stub(testPlaygroundController, '_connectToServiceProvider')
+          .resolves();
+
+        const stubVSCodeErrorMessage = sinon
+          .stub(vscode.window, 'showErrorMessage')
+          .resolves(undefined);
+
+        try {
+          await testPlaygroundController._evaluate('console.log("test");');
+
+          // It should have thrown in the above evaluation.
+          expect(true).to.equal(false);
+        } catch (err: any) {
+          expect(err.message).to.equal(
+            'Pending response rejected since connection got disposed'
+          );
+        }
+
+        expect(stubVSCodeErrorMessage.calledOnce).to.equal(true);
+        expect(stubVSCodeErrorMessage.firstCall.args[0]).to.equal(
+          'An error occurred when running the playground. This can occur when the playground runner runs out of memory.'
+        );
+
+        expect(stubStartLanguageServer.calledOnce).to.equal(true);
+        expect(stubConnectToServiceProvider.calledOnce).to.equal(true);
+      });
+
       test('playground controller loads the active editor on start', () => {
         sandbox.replaceGetter(
           vscode.window,
@@ -458,12 +497,9 @@ suite('Playground Controller Test Suite', function () {
           document: { getText: () => textFromEditor },
         } as vscode.TextEditor;
 
-        const fakeVscodeErrorMessage: any = sinon.fake();
-        sinon.replace(
-          vscode.window,
-          'showErrorMessage',
-          fakeVscodeErrorMessage
-        );
+        const fakeVscodeErrorMessage = sinon
+          .stub(vscode.window, 'showErrorMessage')
+          .resolves(undefined);
 
         playgroundControllerTest._selectedText = '{ name: qwerty }';
         playgroundControllerTest._codeActionProvider.selection = selection;
@@ -474,7 +510,9 @@ suite('Playground Controller Test Suite', function () {
 
         const expectedMessage =
           "Unable to export to csharp language: Symbol 'qwerty' is undefined";
-        expect(fakeVscodeErrorMessage.firstArg).to.be.equal(expectedMessage);
+        expect(fakeVscodeErrorMessage.firstCall.args[0]).to.equal(
+          expectedMessage
+        );
       });
     });
   });

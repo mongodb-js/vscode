@@ -1,0 +1,22 @@
+/**
+ * This playground is used to test how the language server worker
+ * handles an out of memory error in mongosh's running of a playground. VSCODE-269
+ */
+
+use('test');
+
+const mockDataArray = [];
+for(let i = 0; i < 50000; i++) {
+  mockDataArray.push(Math.random() * 10000);
+}
+
+const docs = [];
+for(let i = 0; i < 10000000; i++) {
+  docs.push({
+    mockData: [...mockDataArray],
+    a: 'test 123',
+    b: Math.ceil(Math.random() * 10000)
+  });
+}
+
+console.log('Should not show this message as the process should have run out of memory in the loop above.');
