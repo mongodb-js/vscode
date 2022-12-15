@@ -407,11 +407,13 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('it shows an error message and restarts, and connects the language server when an error occurs in executeAll (out of memory can cause this)', async () => {
+        const mockConnectionDisposedError = new Error(
+          'Pending response rejected since connection got disposed'
+        );
+        (mockConnectionDisposedError as any).code = -32097;
         sinon
           .stub(mockLanguageServerController, 'executeAll')
-          .rejects(
-            new Error('Pending response rejected since connection got disposed')
-          );
+          .rejects(mockConnectionDisposedError);
 
         const stubStartLanguageServer = sinon
           .stub(mockLanguageServerController, 'startLanguageServer')
@@ -434,6 +436,7 @@ suite('Playground Controller Test Suite', function () {
           expect(err.message).to.equal(
             'Pending response rejected since connection got disposed'
           );
+          expect(err.code).to.equal(-32097);
         }
 
         expect(stubVSCodeErrorMessage.calledOnce).to.equal(true);

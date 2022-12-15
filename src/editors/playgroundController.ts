@@ -351,11 +351,7 @@ export default class PlaygroundController {
     } catch (err: any) {
       // We re-initialize the language server when we encounter an error.
       // This happens when the language server worker runs out of memory, can't be revitalized, and restarts.
-      if (
-        err?.message?.includes(
-          'Pending response rejected since connection got disposed'
-        )
-      ) {
+      if (err?.code === -32097) {
         void vscode.window.showErrorMessage(
           'An error occurred when running the playground. This can occur when the playground runner runs out of memory.'
         );
