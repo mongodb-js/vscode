@@ -89,10 +89,12 @@ export default class LanguageServerController {
 
   async startLanguageServer(): Promise<void> {
     // Push the disposable client to the context's subscriptions so that the
-    // client can be deactivated on extension deactivation
-    this._context.subscriptions.push(this._client);
+    // client can be deactivated on extension deactivation.
+    if (!this._context.subscriptions.includes(this._client)) {
+      this._context.subscriptions.push(this._client);
+    }
 
-    // Subscribe on notifications from the server when the client is ready
+    // Subscribe on notifications from the server when the client is ready.
     await this._client.sendRequest(
       ServerCommands.SET_EXTENSION_PATH,
       this._context.extensionPath
