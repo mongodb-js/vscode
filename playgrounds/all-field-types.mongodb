@@ -10,12 +10,12 @@ const doc = {
   array: [1, 2, 3], // Array, 4, array
   binData: new Binary(Buffer.from([1, 2, 3])), // Binary data, 5, binData
   // Undefined, 6, undefined (deprecated)
-  objectid: new ObjectId(), // ObjectId, 7, objectId
+  objectId: new ObjectId(), // ObjectId, 7, objectId
   boolean: true, // Boolean, 8, boolean
   date: new Date(), // Date, 9, date
   null: null, // Null, 10, null
   regex: new BSONRegExp('pattern', 'i'), // Regular Expression, 11, regex
-  dbref: new DBRef('namespace', new ObjectId()), // DBPointer, 12, dbPointer (deprecated)
+  dbPointer: new DBRef('namespace', new ObjectId()), // DBPointer, 12, dbPointer (deprecated)
   javascript: new Code('function() {}'), // JavaScript, 13, javascript
   symbol: new BSONSymbol('symbol'), // Symbol, 14, symbol (deprecated)
   // JavaScript code with scope 15 "javascriptWithScope" Deprecated in MongoDB 4.4.
