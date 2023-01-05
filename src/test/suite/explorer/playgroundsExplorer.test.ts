@@ -54,13 +54,13 @@ suite('Playgrounds Controller Test Suite', function () {
     try {
       const children = await treeController.getPlaygrounds(rootUri);
 
-      assert.strictEqual(Object.keys(children).length, 6);
+      assert.strictEqual(Object.keys(children).length, 7);
 
       const playgrounds = Object.values(children).filter(
         (item: any) => item.label && item.label.split('.').pop() === 'mongodb'
       );
 
-      assert.strictEqual(Object.keys(playgrounds).length, 6);
+      assert.strictEqual(Object.keys(playgrounds).length, 7);
     } catch (error) {
       assert(false, error as Error);
     }
