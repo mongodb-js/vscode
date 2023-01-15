@@ -45,6 +45,8 @@ enum EXTENSION_COMMANDS {
   MDB_RENAME_CONNECTION = 'mdb.renameConnection',
   MDB_ADD_DATABASE = 'mdb.addDatabase',
   MDB_SEARCH_FOR_DOCUMENTS = 'mdb.searchForDocuments',
+  MDB_COPY_DOCUMENT_ID_FROM_TREE = 'mdb.copyDocumentIdFromTree',
+  MDB_COPY_DOCUMENT_FROM_TREE = 'mdb.copyDocumentFromTree',
   MDB_COPY_DATABASE_NAME = 'mdb.copyDatabaseName',
   MDB_DROP_DATABASE = 'mdb.dropDatabase',
   MDB_REFRESH_DATABASE = 'mdb.refreshDatabase',
