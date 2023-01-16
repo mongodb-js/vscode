@@ -9,6 +9,7 @@ import {
   RequestType,
   TextDocumentSyncKind,
   Connection,
+  CompletionItemKind,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -18,6 +19,181 @@ import {
   PlaygroundExecuteParameters,
   PlaygroundTextAndSelection,
 } from '../types/playgroundType';
+
+import * as ts from 'typescript';
+
+import * as util from 'util';
+
+let extensionPath: any;
+
+const enum Kind {
+	alias = 'alias',
+	callSignature = 'call',
+	class = 'class',
+	const = 'const',
+	constructorImplementation = 'constructor',
+	constructSignature = 'construct',
+	directory = 'directory',
+	enum = 'enum',
+	enumMember = 'enum member',
+	externalModuleName = 'external module name',
+	function = 'function',
+	indexSignature = 'index',
+	interface = 'interface',
+	keyword = 'keyword',
+	let = 'let',
+	localFunction = 'local function',
+	localVariable = 'local var',
+	method = 'method',
+	memberGetAccessor = 'getter',
+	memberSetAccessor = 'setter',
+	memberVariable = 'property',
+	module = 'module',
+	primitiveType = 'primitive type',
+	script = 'script',
+	type = 'type',
+	variable = 'var',
+	warning = 'warning',
+	string = 'string',
+	parameter = 'parameter',
+	typeParameter = 'type parameter'
+}
+
+// eslint-disable-next-line complexity
+function convertKind(kind: string): CompletionItemKind {
+	switch (kind) {
+		case Kind.primitiveType:
+		case Kind.keyword:
+			return CompletionItemKind.Keyword;
+
+		case Kind.const:
+		case Kind.let:
+		case Kind.variable:
+		case Kind.localVariable:
+		case Kind.alias:
+		case Kind.parameter:
+			return CompletionItemKind.Variable;
+
+		case Kind.memberVariable:
+		case Kind.memberGetAccessor:
+		case Kind.memberSetAccessor:
+			return CompletionItemKind.Field;
+
+		case Kind.function:
+		case Kind.localFunction:
+			return CompletionItemKind.Function;
+
+		case Kind.method:
+		case Kind.constructSignature:
+		case Kind.callSignature:
+		case Kind.indexSignature:
+			return CompletionItemKind.Method;
+
+		case Kind.enum:
+			return CompletionItemKind.Enum;
+
+		case Kind.enumMember:
+			return CompletionItemKind.EnumMember;
+
+		case Kind.module:
+		case Kind.externalModuleName:
+			return CompletionItemKind.Module;
+
+		case Kind.class:
+		case Kind.type:
+			return CompletionItemKind.Class;
+
+		case Kind.interface:
+			return CompletionItemKind.Interface;
+
+		case Kind.warning:
+			return CompletionItemKind.Text;
+
+		case Kind.script:
+			return CompletionItemKind.File;
+
+		case Kind.directory:
+			return CompletionItemKind.Folder;
+
+		case Kind.string:
+			return CompletionItemKind.Constant;
+
+		default:
+			return CompletionItemKind.Property;
+	}
+}
+
+function getLanguageServiceHost(scriptKind: ts.ScriptKind) {
+	const compilerOptions: ts.CompilerOptions = { allowNonTsExtensions: true, allowJs: true, lib: ['lib.es2020.full.d.ts'], target: ts.ScriptTarget.Latest, moduleResolution: ts.ModuleResolutionKind.Classic, experimentalDecorators: false };
+
+	let currentTextDocument = TextDocument.create('init', 'javascript', 1, '');
+	const jsLanguageService = import('./modes/javascriptLibs').then(libs => {
+		const host: ts.LanguageServiceHost = {
+			getCompilationSettings: () => compilerOptions,
+			getScriptFileNames: () => [currentTextDocument.uri, 'jquery'],
+			getScriptKind: (fileName) => {
+				if (fileName === currentTextDocument.uri) {
+					return scriptKind;
+				}
+				return fileName.substr(fileName.length - 2) === 'ts' ? ts.ScriptKind.TS : ts.ScriptKind.JS;
+			},
+			getScriptVersion: (fileName: string) => {
+				if (fileName === currentTextDocument.uri) {
+					return String(currentTextDocument.version);
+				}
+				return '1'; // default lib an jquery.d.ts are static
+			},
+			getScriptSnapshot: (fileName: string) => {
+				let text = '';
+				if (fileName === currentTextDocument.uri) {
+					text = currentTextDocument.getText();
+				} else {
+					text = libs.loadLibrary(extensionPath, fileName);
+				}
+				return {
+					getText: (start, end) => text.substring(start, end),
+					getLength: () => text.length,
+					getChangeRange: () => undefined
+				};
+			},
+			getCurrentDirectory: () => '',
+			getDefaultLibFileName: () => 'es2020.full',
+			readFile: (path: string): string | undefined => {
+				if (path === currentTextDocument.uri) {
+					return currentTextDocument.getText();
+				}
+        return libs.loadLibrary(extensionPath, path);
+			},
+			fileExists: (path: string): boolean => {
+				if (path === currentTextDocument.uri) {
+					return true;
+				}
+        return !!libs.loadLibrary(extensionPath, path);
+			},
+			directoryExists: (path: string): boolean => {
+				// typescript tries to first find libraries in node_modules/@types and node_modules/@typescript
+				// there's no node_modules in our setup
+				if (path.startsWith('node_modules')) {
+					return false;
+				}
+				return true;
+			}
+		};
+		return ts.createLanguageService(host);
+	});
+	return {
+		async getLanguageService(jsDocument: TextDocument): Promise<ts.LanguageService> {
+			currentTextDocument = jsDocument;
+			return jsLanguageService;
+		},
+		getCompilationSettings() {
+			return compilerOptions;
+		},
+		dispose() {
+			void jsLanguageService.then(s => s.dispose());
+		}
+	};
+}
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -148,8 +324,9 @@ connection.onRequest(
   }
 );
 
-connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
-  return mongoDBService.setExtensionPath(extensionPath);
+connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (_extensionPath) => {
+  extensionPath = _extensionPath;
+  return mongoDBService.setExtensionPath(_extensionPath);
 });
 
 // Connect to CliServiceProvider to enable shell completions.
@@ -178,13 +355,50 @@ connection.onRequest(
 );
 
 // This handler provides the list of the completion items.
-connection.onCompletion((params: TextDocumentPositionParams) => {
+connection.onCompletion(async (params: TextDocumentPositionParams) => {
+  const host = getLanguageServiceHost(ts.ScriptKind.JS);
+  const document = documents.get(params.textDocument.uri);
+
+  if (!document) {
+    return;
+  }
+
+  const jsDocument = TextDocument.create(document.uri, 'javascript', document.version, document.getText());
+
+  const jsLanguageService = await host.getLanguageService(jsDocument);
+
+
+  const offset = jsDocument.offsetAt(params.position);
+
+	const jsCompletion = jsLanguageService.getCompletionsAtPosition(jsDocument.uri, offset, { includeExternalModuleExports: false, includeInsertTextCompletions: false });
+  const jsCompletionItems = jsCompletion?.entries.map(entry => {
+    const data = { // data used for resolving item details (see 'doResolve')
+      languageId: 'mongodb',
+      uri: document.uri,
+      offset: offset
+    };
+    return {
+      uri: document.uri,
+      position: params.position,
+      label: entry.name,
+      sortText: entry.sortText,
+      kind: convertKind(entry.kind),
+      data
+    };
+  }) || [];
+
+  connection.console.log('jsCompletionItems----------------------');
+  connection.console.log(`${util.inspect(jsCompletionItems)}`);
+  connection.console.log('----------------------');
+
   const textFromEditor = documents.get(params.textDocument.uri)?.getText();
 
-  return mongoDBService.provideCompletionItems(
+  const mongodbCompletions = await mongoDBService.provideCompletionItems(
     textFromEditor ? textFromEditor : '',
     params.position
   );
+
+  return [...jsCompletionItems, ...mongodbCompletions];
 });
 
 // This handler resolves additional information for the item selected in
