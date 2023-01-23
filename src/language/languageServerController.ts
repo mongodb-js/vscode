@@ -61,8 +61,8 @@ export default class LanguageServerController {
     const clientOptions: LanguageClientOptions = {
       // Register the server for mongodb documents
       documentSelector: [
-        { scheme: 'untitled', language: 'mongodb' },
-        { scheme: 'file', language: 'mongodb' },
+        { scheme: 'untitled', language: 'javascript' },
+        { scheme: 'file', language: 'javascript' },
       ],
       synchronize: {
         // Notify the server about file changes in the workspace

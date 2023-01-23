@@ -83,7 +83,7 @@
     "onView:mongoDBConnectionExplorer",
     "onView:mongoDBPlaygroundsExplorer",
     "onLanguage:json",
-    "onLanguage:mongodb"
+    "onLanguage:javasript"
   ],
   "contributes": {
     "viewsContainers": {
@@ -126,17 +126,6 @@
     ],
     "languages": [
       {
-        "id": "mongodb",
-        "aliases": [
-          "MongoDB",
-          "mongodb"
-        ],
-        "extensions": [
-          ".mongodb"
-        ],
-        "configuration": "./languages/mongodb-language-configuration.json"
-      },
-      {
         "id": "terraform",
         "aliases": [
           "Terraform",
@@ -147,18 +136,7 @@
         ]
       }
     ],
-    "grammars": [
-      {
-        "language": "mongodb",
-        "path": "./syntaxes/mongodb.tmLanguage.json",
-        "scopeName": "source.mongodb"
-      }
-    ],
     "snippets": [
-      {
-        "language": "mongodb",
-        "path": "./snippets/stage-autocompleter.json"
-      },
       {
         "language": "terraform",
         "path": "./snippets/atlas-terraform.json"
@@ -632,7 +610,7 @@
         {
           "command": "mdb.runPlayground",
           "group": "navigation",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.showRunPlaygroundButton == true"
         }
       ],
       "commandPalette": [
@@ -642,27 +620,27 @@
         },
         {
           "command": "mdb.runSelectedPlaygroundBlocks",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.showRunPlaygroundButton == true"
         },
         {
           "command": "mdb.runAllPlaygroundBlocks",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.showRunPlaygroundButton == true"
         },
         {
           "command": "mdb.exportToPython",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.showRunPlaygroundButton == true"
         },
         {
           "command": "mdb.exportToJava",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.showRunPlaygroundButton == true"
         },
         {
           "command": "mdb.exportToCsharp",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.showRunPlaygroundButton == true"
         },
         {
           "command": "mdb.exportToNode",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.showRunPlaygroundButton == true"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -815,13 +793,13 @@
         "command": "mdb.runSelectedPlaygroundBlocks",
         "key": "ctrl+alt+s",
         "mac": "cmd+alt+s",
-        "when": "editorLangId == mongodb"
+        "when": "mdb.showRunPlaygroundButton == true"
       },
       {
         "command": "mdb.runAllPlaygroundBlocks",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "editorLangId == mongodb"
+        "when": "mdb.showRunPlaygroundButton == true"
       },
       {
         "command": "mdb.saveMongoDBDocument",
@@ -1032,10 +1010,11 @@
     "@types/react-dom": "^17.0.17",
     "@types/sinon": "^9.0.11",
     "@types/uuid": "^8.3.4",
-    "@types/vscode": "^1.71.0",
+    "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
     "@vscode/test-electron": "^2.1.5",
+    "@vscode/vsce": "^2.16.0",
     "autoprefixer": "^9.8.8",
     "buffer": "^6.0.3",
     "chai": "^4.3.6",
@@ -1085,7 +1064,7 @@
     "ts-loader": "^9.4.1",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.3",
-    "vsce": "^2.11.0",
+    "vscode-html-languageservice": "^5.0.3",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "xvfb-maybe": "^0.2.1",

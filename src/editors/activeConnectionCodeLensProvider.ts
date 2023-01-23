@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { TextEditor } from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import ConnectionController from '../connectionController';
 
@@ -8,6 +9,7 @@ export default class ActiveConnectionCodeLensProvider
   _connectionController: ConnectionController;
   _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
+  _activeTextEditor?: TextEditor;
 
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
@@ -18,6 +20,12 @@ export default class ActiveConnectionCodeLensProvider
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
+
+    vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor | undefined) => {
+      if (editor?.document.languageId !== 'Log') {
+        this._activeTextEditor = editor;
+      }
+    });
   }
 
   refresh(): void {
@@ -25,6 +33,11 @@ export default class ActiveConnectionCodeLensProvider
   }
 
   provideCodeLenses(): vscode.CodeLens[] {
+    const editorUri = this._activeTextEditor?.document.uri;
+    if (editorUri?.fragment !== 'mongodb' && editorUri?.path.split('.').pop() !== 'mongodb') {
+      return [];
+    }
+
     const codeLens = new vscode.CodeLens(new vscode.Range(0, 0, 0, 0));
     let message = '';
 

@@ -2,6 +2,9 @@ import * as vscode from 'vscode';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import vm from 'vm';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import * as util from 'util';
+
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import CodeActionProvider from './codeActionProvider';
 import ConnectionController, {
@@ -151,6 +154,12 @@ export default class PlaygroundController {
         this._playgroundResultTextDocument = editor?.document;
       }
 
+      if (editor?.document.uri.fragment === 'mongodb' || editor?.document.uri.path.split('.').pop() === 'mongodb') {
+        void vscode.commands.executeCommand('setContext', 'mdb.showRunPlaygroundButton', true);
+      } else {
+        void vscode.commands.executeCommand('setContext', 'mdb.showRunPlaygroundButton', false);
+      }
+
       if (editor?.document.languageId !== 'Log') {
         this._activeTextEditor = editor;
         log.info('Active editor path', editor?.document.uri?.path);
@@ -162,7 +171,7 @@ export default class PlaygroundController {
 
     vscode.window.onDidChangeTextEditorSelection(
       async (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
-        if (changeEvent?.textEditor?.document?.languageId !== 'mongodb') {
+        if (changeEvent?.textEditor?.document?.uri.fragment !== 'mongodb') {
           return;
         }
 
@@ -230,12 +239,24 @@ export default class PlaygroundController {
     content: string | undefined
   ): Promise<boolean> {
     try {
-      const document = await vscode.workspace.openTextDocument({
-        language: 'mongodb',
-        content,
-      });
+      // Create untitled file.
+      const numberUntitledDocuments = vscode.workspace.textDocuments.filter((doc) => (doc.uri.scheme === 'untitled')).length;
+      const fileName = `Untitled-${numberUntitledDocuments + 1}`;
+      const newUri = vscode.Uri.file(fileName).with({ scheme: 'untitled', fragment: 'mongodb' });
 
-      await vscode.window.showTextDocument(document);
+      const document = await vscode.workspace.openTextDocument(newUri);
+      await vscode.languages.setTextDocumentLanguage(
+        document,
+        'javascript'
+      );
+
+      // Fill in initial content.
+      const edit = new vscode.WorkspaceEdit();
+      edit.insert(newUri, new vscode.Position(0, 0), `${content}`);
+      await vscode.workspace.applyEdit(edit);
+
+      // Actually show the editor.
+      await vscode.commands.executeCommand('vscode.open', newUri);
 
       return true;
     } catch (error) {
@@ -302,23 +323,8 @@ export default class PlaygroundController {
     const useDefaultTemplate = !!vscode.workspace
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
-
-    try {
-      const document = await vscode.workspace.openTextDocument({
-        language: 'mongodb',
-        content: useDefaultTemplate ? playgroundTemplate : '',
-      });
-
-      await vscode.window.showTextDocument(document);
-
-      return true;
-    } catch (error) {
-      void vscode.window.showErrorMessage(
-        `Unable to create a playground: ${formatError(error).message}`
-      );
-
-      return false;
-    }
+    const content = useDefaultTemplate ? playgroundTemplate : '';
+    return this._createPlaygroundFileWithContent(content);
   }
 
   async _evaluate(codeToEvaluate: string): Promise<ShellExecuteAllResult> {
@@ -538,7 +544,7 @@ export default class PlaygroundController {
   runAllPlaygroundBlocks(): Promise<boolean> {
     if (
       !this._activeTextEditor ||
-      this._activeTextEditor.document.languageId !== 'mongodb'
+      this._activeTextEditor.document.uri.fragment !== 'mongodb'
     ) {
       void vscode.window.showErrorMessage(
         "Please open a '.mongodb' playground file before running it."
@@ -556,7 +562,7 @@ export default class PlaygroundController {
   runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
     if (
       !this._activeTextEditor ||
-      this._activeTextEditor.document.languageId !== 'mongodb'
+      this._activeTextEditor.document.uri.fragment !== 'mongodb'
     ) {
       void vscode.window.showErrorMessage(
         "Please open a '.mongodb' playground file before running it."

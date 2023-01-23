@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { TextEditor } from 'vscode';
 
 import EXTENSION_COMMANDS from '../commands';
 import { ExportToLanguageMode } from '../types/playgroundType';
@@ -8,12 +9,19 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
     new vscode.EventEmitter<void>();
   selection?: vscode.Selection;
   mode?: ExportToLanguageMode;
+  _activeTextEditor?: TextEditor;
 
   static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
   constructor() {
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeCodeAction.fire();
+    });
+
+    vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor | undefined) => {
+      if (editor?.document.languageId !== 'Log') {
+        this._activeTextEditor = editor;
+      }
     });
   }
 
@@ -33,7 +41,8 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
   }
 
   provideCodeActions(): vscode.CodeAction[] | undefined {
-    if (!this.selection) {
+    const editorUri = this._activeTextEditor?.document.uri;
+    if (!this.selection || (editorUri?.fragment !== 'mongodb' && editorUri?.path.split('.').pop() !== 'mongodb')) {
       return;
     }
 

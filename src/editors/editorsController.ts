@@ -400,7 +400,7 @@ export default class EditorsController {
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
-        { language: 'mongodb' },
+        { language: 'javascript' },
         this._activeConnectionCodeLensProvider
       )
     );
@@ -432,7 +432,7 @@ export default class EditorsController {
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeActionsProvider(
-        'mongodb',
+        'javascript',
         this._codeActionProvider,
         {
           providedCodeActionKinds: CodeActionProvider.providedCodeActionKinds,
