@@ -40,7 +40,6 @@ npm run watch
 - `out` compiled extension code
 - `images` Icons, logos, etc.
 - `snippets` [Bundled MongoDB Snippets][snippet guide]
-- `syntaxes` [Syntax highlighting for `.mongodb` files][syntax guide]
 - `src`
   - `test/suite` where tests live with files names `*.test.ts`
 - `scripts` project helper scripts

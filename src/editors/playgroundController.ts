@@ -166,8 +166,26 @@ export default class PlaygroundController {
       }
     };
 
+    vscode.workspace.textDocuments.forEach((document) => {
+      if (document.uri.path.split('.').pop() === 'mongodb') {
+        void vscode.languages.setTextDocumentLanguage(
+          document,
+          'javascript'
+        );
+      }
+    });
+
     vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor);
     onDidChangeActiveTextEditor(vscode.window.activeTextEditor);
+
+    vscode.workspace.onDidOpenTextDocument(async (document) => {
+      if (document.uri.path.split('.').pop() === 'mongodb') {
+        await vscode.languages.setTextDocumentLanguage(
+          document,
+          'javascript'
+        );
+      }
+    });
 
     vscode.window.onDidChangeTextEditorSelection(
       async (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
@@ -242,8 +260,9 @@ export default class PlaygroundController {
       // Create untitled file.
       const numberUntitledDocuments = vscode.workspace.textDocuments.filter((doc) => (doc.uri.scheme === 'untitled')).length;
       const fileName = `Untitled-${numberUntitledDocuments + 1}`;
-      const newUri = vscode.Uri.file(fileName).with({ scheme: 'untitled', fragment: 'mongodb' });
+      const newUri = vscode.Uri.file(fileName).with({ scheme: 'untitled', fragment: 'mongodb' }); // http://localhost/?#mongodb
 
+      // Before: vscode.workspace.openTextDocument({ language: 'mongodb', content });
       const document = await vscode.workspace.openTextDocument(newUri);
       await vscode.languages.setTextDocumentLanguage(
         document,
