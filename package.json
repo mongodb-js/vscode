@@ -379,7 +379,7 @@
       },
       {
         "command": "mdb.insertDocumentFromTreeView",
-        "title": "Insert a Document..."
+        "title": "Insert Document..."
       },
       {
         "command": "mdb.refreshSchema",
@@ -558,12 +558,12 @@
           "group": "1@2"
         },
         {
-          "command": "mdb.insertDocumentFromTreeView",
+          "command": "mdb.copyCollectionName",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "2@1"
         },
         {
-          "command": "mdb.copyCollectionName",
+          "command": "mdb.insertDocumentFromTreeView",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "3@1"
         },
@@ -599,7 +599,7 @@
         },
         {
           "command": "mdb.insertDocumentFromTreeView",
-          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
           "group": "3@1"
         },
         {
