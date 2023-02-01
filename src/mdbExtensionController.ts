@@ -498,6 +498,17 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_INSERT_DOCUMENT_FROM_TREE_VIEW,
+      async (
+        documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem
+      ): Promise<boolean> => {
+        return this._playgroundController.createPlaygroundForInsertDocument(
+          documentsListTreeItem.databaseName,
+          documentsListTreeItem.collectionName
+        );
+      }
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_SCHEMA,
       (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
         schemaTreeItem.resetCache();

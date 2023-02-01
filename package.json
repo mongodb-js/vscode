@@ -378,6 +378,10 @@
         "title": "Refresh"
       },
       {
+        "command": "mdb.insertDocumentFromTreeView",
+        "title": "Insert a Document..."
+      },
+      {
         "command": "mdb.refreshSchema",
         "title": "Refresh"
       },
@@ -554,14 +558,19 @@
           "group": "1@2"
         },
         {
-          "command": "mdb.copyCollectionName",
+          "command": "mdb.insertDocumentFromTreeView",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "2@1"
         },
         {
-          "command": "mdb.dropCollection",
+          "command": "mdb.copyCollectionName",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "3@1"
+        },
+        {
+          "command": "mdb.dropCollection",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
+          "group": "4@1"
         },
         {
           "command": "mdb.searchForDocuments",
@@ -575,16 +584,23 @@
         },
         {
           "command": "mdb.viewCollectionDocuments",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "1@1"
         },
         {
           "command": "mdb.refreshDocumentList",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "1@2"
         },
         {
           "command": "mdb.searchForDocuments",
           "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
           "group": "2@1"
+        },
+        {
+          "command": "mdb.insertDocumentFromTreeView",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
+          "group": "3@1"
         },
         {
           "command": "mdb.refreshSchema",
@@ -758,6 +774,10 @@
         },
         {
           "command": "mdb.refreshDocumentList",
+          "when": "false"
+        },
+        {
+          "command": "mdb.insertDocumentFromTreeView",
           "when": "false"
         },
         {
