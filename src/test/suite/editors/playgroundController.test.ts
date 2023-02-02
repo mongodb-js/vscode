@@ -62,7 +62,10 @@ suite('Playground Controller Test Suite', function () {
   const testExplorerController = new ExplorerController(
     testConnectionController
   );
+  const testExtensionContext = new TestExtensionContext();
+  testExtensionContext.extensionPath = '../../';
   const testPlaygroundController = new PlaygroundController(
+    testExtensionContext,
     testConnectionController,
     mockLanguageServerController as LanguageServerController,
     testTelemetryService,
@@ -459,6 +462,7 @@ suite('Playground Controller Test Suite', function () {
           testConnectionController
         );
         const playgroundControllerTest = new PlaygroundController(
+          testExtensionContext,
           testConnectionController,
           mockLanguageServerController as LanguageServerController,
           testTelemetryService,
@@ -480,6 +484,7 @@ suite('Playground Controller Test Suite', function () {
           testConnectionController
         );
         const playgroundControllerTest = new PlaygroundController(
+          testExtensionContext,
           testConnectionController,
           mockLanguageServerController as LanguageServerController,
           testTelemetryService,

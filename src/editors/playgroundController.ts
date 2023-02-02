@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
+import path from 'path';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import vm from 'vm';
+import * as os from 'os';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as util from 'util';
@@ -37,6 +39,7 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
+import { readDirectory } from '../utils/filesystem';
 
 const log = createLogger('playground controller');
 const transpiler = require('bson-transpilers');
@@ -95,6 +98,7 @@ const countAggregationStagesInString = (str: string) => {
  * This controller manages playground.
  */
 export default class PlaygroundController {
+  _context: vscode.ExtensionContext;
   _connectionController: ConnectionController;
   _activeTextEditor?: TextEditor;
   _playgroundResult?: PlaygroundResult;
@@ -117,6 +121,7 @@ export default class PlaygroundController {
   private _codeToEvaluate = '';
 
   constructor(
+    context: vscode.ExtensionContext,
     connectionController: ConnectionController,
     languageServerController: LanguageServerController,
     telemetryService: TelemetryService,
@@ -127,6 +132,7 @@ export default class PlaygroundController {
     codeActionProvider: CodeActionProvider,
     explorerController: ExplorerController
   ) {
+    this._context = context;
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryService = telemetryService;
@@ -257,10 +263,18 @@ export default class PlaygroundController {
     content: string | undefined
   ): Promise<boolean> {
     try {
-      // Create untitled file.
       const numberUntitledDocuments = vscode.workspace.textDocuments.filter((doc) => (doc.uri.scheme === 'untitled')).length;
-      const fileName = `Untitled-${numberUntitledDocuments + 1}`;
-      const newUri = vscode.Uri.file(fileName).with({ scheme: 'untitled', fragment: 'mongodb' }); // http://localhost/?#mongodb
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      const filePath = workspaceFolder?.uri.fsPath || os.tmpdir();
+      const playgrounds = await readDirectory(filePath);
+      const numberSavedPlaygrounds = playgrounds.length;
+      const fileName = path.join(filePath, `Untitled-${numberUntitledDocuments + numberSavedPlaygrounds + 1}.mongodb`);
+
+      // Create untitled file: untitled:/extensionPath/Untitled-1#mongodb
+      const newUri = vscode.Uri.file(fileName).with({
+        scheme: 'untitled',
+        fragment: 'mongodb'
+      });
 
       // Before: vscode.workspace.openTextDocument({ language: 'mongodb', content });
       const document = await vscode.workspace.openTextDocument(newUri);

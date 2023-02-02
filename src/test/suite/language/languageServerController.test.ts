@@ -59,7 +59,10 @@ suite('Language Server Controller Test Suite', () => {
   const testExportToLanguageCodeLensProvider =
     new ExportToLanguageCodeLensProvider();
   const testCodeActionProvider = new CodeActionProvider();
+  const testExtensionContext = new TestExtensionContext();
+  testExtensionContext.extensionPath = '../../';
   const testPlaygroundController = new PlaygroundController(
+    testExtensionContext,
     testConnectionController,
     testLanguageServerController,
     testTelemetryService,
