@@ -53,7 +53,6 @@ suite('Code Action Provider Test Suite', function () {
 
     mdbTestExtension.testExtensionController._playgroundController =
       new PlaygroundController(
-        testExtensionContext,
         mdbTestExtension.testExtensionController._connectionController,
         mdbTestExtension.testExtensionController._languageServerController,
         mdbTestExtension.testExtensionController._telemetryService,

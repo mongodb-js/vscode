@@ -4,9 +4,6 @@ import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import vm from 'vm';
 import * as os from 'os';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as util from 'util';
-
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import CodeActionProvider from './codeActionProvider';
 import ConnectionController, {
@@ -98,7 +95,6 @@ const countAggregationStagesInString = (str: string) => {
  * This controller manages playground.
  */
 export default class PlaygroundController {
-  _context: vscode.ExtensionContext;
   _connectionController: ConnectionController;
   _activeTextEditor?: TextEditor;
   _playgroundResult?: PlaygroundResult;
@@ -121,7 +117,6 @@ export default class PlaygroundController {
   private _codeToEvaluate = '';
 
   constructor(
-    context: vscode.ExtensionContext,
     connectionController: ConnectionController,
     languageServerController: LanguageServerController,
     telemetryService: TelemetryService,
@@ -132,7 +127,6 @@ export default class PlaygroundController {
     codeActionProvider: CodeActionProvider,
     explorerController: ExplorerController
   ) {
-    this._context = context;
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryService = telemetryService;

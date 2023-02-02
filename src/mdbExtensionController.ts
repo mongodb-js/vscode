@@ -98,7 +98,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       new ExportToLanguageCodeLensProvider();
     this._codeActionProvider = new CodeActionProvider();
     this._playgroundController = new PlaygroundController(
-      context,
       this._connectionController,
       this._languageServerController,
       this._telemetryService,
