@@ -265,6 +265,9 @@ export default class PlaygroundController {
     try {
       const numberUntitledDocuments = vscode.workspace.textDocuments.filter((doc) => (doc.uri.scheme === 'untitled')).length;
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      // The MacOS default folder for saving files would be the read-only root (/) directory,
+      // therefore we explicitly specify the workspace folder path
+      // or OS temp directory if a user has not opened workspaces.
       const filePath = workspaceFolder?.uri.fsPath || os.tmpdir();
       const playgrounds = await readDirectory(filePath);
       const numberSavedPlaygrounds = playgrounds.length;
