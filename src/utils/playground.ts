@@ -62,20 +62,18 @@ export const isPlayground = (fileUri?: vscode.Uri) => {
     return false;
   }
 
-  if (fileUri.scheme === 'untitled' && fileUri.fragment === 'mongodb') {
-    return true;
-  }
-
   const fileNameParts = fileUri.fsPath.split('.');
 
   if (fileNameParts.length < 2) {
     return false;
   }
 
+  // Allow users to save playgrounds with `.mongodb` extension.
   if (fileNameParts.length === 2) {
     return fileNameParts[fileNameParts.length - 1] === 'mongodb';
   }
 
+  // The default playgrounds extension is `.mongodb.js`.
   const extension = fileNameParts[fileNameParts.length - 1];
   const secondaryExtension = fileNameParts[fileNameParts.length - 2];
 

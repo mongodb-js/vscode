@@ -267,13 +267,9 @@ export default class PlaygroundController {
       const numberUntitledPlaygrounds = vscode.workspace.textDocuments.filter((doc) => isPlayground(doc.uri)).length;
       const fileName = path.join(filePath, `playground-${numberUntitledPlaygrounds + 1}.mongodb`);
 
-      // Create untitled file: untitled:/extensionPath/playground-1.mongodb.js#mongodb
+      // Create untitled file: untitled:/extensionPath/playground-1.mongodb.js
       // Before: vscode.workspace.openTextDocument({ language: 'mongodb', content });
-      const documentUri = vscode.Uri.from({
-        path: fileName,
-        scheme: 'untitled',
-        fragment: 'mongodb'
-      });
+      const documentUri = vscode.Uri.from({ path: fileName, scheme: 'untitled' });
 
       // Fill in initial content.
       const edit = new vscode.WorkspaceEdit();
@@ -289,6 +285,7 @@ export default class PlaygroundController {
         document,
         'javascript'
       );
+      // Focus new text document.
       await vscode.window.showTextDocument(document);
 
       return true;
