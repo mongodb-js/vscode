@@ -57,6 +57,31 @@ const stat = (filePath: string): Promise<fs.Stats> => {
   return fs.promises.stat(filePath);
 }
 
+export const isPlayground = (fileUri?: vscode.Uri) => {
+  if (!fileUri) {
+    return false;
+  }
+
+  if (fileUri.scheme === 'untitled' && fileUri.fragment === 'mongodb') {
+    return true;
+  }
+
+  const fileNameParts = fileUri.fsPath.split('.');
+
+  if (fileNameParts.length < 2) {
+    return false;
+  }
+
+  if (fileNameParts.length === 2) {
+    return fileNameParts[fileNameParts.length - 1] === 'mongodb';
+  }
+
+  const extension = fileNameParts[fileNameParts.length - 1];
+  const secondaryExtension = fileNameParts[fileNameParts.length - 2];
+
+  return fileNameParts.length > 1 && (extension === 'mongodb' || (extension === 'js' && secondaryExtension === 'mongodb'));
+}
+
 export const readDirectory = async (fsPath: string, excludeFromPlaygroundsSearch?: string[]): Promise<{ name: string, path: string }[]> => {
   const fileNames = await getFileNames(fsPath);
   const playgrounds: { name: string, path: string }[] = [];
@@ -67,13 +92,8 @@ export const readDirectory = async (fsPath: string, excludeFromPlaygroundsSearch
     try {
       const stat = await getStat(path.join(fsPath, fileName));
       const fileUri = vscode.Uri.file(path.join(fsPath, fileName));
-      const fileNameParts = fileName.split('.');
 
-      if (
-        stat.type === vscode.FileType.File &&
-        fileNameParts.length > 1 &&
-        fileNameParts.pop() === 'mongodb'
-      ) {
+      if (stat.type === vscode.FileType.File && isPlayground(fileUri)) {
         playgrounds.push({ name: fileName, path: fileUri.fsPath });
       } else if (
         (stat.type === vscode.FileType.Directory && !excludeFromPlaygroundsSearch) ||

@@ -4,7 +4,7 @@ import { PLAYGROUND_ITEM } from './playgroundsTreeItem';
 import { createLogger } from '../logging';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
 import EXTENSION_COMMANDS from '../commands';
-import { readDirectory } from '../utils/filesystem';
+import { readDirectory } from '../utils/playground';
 
 const log = createLogger('playgrounds tree controller');
 

@@ -36,7 +36,7 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
-import { readDirectory } from '../utils/filesystem';
+import { isPlayground } from '../utils/playground';
 
 const log = createLogger('playground controller');
 const transpiler = require('bson-transpilers');
@@ -128,6 +128,7 @@ export default class PlaygroundController {
     explorerController: ExplorerController
   ) {
     this._connectionController = connectionController;
+    this._activeTextEditor = vscode.window.activeTextEditor;
     this._languageServerController = languageServerController;
     this._telemetryService = telemetryService;
     this._statusView = statusView;
@@ -154,7 +155,7 @@ export default class PlaygroundController {
         this._playgroundResultTextDocument = editor?.document;
       }
 
-      if (editor?.document.uri.fragment === 'mongodb' || editor?.document.uri.path.split('.').pop() === 'mongodb') {
+      if (isPlayground(editor?.document.uri)) {
         void vscode.commands.executeCommand('setContext', 'mdb.showRunPlaygroundButton', true);
       } else {
         void vscode.commands.executeCommand('setContext', 'mdb.showRunPlaygroundButton', false);
@@ -167,7 +168,7 @@ export default class PlaygroundController {
     };
 
     vscode.workspace.textDocuments.forEach((document) => {
-      if (document.uri.path.split('.').pop() === 'mongodb') {
+      if (isPlayground(document.uri)) {
         void vscode.languages.setTextDocumentLanguage(
           document,
           'javascript'
@@ -179,7 +180,7 @@ export default class PlaygroundController {
     onDidChangeActiveTextEditor(vscode.window.activeTextEditor);
 
     vscode.workspace.onDidOpenTextDocument(async (document) => {
-      if (document.uri.path.split('.').pop() === 'mongodb') {
+      if (isPlayground(document.uri)) {
         await vscode.languages.setTextDocumentLanguage(
           document,
           'javascript'
@@ -189,7 +190,7 @@ export default class PlaygroundController {
 
     vscode.window.onDidChangeTextEditorSelection(
       async (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
-        if (changeEvent?.textEditor?.document?.uri.fragment !== 'mongodb') {
+        if (isPlayground(changeEvent?.textEditor?.document?.uri)) {
           return;
         }
 
@@ -257,36 +258,38 @@ export default class PlaygroundController {
     content: string | undefined
   ): Promise<boolean> {
     try {
-      const numberUntitledDocuments = vscode.workspace.textDocuments.filter((doc) => (doc.uri.scheme === 'untitled')).length;
-      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       // The MacOS default folder for saving files would be the read-only root (/) directory,
       // therefore we explicitly specify the workspace folder path
       // or OS temp directory if a user has not opened workspaces.
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       const filePath = workspaceFolder?.uri.fsPath || os.tmpdir();
-      const playgrounds = await readDirectory(filePath);
-      const numberSavedPlaygrounds = playgrounds.length;
-      const fileName = path.join(filePath, `Untitled-${numberUntitledDocuments + numberSavedPlaygrounds + 1}.mongodb`);
 
-      // Create untitled file: untitled:/extensionPath/Untitled-1#mongodb
-      const newUri = vscode.Uri.file(fileName).with({
+      const numberUntitledPlaygrounds = vscode.workspace.textDocuments.filter((doc) => isPlayground(doc.uri)).length;
+      const fileName = path.join(filePath, `playground-${numberUntitledPlaygrounds + 1}.mongodb`);
+
+      // Create untitled file: untitled:/extensionPath/playground-1.mongodb.js#mongodb
+      // Before: vscode.workspace.openTextDocument({ language: 'mongodb', content });
+      const documentUri = vscode.Uri.from({
+        path: fileName,
         scheme: 'untitled',
         fragment: 'mongodb'
       });
 
-      // Before: vscode.workspace.openTextDocument({ language: 'mongodb', content });
-      const document = await vscode.workspace.openTextDocument(newUri);
+      // Fill in initial content.
+      const edit = new vscode.WorkspaceEdit();
+      edit.insert(documentUri, new vscode.Position(0, 0), `${content}`);
+      await vscode.workspace.applyEdit(edit);
+
+      // Actually show the editor.
+      // await vscode.commands.executeCommand('vscode.open', documentUri);
+      const document = await vscode.workspace.openTextDocument(documentUri);
+
+      // Ensure that the playground language is JavaScript.
       await vscode.languages.setTextDocumentLanguage(
         document,
         'javascript'
       );
-
-      // Fill in initial content.
-      const edit = new vscode.WorkspaceEdit();
-      edit.insert(newUri, new vscode.Position(0, 0), `${content}`);
-      await vscode.workspace.applyEdit(edit);
-
-      // Actually show the editor.
-      await vscode.commands.executeCommand('vscode.open', newUri);
+      await vscode.window.showTextDocument(document);
 
       return true;
     } catch (error) {
@@ -572,10 +575,7 @@ export default class PlaygroundController {
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
-    if (
-      !this._activeTextEditor ||
-      this._activeTextEditor.document.uri.fragment !== 'mongodb'
-    ) {
+    if (!this._activeTextEditor || !isPlayground(this._activeTextEditor.document.uri)) {
       void vscode.window.showErrorMessage(
         "Please open a '.mongodb' playground file before running it."
       );
@@ -590,10 +590,7 @@ export default class PlaygroundController {
   }
 
   runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
-    if (
-      !this._activeTextEditor ||
-      this._activeTextEditor.document.uri.fragment !== 'mongodb'
-    ) {
+    if (!this._activeTextEditor || !isPlayground(this._activeTextEditor.document.uri)) {
       void vscode.window.showErrorMessage(
         "Please open a '.mongodb' playground file before running it."
       );

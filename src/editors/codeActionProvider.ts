@@ -3,6 +3,7 @@ import { TextEditor } from 'vscode';
 
 import EXTENSION_COMMANDS from '../commands';
 import { ExportToLanguageMode } from '../types/playgroundType';
+import { isPlayground } from '../utils/playground';
 
 export default class CodeActionProvider implements vscode.CodeActionProvider {
   _onDidChangeCodeCodeAction: vscode.EventEmitter<void> =
@@ -42,7 +43,7 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
 
   provideCodeActions(): vscode.CodeAction[] | undefined {
     const editorUri = this._activeTextEditor?.document.uri;
-    if (!this.selection || (editorUri?.fragment !== 'mongodb' && editorUri?.path.split('.').pop() !== 'mongodb')) {
+    if (!this.selection || !isPlayground(editorUri)) {
       return;
     }
 

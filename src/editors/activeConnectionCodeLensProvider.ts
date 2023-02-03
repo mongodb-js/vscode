@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { TextEditor } from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import ConnectionController from '../connectionController';
+import { isPlayground } from '../utils/playground';
 
 export default class ActiveConnectionCodeLensProvider
   implements vscode.CodeLensProvider
@@ -16,6 +17,7 @@ export default class ActiveConnectionCodeLensProvider
 
   constructor(connectionController: ConnectionController) {
     this._connectionController = connectionController;
+    this._activeTextEditor = vscode.window.activeTextEditor;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
@@ -34,7 +36,8 @@ export default class ActiveConnectionCodeLensProvider
 
   provideCodeLenses(): vscode.CodeLens[] {
     const editorUri = this._activeTextEditor?.document.uri;
-    if (editorUri?.fragment !== 'mongodb' && editorUri?.path.split('.').pop() !== 'mongodb') {
+
+    if (!isPlayground(editorUri)) {
       return [];
     }
 
