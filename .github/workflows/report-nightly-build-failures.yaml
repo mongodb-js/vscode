@@ -1,0 +1,20 @@
+name: Nightly build failures
+
+# This is a workflow that fails when the "Test and Build" workflow fails on the scheduled run on "main".
+# The reason why this exists is so that our slack github bot can reliably subscribe to this workflow and report
+# only the failures relative to nightly builds, instead of all the workflow runs.
+
+on:
+  workflow_run:
+    workflows: ["Test and Build"]
+    types:
+      - completed
+
+jobs:
+  on-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if nightly build failed
+        if: ${{ github.event.workflow_run.conclusion == 'failure' && steps.trigger_type.outputs.trigger_type == 'scheduled'}}
+        run: |
+          exit 1
