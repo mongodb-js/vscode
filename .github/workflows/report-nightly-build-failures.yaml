@@ -14,7 +14,17 @@ jobs:
   on-failure:
     runs-on: ubuntu-latest
     steps:
+      - name: Check trigger type
+        id: check_trigger_type
+        run: |
+          TRIGGER_TYPE=${{github.event.inputs.trigger_type}}
+          echo "trigger_type=${TRIGGER_TYPE}" >> $GITHUB_OUTPUT
+
+      - name: Report trigger type
+        run: |
+          echo "Trigger type: ${{steps.check_trigger_type.outputs.trigger_type}}"
+
       - name: Fail if nightly build failed
-        if: ${{ github.event.workflow_run.conclusion == 'failure' && steps.trigger_type.outputs.trigger_type == 'scheduled'}}
+        if: ${{ github.event.workflow_run.conclusion == 'failure' && steps.check_trigger_type.outputs.trigger_type == 'scheduled'}}
         run: |
           exit 1
