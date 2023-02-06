@@ -1,8 +1,8 @@
 name: Nightly build failures
 
-# This is a workflow that fails when the "Test and Build" workflow fails on the scheduled run on "main".
-# The reason why this exists is so that our slack github bot can reliably subscribe to this workflow and report
-# only the failures relative to nightly builds, instead of all the workflow runs.
+# This workflow is triggered when the "Test and Build" workflow fails on the scheduled run on the "main" branch.
+# The purpose of this workflow is to allow our Slack GitHub bot to subscribe to it and only report failures
+# related to nightly builds, rather than all workflow runs.
 
 on:
   workflow_run:
