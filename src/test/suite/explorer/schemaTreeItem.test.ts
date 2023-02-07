@@ -32,7 +32,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'cheesePizza',
       TEST_DB_NAME,
-      {},
+      {} as any,
       false,
       false,
       false,
@@ -56,7 +56,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {},
+      {} as any,
       false,
       false,
       false,
@@ -90,10 +90,10 @@ suite('SchemaTreeItem Test Suite', function () {
       'peanutButter',
       TEST_DB_NAME,
       {
-        find: (ns, filter, options, callback): void => {
-          callback(null, []);
+        find: () => {
+          return Promise.resolve([]);
         },
-      },
+      } as any,
       true,
       false,
       false,
@@ -129,10 +129,10 @@ suite('SchemaTreeItem Test Suite', function () {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {
-        find: (ns, filter, options, callback): void => {
-          callback(null, [mockDocWithTwentyFields]);
+        find: () => {
+          return Promise.resolve([mockDocWithTwentyFields]);
         },
-      },
+      } as any,
       true,
       false,
       false,
@@ -165,10 +165,10 @@ suite('SchemaTreeItem Test Suite', function () {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {
-        find: (ns, filter, options, callback): void => {
-          callback(null, [mockDocWithThirtyFields]);
+        find: () => {
+          return Promise.resolve([mockDocWithThirtyFields]);
         },
-      },
+      } as any,
       true,
       false,
       false,
@@ -192,10 +192,10 @@ suite('SchemaTreeItem Test Suite', function () {
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
       {
-        find: (ns, filter, options, callback): void => {
-          callback(null, 'invalid schema to parse');
+        find: () => {
+          return Promise.resolve('invalid schema to parse');
         },
-      },
+      } as any,
       true,
       false,
       false,
@@ -356,7 +356,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {},
+      {} as any,
       false,
       false,
       false,

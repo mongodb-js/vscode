@@ -103,13 +103,8 @@ suite('MongoDB Document Service Test Suite', () => {
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
 
     const mockGetActiveDataService = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
-        return callback(null, [{ _id: '123' }]);
+      find: () => {
+        return Promise.resolve([{ _id: '123' }]);
       },
     });
     sinon.replace(

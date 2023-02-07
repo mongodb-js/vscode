@@ -151,12 +151,12 @@ class DataServiceStub {
     return Promise.resolve(mockDatabases[databaseName].collections);
   }
 
-  find(namespace: string, filter: any, options: any, callback: any): void {
-    callback(null, mockDocuments.slice(0, options.limit));
+  find(namespace: string, filter: any, options: any) {
+    return Promise.resolve(mockDocuments.slice(0, options.limit));
   }
 
-  estimatedCount(namespace: string, options: any, callback: any): void {
-    callback(null, mockDocuments.length);
+  estimatedCount() {
+    return Promise.resolve(mockDocuments.length);
   }
 }
 

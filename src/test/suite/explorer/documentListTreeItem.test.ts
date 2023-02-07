@@ -14,10 +14,10 @@ import DocumentListTreeItem, {
 import { DataServiceStub, mockDocuments } from '../stubs';
 
 suite('DocumentListTreeItem Test Suite', () => {
-  let dataServiceMock: DataService;
+  let dataServiceMock: any;
 
   before(() => {
-    dataServiceMock = new DataServiceStub() as any as DataService;
+    dataServiceMock = new DataServiceStub();
   });
 
   test('its context value should be in the package json', () => {

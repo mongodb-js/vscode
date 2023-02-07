@@ -412,7 +412,7 @@ suite('MDBExtensionController Test Suite', function () {
         type: CollectionTypes.collection,
       },
       'airZebra',
-      { estimatedCount: (ns, opts, cb): void => cb(null, count) },
+      { estimatedCount: () => Promise.resolve(count) },
       false,
       false,
       null
@@ -459,7 +459,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new SchemaTreeItem(
       'zebraWearwolf',
       'giraffeVampire',
-      {},
+      {} as any,
       false,
       false,
       false,
@@ -1116,13 +1116,8 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockGetActiveDataService = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | undefined, documents: object[]) => void
-      ) => {
-        callback(undefined, [mockDocument]);
+      find: () => {
+        return Promise.resolve([mockDocument]);
       },
       findOneAndReplace: (
         namespace: string,
@@ -1146,7 +1141,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockDocument,
       'waffle.house',
       0,
-      {} as any as DataService,
+      {} as any,
       () => Promise.resolve()
     );
 
@@ -1202,7 +1197,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockDocument,
       'waffle.house',
       0,
-      {} as any as DataService,
+      {} as any,
       () => Promise.resolve()
     );
 
@@ -1557,17 +1552,12 @@ suite('MDBExtensionController Test Suite', function () {
 
     let namespaceUsed = '';
 
-    const mockDataService: DataService = {
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | undefined, documents: object[]) => void
-      ) => {
+    const mockDataService: any = {
+      find: (namespace: string) => {
         namespaceUsed = namespace;
-        callback(undefined, [mockDocument]);
+        return Promise.resolve([mockDocument]);
       },
-    } as any;
+    };
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,
@@ -1609,17 +1599,12 @@ suite('MDBExtensionController Test Suite', function () {
 
     let namespaceUsed = '';
 
-    const mockDataService: DataService = {
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | undefined, documents: object[]) => void
-      ) => {
+    const mockDataService: any = {
+      find: (namespace: string) => {
         namespaceUsed = namespace;
-        callback(undefined, [mockDocument]);
+        return Promise.resolve([mockDocument]);
       },
-    } as any;
+    };
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,
@@ -1670,7 +1655,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     let calledDelete = false;
 
-    const mockDataService: DataService = {
+    const mockDataService: any = {
       deleteOne: (
         namespace: string,
         _id: any,
@@ -1680,7 +1665,7 @@ suite('MDBExtensionController Test Suite', function () {
         calledDelete = true;
         callback(undefined, [mockDocument]);
       },
-    } as any;
+    };
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,
@@ -1712,7 +1697,7 @@ suite('MDBExtensionController Test Suite', function () {
     let namespaceUsed = '';
     let _idUsed;
 
-    const mockDataService: DataService = {
+    const mockDataService: any = {
       deleteOne: (
         namespace: string,
         query: any,
@@ -1728,7 +1713,7 @@ suite('MDBExtensionController Test Suite', function () {
           deletedCount: 1,
         });
       },
-    } as any;
+    };
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,

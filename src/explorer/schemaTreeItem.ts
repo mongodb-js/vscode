@@ -9,6 +9,7 @@ import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
 import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
+import { DataService } from 'mongodb-data-service';
 
 const log = createLogger('tree view document list');
 
@@ -52,7 +53,7 @@ export default class SchemaTreeItem
   collectionName: string;
   databaseName: string;
 
-  private _dataService: any;
+  private _dataService: DataService;
 
   isExpanded: boolean;
 
@@ -62,7 +63,7 @@ export default class SchemaTreeItem
   constructor(
     collectionName: string,
     databaseName: string,
-    dataService: any,
+    dataService: DataService,
     isExpanded: boolean,
     hasClickedShowMoreFields: boolean,
     hasMoreFieldsToShow: boolean,
@@ -100,10 +101,7 @@ export default class SchemaTreeItem
     const namespace = `${this.databaseName}.${this.collectionName}`;
     let documents;
     try {
-      const find = util.promisify(
-        this._dataService.find.bind(this._dataService)
-      );
-      documents = await find(
+      documents = await this._dataService.find(
         namespace,
         {}, // No filter.
         { limit: MAX_DOCUMENTS_VISIBLE }

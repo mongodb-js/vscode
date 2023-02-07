@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import { DataService } from 'mongodb-data-service';
 import chai from 'chai';
 import sinon from 'sinon';
 
@@ -63,9 +62,9 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController
     );
-    const mockActiveDataService = {
-      find: (namespace, filter, options, callback): void => {
-        return callback(null, [{ field: 'Text message' }]);
+    const mockActiveDataService: any = {
+      find: () => {
+        return Promise.resolve([{ field: 'Text message' }]);
       },
       instance: () =>
         Promise.resolve({
@@ -74,7 +73,7 @@ suite('Active DB CodeLens Provider Test Suite', () => {
           genuineMongoDB: {},
           host: {},
         }),
-    } as DataService;
+    };
 
     testConnectionController.setActiveDataService(mockActiveDataService);
 

@@ -381,13 +381,8 @@ suite('Playground Result Provider Test Suite', () => {
       { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' },
     ];
     const mockGetActiveDataService: any = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
-        return callback(null, documents);
+      find: () => {
+        return Promise.resolve(documents);
       },
     });
     sinon.replace(
