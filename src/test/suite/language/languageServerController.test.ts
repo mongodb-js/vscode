@@ -127,13 +127,13 @@ suite('Language Server Controller Test Suite', () => {
     expect(testLanguageServerController._isExecutingInProgress).to.equal(false);
   });
 
-  test('the language server dependency bundle exists', () => {
+  test('the language server dependency bundle exists', async () => {
     const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
     const languageServerModuleBundlePath = path.join(
       extensionPath,
       'dist',
       'languageServer.js'
     );
-    expect(fs.existsSync(languageServerModuleBundlePath)).to.equal(true);
+    await fs.promises.stat(languageServerModuleBundlePath);
   });
 });

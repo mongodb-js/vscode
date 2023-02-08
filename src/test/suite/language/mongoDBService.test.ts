@@ -29,13 +29,13 @@ suite('MongoDBService Test Suite', () => {
     },
   };
 
-  test('the language server worker dependency bundle exists', () => {
+  test('the language server worker dependency bundle exists', async () => {
     const languageServerModuleBundlePath = path.join(
       mdbTestExtension.testExtensionContext.extensionPath,
       'dist',
       languageServerWorkerFileName
     );
-    expect(fs.existsSync(languageServerModuleBundlePath)).to.equal(true);
+    await fs.promises.stat(languageServerModuleBundlePath);
   });
 
   suite('Extension path', () => {
