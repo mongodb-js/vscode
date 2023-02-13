@@ -38,6 +38,7 @@ import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
+import mermaid from 'mermaid';
 
 const log = createLogger('commands');
 
@@ -312,6 +313,70 @@ export default class MDBExtensionController implements vscode.Disposable {
         await vscode.env.clipboard.writeText(connectionString);
         void vscode.window.showInformationMessage('Copied to clipboard.');
 
+        return true;
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_SHOW_STREAMS,
+      // eslint-disable-next-line @typescript-eslint/require-await
+      async (): Promise<boolean> => {
+        // if the backend worked this is how you would do it (roughly)
+          // const dataService = this._connectionController.getActiveDataService();
+          // if (dataService === null) {
+          //   alert();
+          //   return false;
+          // }
+          // let nodeParent;
+          // dataService.command('admin', { listStreams: 1, dependencies: true }, (streams) => {})
+        const panel = vscode.window.createWebviewPanel(
+          'Mermaid Graph',
+          'Show Streams',
+          vscode.ViewColumn.One, // Editor column to show the webview panel in.
+          {
+            enableScripts: true,
+            retainContextWhenHidden: true,
+          }
+        );
+        mermaid.initialize({ startOnLoad: true });
+        let content = 'graph TD\n';
+        const nodeParent = {
+        'streamA': { 'parent': '', 'status': 'RUNNING' },
+        'streamB': { 'parent': 'streamA', 'status': 'RUNNING' },
+        'streamC': { 'parent': 'streamA', 'status': 'STOPPED' },
+        'streamD': { 'parent': 'streamB', 'status': 'STOPPED' },
+        'streamE': { 'parent': 'streamB', 'status': 'RUNNING' },
+        'streamF': { 'parent': 'streamB', 'status': 'RUNNING' },
+        'streamG': { 'parent': 'streamB', 'status': 'RUNNING' },
+        'streamH': { 'parent': 'streamB', 'status': 'RUNNING' },
+        'streamI': { 'parent': 'streamB', 'status': 'RUNNING' },
+        };
+
+        for (const node in nodeParent) {
+        if (nodeParent[node].parent !== '') {
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+        content += (nodeParent[node].parent + '(' + nodeParent[node].parent + ' : ' + nodeParent [nodeParent[node].parent].status + ') -->' + node + '(' + node + ' : ' + nodeParent[node].status + ')' + '\n');
+        }}
+
+        panel.webview.html = `<!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+          </head>
+          <body>
+          <div>
+            <h1> MongoDB Streams </h1>
+
+            <script src="https://unpkg.com/mermaid@8.0.0/dist/mermaid.min.js"></script>
+              <div>
+                <div class="mermaid">
+                  ${content}
+                </div>
+              </div>
+            </div>
+
+          </body>
+        </html>`;
         return true;
       }
     );
