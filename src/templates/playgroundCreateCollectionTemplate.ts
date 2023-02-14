@@ -29,7 +29,9 @@ db.createCollection(collection);
     timeseries: { // Added in MongoDB 5.0
       timeField: <string>, // required for time series collections
       metaField: <string>,
-      granularity: <string>
+      granularity: <string>,
+      bucketMaxSpanSeconds: <number>, // Added in MongoDB 6.3
+      bucketRoundingSeconds: <number>, // Added in MongoDB 6.3
     },
     expireAfterSeconds: <number>,
     clusteredIndex: <document>, // Added in MongoDB 5.3
