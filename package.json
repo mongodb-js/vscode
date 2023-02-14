@@ -984,7 +984,7 @@
     "@leafygreen-ui/logo": "^6.1.3",
     "@leafygreen-ui/palette": "^3.4.2",
     "@leafygreen-ui/toggle": "^7.0.5",
-    "@mongodb-js/mongodb-constants": "^0.1.1",
+    "@mongodb-js/mongodb-constants": "^0.2.1",
     "@mongosh/browser-runtime-electron": "^1.6.2",
     "@mongosh/i18n": "^1.6.2",
     "@mongosh/service-provider-server": "^1.6.2",
