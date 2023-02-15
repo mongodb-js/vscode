@@ -459,7 +459,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new SchemaTreeItem(
       'zebraWearwolf',
       'giraffeVampire',
-      {} as any,
+      {} as DataService,
       false,
       false,
       false,
@@ -1141,7 +1141,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockDocument,
       'waffle.house',
       0,
-      {} as any,
+      {} as DataService,
       () => Promise.resolve()
     );
 
@@ -1197,7 +1197,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockDocument,
       'waffle.house',
       0,
-      {} as any,
+      {} as DataService,
       () => Promise.resolve()
     );
 

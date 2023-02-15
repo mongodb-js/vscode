@@ -3,6 +3,7 @@ import * as sinon from 'sinon';
 import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
 import { inspect } from 'util';
+import type { DataService } from 'mongodb-data-service';
 
 import { ext } from '../../../extensionConstants';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
@@ -32,7 +33,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'cheesePizza',
       TEST_DB_NAME,
-      {} as any,
+      {} as DataService,
       false,
       false,
       false,
@@ -56,7 +57,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {} as any,
+      {} as DataService,
       false,
       false,
       false,
@@ -356,7 +357,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {} as any,
+      {} as DataService,
       false,
       false,
       false,
