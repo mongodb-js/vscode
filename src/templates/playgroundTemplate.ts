@@ -5,6 +5,8 @@ const template = `// MongoDB Playground
 // The result of the last command run in a playground is shown on the results panel.
 // By default the first 20 documents will be returned with a cursor.
 // Use 'console.log()' to print to the debug output.
+// For more documentation on playgrounds please refer to
+// https://www.mongodb.com/docs/mongodb-vscode/playgrounds/
 
 // Select the database to use.
 use('mongodbVSCodePlaygroundDB');
@@ -24,10 +26,10 @@ db.getCollection('sales').insertMany([
 // Run a find command to view items sold on April 4th, 2014.
 const salesOnApril4th = db.getCollection('sales').find({
   date: { $gte: new Date('2014-04-04'), $lt: new Date('2014-04-05') }
-}).toArray();
+}).count();
 
 // Print a message to the output window.
-console.log(\`\${salesOnApril4th.length} sales occurred in 2014.\`);
+console.log(\`\${salesOnApril4th} sales occurred in 2014.\`);
 
 // Here we run an aggregation and open a cursor to the results.
 // Use '.toArray()' to exhaust the cursor to return the whole result set.
