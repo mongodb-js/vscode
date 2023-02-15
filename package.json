@@ -55,7 +55,7 @@
     "vscode:prepublish": "npm run clean && npm run compile:keyfile && npm run compile:resources && webpack --mode production",
     "check": "npm run lint && npm run check-dependencies",
     "check-dependencies": "depcheck",
-    "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && cross-env NODE_OPTIONS=\"--require ./scripts/no-npm-list-fail.js\" vsce package --githubBranch main",
+    "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && vsce package --githubBranch main",
     "local-install": "npm run package && code --install-extension ./mongodb-vscode-*.vsix",
     "check-vsix-size": "ts-node ./scripts/check-vsix-size.ts",
     "release-draft": "node ./scripts/release-draft.js",
