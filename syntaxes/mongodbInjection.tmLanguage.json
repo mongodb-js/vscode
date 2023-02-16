@@ -1,0 +1,24 @@
+{
+  "scopeName": "mongodb.injection",
+  "injectionSelector": "L:meta.objectliteral.js",
+  "patterns": [
+    {
+      "include": "#object-member"
+    }
+  ],
+  "repository": {
+    "object-member": {
+      "patterns": [
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$match\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.match.mongodb"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

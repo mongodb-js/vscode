@@ -258,17 +258,16 @@ export default class PlaygroundController {
     content: string | undefined
   ): Promise<boolean> {
     try {
-      // The MacOS default folder for saving files would be the read-only root (/) directory,
+      // The MacOS default folder for saving files is a read-only root (/) directory,
       // therefore we explicitly specify the workspace folder path
       // or OS temp directory if a user has not opened workspaces.
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       const filePath = workspaceFolder?.uri.fsPath || os.tmpdir();
 
       const numberUntitledPlaygrounds = vscode.workspace.textDocuments.filter((doc) => isPlayground(doc.uri)).length;
-      const fileName = path.join(filePath, `playground-${numberUntitledPlaygrounds + 1}.mongodb`);
+      const fileName = path.join(filePath, `playground-${numberUntitledPlaygrounds + 1}.mongodb.js`);
 
-      // Create untitled file: untitled:/extensionPath/playground-1.mongodb.js
-      // Before: vscode.workspace.openTextDocument({ language: 'mongodb', content });
+      // Create an untitled file URI: untitled:/extensionPath/playground-1.mongodb.js
       const documentUri = vscode.Uri.from({ path: fileName, scheme: 'untitled' });
 
       // Fill in initial content.
@@ -280,11 +279,6 @@ export default class PlaygroundController {
       // await vscode.commands.executeCommand('vscode.open', documentUri);
       const document = await vscode.workspace.openTextDocument(documentUri);
 
-      // Ensure that the playground language is JavaScript.
-      await vscode.languages.setTextDocumentLanguage(
-        document,
-        'javascript'
-      );
       // Focus new text document.
       await vscode.window.showTextDocument(document);
 

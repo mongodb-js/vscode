@@ -122,6 +122,13 @@
         ]
       }
     ],
+    "grammars": [
+      {
+        "path": "./syntaxes/mongodbInjection.tmLanguage.json",
+        "scopeName": "mongodb.injection",
+        "injectTo": ["source.js"]
+      }
+    ],
     "snippets": [
       {
         "language": "terraform",
