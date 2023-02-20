@@ -37,13 +37,12 @@ npm run watch
 
 #### Code Tour
 
-- `out` - Compiled extension code
-- `images` - Icons, logos, etc.
-- `snippets` - Bundled MongoDB Snippets
+- `out` Compiled extension code
+- `images` Icons, logos, etc.
+- `snippets` Bundled MongoDB Snippets
 - `syntaxes` [Syntax highlighting](https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide#injection-grammars) for MongoDB keywords
-- `src`
-  - `test/suite` - Where tests live with '`*.test.ts`' files names
-- `scripts` - Project helper scripts
+- `src/test/suite` Where tests live with '`*.test.ts`' files names
+- `scripts` Project helper scripts
 
 ## Releases
 
