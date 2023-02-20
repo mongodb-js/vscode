@@ -36,6 +36,7 @@
   "scripts": {
     "clean": "rimraf ./out/* ./dist/* ",
     "lint": "eslint . && prettier --check .",
+    "update-grammar": "ts-node ./scripts/update-grammar.ts",
     "update-snippets": "ts-node ./scripts/update-snippets.ts",
     "precompile": "npm run clean",
     "compile": "npm-run-all compile:*",
