@@ -127,7 +127,9 @@
       {
         "path": "./syntaxes/mongodbInjection.tmLanguage.json",
         "scopeName": "mongodb.injection",
-        "injectTo": ["source.js"]
+        "injectTo": [
+          "source.js"
+        ]
       }
     ],
     "snippets": [

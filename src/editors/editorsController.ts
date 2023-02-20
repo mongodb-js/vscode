@@ -3,7 +3,7 @@ import { EJSON } from 'bson';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
-import CodeActionProvider from './codeActionProvider';
+import PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
 import ConnectionController from '../connectionController';
 import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
@@ -83,7 +83,7 @@ export function getViewCollectionDocumentsUri(
  * new editors and the data they need. It also manages active editors.
  */
 export default class EditorsController {
-  _codeActionProvider: CodeActionProvider;
+  _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
   _connectionController: ConnectionController;
   _playgroundController: PlaygroundController;
   _collectionDocumentsOperationsStore =
@@ -110,7 +110,7 @@ export default class EditorsController {
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider,
-    codeActionProvider: CodeActionProvider,
+    codeActionProvider: PlaygroundSelectedCodeActionProvider,
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider
   ) {
     log.info('activating...');
@@ -143,7 +143,7 @@ export default class EditorsController {
       new CollectionDocumentsCodeLensProvider(
         this._collectionDocumentsOperationsStore
       );
-    this._codeActionProvider = codeActionProvider;
+    this._playgroundSelectedCodeActionProvider = codeActionProvider;
 
     vscode.workspace.onDidCloseTextDocument((e) => {
       const uriParams = new URLSearchParams(e.uri.query);
@@ -433,9 +433,10 @@ export default class EditorsController {
     this._context.subscriptions.push(
       vscode.languages.registerCodeActionsProvider(
         'javascript',
-        this._codeActionProvider,
+        this._playgroundSelectedCodeActionProvider,
         {
-          providedCodeActionKinds: CodeActionProvider.providedCodeActionKinds,
+          providedCodeActionKinds:
+            PlaygroundSelectedCodeActionProvider.providedCodeActionKinds,
         }
       )
     );

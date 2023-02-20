@@ -11,7 +11,7 @@ import {
   CONVERSION_OPERATORS,
   EXPRESSION_OPERATORS,
   QUERY_OPERATORS,
-  STAGE_OPERATORS
+  STAGE_OPERATORS,
 } from '@mongodb-js/mongodb-constants';
 
 const writeFile = promisify(fs.writeFile);
@@ -22,7 +22,7 @@ const mongodbeywords = [
   ...CONVERSION_OPERATORS,
   ...EXPRESSION_OPERATORS,
   ...QUERY_OPERATORS,
-  ...STAGE_OPERATORS
+  ...STAGE_OPERATORS,
 ];
 
 const injectionGrammar = {
@@ -36,12 +36,12 @@ const injectionGrammar = {
         match: `\\${keyword.name}\\b`,
         captures: {
           0: {
-            name: `keyword.other.${keyword.name}.mongodb`
-          }
-        }
-      }))
-    }
-  }
+            name: `keyword.other.${keyword.name}.mongodb`,
+          },
+        },
+      })),
+    },
+  },
 };
 
 (async () => {

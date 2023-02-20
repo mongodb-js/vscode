@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import * as vscode from 'vscode';
 import micromatch from 'micromatch';
 import * as fs from 'fs';
@@ -47,15 +48,15 @@ export class FileStat implements vscode.FileStat {
 
 const getFileNames = (filePath: string): Promise<string[]> => {
   return fs.promises.readdir(filePath);
-}
+};
 
 const getStat = async (filePath: string): Promise<vscode.FileStat> => {
   return new FileStat(await stat(filePath));
-}
+};
 
 const stat = (filePath: string): Promise<fs.Stats> => {
   return fs.promises.stat(filePath);
-}
+};
 
 export const isPlayground = (fileUri?: vscode.Uri) => {
   if (!fileUri) {
@@ -77,12 +78,23 @@ export const isPlayground = (fileUri?: vscode.Uri) => {
   const extension = fileNameParts[fileNameParts.length - 1];
   const secondaryExtension = fileNameParts[fileNameParts.length - 2];
 
-  return fileNameParts.length > 1 && (extension === 'mongodb' || (extension === 'js' && secondaryExtension === 'mongodb'));
-}
+  return (
+    fileNameParts.length > 1 &&
+    (extension === 'mongodb' ||
+      (extension === 'js' && secondaryExtension === 'mongodb'))
+  );
+};
 
-export const readDirectory = async (fsPath: string, excludeFromPlaygroundsSearch?: string[]): Promise<{ name: string, path: string }[]> => {
+export const getPlaygrounds = async ({
+  fsPath,
+  excludeFromPlaygroundsSearch,
+  playgrounds = [],
+}: {
+  fsPath: string;
+  excludeFromPlaygroundsSearch?: string[];
+  playgrounds?: { name: string; path: string }[];
+}): Promise<{ name: string; path: string }[]> => {
   const fileNames = await getFileNames(fsPath);
-  const playgrounds: { name: string, path: string }[] = [];
 
   for (let i = 0; i < fileNames.length; i++) {
     const fileName = fileNames[i];
@@ -94,10 +106,17 @@ export const readDirectory = async (fsPath: string, excludeFromPlaygroundsSearch
       if (stat.type === vscode.FileType.File && isPlayground(fileUri)) {
         playgrounds.push({ name: fileName, path: fileUri.fsPath });
       } else if (
-        (stat.type === vscode.FileType.Directory && !excludeFromPlaygroundsSearch) ||
-        (stat.type === vscode.FileType.Directory && excludeFromPlaygroundsSearch && !micromatch.isMatch(fileName, excludeFromPlaygroundsSearch))
+        (stat.type === vscode.FileType.Directory &&
+          !excludeFromPlaygroundsSearch) ||
+        (stat.type === vscode.FileType.Directory &&
+          excludeFromPlaygroundsSearch &&
+          !micromatch.isMatch(fileName, excludeFromPlaygroundsSearch))
       ) {
-        await readDirectory(fileUri.fsPath);
+        await getPlaygrounds({
+          fsPath: fileUri.fsPath,
+          excludeFromPlaygroundsSearch,
+          playgrounds,
+        });
       }
     } catch (error) {
       /* */
@@ -105,4 +124,4 @@ export const readDirectory = async (fsPath: string, excludeFromPlaygroundsSearch
   }
 
   return playgrounds;
-}
+};

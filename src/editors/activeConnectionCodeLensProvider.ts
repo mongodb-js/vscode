@@ -10,24 +10,23 @@ export default class ActiveConnectionCodeLensProvider
   _connectionController: ConnectionController;
   _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
-  _activeTextEditor?: TextEditor;
+  activeTextEditor?: TextEditor;
 
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
   constructor(connectionController: ConnectionController) {
     this._connectionController = connectionController;
-    this._activeTextEditor = vscode.window.activeTextEditor;
+    this.activeTextEditor = vscode.window.activeTextEditor;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
+  }
 
-    vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor | undefined) => {
-      if (editor?.document.languageId !== 'Log') {
-        this._activeTextEditor = editor;
-      }
-    });
+  setActiveTextEditor(activeTextEditor?: TextEditor) {
+    this.activeTextEditor = activeTextEditor;
+    this._onDidChangeCodeLenses.fire();
   }
 
   refresh(): void {
@@ -35,7 +34,7 @@ export default class ActiveConnectionCodeLensProvider
   }
 
   provideCodeLenses(): vscode.CodeLens[] {
-    const editorUri = this._activeTextEditor?.document.uri;
+    const editorUri = this.activeTextEditor?.document.uri;
 
     if (!isPlayground(editorUri)) {
       return [];

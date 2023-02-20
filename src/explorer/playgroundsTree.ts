@@ -4,7 +4,7 @@ import { PLAYGROUND_ITEM } from './playgroundsTreeItem';
 import { createLogger } from '../logging';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
 import EXTENSION_COMMANDS from '../commands';
-import { readDirectory } from '../utils/playground';
+import { getPlaygrounds } from '../utils/playground';
 
 const log = createLogger('playgrounds tree controller');
 
@@ -100,11 +100,20 @@ export default class PlaygroundsTree
     return element;
   }
 
-  public async getPlaygrounds(folderUri: vscode.Uri): Promise<any> {
-    const playgrounds = await readDirectory(folderUri.fsPath);
+  public async getPlaygrounds(fsPath: string): Promise<any> {
+    const excludeFromPlaygroundsSearch: string[] =
+      (await vscode.workspace
+        .getConfiguration('mdb')
+        .get('excludeFromPlaygroundsSearch')) || [];
+
+    const playgrounds = await getPlaygrounds({
+      fsPath,
+      excludeFromPlaygroundsSearch,
+    });
+
     this._playgroundsTreeItems = {};
 
-    playgrounds.forEach(element => {
+    playgrounds.forEach((element) => {
       this._playgroundsTreeItems[element.path] = new PlaygroundsTreeItem(
         element.name,
         element.path
@@ -127,7 +136,7 @@ export default class PlaygroundsTree
         );
 
         for (const folder of workspaceFolders) {
-          const playgrounds = await this.getPlaygrounds(folder.uri);
+          const playgrounds = await this.getPlaygrounds(folder.uri.fsPath);
 
           if (Object.keys(playgrounds).length > 0) {
             this._playgroundsTreeHeaders.push(

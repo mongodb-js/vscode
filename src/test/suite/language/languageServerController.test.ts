@@ -5,7 +5,7 @@ import path from 'path';
 import sinon from 'sinon';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import CodeActionProvider from '../../../editors/codeActionProvider';
+import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { ExplorerController } from '../../../explorer';
@@ -58,7 +58,7 @@ suite('Language Server Controller Test Suite', () => {
   );
   const testExportToLanguageCodeLensProvider =
     new ExportToLanguageCodeLensProvider();
-  const testCodeActionProvider = new CodeActionProvider();
+  const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
   const testPlaygroundController = new PlaygroundController(
     testConnectionController,
     testLanguageServerController,

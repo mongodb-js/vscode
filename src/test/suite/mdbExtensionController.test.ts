@@ -565,30 +565,19 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
-    const mockOpenTextDocument = sinon.fake.resolves('untitled');
-    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
-
-    const mockShowTextDocument = sinon.fake();
-    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
-
     await vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem);
 
-    assert(mockOpenTextDocument.firstCall.args[0].language === 'mongodb');
     assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes(
-        '// Create a new database.'
-      )
+      vscode.window.activeTextEditor?.document.languageId === 'javascript'
     );
-    assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes(
-        'NEW_DATABASE_NAME'
-      )
-    );
-    assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes(
-        'NEW_COLLECTION_NAME'
-      )
-    );
+    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+
+    const content = vscode.window.activeTextEditor.document.getText();
+    assert(content.includes('// Create a new database.'));
+    assert(content.includes('NEW_DATABASE_NAME'));
+    assert(content.includes('NEW_COLLECTION_NAME'));
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
   test('mdb.addDatabase command fails when disconnecting', async () => {
@@ -700,31 +689,20 @@ suite('MDBExtensionController Test Suite', function () {
       mockActiveConnectionId
     );
 
-    const mockOpenTextDocument = sinon.fake.resolves('untitled');
-    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
-
-    const mockShowTextDocument = sinon.fake();
-    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
-
     await vscode.commands.executeCommand('mdb.addCollection', mockTreeItem);
 
-    assert(mockOpenTextDocument.firstCall.args[0].language === 'mongodb');
     assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes(
-        '// The current database to use.'
-      )
+      vscode.window.activeTextEditor?.document.languageId === 'javascript'
     );
-    assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes('iceCreamDB')
-    );
-    assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes(
-        'NEW_COLLECTION_NAME'
-      )
-    );
-    assert(
-      !mockOpenTextDocument.firstCall.args[0].content.includes('time-series')
-    );
+    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+
+    const content = vscode.window.activeTextEditor.document.getText();
+    assert(content.includes('// The current database to use.'));
+    assert(content.includes('iceCreamDB'));
+    assert(content.includes('NEW_COLLECTION_NAME'));
+    assert(!content.includes('time-series'));
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
   test('mdb.addCollection command fails when disconnecting', async () => {
@@ -1365,72 +1343,44 @@ suite('MDBExtensionController Test Suite', function () {
   });
 
   test('mdb.searchForDocuments should create a MongoDB playground with search template', async () => {
-    const mockOpenTextDocument = sinon.fake.resolves('untitled');
-    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
-
-    const mockShowTextDocument = sinon.fake();
-    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
-
     await vscode.commands.executeCommand('mdb.searchForDocuments', {
       databaseName: 'dbbbbbName',
       collectionName: 'colllllllllName',
     });
 
-    assert.strictEqual(
-      mockOpenTextDocument.firstCall.args[0].language,
-      'mongodb'
-    );
     assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes(
-        'Search for documents in the current collection.'
-      )
+      vscode.window.activeTextEditor?.document.languageId === 'javascript'
     );
-    assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes('dbbbbbName')
-    );
-    assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes('colllllllllName')
-    );
-    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
+    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+
+    const content = vscode.window.activeTextEditor.document.getText();
+    assert(content.includes('Search for documents in the current collection.'));
+    assert(content.includes('dbbbbbName'));
+    assert(content.includes('colllllllllName'));
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
   test('mdb.createIndexFromTreeView should create a MongoDB playground with index template', async () => {
-    const mockOpenTextDocument = sinon.fake.resolves('untitled');
-    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
-
-    const mockShowTextDocument = sinon.fake();
-    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
-
     await vscode.commands.executeCommand('mdb.createIndexFromTreeView', {
       databaseName: 'dbbbbbName',
       collectionName: 'colllllllllName',
     });
 
-    assert.strictEqual(
-      mockOpenTextDocument.firstCall.args[0].language,
-      'mongodb'
-    );
     assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes('dbbbbbName')
+      vscode.window.activeTextEditor?.document.languageId === 'javascript'
     );
-    assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes('colllllllllName')
-    );
-    assert(
-      mockOpenTextDocument.firstCall.args[0].content.includes(
-        'Create a new index in the collection.'
-      )
-    );
-    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
+    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+
+    const content = vscode.window.activeTextEditor.document.getText();
+    assert(content.includes('Create a new index in the collection.'));
+    assert(content.includes('dbbbbbName'));
+    assert(content.includes('colllllllllName'));
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
   test('mdb.createPlayground should create a MongoDB playground with default template', async () => {
-    const mockOpenTextDocument = sinon.fake.resolves('untitled');
-    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
-
-    const mockShowTextDocument = sinon.fake();
-    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
-
     const mockGetConfiguration = sinon.fake.returns({
       get: () => true,
     });
@@ -1438,40 +1388,18 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.createPlayground');
 
-    assert.strictEqual(
-      mockOpenTextDocument.firstCall.args[0].language,
-      'mongodb'
-    );
     assert(
-      mockOpenTextDocument.firstCall.args[0].content.startsWith(
-        '// MongoDB Playground'
-      )
+      vscode.window.activeTextEditor?.document.languageId === 'javascript'
     );
-    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
-  });
+    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
 
-  test('mdb.createNewPlaygroundFromViewAction should create a MongoDB playground', async () => {
-    const mockOpenTextDocument = sinon.fake.resolves('untitled');
-    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
+    const content = vscode.window.activeTextEditor.document.getText();
+    assert(content.includes('// MongoDB Playground'));
 
-    const mockShowTextDocument = sinon.fake();
-    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
-
-    await vscode.commands.executeCommand('mdb.createPlayground');
-    assert.strictEqual(
-      mockOpenTextDocument.firstCall.args[0].language,
-      'mongodb'
-    );
-    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
   test('mdb.createPlayground command should create a MongoDB playground without template', async () => {
-    const mockOpenTextDocument = sinon.fake.resolves('untitled');
-    sinon.replace(vscode.workspace, 'openTextDocument', mockOpenTextDocument);
-
-    const mockShowTextDocument = sinon.fake();
-    sinon.replace(vscode.window, 'showTextDocument', mockShowTextDocument);
-
     const mockGetConfiguration = sinon.fake.returns({
       get: () => false,
     });
@@ -1479,12 +1407,15 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.createPlayground');
 
-    assert.strictEqual(
-      mockOpenTextDocument.firstCall.args[0].language,
-      'mongodb'
+    assert(
+      vscode.window.activeTextEditor?.document.languageId === 'javascript'
     );
-    assert.strictEqual(mockOpenTextDocument.firstCall.args[0].content, '');
-    assert.strictEqual(mockShowTextDocument.firstCall.args[0], 'untitled');
+    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+
+    const content = vscode.window.activeTextEditor.document.getText();
+    assert.strictEqual(content, '');
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
   test('mdb.runSelectedPlaygroundBlocks command should call runSelectedPlaygroundBlocks on the playground controller', async () => {

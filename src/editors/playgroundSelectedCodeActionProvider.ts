@@ -5,29 +5,31 @@ import EXTENSION_COMMANDS from '../commands';
 import { ExportToLanguageMode } from '../types/playgroundType';
 import { isPlayground } from '../utils/playground';
 
-export default class CodeActionProvider implements vscode.CodeActionProvider {
+export default class PlaygroundSelectedCodeActionProvider
+  implements vscode.CodeActionProvider
+{
   _onDidChangeCodeCodeAction: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
   selection?: vscode.Selection;
   mode?: ExportToLanguageMode;
-  _activeTextEditor?: TextEditor;
+  activeTextEditor?: TextEditor;
 
   static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
   constructor() {
+    this.activeTextEditor = vscode.window.activeTextEditor;
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeCodeAction.fire();
-    });
-
-    vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor | undefined) => {
-      if (editor?.document.languageId !== 'Log') {
-        this._activeTextEditor = editor;
-      }
     });
   }
 
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeCodeAction.event;
+
+  setActiveTextEditor(activeTextEditor?: TextEditor) {
+    this.activeTextEditor = activeTextEditor;
+    this._onDidChangeCodeCodeAction.fire();
+  }
 
   refresh({
     selection,
@@ -42,7 +44,8 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
   }
 
   provideCodeActions(): vscode.CodeAction[] | undefined {
-    const editorUri = this._activeTextEditor?.document.uri;
+    const editorUri = this.activeTextEditor?.document.uri;
+
     if (!this.selection || !isPlayground(editorUri)) {
       return;
     }
