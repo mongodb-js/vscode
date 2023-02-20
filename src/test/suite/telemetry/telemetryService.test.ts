@@ -60,12 +60,14 @@ suite('Telemetry Controller Test Suite', () => {
       mockTrackCommandRun
     );
     sinon.replace(
-      mdbTestExtension.testExtensionController._playgroundController._telemetryService,
+      mdbTestExtension.testExtensionController._playgroundController
+        ._telemetryService,
       'trackPlaygroundCodeExecuted',
       mockTrackPlaygroundCodeExecuted
     );
     sinon.replace(
-      mdbTestExtension.testExtensionController._playgroundController._telemetryService,
+      mdbTestExtension.testExtensionController._playgroundController
+        ._telemetryService,
       'trackPlaygroundLoaded',
       mockTrackPlaygroundLoadedMethod
     );
