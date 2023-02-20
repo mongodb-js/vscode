@@ -40,7 +40,7 @@
     "precompile": "npm run clean",
     "compile": "npm-run-all compile:*",
     "compile:keyfile": "ts-node ./scripts/generate-keyfile.ts",
-    "compile:resources": "npm run update-snippets",
+    "compile:resources": "npm run update-grammar && npm run update-snippets",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
     "watch": "npm run compile && npm-run-all -p watch:*",
@@ -68,7 +68,7 @@
   "activationEvents": [
     "onView:mongoDB",
     "onLanguage:json",
-    "onLanguage:javasript",
+    "onLanguage:javascript",
     "onLanguage:plaintext"
   ],
   "contributes": {

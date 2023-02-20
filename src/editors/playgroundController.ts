@@ -267,7 +267,8 @@ export default class PlaygroundController {
       const numberUntitledPlaygrounds = vscode.workspace.textDocuments.filter((doc) => isPlayground(doc.uri)).length;
       const fileName = path.join(filePath, `playground-${numberUntitledPlaygrounds + 1}.mongodb.js`);
 
-      // Create an untitled file URI: untitled:/extensionPath/playground-1.mongodb.js
+      // Does not create a physical file, it only creates a URI from specified component parts.
+      // An untitled file URI: untitled:/extensionPath/playground-1.mongodb.js
       const documentUri = vscode.Uri.from({ path: fileName, scheme: 'untitled' });
 
       // Fill in initial content.

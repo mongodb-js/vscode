@@ -425,7 +425,7 @@ export default class MongoDBService {
 
         return {
           label: item,
-          kind: CompletionItemKind.Method,
+          kind: CompletionItemKind.Keyword,
           documentation: markdownDocumentation,
           detail,
         };
