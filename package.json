@@ -134,6 +134,10 @@
     ],
     "snippets": [
       {
+        "language": "mongodb",
+        "path": "./snippets/stage-autocompleter.json"
+      },
+      {
         "language": "terraform",
         "path": "./snippets/atlas-terraform.json"
       }
