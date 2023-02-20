@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { afterEach, beforeEach } from 'mocha';
 import chai from 'chai';
-import { connect } from 'mongodb-data-service';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import sinon from 'sinon';
@@ -13,7 +12,6 @@ import { ConnectionTypes } from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';
 import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { mdbTestExtension } from '../stubbableMdbExtension';
-import { NewConnectionTelemetryEventProperties } from '../../../telemetry/connectionTelemetry';
 import {
   SegmentProperties,
   TelemetryEventTypes,
@@ -21,8 +19,6 @@ import {
 
 const expect = chai.expect;
 const { version } = require('../../../../package.json');
-
-const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
 chai.use(sinonChai);
 

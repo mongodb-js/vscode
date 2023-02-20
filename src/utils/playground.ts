@@ -1,8 +1,11 @@
-/* eslint-disable complexity */
 import * as vscode from 'vscode';
 import micromatch from 'micromatch';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { createLogger } from '../logging';
+
+const log = createLogger('playground utils');
 
 export class FileStat implements vscode.FileStat {
   constructor(private fsStat: fs.Stats) {}
@@ -119,7 +122,7 @@ export const getPlaygrounds = async ({
         });
       }
     } catch (error) {
-      /* */
+      log.error('Get playgrounds recursively from the workspace error', error);
     }
   }
 

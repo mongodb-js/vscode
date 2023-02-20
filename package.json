@@ -134,7 +134,7 @@
     ],
     "snippets": [
       {
-        "language": "mongodb",
+        "language": "javascript",
         "path": "./snippets/stage-autocompleter.json"
       },
       {
