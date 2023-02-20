@@ -278,7 +278,6 @@ export default class PlaygroundController {
       await vscode.workspace.applyEdit(edit);
 
       // Actually show the editor.
-      // await vscode.commands.executeCommand('vscode.open', documentUri);
       const document = await vscode.workspace.openTextDocument(documentUri);
 
       // Focus new text document.
