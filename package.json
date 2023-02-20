@@ -349,6 +349,10 @@
         "title": "Refresh"
       },
       {
+        "command": "mdb.insertDocumentFromTreeView",
+        "title": "Insert Document..."
+      },
+      {
         "command": "mdb.refreshSchema",
         "title": "Refresh"
       },
@@ -530,9 +534,14 @@
           "group": "2@1"
         },
         {
-          "command": "mdb.dropCollection",
+          "command": "mdb.insertDocumentFromTreeView",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "3@1"
+        },
+        {
+          "command": "mdb.dropCollection",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
+          "group": "4@1"
         },
         {
           "command": "mdb.searchForDocuments",
@@ -546,16 +555,23 @@
         },
         {
           "command": "mdb.viewCollectionDocuments",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "1@1"
         },
         {
           "command": "mdb.refreshDocumentList",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "1@2"
         },
         {
           "command": "mdb.searchForDocuments",
           "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
           "group": "2@1"
+        },
+        {
+          "command": "mdb.insertDocumentFromTreeView",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "3@1"
         },
         {
           "command": "mdb.refreshSchema",
@@ -729,6 +745,10 @@
         },
         {
           "command": "mdb.refreshDocumentList",
+          "when": "false"
+        },
+        {
+          "command": "mdb.insertDocumentFromTreeView",
           "when": "false"
         },
         {
@@ -955,11 +975,11 @@
     "@leafygreen-ui/logo": "^6.1.3",
     "@leafygreen-ui/palette": "^3.4.2",
     "@leafygreen-ui/toggle": "^7.0.5",
-    "@mongodb-js/mongodb-constants": "^0.1.1",
-    "@mongosh/browser-runtime-electron": "^1.6.0",
-    "@mongosh/i18n": "^1.6.0",
-    "@mongosh/service-provider-server": "^1.6.0",
-    "@mongosh/shell-api": "^1.6.0",
+    "@mongodb-js/mongodb-constants": "^0.2.1",
+    "@mongosh/browser-runtime-electron": "^1.6.2",
+    "@mongosh/i18n": "^1.6.2",
+    "@mongosh/service-provider-server": "^1.6.2",
+    "@mongosh/shell-api": "^1.6.2",
     "analytics-node": "^5.1.2",
     "bson": "^4.7.0",
     "bson-transpilers": "^2.0.0",
@@ -967,7 +987,8 @@
     "debug": "^4.3.4",
     "dotenv": "^16.0.2",
     "micromatch": "^4.0.5",
-    "mongodb": "^4.10.0",
+    "mongodb": "^4.13.0",
+    "mongodb-build-info": "^1.5.0",
     "mongodb-cloud-info": "^1.1.3",
     "mongodb-connection-string-url": "^2.5.3",
     "mongodb-data-service": "^22.1.1",
@@ -1039,7 +1060,6 @@
     "mocha": "^8.4.0",
     "mocha-junit-reporter": "^2.0.2",
     "mocha-multi": "^1.1.6",
-    "mongodb-build-info": "^1.4.0",
     "mongodb-client-encryption": "^2.2.1",
     "mongodb-runner": "^4.9.0",
     "node-loader": "^0.6.0",

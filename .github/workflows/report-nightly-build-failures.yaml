@@ -1,0 +1,30 @@
+name: Nightly build failures
+
+# This workflow is triggered when the "Test and Build" workflow fails on the scheduled run on the "main" branch.
+# The purpose of this workflow is to allow our Slack GitHub bot to subscribe to it and only report failures
+# related to nightly builds, rather than all workflow runs.
+
+on:
+  workflow_run:
+    workflows: ["Test and Build"]
+    types:
+      - completed
+
+jobs:
+  on-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check trigger type
+        id: trigger_type
+        run: |
+          TRIGGER_TYPE=${{github.event.inputs.trigger_type}}
+          echo "trigger_type=${TRIGGER_TYPE}" >> $GITHUB_OUTPUT
+
+      - name: Report trigger type
+        run: |
+          echo "Trigger type: ${{steps.trigger_type.outputs.trigger_type}}"
+
+      - name: Fail if nightly build failed
+        if: ${{ github.event.workflow_run.conclusion == 'failure' && steps.trigger_type.outputs.trigger_type == 'scheduled'}}
+        run: |
+          exit 1
