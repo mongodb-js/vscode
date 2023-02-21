@@ -567,12 +567,13 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.addDatabase', mockTreeItem);
 
-    assert(
-      vscode.window.activeTextEditor?.document.languageId === 'javascript'
-    );
-    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+    const activeTextEditor =
+      mdbTestExtension.testExtensionController._playgroundController
+        ._activeTextEditor;
+    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
-    const content = vscode.window.activeTextEditor.document.getText();
+    const content = activeTextEditor.document.getText();
     assert(content.includes('// Create a new database.'));
     assert(content.includes('NEW_DATABASE_NAME'));
     assert(content.includes('NEW_COLLECTION_NAME'));
@@ -691,12 +692,13 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.addCollection', mockTreeItem);
 
-    assert(
-      vscode.window.activeTextEditor?.document.languageId === 'javascript'
-    );
-    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+    const activeTextEditor =
+      mdbTestExtension.testExtensionController._playgroundController
+        ._activeTextEditor;
+    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
-    const content = vscode.window.activeTextEditor.document.getText();
+    const content = activeTextEditor.document.getText();
     assert(content.includes('// The current database to use.'));
     assert(content.includes('iceCreamDB'));
     assert(content.includes('NEW_COLLECTION_NAME'));
@@ -1348,12 +1350,13 @@ suite('MDBExtensionController Test Suite', function () {
       collectionName: 'colllllllllName',
     });
 
-    assert(
-      vscode.window.activeTextEditor?.document.languageId === 'javascript'
-    );
-    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+    const activeTextEditor =
+      mdbTestExtension.testExtensionController._playgroundController
+        ._activeTextEditor;
+    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
-    const content = vscode.window.activeTextEditor.document.getText();
+    const content = activeTextEditor.document.getText();
     assert(content.includes('Search for documents in the current collection.'));
     assert(content.includes('dbbbbbName'));
     assert(content.includes('colllllllllName'));
@@ -1367,12 +1370,13 @@ suite('MDBExtensionController Test Suite', function () {
       collectionName: 'colllllllllName',
     });
 
-    assert(
-      vscode.window.activeTextEditor?.document.languageId === 'javascript'
-    );
-    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+    const activeTextEditor =
+      mdbTestExtension.testExtensionController._playgroundController
+        ._activeTextEditor;
+    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
-    const content = vscode.window.activeTextEditor.document.getText();
+    const content = activeTextEditor.document.getText();
     assert(content.includes('Create a new index in the collection.'));
     assert(content.includes('dbbbbbName'));
     assert(content.includes('colllllllllName'));
@@ -1388,12 +1392,13 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.createPlayground');
 
-    assert(
-      vscode.window.activeTextEditor?.document.languageId === 'javascript'
-    );
-    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+    const activeTextEditor =
+      mdbTestExtension.testExtensionController._playgroundController
+        ._activeTextEditor;
+    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
-    const content = vscode.window.activeTextEditor.document.getText();
+    const content = activeTextEditor.document.getText();
     assert(content.includes('// MongoDB Playground'));
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
@@ -1407,12 +1412,13 @@ suite('MDBExtensionController Test Suite', function () {
 
     await vscode.commands.executeCommand('mdb.createPlayground');
 
-    assert(
-      vscode.window.activeTextEditor?.document.languageId === 'javascript'
-    );
-    assert(vscode.window.activeTextEditor?.document.uri.scheme === 'untitled');
+    const activeTextEditor =
+      mdbTestExtension.testExtensionController._playgroundController
+        ._activeTextEditor;
+    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
-    const content = vscode.window.activeTextEditor.document.getText();
+    const content = activeTextEditor.document.getText();
     assert.strictEqual(content, '');
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
