@@ -14,7 +14,7 @@ import { ServerCommands } from './serverCommands';
 
 // MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options)
 type MongoClientOptions = NonNullable<
-  Parameters<typeof CliServiceProvider['connect']>[1]
+  Parameters<(typeof CliServiceProvider)['connect']>[1]
 >;
 
 interface EvaluationResult {
