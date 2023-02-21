@@ -62,9 +62,9 @@
     "reformat": "prettier --write ."
   },
   "engines": {
-    "vscode": "^1.71.0",
+    "vscode": "^1.75.1",
     "node": "^16.16.0",
-    "npm": "^8.8.0"
+    "npm": "^8.15.1"
   },
   "activationEvents": [
     "onView:mongoDB",
