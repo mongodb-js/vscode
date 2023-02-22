@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
+import type { DataService } from 'mongodb-data-service';
+import type { Document } from 'mongodb';
 
 import ConnectionController from '../../../connectionController';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
@@ -33,7 +35,7 @@ suite('Playground Result Provider Test Suite', () => {
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
     testConnectionController
   );
-  const sandbox: any = sinon.createSandbox();
+  const sandbox = sinon.createSandbox();
 
   afterEach(() => {
     sandbox.restore();
@@ -233,7 +235,7 @@ suite('Playground Result Provider Test Suite', () => {
       language: 'json',
     };
 
-    const mockRefresh: any = sinon.fake();
+    const mockRefresh = sinon.fake();
     sinon.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
@@ -244,10 +246,10 @@ suite('Playground Result Provider Test Suite', () => {
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-    mockRefresh.firstArg;
 
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
-    expect(mockRefresh.firstArg).to.be.deep.equal(playgroundResult);
+    expect(mockRefresh.calledOnce).to.equal(true);
+    expect(mockRefresh.firstCall.firstArg).to.be.deep.equal(playgroundResult);
   });
 
   test('provideTextDocumentContent returns Document formatted to string if content is string', () => {
@@ -266,7 +268,7 @@ suite('Playground Result Provider Test Suite', () => {
       language: 'json',
     };
 
-    const mockRefresh: any = sinon.fake();
+    const mockRefresh = sinon.fake();
     sinon.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
@@ -277,10 +279,10 @@ suite('Playground Result Provider Test Suite', () => {
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-    mockRefresh.firstArg;
 
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
-    expect(mockRefresh.firstArg).to.be.deep.equal(playgroundResult);
+    expect(mockRefresh.calledOnce).to.equal(true);
+    expect(mockRefresh.firstCall.firstArg).to.be.deep.equal(playgroundResult);
   });
 
   test('provideTextDocumentContent sets different code lenses for the playground and the collection', async () => {
@@ -312,7 +314,7 @@ suite('Playground Result Provider Test Suite', () => {
     };
 
     const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
-    const mockActiveConnectionId: any = sinon.fake.returns(connectionId);
+    const mockActiveConnectionId = sinon.fake.returns(connectionId);
     sinon.replace(
       testConnectionController,
       'getActiveConnectionId',
@@ -323,9 +325,14 @@ suite('Playground Result Provider Test Suite', () => {
       'PLAYGROUND_RESULT_SCHEME:/Playground Result'
     );
     const activeTextEditorDocument = { uri: playgroundResultUri };
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: activeTextEditorDocument,
-    }));
+    sandbox.replaceGetter(
+      vscode.window,
+      'activeTextEditor',
+      () =>
+        ({
+          document: activeTextEditorDocument,
+        } as unknown as typeof vscode.window.activeTextEditor)
+    );
 
     testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
     testPlaygroundResultViewProvider.provideTextDocumentContent();
@@ -377,28 +384,28 @@ suite('Playground Result Provider Test Suite', () => {
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 
-    const documents: any[] = [
+    const documents: Document[] = [
       { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' },
     ];
-    const mockGetActiveDataService: any = sinon.fake.returns({
-      find: () => {
-        return Promise.resolve(documents);
-      },
-    });
-    sinon.replace(
-      testCollectionViewProvider._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
+    sinon
+      .stub(
+        testCollectionViewProvider._connectionController,
+        'getActiveDataService'
+      )
+      .returns({
+        find: () => {
+          return Promise.resolve(documents);
+        },
+      } as unknown as DataService);
 
-    const mockShowMessage: any = sinon.fake();
+    const mockShowMessage = sinon.fake();
     sinon.replace(
       testCollectionViewProvider._statusView,
       'showMessage',
       mockShowMessage
     );
 
-    const mockHideMessage: any = sinon.fake();
+    const mockHideMessage = sinon.fake();
     sinon.replace(
       testCollectionViewProvider._statusView,
       'hideMessage',

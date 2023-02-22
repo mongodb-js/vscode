@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import assert from 'assert';
+import { DataServiceImpl } from 'mongodb-data-service';
 import sinon from 'sinon';
 
 import { DocumentSource } from '../../../documentSource';
@@ -43,28 +44,18 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async () => {
-    const mockActiveDataService: any = {
-      find: (namespace, filter, options) => {
-        assert(
-          namespace === 'my-favorite-fruit-is.pineapple',
-          `Expected find namespace to be 'my-favorite-fruit-is.pineapple' found ${namespace}`
-        );
-
-        assert(
-          options.limit === 10,
-          `Expected find limit to be 10, found ${options.limit}`
-        );
-
-        return Promise.resolve([{ field: 'Declaration of Independence' }]);
-      },
-    };
+    const testDataService = new DataServiceImpl({
+      connectionString: TEST_DATABASE_URI,
+    });
+    const findStub = sinon.stub(testDataService, 'find');
+    findStub.resolves([{ field: 'Declaration of Independence' }]);
 
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveDataService);
+    mockConnectionController.setActiveDataService(testDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -86,6 +77,11 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const documents =
       await testCollectionViewProvider.provideTextDocumentContent(uri);
+    assert.strictEqual(
+      findStub.firstCall.args[0],
+      'my-favorite-fruit-is.pineapple'
+    );
+    assert.strictEqual(findStub.firstCall.args[2]?.limit, 10);
     assert(
       documents.includes('Declaration of Independence'),
       `Expected provideTextDocumentContent to return documents string, found ${documents}`
@@ -104,17 +100,17 @@ suite('Collection Documents Provider Test Suite', () => {
       },
     ];
 
-    const mockActiveDataService: any = {
-      find: () => {
-        return Promise.resolve(mockDocuments);
-      },
-    };
+    const testDataService = new DataServiceImpl({
+      connectionString: TEST_DATABASE_URI,
+    });
+    const findStub = sinon.stub(testDataService, 'find');
+    findStub.resolves(mockDocuments);
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveDataService);
+    mockConnectionController.setActiveDataService(testDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -144,17 +140,17 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async () => {
-    const mockActiveDataService: any = {
-      find: () => {
-        return Promise.resolve([{ field: 'Apollo' }, { field: 'Gemini ' }]);
-      },
-    };
+    const testDataService = new DataServiceImpl({
+      connectionString: TEST_DATABASE_URI,
+    });
+    const findStub = sinon.stub(testDataService, 'find');
+    findStub.resolves([{ field: 'Apollo' }, { field: 'Gemini ' }]);
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveDataService);
+    mockConnectionController.setActiveDataService(testDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(

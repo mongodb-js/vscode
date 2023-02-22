@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
+import type { DataService } from 'mongodb-data-service';
 
 import ConnectionTreeItem, {
   ConnectionItemContextValues,
@@ -58,7 +59,7 @@ suite('ConnectionTreeItem Test Suite', () => {
       sinon.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
-        () => new DataServiceStub() as any
+        () => new DataServiceStub() as unknown as DataService
       );
 
       const databaseItems = await testConnectionTreeItem.getChildren();
@@ -78,7 +79,7 @@ suite('ConnectionTreeItem Test Suite', () => {
               new Promise(() => {
                 throw Error('peaches');
               }),
-          } as any)
+          } as unknown as DataService)
       );
 
       try {
@@ -115,7 +116,7 @@ suite('ConnectionTreeItem Test Suite', () => {
       sinon.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
-        () => new DataServiceStub() as any
+        () => new DataServiceStub() as unknown as DataService
       );
 
       const dbNames = await testConnectionTreeItem.listDatabases();

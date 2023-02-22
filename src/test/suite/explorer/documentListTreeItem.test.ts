@@ -14,10 +14,10 @@ import DocumentListTreeItem, {
 import { DataServiceStub, mockDocuments } from '../stubs';
 
 suite('DocumentListTreeItem Test Suite', () => {
-  let dataServiceMock: any;
+  let dataServiceMock: DataService;
 
   before(() => {
-    dataServiceMock = new DataServiceStub();
+    dataServiceMock = new DataServiceStub() as unknown as DataService;
   });
 
   test('its context value should be in the package json', () => {
@@ -52,7 +52,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'collectionName',
       'databaseName',
       CollectionTypes.collection,
-      'not_real_dataservice' as any as DataService,
+      {} as DataService,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,

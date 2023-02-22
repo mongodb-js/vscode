@@ -3,7 +3,8 @@ import * as sinon from 'sinon';
 import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
 import { inspect } from 'util';
-import type { DataService } from 'mongodb-data-service';
+import { DataService, DataServiceImpl } from 'mongodb-data-service';
+import type { Document } from 'mongodb';
 
 import { ext } from '../../../extensionConstants';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
@@ -87,14 +88,16 @@ suite('SchemaTreeItem Test Suite', function () {
     const expectedMessage =
       'No documents were found when attempting to parse schema.';
 
+    const testDataService = new DataServiceImpl({
+      connectionString: TEST_DATABASE_URI,
+    });
+    const findStub = sinon.stub(testDataService, 'find');
+    findStub.resolves([]);
+
     const testSchemaTreeItem = new SchemaTreeItem(
       'peanutButter',
       TEST_DB_NAME,
-      {
-        find: () => {
-          return Promise.resolve([]);
-        },
-      } as any,
+      testDataService,
       true,
       false,
       false,
@@ -126,14 +129,15 @@ suite('SchemaTreeItem Test Suite', function () {
     for (let i = 0; i < 20; i++) {
       mockDocWithTwentyFields[`${i}`] = 'some value';
     }
+    const testDataService = new DataServiceImpl({
+      connectionString: TEST_DATABASE_URI,
+    });
+    const findStub = sinon.stub(testDataService, 'find');
+    findStub.resolves([mockDocWithTwentyFields]);
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {
-        find: () => {
-          return Promise.resolve([mockDocWithTwentyFields]);
-        },
-      } as any,
+      testDataService,
       true,
       false,
       false,
@@ -162,14 +166,15 @@ suite('SchemaTreeItem Test Suite', function () {
     for (let i = 0; i < 30; i++) {
       mockDocWithThirtyFields[`${i}`] = 'some value';
     }
+    const testDataService = new DataServiceImpl({
+      connectionString: TEST_DATABASE_URI,
+    });
+    const findStub = sinon.stub(testDataService, 'find');
+    findStub.resolves([mockDocWithThirtyFields]);
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {
-        find: () => {
-          return Promise.resolve([mockDocWithThirtyFields]);
-        },
-      } as any,
+      testDataService,
       true,
       false,
       false,
@@ -189,14 +194,16 @@ suite('SchemaTreeItem Test Suite', function () {
   });
 
   test('When schema parsing fails it displays an error message', async () => {
+    const testDataService = new DataServiceImpl({
+      connectionString: TEST_DATABASE_URI,
+    });
+    const findStub = sinon.stub(testDataService, 'find');
+    findStub.resolves('invalid schema to parse' as unknown as Document[]);
+
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {
-        find: () => {
-          return Promise.resolve('invalid schema to parse');
-        },
-      } as any,
+      testDataService,
       true,
       false,
       false,

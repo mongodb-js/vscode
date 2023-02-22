@@ -229,7 +229,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     const mockStubUri = sinon.fake.returns('weStubThisUri');
@@ -259,7 +259,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     await vscode.commands.executeCommand('mdb.copyDatabaseName', mockTreeItem);
@@ -286,7 +286,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     await vscode.commands.executeCommand(
@@ -318,7 +318,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     const commandResult = await vscode.commands.executeCommand(
@@ -1283,7 +1283,7 @@ suite('MDBExtensionController Test Suite', function () {
             getText: () => JSON.stringify(mockDocument),
             save: () => {},
           },
-        } as any)
+        } as unknown as typeof vscode.window.activeTextEditor)
     );
 
     const mockReplaceDocument = sinon.fake.resolves(null);
@@ -1340,7 +1340,7 @@ suite('MDBExtensionController Test Suite', function () {
             getText: () => JSON.stringify(mockDocument),
             save: () => {},
           },
-        } as any)
+        } as unknown as typeof vscode.window.activeTextEditor)
     );
 
     const mockReplaceDocument = sinon.fake.resolves(null);
@@ -1570,7 +1570,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     await vscode.commands.executeCommand(
