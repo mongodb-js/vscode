@@ -111,7 +111,7 @@ export class NotebookKernel {
       await execution.replaceOutput([
         new vscode.NotebookCellOutput([
           // vscode.NotebookCellOutputItem.text(JSON.stringify(result?.result?.content, null, 2))
-          vscode.NotebookCellOutputItem.json(result?.result?.content, 'mongodb-notebook-renderer')
+          vscode.NotebookCellOutputItem.json(result?.result?.content)
         ])
       ]);
 

@@ -161,7 +161,9 @@
         "mimeTypes": [
           "text/html",
           "text/plain",
-          "text/markdown"
+          "text/markdown",
+          "text/x-json",
+          "application/json"
         ]
       }
     ],
@@ -1014,6 +1016,8 @@
     "@mongosh/i18n": "^1.6.2",
     "@mongosh/service-provider-server": "^1.6.2",
     "@mongosh/shell-api": "^1.6.2",
+    "ag-grid-community": "^29.1.0",
+    "ag-grid-react": "^29.1.0",
     "analytics-node": "^5.1.2",
     "bson": "^4.7.0",
     "bson-transpilers": "^2.0.0",

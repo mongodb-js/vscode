@@ -26,7 +26,7 @@ export const activate: ActivationFunction = context => {
 				const node = document.createElement('div');
 				root.appendChild(node);
 
-				ReactDOM.render(<NotebookOutput info={{ container: node, mime: outputItem.mime, value: outputItem, context }} />, root);
+				ReactDOM.render(<NotebookOutput info={{ container: node, outputItem, context }} />, root);
 			});
 		},
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,10 +1,9 @@
 import React from 'react';
-import type { RendererContext } from 'vscode-notebook-renderer';
+import type { RendererContext, OutputItem } from 'vscode-notebook-renderer';
 
 interface IRenderInfo {
 	container: HTMLElement;
-	mime: string;
-	value: unknown;
+	outputItem: OutputItem;
 	context: RendererContext<unknown>;
 }
 
@@ -13,13 +12,14 @@ interface NotebookOutputProps {
 }
 
 export const NotebookOutput: React.FC<NotebookOutputProps> = ({ info }: NotebookOutputProps) => {
+	// const json = JSON.parse(info.outputItem.text());
+	const json = info.outputItem.json();
+
 	return (<div>
 		<table>
 			<tr>
-				<th>Issue</th>
-				<th>Description</th>
+				{Object.keys(json[0]).map((key) => (<th>${key}</th>))}
 			</tr>
-			{JSON.stringify(info.value, null, 2)}
 		</table>
 	</div>);
 };

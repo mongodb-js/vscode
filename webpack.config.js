@@ -281,6 +281,9 @@ const notebookRendererConfig = {
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
   },
+  externals: {
+    vscode: 'vscode',
+  },
   module: {
     rules: [
       {
