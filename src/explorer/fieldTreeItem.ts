@@ -21,7 +21,7 @@ export enum FieldType {
   null = 'Null',
   number = 'Number',
   object = 'Object',
-  objectId = 'ObjectID',
+  objectId = 'ObjectId',
   regex = 'Regular Expression',
   string = 'String',
   timestamp = 'Timestamp',
