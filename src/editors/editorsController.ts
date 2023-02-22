@@ -32,6 +32,9 @@ import PlaygroundResultProvider, {
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
 
+import { NotebookSerializer } from '../notebook/notebookSerializer';
+import { NotebookKernel } from '../notebook/notebookKernel';
+
 const log = createLogger('editors controller');
 
 export function getFileDisplayNameForDocument(
@@ -100,6 +103,7 @@ export default class EditorsController {
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
+  _notebookKernel?: NotebookKernel;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -111,10 +115,12 @@ export default class EditorsController {
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider,
     codeActionProvider: PlaygroundSelectedCodeActionProvider,
-    editDocumentCodeLensProvider: EditDocumentCodeLensProvider
+    editDocumentCodeLensProvider: EditDocumentCodeLensProvider,
+    notebookKernel: NotebookKernel
   ) {
     log.info('activating...');
 
+    this._notebookKernel = notebookKernel;
     this._connectionController = connectionController;
     this._playgroundController = playgroundController;
     this._context = context;
@@ -440,6 +446,28 @@ export default class EditorsController {
         }
       )
     );
+
+    if (this._notebookKernel) {
+      const serializer = new NotebookSerializer();
+      this._context.subscriptions.push(
+        vscode.workspace.registerNotebookSerializer(
+          'mongodb-notebook',
+          serializer,
+          {
+            transientOutputs: false,
+            transientCellMetadata: {
+              breakpointMargin: true,
+              custom: false,
+              attachments: false
+            },
+            cellContentMetadata: {
+              attachments: true
+            }
+          } as vscode.NotebookDocumentContentOptions
+        ),
+        this._notebookKernel
+      );
+    }
   }
 
   deactivate(): void {

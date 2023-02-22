@@ -34,9 +34,14 @@ export default class ActiveConnectionCodeLensProvider
   }
 
   provideCodeLenses(): vscode.CodeLens[] {
-    const editorUri = this.activeTextEditor?.document.uri;
+    const document = this.activeTextEditor?.document;
 
-    if (!isPlayground(editorUri)) {
+    if (
+      !isPlayground(document?.uri) ||
+      document?.uri.scheme === 'vscode-notebook-cell' ||
+      document?.uri.scheme === 'vscode-notebook-cell-metadata' ||
+      document?.uri.scheme === 'vscode-notebook-cell-output'
+    ) {
       return [];
     }
 

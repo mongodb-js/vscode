@@ -8,6 +8,8 @@ enum EXTENSION_COMMANDS {
   MDB_OPEN_MDB_SHELL = 'mdb.openMongoDBShell',
   MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW = 'mdb.treeViewOpenMongoDBShell',
 
+  MDB_CREATE_PLAYGROUND_NOTEBOOK = 'mdb.createPlaygroundNotebook',
+
   MDB_CREATE_PLAYGROUND = 'mdb.createPlayground',
   MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE = 'mdb.createNewPlaygroundFromOverviewPage',
   MDB_RUN_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runSelectedPlaygroundBlocks',

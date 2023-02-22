@@ -142,6 +142,15 @@
         "path": "./snippets/atlas-terraform.json"
       }
     ],
+    "notebooks": [{
+      "type": "mongodb-notebook",
+      "displayName": "MongoDB Notebook",
+      "selector": [
+        {
+          "filenamePattern": "*.mdbnb"
+        }
+      ]
+    }],
     "commands": [
       {
         "command": "mdb.connect",
@@ -174,6 +183,10 @@
       {
         "command": "mdb.createPlayground",
         "title": "MongoDB: Create MongoDB Playground"
+      },
+      {
+        "command": "mdb.createPlaygroundNotebook",
+        "title": "MongoDB: Create MongoDB Playground Notebook"
       },
       {
         "command": "mdb.refreshPlaygrounds",

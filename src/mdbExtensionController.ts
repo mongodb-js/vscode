@@ -38,6 +38,7 @@ import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
+import { NotebookKernel } from './notebook/notebookKernel';
 
 const log = createLogger('commands');
 
@@ -61,6 +62,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+  _notebookKernel: NotebookKernel;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -109,6 +111,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundSelectedCodeActionProvider,
       this._explorerController
     );
+    this._notebookKernel = new NotebookKernel(
+      this._playgroundController,
+      this._connectionController
+    );
     this._editorsController = new EditorsController(
       context,
       this._connectionController,
@@ -119,7 +125,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._activeConnectionCodeLensProvider,
       this._exportToLanguageCodeLensProvider,
       this._playgroundSelectedCodeActionProvider,
-      this._editDocumentCodeLensProvider
+      this._editDocumentCodeLensProvider,
+      this._notebookKernel
     );
     this._webviewController = new WebviewController(
       this._connectionController,
@@ -175,6 +182,11 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW,
       () => launchMongoShell(this._connectionController)
+    );
+
+    // ------ PLAYGROUND NOTEBOOK ------ //
+    this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_NOTEBOOK, () =>
+      this._notebookKernel.createPlaygroundNotebook()
     );
 
     // ------ PLAYGROUND ------ //
