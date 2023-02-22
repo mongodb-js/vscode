@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-const path = require('path');
+import path from 'path';
 
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
@@ -21,7 +21,7 @@ export enum FieldType {
   null = 'Null',
   number = 'Number',
   object = 'Object',
-  objectId = 'ObjectId',
+  objectId = 'ObjectID',
   regex = 'Regular Expression',
   string = 'String',
   timestamp = 'Timestamp',
