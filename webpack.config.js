@@ -262,9 +262,45 @@ const webviewConfig = {
   ],
 };
 
+const notebookRendererConfig = {
+  ...baseConfig,
+  output: {
+    strictModuleErrorHandling: true,
+    strictModuleExceptionHandling: true,
+    path: outputPath,
+    filename: '[name].js',
+    devtoolModuleFilenameTemplate: '../[resource-path]',
+    libraryTarget: 'module',
+  },
+  experiments: {
+    outputModule: true
+  },
+  entry: {
+    notebookRendere: './src/notebook/renderer/index.tsx',
+  },
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(tsx)$/,
+        loader: 'esbuild-loader',
+        exclude: /node_modules/,
+        options: {
+          loader: 'tsx',
+          target: 'es2020',
+          format: 'esm',
+        },
+      },
+    ],
+  }
+};
+
 module.exports = [
   extensionConfig,
   languageServerConfig,
   languageServerWorkerConfig,
   webviewConfig,
+  notebookRendererConfig,
 ];

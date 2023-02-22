@@ -94,7 +94,14 @@ export class NotebookKernel {
     execution.executionOrder = ++this._executionOrder;
     execution.start(Date.now());
 
-    const text = cell.document.getText();
+		if (!vscode.window.activeNotebookEditor) {
+			return;
+		}
+
+    const text = vscode.window.activeNotebookEditor.notebook.getCells()
+      .filter((_, idx) => idx <= cell.index)
+      .map((c) => c.document.getText()).join(' ');
+
     await execution.clearOutput();
 
     // Run all playground scripts.
@@ -103,7 +110,8 @@ export class NotebookKernel {
     try {
       await execution.replaceOutput([
         new vscode.NotebookCellOutput([
-          vscode.NotebookCellOutputItem.text(JSON.stringify(result?.result?.content, null, 2))
+          // vscode.NotebookCellOutputItem.text(JSON.stringify(result?.result?.content, null, 2))
+          vscode.NotebookCellOutputItem.json(result?.result?.content, 'mongodb-notebook-renderer')
         ])
       ]);
 

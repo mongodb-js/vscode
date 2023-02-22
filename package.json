@@ -142,15 +142,29 @@
         "path": "./snippets/atlas-terraform.json"
       }
     ],
-    "notebooks": [{
-      "type": "mongodb-notebook",
-      "displayName": "MongoDB Notebook",
-      "selector": [
-        {
-          "filenamePattern": "*.mdbnb"
-        }
-      ]
-    }],
+    "notebooks": [
+      {
+        "type": "mongodb-notebook",
+        "displayName": "MongoDB Notebook",
+        "selector": [
+          {
+            "filenamePattern": "*.mdbnb"
+          }
+        ]
+      }
+    ],
+    "notebookRenderer": [
+      {
+        "id": "mongodb-notebook-renderer",
+        "displayName": "MongoDB Notebook Rendere",
+        "entrypoint": "./dist/notebookRendere.js",
+        "mimeTypes": [
+          "text/html",
+          "text/plain",
+          "text/markdown"
+        ]
+      }
+    ],
     "commands": [
       {
         "command": "mdb.connect",
@@ -1024,7 +1038,8 @@
     "uuid": "^8.3.2",
     "vscode-languageclient": "^8.0.2",
     "vscode-languageserver": "^8.0.2",
-    "vscode-languageserver-textdocument": "^1.0.7"
+    "vscode-languageserver-textdocument": "^1.0.7",
+    "vscode-notebook-error-overlay": "^1.0.1"
   },
   "devDependencies": {
     "@mongodb-js/prettier-config-compass": "^1.0.0",
@@ -1046,6 +1061,7 @@
     "@types/sinon": "^9.0.11",
     "@types/uuid": "^8.3.4",
     "@types/vscode": "^1.74.0",
+    "@types/vscode-notebook-renderer": "^1.72.0",
     "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
     "@vscode/test-electron": "^2.1.5",
@@ -1065,6 +1081,8 @@
     "download": "^8.0.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
+    "esbuild": "^0.17.10",
+    "esbuild-loader": "^3.0.1",
     "eslint": "^8.23.1",
     "eslint-config-mongodb-js": "^5.0.3",
     "eslint-plugin-mocha": "^10.1.0",

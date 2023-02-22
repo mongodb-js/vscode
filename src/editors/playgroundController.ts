@@ -278,7 +278,7 @@ export default class PlaygroundController {
       // therefore we explicitly specify the workspace folder path
       // or OS temp directory if a user has not opened workspaces.
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-      const filePath = workspaceFolder?.uri.fsPath || os.tmpdir();
+      const filePath = workspaceFolder?.uri.fsPath || os.homedir();
 
       const numberUntitledPlaygrounds = vscode.workspace.textDocuments.filter(
         (doc) => isPlayground(doc.uri)
