@@ -63,7 +63,7 @@ export default class LanguageServerController {
       documentSelector: [
         { scheme: 'untitled', language: 'javascript' },
         { scheme: 'file', language: 'javascript' },
-        { scheme: 'vscode-notebook-cell', language: 'javascript' }
+        { scheme: 'vscode-notebook-cell', language: 'javascript' },
       ],
       synchronize: {
         // Notify the server about file changes in the workspace

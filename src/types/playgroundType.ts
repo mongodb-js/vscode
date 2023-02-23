@@ -57,3 +57,8 @@ export interface ExportToLanguageNamespace {
   databaseName: string | null;
   collectionName: string | null;
 }
+
+export interface EvaluationResult {
+  printable: any;
+  type: string | null;
+}

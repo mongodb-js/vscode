@@ -153,20 +153,6 @@
         ]
       }
     ],
-    "notebookRenderer": [
-      {
-        "id": "mongodb-notebook-renderer",
-        "displayName": "MongoDB Notebook Rendere",
-        "entrypoint": "./dist/notebookRendere.js",
-        "mimeTypes": [
-          "text/html",
-          "text/plain",
-          "text/markdown",
-          "text/x-json",
-          "application/json"
-        ]
-      }
-    ],
     "commands": [
       {
         "command": "mdb.connect",
@@ -1086,7 +1072,6 @@
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
     "esbuild": "^0.17.10",
-    "esbuild-loader": "^3.0.1",
     "eslint": "^8.23.1",
     "eslint-config-mongodb-js": "^5.0.3",
     "eslint-plugin-mocha": "^10.1.0",

@@ -8,9 +8,7 @@ interface RawNotebookCell {
 }
 
 export class NotebookSerializer implements vscode.NotebookSerializer {
-  deserializeNotebook(
-    content: Uint8Array
-  ): any {
+  deserializeNotebook(content: Uint8Array): any {
     const contents = new TextDecoder().decode(content);
 
     let raw: RawNotebookCell[];
@@ -21,22 +19,21 @@ export class NotebookSerializer implements vscode.NotebookSerializer {
     }
 
     const cells = raw.map(
-      item => new vscode.NotebookCellData(item.kind, item.value, item.language)
+      (item) =>
+        new vscode.NotebookCellData(item.kind, item.value, item.language)
     );
 
     return new vscode.NotebookData(cells);
   }
 
-  serializeNotebook(
-    data: vscode.NotebookData
-  ): any {
+  serializeNotebook(data: vscode.NotebookData): any {
     const contents: RawNotebookCell[] = [];
 
     for (const cell of data.cells) {
       contents.push({
         kind: cell.kind,
         language: cell.languageId,
-        value: cell.value
+        value: cell.value,
       });
     }
 

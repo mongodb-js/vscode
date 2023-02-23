@@ -112,7 +112,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._explorerController
     );
     this._notebookKernel = new NotebookKernel(
-      this._playgroundController,
+      this._context,
       this._connectionController
     );
     this._editorsController = new EditorsController(
@@ -185,8 +185,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     // ------ PLAYGROUND NOTEBOOK ------ //
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_NOTEBOOK, () =>
-      this._notebookKernel.createPlaygroundNotebook()
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_NOTEBOOK,
+      () => this._notebookKernel.createPlaygroundNotebook()
     );
 
     // ------ PLAYGROUND ------ //

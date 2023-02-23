@@ -262,42 +262,60 @@ const webviewConfig = {
   ],
 };
 
-const notebookRendererConfig = {
+const notebookWorkerConfig = {
   ...baseConfig,
   output: {
     strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,
     path: outputPath,
     filename: '[name].js',
+    library: {
+      type: 'commonjs',
+    },
     devtoolModuleFilenameTemplate: '../[resource-path]',
-    libraryTarget: 'module',
   },
-  experiments: {
-    outputModule: true
-  },
+  target: 'node',
   entry: {
-    notebookRendere: './src/notebook/renderer/index.tsx',
+    notebookWorker: './src/notebook/notebookWorker.ts',
+  },
+  optimization: {
+    // Don't minimize in order to preserve
+    // the signature names from @mongosh/shell-api.
+    minimize: false,
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    extensions: ['.js', '.ts', '.json'],
   },
   externals: {
+    // The vscode-module is created on-the-fly and must be excluded.
     vscode: 'vscode',
+    snappy: 'snappy',
+    'snappy/package.json': 'snappy/package.json',
+    'bson-ext': 'bson-ext',
+    'win-export-certificate-and-key': 'win-export-certificate-and-key',
+    'os-dns-native': 'os-dns-native',
+    'mongodb-client-encryption': 'mongodb-client-encryption',
+    'compass-preferences-model': 'compass-preferences-model',
   },
   module: {
     rules: [
       {
-        test: /\.(tsx)$/,
-        loader: 'esbuild-loader',
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto',
+      },
+      {
+        test: /\.(ts|tsx)$/,
+        loader: 'ts-loader',
         exclude: /node_modules/,
-        options: {
-          loader: 'tsx',
-          target: 'es2020',
-          format: 'esm',
-        },
+        options: {},
+      },
+      {
+        test: /\.node$/,
+        loader: 'node-loader',
       },
     ],
-  }
+  },
 };
 
 module.exports = [
@@ -305,5 +323,5 @@ module.exports = [
   languageServerConfig,
   languageServerWorkerConfig,
   webviewConfig,
-  notebookRendererConfig,
+  notebookWorkerConfig,
 ];

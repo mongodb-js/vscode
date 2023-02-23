@@ -1,6 +1,6 @@
 import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { CompletionItemKind } from 'vscode-languageserver/node';
-import { EJSON, Document } from 'bson';
+import { Document } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { promisify } from 'util';
 import parseSchema = require('mongodb-schema');
@@ -9,41 +9,18 @@ import {
   PlaygroundResult,
   PlaygroundDebug,
   ShellExecuteAllResult,
+  EvaluationResult,
 } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
+import { getContent, getLanguage } from '../utils/output';
 
 // MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options)
 type MongoClientOptions = NonNullable<
   Parameters<typeof CliServiceProvider['connect']>[1]
 >;
 
-interface EvaluationResult {
-  printable: any;
-  type: string | null;
-}
-
 type WorkerResult = ShellExecuteAllResult;
 type WorkerError = any | null;
-
-const getContent = ({ type, printable }: EvaluationResult) => {
-  if (type === 'Cursor' || type === 'AggregationCursor') {
-    return JSON.parse(EJSON.stringify(printable.documents));
-  }
-
-  return typeof printable !== 'object' || printable === null
-    ? printable
-    : JSON.parse(EJSON.stringify(printable));
-};
-
-const getLanguage = (evaluationResult: EvaluationResult) => {
-  const content = getContent(evaluationResult);
-
-  if (typeof content === 'object' && content !== null) {
-    return 'json';
-  }
-
-  return 'plaintext';
-};
 
 const executeAll = async (
   codeToEvaluate: string,
@@ -60,7 +37,7 @@ const executeAll = async (
     const outputLines: PlaygroundDebug = [];
 
     // Create a new instance of the runtime and evaluate code from a playground.
-    const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
+    const runtime = new ElectronRuntime(serviceProvider);
 
     runtime.setEvaluationListener({
       onPrint(values: EvaluationResult[]) {

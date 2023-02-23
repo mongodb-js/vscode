@@ -458,11 +458,11 @@ export default class EditorsController {
             transientCellMetadata: {
               breakpointMargin: true,
               custom: false,
-              attachments: false
+              attachments: false,
             },
             cellContentMetadata: {
-              attachments: true
-            }
+              attachments: true,
+            },
           } as vscode.NotebookDocumentContentOptions
         ),
         this._notebookKernel
