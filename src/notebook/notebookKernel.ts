@@ -39,7 +39,6 @@ export class NotebookKernel {
     this._controller.supportedLanguages = this.supportedLanguages;
     this._controller.supportsExecutionOrder = true;
     this._controller.executeHandler = this._executeAll.bind(this);
-    this._controller.interruptHandler = this._cancelAll.bind(this);
   }
 
   dispose(): void {
@@ -75,19 +74,13 @@ export class NotebookKernel {
     }
   }
 
-  private async _cancelAll(): Promise<void> {
-    // terminate worker
-    await this._worker?.terminate();
-    this._worker = undefined;
-  }
-
   private async _executeAll(cells: vscode.NotebookCell[]): Promise<void> {
     for (const cell of cells) {
       await this._doExecution(cell);
     }
   }
 
-  async executeCell(codeToEvaluate: string): Promise<ShellExecuteAllResult> {
+  async executeCell(codeToEvaluate: string, token: vscode.CancellationToken): Promise<ShellExecuteAllResult | undefined> {
     return new Promise((resolve, reject) => {
       if (!this._context.extensionPath) {
         return reject(new Error('extensionPath is undefined'));
@@ -135,37 +128,50 @@ export class NotebookKernel {
           return resolve(result);
         }
       );
+
+      token.onCancellationRequested(async () => {
+        log.error('NOTEBOOK_KERNEL cancellation requested');
+        void vscode.window.showInformationMessage(
+          'The running notebook operation was canceled.'
+        );
+        await this._worker?.terminate();
+        return resolve(undefined);
+      });
     });
   }
 
   private async _doExecution(cell: vscode.NotebookCell): Promise<void> {
     if (!this._connectionController.isCurrentlyConnected()) {
-      await vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         'Please connect to a database before running a playground.'
       );
       return;
     }
 
-    const execution = this._controller.createNotebookCellExecution(cell);
-
-    execution.executionOrder = ++this._executionOrder;
-    execution.start(Date.now());
-
     if (!vscode.window.activeNotebookEditor) {
+      log.error('NOTEBOOK_KERNEL _doExecution: activeNotebookEditor is undefined.');
       return;
     }
 
-    await execution.clearOutput();
-
     const codeToEvaluate = cell.document.getText();
-    log.info('NOTEBOOK_KERNEL execute all body', codeToEvaluate);
+    if (!codeToEvaluate) {
+      log.info('NOTEBOOK_KERNEL _doExecution: the cell is empty.');
+      return;
+    }
+
+    log.info('NOTEBOOK_KERNEL _doExecution cell code to evaluate', codeToEvaluate);
+
+    const execution = this._controller.createNotebookCellExecution(cell);
+    execution.executionOrder = ++this._executionOrder;
+    execution.start(Date.now());
+    await execution.clearOutput();
 
     // Run all playground scripts.
     let evaluateResponse: ShellExecuteAllResult;
     try {
-      evaluateResponse = await this.executeCell(codeToEvaluate);
+      evaluateResponse = await this.executeCell(codeToEvaluate, execution.token);
     } catch (error) {
-      log.error('NOTEBOOK_KERNEL execute all error', error);
+      log.error('NOTEBOOK_KERNEL executeCell error', error);
     }
 
     try {
