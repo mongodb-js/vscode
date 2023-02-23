@@ -15,7 +15,7 @@ const log = createLogger('playground notebook kernel controller');
 export class NotebookKernel {
   readonly id = 'mongodb-notebook-kernel';
   public readonly label = 'MongoDB Noteboook Kernel';
-  readonly supportedLanguages = ['javascript'];
+  readonly supportedLanguages = ['javascript', 'json'];
 
   private _executionOrder = 0;
   private readonly _controller: vscode.NotebookController;
