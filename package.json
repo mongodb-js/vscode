@@ -70,7 +70,8 @@
     "onView:mongoDB",
     "onLanguage:json",
     "onLanguage:javascript",
-    "onLanguage:plaintext"
+    "onLanguage:plaintext",
+    "onNotebook:mongodb-notebook"
   ],
   "contributes": {
     "viewsContainers": {
@@ -95,6 +96,11 @@
           "when": "config.mdb.showMongoDBPlaygrounds == true"
         },
         {
+          "id": "mongoDBNotebooksExplorer",
+          "name": "Playgrounds",
+          "when": "config.mdb.showMongoDBPlaygrounds == true"
+        },
+        {
           "id": "mongoDBHelpExplorer",
           "name": "Help and Feedback",
           "when": "config.mdb.showMongoDBHelpExplorer == true"
@@ -108,7 +114,11 @@
       },
       {
         "view": "mongoDBPlaygroundsExplorer",
-        "contents": "No '.mongodb' playground files found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromPlaygroundExplorer)"
+        "contents": "No '.mongodb' playground files found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromTreeView)"
+      },
+      {
+        "view": "mongoDBNotebooksExplorer",
+        "contents": "No '.mdbnb' notebook files found in the workspace.\n[Create New Notebook](command:mdb.createNewNotebookFromTreeView)"
       }
     ],
     "languages": [
@@ -155,6 +165,15 @@
     ],
     "commands": [
       {
+        "command": "mdb.convertNotebookToPlayground",
+        "title": "Export",
+        "shortTitle": "Export",
+        "icon": {
+            "light": "images/light/export.svg",
+            "dark": "images/dark/export.svg"
+        }
+      },
+      {
         "command": "mdb.connect",
         "title": "MongoDB: Connect"
       },
@@ -187,12 +206,8 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
-        "command": "mdb.createPlaygroundNotebook",
-        "title": "MongoDB: Create MongoDB Playground Notebook"
-      },
-      {
-        "command": "mdb.refreshPlaygrounds",
-        "title": "MongoDB: Refresh Playgrounds List"
+        "command": "mdb.createNotebook",
+        "title": "MongoDB: Create MongoDB Notebook"
       },
       {
         "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -203,16 +218,28 @@
         }
       },
       {
-        "command": "mdb.createNewPlaygroundFromViewAction",
-        "title": "Create MongoDB Playground"
+        "command": "mdb.refreshNotebooksFromTreeView",
+        "title": "Refresh",
+        "icon": {
+          "light": "images/light/refresh.svg",
+          "dark": "images/dark/refresh.svg"
+        }
       },
       {
         "command": "mdb.createNewPlaygroundFromOverviewPage",
         "title": "Create MongoDB Playground"
       },
       {
-        "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
+        "command": "mdb.createNewPlaygroundFromTreeView",
         "title": "Create MongoDB Playground",
+        "icon": {
+          "light": "images/light/add.svg",
+          "dark": "images/dark/add.svg"
+        }
+      },
+      {
+        "command": "mdb.createNewNotebookFromTreeView",
+        "title": "Create MongoDB Notebook",
         "icon": {
           "light": "images/light/add.svg",
           "dark": "images/dark/add.svg"
@@ -311,8 +338,12 @@
         }
       },
       {
-        "command": "mdb.openPlaygroundFromTreeItem",
+        "command": "mdb.openPlaygroundFromTreeView",
         "title": "Open Playground"
+      },
+      {
+        "command": "mdb.openNotebookFromTreeView",
+        "title": "Open Notebook"
       },
       {
         "command": "mdb.connectToConnectionTreeItem",
@@ -422,17 +453,23 @@
     "menus": {
       "view/title": [
         {
-          "command": "mdb.createNewPlaygroundFromViewAction",
-          "when": "view == mongoDBPlaygroundsExplorer"
+          "command": "mdb.createNewPlaygroundFromTreeView",
+          "when": "view == mongoDBPlaygroundsExplorer",
+          "group": "navigation@1"
         },
         {
-          "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
-          "when": "view == mongoDBPlaygroundsExplorer",
+          "command": "mdb.createNewNotebookFromTreeView",
+          "when": "view == mongoDBNotebooksExplorer",
           "group": "navigation@1"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
           "when": "view == mongoDBPlaygroundsExplorer",
+          "group": "navigation@5"
+        },
+        {
+          "command": "mdb.refreshNotebooksFromTreeView",
+          "when": "view == mongoDBNotebooksExplorer",
           "group": "navigation@5"
         },
         {
@@ -491,8 +528,13 @@
           "group": "5@2"
         },
         {
-          "command": "mdb.openPlaygroundFromTreeItem",
+          "command": "mdb.openPlaygroundFromTreeView",
           "when": "view == mongoDBPlaygroundsExplorer && viewItem == playgroundsTreeItem",
+          "group": "1@1"
+        },
+        {
+          "command": "mdb.openNotebookFromTreeView",
+          "when": "view == mongoDBNotebooksExplorer && viewItem == notebooksTreeItem",
           "group": "1@1"
         },
         {
@@ -644,6 +686,13 @@
           "when": "mdb.showRunPlaygroundButton == true"
         }
       ],
+      "notebook/toolbar": [
+        {
+          "command": "mdb.convertNotebookToPlayground",
+          "group": "navigation",
+          "when": "notebookType == 'mongodb-notebook'"
+        }
+      ],
       "commandPalette": [
         {
           "command": "mdb.saveMongoDBDocument",
@@ -678,6 +727,10 @@
           "when": "false"
         },
         {
+          "command": "mdb.refreshNotebooksFromTreeView",
+          "when": "false"
+        },
+        {
           "command": "mdb.searchForDocuments",
           "when": "false"
         },
@@ -690,15 +743,15 @@
           "when": "false"
         },
         {
-          "command": "mdb.createNewPlaygroundFromViewAction",
-          "when": "false"
-        },
-        {
           "command": "mdb.createNewPlaygroundFromOverviewPage",
           "when": "false"
         },
         {
-          "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
+          "command": "mdb.createNewPlaygroundFromTreeView",
+          "when": "false"
+        },
+        {
+          "command": "mdb.createNewNotebookFromTreeView",
           "when": "false"
         },
         {
@@ -726,7 +779,11 @@
           "when": "false"
         },
         {
-          "command": "mdb.openPlaygroundFromTreeItem",
+          "command": "mdb.openPlaygroundFromTreeView",
+          "when": "false"
+        },
+        {
+          "command": "mdb.openNotebookFromTreeView",
           "when": "false"
         },
         {

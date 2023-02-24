@@ -270,7 +270,7 @@ export default class PlaygroundController {
     this._activeConnectionCodeLensProvider.refresh();
   }
 
-  async _createPlaygroundFileWithContent(
+  async createPlaygroundFileWithContent(
     content: string | undefined
   ): Promise<boolean> {
     try {
@@ -324,7 +324,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
-    return this._createPlaygroundFileWithContent(content);
+    return this.createPlaygroundFileWithContent(content);
   }
 
   async createPlaygroundForCreateCollection(
@@ -340,7 +340,7 @@ export default class PlaygroundController {
         .replace('Create a new database', 'The current database to use');
     }
 
-    return this._createPlaygroundFileWithContent(content);
+    return this.createPlaygroundFileWithContent(content);
   }
 
   createPlaygroundForNewIndex(
@@ -351,7 +351,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
-    return this._createPlaygroundFileWithContent(content);
+    return this.createPlaygroundFileWithContent(content);
   }
 
   createPlaygroundForCloneDocument(
@@ -364,7 +364,7 @@ export default class PlaygroundController {
       .replace('CURRENT_COLLECTION', collectionName)
       .replace('DOCUMENT_CONTENTS', documentContents);
 
-    return this._createPlaygroundFileWithContent(content);
+    return this.createPlaygroundFileWithContent(content);
   }
 
   createPlaygroundForInsertDocument(
@@ -375,7 +375,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
-    return this._createPlaygroundFileWithContent(content);
+    return this.createPlaygroundFileWithContent(content);
   }
 
   async createPlayground(): Promise<boolean> {
@@ -383,7 +383,7 @@ export default class PlaygroundController {
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
     const content = useDefaultTemplate ? playgroundTemplate : '';
-    return this._createPlaygroundFileWithContent(content);
+    return this.createPlaygroundFileWithContent(content);
   }
 
   async _evaluate(codeToEvaluate: string): Promise<ShellExecuteAllResult> {

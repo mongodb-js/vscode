@@ -57,6 +57,6 @@ console.log(modifiedDocuments);`,
   { $group: { _id: '$item', totalSaleAmount: { $sum: { $multiply: [ '$price', '$quantity' ] } } } }
 ];
 
-console.log(db.sales.aggregate(aggregation));`,
+db.sales.aggregate(aggregation);`,
   },
 ];

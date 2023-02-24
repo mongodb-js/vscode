@@ -8,7 +8,11 @@ enum EXTENSION_COMMANDS {
   MDB_OPEN_MDB_SHELL = 'mdb.openMongoDBShell',
   MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW = 'mdb.treeViewOpenMongoDBShell',
 
-  MDB_CREATE_PLAYGROUND_NOTEBOOK = 'mdb.createPlaygroundNotebook',
+  MDB_CREATE_NOTEBOOK = 'mdb.createNotebook',
+  MDB_CONVERT_NOTEBOOK_TO_PLAYGROUND = 'mdb.convertNotebookToPlayground',
+  MDB_REFRESH_NOTEBOOKS_FROM_TREE_VIEW = 'mdb.refreshNotebooksFromTreeView',
+  MDB_OPEN_NOTEBOOK_FROM_TREE_VIEW = 'mdb.openNotebookFromTreeView',
+  MDB_CREATE_NOTEBOOK_FROM_TREE_VIEW = 'mdb.createNewNotebookFromTreeView',
 
   MDB_CREATE_PLAYGROUND = 'mdb.createPlayground',
   MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE = 'mdb.createNewPlaygroundFromOverviewPage',
@@ -28,18 +32,18 @@ enum EXTENSION_COMMANDS {
   MDB_SAVE_MONGODB_DOCUMENT = 'mdb.saveMongoDBDocument',
 
   MDB_CHANGE_ACTIVE_CONNECTION = 'mdb.changeActiveConnection',
-  MDB_REFRESH_PLAYGROUNDS = 'mdb.refreshPlaygrounds',
 
   MDB_CODELENS_SHOW_MORE_DOCUMENTS = 'mdb.codeLens.showMoreDocumentsClicked',
 
   // Commands from the tree view.
   MDB_ADD_CONNECTION = 'mdb.addConnection',
   MDB_ADD_CONNECTION_WITH_URI = 'mdb.addConnectionWithURI',
-  MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW = 'mdb.refreshPlaygroundsFromTreeView',
-  MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW = 'mdb.openPlaygroundFromTreeItem',
   MDB_CONNECT_TO_CONNECTION_TREE_VIEW = 'mdb.connectToConnectionTreeItem',
-  MDB_CREATE_PLAYGROUND_FROM_VIEW_ACTION = 'mdb.createNewPlaygroundFromViewAction',
-  MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER = 'mdb.createNewPlaygroundFromPlaygroundExplorer',
+
+  MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW = 'mdb.refreshPlaygroundsFromTreeView',
+  MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW = 'mdb.openPlaygroundFromTreeView',
+  MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW = 'mdb.createNewPlaygroundFromTreeView',
+
   MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW = 'mdb.disconnectFromConnectionTreeItem',
   MDB_REFRESH_CONNECTION = 'mdb.refreshConnection',
   MDB_COPY_CONNECTION_STRING = 'mdb.copyConnectionString',

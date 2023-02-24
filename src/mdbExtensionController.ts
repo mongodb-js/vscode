@@ -22,6 +22,7 @@ import {
   PlaygroundsExplorer,
   HelpExplorer,
   CollectionTreeItem,
+  NotebooksExplorer
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
 import { ExportToLanguages } from './types/playgroundType';
@@ -35,10 +36,12 @@ import { StatusView } from './views';
 import { StorageController, StorageVariables } from './storage';
 import TelemetryService from './telemetry/telemetryService';
 import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
+import NotebooksTreeItem from './explorer/notebooksTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
-import { NotebookKernel } from './notebook/notebookKernel';
+import NotebookKernel from './notebook/notebookKernel';
+import NotebookController from './notebook/notebookController';
 
 const log = createLogger('commands');
 
@@ -53,6 +56,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _explorerController: ExplorerController;
   _helpExplorer: HelpExplorer;
   _playgroundsExplorer: PlaygroundsExplorer;
+  _notebooksExplorer: NotebooksExplorer;
   _statusView: StatusView;
   _storageController: StorageController;
   _telemetryService: TelemetryService;
@@ -63,6 +67,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _notebookKernel: NotebookKernel;
+  _notebookController: NotebookController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -87,6 +92,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this._helpExplorer = new HelpExplorer();
     this._playgroundsExplorer = new PlaygroundsExplorer();
+    this._notebooksExplorer = new NotebooksExplorer();
     this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
       this._connectionController
     );
@@ -111,9 +117,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundSelectedCodeActionProvider,
       this._explorerController
     );
-    this._notebookKernel = new NotebookKernel(
+    this._notebookController = new NotebookController(
       this._context,
-      this._connectionController
+      this._connectionController,
+      this._playgroundController
+    );
+    this._notebookKernel = new NotebookKernel(
+      this._notebookController
     );
     this._editorsController = new EditorsController(
       context,
@@ -140,6 +150,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController.activateConnectionsTreeView();
     this._helpExplorer.activateHelpTreeView(this._telemetryService);
     this._playgroundsExplorer.activatePlaygroundsTreeView();
+    this._notebooksExplorer.activateNotebooksTreeView();
     this._telemetryService.activateSegmentAnalytics();
 
     await this._connectionController.loadSavedConnections();
@@ -184,10 +195,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => launchMongoShell(this._connectionController)
     );
 
-    // ------ PLAYGROUND NOTEBOOK ------ //
+    // ------ NOTEBOOK ------ //
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_NOTEBOOK,
-      () => this._notebookKernel.createPlaygroundNotebook()
+      EXTENSION_COMMANDS.MDB_CREATE_NOTEBOOK,
+      () => this._notebookController.createNotebook()
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CONVERT_NOTEBOOK_TO_PLAYGROUND,
+      () => this._notebookController.convertNotebookToPlayground()
     );
 
     // ------ PLAYGROUND ------ //
@@ -208,9 +223,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS, () =>
-      this._playgroundsExplorer.refresh()
     );
 
     // ------ EXPORT TO LANGUAGE ------ //
@@ -559,21 +571,30 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_VIEW_ACTION,
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW,
       () => this._playgroundController.createPlayground()
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER,
-      () => this._playgroundController.createPlayground()
+      EXTENSION_COMMANDS.MDB_CREATE_NOTEBOOK_FROM_TREE_VIEW,
+      () => this._notebookController.createNewNotebbok()
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,
       () => this._playgroundsExplorer.refresh()
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_REFRESH_NOTEBOOKS_FROM_TREE_VIEW,
+      () => this._notebooksExplorer.refresh()
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
       (playgroundsTreeItem: PlaygroundsTreeItem) =>
         this._playgroundController.openPlayground(playgroundsTreeItem.filePath)
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_OPEN_NOTEBOOK_FROM_TREE_VIEW,
+      (notebooksTreeItem: NotebooksTreeItem) =>
+        this._notebookController.openNotebook(notebooksTreeItem.filePath)
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_DOCUMENT_CONTENTS_FROM_TREE_VIEW,

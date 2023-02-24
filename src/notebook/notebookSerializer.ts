@@ -5,6 +5,7 @@ interface RawNotebookCell {
   language: string;
   value: string;
   kind: vscode.NotebookCellKind;
+  metadata?: any;
 }
 
 export class NotebookSerializer implements vscode.NotebookSerializer {
@@ -34,6 +35,9 @@ export class NotebookSerializer implements vscode.NotebookSerializer {
         kind: cell.kind,
         language: cell.languageId,
         value: cell.value,
+        metadata: {
+          editable: false
+        }
       });
     }
 

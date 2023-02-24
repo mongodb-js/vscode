@@ -1,35 +1,24 @@
 import * as vscode from 'vscode';
-import { Worker as WorkerThreads } from 'worker_threads';
-import path from 'path';
 
-import ConnectionController from '../connectionController';
-import { ShellExecuteAllResult } from '../types/playgroundType';
-
-import playgroundNotebookTemplate from '../templates/playgroundNotebookTemplate';
-
-import formatError from '../utils/formatError';
+import NotebookController from '../notebook/notebookController';
 
 import { createLogger } from '../logging';
-const log = createLogger('playground notebook kernel controller');
+const log = createLogger('notebook controller');
 
-export class NotebookKernel {
-  readonly id = 'mongodb-notebook-kernel';
+export default class NotebookKernel {
   public readonly label = 'MongoDB Noteboook Kernel';
+  readonly id = 'mongodb-notebook-kernel';
   readonly supportedLanguages = ['javascript', 'json'];
 
-  private _executionOrder = 0;
   private readonly _controller: vscode.NotebookController;
+  private _executionOrder = 0;
 
-  private _context: vscode.ExtensionContext;
-  private _connectionController: ConnectionController;
-  private _worker?: WorkerThreads;
+  private _notebookController: NotebookController;
 
   constructor(
-    context: vscode.ExtensionContext,
-    connectionController: ConnectionController
+    notebookController: NotebookController
   ) {
-    this._context = context;
-    this._connectionController = connectionController;
+    this._notebookController = notebookController;
     this._controller = vscode.notebooks.createNotebookController(
       this.id,
       'mongodb-notebook',
@@ -45,155 +34,29 @@ export class NotebookKernel {
     this._controller.dispose();
   }
 
-  async createPlaygroundNotebook(): Promise<boolean> {
-    try {
-      const data = new vscode.NotebookData(playgroundNotebookTemplate);
-      data.metadata = {
-        custom: {
-          cells: [],
-          metadata: {
-            orig_nbformat: 4,
-          },
-          nbformat: 4,
-          nbformat_minor: 2,
-        },
-      };
-      const doc = await vscode.workspace.openNotebookDocument(
-        'mongodb-notebook',
-        data
-      );
-      await vscode.window.showNotebookDocument(doc);
-
-      return true;
-    } catch (error) {
-      void vscode.window.showErrorMessage(
-        `Unable to create a playground notebook: ${formatError(error).message}`
-      );
-
-      return false;
-    }
-  }
-
   private async _executeAll(cells: vscode.NotebookCell[]): Promise<void> {
     for (const cell of cells) {
       await this._doExecution(cell);
     }
   }
 
-  async executeCell(codeToEvaluate: string, token: vscode.CancellationToken): Promise<ShellExecuteAllResult | undefined> {
-    return new Promise((resolve, reject) => {
-      if (!this._context.extensionPath) {
-        return reject(new Error('extensionPath is undefined'));
-      }
-
-      const connectionId = this._connectionController.getActiveConnectionId();
-
-      if (!connectionId) {
-        return reject(new Error('connectionId is undefined'));
-      }
-
-      if (!this._worker) {
-        this._worker = new WorkerThreads(
-          path.resolve(this._context.extensionPath, 'dist', 'notebookWorker.js')
-        );
-      }
-
-      const mongoClientOptions =
-        this._connectionController.getMongoClientConnectionOptions();
-
-      if (!mongoClientOptions) {
-        return reject(new Error('mongoClientOptions are undefined'));
-      }
-
-      // Evaluate runtime in the worker thread.
-      this._worker?.postMessage({
-        name: 'EXECUTE_NOTEBOOK',
-        data: {
-          codeToEvaluate: codeToEvaluate,
-          connectionString: mongoClientOptions.url,
-          connectionOptions: mongoClientOptions.options,
-        },
-      });
-
-      // Listen for results from the worker thread.
-      this._worker.on(
-        'message',
-        (response: [Error, ShellExecuteAllResult | undefined]) => {
-          const [error, result] = response;
-
-          if (error) {
-            return reject(formatError(error));
-          }
-
-          return resolve(result);
-        }
-      );
-
-      token.onCancellationRequested(async () => {
-        log.error('NOTEBOOK_KERNEL cancellation requested');
-        void vscode.window.showInformationMessage(
-          'The running notebook operation was canceled.'
-        );
-        await this._worker?.terminate();
-        return resolve(undefined);
-      });
-    });
-  }
-
   private async _doExecution(cell: vscode.NotebookCell): Promise<void> {
-    if (!this._connectionController.isCurrentlyConnected()) {
-      void vscode.window.showErrorMessage(
-        'Please connect to a database before running a playground.'
-      );
-      return;
-    }
-
-    if (!vscode.window.activeNotebookEditor) {
-      log.error('NOTEBOOK_KERNEL _doExecution: activeNotebookEditor is undefined.');
-      return;
-    }
-
     const codeToEvaluate = cell.document.getText();
     if (!codeToEvaluate) {
       log.info('NOTEBOOK_KERNEL _doExecution: the cell is empty.');
       return;
     }
 
-    log.info('NOTEBOOK_KERNEL _doExecution cell code to evaluate', codeToEvaluate);
+    log.info('NOTEBOOK_KERNEL _doExecution cell content', codeToEvaluate);
 
     const execution = this._controller.createNotebookCellExecution(cell);
     execution.executionOrder = ++this._executionOrder;
     execution.start(Date.now());
     await execution.clearOutput();
 
-    // Run all playground scripts.
-    let evaluateResponse: ShellExecuteAllResult;
     try {
-      evaluateResponse = await this.executeCell(codeToEvaluate, execution.token);
-    } catch (error) {
-      log.error('NOTEBOOK_KERNEL executeCell error', error);
-    }
-
-    try {
-      const debugOutput =
-        evaluateResponse?.outputLines?.map(
-          (line) =>
-            new vscode.NotebookCellOutput([
-              vscode.NotebookCellOutputItem.json(line.content),
-            ])
-        ) || [];
-      const playgroundOutput: vscode.NotebookCellOutput[] = evaluateResponse
-        ?.result?.content
-        ? [
-            new vscode.NotebookCellOutput([
-              vscode.NotebookCellOutputItem.json(
-                evaluateResponse?.result?.content
-              ),
-            ]),
-          ]
-        : [];
-      await execution.replaceOutput([...debugOutput, ...playgroundOutput]);
-
+      const result = await this._notebookController.executeCell(codeToEvaluate, execution.token);
+      await execution.replaceOutput(result);
       execution.end(true, Date.now());
     } catch (err) {
       const errString = err instanceof Error ? err.message : String(err);

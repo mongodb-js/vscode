@@ -33,7 +33,7 @@ import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
 
 import { NotebookSerializer } from '../notebook/notebookSerializer';
-import { NotebookKernel } from '../notebook/notebookKernel';
+import NotebookKernel from '../notebook/notebookKernel';
 
 const log = createLogger('editors controller');
 

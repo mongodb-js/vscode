@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import { getFiles } from './filesystem';
 
-export const isPlayground = (fileUri?: vscode.Uri) => {
+export const isNotebook = (fileUri?: vscode.Uri) => {
   if (!fileUri) {
     return false;
   }
@@ -15,20 +15,18 @@ export const isPlayground = (fileUri?: vscode.Uri) => {
 
   // Allow users to save playgrounds with `.mongodb` extension.
   if (fileNameParts.length === 2) {
-    return fileNameParts[fileNameParts.length - 1] === 'mongodb';
+    return fileNameParts[fileNameParts.length - 1] === 'mdbnb';
   }
 
   // The default playgrounds extension is `.mongodb.js`.
   const extension = fileNameParts[fileNameParts.length - 1];
-  const secondaryExtension = fileNameParts[fileNameParts.length - 2];
 
   return (
     fileNameParts.length > 1 &&
-    (extension === 'mongodb' ||
-      (extension === 'js' && secondaryExtension === 'mongodb'))
+    extension === 'mdbnb'
   );
 };
 
-export const getPlaygrounds = async (data): Promise<{ name: string; path: string }[]> => {
-  return getFiles({ ...data, checkByType: isPlayground });
+export const getNotebooks = async (data): Promise<{ name: string; path: string }[]> => {
+  return getFiles({ ...data, checkByType: isNotebook });
 };
