@@ -166,11 +166,29 @@
     "commands": [
       {
         "command": "mdb.convertNotebookToPlayground",
-        "title": "Export",
+        "title": "Convert Notebook To MongoDB Playground",
         "shortTitle": "Export",
         "icon": {
-            "light": "images/light/export.svg",
-            "dark": "images/dark/export.svg"
+          "light": "images/light/export.svg",
+          "dark": "images/dark/export.svg"
+        }
+      },
+      {
+        "command": "mdb.connectFromNotebook",
+        "title": "Disconnected. Click here to connect.",
+        "shortTitle": "Connect to MongoDB",
+        "icon": {
+          "light": "images/light/connection-inactive.svg",
+          "dark": "images/dark/connection-inactive.svg"
+        }
+      },
+      {
+        "command": "mdb.changeActiveConnectionFromNotebook",
+        "title": "Connected. Click here to change the active connection.",
+        "shortTitle": "Change Connection",
+        "icon": {
+          "light": "images/light/connection-active.svg",
+          "dark": "images/dark/connection-active.svg"
         }
       },
       {
@@ -688,8 +706,18 @@
       ],
       "notebook/toolbar": [
         {
+          "command": "mdb.connectFromNotebook",
+          "group": "navigation@1",
+          "when": "mdb.changeActiveConnectionFromNotebookButton == false"
+        },
+        {
+          "command": "mdb.changeActiveConnectionFromNotebook",
+          "group": "navigation@1",
+          "when": "mdb.changeActiveConnectionFromNotebookButton == true"
+        },
+        {
           "command": "mdb.convertNotebookToPlayground",
-          "group": "navigation",
+          "group": "navigation@2",
           "when": "notebookType == 'mongodb-notebook'"
         }
       ],

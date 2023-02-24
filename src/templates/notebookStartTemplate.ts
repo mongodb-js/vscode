@@ -47,7 +47,8 @@ console.log(modifiedDocuments);`,
   {
     kind: vscode.NotebookCellKind.Markup,
     languageId: 'markdown',
-    value: 'You can run [aggregation pipelines](https://www.mongodb.com/docs/mongodb-vscode/run-agg-pipelines/) on your collections. Aggregation pipelines consist of [stages](https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/#aggregation-pipeline-stages) that process your data and return computed results.',
+    value:
+      'You can run [aggregation pipelines](https://www.mongodb.com/docs/mongodb-vscode/run-agg-pipelines/) on your collections. Aggregation pipelines consist of [stages](https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/#aggregation-pipeline-stages) that process your data and return computed results.',
   },
   {
     kind: vscode.NotebookCellKind.Code,

@@ -21,12 +21,11 @@ export const isNotebook = (fileUri?: vscode.Uri) => {
   // The default playgrounds extension is `.mongodb.js`.
   const extension = fileNameParts[fileNameParts.length - 1];
 
-  return (
-    fileNameParts.length > 1 &&
-    extension === 'mdbnb'
-  );
+  return fileNameParts.length > 1 && extension === 'mdbnb';
 };
 
-export const getNotebooks = async (data): Promise<{ name: string; path: string }[]> => {
+export const getNotebooks = async (
+  data
+): Promise<{ name: string; path: string }[]> => {
   return getFiles({ ...data, checkByType: isNotebook });
 };

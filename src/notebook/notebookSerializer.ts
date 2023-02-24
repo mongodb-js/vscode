@@ -36,8 +36,8 @@ export class NotebookSerializer implements vscode.NotebookSerializer {
         language: cell.languageId,
         value: cell.value,
         metadata: {
-          editable: false
-        }
+          editable: false,
+        },
       });
     }
 

@@ -491,6 +491,12 @@ export default class ConnectionController {
     // Send metrics to Segment
     this.sendTelemetry(dataService, connectionType);
 
+    void vscode.commands.executeCommand(
+      'setContext',
+      'mdb.changeActiveConnectionFromNotebookButton',
+      true
+    );
+
     return {
       successfullyConnected: true,
       connectionErrorMessage: '',
@@ -570,6 +576,12 @@ export default class ConnectionController {
       await this._activeDataService.disconnect();
       void vscode.window.showInformationMessage('MongoDB disconnected.');
       this._activeDataService = null;
+
+      void vscode.commands.executeCommand(
+        'setContext',
+        'mdb.changeActiveConnectionFromNotebookButton',
+        false
+      );
     } catch (error) {
       // Show an error, however we still reset the active connection to free up the extension.
       void vscode.window.showErrorMessage(

@@ -9,6 +9,8 @@ enum EXTENSION_COMMANDS {
   MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW = 'mdb.treeViewOpenMongoDBShell',
 
   MDB_CREATE_NOTEBOOK = 'mdb.createNotebook',
+  MDB_CONNECT_FROM_NOTEBOOK = 'mdb.connectFromNotebook',
+  MDB_CHANGE_ACTIVE_CONNECTION_FROM_NOTEBOOK = 'mdb.changeActiveConnectionFromNotebook',
   MDB_CONVERT_NOTEBOOK_TO_PLAYGROUND = 'mdb.convertNotebookToPlayground',
   MDB_REFRESH_NOTEBOOKS_FROM_TREE_VIEW = 'mdb.refreshNotebooksFromTreeView',
   MDB_OPEN_NOTEBOOK_FROM_TREE_VIEW = 'mdb.openNotebookFromTreeView',

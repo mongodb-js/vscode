@@ -51,7 +51,7 @@ export default class NotebookController {
         custom: {
           cells: [],
           metadata: {
-            orig_nbformat: 4
+            orig_nbformat: 4,
           },
           nbformat: 4,
           nbformat_minor: 2,
@@ -80,7 +80,7 @@ export default class NotebookController {
         custom: {
           cells: [],
           metadata: {
-            orig_nbformat: 4
+            orig_nbformat: 4,
           },
           nbformat: 4,
           nbformat_minor: 2,
@@ -103,26 +103,31 @@ export default class NotebookController {
   }
 
   _prepareNotebookOutput(evaluateResponse) {
-    const debugOutput = evaluateResponse?.outputLines?.map(
+    const debugOutput =
+      evaluateResponse?.outputLines?.map(
         (line) =>
           new vscode.NotebookCellOutput([
             vscode.NotebookCellOutputItem.json(line.content),
           ])
       ) || [];
-    const contentOutput: vscode.NotebookCellOutput[] = evaluateResponse
-      ?.result?.content
+    const contentOutput: vscode.NotebookCellOutput[] = evaluateResponse?.result
+      ?.content
       ? [
           new vscode.NotebookCellOutput([
             vscode.NotebookCellOutputItem.json(
               evaluateResponse?.result?.content
             ),
           ]),
-        ] : [];
+        ]
+      : [];
 
     return [...debugOutput, ...contentOutput];
   }
 
-  async executeCell(codeToEvaluate: string, token: vscode.CancellationToken): Promise<vscode.NotebookCellOutput[]> {
+  async executeCell(
+    codeToEvaluate: string,
+    token: vscode.CancellationToken
+  ): Promise<vscode.NotebookCellOutput[]> {
     return new Promise((resolve, reject) => {
       if (!vscode.window.activeNotebookEditor) {
         return reject(new Error('activeNotebookEditor is undefined'));
@@ -188,21 +193,28 @@ export default class NotebookController {
   }
 
   convertNotebookToPlayground(): Promise<boolean> {
-    const cells = vscode.window.activeNotebookEditor?.notebook?.getCells() || [];
+    const cells =
+      vscode.window.activeNotebookEditor?.notebook?.getCells() || [];
 
-    const content = cells.map((cell) => {
-      if (cell.kind === vscode.NotebookCellKind.Code) {
-        return cell.document.getText();
-      }
-      return '';
-    }).join('\n');
+    const content = cells
+      .map((cell) => {
+        if (cell.kind === vscode.NotebookCellKind.Code) {
+          return cell.document.getText();
+        }
+        return '';
+      })
+      .join('\n');
 
     return this._playgroundController.createPlaygroundFileWithContent(content);
   }
 
   async openNotebook(filePath: string): Promise<boolean> {
     try {
-      await vscode.commands.executeCommand('vscode.openWith', vscode.Uri.file(filePath), 'mongodb-notebook');
+      await vscode.commands.executeCommand(
+        'vscode.openWith',
+        vscode.Uri.file(filePath),
+        'mongodb-notebook'
+      );
 
       return true;
     } catch (error) {

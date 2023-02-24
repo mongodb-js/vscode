@@ -22,7 +22,7 @@ import {
   PlaygroundsExplorer,
   HelpExplorer,
   CollectionTreeItem,
-  NotebooksExplorer
+  NotebooksExplorer,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
 import { ExportToLanguages } from './types/playgroundType';
@@ -122,9 +122,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController,
       this._playgroundController
     );
-    this._notebookKernel = new NotebookKernel(
-      this._notebookController
-    );
+    this._notebookKernel = new NotebookKernel(this._notebookController);
     this._editorsController = new EditorsController(
       context,
       this._connectionController,
@@ -196,13 +194,19 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     // ------ NOTEBOOK ------ //
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_NOTEBOOK,
-      () => this._notebookController.createNotebook()
+    this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_NOTEBOOK, () =>
+      this._notebookController.createNotebook()
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CONVERT_NOTEBOOK_TO_PLAYGROUND,
       () => this._notebookController.convertNotebookToPlayground()
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_FROM_NOTEBOOK, () =>
+      this._connectionController.changeActiveConnection()
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION_FROM_NOTEBOOK,
+      () => this._connectionController.changeActiveConnection()
     );
 
     // ------ PLAYGROUND ------ //

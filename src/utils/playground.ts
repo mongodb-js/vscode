@@ -29,6 +29,8 @@ export const isPlayground = (fileUri?: vscode.Uri) => {
   );
 };
 
-export const getPlaygrounds = async (data): Promise<{ name: string; path: string }[]> => {
+export const getPlaygrounds = async (
+  data
+): Promise<{ name: string; path: string }[]> => {
   return getFiles({ ...data, checkByType: isPlayground });
 };

@@ -64,7 +64,7 @@ export const getFiles = async ({
   fsPath,
   excludeFromPlaygroundsSearch,
   result = [],
-  checkByType
+  checkByType,
 }: {
   fsPath: string;
   excludeFromPlaygroundsSearch?: string[];

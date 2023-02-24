@@ -15,9 +15,7 @@ export default class NotebookKernel {
 
   private _notebookController: NotebookController;
 
-  constructor(
-    notebookController: NotebookController
-  ) {
+  constructor(notebookController: NotebookController) {
     this._notebookController = notebookController;
     this._controller = vscode.notebooks.createNotebookController(
       this.id,
@@ -55,7 +53,10 @@ export default class NotebookKernel {
     await execution.clearOutput();
 
     try {
-      const result = await this._notebookController.executeCell(codeToEvaluate, execution.token);
+      const result = await this._notebookController.executeCell(
+        codeToEvaluate,
+        execution.token
+      );
       await execution.replaceOutput(result);
       execution.end(true, Date.now());
     } catch (err) {
