@@ -198,6 +198,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._notebookController.createNotebook()
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CONVERT_NOTEBOOK_CELL_TO_PLAYGROUND,
+      (cell) => this._notebookController.convertNotebookCellToPlayground(cell)
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_CONVERT_NOTEBOOK_TO_PLAYGROUND,
       () => this._notebookController.convertNotebookToPlayground()
     );

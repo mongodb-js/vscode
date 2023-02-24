@@ -165,9 +165,17 @@
     ],
     "commands": [
       {
+        "command": "mdb.convertNotebookCellToPlayground",
+        "title": "Convert Cell To MongoDB Playground",
+        "icon": {
+          "light": "images/light/export.svg",
+          "dark": "images/dark/export.svg"
+        }
+      },
+      {
         "command": "mdb.convertNotebookToPlayground",
-        "title": "Convert Notebook To MongoDB Playground",
-        "shortTitle": "Export",
+        "title": "Convert All To MongoDB Playground",
+        "shortTitle": "Export All",
         "icon": {
           "light": "images/light/export.svg",
           "dark": "images/dark/export.svg"
@@ -718,6 +726,13 @@
         {
           "command": "mdb.convertNotebookToPlayground",
           "group": "navigation@2",
+          "when": "notebookType == 'mongodb-notebook'"
+        }
+      ],
+      "notebook/cell/title": [
+        {
+          "command": "mdb.convertNotebookCellToPlayground",
+          "group": "inline/cell@0",
           "when": "notebookType == 'mongodb-notebook'"
         }
       ],

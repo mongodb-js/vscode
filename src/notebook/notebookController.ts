@@ -192,6 +192,12 @@ export default class NotebookController {
     });
   }
 
+  convertNotebookCellToPlayground(cell: vscode.NotebookCell): Promise<boolean> {
+    return this._playgroundController.createPlaygroundFileWithContent(
+      cell.document.getText()
+    );
+  }
+
   convertNotebookToPlayground(): Promise<boolean> {
     const cells =
       vscode.window.activeNotebookEditor?.notebook?.getCells() || [];

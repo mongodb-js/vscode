@@ -11,6 +11,7 @@ enum EXTENSION_COMMANDS {
   MDB_CREATE_NOTEBOOK = 'mdb.createNotebook',
   MDB_CONNECT_FROM_NOTEBOOK = 'mdb.connectFromNotebook',
   MDB_CHANGE_ACTIVE_CONNECTION_FROM_NOTEBOOK = 'mdb.changeActiveConnectionFromNotebook',
+  MDB_CONVERT_NOTEBOOK_CELL_TO_PLAYGROUND = 'mdb.convertNotebookCellToPlayground',
   MDB_CONVERT_NOTEBOOK_TO_PLAYGROUND = 'mdb.convertNotebookToPlayground',
   MDB_REFRESH_NOTEBOOKS_FROM_TREE_VIEW = 'mdb.refreshNotebooksFromTreeView',
   MDB_OPEN_NOTEBOOK_FROM_TREE_VIEW = 'mdb.openNotebookFromTreeView',
