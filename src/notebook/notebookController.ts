@@ -174,7 +174,11 @@ export default class NotebookController {
           const [error, result] = response;
 
           if (error) {
-            return reject(formatError(error));
+            return resolve([
+              new vscode.NotebookCellOutput([
+                vscode.NotebookCellOutputItem.error(error),
+              ]),
+            ]);
           }
 
           return resolve(this._prepareNotebookOutput(result));

@@ -318,10 +318,87 @@ const notebookWorkerConfig = {
   },
 };
 
+const notebookRendererConfig = {
+  ...baseConfig,
+  output: {
+    strictModuleErrorHandling: true,
+    strictModuleExceptionHandling: true,
+    path: outputPath,
+    filename: '[name].js',
+    devtoolModuleFilenameTemplate: '../[resource-path]',
+    libraryTarget: 'module',
+  },
+  experiments: {
+    outputModule: true,
+  },
+  entry: {
+    notebookRenderer: './src/notebook/renderer/index.tsx',
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.less'],
+  },
+  externals: {
+    fallback: {
+      util: require.resolve('util/'),
+      stream: require.resolve('stream-browserify'),
+    },
+  },
+  module: {
+    rules: [
+      // allow importing ts(x) files:
+      {
+        test: /\.tsx?$/,
+        loader: 'ts-loader',
+        options: {
+          configFile: 'src/notebook/renderer/tsconfig.json',
+          // transpileOnly enables hot-module-replacement
+          transpileOnly: true,
+          compilerOptions: {
+            // overwrite the noEmit renderers tsconfig
+            noEmit: false,
+          },
+        },
+      },
+      {
+        test: /\.css$/,
+        exclude: [/\.global/, /bootstrap/, /node_modules/, /global\.less/],
+        use: [
+          {
+            loader: 'style-loader',
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true,
+              importLoaders: 1,
+            },
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              plugins: function () {
+                return [autoprefixer()];
+              },
+            },
+          },
+        ],
+      },
+    ],
+  },
+  plugins: [
+    new ContextMapPlugin('node_modules/context-eval', ['./lib/context-node']),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+      process: 'process/browser',
+    }),
+  ],
+};
+
 module.exports = [
   extensionConfig,
   languageServerConfig,
   languageServerWorkerConfig,
   webviewConfig,
   notebookWorkerConfig,
+  notebookRendererConfig,
 ];

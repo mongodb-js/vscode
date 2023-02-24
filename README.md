@@ -77,6 +77,16 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 
 ![Settings](resources/screenshots/settings.png)
 
+## MongoDB Notebooks
+
+The MongoDB Notebooks provide a live documentation experience by combining markdown instructions and executable code cells, which render notebook outputs in a variety of rich and interactive formats.
+
+- Connect to MongoDB cluster.
+- Run MongoDB code snippets.
+- Change the output format.
+- Export the cell or entire notebook to MongoDB playground.
+- Manage your notebooks in th notebooks tree view.
+
 ## Additional Settings
 
 _These global settings affect how MongoDB for VS Code provides intelligent autocomplete inside snippets and string literals (off by default). Changing the default configuration may affect the behavior and performance of other extensions and of VS Code itself. If you do not change the default settings, you can still trigger intelligent autocomplete inside a snippet or string literal with `Ctrl+Space`._

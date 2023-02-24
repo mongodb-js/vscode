@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "ES2019",
+    "lib": ["ES2019", "dom"],
+    "jsx": "react",
+    "types": ["node", "webpack-env", "vscode-notebook-renderer"],
+    "moduleResolution": "node",
+    "strict": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "noEmit": true,
+    "rootDir": "."
+  }
+}
