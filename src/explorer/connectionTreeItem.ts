@@ -150,6 +150,9 @@ export default class ConnectionTreeItem
     }
 
     const databases = await this.listDatabases();
+    databases.sort((a: string, b: string) => {
+      return a.localeCompare(b);
+    });
 
     this.cacheIsUpToDate = true;
 
