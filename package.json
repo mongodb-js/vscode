@@ -1142,6 +1142,7 @@
     "vscode-notebook-error-overlay": "^1.0.1"
   },
   "devDependencies": {
+    "@emotion/css": "^11.10.6",
     "@mongodb-js/prettier-config-compass": "^1.0.0",
     "@types/analytics-node": "^3.1.9",
     "@types/babel__core": "^7.1.19",

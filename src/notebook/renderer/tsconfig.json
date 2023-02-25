@@ -10,6 +10,8 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "noEmit": true,
-    "rootDir": "."
+    "rootDir": ".",
+    "importHelpers": true,
+    "sourceMap": true
   }
 }
