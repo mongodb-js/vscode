@@ -13,5 +13,6 @@
     "rootDir": ".",
     "importHelpers": true,
     "sourceMap": true
-  }
+  },
+  "exclude": ["node_modules"]
 }

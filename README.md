@@ -47,6 +47,16 @@ MongoDB for VS Code makes it extremely easy to make changes to documents in your
 
 ![Document editing](resources/screenshots/edit.png)
 
+## MongoDB Notebooks
+
+The MongoDB Notebooks provide a live documentation experience by combining markdown instructions and executable code cells, which render notebook outputs in a variety of rich and interactive formats.
+
+- Connect to MongoDB cluster.
+- Run MongoDB code snippets.
+- Change the output format.
+- Export the cell or entire notebook to MongoDB playground.
+- Manage your notebooks in th notebooks tree view.
+
 ### Quick access to the MongoDB Shell
 
 Launch the MongoDB Shell from the command palette to quickly connect to the same cluster you have active in VS Code.
@@ -76,16 +86,6 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 - `mdb.sendTelemetry`: Opt-in and opt-out for diagnostic and telemetry collection.
 
 ![Settings](resources/screenshots/settings.png)
-
-## MongoDB Notebooks
-
-The MongoDB Notebooks provide a live documentation experience by combining markdown instructions and executable code cells, which render notebook outputs in a variety of rich and interactive formats.
-
-- Connect to MongoDB cluster.
-- Run MongoDB code snippets.
-- Change the output format.
-- Export the cell or entire notebook to MongoDB playground.
-- Manage your notebooks in th notebooks tree view.
 
 ## Additional Settings
 

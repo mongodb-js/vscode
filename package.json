@@ -165,11 +165,24 @@
     ],
     "notebookRenderer": [
       {
-        "id": "mongodb-notebook-renderer",
-        "displayName": "MongoDB Notebook Renderer",
-        "entrypoint": "./dist/notebookRenderer.js",
+        "id": "mongodb-error",
+        "displayName": "MongoDB Error",
+        "entrypoint": "./dist/notebookErrorRenderer.js",
         "mimeTypes": [
           "application/vnd.code.notebook.error"
+        ]
+      },
+      {
+        "id": "mongodb-flat-data-grid",
+        "displayName": "Flat Data Grid",
+        "entrypoint": "./dist/notebookFlatDataGridRenderer.js",
+        "mimeTypes": [
+          "application/json",
+          "application/geo+json",
+          "application/octet-stream",
+          "application/vnd.code.notebook.stdout",
+          "text/plain",
+          "text/x-json"
         ]
       }
     ],
@@ -1102,6 +1115,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.2.0",
     "@fortawesome/free-solid-svg-icons": "^6.2.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@githubocto/flat-ui": "^0.14.1",
     "@iconify-icons/codicon": "^1.2.16",
     "@iconify/react": "^1.1.4",
     "@leafygreen-ui/logo": "^6.1.3",

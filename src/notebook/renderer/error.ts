@@ -1,4 +1,4 @@
-import { render } from './render';
+import { render } from './errorRenderer';
 import errorOverlay from 'vscode-notebook-error-overlay';
 import type { ActivationFunction } from 'vscode-notebook-renderer';
 

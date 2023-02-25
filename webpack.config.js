@@ -332,7 +332,8 @@ const notebookRendererConfig = {
     outputModule: true,
   },
   entry: {
-    notebookRenderer: './src/notebook/renderer/index.tsx',
+    notebookErrorRenderer: './src/notebook/renderer/error.ts',
+    notebookFlatDataGridRenderer: './src/notebook/renderer/flatDataGrid.ts',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.less'],
@@ -345,16 +346,14 @@ const notebookRendererConfig = {
   },
   module: {
     rules: [
-      // allow importing ts(x) files:
       {
-        test: /\.tsx?$/,
+        test: /\.(ts|tsx)$/,
         loader: 'ts-loader',
+        exclude: /node_modules/,
         options: {
           configFile: 'src/notebook/renderer/tsconfig.json',
-          // transpileOnly enables hot-module-replacement
-          transpileOnly: true,
           compilerOptions: {
-            // overwrite the noEmit renderers tsconfig
+            // Overwrite the noEmit renderers tsconfig.
             noEmit: false,
           },
         },
