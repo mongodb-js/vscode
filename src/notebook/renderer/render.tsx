@@ -15,7 +15,7 @@ interface IRenderInfo {
 }
 
 interface NotebookOutputErrorProps {
-  error: Error | { message: string };
+  error: Error | { message: string, name?: string };
 }
 
 const NotebookOutputError = ({ error }: NotebookOutputErrorProps) => {
