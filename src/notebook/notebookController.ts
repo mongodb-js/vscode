@@ -29,6 +29,30 @@ export default class NotebookController {
     this._context = context;
     this._connectionController = connectionController;
     this._playgroundController = playgroundController;
+
+    const leafyGreenTableMessageChannel =
+      vscode.notebooks.createRendererMessaging('mongodb-leafy-green-table');
+    leafyGreenTableMessageChannel.onDidReceiveMessage((e) => {
+      if (e.message.command === 'mdb-leafy-green-table-renderer-loaded') {
+        log.info('NOTEBOOK_CONTROLLER: leafy green table renderer loaded');
+      }
+      if (e.message.request === 'openNotebookAsPlaygroundResult') {
+        log.info(
+          'NOTEBOOK_CONTROLLER: open notebook as playground result requested'
+        );
+        this._playgroundController.openNotebookAsPlaygroundResult(
+          e.message.data
+        );
+      }
+    });
+
+    const errorMessageChannel =
+      vscode.notebooks.createRendererMessaging('mongodb-error');
+    errorMessageChannel.onDidReceiveMessage((e) => {
+      if (e.message.command === 'mdb-error-renderer-loaded') {
+        log.info('NOTEBOOK_CONTROLLER: error renderer loaded');
+      }
+    });
   }
 
   async createNewNotebbok(): Promise<boolean> {

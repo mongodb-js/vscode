@@ -8,53 +8,53 @@ interface NotebookOutputErrorProps {
   error: Error | { message: string; name?: string };
 }
 
+const rootStyles = css({
+  fontSize: '13px',
+  background: 'rgb(90, 29, 29)',
+  border: '1px solid rgb(190, 17, 0)',
+  padding: '5px',
+  margin: '-6px',
+});
+
+const titleStyles = css({
+  fontSize: '1.5em',
+  margin: '0px 0px 0.25em',
+  fontWeight: 'normal',
+});
+
+const textStyles = css({
+  fontFamily: 'Menlo, Monaco, &quot;Courier New&quot;, monospace',
+  fontSize: '12px',
+  fontWeight: 'normal',
+  width: '100%',
+  overflowX: 'auto',
+  lineHeight: '1.5em',
+  background: 'rgba(0, 0, 0, 0.2)',
+});
+
+const errorMessageStyles = css({
+  padding: '0.1em 0.3em',
+  display: 'table-row',
+});
+
+const closeErrorButtonStyles = css({
+  position: 'absolute',
+  top: '3px',
+  right: '8px',
+  border: '0px',
+  background: 'none',
+  padding: '0px',
+  margin: '0px',
+  outline: '0px',
+  cursor: 'pointer',
+});
+
 const NotebookOutputError = ({ error }: NotebookOutputErrorProps) => {
   const [errorClosed, setErrorClosed] = useState(false);
 
   const onCloseError = () => {
     setErrorClosed(true);
   };
-
-  const rootStyles = css({
-    fontSize: '13px',
-    background: 'rgb(90, 29, 29)',
-    border: '1px solid rgb(190, 17, 0)',
-    padding: '5px',
-    margin: '-6px',
-  });
-
-  const titleStyles = css({
-    fontSize: '1.5em',
-    margin: '0px 0px 0.25em',
-    fontWeight: 'normal',
-  });
-
-  const textStyles = css({
-    fontFamily: 'Menlo, Monaco, &quot;Courier New&quot;, monospace',
-    fontSize: '12px',
-    fontWeight: 'normal',
-    width: '100%',
-    overflowX: 'auto',
-    lineHeight: '1.5em',
-    background: 'rgba(0, 0, 0, 0.2)',
-  });
-
-  const errorMessageStyles = css({
-    padding: '0.1em 0.3em',
-    display: 'table-row',
-  });
-
-  const closeErrorButtonStyles = css({
-    position: 'absolute',
-    top: '3px',
-    right: '8px',
-    border: '0px',
-    background: 'none',
-    padding: '0px',
-    margin: '0px',
-    outline: '0px',
-    cursor: 'pointer',
-  });
 
   if (errorClosed) {
     return null;

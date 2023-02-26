@@ -3,28 +3,52 @@ import * as ReactDOM from 'react-dom';
 import * as util from 'util';
 import { css } from '@emotion/css';
 import { Table, Cell, Row, TableHeader } from '@leafygreen-ui/table';
+import { Link, Description } from '@leafygreen-ui/typography';
 
 import { OutputParser } from './outputParser';
 import type { RenderInfo } from './outputItem';
 
-const LeafyGreenTable = ({ data }: { data: any[] }) => {
-  const tableStyles = css({
-    thead: {
-      position: 'sticky',
-      top: 0,
-      background: 'white',
-      zIndex: 5,
-    },
-    tr: {
-      background: 'white',
-    },
-  });
+import type { RendererContext } from 'vscode-notebook-renderer';
 
-  const tableHeaderStyles = css({
-    borderBottom: '3px solid rgb(232, 237, 235) !important',
-  });
+interface ILeafyGreenTable {
+  context: RendererContext<any>;
+  data: any;
+}
 
-  const sortColumns = Object.keys(data[0]);
+const tableStyles = css({
+  thead: {
+    position: 'sticky',
+    top: 0,
+    background: 'white',
+    zIndex: 5,
+  },
+  tr: {
+    background: 'white',
+  },
+});
+
+const tableHeaderStyles = css({
+  borderBottom: '3px solid rgb(232, 237, 235) !important',
+});
+
+const moreResultsStyles = css({
+  background: 'white',
+  padding: '10px 5px 40px 5px',
+});
+
+const moreResultsContentStyles = css({
+  float: 'right',
+});
+
+const moreResultsLinkStyles = css({
+  backgroundColor: 'transparent',
+  border: 'none',
+  display: 'inline',
+});
+
+const LeafyGreenTable = ({ context, data }: ILeafyGreenTable) => {
+  const shortList = data.slice(0, 100);
+  const sortColumns = Object.keys(shortList[0]);
   const columns = useMemo(() => {
     const _columns = sortColumns.map((name: string) => {
       return (
@@ -39,9 +63,32 @@ const LeafyGreenTable = ({ data }: { data: any[] }) => {
     return _columns;
   }, []);
 
+  const openNotebookAsPlaygroundResult = () => {
+    if (context.postMessage) {
+      context.postMessage({
+        request: 'openNotebookAsPlaygroundResult',
+        data,
+      });
+    }
+  };
+
   return (
     <div>
-      <Table columns={columns} data={data} className={tableStyles}>
+      <div className={moreResultsStyles}>
+        <div className={moreResultsContentStyles}>
+          <Description>
+            This table view shows up to 100 documents. Switch to JSON view or
+            <Link
+              as="button"
+              className={moreResultsLinkStyles}
+              onClick={() => openNotebookAsPlaygroundResult()}
+            >
+              open more results in a MongoDB Playground
+            </Link>
+          </Description>
+        </div>
+      </div>
+      <Table columns={columns} data={shortList} className={tableStyles}>
         {({ datum: item, index }: any) => (
           <Row key={`row-${index}`}>
             {Object.keys(item)
@@ -71,7 +118,11 @@ export function render(output: RenderInfo) {
   if (Array.isArray(data)) {
     // Render flat data grid.
     ReactDOM.render(
-      React.createElement(LeafyGreenTable, { data }, null),
+      React.createElement(
+        LeafyGreenTable,
+        { context: output.context, data },
+        null
+      ),
       output.container
     );
   } else {

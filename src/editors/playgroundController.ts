@@ -756,6 +756,17 @@ export default class PlaygroundController {
     return { namespace, expression };
   }
 
+  openNotebookAsPlaygroundResult(data) {
+    this._playgroundResult = {
+      namespace: null,
+      type: null,
+      content: data,
+      language: 'json',
+    };
+    log.info('Open notebook as playground result', this._playgroundResult);
+    void this._openPlaygroundResult();
+  }
+
   async _transpile(): Promise<boolean> {
     const { selectedText, importStatements, driverSyntax, builders, language } =
       this._exportToLanguageCodeLensProvider._exportToLanguageAddons;

@@ -4,5 +4,9 @@ import { render } from './errorRenderer';
 import { outputItem } from './outputItem';
 
 export const activate: ActivationFunction = (context) => {
+  if (context.postMessage) {
+    context.postMessage({ command: 'mdb-error-renderer-loaded' });
+  }
+
   return outputItem(context, render);
 };

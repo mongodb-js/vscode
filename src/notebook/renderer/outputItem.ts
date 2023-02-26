@@ -17,7 +17,6 @@ export const outputItem = (
       errorOverlay.wrap(element, () => {
         const cellOutputContainer: HTMLDivElement =
           document.createElement('div');
-        cellOutputContainer.className = 'flat-data-grid';
         element.appendChild(cellOutputContainer);
         render({
           container: cellOutputContainer,

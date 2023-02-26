@@ -183,7 +183,8 @@
           "application/vnd.code.notebook.stdout",
           "text/plain",
           "text/x-json"
-        ]
+        ],
+        "requiresMessaging": "optional"
       }
     ],
     "commands": [
@@ -1122,6 +1123,7 @@
     "@leafygreen-ui/palette": "^3.4.7",
     "@leafygreen-ui/table": "^10.0.2",
     "@leafygreen-ui/toggle": "^7.0.5",
+    "@leafygreen-ui/typography": "^16.0.1",
     "@mongodb-js/mongodb-constants": "^0.2.1",
     "@mongosh/browser-runtime-electron": "^1.6.2",
     "@mongosh/i18n": "^1.6.2",
@@ -1130,7 +1132,6 @@
     "@storybook/csf": "^0.0.1",
     "@storybook/react": "^6.5.16",
     "ag-grid-community": "^29.1.0",
-    "ag-grid-react": "^29.1.0",
     "analytics-node": "^5.1.2",
     "bson": "^4.7.0",
     "bson-transpilers": "^2.0.0",
