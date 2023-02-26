@@ -2,17 +2,7 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { css } from '@emotion/css';
 
-import type { RendererContext, OutputItem } from 'vscode-notebook-renderer';
-
-/**
- * Notebook cell output render info.
- */
-interface IRenderInfo {
-  container: HTMLElement;
-  mimeType: string;
-  value: OutputItem;
-  context: RendererContext<unknown>;
-}
+import type { RenderInfo } from './outputItem';
 
 interface NotebookOutputErrorProps {
   error: Error | { message: string; name?: string };
@@ -98,7 +88,7 @@ const NotebookOutputError = ({ error }: NotebookOutputErrorProps) => {
   );
 };
 
-export const render = (output: IRenderInfo) => {
+export const render = (output: RenderInfo) => {
   const error = output.value.json();
 
   ReactDOM.render(<NotebookOutputError error={error} />, output.container);

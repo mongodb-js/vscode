@@ -1,5 +1,5 @@
 import type { ActivationFunction } from 'vscode-notebook-renderer';
-import { render } from './errorRenderer';
+import { render } from './leafyGreenTableRenderer';
 
 import { outputItem } from './outputItem';
 

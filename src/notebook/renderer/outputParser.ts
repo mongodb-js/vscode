@@ -1,14 +1,6 @@
 import type { OutputItem } from 'vscode-notebook-renderer';
 
-/**
- * OutputLoader loads data from notebook cell output item.
- */
-export class OutputLoader {
-  /**
-   * Creates new OutputLoader instance.
-   * @param outputData Notebook cell output item.
-   * @param mimeType Notebook cell output mime type.
-   */
+export class OutputParser {
   constructor(private outputData: OutputItem, private mimeType: string) {}
 
   /**
@@ -35,7 +27,7 @@ export class OutputLoader {
         }
         return jsonData;
       } else if (textData !== '{}' && !textData.startsWith('<Buffer ')) {
-        // empty object or binary data
+        // Empty object or binary data.
         return textData;
       }
     }
@@ -44,21 +36,17 @@ export class OutputLoader {
   }
 
   /**
-   * Gets JSON data array, JSON object string,
-   * CSV rows data array, or undefined
-   * for plain text and binary data types.
-   * @param data Notebook output data value.
+   * Gets JSON data.
    */
   getJsonData(data: any): any {
-    // console.log('data.table:json:', data);
     try {
       if (typeof data === 'string') {
-        // try parsing JSON string
+        // Try parsing JSON string.
         const textData: string = this.patchJson(data);
         let objectData: any = JSON.parse(textData);
 
         if (objectData.data) {
-          // use data object from REST response
+          // Use data object from REST response.
           objectData = objectData.data;
         }
 
@@ -69,11 +57,10 @@ export class OutputLoader {
         return objectData;
       }
 
-      // try getting json data object
-      // console.log('data.table:json:', data);
+      // Try getting JSON data object.
       let jsonData: any = data.json();
       if (jsonData.data) {
-        // use data object from REST response
+        // Use data object from REST response.
         jsonData = jsonData.data;
       }
 
@@ -81,7 +68,7 @@ export class OutputLoader {
         return jsonData;
       }
     } catch (error: any) {
-      console.log('OUTPUT LOADER JSON.parse error:\n', error.message);
+      console.log('OUTPUT PARSER:', error.message);
     }
 
     return undefined;
@@ -89,32 +76,31 @@ export class OutputLoader {
 
   /**
    * Patches garbled JSON string.
-   * @param data JSON data string.
-   * @returns Patched up JSON string.
    */
   patchJson(data: string): string {
-    // patch garbled json string
+    // Patch garbled JSON string.
     const escapedQuoteRegEx = /\\\\"/g;
     const objectStartRegEx = /"{/g;
     const objectEndRegEx = /}"/g;
     const xRegEx = /\\xa0/g;
     const newLineRegEx = /\\n/g;
     let textData: string = data.replace(escapedQuoteRegEx, '"');
+
     textData = textData.replace(objectStartRegEx, '{');
     textData = textData.replace(objectEndRegEx, '}');
     textData = textData.replace(xRegEx, ' ');
     textData = textData.replace(newLineRegEx, '');
+
     if (textData.startsWith("'") && textData.endsWith("'")) {
-      // strip out start/end single quotes from notebook cell output
+      // Strip out start/end single quotes from notebook cell output.
       textData = textData.substr(1, textData.length - 2);
     }
-    // console.log('data.table:text:', textData.substring(0, Math.min(500, textData.length)), '...');
+
     return textData;
   }
 
   /**
    * Flattens geo data for tabular data display.
-   * @param data Geojson or topojson data object.
    */
   flattenGeoData(data: any): any {
     if (data.features) {
@@ -125,6 +111,7 @@ export class OutputLoader {
         Object.keys(geometry).forEach((key) => {
           newGeometry[`geometry.${key}`] = geometry[key];
         });
+
         const newProperties = {} as Record<string, any>;
         Object.keys(properties).forEach((key) => {
           newProperties[`${key}`] = properties[key];

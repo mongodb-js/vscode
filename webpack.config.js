@@ -333,7 +333,8 @@ const notebookRendererConfig = {
   },
   entry: {
     notebookErrorRenderer: './src/notebook/renderer/error.ts',
-    notebookFlatDataGridRenderer: './src/notebook/renderer/flatDataGrid.ts',
+    notebookLeafyGreenTableRenderer:
+      './src/notebook/renderer/leafyGreenTable.ts',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.less'],
@@ -342,6 +343,7 @@ const notebookRendererConfig = {
     fallback: {
       util: require.resolve('util/'),
       stream: require.resolve('stream-browserify'),
+      path: require.resolve('path-browserify'),
     },
   },
   module: {
