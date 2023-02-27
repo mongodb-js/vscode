@@ -216,7 +216,7 @@ suite('SchemaTreeItem Test Suite', function () {
       assert(false, 'Didnt expect to succeed.');
     } catch (error: any) {
       const expectedMessage =
-        'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+        "Unable to parse schema: Cannot use 'in' operator to search for 'stream' in invalid schema to parse";
 
       assert.strictEqual(
         error.message,

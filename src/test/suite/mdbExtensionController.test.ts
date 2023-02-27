@@ -1645,6 +1645,41 @@ suite('MDBExtensionController Test Suite', function () {
     assert.strictEqual(namespaceUsed, 'waffle.house');
   });
 
+  test('mdb.insertDocumentFromTreeView event should open a playground with an insert document template', async () => {
+    const collectionTreeItem = new CollectionTreeItem(
+      {
+        name: 'pineapple',
+        type: CollectionTypes.collection,
+      },
+      'plants',
+      {},
+      false,
+      false,
+      null
+    );
+
+    const mockCreatePlaygroundForInsertDocument = sinon.fake();
+    sinon.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      'createPlaygroundForInsertDocument',
+      mockCreatePlaygroundForInsertDocument
+    );
+
+    await vscode.commands.executeCommand(
+      'mdb.insertDocumentFromTreeView',
+      collectionTreeItem
+    );
+    assert.strictEqual(mockCreatePlaygroundForInsertDocument.calledOnce, true);
+    assert.strictEqual(
+      mockCreatePlaygroundForInsertDocument.firstCall.args[0],
+      'plants'
+    );
+    assert.strictEqual(
+      mockCreatePlaygroundForInsertDocument.firstCall.args[1],
+      'pineapple'
+    );
+  });
+
   test('mdb.deleteDocumentFromTreeView should not delete a document when the confirmation is cancelled', async () => {
     const mockDocument = {
       _id: 'pancakes',

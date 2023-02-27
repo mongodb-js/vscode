@@ -130,7 +130,8 @@ export default class TelemetryService {
         this._context.extensionPath,
         './constants.json'
       );
-      const constantsFile = fs.readFileSync(segmentKeyFileLocation).toString();
+      // eslint-disable-next-line no-sync
+      const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
       const constants = JSON.parse(constantsFile) as { segmentKey: string };
 
       log.info('TELEMETRY key received', typeof constants.segmentKey);

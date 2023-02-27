@@ -1,6 +1,5 @@
-import * as util from 'util';
 import * as vscode from 'vscode';
-import parseSchema = require('mongodb-schema');
+import parseSchema from 'mongodb-schema';
 import path from 'path';
 
 import { createLogger } from '../logging';
@@ -97,7 +96,7 @@ export default class SchemaTreeItem
     return element;
   }
 
-  async getSchema(): Promise<any[]> {
+  async getSchema(): Promise<ReturnType<typeof parseSchema> | undefined> {
     const namespace = `${this.databaseName}.${this.collectionName}`;
     let documents;
     try {
@@ -110,18 +109,16 @@ export default class SchemaTreeItem
       void vscode.window.showErrorMessage(
         `Get schema failed: ${formatError(error).message}`
       );
-      return [];
+      return;
     }
 
     log.info(`parsing schema for namespace ${namespace}`);
     if (!documents || documents.length === 0) {
-      return [];
+      return;
     }
 
     try {
-      const runParseSchema = util.promisify(parseSchema);
-      const schema = await runParseSchema(documents);
-      return schema;
+      return await parseSchema(documents);
     } catch (parseError) {
       throw new Error(
         `Unable to parse schema: ${(parseError as Error)?.message}`
@@ -197,7 +194,7 @@ export default class SchemaTreeItem
 
     this.cacheIsUpToDate = true;
 
-    if (!schema || !schema.fields || schema.fields.length < 1) {
+    if (!schema?.fields || schema.fields.length < 1) {
       void vscode.window.showInformationMessage(
         'No documents were found when attempting to parse schema.'
       );

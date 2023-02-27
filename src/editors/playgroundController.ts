@@ -19,6 +19,7 @@ import { LanguageServerController } from '../language';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumentTemplate';
+import playgroundInsertDocumentTemplate from '../templates/playgroundInsertDocumentTemplate';
 import {
   PlaygroundResult,
   ShellExecuteAllResult,
@@ -294,6 +295,17 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName)
       .replace('DOCUMENT_CONTENTS', documentContents);
+
+    return this._createPlaygroundFileWithContent(content);
+  }
+
+  createPlaygroundForInsertDocument(
+    databaseName: string,
+    collectionName: string
+  ): Promise<boolean> {
+    const content = playgroundInsertDocumentTemplate
+      .replace('CURRENT_DATABASE', databaseName)
+      .replace('CURRENT_COLLECTION', collectionName);
 
     return this._createPlaygroundFileWithContent(content);
   }
