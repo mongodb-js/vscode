@@ -16,7 +16,7 @@ suite('DocumentTreeItem Test Suite', () => {
       mockDocument,
       'namespace',
       1,
-      {} as any,
+      {} as DataService,
       () => Promise.resolve()
     );
 

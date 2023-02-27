@@ -78,7 +78,7 @@ suite('CollectionTreeItem Test Suite', () => {
         type: CollectionTypes.collection,
       },
       'mock_db_name',
-      { estimatedCount: (ns, options, cb): void => cb(null, 5000) },
+      { estimatedCount: () => Promise.resolve(5000) },
       false,
       false,
       null

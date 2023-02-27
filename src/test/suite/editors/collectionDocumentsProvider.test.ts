@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import assert from 'assert';
-import { DataService } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 
 import { DocumentSource } from '../../../documentSource';
@@ -44,28 +44,18 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async () => {
-    const mockActiveDataService = {
-      find: (namespace, filter, options, callback): void => {
-        assert(
-          namespace === 'my-favorite-fruit-is.pineapple',
-          `Expected find namespace to be 'my-favorite-fruit-is.pineapple' found ${namespace}`
-        );
-
-        assert(
-          options.limit === 10,
-          `Expected find limit to be 10, found ${options.limit}`
-        );
-
-        return callback(null, [{ field: 'Declaration of Independence' }]);
-      },
-    } as DataService;
+    const findStub = sinon.stub();
+    findStub.resolves([{ field: 'Declaration of Independence' }]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
 
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveDataService);
+    mockConnectionController.setActiveDataService(testDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -87,6 +77,11 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const documents =
       await testCollectionViewProvider.provideTextDocumentContent(uri);
+    assert.strictEqual(
+      findStub.firstCall.args[0],
+      'my-favorite-fruit-is.pineapple'
+    );
+    assert.strictEqual(findStub.firstCall.args[2]?.limit, 10);
     assert(
       documents.includes('Declaration of Independence'),
       `Expected provideTextDocumentContent to return documents string, found ${documents}`
@@ -105,17 +100,18 @@ suite('Collection Documents Provider Test Suite', () => {
       },
     ];
 
-    const mockActiveDataService = {
-      find: (namespace, filter, options, callback): void => {
-        return callback(null, mockDocuments);
-      },
-    } as DataService;
+    const findStub = sinon.stub();
+    findStub.resolves(mockDocuments);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
+
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveDataService);
+    mockConnectionController.setActiveDataService(testDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -145,17 +141,17 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async () => {
-    const mockActiveDataService = {
-      find: (namespace, filter, options, callback): void => {
-        return callback(null, [{ field: 'Apollo' }, { field: 'Gemini ' }]);
-      },
-    } as DataService;
+    const findStub = sinon.stub();
+    findStub.resolves([{ field: 'Apollo' }, { field: 'Gemini ' }]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveDataService);
+    mockConnectionController.setActiveDataService(testDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -193,7 +189,10 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent shows a status bar item while it is running then hide it', async () => {
-    const mockActiveDataService = { find: {} } as DataService;
+    const mockActiveDataService = { find: () => Promise.resolve([]) } as Pick<
+      DataService,
+      'find'
+    > as unknown as DataService;
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -227,17 +226,12 @@ suite('Collection Documents Provider Test Suite', () => {
     const mockHideMessage = sinon.fake();
     sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
 
-    mockActiveDataService.find = (
-      namespace,
-      filter,
-      options,
-      callback
-    ): void => {
+    mockActiveDataService.find = () => {
       assert(mockShowMessage.called);
       assert(!mockHideMessage.called);
       assert(mockShowMessage.firstCall.args[0] === 'Fetching documents...');
 
-      return callback(null, [{ field: 'aaaaaaaaaaaaaaaaa' }]);
+      return Promise.resolve([{ field: 'aaaaaaaaaaaaaaaaa' }]);
     };
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
@@ -269,13 +263,8 @@ suite('Collection Documents Provider Test Suite', () => {
       { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' },
     ];
     const mockGetActiveDataService = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
-        return callback(null, documents);
+      find: () => {
+        return Promise.resolve(documents);
       },
     });
     sinon.replace(
@@ -476,13 +465,8 @@ suite('Collection Documents Provider Test Suite', () => {
       { _id: '5ea8745ee4811fafe8b65ecb', location: 'alexanderplatz' },
     ];
     const mockGetActiveDataService = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
-        return callback(null, documents);
+      find: () => {
+        return Promise.resolve(documents);
       },
     });
     sinon.replace(

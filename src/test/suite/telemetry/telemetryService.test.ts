@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
+import path from 'path';
 import { afterEach, beforeEach } from 'mocha';
 import chai from 'chai';
 import { connect } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
-import Sinon = require('sinon');
+import SegmentAnalytics from 'analytics-node';
 
 import { ConnectionTypes } from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';
@@ -31,21 +32,13 @@ config({ path: resolve(__dirname, '../../../../.env') });
 suite('Telemetry Controller Test Suite', () => {
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
-  const mockDataService: any = sinon.fake.returns({
-    instance: () =>
-      Promise.resolve({
-        dataLake: {},
-        build: {},
-        genuineMongoDB: {},
-        host: {},
-      }),
-  });
+  let mockDataService: DataService;
 
-  let mockTrackNewConnection: Sinon.SinonSpy;
-  let mockTrackCommandRun: Sinon.SinonSpy;
-  let mockTrackPlaygroundCodeExecuted: Sinon.SinonSpy;
-  let mockTrackPlaygroundLoadedMethod: Sinon.SinonSpy;
-  let mockTrack: Sinon.SinonSpy;
+  let mockTrackNewConnection: sinon.SinonSpy;
+  let mockTrackCommandRun: sinon.SinonSpy;
+  let mockTrackPlaygroundCodeExecuted: sinon.SinonSpy;
+  let mockTrackPlaygroundLoadedMethod: sinon.SinonSpy;
+  let mockTrack: sinon.SinonSpy;
 
   beforeEach(() => {
     mockTrackNewConnection = sinon.fake.resolves(true);
@@ -53,6 +46,17 @@ suite('Telemetry Controller Test Suite', () => {
     mockTrackPlaygroundCodeExecuted = sinon.fake();
     mockTrackPlaygroundLoadedMethod = sinon.fake();
     mockTrack = sinon.fake();
+
+    const instanceStub = sinon.stub();
+    instanceStub.resolves({
+      dataLake: {},
+      build: {},
+      genuineMongoDB: {},
+      host: {},
+    } as unknown as Awaited<ReturnType<DataService['instance']>>);
+    mockDataService = {
+      instance: instanceStub,
+    } as Pick<DataService, 'instance'> as unknown as DataService;
 
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,
@@ -262,7 +266,7 @@ suite('Telemetry Controller Test Suite', () => {
     const fakeSegmentTrack = sinon.fake.yields(null);
     sinon.replace(testTelemetryService, '_segmentAnalytics', {
       track: fakeSegmentTrack,
-    } as any);
+    } as unknown as SegmentAnalytics);
 
     testTelemetryService.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED);
 
@@ -284,7 +288,7 @@ suite('Telemetry Controller Test Suite', () => {
     const fakeSegmentTrack = sinon.fake.yields(null);
     sinon.replace(testTelemetryService, '_segmentAnalytics', {
       track: fakeSegmentTrack,
-    } as any);
+    } as unknown as SegmentAnalytics);
 
     testTelemetryService.track(TelemetryEventTypes.PLAYGROUND_LOADED, {
       source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,

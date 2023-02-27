@@ -1,5 +1,6 @@
-import { beforeEach, afterEach } from 'mocha';
+import { before, after, beforeEach, afterEach } from 'mocha';
 import { connect } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import { expect } from 'chai';
 import sinon from 'sinon';
 
@@ -12,20 +13,36 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
   this.timeout(8000);
 
   suite('with mock data service', () => {
-    const mockDataService: any = {
-      getConnectionString: () => ({
+    let mockDataService: DataService;
+
+    before(() => {
+      const getConnectionStringStub = sinon.stub();
+      getConnectionStringStub.returns({
         hosts: ['localhost:27018'],
         searchParams: { get: () => null },
         username: 'authMechanism',
-      }),
-      instance: () =>
-        Promise.resolve({
-          dataLake: {},
-          build: {},
-          genuineMongoDB: {},
-          host: {},
-        }),
-    };
+      } as unknown as ReturnType<DataService['getConnectionString']>);
+
+      const instanceStub = sinon.stub();
+      instanceStub.resolves({
+        dataLake: {},
+        build: {},
+        genuineMongoDB: {},
+        host: {},
+      } as unknown as Awaited<ReturnType<DataService['instance']>>);
+
+      mockDataService = {
+        getConnectionString: getConnectionStringStub,
+        instance: instanceStub,
+      } as Pick<
+        DataService,
+        'getConnectionString' | 'instance'
+      > as unknown as DataService;
+    });
+
+    after(() => {
+      sinon.restore();
+    });
 
     test('it returns is_used_connect_screen true when the connection type is form', async () => {
       const instanceTelemetry = await getConnectionTelemetryProperties(
