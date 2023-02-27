@@ -28,7 +28,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   suite('the MongoDB playground in JS', () => {
     beforeEach(async () => {
       const fileName = path.join(
-        os.tmpdir(),
+        os.homedir(),
         `playground-${uuidv4()}.mongodb.js`
       );
       const documentUri = vscode.Uri.from({
@@ -138,7 +138,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
 
   suite('the regular JS file', () => {
     beforeEach(async () => {
-      const fileName = path.join(os.tmpdir(), `regular-file-${uuidv4()}.js`);
+      const fileName = path.join(os.homedir(), `regular-file-${uuidv4()}.js`);
       const documentUri = vscode.Uri.from({
         path: fileName,
         scheme: 'untitled',

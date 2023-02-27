@@ -626,7 +626,7 @@
         {
           "command": "mdb.runPlayground",
           "group": "navigation",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
         }
       ],
       "commandPalette": [
@@ -636,27 +636,31 @@
         },
         {
           "command": "mdb.runSelectedPlaygroundBlocks",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.runAllPlaygroundBlocks",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
+        },
+        {
+          "command": "mdb.exportToRuby",
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.exportToPython",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.exportToJava",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.exportToCsharp",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.exportToNode",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -813,19 +817,19 @@
         "command": "mdb.runSelectedPlaygroundBlocks",
         "key": "ctrl+alt+s",
         "mac": "cmd+alt+s",
-        "when": "mdb.showRunPlaygroundButton == true"
+        "when": "mdb.isPlayground == true"
       },
       {
         "command": "mdb.runAllPlaygroundBlocks",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "mdb.showRunPlaygroundButton == true"
+        "when": "mdb.isPlayground == true"
       },
       {
         "command": "mdb.saveMongoDBDocument",
         "key": "ctrl+s",
         "mac": "cmd+s",
-        "when": "editorLangId == json"
+        "when": "mdb.isPlayground == true"
       }
     ],
     "capabilities": {

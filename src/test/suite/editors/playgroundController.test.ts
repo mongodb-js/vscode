@@ -205,7 +205,7 @@ suite('Playground Controller Test Suite', function () {
 
   suite('playground is open', () => {
     const fileName = path.join(
-      os.tmpdir(),
+      os.homedir(),
       `playground-${uuidv4()}.mongodb.js`
     );
     const documentUri = vscode.Uri.from({ path: fileName, scheme: 'untitled' });

@@ -33,7 +33,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
 
     beforeEach(async () => {
       const fileName = path.join(
-        os.tmpdir(),
+        os.homedir(),
         `playground-${uuidv4()}.mongodb.js`
       );
       const documentUri = vscode.Uri.from({
@@ -492,7 +492,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
 
     beforeEach(async () => {
-      const fileName = path.join(os.tmpdir(), `regular-file-${uuidv4()}.js`);
+      const fileName = path.join(os.homedir(), `regular-file-${uuidv4()}.js`);
       const documentUri = vscode.Uri.from({
         path: fileName,
         scheme: 'untitled',
