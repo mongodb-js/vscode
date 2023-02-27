@@ -27,6 +27,7 @@ chai.use(require('chai-as-promised'));
 suite('Language Server Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
 
+  // The test extension runner.
   mockExtensionContext.extensionPath = '../../';
 
   const mockStorageController = new StorageController(mockExtensionContext);

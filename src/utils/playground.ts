@@ -72,19 +72,13 @@ export const isPlayground = (fileUri?: vscode.Uri) => {
     return false;
   }
 
-  // Allow users to save playgrounds with `.mongodb` extension.
-  if (fileNameParts.length === 2) {
-    return fileNameParts[fileNameParts.length - 1] === 'mongodb';
-  }
-
   // The default playgrounds extension is `.mongodb.js`.
   const extension = fileNameParts[fileNameParts.length - 1];
   const secondaryExtension = fileNameParts[fileNameParts.length - 2];
 
   return (
-    fileNameParts.length > 1 &&
-    (extension === 'mongodb' ||
-      (extension === 'js' && secondaryExtension === 'mongodb'))
+    extension === 'mongodb' ||
+    (extension === 'js' && secondaryExtension === 'mongodb')
   );
 };
 
@@ -98,10 +92,7 @@ export const getPlaygrounds = async ({
   playgrounds?: { name: string; path: string }[];
 }): Promise<{ name: string; path: string }[]> => {
   const fileNames = await getFileNames(fsPath);
-
-  for (let i = 0; i < fileNames.length; i++) {
-    const fileName = fileNames[i];
-
+  for (const fileName of fileNames) {
     try {
       const stat = await getStat(path.join(fsPath, fileName));
       const fileUri = vscode.Uri.file(path.join(fsPath, fileName));
@@ -109,10 +100,8 @@ export const getPlaygrounds = async ({
       if (stat.type === vscode.FileType.File && isPlayground(fileUri)) {
         playgrounds.push({ name: fileName, path: fileUri.fsPath });
       } else if (
-        (stat.type === vscode.FileType.Directory &&
-          !excludeFromPlaygroundsSearch) ||
-        (stat.type === vscode.FileType.Directory &&
-          excludeFromPlaygroundsSearch &&
+        stat.type === vscode.FileType.Directory &&
+        (!excludeFromPlaygroundsSearch ||
           !micromatch.isMatch(fileName, excludeFromPlaygroundsSearch))
       ) {
         await getPlaygrounds({

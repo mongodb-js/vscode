@@ -570,7 +570,7 @@ suite('MDBExtensionController Test Suite', function () {
     const activeTextEditor =
       mdbTestExtension.testExtensionController._playgroundController
         ._activeTextEditor;
-    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
     assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
     const content = activeTextEditor.document.getText();
@@ -695,7 +695,7 @@ suite('MDBExtensionController Test Suite', function () {
     const activeTextEditor =
       mdbTestExtension.testExtensionController._playgroundController
         ._activeTextEditor;
-    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
     assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
     const content = activeTextEditor.document.getText();
@@ -1353,7 +1353,7 @@ suite('MDBExtensionController Test Suite', function () {
     const activeTextEditor =
       mdbTestExtension.testExtensionController._playgroundController
         ._activeTextEditor;
-    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
     assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
     const content = activeTextEditor.document.getText();
@@ -1373,7 +1373,7 @@ suite('MDBExtensionController Test Suite', function () {
     const activeTextEditor =
       mdbTestExtension.testExtensionController._playgroundController
         ._activeTextEditor;
-    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
     assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
     const content = activeTextEditor.document.getText();
@@ -1395,7 +1395,7 @@ suite('MDBExtensionController Test Suite', function () {
     const activeTextEditor =
       mdbTestExtension.testExtensionController._playgroundController
         ._activeTextEditor;
-    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
     assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
     const content = activeTextEditor.document.getText();
@@ -1415,7 +1415,7 @@ suite('MDBExtensionController Test Suite', function () {
     const activeTextEditor =
       mdbTestExtension.testExtensionController._playgroundController
         ._activeTextEditor;
-    assert(activeTextEditor?.document.languageId === 'javascript');
+    assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
     assert(activeTextEditor?.document.uri.scheme === 'untitled');
 
     const content = activeTextEditor.document.getText();

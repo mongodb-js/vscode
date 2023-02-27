@@ -10,8 +10,7 @@ async function main(): Promise<any> {
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.join(__dirname, '../../');
 
-    // The path to test runner
-    // Passed to --extensionTestsPath
+    // The path to test runner pased to --extensionTestsPath
     const extensionTestsPath = path.join(__dirname, './suite/index');
 
     // This is the workspace we open in our tests.

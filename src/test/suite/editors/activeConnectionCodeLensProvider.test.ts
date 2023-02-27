@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import { DataService } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import chai from 'chai';
 import sinon from 'sinon';
-import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
@@ -28,7 +27,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   suite('the MongoDB playground in JS', () => {
     beforeEach(async () => {
       const fileName = path.join(
-        os.homedir(),
+        'nonexistent',
         `playground-${uuidv4()}.mongodb.js`
       );
       const documentUri = vscode.Uri.from({
@@ -138,7 +137,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
 
   suite('the regular JS file', () => {
     beforeEach(async () => {
-      const fileName = path.join(os.homedir(), `regular-file-${uuidv4()}.js`);
+      const fileName = path.join('nonexistent', `regular-file-${uuidv4()}.js`);
       const documentUri = vscode.Uri.from({
         path: fileName,
         scheme: 'untitled',

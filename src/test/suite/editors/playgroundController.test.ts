@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import { before, beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
-import { DataService } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
-import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
@@ -32,6 +31,7 @@ suite('Playground Controller Test Suite', function () {
 
   const mockExtensionContext = new TestExtensionContext();
 
+  // The test extension runner.
   mockExtensionContext.extensionPath = '../../';
 
   const mockStorageController = new StorageController(mockExtensionContext);
@@ -205,7 +205,7 @@ suite('Playground Controller Test Suite', function () {
 
   suite('playground is open', () => {
     const fileName = path.join(
-      os.homedir(),
+      'nonexistent',
       `playground-${uuidv4()}.mongodb.js`
     );
     const documentUri = vscode.Uri.from({ path: fileName, scheme: 'untitled' });

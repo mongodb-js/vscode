@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
-import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
@@ -25,15 +24,17 @@ const expect = chai.expect;
 suite('Playground Selected CodeAction Provider Test Suite', function () {
   this.timeout(5000);
 
-  const testExtensionContext = new TestExtensionContext();
-  testExtensionContext.extensionPath = '../../';
+  const mockExtensionContext = new TestExtensionContext();
+
+  // The test extension runner.
+  mockExtensionContext.extensionPath = '../../';
 
   suite('the MongoDB playground in JS', () => {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
 
     beforeEach(async () => {
       const fileName = path.join(
-        os.homedir(),
+        'nonexistent',
         `playground-${uuidv4()}.mongodb.js`
       );
       const documentUri = vscode.Uri.from({
@@ -52,7 +53,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       sinon.replace(
         mdbTestExtension.testExtensionController,
         '_languageServerController',
-        new LanguageServerController(testExtensionContext)
+        new LanguageServerController(mockExtensionContext)
       );
       sinon.replace(
         vscode.window,
@@ -492,7 +493,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
 
     beforeEach(async () => {
-      const fileName = path.join(os.homedir(), `regular-file-${uuidv4()}.js`);
+      const fileName = path.join('nonexistent', `regular-file-${uuidv4()}.js`);
       const documentUri = vscode.Uri.from({
         path: fileName,
         scheme: 'untitled',

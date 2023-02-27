@@ -111,14 +111,12 @@ export default class PlaygroundsTree
       excludeFromPlaygroundsSearch,
     });
 
-    this._playgroundsTreeItems = {};
-
-    playgrounds.forEach((element) => {
-      this._playgroundsTreeItems[element.path] = new PlaygroundsTreeItem(
-        element.name,
-        element.path
-      );
-    });
+    this._playgroundsTreeItems = Object.fromEntries(
+      playgrounds.map((playground) => [
+        playground.path,
+        new PlaygroundsTreeItem(playground.name, playground.path),
+      ])
+    );
 
     return this._playgroundsTreeItems;
   }
