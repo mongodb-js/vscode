@@ -5,7 +5,7 @@ import { outputItem } from './outputItem';
 
 export const activate: ActivationFunction = (context) => {
   if (context.postMessage) {
-    context.postMessage({ command: 'mdb-error-renderer-loaded' });
+    context.postMessage({ request: 'errorRendererLaded' });
   }
 
   return outputItem(context, render);

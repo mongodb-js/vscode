@@ -33,7 +33,7 @@ export default class NotebookController {
     const leafyGreenTableMessageChannel =
       vscode.notebooks.createRendererMessaging('mongodb-leafy-green-table');
     leafyGreenTableMessageChannel.onDidReceiveMessage((e) => {
-      if (e.message.command === 'mdb-leafy-green-table-renderer-loaded') {
+      if (e.message.request === 'leafyGreenTableRendererLoaded') {
         log.info('NOTEBOOK_CONTROLLER: leafy green table renderer loaded');
       }
       if (e.message.request === 'openNotebookAsPlaygroundResult') {
@@ -44,13 +44,47 @@ export default class NotebookController {
           e.message.data
         );
       }
+      if (e.message.request === 'getWindowSettings') {
+        log.info(
+          'NOTEBOOK_CONTROLLER: leafyGreenTable renderer requested window settings'
+        );
+        void leafyGreenTableMessageChannel.postMessage({
+          request: 'setWindowSettings',
+          data: {
+            darkMode:
+              vscode.window.activeColorTheme.kind ===
+              vscode.ColorThemeKind.Dark,
+          },
+        });
+      }
+    });
+
+    vscode.window.onDidChangeActiveColorTheme((e) => {
+      log.info('NOTEBOOK_CONTROLLER: active color theme changed');
+      void leafyGreenTableMessageChannel.postMessage({
+        request: 'activeColorThemeChanged',
+        data: { darkMode: e.kind === vscode.ColorThemeKind.Dark },
+      });
     });
 
     const errorMessageChannel =
       vscode.notebooks.createRendererMessaging('mongodb-error');
     errorMessageChannel.onDidReceiveMessage((e) => {
-      if (e.message.command === 'mdb-error-renderer-loaded') {
+      if (e.message.request === 'errorRendererLaded') {
         log.info('NOTEBOOK_CONTROLLER: error renderer loaded');
+      }
+      if (e.message.request === 'getWindowSettings') {
+        log.info(
+          'NOTEBOOK_CONTROLLER: error renderer requested window settings'
+        );
+        void errorMessageChannel.postMessage({
+          request: 'setWindowSettings',
+          data: {
+            darkMode:
+              vscode.window.activeColorTheme.kind ===
+              vscode.ColorThemeKind.Dark,
+          },
+        });
       }
     });
   }

@@ -5,7 +5,7 @@ import { outputItem } from './outputItem';
 
 export const activate: ActivationFunction = (context) => {
   if (context.postMessage) {
-    context.postMessage({ command: 'mdb-leafy-green-table-renderer-loaded' });
+    context.postMessage({ request: 'leafyGreenTableRendererLoaded' });
   }
 
   return outputItem(context, render);

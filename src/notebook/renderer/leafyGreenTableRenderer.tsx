@@ -13,26 +13,10 @@ import type { RendererContext } from 'vscode-notebook-renderer';
 interface ILeafyGreenTable {
   context: RendererContext<any>;
   data: any;
+  darkMode: boolean;
 }
 
-const tableStyles = css({
-  thead: {
-    position: 'sticky',
-    top: 0,
-    background: 'white',
-    zIndex: 5,
-  },
-  tr: {
-    background: 'white',
-  },
-});
-
-const tableHeaderStyles = css({
-  borderBottom: '3px solid rgb(232, 237, 235) !important',
-});
-
 const moreResultsStyles = css({
-  background: 'white',
   padding: '10px 5px 40px 5px',
 });
 
@@ -46,7 +30,19 @@ const moreResultsLinkStyles = css({
   display: 'inline',
 });
 
-const LeafyGreenTable = ({ context, data }: ILeafyGreenTable) => {
+const tableHeaderStyles = css({
+  borderBottom: '3px solid rgb(232, 237, 235) !important',
+  position: 'sticky',
+  top: 0,
+  backgroundColor: 'transparent !important',
+  zIndex: 5,
+});
+
+const tableRowStyles = css({
+  background: 'transparent !important',
+});
+
+const LeafyGreenTable = ({ context, data, darkMode }: ILeafyGreenTable) => {
   const shortList = data.slice(0, 100);
   const sortColumns = Object.keys(shortList[0]);
   const columns = useMemo(() => {
@@ -88,9 +84,9 @@ const LeafyGreenTable = ({ context, data }: ILeafyGreenTable) => {
           </Description>
         </div>
       </div>
-      <Table columns={columns} data={shortList} className={tableStyles}>
+      <Table columns={columns} data={shortList} darkMode={darkMode}>
         {({ datum: item, index }: any) => (
-          <Row key={`row-${index}`}>
+          <Row key={`row-${index}`} className={tableRowStyles}>
             {Object.keys(item)
               .filter((key: string) => sortColumns.includes(key))
               .map((key: string) => (
@@ -107,6 +103,18 @@ const LeafyGreenTable = ({ context, data }: ILeafyGreenTable) => {
   );
 };
 
+const renderLeafyGreenTable = ({
+  context,
+  container,
+  data,
+  darkMode,
+}: ILeafyGreenTable & { container: HTMLElement }) => {
+  ReactDOM.render(
+    React.createElement(LeafyGreenTable, { context, data, darkMode }, null),
+    container
+  );
+};
+
 /**
  * Renders notebook cell output.
  * @param output Notebook cell output info to render.
@@ -116,15 +124,37 @@ export function render(output: RenderInfo) {
   const data = outputParser.getData();
 
   if (Array.isArray(data)) {
-    // Render flat data grid.
-    ReactDOM.render(
-      React.createElement(
-        LeafyGreenTable,
-        { context: output.context, data },
-        null
-      ),
-      output.container
-    );
+    if (output.context.postMessage && output.context.onDidReceiveMessage) {
+      output.context.postMessage({
+        request: 'getWindowSettings',
+      });
+      output.context.onDidReceiveMessage((message) => {
+        if (message.request === 'setWindowSettings') {
+          renderLeafyGreenTable({
+            context: output.context,
+            container: output.container,
+            data,
+            darkMode: message.data.darkMode,
+          });
+        }
+        if (message.request === 'activeColorThemeChanged') {
+          renderLeafyGreenTable({
+            context: output.context,
+            container: output.container,
+            data,
+            darkMode: message.data.darkMode,
+          });
+        }
+      });
+      return;
+    }
+
+    renderLeafyGreenTable({
+      context: output.context,
+      container: output.container,
+      data,
+      darkMode: false,
+    });
   } else {
     // Create text output display nodes.
     const pre = document.createElement('pre');
