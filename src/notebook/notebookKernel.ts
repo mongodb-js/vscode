@@ -8,7 +8,7 @@ const log = createLogger('notebook controller');
 export default class NotebookKernel {
   public readonly label = 'MongoDB Noteboook Kernel';
   readonly id = 'mongodb-notebook-kernel';
-  readonly supportedLanguages = ['javascript', 'json'];
+  readonly supportedLanguages = ['javascript'];
 
   private readonly _controller: vscode.NotebookController;
   private _executionOrder = 0;
