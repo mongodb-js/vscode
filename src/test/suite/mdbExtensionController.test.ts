@@ -229,7 +229,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     const mockStubUri = sinon.fake.returns('weStubThisUri');
@@ -259,7 +259,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     await vscode.commands.executeCommand('mdb.copyDatabaseName', mockTreeItem);
@@ -286,7 +286,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     await vscode.commands.executeCommand(
@@ -318,7 +318,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     const commandResult = await vscode.commands.executeCommand(
@@ -412,7 +412,7 @@ suite('MDBExtensionController Test Suite', function () {
         type: CollectionTypes.collection,
       },
       'airZebra',
-      { estimatedCount: (ns, opts, cb): void => cb(null, count) },
+      { estimatedCount: () => Promise.resolve(count) },
       false,
       false,
       null
@@ -459,7 +459,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockTreeItem = new SchemaTreeItem(
       'zebraWearwolf',
       'giraffeVampire',
-      {},
+      {} as DataService,
       false,
       false,
       false,
@@ -1096,13 +1096,8 @@ suite('MDBExtensionController Test Suite', function () {
     );
 
     const mockGetActiveDataService = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | undefined, documents: object[]) => void
-      ) => {
-        callback(undefined, [mockDocument]);
+      find: () => {
+        return Promise.resolve([mockDocument]);
       },
       findOneAndReplace: (
         namespace: string,
@@ -1126,7 +1121,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockDocument,
       'waffle.house',
       0,
-      {} as any as DataService,
+      {} as DataService,
       () => Promise.resolve()
     );
 
@@ -1182,7 +1177,7 @@ suite('MDBExtensionController Test Suite', function () {
       mockDocument,
       'waffle.house',
       0,
-      {} as any as DataService,
+      {} as DataService,
       () => Promise.resolve()
     );
 
@@ -1268,7 +1263,7 @@ suite('MDBExtensionController Test Suite', function () {
             getText: () => JSON.stringify(mockDocument),
             save: () => {},
           },
-        } as any)
+        } as unknown as typeof vscode.window.activeTextEditor)
     );
 
     const mockReplaceDocument = sinon.fake.resolves(null);
@@ -1325,7 +1320,7 @@ suite('MDBExtensionController Test Suite', function () {
             getText: () => JSON.stringify(mockDocument),
             save: () => {},
           },
-        } as any)
+        } as unknown as typeof vscode.window.activeTextEditor)
     );
 
     const mockReplaceDocument = sinon.fake.resolves(null);
@@ -1494,17 +1489,14 @@ suite('MDBExtensionController Test Suite', function () {
 
     let namespaceUsed = '';
 
-    const mockDataService: DataService = {
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | undefined, documents: object[]) => void
-      ) => {
+    const findStub = sinon.stub();
+    findStub.resolves([mockDocument]);
+    const mockDataService = {
+      find: (namespace: string) => {
         namespaceUsed = namespace;
-        callback(undefined, [mockDocument]);
+        return Promise.resolve([mockDocument]);
       },
-    } as any;
+    } as unknown as DataService;
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,
@@ -1517,7 +1509,7 @@ suite('MDBExtensionController Test Suite', function () {
     const mockCopyToClipboard = sinon.fake();
     sinon.replaceGetter(vscode.env, 'clipboard', () => ({
       writeText: mockCopyToClipboard,
-      readText: sinon.fake() as any,
+      readText: sinon.fake(),
     }));
 
     await vscode.commands.executeCommand(
@@ -1546,17 +1538,12 @@ suite('MDBExtensionController Test Suite', function () {
 
     let namespaceUsed = '';
 
-    const mockDataService: DataService = {
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | undefined, documents: object[]) => void
-      ) => {
+    const mockDataService = {
+      find: (namespace: string) => {
         namespaceUsed = namespace;
-        callback(undefined, [mockDocument]);
+        return Promise.resolve([mockDocument]);
       },
-    } as any;
+    } as unknown as DataService;
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,
@@ -1642,17 +1629,22 @@ suite('MDBExtensionController Test Suite', function () {
 
     let calledDelete = false;
 
-    const mockDataService: DataService = {
+    const mockDataService = {
       deleteOne: (
         namespace: string,
         _id: any,
         options: object,
-        callback: (error: Error | undefined, documents: object[]) => void
+        callback: (
+          error: Error | undefined,
+          result: { deletedCount: number }
+        ) => void
       ) => {
         calledDelete = true;
-        callback(undefined, [mockDocument]);
+        callback(undefined, {
+          deletedCount: 1,
+        });
       },
-    } as any;
+    } as Pick<DataService, 'deleteOne'> as unknown as DataService;
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,
@@ -1684,7 +1676,7 @@ suite('MDBExtensionController Test Suite', function () {
     let namespaceUsed = '';
     let _idUsed;
 
-    const mockDataService: DataService = {
+    const mockDataService = {
       deleteOne: (
         namespace: string,
         query: any,
@@ -1700,7 +1692,7 @@ suite('MDBExtensionController Test Suite', function () {
           deletedCount: 1,
         });
       },
-    } as any;
+    } as Pick<DataService, 'deleteOne'> as unknown as DataService;
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,

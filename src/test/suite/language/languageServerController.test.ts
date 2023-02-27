@@ -3,6 +3,7 @@ import chai from 'chai';
 import fs from 'fs';
 import path from 'path';
 import sinon from 'sinon';
+import type { DataService } from 'mongodb-data-service';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
@@ -89,7 +90,7 @@ suite('Language Server Controller Test Suite', () => {
             url: TEST_DATABASE_URI,
             options: {},
           }),
-        } as any)
+        } as unknown as DataService)
     );
     sinon.replace(testConnectionController, 'isCurrentlyConnected', () => true);
 

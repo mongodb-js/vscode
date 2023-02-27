@@ -17,7 +17,7 @@ suite('DocumentListTreeItem Test Suite', () => {
   let dataServiceMock: DataService;
 
   before(() => {
-    dataServiceMock = new DataServiceStub() as any as DataService;
+    dataServiceMock = new DataServiceStub() as unknown as DataService;
   });
 
   test('its context value should be in the package json', () => {
@@ -52,7 +52,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'collectionName',
       'databaseName',
       CollectionTypes.collection,
-      'not_real_dataservice' as any as DataService,
+      {} as DataService,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,

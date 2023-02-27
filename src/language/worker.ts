@@ -2,9 +2,9 @@ import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { CompletionItemKind } from 'vscode-languageserver/node';
 import { EJSON, Document } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
-import { promisify } from 'util';
-import parseSchema = require('mongodb-schema');
+import parseSchema from 'mongodb-schema';
 import { parentPort, workerData } from 'worker_threads';
+
 import {
   PlaygroundResult,
   PlaygroundDebug,
@@ -106,8 +106,7 @@ const findAndParse = async (
   }
 
   try {
-    const runParseSchema = promisify(parseSchema);
-    const schema = await runParseSchema(documents);
+    const schema = await parseSchema(documents);
 
     if (!schema || !schema.fields) {
       return [];

@@ -1,11 +1,11 @@
 ignores:
  - "@babel/core"
- - "@leafygreen-ui/palette"
  - "@mongodb-js/prettier-config-compass"
  - "@types/jest"
  - "buffer"
  - "eslint-config-mongodb-js"
  - "keytar"
+ - "electron"
  - "mocha-junit-reporter"
  - "mocha-multi"
  - "mongodb-client-encryption"

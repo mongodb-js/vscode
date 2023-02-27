@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import type { DataService } from 'mongodb-data-service';
 import chai from 'chai';
 import sinon from 'sinon';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import type { DataService } from 'mongodb-data-service';
 
 import ActiveConnectionCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import ConnectionController from '../../../connectionController';
@@ -88,18 +88,23 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const mockActiveDataService = {
-        find: (namespace, filter, options, callback): void => {
-          return callback(null, [{ field: 'Text message' }]);
+      const findStub = sinon.stub();
+      findStub.resolves([
+        {
+          field: 'Text message',
         },
-        instance: () =>
-          Promise.resolve({
-            dataLake: {},
-            build: {},
-            genuineMongoDB: {},
-            host: {},
-          }),
-      } as DataService;
+      ]);
+      const instanceStub = sinon.stub();
+      instanceStub.resolves({
+        dataLake: {},
+        build: {},
+        genuineMongoDB: {},
+        host: {},
+      } as unknown as Awaited<ReturnType<DataService['instance']>>);
+      const mockActiveDataService = {
+        find: findStub,
+        instance: instanceStub,
+      } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
 
       testConnectionController.setActiveDataService(mockActiveDataService);
 
@@ -188,19 +193,24 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const mockActiveDataService = {
-        find: (namespace, filter, options, callback): void => {
-          return callback(null, [{ field: 'Text message' }]);
-        },
-        instance: () =>
-          Promise.resolve({
-            dataLake: {},
-            build: {},
-            genuineMongoDB: {},
-            host: {},
-          }),
-      } as DataService;
 
+      const findStub = sinon.stub();
+      findStub.resolves([
+        {
+          field: 'Text message',
+        },
+      ]);
+      const instanceStub = sinon.stub();
+      instanceStub.resolves({
+        dataLake: {},
+        build: {},
+        genuineMongoDB: {},
+        host: {},
+      } as unknown as Awaited<ReturnType<DataService['instance']>>);
+      const mockActiveDataService = {
+        find: findStub,
+        instance: instanceStub,
+      } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
       testConnectionController.setActiveDataService(mockActiveDataService);
 
       beforeEach(() => {

@@ -43,6 +43,7 @@ const extensionConfig = {
     // own keytar dependency. Here we are telling it to use vscode's keytar.
     keytar: 'keytar',
     electron: 'electron',
+    '@electron/remote': '@electron/remote',
     snappy: 'snappy',
     'snappy/package.json': 'snappy/package.json',
     'bson-ext': 'bson-ext',

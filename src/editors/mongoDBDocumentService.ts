@@ -133,8 +133,7 @@ export default class MongoDBDocumentService {
     this._statusView.showMessage('Fetching document...');
 
     try {
-      const find = util.promisify(dataservice.find.bind(dataservice));
-      const documents = await find(
+      const documents = await dataservice.find(
         namespace,
         { _id: documentId },
         { limit: 1 }

@@ -3,6 +3,8 @@ import * as sinon from 'sinon';
 import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
 import { inspect } from 'util';
+import type { DataService } from 'mongodb-data-service';
+import type { Document } from 'mongodb';
 
 import { ext } from '../../../extensionConstants';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
@@ -32,7 +34,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'cheesePizza',
       TEST_DB_NAME,
-      {},
+      {} as DataService,
       false,
       false,
       false,
@@ -56,7 +58,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {},
+      {} as DataService,
       false,
       false,
       false,
@@ -86,14 +88,16 @@ suite('SchemaTreeItem Test Suite', function () {
     const expectedMessage =
       'No documents were found when attempting to parse schema.';
 
+    const findStub = sinon.stub();
+    findStub.resolves([]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
+
     const testSchemaTreeItem = new SchemaTreeItem(
       'peanutButter',
       TEST_DB_NAME,
-      {
-        find: (ns, filter, options, callback): void => {
-          callback(null, []);
-        },
-      },
+      testDataService,
       true,
       false,
       false,
@@ -125,14 +129,15 @@ suite('SchemaTreeItem Test Suite', function () {
     for (let i = 0; i < 20; i++) {
       mockDocWithTwentyFields[`${i}`] = 'some value';
     }
+    const findStub = sinon.stub();
+    findStub.resolves([mockDocWithTwentyFields]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {
-        find: (ns, filter, options, callback): void => {
-          callback(null, [mockDocWithTwentyFields]);
-        },
-      },
+      testDataService,
       true,
       false,
       false,
@@ -161,14 +166,15 @@ suite('SchemaTreeItem Test Suite', function () {
     for (let i = 0; i < 30; i++) {
       mockDocWithThirtyFields[`${i}`] = 'some value';
     }
+    const findStub = sinon.stub();
+    findStub.resolves([mockDocWithThirtyFields]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {
-        find: (ns, filter, options, callback): void => {
-          callback(null, [mockDocWithThirtyFields]);
-        },
-      },
+      testDataService,
       true,
       false,
       false,
@@ -188,14 +194,16 @@ suite('SchemaTreeItem Test Suite', function () {
   });
 
   test('When schema parsing fails it displays an error message', async () => {
+    const findStub = sinon.stub();
+    findStub.resolves('invalid schema to parse' as unknown as Document[]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
+
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {
-        find: (ns, filter, options, callback): void => {
-          callback(null, 'invalid schema to parse');
-        },
-      },
+      testDataService,
       true,
       false,
       false,
@@ -208,7 +216,7 @@ suite('SchemaTreeItem Test Suite', function () {
       assert(false, 'Didnt expect to succeed.');
     } catch (error: any) {
       const expectedMessage =
-        'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+        "Unable to parse schema: Cannot use 'in' operator to search for 'stream' in invalid schema to parse";
 
       assert.strictEqual(
         error.message,
@@ -356,7 +364,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {},
+      {} as DataService,
       false,
       false,
       false,

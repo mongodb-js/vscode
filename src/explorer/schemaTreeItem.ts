@@ -1,6 +1,5 @@
-import * as util from 'util';
 import * as vscode from 'vscode';
-import parseSchema = require('mongodb-schema');
+import parseSchema from 'mongodb-schema';
 import path from 'path';
 
 import { createLogger } from '../logging';
@@ -9,6 +8,7 @@ import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
 import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
+import { DataService } from 'mongodb-data-service';
 
 const log = createLogger('tree view document list');
 
@@ -52,7 +52,7 @@ export default class SchemaTreeItem
   collectionName: string;
   databaseName: string;
 
-  private _dataService: any;
+  private _dataService: DataService;
 
   isExpanded: boolean;
 
@@ -62,7 +62,7 @@ export default class SchemaTreeItem
   constructor(
     collectionName: string,
     databaseName: string,
-    dataService: any,
+    dataService: DataService,
     isExpanded: boolean,
     hasClickedShowMoreFields: boolean,
     hasMoreFieldsToShow: boolean,
@@ -96,14 +96,11 @@ export default class SchemaTreeItem
     return element;
   }
 
-  async getSchema(): Promise<any[]> {
+  async getSchema(): Promise<ReturnType<typeof parseSchema> | undefined> {
     const namespace = `${this.databaseName}.${this.collectionName}`;
     let documents;
     try {
-      const find = util.promisify(
-        this._dataService.find.bind(this._dataService)
-      );
-      documents = await find(
+      documents = await this._dataService.find(
         namespace,
         {}, // No filter.
         { limit: MAX_DOCUMENTS_VISIBLE }
@@ -112,18 +109,16 @@ export default class SchemaTreeItem
       void vscode.window.showErrorMessage(
         `Get schema failed: ${formatError(error).message}`
       );
-      return [];
+      return;
     }
 
     log.info(`parsing schema for namespace ${namespace}`);
     if (!documents || documents.length === 0) {
-      return [];
+      return;
     }
 
     try {
-      const runParseSchema = util.promisify(parseSchema);
-      const schema = await runParseSchema(documents);
-      return schema;
+      return await parseSchema(documents);
     } catch (parseError) {
       throw new Error(
         `Unable to parse schema: ${(parseError as Error)?.message}`
@@ -199,7 +194,7 @@ export default class SchemaTreeItem
 
     this.cacheIsUpToDate = true;
 
-    if (!schema || !schema.fields || schema.fields.length < 1) {
+    if (!schema?.fields || schema.fields.length < 1) {
       void vscode.window.showInformationMessage(
         'No documents were found when attempting to parse schema.'
       );

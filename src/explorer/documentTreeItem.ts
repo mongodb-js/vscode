@@ -59,8 +59,7 @@ export default class DocumentTreeItem
   }
 
   async getDocumentContents(): Promise<Document> {
-    const find = promisify(this.dataService.find.bind(this.dataService));
-    const documents = await find(
+    const documents = await this.dataService.find(
       this.namespace,
       { _id: this.documentId },
       { limit: 1 }
