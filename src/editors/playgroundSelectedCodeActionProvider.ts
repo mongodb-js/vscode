@@ -43,10 +43,12 @@ export default class PlaygroundSelectedCodeActionProvider
     this._onDidChangeCodeCodeAction.fire();
   }
 
-  provideCodeActions(): vscode.CodeAction[] | undefined {
-    const editorUri = this.activeTextEditor?.document.uri;
+  isPlayground(): boolean {
+    return isPlayground(this.activeTextEditor?.document.uri);
+  }
 
-    if (!this.selection || !isPlayground(editorUri)) {
+  provideCodeActions(): vscode.CodeAction[] | undefined {
+    if (!this.selection || !this.isPlayground()) {
       return;
     }
 

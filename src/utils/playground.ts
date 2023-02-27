@@ -85,12 +85,11 @@ export const isPlayground = (fileUri?: vscode.Uri) => {
 export const getPlaygrounds = async ({
   fsPath,
   excludeFromPlaygroundsSearch,
-  playgrounds = [],
 }: {
   fsPath: string;
   excludeFromPlaygroundsSearch?: string[];
-  playgrounds?: { name: string; path: string }[];
 }): Promise<{ name: string; path: string }[]> => {
+  const result: { name: string; path: string }[] = [];
   const fileNames = await getFileNames(fsPath);
   for (const fileName of fileNames) {
     try {
@@ -98,22 +97,22 @@ export const getPlaygrounds = async ({
       const fileUri = vscode.Uri.file(path.join(fsPath, fileName));
 
       if (stat.type === vscode.FileType.File && isPlayground(fileUri)) {
-        playgrounds.push({ name: fileName, path: fileUri.fsPath });
+        result.push({ name: fileName, path: fileUri.fsPath });
       } else if (
         stat.type === vscode.FileType.Directory &&
         (!excludeFromPlaygroundsSearch ||
           !micromatch.isMatch(fileName, excludeFromPlaygroundsSearch))
       ) {
-        await getPlaygrounds({
+        const playgrounds = await getPlaygrounds({
           fsPath: fileUri.fsPath,
           excludeFromPlaygroundsSearch,
-          playgrounds,
         });
+        result.push(...playgrounds);
       }
     } catch (error) {
       log.error('Get playgrounds recursively from the workspace error', error);
     }
   }
 
-  return playgrounds;
+  return result;
 };

@@ -2,10 +2,8 @@ import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
-import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
 
-import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
+import ActiveConnectionCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import { ExplorerController } from '../../../explorer';
@@ -33,23 +31,6 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
 
     beforeEach(async () => {
-      const fileName = path.join(
-        'nonexistent',
-        `playground-${uuidv4()}.mongodb.js`
-      );
-      const documentUri = vscode.Uri.from({
-        path: fileName,
-        scheme: 'untitled',
-      });
-      const edit = new vscode.WorkspaceEdit();
-      edit.insert(documentUri, new vscode.Position(0, 0), '123');
-      await vscode.workspace.applyEdit(edit);
-      const document = await vscode.workspace.openTextDocument(documentUri);
-      await vscode.window.showTextDocument(document);
-      testCodeActionProvider.setActiveTextEditor(
-        vscode.window.activeTextEditor
-      );
-
       sinon.replace(
         mdbTestExtension.testExtensionController,
         '_languageServerController',
@@ -65,9 +46,10 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
         TEST_DATABASE_URI
       );
 
-      const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
-        mdbTestExtension.testExtensionController._connectionController
-      );
+      const activeConnectionCodeLensProvider =
+        new ActiveConnectionCodeLensProvider(
+          mdbTestExtension.testExtensionController._connectionController
+        );
       const testExportToLanguageCodeLensProvider =
         new ExportToLanguageCodeLensProvider();
       const testExplorerController = new ExplorerController(
@@ -81,7 +63,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
           mdbTestExtension.testExtensionController._telemetryService,
           mdbTestExtension.testExtensionController._statusView,
           mdbTestExtension.testExtensionController._playgroundResultViewProvider,
-          testActiveDBCodeLensProvider,
+          activeConnectionCodeLensProvider,
           testExportToLanguageCodeLensProvider,
           testCodeActionProvider,
           testExplorerController
@@ -100,6 +82,9 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
 
       await mdbTestExtension.testExtensionController._languageServerController.startLanguageServer();
       await mdbTestExtension.testExtensionController._playgroundController._connectToServiceProvider();
+
+      const mockIsPlayground = sinon.fake.returns(true);
+      sinon.replace(testCodeActionProvider, 'isPlayground', mockIsPlayground);
     });
 
     afterEach(async () => {
@@ -492,23 +477,13 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
   suite('the regular JS file', () => {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
 
-    beforeEach(async () => {
-      const fileName = path.join('nonexistent', `regular-file-${uuidv4()}.js`);
-      const documentUri = vscode.Uri.from({
-        path: fileName,
-        scheme: 'untitled',
-      });
-      const document = await vscode.workspace.openTextDocument(documentUri);
-      await vscode.window.showTextDocument(document);
-      testCodeActionProvider.setActiveTextEditor(
-        vscode.window.activeTextEditor
-      );
+    beforeEach(() => {
+      const mockIsPlayground = sinon.fake.returns(false);
+      sinon.replace(testCodeActionProvider, 'isPlayground', mockIsPlayground);
     });
 
-    afterEach(async () => {
-      await vscode.commands.executeCommand(
-        'workbench.action.closeActiveEditor'
-      );
+    afterEach(() => {
+      sinon.restore();
     });
 
     test('returns undefined when text is not selected', () => {

@@ -2,8 +2,6 @@ import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
-import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
 import type { DataService } from 'mongodb-data-service';
 
 import ActiveConnectionCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
@@ -25,25 +23,6 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   const testStatusView = new StatusView(mockExtensionContext);
 
   suite('the MongoDB playground in JS', () => {
-    beforeEach(async () => {
-      const fileName = path.join(
-        'nonexistent',
-        `playground-${uuidv4()}.mongodb.js`
-      );
-      const documentUri = vscode.Uri.from({
-        path: fileName,
-        scheme: 'untitled',
-      });
-      const document = await vscode.workspace.openTextDocument(documentUri);
-      await vscode.window.showTextDocument(document);
-    });
-
-    afterEach(async () => {
-      await vscode.commands.executeCommand(
-        'workbench.action.closeActiveEditor'
-      );
-    });
-
     suite('user is not connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
@@ -60,6 +39,8 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           vscode.window.activeTextEditor
         );
         sinon.replace(vscode.window, 'showQuickPick', mockShowQuickPick);
+        const mockIsPlayground = sinon.fake.returns(true);
+        sinon.replace(testCodeLensProvider, 'isPlayground', mockIsPlayground);
       });
 
       afterEach(() => {
@@ -117,6 +98,8 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getActiveConnectionName',
           sinon.fake.returns('fakeName')
         );
+        const mockIsPlayground = sinon.fake.returns(true);
+        sinon.replace(testCodeLensProvider, 'isPlayground', mockIsPlayground);
       });
 
       afterEach(() => {
@@ -141,22 +124,6 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   });
 
   suite('the regular JS file', () => {
-    beforeEach(async () => {
-      const fileName = path.join('nonexistent', `regular-file-${uuidv4()}.js`);
-      const documentUri = vscode.Uri.from({
-        path: fileName,
-        scheme: 'untitled',
-      });
-      const document = await vscode.workspace.openTextDocument(documentUri);
-      await vscode.window.showTextDocument(document);
-    });
-
-    afterEach(async () => {
-      await vscode.commands.executeCommand(
-        'workbench.action.closeActiveEditor'
-      );
-    });
-
     suite('user is not connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
@@ -170,6 +137,8 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
 
       beforeEach(() => {
         sinon.replace(vscode.window, 'showQuickPick', mockShowQuickPick);
+        const mockIsPlayground = sinon.fake.returns(false);
+        sinon.replace(testCodeLensProvider, 'isPlayground', mockIsPlayground);
       });
 
       afterEach(() => {
@@ -219,6 +188,8 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getActiveConnectionName',
           sinon.fake.returns('fakeName')
         );
+        const mockIsPlayground = sinon.fake.returns(false);
+        sinon.replace(testCodeLensProvider, 'isPlayground', mockIsPlayground);
       });
 
       afterEach(() => {
