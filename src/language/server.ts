@@ -54,6 +54,13 @@ connection.onInitialize((params: InitializeParams) => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
+      textDocument: {
+        completion: {
+          completionItem: {
+            preselectSupport: true,
+          },
+        },
+      },
       // Tell the client that the server supports code completion
       completionProvider: {
         resolveProvider: true,

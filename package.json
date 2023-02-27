@@ -97,8 +97,8 @@
         },
         {
           "id": "mongoDBNotebooksExplorer",
-          "name": "Playgrounds",
-          "when": "config.mdb.showMongoDBPlaygrounds == true"
+          "name": "Notebooks",
+          "when": "config.mdb.showMongoDBNotebooks == true"
         },
         {
           "id": "mongoDBHelpExplorer",
@@ -758,7 +758,7 @@
         {
           "command": "mdb.convertNotebookCellToPlayground",
           "group": "inline/cell@0",
-          "when": "notebookType == 'mongodb-notebook'"
+          "when": "notebookType == 'mongodb-notebook' && notebookCellType == code"
         }
       ],
       "commandPalette": [
@@ -1029,6 +1029,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show or hide the MongoDB playgrounds view."
+        },
+        "mdb.showMongoDBNotebooks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show or hide the MongoDB notebooks view."
         },
         "mdb.showMongoDBHelpExplorer": {
           "type": "boolean",

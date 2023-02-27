@@ -93,6 +93,7 @@ const findAndParse = async (
     const fields = schema.fields.map((item) => ({
       label: item.name,
       kind: CompletionItemKind.Field,
+      preselect: true,
     }));
 
     return fields;
