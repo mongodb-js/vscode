@@ -493,7 +493,7 @@ export default class ConnectionController {
 
     void vscode.commands.executeCommand(
       'setContext',
-      'mdb.changeActiveConnectionFromNotebookButton',
+      'mdb.connectedToMongoDB',
       true
     );
 
@@ -579,7 +579,7 @@ export default class ConnectionController {
 
       void vscode.commands.executeCommand(
         'setContext',
-        'mdb.changeActiveConnectionFromNotebookButton',
+        'mdb.connectedToMongoDB',
         false
       );
     } catch (error) {

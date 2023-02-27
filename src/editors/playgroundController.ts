@@ -159,13 +159,13 @@ export default class PlaygroundController {
       if (isPlayground(editor?.document.uri)) {
         void vscode.commands.executeCommand(
           'setContext',
-          'mdb.showRunPlaygroundButton',
+          'mdb.isPlayground',
           true
         );
       } else {
         void vscode.commands.executeCommand(
           'setContext',
-          'mdb.showRunPlaygroundButton',
+          'mdb.isPlayground',
           false
         );
       }

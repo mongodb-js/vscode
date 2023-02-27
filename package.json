@@ -734,19 +734,19 @@
         {
           "command": "mdb.runPlayground",
           "group": "navigation",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
         }
       ],
       "notebook/toolbar": [
         {
           "command": "mdb.connectFromNotebook",
           "group": "navigation@1",
-          "when": "mdb.changeActiveConnectionFromNotebookButton == false"
+          "when": "mdb.connectedToMongoDB == false"
         },
         {
           "command": "mdb.changeActiveConnectionFromNotebook",
           "group": "navigation@1",
-          "when": "mdb.changeActiveConnectionFromNotebookButton == true"
+          "when": "mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.convertNotebookToPlayground",
@@ -763,32 +763,48 @@
       ],
       "commandPalette": [
         {
+          "command": "mdb.disconnect",
+          "when": "mdb.connectedToMongoDB == true"
+        },
+        {
+          "command": "mdb.convertNotebookCellToPlayground",
+          "when": "false"
+        },
+        {
+          "command": "mdb.convertNotebookToPlayground",
+          "when": "false"
+        },
+        {
           "command": "mdb.saveMongoDBDocument",
           "when": "editorLangId == json"
         },
         {
           "command": "mdb.runSelectedPlaygroundBlocks",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.runAllPlaygroundBlocks",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true"
+        },
+        {
+          "command": "mdb.exportToRuby",
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToPython",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToJava",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToCsharp",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToNode",
-          "when": "mdb.showRunPlaygroundButton == true"
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -953,19 +969,19 @@
         "command": "mdb.runSelectedPlaygroundBlocks",
         "key": "ctrl+alt+s",
         "mac": "cmd+alt+s",
-        "when": "mdb.showRunPlaygroundButton == true"
+        "when": "mdb.isPlayground == true"
       },
       {
         "command": "mdb.runAllPlaygroundBlocks",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "mdb.showRunPlaygroundButton == true"
+        "when": "mdb.isPlayground == true"
       },
       {
         "command": "mdb.saveMongoDBDocument",
         "key": "ctrl+s",
         "mac": "cmd+s",
-        "when": "editorLangId == json"
+        "when": "mdb.isPlayground == true"
       }
     ],
     "capabilities": {
@@ -1136,9 +1152,6 @@
     "@mongosh/i18n": "^1.6.2",
     "@mongosh/service-provider-server": "^1.6.2",
     "@mongosh/shell-api": "^1.6.2",
-    "@storybook/csf": "^0.0.1",
-    "@storybook/react": "^6.5.16",
-    "ag-grid-community": "^29.1.0",
     "analytics-node": "^5.1.2",
     "bson": "^4.7.0",
     "bson-transpilers": "^2.0.0",
@@ -1167,6 +1180,7 @@
     "vscode-notebook-error-overlay": "^1.0.1"
   },
   "devDependencies": {
+    "@emotion/react": "^11.10.6",
     "@mongodb-js/prettier-config-compass": "^1.0.0",
     "@types/analytics-node": "^3.1.9",
     "@types/babel__core": "^7.1.19",
@@ -1207,7 +1221,6 @@
     "download": "^8.0.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
-    "esbuild": "^0.17.10",
     "eslint": "^8.23.1",
     "eslint-config-mongodb-js": "^5.0.3",
     "eslint-plugin-mocha": "^10.1.0",
@@ -1227,7 +1240,7 @@
     "node-loader": "^0.6.0",
     "npm-run-all": "^4.1.5",
     "ora": "^5.4.1",
-    "path": "^0.12.7",
+    "path-browserify": "^1.0.1",
     "postcss-loader": "^3.0.0",
     "pre-commit": "^1.2.2",
     "prettier": "^2.7.1",

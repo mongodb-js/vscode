@@ -1,6 +1,7 @@
 ignores:
  - "@babel/core"
  - "@leafygreen-ui/palette"
+ - "@leafygreen-ui/leafygreen-provider"
  - "@mongodb-js/prettier-config-compass"
  - "@types/jest"
  - "buffer"
