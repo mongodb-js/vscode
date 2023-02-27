@@ -1552,12 +1552,12 @@ suite('MDBExtensionController Test Suite', function () {
 
     let namespaceUsed = '';
 
-    const mockDataService: any = {
+    const mockDataService = {
       find: (namespace: string) => {
         namespaceUsed = namespace;
         return Promise.resolve([mockDocument]);
       },
-    };
+    } as Pick<DataService, 'find'> as unknown as DataService;
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,
@@ -1599,12 +1599,12 @@ suite('MDBExtensionController Test Suite', function () {
 
     let namespaceUsed = '';
 
-    const mockDataService: any = {
+    const mockDataService = {
       find: (namespace: string) => {
         namespaceUsed = namespace;
         return Promise.resolve([mockDocument]);
       },
-    };
+    } as Pick<DataService, 'find'> as unknown as DataService;
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,
@@ -1655,17 +1655,22 @@ suite('MDBExtensionController Test Suite', function () {
 
     let calledDelete = false;
 
-    const mockDataService: any = {
+    const mockDataService = {
       deleteOne: (
         namespace: string,
         _id: any,
         options: object,
-        callback: (error: Error | undefined, documents: object[]) => void
+        callback: (
+          error: Error | undefined,
+          result: { deletedCount: number }
+        ) => void
       ) => {
         calledDelete = true;
-        callback(undefined, [mockDocument]);
+        callback(undefined, {
+          deletedCount: 1,
+        });
       },
-    };
+    } as Pick<DataService, 'deleteOne'> as unknown as DataService;
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,
@@ -1697,7 +1702,7 @@ suite('MDBExtensionController Test Suite', function () {
     let namespaceUsed = '';
     let _idUsed;
 
-    const mockDataService: any = {
+    const mockDataService = {
       deleteOne: (
         namespace: string,
         query: any,
@@ -1713,7 +1718,7 @@ suite('MDBExtensionController Test Suite', function () {
           deletedCount: 1,
         });
       },
-    };
+    } as Pick<DataService, 'deleteOne'> as unknown as DataService;
 
     const documentTreeItem = new DocumentTreeItem(
       mockDocument,

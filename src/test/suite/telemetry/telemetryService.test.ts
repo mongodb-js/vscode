@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import path from 'path';
 import { afterEach, beforeEach } from 'mocha';
 import chai from 'chai';
-import { connect, DataServiceImpl } from 'mongodb-data-service';
+import { connect } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import sinon from 'sinon';
@@ -31,7 +32,7 @@ config({ path: resolve(__dirname, '../../../../.env') });
 suite('Telemetry Controller Test Suite', () => {
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
-  let mockDataService: DataServiceImpl;
+  let mockDataService: DataService;
 
   let mockTrackNewConnection: sinon.SinonSpy;
   let mockTrackCommandRun: sinon.SinonSpy;
@@ -46,15 +47,16 @@ suite('Telemetry Controller Test Suite', () => {
     mockTrackPlaygroundLoadedMethod = sinon.fake();
     mockTrack = sinon.fake();
 
-    mockDataService = new DataServiceImpl({
-      connectionString: TEST_DATABASE_URI,
-    });
-    sinon.stub(mockDataService, 'instance').resolves({
+    const instanceStub = sinon.stub();
+    instanceStub.resolves({
       dataLake: {},
       build: {},
       genuineMongoDB: {},
       host: {},
-    } as unknown as Awaited<ReturnType<DataServiceImpl['instance']>>);
+    } as unknown as Awaited<ReturnType<DataService['instance']>>);
+    mockDataService = {
+      instance: instanceStub,
+    } as Pick<DataService, 'instance'> as unknown as DataService;
 
     sinon.replace(
       mdbTestExtension.testExtensionController._telemetryService,

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
-import { DataServiceImpl } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import ConnectionController from '../../../connectionController';
@@ -10,7 +10,6 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TestExtensionContext } from '../stubs';
 import TelemetryService from '../../../telemetry/telemetryService';
-import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 const expect = chai.expect;
 
@@ -64,23 +63,24 @@ suite('Active DB CodeLens Provider Test Suite', () => {
     const testCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController
     );
-    const mockActiveDataService = new DataServiceImpl({
-      connectionString: TEST_DATABASE_URI,
-    });
-    const findStub = sinon.stub(mockActiveDataService, 'find');
+
+    const findStub = sinon.stub();
     findStub.resolves([
       {
         field: 'Text message',
       },
     ]);
-    const instanceStub = sinon.stub(mockActiveDataService, 'instance');
+    const instanceStub = sinon.stub();
     instanceStub.resolves({
       dataLake: {},
       build: {},
       genuineMongoDB: {},
       host: {},
-    } as unknown as Awaited<ReturnType<DataServiceImpl['instance']>>);
-
+    } as unknown as Awaited<ReturnType<DataService['instance']>>);
+    const mockActiveDataService = {
+      find: findStub,
+      instance: instanceStub,
+    } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
     testConnectionController.setActiveDataService(mockActiveDataService);
 
     beforeEach(() => {

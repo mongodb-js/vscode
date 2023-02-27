@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import assert from 'assert';
-import { DataServiceImpl } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 
 import { DocumentSource } from '../../../documentSource';
@@ -44,11 +44,11 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async () => {
-    const testDataService = new DataServiceImpl({
-      connectionString: TEST_DATABASE_URI,
-    });
-    const findStub = sinon.stub(testDataService, 'find');
+    const findStub = sinon.stub();
     findStub.resolves([{ field: 'Declaration of Independence' }]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
 
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
@@ -100,11 +100,12 @@ suite('Collection Documents Provider Test Suite', () => {
       },
     ];
 
-    const testDataService = new DataServiceImpl({
-      connectionString: TEST_DATABASE_URI,
-    });
-    const findStub = sinon.stub(testDataService, 'find');
+    const findStub = sinon.stub();
     findStub.resolves(mockDocuments);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
+
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -140,11 +141,11 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async () => {
-    const testDataService = new DataServiceImpl({
-      connectionString: TEST_DATABASE_URI,
-    });
-    const findStub = sinon.stub(testDataService, 'find');
+    const findStub = sinon.stub();
     findStub.resolves([{ field: 'Apollo' }, { field: 'Gemini ' }]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,
@@ -188,7 +189,10 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent shows a status bar item while it is running then hide it', async () => {
-    const mockActiveDataService: any = { find: {} };
+    const mockActiveDataService = { find: () => Promise.resolve([]) } as Pick<
+      DataService,
+      'find'
+    > as unknown as DataService;
     const mockConnectionController = new ConnectionController(
       new StatusView(mockExtensionContext),
       mockStorageController,

@@ -1,5 +1,6 @@
 import { before, after, beforeEach, afterEach } from 'mocha';
-import { connect, DataServiceImpl } from 'mongodb-data-service';
+import { connect } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import { expect } from 'chai';
 import sinon from 'sinon';
 
@@ -12,25 +13,31 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
   this.timeout(8000);
 
   suite('with mock data service', () => {
-    let mockDataService: DataServiceImpl;
+    let mockDataService: DataService;
 
     before(() => {
-      mockDataService = new DataServiceImpl({
-        connectionString: TEST_DATABASE_URI,
-      });
-
-      sinon.stub(mockDataService, 'getConnectionString').returns({
+      const getConnectionStringStub = sinon.stub();
+      getConnectionStringStub.returns({
         hosts: ['localhost:27018'],
         searchParams: { get: () => null },
         username: 'authMechanism',
-      } as unknown as ReturnType<DataServiceImpl['getConnectionString']>);
+      } as unknown as ReturnType<DataService['getConnectionString']>);
 
-      sinon.stub(mockDataService, 'instance').resolves({
+      const instanceStub = sinon.stub();
+      instanceStub.resolves({
         dataLake: {},
         build: {},
         genuineMongoDB: {},
         host: {},
-      } as unknown as Awaited<ReturnType<DataServiceImpl['instance']>>);
+      } as unknown as Awaited<ReturnType<DataService['instance']>>);
+
+      mockDataService = {
+        getConnectionString: getConnectionStringStub,
+        instance: instanceStub,
+      } as Pick<
+        DataService,
+        'getConnectionString' | 'instance'
+      > as unknown as DataService;
     });
 
     after(() => {
