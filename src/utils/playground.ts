@@ -58,7 +58,7 @@ const getStat = async (filePath: string): Promise<vscode.FileStat> => {
 };
 
 const stat = (filePath: string): Promise<fs.Stats> => {
-  return fs.promises.stat(filePath);
+  return fs.promises.lstat(filePath);
 };
 
 export const isPlayground = (fileUri?: vscode.Uri) => {

@@ -12,8 +12,8 @@ import * as connectionTelemetry from '../../../telemetry/connectionTelemetry';
 const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
 suite('ConnectionTelemetry Controller Test Suite', function () {
-  this.timeout(20000);
-  suite('with mock data service', () => {
+  suite('with mock data service', function () {
+    this.timeout(8000);
     let mockDataService: DataService;
 
     before(() => {
@@ -114,7 +114,8 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     });
   });
 
-  suite('with live connection', () => {
+  suite('with live connection', function () {
+    this.timeout(20000);
     let dataServ;
 
     beforeEach(async () => {
