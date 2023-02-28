@@ -463,7 +463,7 @@ suite('MDBExtensionController Test Suite', function () {
 
         const collectionChildren = await mockTreeItem.getChildren();
         const docListTreeItem = collectionChildren[0];
-        assert(docListTreeItem.description === '9K');
+        assert.strictEqual(docListTreeItem.description, '9K');
         count = 10000;
         docListTreeItem.isExpanded = true;
 
@@ -693,7 +693,7 @@ suite('MDBExtensionController Test Suite', function () {
           testCollectionTreeItem
         );
         assert(successfullyDropped);
-        assert(calledNamespace === 'testDbName.testColName');
+        assert.strictEqual(calledNamespace, 'testDbName.testColName');
       });
 
       test('mdb.dropCollection fails when a collection doesnt exist', async () => {
@@ -1043,8 +1043,8 @@ suite('MDBExtensionController Test Suite', function () {
           )
         );
         await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
-        assert(mockDocument.name === 'something sweet');
-        assert(mockDocument.time.$time === '12345');
+        assert.strictEqual(mockDocument.name, 'something sweet');
+        assert.strictEqual(mockDocument.time.$time, '12345');
 
         const expectedMessage =
           "The document was saved successfully to 'waffle.house'";
@@ -1529,27 +1529,30 @@ suite('MDBExtensionController Test Suite', function () {
 
           test('they are shown the overview page', () => {
             assert(mockVSCodeExecuteCommand.called);
-            assert(
-              mockVSCodeExecuteCommand.firstCall.args[0] ===
-                'mdb.openOverviewPage'
+            assert.strictEqual(
+              mockVSCodeExecuteCommand.firstCall.args[0],
+              'mdb.openOverviewPage'
             );
-            assert(
-              mockVSCodeExecuteCommand.firstCall.args[0] ===
-                EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE
+            assert.strictEqual(
+              mockVSCodeExecuteCommand.firstCall.args[0],
+              EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE
             );
           });
 
           test("it sets that they've been shown the overview page", () => {
             assert(mockStorageControllerUpdate.called);
-            assert(
-              mockStorageControllerUpdate.firstCall.args[0] ===
-                StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
+            assert.strictEqual(
+              mockStorageControllerUpdate.firstCall.args[0],
+              StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
             );
-            assert(
-              mockStorageControllerUpdate.firstCall.args[0] ===
-                'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW'
+            assert.strictEqual(
+              mockStorageControllerUpdate.firstCall.args[0],
+              'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW'
             );
-            assert(mockStorageControllerUpdate.firstCall.args[1] === true);
+            assert.strictEqual(
+              mockStorageControllerUpdate.firstCall.args[1],
+              true
+            );
           });
         }
       );
@@ -1593,15 +1596,18 @@ suite('MDBExtensionController Test Suite', function () {
 
           test("it sets that they've been shown the overview page", () => {
             assert(mockStorageControllerUpdate.called);
-            assert(
-              mockStorageControllerUpdate.firstCall.args[0] ===
-                StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
+            assert.strictEqual(
+              mockStorageControllerUpdate.firstCall.args[0],
+              StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
             );
-            assert(
-              mockStorageControllerUpdate.firstCall.args[0] ===
-                'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW'
+            assert.strictEqual(
+              mockStorageControllerUpdate.firstCall.args[0],
+              'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW'
             );
-            assert(mockStorageControllerUpdate.firstCall.args[1] === true);
+            assert.strictEqual(
+              mockStorageControllerUpdate.firstCall.args[1],
+              true
+            );
           });
         }
       );
@@ -1666,7 +1672,7 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._playgroundController
           ._activeTextEditor;
       assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
-      assert(activeTextEditor?.document.uri.scheme === 'untitled');
+      assert.strictEqual(activeTextEditor?.document.uri.scheme, 'untitled');
 
       const content = activeTextEditor.document.getText();
       assert(content.includes('// Create a new database.'));
@@ -1688,7 +1694,7 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._playgroundController
           ._activeTextEditor;
       assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
-      assert(activeTextEditor?.document.uri.scheme === 'untitled');
+      assert.strictEqual(activeTextEditor?.document.uri.scheme, 'untitled');
 
       const content = activeTextEditor.document.getText();
       assert(content.includes('// The current database to use.'));
@@ -1707,7 +1713,7 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._playgroundController
           ._activeTextEditor;
       assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
-      assert(activeTextEditor?.document.uri.scheme === 'untitled');
+      assert.strictEqual(activeTextEditor?.document.uri.scheme, 'untitled');
 
       const content = activeTextEditor.document.getText();
       assert(
@@ -1727,7 +1733,7 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._playgroundController
           ._activeTextEditor;
       assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
-      assert(activeTextEditor?.document.uri.scheme === 'untitled');
+      assert.strictEqual(activeTextEditor?.document.uri.scheme, 'untitled');
 
       const content = activeTextEditor.document.getText();
       assert(content.includes('Create a new index in the collection.'));
@@ -1746,7 +1752,7 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._playgroundController
           ._activeTextEditor;
       assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
-      assert(activeTextEditor?.document.uri.scheme === 'untitled');
+      assert.strictEqual(activeTextEditor?.document.uri.scheme, 'untitled');
 
       const content = activeTextEditor.document.getText();
       assert(content.includes('// MongoDB Playground'));
@@ -1763,7 +1769,7 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._playgroundController
           ._activeTextEditor;
       assert.strictEqual(activeTextEditor?.document.languageId, 'javascript');
-      assert(activeTextEditor?.document.uri.scheme === 'untitled');
+      assert.strictEqual(activeTextEditor?.document.uri.scheme, 'untitled');
 
       const content = activeTextEditor.document.getText();
       assert.strictEqual(content, '');
