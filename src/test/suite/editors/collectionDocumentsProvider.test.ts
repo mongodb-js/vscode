@@ -74,10 +74,12 @@ suite('Collection Documents Provider Test Suite', () => {
     );
 
     const operationId = testQueryStore.createNewOperation();
-
     const uri = vscode.Uri.parse(
       `scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple&operationId=${operationId}`
     );
+
+    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const documents =
       await testCollectionViewProvider.provideTextDocumentContent(uri);
@@ -130,10 +132,12 @@ suite('Collection Documents Provider Test Suite', () => {
     );
 
     const operationId = testQueryStore.createNewOperation();
-
     const uri = vscode.Uri.parse(
       `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}`
     );
+
+    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const documents =
       await testCollectionViewProvider.provideTextDocumentContent(uri);
@@ -178,6 +182,9 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=vostok.mercury&operationId=${operationId}`
     );
 
+    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
+
     await testCollectionViewProvider.provideTextDocumentContent(uri);
     assert(
       testQueryStore.operations[operationId].hasMoreDocumentsToShow === false,
@@ -219,27 +226,23 @@ suite('Collection Documents Provider Test Suite', () => {
     );
 
     const operationId = testQueryStore.createNewOperation();
-
     const uri = vscode.Uri.parse(
       `scheme:Results: filename.json?namespace=aaaaaaaa&operationId=${operationId}`
     );
 
-    const fakeShowMessage = sinon.fake();
-    sinon.replace(testStatusView, 'showMessage', fakeShowMessage);
-
-    const fakeHideMessage = sinon.fake();
-    sinon.replace(testStatusView, 'hideMessage', fakeHideMessage);
+    const showMessageStub = sinon.stub(testStatusView, 'showMessage');
+    const hideMessageStub = sinon.stub(testStatusView, 'hideMessage');
 
     mockActiveDataService.find = () => {
-      assert(fakeShowMessage.called);
-      assert(!fakeHideMessage.called);
-      assert(fakeShowMessage.firstCall.args[0] === 'Fetching documents...');
+      assert(showMessageStub.called);
+      assert(!hideMessageStub.called);
+      assert(showMessageStub.firstCall.args[0] === 'Fetching documents...');
 
       return Promise.resolve([{ field: 'aaaaaaaaaaaaaaaaa' }]);
     };
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
-    assert(fakeHideMessage.called);
+    assert(hideMessageStub.called);
   });
 
   test('provideTextDocumentContent sets different code lenses for different namespaces from the same connection', async () => {
@@ -276,20 +279,8 @@ suite('Collection Documents Provider Test Suite', () => {
       'getActiveDataService',
       fakeGetActiveDataService
     );
-
-    const fakeShowMessage = sinon.fake();
-    sinon.replace(
-      testCollectionViewProvider._statusView,
-      'showMessage',
-      fakeShowMessage
-    );
-
-    const fakeHideMessage = sinon.fake();
-    sinon.replace(
-      testCollectionViewProvider._statusView,
-      'hideMessage',
-      fakeHideMessage
-    );
+    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
     const fakeActiveConnectionId = sinon.fake.returns(connectionId);
@@ -478,20 +469,8 @@ suite('Collection Documents Provider Test Suite', () => {
       'getActiveDataService',
       fakeGetActiveDataService
     );
-
-    const fakeShowMessage = sinon.fake();
-    sinon.replace(
-      testCollectionViewProvider._statusView,
-      'showMessage',
-      fakeShowMessage
-    );
-
-    const fakeHideMessage = sinon.fake();
-    sinon.replace(
-      testCollectionViewProvider._statusView,
-      'hideMessage',
-      fakeHideMessage
-    );
+    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const firstConnectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
     const secondConnectionId = '333c2b06-hhhh-40b7-bd8a-bd1f8333a896';

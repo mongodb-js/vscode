@@ -378,19 +378,8 @@ suite('Playground Result Provider Test Suite', () => {
         },
       } as unknown as DataService);
 
-    const fakeShowMessage = sinon.fake();
-    sinon.replace(
-      testCollectionViewProvider._statusView,
-      'showMessage',
-      fakeShowMessage
-    );
-
-    const fakeHideMessage = sinon.fake();
-    sinon.replace(
-      testCollectionViewProvider._statusView,
-      'hideMessage',
-      fakeHideMessage
-    );
+    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const operationId =
       testCollectionViewProvider._operationsStore.createNewOperation();

@@ -1332,7 +1332,9 @@ suite('MDBExtensionController Test Suite', function () {
         'refresh',
         fakeRefresh
       );
-      await vscode.commands.executeCommand('mdb.refreshPlaygroundsFromTreeView');
+      await vscode.commands.executeCommand(
+        'mdb.refreshPlaygroundsFromTreeView'
+      );
       assert(
         fakeRefresh.calledOnce,
         'Expected "refreshPlaygrounds" to be called on the playground controller.'

@@ -77,12 +77,8 @@ suite('MongoDB Document Service Test Suite', () => {
       'getActiveDataService',
       fakeGetActiveDataService
     );
-
-    const fakeShowMessage = sinon.fake();
-    sinon.replace(testStatusView, 'showMessage', fakeShowMessage);
-
-    const fakeHideMessage = sinon.fake();
-    sinon.replace(testStatusView, 'hideMessage', fakeHideMessage);
+    sinon.stub(testStatusView, 'showMessage');
+    sinon.stub(testStatusView, 'hideMessage');
 
     await testMongoDBDocumentService.replaceDocument({
       namespace,
@@ -121,11 +117,8 @@ suite('MongoDB Document Service Test Suite', () => {
       fakeGetActiveConnectionId
     );
 
-    const fakeShowMessage = sinon.fake();
-    sinon.replace(testStatusView, 'showMessage', fakeShowMessage);
-
-    const fakeHideMessage = sinon.fake();
-    sinon.replace(testStatusView, 'hideMessage', fakeHideMessage);
+    sinon.stub(testStatusView, 'showMessage');
+    sinon.stub(testStatusView, 'hideMessage');
 
     const result = await testMongoDBDocumentService.fetchDocument({
       namespace,
@@ -233,11 +226,8 @@ suite('MongoDB Document Service Test Suite', () => {
       fakeGetSavedConnectionName
     );
 
-    const fakeShowMessage = sinon.fake();
-    sinon.replace(testStatusView, 'showMessage', fakeShowMessage);
-
-    const fakeHideMessage = sinon.fake();
-    sinon.replace(testStatusView, 'hideMessage', fakeHideMessage);
+    sinon.stub(testStatusView, 'showMessage');
+    sinon.stub(testStatusView, 'hideMessage');
 
     try {
       await testMongoDBDocumentService.fetchDocument({

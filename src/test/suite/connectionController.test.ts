@@ -909,14 +909,14 @@ suite('Connection Controller Test Suite', function () {
         sshTunnelPort: 22,
       },
     };
-    const mockSaveConnection = sinon.fake.resolves({
+    const fakeSaveConnection = sinon.fake.resolves({
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
     });
 
     sinon.replace(
       testConnectionController._storageController,
       'saveConnection',
-      mockSaveConnection
+      fakeSaveConnection
     );
 
     await testConnectionController._migratePreviouslySavedConnection(
@@ -924,7 +924,7 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const connectionString =
-      mockSaveConnection.firstCall.args[0].connectionOptions?.connectionString;
+      fakeSaveConnection.firstCall.args[0].connectionOptions?.connectionString;
 
     assert.strictEqual(connectionString.includes(TEST_USER_USERNAME), true);
     assert.strictEqual(connectionString.includes(TEST_USER_PASSWORD), false);
@@ -953,7 +953,7 @@ suite('Connection Controller Test Suite', function () {
         sshTunnelPort: 22,
       },
     };
-    const mockMigratePreviouslySavedConnection = sinon.fake.resolves({
+    const fakeMigratePreviouslySavedConnection = sinon.fake.resolves({
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
       storageLocation: 'GLOBAL',
@@ -966,14 +966,14 @@ suite('Connection Controller Test Suite', function () {
     sinon.replace(
       testConnectionController,
       '_migratePreviouslySavedConnection',
-      mockMigratePreviouslySavedConnection
+      fakeMigratePreviouslySavedConnection
     );
 
     await testConnectionController._getConnectionInfoWithSecrets(
       oldSavedConnectionInfo
     );
 
-    assert.strictEqual(mockMigratePreviouslySavedConnection.called, true);
+    assert.strictEqual(fakeMigratePreviouslySavedConnection.called, true);
   });
 
   test('_getConnectionInfoWithSecrets does not run a migration for new connections', async () => {
@@ -995,12 +995,12 @@ suite('Connection Controller Test Suite', function () {
 
     assert.strictEqual(connections.length, 1);
 
-    const mockMigratePreviouslySavedConnection = sinon.fake();
+    const fakeMigratePreviouslySavedConnection = sinon.fake();
 
     sinon.replace(
       testConnectionController,
       '_migratePreviouslySavedConnection',
-      mockMigratePreviouslySavedConnection
+      fakeMigratePreviouslySavedConnection
     );
 
     const newSavedConnectionInfoWithSecrets =
@@ -1009,14 +1009,14 @@ suite('Connection Controller Test Suite', function () {
       );
 
     assert.deepStrictEqual(newSavedConnectionInfoWithSecrets, connectionInfo);
-    assert.strictEqual(mockMigratePreviouslySavedConnection.called, false);
+    assert.strictEqual(fakeMigratePreviouslySavedConnection.called, false);
   });
 
   test('addNewConnectionStringAndConnect saves connection without secrets to the global storage', async () => {
-    const mockConnect = sinon.fake.resolves({
+    const fakeConnect = sinon.fake.resolves({
       successfullyConnected: true,
     });
-    sinon.replace(testConnectionController, '_connect', mockConnect);
+    sinon.replace(testConnectionController, '_connect', fakeConnect);
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')

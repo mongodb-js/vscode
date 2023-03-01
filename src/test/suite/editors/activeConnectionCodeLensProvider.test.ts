@@ -32,15 +32,15 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const testShowQuickPick = sinon.fake();
+      const fakeShowQuickPick = sinon.fake();
 
       beforeEach(() => {
         testCodeLensProvider.setActiveTextEditor(
           vscode.window.activeTextEditor
         );
-        sinon.replace(vscode.window, 'showQuickPick', testShowQuickPick);
-        const testIsPlayground = sinon.fake.returns(true);
-        sinon.replace(testCodeLensProvider, 'isPlayground', testIsPlayground);
+        sinon.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
+        const fakeIsPlayground = sinon.fake.returns(true);
+        sinon.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       afterEach(() => {
@@ -82,12 +82,12 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         genuineMongoDB: {},
         host: {},
       } as unknown as Awaited<ReturnType<DataService['instance']>>);
-      const testActiveDataService = {
+      const activeDataServiceStub = {
         find: findStub,
         instance: instanceStub,
       } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
 
-      testConnectionController.setActiveDataService(testActiveDataService);
+      testConnectionController.setActiveDataService(activeDataServiceStub);
 
       beforeEach(() => {
         testCodeLensProvider.setActiveTextEditor(
@@ -98,8 +98,8 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getActiveConnectionName',
           sinon.fake.returns('fakeName')
         );
-        const testIsPlayground = sinon.fake.returns(true);
-        sinon.replace(testCodeLensProvider, 'isPlayground', testIsPlayground);
+        const fakeIsPlayground = sinon.fake.returns(true);
+        sinon.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       afterEach(() => {
@@ -133,12 +133,12 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const testShowQuickPick = sinon.fake();
+      const fakeShowQuickPick = sinon.fake();
 
       beforeEach(() => {
-        sinon.replace(vscode.window, 'showQuickPick', testShowQuickPick);
-        const testIsPlayground = sinon.fake.returns(false);
-        sinon.replace(testCodeLensProvider, 'isPlayground', testIsPlayground);
+        sinon.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
+        const fakeIsPlayground = sinon.fake.returns(false);
+        sinon.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       afterEach(() => {
@@ -176,11 +176,11 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         genuineMongoDB: {},
         host: {},
       } as unknown as Awaited<ReturnType<DataService['instance']>>);
-      const testActiveDataService = {
+      const activeDataServiceStub = {
         find: findStub,
         instance: instanceStub,
       } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
-      testConnectionController.setActiveDataService(testActiveDataService);
+      testConnectionController.setActiveDataService(activeDataServiceStub);
 
       beforeEach(() => {
         sinon.replace(
@@ -188,8 +188,8 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getActiveConnectionName',
           sinon.fake.returns('fakeName')
         );
-        const testIsPlayground = sinon.fake.returns(false);
-        sinon.replace(testCodeLensProvider, 'isPlayground', testIsPlayground);
+        const fakeIsPlayground = sinon.fake.returns(false);
+        sinon.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       afterEach(() => {

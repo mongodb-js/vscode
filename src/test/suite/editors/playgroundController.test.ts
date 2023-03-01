@@ -344,13 +344,13 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('it shows an error message and restarts, and connects the language server when an error occurs in executeAll (out of memory can cause this)', async () => {
-        const mockConnectionDisposedError = new Error(
+        const fakeConnectionDisposedError = new Error(
           'Pending response rejected since connection got disposed'
         );
-        (mockConnectionDisposedError as any).code = -32097;
+        (fakeConnectionDisposedError as any).code = -32097;
         sinon
           .stub(languageServerControllerStub, 'executeAll')
-          .rejects(mockConnectionDisposedError);
+          .rejects(fakeConnectionDisposedError);
 
         const stubStartLanguageServer = sinon
           .stub(languageServerControllerStub, 'startLanguageServer')

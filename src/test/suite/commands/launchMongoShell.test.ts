@@ -12,19 +12,19 @@ suite('Commands Test Suite', () => {
     mdbTestExtension.testExtensionController._connectionController;
 
   let showErrorMessageStub: SinonStub;
-  let fakeGetMongoClientConnectionOptions: SinonStub;
-  let fakeIsCurrentlyConnected: SinonStub;
+  let getMongoClientConnectionOptionsStub: SinonStub;
+  let isCurrentlyConnectedStub: SinonStub;
   let createTerminalStub: SinonStub;
   let sendTextStub: SinonSpy;
 
   beforeEach(() => {
     sinon.stub(vscode.window, 'showInformationMessage');
     showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
-    fakeGetMongoClientConnectionOptions = sinon.stub(
+    getMongoClientConnectionOptionsStub = sinon.stub(
       testConnectionController,
       'getMongoClientConnectionOptions'
     );
-    fakeIsCurrentlyConnected = sinon.stub(
+    isCurrentlyConnectedStub = sinon.stub(
       testConnectionController,
       'isCurrentlyConnected'
     );
@@ -68,11 +68,11 @@ suite('Commands Test Suite', () => {
       const expectedDriverUrl =
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
-      fakeGetMongoClientConnectionOptions.returns({
+      getMongoClientConnectionOptionsStub.returns({
         url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
         options: {},
       });
-      fakeIsCurrentlyConnected.returns(true);
+      isCurrentlyConnectedStub.returns(true);
 
       await launchMongoShell(testConnectionController);
 
@@ -105,12 +105,12 @@ suite('Commands Test Suite', () => {
       const expectedDriverUrl =
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
-      fakeGetMongoClientConnectionOptions.returns({
+      getMongoClientConnectionOptionsStub.returns({
         url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
         options: {},
       });
 
-      fakeIsCurrentlyConnected.returns(true);
+      isCurrentlyConnectedStub.returns(true);
 
       await launchMongoShell(testConnectionController);
       assert(createTerminalStub.called);
@@ -145,12 +145,12 @@ suite('Commands Test Suite', () => {
       const expectedDriverUrl =
         'mongodb://localhost:27018/?readPreference=primary&ssl=false';
 
-      fakeGetMongoClientConnectionOptions.returns({
+      getMongoClientConnectionOptionsStub.returns({
         url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
         options: {},
       });
 
-      fakeIsCurrentlyConnected.returns(true);
+      isCurrentlyConnectedStub.returns(true);
 
       await launchMongoShell(testConnectionController);
       assert(createTerminalStub.called);
