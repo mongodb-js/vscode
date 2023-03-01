@@ -636,23 +636,23 @@
         },
         {
           "command": "mdb.exportToRuby",
-          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToPython",
-          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToJava",
-          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToCsharp",
-          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToNode",
-          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
