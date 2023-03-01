@@ -39,6 +39,7 @@ suite('ConnectionTreeItem Test Suite', () => {
 
   suite('#getChildren', () => {
     let testConnectionTreeItem: ConnectionTreeItem;
+    const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
       testConnectionTreeItem = new ConnectionTreeItem(
@@ -52,11 +53,11 @@ suite('ConnectionTreeItem Test Suite', () => {
     });
 
     afterEach(() => {
-      sinon.restore();
+      sandbox.restore();
     });
 
     test('returns database tree items with the databases', async () => {
-      sinon.replace(
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
         () => new DataServiceStub() as unknown as DataService
@@ -70,7 +71,7 @@ suite('ConnectionTreeItem Test Suite', () => {
     });
 
     test('when listDatabases errors it wraps it in a nice message', async () => {
-      sinon.replace(
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
         () =>
@@ -96,6 +97,7 @@ suite('ConnectionTreeItem Test Suite', () => {
 
   suite('#listDatabases', () => {
     let testConnectionTreeItem: ConnectionTreeItem;
+    const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
       testConnectionTreeItem = new ConnectionTreeItem(
@@ -109,11 +111,11 @@ suite('ConnectionTreeItem Test Suite', () => {
     });
 
     afterEach(() => {
-      sinon.restore();
+      sandbox.restore();
     });
 
     test('returns a list of database names', async () => {
-      sinon.replace(
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
         () => new DataServiceStub() as unknown as DataService

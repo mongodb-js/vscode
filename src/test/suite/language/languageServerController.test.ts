@@ -72,16 +72,17 @@ suite('Language Server Controller Test Suite', () => {
     testCodeActionProvider,
     testExplorerController
   );
+  const sandbox = sinon.createSandbox();
 
   before(async () => {
     await testLanguageServerController.startLanguageServer();
 
-    sinon.replace(
+    sandbox.replace(
       testConnectionController,
       'getActiveConnectionName',
       () => 'fakeName'
     );
-    sinon.replace(
+    sandbox.replace(
       testConnectionController,
       'getActiveDataService',
       () =>
@@ -92,13 +93,17 @@ suite('Language Server Controller Test Suite', () => {
           }),
         } as unknown as DataService)
     );
-    sinon.replace(testConnectionController, 'isCurrentlyConnected', () => true);
+    sandbox.replace(
+      testConnectionController,
+      'isCurrentlyConnected',
+      () => true
+    );
 
     await testPlaygroundController._connectToServiceProvider();
   });
 
   after(() => {
-    sinon.restore();
+    sandbox.restore();
   });
 
   test('cancel a long-running script', async () => {

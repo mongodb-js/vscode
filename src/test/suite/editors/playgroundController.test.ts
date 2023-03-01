@@ -81,53 +81,48 @@ suite('Playground Controller Test Suite', function () {
   let showErrorMessageStub: SinonStub;
 
   beforeEach(() => {
-    showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+    showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
   afterEach(() => {
     sandbox.restore();
-    sinon.restore();
   });
 
   suite('passing connection details to service provider', () => {
     let fakeConnectToServiceProvider: SinonSpy;
 
     beforeEach(async () => {
-      const fakeGetActiveConnectionName = sinon.fake.returns('fakeName');
+      const fakeGetActiveConnectionName = sandbox.fake.returns('fakeName');
       const mockActiveDataService = {
         getMongoClientConnectionOptions: () => ({
           url: 'mongodb://username@ldaphost:27017/?authMechanism=MONGODB-X509&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true&authSource=%24external&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsCAFile=./path/to/ca&tlsCertificateKeyFile=./path/to/cert',
           options: { monitorCommands: true },
         }),
       } as DataService;
-      const fakeGetActiveConnectionId = sinon.fake.returns('pineapple');
-      fakeConnectToServiceProvider = sinon.fake.resolves(undefined);
+      const fakeGetActiveConnectionId = sandbox.fake.returns('pineapple');
+      fakeConnectToServiceProvider = sandbox.fake.resolves(undefined);
 
-      sinon.replace(
+      sandbox.replace(
         testPlaygroundController._connectionController,
         'getActiveConnectionName',
         fakeGetActiveConnectionName
       );
-      sinon.replace(
+      sandbox.replace(
         testPlaygroundController._connectionController,
         'getActiveConnectionId',
         fakeGetActiveConnectionId
       );
-      sinon.replace(
+      sandbox.replace(
         testPlaygroundController._languageServerController,
         'connectToServiceProvider',
         fakeConnectToServiceProvider
       );
-      sinon.stub(vscode.window, 'showInformationMessage');
+      sandbox.stub(vscode.window, 'showInformationMessage');
 
       testPlaygroundController._connectionController.setActiveDataService(
         mockActiveDataService
       );
       await testPlaygroundController._connectToServiceProvider();
-    });
-
-    afterEach(() => {
-      sinon.restore();
     });
 
     test('it should pass the active connection id to the language server for connecting', () => {
@@ -163,14 +158,10 @@ suite('Playground Controller Test Suite', function () {
     testPlaygroundController._activeTextEditor = undefined;
 
     beforeEach(() => {
-      showInformationMessageStub = sinon.stub(
+      showInformationMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
       );
-    });
-
-    afterEach(() => {
-      sinon.restore();
     });
 
     test('run all playground tells to open a playground file', async () => {
@@ -212,7 +203,7 @@ suite('Playground Controller Test Suite', function () {
         languageId: 'javascript',
         uri: documentUri,
         getText: () => "use('dbName');",
-        lineAt: sinon.fake.returns({ text: "use('dbName');" }),
+        lineAt: sandbox.fake.returns({ text: "use('dbName');" }),
       },
       selections: [
         new vscode.Selection(
@@ -226,24 +217,16 @@ suite('Playground Controller Test Suite', function () {
       testPlaygroundController._activeTextEditor =
         mockActiveTestEditor as vscode.TextEditor;
       testPlaygroundController._selectedText = undefined;
-      sinon.stub(vscode.window, 'showInformationMessage');
-    });
-
-    afterEach(() => {
-      sinon.restore();
+      sandbox.stub(vscode.window, 'showInformationMessage');
     });
 
     suite('user is not connected', () => {
       beforeEach(() => {
-        sinon.replace(
+        sandbox.replace(
           testPlaygroundController._connectionController,
           'isCurrentlyConnected',
-          sinon.fake.returns(false)
+          sandbox.fake.returns(false)
         );
-      });
-
-      afterEach(() => {
-        sinon.restore();
       });
 
       test('run all playground blocks shows please connect to a database error', async () => {
@@ -280,42 +263,38 @@ suite('Playground Controller Test Suite', function () {
       let showTextDocumentStub: SinonStub;
 
       beforeEach(async () => {
-        const fakeGetActiveConnectionName = sinon.fake.returns('fakeName');
-        const fakeGetActiveDataService = sinon.fake.returns({
+        const fakeGetActiveConnectionName = sandbox.fake.returns('fakeName');
+        const fakeGetActiveDataService = sandbox.fake.returns({
           getMongoClientConnectionOptions: () => ({
             url: TEST_DATABASE_URI,
             options: {},
           }),
         });
-        const fakeGetActiveConnectionId = sinon.fake.returns('pineapple');
+        const fakeGetActiveConnectionId = sandbox.fake.returns('pineapple');
 
-        sinon.replace(
+        sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionName',
           fakeGetActiveConnectionName
         );
-        sinon.replace(
+        sandbox.replace(
           testPlaygroundController._connectionController,
           'isCurrentlyConnected',
-          sinon.fake.returns(true)
+          sandbox.fake.returns(true)
         );
-        sinon.replace(
+        sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveDataService',
           fakeGetActiveDataService
         );
-        sinon.replace(
+        sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionId',
           fakeGetActiveConnectionId
         );
-        showTextDocumentStub = sinon.stub(vscode.window, 'showTextDocument');
+        showTextDocumentStub = sandbox.stub(vscode.window, 'showTextDocument');
 
         await testPlaygroundController._connectToServiceProvider();
-      });
-
-      afterEach(() => {
-        sinon.restore();
       });
 
       test('keep a playground in focus after running it', async () => {
@@ -328,10 +307,10 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('close cancelation modal when a playground is canceled', async () => {
-        sinon.replace(
+        sandbox.replace(
           testPlaygroundController,
           '_evaluate',
-          sinon.fake.rejects(false)
+          sandbox.fake.rejects(false)
         );
 
         const result =
@@ -344,13 +323,13 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('it shows an error message and restarts, and connects the language server when an error occurs in executeAll (out of memory can cause this)', async () => {
-        const fakeConnectionDisposedError = new Error(
+        const mockConnectionDisposedError = new Error(
           'Pending response rejected since connection got disposed'
         );
-        (fakeConnectionDisposedError as any).code = -32097;
+        (<any>mockConnectionDisposedError).code = -32097;
         sinon
           .stub(languageServerControllerStub, 'executeAll')
-          .rejects(fakeConnectionDisposedError);
+          .rejects(mockConnectionDisposedError);
 
         const stubStartLanguageServer = sinon
           .stub(languageServerControllerStub, 'startLanguageServer')
@@ -455,31 +434,27 @@ suite('Playground Controller Test Suite', function () {
     let showInformationMessageStub: SinonStub;
 
     beforeEach(() => {
-      showInformationMessageStub = sinon.stub(
+      showInformationMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
       );
     });
 
-    afterEach(() => {
-      sinon.restore();
-    });
-
     test('show a confirmation message if mdb.confirmRunAll is true', async () => {
       showInformationMessageStub.resolves('Yes');
 
-      const fakeEvaluateWithCancelModal = sinon.fake.resolves({
+      const fakeEvaluateWithCancelModal = sandbox.fake.resolves({
         outputLines: [],
         result: '123',
       });
-      sinon.replace(
+      sandbox.replace(
         testPlaygroundController,
         '_evaluateWithCancelModal',
         fakeEvaluateWithCancelModal
       );
 
-      const fakeOpenPlaygroundResult = sinon.fake();
-      sinon.replace(
+      const fakeOpenPlaygroundResult = sandbox.fake();
+      sandbox.replace(
         testPlaygroundController,
         '_openPlaygroundResult',
         fakeOpenPlaygroundResult
@@ -488,7 +463,7 @@ suite('Playground Controller Test Suite', function () {
       const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
       expect(result).to.be.equal(true);
-      sinon.assert.called(showInformationMessageStub);
+      sandbox.assert.called(showInformationMessageStub);
     });
 
     test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
@@ -498,18 +473,18 @@ suite('Playground Controller Test Suite', function () {
         .getConfiguration('mdb')
         .update('confirmRunAll', false);
 
-      const fakeEvaluateWithCancelModal = sinon.fake.resolves({
+      const fakeEvaluateWithCancelModal = sandbox.fake.resolves({
         outputLines: [],
         result: '123',
       });
-      sinon.replace(
+      sandbox.replace(
         testPlaygroundController,
         '_evaluateWithCancelModal',
         fakeEvaluateWithCancelModal
       );
 
-      const fakeOpenPlaygroundResult = sinon.fake();
-      sinon.replace(
+      const fakeOpenPlaygroundResult = sandbox.fake();
+      sandbox.replace(
         testPlaygroundController,
         '_openPlaygroundResult',
         fakeOpenPlaygroundResult
@@ -518,7 +493,7 @@ suite('Playground Controller Test Suite', function () {
       const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
       expect(result).to.be.equal(true);
-      sinon.assert.notCalled(showInformationMessageStub);
+      sandbox.assert.notCalled(showInformationMessageStub);
     });
 
     test('do not run a playground if user selected No in the confirmation message', async () => {

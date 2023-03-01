@@ -17,19 +17,21 @@ suite('Commands Test Suite', () => {
   let createTerminalStub: SinonStub;
   let sendTextStub: SinonSpy;
 
+  const sandbox = sinon.createSandbox();
+
   beforeEach(() => {
-    sinon.stub(vscode.window, 'showInformationMessage');
-    showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
-    getMongoClientConnectionOptionsStub = sinon.stub(
+    sandbox.stub(vscode.window, 'showInformationMessage');
+    showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+    getMongoClientConnectionOptionsStub = sandbox.stub(
       testConnectionController,
       'getMongoClientConnectionOptions'
     );
-    isCurrentlyConnectedStub = sinon.stub(
+    isCurrentlyConnectedStub = sandbox.stub(
       testConnectionController,
       'isCurrentlyConnected'
     );
-    createTerminalStub = sinon.stub(vscode.window, 'createTerminal');
-    sendTextStub = sinon.stub();
+    createTerminalStub = sandbox.stub(vscode.window, 'createTerminal');
+    sendTextStub = sandbox.stub();
     createTerminalStub.returns({
       sendText: sendTextStub,
       show: () => {},
@@ -37,21 +39,14 @@ suite('Commands Test Suite', () => {
   });
 
   afterEach(async () => {
-    sinon.restore();
-
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
+    sandbox.restore();
   });
 
   suite('bash env shell', () => {
-    const sandbox = sinon.createSandbox();
-
     beforeEach(() => {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'bash');
-    });
-
-    afterEach(() => {
-      sandbox.restore();
     });
 
     test('openMongoDBShell should show an error message when not connected', async () => {
@@ -91,14 +86,8 @@ suite('Commands Test Suite', () => {
   });
 
   suite('Windows powershell env shell', () => {
-    const sandbox = sinon.createSandbox();
-
     beforeEach(() => {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'powershell.exe');
-    });
-
-    afterEach(() => {
-      sandbox.restore();
     });
 
     test('powershell openMongoDBShell should open a terminal with the active connection driver url', async () => {
@@ -131,14 +120,8 @@ suite('Commands Test Suite', () => {
   });
 
   suite('Windows cmd env shell', () => {
-    const sandbox = sinon.createSandbox();
-
     beforeEach(() => {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'cmd.exe');
-    });
-
-    afterEach(() => {
-      sandbox.restore();
     });
 
     test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async () => {

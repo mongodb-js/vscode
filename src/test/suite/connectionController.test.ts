@@ -52,10 +52,11 @@ suite('Connection Controller Test Suite', function () {
     testTelemetryService
   );
   let showErrorMessageStub: SinonStub;
+  const sandbox = sinon.createSandbox();
 
   beforeEach(() => {
-    sinon.stub(vscode.window, 'showInformationMessage');
-    showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+    sandbox.stub(vscode.window, 'showInformationMessage');
+    showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
   afterEach(async () => {
@@ -66,7 +67,7 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
 
-    sinon.restore();
+    sandbox.restore();
   });
 
   test('it connects to mongodb', async () => {
@@ -176,7 +177,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(succesfullyConnected, true);
 
     let wasSetToConnectingWhenDisconnecting = false;
-    sinon.replace(testConnectionController, 'disconnect', () => {
+    sandbox.replace(testConnectionController, 'disconnect', () => {
       wasSetToConnectingWhenDisconnecting = true;
 
       return Promise.resolve(true);
@@ -542,9 +543,9 @@ suite('Connection Controller Test Suite', function () {
     const connectionId =
       testConnectionController.getActiveConnectionId() || 'zz';
 
-    const inputBoxResolvesStub = sinon.stub();
+    const inputBoxResolvesStub = sandbox.stub();
     inputBoxResolvesStub.onCall(0).resolves('new connection name');
-    sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+    sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
     const renameSuccess = await testConnectionController.renameConnection(
       connectionId
@@ -601,9 +602,9 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(connections[connectionIds[0]].name, 'localhost:27018');
     assert.strictEqual(connections[connectionIds[1]].name, 'localhost:27018');
 
-    const inputBoxResolvesStub = sinon.stub();
+    const inputBoxResolvesStub = sandbox.stub();
     inputBoxResolvesStub.onCall(0).resolves('Lynx');
-    sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+    sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
     const renameSuccess = await testConnectionController.renameConnection(
       connectionIds[0]
@@ -758,7 +759,7 @@ suite('Connection Controller Test Suite', function () {
       storageLocation: StorageLocation.NONE,
     };
 
-    sinon.replace(
+    sandbox.replace(
       testConnectionController,
       '_connectWithDataService',
       async (connectionOptions) => {
@@ -909,11 +910,11 @@ suite('Connection Controller Test Suite', function () {
         sshTunnelPort: 22,
       },
     };
-    const fakeSaveConnection = sinon.fake.resolves({
+    const fakeSaveConnection = sandbox.fake.resolves({
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
     });
 
-    sinon.replace(
+    sandbox.replace(
       testConnectionController._storageController,
       'saveConnection',
       fakeSaveConnection
@@ -953,7 +954,7 @@ suite('Connection Controller Test Suite', function () {
         sshTunnelPort: 22,
       },
     };
-    const fakeMigratePreviouslySavedConnection = sinon.fake.resolves({
+    const fakeMigratePreviouslySavedConnection = sandbox.fake.resolves({
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
       storageLocation: 'GLOBAL',
@@ -963,7 +964,7 @@ suite('Connection Controller Test Suite', function () {
       },
     });
 
-    sinon.replace(
+    sandbox.replace(
       testConnectionController,
       '_migratePreviouslySavedConnection',
       fakeMigratePreviouslySavedConnection
@@ -995,9 +996,9 @@ suite('Connection Controller Test Suite', function () {
 
     assert.strictEqual(connections.length, 1);
 
-    const fakeMigratePreviouslySavedConnection = sinon.fake();
+    const fakeMigratePreviouslySavedConnection = sandbox.fake();
 
-    sinon.replace(
+    sandbox.replace(
       testConnectionController,
       '_migratePreviouslySavedConnection',
       fakeMigratePreviouslySavedConnection
@@ -1013,10 +1014,10 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('addNewConnectionStringAndConnect saves connection without secrets to the global storage', async () => {
-    const fakeConnect = sinon.fake.resolves({
+    const fakeConnect = sandbox.fake.resolves({
       successfullyConnected: true,
     });
-    sinon.replace(testConnectionController, '_connect', fakeConnect);
+    sandbox.replace(testConnectionController, '_connect', fakeConnect);
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')

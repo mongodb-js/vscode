@@ -38,16 +38,17 @@ suite('MDBExtensionController Test Suite', function () {
 
   suite('when not connected', () => {
     let showErrorMessageStub: SinonSpy;
+    const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
-      sinon.stub(vscode.window, 'showInformationMessage');
-      sinon.stub(vscode.workspace, 'openTextDocument');
-      sinon.stub(vscode.window, 'showTextDocument');
-      showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+      sandbox.stub(vscode.window, 'showInformationMessage');
+      sandbox.stub(vscode.workspace, 'openTextDocument');
+      sandbox.stub(vscode.window, 'showTextDocument');
+      showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     });
 
     afterEach(() => {
-      sinon.restore();
+      sandbox.restore();
     });
 
     test('mdb.addDatabase command fails when not connected to the connection', async () => {
@@ -78,38 +79,38 @@ suite('MDBExtensionController Test Suite', function () {
   });
 
   suite('when connected', () => {
-    const sandbox = sinon.createSandbox();
     let showInformationMessageStub: SinonStub;
     let openTextDocumentStub: SinonStub;
     let fakeActiveConnectionId: SinonSpy;
     let showErrorMessageStub: SinonStub;
     let fakeCreatePlaygroundFileWithContent: SinonSpy;
 
+    const sandbox = sinon.createSandbox();
+
     beforeEach(() => {
-      showInformationMessageStub = sinon.stub(
+      showInformationMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
       );
-      openTextDocumentStub = sinon.stub(vscode.workspace, 'openTextDocument');
-      fakeActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
-      sinon.replace(
+      openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
+      fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveConnectionId',
         fakeActiveConnectionId
       );
-      fakeCreatePlaygroundFileWithContent = sinon.fake();
-      sinon.replace(
+      fakeCreatePlaygroundFileWithContent = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         '_createPlaygroundFileWithContent',
         fakeCreatePlaygroundFileWithContent
       );
-      showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
-      sinon.stub(vscode.window, 'showTextDocument');
+      showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+      sandbox.stub(vscode.window, 'showTextDocument');
     });
 
     afterEach(() => {
       sandbox.restore();
-      sinon.restore();
     });
 
     test('mdb.viewCollectionDocuments command should call onViewCollectionDocuments on the editor controller with the collection namespace', async () => {
@@ -181,7 +182,7 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.addConnection command should call openWebview on the webview controller', async () => {
-      const openWebviewStub = sinon.stub(
+      const openWebviewStub = sandbox.stub(
         mdbTestExtension.testExtensionController._webviewController,
         'openWebview'
       );
@@ -190,8 +191,8 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.addConnectionWithURI command should call connectWithURI on the connection controller', async () => {
-      const fakeConnectWithURI = sinon.fake();
-      sinon.replace(
+      const fakeConnectWithURI = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'connectWithURI',
         fakeConnectWithURI
@@ -211,8 +212,8 @@ suite('MDBExtensionController Test Suite', function () {
       );
       testTreeItem.cacheIsUpToDate = true;
 
-      const fakeRefresh = sinon.fake();
-      sinon.replace(
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
         fakeRefresh
@@ -242,8 +243,8 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const fakeRemoveMongoDBConnection = sinon.fake();
-      sinon.replace(
+      const fakeRemoveMongoDBConnection = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'removeMongoDBConnection',
         fakeRemoveMongoDBConnection
@@ -268,14 +269,14 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const fakeWriteText = sinon.fake();
-      sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      const fakeWriteText = sandbox.fake();
+      sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
         writeText: fakeWriteText,
-        readText: sinon.fake(),
+        readText: sandbox.fake(),
       }));
       const fakeCopyConnectionStringByConnectionId =
-        sinon.fake.returns('weStubThisUri');
-      sinon.replace(
+        sandbox.fake.returns('weStubThisUri');
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'copyConnectionStringByConnectionId',
         fakeCopyConnectionStringByConnectionId
@@ -296,10 +297,10 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const fakeWriteText = sinon.fake();
-      sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      const fakeWriteText = sandbox.fake();
+      sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
         writeText: fakeWriteText,
-        readText: sinon.fake(),
+        readText: sandbox.fake(),
       }));
       await vscode.commands.executeCommand(
         'mdb.copyDatabaseName',
@@ -324,10 +325,10 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         null
       );
-      const fakeWriteText = sinon.fake();
-      sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      const fakeWriteText = sandbox.fake();
+      sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
         writeText: fakeWriteText,
-        readText: sinon.fake(),
+        readText: sandbox.fake(),
       }));
       await vscode.commands.executeCommand(
         'mdb.copyCollectionName',
@@ -354,10 +355,10 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const fakeWriteText = sinon.fake();
-      sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      const fakeWriteText = sandbox.fake();
+      sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
         writeText: fakeWriteText,
-        readText: sinon.fake(),
+        readText: sandbox.fake(),
       }));
       const commandResult = await vscode.commands.executeCommand(
         'mdb.copySchemaFieldName',
@@ -384,8 +385,8 @@ suite('MDBExtensionController Test Suite', function () {
       );
       testTreeItem.cacheIsUpToDate = true;
 
-      const fakeRefresh = sinon.fake();
-      sinon.replace(
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
         fakeRefresh
@@ -420,8 +421,8 @@ suite('MDBExtensionController Test Suite', function () {
       testTreeItem.getSchemaChild().isExpanded = true;
       testTreeItem.getDocumentListChild().isExpanded = true;
 
-      const fakeRefresh = sinon.fake();
-      sinon.replace(
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
         fakeRefresh
@@ -461,8 +462,8 @@ suite('MDBExtensionController Test Suite', function () {
       count = 10000;
       docListTreeItem.isExpanded = true;
 
-      const fakeRefresh = sinon.fake();
-      sinon.replace(
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
         fakeRefresh
@@ -501,8 +502,8 @@ suite('MDBExtensionController Test Suite', function () {
       // Set cached.
       testTreeItem.cacheIsUpToDate = true;
 
-      const fakeRefresh = sinon.fake();
-      sinon.replace(
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
         fakeRefresh
@@ -531,8 +532,8 @@ suite('MDBExtensionController Test Suite', function () {
       // Set cached.
       testTreeItem.cacheIsUpToDate = true;
 
-      const fakeRefresh = sinon.fake();
-      sinon.replace(
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
         fakeRefresh
@@ -609,10 +610,14 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.createPlayground should create a MongoDB playground with default template', async () => {
-      const fakeGetConfiguration = sinon.fake.returns({
+      const fakeGetConfiguration = sandbox.fake.returns({
         get: () => true,
       });
-      sinon.replace(vscode.workspace, 'getConfiguration', fakeGetConfiguration);
+      sandbox.replace(
+        vscode.workspace,
+        'getConfiguration',
+        fakeGetConfiguration
+      );
       await vscode.commands.executeCommand('mdb.createPlayground');
 
       const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
@@ -620,10 +625,14 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.createPlayground command should create a MongoDB playground without template', async () => {
-      const fakeGetConfiguration = sinon.fake.returns({
+      const fakeGetConfiguration = sandbox.fake.returns({
         get: () => false,
       });
-      sinon.replace(vscode.workspace, 'getConfiguration', fakeGetConfiguration);
+      sandbox.replace(
+        vscode.workspace,
+        'getConfiguration',
+        fakeGetConfiguration
+      );
       await vscode.commands.executeCommand('mdb.createPlayground');
 
       const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
@@ -639,13 +648,13 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('theDbName');
       inputBoxResolvesStub.onCall(1).resolves('theCollectionName');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
-      const fakeIsDisconnecting = sinon.fake.returns(true);
-      sinon.replace(
+      const fakeIsDisconnecting = sandbox.fake.returns(true);
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'isDisconnecting',
         fakeIsDisconnecting
@@ -677,13 +686,13 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('theDbName');
       inputBoxResolvesStub.onCall(1).resolves('theCollectionName');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
-      const fakeIsConnecting = sinon.fake.returns(true);
-      sinon.replace(
+      const fakeIsConnecting = sandbox.fake.returns(true);
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'isConnecting',
         fakeIsConnecting
@@ -713,12 +722,12 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('mintChocolateChips');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
-      const fakeIsDisconnecting = sinon.fake.returns(true);
-      sinon.replace(
+      const fakeIsDisconnecting = sandbox.fake.returns(true);
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'isDisconnecting',
         fakeIsDisconnecting
@@ -757,9 +766,9 @@ suite('MDBExtensionController Test Suite', function () {
         null
       );
 
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('testColName');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropCollection',
@@ -784,9 +793,9 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         null
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('doesntExistColName');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropCollection',
@@ -815,9 +824,9 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         null
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('apple');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropCollection',
@@ -838,9 +847,9 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         null
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves(/* Return undefined. */);
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropCollection',
@@ -867,9 +876,9 @@ suite('MDBExtensionController Test Suite', function () {
         {}
       );
 
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('iMissTangerineAltoids');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropDatabase',
@@ -893,9 +902,9 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('narnia____a');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropDatabase',
@@ -919,9 +928,9 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('apple');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropDatabase',
@@ -941,9 +950,9 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves(/* Return undefined. */);
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropDatabase',
@@ -973,9 +982,9 @@ suite('MDBExtensionController Test Suite', function () {
         {}
       );
 
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves(/* Return undefined. */);
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyRenamed = await vscode.commands.executeCommand(
         'mdb.renameConnection',
@@ -1010,9 +1019,9 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         {}
       );
-      const inputBoxResolvesStub = sinon.stub();
+      const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('orange juice');
-      sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
       const successfullyRenamed = await vscode.commands.executeCommand(
         'mdb.renameConnection',
@@ -1035,8 +1044,8 @@ suite('MDBExtensionController Test Suite', function () {
           $time: '12345',
         },
       };
-      const fakeGet = sinon.fake.returns('pancakes');
-      sinon.replace(
+      const fakeGet = sandbox.fake.returns('pancakes');
+      sandbox.replace(
         mdbTestExtension.testExtensionController._editorsController
           ._documentIdStore,
         'get',
@@ -1061,7 +1070,7 @@ suite('MDBExtensionController Test Suite', function () {
         () => activeTextEditor
       );
 
-      const fakeGetActiveDataService = sinon.fake.returns({
+      const fakeGetActiveDataService = sandbox.fake.returns({
         find: () => {
           return Promise.resolve([mockDocument]);
         },
@@ -1077,7 +1086,7 @@ suite('MDBExtensionController Test Suite', function () {
           return callback(null, mockDocument);
         },
       });
-      sinon.replace(
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
         fakeGetActiveDataService
@@ -1141,8 +1150,8 @@ suite('MDBExtensionController Test Suite', function () {
         {} as DataService,
         () => Promise.resolve()
       );
-      const fakeFetchDocument = sinon.fake.resolves(null);
-      sinon.replace(
+      const fakeFetchDocument = sandbox.fake.resolves(null);
+      sandbox.replace(
         mdbTestExtension.testExtensionController._editorsController
           ._mongoDBDocumentService,
         'fetchDocument',
@@ -1166,8 +1175,8 @@ suite('MDBExtensionController Test Suite', function () {
         namespace: 'db.coll',
         connectionId: null,
       };
-      const fakeFetchDocument = sinon.fake.resolves(null);
-      sinon.replace(
+      const fakeFetchDocument = sandbox.fake.resolves(null);
+      sandbox.replace(
         mdbTestExtension.testExtensionController._editorsController
           ._mongoDBDocumentService,
         'fetchDocument',
@@ -1191,8 +1200,8 @@ suite('MDBExtensionController Test Suite', function () {
           $time: '12345',
         },
       };
-      const fakeGet = sinon.fake.returns('pancakes');
-      sinon.replace(
+      const fakeGet = sandbox.fake.returns('pancakes');
+      sandbox.replace(
         mdbTestExtension.testExtensionController._editorsController
           ._documentIdStore,
         'get',
@@ -1219,8 +1228,8 @@ suite('MDBExtensionController Test Suite', function () {
           } as unknown as typeof vscode.window.activeTextEditor)
       );
 
-      const fakeReplaceDocument = sinon.fake.resolves(null);
-      sinon.replace(
+      const fakeReplaceDocument = sandbox.fake.resolves(null);
+      sandbox.replace(
         mdbTestExtension.testExtensionController._editorsController
           ._mongoDBDocumentService,
         'replaceDocument',
@@ -1241,8 +1250,8 @@ suite('MDBExtensionController Test Suite', function () {
           $time: '12345',
         },
       };
-      const fakeGet = sinon.fake.returns('pancakes');
-      sinon.replace(
+      const fakeGet = sandbox.fake.returns('pancakes');
+      sandbox.replace(
         mdbTestExtension.testExtensionController._editorsController
           ._documentIdStore,
         'get',
@@ -1269,8 +1278,8 @@ suite('MDBExtensionController Test Suite', function () {
           } as unknown as typeof vscode.window.activeTextEditor)
       );
 
-      const fakeReplaceDocument = sinon.fake.resolves(null);
-      sinon.replace(
+      const fakeReplaceDocument = sandbox.fake.resolves(null);
+      sandbox.replace(
         mdbTestExtension.testExtensionController._editorsController
           ._mongoDBDocumentService,
         'replaceDocument',
@@ -1284,8 +1293,8 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.runSelectedPlaygroundBlocks runs selected playgroundB blocks once', async () => {
-      const fakeRunSelectedPlaygroundBlocks = sinon.fake();
-      sinon.replace(
+      const fakeRunSelectedPlaygroundBlocks = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         'runSelectedPlaygroundBlocks',
         fakeRunSelectedPlaygroundBlocks
@@ -1298,8 +1307,8 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.runAllPlaygroundBlocks runs all playgroundB blocks once', async () => {
-      const fakeRunAllPlaygroundBlocks = sinon.fake();
-      sinon.replace(
+      const fakeRunAllPlaygroundBlocks = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         'runAllPlaygroundBlocks',
         fakeRunAllPlaygroundBlocks
@@ -1312,8 +1321,8 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.changeActiveConnection changes the active connection once', async () => {
-      const fakeChangeActiveConnection = sinon.fake();
-      sinon.replace(
+      const fakeChangeActiveConnection = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'changeActiveConnection',
         fakeChangeActiveConnection
@@ -1326,8 +1335,8 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshPlaygroundsFromTreeView refreshes the playgrounds explorer once', async () => {
-      const fakeRefresh = sinon.fake();
-      sinon.replace(
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundsExplorer,
         'refresh',
         fakeRefresh
@@ -1350,7 +1359,7 @@ suite('MDBExtensionController Test Suite', function () {
       };
       let namespaceUsed = '';
 
-      const findStub = sinon.stub();
+      const findStub = sandbox.stub();
       findStub.resolves([mockDocument]);
 
       const dataServiceStub = {
@@ -1366,10 +1375,10 @@ suite('MDBExtensionController Test Suite', function () {
         dataServiceStub,
         () => Promise.resolve()
       );
-      const fakeWriteText = sinon.fake();
-      sinon.replaceGetter(vscode.env, 'clipboard', () => ({
+      const fakeWriteText = sandbox.fake();
+      sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
         writeText: fakeWriteText,
-        readText: sinon.fake(),
+        readText: sandbox.fake(),
       }));
       await vscode.commands.executeCommand(
         'mdb.copyDocumentContentsFromTreeView',
@@ -1408,8 +1417,8 @@ suite('MDBExtensionController Test Suite', function () {
         dataServiceStub,
         () => Promise.resolve()
       );
-      const fakeCreatePlaygroundForCloneDocument = sinon.fake();
-      sinon.replace(
+      const fakeCreatePlaygroundForCloneDocument = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         'createPlaygroundForCloneDocument',
         fakeCreatePlaygroundForCloneDocument
@@ -1450,8 +1459,8 @@ suite('MDBExtensionController Test Suite', function () {
         false,
         null
       );
-      const fakeCreatePlaygroundForInsertDocument = sinon.fake();
-      sinon.replace(
+      const fakeCreatePlaygroundForInsertDocument = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         'createPlaygroundForInsertDocument',
         fakeCreatePlaygroundForInsertDocument
@@ -1563,11 +1572,7 @@ suite('MDBExtensionController Test Suite', function () {
       let executeCommandStub: SinonStub;
 
       beforeEach(() => {
-        executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
-      });
-
-      afterEach(() => {
-        sinon.restore();
+        executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
       });
 
       suite(
@@ -1576,29 +1581,25 @@ suite('MDBExtensionController Test Suite', function () {
           let fakeUpdate: SinonSpy;
 
           beforeEach(() => {
-            sinon.replace(
+            sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
-              sinon.fake.returns(false)
+              sandbox.fake.returns(false)
             );
-            sinon.replace(
+            sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'hasSavedConnections',
-              sinon.fake.returns(false)
+              sandbox.fake.returns(false)
             );
 
-            fakeUpdate = sinon.fake.resolves(undefined);
-            sinon.replace(
+            fakeUpdate = sandbox.fake.resolves(undefined);
+            sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'update',
               fakeUpdate
             );
 
             void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
-          });
-
-          afterEach(() => {
-            sinon.restore();
           });
 
           test('they are shown the overview page', () => {
@@ -1634,18 +1635,18 @@ suite('MDBExtensionController Test Suite', function () {
           let fakeUpdate: SinonSpy;
 
           beforeEach(() => {
-            sinon.replace(
+            sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
-              sinon.fake.returns(undefined)
+              sandbox.fake.returns(undefined)
             );
-            sinon.replace(
+            sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'hasSavedConnections',
-              sinon.fake.returns(true)
+              sandbox.fake.returns(true)
             );
-            fakeUpdate = sinon.fake.resolves(undefined);
-            sinon.replace(
+            fakeUpdate = sandbox.fake.resolves(undefined);
+            sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'update',
               fakeUpdate
@@ -1675,10 +1676,10 @@ suite('MDBExtensionController Test Suite', function () {
 
       suite('when a user has been shown the initial overview page', () => {
         beforeEach(() => {
-          sinon.replace(
+          sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
-            sinon.fake.returns(true)
+            sandbox.fake.returns(true)
           );
 
           void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();

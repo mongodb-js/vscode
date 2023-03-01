@@ -39,7 +39,6 @@ suite('Playground Result Provider Test Suite', () => {
 
   afterEach(() => {
     sandbox.restore();
-    sinon.restore();
   });
 
   test('constructor sets default playground result', () => {
@@ -218,8 +217,8 @@ suite('Playground Result Provider Test Suite', () => {
       language: 'json',
     };
 
-    const fakeUpdateCodeLensesForPlayground = sinon.fake();
-    sinon.replace(
+    const fakeUpdateCodeLensesForPlayground = sandbox.fake();
+    sandbox.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
       fakeUpdateCodeLensesForPlayground
@@ -252,8 +251,8 @@ suite('Playground Result Provider Test Suite', () => {
       language: 'json',
     };
 
-    const fakeUpdateCodeLensesForPlayground = sinon.fake();
-    sinon.replace(
+    const fakeUpdateCodeLensesForPlayground = sandbox.fake();
+    sandbox.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
       fakeUpdateCodeLensesForPlayground
@@ -299,8 +298,8 @@ suite('Playground Result Provider Test Suite', () => {
     };
 
     const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
-    const fakeActiveConnectionId = sinon.fake.returns(connectionId);
-    sinon.replace(
+    const fakeActiveConnectionId = sandbox.fake.returns(connectionId);
+    sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
       fakeActiveConnectionId
@@ -378,8 +377,8 @@ suite('Playground Result Provider Test Suite', () => {
         },
       } as unknown as DataService);
 
-    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
-    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const operationId =
       testCollectionViewProvider._operationsStore.createNewOperation();

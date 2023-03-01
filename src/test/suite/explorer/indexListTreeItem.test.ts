@@ -12,13 +12,14 @@ const { contributes } = require('../../../../package.json');
 
 suite('IndexListTreeItem Test Suite', () => {
   let showErrorMessageStub: SinonStub;
+  const sandbox = sinon.createSandbox();
 
   beforeEach(() => {
-    showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+    showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
   afterEach(() => {
-    sinon.restore();
+    sandbox.restore();
   });
 
   test('its context value should be in the package json', () => {

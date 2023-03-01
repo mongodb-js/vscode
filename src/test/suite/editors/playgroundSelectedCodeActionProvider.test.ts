@@ -29,14 +29,15 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
 
   suite('the MongoDB playground in JS', () => {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
+    const sandbox = sinon.createSandbox();
 
     beforeEach(async () => {
-      sinon.replace(
+      sandbox.replace(
         mdbTestExtension.testExtensionController,
         '_languageServerController',
         new LanguageServerController(extensionContextStub)
       );
-      sinon.stub(vscode.window, 'showInformationMessage');
+      sandbox.stub(vscode.window, 'showInformationMessage');
 
       await mdbTestExtension.testExtensionController._connectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
@@ -65,8 +66,8 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
           testExplorerController
         );
 
-      const fakeOpenPlaygroundResult = sinon.fake();
-      sinon.replace(
+      const fakeOpenPlaygroundResult = sandbox.fake();
+      sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         '_openPlaygroundResult',
         fakeOpenPlaygroundResult
@@ -79,8 +80,8 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       await mdbTestExtension.testExtensionController._languageServerController.startLanguageServer();
       await mdbTestExtension.testExtensionController._playgroundController._connectToServiceProvider();
 
-      const fakeIsPlayground = sinon.fake.returns(true);
-      sinon.replace(testCodeActionProvider, 'isPlayground', fakeIsPlayground);
+      const fakeIsPlayground = sandbox.fake.returns(true);
+      sandbox.replace(testCodeActionProvider, 'isPlayground', fakeIsPlayground);
     });
 
     afterEach(async () => {
@@ -92,7 +93,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
         .update('confirmRunAll', true);
       await mdbTestExtension.testExtensionController._connectionController.disconnect();
       mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
-      sinon.restore();
+      sandbox.restore();
     });
 
     test('returns undefined when text is not selected', () => {
@@ -472,14 +473,15 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
 
   suite('the regular JS file', () => {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
+    const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
-      const fakeIsPlayground = sinon.fake.returns(false);
-      sinon.replace(testCodeActionProvider, 'isPlayground', fakeIsPlayground);
+      const fakeIsPlayground = sandbox.fake.returns(false);
+      sandbox.replace(testCodeActionProvider, 'isPlayground', fakeIsPlayground);
     });
 
     afterEach(() => {
-      sinon.restore();
+      sandbox.restore();
     });
 
     test('returns undefined when text is not selected', () => {

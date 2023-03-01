@@ -19,13 +19,12 @@ suite('Editors Controller Test Suite', () => {
   let showErrorMessageStub: SinonStub;
 
   beforeEach(() => {
-    sinon.stub(vscode.window, 'showInformationMessage');
-    showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+    sandbox.stub(vscode.window, 'showInformationMessage');
+    showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
   afterEach(() => {
     sandbox.restore();
-    sinon.restore();
   });
 
   suite('#getFileDisplayNameForDocumentId', () => {

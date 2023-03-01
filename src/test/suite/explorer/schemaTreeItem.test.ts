@@ -25,8 +25,10 @@ const { contributes } = require('../../../../package.json');
 
 suite('SchemaTreeItem Test Suite', function () {
   this.timeout(10000);
+  const sandbox = sinon.createSandbox();
+
   afterEach(() => {
-    sinon.restore();
+    sandbox.restore();
   });
 
   test('its context value should be in the package json', () => {
@@ -88,7 +90,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const expectedMessage =
       'No documents were found when attempting to parse schema.';
 
-    const findStub = sinon.stub();
+    const findStub = sandbox.stub();
     findStub.resolves([]);
     const testDataService = {
       find: findStub,
@@ -105,7 +107,7 @@ suite('SchemaTreeItem Test Suite', function () {
       {}
     );
 
-    const showInformationMessageStub = sinon.stub(
+    const showInformationMessageStub = sandbox.stub(
       vscode.window,
       'showInformationMessage'
     );
@@ -129,7 +131,7 @@ suite('SchemaTreeItem Test Suite', function () {
     for (let i = 0; i < 20; i++) {
       mockDocWithTwentyFields[`${i}`] = 'some value';
     }
-    const findStub = sinon.stub();
+    const findStub = sandbox.stub();
     findStub.resolves([mockDocWithTwentyFields]);
     const testDataService = {
       find: findStub,
@@ -166,7 +168,7 @@ suite('SchemaTreeItem Test Suite', function () {
     for (let i = 0; i < 30; i++) {
       mockDocWithThirtyFields[`${i}`] = 'some value';
     }
-    const findStub = sinon.stub();
+    const findStub = sandbox.stub();
     findStub.resolves([mockDocWithThirtyFields]);
     const testDataService = {
       find: findStub,
@@ -194,7 +196,7 @@ suite('SchemaTreeItem Test Suite', function () {
   });
 
   test('When schema parsing fails it displays an error message', async () => {
-    const findStub = sinon.stub();
+    const findStub = sandbox.stub();
     findStub.resolves('invalid schema to parse' as unknown as Document[]);
     const testDataService = {
       find: findStub,

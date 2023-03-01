@@ -39,16 +39,15 @@ suite('Collection Documents Provider Test Suite', () => {
   const sandbox = sinon.createSandbox();
 
   beforeEach(() => {
-    sinon.stub(vscode.window, 'showInformationMessage');
+    sandbox.stub(vscode.window, 'showInformationMessage');
   });
 
   afterEach(() => {
     sandbox.restore();
-    sinon.restore();
   });
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async () => {
-    const findStub = sinon.stub();
+    const findStub = sandbox.stub();
     findStub.resolves([{ field: 'Declaration of Independence' }]);
     const testDataService = {
       find: findStub,
@@ -78,8 +77,8 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple&operationId=${operationId}`
     );
 
-    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
-    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const documents =
       await testCollectionViewProvider.provideTextDocumentContent(uri);
@@ -106,7 +105,7 @@ suite('Collection Documents Provider Test Suite', () => {
       },
     ];
 
-    const findStub = sinon.stub();
+    const findStub = sandbox.stub();
     findStub.resolves(mockDocuments);
     const testDataService = {
       find: findStub,
@@ -136,8 +135,8 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}`
     );
 
-    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
-    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const documents =
       await testCollectionViewProvider.provideTextDocumentContent(uri);
@@ -149,7 +148,7 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async () => {
-    const findStub = sinon.stub();
+    const findStub = sandbox.stub();
     findStub.resolves([{ field: 'Apollo' }, { field: 'Gemini ' }]);
     const testDataService = {
       find: findStub,
@@ -182,8 +181,8 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=vostok.mercury&operationId=${operationId}`
     );
 
-    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
-    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
     assert(
@@ -230,8 +229,8 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=aaaaaaaa&operationId=${operationId}`
     );
 
-    const showMessageStub = sinon.stub(testStatusView, 'showMessage');
-    const hideMessageStub = sinon.stub(testStatusView, 'hideMessage');
+    const showMessageStub = sandbox.stub(testStatusView, 'showMessage');
+    const hideMessageStub = sandbox.stub(testStatusView, 'hideMessage');
 
     mockActiveDataService.find = () => {
       assert(showMessageStub.called);
@@ -269,22 +268,22 @@ suite('Collection Documents Provider Test Suite', () => {
     const documents: { _id: string; name?: string; price?: number }[] = [
       { _id: '5ea8745ee4811fafe8b65ecb', name: 'nothing5' },
     ];
-    const fakeGetActiveDataService = sinon.fake.returns({
+    const fakeGetActiveDataService = sandbox.fake.returns({
       find: () => {
         return Promise.resolve(documents);
       },
     });
-    sinon.replace(
+    sandbox.replace(
       testCollectionViewProvider._connectionController,
       'getActiveDataService',
       fakeGetActiveDataService
     );
-    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
-    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
-    const fakeActiveConnectionId = sinon.fake.returns(connectionId);
-    sinon.replace(
+    const fakeActiveConnectionId = sandbox.fake.returns(connectionId);
+    sandbox.replace(
       testCollectionViewProvider._connectionController,
       'getActiveConnectionId',
       fakeActiveConnectionId
@@ -459,18 +458,18 @@ suite('Collection Documents Provider Test Suite', () => {
     const documents: { _id: string; location?: string; district?: string }[] = [
       { _id: '5ea8745ee4811fafe8b65ecb', location: 'alexanderplatz' },
     ];
-    const fakeGetActiveDataService = sinon.fake.returns({
+    const fakeGetActiveDataService = sandbox.fake.returns({
       find: () => {
         return Promise.resolve(documents);
       },
     });
-    sinon.replace(
+    sandbox.replace(
       testCollectionViewProvider._connectionController,
       'getActiveDataService',
       fakeGetActiveDataService
     );
-    sinon.stub(testCollectionViewProvider._statusView, 'showMessage');
-    sinon.stub(testCollectionViewProvider._statusView, 'hideMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const firstConnectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
     const secondConnectionId = '333c2b06-hhhh-40b7-bd8a-bd1f8333a896';

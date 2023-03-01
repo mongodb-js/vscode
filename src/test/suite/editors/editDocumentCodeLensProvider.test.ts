@@ -31,7 +31,6 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
 
   afterEach(() => {
     sandbox.restore();
-    sinon.restore();
   });
 
   test('provideCodeLenses returns an empty array if codeLensesInfo is empty', () => {
@@ -60,8 +59,8 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
-    const fakeActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
-    sinon.replace(
+    const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
+    sandbox.replace(
       testCodeLensProvider._connectionController,
       'getActiveConnectionId',
       fakeActiveConnectionId
@@ -94,8 +93,8 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
-    const fakeActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
-    sinon.replace(
+    const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
+    sandbox.replace(
       testCodeLensProvider._connectionController,
       'getActiveConnectionId',
       fakeActiveConnectionId

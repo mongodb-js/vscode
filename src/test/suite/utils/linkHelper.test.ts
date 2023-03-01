@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { afterEach } from 'mocha';
 import { expect } from 'chai';
 import http from 'http';
 import sinon from 'sinon';
@@ -7,8 +8,14 @@ import vscode from 'vscode';
 import { openLink } from '../../../utils/linkHelper';
 
 suite('Open Link Test Suite', () => {
+  const sandbox = sinon.createSandbox();
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
   test('the helper server is instantiated correctly', () => {
-    const stubServer: any = { on: sinon.spy(), listen: sinon.spy() };
+    const stubServer: any = { on: sandbox.spy(), listen: sandbox.spy() };
     const stubCreateServer: any = sinon
       .stub(http, 'createServer')
       .returns(stubServer);
@@ -20,10 +27,10 @@ suite('Open Link Test Suite', () => {
 
   test('the browser opens correctly for mongodb.com', () => {
     const stubServer: any = {
-      on: sinon.stub(),
-      listen: sinon.stub().callsArg(1),
+      on: sandbox.stub(),
+      listen: sandbox.stub().callsArg(1),
     };
-    const stubCreateStubInstance: any = sinon.createStubInstance(
+    const stubCreateStubInstance: any = sandbox.createStubInstance(
       http.Server,
       stubServer
     );
@@ -44,10 +51,10 @@ suite('Open Link Test Suite', () => {
 
   test('the browser opens correctly for a subdomain of mongodb.com', () => {
     const stubServer: any = {
-      on: sinon.stub(),
-      listen: sinon.stub().callsArg(1),
+      on: sandbox.stub(),
+      listen: sandbox.stub().callsArg(1),
     };
-    const stubCreateStubInstance: any = sinon.createStubInstance(
+    const stubCreateStubInstance: any = sandbox.createStubInstance(
       http.Server,
       stubServer
     );
