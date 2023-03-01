@@ -108,7 +108,7 @@
       },
       {
         "view": "mongoDBPlaygroundsExplorer",
-        "contents": "No '.mongodb' playground files found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromPlaygroundExplorer)"
+        "contents": "No MongoDB playground files found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromTreeView)"
       }
     ],
     "languages": [
@@ -176,10 +176,6 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
-        "command": "mdb.refreshPlaygrounds",
-        "title": "MongoDB: Refresh Playgrounds List"
-      },
-      {
         "command": "mdb.refreshPlaygroundsFromTreeView",
         "title": "Refresh",
         "icon": {
@@ -188,15 +184,11 @@
         }
       },
       {
-        "command": "mdb.createNewPlaygroundFromViewAction",
-        "title": "Create MongoDB Playground"
-      },
-      {
         "command": "mdb.createNewPlaygroundFromOverviewPage",
         "title": "Create MongoDB Playground"
       },
       {
-        "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
+        "command": "mdb.createNewPlaygroundFromTreeView",
         "title": "Create MongoDB Playground",
         "icon": {
           "light": "images/light/add.svg",
@@ -296,7 +288,7 @@
         }
       },
       {
-        "command": "mdb.openPlaygroundFromTreeItem",
+        "command": "mdb.openPlaygroundFromTreeView",
         "title": "Open Playground"
       },
       {
@@ -407,11 +399,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "mdb.createNewPlaygroundFromViewAction",
-          "when": "view == mongoDBPlaygroundsExplorer"
-        },
-        {
-          "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
+          "command": "mdb.createNewPlaygroundFromTreeView",
           "when": "view == mongoDBPlaygroundsExplorer",
           "group": "navigation@1"
         },
@@ -476,7 +464,7 @@
           "group": "5@2"
         },
         {
-          "command": "mdb.openPlaygroundFromTreeItem",
+          "command": "mdb.openPlaygroundFromTreeView",
           "when": "view == mongoDBPlaygroundsExplorer && viewItem == playgroundsTreeItem",
           "group": "1@1"
         },
@@ -631,6 +619,10 @@
       ],
       "commandPalette": [
         {
+          "command": "mdb.disconnect",
+          "when": "mdb.connectedToMongoDB == true"
+        },
+        {
           "command": "mdb.saveMongoDBDocument",
           "when": "editorLangId == json"
         },
@@ -644,23 +636,23 @@
         },
         {
           "command": "mdb.exportToRuby",
-          "when": "mdb.isPlayground == true"
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToPython",
-          "when": "mdb.isPlayground == true"
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToJava",
-          "when": "mdb.isPlayground == true"
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToCsharp",
-          "when": "mdb.isPlayground == true"
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToNode",
-          "when": "mdb.isPlayground == true"
+          "when": "mdb.isPlayground == true && connectedToMongoDB == true"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -679,15 +671,11 @@
           "when": "false"
         },
         {
-          "command": "mdb.createNewPlaygroundFromViewAction",
-          "when": "false"
-        },
-        {
           "command": "mdb.createNewPlaygroundFromOverviewPage",
           "when": "false"
         },
         {
-          "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
+          "command": "mdb.createNewPlaygroundFromTreeView",
           "when": "false"
         },
         {
@@ -715,7 +703,7 @@
           "when": "false"
         },
         {
-          "command": "mdb.openPlaygroundFromTreeItem",
+          "command": "mdb.openPlaygroundFromTreeView",
           "when": "false"
         },
         {

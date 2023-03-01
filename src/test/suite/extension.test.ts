@@ -25,8 +25,7 @@ suite('Extension Test Suite', () => {
       'mdb.openMongoDBShell',
       'mdb.createPlayground',
       'mdb.createNewPlaygroundFromOverviewPage',
-      'mdb.createNewPlaygroundFromPlaygroundExplorer',
-      'mdb.createNewPlaygroundFromViewAction',
+      'mdb.createNewPlaygroundFromTreeView',
 
       // Tree view commands.
       'mdb.addConnection',

@@ -1325,14 +1325,14 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    test('mdb.refreshPlaygrounds refreshes the playgrounds explorer once', async () => {
+    test('mdb.refreshPlaygroundsFromTreeView refreshes the playgrounds explorer once', async () => {
       const fakeRefresh = sinon.fake();
       sinon.replace(
         mdbTestExtension.testExtensionController._playgroundsExplorer,
         'refresh',
         fakeRefresh
       );
-      await vscode.commands.executeCommand('mdb.refreshPlaygrounds');
+      await vscode.commands.executeCommand('mdb.refreshPlaygroundsFromTreeView');
       assert(
         fakeRefresh.calledOnce,
         'Expected "refreshPlaygrounds" to be called on the playground controller.'
