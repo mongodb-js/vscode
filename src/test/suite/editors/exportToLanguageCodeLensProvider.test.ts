@@ -24,7 +24,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     testExportToLanguageCodeLensProvider.refresh(defaults);
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(2);
     expect(codeLenses[0].command?.title).to.be.equal(
       'Include Import Statements'
@@ -38,7 +37,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(2);
     expect(codeLenses[0].command?.title).to.be.equal(
       'Exclude Import Statements'
@@ -49,7 +47,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     testExportToLanguageCodeLensProvider.refresh(defaults);
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(2);
     expect(codeLenses[1].command?.title).to.be.equal('Include Driver Syntax');
   });
@@ -61,7 +58,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(2);
     expect(codeLenses[1].command?.title).to.be.equal('Exclude Driver Syntax');
   });
@@ -74,7 +70,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(3);
     expect(codeLenses[2].command?.title).to.be.equal('Use Builders');
   });
@@ -87,7 +82,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(1); // Csharp does not support driver syntax.
     expect(codeLenses[0].command?.title).to.be.equal(
       'Include Import Statements'
@@ -103,7 +97,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(3);
     expect(codeLenses[2].command?.title).to.be.equal('Use Raw Query');
   });
@@ -117,7 +110,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(2);
   });
 
@@ -130,7 +122,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(0);
   });
 
@@ -143,7 +134,6 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(0);
   });
 });

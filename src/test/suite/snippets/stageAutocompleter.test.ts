@@ -44,7 +44,7 @@ const STAGE_LABELS = [
 
 suite('Stage Autocompleter Test Suite', () => {
   test('checks that stage-autocompleter.json exists and includes JSON with prefix, body and description', () => {
-    const properties: any = {};
+    const properties: { prefix: string, body: string, description: string } | {} = {};
 
     STAGE_LABELS.forEach((prop: string) => {
       properties[prop] = {

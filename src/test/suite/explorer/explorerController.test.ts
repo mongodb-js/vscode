@@ -26,13 +26,8 @@ suite('Explorer Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations['Session Only']
       );
-    // Here we stub the showInformationMessage process because it is too much
-    // for the render process and leads to crashes while testing.
-    sinon.replace(
-      vscode.window,
-      'showInformationMessage',
-      sinon.fake.resolves(true)
-    );
+    sinon.stub(vscode.window, 'showInformationMessage');
+    sinon.stub(vscode.window, 'showErrorMessage');
   });
 
   afterEach(async () => {

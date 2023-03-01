@@ -1,72 +1,67 @@
 import * as vscode from 'vscode';
-import * as sinon from 'sinon';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
+import sinon from 'sinon';
+import type { SinonSpy, SinonStub } from 'sinon';
 
 import launchMongoShell from '../../../commands/launchMongoShell';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 suite('Commands Test Suite', () => {
-  void vscode.window.showInformationMessage('Starting tests...');
-
-  const mockConnectionController =
+  const testConnectionController =
     mdbTestExtension.testExtensionController._connectionController;
-  const sandbox = sinon.createSandbox();
 
-  let fakeShowErrorMessage: any;
-  let fakeGetMongoClientConnectionOptions: any;
-  let fakeIsCurrentlyConnected: any;
-  let createTerminalStub: any;
-  let fakeSendTerminalText: any;
+  let showErrorMessageStub: SinonStub;
+  let fakeGetMongoClientConnectionOptions: SinonStub;
+  let fakeIsCurrentlyConnected: SinonStub;
+  let createTerminalStub: SinonStub;
+  let sendTextStub: SinonSpy;
 
   beforeEach(() => {
-    sandbox.stub(vscode.window, 'showInformationMessage');
-
-    fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
-    fakeGetMongoClientConnectionOptions = sandbox.stub(
-      mockConnectionController,
+    sinon.stub(vscode.window, 'showInformationMessage');
+    showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+    fakeGetMongoClientConnectionOptions = sinon.stub(
+      testConnectionController,
       'getMongoClientConnectionOptions'
     );
-
-    fakeIsCurrentlyConnected = sandbox.stub(
-      mockConnectionController,
+    fakeIsCurrentlyConnected = sinon.stub(
+      testConnectionController,
       'isCurrentlyConnected'
     );
-
-    createTerminalStub = sandbox.stub();
-    fakeSendTerminalText = sandbox.stub();
-
+    createTerminalStub = sinon.stub(vscode.window, 'createTerminal');
+    sendTextStub = sinon.stub();
     createTerminalStub.returns({
-      sendText: fakeSendTerminalText,
+      sendText: sendTextStub,
       show: () => {},
     });
-    sandbox.replace(vscode.window, 'createTerminal', createTerminalStub);
   });
 
   afterEach(async () => {
-    sandbox.restore();
     sinon.restore();
 
-    await mockConnectionController.disconnect();
-    mockConnectionController.clearAllConnections();
+    await testConnectionController.disconnect();
+    testConnectionController.clearAllConnections();
   });
 
   suite('bash env shell', () => {
+    const sandbox = sinon.createSandbox();
+
     beforeEach(() => {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'bash');
     });
 
-    test('openMongoDBShell should display an error message when not connected', async () => {
-      const errorMessage =
+    afterEach(() => {
+      sandbox.restore();
+    });
+
+    test('openMongoDBShell should show an error message when not connected', async () => {
+      const expectedMessage =
         'You need to be connected before launching the MongoDB Shell.';
-
-      fakeShowErrorMessage.resolves(errorMessage);
-
-      try {
-        await launchMongoShell(mockConnectionController);
-      } catch (error) {
-        sinon.assert.calledWith(fakeShowErrorMessage, errorMessage);
-      }
+      await launchMongoShell(testConnectionController);
+      assert(
+        showErrorMessageStub.firstCall.args[0] === expectedMessage,
+        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${showErrorMessageStub.firstCall.args[0]}"`
+      );
     });
 
     test('openMongoDBShell should open a terminal with the active connection driver url', async () => {
@@ -79,27 +74,31 @@ suite('Commands Test Suite', () => {
       });
       fakeIsCurrentlyConnected.returns(true);
 
-      await launchMongoShell(mockConnectionController);
+      await launchMongoShell(testConnectionController);
 
       assert(createTerminalStub.called);
 
       const terminalOptions: vscode.TerminalOptions =
         createTerminalStub.firstCall.args[0];
-
       assert(
         terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
         `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
 
-      const shellCommandText = fakeSendTerminalText.firstCall.args[0];
-
+      const shellCommandText = sendTextStub.firstCall.args[0];
       assert.strictEqual(shellCommandText, 'mongosh $MDB_CONNECTION_STRING;');
     });
   });
 
   suite('Windows powershell env shell', () => {
+    const sandbox = sinon.createSandbox();
+
     beforeEach(() => {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'powershell.exe');
+    });
+
+    afterEach(() => {
+      sandbox.restore();
     });
 
     test('powershell openMongoDBShell should open a terminal with the active connection driver url', async () => {
@@ -113,19 +112,17 @@ suite('Commands Test Suite', () => {
 
       fakeIsCurrentlyConnected.returns(true);
 
-      await launchMongoShell(mockConnectionController);
-
+      await launchMongoShell(testConnectionController);
       assert(createTerminalStub.called);
 
       const terminalOptions: vscode.TerminalOptions =
         createTerminalStub.firstCall.args[0];
-
       assert(
         terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
         `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
       );
 
-      const shellCommandText = fakeSendTerminalText.firstCall.args[0];
+      const shellCommandText = sendTextStub.firstCall.args[0];
       assert(
         shellCommandText.includes('$Env:MDB_CONNECTION_STRING'),
         `Expected sendText to terminal (${shellCommandText}) to use powershell env variable syntax`
@@ -134,8 +131,14 @@ suite('Commands Test Suite', () => {
   });
 
   suite('Windows cmd env shell', () => {
+    const sandbox = sinon.createSandbox();
+
     beforeEach(() => {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'cmd.exe');
+    });
+
+    afterEach(() => {
+      sandbox.restore();
     });
 
     test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async () => {
@@ -149,13 +152,11 @@ suite('Commands Test Suite', () => {
 
       fakeIsCurrentlyConnected.returns(true);
 
-      await launchMongoShell(mockConnectionController);
-
+      await launchMongoShell(testConnectionController);
       assert(createTerminalStub.called);
 
       const terminalOptions: vscode.TerminalOptions =
         createTerminalStub.firstCall.args[0];
-
       assert(
         terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
         `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`

@@ -108,6 +108,8 @@ export default class DocumentListTreeItem
 
   isExpanded: boolean;
 
+  iconPath: { light: string; dark: string };
+
   constructor(
     collectionName: string,
     databaseName: string,

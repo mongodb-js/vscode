@@ -1,7 +1,8 @@
 import assert from 'assert';
 import { shallow, ShallowWrapper } from 'enzyme';
 import * as React from 'react';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
+import type { SinonSpy } from 'sinon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 
@@ -88,8 +89,8 @@ describe('Host Component Test Suite', () => {
     });
 
     describe('when add host is clicked', () => {
-      let fakeSetReplicaSet: sinon.SinonSpy;
-      let fakeUpdateHosts: sinon.SinonSpy;
+      let fakeSetReplicaSet: SinonSpy;
+      let fakeUpdateHosts: SinonSpy;
 
       beforeEach(() => {
         fakeSetReplicaSet = sinon.fake.returns(undefined);
@@ -195,7 +196,7 @@ describe('Host Component Test Suite', () => {
       });
 
       describe('when remove host is clicked', () => {
-        let fakeUpdateHosts: sinon.SinonSpy;
+        let fakeUpdateHosts: SinonSpy;
 
         beforeEach(() => {
           fakeUpdateHosts = sinon.fake.returns(undefined);

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import { EJSON } from 'bson';
 import sinon from 'sinon';
@@ -12,17 +12,17 @@ import MongoDBDocumentService from '../../../editors/mongoDBDocumentService';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
 import TelemetryService from '../../../telemetry/telemetryService';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;
 
 suite('MongoDB Document Service Test Suite', () => {
-  const mockExtensionContext = new TestExtensionContext();
-  const testStorageController = new StorageController(mockExtensionContext);
-  const testStatusView = new StatusView(mockExtensionContext);
+  const extensionContextStub = new ExtensionContextStub();
+  const testStorageController = new StorageController(extensionContextStub);
+  const testStatusView = new StatusView(extensionContextStub);
   const testTelemetryService = new TelemetryService(
     testStorageController,
-    mockExtensionContext
+    extensionContextStub
   );
   const testConnectionController = new ConnectionController(
     testStatusView,
@@ -30,16 +30,17 @@ suite('MongoDB Document Service Test Suite', () => {
     testTelemetryService
   );
   const testMongoDBDocumentService = new MongoDBDocumentService(
-    mockExtensionContext,
+    extensionContextStub,
     testConnectionController,
     testStatusView,
     testTelemetryService
   );
 
-  const sandbox = sinon.createSandbox();
+  beforeEach(() => {
+    sinon.stub(vscode.window, 'showErrorMessage');
+  });
 
   afterEach(() => {
-    sandbox.restore();
     sinon.restore();
   });
 
@@ -51,14 +52,14 @@ suite('MongoDB Document Service Test Suite', () => {
     const newDocument = { _id: '123', price: 5000 };
     const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
 
-    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    const fakeActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       testConnectionController,
       'getActiveConnectionId',
-      mockActiveConnectionId
+      fakeActiveConnectionId
     );
 
-    const mockGetActiveDataService = sinon.fake.returns({
+    const fakeGetActiveDataService = sinon.fake.returns({
       findOneAndReplace: (
         namespace: string,
         filter: object,
@@ -74,14 +75,14 @@ suite('MongoDB Document Service Test Suite', () => {
     sinon.replace(
       testConnectionController,
       'getActiveDataService',
-      mockGetActiveDataService
+      fakeGetActiveDataService
     );
 
-    const mockShowMessage = sinon.fake();
-    sinon.replace(testStatusView, 'showMessage', mockShowMessage);
+    const fakeShowMessage = sinon.fake();
+    sinon.replace(testStatusView, 'showMessage', fakeShowMessage);
 
-    const mockHideMessage = sinon.fake();
-    sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
+    const fakeHideMessage = sinon.fake();
+    sinon.replace(testStatusView, 'hideMessage', fakeHideMessage);
 
     await testMongoDBDocumentService.replaceDocument({
       namespace,
@@ -102,7 +103,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const documents = [{ _id: '123' }];
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
 
-    const mockGetActiveDataService = sinon.fake.returns({
+    const fakeGetActiveDataService = sinon.fake.returns({
       find: () => {
         return Promise.resolve([{ _id: '123' }]);
       },
@@ -110,21 +111,21 @@ suite('MongoDB Document Service Test Suite', () => {
     sinon.replace(
       testConnectionController,
       'getActiveDataService',
-      mockGetActiveDataService
+      fakeGetActiveDataService
     );
 
-    const mockGetActiveConnectionId = sinon.fake.returns(connectionId);
+    const fakeGetActiveConnectionId = sinon.fake.returns(connectionId);
     sinon.replace(
       testConnectionController,
       'getActiveConnectionId',
-      mockGetActiveConnectionId
+      fakeGetActiveConnectionId
     );
 
-    const mockShowMessage = sinon.fake();
-    sinon.replace(testStatusView, 'showMessage', mockShowMessage);
+    const fakeShowMessage = sinon.fake();
+    sinon.replace(testStatusView, 'showMessage', fakeShowMessage);
 
-    const mockHideMessage = sinon.fake();
-    sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
+    const fakeHideMessage = sinon.fake();
+    sinon.replace(testStatusView, 'hideMessage', fakeHideMessage);
 
     const result = await testMongoDBDocumentService.fetchDocument({
       namespace,
@@ -144,21 +145,18 @@ suite('MongoDB Document Service Test Suite', () => {
     const newDocument = { _id: '123', price: 5000 };
     const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
 
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
-    const mockActiveConnectionId = sinon.fake.returns(null);
+    const fakeActiveConnectionId = sinon.fake.returns(null);
     sinon.replace(
       testConnectionController,
       'getActiveConnectionId',
-      mockActiveConnectionId
+      fakeActiveConnectionId
     );
 
-    const mockGetSavedConnectionName = sinon.fake.returns('tasty_sandwhich');
+    const fakeGetSavedConnectionName = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       testConnectionController,
       'getSavedConnectionName',
-      mockGetSavedConnectionName
+      fakeGetSavedConnectionName
     );
 
     try {
@@ -184,21 +182,18 @@ suite('MongoDB Document Service Test Suite', () => {
     const newDocument = { _id: '123', price: 5000 };
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
 
-    const fakeVscodeErrorMessage = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
-    const mockActiveConnectionId = sinon.fake.returns('berlin.coctails');
+    const fakeActiveConnectionId = sinon.fake.returns('berlin.coctails');
     sinon.replace(
       testConnectionController,
       'getActiveConnectionId',
-      mockActiveConnectionId
+      fakeActiveConnectionId
     );
 
-    const mockGetSavedConnectionName = sinon.fake.returns('tasty_sandwhich');
+    const fakeGetSavedConnectionName = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       testConnectionController,
       'getSavedConnectionName',
-      mockGetSavedConnectionName
+      fakeGetSavedConnectionName
     );
 
     try {
@@ -224,25 +219,25 @@ suite('MongoDB Document Service Test Suite', () => {
     const line = 1;
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
 
-    const mockGetActiveConnectionId = sinon.fake.returns('345');
+    const fakeGetActiveConnectionId = sinon.fake.returns('345');
     sinon.replace(
       testConnectionController,
       'getActiveConnectionId',
-      mockGetActiveConnectionId
+      fakeGetActiveConnectionId
     );
 
-    const mockGetSavedConnectionName = sinon.fake.returns('tasty_sandwhich');
+    const fakeGetSavedConnectionName = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       testConnectionController,
       'getSavedConnectionName',
-      mockGetSavedConnectionName
+      fakeGetSavedConnectionName
     );
 
-    const mockShowMessage = sinon.fake();
-    sinon.replace(testStatusView, 'showMessage', mockShowMessage);
+    const fakeShowMessage = sinon.fake();
+    sinon.replace(testStatusView, 'showMessage', fakeShowMessage);
 
-    const mockHideMessage = sinon.fake();
-    sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
+    const fakeHideMessage = sinon.fake();
+    sinon.replace(testStatusView, 'hideMessage', fakeHideMessage);
 
     try {
       await testMongoDBDocumentService.fetchDocument({

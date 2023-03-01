@@ -59,6 +59,8 @@ export default class SchemaTreeItem
   hasClickedShowMoreFields: boolean;
   hasMoreFieldsToShow: boolean;
 
+  iconPath: { light: string; dark: string };
+
   constructor(
     collectionName: string,
     databaseName: string,

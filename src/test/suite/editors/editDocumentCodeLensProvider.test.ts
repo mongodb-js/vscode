@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import * as util from 'util';
-import { afterEach } from 'mocha';
 import assert from 'assert';
+import { afterEach } from 'mocha';
 import { ObjectId } from 'bson';
 import sinon from 'sinon';
+import * as util from 'util';
 
 import ConnectionController from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';
@@ -12,19 +12,19 @@ import { mockTextEditor } from '../stubs';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
 suite('Edit Document Code Lens Provider Test Suite', () => {
-  const mockExtensionContext = new TestExtensionContext();
-  const mockStorageController = new StorageController(mockExtensionContext);
+  const extensionContextStub = new ExtensionContextStub();
+  const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
-    mockStorageController,
-    mockExtensionContext
+    testStorageController,
+    extensionContextStub
   );
-  const testStatusView = new StatusView(mockExtensionContext);
+  const testStatusView = new StatusView(extensionContextStub);
   const testConnectionController = new ConnectionController(
     testStatusView,
-    mockStorageController,
+    testStorageController,
     testTelemetryService
   );
   const sandbox = sinon.createSandbox();
@@ -60,22 +60,22 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
-    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    const fakeActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       testCodeLensProvider._connectionController,
       'getActiveConnectionId',
-      mockActiveConnectionId
+      fakeActiveConnectionId
     );
-
     const result =
       testCodeLensProvider._updateCodeLensesForCursor(playgroundResult);
 
     assert(!!result);
+
     const codeLensesInfo = result[0];
     assert(!!codeLensesInfo);
     assert(!!codeLensesInfo.documentId);
-    const bsonId = new ObjectId('5d973ae744376d2aae72a160');
 
+    const bsonId = new ObjectId('5d973ae744376d2aae72a160');
     assert(util.inspect(codeLensesInfo.documentId) !== util.inspect(ejsinId));
     assert(util.inspect(codeLensesInfo.documentId) === util.inspect(bsonId));
   });
@@ -94,22 +94,21 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
-    const mockActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
+    const fakeActiveConnectionId = sinon.fake.returns('tasty_sandwhich');
     sinon.replace(
       testCodeLensProvider._connectionController,
       'getActiveConnectionId',
-      mockActiveConnectionId
+      fakeActiveConnectionId
     );
-
     const result =
       testCodeLensProvider._updateCodeLensesForDocument(playgroundResult);
-
     assert(!!result);
+
     const codeLensesInfo = result[0];
     assert(!!codeLensesInfo);
     assert(!!codeLensesInfo.documentId);
-    const bsonId = new ObjectId('5d973ae744376d2aae72a160');
 
+    const bsonId = new ObjectId('5d973ae744376d2aae72a160');
     assert(util.inspect(codeLensesInfo.documentId) !== util.inspect(ejsinId));
     assert(util.inspect(codeLensesInfo.documentId) === util.inspect(bsonId));
   });
@@ -119,7 +118,6 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController
       );
-
       const activeTextEditor = mockTextEditor;
       mockTextEditor.document.uri = vscode.Uri.parse(
         'PLAYGROUND_RESULT_SCHEME:/Playground Result'
@@ -129,7 +127,6 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         'activeTextEditor',
         () => activeTextEditor
       );
-
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
         type: 'Document',
@@ -138,15 +135,16 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       });
 
       const codeLens = testCodeLensProvider.provideCodeLenses();
-
       assert(!!codeLens);
       assert(codeLens.length === 1);
+
       const range = codeLens[0].range;
       const expectedStartLine = 1;
       assert(
         range.start.line === expectedStartLine,
         `Expected a codeLens position to be at line ${expectedStartLine}, found ${range.start.line}`
       );
+
       const expectedEnd = 1;
       assert(
         range.end.line === expectedEnd,
@@ -157,6 +155,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       assert(
         codeLens[0].command?.command === 'mdb.openMongoDBDocumentFromCodeLens'
       );
+
       const commandArguments = codeLens[0].command?.arguments;
       assert(!!commandArguments);
       assert(commandArguments[0].source === 'playground');
@@ -166,7 +165,6 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController
       );
-
       const activeTextEditor = mockTextEditor;
       activeTextEditor.document.uri = vscode.Uri.parse(
         'PLAYGROUND_RESULT_SCHEME:/Playground Result'
@@ -176,7 +174,6 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         'activeTextEditor',
         () => activeTextEditor
       );
-
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
         type: 'Cursor',
@@ -188,26 +185,29 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       });
 
       const codeLens = testCodeLensProvider.provideCodeLenses();
-
       assert(!!codeLens);
       assert(codeLens.length === 2);
+
       const firstRange = codeLens[0].range;
       const firstExpectedStartLine = 2;
       assert(
         firstRange.start.line === firstExpectedStartLine,
         `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstRange.start.line}`
       );
+
       const firstExpectedEnd = 2;
       assert(
         firstRange.end.line === firstExpectedEnd,
         `Expected a codeLens position to be at line ${firstExpectedEnd}, found ${firstRange.end.line}`
       );
+
       const secondRange = codeLens[1].range;
       const secondExpectedStartLine = 5;
       assert(
         secondRange.start.line === secondExpectedStartLine,
         `Expected a codeLens position to be at line ${secondExpectedStartLine}, found ${secondRange.start.line}`
       );
+
       const secondExpectedEnd = 5;
       assert(
         secondRange.end.line === secondExpectedEnd,
@@ -219,7 +219,6 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController
       );
-
       const activeTextEditor = mockTextEditor;
       activeTextEditor.document.uri = vscode.Uri.parse(
         'PLAYGROUND_RESULT_SCHEME:/Playground Result'
@@ -229,7 +228,6 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         'activeTextEditor',
         () => activeTextEditor
       );
-
       testCodeLensProvider.updateCodeLensesForPlayground({
         namespace: 'db.coll',
         type: 'Cursor',
@@ -257,26 +255,29 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       });
 
       const codeLens = testCodeLensProvider.provideCodeLenses();
-
       assert(!!codeLens);
       assert(codeLens.length === 2);
+
       const firstRange = codeLens[0].range;
       const firstExpectedStartLine = 2;
       assert(
         firstRange.start.line === firstExpectedStartLine,
         `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstRange.start.line}`
       );
+
       const firstExpectedEnd = 2;
       assert(
         firstRange.end.line === firstExpectedEnd,
         `Expected a codeLens position to be at line ${firstExpectedEnd}, found ${firstRange.end.line}`
       );
+
       const secondRange = codeLens[1].range;
       const secondExpectedStartLine = 11;
       assert(
         secondRange.start.line === secondExpectedStartLine,
         `Expected a codeLens position to be at line ${secondExpectedStartLine}, found ${secondRange.start.line}`
       );
+
       const secondExpectedEnd = 11;
       assert(
         secondRange.end.line === secondExpectedEnd,

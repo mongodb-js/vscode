@@ -14,7 +14,7 @@ import MongoDBService, {
   languageServerWorkerFileName,
 } from '../../../language/mongoDBService';
 import { mdbTestExtension } from '../stubbableMdbExtension';
-import { TestStream } from '../stubs';
+import { StreamStub } from '../stubs';
 import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
 
 const expect = chai.expect;
@@ -31,7 +31,7 @@ suite('MongoDBService Test Suite', () => {
 
   test('the language server worker dependency bundle exists', async () => {
     const languageServerModuleBundlePath = path.join(
-      mdbTestExtension.testExtensionContext.extensionPath,
+      mdbTestExtension.extensionContextStub.extensionPath,
       'dist',
       languageServerWorkerFileName
     );
@@ -39,8 +39,8 @@ suite('MongoDBService Test Suite', () => {
   });
 
   suite('Extension path', () => {
-    const up = new TestStream();
-    const down = new TestStream();
+    const up = new StreamStub();
+    const down = new StreamStub();
     const connection = createConnection(up, down);
 
     connection.listen();
@@ -84,8 +84,8 @@ suite('MongoDBService Test Suite', () => {
   });
 
   suite('Connect', () => {
-    const up = new TestStream();
-    const down = new TestStream();
+    const up = new StreamStub();
+    const down = new StreamStub();
     const connection = createConnection(up, down);
 
     connection.listen();
@@ -107,8 +107,8 @@ suite('MongoDBService Test Suite', () => {
   });
 
   suite('Complete', () => {
-    const up = new TestStream();
-    const down = new TestStream();
+    const up = new StreamStub();
+    const down = new StreamStub();
     const connection = createConnection(up, down);
 
     connection.listen();
@@ -1023,8 +1023,8 @@ suite('MongoDBService Test Suite', () => {
   suite('Evaluate', function () {
     this.timeout(INCREASED_TEST_TIMEOUT);
 
-    const up = new TestStream();
-    const down = new TestStream();
+    const up = new StreamStub();
+    const down = new StreamStub();
     const connection = createConnection(up, down);
 
     connection.listen();
@@ -1033,7 +1033,7 @@ suite('MongoDBService Test Suite', () => {
 
     before(async () => {
       testMongoDBService._extensionPath =
-        mdbTestExtension.testExtensionContext.extensionPath;
+        mdbTestExtension.extensionContextStub.extensionPath;
       await testMongoDBService.connectToServiceProvider(params);
     });
 
@@ -1340,8 +1340,8 @@ suite('MongoDBService Test Suite', () => {
   suite('getExportToLanguageMode', function () {
     this.timeout(INCREASED_TEST_TIMEOUT);
 
-    const up = new TestStream();
-    const down = new TestStream();
+    const up = new StreamStub();
+    const down = new StreamStub();
     const connection = createConnection(up, down);
 
     connection.listen();

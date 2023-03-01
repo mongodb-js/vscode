@@ -14,7 +14,7 @@ const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 suite('ConnectionTelemetry Controller Test Suite', function () {
   suite('with mock data service', function () {
     this.timeout(8000);
-    let mockDataService: DataService;
+    let dataServiceStub: DataService;
 
     before(() => {
       const getConnectionStringStub = sinon.stub();
@@ -32,7 +32,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         host: {},
       } as unknown as Awaited<ReturnType<DataService['instance']>>);
 
-      mockDataService = {
+      dataServiceStub = {
         getConnectionString: getConnectionStringStub,
         instance: instanceStub,
       } as Pick<
@@ -50,7 +50,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it returns is_used_connect_screen true when the connection type is form', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_FORM
         );
 
@@ -62,7 +62,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it returns is_used_command_palette true when the connection type is string', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_STRING
         );
 
@@ -74,7 +74,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it returns is_used_saved_connection true when the connection type is id', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_ID
         );
 
@@ -86,7 +86,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it has is_localhost false for a remote connection', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_STRING
         );
 
@@ -96,7 +96,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it has a default is atlas false', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_STRING
         );
 
@@ -106,7 +106,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it has a default driver auth mechanism undefined', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_STRING
         );
 

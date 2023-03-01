@@ -8,39 +8,39 @@ import ActiveConnectionCodeLensProvider from '../../../editors/activeConnectionC
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 import TelemetryService from '../../../telemetry/telemetryService';
 
 const expect = chai.expect;
 
 suite('Active Connection CodeLens Provider Test Suite', () => {
-  const mockExtensionContext = new TestExtensionContext();
-  const mockStorageController = new StorageController(mockExtensionContext);
+  const extensionContextStub = new ExtensionContextStub();
+  const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
-    mockStorageController,
-    mockExtensionContext
+    testStorageController,
+    extensionContextStub
   );
-  const testStatusView = new StatusView(mockExtensionContext);
+  const testStatusView = new StatusView(extensionContextStub);
 
   suite('the MongoDB playground in JS', () => {
     suite('user is not connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
-        mockStorageController,
+        testStorageController,
         testTelemetryService
       );
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const mockShowQuickPick = sinon.fake();
+      const testShowQuickPick = sinon.fake();
 
       beforeEach(() => {
         testCodeLensProvider.setActiveTextEditor(
           vscode.window.activeTextEditor
         );
-        sinon.replace(vscode.window, 'showQuickPick', mockShowQuickPick);
-        const mockIsPlayground = sinon.fake.returns(true);
-        sinon.replace(testCodeLensProvider, 'isPlayground', mockIsPlayground);
+        sinon.replace(vscode.window, 'showQuickPick', testShowQuickPick);
+        const testIsPlayground = sinon.fake.returns(true);
+        sinon.replace(testCodeLensProvider, 'isPlayground', testIsPlayground);
       });
 
       afterEach(() => {
@@ -63,7 +63,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     suite('user is connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
-        mockStorageController,
+        testStorageController,
         testTelemetryService
       );
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
@@ -82,12 +82,12 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         genuineMongoDB: {},
         host: {},
       } as unknown as Awaited<ReturnType<DataService['instance']>>);
-      const mockActiveDataService = {
+      const testActiveDataService = {
         find: findStub,
         instance: instanceStub,
       } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
 
-      testConnectionController.setActiveDataService(mockActiveDataService);
+      testConnectionController.setActiveDataService(testActiveDataService);
 
       beforeEach(() => {
         testCodeLensProvider.setActiveTextEditor(
@@ -98,8 +98,8 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getActiveConnectionName',
           sinon.fake.returns('fakeName')
         );
-        const mockIsPlayground = sinon.fake.returns(true);
-        sinon.replace(testCodeLensProvider, 'isPlayground', mockIsPlayground);
+        const testIsPlayground = sinon.fake.returns(true);
+        sinon.replace(testCodeLensProvider, 'isPlayground', testIsPlayground);
       });
 
       afterEach(() => {
@@ -127,18 +127,18 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     suite('user is not connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
-        mockStorageController,
+        testStorageController,
         testTelemetryService
       );
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const mockShowQuickPick = sinon.fake();
+      const testShowQuickPick = sinon.fake();
 
       beforeEach(() => {
-        sinon.replace(vscode.window, 'showQuickPick', mockShowQuickPick);
-        const mockIsPlayground = sinon.fake.returns(false);
-        sinon.replace(testCodeLensProvider, 'isPlayground', mockIsPlayground);
+        sinon.replace(vscode.window, 'showQuickPick', testShowQuickPick);
+        const testIsPlayground = sinon.fake.returns(false);
+        sinon.replace(testCodeLensProvider, 'isPlayground', testIsPlayground);
       });
 
       afterEach(() => {
@@ -156,7 +156,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     suite('user is connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
-        mockStorageController,
+        testStorageController,
         testTelemetryService
       );
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
@@ -176,11 +176,11 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         genuineMongoDB: {},
         host: {},
       } as unknown as Awaited<ReturnType<DataService['instance']>>);
-      const mockActiveDataService = {
+      const testActiveDataService = {
         find: findStub,
         instance: instanceStub,
       } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
-      testConnectionController.setActiveDataService(mockActiveDataService);
+      testConnectionController.setActiveDataService(testActiveDataService);
 
       beforeEach(() => {
         sinon.replace(
@@ -188,8 +188,8 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getActiveConnectionName',
           sinon.fake.returns('fakeName')
         );
-        const mockIsPlayground = sinon.fake.returns(false);
-        sinon.replace(testCodeLensProvider, 'isPlayground', mockIsPlayground);
+        const testIsPlayground = sinon.fake.returns(false);
+        sinon.replace(testCodeLensProvider, 'isPlayground', testIsPlayground);
       });
 
       afterEach(() => {

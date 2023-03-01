@@ -15,17 +15,17 @@ import {
   ExportToLanguageMode,
 } from '../../../types/playgroundType';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;
 
 suite('Playground Selected CodeAction Provider Test Suite', function () {
   this.timeout(5000);
 
-  const mockExtensionContext = new TestExtensionContext();
+  const extensionContextStub = new ExtensionContextStub();
 
   // The test extension runner.
-  mockExtensionContext.extensionPath = '../../';
+  extensionContextStub.extensionPath = '../../';
 
   suite('the MongoDB playground in JS', () => {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
@@ -34,13 +34,9 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       sinon.replace(
         mdbTestExtension.testExtensionController,
         '_languageServerController',
-        new LanguageServerController(mockExtensionContext)
+        new LanguageServerController(extensionContextStub)
       );
-      sinon.replace(
-        vscode.window,
-        'showInformationMessage',
-        sinon.fake.resolves(true)
-      );
+      sinon.stub(vscode.window, 'showInformationMessage');
 
       await mdbTestExtension.testExtensionController._connectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
@@ -69,11 +65,11 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
           testExplorerController
         );
 
-      const mockOpenPlaygroundResult: any = sinon.fake();
+      const fakeOpenPlaygroundResult = sinon.fake();
       sinon.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         '_openPlaygroundResult',
-        mockOpenPlaygroundResult
+        fakeOpenPlaygroundResult
       );
 
       await vscode.workspace
@@ -83,8 +79,8 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       await mdbTestExtension.testExtensionController._languageServerController.startLanguageServer();
       await mdbTestExtension.testExtensionController._playgroundController._connectToServiceProvider();
 
-      const mockIsPlayground = sinon.fake.returns(true);
-      sinon.replace(testCodeActionProvider, 'isPlayground', mockIsPlayground);
+      const fakeIsPlayground = sinon.fake.returns(true);
+      sinon.replace(testCodeActionProvider, 'isPlayground', fakeIsPlayground);
     });
 
     afterEach(async () => {
@@ -478,8 +474,8 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
 
     beforeEach(() => {
-      const mockIsPlayground = sinon.fake.returns(false);
-      sinon.replace(testCodeActionProvider, 'isPlayground', mockIsPlayground);
+      const fakeIsPlayground = sinon.fake.returns(false);
+      sinon.replace(testCodeActionProvider, 'isPlayground', fakeIsPlayground);
     });
 
     afterEach(() => {

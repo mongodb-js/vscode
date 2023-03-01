@@ -14,10 +14,10 @@ import DocumentListTreeItem, {
 import { DataServiceStub, mockDocuments } from '../stubs';
 
 suite('DocumentListTreeItem Test Suite', () => {
-  let dataServiceMock: DataService;
+  let dataServiceStub: DataService;
 
   before(() => {
-    dataServiceMock = new DataServiceStub() as unknown as DataService;
+    dataServiceStub = new DataServiceStub() as unknown as DataService;
   });
 
   test('its context value should be in the package json', () => {
@@ -26,7 +26,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'collectionName',
       'databaseName',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
@@ -83,7 +83,7 @@ suite('DocumentListTreeItem Test Suite', () => {
         'mock_collection_name',
         'mock_db_name',
         CollectionTypes.collection,
-        dataServiceMock,
+        dataServiceStub,
         false,
         MAX_DOCUMENTS_VISIBLE,
         null,
@@ -104,7 +104,7 @@ suite('DocumentListTreeItem Test Suite', () => {
         'mock_collection_name',
         'mock_db_name',
         CollectionTypes.collection,
-        dataServiceMock,
+        dataServiceStub,
         false,
         MAX_DOCUMENTS_VISIBLE,
         null,
@@ -127,7 +127,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name',
       'mock_db_name',
       CollectionTypes.view,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
@@ -147,7 +147,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_1',
       'mock_db_name',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -174,7 +174,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_2',
       'mock_db_name',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -201,7 +201,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_3',
       'mock_db_name',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -233,7 +233,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -266,7 +266,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_1',
       'mock_db_name',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       maxDocs,
@@ -283,7 +283,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       maxDocs,
@@ -308,7 +308,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.view,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
@@ -317,7 +317,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       []
     );
 
-    const viewIconPath: any = testCollectionViewTreeItem.iconPath;
+    const viewIconPath = testCollectionViewTreeItem.iconPath;
     assert(
       viewIconPath.dark.includes('documents.svg'),
       'Expected icon path to point to an svg by the name "documents" a dark mode'
@@ -327,7 +327,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       null,
@@ -336,7 +336,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       []
     );
 
-    const collectionIconPath: any = testDocumentListTreeItem.iconPath;
+    const collectionIconPath = testDocumentListTreeItem.iconPath;
     assert(
       collectionIconPath.dark.includes('documents.svg'),
       'Expected icon path to point to an svg by the name "documents" with a light mode'
@@ -348,7 +348,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       25,
@@ -365,7 +365,7 @@ suite('DocumentListTreeItem Test Suite', () => {
       'mock_collection_name_4',
       'mock_db_name',
       CollectionTypes.collection,
-      dataServiceMock,
+      dataServiceStub,
       false,
       MAX_DOCUMENTS_VISIBLE,
       2200000,

@@ -598,7 +598,7 @@ export default class PlaygroundController {
       !isPlayground(this._activeTextEditor.document.uri)
     ) {
       void vscode.window.showErrorMessage(
-        "Please open a '.mongodb' playground file before running it."
+        'Please open a MongoDB playground file before running it.'
       );
 
       return Promise.resolve(false);
@@ -616,7 +616,7 @@ export default class PlaygroundController {
       !isPlayground(this._activeTextEditor.document.uri)
     ) {
       void vscode.window.showErrorMessage(
-        "Please open a '.mongodb' playground file before running it."
+        'Please open a MongoDB playground file before running it.'
       );
 
       return Promise.resolve(false);

@@ -6,17 +6,17 @@ import StorageController, {
   StorageVariables,
   StorageLocation,
 } from '../../../storage/storageController';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
 suite('Storage Controller Test Suite', () => {
   test('getting a variable gets it from the global context store', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._globalState = {
+    const extensionContextStub = new ExtensionContextStub();
+    extensionContextStub._globalState = {
       [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
         collOne: { name: 'this_gonna_get_saved' },
       },
     };
-    const testStorageController = new StorageController(testExtensionContext);
+    const testStorageController = new StorageController(extensionContextStub);
     const testVal = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL
@@ -28,13 +28,13 @@ suite('Storage Controller Test Suite', () => {
   });
 
   test('getting a variable from the workspace state gets it from the workspace context store', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._workspaceState = {
+    const extensionContextStub = new ExtensionContextStub();
+    extensionContextStub._workspaceState = {
       [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
         collTwo: { name: 'i_cant_believe_its_gonna_save_this' },
       },
     };
-    const testStorageController = new StorageController(testExtensionContext);
+    const testStorageController = new StorageController(extensionContextStub);
     const testVal = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE
@@ -46,8 +46,8 @@ suite('Storage Controller Test Suite', () => {
   });
 
   test('addNewConnectionToGlobalStore adds the connection to preexisting connections on the global storage', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._globalState = {
+    const extensionContextStub = new ExtensionContextStub();
+    extensionContextStub._globalState = {
       [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
         conn1: {
           id: 'conn1',
@@ -57,7 +57,7 @@ suite('Storage Controller Test Suite', () => {
         },
       },
     };
-    const testStorageController = new StorageController(testExtensionContext);
+    const testStorageController = new StorageController(extensionContextStub);
     void testStorageController.saveConnectionToStore({
       id: 'conn2',
       name: 'saved2',
@@ -87,8 +87,8 @@ suite('Storage Controller Test Suite', () => {
   });
 
   test('addNewConnectionToWorkspaceStore adds the connection to preexisting connections on the workspace store', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._workspaceState = {
+    const extensionContextStub = new ExtensionContextStub();
+    extensionContextStub._workspaceState = {
       [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
         conn1: {
           id: 'conn1',
@@ -98,7 +98,7 @@ suite('Storage Controller Test Suite', () => {
         },
       },
     };
-    const testStorageController = new StorageController(testExtensionContext);
+    const testStorageController = new StorageController(extensionContextStub);
     void testStorageController.saveConnectionToStore({
       id: 'conn2',
       name: 'saved2',
@@ -132,9 +132,9 @@ suite('Storage Controller Test Suite', () => {
   });
 
   suite('for a new user that does not have anonymousId or userId', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._globalState = {};
-    const testStorageController = new StorageController(testExtensionContext);
+    const extensionContextStub = new ExtensionContextStub();
+    extensionContextStub._globalState = {};
+    const testStorageController = new StorageController(extensionContextStub);
 
     test('getUserIdentity adds anonymousId to the global storage and returns it to telemetry', () => {
       const userIdentity = testStorageController.getUserIdentity();
@@ -148,9 +148,9 @@ suite('Storage Controller Test Suite', () => {
   });
 
   suite('for an old user that does not have anonymousId but has userId', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._globalState = {};
-    const testStorageController = new StorageController(testExtensionContext);
+    const extensionContextStub = new ExtensionContextStub();
+    extensionContextStub._globalState = {};
+    const testStorageController = new StorageController(extensionContextStub);
     const id = uuidv4();
 
     before(async () => {
@@ -174,8 +174,8 @@ suite('Storage Controller Test Suite', () => {
   });
 
   test('when there are saved workspace connections, hasSavedConnections returns true', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._workspaceState = {
+    const extensionContextStub = new ExtensionContextStub();
+    extensionContextStub._workspaceState = {
       [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
         conn1: {
           id: 'conn1',
@@ -183,13 +183,13 @@ suite('Storage Controller Test Suite', () => {
         },
       },
     };
-    const testStorageController = new StorageController(testExtensionContext);
+    const testStorageController = new StorageController(extensionContextStub);
     assert(testStorageController.hasSavedConnections());
   });
 
   test('when there are saved global connections, hasSavedConnections returns true', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._globalState = {
+    const extensionContextStub = new ExtensionContextStub();
+    extensionContextStub._globalState = {
       [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
         conn1: {
           id: 'conn1',
@@ -197,14 +197,14 @@ suite('Storage Controller Test Suite', () => {
         },
       },
     };
-    const testStorageController = new StorageController(testExtensionContext);
+    const testStorageController = new StorageController(extensionContextStub);
     assert(testStorageController.hasSavedConnections());
   });
 
   test('when there are no saved connections, hasSavedConnections returns false', () => {
-    const testExtensionContext = new TestExtensionContext();
-    testExtensionContext._globalState = {};
-    const testStorageController = new StorageController(testExtensionContext);
+    const extensionContextStub = new ExtensionContextStub();
+    extensionContextStub._globalState = {};
+    const testStorageController = new StorageController(extensionContextStub);
     assert(!testStorageController.hasSavedConnections());
   });
 });

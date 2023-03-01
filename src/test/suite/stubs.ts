@@ -1,7 +1,13 @@
 import * as vscode from 'vscode';
-import { CancellationTokenSource } from 'vscode-languageclient/node';
+import type {
+  CancellationTokenSource,
+  ServerOptions,
+  LanguageClientOptions,
+} from 'vscode-languageclient/node';
+import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 import { Duplex } from 'stream';
 import path = require('path');
+import type { Document, Filter, FindOptions } from 'mongodb';
 
 import { StorageController } from '../../storage';
 
@@ -12,7 +18,7 @@ import {
 } from '../../types/playgroundType';
 
 // Bare mock of the extension context for vscode.
-class TestExtensionContext implements vscode.ExtensionContext {
+class ExtensionContextStub implements vscode.ExtensionContext {
   globalStoragePath: string;
   logPath: string;
   subscriptions: { dispose(): any }[];
@@ -45,7 +51,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
       keys: (): readonly string[] => {
         return [];
       },
-      get: (key: string): any => {
+      get: <T>(key: string): T | undefined => {
         return this._workspaceState[key];
       },
       update: (key: string, value: any): Thenable<void> => {
@@ -59,7 +65,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
       keys: (): readonly string[] => {
         return [];
       },
-      get: (key: string): any => {
+      get: <T>(key: string): T | undefined => {
         return this._globalState[key];
       },
       update: (key: string, value: any): Thenable<void> => {
@@ -132,7 +138,7 @@ const mockDatabases = {
   },
 };
 const mockDatabaseNames = Object.keys(mockDatabases);
-const mockDocuments: any[] = [];
+const mockDocuments: { _id: string }[] = [];
 const numberOfDocumentsToMock = 25;
 for (let i = 0; i < numberOfDocumentsToMock; i++) {
   mockDocuments.push({
@@ -151,7 +157,7 @@ class DataServiceStub {
     return Promise.resolve(mockDatabases[databaseName].collections);
   }
 
-  find(namespace: string, filter: any, options: any) {
+  find(namespace: string, filter: Filter<Document>, options: FindOptions) {
     return Promise.resolve(mockDocuments.slice(0, options.limit));
   }
 
@@ -224,20 +230,82 @@ const mockTextEditor = {
   hide: () => {},
 };
 
-class MockLanguageServerController {
-  _context: TestExtensionContext;
+class LanguageServerControllerStub {
+  _context: ExtensionContextStub;
   _storageController?: StorageController;
   _source?: CancellationTokenSource;
   _isExecutingInProgress: boolean;
-  _client: any;
+  _client: LanguageClient;
 
   constructor(
-    context: TestExtensionContext,
+    context: ExtensionContextStub,
     storageController: StorageController
   ) {
     this._context = context;
     this._storageController = storageController;
-    this._client = null;
+
+    const module = path.join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'dist',
+      'languageServer.js'
+    );
+    const debugOptions = { execArgv: ['--nolazy', '--inspect=6012'] };
+
+    const serverOptions: ServerOptions = {
+      run: { module: '', transport: TransportKind.ipc },
+      debug: {
+        module,
+        /* runtime: 'node.exe', */ transport: TransportKind.ipc,
+        options: debugOptions,
+      },
+    };
+
+    const clientOptions: LanguageClientOptions = {
+      documentSelector: [
+        { language: 'bat' },
+        { language: 'bat', notebook: '*' },
+        { scheme: 'file', pattern: '**/.vscode/test.txt' },
+      ],
+      synchronize: {
+        configurationSection: 'testbed',
+        // fileEvents: workspace.createFileSystemWatcher('**/*'),
+      },
+      diagnosticCollectionName: 'markers',
+      initializationOptions: 'Chris it gets passed to the server',
+      progressOnInitialization: true,
+      stdioEncoding: 'utf8',
+      // uriConverters: {
+      // 	code2Protocol: (value: Uri) => {
+      // 		return `vscode-${value.toString()}`
+      // 	},
+      // 	protocol2Code: (value: string) => {
+      // 		return Uri.parse(value.substring(7))
+      // 	}
+      // },
+      middleware: {
+        didOpen: (document, next) => {
+          return next(document);
+        },
+      },
+      diagnosticPullOptions: {
+        onTabs: true,
+        onChange: true,
+        match: (selector, resource) => {
+          const fsPath = resource.fsPath;
+          return path.extname(fsPath) === '.bat';
+        },
+      },
+    };
+
+    this._client = new LanguageClient(
+      'test',
+      'Test',
+      serverOptions,
+      clientOptions
+    );
     this._isExecutingInProgress = false;
   }
 
@@ -286,7 +354,7 @@ class MockLanguageServerController {
   }
 }
 
-class TestStream extends Duplex {
+class StreamStub extends Duplex {
   _write(chunk: string, _encoding: string, done: () => void) {
     this.emit('data', chunk);
     done();
@@ -303,7 +371,7 @@ export {
   mockDatabases,
   mockVSCodeTextDocument,
   DataServiceStub,
-  TestExtensionContext,
-  MockLanguageServerController,
-  TestStream,
+  ExtensionContextStub,
+  LanguageServerControllerStub,
+  StreamStub,
 };

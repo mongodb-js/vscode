@@ -19,7 +19,7 @@ import {
 import SchemaTreeItem, {
   FIELDS_TO_SHOW,
 } from '../../../explorer/schemaTreeItem';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
 const { contributes } = require('../../../../package.json');
 
@@ -105,7 +105,7 @@ suite('SchemaTreeItem Test Suite', function () {
       {}
     );
 
-    const fakeShowInformationMessage = sinon.stub(
+    const showInformationMessageStub = sinon.stub(
       vscode.window,
       'showInformationMessage'
     );
@@ -118,8 +118,8 @@ suite('SchemaTreeItem Test Suite', function () {
     );
 
     assert(
-      fakeShowInformationMessage.firstCall.args[0] === expectedMessage,
-      `Expected message to be '${expectedMessage}' found ${fakeShowInformationMessage.firstCall.args[0]}`
+      showInformationMessageStub.firstCall.args[0] === expectedMessage,
+      `Expected message to be '${expectedMessage}' found ${showInformationMessageStub.firstCall.args[0]}`
     );
   });
 
@@ -214,14 +214,16 @@ suite('SchemaTreeItem Test Suite', function () {
     try {
       await testSchemaTreeItem.getChildren();
       assert(false, 'Didnt expect to succeed.');
-    } catch (error: any) {
+    } catch (error) {
       const expectedMessage =
         "Unable to parse schema: Cannot use 'in' operator to search for 'stream' in invalid schema to parse";
 
       assert.strictEqual(
-        error.message,
+        (<any>error).message,
         expectedMessage,
-        `Expected error message to be "${expectedMessage}" found "${error.message}"`
+        `Expected error message to be "${expectedMessage}" found "${
+          (<any>error).message
+        }"`
       );
     }
   });
@@ -359,7 +361,7 @@ suite('SchemaTreeItem Test Suite', function () {
   });
 
   test('it should have an icon with the name schema', () => {
-    ext.context = new TestExtensionContext();
+    ext.context = new ExtensionContextStub();
 
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
@@ -372,7 +374,7 @@ suite('SchemaTreeItem Test Suite', function () {
       {}
     );
 
-    const schemaIconPath: any = testSchemaTreeItem.iconPath;
+    const schemaIconPath = testSchemaTreeItem.iconPath;
     assert(
       schemaIconPath.light.includes('schema.svg'),
       'Expected icon path to point to an svg by the name "schema" with a light mode'

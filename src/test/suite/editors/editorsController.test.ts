@@ -1,20 +1,27 @@
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
 import assert from 'assert';
+import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
-import { mockTextEditor } from '../stubs';
 import sinon from 'sinon';
+import type { SinonStub } from 'sinon';
 import { ObjectId } from 'bson';
 
 import {
   getFileDisplayNameForDocument,
   getViewCollectionDocumentsUri,
 } from '../../../editors/editorsController';
+import { mockTextEditor } from '../stubs';
 
 const expect = chai.expect;
 
 suite('Editors Controller Test Suite', () => {
   const sandbox = sinon.createSandbox();
+  let showErrorMessageStub: SinonStub;
+
+  beforeEach(() => {
+    sinon.stub(vscode.window, 'showInformationMessage');
+    showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+  });
 
   afterEach(() => {
     sandbox.restore();
@@ -100,15 +107,12 @@ suite('Editors Controller Test Suite', () => {
   test('saveMongoDBDocument returns false if there is no active editor', async () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => undefined);
 
-    const fakeShowErrorMessage: any = sinon.fake();
-    sinon.replace(vscode.window, 'showErrorMessage', fakeShowErrorMessage);
-
     const result = await vscode.commands.executeCommand(
       'mdb.saveMongoDBDocument'
     );
 
     expect(result).to.be.equal(false);
-    expect(fakeShowErrorMessage.firstArg).to.be.equal(null);
+    expect(showErrorMessageStub.notCalled).to.be.equal(true);
   });
 
   test('saveMongoDBDocument returns false if this is not a mongodb document', async () => {

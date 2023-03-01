@@ -1,4 +1,5 @@
-import * as sinon from 'sinon';
+import sinon from 'sinon';
+import type { SinonStub } from 'sinon';
 import * as util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
@@ -20,7 +21,7 @@ import SSH_TUNNEL_TYPES from '../../views/webview-app/connection-model/constants
 import SSL_METHODS from '../../views/webview-app/connection-model/constants/ssl-methods';
 import { StatusView } from '../../views';
 import TelemetryService from '../../telemetry/telemetryService';
-import { TestExtensionContext } from './stubs';
+import { ExtensionContextStub } from './stubs';
 import {
   TEST_DATABASE_URI,
   TEST_DATABASE_URI_USER,
@@ -39,32 +40,28 @@ const sleep = (ms: number): Promise<void> => {
 suite('Connection Controller Test Suite', function () {
   this.timeout(5000);
 
-  const mockExtensionContext = new TestExtensionContext();
-  const mockStorageController = new StorageController(mockExtensionContext);
+  const extensionContextStub = new ExtensionContextStub();
+  const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
-    mockStorageController,
-    mockExtensionContext
+    testStorageController,
+    extensionContextStub
   );
   const testConnectionController = new ConnectionController(
-    new StatusView(mockExtensionContext),
-    mockStorageController,
+    new StatusView(extensionContextStub),
+    testStorageController,
     testTelemetryService
   );
+  let showErrorMessageStub: SinonStub;
 
   beforeEach(() => {
-    // Here we stub the showInformationMessage process because it is too much
-    // for the render process and leads to crashes while testing.
-    sinon.replace(
-      vscode.window,
-      'showInformationMessage',
-      sinon.fake.resolves(true)
-    );
+    sinon.stub(vscode.window, 'showInformationMessage');
+    showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
   });
 
   afterEach(async () => {
     // Reset our mock extension's state.
-    mockExtensionContext._workspaceState = {};
-    mockExtensionContext._globalState = {};
+    extensionContextStub._workspaceState = {};
+    extensionContextStub._globalState = {};
 
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
@@ -127,33 +124,19 @@ suite('Connection Controller Test Suite', function () {
 
   test('"removeMongoDBConnection()" returns a reject promise when there is no active connection', async () => {
     const expectedMessage = 'No connections to remove.';
-    const fakeVscodeErrorMessage = sinon.fake();
-
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
     const successfullyRemovedMongoDBConnection =
       await testConnectionController.onRemoveMongoDBConnection();
 
-    assert.strictEqual(
-      fakeVscodeErrorMessage.firstCall.args[0],
-      expectedMessage
-    );
+    assert.strictEqual(showErrorMessageStub.firstCall.args[0], expectedMessage);
     assert.strictEqual(successfullyRemovedMongoDBConnection, false);
   });
 
   test('"disconnect()" fails when there is no active connection', async () => {
     const expectedMessage = 'Unable to disconnect: no active connection.';
-    const fakeVscodeErrorMessage = sinon.fake();
-
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
     const successfullyDisconnected =
       await testConnectionController.disconnect();
 
-    assert.strictEqual(
-      fakeVscodeErrorMessage.firstCall.args[0],
-      expectedMessage
-    );
+    assert.strictEqual(showErrorMessageStub.firstCall.args[0], expectedMessage);
     assert.strictEqual(successfullyDisconnected, false);
   });
 
@@ -308,7 +291,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    const globalStoreConnections = mockStorageController.get(
+    const globalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL
     );
@@ -322,7 +305,7 @@ suite('Connection Controller Test Suite', function () {
       testDatabaseConnectionName
     );
 
-    const workspaceStoreConnections = mockStorageController.get(
+    const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS
     );
 
@@ -341,7 +324,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    const workspaceStoreConnections = mockStorageController.get(
+    const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE
     );
@@ -355,7 +338,7 @@ suite('Connection Controller Test Suite', function () {
       testDatabaseConnectionName
     );
 
-    const globalStoreConnections = mockStorageController.get(
+    const globalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL
     );
@@ -392,7 +375,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    const workspaceStoreConnections = mockStorageController.get(
+    const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE
     );
@@ -461,14 +444,14 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const objectString = JSON.stringify(undefined);
-    const globalStoreConnections = mockStorageController.get(
+    const globalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL
     );
 
     assert.strictEqual(JSON.stringify(globalStoreConnections), objectString);
 
-    const workspaceStoreConnections = mockStorageController.get(
+    const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE
     );
@@ -488,7 +471,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    const workspaceStoreConnections = mockStorageController.get(
+    const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE
     );
@@ -501,7 +484,7 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.disconnect();
     await testConnectionController.removeSavedConnection(connectionId);
 
-    const postWorkspaceStoreConnections = mockStorageController.get(
+    const postWorkspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE
     );
@@ -518,7 +501,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    const globalStoreConnections = mockStorageController.get(
+    const globalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL
     );
@@ -529,7 +512,7 @@ suite('Connection Controller Test Suite', function () {
       testConnectionController.getActiveConnectionId() || 'a';
     await testConnectionController.removeSavedConnection(connectionId);
 
-    const postGlobalStoreConnections = mockStorageController.get(
+    const postGlobalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL
     );
@@ -549,7 +532,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
 
-    const workspaceStoreConnections = mockStorageController.get(
+    const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE
     );
@@ -558,10 +541,10 @@ suite('Connection Controller Test Suite', function () {
 
     const connectionId =
       testConnectionController.getActiveConnectionId() || 'zz';
-    const mockInputBoxResolves = sinon.stub();
 
-    mockInputBoxResolves.onCall(0).resolves('new connection name');
-    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+    const inputBoxResolvesStub = sinon.stub();
+    inputBoxResolvesStub.onCall(0).resolves('new connection name');
+    sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
     const renameSuccess = await testConnectionController.renameConnection(
       connectionId
@@ -618,10 +601,9 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(connections[connectionIds[0]].name, 'localhost:27018');
     assert.strictEqual(connections[connectionIds[1]].name, 'localhost:27018');
 
-    const mockInputBoxResolves = sinon.stub();
-
-    mockInputBoxResolves.onCall(0).resolves('Lynx');
-    sinon.replace(vscode.window, 'showInputBox', mockInputBoxResolves);
+    const inputBoxResolvesStub = sinon.stub();
+    inputBoxResolvesStub.onCall(0).resolves('Lynx');
+    sinon.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
 
     const renameSuccess = await testConnectionController.renameConnection(
       connectionIds[0]
@@ -927,7 +909,7 @@ suite('Connection Controller Test Suite', function () {
         sshTunnelPort: 22,
       },
     };
-    const mockSaveConnection: any = sinon.fake.resolves({
+    const mockSaveConnection = sinon.fake.resolves({
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
     });
 
@@ -971,7 +953,7 @@ suite('Connection Controller Test Suite', function () {
         sshTunnelPort: 22,
       },
     };
-    const mockMigratePreviouslySavedConnection: any = sinon.fake.resolves({
+    const mockMigratePreviouslySavedConnection = sinon.fake.resolves({
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
       storageLocation: 'GLOBAL',
@@ -1013,7 +995,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert.strictEqual(connections.length, 1);
 
-    const mockMigratePreviouslySavedConnection: any = sinon.fake();
+    const mockMigratePreviouslySavedConnection = sinon.fake();
 
     sinon.replace(
       testConnectionController,
@@ -1031,10 +1013,9 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('addNewConnectionStringAndConnect saves connection without secrets to the global storage', async () => {
-    const mockConnect: any = sinon.fake.resolves({
+    const mockConnect = sinon.fake.resolves({
       successfullyConnected: true,
     });
-
     sinon.replace(testConnectionController, '_connect', mockConnect);
 
     await vscode.workspace

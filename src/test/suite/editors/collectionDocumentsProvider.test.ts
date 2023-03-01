@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
 import assert from 'assert';
-import type { DataService } from 'mongodb-data-service';
+import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
+import type { DataService } from 'mongodb-data-service';
 
 import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
@@ -16,7 +16,7 @@ import { StorageController } from '../../../storage';
 import { StorageLocation } from '../../../storage/storageController';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-import { TestExtensionContext, mockTextEditor } from '../stubs';
+import { ExtensionContextStub, mockTextEditor } from '../stubs';
 
 const mockDocumentsAsJsonString = `[
   {
@@ -30,13 +30,17 @@ const mockDocumentsAsJsonString = `[
 ]`;
 
 suite('Collection Documents Provider Test Suite', () => {
-  const mockExtensionContext = new TestExtensionContext();
-  const mockStorageController = new StorageController(mockExtensionContext);
+  const extensionContextStub = new ExtensionContextStub();
+  const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
-    mockStorageController,
-    mockExtensionContext
+    testStorageController,
+    extensionContextStub
   );
   const sandbox = sinon.createSandbox();
+
+  beforeEach(() => {
+    sinon.stub(vscode.window, 'showInformationMessage');
+  });
 
   afterEach(() => {
     sandbox.restore();
@@ -50,22 +54,22 @@ suite('Collection Documents Provider Test Suite', () => {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
 
-    const mockConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController,
+    const testConnectionController = new ConnectionController(
+      new StatusView(extensionContextStub),
+      testStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(testDataService);
+    testConnectionController.setActiveDataService(testDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      mockConnectionController
+      testConnectionController
     );
     const testCollectionViewProvider = new CollectionDocumentsProvider(
-      mockExtensionContext,
-      mockConnectionController,
+      extensionContextStub,
+      testConnectionController,
       testQueryStore,
-      new StatusView(mockExtensionContext),
+      new StatusView(extensionContextStub),
       testCodeLensProvider
     );
 
@@ -106,22 +110,22 @@ suite('Collection Documents Provider Test Suite', () => {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
 
-    const mockConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController,
+    const testConnectionController = new ConnectionController(
+      new StatusView(extensionContextStub),
+      testStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(testDataService);
+    testConnectionController.setActiveDataService(testDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      mockConnectionController
+      testConnectionController
     );
     const testCollectionViewProvider = new CollectionDocumentsProvider(
-      mockExtensionContext,
-      mockConnectionController,
+      extensionContextStub,
+      testConnectionController,
       testQueryStore,
-      new StatusView(mockExtensionContext),
+      new StatusView(extensionContextStub),
       testCodeLensProvider
     );
 
@@ -146,22 +150,22 @@ suite('Collection Documents Provider Test Suite', () => {
     const testDataService = {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
-    const mockConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController,
+    const testConnectionController = new ConnectionController(
+      new StatusView(extensionContextStub),
+      testStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(testDataService);
+    testConnectionController.setActiveDataService(testDataService);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      mockConnectionController
+      testConnectionController
     );
     const testCollectionViewProvider = new CollectionDocumentsProvider(
-      mockExtensionContext,
-      mockConnectionController,
+      extensionContextStub,
+      testConnectionController,
       testQueryStore,
-      new StatusView(mockExtensionContext),
+      new StatusView(extensionContextStub),
       testCodeLensProvider
     );
 
@@ -193,22 +197,22 @@ suite('Collection Documents Provider Test Suite', () => {
       DataService,
       'find'
     > as unknown as DataService;
-    const mockConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController,
+    const testConnectionController = new ConnectionController(
+      new StatusView(extensionContextStub),
+      testStorageController,
       testTelemetryService
     );
-    mockConnectionController.setActiveDataService(mockActiveDataService);
+    testConnectionController.setActiveDataService(mockActiveDataService);
 
-    const testStatusView = new StatusView(mockExtensionContext);
+    const testStatusView = new StatusView(extensionContextStub);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      mockConnectionController
+      testConnectionController
     );
     const testCollectionViewProvider = new CollectionDocumentsProvider(
-      mockExtensionContext,
-      mockConnectionController,
+      extensionContextStub,
+      testConnectionController,
       testQueryStore,
       testStatusView,
       testCodeLensProvider
@@ -220,49 +224,49 @@ suite('Collection Documents Provider Test Suite', () => {
       `scheme:Results: filename.json?namespace=aaaaaaaa&operationId=${operationId}`
     );
 
-    const mockShowMessage = sinon.fake();
-    sinon.replace(testStatusView, 'showMessage', mockShowMessage);
+    const fakeShowMessage = sinon.fake();
+    sinon.replace(testStatusView, 'showMessage', fakeShowMessage);
 
-    const mockHideMessage = sinon.fake();
-    sinon.replace(testStatusView, 'hideMessage', mockHideMessage);
+    const fakeHideMessage = sinon.fake();
+    sinon.replace(testStatusView, 'hideMessage', fakeHideMessage);
 
     mockActiveDataService.find = () => {
-      assert(mockShowMessage.called);
-      assert(!mockHideMessage.called);
-      assert(mockShowMessage.firstCall.args[0] === 'Fetching documents...');
+      assert(fakeShowMessage.called);
+      assert(!fakeHideMessage.called);
+      assert(fakeShowMessage.firstCall.args[0] === 'Fetching documents...');
 
       return Promise.resolve([{ field: 'aaaaaaaaaaaaaaaaa' }]);
     };
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
-    assert(mockHideMessage.called);
+    assert(fakeHideMessage.called);
   });
 
   test('provideTextDocumentContent sets different code lenses for different namespaces from the same connection', async () => {
-    const mockConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController,
+    const testConnectionController = new ConnectionController(
+      new StatusView(extensionContextStub),
+      testStorageController,
       testTelemetryService
     );
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      mockConnectionController
+      testConnectionController
     );
     const testCollectionViewProvider = new CollectionDocumentsProvider(
-      mockExtensionContext,
-      mockConnectionController,
+      extensionContextStub,
+      testConnectionController,
       testQueryStore,
-      new StatusView(mockExtensionContext),
+      new StatusView(extensionContextStub),
       testCodeLensProvider
     );
 
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 
-    const documents: any[] = [
-      { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' },
+    const documents: { _id: string; name?: string; price?: number }[] = [
+      { _id: '5ea8745ee4811fafe8b65ecb', name: 'nothing5' },
     ];
-    const mockGetActiveDataService = sinon.fake.returns({
+    const fakeGetActiveDataService = sinon.fake.returns({
       find: () => {
         return Promise.resolve(documents);
       },
@@ -270,29 +274,29 @@ suite('Collection Documents Provider Test Suite', () => {
     sinon.replace(
       testCollectionViewProvider._connectionController,
       'getActiveDataService',
-      mockGetActiveDataService
+      fakeGetActiveDataService
     );
 
-    const mockShowMessage = sinon.fake();
+    const fakeShowMessage = sinon.fake();
     sinon.replace(
       testCollectionViewProvider._statusView,
       'showMessage',
-      mockShowMessage
+      fakeShowMessage
     );
 
-    const mockHideMessage = sinon.fake();
+    const fakeHideMessage = sinon.fake();
     sinon.replace(
       testCollectionViewProvider._statusView,
       'hideMessage',
-      mockHideMessage
+      fakeHideMessage
     );
 
     const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
-    const mockActiveConnectionId = sinon.fake.returns(connectionId);
+    const fakeActiveConnectionId = sinon.fake.returns(connectionId);
     sinon.replace(
       testCollectionViewProvider._connectionController,
       'getActiveConnectionId',
-      mockActiveConnectionId
+      fakeActiveConnectionId
     );
 
     const firstCollectionOperationId =
@@ -441,30 +445,30 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets different code lenses for identical namespaces from the different connections', async () => {
-    const mockConnectionController = new ConnectionController(
-      new StatusView(mockExtensionContext),
-      mockStorageController,
+    const testConnectionController = new ConnectionController(
+      new StatusView(extensionContextStub),
+      testStorageController,
       testTelemetryService
     );
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      mockConnectionController
+      testConnectionController
     );
     const testCollectionViewProvider = new CollectionDocumentsProvider(
-      mockExtensionContext,
-      mockConnectionController,
+      extensionContextStub,
+      testConnectionController,
       testQueryStore,
-      new StatusView(mockExtensionContext),
+      new StatusView(extensionContextStub),
       testCodeLensProvider
     );
 
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 
-    const documents: any[] = [
+    const documents: { _id: string; location?: string; district?: string }[] = [
       { _id: '5ea8745ee4811fafe8b65ecb', location: 'alexanderplatz' },
     ];
-    const mockGetActiveDataService = sinon.fake.returns({
+    const fakeGetActiveDataService = sinon.fake.returns({
       find: () => {
         return Promise.resolve(documents);
       },
@@ -472,27 +476,27 @@ suite('Collection Documents Provider Test Suite', () => {
     sinon.replace(
       testCollectionViewProvider._connectionController,
       'getActiveDataService',
-      mockGetActiveDataService
+      fakeGetActiveDataService
     );
 
-    const mockShowMessage = sinon.fake();
+    const fakeShowMessage = sinon.fake();
     sinon.replace(
       testCollectionViewProvider._statusView,
       'showMessage',
-      mockShowMessage
+      fakeShowMessage
     );
 
-    const mockHideMessage = sinon.fake();
+    const fakeHideMessage = sinon.fake();
     sinon.replace(
       testCollectionViewProvider._statusView,
       'hideMessage',
-      mockHideMessage
+      fakeHideMessage
     );
 
     const firstConnectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
     const secondConnectionId = '333c2b06-hhhh-40b7-bd8a-bd1f8333a896';
 
-    mockConnectionController._connections = {
+    testConnectionController._connections = {
       [firstConnectionId]: {
         id: firstConnectionId,
         name: 'localhost',
@@ -507,7 +511,7 @@ suite('Collection Documents Provider Test Suite', () => {
       },
     };
 
-    await mockConnectionController.connectWithConnectionId(firstConnectionId);
+    await testConnectionController.connectWithConnectionId(firstConnectionId);
 
     const firstCollectionOperationId =
       testCollectionViewProvider._operationsStore.createNewOperation();
@@ -580,7 +584,7 @@ suite('Collection Documents Provider Test Suite', () => {
     );
 
     // Connect to another connection.
-    await mockConnectionController.connectWithConnectionId(secondConnectionId);
+    await testConnectionController.connectWithConnectionId(secondConnectionId);
 
     const secondCollectionOperationId =
       testCollectionViewProvider._operationsStore.createNewOperation();
