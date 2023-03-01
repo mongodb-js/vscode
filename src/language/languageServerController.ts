@@ -116,10 +116,6 @@ export default class LanguageServerController {
   }
 
   deactivate(): void {
-    if (!this._client) {
-      return undefined;
-    }
-
     // Stop the language server
     void this._client.stop();
   }

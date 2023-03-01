@@ -14,17 +14,18 @@ const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 suite('ConnectionTelemetry Controller Test Suite', function () {
   suite('with mock data service', function () {
     this.timeout(8000);
-    let mockDataService: DataService;
+    let dataServiceStub: DataService;
+    const sandbox = sinon.createSandbox();
 
     before(() => {
-      const getConnectionStringStub = sinon.stub();
+      const getConnectionStringStub = sandbox.stub();
       getConnectionStringStub.returns({
         hosts: ['localhost:27018'],
         searchParams: { get: () => null },
         username: 'authMechanism',
       } as unknown as ReturnType<DataService['getConnectionString']>);
 
-      const instanceStub = sinon.stub();
+      const instanceStub = sandbox.stub();
       instanceStub.resolves({
         dataLake: {},
         build: {},
@@ -32,7 +33,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         host: {},
       } as unknown as Awaited<ReturnType<DataService['instance']>>);
 
-      mockDataService = {
+      dataServiceStub = {
         getConnectionString: getConnectionStringStub,
         instance: instanceStub,
       } as Pick<
@@ -40,17 +41,17 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         'getConnectionString' | 'instance'
       > as unknown as DataService;
 
-      sinon.stub(getCloudInfoModule, 'getCloudInfo').resolves({});
+      sandbox.stub(getCloudInfoModule, 'getCloudInfo').resolves({});
     });
 
     after(() => {
-      sinon.restore();
+      sandbox.restore();
     });
 
     test('it returns is_used_connect_screen true when the connection type is form', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_FORM
         );
 
@@ -62,7 +63,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it returns is_used_command_palette true when the connection type is string', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_STRING
         );
 
@@ -74,7 +75,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it returns is_used_saved_connection true when the connection type is id', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_ID
         );
 
@@ -86,7 +87,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it has is_localhost false for a remote connection', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_STRING
         );
 
@@ -96,7 +97,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it has a default is atlas false', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_STRING
         );
 
@@ -106,7 +107,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('it has a default driver auth mechanism undefined', async () => {
       const instanceTelemetry =
         await connectionTelemetry.getConnectionTelemetryProperties(
-          mockDataService,
+          dataServiceStub,
           ConnectionTypes.CONNECTION_STRING
         );
 
@@ -117,14 +118,15 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
   suite('with live connection', function () {
     this.timeout(20000);
     let dataServ;
+    const sandbox = sinon.createSandbox();
 
     beforeEach(async () => {
       dataServ = await connect({ connectionString: TEST_DATABASE_URI });
     });
 
     afterEach(async () => {
-      sinon.restore();
       await dataServ.disconnect();
+      sandbox.restore();
     });
 
     test('track new connection event fetches the connection instance information', async () => {

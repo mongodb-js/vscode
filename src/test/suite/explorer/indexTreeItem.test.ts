@@ -44,7 +44,10 @@ suite('IndexTreeItem Test Suite', () => {
         IndexKeyType.GEOSPHERE
       );
 
-      const iconPath: any = testIndexFieldTreeItem.iconPath;
+      const iconPath = testIndexFieldTreeItem.iconPath as {
+        light: string;
+        dark: string;
+      };
       assert(
         iconPath.dark.includes('index') &&
           iconPath.dark.includes('geospatial.svg'),

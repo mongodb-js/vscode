@@ -26,7 +26,6 @@ enum EXTENSION_COMMANDS {
   MDB_SAVE_MONGODB_DOCUMENT = 'mdb.saveMongoDBDocument',
 
   MDB_CHANGE_ACTIVE_CONNECTION = 'mdb.changeActiveConnection',
-  MDB_REFRESH_PLAYGROUNDS = 'mdb.refreshPlaygrounds',
 
   MDB_CODELENS_SHOW_MORE_DOCUMENTS = 'mdb.codeLens.showMoreDocumentsClicked',
 
@@ -34,10 +33,9 @@ enum EXTENSION_COMMANDS {
   MDB_ADD_CONNECTION = 'mdb.addConnection',
   MDB_ADD_CONNECTION_WITH_URI = 'mdb.addConnectionWithURI',
   MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW = 'mdb.refreshPlaygroundsFromTreeView',
-  MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW = 'mdb.openPlaygroundFromTreeItem',
+  MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW = 'mdb.openPlaygroundFromTreeView',
   MDB_CONNECT_TO_CONNECTION_TREE_VIEW = 'mdb.connectToConnectionTreeItem',
-  MDB_CREATE_PLAYGROUND_FROM_VIEW_ACTION = 'mdb.createNewPlaygroundFromViewAction',
-  MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER = 'mdb.createNewPlaygroundFromPlaygroundExplorer',
+  MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW = 'mdb.createNewPlaygroundFromTreeView',
   MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW = 'mdb.disconnectFromConnectionTreeItem',
   MDB_REFRESH_CONNECTION = 'mdb.refreshConnection',
   MDB_COPY_CONNECTION_STRING = 'mdb.copyConnectionString',

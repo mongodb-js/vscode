@@ -11,13 +11,10 @@ suite('Collection Documents Provider Test Suite', () => {
     const testCodeLensProvider = new CollectionDocumentsCodeLensProvider(
       testQueryStore
     );
-
     const operationId = testQueryStore.createNewOperation();
-
     const uri = vscode.Uri.parse(
       `scheme:Results: filename.json?&operationId=${operationId}`
     );
-
     const mockDocument = {
       ...mockVSCodeTextDocument,
       uri,
@@ -45,19 +42,15 @@ suite('Collection Documents Provider Test Suite', () => {
     const testCodeLensProvider = new CollectionDocumentsCodeLensProvider(
       testQueryStore
     );
-
     const operationId = testQueryStore.createNewOperation();
     testQueryStore.operations[operationId].hasMoreDocumentsToShow = false;
-
     const uri = vscode.Uri.parse(
       `scheme:Results: filename.json?operationId=${operationId}`
     );
-
     const mockDocument = {
       ...mockVSCodeTextDocument,
       uri,
     };
-
     const codeLens = testCodeLensProvider.provideCodeLenses(mockDocument);
     assert(codeLens.length === 0);
   });

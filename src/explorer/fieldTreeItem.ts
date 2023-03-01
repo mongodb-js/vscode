@@ -173,6 +173,8 @@ export default class FieldTreeItem
 
   isExpanded: boolean;
 
+  iconPath: string | { light: string; dark: string };
+
   constructor(
     field: SchemaFieldType,
     isExpanded: boolean,

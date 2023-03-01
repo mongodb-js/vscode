@@ -19,30 +19,30 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import TelemetryService from '../../../telemetry/telemetryService';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;
 
 chai.use(require('chai-as-promised'));
 
 suite('Language Server Controller Test Suite', () => {
-  const mockExtensionContext = new TestExtensionContext();
+  const extensionContextStub = new ExtensionContextStub();
 
   // The test extension runner.
-  mockExtensionContext.extensionPath = '../../';
+  extensionContextStub.extensionPath = '../../';
 
-  const mockStorageController = new StorageController(mockExtensionContext);
+  const testStorageController = new StorageController(extensionContextStub);
   const testLanguageServerController = new LanguageServerController(
-    mockExtensionContext
+    extensionContextStub
   );
   const testTelemetryService = new TelemetryService(
-    mockStorageController,
-    mockExtensionContext
+    testStorageController,
+    extensionContextStub
   );
-  const testStatusView = new StatusView(mockExtensionContext);
+  const testStatusView = new StatusView(extensionContextStub);
   const testConnectionController = new ConnectionController(
     testStatusView,
-    mockStorageController,
+    testStorageController,
     testTelemetryService
   );
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -72,16 +72,17 @@ suite('Language Server Controller Test Suite', () => {
     testCodeActionProvider,
     testExplorerController
   );
+  const sandbox = sinon.createSandbox();
 
   before(async () => {
     await testLanguageServerController.startLanguageServer();
 
-    sinon.replace(
+    sandbox.replace(
       testConnectionController,
       'getActiveConnectionName',
       () => 'fakeName'
     );
-    sinon.replace(
+    sandbox.replace(
       testConnectionController,
       'getActiveDataService',
       () =>
@@ -92,13 +93,17 @@ suite('Language Server Controller Test Suite', () => {
           }),
         } as unknown as DataService)
     );
-    sinon.replace(testConnectionController, 'isCurrentlyConnected', () => true);
+    sandbox.replace(
+      testConnectionController,
+      'isCurrentlyConnected',
+      () => true
+    );
 
     await testPlaygroundController._connectToServiceProvider();
   });
 
   after(() => {
-    sinon.restore();
+    sandbox.restore();
   });
 
   test('cancel a long-running script', async () => {
@@ -130,7 +135,7 @@ suite('Language Server Controller Test Suite', () => {
   });
 
   test('the language server dependency bundle exists', async () => {
-    const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
+    const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const languageServerModuleBundlePath = path.join(
       extensionPath,
       'dist',

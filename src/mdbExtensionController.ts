@@ -196,9 +196,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS, () =>
-      this._playgroundsExplorer.refresh()
-    );
 
     // ------ EXPORT TO LANGUAGE ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
@@ -546,11 +543,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_VIEW_ACTION,
-      () => this._playgroundController.createPlayground()
-    );
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER,
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW,
       () => this._playgroundController.createPlayground()
     );
     this.registerCommand(

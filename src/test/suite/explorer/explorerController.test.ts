@@ -17,6 +17,7 @@ suite('Explorer Controller Test Suite', function () {
   // Longer timeout, sometimes it takes a few seconds for vscode to
   // load the extension before running tests.
   this.timeout(10000);
+  const sandbox = sinon.createSandbox();
 
   beforeEach(async () => {
     // Don't save connections on default.
@@ -26,13 +27,8 @@ suite('Explorer Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations['Session Only']
       );
-    // Here we stub the showInformationMessage process because it is too much
-    // for the render process and leads to crashes while testing.
-    sinon.replace(
-      vscode.window,
-      'showInformationMessage',
-      sinon.fake.resolves(true)
-    );
+    sandbox.stub(vscode.window, 'showInformationMessage');
+    sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
   afterEach(async () => {
@@ -46,8 +42,8 @@ suite('Explorer Controller Test Suite', function () {
     // Reset our connections.
     await mdbTestExtension.testExtensionController._connectionController.disconnect();
     mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
-    sinon.restore();
     mdbTestExtension.testExtensionController._explorerController.deactivate();
+    sandbox.restore();
   });
 
   test('it updates the connections to account for a change in the connection controller', async () => {
@@ -329,17 +325,17 @@ suite('Explorer Controller Test Suite', function () {
 
     testExplorerController.activateConnectionsTreeView();
 
-    const treeControllerStub = sinon.stub().returns(null);
+    const treeControllerStub = sandbox.stub().returns(null);
 
-    sinon.replace(
+    sandbox.replace(
       testExplorerController.getTreeController(),
       'activateTreeViewEventHandlers',
       treeControllerStub
     );
 
-    const vscodeCreateTreeViewStub = sinon.stub().returns('');
+    const vscodeCreateTreeViewStub = sandbox.stub().returns('');
 
-    sinon.replace(vscode.window, 'createTreeView', vscodeCreateTreeViewStub);
+    sandbox.replace(vscode.window, 'createTreeView', vscodeCreateTreeViewStub);
 
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI

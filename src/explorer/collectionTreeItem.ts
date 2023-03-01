@@ -83,6 +83,8 @@ export default class CollectionTreeItem
 
   isDropped = false;
 
+  iconPath: { light: string; dark: string };
+
   constructor(
     collection: CollectionModelType,
     databaseName: string,

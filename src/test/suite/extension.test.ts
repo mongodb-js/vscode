@@ -5,8 +5,6 @@ import EXTENSION_COMMANDS from '../../commands';
 const { contributes } = require('../../../package.json');
 
 suite('Extension Test Suite', () => {
-  void vscode.window.showInformationMessage('Starting tests...');
-
   test('there should be 3 views registered in the package.json', () => {
     assert(contributes.views.mongoDB.length === 3);
     assert(contributes.views.mongoDB[0].id === 'mongoDBConnectionExplorer');
@@ -27,8 +25,7 @@ suite('Extension Test Suite', () => {
       'mdb.openMongoDBShell',
       'mdb.createPlayground',
       'mdb.createNewPlaygroundFromOverviewPage',
-      'mdb.createNewPlaygroundFromPlaygroundExplorer',
-      'mdb.createNewPlaygroundFromViewAction',
+      'mdb.createNewPlaygroundFromTreeView',
 
       // Tree view commands.
       'mdb.addConnection',
