@@ -1,6 +1,7 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { before, afterEach } from 'mocha';
+import * as path from 'path';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import PlaygroundsTree from './../../../explorer/playgroundsTree';
 
@@ -44,34 +45,19 @@ suite('Playgrounds Controller Test Suite', function () {
   });
 
   test('should search for playground in the workspace', async () => {
-    const workspaceFolders = (vscode.workspace.workspaceFolders || []).filter(
-      (folder) => folder.uri.scheme === 'file'
-    );
-    const rootPath = workspaceFolders[0]?.uri.path.replace('/out/test', '');
-    const rootUri = vscode.Uri.parse(rootPath);
     const treeController = testPlaygroundsExplorer.getTreeController();
 
     try {
-      const children = await treeController.getPlaygrounds(rootUri);
-
+      const rootPath = path.resolve(__dirname, '../../../..');
+      const children = await treeController.getPlaygrounds(rootPath);
       assert.strictEqual(Object.keys(children).length, 7);
-
-      const playgrounds = Object.values(children).filter(
-        (item: any) => item.label && item.label.split('.').pop() === 'mongodb'
-      );
-
-      assert.strictEqual(Object.keys(playgrounds).length, 7);
     } catch (error) {
       assert(false, error as Error);
     }
   });
 
   test('should exclude folders and files specified in extension settings', async () => {
-    const workspaceFolders = (vscode.workspace.workspaceFolders || []).filter(
-      (folder) => folder.uri.scheme === 'file'
-    );
-    const rootPath = workspaceFolders[0]?.uri.path.replace('/out/test', '');
-    const rootUri = vscode.Uri.parse(rootPath);
+    const treeController = new PlaygroundsTree();
 
     try {
       await vscode.workspace
@@ -80,9 +66,8 @@ suite('Playgrounds Controller Test Suite', function () {
           'excludeFromPlaygroundsSearch',
           excludeFromPlaygroundsSearchDefault.concat(['**/playgrounds/**'])
         );
-
-      const treeController = new PlaygroundsTree();
-      const children = await treeController.getPlaygrounds(rootUri);
+      const rootPath = path.resolve(__dirname, '../../../..');
+      const children = await treeController.getPlaygrounds(rootPath);
 
       assert.strictEqual(Object.keys(children).length, 3);
     } catch (error) {

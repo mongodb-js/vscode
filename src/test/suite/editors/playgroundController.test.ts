@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import { before, beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
-import { DataService } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import CodeActionProvider from '../../../editors/codeActionProvider';
+import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { ExplorerController } from '../../../explorer';
@@ -29,6 +31,7 @@ suite('Playground Controller Test Suite', function () {
 
   const mockExtensionContext = new TestExtensionContext();
 
+  // The test extension runner.
   mockExtensionContext.extensionPath = '../../';
 
   const mockStorageController = new StorageController(mockExtensionContext);
@@ -58,7 +61,7 @@ suite('Playground Controller Test Suite', function () {
   );
   const testExportToLanguageCodeLensProvider =
     new ExportToLanguageCodeLensProvider();
-  const testCodeActionProvider = new CodeActionProvider();
+  const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
   const testExplorerController = new ExplorerController(
     testConnectionController
   );
@@ -201,12 +204,15 @@ suite('Playground Controller Test Suite', function () {
   });
 
   suite('playground is open', () => {
+    const fileName = path.join(
+      'nonexistent',
+      `playground-${uuidv4()}.mongodb.js`
+    );
+    const documentUri = vscode.Uri.from({ path: fileName, scheme: 'untitled' });
     const activeTestEditorMock: unknown = {
       document: {
-        languageId: 'mongodb',
-        uri: {
-          path: 'test',
-        },
+        languageId: 'javascript',
+        uri: documentUri,
         getText: () => "use('dbName');",
         lineAt: sinon.fake.returns({ text: "use('dbName');" }),
       },
@@ -505,8 +511,10 @@ suite('Playground Controller Test Suite', function () {
           .resolves(undefined);
 
         playgroundControllerTest._selectedText = '{ name: qwerty }';
-        playgroundControllerTest._codeActionProvider.selection = selection;
-        playgroundControllerTest._codeActionProvider.mode = mode;
+        playgroundControllerTest._playgroundSelectedCodeActionProvider.selection =
+          selection;
+        playgroundControllerTest._playgroundSelectedCodeActionProvider.mode =
+          mode;
         playgroundControllerTest._activeTextEditor = activeTextEditor;
 
         await playgroundControllerTest.exportToLanguage('csharp');

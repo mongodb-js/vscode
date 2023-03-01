@@ -62,28 +62,15 @@
     "reformat": "prettier --write ."
   },
   "engines": {
-    "vscode": "^1.71.0",
+    "vscode": "^1.75.1",
     "node": "^16.16.0",
-    "npm": "^8.8.0"
+    "npm": "^8.15.1"
   },
   "activationEvents": [
-    "onCommand:mdb.connect",
-    "onCommand:mdb.connectWithURI",
-    "onCommand:mdb.openOverviewPage",
-    "onCommand:mdb.createPlayground",
-    "onCommand:mdb.addConnection",
-    "onCommand:mdb.addConnectionWithURI",
-    "onCommand:mdb.disconnect",
-    "onCommand:mdb.removeConnection",
-    "onCommand:mdb.openMongoDBShell",
-    "onCommand:mdb.saveMongoDBDocument",
-    "onCommand:mdb.insertObjectIdToEditor",
-    "onCommand:mdb.generateObjectIdToClipboard",
     "onView:mongoDB",
-    "onView:mongoDBConnectionExplorer",
-    "onView:mongoDBPlaygroundsExplorer",
     "onLanguage:json",
-    "onLanguage:mongodb"
+    "onLanguage:javascript",
+    "onLanguage:plaintext"
   ],
   "contributes": {
     "viewsContainers": {
@@ -126,17 +113,6 @@
     ],
     "languages": [
       {
-        "id": "mongodb",
-        "aliases": [
-          "MongoDB",
-          "mongodb"
-        ],
-        "extensions": [
-          ".mongodb"
-        ],
-        "configuration": "./languages/mongodb-language-configuration.json"
-      },
-      {
         "id": "terraform",
         "aliases": [
           "Terraform",
@@ -149,14 +125,16 @@
     ],
     "grammars": [
       {
-        "language": "mongodb",
-        "path": "./syntaxes/mongodb.tmLanguage.json",
-        "scopeName": "source.mongodb"
+        "path": "./syntaxes/mongodbInjection.tmLanguage.json",
+        "scopeName": "mongodb.injection",
+        "injectTo": [
+          "source.js"
+        ]
       }
     ],
     "snippets": [
       {
-        "language": "mongodb",
+        "language": "javascript",
         "path": "./snippets/stage-autocompleter.json"
       },
       {
@@ -648,7 +626,7 @@
         {
           "command": "mdb.runPlayground",
           "group": "navigation",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
         }
       ],
       "commandPalette": [
@@ -658,27 +636,31 @@
         },
         {
           "command": "mdb.runSelectedPlaygroundBlocks",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.runAllPlaygroundBlocks",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
+        },
+        {
+          "command": "mdb.exportToRuby",
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.exportToPython",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.exportToJava",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.exportToCsharp",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.exportToNode",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -835,19 +817,19 @@
         "command": "mdb.runSelectedPlaygroundBlocks",
         "key": "ctrl+alt+s",
         "mac": "cmd+alt+s",
-        "when": "editorLangId == mongodb"
+        "when": "mdb.isPlayground == true"
       },
       {
         "command": "mdb.runAllPlaygroundBlocks",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "editorLangId == mongodb"
+        "when": "mdb.isPlayground == true"
       },
       {
         "command": "mdb.saveMongoDBDocument",
         "key": "ctrl+s",
         "mac": "cmd+s",
-        "when": "editorLangId == json"
+        "when": "mdb.isPlayground == true"
       }
     ],
     "capabilities": {
@@ -1045,16 +1027,19 @@
     "@types/enzyme": "^3.10.12",
     "@types/glob": "^7.2.0",
     "@types/jest": "^26.0.24",
+    "@types/micromatch": "^4.0.2",
+    "@types/mkdirp": "^2.0.0",
     "@types/mocha": "^8.2.3",
     "@types/node": "^14.18.29",
     "@types/react": "^17.0.50",
     "@types/react-dom": "^17.0.17",
     "@types/sinon": "^9.0.11",
     "@types/uuid": "^8.3.4",
-    "@types/vscode": "^1.71.0",
+    "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
     "@vscode/test-electron": "^2.1.5",
+    "@vscode/vsce": "^2.16.0",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
     "autoprefixer": "^9.8.8",
     "buffer": "^6.0.3",
@@ -1081,7 +1066,6 @@
     "jest-transform-stub": "^2.0.0",
     "less": "^3.13.1",
     "less-loader": "^5.0.0",
-    "meow": "^9.0.0",
     "mkdirp": "^1.0.4",
     "mocha": "^8.4.0",
     "mocha-junit-reporter": "^2.0.2",
@@ -1104,7 +1088,6 @@
     "ts-loader": "^9.4.1",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.3",
-    "vsce": "^2.11.0",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "xvfb-maybe": "^0.2.1",

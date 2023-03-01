@@ -6,7 +6,7 @@ import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import CodeActionProvider from '../../../editors/codeActionProvider';
+import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { ExplorerController } from '../../../explorer';
@@ -28,6 +28,7 @@ chai.use(require('chai-as-promised'));
 suite('Language Server Controller Test Suite', () => {
   const mockExtensionContext = new TestExtensionContext();
 
+  // The test extension runner.
   mockExtensionContext.extensionPath = '../../';
 
   const mockStorageController = new StorageController(mockExtensionContext);
@@ -59,7 +60,7 @@ suite('Language Server Controller Test Suite', () => {
   );
   const testExportToLanguageCodeLensProvider =
     new ExportToLanguageCodeLensProvider();
-  const testCodeActionProvider = new CodeActionProvider();
+  const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
   const testPlaygroundController = new PlaygroundController(
     testConnectionController,
     testLanguageServerController,

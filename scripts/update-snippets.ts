@@ -1,5 +1,3 @@
-#! /usr/bin/env ts-node
-
 import path from 'path';
 import mkdirp from 'mkdirp';
 import ora from 'ora';

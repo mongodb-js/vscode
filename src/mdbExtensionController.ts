@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 
 import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
-import CodeActionProvider from './editors/codeActionProvider';
+import PlaygroundSelectedCodeActionProvider from './editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from './connectionController';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
 import { createLogger } from './logging';
@@ -44,7 +44,7 @@ const log = createLogger('commands');
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
-  _codeActionProvider: CodeActionProvider;
+  _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
   _connectionController: ConnectionController;
   _context: vscode.ExtensionContext;
   _editorsController: EditorsController;
@@ -96,7 +96,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       new ActiveConnectionCodeLensProvider(this._connectionController);
     this._exportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider();
-    this._codeActionProvider = new CodeActionProvider();
+    this._playgroundSelectedCodeActionProvider =
+      new PlaygroundSelectedCodeActionProvider();
     this._playgroundController = new PlaygroundController(
       this._connectionController,
       this._languageServerController,
@@ -105,7 +106,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
       this._exportToLanguageCodeLensProvider,
-      this._codeActionProvider,
+      this._playgroundSelectedCodeActionProvider,
       this._explorerController
     );
     this._editorsController = new EditorsController(
@@ -117,7 +118,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
       this._exportToLanguageCodeLensProvider,
-      this._codeActionProvider,
+      this._playgroundSelectedCodeActionProvider,
       this._editDocumentCodeLensProvider
     );
     this._webviewController = new WebviewController(

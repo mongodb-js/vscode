@@ -1,17 +1,23 @@
 import * as vscode from 'vscode';
+import { TextEditor } from 'vscode';
 
 import EXTENSION_COMMANDS from '../commands';
 import { ExportToLanguageMode } from '../types/playgroundType';
+import { isPlayground } from '../utils/playground';
 
-export default class CodeActionProvider implements vscode.CodeActionProvider {
+export default class PlaygroundSelectedCodeActionProvider
+  implements vscode.CodeActionProvider
+{
   _onDidChangeCodeCodeAction: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
   selection?: vscode.Selection;
   mode?: ExportToLanguageMode;
+  activeTextEditor?: TextEditor;
 
   static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
   constructor() {
+    this.activeTextEditor = vscode.window.activeTextEditor;
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeCodeAction.fire();
     });
@@ -19,6 +25,11 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
 
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeCodeAction.event;
+
+  setActiveTextEditor(activeTextEditor?: TextEditor) {
+    this.activeTextEditor = activeTextEditor;
+    this._onDidChangeCodeCodeAction.fire();
+  }
 
   refresh({
     selection,
@@ -32,8 +43,12 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
     this._onDidChangeCodeCodeAction.fire();
   }
 
+  isPlayground(): boolean {
+    return isPlayground(this.activeTextEditor?.document.uri);
+  }
+
   provideCodeActions(): vscode.CodeAction[] | undefined {
-    if (!this.selection) {
+    if (!this.selection || !this.isPlayground()) {
       return;
     }
 

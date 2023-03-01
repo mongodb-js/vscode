@@ -1,56 +1,12 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
 import PlaygroundsTreeHeader from './playgroundsTreeHeader';
 import { PLAYGROUND_ITEM } from './playgroundsTreeItem';
 import { createLogger } from '../logging';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
 import EXTENSION_COMMANDS from '../commands';
+import { getPlaygrounds } from '../utils/playground';
 
-const micromatch = require('micromatch');
 const log = createLogger('playgrounds tree controller');
-
-export class FileStat implements vscode.FileStat {
-  constructor(private fsStat: fs.Stats) {}
-
-  get type(): vscode.FileType {
-    if (this.fsStat.isFile()) {
-      return vscode.FileType.File;
-    }
-    if (this.fsStat.isDirectory()) {
-      return vscode.FileType.Directory;
-    }
-    if (this.fsStat.isSymbolicLink()) {
-      return vscode.FileType.SymbolicLink;
-    }
-
-    return vscode.FileType.Unknown;
-  }
-
-  get isFile(): boolean | undefined {
-    return this.fsStat.isFile();
-  }
-
-  get isDirectory(): boolean | undefined {
-    return this.fsStat.isDirectory();
-  }
-
-  get isSymbolicLink(): boolean | undefined {
-    return this.fsStat.isSymbolicLink();
-  }
-
-  get size(): number {
-    return this.fsStat.size;
-  }
-
-  get ctime(): number {
-    return this.fsStat.ctime.getTime();
-  }
-
-  get mtime(): number {
-    return this.fsStat.mtime.getTime();
-  }
-}
 
 export default class PlaygroundsTree
   implements vscode.TreeDataProvider<vscode.TreeItem>
@@ -144,54 +100,23 @@ export default class PlaygroundsTree
     return element;
   }
 
-  private async getFileNames(filePath: string): Promise<string[]> {
-    return await fs.promises.readdir(filePath);
-  }
+  public async getPlaygrounds(fsPath: string): Promise<any> {
+    const excludeFromPlaygroundsSearch: string[] =
+      (await vscode.workspace
+        .getConfiguration('mdb')
+        .get('excludeFromPlaygroundsSearch')) || [];
 
-  private async stat(filePath: string): Promise<fs.Stats> {
-    return await fs.promises.stat(filePath);
-  }
+    const playgrounds = await getPlaygrounds({
+      fsPath,
+      excludeFromPlaygroundsSearch,
+    });
 
-  private async getStat(filePath: string): Promise<vscode.FileStat> {
-    return new FileStat(await this.stat(filePath));
-  }
-
-  public async readDirectory(uri: vscode.Uri): Promise<void> {
-    const fileNames = await this.getFileNames(uri.fsPath);
-
-    for (let i = 0; i < fileNames.length; i++) {
-      const fileName = fileNames[i];
-
-      try {
-        const stat = await this.getStat(path.join(uri.fsPath, fileName));
-        const fileUri = vscode.Uri.file(path.join(uri.fsPath, fileName));
-        const fileNameParts = fileName.split('.');
-
-        if (
-          stat.type === vscode.FileType.File &&
-          fileNameParts.length > 1 &&
-          fileNameParts.pop() === 'mongodb'
-        ) {
-          this._playgroundsTreeItems[fileUri.fsPath] = new PlaygroundsTreeItem(
-            fileName,
-            fileUri.fsPath
-          );
-        } else if (
-          stat.type === vscode.FileType.Directory &&
-          !micromatch.isMatch(fileName, this.excludeFromPlaygroundsSearch)
-        ) {
-          await this.readDirectory(fileUri);
-        }
-      } catch (error) {
-        /* */
-      }
-    }
-  }
-
-  public async getPlaygrounds(folderUri: vscode.Uri): Promise<any> {
-    this._playgroundsTreeItems = {};
-
-    await this.readDirectory(folderUri);
+    this._playgroundsTreeItems = Object.fromEntries(
+      playgrounds.map((playground) => [
+        playground.path,
+        new PlaygroundsTreeItem(playground.name, playground.path),
+      ])
+    );
 
     return this._playgroundsTreeItems;
   }
@@ -209,7 +134,7 @@ export default class PlaygroundsTree
         );
 
         for (const folder of workspaceFolders) {
-          const playgrounds = await this.getPlaygrounds(folder.uri);
+          const playgrounds = await this.getPlaygrounds(folder.uri.fsPath);
 
           if (Object.keys(playgrounds).length > 0) {
             this._playgroundsTreeHeaders.push(

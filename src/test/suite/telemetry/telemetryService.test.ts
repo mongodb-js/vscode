@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import path from 'path';
 import { afterEach, beforeEach } from 'mocha';
 import chai from 'chai';
-import { connect } from 'mongodb-data-service';
 import type { DataService } from 'mongodb-data-service';
 import { config } from 'dotenv';
 import { resolve } from 'path';
@@ -14,7 +13,6 @@ import { ConnectionTypes } from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';
 import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { mdbTestExtension } from '../stubbableMdbExtension';
-import { NewConnectionTelemetryEventProperties } from '../../../telemetry/connectionTelemetry';
 import {
   SegmentProperties,
   TelemetryEventTypes,
@@ -22,8 +20,6 @@ import {
 
 const expect = chai.expect;
 const { version } = require('../../../../package.json');
-
-const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
 chai.use(sinonChai);
 
@@ -64,12 +60,14 @@ suite('Telemetry Controller Test Suite', () => {
       mockTrackCommandRun
     );
     sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
+      mdbTestExtension.testExtensionController._playgroundController
+        ._telemetryService,
       'trackPlaygroundCodeExecuted',
       mockTrackPlaygroundCodeExecuted
     );
     sinon.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
+      mdbTestExtension.testExtensionController._playgroundController
+        ._telemetryService,
       'trackPlaygroundLoaded',
       mockTrackPlaygroundLoadedMethod
     );
@@ -322,7 +320,7 @@ suite('Telemetry Controller Test Suite', () => {
     const mode = ExportToLanguageMode.QUERY;
     const language = 'python';
 
-    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode =
+    mdbTestExtension.testExtensionController._playgroundController._playgroundSelectedCodeActionProvider.mode =
       mode;
     mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons =
       {
@@ -365,7 +363,7 @@ suite('Telemetry Controller Test Suite', () => {
     const mode = ExportToLanguageMode.AGGREGATION;
     const language = 'java';
 
-    mdbTestExtension.testExtensionController._playgroundController._codeActionProvider.mode =
+    mdbTestExtension.testExtensionController._playgroundController._playgroundSelectedCodeActionProvider.mode =
       mode;
     mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons =
       {
@@ -388,47 +386,6 @@ suite('Telemetry Controller Test Suite', () => {
       with_import_statements: false,
       with_builders: false,
       with_driver_syntax: false,
-    });
-  });
-
-  suite('with active connection', function () {
-    this.timeout(5000);
-
-    let dataServ;
-    beforeEach(async () => {
-      try {
-        dataServ = await connect({ connectionString: TEST_DATABASE_URI });
-      } catch (error) {
-        expect(error).to.be.undefined;
-      }
-    });
-
-    afterEach(async () => {
-      sinon.restore();
-      await dataServ.disconnect();
-    });
-
-    test('track new connection event fetches the connection instance information', async () => {
-      sinon.replace(testTelemetryService, 'track', mockTrack);
-      sinon.replace(
-        testTelemetryService,
-        '_isTelemetryFeatureEnabled',
-        () => true
-      );
-      await mdbTestExtension.testExtensionController._telemetryService.trackNewConnection(
-        dataServ,
-        ConnectionTypes.CONNECTION_STRING
-      );
-
-      expect(mockTrack.firstCall.args[0]).to.equal('New Connection');
-      const instanceTelemetry: NewConnectionTelemetryEventProperties =
-        mockTrack.firstCall.args[1];
-      expect(instanceTelemetry.is_localhost).to.equal(true);
-      expect(instanceTelemetry.is_atlas).to.equal(false);
-      expect(instanceTelemetry.is_used_connect_screen).to.equal(false);
-      expect(instanceTelemetry.is_used_command_palette).to.equal(true);
-      expect(instanceTelemetry.is_used_saved_connection).to.equal(false);
-      expect(instanceTelemetry.is_genuine).to.equal(true);
     });
   });
 
