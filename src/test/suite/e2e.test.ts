@@ -120,6 +120,7 @@ db.sales.find({ });`
     );
     await vscode.workspace.applyEdit(edit);
 
+    // Move to a field name position inside of find.
     const position = editor.selection.active;
     const newPosition = position.with(8, 16);
     const newSelection = new vscode.Selection(newPosition, newPosition);
