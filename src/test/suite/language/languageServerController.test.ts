@@ -1,4 +1,4 @@
-import { before, after } from 'mocha';
+import { before, beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import fs from 'fs';
 import path from 'path';
@@ -32,9 +32,6 @@ suite('Language Server Controller Test Suite', () => {
   extensionContextStub.extensionPath = '../../';
 
   const testStorageController = new StorageController(extensionContextStub);
-  const testLanguageServerController = new LanguageServerController(
-    extensionContextStub
-  );
   const testTelemetryService = new TelemetryService(
     testStorageController,
     extensionContextStub
@@ -61,22 +58,32 @@ suite('Language Server Controller Test Suite', () => {
   const testExportToLanguageCodeLensProvider =
     new ExportToLanguageCodeLensProvider();
   const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
-  const testPlaygroundController = new PlaygroundController(
-    testConnectionController,
-    testLanguageServerController,
-    testTelemetryService,
-    testStatusView,
-    testPlaygroundResultProvider,
-    testActiveDBCodeLensProvider,
-    testExportToLanguageCodeLensProvider,
-    testCodeActionProvider,
-    testExplorerController
-  );
+
+  let languageServerControllerStub: LanguageServerController;
+  let testPlaygroundController: PlaygroundController;
+
   const sandbox = sinon.createSandbox();
 
   before(async () => {
-    await testLanguageServerController.startLanguageServer();
+    languageServerControllerStub = new LanguageServerController(
+      extensionContextStub
+    );
+    testPlaygroundController = new PlaygroundController(
+      testConnectionController,
+      languageServerControllerStub,
+      testTelemetryService,
+      testStatusView,
+      testPlaygroundResultProvider,
+      testActiveDBCodeLensProvider,
+      testExportToLanguageCodeLensProvider,
+      testCodeActionProvider,
+      testExplorerController
+    );
+    await languageServerControllerStub.startLanguageServer();
+    await testPlaygroundController._connectToServiceProvider();
+  });
 
+  beforeEach(() => {
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionName',
@@ -98,18 +105,16 @@ suite('Language Server Controller Test Suite', () => {
       'isCurrentlyConnected',
       () => true
     );
-
-    await testPlaygroundController._connectToServiceProvider();
   });
 
-  after(() => {
+  afterEach(() => {
     sandbox.restore();
   });
 
   test('cancel a long-running script', async () => {
-    expect(testLanguageServerController._isExecutingInProgress).to.equal(false);
+    expect(languageServerControllerStub._isExecutingInProgress).to.equal(false);
 
-    await testLanguageServerController.executeAll({
+    await languageServerControllerStub.executeAll({
       codeToEvaluate: `
         const names = [
           "flour",
@@ -130,8 +135,8 @@ suite('Language Server Controller Test Suite', () => {
       connectionId: 'pineapple',
     });
 
-    testLanguageServerController.cancelAll();
-    expect(testLanguageServerController._isExecutingInProgress).to.equal(false);
+    languageServerControllerStub.cancelAll();
+    expect(languageServerControllerStub._isExecutingInProgress).to.equal(false);
   });
 
   test('the language server dependency bundle exists', async () => {

@@ -54,6 +54,13 @@ connection.onInitialize((params: InitializeParams) => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
+      textDocument: {
+        completion: {
+          completionItem: {
+            preselectSupport: true,
+          },
+        },
+      },
       // Tell the client that the server supports code completion
       completionProvider: {
         resolveProvider: true,
@@ -162,6 +169,14 @@ connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
 connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
   return mongoDBService.disconnectFromServiceProvider();
 });
+
+// Set fields for tests.
+connection.onRequest(
+  ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
+  ({ namespace, schemaFields }) => {
+    return mongoDBService._updateCurrentSessionFields(namespace, schemaFields);
+  }
+);
 
 connection.onRequest(
   ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,

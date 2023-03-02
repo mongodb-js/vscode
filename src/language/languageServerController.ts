@@ -188,4 +188,11 @@ export default class LanguageServerController {
       this._isExecutingInProgress = false;
     }
   }
+
+  async updateCurrentSessionFields(params): Promise<void> {
+    await this._client.sendRequest(
+      ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
+      params
+    );
+  }
 }

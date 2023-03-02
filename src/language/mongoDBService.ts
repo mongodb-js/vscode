@@ -12,6 +12,7 @@ import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';
 import { Worker as WorkerThreads } from 'worker_threads';
+import { Document } from '@mongosh/service-provider-core';
 
 import formatError from '../utils/formatError';
 import { ServerCommands } from './serverCommands';
@@ -26,14 +27,6 @@ import { Visitor } from './visitor';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
-export type CollectionItem = {
-  name: string;
-  type?: string;
-  options?: object;
-  info?: { readOnly: boolean; uuid: object[] };
-  idIndex?: { v: number; key: object[]; name: string; ns: string };
-};
-
 export type ShellCompletionItem = {
   [symbol: string]: CompletionItem[] | [];
 };
@@ -44,8 +37,8 @@ export default class MongoDBService {
   _connectionString?: string;
   _connectionOptions?: MongoClientOptions;
   _cachedDatabases: CompletionItem[] | [] = [];
-  _cachedFields: { [namespace: string]: CompletionItem[] } | {} = {};
-  _cachedCollections: { [database: string]: CollectionItem[] } | {} = {};
+  _cachedFields: { [namespace: string]: Document[] } | {} = {};
+  _cachedCollections: { [database: string]: Document[] } | {} = {};
   _cachedShellSymbols: ShellCompletionItem;
   _extensionPath?: string;
   _visitor: Visitor;
@@ -255,7 +248,7 @@ export default class MongoDBService {
       this._connection.console.log('MONGOSH get list databases...');
       worker.postMessage(ServerCommands.GET_LIST_DATABASES);
 
-      worker.on('message', (response: [Error, CompletionItem[] | []]) => {
+      worker.on('message', (response: [Error, Document[] | []]) => {
         const [error, result] = response;
 
         if (error) {
@@ -307,7 +300,7 @@ export default class MongoDBService {
         this._connection.console.log('MONGOSH get list collections...');
         worker.postMessage(ServerCommands.GET_LIST_COLLECTIONS);
 
-        worker.on('message', (response: [Error, CollectionItem[] | []]) => {
+        worker.on('message', (response: [Error, Document[] | []]) => {
           const [error, result] = response;
 
           if (error) {
@@ -369,7 +362,7 @@ export default class MongoDBService {
         this._connection.console.log(`SCHEMA for namespace: "${namespace}"`);
         worker.postMessage(ServerCommands.GET_FIELDS_FROM_SCHEMA);
 
-        worker.on('message', (response: [Error, CompletionItem[] | []]) => {
+        worker.on('message', (response: [Error, string[] | []]) => {
           const [error, result] = response;
 
           if (error) {
@@ -428,6 +421,7 @@ export default class MongoDBService {
           kind: CompletionItemKind.Method,
           documentation: markdownDocumentation,
           detail,
+          preselect: true,
         };
       });
     });
@@ -443,7 +437,7 @@ export default class MongoDBService {
 
   _prepareCollectionsItems(
     textFromEditor: string,
-    collections: Array<CollectionItem>,
+    collections: Document[],
     position: { line: number; character: number }
   ): CompletionItem[] {
     if (!collections) {
@@ -457,6 +451,7 @@ export default class MongoDBService {
         return {
           label: item.name,
           kind: CompletionItemKind.Folder,
+          preselect: true,
         };
       }
 
@@ -486,6 +481,7 @@ export default class MongoDBService {
             `['${item.name}']`,
             filterText.slice(position.character, filterText.length),
           ].join(''),
+          preselect: true,
         },
       };
     });
@@ -495,10 +491,6 @@ export default class MongoDBService {
     params: PlaygroundTextAndSelection
   ): ExportToLanguageMode {
     const state = this._visitor.parseAST(params);
-
-    this._connection.console.log(
-      `EXPORT TO LANGUAGE state: ${util.inspect(state)}`
-    );
 
     if (state.isArray) {
       return ExportToLanguageMode.AGGREGATION;
@@ -652,11 +644,14 @@ export default class MongoDBService {
     this._cachedFields = {};
   }
 
-  _updateCurrentSessionFields(
-    namespace: string,
-    fields: CompletionItem[]
-  ): void {
+  _updateCurrentSessionFields(namespace: string, schemaFields: string[]): void {
     if (namespace) {
+      const fields = schemaFields.map((field) => ({
+        label: field,
+        kind: CompletionItemKind.Field,
+        preselect: true,
+      }));
+
       this._cachedFields[namespace] = fields ? fields : [];
     }
   }
@@ -665,8 +660,12 @@ export default class MongoDBService {
     this._cachedDatabases = [];
   }
 
-  _updateCurrentSessionDatabases(databases: CompletionItem[]): void {
-    this._cachedDatabases = databases ? databases : [];
+  _updateCurrentSessionDatabases(databases: unknown[]): void {
+    this._cachedDatabases = databases.map((item) => ({
+      label: (item as { name: string }).name,
+      kind: CompletionItemKind.Field,
+      preselect: true,
+    }));
   }
 
   _clearCurrentSessionCollections(): void {
@@ -675,7 +674,7 @@ export default class MongoDBService {
 
   _updateCurrentSessionCollections(
     database: string,
-    collections: CollectionItem[]
+    collections: Document[]
   ): void {
     if (database) {
       this._cachedCollections[database] = collections ? collections : [];

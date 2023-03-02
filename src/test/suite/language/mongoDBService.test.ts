@@ -304,10 +304,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide fields completion if has db, connection and is object key', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -323,10 +320,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide fields completion if text not formatted', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -342,10 +336,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide fields completion if functions are multi-lined', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -366,10 +357,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide fields completion if object is multi-lined', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -385,10 +373,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide fields completion if object key is surrounded by spaces', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -404,16 +389,10 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide fields completion for proper db', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
       testMongoDBService._updateCurrentSessionFields('second.collection', [
-        {
-          label: 'TypeScript',
-          kind: CompletionItemKind.Field,
-        },
+        'TypeScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -434,10 +413,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide fields completion if function scope', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -453,10 +429,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide fields completion if snippets mode', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -472,16 +445,10 @@ suite('MongoDBService Test Suite', () => {
 
     test('provide fields completion for proper collection', async () => {
       testMongoDBService._updateCurrentSessionFields('test.firstCollection', [
-        {
-          label: 'JavaScript First',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript First',
       ]);
       testMongoDBService._updateCurrentSessionFields('test.secondCollection', [
-        {
-          label: 'JavaScript Second',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript Second',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -497,10 +464,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('do not provide fields completion if has not db', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -516,10 +480,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('do not provide fields completion if not object id', async () => {
       testMongoDBService._updateCurrentSessionFields('test.collection', [
-        {
-          label: 'JavaScript',
-          kind: CompletionItemKind.Field,
-        },
+        'JavaScript',
       ]);
 
       const result = await testMongoDBService.provideCompletionItems(
@@ -534,12 +495,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide db names completion for literal', async () => {
-      testMongoDBService._updateCurrentSessionDatabases([
-        {
-          label: 'admin',
-          kind: CompletionItemKind.Value,
-        },
-      ]);
+      testMongoDBService._updateCurrentSessionDatabases([{ name: 'admin' }]);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("a");',
@@ -551,16 +507,11 @@ suite('MongoDBService Test Suite', () => {
       const db = result.shift();
 
       expect(db).to.have.property('label', 'admin');
-      expect(db).to.have.property('kind', CompletionItemKind.Value);
+      expect(db).to.have.property('kind', CompletionItemKind.Field);
     });
 
     test('provide db names completion for template start line', async () => {
-      testMongoDBService._updateCurrentSessionDatabases([
-        {
-          label: 'admin',
-          kind: CompletionItemKind.Value,
-        },
-      ]);
+      testMongoDBService._updateCurrentSessionDatabases([{ name: 'admin' }]);
 
       const result = await testMongoDBService.provideCompletionItems(
         ['use(`', '', '`);'].join('\n'),
@@ -572,16 +523,11 @@ suite('MongoDBService Test Suite', () => {
       const db = result.shift();
 
       expect(db).to.have.property('label', 'admin');
-      expect(db).to.have.property('kind', CompletionItemKind.Value);
+      expect(db).to.have.property('kind', CompletionItemKind.Field);
     });
 
     test('provide db names completion for template middle line', async () => {
-      testMongoDBService._updateCurrentSessionDatabases([
-        {
-          label: 'admin',
-          kind: CompletionItemKind.Value,
-        },
-      ]);
+      testMongoDBService._updateCurrentSessionDatabases([{ name: 'admin' }]);
 
       const result = await testMongoDBService.provideCompletionItems(
         ['use(`', '', '`);'].join('\n'),
@@ -593,16 +539,11 @@ suite('MongoDBService Test Suite', () => {
       const db = result.shift();
 
       expect(db).to.have.property('label', 'admin');
-      expect(db).to.have.property('kind', CompletionItemKind.Value);
+      expect(db).to.have.property('kind', CompletionItemKind.Field);
     });
 
     test('provide db names completion for template end line', async () => {
-      testMongoDBService._updateCurrentSessionDatabases([
-        {
-          label: 'admin',
-          kind: CompletionItemKind.Value,
-        },
-      ]);
+      testMongoDBService._updateCurrentSessionDatabases([{ name: 'admin' }]);
 
       const result = await testMongoDBService.provideCompletionItems(
         ['use(`', '', '`);'].join('\n'),
@@ -614,7 +555,7 @@ suite('MongoDBService Test Suite', () => {
       const db = result.shift();
 
       expect(db).to.have.property('label', 'admin');
-      expect(db).to.have.property('kind', CompletionItemKind.Value);
+      expect(db).to.have.property('kind', CompletionItemKind.Field);
     });
 
     test('provide collection names completion for valid object names', async () => {

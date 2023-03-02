@@ -1,18 +1,18 @@
 import { CliServiceProvider } from '@mongosh/service-provider-server';
-import { CompletionItemKind } from 'vscode-languageserver/node';
-import { EJSON, Document } from 'bson';
+import { EJSON } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
+import { Document } from '@mongosh/service-provider-core';
 import parseSchema from 'mongodb-schema';
 import { parentPort, workerData } from 'worker_threads';
+import type { ConnectionOptions } from 'mongodb';
 
-import {
-  PlaygroundResult,
+import type {
   PlaygroundDebug,
   ShellExecuteAllResult,
 } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
 
-// MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options)
+// MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options).
 type MongoClientOptions = NonNullable<
   Parameters<typeof CliServiceProvider['connect']>[1]
 >;
@@ -21,9 +21,6 @@ interface EvaluationResult {
   printable: any;
   type: string | null;
 }
-
-type WorkerResult = ShellExecuteAllResult;
-type WorkerError = any | null;
 
 const getContent = ({ type, printable }: EvaluationResult) => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
@@ -45,23 +42,26 @@ const getLanguage = (evaluationResult: EvaluationResult) => {
   return 'plaintext';
 };
 
+/**
+ * Execute all content from a playground.
+ * @public
+ */
 const executeAll = async (
   codeToEvaluate: string,
   connectionString: string,
   connectionOptions: MongoClientOptions
-): Promise<[WorkerError, WorkerResult?]> => {
+): Promise<[unknown, ShellExecuteAllResult?]> => {
   try {
-    // Instantiate a data service provider.
-    //
-    // TODO: update when `mongosh` will start to support cancellationToken.
-    // See: https://github.com/mongodb/node-mongodb-native/commit/2014b7b/#diff-46fff96a6e12b2b0b904456571ce308fR132
-    const serviceProvider: CliServiceProvider =
-      await CliServiceProvider.connect(connectionString, connectionOptions);
+    const serviceProvider = await CliServiceProvider.connect(
+      connectionString,
+      connectionOptions
+    );
     const outputLines: PlaygroundDebug = [];
 
-    // Create a new instance of the runtime and evaluate code from a playground.
-    const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
+    // Create a new instance of the runtime for each playground evaluation.
+    const runtime = new ElectronRuntime(serviceProvider);
 
+    // Collect console.log() output.
     runtime.setEvaluationListener({
       onPrint(values: EvaluationResult[]) {
         for (const { type, printable } of values) {
@@ -74,12 +74,16 @@ const executeAll = async (
         }
       },
     });
+
+    // Evaluate a playground content.
     const { source, type, printable } = await runtime.evaluate(codeToEvaluate);
     const namespace =
       source && source.namespace
         ? `${source.namespace.db}.${source.namespace.collection}`
         : null;
-    const result: PlaygroundResult = {
+
+    // Prepare a playground result.
+    const result = {
       namespace,
       type: type ? type : typeof printable,
       content: getContent({ type, printable }),
@@ -92,98 +96,85 @@ const executeAll = async (
   }
 };
 
-const findAndParse = async (
-  serviceProvider: CliServiceProvider,
-  databaseName: string,
-  collectionName: string
-) => {
-  const documents = await serviceProvider
-    .find(databaseName, collectionName, {}, { limit: 1 })
-    .toArray();
-
-  if (documents.length === 0) {
-    return [];
-  }
-
-  try {
-    const schema = await parseSchema(documents);
-
-    if (!schema || !schema.fields) {
-      return [];
-    }
-
-    const fields = schema.fields.map((item) => ({
-      label: item.name,
-      kind: CompletionItemKind.Field,
-    }));
-
-    return fields;
-  } catch (parseError) {
-    return [];
-  }
-};
-
+/**
+ * Get field names for autocomplete.
+ * @public
+ */
 const getFieldsFromSchema = async (
   connectionString: string,
-  connectionOptions: any,
+  connectionOptions: ConnectionOptions,
   databaseName: string,
   collectionName: string
-): Promise<any> => {
+): Promise<[unknown, string[]?]> => {
+  let serviceProvider: CliServiceProvider;
+  let result: string[] = [];
+
   try {
-    const serviceProvider: CliServiceProvider =
-      await CliServiceProvider.connect(connectionString, connectionOptions);
-
-    const result = await findAndParse(
-      serviceProvider,
-      databaseName,
-      collectionName
+    serviceProvider = await CliServiceProvider.connect(
+      connectionString,
+      connectionOptions
     );
-
-    return [null, result];
   } catch (error) {
     return [error];
   }
-};
 
-const prepareCompletionItems = (result: Document) => {
-  if (!result) {
-    return [];
+  try {
+    const documents = await serviceProvider
+      .find(databaseName, collectionName, {}, { limit: 1 })
+      .toArray();
+
+    if (documents.length) {
+      const schema = await parseSchema(documents);
+      if (schema?.fields) {
+        result = schema.fields.map((item) => item.name);
+      }
+    }
+  } catch (error) {
+    /* Squelch find and parse documents error */
   }
 
-  return result.databases.map((item) => ({
-    label: item.name,
-    kind: CompletionItemKind.Value,
-  }));
+  return [null, result];
 };
 
+/**
+ * Get database names for autocomplete.
+ * @public
+ */
 const getListDatabases = async (
   connectionString: string,
-  connectionOptions: any
-) => {
+  connectionOptions: ConnectionOptions
+): Promise<[unknown, Document[]?]> => {
   try {
-    const serviceProvider: CliServiceProvider =
-      await CliServiceProvider.connect(connectionString, connectionOptions);
+    const serviceProvider = await CliServiceProvider.connect(
+      connectionString,
+      connectionOptions
+    );
 
     // TODO: There is a mistake in the service provider interface
     // Use `admin` as arguments to get list of dbs
     // and remove it later when `mongosh` will merge a fix.
-    const result = await serviceProvider.listDatabases('admin');
-    const databases = prepareCompletionItems(result);
+    const documents = await serviceProvider.listDatabases('admin');
 
-    return [null, databases];
+    return [null, documents.databases];
   } catch (error) {
     return [error];
   }
 };
 
+/**
+ * Get collection names for autocomplete.
+ * @public
+ */
 const getListCollections = async (
   connectionString: string,
-  connectionOptions: any,
+  connectionOptions: ConnectionOptions,
   databaseName: string
-) => {
+): Promise<[unknown, Document[]?]> => {
   try {
-    const serviceProvider: CliServiceProvider =
-      await CliServiceProvider.connect(connectionString, connectionOptions);
+    const serviceProvider = await CliServiceProvider.connect(
+      connectionString,
+      connectionOptions
+    );
     const result = await serviceProvider.listCollections(databaseName);
     const collections = result ? result : [];
 

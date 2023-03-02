@@ -1005,6 +1005,7 @@
   },
   "devDependencies": {
     "@mongodb-js/prettier-config-compass": "^1.0.0",
+    "@mongosh/service-provider-core": "^1.8.0",
     "@types/analytics-node": "^3.1.9",
     "@types/babel__core": "^7.1.19",
     "@types/babel__traverse": "^7.18.1",
