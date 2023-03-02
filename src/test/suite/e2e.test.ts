@@ -108,35 +108,21 @@ suite('e2e', function () {
     edit.replace(
       testDocumentUri,
       getFullRange(editor.document),
-      `// MongoDB Playground
-// To disable this template go to Settings | MongoDB | Use Default Template For Playground.
-// Make sure you are connected to enable completions and to be able to run a playground.
-// Use Ctrl+Space inside a snippet or a string literal to trigger completions.
-
-// Select the database to use.
-use('mongodbVSCodePlaygroundDB');
-
-db.sales.find({ });`
+      "use('mongodbVSCodePlaygroundDB'); db.sales.find({ });"
     );
     await vscode.workspace.applyEdit(edit);
 
     // Move to a field name position inside of find.
     const position = editor.selection.active;
-    const newPosition = position.with(8, 16);
+    const newPosition = position.with(0, 50);
     const newSelection = new vscode.Selection(newPosition, newPosition);
     editor.selection = newSelection;
 
     await typeCommitCharacter(testDocumentUri, 'n', _disposables);
     await acceptFirstSuggestion(testDocumentUri, _disposables);
 
-    expect(editor.document.getText()).to.be.eql(`// MongoDB Playground
-// To disable this template go to Settings | MongoDB | Use Default Template For Playground.
-// Make sure you are connected to enable completions and to be able to run a playground.
-// Use Ctrl+Space inside a snippet or a string literal to trigger completions.
-
-// Select the database to use.
-use('mongodbVSCodePlaygroundDB');
-
-db.sales.find({ name});`);
+    expect(editor.document.getText()).to.be.eql(
+      "use('mongodbVSCodePlaygroundDB'); db.sales.find({ name});"
+    );
   });
 });

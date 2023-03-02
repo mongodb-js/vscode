@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { before, beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import fs from 'fs';
@@ -84,6 +85,7 @@ suite('Language Server Controller Test Suite', () => {
   });
 
   beforeEach(() => {
+    sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionName',
