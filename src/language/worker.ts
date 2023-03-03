@@ -4,18 +4,17 @@ import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { Document } from '@mongosh/service-provider-core';
 import parseSchema from 'mongodb-schema';
 import { parentPort, workerData } from 'worker_threads';
-import type { ConnectionOptions } from 'mongodb';
+
+// MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options).
+type MongoClientOptions = NonNullable<
+  Parameters<typeof CliServiceProvider['connect']>[1]
+>;
 
 import type {
   PlaygroundDebug,
   ShellExecuteAllResult,
 } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
-
-// MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options).
-type MongoClientOptions = NonNullable<
-  Parameters<typeof CliServiceProvider['connect']>[1]
->;
 
 interface EvaluationResult {
   printable: any;
@@ -51,15 +50,21 @@ const executeAll = async (
   connectionString: string,
   connectionOptions: MongoClientOptions
 ): Promise<[unknown, ShellExecuteAllResult?]> => {
+  let serviceProvider: CliServiceProvider;
+
   try {
-    const serviceProvider = await CliServiceProvider.connect(
+    serviceProvider = await CliServiceProvider.connect(
       connectionString,
       connectionOptions
     );
-    const outputLines: PlaygroundDebug = [];
+  } catch (error) {
+    return [error];
+  }
 
+  try {
     // Create a new instance of the runtime for each playground evaluation.
     const runtime = new ElectronRuntime(serviceProvider);
+    const outputLines: PlaygroundDebug = [];
 
     // Collect console.log() output.
     runtime.setEvaluationListener({
@@ -93,6 +98,8 @@ const executeAll = async (
     return [null, { outputLines, result }];
   } catch (error) {
     return [error];
+  } finally {
+    await serviceProvider.close(true);
   }
 };
 
@@ -102,7 +109,7 @@ const executeAll = async (
  */
 const getFieldsFromSchema = async (
   connectionString: string,
-  connectionOptions: ConnectionOptions,
+  connectionOptions: MongoClientOptions,
   databaseName: string,
   collectionName: string
 ): Promise<[unknown, string[]?]> => {
@@ -125,14 +132,13 @@ const getFieldsFromSchema = async (
 
     if (documents.length) {
       const schema = await parseSchema(documents);
-      if (schema?.fields) {
-        result = schema.fields.map((item) => item.name);
-      }
+      result = schema?.fields ? schema.fields.map((item) => item.name) : [];
     }
   } catch (error) {
     /* Squelch find and parse documents error */
   }
 
+  await serviceProvider.close(true);
   return [null, result];
 };
 
@@ -142,23 +148,32 @@ const getFieldsFromSchema = async (
  */
 const getListDatabases = async (
   connectionString: string,
-  connectionOptions: ConnectionOptions
+  connectionOptions: MongoClientOptions
 ): Promise<[unknown, Document[]?]> => {
+  let serviceProvider: CliServiceProvider;
+  let result: Document[] = [];
+
   try {
-    const serviceProvider = await CliServiceProvider.connect(
+    serviceProvider = await CliServiceProvider.connect(
       connectionString,
       connectionOptions
     );
+  } catch (error) {
+    return [error];
+  }
 
+  try {
     // TODO: There is a mistake in the service provider interface
     // Use `admin` as arguments to get list of dbs
     // and remove it later when `mongosh` will merge a fix.
     const documents = await serviceProvider.listDatabases('admin');
-
-    return [null, documents.databases];
+    result = documents.databases ? documents.databases : [];
   } catch (error) {
-    return [error];
+    /* Squelch list databases error */
   }
+
+  await serviceProvider.close(true);
+  return [null, result];
 };
 
 /**
@@ -167,21 +182,30 @@ const getListDatabases = async (
  */
 const getListCollections = async (
   connectionString: string,
-  connectionOptions: ConnectionOptions,
+  connectionOptions: MongoClientOptions,
   databaseName: string
 ): Promise<[unknown, Document[]?]> => {
+  let serviceProvider: CliServiceProvider;
+  let result: Document[] = [];
+
   try {
-    const serviceProvider = await CliServiceProvider.connect(
+    serviceProvider = await CliServiceProvider.connect(
       connectionString,
       connectionOptions
     );
-    const result = await serviceProvider.listCollections(databaseName);
-    const collections = result ? result : [];
-
-    return [null, collections];
   } catch (error) {
     return [error];
   }
+
+  try {
+    const documents = await serviceProvider.listCollections(databaseName);
+    result = documents ? documents : [];
+  } catch (error) {
+    /* Squelch list collections error */
+  }
+
+  await serviceProvider.close(true);
+  return [null, result];
 };
 
 const handleMessageFromParentPort = async (message: string): Promise<void> => {
