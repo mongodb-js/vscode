@@ -392,8 +392,46 @@ export default class MongoDBService {
   }
 
   /**
+   * Get and cache collection and field names based on the namespace.
+   */
+  async _getCompletionValuesAndUpdateCache(
+    textFromEditor: string,
+    position: { line: number; character: number },
+    currentDatabaseName: string | null,
+    currentCollectionName: string | null
+  ) {
+    if (currentDatabaseName && !this._cachedCollections[currentDatabaseName]) {
+      // Get collection names for the current database.
+      const collections = await this._getCollections(currentDatabaseName);
+
+      // Create and cache collection completion items.
+      this._cacheCollectionCompletionItems(
+        textFromEditor,
+        position,
+        currentDatabaseName,
+        collections
+      );
+    }
+
+    if (currentDatabaseName && currentCollectionName) {
+      const namespace = `${currentDatabaseName}.${currentCollectionName}`;
+
+      if (!this._cachedFields[namespace]) {
+        // Get field names for the current namespace.
+        const schemaFields = await this._getSchemaFields(
+          currentDatabaseName,
+          currentCollectionName
+        );
+
+        // Create and cache field completion items.
+        this._cacheFieldCompletionItems(namespace, schemaFields);
+      }
+    }
+  }
+
+  /**
    * Parse code from a playground to identify
-   * a namespace for the export to language action.
+   * where the cursor is and suggests only suitable completion items.
    */
   // eslint-disable-next-line complexity
   async provideCompletionItems(
@@ -412,59 +450,42 @@ export default class MongoDBService {
       `VISITOR completion state: ${util.inspect(state)}`
     );
 
-    if (
-      this.connectionString &&
-      state.databaseName &&
-      !this._cachedCollections[state.databaseName]
-    ) {
-      // Get collection names for the current database.
-      const collections = await this._getCollections(state.databaseName);
+    await this._getCompletionValuesAndUpdateCache(
+      textFromEditor,
+      position,
+      state.databaseName,
+      state.collectionName
+    );
 
-      // Create and cache collection completion items.
-      this._cacheCollectionCompletionItems(
-        textFromEditor,
-        position,
-        state.databaseName,
-        collections
-      );
+    // We check a playground code before the current cursor position.
+    // If we found 'use("db")' or 'db.collection'
+    // and the current node is an object property
+    // e.g. 'db.collection.find({ <trigger>})'.
+    if (state.databaseName && state.collectionName && state.isObjectKey) {
+      this._connection.console.log('VISITOR found field names completion');
+      return this._cachedFields[
+        `${state.databaseName}.${state.collectionName}`
+      ];
     }
 
-    if (this.connectionString && state.databaseName && state.collectionName) {
-      const namespace = `${state.databaseName}.${state.collectionName}`;
-
-      if (!this._cachedFields[namespace]) {
-        // Get field names for the current namespace.
-        const schemaFields = await this._getSchemaFields(
-          state.databaseName,
-          state.collectionName
-        );
-
-        // Create and cache field completion items.
-        this._cacheFieldCompletionItems(namespace, schemaFields);
-      }
-
-      if (state.isObjectKey) {
-        this._connection.console.log('VISITOR found field names completion');
-        return this._cachedFields[namespace];
-      }
-    }
-
+    // If the current node is 'db.collection().<trigger>'
+    // or 'db["test"].<trigger>'.
     if (state.isShellMethod) {
       this._connection.console.log(
         'VISITOR found shell collection methods completion'
       );
-
       return this._cachedShellSymbols.Collection;
     }
 
+    // If the current node is 'db.collection().aggregate().<trigger>'.
     if (state.isAggregationCursor) {
       this._connection.console.log(
         'VISITOR found shell aggregation cursor methods completion'
       );
-
       return this._cachedShellSymbols.AggregationCursor;
     }
 
+    // If the current node is 'db.collection().find().<trigger>'.
     if (state.isFindCursor) {
       this._connection.console.log(
         'VISITOR found shell cursor methods completion'
@@ -472,43 +493,43 @@ export default class MongoDBService {
       return this._cachedShellSymbols.Cursor;
     }
 
-    if (state.isDbCallExpression) {
-      let dbCompletions: CompletionItem[] = [
+    // If we found 'use("db")' and the current node is 'db.<trigger>'.
+    if (state.isDbCallExpression && state.databaseName) {
+      this._connection.console.log(
+        'VISITOR found shell db methods and collection names completion'
+      );
+      return [
         ...this._cachedShellSymbols.Database,
+        ...this._cachedCollections[state.databaseName],
       ];
-
-      if (state.databaseName) {
-        this._connection.console.log(
-          'VISITOR found shell db methods and collection names completion'
-        );
-        dbCompletions = dbCompletions.concat(
-          this._cachedCollections[state.databaseName]
-        );
-      } else {
-        this._connection.console.log(
-          'VISITOR found shell db methods completion'
-        );
-      }
-
-      return dbCompletions;
     }
 
+    // If the current node is 'db.<trigger>'.
+    if (state.isDbCallExpression) {
+      this._connection.console.log('VISITOR found shell db methods completion');
+      return this._cachedShellSymbols.Database;
+    }
+
+    // If the current node can be used as a collection name
+    // e.g. 'db.<trigger>.find()' or 'let a = db.<trigger>'.
     if (state.isCollectionName && state.databaseName) {
       this._connection.console.log('VISITOR found collection names completion');
       return this._cachedCollections[state.databaseName];
     }
 
+    // If the current node is 'use("<trigger>"")'.
     if (state.isUseCallExpression) {
       this._connection.console.log('VISITOR found database names completion');
-
       return this._cachedDatabases;
     }
 
-    this._connection.console.log('VISITOR no completions');
-
+    this._connection.console.log('VISITOR no completion');
     return [];
   }
 
+  /**
+   * Convert schema field names to Completion Items and cache them.
+   */
   _cacheFieldCompletionItems(namespace: string, schemaFields: string[]): void {
     if (namespace) {
       const fields = schemaFields.map((field) => ({
@@ -520,6 +541,10 @@ export default class MongoDBService {
       this._cachedFields[namespace] = fields ? fields : [];
     }
   }
+
+  /**
+   * Convert database names to Completion Items and cache them.
+   */
   _cacheDatabaseCompletionItems(databases: Document[]): void {
     this._cachedDatabases = databases.map((item) => ({
       label: (item as { name: string }).name,
@@ -528,6 +553,9 @@ export default class MongoDBService {
     }));
   }
 
+  /**
+   * Convert collection names to Completion Items and cache them.
+   */
   _cacheCollectionCompletionItems(
     textFromEditor: string,
     position: { line: number; character: number },
@@ -543,13 +571,13 @@ export default class MongoDBService {
         };
       }
 
-      // Convert invalid property names to array-like format
+      // Convert invalid property names to array-like format.
       const filterText = textFromEditor.split('\n')[position.line];
 
       return {
         label: item.name,
         kind: CompletionItemKind.Folder,
-        // Find the line with invalid property name
+        // Find the line with invalid property name.
         filterText: [
           filterText.slice(0, position.character),
           `.${item.name}`,
@@ -563,7 +591,7 @@ export default class MongoDBService {
               character: filterText.length,
             },
           },
-          // Replace with array-like format
+          // Replace with array-like format.
           newText: [
             filterText.slice(0, position.character - 1),
             `['${item.name}']`,
