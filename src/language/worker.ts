@@ -49,42 +49,46 @@ const execute = async (
     connectionOptions
   );
 
-  // Create a new instance of the runtime for each playground evaluation.
-  const runtime = new ElectronRuntime(serviceProvider);
-  const outputLines: PlaygroundDebug = [];
+  try {
+    // Create a new instance of the runtime for each playground evaluation.
+    const runtime = new ElectronRuntime(serviceProvider);
+    const outputLines: PlaygroundDebug = [];
 
-  // Collect console.log() output.
-  runtime.setEvaluationListener({
-    onPrint(values: EvaluationResult[]) {
-      for (const { type, printable } of values) {
-        outputLines.push({
-          type,
-          content: printable,
-          namespace: null,
-          language: null,
-        });
-      }
-    },
-  });
+    // Collect console.log() output.
+    runtime.setEvaluationListener({
+      onPrint(values: EvaluationResult[]) {
+        for (const { type, printable } of values) {
+          outputLines.push({
+            type,
+            content: printable,
+            namespace: null,
+            language: null,
+          });
+        }
+      },
+    });
 
-  // Evaluate a playground content.
-  const { source, type, printable } = await runtime.evaluate(codeToEvaluate);
-  const namespace =
-    source && source.namespace
-      ? `${source.namespace.db}.${source.namespace.collection}`
-      : null;
+    // Evaluate a playground content.
+    const { source, type, printable } = await runtime.evaluate(codeToEvaluate);
+    const namespace =
+      source && source.namespace
+        ? `${source.namespace.db}.${source.namespace.collection}`
+        : null;
 
-  // Prepare a playground result.
-  const result = {
-    namespace,
-    type: type ? type : typeof printable,
-    content: getContent({ type, printable }),
-    language: getLanguage({ type, printable }),
-  };
+    // Prepare a playground result.
+    const result = {
+      namespace,
+      type: type ? type : typeof printable,
+      content: getContent({ type, printable }),
+      language: getLanguage({ type, printable }),
+    };
 
-  await serviceProvider.close(true);
-
-  return { outputLines, result };
+    return { outputLines, result };
+  } catch (error) {
+    throw new Error((<any>error).message);
+  } finally {
+    await serviceProvider.close(true);
+  }
 };
 
 const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
