@@ -4,12 +4,12 @@ import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
 import { ServerCommands } from './serverCommands';
 
-import { PlaygroundDebug } from '../types/playgroundType';
-
-// MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options).
-type MongoClientOptions = NonNullable<
-  Parameters<typeof CliServiceProvider['connect']>[1]
->;
+import type {
+  ShellEvaluateResult,
+  PlaygroundDebug,
+  WorkerEvaluate,
+  MongoClientOptions,
+} from '../types/playgroundType';
 
 interface EvaluationResult {
   printable: any;
@@ -43,7 +43,7 @@ const execute = async (
   codeToEvaluate: string,
   connectionString: string,
   connectionOptions: MongoClientOptions
-): Promise<any> => {
+): Promise<ShellEvaluateResult> => {
   const serviceProvider = await CliServiceProvider.connect(
     connectionString,
     connectionOptions
@@ -100,6 +100,9 @@ const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
 };
 
 // parentPort allows communication with the parent thread.
-parentPort?.once('message', (message: any): void => {
-  void handleMessageFromParentPort(message);
-});
+parentPort?.once(
+  'message',
+  (message: { name: string; data: WorkerEvaluate }): void => {
+    void handleMessageFromParentPort(message);
+  }
+);

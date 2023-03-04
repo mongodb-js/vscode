@@ -139,7 +139,7 @@ export class Visitor {
     textFromEditor,
     selection,
   }: VisitorTextAndSelection): CompletionState {
-    let ast: any;
+    let ast;
 
     this._state = this._getDefaultNodesValues();
     this._selection = selection;
@@ -229,7 +229,15 @@ export class Visitor {
 
   _checkIsObjectKey(node: babel.types.ObjectExpression): void {
     this._state.isObjectKey = !!node.properties.find(
-      (item: any) => !!(item.key.name && item.key.name.includes(PLACEHOLDER))
+      (
+        item:
+          | babel.types.ObjectProperty
+          | babel.types.SpreadElement
+          | babel.types.ObjectMethod
+      ) =>
+        item.type === 'ObjectProperty' &&
+        item.key.type === 'Identifier' &&
+        !!(item.key.name && item.key.name.includes(PLACEHOLDER))
     );
   }
 

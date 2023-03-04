@@ -22,14 +22,11 @@ import type {
   PlaygroundEvaluateParams,
   ExportToLanguageNamespace,
   PlaygroundTextAndSelection,
+  MongoClientOptions,
 } from '../types/playgroundType';
 import { Visitor } from './visitor';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
-
-type MongoClientOptions = NonNullable<
-  Parameters<typeof CliServiceProvider['connect']>[1]
->;
 
 interface ServiceProviderParams {
   connectionId: string;
