@@ -65,7 +65,7 @@ export function acceptFirstSuggestion(
     _disposables,
     async () => {
       await vscode.commands.executeCommand('editor.action.triggerSuggest');
-      await wait(200);
+      await wait(1000);
       await vscode.commands.executeCommand('acceptSelectedSuggestion');
     }
   );
