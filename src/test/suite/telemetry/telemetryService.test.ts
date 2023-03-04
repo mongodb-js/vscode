@@ -82,7 +82,7 @@ suite('Telemetry Controller Test Suite', () => {
       mdbTestExtension.testExtensionController._playgroundController
         ._connectionController,
       'getActiveConnectionId',
-      () => 'testconnectionId'
+      sandbox.fake.returns('testconnectionId')
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
@@ -100,6 +100,14 @@ suite('Telemetry Controller Test Suite', () => {
       sandbox.fake.returns('mongodb://localhost')
     );
     sandbox.stub(vscode.window, 'showErrorMessage');
+    sandbox.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      'getTranspiledContent',
+      sandbox.fake.resolves({
+        namespace: 'db.coll',
+        expressio: '{}',
+      })
+    );
   });
 
   afterEach(() => {
@@ -302,7 +310,7 @@ suite('Telemetry Controller Test Suite', () => {
   test('track query exported to language', async function () {
     this.timeout(5000);
 
-    const fakeSegmentTrack = sandbox.fake.yields(null);
+    const fakeSegmentTrack = sandbox.fake();
     sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackQueryExported',

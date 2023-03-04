@@ -24,7 +24,7 @@ export async function typeCommitCharacter(
 ) {
   const didChangeDocument = onChangedDocument(uri, _disposables);
   await vscode.commands.executeCommand('editor.action.triggerSuggest');
-  await wait(3000); // Give time for suggestions to show.
+  await wait(2000); // Give time for suggestions to show.
   await vscode.commands.executeCommand('type', { text: character });
   return await didChangeDocument;
 }
