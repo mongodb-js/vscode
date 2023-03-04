@@ -116,7 +116,7 @@ suite('Language Server Controller Test Suite', () => {
   test('cancel a long-running script', async () => {
     expect(languageServerControllerStub._isExecutingInProgress).to.equal(false);
 
-    await languageServerControllerStub.executeAll({
+    await languageServerControllerStub.evalauate({
       codeToEvaluate: `
         const names = [
           "flour",

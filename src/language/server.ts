@@ -15,7 +15,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import MongoDBService from './mongoDBService';
 import { ServerCommands } from './serverCommands';
 import {
-  PlaygroundExecuteParameters,
+  PlaygroundEvaluateParams,
   PlaygroundTextAndSelection,
 } from '../types/playgroundType';
 
@@ -149,9 +149,9 @@ connection.onDidChangeWatchedFiles((/* _change */) => {
 
 // Execute the entire playground script.
 connection.onRequest(
-  ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
-  (executionParameters: PlaygroundExecuteParameters, token) => {
-    return mongoDBService.executeAll(executionParameters, token);
+  ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
+  (evaluateParams: PlaygroundEvaluateParams, token) => {
+    return mongoDBService.evalauate(evaluateParams, token);
   }
 );
 
@@ -174,7 +174,7 @@ connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
 connection.onRequest(
   ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
   ({ namespace, schemaFields }) => {
-    return mongoDBService._updateCurrentSessionFields(namespace, schemaFields);
+    return mongoDBService._cacheFieldCompletionItems(namespace, schemaFields);
   }
 );
 

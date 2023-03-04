@@ -12,8 +12,8 @@ import { workspace, ExtensionContext } from 'vscode';
 
 import { createLogger } from '../logging';
 import {
-  PlaygroundExecuteParameters,
-  ShellExecuteAllResult,
+  PlaygroundEvaluateParams,
+  ShellEvaluateResult,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
   PlaygroundTextAndSelection,
@@ -120,9 +120,9 @@ export default class LanguageServerController {
     void this._client.stop();
   }
 
-  async executeAll(
-    playgroundExecuteParameters: PlaygroundExecuteParameters
-  ): Promise<ShellExecuteAllResult> {
+  async evalauate(
+    playgroundExecuteParameters: PlaygroundEvaluateParams
+  ): Promise<ShellEvaluateResult> {
     this._isExecutingInProgress = true;
 
     // Instantiate a new CancellationTokenSource object
@@ -132,8 +132,8 @@ export default class LanguageServerController {
     // Send a request with a cancellation token
     // to the language server server to execute scripts from a playground
     // and return results to the playground controller when ready
-    const result: ShellExecuteAllResult = await this._client.sendRequest(
-      ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
+    const result: ShellEvaluateResult = await this._client.sendRequest(
+      ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
       playgroundExecuteParameters,
       this._source.token
     );

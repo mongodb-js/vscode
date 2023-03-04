@@ -75,7 +75,7 @@ suite('Telemetry Controller Test Suite', () => {
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._languageServerController,
-      'executeAll',
+      'evalauate',
       sandbox.fake.resolves([{ type: 'TEST', content: 'Result' }])
     );
     sandbox.replace(

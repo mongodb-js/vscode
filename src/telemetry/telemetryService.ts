@@ -10,7 +10,7 @@ import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
 import { getConnectionTelemetryProperties } from './connectionTelemetry';
 import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
-import type { ShellExecuteAllResult } from '../types/playgroundType';
+import type { ShellEvaluateResult } from '../types/playgroundType';
 import { StorageController } from '../storage';
 
 const log = createLogger('telemetry');
@@ -222,7 +222,7 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
   }
 
-  getPlaygroundResultType(res: ShellExecuteAllResult): string {
+  getPlaygroundResultType(res: ShellEvaluateResult): string {
     if (!res || !res.result || !res.result.type) {
       return 'other';
     }
@@ -262,7 +262,7 @@ export default class TelemetryService {
   }
 
   trackPlaygroundCodeExecuted(
-    result: ShellExecuteAllResult,
+    result: ShellEvaluateResult,
     partial: boolean,
     error: boolean
   ): void {

@@ -12,7 +12,7 @@ import type { Document, Filter, FindOptions } from 'mongodb';
 import { StorageController } from '../../storage';
 
 import {
-  ShellExecuteAllResult,
+  ShellEvaluateResult,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
 } from '../../types/playgroundType';
@@ -308,7 +308,7 @@ class LanguageServerControllerStub {
     return;
   }
 
-  executeAll(/* codeToEvaluate: string */): Promise<ShellExecuteAllResult> {
+  evalauate(/* codeToEvaluate: string */): Promise<ShellEvaluateResult> {
     return Promise.resolve({
       outputLines: [],
       result: {

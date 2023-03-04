@@ -11,14 +11,14 @@ export type PlaygroundDebug = OutputItem[] | undefined;
 
 export type PlaygroundResult = OutputItem | undefined;
 
-export type ShellExecuteAllResult =
+export type ShellEvaluateResult =
   | {
       outputLines: PlaygroundDebug;
       result: PlaygroundResult;
     }
   | undefined;
 
-export type PlaygroundExecuteParameters = {
+export type PlaygroundEvaluateParams = {
   codeToEvaluate: string;
   connectionId: string;
 };
