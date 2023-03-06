@@ -16,7 +16,7 @@ chai.use(require('chai-as-promised'));
 
 const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 
-suite('e2e', function () {
+suite('Playground', function () {
   this.timeout(8000);
 
   const _disposables: vscode.Disposable[] = [];
@@ -87,18 +87,11 @@ suite('e2e', function () {
   });
 
   test('show mongodb completion items before other js completion', async () => {
-    const inputBoxResolvesStub = sandbox.stub();
-    inputBoxResolvesStub.onCall(0).resolves(TEST_DATABASE_URI);
-    sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
-
-    await vscode.commands.executeCommand('mdb.connectWithURI');
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     const editor = vscode.window.activeTextEditor;
-    expect(editor).to.be.exist;
-
     if (!editor) {
-      return;
+      throw new Error('Window active text editor is undefined');
     }
 
     const testDocumentUri = editor.document.uri;
