@@ -33,6 +33,10 @@ export default class ActiveConnectionCodeLensProvider
     this._onDidChangeCodeLenses.fire();
   }
 
+  isPlayground(): boolean {
+    return isPlayground(this.activeTextEditor?.document.uri);
+  }
+
   provideCodeLenses(): vscode.CodeLens[] {
     const document = this.activeTextEditor?.document;
 

@@ -1,70 +1,52 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import { DataService } from 'mongodb-data-service';
 import chai from 'chai';
 import sinon from 'sinon';
-import * as os from 'os';
-import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
+import type { DataService } from 'mongodb-data-service';
 
 import ActiveConnectionCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 import TelemetryService from '../../../telemetry/telemetryService';
 
 const expect = chai.expect;
 
 suite('Active Connection CodeLens Provider Test Suite', () => {
-  const mockExtensionContext = new TestExtensionContext();
-  const mockStorageController = new StorageController(mockExtensionContext);
+  const extensionContextStub = new ExtensionContextStub();
+  const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
-    mockStorageController,
-    mockExtensionContext
+    testStorageController,
+    extensionContextStub
   );
-  const testStatusView = new StatusView(mockExtensionContext);
+  const testStatusView = new StatusView(extensionContextStub);
 
   suite('the MongoDB playground in JS', () => {
-    beforeEach(async () => {
-      const fileName = path.join(
-        os.tmpdir(),
-        `playground-${uuidv4()}.mongodb.js`
-      );
-      const documentUri = vscode.Uri.from({
-        path: fileName,
-        scheme: 'untitled',
-      });
-      const document = await vscode.workspace.openTextDocument(documentUri);
-      await vscode.window.showTextDocument(document);
-    });
-
-    afterEach(async () => {
-      await vscode.commands.executeCommand(
-        'workbench.action.closeActiveEditor'
-      );
-    });
+    const sandbox = sinon.createSandbox();
 
     suite('user is not connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
-        mockStorageController,
+        testStorageController,
         testTelemetryService
       );
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const mockShowQuickPick = sinon.fake();
+      const fakeShowQuickPick = sandbox.fake();
 
       beforeEach(() => {
         testCodeLensProvider.setActiveTextEditor(
           vscode.window.activeTextEditor
         );
-        sinon.replace(vscode.window, 'showQuickPick', mockShowQuickPick);
+        sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
+        const fakeIsPlayground = sandbox.fake.returns(true);
+        sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       afterEach(() => {
-        sinon.restore();
+        sandbox.restore();
       });
 
       test('show disconnected message in code lenses', () => {
@@ -83,40 +65,44 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     suite('user is connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
-        mockStorageController,
+        testStorageController,
         testTelemetryService
       );
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const mockActiveDataService = {
-        find: (namespace, filter, options, callback): void => {
-          return callback(null, [{ field: 'Text message' }]);
-        },
-        instance: () =>
-          Promise.resolve({
-            dataLake: {},
-            build: {},
-            genuineMongoDB: {},
-            host: {},
-          }),
-      } as DataService;
-
-      testConnectionController.setActiveDataService(mockActiveDataService);
 
       beforeEach(() => {
+        const findStub = sandbox.stub();
+        findStub.resolves([
+          {
+            field: 'Text message',
+          },
+        ]);
+        const instanceStub = sandbox.stub();
+        instanceStub.resolves({
+          dataLake: {},
+          build: {},
+          genuineMongoDB: {},
+          host: {},
+        } as unknown as Awaited<ReturnType<DataService['instance']>>);
+        const activeDataServiceStub = {
+          find: findStub,
+          instance: instanceStub,
+        } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
+
+        testConnectionController.setActiveDataService(activeDataServiceStub);
+
         testCodeLensProvider.setActiveTextEditor(
           vscode.window.activeTextEditor
         );
-        sinon.replace(
+        sandbox.replace(
           testConnectionController,
           'getActiveConnectionName',
-          sinon.fake.returns('fakeName')
+          sandbox.fake.returns('fakeName')
         );
-      });
-
-      afterEach(() => {
-        sinon.restore();
+        const fakeIsPlayground = sandbox.fake.returns(true);
+        sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       test('show active connection in code lenses', () => {
@@ -137,39 +123,27 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   });
 
   suite('the regular JS file', () => {
-    beforeEach(async () => {
-      const fileName = path.join(os.tmpdir(), `regular-file-${uuidv4()}.js`);
-      const documentUri = vscode.Uri.from({
-        path: fileName,
-        scheme: 'untitled',
-      });
-      const document = await vscode.workspace.openTextDocument(documentUri);
-      await vscode.window.showTextDocument(document);
-    });
-
-    afterEach(async () => {
-      await vscode.commands.executeCommand(
-        'workbench.action.closeActiveEditor'
-      );
-    });
+    const sandbox = sinon.createSandbox();
 
     suite('user is not connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
-        mockStorageController,
+        testStorageController,
         testTelemetryService
       );
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const mockShowQuickPick = sinon.fake();
+      const fakeShowQuickPick = sandbox.fake();
 
       beforeEach(() => {
-        sinon.replace(vscode.window, 'showQuickPick', mockShowQuickPick);
+        sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
+        const fakeIsPlayground = sandbox.fake.returns(false);
+        sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       afterEach(() => {
-        sinon.restore();
+        sandbox.restore();
       });
 
       test('show not show the active connection code lenses', () => {
@@ -183,37 +157,39 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     suite('user is connected', () => {
       const testConnectionController = new ConnectionController(
         testStatusView,
-        mockStorageController,
+        testStorageController,
         testTelemetryService
       );
       const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
         testConnectionController
       );
-      const mockActiveDataService = {
-        find: (namespace, filter, options, callback): void => {
-          return callback(null, [{ field: 'Text message' }]);
-        },
-        instance: () =>
-          Promise.resolve({
-            dataLake: {},
-            build: {},
-            genuineMongoDB: {},
-            host: {},
-          }),
-      } as DataService;
-
-      testConnectionController.setActiveDataService(mockActiveDataService);
 
       beforeEach(() => {
-        sinon.replace(
+        const findStub = sandbox.stub();
+        findStub.resolves([
+          {
+            field: 'Text message',
+          },
+        ]);
+        const instanceStub = sandbox.stub();
+        instanceStub.resolves({
+          dataLake: {},
+          build: {},
+          genuineMongoDB: {},
+          host: {},
+        } as unknown as Awaited<ReturnType<DataService['instance']>>);
+        const activeDataServiceStub = {
+          find: findStub,
+          instance: instanceStub,
+        } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
+        testConnectionController.setActiveDataService(activeDataServiceStub);
+        sandbox.replace(
           testConnectionController,
           'getActiveConnectionName',
-          sinon.fake.returns('fakeName')
+          sandbox.fake.returns('fakeName')
         );
-      });
-
-      afterEach(() => {
-        sinon.restore();
+        const fakeIsPlayground = sandbox.fake.returns(false);
+        sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       test('show not show the active connection code lensess', () => {

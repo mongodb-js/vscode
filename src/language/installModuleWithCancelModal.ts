@@ -9,17 +9,17 @@ import formatError from '../utils/formatError';
  * Check if Yarn is installed on users computer.
  */
 const isYarnInstalled = (): boolean => {
-  try {
-    spawn.sync('yarnpkg', ['--version'], {
-      cwd: os.homedir(),
-      encoding: 'utf8',
-      stdio: 'ignore',
-    });
+  const result = spawn.sync('yarnpkg', ['--version'], {
+    cwd: os.homedir(),
+    encoding: 'utf8',
+    stdio: 'ignore',
+  });
 
-    return true;
-  } catch (e) {
+  if (result.error) {
     return false;
   }
+
+  return true;
 };
 
 /**
@@ -28,6 +28,7 @@ const isYarnInstalled = (): boolean => {
 export const installModuleWithCancelModal = async (
   moduleName: string
 ): Promise<boolean> => {
+  moduleName = moduleName === 'node-fetch' ? 'node-fetch@2' : moduleName;
   try {
     const progressResult = await vscode.window.withProgress(
       {

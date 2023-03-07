@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 import micromatch from 'micromatch';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { createLogger } from '../logging';
-const log = createLogger('file system utils');
+
+const log = createLogger('file system util');
 
 export class FileStat implements vscode.FileStat {
   constructor(private fsStat: fs.Stats) {}
@@ -57,25 +58,21 @@ const getStat = async (filePath: string): Promise<vscode.FileStat> => {
 };
 
 const stat = (filePath: string): Promise<fs.Stats> => {
-  return fs.promises.stat(filePath);
+  return fs.promises.lstat(filePath);
 };
 
 export const getFiles = async ({
   fsPath,
   excludeFromPlaygroundsSearch,
-  result = [],
   checkByType,
 }: {
   fsPath: string;
   excludeFromPlaygroundsSearch?: string[];
-  result?: { name: string; path: string }[];
   checkByType: (uri: vscode.Uri) => boolean;
 }): Promise<{ name: string; path: string }[]> => {
+  const result: { name: string; path: string }[] = [];
   const fileNames = await getFileNames(fsPath);
-
-  for (let i = 0; i < fileNames.length; i++) {
-    const fileName = fileNames[i];
-
+  for (const fileName of fileNames) {
     try {
       const stat = await getStat(path.join(fsPath, fileName));
       const fileUri = vscode.Uri.file(path.join(fsPath, fileName));
@@ -83,18 +80,16 @@ export const getFiles = async ({
       if (stat.type === vscode.FileType.File && checkByType(fileUri)) {
         result.push({ name: fileName, path: fileUri.fsPath });
       } else if (
-        (stat.type === vscode.FileType.Directory &&
-          !excludeFromPlaygroundsSearch) ||
-        (stat.type === vscode.FileType.Directory &&
-          excludeFromPlaygroundsSearch &&
+        stat.type === vscode.FileType.Directory &&
+        (!excludeFromPlaygroundsSearch ||
           !micromatch.isMatch(fileName, excludeFromPlaygroundsSearch))
       ) {
-        await getFiles({
+        const playgrounds = await getFiles({
           fsPath: fileUri.fsPath,
           excludeFromPlaygroundsSearch,
-          result,
           checkByType,
         });
+        result.push(...playgrounds);
       }
     } catch (error) {
       log.error('Get playgrounds recursively from the workspace error', error);

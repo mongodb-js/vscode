@@ -176,14 +176,11 @@ export default class MongoDBService {
           this._connection.console.error(
             `WORKER execute all error: ${util.inspect(error)}`
           );
+
           const printableError: PrintableError & { moduleName?: string } =
             formatError(error);
-
-          if (
-            typeof error === 'object' &&
-            (<any>error).code === 'MODULE_NOT_FOUND'
-          ) {
-            const str = (<any>error).message;
+          if (printableError.code === 'MODULE_NOT_FOUND') {
+            const str = printableError.message;
             const arr = str.split("'");
 
             if (arr.length > 2 && arr[0].includes('Cannot find module')) {

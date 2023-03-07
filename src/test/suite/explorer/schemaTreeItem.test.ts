@@ -3,6 +3,8 @@ import * as sinon from 'sinon';
 import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
 import { inspect } from 'util';
+import type { DataService } from 'mongodb-data-service';
+import type { Document } from 'mongodb';
 
 import { ext } from '../../../extensionConstants';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
@@ -17,14 +19,16 @@ import {
 import SchemaTreeItem, {
   FIELDS_TO_SHOW,
 } from '../../../explorer/schemaTreeItem';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
 const { contributes } = require('../../../../package.json');
 
 suite('SchemaTreeItem Test Suite', function () {
   this.timeout(10000);
+  const sandbox = sinon.createSandbox();
+
   afterEach(() => {
-    sinon.restore();
+    sandbox.restore();
   });
 
   test('its context value should be in the package json', () => {
@@ -32,7 +36,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'cheesePizza',
       TEST_DB_NAME,
-      {},
+      {} as DataService,
       false,
       false,
       false,
@@ -56,7 +60,7 @@ suite('SchemaTreeItem Test Suite', function () {
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {},
+      {} as DataService,
       false,
       false,
       false,
@@ -86,14 +90,16 @@ suite('SchemaTreeItem Test Suite', function () {
     const expectedMessage =
       'No documents were found when attempting to parse schema.';
 
+    const findStub = sandbox.stub();
+    findStub.resolves([]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
+
     const testSchemaTreeItem = new SchemaTreeItem(
       'peanutButter',
       TEST_DB_NAME,
-      {
-        find: (ns, filter, options, callback): void => {
-          callback(null, []);
-        },
-      },
+      testDataService,
       true,
       false,
       false,
@@ -101,7 +107,7 @@ suite('SchemaTreeItem Test Suite', function () {
       {}
     );
 
-    const fakeShowInformationMessage = sinon.stub(
+    const showInformationMessageStub = sandbox.stub(
       vscode.window,
       'showInformationMessage'
     );
@@ -114,8 +120,8 @@ suite('SchemaTreeItem Test Suite', function () {
     );
 
     assert(
-      fakeShowInformationMessage.firstCall.args[0] === expectedMessage,
-      `Expected message to be '${expectedMessage}' found ${fakeShowInformationMessage.firstCall.args[0]}`
+      showInformationMessageStub.firstCall.args[0] === expectedMessage,
+      `Expected message to be '${expectedMessage}' found ${showInformationMessageStub.firstCall.args[0]}`
     );
   });
 
@@ -125,14 +131,15 @@ suite('SchemaTreeItem Test Suite', function () {
     for (let i = 0; i < 20; i++) {
       mockDocWithTwentyFields[`${i}`] = 'some value';
     }
+    const findStub = sandbox.stub();
+    findStub.resolves([mockDocWithTwentyFields]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {
-        find: (ns, filter, options, callback): void => {
-          callback(null, [mockDocWithTwentyFields]);
-        },
-      },
+      testDataService,
       true,
       false,
       false,
@@ -161,14 +168,15 @@ suite('SchemaTreeItem Test Suite', function () {
     for (let i = 0; i < 30; i++) {
       mockDocWithThirtyFields[`${i}`] = 'some value';
     }
+    const findStub = sandbox.stub();
+    findStub.resolves([mockDocWithThirtyFields]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {
-        find: (ns, filter, options, callback): void => {
-          callback(null, [mockDocWithThirtyFields]);
-        },
-      },
+      testDataService,
       true,
       false,
       false,
@@ -188,14 +196,16 @@ suite('SchemaTreeItem Test Suite', function () {
   });
 
   test('When schema parsing fails it displays an error message', async () => {
+    const findStub = sandbox.stub();
+    findStub.resolves('invalid schema to parse' as unknown as Document[]);
+    const testDataService = {
+      find: findStub,
+    } as Pick<DataService, 'find'> as unknown as DataService;
+
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {
-        find: (ns, filter, options, callback): void => {
-          callback(null, 'invalid schema to parse');
-        },
-      },
+      testDataService,
       true,
       false,
       false,
@@ -206,14 +216,16 @@ suite('SchemaTreeItem Test Suite', function () {
     try {
       await testSchemaTreeItem.getChildren();
       assert(false, 'Didnt expect to succeed.');
-    } catch (error: any) {
+    } catch (error) {
       const expectedMessage =
-        'Unable to parse schema: Unknown input type for `docs`. Must be an array, stream or MongoDB Cursor.';
+        "Unable to parse schema: Cannot use 'in' operator to search for 'stream' in invalid schema to parse";
 
       assert.strictEqual(
-        error.message,
+        (<any>error).message,
         expectedMessage,
-        `Expected error message to be "${expectedMessage}" found "${error.message}"`
+        `Expected error message to be "${expectedMessage}" found "${
+          (<any>error).message
+        }"`
       );
     }
   });
@@ -351,12 +363,12 @@ suite('SchemaTreeItem Test Suite', function () {
   });
 
   test('it should have an icon with the name schema', () => {
-    ext.context = new TestExtensionContext();
+    ext.context = new ExtensionContextStub();
 
     const testSchemaTreeItem = new SchemaTreeItem(
       'favoritePiesIWantToEatRightNow',
       TEST_DB_NAME,
-      {},
+      {} as DataService,
       false,
       false,
       false,
@@ -364,7 +376,7 @@ suite('SchemaTreeItem Test Suite', function () {
       {}
     );
 
-    const schemaIconPath: any = testSchemaTreeItem.iconPath;
+    const schemaIconPath = testSchemaTreeItem.iconPath;
     assert(
       schemaIconPath.light.includes('schema.svg'),
       'Expected icon path to point to an svg by the name "schema" with a light mode'

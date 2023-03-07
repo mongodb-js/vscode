@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-const path = require('path');
+import path from 'path';
 
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
@@ -172,6 +172,8 @@ export default class FieldTreeItem
   contextValue = FIELD_TREE_ITEM_CONTEXT_VALUE;
 
   isExpanded: boolean;
+
+  iconPath: string | { light: string; dark: string };
 
   constructor(
     field: SchemaFieldType,

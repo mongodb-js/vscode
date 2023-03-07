@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { beforeEach, afterEach } from 'mocha';
 import assert from 'assert';
 import sinon from 'sinon';
+import type { SinonStub } from 'sinon';
 import { DataService } from 'mongodb-data-service';
 
 import formatError from '../../../utils/formatError';
@@ -10,8 +11,15 @@ import IndexListTreeItem from '../../../explorer/indexListTreeItem';
 const { contributes } = require('../../../../package.json');
 
 suite('IndexListTreeItem Test Suite', () => {
+  let showErrorMessageStub: SinonStub;
+  const sandbox = sinon.createSandbox();
+
+  beforeEach(() => {
+    showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+  });
+
   afterEach(() => {
-    sinon.restore();
+    sandbox.restore();
   });
 
   test('its context value should be in the package json', () => {
@@ -130,10 +138,6 @@ suite('IndexListTreeItem Test Suite', () => {
 
   test('when theres an error fetching indexes, the error is thrown in the caller (no timeout)', async () => {
     const expectedMessage = 'Some error message indexes could throw';
-    const fakeVscodeErrorMessage = sinon.fake();
-
-    sinon.replace(vscode.window, 'showErrorMessage', fakeVscodeErrorMessage);
-
     const testIndexListTreeItem = new IndexListTreeItem(
       'pineapple',
       'tasty_fruits',
@@ -153,8 +157,8 @@ suite('IndexListTreeItem Test Suite', () => {
       await testIndexListTreeItem.getChildren();
 
       assert(
-        fakeVscodeErrorMessage.firstCall.args[0] === expectedMessage,
-        `Expected error message "${expectedMessage}" when disconnecting with no active connection, recieved "${fakeVscodeErrorMessage.firstCall.args[0]}"`
+        showErrorMessageStub.firstCall.args[0] === expectedMessage,
+        `Expected error message "${expectedMessage}" when disconnecting with no active connection, recieved "${showErrorMessageStub.firstCall.args[0]}"`
       );
     } catch (error) {
       assert(!!error, 'Expected an error disconnect response.');

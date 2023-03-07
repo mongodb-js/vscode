@@ -8,10 +8,8 @@ import SegmentAnalytics from 'analytics-node';
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
-import {
-  getConnectionTelemetryProperties,
-  NewConnectionTelemetryEventProperties,
-} from './connectionTelemetry';
+import { getConnectionTelemetryProperties } from './connectionTelemetry';
+import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
 import type { ShellExecuteAllResult } from '../types/playgroundType';
 import { StorageController } from '../storage';
 

@@ -1,4 +1,3 @@
-import * as util from 'util';
 import * as vscode from 'vscode';
 import numeral from 'numeral';
 
@@ -109,6 +108,8 @@ export default class DocumentListTreeItem
 
   isExpanded: boolean;
 
+  iconPath: { light: string; dark: string };
+
   constructor(
     collectionName: string,
     databaseName: string,
@@ -202,10 +203,7 @@ export default class DocumentListTreeItem
     let documents;
 
     try {
-      const find = util.promisify(
-        this._dataService.find.bind(this._dataService)
-      );
-      documents = await find(
+      documents = await this._dataService.find(
         this.namespace,
         {}, // No filter.
         { limit: this._maxDocumentsToShow }

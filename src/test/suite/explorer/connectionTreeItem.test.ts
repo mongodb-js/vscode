@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
+import type { DataService } from 'mongodb-data-service';
 
 import ConnectionTreeItem, {
   ConnectionItemContextValues,
@@ -38,6 +39,7 @@ suite('ConnectionTreeItem Test Suite', () => {
 
   suite('#getChildren', () => {
     let testConnectionTreeItem: ConnectionTreeItem;
+    const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
       testConnectionTreeItem = new ConnectionTreeItem(
@@ -51,14 +53,14 @@ suite('ConnectionTreeItem Test Suite', () => {
     });
 
     afterEach(() => {
-      sinon.restore();
+      sandbox.restore();
     });
 
     test('returns database tree items with the databases', async () => {
-      sinon.replace(
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
-        () => new DataServiceStub() as any
+        () => new DataServiceStub() as unknown as DataService
       );
 
       const databaseItems = await testConnectionTreeItem.getChildren();
@@ -69,7 +71,7 @@ suite('ConnectionTreeItem Test Suite', () => {
     });
 
     test('when listDatabases errors it wraps it in a nice message', async () => {
-      sinon.replace(
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
         () =>
@@ -78,7 +80,7 @@ suite('ConnectionTreeItem Test Suite', () => {
               new Promise(() => {
                 throw Error('peaches');
               }),
-          } as any)
+          } as unknown as DataService)
       );
 
       try {
@@ -95,6 +97,7 @@ suite('ConnectionTreeItem Test Suite', () => {
 
   suite('#listDatabases', () => {
     let testConnectionTreeItem: ConnectionTreeItem;
+    const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
       testConnectionTreeItem = new ConnectionTreeItem(
@@ -108,14 +111,14 @@ suite('ConnectionTreeItem Test Suite', () => {
     });
 
     afterEach(() => {
-      sinon.restore();
+      sandbox.restore();
     });
 
     test('returns a list of database names', async () => {
-      sinon.replace(
+      sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
-        () => new DataServiceStub() as any
+        () => new DataServiceStub() as unknown as DataService
       );
 
       const dbNames = await testConnectionTreeItem.listDatabases();

@@ -156,19 +156,11 @@ export default class PlaygroundController {
         this._playgroundResultTextDocument = editor?.document;
       }
 
-      if (isPlayground(editor?.document.uri)) {
-        void vscode.commands.executeCommand(
-          'setContext',
-          'mdb.isPlayground',
-          true
-        );
-      } else {
-        void vscode.commands.executeCommand(
-          'setContext',
-          'mdb.isPlayground',
-          false
-        );
-      }
+      void vscode.commands.executeCommand(
+        'setContext',
+        'mdb.isPlayground',
+        isPlayground(editor?.document.uri)
+      );
 
       if (editor?.document.languageId !== 'Log') {
         this._activeTextEditor = editor;
@@ -276,7 +268,7 @@ export default class PlaygroundController {
     try {
       // The MacOS default folder for saving files is a read-only root (/) directory,
       // therefore we explicitly specify the workspace folder path
-      // or OS temp directory if a user has not opened workspaces.
+      // or OS home directory if a user has not opened workspaces.
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       const filePath = workspaceFolder?.uri.fsPath || os.homedir();
 
@@ -606,7 +598,7 @@ export default class PlaygroundController {
       !isPlayground(this._activeTextEditor.document.uri)
     ) {
       void vscode.window.showErrorMessage(
-        "Please open a '.mongodb' playground file before running it."
+        'Please open a MongoDB playground file before running it.'
       );
 
       return Promise.resolve(false);
@@ -624,7 +616,7 @@ export default class PlaygroundController {
       !isPlayground(this._activeTextEditor.document.uri)
     ) {
       void vscode.window.showErrorMessage(
-        "Please open a '.mongodb' playground file before running it."
+        'Please open a MongoDB playground file before running it.'
       );
 
       return Promise.resolve(false);

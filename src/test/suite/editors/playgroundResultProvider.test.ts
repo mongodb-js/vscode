@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
+import type { DataService } from 'mongodb-data-service';
+import type { Document } from 'mongodb';
 
 import ConnectionController from '../../../connectionController';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
@@ -13,31 +15,30 @@ import PlaygroundResultProvider from '../../../editors/playgroundResultProvider'
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;
 
 suite('Playground Result Provider Test Suite', () => {
-  const mockExtensionContext = new TestExtensionContext();
-  const mockStorageController = new StorageController(mockExtensionContext);
+  const extensionContextStub = new ExtensionContextStub();
+  const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
-    mockStorageController,
-    mockExtensionContext
+    testStorageController,
+    extensionContextStub
   );
-  const testStatusView = new StatusView(mockExtensionContext);
+  const testStatusView = new StatusView(extensionContextStub);
   const testConnectionController = new ConnectionController(
     testStatusView,
-    mockStorageController,
+    testStorageController,
     testTelemetryService
   );
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
     testConnectionController
   );
-  const sandbox: any = sinon.createSandbox();
+  const sandbox = sinon.createSandbox();
 
   afterEach(() => {
     sandbox.restore();
-    sinon.restore();
   });
 
   test('constructor sets default playground result', () => {
@@ -45,7 +46,6 @@ suite('Playground Result Provider Test Suite', () => {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-
     expect(testPlaygroundResultViewProvider._playgroundResult).to.be.deep.equal(
       {
         namespace: null,
@@ -70,9 +70,7 @@ suite('Playground Result Provider Test Suite', () => {
       },
       language: 'json',
     };
-
     testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
-
     expect(testPlaygroundResultViewProvider._playgroundResult).to.be.deep.equal(
       playgroundResult
     );
@@ -83,7 +81,6 @@ suite('Playground Result Provider Test Suite', () => {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'undefined',
@@ -93,7 +90,6 @@ suite('Playground Result Provider Test Suite', () => {
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-
     expect(result).to.be.equal('undefined');
   });
 
@@ -102,7 +98,6 @@ suite('Playground Result Provider Test Suite', () => {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'object',
@@ -112,7 +107,6 @@ suite('Playground Result Provider Test Suite', () => {
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-
     expect(result).to.be.equal('null');
   });
 
@@ -121,7 +115,6 @@ suite('Playground Result Provider Test Suite', () => {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'number',
@@ -131,7 +124,6 @@ suite('Playground Result Provider Test Suite', () => {
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-
     expect(result).to.be.equal('4');
   });
 
@@ -140,7 +132,6 @@ suite('Playground Result Provider Test Suite', () => {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'object',
@@ -150,7 +141,6 @@ suite('Playground Result Provider Test Suite', () => {
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-
     expect(result).to.be.equal('[]');
   });
 
@@ -159,7 +149,6 @@ suite('Playground Result Provider Test Suite', () => {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'object',
@@ -169,7 +158,6 @@ suite('Playground Result Provider Test Suite', () => {
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-
     expect(result).to.be.equal('{}');
   });
 
@@ -178,7 +166,6 @@ suite('Playground Result Provider Test Suite', () => {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'boolean',
@@ -188,7 +175,6 @@ suite('Playground Result Provider Test Suite', () => {
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-
     expect(result).to.be.equal('true');
   });
 
@@ -197,7 +183,6 @@ suite('Playground Result Provider Test Suite', () => {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-
     testPlaygroundResultViewProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'string',
@@ -207,7 +192,6 @@ suite('Playground Result Provider Test Suite', () => {
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-
     expect(result).to.be.equal('Berlin');
   });
 
@@ -233,21 +217,22 @@ suite('Playground Result Provider Test Suite', () => {
       language: 'json',
     };
 
-    const mockRefresh: any = sinon.fake();
-    sinon.replace(
+    const fakeUpdateCodeLensesForPlayground = sandbox.fake();
+    sandbox.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
-      mockRefresh
+      fakeUpdateCodeLensesForPlayground
     );
 
     testPlaygroundResultViewProvider._playgroundResult = playgroundResult;
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-    mockRefresh.firstArg;
-
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
-    expect(mockRefresh.firstArg).to.be.deep.equal(playgroundResult);
+    expect(fakeUpdateCodeLensesForPlayground.calledOnce).to.equal(true);
+    expect(
+      fakeUpdateCodeLensesForPlayground.firstCall.firstArg
+    ).to.be.deep.equal(playgroundResult);
   });
 
   test('provideTextDocumentContent returns Document formatted to string if content is string', () => {
@@ -266,21 +251,22 @@ suite('Playground Result Provider Test Suite', () => {
       language: 'json',
     };
 
-    const mockRefresh: any = sinon.fake();
-    sinon.replace(
+    const fakeUpdateCodeLensesForPlayground = sandbox.fake();
+    sandbox.replace(
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
-      mockRefresh
+      fakeUpdateCodeLensesForPlayground
     );
 
     testPlaygroundResultViewProvider._playgroundResult = playgroundResult;
 
     const result =
       testPlaygroundResultViewProvider.provideTextDocumentContent();
-    mockRefresh.firstArg;
-
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
-    expect(mockRefresh.firstArg).to.be.deep.equal(playgroundResult);
+    expect(fakeUpdateCodeLensesForPlayground.calledOnce).to.equal(true);
+    expect(
+      fakeUpdateCodeLensesForPlayground.firstCall.firstArg
+    ).to.be.deep.equal(playgroundResult);
   });
 
   test('provideTextDocumentContent sets different code lenses for the playground and the collection', async () => {
@@ -312,46 +298,46 @@ suite('Playground Result Provider Test Suite', () => {
     };
 
     const connectionId = '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487';
-    const mockActiveConnectionId: any = sinon.fake.returns(connectionId);
-    sinon.replace(
+    const fakeActiveConnectionId = sandbox.fake.returns(connectionId);
+    sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
-      mockActiveConnectionId
+      fakeActiveConnectionId
     );
 
     const playgroundResultUri = vscode.Uri.parse(
       'PLAYGROUND_RESULT_SCHEME:/Playground Result'
     );
     const activeTextEditorDocument = { uri: playgroundResultUri };
-    sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => ({
-      document: activeTextEditorDocument,
-    }));
+    sandbox.replaceGetter(
+      vscode.window,
+      'activeTextEditor',
+      () =>
+        ({
+          document: activeTextEditorDocument,
+        } as unknown as typeof vscode.window.activeTextEditor)
+    );
 
     testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
     testPlaygroundResultViewProvider.provideTextDocumentContent();
 
     let codeLenses =
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
-
     expect(codeLenses.length).to.be.equal(2);
 
     let firstCodeLensRange = codeLenses[0].range;
-
     expect(firstCodeLensRange.start.line).to.be.equal(2);
     expect(codeLenses[0].command?.title).to.be.equal('Edit Document');
 
     const secondCodeLensRange = codeLenses[1].range;
-
     expect(secondCodeLensRange.start.line).to.be.equal(9);
 
     let codeLensesInfo =
       testPlaygroundResultViewProvider._editDocumentCodeLensProvider
         ._codeLensesInfo;
-
     expect(Object.keys(codeLensesInfo).length).to.be.equal(1);
 
     let firstCodeLensesInfo = codeLensesInfo[playgroundResultUri.toString()];
-
     expect(firstCodeLensesInfo.length).to.be.equal(2);
     expect(firstCodeLensesInfo[0].documentId).to.be.equal(1);
     expect(firstCodeLensesInfo[0].source).to.be.equal('playground');
@@ -367,7 +353,7 @@ suite('Playground Result Provider Test Suite', () => {
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCollectionViewProvider = new CollectionDocumentsProvider(
-      mockExtensionContext,
+      extensionContextStub,
       testConnectionController,
       testQueryStore,
       testStatusView,
@@ -377,38 +363,22 @@ suite('Playground Result Provider Test Suite', () => {
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 
-    const documents: any[] = [
+    const documents: Document[] = [
       { _id: '5ea8745ee4811fafe8b65ecb', koko: 'nothing5' },
     ];
-    const mockGetActiveDataService: any = sinon.fake.returns({
-      find: (
-        namespace: string,
-        filter: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
-        return callback(null, documents);
-      },
-    });
-    sinon.replace(
-      testCollectionViewProvider._connectionController,
-      'getActiveDataService',
-      mockGetActiveDataService
-    );
+    sinon
+      .stub(
+        testCollectionViewProvider._connectionController,
+        'getActiveDataService'
+      )
+      .returns({
+        find: () => {
+          return Promise.resolve(documents);
+        },
+      } as unknown as DataService);
 
-    const mockShowMessage: any = sinon.fake();
-    sinon.replace(
-      testCollectionViewProvider._statusView,
-      'showMessage',
-      mockShowMessage
-    );
-
-    const mockHideMessage: any = sinon.fake();
-    sinon.replace(
-      testCollectionViewProvider._statusView,
-      'hideMessage',
-      mockHideMessage
-    );
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     const operationId =
       testCollectionViewProvider._operationsStore.createNewOperation();
@@ -457,7 +427,6 @@ suite('Playground Result Provider Test Suite', () => {
     expect(firstCodeLensesInfo[1].line).to.be.equal(9);
 
     const secondCodeLensesInfo = codeLensesInfo[collectionUri.toString()];
-
     expect(secondCodeLensesInfo.length).to.be.equal(1);
     expect(secondCodeLensesInfo[0].documentId).to.be.equal(
       '5ea8745ee4811fafe8b65ecb'

@@ -3,12 +3,12 @@ import assert from 'assert';
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import { CollectionTypes } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
-import { TestExtensionContext, DataServiceStub } from '../stubs';
+import { ExtensionContextStub, DataServiceStub } from '../stubs';
 
 const { contributes } = require('../../../../package.json');
 
 suite('CollectionTreeItem Test Suite', () => {
-  ext.context = new TestExtensionContext();
+  ext.context = new ExtensionContextStub();
 
   test('its context value should be in the package json', () => {
     let registeredCommandInPackageJson = false;
@@ -78,7 +78,7 @@ suite('CollectionTreeItem Test Suite', () => {
         type: CollectionTypes.collection,
       },
       'mock_db_name',
-      { estimatedCount: (ns, options, cb): void => cb(null, 5000) },
+      { estimatedCount: () => Promise.resolve(5000) },
       false,
       false,
       null
@@ -115,7 +115,7 @@ suite('CollectionTreeItem Test Suite', () => {
       null
     );
 
-    const viewIconPath: any = testCollectionViewTreeItem.iconPath;
+    const viewIconPath = testCollectionViewTreeItem.iconPath;
     assert(
       viewIconPath.light.includes('view-folder.svg'),
       'Expected icon path to point to an svg by the name "view-folder" with a light mode'
@@ -137,7 +137,7 @@ suite('CollectionTreeItem Test Suite', () => {
       null
     );
 
-    const collectionIconPath: any = testCollectionCollectionTreeItem.iconPath;
+    const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
     assert(
       collectionIconPath.light.includes('collection-folder-closed.svg'),
       'Expected icon path to point to an svg by the name "collection" with a light mode'
@@ -161,7 +161,7 @@ suite('CollectionTreeItem Test Suite', () => {
       null
     );
 
-    const viewIconPath: any = testCollectionViewTreeItem.iconPath;
+    const viewIconPath = testCollectionViewTreeItem.iconPath;
     assert(
       viewIconPath.light.includes('collection-timeseries.svg'),
       'Expected icon path to point to an svg by the name "collection-timeseries" with a light mode'
@@ -183,7 +183,7 @@ suite('CollectionTreeItem Test Suite', () => {
       null
     );
 
-    const collectionIconPath: any = testCollectionCollectionTreeItem.iconPath;
+    const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
     assert(
       collectionIconPath.light.includes('collection-folder-closed.svg'),
       'Expected icon path to point to an svg by the name "collection" with a light mode'

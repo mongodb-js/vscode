@@ -114,7 +114,7 @@ export default class LanguageServerController {
         void vscode.window
           .showErrorMessage(error.message, { modal: false }, 'Yes', 'No')
           .then(async (response) => {
-            if (response === 'Yes' && error.moduleName) {
+            if (response === 'Yes') {
               await installModuleWithCancelModal(error.moduleName);
             }
           });
@@ -125,10 +125,6 @@ export default class LanguageServerController {
   }
 
   deactivate(): void {
-    if (!this._client) {
-      return undefined;
-    }
-
     // Stop the language server
     void this._client.stop();
   }
