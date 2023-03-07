@@ -12,8 +12,9 @@ import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';
 import { Worker as WorkerThreads } from 'worker_threads';
-
 import formatError from '../utils/formatError';
+import { PrintableError } from '../utils/formatError';
+
 import { ServerCommands } from './serverCommands';
 import {
   ShellExecuteAllResult,
@@ -171,29 +172,42 @@ export default class MongoDBService {
         // Evaluate runtime in the worker thread.
         worker.postMessage(ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND);
 
-        // Listen for results from the worker thread.
-        worker.on(
-          'message',
-          (response: [Error, ShellExecuteAllResult | undefined]) => {
-            const [error, result] = response;
+        worker.on('error', (error) => {
+          this._connection.console.error(
+            `WORKER execute all error: ${util.inspect(error)}`
+          );
+          const printableError: PrintableError & { moduleName?: string } =
+            formatError(error);
 
-            if (error) {
-              const printableError = formatError(error);
+          if (
+            typeof error === 'object' &&
+            (<any>error).code === 'MODULE_NOT_FOUND'
+          ) {
+            const str = (<any>error).message;
+            const arr = str.split("'");
 
-              this._connection.console.error(
-                `MONGOSH execute all error: ${util.inspect(printableError)}`
-              );
-              void this._connection.sendNotification(
-                ServerCommands.SHOW_ERROR_MESSAGE,
-                printableError.message
-              );
+            if (arr.length > 2 && arr[0].includes('Cannot find module')) {
+              printableError.message = `Cannot find module '${arr[1]}'. Do you want to install it?`;
+              printableError.moduleName = arr[1];
             }
-
-            void worker.terminate().then(() => {
-              resolve(result);
-            });
           }
-        );
+
+          void this._connection.sendNotification(
+            ServerCommands.SHOW_ERROR_MESSAGE,
+            printableError
+          );
+
+          void worker.terminate().then(() => {
+            resolve(undefined);
+          });
+        });
+
+        // Listen for results from the worker thread.
+        worker.on('message', (result: ShellExecuteAllResult) => {
+          void worker.terminate().then(() => {
+            resolve(result);
+          });
+        });
 
         // Listen for cancellation request from the language server client.
         token.onCancellationRequested(async () => {

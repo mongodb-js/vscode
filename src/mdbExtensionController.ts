@@ -157,6 +157,16 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommands();
 
     this.showOverviewPageIfRecentlyInstalled();
+
+    // Currently, it is not possible to programmatically close info and error messages.
+    // There was a related issue: https://github.com/Microsoft/vscode/issues/2732
+    // describing that it is an intentional behavior and for temporal messages,
+    // the status bar should be used instead.
+    // We find them more visible for users than the status bar.
+    // But to not multiply them open we close all notifications at given intervals.
+    setInterval(function () {
+      void vscode.commands.executeCommand('notifications.clearAll');
+    }, 8000);
   }
 
   registerCommands = (): void => {

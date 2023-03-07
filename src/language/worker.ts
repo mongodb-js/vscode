@@ -6,7 +6,6 @@ import { promisify } from 'util';
 import parseSchema = require('mongodb-schema');
 import { parentPort, workerData } from 'worker_threads';
 import {
-  PlaygroundResult,
   PlaygroundDebug,
   ShellExecuteAllResult,
   EvaluationResult,
@@ -19,26 +18,22 @@ type MongoClientOptions = NonNullable<
   Parameters<typeof CliServiceProvider['connect']>[1]
 >;
 
-type WorkerResult = ShellExecuteAllResult;
-type WorkerError = any | null;
-
 const executeAll = async (
   codeToEvaluate: string,
   connectionString: string,
   connectionOptions: MongoClientOptions
-): Promise<[WorkerError, WorkerResult?]> => {
+): Promise<ShellExecuteAllResult> => {
+  const serviceProvider = await CliServiceProvider.connect(
+    connectionString,
+    connectionOptions
+  );
+
   try {
-    // Instantiate a data service provider.
-    //
-    // TODO: update when `mongosh` will start to support cancellationToken.
-    // See: https://github.com/mongodb/node-mongodb-native/commit/2014b7b/#diff-46fff96a6e12b2b0b904456571ce308fR132
-    const serviceProvider: CliServiceProvider =
-      await CliServiceProvider.connect(connectionString, connectionOptions);
+    // Create a new instance of the runtime for each playground evaluation.
+    const runtime = new ElectronRuntime(serviceProvider);
     const outputLines: PlaygroundDebug = [];
 
-    // Create a new instance of the runtime and evaluate code from a playground.
-    const runtime = new ElectronRuntime(serviceProvider);
-
+    // Collect console.log() output.
     runtime.setEvaluationListener({
       onPrint(values: EvaluationResult[]) {
         for (const { type, printable } of values) {
@@ -51,21 +46,27 @@ const executeAll = async (
         }
       },
     });
+
+    // Evaluate a playground content.
     const { source, type, printable } = await runtime.evaluate(codeToEvaluate);
     const namespace =
       source && source.namespace
         ? `${source.namespace.db}.${source.namespace.collection}`
         : null;
-    const result: PlaygroundResult = {
+
+    // Prepare a playground result.
+    const result = {
       namespace,
       type: type ? type : typeof printable,
       content: getContent({ type, printable }),
       language: getLanguage({ type, printable }),
     };
 
-    return [null, { outputLines, result }];
+    return { outputLines, result };
   } catch (error) {
-    return [error];
+    throw error;
+  } finally {
+    await serviceProvider.close(true);
   }
 };
 

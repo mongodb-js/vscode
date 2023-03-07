@@ -1156,6 +1156,7 @@
     "bson": "^4.7.0",
     "bson-transpilers": "^2.0.0",
     "classnames": "^2.3.2",
+    "cross-spawn": "^7.0.3",
     "debug": "^4.3.4",
     "dotenv": "^16.0.2",
     "micromatch": "^4.0.5",

@@ -19,6 +19,7 @@ import {
   PlaygroundTextAndSelection,
 } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
+import { installModuleWithCancelModal } from './installModuleWithCancelModal';
 
 const log = createLogger('LanguageServerController');
 
@@ -108,12 +109,19 @@ export default class LanguageServerController {
       }
     );
 
-    this._client.onNotification(
-      ServerCommands.SHOW_ERROR_MESSAGE,
-      (messsage) => {
-        void vscode.window.showErrorMessage(messsage);
+    this._client.onNotification(ServerCommands.SHOW_ERROR_MESSAGE, (error) => {
+      if (error.code === 'MODULE_NOT_FOUND' && error.moduleName) {
+        void vscode.window
+          .showErrorMessage(error.message, { modal: false }, 'Yes', 'No')
+          .then(async (response) => {
+            if (response === 'Yes' && error.moduleName) {
+              await installModuleWithCancelModal(error.moduleName);
+            }
+          });
+      } else {
+        void vscode.window.showErrorMessage(error.message);
       }
-    );
+    });
   }
 
   deactivate(): void {

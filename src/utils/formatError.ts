@@ -1,23 +1,37 @@
+export interface PrintableError {
+  message: string;
+  name?: string;
+  code?: string;
+  stack?: string;
+}
+
 export default (
   error: any,
-  message?: string
-): {
-  name?: string;
-  message: string;
-  stack?: string;
-} => {
+  extra?: { message?: string; code?: string }
+): PrintableError => {
   if (
     typeof error?.name === 'string' &&
     typeof error?.message === 'string' &&
     typeof error?.stack === 'string'
   ) {
     return error;
-  } else if (typeof error === 'string') {
-    return { message: error };
-  } else if (error) {
-    return { message: error.toString() };
-  } else if (message) {
-    return { message };
   }
-  return { message: 'Unknown error.' };
+
+  const customError: PrintableError = {
+    message: 'Unknown error.',
+  };
+
+  if (typeof error === 'string') {
+    customError.message = error;
+  } else if (error) {
+    customError.message = error.toString();
+  } else if (extra?.message) {
+    customError.message = extra?.message;
+  }
+
+  if (extra?.code) {
+    customError.code = extra?.code;
+  }
+
+  return customError;
 };
