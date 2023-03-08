@@ -116,12 +116,11 @@ export default class TelemetryService {
       const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
       const constants = JSON.parse(constantsFile) as { segmentKey: string };
 
-      log.info('TELEMETRY key received', typeof constants.segmentKey);
+      log.info('SegmentKey received', { type: typeof constants.segmentKey });
 
       return constants.segmentKey;
     } catch (error) {
-      log.error('TELEMETRY key error', error);
-
+      log.error('Read SegmentKey failed', error);
       return;
     }
   }
@@ -141,7 +140,7 @@ export default class TelemetryService {
 
       const segmentProperties = this.getTelemetryUserIdentity();
       this._segmentAnalytics.identify(segmentProperties);
-      log.info('TELEMETRY identify', segmentProperties);
+      log.info('Activate segment analytics properties', segmentProperties);
     }
   }
 
@@ -185,14 +184,12 @@ export default class TelemetryService {
         },
       };
 
-      log.info('TELEMETRY track', segmentProperties);
+      log.info('Telemetry track properties', segmentProperties);
 
       this._segmentAnalytics?.track(segmentProperties, (error?: Error) => {
         if (error) {
-          log.error('TELEMETRY track error', error);
+          log.error('Telemetry track failed', error);
         }
-
-        log.info('TELEMETRY track done');
       });
     }
   }
@@ -201,21 +198,17 @@ export default class TelemetryService {
     dataService: DataService,
     connectionType: ConnectionTypes
   ): Promise<void> {
-    try {
-      if (!this._isTelemetryFeatureEnabled()) {
-        return;
-      }
-
-      const connectionTelemetryProperties =
-        await getConnectionTelemetryProperties(dataService, connectionType);
-
-      this.track(
-        TelemetryEventTypes.NEW_CONNECTION,
-        connectionTelemetryProperties
-      );
-    } catch (error) {
-      log.error('TELEMETRY track new connection', error);
+    if (!this._isTelemetryFeatureEnabled()) {
+      return;
     }
+
+    const connectionTelemetryProperties =
+      await getConnectionTelemetryProperties(dataService, connectionType);
+
+    this.track(
+      TelemetryEventTypes.NEW_CONNECTION,
+      connectionTelemetryProperties
+    );
   }
 
   trackCommandRun(command: string): void {
