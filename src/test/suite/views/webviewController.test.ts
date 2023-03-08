@@ -1,8 +1,10 @@
 import * as linkHelper from '../../../utils/linkHelper';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import * as vscode from 'vscode';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
+import fs from 'fs';
+import path from 'path';
 
 import ConnectionController from '../../../connectionController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -15,9 +17,6 @@ import { TEST_DATABASE_URI } from '../dbTestHelper';
 import WebviewController, {
   getWebviewContent,
 } from '../../../views/webviewController';
-
-const fs = require('fs');
-const path = require('path');
 
 suite('Webview Test Suite', () => {
   afterEach(() => {
@@ -44,7 +43,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       mdbTestExtension.testExtensionController._connectionController,
       mdbTestExtension.testExtensionController._storageController,
-      mdbTestExtension.testExtensionController._telemetryService
+      mdbTestExtension.testExtensionController._telemetryService,
+      mdbTestExtension.extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -161,7 +161,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -230,7 +231,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -293,7 +295,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -354,7 +357,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -423,7 +427,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -490,7 +495,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -540,7 +546,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -601,7 +608,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -655,7 +663,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -714,7 +723,8 @@ suite('Webview Test Suite', () => {
     const testWebviewController = new WebviewController(
       testConnectionController,
       testStorageController,
-      testTelemetryService
+      testTelemetryService,
+      extensionContextStub.extensionPath
     );
 
     void testWebviewController.openWebview(
@@ -781,7 +791,8 @@ suite('Webview Test Suite', () => {
       testWebviewController = new WebviewController(
         testConnectionController,
         testStorageController,
-        testTelemetryService
+        testTelemetryService,
+        extensionContextStub.extensionPath
       );
 
       testWebviewController.openWebview(mdbTestExtension.extensionContextStub);

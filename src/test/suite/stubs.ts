@@ -6,7 +6,7 @@ import type {
 } from 'vscode-languageclient/node';
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 import { Duplex } from 'stream';
-import path = require('path');
+import path from 'path';
 import type { Document, Filter, FindOptions } from 'mongodb';
 
 import { StorageController } from '../../storage';

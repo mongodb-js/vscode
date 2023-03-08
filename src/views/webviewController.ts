@@ -15,6 +15,12 @@ import {
 import { openLink } from '../utils/linkHelper';
 import { StorageController } from '../storage';
 import TelemetryService from '../telemetry/telemetryService';
+import { gitDiffStyles } from './gitDiffStyles';
+import {
+  // cloneAndAnalyzeCodebase,
+  getFileStructure,
+} from '../ai-code/local-files';
+import { runAICode } from '../ai-code/code-editor';
 
 const log = createLogger('webviewController');
 
@@ -47,10 +53,12 @@ export const getWebviewContent = ({
   extensionPath,
   telemetryUserId,
   webview,
+  isSidepanel = false,
 }: {
   extensionPath: string;
   telemetryUserId?: string;
   webview: vscode.Webview;
+  isSidepanel?: boolean;
 }): string => {
   const jsAppFileUrl = getReactAppUri(extensionPath, webview);
 
@@ -67,32 +75,44 @@ export const getWebviewContent = ({
             img-src vscode-resource: 'self'"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>MongoDB</title>
+        ${gitDiffStyles}
     </head>
     <body>
       <div id="root"></div>
-      <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
+      <script nonce="${nonce}">
+        window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';
+        window.isSidepanel = ${isSidepanel ? 'true' : 'false'};
+      </script>
       <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
 };
 
-export default class WebviewController {
+// TODO: Currently we're overloading this with 2 webviews, we should have a provider for each.
+export default class WebviewController implements vscode.WebviewViewProvider {
   _connectionController: ConnectionController;
   _storageController: StorageController;
   _telemetryService: TelemetryService;
+  _extensionPath: string;
+
+  static readonly viewType = 'mongoDBAiAssistantWebview';
+
+  _view?: vscode.WebviewView;
 
   constructor(
     connectionController: ConnectionController,
     storageController: StorageController,
-    telemetryService: TelemetryService
+    telemetryService: TelemetryService,
+    extensionPath: string
   ) {
+    this._extensionPath = extensionPath;
     this._connectionController = connectionController;
     this._storageController = storageController;
     this._telemetryService = telemetryService;
   }
 
   handleWebviewConnectAttempt = async (
-    panel: vscode.WebviewPanel,
+    panel: vscode.WebviewPanel | vscode.WebviewView,
     rawConnectionModel: LegacyConnectionModel,
     connectionAttemptId: string
   ): Promise<void> => {
@@ -132,9 +152,64 @@ export default class WebviewController {
     }
   };
 
+  resolveWebviewView(
+    webviewView: vscode.WebviewView
+    // context: vscode.WebviewViewResolveContext,
+    // _token: vscode.CancellationToken,
+  ) {
+    this._view = webviewView;
+
+    // const extensionPath = context.extensionPath;
+
+    webviewView.webview.options = {
+      // Allow scripts in the webview
+      enableScripts: true,
+
+      // retainContextWhenHidden: true,
+      localResourceRoots: [
+        vscode.Uri.file(path.join(this._extensionPath, 'dist')),
+        vscode.Uri.file(path.join(this._extensionPath, 'resources')),
+      ],
+
+      // localResourceRoots: [
+      // 	this._extensionUri
+      // ]
+    };
+
+    const telemetryUserIdentity = this._storageController.getUserIdentity();
+
+    webviewView.webview.html = getWebviewContent({
+      extensionPath: this._extensionPath,
+      telemetryUserId:
+        telemetryUserIdentity.anonymousId || telemetryUserIdentity.userId,
+      webview: webviewView.webview,
+      isSidepanel: true,
+    });
+
+    // webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+    // Handle messages from the webview.
+    webviewView.webview.onDidReceiveMessage(
+      (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) =>
+        this.onRecievedWebviewMessage(message, webviewView)
+    );
+
+    console.log('Started webview view');
+
+    // webviewView.webview.onDidReceiveMessage(data => {
+    // 	switch (data.type) {
+    // 		case 'colorSelected':
+    // 			{
+    // 				vscode.window.activeTextEditor?.insertSnippet(new vscode.SnippetString(`#${data.value}`));
+    // 				break;
+    // 			}
+    // 	}
+    // });
+  }
+
   handleWebviewOpenFilePickerRequest = async (
     message: OpenFilePickerMessage,
-    panel: vscode.WebviewPanel
+    panel: vscode.WebviewPanel | vscode.WebviewView
   ): Promise<void> => {
     const files = await vscode.window.showOpenDialog({
       ...openFileOptions,
@@ -150,9 +225,10 @@ export default class WebviewController {
     });
   };
 
+  // eslint-disable-next-line complexity
   handleWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
-    panel: vscode.WebviewPanel
+    panel: vscode.WebviewPanel | vscode.WebviewView
   ): Promise<void> => {
     switch (message.command) {
       case MESSAGE_TYPES.CONNECT:
@@ -204,6 +280,82 @@ export default class WebviewController {
           );
         }
         return;
+
+      case MESSAGE_TYPES.LOAD_CODEBASE:
+        try {
+          // const { fileCount, fileStructure, workingDirectory } =
+          //   await cloneAndAnalyzeCodebase({
+          //     githubLink: message.githubLink,
+          //     useGithubLink: message.useGithubLink,
+          //   });
+
+          if (vscode.workspace.workspaceFolders === undefined) {
+            throw new Error('No workspace currently open.');
+          }
+
+          const workingDirectory =
+            vscode.workspace.workspaceFolders[0].uri.path;
+          // let f = vscode.workspace.workspaceFolders[0].uri.fsPath;
+          // Analyze the directory/file structure.
+          const { fileStructure, fileCount } = await getFileStructure({
+            inputFolder: workingDirectory,
+          });
+
+          console.log(
+            'successfully ran cloneAndAnalyzeCodebase',
+            fileCount,
+            fileStructure,
+            workingDirectory
+          );
+
+          void panel.webview.postMessage({
+            command: MESSAGE_TYPES.CODEBASE_LOADED,
+            id: message.id,
+            fileCount,
+            fileStructure,
+            workingDirectory,
+          });
+        } catch (e) {
+          console.log('error with cloneAndAnalyzeCodebase', e);
+          void panel.webview.postMessage({
+            command: MESSAGE_TYPES.CODEBASE_LOADED,
+            id: message.id,
+            error: (e as Error)?.message,
+          });
+        }
+        return;
+
+      case MESSAGE_TYPES.LOAD_SUGGESTIONS:
+        try {
+          const { diffResult, descriptionOfChanges } = await runAICode({
+            workingDirectory: message.workingDirectory,
+            fileStructure: message.fileStructure,
+            useChatbot: message.useChatbot,
+            promptText: message.promptText,
+          });
+
+          console.log(
+            'successfully ran runAICode',
+            diffResult,
+            descriptionOfChanges
+          );
+
+          void panel.webview.postMessage({
+            command: MESSAGE_TYPES.SUGGESTIONS_LOADED,
+            id: message.id,
+            diffResult,
+            descriptionOfChanges,
+          });
+        } catch (e) {
+          console.log('error with runAICode', e);
+          void panel.webview.postMessage({
+            command: MESSAGE_TYPES.SUGGESTIONS_LOADED,
+            id: message.id,
+            error: (e as Error)?.message,
+          });
+        }
+        return;
+
       default:
         // no-op.
         return;
@@ -212,7 +364,7 @@ export default class WebviewController {
 
   onRecievedWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
-    panel: vscode.WebviewPanel
+    panel: vscode.WebviewPanel | vscode.WebviewView
   ): Promise<void> => {
     // Ensure handling message from the webview can't crash the extension.
     try {
@@ -237,7 +389,7 @@ export default class WebviewController {
       vscode.ViewColumn.One, // Editor column to show the webview panel in.
       {
         enableScripts: true,
-        retainContextWhenHidden: true,
+        retainContextWhenHidden: true, // TODO: Get rid of this, it's a performance hit.
         localResourceRoots: [
           vscode.Uri.file(path.join(extensionPath, 'dist')),
           vscode.Uri.file(path.join(extensionPath, 'resources')),

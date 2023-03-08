@@ -1,5 +1,6 @@
 import LegacyConnectionModel from './connection-model/legacy-connection-model';
 import { FilePickerActionTypes } from './store/actions';
+import type { FileDirectory } from '../../ai-code/constants';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
@@ -24,10 +25,67 @@ export enum MESSAGE_TYPES {
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
   OPEN_TRUSTED_LINK = 'OPEN_TRUSTED_LINK',
   RENAME_ACTIVE_CONNECTION = 'RENAME_ACTIVE_CONNECTION',
+
+  // AI Code events.
+  LOAD_CODEBASE = 'LOAD_CODEBASE',
+  CODEBASE_LOADED = 'CODEBASE_LOADED',
+  LOAD_SUGGESTIONS = 'LOAD_SUGGESTIONS',
+  SUGGESTIONS_LOADED = 'SUGGESTIONS_LOADED',
+
+  ASK_QUESTION = 'ASK_QUESTION',
+  QUESTION_RESPONSE = 'QUESTION_RESPONSE',
 }
 
 interface BasicWebviewMessage {
   command: string;
+}
+
+export interface AskQuestionMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.ASK_QUESTION;
+  id: string;
+
+  text: string;
+  selection?: string;
+}
+export interface QuestionResponseMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.QUESTION_RESPONSE;
+  id: string;
+  error?: string;
+
+  text: string;
+}
+export interface LoadCodebaseMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.LOAD_CODEBASE;
+  id: string;
+
+  // githubLink: string;
+  // useGithubLink: boolean;
+}
+export interface CodebaseLoadedMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.CODEBASE_LOADED;
+  id: string;
+  error?: string;
+
+  fileCount: number;
+  fileStructure: FileDirectory;
+  workingDirectory: string;
+}
+export interface LoadSuggestionsMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.LOAD_SUGGESTIONS;
+  id: string;
+
+  workingDirectory: string;
+  promptText: string;
+  useChatbot: boolean;
+  fileStructure: FileDirectory;
+}
+export interface SuggestionsLoadedMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.SUGGESTIONS_LOADED;
+  id: string;
+  error?: string;
+
+  diffResult: string;
+  descriptionOfChanges: string;
 }
 
 export interface CreateNewPlaygroundMessage extends BasicWebviewMessage {
@@ -97,9 +155,15 @@ export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | OpenConnectionStringInputMessage
   | OpenFilePickerMessage
   | OpenTrustedLinkMessage
-  | RenameConnectionMessage;
+  | RenameConnectionMessage
+  | AskQuestionMessage
+  | LoadCodebaseMessage
+  | LoadSuggestionsMessage;
 
 export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
   | ConnectResultsMessage
   | FilePickerResultsMessage
-  | ConnectionStatusMessage;
+  | ConnectionStatusMessage
+  | QuestionResponseMessage
+  | SuggestionsLoadedMessage
+  | CodebaseLoadedMessage;

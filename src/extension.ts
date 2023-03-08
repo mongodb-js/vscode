@@ -40,7 +40,7 @@ export async function activate(
   mdbExtension = new MDBExtensionController(context, {
     shouldTrackTelemetry: true,
   });
-  await mdbExtension.activate();
+  await mdbExtension.activate(context);
 
   // Add our extension to a list of disposables for when we are deactivated.
   context.subscriptions.push(mdbExtension);

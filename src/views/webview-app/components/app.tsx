@@ -14,6 +14,7 @@ import {
   MESSAGE_FROM_EXTENSION_TO_WEBVIEW,
   MESSAGE_TYPES,
 } from '../extension-app-message-constants';
+import { App as AICodeApp } from '../ai-code/app';
 
 const styles = require('../connect.module.less');
 
@@ -73,6 +74,15 @@ export class App extends React.Component<DispatchProps> {
   };
 
   render(): React.ReactNode {
+    if ((window as any)?.isSidepanel) {
+      return (
+        <div>
+          {/* sidepanel view ! */}
+          <AICodeApp />
+        </div>
+      );
+    }
+
     return (
       <div className={styles.page}>
         <OverviewPage />

@@ -1,6 +1,6 @@
 import Mocha from 'mocha';
 import glob from 'glob';
-import path = require('path');
+import path from 'path';
 import MDBExtensionController from '../../mdbExtensionController';
 import { ext } from '../../extensionConstants';
 import KeytarStub from './keytarStub';
@@ -30,43 +30,39 @@ export async function run(): Promise<void> {
     { shouldTrackTelemetry: false }
   );
 
-  await mdbTestExtension.testExtensionController.activate();
+  await mdbTestExtension.testExtensionController.activate(
+    mdbTestExtension.extensionContextStub
+  );
 
-  return new Promise((c, e) => {
-    glob(
-      '**/**.test.js',
-      {
-        cwd: testsRoot,
-        ignore: ['**/webview-app/**/*.js'],
-      },
-      (err, files) => {
-        if (err) {
-          return e(err);
+  const files = await glob('**/**.test.js', {
+    cwd: testsRoot,
+    ignore: ['**/webview-app/**/*.js'],
+  });
+
+  // We avoid using the user's credential store when running tests
+  // in order to ensure we're not polluting the credential store
+  // and because its tough to get the credential store running on
+  // headless linux.
+  ext.keytarModule = new KeytarStub();
+
+  // Add files to the test suite.
+  files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+
+  return new Promise((resolve, reject) => {
+    try {
+      // Run the mocha test.
+      mocha.run((failures) => {
+        if (failures > 0) {
+          reject(new Error(`${failures} tests failed.`));
+        } else {
+          resolve();
         }
-
-        // We avoid using the user's credential store when running tests
-        // in order to ensure we're not polluting the credential store
-        // and because its tough to get the credential store running on
-        // headless linux.
-        ext.keytarModule = new KeytarStub();
-
-        // Add files to the test suite.
-        files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
-        try {
-          // Run the mocha test.
-          mocha.run((failures) => {
-            if (failures > 0) {
-              e(new Error(`${failures} tests failed.`));
-            } else {
-              c();
-            }
-          });
-        } catch (mochaRunErr) {
-          console.error('Error running mocha tests:');
-          console.error(mochaRunErr);
-          e(mochaRunErr);
-        }
-      }
-    );
+      });
+    } catch (mochaRunErr) {
+      console.error('Error running mocha tests:');
+      console.error(mochaRunErr);
+      reject(mochaRunErr);
+    }
+    mocha.run();
   });
 }

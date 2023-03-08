@@ -18,7 +18,7 @@ interface VSCodeApi {
 }
 
 declare const acquireVsCodeApi: () => VSCodeApi;
-const vscode = acquireVsCodeApi();
+export const vscode = acquireVsCodeApi();
 
 export interface AppState {
   activeConnectionName: string;

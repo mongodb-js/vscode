@@ -124,12 +124,13 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._webviewController = new WebviewController(
       this._connectionController,
       this._storageController,
-      this._telemetryService
+      this._telemetryService,
+      context.extensionPath
     );
     this._editorsController.registerProviders();
   }
 
-  async activate(): Promise<void> {
+  async activate(context: vscode.ExtensionContext): Promise<void> {
     this._explorerController.activateConnectionsTreeView();
     this._helpExplorer.activateHelpTreeView(this._telemetryService);
     this._playgroundsExplorer.activatePlaygroundsTreeView();
@@ -137,6 +138,14 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
+
+    // Register the webview view.
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(
+        WebviewController.viewType,
+        this._webviewController
+      )
+    );
 
     this.registerCommands();
 

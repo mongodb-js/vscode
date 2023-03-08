@@ -14,7 +14,7 @@ import { ServerCommands } from './serverCommands';
 
 // MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options)
 type MongoClientOptions = NonNullable<
-  Parameters<typeof CliServiceProvider['connect']>[1]
+  Parameters<(typeof CliServiceProvider)['connect']>[1]
 >;
 
 interface EvaluationResult {
@@ -60,7 +60,9 @@ const executeAll = async (
     const outputLines: PlaygroundDebug = [];
 
     // Create a new instance of the runtime and evaluate code from a playground.
-    const runtime: ElectronRuntime = new ElectronRuntime(serviceProvider);
+    const runtime: ElectronRuntime = new ElectronRuntime(
+      serviceProvider as any
+    );
 
     runtime.setEvaluationListener({
       onPrint(values: EvaluationResult[]) {
