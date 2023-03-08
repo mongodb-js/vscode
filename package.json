@@ -198,6 +198,15 @@
         }
       },
       {
+        "command": "mdb.resetNotebookRuntime",
+        "title": "Reset Notebook Runtime",
+        "shortTitle": "Reset Runtime",
+        "icon": {
+          "light": "images/light/clean-broom.svg",
+          "dark": "images/dark/clean-broom.svg"
+        }
+      },
+      {
         "command": "mdb.convertNotebookToPlayground",
         "title": "Convert All To MongoDB Playground",
         "shortTitle": "Export All",
@@ -741,12 +750,17 @@
         {
           "command": "mdb.connectFromNotebook",
           "group": "navigation@1",
-          "when": "mdb.connectedToMongoDB == false"
+          "when": "notebookType == 'mongodb-notebook' && mdb.connectedToMongoDB == false"
         },
         {
           "command": "mdb.changeActiveConnectionFromNotebook",
           "group": "navigation@1",
-          "when": "mdb.connectedToMongoDB == true"
+          "when": "notebookType == 'mongodb-notebook' && mdb.connectedToMongoDB == true"
+        },
+        {
+          "command": "mdb.resetNotebookRuntime",
+          "group": "navigation@2",
+          "when": "notebookType == 'mongodb-notebook'"
         },
         {
           "command": "mdb.convertNotebookToPlayground",
@@ -772,7 +786,11 @@
         },
         {
           "command": "mdb.convertNotebookToPlayground",
-          "when": "false"
+          "when": "notebookType == 'mongodb-notebook' && mdb.connectedToMongoDB == true"
+        },
+        {
+          "command": "mdb.resetNotebookRuntime",
+          "when": "notebookType == 'mongodb-notebook' && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.saveMongoDBDocument",

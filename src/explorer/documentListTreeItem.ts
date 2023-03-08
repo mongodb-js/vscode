@@ -9,7 +9,7 @@ import TreeItemParent from './treeItemParentInterface';
 import type { DataService } from 'mongodb-data-service';
 
 const path = require('path');
-const log = createLogger('tree view document list');
+const log = createLogger('documents tree item');
 
 // We fetch 1 more than this in order to see if there are more to fetch.
 // Each time `show more` is clicked, the collection item increases the amount
@@ -244,7 +244,9 @@ export default class DocumentListTreeItem
   }
 
   onShowMoreClicked(): void {
-    log.info('show more clicked');
+    log.info(
+      `Show more documents clicked for the '${this.namespace}' namespace`
+    );
 
     this._maxDocumentsToShow += MAX_DOCUMENTS_VISIBLE;
     this.cacheIsUpToDate = false;

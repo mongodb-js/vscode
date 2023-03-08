@@ -6,7 +6,7 @@ import { ext } from './extensionConstants';
 import { createKeytar } from './utils/keytar';
 import { createLogger } from './logging';
 
-const log = createLogger('extension.ts');
+const log = createLogger('extension');
 
 /**
  * Capture debug logs from mongodb-data-service, connection-model,
@@ -27,7 +27,7 @@ let mdbExtension: MDBExtensionController;
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<void> {
-  log.info('activate extension called');
+  log.info('Activating extension...');
 
   ext.context = context;
 
@@ -45,7 +45,7 @@ export async function activate(
   // Add our extension to a list of disposables for when we are deactivated.
   context.subscriptions.push(mdbExtension);
 
-  log.info('extension activated');
+  log.info('Extension activated');
 }
 
 // Called when our extension is deactivated.

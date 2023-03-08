@@ -211,6 +211,22 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION_FROM_NOTEBOOK,
       () => this._connectionController.changeActiveConnection()
     );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CREATE_NOTEBOOK_FROM_TREE_VIEW,
+      () => this._notebookController.createNewNotebook()
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_REFRESH_NOTEBOOKS_FROM_TREE_VIEW,
+      () => this._notebooksExplorer.refresh()
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_OPEN_NOTEBOOK_FROM_TREE_VIEW,
+      (notebooksTreeItem: NotebooksTreeItem) =>
+        this._notebookController.openNotebook(notebooksTreeItem.filePath)
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_RESET_NOTEBOOK_RUNTIME, () =>
+      this._notebookController.resetNotebookRuntime()
+    );
 
     // ------ PLAYGROUND ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND, () =>
@@ -272,7 +288,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerEditorCommands();
     this.registerTreeViewCommands();
 
-    log.info('Registered commands.');
+    log.info('Commands registered');
   };
 
   registerCommand = (
@@ -582,26 +598,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => this._playgroundController.createPlayground()
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_NOTEBOOK_FROM_TREE_VIEW,
-      () => this._notebookController.createNewNotebbok()
-    );
-    this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,
       () => this._playgroundsExplorer.refresh()
-    );
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_NOTEBOOKS_FROM_TREE_VIEW,
-      () => this._notebooksExplorer.refresh()
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
       (playgroundsTreeItem: PlaygroundsTreeItem) =>
         this._playgroundController.openPlayground(playgroundsTreeItem.filePath)
-    );
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_OPEN_NOTEBOOK_FROM_TREE_VIEW,
-      (notebooksTreeItem: NotebooksTreeItem) =>
-        this._notebookController.openNotebook(notebooksTreeItem.filePath)
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_DOCUMENT_CONTENTS_FROM_TREE_VIEW,

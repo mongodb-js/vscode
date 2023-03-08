@@ -19,9 +19,10 @@ import {
   PlaygroundTextAndSelection,
 } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
-import { installModuleWithCancelModal } from './installModuleWithCancelModal';
+import { installModuleWithProgress } from './installModuleWithProgress';
+import formatError from '../utils/formatError';
 
-const log = createLogger('LanguageServerController');
+const log = createLogger('language server controller');
 
 /**
  * This controller manages the language server and client.
@@ -75,7 +76,7 @@ export default class LanguageServerController {
       ),
     };
 
-    log.info('Creating MongoDB Language Server', {
+    log.info('Create MongoDB Language Server', {
       serverOptions,
       clientOptions,
     });
@@ -109,19 +110,40 @@ export default class LanguageServerController {
       }
     );
 
-    this._client.onNotification(ServerCommands.SHOW_ERROR_MESSAGE, (error) => {
-      if (error.code === 'MODULE_NOT_FOUND' && error.moduleName) {
-        void vscode.window
-          .showErrorMessage(error.message, { modal: false }, 'Yes', 'No')
-          .then(async (response) => {
-            if (response === 'Yes') {
-              await installModuleWithCancelModal(error.moduleName);
-            }
-          });
-      } else {
-        void vscode.window.showErrorMessage(error.message);
+    this._client.onNotification(
+      ServerCommands.SHOW_ERROR_MESSAGE,
+      ({ code, moduleName, message }) => {
+        if (code === 'MODULE_NOT_FOUND' && moduleName) {
+          void vscode.window
+            .showErrorMessage(message, { modal: false }, 'Yes', 'No')
+            .then(async (response) => {
+              if (response === 'Yes') {
+                try {
+                  const result = await installModuleWithProgress(moduleName);
+
+                  if (result.ok) {
+                    void vscode.window.showInformationMessage(
+                      `The '${moduleName}' module was installed.`
+                    );
+                  }
+
+                  if (result.canceled) {
+                    void vscode.window.showInformationMessage(
+                      `The installation of the '${moduleName}' module was canceled.`
+                    );
+                  }
+                } catch (error) {
+                  void vscode.window.showErrorMessage(
+                    formatError(error).message
+                  );
+                }
+              }
+            });
+        } else {
+          void vscode.window.showErrorMessage(message);
+        }
       }
-    });
+    );
   }
 
   deactivate(): void {

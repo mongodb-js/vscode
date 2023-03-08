@@ -19,7 +19,11 @@ export default class NotebookController {
   private _context: vscode.ExtensionContext;
   private _connectionController: ConnectionController;
   private _playgroundController: PlaygroundController;
-  private _worker?: WorkerThreads;
+  private _notebooks: {
+    [id: string]: {
+      worker?: WorkerThreads;
+    };
+  };
 
   constructor(
     context: vscode.ExtensionContext,
@@ -29,25 +33,22 @@ export default class NotebookController {
     this._context = context;
     this._connectionController = connectionController;
     this._playgroundController = playgroundController;
+    this._notebooks = {};
 
     const leafyGreenTableMessageChannel =
       vscode.notebooks.createRendererMessaging('mongodb-leafy-green-table');
     leafyGreenTableMessageChannel.onDidReceiveMessage((e) => {
       if (e.message.request === 'leafyGreenTableRendererLoaded') {
-        log.info('NOTEBOOK_CONTROLLER: leafy green table renderer loaded');
+        log.info('The leafy green table renderer loaded');
       }
       if (e.message.request === 'openNotebookAsPlaygroundResult') {
-        log.info(
-          'NOTEBOOK_CONTROLLER: open notebook as playground result requested'
-        );
+        log.info('Opening notebook as playground result...');
         this._playgroundController.openNotebookAsPlaygroundResult(
           e.message.data
         );
       }
       if (e.message.request === 'getWindowSettings') {
-        log.info(
-          'NOTEBOOK_CONTROLLER: leafyGreenTable renderer requested window settings'
-        );
+        log.info('The leafyGreenTable renderer requested window settings');
         void leafyGreenTableMessageChannel.postMessage({
           request: 'setWindowSettings',
           data: {
@@ -60,7 +61,7 @@ export default class NotebookController {
     });
 
     vscode.window.onDidChangeActiveColorTheme((e) => {
-      log.info('NOTEBOOK_CONTROLLER: active color theme changed');
+      log.info('The active color theme changed');
       void leafyGreenTableMessageChannel.postMessage({
         request: 'activeColorThemeChanged',
         data: { darkMode: e.kind === vscode.ColorThemeKind.Dark },
@@ -71,12 +72,10 @@ export default class NotebookController {
       vscode.notebooks.createRendererMessaging('mongodb-error');
     errorMessageChannel.onDidReceiveMessage((e) => {
       if (e.message.request === 'errorRendererLaded') {
-        log.info('NOTEBOOK_CONTROLLER: error renderer loaded');
+        log.info('The error renderer loaded');
       }
       if (e.message.request === 'getWindowSettings') {
-        log.info(
-          'NOTEBOOK_CONTROLLER: error renderer requested window settings'
-        );
+        log.info('The error renderer requested window settings');
         void errorMessageChannel.postMessage({
           request: 'setWindowSettings',
           data: {
@@ -89,7 +88,44 @@ export default class NotebookController {
     });
   }
 
-  async createNewNotebbok(): Promise<boolean> {
+  _createNotebookWorker() {
+    if (!this._context.extensionPath) {
+      throw new Error('extensionPath is undefined');
+    }
+
+    return new WorkerThreads(
+      path.resolve(this._context.extensionPath, 'dist', 'notebookWorker.js')
+    );
+  }
+
+  _getNotebookWorker() {
+    if (!vscode.window.activeNotebookEditor) {
+      throw new Error('The Active Notebook is not found');
+    }
+
+    const uri = vscode.window.activeNotebookEditor.notebook.uri.toString();
+    const worker = this._notebooks[uri].worker;
+    return worker ? worker : this._createNotebookWorker();
+  }
+
+  resetNotebookRuntime() {
+    if (!vscode.window.activeNotebookEditor) {
+      throw new Error('The Active Notebook is not found');
+    }
+
+    const uri = vscode.window.activeNotebookEditor.notebook.uri.toString();
+    this._notebooks[uri] = {
+      worker: this._createNotebookWorker(),
+    };
+
+    void vscode.window.showInformationMessage(
+      'The Notebook Runtime was reset.'
+    );
+
+    return Promise.resolve(true);
+  }
+
+  async createNewNotebook(): Promise<boolean> {
     const notebookNewTemplate = [
       {
         kind: vscode.NotebookCellKind.Markup,
@@ -120,7 +156,9 @@ export default class NotebookController {
         data
       );
       await vscode.window.showNotebookDocument(doc);
-
+      this._notebooks[doc.uri.toString()] = {
+        worker: this._createNotebookWorker(),
+      };
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
@@ -149,7 +187,9 @@ export default class NotebookController {
         data
       );
       await vscode.window.showNotebookDocument(doc);
-
+      this._notebooks[doc.uri.toString()] = {
+        worker: this._createNotebookWorker(),
+      };
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
@@ -187,14 +227,6 @@ export default class NotebookController {
     token: vscode.CancellationToken
   ): Promise<vscode.NotebookCellOutput[]> {
     return new Promise((resolve, reject) => {
-      if (!vscode.window.activeNotebookEditor) {
-        return reject(new Error('activeNotebookEditor is undefined'));
-      }
-
-      if (!this._context.extensionPath) {
-        return reject(new Error('extensionPath is undefined'));
-      }
-
       const connectionId = this._connectionController.getActiveConnectionId();
       if (!connectionId) {
         void vscode.window.showErrorMessage(
@@ -203,10 +235,12 @@ export default class NotebookController {
         return resolve([]);
       }
 
-      if (!this._worker) {
-        this._worker = new WorkerThreads(
-          path.resolve(this._context.extensionPath, 'dist', 'notebookWorker.js')
-        );
+      let worker;
+
+      try {
+        worker = this._getNotebookWorker();
+      } catch (error) {
+        return reject(error);
       }
 
       const mongoClientOptions =
@@ -216,7 +250,7 @@ export default class NotebookController {
       }
 
       // Evaluate runtime in the worker thread.
-      this._worker?.postMessage({
+      worker.postMessage({
         name: 'EXECUTE_NOTEBOOK',
         data: {
           codeToEvaluate: codeToEvaluate,
@@ -226,7 +260,7 @@ export default class NotebookController {
       });
 
       // Listen for results from the worker thread.
-      this._worker.on(
+      worker.on(
         'message',
         (response: [Error, ShellExecuteAllResult | undefined]) => {
           const [error, result] = response;
@@ -244,11 +278,11 @@ export default class NotebookController {
       );
 
       token.onCancellationRequested(async () => {
-        log.error('NOTEBOOK_CONTROLLER cancellation requested');
+        log.info('The executing of the notebook was canceled');
         void vscode.window.showInformationMessage(
           'The running notebook operation was canceled.'
         );
-        await this._worker?.terminate();
+        await worker.terminate();
         return resolve([]);
       });
     });

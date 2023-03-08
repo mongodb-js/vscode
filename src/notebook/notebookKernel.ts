@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import NotebookController from '../notebook/notebookController';
 
 import { createLogger } from '../logging';
-const log = createLogger('notebook controller');
+const log = createLogger('notebook kernel');
 
 export default class NotebookKernel {
   public readonly label = 'MongoDB Noteboook Kernel';
@@ -41,11 +41,11 @@ export default class NotebookKernel {
   private async _doExecution(cell: vscode.NotebookCell): Promise<void> {
     const codeToEvaluate = cell.document.getText();
     if (!codeToEvaluate) {
-      log.info('NOTEBOOK_KERNEL _doExecution: the cell is empty.');
+      log.error('Execute notebook called but the cell is empty');
       return;
     }
 
-    log.info('NOTEBOOK_KERNEL _doExecution cell content', codeToEvaluate);
+    log.info('Execute notebook cell', codeToEvaluate);
 
     const execution = this._controller.createNotebookCellExecution(cell);
     execution.executionOrder = ++this._executionOrder;

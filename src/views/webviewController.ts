@@ -16,7 +16,7 @@ import { openLink } from '../utils/linkHelper';
 import { StorageController } from '../storage';
 import TelemetryService from '../telemetry/telemetryService';
 
-const log = createLogger('webviewController');
+const log = createLogger('webview controller');
 
 const getNonce = () => {
   return crypto.randomBytes(16).toString('base64');
@@ -100,7 +100,7 @@ export default class WebviewController {
       const connectionInfo =
         this._connectionController.parseNewConnection(rawConnectionModel);
       const { successfullyConnected, connectionErrorMessage } =
-        await this._connectionController.saveNewConnectionAndConnect(
+        await this._connectionController.saveNewConnectionFromFormAndConnect(
           connectionInfo,
           ConnectionTypes.CONNECTION_FORM
         );
@@ -116,7 +116,7 @@ export default class WebviewController {
             : connectionErrorMessage,
         });
       } catch (err) {
-        log.error('Unable to send connection result to webview:', err);
+        log.error('Unable to send connection result to webview', err);
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
@@ -218,15 +218,13 @@ export default class WebviewController {
     try {
       await this.handleWebviewMessage(message, panel);
     } catch (err) {
-      log.info('Error occured when parsing message from webview:');
-      log.info(err);
-
+      log.error('Error occured when parsing message from webview', err);
       return;
     }
   };
 
   openWebview(context: vscode.ExtensionContext): Promise<boolean> {
-    log.info('open webview called.');
+    log.info('Opening webview...');
 
     const extensionPath = context.extensionPath;
 

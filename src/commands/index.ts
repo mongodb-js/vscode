@@ -16,6 +16,7 @@ enum EXTENSION_COMMANDS {
   MDB_REFRESH_NOTEBOOKS_FROM_TREE_VIEW = 'mdb.refreshNotebooksFromTreeView',
   MDB_OPEN_NOTEBOOK_FROM_TREE_VIEW = 'mdb.openNotebookFromTreeView',
   MDB_CREATE_NOTEBOOK_FROM_TREE_VIEW = 'mdb.createNewNotebookFromTreeView',
+  MDB_RESET_NOTEBOOK_RUNTIME = 'mdb.resetNotebookRuntime',
 
   MDB_CREATE_PLAYGROUND = 'mdb.createPlayground',
   MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE = 'mdb.createNewPlaygroundFromOverviewPage',

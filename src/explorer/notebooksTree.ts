@@ -6,7 +6,7 @@ import NotebooksTreeItem from './notebooksTreeItem';
 import EXTENSION_COMMANDS from '../commands';
 import { getNotebooks } from '../utils/notebook';
 
-const log = createLogger('notebooks tree controller');
+const log = createLogger('notebooks tree');
 
 export default class NotebooksTree
   implements vscode.TreeDataProvider<vscode.TreeItem>

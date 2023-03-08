@@ -1,15 +1,11 @@
 import * as vscode from 'vscode';
 import NotebooksTree from './notebooksTree';
-import { createLogger } from '../logging';
-
-const log = createLogger('explorer controller');
 
 export default class NotebooksExplorer {
   private _treeController: NotebooksTree;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
   constructor() {
-    log.info('activate notebooks explorer');
     this._treeController = new NotebooksTree();
   }
 

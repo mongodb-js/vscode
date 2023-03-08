@@ -5,18 +5,12 @@ import ConnectionController, {
 } from '../connectionController';
 import ExplorerTreeController from './explorerTreeController';
 
-import { createLogger } from '../logging';
-
-const log = createLogger('explorer controller');
-
 export default class ExplorerController {
   private _connectionController: ConnectionController;
   private _treeController: ExplorerTreeController;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
   constructor(connectionController: ConnectionController) {
-    log.info('activate explorer controller');
-
     this._connectionController = connectionController;
     this._treeController = new ExplorerTreeController(connectionController);
   }
