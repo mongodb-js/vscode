@@ -60,14 +60,6 @@ export default class NotebookController {
       }
     });
 
-    vscode.window.onDidChangeActiveColorTheme((e) => {
-      log.info('The active color theme changed');
-      void leafyGreenTableMessageChannel.postMessage({
-        request: 'activeColorThemeChanged',
-        data: { darkMode: e.kind === vscode.ColorThemeKind.Dark },
-      });
-    });
-
     const errorMessageChannel =
       vscode.notebooks.createRendererMessaging('mongodb-error');
     errorMessageChannel.onDidReceiveMessage((e) => {
@@ -85,6 +77,21 @@ export default class NotebookController {
           },
         });
       }
+    });
+
+    vscode.window.onDidChangeActiveColorTheme((e) => {
+      log.info('The active color theme changed');
+      void leafyGreenTableMessageChannel.postMessage({
+        request: 'activeColorThemeChanged',
+        data: { darkMode: e.kind === vscode.ColorThemeKind.Dark },
+      });
+    });
+
+    vscode.workspace.onDidCloseNotebookDocument((document) => {
+      const uri = document.uri.toString();
+      void this._notebooks[uri]?.worker?.terminate().then(() => {
+        delete this._notebooks[uri];
+      });
     });
   }
 
@@ -104,7 +111,7 @@ export default class NotebookController {
     }
 
     const uri = vscode.window.activeNotebookEditor.notebook.uri.toString();
-    const worker = this._notebooks[uri].worker;
+    const worker = this._notebooks[uri]?.worker;
     return worker ? worker : this._createNotebookWorker();
   }
 
@@ -277,13 +284,14 @@ export default class NotebookController {
         }
       );
 
-      token.onCancellationRequested(async () => {
+      token.onCancellationRequested(() => {
         log.info('The executing of the notebook was canceled');
         void vscode.window.showInformationMessage(
           'The running notebook operation was canceled.'
         );
-        await worker.terminate();
-        return resolve([]);
+        void worker.terminate().then(() => {
+          return resolve([]);
+        });
       });
     });
   }
