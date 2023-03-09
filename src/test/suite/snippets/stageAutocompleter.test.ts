@@ -60,7 +60,6 @@ suite('Stage Autocompleter Test Suite', () => {
 
     expect(SNIPPETS_DIR).to.be.a.path();
     expect(SNIPPETS_FILE)
-      .to.be.a.file()
-      .with.json.using.schema(jsonSchema);
+      .to.be.a.file()?.with.json.using.schema(jsonSchema);
   });
 });

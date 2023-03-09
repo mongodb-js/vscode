@@ -193,8 +193,17 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     // ------ NOTEBOOK ------ //
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_NOTEBOOK, () =>
-      this._notebookController.createNotebook()
+    this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_CRUD_NOTEBOOK, () =>
+      this._notebookController.createCrudNotebook()
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CREATE_INDEX_NOTEBOOK,
+      async (element: CollectionTreeItem): Promise<boolean> => {
+        return this._notebookController.createIndexNotebook(
+          element.databaseName,
+          element.collectionName
+        );
+      }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CONVERT_NOTEBOOK_CELL_TO_PLAYGROUND,
@@ -208,11 +217,15 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController.changeActiveConnection()
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_RUN_CELLS_ON_CREATE_NOTEBOOK,
+      (cellIndex) => this._notebookKernel.runCellsOnCreateNotebook(cellIndex)
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION_FROM_NOTEBOOK,
       () => this._connectionController.changeActiveConnection()
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_NOTEBOOK_FROM_TREE_VIEW,
+      EXTENSION_COMMANDS.MDB_CREATE_CRUD_NOTEBOOK_FROM_TREE_VIEW,
       () => this._notebookController.createNewNotebook()
     );
     this.registerCommand(

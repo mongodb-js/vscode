@@ -4,7 +4,7 @@ export default [
   {
     kind: vscode.NotebookCellKind.Markup,
     languageId: 'markdown',
-    value: `# MongoDB Notebook
+    value: `# MongoDB CRUD Notebook
 
 The [MongoDB Playgrounds](https://www.mongodb.com/docs/mongodb-vscode/playgrounds/) are JavaScript environments where you can prototype queries, aggregations, and MongoDB commands with helpful syntax highlighting.
 

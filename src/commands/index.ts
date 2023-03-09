@@ -8,14 +8,16 @@ enum EXTENSION_COMMANDS {
   MDB_OPEN_MDB_SHELL = 'mdb.openMongoDBShell',
   MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW = 'mdb.treeViewOpenMongoDBShell',
 
-  MDB_CREATE_NOTEBOOK = 'mdb.createNotebook',
+  MDB_CREATE_CRUD_NOTEBOOK = 'mdb.createCrudNotebook',
+  MDB_CREATE_INDEX_NOTEBOOK = 'mdb.createIndexNotebook',
+  MDB_RUN_CELLS_ON_CREATE_NOTEBOOK = 'mdb.runCellsOnCreateNotebook',
   MDB_CONNECT_FROM_NOTEBOOK = 'mdb.connectFromNotebook',
   MDB_CHANGE_ACTIVE_CONNECTION_FROM_NOTEBOOK = 'mdb.changeActiveConnectionFromNotebook',
   MDB_CONVERT_NOTEBOOK_CELL_TO_PLAYGROUND = 'mdb.convertNotebookCellToPlayground',
   MDB_CONVERT_NOTEBOOK_TO_PLAYGROUND = 'mdb.convertNotebookToPlayground',
   MDB_REFRESH_NOTEBOOKS_FROM_TREE_VIEW = 'mdb.refreshNotebooksFromTreeView',
   MDB_OPEN_NOTEBOOK_FROM_TREE_VIEW = 'mdb.openNotebookFromTreeView',
-  MDB_CREATE_NOTEBOOK_FROM_TREE_VIEW = 'mdb.createNewNotebookFromTreeView',
+  MDB_CREATE_CRUD_NOTEBOOK_FROM_TREE_VIEW = 'mdb.createNewNotebookFromTreeView',
   MDB_RESET_NOTEBOOK_RUNTIME = 'mdb.resetNotebookRuntime',
 
   MDB_CREATE_PLAYGROUND = 'mdb.createPlayground',

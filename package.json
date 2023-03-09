@@ -276,8 +276,16 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
-        "command": "mdb.createNotebook",
-        "title": "MongoDB: Create MongoDB Notebook"
+        "command": "mdb.createCrudNotebook",
+        "title": "MongoDB: Create MongoDB CRUD Notebook"
+      },
+      {
+        "command": "mdb.createIndexNotebook",
+        "title": "Create Index Notebook"
+      },
+      {
+        "command": "mdb.runCellsOnCreateNotebook",
+        "title": "Run specified cells onC ceate notebook event"
       },
       {
         "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -673,6 +681,11 @@
           "group": "3@1"
         },
         {
+          "command": "mdb.createIndexNotebook",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
+          "group": "3@2"
+        },
+        {
           "command": "mdb.dropCollection",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "4@1"
@@ -944,6 +957,14 @@
         },
         {
           "command": "mdb.copyCollectionName",
+          "when": "false"
+        },
+        {
+          "command": "mdb.createIndexNotebook",
+          "when": "false"
+        },
+        {
+          "command": "mdb.runCellsOnCreateNotebook",
           "when": "false"
         },
         {

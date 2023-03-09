@@ -52,11 +52,14 @@ MongoDB for VS Code makes it extremely easy to make changes to documents in your
 The MongoDB Notebooks provide a live documentation experience by combining markdown instructions and executable code cells, which render notebook outputs in a variety of rich and interactive formats.
 
 - Connect to MongoDB cluster.
-- Run MongoDB code snippets.
-- Change the output format (Leafy Green Table or JSON view).
+- Provide educational content using Markdown cells.
+- Run and debug MongoDB shell scripts using Code cells.
+- Change the output format (Leafy Green Table, JSON view, or Chart).
 - Install other extensions from the VSCode Marketplace to extend output formats.
+- Install npm modules to use them right away in Code cells.
 - Export the cell or entire notebook to MongoDB playground.
-- Manage your notebooks in th notebooks tree view.
+- Manage your notebooks in the Notebooks tree view.
+- Use Notebooks to create different types of indexes on a collection.
 
 ### Quick access to the MongoDB Shell
 
