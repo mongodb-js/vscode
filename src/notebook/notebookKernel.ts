@@ -34,25 +34,75 @@ export default class NotebookKernel {
 
   private async _executeAll(cells: vscode.NotebookCell[]): Promise<void> {
     const notebook = vscode.window.activeNotebookEditor?.notebook;
-    if (notebook?.metadata.custom.type === 'index' && cells.length > 1) {
+
+    if (notebook?.metadata.type === 'index' && cells.length > 1) {
       void vscode.window.showErrorMessage(
         'To create an index please run one cell with a corresponding index type.'
       );
       return;
     }
 
+    if (notebook?.metadata.type === 'aggregation') {
+      await this._executeAggregation(cells);
+      return;
+    }
+
     for (const cell of cells) {
-      await this._executeCell(cell);
+      await this._executeCell({ cell });
     }
   }
 
-  private async _executeCell(cell: vscode.NotebookCell): Promise<void> {
-    const codeToEvaluate = cell.document.getText();
+  private async _executeAggregation(
+    cells: vscode.NotebookCell[]
+  ): Promise<void> {
+    const stagesToEvaluate: string[] = [];
+
+    for (const cell of cells) {
+      const cellText = cell.document.getText();
+
+      if (cellText.includes('useNamespace')) {
+        const runBefore = `var mdbnbDBName;
+        var mdbnbCollName;
+        var useNamespace = (nmspc) => {
+          var prsdnmsp = nmspc.split('.');
+          mdbnbDBName = prsdnmsp[0];
+          mdbnbCollName = prsdnmsp[1];
+          return use(prsdnmsp[0]);
+        };
+        var runStage = (mdbnbStg) => {
+          mdbnbStages.push(mdbnbStg);
+        };`;
+        await this._executeCell({ cell, runBefore });
+      }
+
+      if (cellText.includes('runStage')) {
+        await this._executeCell({
+          cell,
+          runBefore: `var mdbnbStages = []; ${stagesToEvaluate.join(' ')}`,
+          runAfter: 'db.getCollection(mdbnbCollName).aggregate(mdbnbStages);',
+        });
+        stagesToEvaluate.push(cellText);
+      }
+    }
+  }
+
+  private async _executeCell({
+    cell,
+    runBefore = '',
+    runAfter = '',
+  }: {
+    cell: vscode.NotebookCell;
+    runBefore?: string;
+    runAfter?: string;
+  }): Promise<void> {
+    let codeToEvaluate = cell.document.getText();
+
     if (!codeToEvaluate) {
       log.error('Execute notebook called but the cell is empty');
       return;
     }
 
+    codeToEvaluate = [runBefore, codeToEvaluate, runAfter].join(' ');
     log.info('Execute notebook cell', codeToEvaluate);
 
     const execution = this._controller.createNotebookCellExecution(cell);
@@ -76,21 +126,5 @@ export default class NotebookKernel {
       );
       execution.end(false, Date.now());
     }
-  }
-
-  async runCellsOnCreateNotebook(cellIndexesToRun: number[]) {
-    const notebook = vscode.window.activeNotebookEditor?.notebook;
-
-    for (const cellIndex of cellIndexesToRun) {
-      const cell = notebook?.cellAt(cellIndex);
-      if (!cell) {
-        log.error(`The cell with the '${cellIndex}' index not found`);
-      } else {
-        await this._executeCell(cell);
-        log.error(`The c with the '${cellIndex}' index was executed`);
-      }
-    }
-
-    return true;
   }
 }

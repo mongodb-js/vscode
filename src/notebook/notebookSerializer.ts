@@ -2,7 +2,7 @@ import { TextDecoder, TextEncoder } from 'util';
 import * as vscode from 'vscode';
 
 interface RawNotebookCell {
-  language: string;
+  languageId: string;
   value: string;
   kind: vscode.NotebookCellKind;
   metadata?: any;
@@ -19,10 +19,14 @@ export class NotebookSerializer implements vscode.NotebookSerializer {
       raw = [];
     }
 
-    const cells = raw.map(
-      (item) =>
-        new vscode.NotebookCellData(item.kind, item.value, item.language)
-    );
+    const cells = raw.map((item) => {
+      const currentCell = new vscode.NotebookCellData(
+        item.kind,
+        item.value,
+        item.languageId
+      );
+      return currentCell;
+    });
 
     return new vscode.NotebookData(cells);
   }
@@ -33,7 +37,7 @@ export class NotebookSerializer implements vscode.NotebookSerializer {
     for (const cell of data.cells) {
       contents.push({
         kind: cell.kind,
-        language: cell.languageId,
+        languageId: cell.languageId,
         value: cell.value,
         metadata: {
           editable: false,

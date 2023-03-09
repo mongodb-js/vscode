@@ -10,7 +10,7 @@ enum EXTENSION_COMMANDS {
 
   MDB_CREATE_CRUD_NOTEBOOK = 'mdb.createCrudNotebook',
   MDB_CREATE_INDEX_NOTEBOOK = 'mdb.createIndexNotebook',
-  MDB_RUN_CELLS_ON_CREATE_NOTEBOOK = 'mdb.runCellsOnCreateNotebook',
+  MDB_CREATE_AGGREGATION_NOTEBOOK = 'mdb.createAggregationNotebook',
   MDB_CONNECT_FROM_NOTEBOOK = 'mdb.connectFromNotebook',
   MDB_CHANGE_ACTIVE_CONNECTION_FROM_NOTEBOOK = 'mdb.changeActiveConnectionFromNotebook',
   MDB_CONVERT_NOTEBOOK_CELL_TO_PLAYGROUND = 'mdb.convertNotebookCellToPlayground',

@@ -6,10 +6,10 @@ import { Worker as WorkerThreads } from 'worker_threads';
 import formatError from '../utils/formatError';
 import notebookCrudTemplate from '../templates/notebookCrudTemplate';
 import notebookIndexTemplate from '../templates/notebookIndexTemplate';
+import notebookAggregationTemplate from '../templates/notebookAggregationTemplate';
 import { ShellExecuteAllResult } from '../types/playgroundType';
 import ConnectionController from '../connectionController';
 import { PlaygroundController } from '../editors';
-import EXTENSION_COMMANDS from '../commands';
 
 import { createLogger } from '../logging';
 const log = createLogger('notebook controller');
@@ -151,9 +151,7 @@ export default class NotebookController {
     try {
       const data = new vscode.NotebookData(notebookNewTemplate);
       data.metadata = {
-        custom: {
-          type: 'new',
-        },
+        type: 'new',
       };
       const doc = await vscode.workspace.openNotebookDocument(
         'mongodb-notebook',
@@ -187,9 +185,7 @@ export default class NotebookController {
     try {
       const data = new vscode.NotebookData(content);
       data.metadata = {
-        custom: {
-          type: 'index',
-        },
+        type: 'index',
       };
       const doc = await vscode.workspace.openNotebookDocument(
         'mongodb-notebook',
@@ -199,10 +195,6 @@ export default class NotebookController {
       this._notebooks[doc.uri.toString()] = {
         worker: this._createNotebookWorker(),
       };
-      await vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.MDB_RUN_CELLS_ON_CREATE_NOTEBOOK,
-        [1]
-      );
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
@@ -213,13 +205,47 @@ export default class NotebookController {
     }
   }
 
+  async createAggregationNotebook(
+    databaseName: string,
+    collectionName: string
+  ): Promise<boolean> {
+    const content = notebookAggregationTemplate.map((cell) => ({
+      ...cell,
+      value: cell.value
+        .replace('CURRENT_DATABASE', databaseName)
+        .replace('CURRENT_COLLECTION', collectionName),
+    }));
+
+    try {
+      const data = new vscode.NotebookData(content);
+      data.metadata = {
+        type: 'aggregation',
+      };
+      const doc = await vscode.workspace.openNotebookDocument(
+        'mongodb-notebook',
+        data
+      );
+      await vscode.window.showNotebookDocument(doc);
+      this._notebooks[doc.uri.toString()] = {
+        worker: this._createNotebookWorker(),
+      };
+      return true;
+    } catch (error) {
+      void vscode.window.showErrorMessage(
+        `Unable to create an aggregation notebook: ${
+          formatError(error).message
+        }`
+      );
+
+      return false;
+    }
+  }
+
   async createCrudNotebook(): Promise<boolean> {
     try {
       const data = new vscode.NotebookData(notebookCrudTemplate);
       data.metadata = {
-        custom: {
-          type: 'crud',
-        },
+        type: 'crud',
       };
       const doc = await vscode.workspace.openNotebookDocument(
         'mongodb-notebook',

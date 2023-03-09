@@ -284,8 +284,8 @@
         "title": "Create Index Notebook"
       },
       {
-        "command": "mdb.runCellsOnCreateNotebook",
-        "title": "Run specified cells onC ceate notebook event"
+        "command": "mdb.createAggregationNotebook",
+        "title": "Create Aggreagation Notebook"
       },
       {
         "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -686,6 +686,11 @@
           "group": "3@2"
         },
         {
+          "command": "mdb.createAggregationNotebook",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
+          "group": "3@3"
+        },
+        {
           "command": "mdb.dropCollection",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "4@1"
@@ -964,7 +969,7 @@
           "when": "false"
         },
         {
-          "command": "mdb.runCellsOnCreateNotebook",
+          "command": "mdb.createAggregationNotebook",
           "when": "false"
         },
         {
