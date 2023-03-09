@@ -60,6 +60,7 @@ The MongoDB Notebooks provide a live documentation experience by combining markd
 - Export the cell or entire notebook to MongoDB playground.
 - Manage your notebooks in the Notebooks tree view.
 - Use Notebooks to create different types of indexes on a collection.
+- Build aggregation pipelines using Aggregation Notebooks.
 
 ### Quick access to the MongoDB Shell
 
