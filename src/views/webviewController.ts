@@ -21,6 +21,7 @@ import {
   getFileStructure,
 } from '../ai-code/local-files';
 import { runAICode } from '../ai-code/code-editor';
+import { askQuestion } from '../ai-code/question-answerer';
 
 const log = createLogger('webviewController');
 
@@ -94,6 +95,7 @@ export default class WebviewController implements vscode.WebviewViewProvider {
   _storageController: StorageController;
   _telemetryService: TelemetryService;
   _extensionPath: string;
+  _selectedText = '';
 
   static readonly viewType = 'mongoDBAiAssistantWebview';
 
@@ -192,6 +194,34 @@ export default class WebviewController implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(
       (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) =>
         this.onRecievedWebviewMessage(message, webviewView)
+    );
+
+    vscode.window.onDidChangeTextEditorSelection(
+      (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
+        // Sort lines selected as the may be mis-ordered from alt+click.
+        const sortedSelections = (
+          changeEvent.selections as Array<vscode.Selection>
+        ).sort((a, b) => (a.start.line > b.start.line ? 1 : -1));
+
+        const selectedText = sortedSelections
+          .map((item) => this._getSelectedText(item))
+          .join('\n');
+
+        if (selectedText === this._selectedText) {
+          return;
+        }
+
+        // TODO
+        if (this._view === webviewView) {
+          this._selectedText = selectedText;
+
+          void webviewView.webview.postMessage({
+            command: MESSAGE_TYPES.CODE_SELECTION_UPDATED,
+            selectedText,
+            fileName: vscode.window?.activeTextEditor?.document.fileName || '',
+          });
+        }
+      }
     );
 
     console.log('Started webview view');
@@ -325,6 +355,55 @@ export default class WebviewController implements vscode.WebviewViewProvider {
         }
         return;
 
+      case MESSAGE_TYPES.ASK_QUESTION:
+        try {
+          // if (vscode.workspace.workspaceFolders === undefined) {
+          //   throw new Error('No workspace currently open.');
+          // }
+
+          // TODO: Code selection.
+
+          // const workingDirectory =
+          //   vscode.workspace.workspaceFolders[0].uri.path;
+          // let f = vscode.workspace.workspaceFolders[0].uri.fsPath;
+          // Analyze the directory/file structure.
+          // const { fileStructure, fileCount } = await getFileStructure({
+          //   inputFolder: workingDirectory,
+          // });
+
+          // console.log(
+          //   'successfully ran cloneAndAnalyzeCodebase',
+          //   fileCount,
+          //   fileStructure,
+          //   workingDirectory
+          // );
+          // const chatbot = new Chat
+          const response = await askQuestion({
+            text: message.text,
+            includeSelectionInQuestion: message.includeSelectionInQuestion,
+            codeSelection: message.codeSelection,
+          });
+
+          console.log('question response', response);
+
+          void panel.webview.postMessage({
+            command: MESSAGE_TYPES.QUESTION_RESPONSE,
+            id: message.id,
+            text: response,
+            // fileCount,
+            // fileStructure,
+            // workingDirectory,
+          });
+        } catch (e) {
+          console.log('error with askQuestion', e);
+          void panel.webview.postMessage({
+            command: MESSAGE_TYPES.QUESTION_RESPONSE,
+            id: message.id,
+            error: (e as Error)?.message,
+          });
+        }
+        return;
+
       case MESSAGE_TYPES.LOAD_SUGGESTIONS:
         try {
           const { diffResult, descriptionOfChanges } = await runAICode({
@@ -376,6 +455,10 @@ export default class WebviewController implements vscode.WebviewViewProvider {
       return;
     }
   };
+
+  _getSelectedText(selection: vscode.Range): string {
+    return vscode.window.activeTextEditor?.document.getText(selection) || '';
+  }
 
   openWebview(context: vscode.ExtensionContext): Promise<boolean> {
     log.info('open webview called.');

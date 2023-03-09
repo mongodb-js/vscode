@@ -3,10 +3,26 @@ import { Configuration, OpenAIApi } from 'openai';
 
 dotenv.config();
 
-const openAIConfiguration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function createNewOpenAPIClient() {
+  const openAIConfiguration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 
-const openai = new OpenAIApi(openAIConfiguration);
+  return new OpenAIApi(openAIConfiguration);
+}
 
-export { openai };
+let openai: OpenAIApi = {} as any;
+let started = false;
+
+// For some reason dotenv is delayed on VSCode?
+function getOpenAi() {
+  if (started) {
+    return openai;
+  }
+
+  openai = createNewOpenAPIClient();
+  started = true;
+  return openai;
+}
+
+export { getOpenAi };

@@ -11,7 +11,7 @@ import { ErrorBanner } from '../components/error-banner';
 import { setStatus } from '../store/codebase';
 
 const containerStyles = css({
-  padding: spacing[3],
+  padding: spacing[2],
 });
 
 const historyStyles = css({
@@ -43,7 +43,8 @@ const presentContainerStyles = css({
   position: 'absolute',
   // TODO: Not view height for this,
   // proper scrolling component with height calc.
-  top: spacing[4],
+  // top: spacing[4],
+  top: 0,
   left: 0,
   right: 0,
 });
@@ -60,6 +61,9 @@ const Home: React.FunctionComponent = () => {
   );
   const errorMessage = useSelector(
     (state: RootState) => state.codebase.errorMessage
+  );
+  const questionErrorMessage = useSelector(
+    (state: RootState) => state.question.errorMessage
   );
   const dispatch = useDispatch<AppDispatch>();
 
@@ -138,7 +142,7 @@ const Home: React.FunctionComponent = () => {
       >
         {present}
         <div className={containerStyles}>
-          <ErrorBanner errorMessage={errorMessage} />
+          <ErrorBanner errorMessage={errorMessage || questionErrorMessage} />
         </div>
       </div>
     </div>

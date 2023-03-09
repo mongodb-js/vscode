@@ -38,7 +38,7 @@ function CancelLoader({
   return (
     <div className={containerStyles}>
       <Loader size={`${spacing[4]}px`} />
-      <Subtitle className={cx(textStyles, !darkMode && textDarkStyles)}>
+      <Subtitle className={cx(textStyles, darkMode && textDarkStyles)}>
         {progressText}
       </Subtitle>
       <Button variant="primaryOutline" onClick={onCancel}>

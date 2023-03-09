@@ -54,7 +54,7 @@ const EnterPrompt: React.FunctionComponent = () => {
   }, []);
 
   const onClickSubmitPrompt = useCallback(() => {
-    dispatch(generateSuggestions());
+    void dispatch(generateSuggestions());
   }, []);
 
   const codebaseIdentifier = useGithubLink ? githubLink : directory;

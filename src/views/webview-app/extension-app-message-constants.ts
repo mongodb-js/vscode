@@ -32,6 +32,8 @@ export enum MESSAGE_TYPES {
   LOAD_SUGGESTIONS = 'LOAD_SUGGESTIONS',
   SUGGESTIONS_LOADED = 'SUGGESTIONS_LOADED',
 
+  CODE_SELECTION_UPDATED = 'CODE_SELECTION_UPDATED',
+
   ASK_QUESTION = 'ASK_QUESTION',
   QUESTION_RESPONSE = 'QUESTION_RESPONSE',
 }
@@ -45,7 +47,9 @@ export interface AskQuestionMessage extends BasicWebviewMessage {
   id: string;
 
   text: string;
-  selection?: string;
+
+  includeSelectionInQuestion: boolean;
+  codeSelection?: string;
 }
 export interface QuestionResponseMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.QUESTION_RESPONSE;
@@ -86,6 +90,12 @@ export interface SuggestionsLoadedMessage extends BasicWebviewMessage {
 
   diffResult: string;
   descriptionOfChanges: string;
+}
+
+export interface CodeSelectionUpdatedMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.CODE_SELECTION_UPDATED;
+  selectedText: string;
+  fileName: string;
 }
 
 export interface CreateNewPlaygroundMessage extends BasicWebviewMessage {
@@ -166,4 +176,5 @@ export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
   | ConnectionStatusMessage
   | QuestionResponseMessage
   | SuggestionsLoadedMessage
-  | CodebaseLoadedMessage;
+  | CodebaseLoadedMessage
+  | CodeSelectionUpdatedMessage;

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { openai } from './ai';
+import { getOpenAi } from './ai';
 import {
   getFileNamesFromFileStructure,
   generateFileMappingPlan,
@@ -154,7 +154,7 @@ async function createEditedFiles({
 
     try {
       // https://beta.openai.com/docs/api-reference/edits/create
-      const result = await openai.createEdit({
+      const result = await getOpenAi().createEdit({
         model: 'text-davinci-edit-001',
         input: inputFileContents,
         // TODO: Fine tune these instructions and somehow weave it together with the whole input.

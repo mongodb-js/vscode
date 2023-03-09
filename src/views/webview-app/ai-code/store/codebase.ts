@@ -9,7 +9,6 @@ import { sendMessageToExtensionAndWaitForResponse } from '../extension-app-msg';
 import { MESSAGE_TYPES } from '../../extension-app-message-constants';
 import type {
   CodebaseLoadedMessage,
-  QuestionResponseMessage,
   SuggestionsLoadedMessage,
 } from '../../extension-app-message-constants';
 
@@ -34,8 +33,6 @@ export interface CodebaseState {
   fileStructure: null | FileDirectory;
   workingDirectory: string | null;
   errorMessage: string | null;
-  questionPrompt: string | null;
-  questionResponse: string | null;
 
   diffChanges: string | null; // TODO: not a string.
   descriptionOfChanges: string | null;
@@ -108,54 +105,6 @@ export const loadCodebase = createAsyncThunk<
   };
 });
 
-type AskQuestionResult = {
-  text: string;
-  // TODO: Allow code snippets, actions, etc.
-};
-
-export const askQuestion = createAsyncThunk<
-  AskQuestionResult,
-  undefined,
-  {
-    state: {
-      codebase: CodebaseState;
-    };
-  }
->('codebase/askQuestion', async (payload, thunkAPI) => {
-  const {
-    codebase: { questionPrompt },
-  } = thunkAPI.getState() as {
-    codebase: CodebaseState;
-  };
-
-  const thisCurrentOp = uuidv4();
-  thunkAPI.dispatch(setCurrentOpId(thisCurrentOp));
-
-  if (!questionPrompt) {
-    return thunkAPI.rejectWithValue('Please type a question to ask.');
-  }
-
-  const { text } =
-    await sendMessageToExtensionAndWaitForResponse<QuestionResponseMessage>({
-      command: MESSAGE_TYPES.ASK_QUESTION,
-      id: uuidv4(),
-      text: questionPrompt,
-    });
-
-  const {
-    codebase: { currentOpId },
-  } = thunkAPI.getState() as {
-    codebase: CodebaseState;
-  };
-  if (currentOpId !== thisCurrentOp) {
-    return thunkAPI.rejectWithValue(requestCancelledErrorMessage);
-  }
-
-  return {
-    text,
-  };
-});
-
 type SuggestionsResult = {
   diffChanges: string;
   descriptionOfChanges: string;
@@ -220,8 +169,6 @@ function createInitialState(): CodebaseState {
     fileStructure: null,
     errorMessage: null,
     currentOpId: null,
-    questionPrompt: null,
-    questionResponse: null,
 
     diffChanges: null,
     descriptionOfChanges: null,
@@ -238,9 +185,6 @@ export const codebaseSlice = createSlice({
     },
     setGithubLink: (state, action: PayloadAction<string>) => {
       state.githubLink = action.payload;
-    },
-    setQuestionPrompt: (state, action: PayloadAction<string>) => {
-      state.questionPrompt = action.payload;
     },
     setUseGithubLink: (state, action: PayloadAction<boolean>) => {
       state.useGithubLink = action.payload;
@@ -317,30 +261,6 @@ export const codebaseSlice = createSlice({
         ? action.payload
         : (action as any)?.error?.message;
     },
-
-    [askQuestion.pending.type]: (state) => {
-      state.status = 'generating-suggestions';
-      state.questionResponse = null;
-      state.errorMessage = null;
-    },
-    [askQuestion.fulfilled.type]: (state, action: PayloadAction<string>) => {
-      state.status = 'suggested';
-      state.currentOpId = null;
-      state.questionResponse = action.payload;
-      state.errorMessage = null;
-    },
-    [askQuestion.rejected.type]: (state, action: PayloadAction<string>) => {
-      // Do nothing if request cancelled.
-      if (action.payload === requestCancelledErrorMessage) {
-        return;
-      }
-
-      state.status = 'loaded';
-      state.questionResponse = null;
-      state.errorMessage = action.payload
-        ? action.payload
-        : (action as any)?.error?.message;
-    },
   },
 });
 
@@ -348,7 +268,6 @@ export const codebaseSlice = createSlice({
 export const {
   setDirectory,
   setGithubLink,
-  setQuestionPrompt,
   setUseGithubLink,
   setStatus,
   setCurrentOpId,

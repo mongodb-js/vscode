@@ -38,14 +38,14 @@ function Loader({
   size = `${spacing[3]}px`,
   title,
   className,
-}: LoaderProps): JSX.Element {
+}: LoaderProps): React.ReactElement {
   const darkMode = useDarkMode();
 
   return (
     <div
       className={cx(
         spinLoaderStyle,
-        darkMode ? lightStyles : darkStyles,
+        darkMode ? darkStyles : lightStyles,
         className
       )}
       style={{

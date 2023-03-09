@@ -1,4 +1,4 @@
-import { openai } from './ai';
+import { getOpenAi } from './ai';
 import type { FileDirectory } from './constants';
 
 export type DeleteOperation = {
@@ -194,7 +194,7 @@ async function generateFileMappingPlan(
     // https://beta.openai.com/docs/models/gpt-3
     // We're using `text-davinci-003` to do the mapping. It's trained up till June 2021.
     // https://platform.openai.com/docs/api-reference/completions/create
-    mappingResponse = await openai.createCompletion({
+    mappingResponse = await getOpenAi().createCompletion({
       model: 'text-davinci-003',
       prompt: mappingPrompt,
 

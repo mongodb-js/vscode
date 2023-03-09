@@ -3,7 +3,7 @@ import type {
   ChatCompletionResponseMessage,
 } from 'openai';
 
-import { openai } from './ai';
+import { getOpenAi } from './ai';
 
 type ChatMessage = {
   content: string;
@@ -31,7 +31,7 @@ export class ChatBot {
 
     try {
       // https://platform.openai.com/docs/api-reference/chat/create
-      const completion = await openai.createChatCompletion({
+      const completion = await getOpenAi().createChatCompletion({
         model: 'gpt-3.5-turbo', // gpt-3.5-turbo and gpt-3.5-turbo-0301
         messages: [messageToSend],
         // temperature: number, What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
@@ -73,7 +73,7 @@ export class ChatBot {
 
     try {
       // https://platform.openai.com/docs/api-reference/chat/create
-      const completion = await openai.createChatCompletion({
+      const completion = await getOpenAi().createChatCompletion({
         model: 'gpt-3.5-turbo',
         messages: [...this.chatHistory, messageToSend],
       });
