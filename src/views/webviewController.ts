@@ -16,10 +16,7 @@ import { openLink } from '../utils/linkHelper';
 import { StorageController } from '../storage';
 import TelemetryService from '../telemetry/telemetryService';
 import { gitDiffStyles } from './gitDiffStyles';
-import {
-  // cloneAndAnalyzeCodebase,
-  getFileStructure,
-} from '../ai-code/local-files';
+import { getFileStructure } from '../ai-code/local-files';
 import { runAICode } from '../ai-code/code-editor';
 import { askQuestion } from '../ai-code/question-answerer';
 
@@ -55,11 +52,13 @@ export const getWebviewContent = ({
   telemetryUserId,
   webview,
   isSidepanel = false,
+  isCodeWindow = false,
 }: {
   extensionPath: string;
   telemetryUserId?: string;
   webview: vscode.Webview;
   isSidepanel?: boolean;
+  isCodeWindow?: boolean;
 }): string => {
   const jsAppFileUrl = getReactAppUri(extensionPath, webview);
 
@@ -83,6 +82,7 @@ export const getWebviewContent = ({
       <script nonce="${nonce}">
         window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';
         window.isSidepanel = ${isSidepanel ? 'true' : 'false'};
+        window.isCodeWindow = ${isCodeWindow ? 'true' : 'false'};
       </script>
       <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
     </body>
@@ -97,7 +97,10 @@ export default class WebviewController implements vscode.WebviewViewProvider {
   _extensionPath: string;
   _selectedText = '';
 
-  static readonly viewType = 'mongoDBAiAssistantWebview';
+  // TODO: Don't overload this view controller lol.
+  viewType: 'mongoDBAIAssistantWebview' | 'codeAIAssistantWebview' =
+    'mongoDBAIAssistantWebview';
+  // static readonly viewType = 'mongoDBAIAssistantWebview';
 
   _view?: vscode.WebviewView;
 
@@ -105,12 +108,16 @@ export default class WebviewController implements vscode.WebviewViewProvider {
     connectionController: ConnectionController,
     storageController: StorageController,
     telemetryService: TelemetryService,
-    extensionPath: string
+    extensionPath: string,
+    viewType:
+      | 'mongoDBAIAssistantWebview'
+      | 'codeAIAssistantWebview' = 'mongoDBAIAssistantWebview'
   ) {
     this._extensionPath = extensionPath;
     this._connectionController = connectionController;
     this._storageController = storageController;
     this._telemetryService = telemetryService;
+    this.viewType = viewType;
   }
 
   handleWebviewConnectAttempt = async (
@@ -172,10 +179,6 @@ export default class WebviewController implements vscode.WebviewViewProvider {
         vscode.Uri.file(path.join(this._extensionPath, 'dist')),
         vscode.Uri.file(path.join(this._extensionPath, 'resources')),
       ],
-
-      // localResourceRoots: [
-      // 	this._extensionUri
-      // ]
     };
 
     const telemetryUserIdentity = this._storageController.getUserIdentity();
@@ -186,15 +189,22 @@ export default class WebviewController implements vscode.WebviewViewProvider {
         telemetryUserIdentity.anonymousId || telemetryUserIdentity.userId,
       webview: webviewView.webview,
       isSidepanel: true,
+      isCodeWindow: this.viewType === 'codeAIAssistantWebview',
     });
-
-    // webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
     // Handle messages from the webview.
     webviewView.webview.onDidReceiveMessage(
       (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) =>
-        this.onRecievedWebviewMessage(message, webviewView)
+        this._view === webviewView
+          ? this.onReceivedWebviewMessage(message, webviewView)
+          : () => {
+              /* noop*/
+            }
     );
+
+    if (this.viewType === 'codeAIAssistantWebview') {
+      return;
+    }
 
     vscode.window.onDidChangeTextEditorSelection(
       (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
@@ -225,16 +235,6 @@ export default class WebviewController implements vscode.WebviewViewProvider {
     );
 
     console.log('Started webview view');
-
-    // webviewView.webview.onDidReceiveMessage(data => {
-    // 	switch (data.type) {
-    // 		case 'colorSelected':
-    // 			{
-    // 				vscode.window.activeTextEditor?.insertSnippet(new vscode.SnippetString(`#${data.value}`));
-    // 				break;
-    // 			}
-    // 	}
-    // });
   }
 
   handleWebviewOpenFilePickerRequest = async (
@@ -357,31 +357,10 @@ export default class WebviewController implements vscode.WebviewViewProvider {
 
       case MESSAGE_TYPES.ASK_QUESTION:
         try {
-          // if (vscode.workspace.workspaceFolders === undefined) {
-          //   throw new Error('No workspace currently open.');
-          // }
-
-          // TODO: Code selection.
-
-          // const workingDirectory =
-          //   vscode.workspace.workspaceFolders[0].uri.path;
-          // let f = vscode.workspace.workspaceFolders[0].uri.fsPath;
-          // Analyze the directory/file structure.
-          // const { fileStructure, fileCount } = await getFileStructure({
-          //   inputFolder: workingDirectory,
-          // });
-
-          // console.log(
-          //   'successfully ran cloneAndAnalyzeCodebase',
-          //   fileCount,
-          //   fileStructure,
-          //   workingDirectory
-          // );
-          // const chatbot = new Chat
           const response = await askQuestion({
-            text: message.text,
-            includeSelectionInQuestion: message.includeSelectionInQuestion,
-            codeSelection: message.codeSelection,
+            history: message.history,
+            newMessage: message.newMessage,
+            conversationId: message.conversationId,
           });
 
           console.log('question response', response);
@@ -389,10 +368,9 @@ export default class WebviewController implements vscode.WebviewViewProvider {
           void panel.webview.postMessage({
             command: MESSAGE_TYPES.QUESTION_RESPONSE,
             id: message.id,
-            text: response,
-            // fileCount,
-            // fileStructure,
-            // workingDirectory,
+            text: response.text,
+            questionText: response.questionText,
+            conversationId: message.conversationId,
           });
         } catch (e) {
           console.log('error with askQuestion', e);
@@ -441,7 +419,7 @@ export default class WebviewController implements vscode.WebviewViewProvider {
     }
   };
 
-  onRecievedWebviewMessage = async (
+  onReceivedWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel | vscode.WebviewView
   ): Promise<void> => {
@@ -503,7 +481,7 @@ export default class WebviewController implements vscode.WebviewViewProvider {
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
       (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) =>
-        this.onRecievedWebviewMessage(message, panel),
+        this.onReceivedWebviewMessage(message, panel),
       undefined,
       context.subscriptions
     );

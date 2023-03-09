@@ -1,6 +1,9 @@
 import LegacyConnectionModel from './connection-model/legacy-connection-model';
 import { FilePickerActionTypes } from './store/actions';
-import type { FileDirectory } from '../../ai-code/constants';
+import type {
+  ConversationHistory,
+  FileDirectory,
+} from '../../ai-code/constants';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
@@ -46,10 +49,12 @@ export interface AskQuestionMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.ASK_QUESTION;
   id: string;
 
-  text: string;
-
-  includeSelectionInQuestion: boolean;
-  codeSelection?: string;
+  history: ConversationHistory;
+  newMessage?: {
+    text: string;
+    codeSelection?: string;
+  };
+  conversationId: string;
 }
 export interface QuestionResponseMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.QUESTION_RESPONSE;
@@ -57,6 +62,8 @@ export interface QuestionResponseMessage extends BasicWebviewMessage {
   error?: string;
 
   text: string;
+  questionText: string;
+  conversationId: string;
 }
 export interface LoadCodebaseMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.LOAD_CODEBASE;

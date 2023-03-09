@@ -1,8 +1,12 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from 'bson';
 
-import type { FileDirectory } from '../../../../ai-code/constants';
+import type {
+  ConversationHistory,
+  FileDirectory,
+} from '../../../../ai-code/constants';
 import { sendMessageToExtensionAndWaitForResponse } from '../extension-app-msg';
 import { MESSAGE_TYPES } from '../../extension-app-message-constants';
 import type { QuestionResponseMessage } from '../../extension-app-message-constants';
@@ -12,6 +16,14 @@ const requestCancelledErrorMessage = 'Request cancelled';
 // Currently unused
 type QuestionStatus = 'initial' | 'typing' | 'asking' | 'asked' | '????';
 
+type Answer = {
+  text: string;
+  questionText: string;
+  id: string;
+  conversationId: string;
+  history: ConversationHistory;
+};
+
 export interface QuestionState {
   includeSelectionInQuestion: boolean;
   currentOpId: string | null;
@@ -19,23 +31,29 @@ export interface QuestionState {
   fileStructure: null | FileDirectory;
   errorMessage: string | null;
   questionPrompt: string | null;
-  questionResponse: string | null;
-  isAskingQuestion: boolean;
+  isAskingQuestion: string | null;
 
   diffChanges: string | null; // TODO: not a string.
   descriptionOfChanges: string | null;
+  answers: Answer[];
 }
 
 type AskQuestionResult = {
   text: string;
+  questionText: string;
+  conversationId: string;
+  history: ConversationHistory;
   // TODO: Allow code snippets, actions, etc.
 };
 
 export const askQuestion = createAsyncThunk<
   AskQuestionResult,
   {
-    includeSelectionInQuestion: boolean;
-    codeSelection: string;
+    history: ConversationHistory;
+    newMessage?: {
+      codeSelection?: string;
+      includeSelectionInQuestion: boolean;
+    };
   },
   {
     state: {
@@ -56,15 +74,33 @@ export const askQuestion = createAsyncThunk<
     return thunkAPI.rejectWithValue('Please type a question to ask.');
   }
 
-  const { text } =
+  // conversation_id needs to be Object ID (it generates one if not passed).
+  // Useful for follow up qs.
+  const conversationId = new ObjectId().toString(); // `rhys-test-${Math.floor(Math.random() * 10000)}`, // uuidv4(),
+
+  const includeSelectionInQuestion = !!(
+    // TODO: keep all state in extension not in the redux on the webview.
+    (
+      payload.newMessage?.includeSelectionInQuestion &&
+      payload.newMessage?.codeSelection &&
+      payload.newMessage?.codeSelection.trim().length > 0
+    )
+  );
+
+  const { text, questionText } =
     await sendMessageToExtensionAndWaitForResponse<QuestionResponseMessage>({
       command: MESSAGE_TYPES.ASK_QUESTION,
       id: uuidv4(),
-      text: questionPrompt,
-      includeSelectionInQuestion:
-        payload.includeSelectionInQuestion &&
-        payload.codeSelection.trim().length > 0,
-      codeSelection: payload.codeSelection,
+      history: payload.history,
+      newMessage: payload.newMessage
+        ? {
+            text: questionPrompt,
+            codeSelection: includeSelectionInQuestion
+              ? payload.newMessage?.codeSelection
+              : undefined,
+          }
+        : undefined,
+      conversationId,
     });
 
   const {
@@ -76,8 +112,19 @@ export const askQuestion = createAsyncThunk<
     return thunkAPI.rejectWithValue(requestCancelledErrorMessage);
   }
 
+  const newHistory: ConversationHistory = [
+    ...payload.history,
+    {
+      role: 'assistant',
+      content: text,
+    },
+  ];
+
   return {
+    questionText,
     text,
+    conversationId,
+    history: newHistory,
   };
 });
 
@@ -85,12 +132,12 @@ function createInitialState(): QuestionState {
   return {
     includeSelectionInQuestion: true,
     status: 'initial',
-    isAskingQuestion: false,
+    isAskingQuestion: null,
     fileStructure: null,
     errorMessage: null,
     currentOpId: null,
     questionPrompt: null,
-    questionResponse: null,
+    answers: [],
 
     diffChanges: null,
     descriptionOfChanges: null,
@@ -111,6 +158,12 @@ export const questionSlice = createSlice({
     setCurrentOpId: (state, action: PayloadAction<string | null>) => {
       state.currentOpId = action.payload;
     },
+    clearAnswers: (state) => {
+      state.isAskingQuestion = null;
+      state.currentOpId = null;
+      state.errorMessage = null;
+      state.answers = [];
+    },
     setStatus: (state, action: PayloadAction<QuestionStatus>) => {
       state.status = action.payload;
       // (Hacky implementation) release any current op.
@@ -120,8 +173,8 @@ export const questionSlice = createSlice({
   extraReducers: {
     [askQuestion.pending.type]: (state) => {
       // state.status = 'generating-suggestions';
-      state.questionResponse = null;
-      state.isAskingQuestion = true;
+      state.isAskingQuestion = state.questionPrompt; // TODO: This doesn't work with out of date prompt
+      // is bug
       state.errorMessage = null;
     },
     [askQuestion.fulfilled.type]: (
@@ -130,8 +183,18 @@ export const questionSlice = createSlice({
     ) => {
       // state.status = 'suggested';
       state.currentOpId = null;
-      state.questionResponse = action.payload.text;
-      state.isAskingQuestion = false;
+      state.answers = [
+        ...state.answers,
+        {
+          text: action.payload.text,
+          questionText: action.payload.questionText,
+          id: uuidv4(),
+          // id: uuidv4(),
+          conversationId: action.payload.conversationId,
+          history: action.payload.history,
+        },
+      ];
+      state.isAskingQuestion = null;
       state.errorMessage = null;
     },
     [askQuestion.rejected.type]: (state, action: PayloadAction<string>) => {
@@ -141,8 +204,7 @@ export const questionSlice = createSlice({
       }
 
       // state.status = 'loaded';
-      state.questionResponse = null;
-      state.isAskingQuestion = false;
+      state.isAskingQuestion = null;
       state.errorMessage = action.payload
         ? action.payload
         : (action as any)?.error?.message;
@@ -154,6 +216,7 @@ export const questionSlice = createSlice({
 export const {
   setQuestionPrompt,
   setCurrentOpId,
+  clearAnswers,
   setIncludeSelectionInQuestion,
 } = questionSlice.actions;
 

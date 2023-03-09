@@ -7,7 +7,7 @@ import { palette } from '@leafygreen-ui/palette';
 import type { FileDirectory } from '../../../../ai-code/constants';
 
 const containerStyles = css({
-  padding: spacing[3],
+  padding: spacing[2],
 });
 
 const folderContainerStyles = css({

@@ -1,3 +1,4 @@
+
 // Playground for seeding the `mongodbVSCodePlaygroundDB.index-testing` with
 // different types of indexes.
 
@@ -43,4 +44,3 @@ db['index-testing'].createIndex({
 }, {
   name: 'wildcard index'
 });
-

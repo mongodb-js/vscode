@@ -1,9 +1,11 @@
 // import * as dotenv from 'dotenv';
 import fetch from 'node-fetch';
+import { ObjectId } from 'bson';
 
 // dotenv.config();
 
 import { ChatBot } from './chat-bot';
+import type { ConversationHistory } from './constants';
 // import { v4 as uuidv4 } from 'uuid';
 
 // Example POST method implementation:
@@ -52,67 +54,108 @@ function createPromptWithCodeSelection({
   Code snippet below:
   ${codeSelection}`;
 }
-
 const useTheOracle = false; // true;
+
+// const useTheOracle = false; // true;
 async function askTheOracle({
-  text,
-  includeSelectionInQuestion,
-  codeSelection,
+  conversationId,
+  newMessage,
 }: {
-  text: string;
-  includeSelectionInQuestion: boolean;
-  codeSelection?: string;
+  conversationId: string;
+
+  history: ConversationHistory;
+  newMessage?: {
+    text: string;
+    codeSelection?: string;
+  };
 }) {
   if (!process.env.QUESTION_ASK_URL) {
     throw new Error('No QUESTION_ASK_URL in environment.');
   }
 
-  let promptText = text;
-  if (includeSelectionInQuestion && codeSelection) {
-    promptText = createPromptWithCodeSelection({
-      text,
-      codeSelection,
-    });
+  // Ask it to rephrase. (Not regenerating based with same history).
+  let promptText = 'Can you rephrase that?';
+  if (newMessage) {
+    if (newMessage.codeSelection) {
+      promptText = createPromptWithCodeSelection({
+        text: newMessage.text,
+        codeSelection: newMessage.codeSelection,
+      });
+    } else {
+      promptText = newMessage.text;
+    }
   }
 
-  return await postData(process.env.QUESTION_ASK_URL, {
-    conversation_id: `rhys-test-${Math.floor(Math.random() * 10000)}`, // uuidv4(),
-    question: promptText,
-  });
+  return {
+    text: await postData(process.env.QUESTION_ASK_URL, {
+      question: promptText,
+      conversation_id: conversationId,
+    }),
+    questionText: promptText,
+  };
 }
 
 export async function askQuestion({
-  text,
-  includeSelectionInQuestion,
-  codeSelection,
+  history,
+  newMessage,
+  conversationId = new ObjectId().toString(),
 }: {
+  conversationId: string; // ObjectId
+  history: ConversationHistory;
+  newMessage?: {
+    text: string;
+    codeSelection?: string;
+  };
+}): Promise<{
   text: string;
-  includeSelectionInQuestion: boolean;
-  codeSelection?: string;
-}) {
-  console.log('ask question', text, 'use oracle:', useTheOracle);
-  console.log(
-    'includeSelectionInQuestion',
-    includeSelectionInQuestion,
-    'codeSelection:',
-    codeSelection
-  );
+  questionText: string;
+}> {
+  // console.log('ask question', text, 'use oracle:', useTheOracle);
   if (useTheOracle) {
     return await askTheOracle({
-      text,
-      includeSelectionInQuestion,
-      codeSelection,
+      history,
+      newMessage,
+      conversationId,
     });
   }
 
   const chatBot = new ChatBot();
 
-  const response = await chatBot.startChat(
-    createPromptWithCodeSelection({
-      text,
-      codeSelection,
-    })
-  );
+  const chatHistory: ConversationHistory = [
+    ...history,
+    ...(newMessage
+      ? [
+          {
+            role: 'user',
+            content: createPromptWithCodeSelection(newMessage),
+          },
+        ]
+      : []),
+  ] as ConversationHistory;
 
-  return response.content;
+  const response = await chatBot.completeChat(chatHistory);
+
+  // if (history.length > 0) {
+  //   await chatBot.complete(
+  //     [history, {
+  //       agent
+  //     }]
+  //   );
+  // }
+
+  // const response = await chatBot.startChat(
+  //   createPromptWithCodeSelection({
+  //     text,
+  //     codeSelection,
+  //   })
+  // );
+
+  return {
+    text: response.content,
+    questionText: (chatHistory[chatHistory.length - 1].role === 'user'
+      ? chatHistory[chatHistory.length - 1]
+      : chatHistory[chatHistory.length - 2] ||
+        chatHistory[chatHistory.length - 1]
+    ).content,
+  };
 }

@@ -13,7 +13,7 @@ function ErrorBanner({ errorMessage }: { errorMessage?: string | null }) {
   }
 
   return (
-    <Banner className={bannerStyles} variant="danger">
+    <Banner className={bannerStyles} variant="danger" dismissible>
       {errorMessage}
     </Banner>
   );

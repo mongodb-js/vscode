@@ -94,7 +94,7 @@ function ViewSuggestions() {
       )}
       {codebaseStatus === 'generating-suggestions' && (
         <CancelLoader
-          progressText="Generating suggestions"
+          progressText="Performing changes..."
           cancelText="Cancel"
           onCancel={onClickBack}
         />
@@ -103,9 +103,7 @@ function ViewSuggestions() {
         <>
           <Card className={cardStyles}>
             {/* <Body weight="medium">Summary of Changes</Body> */}
-            <Body>
-              Below is a diff of the proposed changes. {descriptionOfChanges}
-            </Body>
+            <Body>Below is a diff of the changes. {descriptionOfChanges}</Body>
             <div className={diffContainer}>
               {(diffFiles || []).map(FileDiff)}
             </div>
@@ -116,7 +114,7 @@ function ViewSuggestions() {
             </div>
           </Card>
           <InputContainer>
-            <Button onClick={() => dispatch(generateSuggestions())}>
+            <Button onClick={() => void dispatch(generateSuggestions())}>
               Regenerate
             </Button>
           </InputContainer>
@@ -125,7 +123,9 @@ function ViewSuggestions() {
       {!!errorMessage && (
         <div>
           <Body>An error occured.</Body>
-          <Button onClick={() => dispatch(generateSuggestions())}>Retry</Button>
+          <Button onClick={() => void dispatch(generateSuggestions())}>
+            Retry
+          </Button>
         </div>
       )}
     </div>

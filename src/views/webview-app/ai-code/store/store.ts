@@ -4,6 +4,7 @@ import { codebaseReducer } from './codebase';
 import { promptReducer } from './prompt';
 import { questionReducer } from './question';
 
+// TODO: Serialize and deserialize on dismount.
 export const store = configureStore({
   reducer: {
     question: questionReducer,

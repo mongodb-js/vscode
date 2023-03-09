@@ -33,16 +33,9 @@ const submitContainerStyles = css({
 });
 
 const EnterPrompt: React.FunctionComponent = () => {
-  const directory = useSelector((state: RootState) => state.codebase.directory);
-  const useGithubLink = useSelector(
-    (state: RootState) => state.codebase.useGithubLink
-  );
   const promptText = useSelector((state: RootState) => state.prompt.promptText);
   const fileStructure = useSelector(
     (state: RootState) => state.codebase.fileStructure
-  );
-  const githubLink = useSelector(
-    (state: RootState) => state.codebase.githubLink
   );
   const codebaseStatus = useSelector(
     (state: RootState) => state.codebase.status
@@ -57,18 +50,13 @@ const EnterPrompt: React.FunctionComponent = () => {
     void dispatch(generateSuggestions());
   }, []);
 
-  const codebaseIdentifier = useGithubLink ? githubLink : directory;
-
   return (
     <div className={containerStyles}>
       {codebaseStatus === 'loaded' && (
         <>
-          <div>
-            <Button onClick={onClickBack}>Back</Button>
-          </div>
+          <Button onClick={onClickBack}>Back</Button>
           <Body weight="medium" className={codeDescriptionStyles}>
-            Code {codebaseStatus === 'loaded' ? 'loaded' : 'loading'} from{' '}
-            {codebaseIdentifier}
+            Files
           </Body>
         </>
       )}

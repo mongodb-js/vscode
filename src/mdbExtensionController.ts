@@ -57,6 +57,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _telemetryService: TelemetryService;
   _languageServerController: LanguageServerController;
   _webviewController: WebviewController;
+  _webviewController22222: WebviewController;
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
@@ -127,6 +128,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._telemetryService,
       context.extensionPath
     );
+    this._webviewController22222 = new WebviewController(
+      this._connectionController,
+      this._storageController,
+      this._telemetryService,
+      context.extensionPath,
+      'codeAIAssistantWebview'
+    );
     this._editorsController.registerProviders();
   }
 
@@ -142,8 +150,15 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Register the webview view.
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
-        WebviewController.viewType,
+        'mongoDBAIAssistantWebview',
+        // WebviewController.viewType,
         this._webviewController
+      )
+    );
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(
+        'codeAIAssistantWebview',
+        this._webviewController22222
       )
     );
 

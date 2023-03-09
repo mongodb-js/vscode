@@ -90,9 +90,15 @@
           "when": "config.mdb.showMongoDBConnectionExplorer == true"
         },
         {
-          "id": "mongoDBAiAssistantWebview",
-          "name": "MongodB AI Assistant",
-          "when": "config.mdb.showAIAssistant == true",
+          "id": "mongoDBAIAssistantWebview",
+          "name": "MongoDB AI Assistant",
+          "when": "config.mdb.showMongoDBAIAssistant == true",
+          "type": "webview"
+        },
+        {
+          "id": "codeAIAssistantWebview",
+          "name": "Code AI Assistant",
+          "when": "config.mdb.showCodeAIAssistant == true",
           "type": "webview"
         },
         {
@@ -888,10 +894,15 @@
           "default": true,
           "description": "Show or hide the MongoDB playgrounds view."
         },
-        "mdb.showAIAssistant": {
+        "mdb.showMongoDBAIAssistant": {
           "type": "boolean",
           "default": true,
           "description": "Show or hide the MongoDB AI Assistant view."
+        },
+        "mdb.showCodeAIAssistant": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show or hide the Code AI Assistant view."
         },
         "mdb.showMongoDBHelpExplorer": {
           "type": "boolean",
@@ -988,6 +999,8 @@
     "@leafygreen-ui/checkbox": "^12.0.6",
     "@leafygreen-ui/code": "^14.2.0",
     "@leafygreen-ui/emotion": "^4.0.3",
+    "@leafygreen-ui/icon": "^11.12.4",
+    "@leafygreen-ui/icon-button": "^15.0.6",
     "@leafygreen-ui/leafygreen-provider": "^3.1.1",
     "@leafygreen-ui/lib": "^10.2.1",
     "@leafygreen-ui/logo": "^8.0.0",
@@ -1027,6 +1040,7 @@
     "react-dom": "^17.0.2",
     "react-redux": "^8.0.5",
     "react-router-dom": "^6.8.2",
+    "react-use-dimensions": "^1.2.1",
     "redux": "^4.2.0",
     "temp": "^0.9.4",
     "ts-log": "^2.2.5",

@@ -9,9 +9,20 @@ import { ViewSuggestions } from './view-suggestions';
 import { AppDispatch, RootState } from '../store/store';
 import { ErrorBanner } from '../components/error-banner';
 import { setStatus } from '../store/codebase';
+import { AIAssistant } from './ai-assistant';
 
 const containerStyles = css({
-  padding: spacing[2],
+  // padding: spacing[3],
+  // paddingTop: 0,
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  bottom: 0,
+  top: 0,
+});
+const errorContainerStyles = css({
+  padding: spacing[3],
+  // paddingTop: 0,
 });
 
 const historyStyles = css({
@@ -117,34 +128,53 @@ const Home: React.FunctionComponent = () => {
   }, [codebaseStatus]);
 
   const hasHistory = history.length > 0;
+  const renderCodeAssistant = (window as any)?.isCodeWindow;
 
   return (
     <div className={containerStyles}>
-      {hasHistory && (
-        <div
-          className={historyStyles}
-          // TODO: Make this click registered for each history
-          // element and navigate accordingly.
-        >
-          {history}
-          <div
-            // TODO: not a clickable div for accessibility.
-            className={historyOverlayStyles}
-            onClick={() => goBackInHistory()}
-          />
-        </div>
+      {!renderCodeAssistant && (
+        <>
+          {(errorMessage || questionErrorMessage) && (
+            <div className={errorContainerStyles}>
+              <ErrorBanner
+                errorMessage={errorMessage || questionErrorMessage}
+              />
+            </div>
+          )}
+          <AIAssistant />
+        </>
       )}
-      <div
-        className={cx(
-          presentContainerStyles,
-          hasHistory && presentWithHistoryStyles
-        )}
-      >
-        {present}
-        <div className={containerStyles}>
-          <ErrorBanner errorMessage={errorMessage || questionErrorMessage} />
-        </div>
-      </div>
+      {renderCodeAssistant && (
+        <>
+          {hasHistory && (
+            <div
+              className={historyStyles}
+              // TODO: Make this click registered for each history
+              // element and navigate accordingly.
+            >
+              {history}
+              <div
+                // TODO: not a clickable div for accessibility.
+                className={historyOverlayStyles}
+                onClick={() => goBackInHistory()}
+              />
+            </div>
+          )}
+          <div
+            className={cx(
+              presentContainerStyles,
+              hasHistory && presentWithHistoryStyles
+            )}
+          >
+            {present}
+            <div className={errorContainerStyles}>
+              <ErrorBanner
+                errorMessage={errorMessage || questionErrorMessage}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

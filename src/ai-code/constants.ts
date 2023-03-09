@@ -6,3 +6,8 @@ type FileName = string;
 export type FileDirectory = {
   [name: string]: FileDirectory | FileName;
 };
+
+export type ConversationHistory = {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}[];

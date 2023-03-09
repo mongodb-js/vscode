@@ -1,3 +1,4 @@
+
 /**
  * This playground is used to test how the language server worker
  * handles an out of memory error in mongosh's running of a playground. VSCODE-269

@@ -9,13 +9,26 @@ import {
   parseMapping,
 } from './file-mapper';
 import type { FileMapPlan, RenameOperation } from './file-mapper';
-import { defaultGitFolderName, getGitDiff, updateFiles } from './local-files';
+import { getGitDiff, updateFiles } from './local-files';
 import type { OutputFile } from './local-files';
 import { MAX_FILE_LENGTH_CHARACTERS } from './constants';
 import type { FileDirectory } from './constants';
 import { ChatBot } from './chat-bot';
 
-function createEditPrompt(promptText: string) {
+function createEditPrompt({
+  promptText,
+  fileName,
+  operation,
+}: {
+  promptText: string;
+  fileName: string;
+  operation: 'delete' | 'rename' | 'none' | 'expand' | 'add';
+}) {
+  if (operation === 'add') {
+    return `You are doing a coding task, however, you are only performing one part of these instructions.
+    You will be given one file's contents as input and then requested to give output.
+    For this part, you are adding a file named ${fileName}. What is the contents?`;
+  }
   return `You are doing a coding task, however, you are only performing one part of these instructions.
   You will be given one file's contents as input and then requested to give output.
   The entire task is: "${promptText}"`;
@@ -98,6 +111,7 @@ function createChatDescriptionPrompt() {
 }
 
 // Using a mapping and the instructions, create the output files.
+// eslint-disable-next-line complexity
 async function createEditedFiles({
   fileStructure,
   mapping,
@@ -118,19 +132,15 @@ async function createEditedFiles({
   const inputFileNames = getFileNamesFromFileStructure(fileStructure, '');
 
   for (const fileName of inputFileNames) {
-    console.log(
-      'Operate on file',
-      fileName,
-      'operation:',
-      mapping[fileName]?.operation
-    );
+    const operation = mapping[fileName]?.operation;
+    console.log('Operate on file', fileName, 'operation:', operation);
 
-    const isRenamed = mapping[fileName]?.operation === 'rename';
+    const isRenamed = operation === 'rename';
     const outputFileName = isRenamed
       ? (mapping[fileName] as RenameOperation)?.name || fileName // TODO: Ensure valid name.
       : fileName;
 
-    if (mapping[fileName]?.operation === 'delete') {
+    if (operation === 'delete') {
       outputFiles.push({
         fileName: outputFileName,
         isDeleted: true,
@@ -146,11 +156,28 @@ async function createEditedFiles({
       'utf8'
     );
 
+    if (operation === 'none') {
+      // TODO: Do we want a diff or total out. Currently total out.
+      outputFiles.push({
+        fileName: outputFileName,
+        text: inputFileContents,
+      });
+      continue;
+    }
+
+    // TODO: Expand
+
     if (inputFileContents.length > MAX_FILE_LENGTH_CHARACTERS) {
       throw new Error(
         `Too large of an input file passed, current max is ${MAX_FILE_LENGTH_CHARACTERS} characters. "${fileName}" was "${inputFileContents.length}".`
       );
     }
+
+    const instruction = createEditPrompt({
+      promptText,
+      fileName: outputFileName,
+      operation,
+    });
 
     try {
       // https://beta.openai.com/docs/api-reference/edits/create
@@ -159,7 +186,7 @@ async function createEditedFiles({
         input: inputFileContents,
         // TODO: Fine tune these instructions and somehow weave it together with the whole input.
         // Prompt input/output? QA style
-        instruction: createEditPrompt(promptText),
+        instruction,
 
         ...(typeof options.temperature === 'number'
           ? {
@@ -353,13 +380,13 @@ export async function runAICode({
   fileStructure: FileDirectory;
 }) {
   // TODO: Clean this up to one for local also.
-  const gitFolder = path.join(workingDirectory, defaultGitFolderName);
+  // const gitFolder = path.join(workingDirectory, defaultGitFolderName);
 
   let descriptionOfChanges = 'TODO';
   if (useChatbot) {
     // 1. Clone, analyze, and get suggested edits.
     const { outputFiles, description } = await editCodeWithChatGPT({
-      workingDirectory: gitFolder,
+      workingDirectory,
       fileStructure,
       promptText,
     });
@@ -370,13 +397,13 @@ export async function runAICode({
 
     // 2. Perform the changes; output to the output.
     await updateFiles({
-      workingDirectory: gitFolder,
+      workingDirectory,
       outputFiles,
     });
   } else {
     // 1. Clone, analyze, and get suggested edits.
     const outputFiles = await editCodeWithIndividualGptRequests({
-      workingDirectory: gitFolder,
+      workingDirectory,
       fileStructure,
       promptText,
     });
@@ -385,7 +412,7 @@ export async function runAICode({
 
     // 2. Perform the changes; output to the output.
     await updateFiles({
-      workingDirectory: gitFolder,
+      workingDirectory,
       outputFiles,
     });
   }
@@ -395,7 +422,7 @@ export async function runAICode({
   // TODO: Signal abort check.
 
   // 3. Get the diff.
-  const diffResult = await getGitDiff(gitFolder);
+  const diffResult = await getGitDiff(workingDirectory);
   console.log('git diff result', diffResult);
 
   return {

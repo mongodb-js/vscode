@@ -1,0 +1,16 @@
+
+Move chat to bottom so it's always there.
+
+History
+
+Actions above chatbox?
+Live stream responses
+
+Leaf next to chat
+
+Inline actions after message
+
+display: flex;
+    align-items: center;
+
+

@@ -21,7 +21,6 @@ export type ExpandedOperation = {
 
 export type CreateOperation = {
   operation: 'add';
-  names: string[];
 };
 
 export type FileMappingOperation =
@@ -84,7 +83,7 @@ Response with the mapping in a json format.
 If nothing should happen to the file structure, which often happens when the instructions are intended for the code inside of files, use the "operation" "none".
 If a file is to be deleted, use the "operation" "delete".
 If a file is to be renamed, use the "operation" "rename".
-If a file is to be added, use the "operation" "add".
+If a new file is to be added, use the "operation" "add".
 If a file is to be expanded into multiple files, use the "operation" "expand".
 Example 1:
 Input:
@@ -103,6 +102,19 @@ Output:
 }
 Example 2:
 Input:
+Instructions: "create a basic node js project"
+["src/test.js", "src/testTwo.js"]
+Output:
+{
+  "package.json": {
+    "operation": "add"
+  },
+  "index.js": {
+    "operation": "add"
+  }
+}
+Example 3:
+Input:
 Instructions: "convert usage of the "async" package to use "async/await""
 ["pineapples/index.js", "pineapples/main.js"]
 Output:
@@ -114,7 +126,7 @@ Output:
     "operation": "none"
   }
 }
-Example 3:
+Example 4:
 Input:
 Instructions: "create a basic node js package and repo with eslint"
 []
