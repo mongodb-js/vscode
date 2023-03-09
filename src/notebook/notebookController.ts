@@ -212,17 +212,18 @@ export default class NotebookController {
       evaluateResponse?.outputLines?.map(
         (line) =>
           new vscode.NotebookCellOutput([
-            vscode.NotebookCellOutputItem.json(line.content),
-          ])
+            vscode.NotebookCellOutputItem.json(line.content, evaluateResponse?.result?.mime),
+          ], { options: evaluateResponse?.result?.options })
       ) || [];
     const contentOutput: vscode.NotebookCellOutput[] = evaluateResponse?.result
       ?.content
       ? [
           new vscode.NotebookCellOutput([
             vscode.NotebookCellOutputItem.json(
-              evaluateResponse?.result?.content
+              evaluateResponse?.result?.content,
+              evaluateResponse?.result?.mime
             ),
-          ]),
+          ], { options: evaluateResponse?.result?.options }),
         ]
       : [];
 

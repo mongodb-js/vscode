@@ -183,7 +183,17 @@
           "application/octet-stream",
           "application/vnd.code.notebook.stdout",
           "text/plain",
-          "text/x-json"
+          "text/x-json",
+          "application/json+chart"
+        ],
+        "requiresMessaging": "optional"
+      },
+      {
+        "id": "mongodb-chart",
+        "displayName": "MongoDB Chart",
+        "entrypoint": "./dist/notebookChartRenderer.js",
+        "mimeTypes": [
+          "application/json+chart"
         ],
         "requiresMessaging": "optional"
       }
@@ -1188,9 +1198,12 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-redux": "^8.0.5",
+    "react-vega": "^7.6.0",
     "redux": "^4.2.0",
     "ts-log": "^2.2.5",
     "uuid": "^8.3.2",
+    "vega": "^5.24.0",
+    "vega-lite": "^5.6.1",
     "vscode-languageclient": "^8.0.2",
     "vscode-languageserver": "^8.0.2",
     "vscode-languageserver-textdocument": "^1.0.7",

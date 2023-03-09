@@ -336,6 +336,8 @@ const notebookRendererConfig = {
     notebookErrorRenderer: './src/notebook/renderer/error.ts',
     notebookLeafyGreenTableRenderer:
       './src/notebook/renderer/leafyGreenTable.ts',
+    notebookChartRenderer:
+      './src/notebook/renderer/chart.ts',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.less'],

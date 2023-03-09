@@ -17,7 +17,17 @@ type MongoClientOptions = NonNullable<
 type WorkerResult = ShellExecuteAllResult;
 type WorkerError = any | null;
 
+type NotebookResult = PlaygroundResult & { mime?: string, options?: string };
+
 let runtime: ElectronRuntime;
+
+function injectContext(codeToEvaluate) {
+  const ctx = [
+    'const chart = (data, options) => ({data, mime: \'application/json+chart\', options});'
+  ];
+  const injectableContex = ctx.map(expr => expr.toString()).join('\n');
+  return `${injectableContex}\n${codeToEvaluate}`;
+}
 
 const executeAll = async (
   codeToEvaluate: string,
@@ -50,16 +60,29 @@ const executeAll = async (
         }
       },
     });
-    const { source, type, printable } = await runtime.evaluate(codeToEvaluate);
+    const evalResult = await runtime.evaluate(injectContext(codeToEvaluate));
+    const { source, type } = evalResult;
+    let { printable } = evalResult;
+    let mime;
+    let options;
+
+    if (printable?.mime) {
+      mime = printable.mime;
+      options = printable.options;
+      printable = printable.data;
+    }
+
     const namespace =
       source && source.namespace
         ? `${source.namespace.db}.${source.namespace.collection}`
         : null;
-    const result: PlaygroundResult = {
+    const result: NotebookResult = {
       namespace,
       type: type ? type : typeof printable,
       content: getContent({ type, printable }),
       language: getLanguage({ type, printable }),
+      mime,
+      options
     };
 
     return [null, { outputLines, result }];

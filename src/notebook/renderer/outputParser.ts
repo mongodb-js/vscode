@@ -3,6 +3,10 @@ import type { OutputItem } from 'vscode-notebook-renderer';
 export class OutputParser {
   constructor(private outputData: OutputItem, private mimeType: string) {}
 
+  getMetadata(): any {
+    return this.outputData.metadata;
+  }
+
   /**
    * Gets data output.
    */
