@@ -43,7 +43,7 @@ const tableRowStyles = css({
 });
 
 const LeafyGreenTable = ({ context, data, darkMode }: ILeafyGreenTable) => {
-  const shortList = data.slice(0, 100);
+  const shortList = data.slice(0, 10);
   const sortColumns = Object.keys(shortList[0]);
   const columns = useMemo(() => {
     const _columns = sortColumns.map((name: string) => {
@@ -73,7 +73,7 @@ const LeafyGreenTable = ({ context, data, darkMode }: ILeafyGreenTable) => {
       <div className={moreResultsStyles}>
         <div className={moreResultsContentStyles}>
           <Description>
-            This table view shows up to 100 documents. Switch to JSON view or
+            This table view shows up to 10 documents. Switch to JSON view or
             <Link
               as="button"
               className={moreResultsLinkStyles}

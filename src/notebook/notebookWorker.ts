@@ -14,16 +14,13 @@ type MongoClientOptions = NonNullable<
   Parameters<typeof CliServiceProvider['connect']>[1]
 >;
 
-type WorkerResult = ShellExecuteAllResult;
-type WorkerError = any | null;
-
 type NotebookResult = PlaygroundResult & { mime?: string; options?: string };
 
 let runtime: ElectronRuntime;
 
 function injectContext(codeToEvaluate) {
   const ctx = [
-    "const chart = (data, options) => ({data, mime: 'application/json+chart', options});",
+    "const chart = (options) => ({ data: result.toArray(), mime: 'application/json+chart', options });",
   ];
   const injectableContex = ctx.map((expr) => expr.toString()).join('\n');
   return `${injectableContex}\n${codeToEvaluate}`;
@@ -33,7 +30,11 @@ const executeAll = async (
   codeToEvaluate: string,
   connectionString: string,
   connectionOptions: MongoClientOptions
-): Promise<[WorkerError, WorkerResult?]> => {
+): Promise<{
+  data?: ShellExecuteAllResult;
+  error?: any;
+  moduleName?: string;
+}> => {
   try {
     // Instantiate a data service provider.
     //
@@ -60,6 +61,7 @@ const executeAll = async (
         }
       },
     });
+
     const evalResult = await runtime.evaluate(injectContext(codeToEvaluate));
     const { source, type } = evalResult;
     let { printable } = evalResult;
@@ -85,9 +87,19 @@ const executeAll = async (
       options,
     };
 
-    return [null, { outputLines, result }];
+    return { data: { outputLines, result } };
   } catch (error) {
-    return [error];
+    let moduleName;
+
+    if ((<any>error).code === 'MODULE_NOT_FOUND') {
+      const str = (<any>error).message;
+      const arr = str.split("'");
+
+      if (arr.length > 2 && arr[0].includes('Cannot find module')) {
+        moduleName = arr[1];
+      }
+    }
+    return { error, moduleName };
   }
 };
 

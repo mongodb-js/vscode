@@ -19,6 +19,7 @@ export class NotebookSerializer implements vscode.NotebookSerializer {
       raw = [];
     }
 
+    const notebookType = raw[0]?.metadata?.notebookType;
     const cells = raw.map((item) => {
       const currentCell = new vscode.NotebookCellData(
         item.kind,
@@ -27,12 +28,17 @@ export class NotebookSerializer implements vscode.NotebookSerializer {
       );
       return currentCell;
     });
+    const data = new vscode.NotebookData(cells);
+    data.metadata = {
+      type: notebookType,
+    };
 
-    return new vscode.NotebookData(cells);
+    return data;
   }
 
   serializeNotebook(data: vscode.NotebookData): any {
     const contents: RawNotebookCell[] = [];
+    const notebookType = data?.metadata?.type;
 
     for (const cell of data.cells) {
       contents.push({
@@ -41,6 +47,7 @@ export class NotebookSerializer implements vscode.NotebookSerializer {
         value: cell.value,
         metadata: {
           editable: false,
+          notebookType,
         },
       });
     }

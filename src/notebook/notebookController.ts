@@ -10,6 +10,7 @@ import notebookAggregationTemplate from '../templates/notebookAggregationTemplat
 import { ShellExecuteAllResult } from '../types/playgroundType';
 import ConnectionController from '../connectionController';
 import { PlaygroundController } from '../editors';
+import { installModuleWithProgress } from '../language/installModuleWithProgress';
 
 import { createLogger } from '../logging';
 const log = createLogger('notebook controller');
@@ -95,6 +96,13 @@ export default class NotebookController {
         delete this._notebooks[uri];
       });
     });
+
+    vscode.workspace.onDidOpenNotebookDocument((document) => {
+      const uri = document.uri.toString();
+      this._notebooks[uri] = {
+        worker: this._createNotebookWorker(),
+      };
+    });
   }
 
   _createNotebookWorker() {
@@ -117,7 +125,7 @@ export default class NotebookController {
     return worker ? worker : this._createNotebookWorker();
   }
 
-  resetNotebookRuntime() {
+  resetNotebookRuntime(silent?: boolean) {
     if (!vscode.window.activeNotebookEditor) {
       throw new Error('The Active Notebook is not found');
     }
@@ -127,9 +135,11 @@ export default class NotebookController {
       worker: this._createNotebookWorker(),
     };
 
-    void vscode.window.showInformationMessage(
-      'The Notebook Runtime was reset.'
-    );
+    if (!silent) {
+      void vscode.window.showInformationMessage(
+        'The Notebook Runtime was reset.'
+      );
+    }
 
     return Promise.resolve(true);
   }
@@ -337,18 +347,58 @@ export default class NotebookController {
       // Listen for results from the worker thread.
       worker.on(
         'message',
-        (response: [Error, ShellExecuteAllResult | undefined]) => {
-          const [error, result] = response;
+        (result: {
+          data?: ShellExecuteAllResult;
+          error: any;
+          moduleName?: string;
+        }) => {
+          if (!result.error) {
+            return resolve(this._prepareNotebookOutput(result.data));
+          }
 
-          if (error) {
+          const printableError = formatError(result.error);
+          const moduleName = result.moduleName;
+          if (printableError.code !== 'MODULE_NOT_FOUND' && !moduleName) {
             return resolve([
               new vscode.NotebookCellOutput([
-                vscode.NotebookCellOutputItem.error(error),
+                vscode.NotebookCellOutputItem.error(result.error),
               ]),
             ]);
           }
 
-          return resolve(this._prepareNotebookOutput(result));
+          void this.resetNotebookRuntime(true);
+          const message = `Cannot find module '${moduleName}'. Do you want to install it?`;
+          void vscode.window
+            .showErrorMessage(message, { modal: false }, 'Yes', 'No')
+            .then(async (response) => {
+              if (response === 'Yes' && moduleName) {
+                try {
+                  const npmResult = await installModuleWithProgress(moduleName);
+
+                  if (npmResult.ok) {
+                    void vscode.window.showInformationMessage(
+                      `The '${moduleName}' module was installed.`
+                    );
+                  }
+
+                  if (npmResult.canceled) {
+                    void vscode.window.showInformationMessage(
+                      `The installation of the '${moduleName}' module was canceled.`
+                    );
+                  }
+                } catch (npmError) {
+                  void vscode.window.showErrorMessage(
+                    `Unable to open a notebook: ${
+                      formatError(npmError).message
+                    }`
+                  );
+                }
+              }
+
+              return resolve([]);
+            });
+
+          return resolve([]);
         }
       );
 

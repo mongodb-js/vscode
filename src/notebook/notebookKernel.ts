@@ -71,6 +71,7 @@ export default class NotebookKernel {
       if (cellText.includes('useNamespace')) {
         const runBefore = `var mdbnbDBName;
         var mdbnbCollName;
+        var result;
         var useNamespace = (nmspc) => {
           var prsdnmsp = nmspc.split('.');
           mdbnbDBName = prsdnmsp[0];
@@ -87,11 +88,16 @@ export default class NotebookKernel {
         const cellResult = await this._executeCell({
           cell,
           runBefore: `var mdbnbStages = []; ${stagesToEvaluate.join(' ')}`,
-          runAfter: 'db.getCollection(mdbnbCollName).aggregate(mdbnbStages);',
+          runAfter:
+            'result = db.getCollection(mdbnbCollName).aggregate(mdbnbStages);',
         });
         if (cellResult.length) {
           stagesToEvaluate.push(cellText);
         }
+      }
+
+      if (cellText.includes('chart')) {
+        await this._executeCell({ cell });
       }
     }
   }
