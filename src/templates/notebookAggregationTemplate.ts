@@ -34,4 +34,10 @@ export default [
       "runStage({ $group: { _id: '$item', totalSaleAmount: { $sum: { $multiply: [ '$price', '$quantity' ] } } } });",
     metadata: { editable: false },
   },
+  {
+    kind: 2,
+    languageId: 'javascript',
+    value: "runStage({ $count: 'count' });",
+    metadata: { editable: false },
+  },
 ];

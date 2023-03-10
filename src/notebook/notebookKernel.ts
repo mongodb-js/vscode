@@ -57,14 +57,13 @@ export default class NotebookKernel {
   ): Promise<void> {
     const stagesToEvaluate: string[] = [];
 
-    const cells =
+    let cells =
       vscode.window.activeNotebookEditor?.notebook
         .getCells()
-        .filter(
-          (cell) =>
-            cell.kind === vscode.NotebookCellKind.Code &&
-            cell.index <= cellsToRun[0].index
-        ) || [];
+        .filter((cell) => cell.kind === vscode.NotebookCellKind.Code) || [];
+    if (cellsToRun.length !== cells.length) {
+      cells = cells.filter((cell) => cell.index <= cellsToRun[0].index);
+    }
 
     for (const cell of cells) {
       const cellText = cell.document.getText();
@@ -84,13 +83,15 @@ export default class NotebookKernel {
         await this._executeCell({ cell, runBefore });
       }
 
-      if (cellText.includes('runStage') && !cellText.includes('useNamespace')) {
-        await this._executeCell({
+      if (cellText.includes('runStage')) {
+        const cellResult = await this._executeCell({
           cell,
           runBefore: `var mdbnbStages = []; ${stagesToEvaluate.join(' ')}`,
           runAfter: 'db.getCollection(mdbnbCollName).aggregate(mdbnbStages);',
         });
-        stagesToEvaluate.push(cellText);
+        if (cellResult.length) {
+          stagesToEvaluate.push(cellText);
+        }
       }
     }
   }
@@ -103,7 +104,7 @@ export default class NotebookKernel {
     cell: vscode.NotebookCell;
     runBefore?: string;
     runAfter?: string;
-  }): Promise<void> {
+  }): Promise<any> {
     let codeToEvaluate = cell.document.getText();
 
     if (!codeToEvaluate) {
@@ -126,6 +127,7 @@ export default class NotebookKernel {
       );
       await execution.replaceOutput(result);
       execution.end(true, Date.now());
+      return result;
     } catch (err) {
       const errString = err instanceof Error ? err.message : String(err);
       await execution.appendOutput(
