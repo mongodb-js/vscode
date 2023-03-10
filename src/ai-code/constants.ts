@@ -11,3 +11,5 @@ export type ConversationHistory = {
   role: 'user' | 'assistant' | 'system';
   content: string;
 }[];
+
+export const codeWrapSymbol = '```';

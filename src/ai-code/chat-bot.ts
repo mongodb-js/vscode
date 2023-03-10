@@ -4,10 +4,17 @@ import type {
 } from 'openai';
 
 import { getOpenAi } from './ai';
+import { codeWrapSymbol } from './constants';
 
 type ChatMessage = {
   content: string;
   role: ChatCompletionRequestMessageRoleEnum;
+};
+
+export const initialSystemMessage: ChatMessage = {
+  role: 'system',
+  // content: 'You'
+  content: `Please answer the following MongoDB related question with the context that you are a MongoDB technical information chatbot. Wrap any code snippets with the symbol ${codeWrapSymbol}`,
 };
 
 export class ChatBot {
@@ -21,7 +28,10 @@ export class ChatBot {
       content: message,
     };
 
-    const response = await this.completeChat([messageToSend]);
+    const response = await this.completeChat([
+      initialSystemMessage,
+      messageToSend,
+    ]);
 
     this.chatHistory.push(messageToSend);
     this.chatHistory.push(response);

@@ -4,7 +4,7 @@ import { ObjectId } from 'bson';
 
 // dotenv.config();
 
-import { ChatBot } from './chat-bot';
+import { ChatBot, initialSystemMessage } from './chat-bot';
 import type { ConversationHistory } from './constants';
 // import { v4 as uuidv4 } from 'uuid';
 
@@ -51,8 +51,9 @@ function createPromptWithCodeSelection({
 
   return `${prefix}${text}
 
-  Code snippet below:
-  ${codeSelection}`;
+  Code:
+  \`\`\`${codeSelection}\`\`\``;
+  // Code snippet below:
 }
 const useTheOracle = false; // true;
 
@@ -122,7 +123,8 @@ export async function askQuestion({
   const chatBot = new ChatBot();
 
   const chatHistory: ConversationHistory = [
-    ...history,
+    ...(history.length === 0 ? [initialSystemMessage] : history),
+    // ...history,
     ...(newMessage
       ? [
           {

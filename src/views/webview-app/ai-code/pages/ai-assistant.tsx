@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import TextArea from '@leafygreen-ui/text-area';
 import Checkbox from '@leafygreen-ui/checkbox';
 import Code from '@leafygreen-ui/code';
-import IconButton from '@leafygreen-ui/icon-button';
+// import IconButton from '@leafygreen-ui/icon-button';
 import Icon from '@leafygreen-ui/icon';
 import useDimensions from 'react-use-dimensions';
 import { MongoDBLogoMark } from '@leafygreen-ui/logo';
@@ -25,6 +25,7 @@ import { InputContainer } from '../components/input-container';
 import CancelLoader from '../components/cancel-loader';
 import { MESSAGE_TYPES } from '../../extension-app-message-constants';
 import type { MESSAGE_FROM_EXTENSION_TO_WEBVIEW } from '../../extension-app-message-constants';
+import { codeWrapSymbol } from '../../../../ai-code/constants';
 
 const containerStyles = css({
   height: '100%',
@@ -36,8 +37,9 @@ const containerStyles = css({
 const responseAreaStyles = css({
   // flexGrow: 1,
   padding: spacing[3],
-  paddingTop: spacing[6],
-  marginBottom: spacing[2],
+  paddingTop: spacing[5],
+  paddingBottom: spacing[1],
+  // marginBottom: spacing[2],
   // height: '100%',
   // overflow: 'scroll',
   // display: 'flex',
@@ -55,10 +57,10 @@ const questionAreaStyles = css({
   // height: '100px', // TODO: height.
 });
 
-const topConversationStyles = css({
-  display: 'flex',
-  justifyContent: 'flex-end',
-});
+// const topConversationStyles = css({
+//   display: 'flex',
+//   justifyContent: 'flex-end',
+// });
 
 const disclaimerStyles = css({
   // marginTop: spacing[1],
@@ -86,6 +88,10 @@ const autofillContainerStyles = css({
   bottom: spacing[1],
 });
 
+const logoStyles = css({
+  flexShrink: 0,
+});
+
 const loadingContainer = css({
   marginTop: spacing[5],
 });
@@ -105,6 +111,8 @@ const answerTextContainer = css({
 
 const questionTextStyles = css({
   flexGrow: 1,
+
+  whiteSpace: 'pre-wrap',
 });
 
 const aboveInputContainerStyles = css({
@@ -143,7 +151,18 @@ const codeSelectionContainerStyles = css({
 
 const codeStyles = css({
   marginTop: spacing[2],
-  maxHeight: '200px',
+  // maxHeight: '200px',
+  maxHeight: spacing[6],
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+const inlineCodeStyles = css({
+  maxHeight: spacing[6],
+  // marginTop: spacing[1],
+  margin: 0,
+
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -159,6 +178,7 @@ const answerResponseTextContainer = css({
 });
 
 const answerTextStyles = css({
+  whiteSpace: 'pre-wrap',
   paddingLeft: spacing[2],
   flexGrow: 1,
 });
@@ -322,10 +342,34 @@ const AIAssistant: React.FunctionComponent = () => {
             {answers.map((answer) => (
               <InputContainer key={answer.id}>
                 <div className={answerTextContainer}>
-                  <Icon glyph="ChevronRight" size="large" />
-                  <Body weight="medium" className={questionTextStyles}>
+                  <Icon
+                    glyph="ChevronRight"
+                    size="large"
+                    className={logoStyles}
+                  />
+                  {/* <Body weight="medium" className={questionTextStyles}>
                     {answer.questionText}
-                  </Body>
+                  </Body> */}
+                  <div className={questionTextStyles}>
+                    {answer.questionText
+                      .trim()
+                      .split(codeWrapSymbol)
+                      .map((questionText, index) =>
+                        index > 0 && index % 2 === 1 ? (
+                          <Code
+                            // TODO: Languages
+                            className={inlineCodeStyles}
+                            language="javascript"
+                            // copyable={false}
+                            copyable
+                          >
+                            {questionText}
+                          </Code>
+                        ) : (
+                          <Body weight="medium">{questionText}</Body>
+                        )
+                      )}
+                  </div>
                   {/* <IconButton
                     aria-label="Clear"
                     title="Clear"
@@ -335,8 +379,33 @@ const AIAssistant: React.FunctionComponent = () => {
                   </IconButton> */}
                 </div>
                 <div className={answerResponseTextContainer}>
-                  <MongoDBLogoMark height={spacing[5]} color="green-base" />
-                  <Body className={answerTextStyles}>{answer.text}</Body>
+                  <MongoDBLogoMark
+                    height={spacing[5]}
+                    color="green-base"
+                    className={logoStyles}
+                  />
+                  <div className={answerTextStyles}>
+                    {answer.text
+                      .split(codeWrapSymbol)
+                      .map((answerText, index) =>
+                        index > 0 && index % 2 === 1 ? (
+                          <Code
+                            // TODO: Languages
+                            className={inlineCodeStyles}
+                            language="javascript"
+                            // copyable={false}
+                            copyable
+                          >
+                            {answerText}
+                          </Code>
+                        ) : (
+                          <Body>{answerText}</Body>
+                        )
+                      )}
+                  </div>
+                  {/* codeWrapSymbol or '```' */}
+                  {/* inlineCodeStyles */}
+                  {/* <Body className={answerTextStyles}>{answer.text}</Body> */}
                 </div>
               </InputContainer>
             ))}
@@ -429,17 +498,18 @@ const AIAssistant: React.FunctionComponent = () => {
               Select code in the editor to reference it with your question.
             </Disclaimer>
           </div>
-          {!isAskingQuestion && !!questionPrompt && (
-            <div className={sectionContainerStyles}>
-              <Button
-                className={askButtonStyles}
-                variant="primary"
-                type="submit"
-              >
-                Ask
-              </Button>
-            </div>
-          )}
+          {/* {!isAskingQuestion && !!questionPrompt && ( */}
+          <div className={sectionContainerStyles}>
+            <Button
+              className={askButtonStyles}
+              disabled={!!(isAskingQuestion || !questionPrompt)}
+              variant="primary"
+              type="submit"
+            >
+              Ask
+            </Button>
+          </div>
+          {/* )} */}
         </div>
         <div className={inputContainerStyles}>
           <TextArea
@@ -487,6 +557,7 @@ const AIAssistant: React.FunctionComponent = () => {
           >
             autofill 2
           </Button>
+          {/* What would that look like if we also add a bookNumber field thats a random integer between 1 and 10? */}
         </div>
       )}
     </div>
