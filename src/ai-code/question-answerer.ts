@@ -49,9 +49,13 @@ function createPromptWithCodeSelection({
     return text;
   }
 
-  return `${prefix}${text}
+  // return `${prefix}${text}
 
-  Code:
+  // Code:
+  // \`\`\`${codeSelection}\`\`\``;
+  // // Code snippet below:
+
+  return `${prefix}${text}
   \`\`\`${codeSelection}\`\`\``;
   // Code snippet below:
 }

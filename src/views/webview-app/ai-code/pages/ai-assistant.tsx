@@ -118,7 +118,7 @@ const questionTextStyles = css({
 const aboveInputContainerStyles = css({
   display: 'flex',
   alignItems: 'end',
-  paddingBottom: spacing[1],
+  // paddingBottom: spacing[1],
 });
 
 const inputContainerStyles = css({
@@ -141,16 +141,17 @@ const questionLabelContainerStyles = css({
 });
 
 const codeSelectionContainerStyles = css({
-  marginTop: spacing[2],
+  // marginTop: spacing[2],
   // marginBottom: spacing[3],
-  marginBottom: spacing[2],
+  // marginBottom: spacing[2],
+  marginBottom: spacing[1],
   display: 'flex',
   flexDirection: 'column',
   gap: spacing[2],
 });
 
 const codeStyles = css({
-  marginTop: spacing[2],
+  // marginTop: spacing[2],
   // maxHeight: '200px',
   maxHeight: spacing[6],
   overflow: 'hidden',
@@ -182,6 +183,8 @@ const answerTextStyles = css({
   paddingLeft: spacing[2],
   flexGrow: 1,
 });
+
+const enableAutofill = false;
 
 // eslint-disable-next-line complexity
 const AIAssistant: React.FunctionComponent = () => {
@@ -473,6 +476,7 @@ const AIAssistant: React.FunctionComponent = () => {
               label="Include active selection with question"
               checked={includeSelectionInQuestion}
               bold={false}
+              // size="small"
             />
             {/* TODO: More languages than javascript */}
             {includeSelectionInQuestion && (
@@ -535,7 +539,7 @@ const AIAssistant: React.FunctionComponent = () => {
           </Button> */}
         </div>
       </form>
-      {!questionPrompt && (
+      {!questionPrompt && enableAutofill && (
         <div className={autofillContainerStyles}>
           <Button
             className={autofillStyles}
