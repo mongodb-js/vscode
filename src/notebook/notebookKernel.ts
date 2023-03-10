@@ -53,9 +53,18 @@ export default class NotebookKernel {
   }
 
   private async _executeAggregation(
-    cells: vscode.NotebookCell[]
+    cellsToRun: vscode.NotebookCell[]
   ): Promise<void> {
     const stagesToEvaluate: string[] = [];
+
+    const cells =
+      vscode.window.activeNotebookEditor?.notebook
+        .getCells()
+        .filter(
+          (cell) =>
+            cell.kind === vscode.NotebookCellKind.Code &&
+            cell.index <= cellsToRun[0].index
+        ) || [];
 
     for (const cell of cells) {
       const cellText = cell.document.getText();
@@ -75,7 +84,7 @@ export default class NotebookKernel {
         await this._executeCell({ cell, runBefore });
       }
 
-      if (cellText.includes('runStage')) {
+      if (cellText.includes('runStage') && !cellText.includes('useNamespace')) {
         await this._executeCell({
           cell,
           runBefore: `var mdbnbStages = []; ${stagesToEvaluate.join(' ')}`,
