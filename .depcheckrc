@@ -14,4 +14,3 @@ ignores:
  - "vscode-languageserver-textdocument"
  - "vscode"
  - "webpack-cli"
- - "@mongosh/browser-runtime-electron"
