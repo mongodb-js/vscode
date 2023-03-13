@@ -178,18 +178,18 @@ export default class MongoDBService {
 
         worker?.on(
           'message',
-          (message: { data?: ShellEvaluateResult; error?: any }) => {
-            if (message.error) {
+          ({ error, data }: { data?: ShellEvaluateResult; error?: any }) => {
+            if (error) {
               this._connection.console.error(
-                `WORKER error: ${util.inspect(message.error)}`
+                `WORKER error: ${util.inspect(error)}`
               );
               void this._connection.sendNotification(
                 ServerCommands.SHOW_ERROR_MESSAGE,
-                formatError(message.error.message)
+                formatError(error).message
               );
             }
             void worker.terminate().then(() => {
-              resolve(message.data);
+              resolve(data);
             });
           }
         );
