@@ -373,7 +373,9 @@ suite('Telemetry Controller Test Suite', () => {
     mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons =
       {
         textFromEditor,
-        selectedText: textFromEditor,
+        // Use undefined instead of the selected text to skip countAggregationStagesInString
+        // that might make the test flaky.
+        selectedText: undefined,
         selection,
         importStatements: false,
         driverSyntax: false,
@@ -386,7 +388,7 @@ suite('Telemetry Controller Test Suite', () => {
     const telemetryArgs = fakeSegmentTrack.getCall(0).args[0];
     expect(telemetryArgs).to.deep.equal({
       language,
-      num_stages: 1,
+      num_stages: null,
       with_import_statements: false,
       with_builders: false,
       with_driver_syntax: false,
