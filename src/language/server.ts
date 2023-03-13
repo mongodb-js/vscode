@@ -151,7 +151,7 @@ connection.onDidChangeWatchedFiles((/* _change */) => {
 connection.onRequest(
   ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
   (evaluateParams: PlaygroundEvaluateParams, token) => {
-    return mongoDBService.evalauate(evaluateParams, token);
+    return mongoDBService.evaluate(evaluateParams, token);
   }
 );
 

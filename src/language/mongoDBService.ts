@@ -123,9 +123,9 @@ export default class MongoDBService {
   }
 
   /**
-   * Evalauate code from a playground.
+   * Evaluate code from a playground.
    */
-  async evalauate(
+  async evaluate(
     params: PlaygroundEvaluateParams,
     token: CancellationToken
   ): Promise<ShellEvaluateResult | undefined> {
@@ -176,24 +176,23 @@ export default class MongoDBService {
           `WORKER thread is created on path: ${this._extensionPath}`
         );
 
-        worker?.on('error', (error) => {
-          this._connection.console.error(
-            `WORKER error: ${util.inspect(error)}`
-          );
-          void this._connection.sendNotification(
-            ServerCommands.SHOW_ERROR_MESSAGE,
-            formatError(error).message
-          );
-          void worker.terminate().then(() => {
-            resolve(undefined);
-          });
-        });
-
-        worker?.on('message', (data) => {
-          void worker.terminate().then(() => {
-            resolve(data);
-          });
-        });
+        worker?.on(
+          'message',
+          (message: { data?: ShellEvaluateResult; error?: any }) => {
+            if (message.error) {
+              this._connection.console.error(
+                `WORKER error: ${util.inspect(message.error)}`
+              );
+              void this._connection.sendNotification(
+                ServerCommands.SHOW_ERROR_MESSAGE,
+                formatError(message.error.message)
+              );
+            }
+            void worker.terminate().then(() => {
+              resolve(message.data);
+            });
+          }
+        );
 
         worker.postMessage({
           name: ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
@@ -241,7 +240,7 @@ export default class MongoDBService {
       // Use `admin` as arguments to get list of dbs
       // and remove it later when `mongosh` will merge a fix.
       const documents = await this._serviceProvider.listDatabases('admin');
-      result = documents.databases ? documents.databases : [];
+      result = documents.databases ?? [];
     } catch (error) {
       this._connection.console.error(`LS get databases error: ${error}`);
     }
@@ -285,14 +284,15 @@ export default class MongoDBService {
     }
 
     try {
-      const documents = await this._serviceProvider
-        .find(databaseName, collectionName, {}, { limit: 1 })
-        .toArray();
+      const documents = this._serviceProvider.find(
+        databaseName,
+        collectionName,
+        {},
+        { limit: 1 }
+      );
 
-      if (documents.length) {
-        const schema = await parseSchema(documents);
-        result = schema?.fields ? schema.fields.map((item) => item.name) : [];
-      }
+      const schema = await parseSchema(documents);
+      result = schema?.fields ? schema.fields.map((item) => item.name) : [];
     } catch (error) {
       this._connection.console.error(`LS get schema fields error: ${error}`);
     }
@@ -621,8 +621,9 @@ export default class MongoDBService {
     this._connectionOptions = undefined;
 
     if (this._serviceProvider) {
-      await this._serviceProvider.close(true);
+      const serviceProvider = this._serviceProvider;
       this._serviceProvider = undefined;
+      await serviceProvider.close(true);
     }
   }
 }

@@ -86,8 +86,11 @@ export async function getConnectionTelemetryProperties(
     const authMechanism = connectionString.searchParams.get('authMechanism');
     const username = connectionString.username ? 'DEFAULT' : 'NONE';
     const authStrategy = authMechanism ?? username;
-    const instance = await dataService.instance();
-    const cloudInfo = await getCloudInfoFromDataService(hostname);
+
+    const [instance, cloudInfo] = await Promise.all([
+      dataService.instance(),
+      getCloudInfoFromDataService(hostname),
+    ]);
 
     preparedProperties = {
       ...preparedProperties,

@@ -43,7 +43,7 @@ const execute = async (
   codeToEvaluate: string,
   connectionString: string,
   connectionOptions: MongoClientOptions
-): Promise<ShellEvaluateResult> => {
+): Promise<{ data?: ShellEvaluateResult; error?: any }> => {
   const serviceProvider = await CliServiceProvider.connect(
     connectionString,
     connectionOptions
@@ -83,9 +83,9 @@ const execute = async (
       language: getLanguage({ type, printable }),
     };
 
-    return { outputLines, result };
+    return { data: { outputLines, result } };
   } catch (error) {
-    throw new Error((<any>error).message);
+    return { error };
   } finally {
     await serviceProvider.close(true);
   }

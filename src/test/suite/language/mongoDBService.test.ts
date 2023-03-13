@@ -52,9 +52,9 @@ suite('MongoDBService Test Suite', () => {
       await testMongoDBService.connectToServiceProvider(params);
     });
 
-    test('catches error when evalauate is called and extension path is empty string', async () => {
+    test('catches error when evaluate is called and extension path is empty string', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           codeToEvaluate: '1 + 1',
           connectionId: 'pineapple',
@@ -1059,7 +1059,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('evaluate should sum numbers', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: '1 + 1',
@@ -1081,7 +1081,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('should not run when the connectionId does not match', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'not pineapple',
           codeToEvaluate: '1 + 1',
@@ -1094,7 +1094,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('evaluate multiplies commands at once', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: 'const x = 1; x + 2',
@@ -1116,7 +1116,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('create each time a new runtime', async () => {
       const source = new CancellationTokenSource();
-      const firstEvalResult = await testMongoDBService.evalauate(
+      const firstEvalResult = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: 'const x = 1 + 1; x',
@@ -1135,7 +1135,7 @@ suite('MongoDBService Test Suite', () => {
 
       expect(firstEvalResult).to.deep.equal(firstRes);
 
-      const secondEvalResult = await testMongoDBService.evalauate(
+      const secondEvalResult = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: 'const x = 2 + 1; x',
@@ -1157,7 +1157,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('evaluate returns valid EJSON', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: `const { ObjectId } = require('bson');
@@ -1185,7 +1185,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('evaluate returns an object', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: `const obj = { name: "a short string" };
@@ -1210,7 +1210,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('evaluate returns an array', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: `const arr = [{ name: "a short string" }];
@@ -1237,7 +1237,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('evaluate returns undefined', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: 'undefined',
@@ -1259,7 +1259,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('evaluate returns null', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: 'null',
@@ -1281,7 +1281,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('evaluate returns single line strings', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: `const x = 'A single line string';
@@ -1304,7 +1304,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('evaluate returns multiline strings', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: `const x = \`vscode
@@ -1331,7 +1331,7 @@ suite('MongoDBService Test Suite', () => {
 
     test('includes results from print() and console.log()', async () => {
       const source = new CancellationTokenSource();
-      const result = await testMongoDBService.evalauate(
+      const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
           codeToEvaluate: 'print("Hello"); console.log(1,2,3); 42',

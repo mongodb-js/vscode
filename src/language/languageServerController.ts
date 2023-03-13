@@ -120,7 +120,7 @@ export default class LanguageServerController {
     void this._client.stop();
   }
 
-  async evalauate(
+  async evaluate(
     playgroundExecuteParameters: PlaygroundEvaluateParams
   ): Promise<ShellEvaluateResult> {
     this._isExecutingInProgress = true;

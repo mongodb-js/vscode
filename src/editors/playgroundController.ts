@@ -392,7 +392,7 @@ export default class PlaygroundController {
     try {
       // Send a request to the language server to execute scripts from a playground.
       const result: ShellEvaluateResult =
-        await this._languageServerController.evalauate({
+        await this._languageServerController.evaluate({
           codeToEvaluate,
           connectionId,
         });
