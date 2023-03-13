@@ -108,6 +108,7 @@ suite('Telemetry Controller Test Suite', () => {
         expressio: '{}',
       })
     );
+    sandbox.stub(vscode.window, 'showInformationMessage');
   });
 
   afterEach(() => {
@@ -340,7 +341,7 @@ suite('Telemetry Controller Test Suite', () => {
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
-    const telemetryArgs = fakeSegmentTrack.firstCall.args[0];
+    const telemetryArgs = fakeSegmentTrack.getCall(0).args[0];
     expect(telemetryArgs).to.deep.equal({
       language,
       with_import_statements: false,
@@ -382,7 +383,7 @@ suite('Telemetry Controller Test Suite', () => {
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
-    const telemetryArgs = fakeSegmentTrack.firstCall.args[0];
+    const telemetryArgs = fakeSegmentTrack.getCall(0).args[0];
     expect(telemetryArgs).to.deep.equal({
       language,
       num_stages: 1,
