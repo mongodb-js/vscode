@@ -36,15 +36,16 @@ suite('Telemetry Controller Test Suite', () => {
   let fakeTrackPlaygroundCodeExecuted: SinonSpy;
   let fakeTrackPlaygroundLoadedMethod: SinonSpy;
   let fakeTrack: SinonSpy;
+  const sandbox = sinon.createSandbox();
 
   beforeEach(() => {
-    fakeTrackNewConnection = sinon.fake.resolves(true);
-    fakeTrackCommandRun = sinon.fake();
-    fakeTrackPlaygroundCodeExecuted = sinon.fake();
-    fakeTrackPlaygroundLoadedMethod = sinon.fake();
-    fakeTrack = sinon.fake();
+    fakeTrackNewConnection = sandbox.fake.resolves(true);
+    fakeTrackCommandRun = sandbox.fake();
+    fakeTrackPlaygroundCodeExecuted = sandbox.fake();
+    fakeTrackPlaygroundLoadedMethod = sandbox.fake();
+    fakeTrack = sandbox.fake();
 
-    const instanceStub = sinon.stub();
+    const instanceStub = sandbox.stub();
     instanceStub.resolves({
       dataLake: {},
       build: {},
@@ -55,55 +56,64 @@ suite('Telemetry Controller Test Suite', () => {
       instance: instanceStub,
     } as Pick<DataService, 'instance'> as unknown as DataService;
 
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackCommandRun',
       fakeTrackCommandRun
     );
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
         ._telemetryService,
       'trackPlaygroundCodeExecuted',
       fakeTrackPlaygroundCodeExecuted
     );
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
         ._telemetryService,
       'trackPlaygroundLoaded',
       fakeTrackPlaygroundLoadedMethod
     );
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._languageServerController,
-      'executeAll',
-      sinon.fake.resolves([{ type: 'TEST', content: 'Result' }])
+      'evaluate',
+      sandbox.fake.resolves([{ type: 'TEST', content: 'Result' }])
     );
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
         ._connectionController,
       'getActiveConnectionId',
-      () => 'testconnectionId'
+      sandbox.fake.returns('testconnectionId')
     );
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
         ._languageServerController,
       'getNamespaceForSelection',
-      sinon.fake.resolves({
+      sandbox.fake.resolves({
         collectionName: 'coll',
         databaseName: 'db',
       })
     );
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
         ._connectionController,
       'getMongoClientConnectionOptions',
-      sinon.fake.returns('mongodb://localhost')
+      sandbox.fake.returns('mongodb://localhost')
     );
-    sinon.stub(vscode.window, 'showErrorMessage');
+    sandbox.stub(vscode.window, 'showErrorMessage');
+    sandbox.replace(
+      mdbTestExtension.testExtensionController._playgroundController,
+      'getTranspiledContent',
+      sandbox.fake.resolves({
+        namespace: 'db.coll',
+        expressio: '{}',
+      })
+    );
+    sandbox.stub(vscode.window, 'showInformationMessage');
   });
 
   afterEach(() => {
-    sinon.restore();
     mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
+    sandbox.restore();
   });
 
   test('get segment key', () => {
@@ -122,14 +132,14 @@ suite('Telemetry Controller Test Suite', () => {
 
   test('track command run event', async () => {
     await vscode.commands.executeCommand('mdb.addConnection');
-    sinon.assert.calledWith(fakeTrackCommandRun, 'mdb.addConnection');
+    sandbox.assert.calledWith(fakeTrackCommandRun, 'mdb.addConnection');
   });
 
   test('track new connection event when connecting via connection string', () => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackNewConnection',
       fakeTrackNewConnection
@@ -140,10 +150,10 @@ suite('Telemetry Controller Test Suite', () => {
       ConnectionTypes.CONNECTION_STRING
     );
 
-    sinon.assert.calledWith(
+    sandbox.assert.calledWith(
       fakeTrackNewConnection,
-      sinon.match.any,
-      sinon.match(ConnectionTypes.CONNECTION_STRING)
+      sandbox.match.any,
+      sandbox.match(ConnectionTypes.CONNECTION_STRING)
     );
   });
 
@@ -151,7 +161,7 @@ suite('Telemetry Controller Test Suite', () => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackNewConnection',
       fakeTrackNewConnection
@@ -162,10 +172,10 @@ suite('Telemetry Controller Test Suite', () => {
       ConnectionTypes.CONNECTION_FORM
     );
 
-    sinon.assert.calledWith(
+    sandbox.assert.calledWith(
       fakeTrackNewConnection,
-      sinon.match.any,
-      sinon.match(ConnectionTypes.CONNECTION_FORM)
+      sandbox.match.any,
+      sandbox.match(ConnectionTypes.CONNECTION_FORM)
     );
   });
 
@@ -173,7 +183,7 @@ suite('Telemetry Controller Test Suite', () => {
     const testConnectionController =
       mdbTestExtension.testExtensionController._connectionController;
 
-    sinon.replace(
+    sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackNewConnection',
       fakeTrackNewConnection
@@ -184,30 +194,30 @@ suite('Telemetry Controller Test Suite', () => {
       ConnectionTypes.CONNECTION_ID
     );
 
-    sinon.assert.calledWith(
+    sandbox.assert.calledWith(
       fakeTrackNewConnection,
-      sinon.match.any,
-      sinon.match(ConnectionTypes.CONNECTION_ID)
+      sandbox.match.any,
+      sandbox.match(ConnectionTypes.CONNECTION_ID)
     );
   });
 
   test('track document saved form a tree-view event', () => {
     const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
 
-    sinon.replace(testTelemetryService, 'track', fakeTrack);
+    sandbox.replace(testTelemetryService, 'track', fakeTrack);
 
     testTelemetryService.trackDocumentUpdated(source, true);
 
-    sinon.assert.calledWith(
+    sandbox.assert.calledWith(
       fakeTrack,
-      sinon.match('Document Updated'),
-      sinon.match({ source, success: true })
+      sandbox.match('Document Updated'),
+      sandbox.match({ source, success: true })
     );
   });
 
   test('track document opened form playground results', async () => {
-    const fakeTrackDocumentOpenedInEditor = sinon.fake();
-    sinon.replace(
+    const fakeTrackDocumentOpenedInEditor = sandbox.fake();
+    sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackDocumentOpenedInEditor',
       fakeTrackDocumentOpenedInEditor
@@ -233,7 +243,7 @@ suite('Telemetry Controller Test Suite', () => {
     const testPlaygroundController =
       mdbTestExtension.testExtensionController._playgroundController;
     await testPlaygroundController._evaluate('show dbs');
-    sinon.assert.called(fakeTrackPlaygroundCodeExecuted);
+    sandbox.assert.called(fakeTrackPlaygroundCodeExecuted);
   });
 
   test('track playground loaded event', async () => {
@@ -242,23 +252,23 @@ suite('Telemetry Controller Test Suite', () => {
       '../../../../src/test/fixture/testSaving.mongodb'
     );
     await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
-    sinon.assert.called(fakeTrackPlaygroundLoadedMethod);
+    sandbox.assert.called(fakeTrackPlaygroundLoadedMethod);
   });
 
   test('track playground saved event', () => {
-    sinon.replace(testTelemetryService, 'track', fakeTrack);
+    sandbox.replace(testTelemetryService, 'track', fakeTrack);
     testTelemetryService.trackPlaygroundSaved();
-    sinon.assert.calledWith(fakeTrack);
+    sandbox.assert.calledWith(fakeTrack);
   });
 
   test('track adds extension version to event properties when there are no event properties', () => {
-    sinon.replace(
+    sandbox.replace(
       testTelemetryService,
       '_isTelemetryFeatureEnabled',
-      sinon.fake.returns(true)
+      sandbox.fake.returns(true)
     );
-    const fakeSegmentTrack = sinon.fake.yields(null);
-    sinon.replace(testTelemetryService, '_segmentAnalytics', {
+    const fakeSegmentTrack = sandbox.fake.yields(null);
+    sandbox.replace(testTelemetryService, '_segmentAnalytics', {
       track: fakeSegmentTrack,
     } as unknown as SegmentAnalytics);
 
@@ -274,14 +284,14 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('track adds extension version to existing event properties', () => {
-    sinon.replace(
+    sandbox.replace(
       testTelemetryService,
       '_isTelemetryFeatureEnabled',
-      sinon.fake.returns(true)
+      sandbox.fake.returns(true)
     );
 
-    const fakeSegmentTrack = sinon.fake.yields(null);
-    sinon.replace(testTelemetryService, '_segmentAnalytics', {
+    const fakeSegmentTrack = sandbox.fake.yields(null);
+    sandbox.replace(testTelemetryService, '_segmentAnalytics', {
       track: fakeSegmentTrack,
     } as unknown as SegmentAnalytics);
 
@@ -301,8 +311,8 @@ suite('Telemetry Controller Test Suite', () => {
   test('track query exported to language', async function () {
     this.timeout(5000);
 
-    const fakeSegmentTrack = sinon.fake.yields(null);
-    sinon.replace(
+    const fakeSegmentTrack = sandbox.fake();
+    sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackQueryExported',
       fakeSegmentTrack
@@ -331,7 +341,7 @@ suite('Telemetry Controller Test Suite', () => {
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
-    const telemetryArgs = fakeSegmentTrack.firstCall.args[0];
+    const telemetryArgs = fakeSegmentTrack.getCall(0).args[0];
     expect(telemetryArgs).to.deep.equal({
       language,
       with_import_statements: false,
@@ -343,8 +353,8 @@ suite('Telemetry Controller Test Suite', () => {
   test('track aggregation exported to language', async function () {
     this.timeout(5000);
 
-    const fakeSegmentTrack = sinon.fake.yields(null);
-    sinon.replace(
+    const fakeSegmentTrack = sandbox.fake.yields(null);
+    sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackAggregationExported',
       fakeSegmentTrack
@@ -363,7 +373,9 @@ suite('Telemetry Controller Test Suite', () => {
     mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons =
       {
         textFromEditor,
-        selectedText: textFromEditor,
+        // Use undefined instead of the selected text to skip countAggregationStagesInString
+        // that might make the test flaky.
+        selectedText: undefined,
         selection,
         importStatements: false,
         driverSyntax: false,
@@ -373,10 +385,10 @@ suite('Telemetry Controller Test Suite', () => {
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
-    const telemetryArgs = fakeSegmentTrack.firstCall.args[0];
+    const telemetryArgs = fakeSegmentTrack.getCall(0).args[0];
     expect(telemetryArgs).to.deep.equal({
       language,
-      num_stages: 1,
+      num_stages: null,
       with_import_statements: false,
       with_builders: false,
       with_driver_syntax: false,

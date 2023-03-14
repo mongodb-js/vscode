@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { beforeEach, afterEach } from 'mocha';
+import { before, beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
@@ -46,10 +46,6 @@ suite('Playground Controller Test Suite', function () {
     testStorageController,
     testTelemetryService
   );
-  const languageServerControllerStub = new LanguageServerControllerStub(
-    extensionContextStub,
-    testStorageController
-  );
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
     testConnectionController
   );
@@ -66,19 +62,30 @@ suite('Playground Controller Test Suite', function () {
   const testExplorerController = new ExplorerController(
     testConnectionController
   );
-  const testPlaygroundController = new PlaygroundController(
-    testConnectionController,
-    languageServerControllerStub as LanguageServerController,
-    testTelemetryService,
-    testStatusView,
-    testPlaygroundResultProvider,
-    testActiveDBCodeLensProvider,
-    testExportToLanguageCodeLensProvider,
-    testCodeActionProvider,
-    testExplorerController
-  );
-  const sandbox = sinon.createSandbox();
+
+  let languageServerControllerStub: LanguageServerController;
+  let testPlaygroundController: PlaygroundController;
   let showErrorMessageStub: SinonStub;
+
+  const sandbox = sinon.createSandbox();
+
+  before(() => {
+    languageServerControllerStub = new LanguageServerControllerStub(
+      extensionContextStub,
+      testStorageController
+    );
+    testPlaygroundController = new PlaygroundController(
+      testConnectionController,
+      languageServerControllerStub,
+      testTelemetryService,
+      testStatusView,
+      testPlaygroundResultProvider,
+      testActiveDBCodeLensProvider,
+      testExportToLanguageCodeLensProvider,
+      testCodeActionProvider,
+      testExplorerController
+    );
+  });
 
   beforeEach(() => {
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
@@ -155,9 +162,10 @@ suite('Playground Controller Test Suite', function () {
 
   suite('playground is not open', () => {
     let showInformationMessageStub: SinonStub;
-    testPlaygroundController._activeTextEditor = undefined;
 
     beforeEach(() => {
+      testPlaygroundController._activeTextEditor = undefined;
+
       showInformationMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -322,13 +330,13 @@ suite('Playground Controller Test Suite', function () {
         });
       });
 
-      test('it shows an error message and restarts, and connects the language server when an error occurs in executeAll (out of memory can cause this)', async () => {
+      test('it shows an error message and restarts, and connects the language server when an error occurs in evaluate (out of memory can cause this)', async () => {
         const mockConnectionDisposedError = new Error(
           'Pending response rejected since connection got disposed'
         );
         (<any>mockConnectionDisposedError).code = -32097;
         sinon
-          .stub(languageServerControllerStub, 'executeAll')
+          .stub(languageServerControllerStub, 'evaluate')
           .rejects(mockConnectionDisposedError);
 
         const stubStartLanguageServer = sinon
@@ -372,7 +380,7 @@ suite('Playground Controller Test Suite', function () {
         );
         const playgroundControllerTest = new PlaygroundController(
           testConnectionController,
-          languageServerControllerStub as LanguageServerController,
+          languageServerControllerStub,
           testTelemetryService,
           testStatusView,
           testPlaygroundResultProvider,
@@ -393,7 +401,7 @@ suite('Playground Controller Test Suite', function () {
         );
         const playgroundControllerTest = new PlaygroundController(
           testConnectionController,
-          languageServerControllerStub as LanguageServerController,
+          languageServerControllerStub,
           testTelemetryService,
           testStatusView,
           testPlaygroundResultProvider,

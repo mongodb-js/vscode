@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { CliServiceProvider } from '@mongosh/service-provider-server';
 
 export type OutputItem = {
   namespace: string | null;
@@ -11,14 +12,14 @@ export type PlaygroundDebug = OutputItem[] | undefined;
 
 export type PlaygroundResult = OutputItem | undefined;
 
-export type ShellExecuteAllResult =
+export type ShellEvaluateResult =
   | {
       outputLines: PlaygroundDebug;
       result: PlaygroundResult;
     }
   | undefined;
 
-export type PlaygroundExecuteParameters = {
+export type PlaygroundEvaluateParams = {
   codeToEvaluate: string;
   connectionId: string;
 };
@@ -56,4 +57,15 @@ export enum ExportToLanguageMode {
 export interface ExportToLanguageNamespace {
   databaseName: string | null;
   collectionName: string | null;
+}
+
+// MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options).
+export type MongoClientOptions = NonNullable<
+  Parameters<typeof CliServiceProvider['connect']>[1]
+>;
+
+export interface WorkerEvaluate {
+  codeToEvaluate: string;
+  connectionString: string;
+  connectionOptions: MongoClientOptions;
 }

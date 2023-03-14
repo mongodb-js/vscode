@@ -118,7 +118,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
   suite('with live connection', function () {
     this.timeout(20000);
     let dataServ;
-    const sandbox = sinon.createSandbox();
 
     beforeEach(async () => {
       dataServ = await connect({ connectionString: TEST_DATABASE_URI });
@@ -126,7 +125,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
     afterEach(async () => {
       await dataServ.disconnect();
-      sandbox.restore();
     });
 
     test('track new connection event fetches the connection instance information', async () => {

@@ -24,7 +24,7 @@ import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumen
 import playgroundInsertDocumentTemplate from '../templates/playgroundInsertDocumentTemplate';
 import {
   PlaygroundResult,
-  ShellExecuteAllResult,
+  ShellEvaluateResult,
   ExportToLanguageAddons,
   ExportToLanguageNamespace,
   ExportToLanguageMode,
@@ -378,7 +378,7 @@ export default class PlaygroundController {
     return this._createPlaygroundFileWithContent(content);
   }
 
-  async _evaluate(codeToEvaluate: string): Promise<ShellExecuteAllResult> {
+  async _evaluate(codeToEvaluate: string): Promise<ShellEvaluateResult> {
     const connectionId = this._connectionController.getActiveConnectionId();
 
     if (!connectionId) {
@@ -391,8 +391,8 @@ export default class PlaygroundController {
 
     try {
       // Send a request to the language server to execute scripts from a playground.
-      const result: ShellExecuteAllResult =
-        await this._languageServerController.executeAll({
+      const result: ShellEvaluateResult =
+        await this._languageServerController.evaluate({
           codeToEvaluate,
           connectionId,
         });
@@ -429,7 +429,7 @@ export default class PlaygroundController {
     return this._activeTextEditor?.document.getText(selection) || '';
   }
 
-  async _evaluateWithCancelModal(): Promise<ShellExecuteAllResult> {
+  async _evaluateWithCancelModal(): Promise<ShellEvaluateResult> {
     if (!this._connectionController.isCurrentlyConnected()) {
       throw new Error(
         'Please connect to a database before running a playground.'
@@ -452,7 +452,7 @@ export default class PlaygroundController {
           });
 
           // Run all playground scripts.
-          const result: ShellExecuteAllResult = await this._evaluate(
+          const result: ShellEvaluateResult = await this._evaluate(
             this._codeToEvaluate
           );
 
@@ -550,7 +550,7 @@ export default class PlaygroundController {
 
     this._outputChannel.clear();
 
-    const evaluateResponse: ShellExecuteAllResult =
+    const evaluateResponse: ShellEvaluateResult =
       await this._evaluateWithCancelModal();
 
     if (evaluateResponse?.outputLines?.length) {

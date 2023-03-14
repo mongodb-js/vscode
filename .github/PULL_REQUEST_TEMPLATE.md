@@ -1,11 +1,10 @@
 <!-- Ticket number and a general summary of your changes in the Title above -->
 <!-- e.g. VSCODE-1111: updates ace editor width in agg pipeline view -->
-
 <!--- The following fields are not obligatory. Use your best judgement on what you think is applicable to the work you've done -->
-
 ## Description
 <!--- Describe your changes in detail -->
 <!--- If applicable, describe (or illustrate) architecture flow -->
+
 ### Checklist
 - [ ] New tests and/or benchmarks are included
 - [ ] Documentation is changed or added

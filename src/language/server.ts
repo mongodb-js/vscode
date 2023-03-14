@@ -15,7 +15,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import MongoDBService from './mongoDBService';
 import { ServerCommands } from './serverCommands';
 import {
-  PlaygroundExecuteParameters,
+  PlaygroundEvaluateParams,
   PlaygroundTextAndSelection,
 } from '../types/playgroundType';
 
@@ -54,6 +54,13 @@ connection.onInitialize((params: InitializeParams) => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
+      textDocument: {
+        completion: {
+          completionItem: {
+            preselectSupport: true,
+          },
+        },
+      },
       // Tell the client that the server supports code completion
       completionProvider: {
         resolveProvider: true,
@@ -142,9 +149,9 @@ connection.onDidChangeWatchedFiles((/* _change */) => {
 
 // Execute the entire playground script.
 connection.onRequest(
-  ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
-  (executionParameters: PlaygroundExecuteParameters, token) => {
-    return mongoDBService.executeAll(executionParameters, token);
+  ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
+  (evaluateParams: PlaygroundEvaluateParams, token) => {
+    return mongoDBService.evaluate(evaluateParams, token);
   }
 );
 
@@ -162,6 +169,14 @@ connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
 connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
   return mongoDBService.disconnectFromServiceProvider();
 });
+
+// Set fields for tests.
+connection.onRequest(
+  ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
+  ({ namespace, schemaFields }) => {
+    return mongoDBService._cacheFieldCompletionItems(namespace, schemaFields);
+  }
+);
 
 connection.onRequest(
   ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,

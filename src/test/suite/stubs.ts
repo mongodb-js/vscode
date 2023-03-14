@@ -12,7 +12,7 @@ import type { Document, Filter, FindOptions } from 'mongodb';
 import { StorageController } from '../../storage';
 
 import {
-  ShellExecuteAllResult,
+  ShellEvaluateResult,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
 } from '../../types/playgroundType';
@@ -258,33 +258,24 @@ class LanguageServerControllerStub {
       run: { module: '', transport: TransportKind.ipc },
       debug: {
         module,
-        /* runtime: 'node.exe', */ transport: TransportKind.ipc,
+        transport: TransportKind.ipc,
         options: debugOptions,
       },
     };
 
     const clientOptions: LanguageClientOptions = {
       documentSelector: [
-        { language: 'bat' },
-        { language: 'bat', notebook: '*' },
+        { language: 'test' },
+        { language: 'test', notebook: '*' },
         { scheme: 'file', pattern: '**/.vscode/test.txt' },
       ],
       synchronize: {
-        configurationSection: 'testbed',
-        // fileEvents: workspace.createFileSystemWatcher('**/*'),
+        configurationSection: 'test',
       },
-      diagnosticCollectionName: 'markers',
-      initializationOptions: 'Chris it gets passed to the server',
+      diagnosticCollectionName: 'collectionName',
+      initializationOptions: 'Passed to the server',
       progressOnInitialization: true,
       stdioEncoding: 'utf8',
-      // uriConverters: {
-      // 	code2Protocol: (value: Uri) => {
-      // 		return `vscode-${value.toString()}`
-      // 	},
-      // 	protocol2Code: (value: string) => {
-      // 		return Uri.parse(value.substring(7))
-      // 	}
-      // },
       middleware: {
         didOpen: (document, next) => {
           return next(document);
@@ -317,7 +308,7 @@ class LanguageServerControllerStub {
     return;
   }
 
-  executeAll(/* codeToEvaluate: string */): Promise<ShellExecuteAllResult> {
+  evaluate(/* codeToEvaluate: string */): Promise<ShellEvaluateResult> {
     return Promise.resolve({
       outputLines: [],
       result: {
@@ -351,6 +342,10 @@ class LanguageServerControllerStub {
 
   cancelAll(): void {
     return;
+  }
+
+  updateCurrentSessionFields(): Promise<void> {
+    return Promise.resolve();
   }
 }
 
