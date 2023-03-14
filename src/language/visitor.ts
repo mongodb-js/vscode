@@ -24,6 +24,7 @@ export interface CompletionState {
   isObjectKey: boolean;
   isShellMethod: boolean;
   isUseCallExpression: boolean;
+  isTopLevelIdentifier: boolean;
   isDbCallExpression: boolean;
   isCollectionName: boolean;
   isAggregationCursor: boolean;
@@ -69,6 +70,7 @@ export class Visitor {
 
   _visitExpressionStatement(node: babel.types.Node): void {
     if (node.type === 'ExpressionStatement') {
+      this._checkIsTopLevelIdentifier(node);
       this._checkIsDbCall(node);
     }
   }
@@ -178,6 +180,7 @@ export class Visitor {
       isObjectKey: false,
       isShellMethod: false,
       isUseCallExpression: false,
+      isTopLevelIdentifier: false,
       isDbCallExpression: false,
       isCollectionName: false,
       isAggregationCursor: false,
@@ -215,6 +218,15 @@ export class Visitor {
   _checkIsUseCall(node: babel.types.CallExpression): void {
     this._checkIsUseCallAsSimpleString(node);
     this._checkIsUseCallAsTemplate(node);
+  }
+
+  _checkIsTopLevelIdentifier(node: babel.types.ExpressionStatement): void {
+    if (
+      node.expression.type === 'Identifier' &&
+      node.expression.name.includes('TRIGGER_CHARACTER')
+    ) {
+      this._state.isTopLevelIdentifier = true;
+    }
   }
 
   _checkIsDbCall(node: babel.types.ExpressionStatement): void {

@@ -1483,7 +1483,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    test('mdb.deleteDocumentFromTreeView deletes a document when the confirmation is cancelled', async () => {
+    test('mdb.deleteDocumentFromTreeView deletes a document when the confirmation is canceled', async () => {
       const mockDocument = {
         _id: 'pancakes',
         time: {

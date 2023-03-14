@@ -15,8 +15,6 @@ export default class ExplorerController {
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
   constructor(connectionController: ConnectionController) {
-    log.info('activate explorer controller');
-
     this._connectionController = connectionController;
     this._treeController = new ExplorerTreeController(connectionController);
   }
@@ -40,12 +38,14 @@ export default class ExplorerController {
   };
 
   activateConnectionsTreeView(): void {
+    log.info('Activating explorer controller...');
     // Listen for a change in connections to occur before we create the tree
     // so that we show the `viewsWelcome` before any connections are added.
     this._connectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       this.createTreeView
     );
+    log.info('Explorer controller activated');
   }
 
   deactivate(): void {

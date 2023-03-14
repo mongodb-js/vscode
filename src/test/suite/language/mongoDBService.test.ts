@@ -493,6 +493,30 @@ suite('MongoDBService Test Suite', () => {
       expect(findCompletion).to.be.undefined;
     });
 
+    test('provide db and use identifier completion', async () => {
+      testMongoDBService._cacheDatabaseCompletionItems([{ name: 'admin' }]);
+
+      const result = await testMongoDBService.provideCompletionItems('', {
+        line: 0,
+        character: 0,
+      });
+
+      const dbCompletion = result.find(
+        (item: CompletionItem) => item.label === 'db'
+      );
+      expect(dbCompletion).to.have.property('label', 'db');
+      expect(dbCompletion).to.have.property('kind', CompletionItemKind.Method);
+
+      const useCompletion = result.find(
+        (item: CompletionItem) => item.label === 'use'
+      );
+      expect(useCompletion).to.have.property('label', 'use');
+      expect(useCompletion).to.have.property(
+        'kind',
+        CompletionItemKind.Function
+      );
+    });
+
     test('provide db names completion for literal', async () => {
       testMongoDBService._cacheDatabaseCompletionItems([{ name: 'admin' }]);
 

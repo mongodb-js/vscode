@@ -110,7 +110,10 @@ export const getPlaygrounds = async ({
         result.push(...playgrounds);
       }
     } catch (error) {
-      log.error('Get playgrounds recursively from the workspace error', error);
+      log.error(
+        'Getting playgrounds recursively from the workspace failed',
+        error
+      );
     }
   }
 

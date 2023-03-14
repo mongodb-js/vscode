@@ -6,7 +6,7 @@ import PlaygroundsTreeItem from './playgroundsTreeItem';
 import EXTENSION_COMMANDS from '../commands';
 import { getPlaygrounds } from '../utils/playground';
 
-const log = createLogger('playgrounds tree controller');
+const log = createLogger('playgrounds tree');
 
 export default class PlaygroundsTree
   implements vscode.TreeDataProvider<vscode.TreeItem>
@@ -34,7 +34,7 @@ export default class PlaygroundsTree
     treeView: vscode.TreeView<vscode.TreeItem>
   ): void => {
     treeView.onDidCollapseElement((event: any) => {
-      log.info('Tree item was collapsed:', event.element.label);
+      log.info('Tree item was collapsed', event.element.label);
 
       if (event.element.onDidCollapse) {
         event.element.onDidCollapse();
@@ -50,7 +50,7 @@ export default class PlaygroundsTree
     });
 
     treeView.onDidExpandElement(async (event: any): Promise<void> => {
-      log.info('Tree item was expanded:', event.element.label);
+      log.info('Tree item was expanded', event.element.label);
 
       if (!event.element.onDidExpand) {
         return;

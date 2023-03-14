@@ -139,7 +139,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     await this._languageServerController.startLanguageServer();
 
     this.registerCommands();
-
     this.showOverviewPageIfRecentlyInstalled();
   }
 
@@ -237,7 +236,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerEditorCommands();
     this.registerTreeViewCommands();
 
-    log.info('Registered commands.');
+    log.info('Commands registered');
   };
 
   registerCommand = (

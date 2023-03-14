@@ -20,7 +20,7 @@ import {
 } from '../types/playgroundType';
 import { ServerCommands } from './serverCommands';
 
-const log = createLogger('LanguageServerController');
+const log = createLogger('language server controller');
 
 /**
  * This controller manages the language server and client.
@@ -73,7 +73,7 @@ export default class LanguageServerController {
       ),
     };
 
-    log.info('Creating MongoDB Language Server', {
+    log.info('Create MongoDB Language Server', {
       serverOptions,
       clientOptions,
     });

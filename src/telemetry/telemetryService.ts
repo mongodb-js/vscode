@@ -120,13 +120,14 @@ export default class TelemetryService {
 
       return constants.segmentKey;
     } catch (error) {
-      log.error('Read SegmentKey failed', error);
+      log.error('Reading SegmentKey failed', error);
       return;
     }
   }
 
   activateSegmentAnalytics(): void {
     if (this._segmentKey) {
+      log.info('Activating segment analytics...');
       this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
         // Segment batches messages and flushes asynchronously to the server.
         // The flushAt is a number of messages to enqueue before flushing.
@@ -140,7 +141,10 @@ export default class TelemetryService {
 
       const segmentProperties = this.getTelemetryUserIdentity();
       this._segmentAnalytics.identify(segmentProperties);
-      log.info('Activate segment analytics properties', segmentProperties);
+      log.info(
+        'Segment analytics activated with properties',
+        segmentProperties
+      );
     }
   }
 
@@ -188,7 +192,7 @@ export default class TelemetryService {
 
       this._segmentAnalytics?.track(segmentProperties, (error?: Error) => {
         if (error) {
-          log.error('Telemetry track failed', error);
+          log.error('Failed to track telemetry', error);
         }
       });
     }
