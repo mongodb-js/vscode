@@ -462,7 +462,7 @@ export default class PlaygroundController {
 
       return progressResult;
     } catch (error) {
-      log.error('Evaluate playground with cancel modal error', error);
+      log.error('Evaluate playground with cancel modal failed', error);
 
       return {
         outputLines: undefined,
@@ -752,7 +752,7 @@ export default class PlaygroundController {
     const { selectedText, importStatements, driverSyntax, builders, language } =
       this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
 
-    log.info(`Start export to ${language} language`);
+    log.info(`Exporting to the '${language}' language...`);
 
     try {
       const transpiledContent = await this.getTranspiledContent();
@@ -782,7 +782,10 @@ export default class PlaygroundController {
         language,
       };
 
-      log.info(`Export to ${language} language result`, this._playgroundResult);
+      log.info(
+        `Exported to the '${language}' language`,
+        this._playgroundResult
+      );
 
       /* eslint-disable camelcase */
       if (
@@ -817,8 +820,8 @@ export default class PlaygroundController {
 
       await this._openPlaygroundResult();
     } catch (error) {
+      log.error(`Export to the '${language}' language failed`, error);
       const printableError = formatError(error);
-      log.error(`Export to ${language} language error`, printableError);
       void vscode.window.showErrorMessage(
         `Unable to export to ${language} language: ${printableError.message}`
       );

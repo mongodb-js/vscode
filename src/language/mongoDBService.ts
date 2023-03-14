@@ -45,6 +45,7 @@ export default class MongoDBService {
   _cachedFields: { [namespace: string]: CompletionItem[] } = {};
   _cachedCollections: { [database: string]: CompletionItem[] } = {};
   _cachedShellSymbols: { [symbol: string]: CompletionItem[] } = {};
+  _cachedTopLevelIdentifiers: CompletionItem[] = [];
 
   _visitor: Visitor;
   _serviceProvider?: CliServiceProvider;
@@ -54,6 +55,7 @@ export default class MongoDBService {
     this._visitor = new Visitor(connection.console);
 
     this._cacheShellSymbolsCompletionItems();
+    this._cacheTopLevelIdentifierCompletionItems();
   }
 
   /**
@@ -306,6 +308,24 @@ export default class MongoDBService {
   }
 
   /**
+   * Return 'db' and 'use' completion items.
+   */
+  _cacheTopLevelIdentifierCompletionItems() {
+    this._cachedTopLevelIdentifiers = [
+      {
+        label: 'db',
+        kind: CompletionItemKind.Method,
+        preselect: true,
+      },
+      {
+        label: 'use',
+        kind: CompletionItemKind.Function,
+        preselect: true,
+      },
+    ];
+  }
+
+  /**
    * Create and cache Shell symbols completion items.
    */
   _cacheShellSymbolsCompletionItems() {
@@ -496,6 +516,11 @@ export default class MongoDBService {
         'VISITOR found shell cursor methods completion'
       );
       return this._cachedShellSymbols.Cursor;
+    }
+
+    // If the current node is 'db' or 'use'.
+    if (state.isTopLevelIdentifier) {
+      return this._cachedTopLevelIdentifiers;
     }
 
     // If we found 'use("db")' and the current node is 'db.<trigger>'.

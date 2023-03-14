@@ -155,7 +155,7 @@ export default class ConnectionController {
       } catch (error) {
         // Here we're lenient when loading connections in case their
         // connections have become corrupted.
-        log.error(`Connection migration failed: ${formatError(error).message}`);
+        log.error('Migrate previously saved connections failed', error);
         return;
       }
     }
@@ -164,7 +164,7 @@ export default class ConnectionController {
     // Return saved connection as it is.
     if (!ext.keytarModule) {
       log.error(
-        'Load saved connections failed: VSCode extension keytar module is undefined.'
+        'Get connection info with secrets failed because VSCode extension keytar module is undefined.'
       );
       return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
     }
@@ -197,9 +197,7 @@ export default class ConnectionController {
     } catch (error) {
       // Here we're lenient when loading connections in case their
       // connections have become corrupted.
-      log.error(
-        `Merging connection with secrets failed: ${formatError(error).message}`
-      );
+      log.error('Get connection info with secrets failed', error);
       return;
     }
   }
@@ -313,7 +311,7 @@ export default class ConnectionController {
     );
 
     try {
-      const connectResult = await this.saveNewConnectionAndConnect(
+      const connectResult = await this.saveNewConnectionFromFormAndConnect(
         {
           id: uuidv4(),
           connectionOptions: {
@@ -326,11 +324,10 @@ export default class ConnectionController {
       return connectResult.successfullyConnected;
     } catch (error) {
       const printableError = formatError(error);
-      log.error('Failed to connect', printableError);
+      log.error('Failed to connect with a connection string', error);
       void vscode.window.showErrorMessage(
         `Unable to connect: ${printableError.message}`
       );
-
       return false;
     }
   }
@@ -391,7 +388,7 @@ export default class ConnectionController {
     return savedConnectionInfo;
   }
 
-  async saveNewConnectionAndConnect(
+  async saveNewConnectionFromFormAndConnect(
     originalConnectionInfo: ConnectionInfo,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
@@ -539,12 +536,11 @@ export default class ConnectionController {
 
       return true;
     } catch (error) {
+      log.error('Failed to connect by a connection id', error);
       const printableError = formatError(error);
-      log.error('Failed to connect', printableError);
       void vscode.window.showErrorMessage(
         `Unable to connect: ${printableError.message}`
       );
-
       return false;
     }
   }

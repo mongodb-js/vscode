@@ -60,7 +60,7 @@ export default class MongoDBDocumentService {
     newDocument: EJSON.SerializableTypes;
     source: DocumentSource;
   }): Promise<void> {
-    log.info('replace document in MongoDB', data);
+    log.info('Replace document in MongoDB', data);
 
     const { documentId, namespace, connectionId, newDocument, source } = data;
     const activeConnectionId =
@@ -107,7 +107,7 @@ export default class MongoDBDocumentService {
   async fetchDocument(
     data: EditDocumentInfo
   ): Promise<EJSON.SerializableTypes | void> {
-    log.info('fetch document from MongoDB', data);
+    log.info('Fetch document from MongoDB', data);
 
     const { documentId, namespace, connectionId } = data;
     const activeConnectionId =

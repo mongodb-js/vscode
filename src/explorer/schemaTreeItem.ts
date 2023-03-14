@@ -10,7 +10,7 @@ import TreeItemParent from './treeItemParentInterface';
 import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
 import { DataService } from 'mongodb-data-service';
 
-const log = createLogger('tree view document list');
+const log = createLogger('schema tree item');
 
 const ITEM_LABEL = 'Schema';
 
@@ -114,7 +114,7 @@ export default class SchemaTreeItem
       return;
     }
 
-    log.info(`parsing schema for namespace ${namespace}`);
+    log.info(`Parsing schema for the '${namespace}' namespace...`);
     if (!documents || documents.length === 0) {
       return;
     }
@@ -224,9 +224,8 @@ export default class SchemaTreeItem
 
   onShowMoreClicked(): void {
     log.info(
-      `show more schema fields clicked for namespace ${this.databaseName}.${this.collectionName}`
+      `Show more schema fields clicked for the ${this.databaseName}.${this.collectionName} namespace`
     );
-
     this.cacheIsUpToDate = false;
     this.hasClickedShowMoreFields = true;
   }

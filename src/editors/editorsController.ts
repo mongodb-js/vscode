@@ -262,7 +262,7 @@ export default class EditorsController {
   }
 
   async onViewCollectionDocuments(namespace: string): Promise<boolean> {
-    log.info('view collection documents', namespace);
+    log.info('View collection documents', namespace);
 
     const operationId =
       this._collectionDocumentsOperationsStore.createNewOperation();
@@ -294,7 +294,7 @@ export default class EditorsController {
     connectionId: string,
     namespace: string
   ): Promise<boolean> {
-    log.info('view more collection documents', namespace);
+    log.info('View more collection documents', namespace);
 
     // A user might click to fetch more documents multiple times,
     // this ensures it only performs one fetch at a time.

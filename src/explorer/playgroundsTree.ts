@@ -6,7 +6,7 @@ import PlaygroundsTreeItem from './playgroundsTreeItem';
 import EXTENSION_COMMANDS from '../commands';
 import { getPlaygrounds } from '../utils/playground';
 
-const log = createLogger('playgrounds tree controller');
+const log = createLogger('playgrounds tree');
 
 export default class PlaygroundsTree
   implements vscode.TreeDataProvider<vscode.TreeItem>
