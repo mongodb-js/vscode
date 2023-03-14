@@ -120,7 +120,7 @@ export default class TelemetryService {
 
       return constants.segmentKey;
     } catch (error) {
-      log.error('Read SegmentKey failed', error);
+      log.error('Reading SegmentKey failed', error);
       return;
     }
   }
@@ -192,7 +192,7 @@ export default class TelemetryService {
 
       this._segmentAnalytics?.track(segmentProperties, (error?: Error) => {
         if (error) {
-          log.error('Telemetry track failed', error);
+          log.error('Failed to track telemetry', error);
         }
       });
     }

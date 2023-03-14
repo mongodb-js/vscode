@@ -462,7 +462,7 @@ export default class PlaygroundController {
 
       return progressResult;
     } catch (error) {
-      log.error('Evaluate playground with cancel modal failed', error);
+      log.error('Evaluating playground with cancel modal failed', error);
 
       return {
         outputLines: undefined,

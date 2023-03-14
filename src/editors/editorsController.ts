@@ -113,8 +113,6 @@ export default class EditorsController {
     codeActionProvider: PlaygroundSelectedCodeActionProvider,
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider
   ) {
-    log.info('activating...');
-
     this._connectionController = connectionController;
     this._playgroundController = playgroundController;
     this._context = context;
@@ -152,8 +150,6 @@ export default class EditorsController {
 
       this._documentIdStore.removeByDocumentIdReference(documentIdReference);
     });
-
-    log.info('activated.');
   }
 
   async openMongoDBDocument(data: EditDocumentInfo): Promise<boolean> {

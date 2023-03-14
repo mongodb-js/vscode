@@ -155,7 +155,7 @@ export default class ConnectionController {
       } catch (error) {
         // Here we're lenient when loading connections in case their
         // connections have become corrupted.
-        log.error('Migrate previously saved connections failed', error);
+        log.error('Migrating previously saved connections failed', error);
         return;
       }
     }
@@ -164,7 +164,7 @@ export default class ConnectionController {
     // Return saved connection as it is.
     if (!ext.keytarModule) {
       log.error(
-        'Get connection info with secrets failed because VSCode extension keytar module is undefined.'
+        'Getting connection info with secrets failed because VSCode extension keytar module is undefined'
       );
       return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
     }
@@ -197,7 +197,7 @@ export default class ConnectionController {
     } catch (error) {
       // Here we're lenient when loading connections in case their
       // connections have become corrupted.
-      log.error('Get connection info with secrets failed', error);
+      log.error('Getting connection info with secrets failed', error);
       return;
     }
   }
@@ -299,7 +299,7 @@ export default class ConnectionController {
   async addNewConnectionStringAndConnect(
     connectionString: string
   ): Promise<boolean> {
-    log.info('Trying to connect to a new connection configuration');
+    log.info('Trying to connect to a new connection configuration...');
 
     const connectionStringData = new ConnectionString(connectionString);
 
@@ -409,9 +409,7 @@ export default class ConnectionController {
       connectionOptions: originalConnectionInfo.connectionOptions, // The connection options with secrets.
     };
 
-    log.info(
-      `Connect called to connect to instance: ${savedConnectionInfo.name}`
-    );
+    log.info('Connect called to connect to instance', savedConnectionInfo.name);
 
     return this._connect(savedConnectionInfo.id, connectionType);
   }
@@ -547,7 +545,7 @@ export default class ConnectionController {
 
   async disconnect(): Promise<boolean> {
     log.info(
-      'Disconnect called, currently connected to:',
+      'Disconnect called, currently connected to',
       this._currentConnectionId
     );
 

@@ -109,7 +109,7 @@ export async function getConnectionTelemetryProperties(
       server_os: instance.host.os,
     };
   } catch (error) {
-    log.error('Get connection telemetry properties failed', error);
+    log.error('Getting connection telemetry properties failed', error);
   }
 
   return preparedProperties;
