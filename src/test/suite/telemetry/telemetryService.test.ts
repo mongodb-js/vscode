@@ -339,39 +339,14 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('track aggregation exported to language', async function () {
-    this.timeout(5000);
-
-    const textFromEditor = "[{ '_id': 1, 'item': 'abc', 'price': 10 }]";
-    const selection = {
-      start: { line: 0, character: 0 },
-      end: { line: 0, character: 42 },
-    } as vscode.Selection;
-    const mode = ExportToLanguageMode.AGGREGATION;
-    const language = 'java';
-
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._playgroundController
-        ._playgroundSelectedCodeActionProvider,
-      'mode',
-      mode
-    );
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._playgroundController
-        ._exportToLanguageCodeLensProvider,
-      '_exportToLanguageAddons',
-      {
-        textFromEditor,
-        selectedText: textFromEditor,
-        selection,
-        importStatements: false,
-        driverSyntax: false,
-        builders: false,
-        language,
-      }
-    );
-
-    await mdbTestExtension.testExtensionController._playgroundController._transpile();
+  test('track aggregation exported to language', () => {
+    testTelemetryService.trackAggregationExported({
+      language: 'java',
+      num_stages: 1,
+      with_import_statements: false,
+      with_builders: false,
+      with_driver_syntax: false,
+    });
 
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
