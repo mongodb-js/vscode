@@ -3,8 +3,9 @@ import { before } from 'mocha';
 import {
   CancellationTokenSource,
   CompletionItemKind,
-  CompletionItem,
+  DiagnosticSeverity,
 } from 'vscode-languageclient/node';
+import type { CompletionItem } from 'vscode-languageclient/node';
 import chai from 'chai';
 import { createConnection } from 'vscode-languageserver/node';
 import fs from 'fs';
@@ -16,6 +17,7 @@ import MongoDBService, {
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { StreamStub } from '../stubs';
 import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
+import DIAGNOSTIC_CODES from '../../../language/diagnosticCodes';
 
 const expect = chai.expect;
 const INCREASED_TEST_TIMEOUT = 5000;
@@ -1381,7 +1383,7 @@ suite('MongoDBService Test Suite', () => {
     });
   });
 
-  suite('getExportToLanguageMode', function () {
+  suite('Export to language mode', function () {
     this.timeout(INCREASED_TEST_TIMEOUT);
 
     const up = new StreamStub();
@@ -1538,6 +1540,307 @@ suite('MongoDBService Test Suite', () => {
       });
 
       expect(mode).to.be.equal('AGGREGATION');
+    });
+  });
+
+  suite('Diagnostic', function () {
+    const up = new StreamStub();
+    const down = new StreamStub();
+    const connection = createConnection(up, down);
+
+    connection.listen();
+
+    const testMongoDBService = new MongoDBService(connection);
+
+    before(() => {
+      testMongoDBService._cacheDatabaseCompletionItems([{ name: 'test' }]);
+      testMongoDBService._cacheLogNames(['global', 'startupWarnings']);
+    });
+
+    test('finds use without database diagnostic issue', () => {
+      const textFromEditor = 'use ';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 4 },
+          },
+          message: "Did you mean `use('database')`?",
+          data: { fix: "use('database')" },
+        },
+      ]);
+    });
+
+    test('finds use with database without quotes diagnostic issue', () => {
+      const textFromEditor = 'use test';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 8 },
+          },
+          message: "Did you mean `use('test')`?",
+          data: { fix: "use('test')" },
+        },
+      ]);
+    });
+
+    test('finds use with database and single quotes diagnostic issue', () => {
+      const textFromEditor = "use 'test'";
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 10 },
+          },
+          message: "Did you mean `use('test')`?",
+          data: { fix: "use('test')" },
+        },
+      ]);
+    });
+
+    test('finds use with database and double quotes diagnostic issue', () => {
+      const textFromEditor = 'use "test"';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 10 },
+          },
+          message: "Did you mean `use('test')`?",
+          data: { fix: "use('test')" },
+        },
+      ]);
+    });
+
+    test('finds show databases diagnostic issue', () => {
+      const textFromEditor = 'show databases';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 14 },
+          },
+          message: 'Did you mean `db.getMongo().getDBs()`?',
+          data: { fix: 'db.getMongo().getDBs()' },
+        },
+      ]);
+    });
+
+    test('finds show dbs diagnostic issue', () => {
+      const textFromEditor = 'show dbs';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 8 },
+          },
+          message: 'Did you mean `db.getMongo().getDBs()`?',
+          data: { fix: 'db.getMongo().getDBs()' },
+        },
+      ]);
+    });
+
+    test('finds show collections diagnostic issue', () => {
+      const textFromEditor = 'show collections';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 16 },
+          },
+          message: 'Did you mean `db.getCollectionNames()`?',
+          data: { fix: 'db.getCollectionNames()' },
+        },
+      ]);
+    });
+
+    test('finds show tables diagnostic issue', () => {
+      const textFromEditor = 'show tables';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 11 },
+          },
+          message: 'Did you mean `db.getCollectionNames()`?',
+          data: { fix: 'db.getCollectionNames()' },
+        },
+      ]);
+    });
+
+    test('finds show profile diagnostic issue', () => {
+      const textFromEditor = 'show profile';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 12 },
+          },
+          message: "Did you mean `db.getCollection('system.profile').find()`?",
+          data: { fix: "db.getCollection('system.profile').find()" },
+        },
+      ]);
+    });
+
+    test('finds show users diagnostic issue', () => {
+      const textFromEditor = 'show users';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 10 },
+          },
+          message: 'Did you mean `db.getUsers()`?',
+          data: { fix: 'db.getUsers()' },
+        },
+      ]);
+    });
+
+    test('finds show roles diagnostic issue', () => {
+      const textFromEditor = 'show roles';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 10 },
+          },
+          message: 'Did you mean `db.getRoles({ showBuiltinRoles: true })`?',
+          data: { fix: 'db.getRoles({ showBuiltinRoles: true })' },
+        },
+      ]);
+    });
+
+    test('finds show logs diagnostic issue', () => {
+      const textFromEditor = 'show logs';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 9 },
+          },
+          message: "Did you mean `db.adminCommand({ getLog: '*' })`?",
+          data: { fix: "db.adminCommand({ getLog: '*' })" },
+        },
+      ]);
+    });
+
+    test('finds show log without type diagnostic issue', () => {
+      const textFromEditor = 'show log ';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 9 },
+          },
+          message: "Did you mean `db.adminCommand({ getLog: 'global' })`?",
+          data: { fix: "db.adminCommand({ getLog: 'global' })" },
+        },
+      ]);
+    });
+
+    test('finds show log with type and single quotes diagnostic issue', () => {
+      const textFromEditor = "show log 'global'";
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 17 },
+          },
+          message: "Did you mean `db.adminCommand({ getLog: 'global' })`?",
+          data: { fix: "db.adminCommand({ getLog: 'global' })" },
+        },
+      ]);
+    });
+
+    test('finds show log with type and double quotes diagnostic issue', () => {
+      const textFromEditor = 'show log "startupWarnings"';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([
+        {
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 26 },
+          },
+          message:
+            "Did you mean `db.adminCommand({ getLog: 'startupWarnings' })`?",
+          data: { fix: "db.adminCommand({ getLog: 'startupWarnings' })" },
+        },
+      ]);
     });
   });
 });

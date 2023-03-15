@@ -118,8 +118,10 @@ export default class MongoDBService {
     }
 
     try {
-      // Get and cache log names for diagnostic fixes.
-      this._cachedLogs = await this._getLogs();
+      // Get log names for the admin database.
+      const logNames = await this._getLogs();
+      // Cache log names for diagnostic fixes.
+      this._cacheLogNames(logNames);
     } catch (error) {
       this._connection.console.error(
         `LS get logs error: ${util.inspect(error)}`
@@ -628,10 +630,10 @@ export default class MongoDBService {
                 endCharacter += item.label.length;
               } else if (line.indexOf(`use '${item.label}'`) >= 0) {
                 databaseName = item.label;
-                endCharacter += item.label.length;
+                endCharacter += item.label.length + 2;
               } else if (line.indexOf(`use "${item.label}"`) >= 0) {
                 databaseName = item.label;
-                endCharacter += item.label.length;
+                endCharacter += item.label.length + 2;
               }
             });
             fix = `use('${databaseName}')`;
@@ -646,10 +648,10 @@ export default class MongoDBService {
                 endCharacter += name.length;
               } else if (line.indexOf(`show log '${name}'`) >= 0) {
                 logName = name;
-                endCharacter += name.length;
+                endCharacter += name.length + 2;
               } else if (line.indexOf(`show log "${name}"`) >= 0) {
                 logName = name;
-                endCharacter += name.length;
+                endCharacter += name.length + 2;
               }
             });
             fix = `db.adminCommand({ getLog: '${logName}' })`;
@@ -686,6 +688,13 @@ export default class MongoDBService {
 
       this._cachedFields[namespace] = fields ? fields : [];
     }
+  }
+
+  /**
+   * Cache log names for diagnostic fixes.
+   */
+  _cacheLogNames(logs: string[]): void {
+    this._cachedLogs = logs;
   }
 
   /**
