@@ -300,9 +300,16 @@ suite('Telemetry Controller Test Suite', () => {
     const mode = ExportToLanguageMode.QUERY;
     const language = 'python';
 
-    mdbTestExtension.testExtensionController._playgroundController._playgroundSelectedCodeActionProvider.mode =
-      mode;
-    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons =
+    sandbox.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._playgroundSelectedCodeActionProvider,
+      'mode',
+      mode
+    );
+    sandbox.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._exportToLanguageCodeLensProvider,
+      '_exportToLanguageAddons',
       {
         textFromEditor,
         selectedText: textFromEditor,
@@ -311,7 +318,8 @@ suite('Telemetry Controller Test Suite', () => {
         driverSyntax: false,
         builders: false,
         language,
-      };
+      }
+    );
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
@@ -342,9 +350,16 @@ suite('Telemetry Controller Test Suite', () => {
     const mode = ExportToLanguageMode.AGGREGATION;
     const language = 'java';
 
-    mdbTestExtension.testExtensionController._playgroundController._playgroundSelectedCodeActionProvider.mode =
-      mode;
-    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons =
+    sandbox.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._playgroundSelectedCodeActionProvider,
+      'mode',
+      mode
+    );
+    sandbox.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._exportToLanguageCodeLensProvider,
+      '_exportToLanguageAddons',
       {
         textFromEditor,
         selectedText: textFromEditor,
@@ -353,7 +368,8 @@ suite('Telemetry Controller Test Suite', () => {
         driverSyntax: false,
         builders: false,
         language,
-      };
+      }
+    );
 
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
