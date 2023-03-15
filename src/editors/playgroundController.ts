@@ -28,6 +28,8 @@ import {
   ExportToLanguageAddons,
   ExportToLanguageNamespace,
   ExportToLanguageMode,
+  ThisDiagnosticFix,
+  AllDiagnosticFixes,
 } from '../types/playgroundType';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME,
@@ -125,7 +127,7 @@ export default class PlaygroundController {
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider,
-    codeActionProvider: PlaygroundSelectedCodeActionProvider,
+    playgroundSelectedCodeActionProvide: PlaygroundSelectedCodeActionProvider,
     explorerController: ExplorerController
   ) {
     this._connectionController = connectionController;
@@ -138,7 +140,8 @@ export default class PlaygroundController {
       vscode.window.createOutputChannel('Playground output');
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
-    this._playgroundSelectedCodeActionProvider = codeActionProvider;
+    this._playgroundSelectedCodeActionProvider =
+      playgroundSelectedCodeActionProvide;
     this._explorerController = explorerController;
 
     this._connectionController.addEventListener(
@@ -272,9 +275,15 @@ export default class PlaygroundController {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       const filePath = workspaceFolder?.uri.fsPath || os.homedir();
 
+      // We count open untitled playground files to use this number as part of a new playground path.
       const numberUntitledPlaygrounds = vscode.workspace.textDocuments.filter(
         (doc) => isPlayground(doc.uri)
       ).length;
+
+      // We need a secondary `mongodb` extension otherwise VSCode will
+      // suggest playground-1.js name when saving playground to the disk.
+      // Users can open playgrounds from the disc
+      // and we need a way to distinguish this files from regular JS files.
       const fileName = path.join(
         filePath,
         `playground-${numberUntitledPlaygrounds + 1}.mongodb.js`
@@ -293,6 +302,8 @@ export default class PlaygroundController {
       await vscode.workspace.applyEdit(edit);
 
       // Actually show the editor.
+      // After deprecating the mongodb language, we open playgrounds by URI
+      // to identify playground files by the secondary `mongodb` extension.
       const document = await vscode.workspace.openTextDocument(documentUri);
 
       // Focus new text document.
@@ -637,6 +648,31 @@ export default class PlaygroundController {
     }
 
     return this._evaluatePlayground();
+  }
+
+  async fixThisInvalidInteractiveSyntax({
+    documentUri,
+    range,
+    fix,
+  }: ThisDiagnosticFix) {
+    const edit = new vscode.WorkspaceEdit();
+    edit.replace(documentUri, range, fix);
+    await vscode.workspace.applyEdit(edit);
+    return true;
+  }
+
+  async fixAllInvalidInteractiveSyntax({
+    documentUri,
+    diagnostics,
+  }: AllDiagnosticFixes) {
+    const edit = new vscode.WorkspaceEdit();
+
+    for (const { range, fix } of diagnostics) {
+      edit.replace(documentUri, range, fix);
+    }
+
+    await vscode.workspace.applyEdit(edit);
+    return true;
   }
 
   async openPlayground(filePath: string): Promise<boolean> {

@@ -69,3 +69,17 @@ export interface WorkerEvaluate {
   connectionString: string;
   connectionOptions: MongoClientOptions;
 }
+
+export interface ThisDiagnosticFix {
+  documentUri: vscode.Uri;
+  range: any;
+  fix: string;
+}
+
+export interface AllDiagnosticFixes {
+  documentUri: vscode.Uri;
+  diagnostics: {
+    range: any;
+    fix: string;
+  }[];
+}

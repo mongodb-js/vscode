@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 
 import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from './editors/playgroundSelectedCodeActionProvider';
+import PlaygroundDiagnosticsCodeActionProvider from './editors/playgroundDiagnosticsCodeActionProvider';
 import ConnectionController from './connectionController';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
 import { createLogger } from './logging';
@@ -45,6 +46,7 @@ const log = createLogger('commands');
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
   _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _context: vscode.ExtensionContext;
   _editorsController: EditorsController;
@@ -98,6 +100,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       new ExportToLanguageCodeLensProvider();
     this._playgroundSelectedCodeActionProvider =
       new PlaygroundSelectedCodeActionProvider();
+    this._playgroundDiagnosticsCodeActionProvider =
+      new PlaygroundDiagnosticsCodeActionProvider();
     this._playgroundController = new PlaygroundController(
       this._connectionController,
       this._languageServerController,
@@ -119,6 +123,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._activeConnectionCodeLensProvider,
       this._exportToLanguageCodeLensProvider,
       this._playgroundSelectedCodeActionProvider,
+      this._playgroundDiagnosticsCodeActionProvider,
       this._editDocumentCodeLensProvider
     );
     this._webviewController = new WebviewController(
@@ -194,6 +199,16 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX,
+      (data) => this._playgroundController.fixThisInvalidInteractiveSyntax(data)
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX,
+      (data) => this._playgroundController.fixAllInvalidInteractiveSyntax(data)
     );
 
     // ------ EXPORT TO LANGUAGE ------ //

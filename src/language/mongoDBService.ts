@@ -1,10 +1,15 @@
 import * as util from 'util';
-import { CompletionItemKind, MarkupKind } from 'vscode-languageserver/node';
+import {
+  CompletionItemKind,
+  MarkupKind,
+  DiagnosticSeverity,
+} from 'vscode-languageserver/node';
 import type {
   CancellationToken,
   Connection,
   CompletionItem,
   MarkupContent,
+  Diagnostic,
 } from 'vscode-languageserver/node';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
@@ -25,6 +30,7 @@ import type {
   MongoClientOptions,
 } from '../types/playgroundType';
 import { Visitor } from './visitor';
+import DIAGNOSTIC_CODES from './diagnosticCodes';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
@@ -46,6 +52,8 @@ export default class MongoDBService {
   _cachedCollections: { [database: string]: CompletionItem[] } = {};
   _cachedShellSymbols: { [symbol: string]: CompletionItem[] } = {};
   _cachedTopLevelIdentifiers: CompletionItem[] = [];
+
+  _cachedLogs: string[] = [];
 
   _visitor: Visitor;
   _serviceProvider?: CliServiceProvider;
@@ -86,7 +94,7 @@ export default class MongoDBService {
     connectionId,
     connectionString,
     connectionOptions,
-  }: ServiceProviderParams): Promise<boolean> {
+  }: ServiceProviderParams): Promise<void> {
     // If already connected close the previous connection.
     await this.disconnectFromServiceProvider();
 
@@ -101,15 +109,21 @@ export default class MongoDBService {
     try {
       // Get database names for the current connection.
       const databases = await this._getDatabases();
-
       // Create and cache database completion items.
       this._cacheDatabaseCompletionItems(databases);
-      return Promise.resolve(true);
     } catch (error) {
       this._connection.console.error(
         `LS get databases error: ${util.inspect(error)}`
       );
-      return Promise.resolve(false);
+    }
+
+    try {
+      // Get and cache log names for diagnostic fixes.
+      this._cachedLogs = await this._getLogs();
+    } catch (error) {
+      this._connection.console.error(
+        `LS get logs error: ${util.inspect(error)}`
+      );
     }
   }
 
@@ -245,6 +259,28 @@ export default class MongoDBService {
       result = documents.databases ?? [];
     } catch (error) {
       this._connection.console.error(`LS get databases error: ${error}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Get log names for the admin database.
+   */
+  async _getLogs(): Promise<string[]> {
+    let result: string[] = [];
+
+    if (!this._serviceProvider) {
+      return [];
+    }
+
+    try {
+      const document = await this._serviceProvider.runCommand('admin', {
+        getLog: '*',
+      });
+      result = document?.names ?? [];
+    } catch (error) {
+      this._connection.console.error(`LS get logs error: ${error}`);
     }
 
     return result;
@@ -557,6 +593,86 @@ export default class MongoDBService {
     return [];
   }
 
+  // Highlight the usage of commands that only works inside interactive session.
+  provideDiagnostics(textFromEditor: string) {
+    const lines = textFromEditor.split(/\r?\n/g);
+    const diagnostics: Diagnostic[] = [];
+    const invalidInteractiveSyntaxes = [
+      { issue: 'use ', fix: "use('database')" },
+      { issue: 'show databases', fix: 'db.getMongo().getDBs()' },
+      { issue: 'show dbs', fix: 'db.getMongo().getDBs()' },
+      { issue: 'show collections', fix: 'db.getCollectionNames()' },
+      { issue: 'show tables', fix: 'db.getCollectionNames()' },
+      {
+        issue: 'show profile',
+        fix: "db.getCollection('system.profile').find()",
+      },
+      { issue: 'show users', fix: 'db.getUsers()' },
+      { issue: 'show roles', fix: 'db.getRoles({ showBuiltinRoles: true })' },
+      { issue: 'show logs', fix: "db.adminCommand({ getLog: '*' })" },
+      { issue: 'show log ', fix: "db.adminCommand({ getLog: 'global' })" },
+    ];
+
+    lines.forEach((line, i) => {
+      invalidInteractiveSyntaxes.forEach(({ issue, fix }) => {
+        const startCharacter = line.indexOf(issue);
+        let endCharacter = startCharacter + issue.length;
+
+        if (startCharacter >= 0) {
+          if (issue === 'use ') {
+            let databaseName = 'database';
+
+            this._cachedDatabases.forEach((item: CompletionItem) => {
+              if (line.indexOf(`use ${item.label}`) >= 0) {
+                databaseName = item.label;
+                endCharacter += item.label.length;
+              } else if (line.indexOf(`use '${item.label}'`) >= 0) {
+                databaseName = item.label;
+                endCharacter += item.label.length;
+              } else if (line.indexOf(`use "${item.label}"`) >= 0) {
+                databaseName = item.label;
+                endCharacter += item.label.length;
+              }
+            });
+            fix = `use('${databaseName}')`;
+          }
+
+          if (issue === 'show log ') {
+            let logName = 'global';
+
+            this._cachedLogs.forEach((name: string) => {
+              if (line.indexOf(`show log ${name}`) >= 0) {
+                logName = name;
+                endCharacter += name.length;
+              } else if (line.indexOf(`show log '${name}'`) >= 0) {
+                logName = name;
+                endCharacter += name.length;
+              } else if (line.indexOf(`show log "${name}"`) >= 0) {
+                logName = name;
+                endCharacter += name.length;
+              }
+            });
+            fix = `db.adminCommand({ getLog: '${logName}' })`;
+          }
+
+          diagnostics.push({
+            severity: DiagnosticSeverity.Error,
+            source: 'mongodb',
+            code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+            range: {
+              start: { line: i, character: startCharacter },
+              end: { line: i, character: endCharacter },
+            },
+            message: `Did you mean \`${fix}\`?`,
+            data: { fix },
+          });
+        }
+      });
+    });
+
+    return diagnostics;
+  }
+
   /**
    * Convert schema field names to Completion Items and cache them.
    */
@@ -576,8 +692,8 @@ export default class MongoDBService {
    * Convert database names to Completion Items and cache them.
    */
   _cacheDatabaseCompletionItems(databases: Document[]): void {
-    this._cachedDatabases = databases.map((item) => ({
-      label: (item as { name: string }).name,
+    this._cachedDatabases = databases.map((db) => ({
+      label: (db as { name: string }).name,
       kind: CompletionItemKind.Field,
       preselect: true,
     }));

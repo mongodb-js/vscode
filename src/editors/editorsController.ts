@@ -4,6 +4,7 @@ import { EJSON } from 'bson';
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
+import PlaygroundDiagnosticsCodeActionProvider from './playgroundDiagnosticsCodeActionProvider';
 import ConnectionController from '../connectionController';
 import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
@@ -84,6 +85,7 @@ export function getViewCollectionDocumentsUri(
  */
 export default class EditorsController {
   _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _playgroundController: PlaygroundController;
   _collectionDocumentsOperationsStore =
@@ -110,7 +112,8 @@ export default class EditorsController {
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider,
-    codeActionProvider: PlaygroundSelectedCodeActionProvider,
+    playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider,
+    playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider,
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider
   ) {
     this._connectionController = connectionController;
@@ -141,7 +144,10 @@ export default class EditorsController {
       new CollectionDocumentsCodeLensProvider(
         this._collectionDocumentsOperationsStore
       );
-    this._playgroundSelectedCodeActionProvider = codeActionProvider;
+    this._playgroundSelectedCodeActionProvider =
+      playgroundSelectedCodeActionProvider;
+    this._playgroundDiagnosticsCodeActionProvider =
+      playgroundDiagnosticsCodeActionProvider;
 
     vscode.workspace.onDidCloseTextDocument((e) => {
       const uriParams = new URLSearchParams(e.uri.query);
@@ -433,6 +439,16 @@ export default class EditorsController {
         {
           providedCodeActionKinds:
             PlaygroundSelectedCodeActionProvider.providedCodeActionKinds,
+        }
+      )
+    );
+    this._context.subscriptions.push(
+      vscode.languages.registerCodeActionsProvider(
+        'javascript',
+        this._playgroundDiagnosticsCodeActionProvider,
+        {
+          providedCodeActionKinds:
+            PlaygroundDiagnosticsCodeActionProvider.providedCodeActionKinds,
         }
       )
     );
