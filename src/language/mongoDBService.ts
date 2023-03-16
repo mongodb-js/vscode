@@ -254,28 +254,6 @@ export default class MongoDBService {
   }
 
   /**
-   * Get log names for the admin database.
-   */
-  async _getLogs(): Promise<string[]> {
-    let result: string[] = [];
-
-    if (!this._serviceProvider) {
-      return [];
-    }
-
-    try {
-      const document = await this._serviceProvider.runCommand('admin', {
-        getLog: '*',
-      });
-      result = document?.names ?? [];
-    } catch (error) {
-      this._connection.console.error(`LS get logs error: ${error}`);
-    }
-
-    return result;
-  }
-
-  /**
    * Get collection names for the provided database name.
    */
   async _getCollections(databaseName: string): Promise<Document[]> {
