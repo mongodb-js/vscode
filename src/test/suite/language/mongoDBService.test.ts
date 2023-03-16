@@ -1556,6 +1556,14 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._cacheDatabaseCompletionItems([{ name: 'test' }]);
     });
 
+    test('does not find use diagnostic issue when a line does not start with use', () => {
+      const textFromEditor =
+        "You can use '.hasNext()/.next()' to iterate through the cursor page by page";
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([]);
+    });
+
     test('finds use without database diagnostic issue', () => {
       const textFromEditor = 'use ';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);

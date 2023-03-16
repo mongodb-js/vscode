@@ -586,32 +586,31 @@ export default class MongoDBService {
 
     for (const [i, line] of lines.entries()) {
       for (const item of invalidInteractiveSyntaxes) {
-        const issue = item.issue;
+        const issue = item.issue.trim();
         const startCharacter = line.indexOf(issue);
-        if (startCharacter === -1) {
+        if (!line.trim().startsWith(issue)) {
           continue;
         }
 
-        const issueSubstring = line.substring(startCharacter);
-        if (issue === 'show log' && issueSubstring.startsWith('show logs')) {
+        if (issue === 'show log' && line.trim().startsWith('show logs')) {
           continue;
         }
 
-        let endCharacter = startCharacter + issue.trim().length;
+        let endCharacter = startCharacter + issue.length;
         let valueToReplaceWith = item.default;
         let fix = item.fix;
 
         // If there is a default value, it should be used
         // instead of VALUE_TO_REPLACE placeholder of the `fix` string.
-        if (valueToReplaceWith && issueSubstring.startsWith(issue)) {
-          const words = issueSubstring.split(' ');
+        if (valueToReplaceWith) {
+          const words = line.substring(startCharacter).split(' ');
 
           // The index of the value for `use <value>` and `show log <value>`.
-          const valueIndex = issue.trim().split(' ').length;
+          const valueIndex = issue.split(' ').length;
 
           if (words[valueIndex]) {
             // The `use ('database')` is a valid JS.
-            if (issue === 'use ' && words[valueIndex].startsWith('(')) {
+            if (issue === 'use' && words[valueIndex].startsWith('(')) {
               continue;
             }
 
