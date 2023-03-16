@@ -53,8 +53,6 @@ export default class MongoDBService {
   _cachedShellSymbols: { [symbol: string]: CompletionItem[] } = {};
   _cachedTopLevelIdentifiers: CompletionItem[] = [];
 
-  _cachedLogs: string[] = [];
-
   _visitor: Visitor;
   _serviceProvider?: CliServiceProvider;
 
@@ -114,17 +112,6 @@ export default class MongoDBService {
     } catch (error) {
       this._connection.console.error(
         `LS get databases error: ${util.inspect(error)}`
-      );
-    }
-
-    try {
-      // Get log names for the admin database.
-      const logNames = await this._getLogs();
-      // Cache log names for diagnostic fixes.
-      this._cacheLogNames(logNames);
-    } catch (error) {
-      this._connection.console.error(
-        `LS get logs error: ${util.inspect(error)}`
       );
     }
   }
@@ -600,7 +587,7 @@ export default class MongoDBService {
     const lines = textFromEditor.split(/\r?\n/g);
     const diagnostics: Diagnostic[] = [];
     const invalidInteractiveSyntaxes = [
-      { issue: 'use ', fix: "use('database')" },
+      { issue: 'use ', fix: "use('VALUE_TO_REPLACE')", default: 'database' },
       { issue: 'show databases', fix: 'db.getMongo().getDBs()' },
       { issue: 'show dbs', fix: 'db.getMongo().getDBs()' },
       { issue: 'show collections', fix: 'db.getCollectionNames()' },
@@ -612,65 +599,67 @@ export default class MongoDBService {
       { issue: 'show users', fix: 'db.getUsers()' },
       { issue: 'show roles', fix: 'db.getRoles({ showBuiltinRoles: true })' },
       { issue: 'show logs', fix: "db.adminCommand({ getLog: '*' })" },
-      { issue: 'show log ', fix: "db.adminCommand({ getLog: 'global' })" },
+      {
+        issue: 'show log',
+        fix: "db.adminCommand({ getLog: 'VALUE_TO_REPLACE' })",
+        default: 'global',
+      },
     ];
 
-    lines.forEach((line, i) => {
-      invalidInteractiveSyntaxes.forEach(({ issue, fix }) => {
+    for (const [i, line] of lines.entries()) {
+      for (const item of invalidInteractiveSyntaxes) {
+        const issue = item.issue;
         const startCharacter = line.indexOf(issue);
-        let endCharacter = startCharacter + issue.length;
-
-        if (startCharacter >= 0) {
-          if (issue === 'use ') {
-            let databaseName = 'database';
-
-            this._cachedDatabases.forEach((item: CompletionItem) => {
-              if (line.indexOf(`use ${item.label}`) >= 0) {
-                databaseName = item.label;
-                endCharacter += item.label.length;
-              } else if (line.indexOf(`use '${item.label}'`) >= 0) {
-                databaseName = item.label;
-                endCharacter += item.label.length + 2;
-              } else if (line.indexOf(`use "${item.label}"`) >= 0) {
-                databaseName = item.label;
-                endCharacter += item.label.length + 2;
-              }
-            });
-            fix = `use('${databaseName}')`;
-          }
-
-          if (issue === 'show log ') {
-            let logName = 'global';
-
-            this._cachedLogs.forEach((name: string) => {
-              if (line.indexOf(`show log ${name}`) >= 0) {
-                logName = name;
-                endCharacter += name.length;
-              } else if (line.indexOf(`show log '${name}'`) >= 0) {
-                logName = name;
-                endCharacter += name.length + 2;
-              } else if (line.indexOf(`show log "${name}"`) >= 0) {
-                logName = name;
-                endCharacter += name.length + 2;
-              }
-            });
-            fix = `db.adminCommand({ getLog: '${logName}' })`;
-          }
-
-          diagnostics.push({
-            severity: DiagnosticSeverity.Error,
-            source: 'mongodb',
-            code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
-            range: {
-              start: { line: i, character: startCharacter },
-              end: { line: i, character: endCharacter },
-            },
-            message: `Did you mean \`${fix}\`?`,
-            data: { fix },
-          });
+        if (startCharacter === -1) {
+          continue;
         }
-      });
-    });
+
+        const issueSubstring = line.substring(startCharacter);
+        if (issue === 'show log' && issueSubstring.startsWith('show logs')) {
+          continue;
+        }
+
+        let endCharacter = startCharacter + issue.trim().length;
+        let valueToReplaceWith = item.default;
+        let fix = item.fix;
+
+        // If there is a default value, it should be used
+        // instead of VALUE_TO_REPLACE placeholder of the `fix` string.
+        if (valueToReplaceWith && issueSubstring.startsWith(issue)) {
+          const words = issueSubstring.split(' ');
+
+          // The index of the value for `use <value>` and `show log <value>`.
+          const valueIndex = issue.trim().split(' ').length;
+
+          if (words[valueIndex]) {
+            // The `use ('database')` is a valid JS.
+            if (issue === 'use ' && words[valueIndex].startsWith('(')) {
+              continue;
+            }
+
+            // Get the value from a string by removing quotes if any.
+            valueToReplaceWith = words[valueIndex].replace(/['";]+/g, '');
+
+            // Add the replacement value and the space between to the total command length.
+            endCharacter += words[valueIndex].length + 1;
+          }
+
+          fix = fix.replace('VALUE_TO_REPLACE', valueToReplaceWith);
+        }
+
+        diagnostics.push({
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: i, character: startCharacter },
+            end: { line: i, character: endCharacter },
+          },
+          message: `Did you mean \`${fix}\`?`,
+          data: { fix },
+        });
+      }
+    }
 
     return diagnostics;
   }
@@ -688,13 +677,6 @@ export default class MongoDBService {
 
       this._cachedFields[namespace] = fields ? fields : [];
     }
-  }
-
-  /**
-   * Cache log names for diagnostic fixes.
-   */
-  _cacheLogNames(logs: string[]): void {
-    this._cachedLogs = logs;
   }
 
   /**

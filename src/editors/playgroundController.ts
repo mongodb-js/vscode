@@ -282,7 +282,7 @@ export default class PlaygroundController {
 
       // We need a secondary `mongodb` extension otherwise VSCode will
       // suggest playground-1.js name when saving playground to the disk.
-      // Users can open playgrounds from the disc
+      // Users can open playgrounds from the disk
       // and we need a way to distinguish this files from regular JS files.
       const fileName = path.join(
         filePath,
@@ -302,8 +302,8 @@ export default class PlaygroundController {
       await vscode.workspace.applyEdit(edit);
 
       // Actually show the editor.
-      // After deprecating the mongodb language, we open playgrounds by URI
-      // to identify playground files by the secondary `mongodb` extension.
+      // We open playgrounds by URI to use the secondary `mongodb` extension
+      // as an identifier that distinguishes them from regular JS files.
       const document = await vscode.workspace.openTextDocument(documentUri);
 
       // Focus new text document.
