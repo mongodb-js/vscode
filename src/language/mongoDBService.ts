@@ -565,7 +565,7 @@ export default class MongoDBService {
     const lines = textFromEditor.split(/\r?\n/g);
     const diagnostics: Diagnostic[] = [];
     const invalidInteractiveSyntaxes = [
-      { issue: 'use ', fix: "use('VALUE_TO_REPLACE')", default: 'database' },
+      { issue: 'use', fix: "use('VALUE_TO_REPLACE')", default: 'database' },
       { issue: 'show databases', fix: 'db.getMongo().getDBs()' },
       { issue: 'show dbs', fix: 'db.getMongo().getDBs()' },
       { issue: 'show collections', fix: 'db.getCollectionNames()' },
@@ -586,7 +586,7 @@ export default class MongoDBService {
 
     for (const [i, line] of lines.entries()) {
       for (const item of invalidInteractiveSyntaxes) {
-        const issue = item.issue.trim();
+        const issue = item.issue;
         const startCharacter = line.indexOf(issue);
         if (!line.trim().startsWith(issue)) {
           continue;
