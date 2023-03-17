@@ -8,19 +8,13 @@ import { resolve } from 'path';
 import sinon from 'sinon';
 import type { SinonSpy } from 'sinon';
 import sinonChai from 'sinon-chai';
-import SegmentAnalytics from 'analytics-node';
 
 import { ConnectionTypes } from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';
 import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { mdbTestExtension } from '../stubbableMdbExtension';
-import {
-  SegmentProperties,
-  TelemetryEventTypes,
-} from '../../../telemetry/telemetryService';
 
 const expect = chai.expect;
-const { version } = require('../../../../package.json');
 
 chai.use(sinonChai);
 
@@ -30,21 +24,13 @@ suite('Telemetry Controller Test Suite', () => {
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
   let dataServiceStub: DataService;
+  const { anonymousId } = testTelemetryService.getTelemetryUserIdentity();
 
-  let fakeTrackNewConnection: SinonSpy;
-  let fakeTrackCommandRun: SinonSpy;
-  let fakeTrackPlaygroundCodeExecuted: SinonSpy;
-  let fakeTrackPlaygroundLoadedMethod: SinonSpy;
-  let fakeTrack: SinonSpy;
+  let fakeSegmentAnalyticsTrack: SinonSpy;
+
   const sandbox = sinon.createSandbox();
 
   beforeEach(() => {
-    fakeTrackNewConnection = sandbox.fake.resolves(true);
-    fakeTrackCommandRun = sandbox.fake();
-    fakeTrackPlaygroundCodeExecuted = sandbox.fake();
-    fakeTrackPlaygroundLoadedMethod = sandbox.fake();
-    fakeTrack = sandbox.fake();
-
     const instanceStub = sandbox.stub();
     instanceStub.resolves({
       dataLake: {},
@@ -56,27 +42,24 @@ suite('Telemetry Controller Test Suite', () => {
       instance: instanceStub,
     } as Pick<DataService, 'instance'> as unknown as DataService;
 
+    fakeSegmentAnalyticsTrack = sandbox.fake();
     sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
-      'trackCommandRun',
-      fakeTrackCommandRun
+      '_segmentAnalyticsTrack',
+      fakeSegmentAnalyticsTrack
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
-        ._telemetryService,
-      'trackPlaygroundCodeExecuted',
-      fakeTrackPlaygroundCodeExecuted
-    );
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._playgroundController
-        ._telemetryService,
-      'trackPlaygroundLoaded',
-      fakeTrackPlaygroundLoadedMethod
-    );
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._languageServerController,
+        ._languageServerController,
       'evaluate',
-      sandbox.fake.resolves([{ type: 'TEST', content: 'Result' }])
+      sandbox.fake.resolves({
+        result: {
+          namespace: 'db.coll',
+          type: 'other',
+          content: 'dbs',
+          language: 'plaintext',
+        },
+      })
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
@@ -109,6 +92,11 @@ suite('Telemetry Controller Test Suite', () => {
       })
     );
     sandbox.stub(vscode.window, 'showInformationMessage');
+    sandbox.replace(
+      testTelemetryService,
+      '_isTelemetryFeatureEnabled',
+      sandbox.fake.returns(true)
+    );
   });
 
   afterEach(() => {
@@ -117,7 +105,7 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('get segment key', () => {
-    let segmentKey: string | undefined;
+    let segmentKey;
 
     try {
       const segmentKeyFileLocation = '../../../../constants';
@@ -132,110 +120,109 @@ suite('Telemetry Controller Test Suite', () => {
 
   test('track command run event', async () => {
     await vscode.commands.executeCommand('mdb.addConnection');
-    sandbox.assert.calledWith(fakeTrackCommandRun, 'mdb.addConnection');
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Command Run',
+        properties: {
+          command: 'mdb.addConnection',
+          extension_version: '0.0.0-dev.0',
+        },
+      })
+    );
   });
 
-  test('track new connection event when connecting via connection string', () => {
-    const testConnectionController =
-      mdbTestExtension.testExtensionController._connectionController;
-
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
-      'trackNewConnection',
-      fakeTrackNewConnection
-    );
-
-    testConnectionController.sendTelemetry(
+  test('track new connection event when connecting via connection string', async () => {
+    await testTelemetryService.trackNewConnection(
       dataServiceStub,
       ConnectionTypes.CONNECTION_STRING
     );
-
     sandbox.assert.calledWith(
-      fakeTrackNewConnection,
-      sandbox.match.any,
-      sandbox.match(ConnectionTypes.CONNECTION_STRING)
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'New Connection',
+        properties: {
+          is_used_connect_screen: false,
+          is_used_command_palette: true,
+          is_used_saved_connection: false,
+          vscode_mdb_extension_version: '0.0.0-dev.0',
+          extension_version: '0.0.0-dev.0',
+        },
+      })
     );
   });
 
-  test('track new connection event when connecting via connection form', () => {
-    const testConnectionController =
-      mdbTestExtension.testExtensionController._connectionController;
-
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
-      'trackNewConnection',
-      fakeTrackNewConnection
-    );
-
-    testConnectionController.sendTelemetry(
+  test('track new connection event when connecting via connection form', async () => {
+    await testTelemetryService.trackNewConnection(
       dataServiceStub,
       ConnectionTypes.CONNECTION_FORM
     );
-
     sandbox.assert.calledWith(
-      fakeTrackNewConnection,
-      sandbox.match.any,
-      sandbox.match(ConnectionTypes.CONNECTION_FORM)
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'New Connection',
+        properties: {
+          is_used_connect_screen: true,
+          is_used_command_palette: false,
+          is_used_saved_connection: false,
+          vscode_mdb_extension_version: '0.0.0-dev.0',
+          extension_version: '0.0.0-dev.0',
+        },
+      })
     );
   });
 
-  test('track new connection event when connecting via saved connection', () => {
-    const testConnectionController =
-      mdbTestExtension.testExtensionController._connectionController;
-
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
-      'trackNewConnection',
-      fakeTrackNewConnection
-    );
-
-    testConnectionController.sendTelemetry(
+  test('track new connection event when connecting via saved connection', async () => {
+    await testTelemetryService.trackNewConnection(
       dataServiceStub,
       ConnectionTypes.CONNECTION_ID
     );
-
     sandbox.assert.calledWith(
-      fakeTrackNewConnection,
-      sandbox.match.any,
-      sandbox.match(ConnectionTypes.CONNECTION_ID)
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'New Connection',
+        properties: {
+          is_used_connect_screen: false,
+          is_used_command_palette: false,
+          is_used_saved_connection: true,
+          vscode_mdb_extension_version: '0.0.0-dev.0',
+          extension_version: '0.0.0-dev.0',
+        },
+      })
     );
   });
 
   test('track document saved form a tree-view event', () => {
     const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
-
-    sandbox.replace(testTelemetryService, 'track', fakeTrack);
-
     testTelemetryService.trackDocumentUpdated(source, true);
-
     sandbox.assert.calledWith(
-      fakeTrack,
-      sandbox.match('Document Updated'),
-      sandbox.match({ source, success: true })
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Document Updated',
+        properties: {
+          source: 'treeview',
+          success: true,
+          extension_version: '0.0.0-dev.0',
+        },
+      })
     );
   });
 
-  test('track document opened form playground results', async () => {
-    const fakeTrackDocumentOpenedInEditor = sandbox.fake();
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
-      'trackDocumentOpenedInEditor',
-      fakeTrackDocumentOpenedInEditor
-    );
-
-    await vscode.commands.executeCommand(
-      'mdb.openMongoDBDocumentFromCodeLens',
-      {
-        source: 'playground',
-        line: 1,
-        documentId: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-        namespace: 'db.coll',
-        connectionId: null,
-      }
-    );
-
-    expect(fakeTrackDocumentOpenedInEditor.firstCall.firstArg).to.be.equal(
-      'playground'
+  test('track document opened form playground results', () => {
+    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    testTelemetryService.trackDocumentOpenedInEditor(source);
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Document Edited',
+        properties: { source: 'playground', extension_version: '0.0.0-dev.0' },
+      })
     );
   });
 
@@ -243,7 +230,19 @@ suite('Telemetry Controller Test Suite', () => {
     const testPlaygroundController =
       mdbTestExtension.testExtensionController._playgroundController;
     await testPlaygroundController._evaluate('show dbs');
-    sandbox.assert.called(fakeTrackPlaygroundCodeExecuted);
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Playground Code Executed',
+        properties: {
+          type: 'other',
+          partial: false,
+          error: false,
+          extension_version: '0.0.0-dev.0',
+        },
+      })
+    );
   });
 
   test('track playground loaded event', async () => {
@@ -252,71 +251,46 @@ suite('Telemetry Controller Test Suite', () => {
       '../../../../src/test/fixture/testSaving.mongodb'
     );
     await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
-    sandbox.assert.called(fakeTrackPlaygroundLoadedMethod);
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Playground Loaded',
+        properties: { extension_version: '0.0.0-dev.0' },
+      })
+    );
   });
 
   test('track playground saved event', () => {
-    sandbox.replace(testTelemetryService, 'track', fakeTrack);
     testTelemetryService.trackPlaygroundSaved();
-    sandbox.assert.calledWith(fakeTrack);
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Playground Saved',
+        properties: { extension_version: '0.0.0-dev.0' },
+      })
+    );
   });
 
-  test('track adds extension version to event properties when there are no event properties', () => {
-    sandbox.replace(
-      testTelemetryService,
-      '_isTelemetryFeatureEnabled',
-      sandbox.fake.returns(true)
+  test('track link clicked event', () => {
+    testTelemetryService.trackLinkClicked('helpPanel', 'linkId');
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Link Clicked',
+        properties: {
+          screen: 'helpPanel',
+          link_id: 'linkId',
+          extension_version: '0.0.0-dev.0',
+        },
+      })
     );
-    const fakeSegmentTrack = sandbox.fake.yields(null);
-    sandbox.replace(testTelemetryService, '_segmentAnalytics', {
-      track: fakeSegmentTrack,
-    } as unknown as SegmentAnalytics);
-
-    testTelemetryService.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED);
-
-    const telemetryEvent: SegmentProperties =
-      fakeSegmentTrack.firstCall.args[0];
-
-    expect(telemetryEvent.properties).to.deep.equal({
-      extension_version: version,
-    });
-    expect(telemetryEvent.event).to.equal('Link Clicked');
-  });
-
-  test('track adds extension version to existing event properties', () => {
-    sandbox.replace(
-      testTelemetryService,
-      '_isTelemetryFeatureEnabled',
-      sandbox.fake.returns(true)
-    );
-
-    const fakeSegmentTrack = sandbox.fake.yields(null);
-    sandbox.replace(testTelemetryService, '_segmentAnalytics', {
-      track: fakeSegmentTrack,
-    } as unknown as SegmentAnalytics);
-
-    testTelemetryService.track(TelemetryEventTypes.PLAYGROUND_LOADED, {
-      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
-    });
-
-    const telemetryEvent: SegmentProperties =
-      fakeSegmentTrack.firstCall.args[0];
-    expect(telemetryEvent.properties).to.deep.equal({
-      extension_version: version,
-      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
-    });
-    expect(telemetryEvent.event).to.equal('Playground Loaded');
   });
 
   test('track query exported to language', async function () {
     this.timeout(5000);
-
-    const fakeSegmentTrack = sandbox.fake();
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
-      'trackQueryExported',
-      fakeSegmentTrack
-    );
 
     const textFromEditor = "{ '_id': 1, 'item': 'abc', 'price': 10 }";
     const selection = {
@@ -326,9 +300,16 @@ suite('Telemetry Controller Test Suite', () => {
     const mode = ExportToLanguageMode.QUERY;
     const language = 'python';
 
-    mdbTestExtension.testExtensionController._playgroundController._playgroundSelectedCodeActionProvider.mode =
-      mode;
-    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons =
+    sandbox.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._playgroundSelectedCodeActionProvider,
+      'mode',
+      mode
+    );
+    sandbox.replace(
+      mdbTestExtension.testExtensionController._playgroundController
+        ._exportToLanguageCodeLensProvider,
+      '_exportToLanguageAddons',
       {
         textFromEditor,
         selectedText: textFromEditor,
@@ -337,62 +318,51 @@ suite('Telemetry Controller Test Suite', () => {
         driverSyntax: false,
         builders: false,
         language,
-      };
-
-    await mdbTestExtension.testExtensionController._playgroundController._transpile();
-
-    const telemetryArgs = fakeSegmentTrack.getCall(0).args[0];
-    expect(telemetryArgs).to.deep.equal({
-      language,
-      with_import_statements: false,
-      with_builders: false,
-      with_driver_syntax: false,
-    });
-  });
-
-  test('track aggregation exported to language', async function () {
-    this.timeout(5000);
-
-    const fakeSegmentTrack = sandbox.fake.yields(null);
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._telemetryService,
-      'trackAggregationExported',
-      fakeSegmentTrack
+      }
     );
 
-    const textFromEditor = "[{ '_id': 1, 'item': 'abc', 'price': 10 }]";
-    const selection = {
-      start: { line: 0, character: 0 },
-      end: { line: 0, character: 42 },
-    } as vscode.Selection;
-    const mode = ExportToLanguageMode.AGGREGATION;
-    const language = 'java';
-
-    mdbTestExtension.testExtensionController._playgroundController._playgroundSelectedCodeActionProvider.mode =
-      mode;
-    mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider._exportToLanguageAddons =
-      {
-        textFromEditor,
-        // Use undefined instead of the selected text to skip countAggregationStagesInString
-        // that might make the test flaky.
-        selectedText: undefined,
-        selection,
-        importStatements: false,
-        driverSyntax: false,
-        builders: false,
-        language,
-      };
-
     await mdbTestExtension.testExtensionController._playgroundController._transpile();
 
-    const telemetryArgs = fakeSegmentTrack.getCall(0).args[0];
-    expect(telemetryArgs).to.deep.equal({
-      language,
-      num_stages: null,
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Query Exported',
+        properties: {
+          language: 'python',
+          with_import_statements: false,
+          with_builders: false,
+          with_driver_syntax: false,
+          extension_version: '0.0.0-dev.0',
+        },
+      })
+    );
+  });
+
+  test('track aggregation exported to language', () => {
+    testTelemetryService.trackAggregationExported({
+      language: 'java',
+      num_stages: 1,
       with_import_statements: false,
       with_builders: false,
       with_driver_syntax: false,
     });
+
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Aggregation Exported',
+        properties: {
+          language: 'java',
+          num_stages: 1,
+          with_import_statements: false,
+          with_builders: false,
+          with_driver_syntax: false,
+          extension_version: '0.0.0-dev.0',
+        },
+      })
+    );
   });
 
   suite('prepare playground result types', () => {

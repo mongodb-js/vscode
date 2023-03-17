@@ -174,40 +174,47 @@ export default class TelemetryService {
     return true;
   }
 
+  _segmentAnalyticsTrack(segmentProperties: SegmentProperties) {
+    if (!this._isTelemetryFeatureEnabled()) {
+      return;
+    }
+
+    this._segmentAnalytics?.track(segmentProperties, (error?: Error) => {
+      if (error) {
+        log.error('Failed to track telemetry', error);
+      } else {
+        log.info('Telemetry sent', error);
+      }
+    });
+  }
+
   track(
     eventType: TelemetryEventTypes,
     properties?: TelemetryEventProperties
   ): void {
-    if (this._isTelemetryFeatureEnabled()) {
-      const segmentProperties: SegmentProperties = {
-        ...this.getTelemetryUserIdentity(),
-        event: eventType,
-        properties: {
-          ...properties,
-          extension_version: `${version}`,
-        },
-      };
+    this._segmentAnalyticsTrack({
+      ...this.getTelemetryUserIdentity(),
+      event: eventType,
+      properties: {
+        ...properties,
+        extension_version: `${version}`,
+      },
+    });
+  }
 
-      log.info('Telemetry track properties', segmentProperties);
-
-      this._segmentAnalytics?.track(segmentProperties, (error?: Error) => {
-        if (error) {
-          log.error('Failed to track telemetry', error);
-        }
-      });
-    }
+  async _getConnectionTelemetryProperties(
+    dataService: DataService,
+    connectionType: ConnectionTypes
+  ) {
+    return await getConnectionTelemetryProperties(dataService, connectionType);
   }
 
   async trackNewConnection(
     dataService: DataService,
     connectionType: ConnectionTypes
   ): Promise<void> {
-    if (!this._isTelemetryFeatureEnabled()) {
-      return;
-    }
-
     const connectionTelemetryProperties =
-      await getConnectionTelemetryProperties(dataService, connectionType);
+      await this._getConnectionTelemetryProperties(dataService, connectionType);
 
     this.track(
       TelemetryEventTypes.NEW_CONNECTION,
