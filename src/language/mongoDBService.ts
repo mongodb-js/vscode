@@ -625,9 +625,7 @@ export default class MongoDBService {
           if (words[valueIndex]) {
             // The `use ('database')`, `use []`, `use .` are valid JS strings.
             if (
-              words[valueIndex].startsWith('(') ||
-              words[valueIndex].startsWith('[') ||
-              words[valueIndex].startsWith('.')
+              ['(', '[', '.'].some((word) => words[valueIndex].startsWith(word))
             ) {
               continue;
             }
