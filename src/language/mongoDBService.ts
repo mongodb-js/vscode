@@ -561,6 +561,7 @@ export default class MongoDBService {
   }
 
   // Highlight the usage of commands that only works inside interactive session.
+  // eslint-disable-next-line complexity
   provideDiagnostics(textFromEditor: string) {
     const lines = textFromEditor.split(/\r?\n/g);
     const diagnostics: Diagnostic[] = [];
@@ -586,13 +587,26 @@ export default class MongoDBService {
 
     for (const [i, line] of lines.entries()) {
       for (const item of invalidInteractiveSyntaxes) {
-        const issue = item.issue;
-        const startCharacter = line.indexOf(issue);
-        if (!line.trim().startsWith(issue)) {
+        const issue = item.issue; // E.g. 'use'.
+        const startCharacter = line.indexOf(issue); // The start index where the issue was found in the string.
+
+        // In case of `show logs` exclude `show log` diagnostic issue.
+        if (
+          issue === 'show log' &&
+          line.substring(startCharacter).startsWith('show logs')
+        ) {
           continue;
         }
 
-        if (issue === 'show log' && line.trim().startsWith('show logs')) {
+        // In case of `user.authenticate()` do not rise a diagnostic issue.
+        if (
+          issue === 'use' &&
+          !line.substring(startCharacter).startsWith('use ')
+        ) {
+          continue;
+        }
+
+        if (!line.trim().startsWith(issue)) {
           continue;
         }
 
@@ -609,8 +623,12 @@ export default class MongoDBService {
           const valueIndex = issue.split(' ').length;
 
           if (words[valueIndex]) {
-            // The `use ('database')` is a valid JS.
-            if (issue === 'use' && words[valueIndex].startsWith('(')) {
+            // The `use ('database')`, `use []`, `use .` are valid JS strings.
+            if (
+              words[valueIndex].startsWith('(') ||
+              words[valueIndex].startsWith('[') ||
+              words[valueIndex].startsWith('.')
+            ) {
               continue;
             }
 

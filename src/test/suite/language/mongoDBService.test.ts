@@ -1564,6 +1564,34 @@ suite('MongoDBService Test Suite', () => {
       expect(diagnostics).to.be.deep.equal([]);
     });
 
+    test('does not find use diagnostic issue when use in the middle of other command', () => {
+      const textFromEditor = 'user.authenticate()';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([]);
+    });
+
+    test('does not find use diagnostic issue when use is followed by a space and curly bracket', () => {
+      const textFromEditor = 'use (';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([]);
+    });
+
+    test('does not find use diagnostic issue when use is followed by a space and point', () => {
+      const textFromEditor = 'use .';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([]);
+    });
+
+    test('does not find use diagnostic issue when use is followed by a space and bracket', () => {
+      const textFromEditor = 'use [';
+      const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
+
+      expect(diagnostics).to.be.deep.equal([]);
+    });
+
     test('finds use without database diagnostic issue', () => {
       const textFromEditor = 'use ';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);

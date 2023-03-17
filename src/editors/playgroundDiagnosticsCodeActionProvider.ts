@@ -76,7 +76,7 @@ export default class PlaygroundDiagnosticsCodeActionProvider
             documentUri: document.uri,
             diagnostics: allDiagnostics.map((d) => ({
               range: d.range,
-              fix: (<Diagnostic>d).data?.fix,
+              fix: (d as Diagnostic).data?.fix,
             })),
           },
         ],
