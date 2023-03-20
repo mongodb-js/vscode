@@ -87,8 +87,7 @@ export default class StorageController {
     if (userId && typeof userId === 'string') {
       return {
         userId,
-        // The anonymousId becomes required with analytics-node v6.
-        anonymousId,
+        anonymousId, // The anonymousId becomes required with analytics-node v6.
       };
     }
 
