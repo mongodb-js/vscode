@@ -62,7 +62,7 @@
     "reformat": "prettier --write ."
   },
   "engines": {
-    "vscode": "^1.75.1",
+    "vscode": "^1.76.2",
     "node": "^16.16.0",
     "npm": "^8.15.1"
   },
