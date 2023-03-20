@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
-import type { Document, ObjectId } from 'bson';
+import type { Document } from 'bson';
 import type { DataService } from 'mongodb-data-service';
 import { promisify } from 'util';
 import { toJSString } from 'mongodb-query-parser';
@@ -62,7 +62,7 @@ export default class DocumentTreeItem
   async getDocumentContents(): Promise<Document> {
     const documents = await this.dataService.find(
       this.namespace,
-      { _id: this.documentId as ObjectId },
+      { _id: this.documentId as any },
       { limit: 1 }
     );
 
@@ -110,7 +110,7 @@ export default class DocumentTreeItem
       );
       const deleteResult = await deleteOne(
         this.namespace,
-        { _id: this.documentId as ObjectId },
+        { _id: this.documentId as any },
         {}
       );
 

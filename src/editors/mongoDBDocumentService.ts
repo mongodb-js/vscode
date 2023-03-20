@@ -1,7 +1,7 @@
 import * as util from 'util';
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
-import type { Document, ObjectId } from 'bson';
+import type { Document } from 'bson';
 
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
@@ -94,7 +94,7 @@ export default class MongoDBDocumentService {
       );
       await findOneAndReplace(
         namespace,
-        { _id: documentId as ObjectId },
+        { _id: documentId as any },
         newDocument,
         { returnDocument: 'after' }
       );
@@ -137,7 +137,7 @@ export default class MongoDBDocumentService {
     try {
       const documents = await dataservice.find(
         namespace,
-        { _id: documentId as ObjectId },
+        { _id: documentId },
         { limit: 1 }
       );
 
