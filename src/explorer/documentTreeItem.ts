@@ -1,9 +1,10 @@
-import { EJSON } from 'bson';
 import * as vscode from 'vscode';
-import type { Document } from 'mongodb';
+import { EJSON } from 'bson';
+import type { Document, ObjectId } from 'bson';
 import type { DataService } from 'mongodb-data-service';
 import { promisify } from 'util';
 import { toJSString } from 'mongodb-query-parser';
+import type { BSONSerializableTypes } from './../types/editDocumentInfoType';
 
 import formatError from '../utils/formatError';
 
@@ -18,7 +19,7 @@ export default class DocumentTreeItem
   namespace: string;
   dataService: DataService;
   document: Document;
-  documentId: EJSON.SerializableTypes;
+  documentId: BSONSerializableTypes;
   resetDocumentListCache: () => Promise<void>;
 
   constructor(
@@ -61,7 +62,7 @@ export default class DocumentTreeItem
   async getDocumentContents(): Promise<Document> {
     const documents = await this.dataService.find(
       this.namespace,
-      { _id: this.documentId },
+      { _id: this.documentId as ObjectId },
       { limit: 1 }
     );
 
@@ -109,7 +110,7 @@ export default class DocumentTreeItem
       );
       const deleteResult = await deleteOne(
         this.namespace,
-        { _id: this.documentId },
+        { _id: this.documentId as ObjectId },
         {}
       );
 

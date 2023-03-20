@@ -1,11 +1,12 @@
 import * as util from 'util';
 import * as vscode from 'vscode';
-import { EJSON, Document } from 'bson';
+import { EJSON } from 'bson';
+import type { Document, ObjectId } from 'bson';
 
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
-import type { EditDocumentInfo } from '../types/editDocumentInfoType';
+import type { EditDocumentInfo, BSONSerializableTypes } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
@@ -54,10 +55,10 @@ export default class MongoDBDocumentService {
   }
 
   async replaceDocument(data: {
-    documentId: EJSON.SerializableTypes;
+    documentId: BSONSerializableTypes;
     namespace: string;
     connectionId: string;
-    newDocument: EJSON.SerializableTypes;
+    newDocument: Document;
     source: DocumentSource;
   }): Promise<void> {
     log.info('Replace document in MongoDB', data);
@@ -90,8 +91,8 @@ export default class MongoDBDocumentService {
       );
       await findOneAndReplace(
         namespace,
-        { _id: documentId },
-        newDocument as Document,
+        { _id: documentId as ObjectId },
+        newDocument,
         { returnDocument: 'after' }
       );
 
@@ -106,7 +107,7 @@ export default class MongoDBDocumentService {
 
   async fetchDocument(
     data: EditDocumentInfo
-  ): Promise<EJSON.SerializableTypes | void> {
+  ): Promise<Document | void> {
     log.info('Fetch document from MongoDB', data);
 
     const { documentId, namespace, connectionId } = data;
@@ -135,19 +136,17 @@ export default class MongoDBDocumentService {
     try {
       const documents = await dataservice.find(
         namespace,
-        { _id: documentId },
+        { _id: documentId as ObjectId },
         { limit: 1 }
       );
 
       this._statusView.hideMessage();
 
       if (!documents || documents.length === 0) {
-        return null;
+        return;
       }
 
-      return JSON.parse(
-        EJSON.stringify(documents[0])
-      ) as EJSON.SerializableTypes;
+      return JSON.parse(EJSON.stringify(documents[0]));
     } catch (error) {
       this._statusView.hideMessage();
 

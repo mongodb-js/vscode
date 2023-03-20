@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
+import type { Document } from 'bson';
 
 import ConnectionController from '../connectionController';
 import { DocumentSource } from '../documentSource';
@@ -29,7 +30,7 @@ export default class EditDocumentCodeLensProvider
   }
 
   updateCodeLensesForCollection(data: {
-    content: EJSON.SerializableTypes;
+    content: Document;
     namespace: string | null;
     uri: vscode.Uri;
   }) {

@@ -73,26 +73,25 @@ export default class StorageController {
   }
 
   getUserIdentity() {
-    const globalAnonymousId = this.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
-    const globalUserId = this.get(StorageVariables.GLOBAL_USER_ID);
+    const userId = this.get(StorageVariables.GLOBAL_USER_ID);
+    let anonymousId = this.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
+
+    if (!anonymousId) {
+      anonymousId = uuidv4();
+      void this.update(StorageVariables.GLOBAL_ANONYMOUS_ID, anonymousId);
+    }
 
     // Initially, we used `userId` as Segment user identifier, but this usage is being deprecated.
     // The `anonymousId` should be used instead.
     // We keep sending `userId` to Segment for old users though to preserve their analytics.
-    if (globalUserId && typeof globalUserId === 'string') {
+    if (userId && typeof userId === 'string') {
       return {
-        userId: globalUserId,
+        userId,
+        // The anonymousId becomes required with analytics-node v6.
+        anonymousId,
       };
     }
 
-    if (globalAnonymousId && typeof globalAnonymousId === 'string') {
-      return {
-        anonymousId: globalAnonymousId,
-      };
-    }
-
-    const anonymousId = uuidv4();
-    void this.update(StorageVariables.GLOBAL_ANONYMOUS_ID, anonymousId);
     return { anonymousId };
   }
 

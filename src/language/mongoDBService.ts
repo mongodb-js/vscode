@@ -289,7 +289,8 @@ export default class MongoDBService {
     }
 
     try {
-      const documents = this._serviceProvider.find(
+      // TODO: bump monogodb version in mongodb-schema.
+      const documents: any = this._serviceProvider.find(
         databaseName,
         collectionName,
         {},

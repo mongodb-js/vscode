@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import { EJSON } from 'bson';
+import type { Document } from 'bson';
 import sinon from 'sinon';
 
 import ConnectionController from '../../../connectionController';
@@ -50,7 +51,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
-    const document: EJSON.SerializableTypes = { _id: '123' };
+    const document: Document = { _id: '123' };
     const newDocument = { _id: '123', price: 5000 };
     const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
 
