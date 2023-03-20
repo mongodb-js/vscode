@@ -4,7 +4,7 @@ import type { Document, ObjectId } from 'bson';
 import type { DataService } from 'mongodb-data-service';
 import { promisify } from 'util';
 import { toJSString } from 'mongodb-query-parser';
-import type { BSONSerializableTypes } from './../types/editDocumentInfoType';
+import type { EJSONSerializableTypes } from './../types/editDocumentInfoType';
 
 import formatError from '../utils/formatError';
 
@@ -19,7 +19,7 @@ export default class DocumentTreeItem
   namespace: string;
   dataService: DataService;
   document: Document;
-  documentId: BSONSerializableTypes;
+  documentId: EJSONSerializableTypes;
   resetDocumentListCache: () => Promise<void>;
 
   constructor(

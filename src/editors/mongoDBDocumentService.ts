@@ -6,7 +6,10 @@ import type { Document, ObjectId } from 'bson';
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
-import type { EditDocumentInfo, BSONSerializableTypes } from '../types/editDocumentInfoType';
+import type {
+  EditDocumentInfo,
+  EJSONSerializableTypes,
+} from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
@@ -55,7 +58,7 @@ export default class MongoDBDocumentService {
   }
 
   async replaceDocument(data: {
-    documentId: BSONSerializableTypes;
+    documentId: EJSONSerializableTypes;
     namespace: string;
     connectionId: string;
     newDocument: Document;
@@ -105,9 +108,7 @@ export default class MongoDBDocumentService {
     }
   }
 
-  async fetchDocument(
-    data: EditDocumentInfo
-  ): Promise<Document | void> {
+  async fetchDocument(data: EditDocumentInfo): Promise<Document | void> {
     log.info('Fetch document from MongoDB', data);
 
     const { documentId, namespace, connectionId } = data;

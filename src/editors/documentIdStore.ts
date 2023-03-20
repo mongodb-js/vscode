@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { BSONSerializableTypes } from './../types/editDocumentInfoType';
+import type { EJSONSerializableTypes } from './../types/editDocumentInfoType';
 
 // In order to provide opening documents with various _id types we need
 // to pass the documentId and create associated documentIdReference.
@@ -8,10 +8,10 @@ import type { BSONSerializableTypes } from './../types/editDocumentInfoType';
 export default class DocumentIdStore {
   _documents: {
     documentIdReference: string;
-    documentId: BSONSerializableTypes;
+    documentId: EJSONSerializableTypes;
   }[] = [];
 
-  add(documentId: BSONSerializableTypes): string {
+  add(documentId: EJSONSerializableTypes): string {
     const existingDocument = this._documents.find(
       (item) => item.documentId === documentId
     );
@@ -22,7 +22,7 @@ export default class DocumentIdStore {
 
     const newDocument: {
       documentIdReference: string;
-      documentId: BSONSerializableTypes;
+      documentId: EJSONSerializableTypes;
     } = {
       documentIdReference: uuidv4(),
       documentId,
@@ -33,7 +33,7 @@ export default class DocumentIdStore {
     return newDocument.documentIdReference;
   }
 
-  get(documentIdReference: string): BSONSerializableTypes | undefined {
+  get(documentIdReference: string): EJSONSerializableTypes | undefined {
     const existingDocument = this._documents.find(
       (item) => item.documentIdReference === documentIdReference
     );

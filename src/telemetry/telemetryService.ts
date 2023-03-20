@@ -144,10 +144,7 @@ export default class TelemetryService {
 
     const segmentProperties = this.getTelemetryUserIdentity();
     this._segmentAnalytics.identify(segmentProperties);
-    log.info(
-      'Segment analytics activated with properties',
-      segmentProperties
-    );
+    log.info('Segment analytics activated with properties', segmentProperties);
   }
 
   deactivate(): void {

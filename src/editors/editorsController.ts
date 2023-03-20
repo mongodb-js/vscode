@@ -19,7 +19,10 @@ import { createLogger } from '../logging';
 import DocumentIdStore from './documentIdStore';
 import { DocumentSource } from '../documentSource';
 import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
-import type { EditDocumentInfo, BSONSerializableTypes } from '../types/editDocumentInfoType';
+import type {
+  EditDocumentInfo,
+  EJSONSerializableTypes,
+} from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import MongoDBDocumentService, {
@@ -37,7 +40,7 @@ import TelemetryService from '../telemetry/telemetryService';
 const log = createLogger('editors controller');
 
 export function getFileDisplayNameForDocument(
-  documentId: BSONSerializableTypes,
+  documentId: EJSONSerializableTypes,
   namespace: string
 ) {
   let displayName = `${namespace}:${EJSON.stringify(documentId)}`;
