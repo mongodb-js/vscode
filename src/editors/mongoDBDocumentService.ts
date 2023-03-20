@@ -6,10 +6,7 @@ import type { Document } from 'bson';
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
-import type {
-  EditDocumentInfo,
-  EJSONSerializableTypes,
-} from '../types/editDocumentInfoType';
+import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
@@ -58,7 +55,7 @@ export default class MongoDBDocumentService {
   }
 
   async replaceDocument(data: {
-    documentId: EJSONSerializableTypes;
+    documentId: any;
     namespace: string;
     connectionId: string;
     newDocument: Document;
@@ -92,12 +89,9 @@ export default class MongoDBDocumentService {
       const findOneAndReplace = util.promisify(
         dataservice.findOneAndReplace.bind(dataservice)
       );
-      await findOneAndReplace(
-        namespace,
-        { _id: documentId as any },
-        newDocument,
-        { returnDocument: 'after' }
-      );
+      await findOneAndReplace(namespace, { _id: documentId }, newDocument, {
+        returnDocument: 'after',
+      });
 
       this._statusView.hideMessage();
       this._telemetryService.trackDocumentUpdated(source, true);
