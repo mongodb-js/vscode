@@ -1,4 +1,4 @@
-import * as path from 'path';
+import path from 'path';
 import * as vscode from 'vscode';
 import { config } from 'dotenv';
 import { DataService } from 'mongodb-data-service';
@@ -14,7 +14,7 @@ import type { ShellEvaluateResult } from '../types/playgroundType';
 import { StorageController } from '../storage';
 
 const log = createLogger('telemetry');
-const { version } = require('../../package.json');
+import { version } from '../../package.json';
 
 type PlaygroundTelemetryEventProperties = {
   type: string | null;

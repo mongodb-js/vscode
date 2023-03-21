@@ -18,7 +18,7 @@ import {
 import SchemaTreeItem from '../../../explorer/schemaTreeItem';
 import { ExtensionContextStub } from '../stubs';
 
-const { contributes } = require('../../../../package.json');
+import { contributes } from '../../../../package.json';
 
 suite('FieldTreeItem Test Suite', function () {
   this.timeout(10000);

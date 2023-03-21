@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import path = require('path');
+import path from 'path';
 import { getImagesPath } from '../extensionConstants';
 
 export const PLAYGROUND_ITEM = 'playgroundsTreeItem';

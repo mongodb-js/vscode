@@ -2,7 +2,7 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../../commands';
 
-const { contributes } = require('../../../package.json');
+import { contributes } from '../../../package.json';
 
 suite('Extension Test Suite', () => {
   test('there should be 3 views registered in the package.json', () => {

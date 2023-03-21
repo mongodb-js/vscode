@@ -11,7 +11,7 @@ import AdvancedTab from './advanced-tab/advanced-tab';
 import GeneralTab from './general-tab/general-tab';
 import ConnectionFormTabs from './connection-form-tabs';
 
-const styles = require('./connection-form.less');
+import styles from './connection-form.less';
 
 type StateProps = {
   connectionFormTab: CONNECTION_FORM_TABS;

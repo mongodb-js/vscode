@@ -8,7 +8,7 @@ import { DataService } from 'mongodb-data-service';
 import formatError from '../../../utils/formatError';
 import IndexListTreeItem from '../../../explorer/indexListTreeItem';
 
-const { contributes } = require('../../../../package.json');
+import { contributes } from '../../../../package.json';
 
 suite('IndexListTreeItem Test Suite', () => {
   let showErrorMessageStub: SinonStub;

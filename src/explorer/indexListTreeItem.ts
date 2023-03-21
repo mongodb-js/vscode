@@ -1,4 +1,4 @@
-import * as util from 'util';
+import util from 'util';
 import * as vscode from 'vscode';
 import { DataService } from 'mongodb-data-service';
 import path from 'path';

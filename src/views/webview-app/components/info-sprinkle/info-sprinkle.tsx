@@ -2,7 +2,7 @@ import * as React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
-const styles = require('./info-sprinkle.less');
+import styles from './info-sprinkle.less';
 
 type props = {
   linkTo: string;

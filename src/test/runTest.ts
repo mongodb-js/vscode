@@ -1,5 +1,4 @@
-import path = require('path');
-
+import path from 'path';
 import { runTests } from '@vscode/test-electron';
 
 // More information on vscode specific tests: https://github.com/microsoft/vscode-test

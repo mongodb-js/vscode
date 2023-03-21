@@ -43,6 +43,7 @@ export const createKeytar = (): KeytarInterface | undefined => {
   // We load keytar in two different ways. This is because when the
   // extension is webpacked it requires the vscode external keytar dependency
   // differently then our development environment.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   let keytarModule: KeytarInterface | undefined = require('keytar');
 
   if (!keytarModule) {

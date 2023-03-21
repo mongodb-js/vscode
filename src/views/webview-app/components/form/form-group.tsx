@@ -1,7 +1,7 @@
 import * as React from 'react';
 import classnames from 'classnames';
 
-const styles = require('./form.less');
+import styles from './form.less';
 
 type props = {
   id: string;

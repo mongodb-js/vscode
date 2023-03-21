@@ -27,9 +27,9 @@ import {
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
 import TelemetryService from './telemetry/telemetryService';
+import packageJSON from '../package.json';
 
 const log = createLogger('connection controller');
-const packageJSON = require('../package.json');
 
 const MAX_CONNECTION_NAME_LENGTH = 512;
 

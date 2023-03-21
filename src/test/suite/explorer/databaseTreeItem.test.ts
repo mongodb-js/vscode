@@ -14,7 +14,7 @@ import {
   TEST_DATABASE_URI,
 } from '../dbTestHelper';
 
-const { contributes } = require('../../../../package.json');
+import { contributes } from '../../../../package.json';
 
 suite('DatabaseTreeItem Test Suite', () => {
   test('its context value should be in the package json', () => {

@@ -1,4 +1,4 @@
-import * as util from 'util';
+import util from 'util';
 import * as vscode from 'vscode';
 import path from 'path';
 

@@ -49,7 +49,7 @@
     "watch:extension-bundles": "webpack --mode development --watch",
     "pretest": "npm run compile && mongodb-runner start --port=27018",
     "test": "npm run test-webview && npm run test-extension",
-    "test-extension": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
+    "test-extension": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/src/test/runTest.js",
     "test-webview": "jest",
     "posttest": "mongodb-runner stop --port=27018",
     "vscode:prepublish": "npm run clean && npm run compile:keyfile && npm run compile:resources && webpack --mode production",

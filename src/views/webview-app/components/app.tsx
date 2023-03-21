@@ -15,7 +15,8 @@ import {
   MESSAGE_TYPES,
 } from '../extension-app-message-constants';
 
-const styles = require('../connect.module.less');
+// TODO:
+import styles from '../connect.module.less';
 
 import './app.less';
 

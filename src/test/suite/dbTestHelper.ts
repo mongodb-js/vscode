@@ -1,6 +1,6 @@
 import { connect, DataService } from 'mongodb-data-service';
 import { EJSON } from 'bson';
-import * as util from 'util';
+import util from 'util';
 
 export const TEST_USER_USERNAME = 'testUser';
 export const TEST_USER_PASSWORD = 'password';

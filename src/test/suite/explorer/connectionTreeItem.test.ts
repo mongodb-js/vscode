@@ -11,7 +11,7 @@ import { DataServiceStub } from '../stubs';
 import formatError from '../../../utils/formatError';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
-const { contributes } = require('../../../../package.json');
+import { contributes } from '../../../../package.json';
 
 suite('ConnectionTreeItem Test Suite', () => {
   test('its context value should be in the package json', function () {

@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 import ConnectionForm from '../connect-form/connection-form';
 import {
   ActionTypes,
   ToggleShowConnectionFormAction,
 } from '../../store/actions';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
-const styles = require('./connect-form-modal.less');
+import styles from './connect-form-modal.less';
 
 type DispatchProps = {
   toggleShowConnectForm: () => void;

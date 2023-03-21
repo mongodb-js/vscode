@@ -1,8 +1,8 @@
 import classnames from 'classnames';
 import * as React from 'react';
 
-const styles = require('./radio-box-group.less');
-const formStyles = require('../form.less');
+import styles from './radio-box-group.less';
+import formStyles from '../form.less';
 
 type props = {
   label: string;

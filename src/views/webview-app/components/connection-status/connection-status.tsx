@@ -1,6 +1,8 @@
 import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 
 import { AppState } from '../../store/store';
 import {
@@ -11,10 +13,8 @@ import {
 } from '../../store/actions';
 import InfoSprinkle from '../info-sprinkle/info-sprinkle';
 import { CONNECTION_STATUS } from '../../extension-app-message-constants';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 
-const styles = require('./connection-status.less');
+import styles from './connection-status.less';
 
 const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
 

@@ -5,7 +5,7 @@ import { CollectionTypes } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
 import { ExtensionContextStub, DataServiceStub } from '../stubs';
 
-const { contributes } = require('../../../../package.json');
+import { contributes } from '../../../../package.json';
 
 suite('CollectionTreeItem Test Suite', () => {
   ext.context = new ExtensionContextStub();

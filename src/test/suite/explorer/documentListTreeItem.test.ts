@@ -3,7 +3,7 @@ import { before } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
 
-const { contributes } = require('../../../../package.json');
+import { contributes } from '../../../../package.json';
 
 import DocumentListTreeItem, {
   CollectionTypes,

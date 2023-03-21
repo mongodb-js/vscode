@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import micromatch from 'micromatch';
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 
 import { createLogger } from '../logging';
 

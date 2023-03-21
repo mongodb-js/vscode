@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { openLink } from '../utils/linkHelper';
-const path = require('path');
+import path from 'path';
 
 import { getImagesPath } from '../extensionConstants';
 import { TelemetryService } from '../telemetry';
+import { openLink } from '../utils/linkHelper';
 
 const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 

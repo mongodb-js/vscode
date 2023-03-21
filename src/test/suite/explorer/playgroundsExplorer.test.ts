@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { before, afterEach } from 'mocha';
-import * as path from 'path';
+import path from 'path';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import PlaygroundsTree from './../../../explorer/playgroundsTree';
 

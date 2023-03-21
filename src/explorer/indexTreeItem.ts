@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-const path = require('path');
+import path from 'path';
 
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';

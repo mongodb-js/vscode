@@ -6,7 +6,7 @@ import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 
 const log = createLogger('connection telemetry helper');
-const { version } = require('../../package.json');
+import { version } from '../../package.json';
 
 export type NewConnectionTelemetryEventProperties = {
   auth_strategy?: string;

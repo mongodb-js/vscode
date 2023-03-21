@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
 import { inspect } from 'util';
@@ -21,7 +21,7 @@ import SchemaTreeItem, {
 } from '../../../explorer/schemaTreeItem';
 import { ExtensionContextStub } from '../stubs';
 
-const { contributes } = require('../../../../package.json');
+import { contributes } from '../../../../package.json';
 
 suite('SchemaTreeItem Test Suite', function () {
   this.timeout(10000);

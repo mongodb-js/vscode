@@ -1,8 +1,8 @@
 #! /usr/bin/env ts-node
 
-import ora = require('ora');
-import fs = require('fs');
-import path = require('path');
+import ora from 'ora';
+import fs from 'fs';
+import path from 'path';
 import { resolve } from 'path';
 import { config } from 'dotenv';
 import { promisify } from 'util';

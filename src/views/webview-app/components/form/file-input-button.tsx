@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faFileUpload } from '@fortawesome/free-solid-svg-icons';
 
-const styles = require('./form.less');
+import styles from './form.less';
 
 type props = {
   error: boolean;
