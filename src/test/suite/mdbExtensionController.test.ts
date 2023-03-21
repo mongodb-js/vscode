@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
+import { ObjectId } from 'bson';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import { DataService } from 'mongodb-data-service';
-import { ObjectId } from 'mongodb';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
 import type {

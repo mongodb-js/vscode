@@ -25,7 +25,7 @@ type PlaygroundTelemetryEventProperties = {
 export type SegmentProperties = {
   event: string;
   userId?: string;
-  anonymousId?: string;
+  anonymousId: string;
   properties: unknown;
 };
 
@@ -85,7 +85,7 @@ export enum TelemetryEventTypes {
 export default class TelemetryService {
   _segmentAnalytics?: SegmentAnalytics;
   _segmentUserId?: string;
-  _segmentAnonymousId?: string;
+  _segmentAnonymousId: string;
   _segmentKey?: string; // The segment API write key.
 
   private _context: vscode.ExtensionContext;
@@ -126,26 +126,25 @@ export default class TelemetryService {
   }
 
   activateSegmentAnalytics(): void {
-    if (this._segmentKey) {
-      log.info('Activating segment analytics...');
-      this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
-        // Segment batches messages and flushes asynchronously to the server.
-        // The flushAt is a number of messages to enqueue before flushing.
-        // For the development mode we want to flush every submitted message.
-        // Otherwise, we use 20 that is the default libraries' value.
-        flushAt: process.env.MODE === 'development' ? 1 : 20,
-        // The number of milliseconds to wait
-        // before flushing the queue automatically.
-        flushInterval: 10000, // 10 seconds is the default libraries' value.
-      });
-
-      const segmentProperties = this.getTelemetryUserIdentity();
-      this._segmentAnalytics.identify(segmentProperties);
-      log.info(
-        'Segment analytics activated with properties',
-        segmentProperties
-      );
+    if (!this._segmentKey) {
+      return;
     }
+
+    log.info('Activating segment analytics...');
+    this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
+      // Segment batches messages and flushes asynchronously to the server.
+      // The flushAt is a number of messages to enqueue before flushing.
+      // For the development mode we want to flush every submitted message.
+      // Otherwise, we use 20 that is the default libraries' value.
+      flushAt: process.env.MODE === 'development' ? 1 : 20,
+      // The number of milliseconds to wait
+      // before flushing the queue automatically.
+      flushInterval: 10000, // 10 seconds is the default libraries' value.
+    });
+
+    const segmentProperties = this.getTelemetryUserIdentity();
+    this._segmentAnalytics.identify(segmentProperties);
+    log.info('Segment analytics activated with properties', segmentProperties);
   }
 
   deactivate(): void {
@@ -257,6 +256,7 @@ export default class TelemetryService {
     if (this._segmentUserId) {
       return {
         userId: this._segmentUserId,
+        anonymousId: this._segmentAnonymousId,
       };
     }
 

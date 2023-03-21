@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
+import type { Document } from 'bson';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
@@ -36,7 +37,7 @@ import TelemetryService from '../telemetry/telemetryService';
 const log = createLogger('editors controller');
 
 export function getFileDisplayNameForDocument(
-  documentId: EJSON.SerializableTypes,
+  documentId: any,
   namespace: string
 ) {
   let displayName = `${namespace}:${EJSON.stringify(documentId)}`;
@@ -160,11 +161,11 @@ export default class EditorsController {
 
   async openMongoDBDocument(data: EditDocumentInfo): Promise<boolean> {
     try {
-      const mdbDocument = (await this._mongoDBDocumentService.fetchDocument(
+      const mdbDocument = await this._mongoDBDocumentService.fetchDocument(
         data
-      )) as EJSON.SerializableTypes;
+      );
 
-      if (mdbDocument === null) {
+      if (!mdbDocument) {
         void vscode.window.showErrorMessage(`
           Unable to open mongodb document: document ${JSON.stringify(
             data.documentId
@@ -346,7 +347,7 @@ export default class EditorsController {
 
   _saveDocumentToMemoryFileSystem(
     fileUri: vscode.Uri,
-    document: EJSON.SerializableTypes
+    document: Document
   ): void {
     this._memoryFileSystemProvider.writeFile(
       fileUri,

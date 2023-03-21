@@ -1,6 +1,6 @@
-import { EJSON } from 'bson';
 import * as vscode from 'vscode';
-import type { Document } from 'mongodb';
+import { EJSON } from 'bson';
+import type { Document } from 'bson';
 import type { DataService } from 'mongodb-data-service';
 import { promisify } from 'util';
 import { toJSString } from 'mongodb-query-parser';
@@ -18,7 +18,7 @@ export default class DocumentTreeItem
   namespace: string;
   dataService: DataService;
   document: Document;
-  documentId: EJSON.SerializableTypes;
+  documentId: any;
   resetDocumentListCache: () => Promise<void>;
 
   constructor(

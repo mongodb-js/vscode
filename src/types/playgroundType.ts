@@ -61,7 +61,7 @@ export interface ExportToLanguageNamespace {
 
 // MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options).
 export type MongoClientOptions = NonNullable<
-  Parameters<typeof CliServiceProvider['connect']>[1]
+  Parameters<(typeof CliServiceProvider)['connect']>[1]
 >;
 
 export interface WorkerEvaluate {
