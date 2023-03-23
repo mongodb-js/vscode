@@ -61,11 +61,25 @@ export interface ExportToLanguageNamespace {
 
 // MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options).
 export type MongoClientOptions = NonNullable<
-  Parameters<typeof CliServiceProvider['connect']>[1]
+  Parameters<(typeof CliServiceProvider)['connect']>[1]
 >;
 
 export interface WorkerEvaluate {
   codeToEvaluate: string;
   connectionString: string;
   connectionOptions: MongoClientOptions;
+}
+
+export interface ThisDiagnosticFix {
+  documentUri: vscode.Uri;
+  range: any;
+  fix: string;
+}
+
+export interface AllDiagnosticFixes {
+  documentUri: vscode.Uri;
+  diagnostics: {
+    range: any;
+    fix: string;
+  }[];
 }

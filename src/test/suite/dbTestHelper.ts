@@ -1,6 +1,6 @@
 import { connect, DataService } from 'mongodb-data-service';
-import { EJSON } from 'bson';
 import util from 'util';
+import type { Document } from 'bson';
 
 export const TEST_USER_USERNAME = 'testUser';
 export const TEST_USER_PASSWORD = 'password';
@@ -21,7 +21,7 @@ export const createTestDataService = async (
 
 export const seedTestDB = async (
   collectionName: string,
-  documentsArray: EJSON.SerializableTypes[]
+  documentsArray: Document[]
 ): Promise<void> => {
   const insertMany = util.promisify(
     testDataService.insertMany.bind(testDataService)

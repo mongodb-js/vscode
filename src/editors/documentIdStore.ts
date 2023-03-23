@@ -1,4 +1,3 @@
-import { EJSON } from 'bson';
 import { v4 as uuidv4 } from 'uuid';
 
 // In order to provide opening documents with various _id types we need
@@ -8,10 +7,10 @@ import { v4 as uuidv4 } from 'uuid';
 export default class DocumentIdStore {
   _documents: {
     documentIdReference: string;
-    documentId: EJSON.SerializableTypes;
+    documentId: any;
   }[] = [];
 
-  add(documentId: EJSON.SerializableTypes): string {
+  add(documentId: any): string {
     const existingDocument = this._documents.find(
       (item) => item.documentId === documentId
     );
@@ -22,7 +21,7 @@ export default class DocumentIdStore {
 
     const newDocument: {
       documentIdReference: string;
-      documentId: EJSON.SerializableTypes;
+      documentId: any;
     } = {
       documentIdReference: uuidv4(),
       documentId,
@@ -33,7 +32,7 @@ export default class DocumentIdStore {
     return newDocument.documentIdReference;
   }
 
-  get(documentIdReference: string): EJSON.SerializableTypes | undefined {
+  get(documentIdReference: string) {
     const existingDocument = this._documents.find(
       (item) => item.documentIdReference === documentIdReference
     );

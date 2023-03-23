@@ -16,6 +16,9 @@ const baseConfig = {
 
 const extensionConfig = {
   ...baseConfig,
+  experiments: {
+    topLevelAwait: true,
+  },
   output: {
     strictModuleErrorHandling: true,
     strictModuleExceptionHandling: true,

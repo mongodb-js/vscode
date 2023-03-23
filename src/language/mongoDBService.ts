@@ -1,10 +1,15 @@
 import * as util from 'util';
-import { CompletionItemKind, MarkupKind } from 'vscode-languageserver/node';
+import {
+  CompletionItemKind,
+  MarkupKind,
+  DiagnosticSeverity,
+} from 'vscode-languageserver/node';
 import type {
   CancellationToken,
   Connection,
   CompletionItem,
   MarkupContent,
+  Diagnostic,
 } from 'vscode-languageserver/node';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
@@ -25,6 +30,7 @@ import type {
   MongoClientOptions,
 } from '../types/playgroundType';
 import { Visitor } from './visitor';
+import DIAGNOSTIC_CODES from './diagnosticCodes';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
@@ -86,7 +92,7 @@ export default class MongoDBService {
     connectionId,
     connectionString,
     connectionOptions,
-  }: ServiceProviderParams): Promise<boolean> {
+  }: ServiceProviderParams): Promise<void> {
     // If already connected close the previous connection.
     await this.disconnectFromServiceProvider();
 
@@ -101,15 +107,12 @@ export default class MongoDBService {
     try {
       // Get database names for the current connection.
       const databases = await this._getDatabases();
-
       // Create and cache database completion items.
       this._cacheDatabaseCompletionItems(databases);
-      return Promise.resolve(true);
     } catch (error) {
       this._connection.console.error(
         `LS get databases error: ${util.inspect(error)}`
       );
-      return Promise.resolve(false);
     }
   }
 
@@ -557,6 +560,103 @@ export default class MongoDBService {
     return [];
   }
 
+  // Highlight the usage of commands that only works inside interactive session.
+  // eslint-disable-next-line complexity
+  provideDiagnostics(textFromEditor: string) {
+    const lines = textFromEditor.split(/\r?\n/g);
+    const diagnostics: Diagnostic[] = [];
+    const invalidInteractiveSyntaxes = [
+      { issue: 'use', fix: "use('VALUE_TO_REPLACE')", default: 'database' },
+      { issue: 'show databases', fix: 'db.getMongo().getDBs()' },
+      { issue: 'show dbs', fix: 'db.getMongo().getDBs()' },
+      { issue: 'show collections', fix: 'db.getCollectionNames()' },
+      { issue: 'show tables', fix: 'db.getCollectionNames()' },
+      {
+        issue: 'show profile',
+        fix: "db.getCollection('system.profile').find()",
+      },
+      { issue: 'show users', fix: 'db.getUsers()' },
+      { issue: 'show roles', fix: 'db.getRoles({ showBuiltinRoles: true })' },
+      { issue: 'show logs', fix: "db.adminCommand({ getLog: '*' })" },
+      {
+        issue: 'show log',
+        fix: "db.adminCommand({ getLog: 'VALUE_TO_REPLACE' })",
+        default: 'global',
+      },
+    ];
+
+    for (const [i, line] of lines.entries()) {
+      for (const item of invalidInteractiveSyntaxes) {
+        const issue = item.issue; // E.g. 'use'.
+        const startCharacter = line.indexOf(issue); // The start index where the issue was found in the string.
+
+        // In case of `show logs` exclude `show log` diagnostic issue.
+        if (
+          issue === 'show log' &&
+          line.substring(startCharacter).startsWith('show logs')
+        ) {
+          continue;
+        }
+
+        // In case of `user.authenticate()` do not rise a diagnostic issue.
+        if (
+          issue === 'use' &&
+          !line.substring(startCharacter).startsWith('use ')
+        ) {
+          continue;
+        }
+
+        if (!line.trim().startsWith(issue)) {
+          continue;
+        }
+
+        let endCharacter = startCharacter + issue.length;
+        let valueToReplaceWith = item.default;
+        let fix = item.fix;
+
+        // If there is a default value, it should be used
+        // instead of VALUE_TO_REPLACE placeholder of the `fix` string.
+        if (valueToReplaceWith) {
+          const words = line.substring(startCharacter).split(' ');
+
+          // The index of the value for `use <value>` and `show log <value>`.
+          const valueIndex = issue.split(' ').length;
+
+          if (words[valueIndex]) {
+            // The `use ('database')`, `use []`, `use .` are valid JS strings.
+            if (
+              ['(', '[', '.'].some((word) => words[valueIndex].startsWith(word))
+            ) {
+              continue;
+            }
+
+            // Get the value from a string by removing quotes if any.
+            valueToReplaceWith = words[valueIndex].replace(/['";]+/g, '');
+
+            // Add the replacement value and the space between to the total command length.
+            endCharacter += words[valueIndex].length + 1;
+          }
+
+          fix = fix.replace('VALUE_TO_REPLACE', valueToReplaceWith);
+        }
+
+        diagnostics.push({
+          severity: DiagnosticSeverity.Error,
+          source: 'mongodb',
+          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          range: {
+            start: { line: i, character: startCharacter },
+            end: { line: i, character: endCharacter },
+          },
+          message: `Did you mean \`${fix}\`?`,
+          data: { fix },
+        });
+      }
+    }
+
+    return diagnostics;
+  }
+
   /**
    * Convert schema field names to Completion Items and cache them.
    */
@@ -576,8 +676,8 @@ export default class MongoDBService {
    * Convert database names to Completion Items and cache them.
    */
   _cacheDatabaseCompletionItems(databases: Document[]): void {
-    this._cachedDatabases = databases.map((item) => ({
-      label: (item as { name: string }).name,
+    this._cachedDatabases = databases.map((db) => ({
+      label: (db as { name: string }).name,
       kind: CompletionItemKind.Field,
       preselect: true,
     }));

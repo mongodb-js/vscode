@@ -1,6 +1,7 @@
 import util from 'util';
 import * as vscode from 'vscode';
-import { EJSON, Document } from 'bson';
+import { EJSON } from 'bson';
+import type { Document } from 'bson';
 
 import ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
@@ -54,10 +55,10 @@ export default class MongoDBDocumentService {
   }
 
   async replaceDocument(data: {
-    documentId: EJSON.SerializableTypes;
+    documentId: any;
     namespace: string;
     connectionId: string;
-    newDocument: EJSON.SerializableTypes;
+    newDocument: Document;
     source: DocumentSource;
   }): Promise<void> {
     log.info('Replace document in MongoDB', data);
@@ -88,12 +89,9 @@ export default class MongoDBDocumentService {
       const findOneAndReplace = util.promisify(
         dataservice.findOneAndReplace.bind(dataservice)
       );
-      await findOneAndReplace(
-        namespace,
-        { _id: documentId },
-        newDocument as Document,
-        { returnDocument: 'after' }
-      );
+      await findOneAndReplace(namespace, { _id: documentId }, newDocument, {
+        returnDocument: 'after',
+      });
 
       this._statusView.hideMessage();
       this._telemetryService.trackDocumentUpdated(source, true);
@@ -104,9 +102,7 @@ export default class MongoDBDocumentService {
     }
   }
 
-  async fetchDocument(
-    data: EditDocumentInfo
-  ): Promise<EJSON.SerializableTypes | void> {
+  async fetchDocument(data: EditDocumentInfo): Promise<Document | void> {
     log.info('Fetch document from MongoDB', data);
 
     const { documentId, namespace, connectionId } = data;
@@ -142,12 +138,10 @@ export default class MongoDBDocumentService {
       this._statusView.hideMessage();
 
       if (!documents || documents.length === 0) {
-        return null;
+        return;
       }
 
-      return JSON.parse(
-        EJSON.stringify(documents[0])
-      ) as EJSON.SerializableTypes;
+      return JSON.parse(EJSON.stringify(documents[0]));
     } catch (error) {
       this._statusView.hideMessage();
 

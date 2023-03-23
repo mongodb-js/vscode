@@ -168,8 +168,7 @@ suite('Storage Controller Test Suite', () => {
       );
       const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
       assert(userId === id);
-      assert.deepStrictEqual(userIdentity, { userId });
-      assert(!anonymousId);
+      assert.deepStrictEqual(userIdentity, { userId, anonymousId });
     });
   });
 

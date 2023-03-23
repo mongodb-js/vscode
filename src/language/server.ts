@@ -125,10 +125,15 @@ documents.onDidClose((e) => {
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-documents.onDidChangeContent((/* change */) => {
-  // connection.console.log(
-  //   `documents.onDidChangeContent: ${JSON.stringify(change)}`
-  // );
+documents.onDidChangeContent(async (change) => {
+  const textFromEditor = change.document.getText();
+
+  const diagnostics = mongoDBService.provideDiagnostics(
+    textFromEditor ? textFromEditor : ''
+  );
+
+  // Send the computed diagnostics to VSCode.
+  await connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
 });
 
 connection.onRequest(new RequestType('textDocument/codeLens'), (/* event*/) => {

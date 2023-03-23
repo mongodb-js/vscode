@@ -14,6 +14,9 @@ enum EXTENSION_COMMANDS {
   MDB_RUN_ALL_PLAYGROUND_BLOCKS = 'mdb.runAllPlaygroundBlocks',
   MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runPlayground',
 
+  MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixThisInvalidInteractiveSyntax',
+  MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixAllInvalidInteractiveSyntax',
+
   MDB_EXPORT_TO_PYTHON = 'mdb.exportToPython',
   MDB_EXPORT_TO_JAVA = 'mdb.exportToJava',
   MDB_EXPORT_TO_CSHARP = 'mdb.exportToCsharp',
