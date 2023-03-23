@@ -12,17 +12,18 @@ import type {
   MarkupContent,
   Diagnostic,
 } from 'vscode-languageserver/node';
+import { CliServiceProvider } from '@mongosh/service-provider-server';
+import type { Document } from '@mongosh/service-provider-core';
+import { getFilteredCompletions } from '@mongodb-js/mongodb-constants';
+import parseSchema from 'mongodb-schema';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';
 import { Worker as WorkerThreads } from 'worker_threads';
-import type { Document } from '@mongosh/service-provider-core';
-import { CliServiceProvider } from '@mongosh/service-provider-server';
-import parseSchema from 'mongodb-schema';
 
+import { ExportToLanguageMode } from '../types/playgroundType';
 import formatError from '../utils/formatError';
 import { ServerCommands } from './serverCommands';
-import { ExportToLanguageMode } from '../types/playgroundType';
 import type {
   ShellEvaluateResult,
   PlaygroundEvaluateParams,
@@ -32,11 +33,8 @@ import type {
 } from '../types/playgroundType';
 import { Visitor } from './visitor';
 import type { CompletionState } from './visitor';
-import DIAGNOSTIC_CODES from './diagnosticCodes';
 
-// TODO: import completer from @mongodb-js/mongodb-constants
-// when https://github.com/mongodb-js/devtools-shared/pull/51 is merged.
-import { completer } from './autocompleter';
+import DIAGNOSTIC_CODES from './diagnosticCodes';
 
 const PROJECT = '$project';
 
@@ -481,7 +479,7 @@ export default class MongoDBService {
     if (state.isStage) {
       this._connection.console.log('VISITOR found stage operator completions');
 
-      return completer('', { meta: ['stage'] }).map((item) => {
+      return getFilteredCompletions({ meta: ['stage'] }).map((item) => {
         let snippet = item.value;
 
         if (item.snippet) {
@@ -523,19 +521,20 @@ export default class MongoDBService {
       ];
       this._connection.console.log(message.join(' '));
 
-      return completer('', { fields, meta: ['query', 'field:identifier'] }).map(
-        (item) => {
-          return {
-            label: item.value,
-            kind:
-              item.meta === 'field:identifier'
-                ? CompletionItemKind.Field
-                : CompletionItemKind.Keyword,
-            preselect: true,
-            detail: item.description,
-          };
-        }
-      );
+      return getFilteredCompletions({
+        fields,
+        meta: ['query', 'field:identifier'],
+      }).map((item) => {
+        return {
+          label: item.value,
+          kind:
+            item.meta === 'field:identifier'
+              ? CompletionItemKind.Field
+              : CompletionItemKind.Keyword,
+          preselect: true,
+          detail: item.description,
+        };
+      });
     }
   }
 
@@ -557,7 +556,7 @@ export default class MongoDBService {
       ];
       this._connection.console.log(message.join(' '));
 
-      return completer('', {
+      return getFilteredCompletions({
         fields,
         meta: [
           'expr:*',
@@ -593,7 +592,7 @@ export default class MongoDBService {
   _provideBSONCompletionItems(state: CompletionState) {
     if (state.isIdentifierObjectValue) {
       this._connection.console.log('VISITOR found bson completions');
-      return completer('', { meta: ['bson'] }).map((item) => {
+      return getFilteredCompletions({ meta: ['bson'] }).map((item) => {
         let snippet = item.value;
 
         if (item.snippet) {
@@ -622,7 +621,7 @@ export default class MongoDBService {
         this._cachedFields[`${state.databaseName}.${state.collectionName}`];
       this._connection.console.log('VISITOR found field reference completions');
 
-      return completer('', { fields, meta: ['field:reference'] }).map(
+      return getFilteredCompletions({ fields, meta: ['field:reference'] }).map(
         (item) => {
           return {
             label: item.value,
