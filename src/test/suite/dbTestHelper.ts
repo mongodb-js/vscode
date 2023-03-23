@@ -1,6 +1,6 @@
 import { connect, DataService } from 'mongodb-data-service';
+import util from 'util';
 import type { Document } from 'bson';
-import * as util from 'util';
 
 export const TEST_USER_USERNAME = 'testUser';
 export const TEST_USER_PASSWORD = 'password';

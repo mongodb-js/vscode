@@ -9,7 +9,7 @@ import {
 } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
 
-const styles = require('../../../../connect.module.less');
+import styles from '../../../../connect.module.less';
 
 type DispatchProps = {
   kerberosParametersChanged: (newParams: KerberosParameters) => void;

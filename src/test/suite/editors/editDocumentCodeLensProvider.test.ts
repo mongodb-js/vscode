@@ -3,7 +3,7 @@ import assert from 'assert';
 import { afterEach } from 'mocha';
 import { ObjectId } from 'bson';
 import sinon from 'sinon';
-import * as util from 'util';
+import util from 'util';
 
 import ConnectionController from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';

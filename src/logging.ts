@@ -1,6 +1,6 @@
 import { Logger as ILogger } from 'ts-log';
 import * as vscode from 'vscode';
-import * as util from 'util';
+import util from 'util';
 
 class Logger implements ILogger {
   static channel: vscode.OutputChannel =

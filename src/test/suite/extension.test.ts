@@ -2,6 +2,7 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../../commands';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../package.json');
 
 suite('Extension Test Suite', () => {

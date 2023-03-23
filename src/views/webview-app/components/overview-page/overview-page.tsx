@@ -9,7 +9,7 @@ import ConnectionStatus from '../connection-status/connection-status';
 import AtlasCTA from '../atlas-cta/atlas-cta';
 import ResourcesPanel from '../resources-panel/resources-panel';
 
-const styles = require('./overview-page.less');
+import styles from './overview-page.less';
 
 type StateProps = {
   showConnectForm?: boolean;

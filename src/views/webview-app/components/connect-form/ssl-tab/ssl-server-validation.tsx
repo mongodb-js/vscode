@@ -6,7 +6,7 @@ import FileInputButton from '../../form/file-input-button';
 import { ActionTypes, OnChangeSSLCAAction } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 
-const styles = require('../../../connect.module.less');
+import styles from '../../../connect.module.less';
 
 type StateProps = {
   isValid: boolean;

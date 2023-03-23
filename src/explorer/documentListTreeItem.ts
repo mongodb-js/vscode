@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import numeral from 'numeral';
+import path from 'path';
 
 import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
@@ -8,7 +9,6 @@ import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
 import type { DataService } from 'mongodb-data-service';
 
-const path = require('path');
 const log = createLogger('documents tree item');
 
 // We fetch 1 more than this in order to see if there are more to fetch.

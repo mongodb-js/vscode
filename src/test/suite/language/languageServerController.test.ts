@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
+import chaiAsPromised from 'chai-as-promised';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
@@ -24,7 +25,7 @@ import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;
 
-chai.use(require('chai-as-promised'));
+chai.use(chaiAsPromised);
 
 suite('Language Server Controller Test Suite', () => {
   const extensionContextStub = new ExtensionContextStub();

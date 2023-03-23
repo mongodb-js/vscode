@@ -9,7 +9,7 @@ import {
   ToggleShowResourcesPanelAction,
 } from '../../../store/actions';
 
-const styles = require('./overview-header.less');
+import styles from './overview-header.less';
 
 type DispatchProps = {
   toggleShowResourcesPanel: () => void;

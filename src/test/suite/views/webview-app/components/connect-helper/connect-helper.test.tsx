@@ -1,6 +1,6 @@
 import assert from 'assert';
 import * as React from 'react';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import { mount } from 'enzyme';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';

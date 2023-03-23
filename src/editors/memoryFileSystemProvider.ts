@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-import * as path from 'path';
+import path from 'path';
 import * as vscode from 'vscode';
 
 export class File implements vscode.FileStat {

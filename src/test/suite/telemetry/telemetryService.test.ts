@@ -109,6 +109,7 @@ suite('Telemetry Controller Test Suite', () => {
 
     try {
       const segmentKeyFileLocation = '../../../../constants';
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       segmentKey = require(segmentKeyFileLocation)?.segmentKey;
     } catch (error) {
       expect(error).to.be.undefined;

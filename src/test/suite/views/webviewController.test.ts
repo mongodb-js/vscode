@@ -1,8 +1,9 @@
-import * as linkHelper from '../../../utils/linkHelper';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import * as vscode from 'vscode';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
+import fs from 'fs';
+import path from 'path';
 
 import ConnectionController from '../../../connectionController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -15,9 +16,7 @@ import { TEST_DATABASE_URI } from '../dbTestHelper';
 import WebviewController, {
   getWebviewContent,
 } from '../../../views/webviewController';
-
-const fs = require('fs');
-const path = require('path');
+import * as linkHelper from '../../../utils/linkHelper';
 
 suite('Webview Test Suite', () => {
   afterEach(() => {
