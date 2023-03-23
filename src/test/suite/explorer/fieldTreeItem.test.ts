@@ -18,7 +18,8 @@ import {
 import SchemaTreeItem from '../../../explorer/schemaTreeItem';
 import { ExtensionContextStub } from '../stubs';
 
-import { contributes } from '../../../../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { contributes } = require('../../../../package.json');
 
 suite('FieldTreeItem Test Suite', function () {
   this.timeout(10000);

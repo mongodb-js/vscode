@@ -5,7 +5,8 @@ import { CollectionTypes } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
 import { ExtensionContextStub, DataServiceStub } from '../stubs';
 
-import { contributes } from '../../../../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { contributes } = require('../../../../package.json');
 
 suite('CollectionTreeItem Test Suite', () => {
   ext.context = new ExtensionContextStub();

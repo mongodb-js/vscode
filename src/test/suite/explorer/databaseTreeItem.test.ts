@@ -14,7 +14,8 @@ import {
   TEST_DATABASE_URI,
 } from '../dbTestHelper';
 
-import { contributes } from '../../../../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { contributes } = require('../../../../package.json');
 
 suite('DatabaseTreeItem Test Suite', () => {
   test('its context value should be in the package json', () => {

@@ -11,7 +11,8 @@ import { DataServiceStub } from '../stubs';
 import formatError from '../../../utils/formatError';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
-import { contributes } from '../../../../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { contributes } = require('../../../../package.json');
 
 suite('ConnectionTreeItem Test Suite', () => {
   test('its context value should be in the package json', function () {

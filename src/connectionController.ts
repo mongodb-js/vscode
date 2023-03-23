@@ -27,7 +27,8 @@ import {
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
 import TelemetryService from './telemetry/telemetryService';
-import packageJSON from '../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJSON = require('../package.json');
 
 const log = createLogger('connection controller');
 

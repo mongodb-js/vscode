@@ -6,7 +6,8 @@ import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 
 const log = createLogger('connection telemetry helper');
-import { version } from '../../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../../package.json');
 
 export type NewConnectionTelemetryEventProperties = {
   auth_strategy?: string;

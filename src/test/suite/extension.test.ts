@@ -2,7 +2,8 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../../commands';
 
-import { contributes } from '../../../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { contributes } = require('../../../package.json');
 
 suite('Extension Test Suite', () => {
   test('there should be 3 views registered in the package.json', () => {

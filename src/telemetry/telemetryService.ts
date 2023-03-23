@@ -14,7 +14,8 @@ import type { ShellEvaluateResult } from '../types/playgroundType';
 import { StorageController } from '../storage';
 
 const log = createLogger('telemetry');
-import { version } from '../../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../../package.json');
 
 type PlaygroundTelemetryEventProperties = {
   type: string | null;

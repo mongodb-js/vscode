@@ -3,7 +3,8 @@ import { before } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
 
-import { contributes } from '../../../../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { contributes } = require('../../../../package.json');
 
 import DocumentListTreeItem, {
   CollectionTypes,
