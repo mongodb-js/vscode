@@ -179,7 +179,7 @@ connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
 connection.onRequest(
   ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
   ({ namespace, schemaFields }) => {
-    return mongoDBService._cachedFields(namespace, schemaFields);
+    return mongoDBService._cacheFields(namespace, schemaFields);
   }
 );
 
