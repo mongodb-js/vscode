@@ -15,7 +15,6 @@ import {
   MESSAGE_TYPES,
 } from '../extension-app-message-constants';
 
-// TODO:
 import styles from '../connect.module.less';
 
 import './app.less';
