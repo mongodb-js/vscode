@@ -275,7 +275,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in find in dot notation when has db', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection.find({ j});',
@@ -289,7 +289,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in find in bracket notation when has db', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db["collection"].find({ j});',
@@ -303,7 +303,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in find if text not formatted', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test");db.collection.find({j});',
@@ -317,7 +317,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in find if functions are multi-lined', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         [
@@ -336,7 +336,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in find if object is multi-lined', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         ['use("test");', '', 'db.collection.find({', '  j', '});'].join('\n'),
@@ -350,7 +350,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in find if a key is surrounded by spaces', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection.find({ j });',
@@ -364,8 +364,8 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in find for a proper db', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
-      testMongoDBService._cacheFields('second.collection', ['TypeScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('second.collection', ['TypeScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("first"); use("second"); db.collection.find({ t});',
@@ -384,7 +384,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in find inside function scope', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); const name = () => { db.collection.find({ j}); }',
@@ -398,10 +398,10 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in find for a proper collection', async () => {
-      testMongoDBService._cacheFields('test.firstCollection', [
+      testMongoDBService._cachedFields('test.firstCollection', [
         'JavaScript First',
       ]);
-      testMongoDBService._cacheFields('test.secondCollection', [
+      testMongoDBService._cachedFields('test.secondCollection', [
         'JavaScript Second',
       ]);
 
@@ -417,7 +417,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide fields completion in find if db not found', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         'db.collection.find({ j});',
@@ -431,7 +431,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('do not provide fields completionin find outside object property', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection.find(j);',
@@ -445,7 +445,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide fields completion in aggregate inside the $match stage', async () => {
-      testMongoDBService._cacheFields('test.collection', ['JavaScript']);
+      testMongoDBService._cachedFields('test.collection', ['JavaScript']);
 
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection.aggregate([ { $match: { j} } ])',
@@ -579,7 +579,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide field reference completion in find when has db', async () => {
-      testMongoDBService._cacheFields('test.collection', ['price']);
+      testMongoDBService._cachedFields('test.collection', ['price']);
 
       const result = await testMongoDBService.provideCompletionItems(
         "use('test'); db.collection.find({ $expr: { $gt: [{ $getField: { $literal: '$p' } }, 200] } });",
@@ -605,7 +605,7 @@ suite('MongoDBService Test Suite', () => {
     });
 
     test('provide field reference completion in aggregate when has db', async () => {
-      testMongoDBService._cacheFields('test.collection', ['price']);
+      testMongoDBService._cachedFields('test.collection', ['price']);
 
       const result = await testMongoDBService.provideCompletionItems(
         "use('test'); db.collection.aggregate({ $match: { $expr: { $gt: [{ $getField: { $literal: '$p' } }, 200] } } });",

@@ -469,7 +469,7 @@ export default class MongoDBService {
         );
 
         // Create and cache field completion items.
-        this._cacheFields(namespace, schemaFields);
+        this._cachedFields(namespace, schemaFields);
       }
     }
   }
@@ -875,7 +875,7 @@ export default class MongoDBService {
   /**
    * Convert schema field names to Completion Items and cache them.
    */
-  _cacheFields(namespace: string, fields: string[]): void {
+  _cachedFields(namespace: string, fields: string[]): void {
     if (namespace) {
       this._cachedFields[namespace] = fields ? fields : [];
     }
