@@ -63,7 +63,7 @@ export default class MongoDBService {
   _collectionCompletionItems: { [database: string]: CompletionItem[] } = {};
   _shellSymbolCompletionItems: { [symbol: string]: CompletionItem[] } = {};
   _globalSymbolCompletionItems: CompletionItem[] = [];
-  _cachedFields: { [namespace: string]: string[] } = {};
+  _fields: { [namespace: string]: string[] } = {};
 
   _visitor: Visitor;
   _serviceProvider?: CliServiceProvider;
@@ -344,10 +344,10 @@ export default class MongoDBService {
    * Create and cache Shell symbols completion items.
    */
   _cacheShellSymbolCompletionItems() {
-    const shellSymbols = {};
+    const shellSymbolCompletionItems = {};
 
     Object.keys(signatures).map((symbol) => {
-      shellSymbols[symbol] = Object.keys(
+      shellSymbolCompletionItems[symbol] = Object.keys(
         signatures[symbol].attributes || {}
       ).map((item) => {
         const documentation =
@@ -380,7 +380,7 @@ export default class MongoDBService {
       });
     });
 
-    this._shellSymbolCompletionItems = shellSymbols;
+    this._shellSymbolCompletionItems = shellSymbolCompletionItems;
   }
 
   /**
@@ -459,7 +459,7 @@ export default class MongoDBService {
     if (currentDatabaseName && currentCollectionName) {
       const namespace = `${currentDatabaseName}.${currentCollectionName}`;
 
-      if (!this._cachedFields[namespace]) {
+      if (!this._fields[namespace]) {
         // Get field names for the current namespace.
         const schemaFields = await this._getSchemaFields(
           currentDatabaseName,
@@ -511,8 +511,7 @@ export default class MongoDBService {
       (state.stageOperator === null && state.isObjectKey)
     ) {
       const fields =
-        this._cachedFields[`${state.databaseName}.${state.collectionName}`] ||
-        [];
+        this._fields[`${state.databaseName}.${state.collectionName}`] || [];
       const message = [
         'VISITOR found',
         'query operator',
@@ -546,8 +545,7 @@ export default class MongoDBService {
   _provideAggregationOperatorCompletionItems(state: CompletionState) {
     if (state.stageOperator) {
       const fields =
-        this._cachedFields[`${state.databaseName}.${state.collectionName}`] ||
-        [];
+        this._fields[`${state.databaseName}.${state.collectionName}`] || [];
       const message = [
         'VISITOR found',
         'aggregation operator',
@@ -618,7 +616,7 @@ export default class MongoDBService {
   _provideFieldReferenceCompletionItems(state: CompletionState) {
     if (state.isTextObjectValue) {
       const fields =
-        this._cachedFields[`${state.databaseName}.${state.collectionName}`];
+        this._fields[`${state.databaseName}.${state.collectionName}`];
       this._connection.console.log('VISITOR found field reference completions');
 
       return getFilteredCompletions({ fields, meta: ['field:reference'] }).map(
@@ -876,7 +874,7 @@ export default class MongoDBService {
    */
   _cacheFields(namespace: string, fields: string[]): void {
     if (namespace) {
-      this._cachedFields[namespace] = fields ? fields : [];
+      this._fields[namespace] = fields ? fields : [];
     }
   }
 
@@ -942,7 +940,7 @@ export default class MongoDBService {
   }
 
   _clearCachedFields(): void {
-    this._cachedFields = {};
+    this._fields = {};
   }
 
   _clearCachedDatabases(): void {
