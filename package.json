@@ -37,11 +37,10 @@
     "clean": "rimraf ./out/* ./dist/* ",
     "lint": "eslint . && prettier --check .",
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
-    "update-snippets": "ts-node ./scripts/update-snippets.ts",
     "precompile": "npm run clean",
     "compile": "npm-run-all compile:*",
     "compile:keyfile": "ts-node ./scripts/generate-keyfile.ts",
-    "compile:resources": "npm run update-grammar && npm run update-snippets",
+    "compile:resources": "npm run update-grammar",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
     "watch": "npm run compile && npm-run-all -p watch:*",
@@ -133,10 +132,6 @@
       }
     ],
     "snippets": [
-      {
-        "language": "javascript",
-        "path": "./snippets/stage-autocompleter.json"
-      },
       {
         "language": "terraform",
         "path": "./snippets/atlas-terraform.json"
