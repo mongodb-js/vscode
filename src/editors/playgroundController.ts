@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import path from 'path';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import vm from 'vm';
-import * as os from 'os';
+import os from 'os';
+import transpiler from 'bson-transpilers';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
@@ -42,7 +43,6 @@ import TelemetryService from '../telemetry/telemetryService';
 import { isPlayground } from '../utils/playground';
 
 const log = createLogger('playground controller');
-const transpiler = require('bson-transpilers');
 
 interface ToCompile {
   filter?: string;

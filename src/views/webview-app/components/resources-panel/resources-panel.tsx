@@ -11,7 +11,7 @@ import {
   ToggleShowResourcesPanelAction,
 } from '../../store/actions';
 
-const styles = require('./resources-panel.less');
+import styles from './resources-panel.less';
 
 const ResourceLinks = [
   {

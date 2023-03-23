@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
+import chaiAsPromised from 'chai-as-promised';
 
 import { mdbTestExtension } from './stubbableMdbExtension';
 import {
@@ -12,7 +13,7 @@ import {
 } from './suggestTestHelpers';
 
 const expect = chai.expect;
-chai.use(require('chai-as-promised'));
+chai.use(chaiAsPromised);
 
 const TEST_DATABASE_URI = 'mongodb://localhost:27018';
 

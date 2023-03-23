@@ -6,6 +6,7 @@ import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import chaiAsPromised from 'chai-as-promised';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
@@ -25,7 +26,7 @@ import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
 
 const expect = chai.expect;
 
-chai.use(require('chai-as-promised'));
+chai.use(chaiAsPromised);
 
 suite('Playground Controller Test Suite', function () {
   this.timeout(5000);

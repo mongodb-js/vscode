@@ -1,6 +1,6 @@
 import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
-import * as util from 'util';
+import util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';

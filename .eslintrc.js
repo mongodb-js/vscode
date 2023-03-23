@@ -47,7 +47,6 @@ module.exports = {
         '@typescript-eslint/no-empty-function': 0,
         '@typescript-eslint/no-use-before-define': 0,
         '@typescript-eslint/no-explicit-any': 0,
-        '@typescript-eslint/no-var-requires': 0,
         '@typescript-eslint/no-unused-vars': 2,
         '@typescript-eslint/explicit-module-boundary-types': 0,
         '@typescript-eslint/ban-types': 0,

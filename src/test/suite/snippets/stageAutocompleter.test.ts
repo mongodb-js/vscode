@@ -1,6 +1,6 @@
 import * as chai from 'chai';
-import chaiFs = require('chai-fs');
-import chaiJsonSchema = require('chai-json-schema');
+import chaiFs from 'chai-fs';
+import chaiJsonSchema from 'chai-json-schema';
 
 chai.use(chaiFs);
 chai.use(chaiJsonSchema);

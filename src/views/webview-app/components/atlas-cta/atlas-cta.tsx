@@ -9,7 +9,7 @@ import {
 import { VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID } from '../../extension-app-message-constants';
 import AtlasLogo from './atlas-logo';
 
-const styles = require('./atlas-cta.less');
+import styles from './atlas-cta.less';
 
 type DispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;

@@ -6,6 +6,7 @@ import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 
 const log = createLogger('connection telemetry helper');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../package.json');
 
 export type NewConnectionTelemetryEventProperties = {

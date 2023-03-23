@@ -11,6 +11,7 @@ import { DataServiceStub } from '../stubs';
 import formatError from '../../../utils/formatError';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
 
 suite('ConnectionTreeItem Test Suite', () => {

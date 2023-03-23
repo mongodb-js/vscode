@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as React from 'react';
 import { mount } from 'enzyme';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 

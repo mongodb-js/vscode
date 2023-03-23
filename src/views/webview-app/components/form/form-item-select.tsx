@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-const styles = require('./form.less');
+import styles from './form.less';
 
 type props = {
   label: string;
