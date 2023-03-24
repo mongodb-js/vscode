@@ -1,7 +1,6 @@
 import type * as babel from '@babel/core';
 import * as parser from '@babel/parser';
 import traverse from '@babel/traverse';
-import { RemoteConsole } from 'vscode-languageserver/node';
 import * as util from 'util';
 
 const PLACEHOLDER = 'TRIGGER_CHARACTER';
@@ -16,16 +15,25 @@ export interface VisitorTextAndSelection {
   selection: VisitorSelection;
 }
 
+type ObjectKey =
+  | babel.types.ObjectProperty
+  | babel.types.SpreadElement
+  | babel.types.ObjectMethod;
+
 export interface CompletionState {
   databaseName: string | null;
   collectionName: string | null;
-  isObject: boolean;
-  isArray: boolean;
+  isObjectSelection: boolean;
+  isArraySelection: boolean;
   isObjectKey: boolean;
-  isShellMethod: boolean;
+  isIdentifierObjectValue: boolean;
+  isTextObjectValue: boolean;
+  isStage: boolean;
+  stageOperator: string | null;
+  isCollectionSymbol: boolean;
   isUseCallExpression: boolean;
-  isTopLevelIdentifier: boolean;
-  isDbCallExpression: boolean;
+  isGlobalSymbol: boolean;
+  isDbSymbol: boolean;
   isCollectionName: boolean;
   isAggregationCursor: boolean;
   isFindCursor: boolean;
@@ -34,68 +42,70 @@ export interface CompletionState {
 export class Visitor {
   _state: CompletionState;
   _selection: VisitorSelection;
-  _console: RemoteConsole;
 
-  constructor(console: RemoteConsole) {
+  constructor() {
     this._state = this._getDefaultNodesValues();
     this._selection = {
       start: { line: 0, character: 0 },
       end: { line: 0, character: 0 },
     };
-    this._console = console;
   }
 
-  _visitCallExpression(node: babel.types.Node): void {
-    if (node.type !== 'CallExpression') {
+  _visitCallExpression(path: babel.NodePath): void {
+    if (path.node.type !== 'CallExpression') {
       return;
     }
 
-    this._checkIsBSONSelection(node);
-    this._checkIsUseCall(node);
-    this._checkIsCollectionName(node);
-    this._checkHasDatabaseName(node);
+    this._checkIsBSONSelection(path.node);
+    this._checkIsUseCall(path.node);
+    this._checkIsCollectionNameAsCallExpression(path.node);
+    this._checkHasDatabaseName(path.node);
   }
 
-  _visitMemberExpression(node: babel.types.Node): void {
-    if (node.type !== 'MemberExpression') {
+  _visitMemberExpression(path: babel.NodePath): void {
+    if (path.node.type !== 'MemberExpression') {
       return;
     }
 
-    this._checkHasAggregationCall(node);
-    this._checkHasFindCall(node);
-    this._checkIsShellMethod(node);
-    this._checkIsCollectionName(node);
-    this._checkHasCollectionName(node);
+    this._checkHasAggregationCall(path.node);
+    this._checkHasFindCall(path.node);
+    this._checkIsCollectionSymbol(path.node);
+    this._checkIsCollectionNameAsMemberExpression(path.node);
+    this._checkHasCollectionName(path.node);
   }
 
-  _visitExpressionStatement(node: babel.types.Node): void {
-    if (node.type === 'ExpressionStatement') {
-      this._checkIsTopLevelIdentifier(node);
-      this._checkIsDbCall(node);
+  _visitExpressionStatement(path: babel.NodePath): void {
+    if (path.node.type === 'ExpressionStatement') {
+      this._checkIsGlobalSymbol(path.node);
+      this._checkIsDbSymbol(path.node);
     }
   }
 
-  _visitObjectExpression(node: babel.types.Node): void {
-    if (node.type === 'ObjectExpression') {
-      this._checkIsObjectKey(node);
+  _visitObjectExpression(path: babel.NodePath): void {
+    if (path.node.type === 'ObjectExpression') {
+      this._checkIsObjectKey(path.node);
+      this._checkIsIdentifierObjectValue(path.node);
+      this._checkIsTextObjectValue(path.node);
     }
   }
 
-  _visitArrayExpression(node: babel.types.Node): void {
-    if (node.type === 'ArrayExpression') {
-      this._checkIsBSONSelection(node);
+  _visitArrayExpression(path: babel.NodePath): void {
+    if (path.node.type === 'ArrayExpression') {
+      this._checkIsBSONSelection(path.node);
+      this._checkIsStage(path.node);
+      this._checkIsStageOperator(path);
     }
   }
 
-  _visitVariableDeclarator(node: babel.types.Node): void {
-    if (node.type === 'VariableDeclarator') {
-      this._checkIsBSONSelection(node);
+  _visitVariableDeclarator(path: babel.NodePath): void {
+    if (path.node.type === 'VariableDeclarator') {
+      this._checkIsBSONSelection(path.node);
     }
   }
 
-  _visitObjectProperty(node: babel.types.Node): void {
-    if (node.type === 'ObjectProperty') {
-      this._checkIsBSONSelection(node);
+  _visitObjectProperty(path: babel.NodePath): void {
+    if (path.node.type === 'ObjectProperty') {
+      this._checkIsBSONSelection(path.node);
     }
   }
 
@@ -141,30 +151,29 @@ export class Visitor {
     textFromEditor,
     selection,
   }: VisitorTextAndSelection): CompletionState {
-    let ast;
-
     this._state = this._getDefaultNodesValues();
     this._selection = selection;
 
+    let ast;
     try {
       ast = parser.parse(textFromEditor, {
         // Parse in strict mode and allow module declarations
         sourceType: 'module',
       });
     } catch (error) {
-      this._console.error(`parseAST error: ${util.inspect(error)}`);
+      console.error(`parseAST error: ${util.inspect(error)}`);
       return this._state;
     }
 
     traverse(ast, {
       enter: (path: babel.NodePath) => {
-        this._visitCallExpression(path.node);
-        this._visitMemberExpression(path.node);
-        this._visitExpressionStatement(path.node);
-        this._visitObjectExpression(path.node);
-        this._visitArrayExpression(path.node);
-        this._visitVariableDeclarator(path.node);
-        this._visitObjectProperty(path.node);
+        this._visitCallExpression(path);
+        this._visitMemberExpression(path);
+        this._visitExpressionStatement(path);
+        this._visitObjectExpression(path);
+        this._visitArrayExpression(path);
+        this._visitVariableDeclarator(path);
+        this._visitObjectProperty(path);
       },
     });
 
@@ -175,13 +184,17 @@ export class Visitor {
     return {
       databaseName: null,
       collectionName: null,
-      isObject: false,
-      isArray: false,
+      isObjectSelection: false,
+      isArraySelection: false,
       isObjectKey: false,
-      isShellMethod: false,
+      isIdentifierObjectValue: false,
+      isTextObjectValue: false,
+      isStage: false,
+      stageOperator: null,
+      isCollectionSymbol: false,
       isUseCallExpression: false,
-      isTopLevelIdentifier: false,
-      isDbCallExpression: false,
+      isGlobalSymbol: false,
+      isDbSymbol: false,
       isCollectionName: false,
       isAggregationCursor: false,
       isFindCursor: false,
@@ -192,7 +205,6 @@ export class Visitor {
     if (
       node.callee.type === 'Identifier' &&
       node.callee.name === 'use' &&
-      node.arguments &&
       node.arguments.length === 1 &&
       node.arguments[0].type === 'StringLiteral' &&
       node.arguments[0].value.includes(PLACEHOLDER)
@@ -206,7 +218,6 @@ export class Visitor {
       node.arguments &&
       node.arguments.length === 1 &&
       node.arguments[0].type === 'TemplateLiteral' &&
-      node.arguments[0].quasis &&
       node.arguments[0].quasis.length === 1 &&
       node.arguments[0].quasis[0].value?.raw &&
       node.arguments[0].quasis[0].value?.raw.includes(PLACEHOLDER)
@@ -220,40 +231,115 @@ export class Visitor {
     this._checkIsUseCallAsTemplate(node);
   }
 
-  _checkIsTopLevelIdentifier(node: babel.types.ExpressionStatement): void {
+  _checkIsGlobalSymbol(node: babel.types.ExpressionStatement): void {
     if (
       node.expression.type === 'Identifier' &&
       node.expression.name.includes('TRIGGER_CHARACTER')
     ) {
-      this._state.isTopLevelIdentifier = true;
+      this._state.isGlobalSymbol = true;
     }
   }
 
-  _checkIsDbCall(node: babel.types.ExpressionStatement): void {
+  _checkIsDbSymbol(node: babel.types.ExpressionStatement): void {
     if (
       node.expression.type === 'MemberExpression' &&
       node.expression.object.type === 'Identifier' &&
       node.expression.object.name === 'db'
     ) {
-      this._state.isDbCallExpression = true;
+      this._state.isDbSymbol = true;
     }
   }
 
   _checkIsObjectKey(node: babel.types.ObjectExpression): void {
-    this._state.isObjectKey = !!node.properties.find(
-      (
-        item:
-          | babel.types.ObjectProperty
-          | babel.types.SpreadElement
-          | babel.types.ObjectMethod
-      ) =>
+    node.properties.find((item: ObjectKey) => {
+      if (
         item.type === 'ObjectProperty' &&
         item.key.type === 'Identifier' &&
-        !!(item.key.name && item.key.name.includes(PLACEHOLDER))
-    );
+        item.key.name.includes(PLACEHOLDER)
+      ) {
+        this._state.isObjectKey = true;
+      }
+    });
   }
 
-  _isParentAroundSelection(node: babel.types.Node): boolean {
+  _checkIsIdentifierObjectValue(node: babel.types.ObjectExpression): void {
+    node.properties.find((item: ObjectKey) => {
+      if (
+        item.type === 'ObjectProperty' &&
+        item.value.type === 'Identifier' &&
+        item.value.name.includes(PLACEHOLDER)
+      ) {
+        this._state.isIdentifierObjectValue = true;
+      }
+    });
+  }
+
+  _checkIsTextObjectValue(node: babel.types.ObjectExpression): void {
+    node.properties.find((item: ObjectKey) => {
+      if (
+        (item.type === 'ObjectProperty' &&
+          item.value.type === 'StringLiteral' &&
+          item.value.value.includes(PLACEHOLDER)) ||
+        (item.type === 'ObjectProperty' &&
+          item.value.type === 'TemplateLiteral' &&
+          item.value?.quasis.length === 1 &&
+          item.value.quasis[0].value?.raw.includes(PLACEHOLDER))
+      ) {
+        this._state.isTextObjectValue = true;
+      }
+    });
+  }
+
+  _checkIsStage(node: babel.types.ArrayExpression): void {
+    if (node.elements) {
+      node.elements.forEach((item) => {
+        if (item?.type === 'ObjectExpression') {
+          item.properties.find((item: ObjectKey) => {
+            if (
+              item.type === 'ObjectProperty' &&
+              item.key.type === 'Identifier' &&
+              item.key.name.includes(PLACEHOLDER)
+            ) {
+              this._state.isStage = true;
+            }
+          });
+        }
+      });
+    }
+  }
+
+  _checkIsStageOperator(path: babel.NodePath): void {
+    if (path.node.type === 'ArrayExpression' && path.node.elements) {
+      path.node.elements.forEach((item) => {
+        if (item?.type === 'ObjectExpression') {
+          item.properties.find((item: ObjectKey) => {
+            if (
+              item.type === 'ObjectProperty' &&
+              item.key.type === 'Identifier' &&
+              item.value.type === 'ObjectExpression'
+            ) {
+              const name = item.key.name;
+              path.scope.traverse(item, {
+                enter: (path: babel.NodePath) => {
+                  if (
+                    path.node.type === 'ObjectProperty' &&
+                    path.node.key.type === 'Identifier' &&
+                    path.node.key.name.includes(PLACEHOLDER)
+                  ) {
+                    this._state.stageOperator = name;
+                  }
+                },
+              });
+            }
+          });
+        }
+      });
+    }
+  }
+
+  _isParentAroundSelection(
+    node: babel.types.ArrayExpression | babel.types.CallExpression
+  ): boolean {
     if (
       node.loc?.start?.line &&
       (node.loc.start.line - 1 < this._selection.start?.line ||
@@ -298,7 +384,9 @@ export class Visitor {
     return false;
   }
 
-  _isWithinSelection(node: babel.types.Node): boolean {
+  _isWithinSelection(
+    node: babel.types.ArrayExpression | babel.types.ObjectExpression
+  ): boolean {
     if (
       node.loc?.start?.line &&
       node.loc.start.line - 1 === this._selection.start?.line &&
@@ -317,20 +405,19 @@ export class Visitor {
 
   _checkIsArrayWithinSelection(node: babel.types.Node): void {
     if (node.type === 'ArrayExpression' && this._isWithinSelection(node)) {
-      this._state.isArray = true;
+      this._state.isArraySelection = true;
     }
   }
 
   _checkIsObjectWithinSelection(node: babel.types.Node): void {
     if (node.type === 'ObjectExpression' && this._isWithinSelection(node)) {
-      this._state.isObject = true;
+      this._state.isObjectSelection = true;
     }
   }
 
   _checkIsBSONSelectionInArray(node: babel.types.Node): void {
     if (
       node.type === 'ArrayExpression' &&
-      node.elements &&
       this._isParentAroundSelection(node)
     ) {
       node.elements.forEach((item) => {
@@ -343,11 +430,7 @@ export class Visitor {
   }
 
   _checkIsBSONSelectionInFunction(node: babel.types.Node): void {
-    if (
-      node.type === 'CallExpression' &&
-      node.arguments &&
-      this._isParentAroundSelection(node)
-    ) {
+    if (node.type === 'CallExpression' && this._isParentAroundSelection(node)) {
       node.arguments.forEach((item) => {
         if (item) {
           this._checkIsObjectWithinSelection(item);
@@ -371,7 +454,6 @@ export class Visitor {
   _checkIsBSONSelectionInObject(node: babel.types.Node) {
     if (
       node.type === 'ObjectProperty' &&
-      node.value &&
       this._isObjectPropBeforeSelection(node)
     ) {
       this._checkIsObjectWithinSelection(node.value);
@@ -386,32 +468,54 @@ export class Visitor {
     this._checkIsBSONSelectionInObject(node);
   }
 
-  _checkIsCollectionNameAsMemberExpression(node: babel.types.Node): void {
+  _checkIsCollectionNameAsMemberExpression(
+    node: babel.types.MemberExpression
+  ): void {
     if (
-      node.type === 'MemberExpression' &&
       node.object.type === 'Identifier' &&
       node.object.name === 'db' &&
-      node.property.type === 'Identifier' &&
-      node.property.name.includes(PLACEHOLDER)
+      ((node.property.type === 'Identifier' &&
+        node.property.name.includes(PLACEHOLDER)) ||
+        (node.property.type === 'StringLiteral' &&
+          node.property.value.includes(PLACEHOLDER)))
     ) {
       this._state.isCollectionName = true;
     }
   }
 
-  _checkIsCollectionNameAsCallExpression(node: babel.types.Node): void {
+  _checkGetCollectionAsSimpleString(node: babel.types.CallExpression): void {
     if (
-      node.type === 'CallExpression' &&
-      node.callee.type === 'MemberExpression'
+      node.arguments[0].type === 'StringLiteral' &&
+      node.arguments[0].value.includes(PLACEHOLDER)
     ) {
-      this._checkIsCollectionName(node.callee);
+      this._state.isCollectionName = true;
     }
   }
 
-  _checkIsCollectionName(
-    node: babel.types.CallExpression | babel.types.MemberExpression
+  _checkGetCollectionAsTemplate(node: babel.types.CallExpression): void {
+    if (
+      node.arguments[0].type === 'TemplateLiteral' &&
+      node.arguments[0].quasis.length === 1 &&
+      node.arguments[0].quasis[0].value.raw.includes(PLACEHOLDER)
+    ) {
+      this._state.isCollectionName = true;
+    }
+  }
+
+  _checkIsCollectionNameAsCallExpression(
+    node: babel.types.CallExpression
   ): void {
-    this._checkIsCollectionNameAsMemberExpression(node);
-    this._checkIsCollectionNameAsCallExpression(node);
+    if (
+      node.callee.type === 'MemberExpression' &&
+      node.callee.object.type === 'Identifier' &&
+      node.callee.object.name === 'db' &&
+      node.callee.property.type === 'Identifier' &&
+      node.callee.property.name === 'getCollection' &&
+      node.arguments.length === 1
+    ) {
+      this._checkGetCollectionAsSimpleString(node);
+      this._checkGetCollectionAsTemplate(node);
+    }
   }
 
   _checkHasAggregationCall(node: babel.types.MemberExpression): void {
@@ -446,7 +550,6 @@ export class Visitor {
     if (
       node.callee.type === 'Identifier' &&
       node.callee.name === 'use' &&
-      node.arguments &&
       node.arguments.length === 1 &&
       node.arguments[0].type === 'StringLiteral' &&
       node.loc &&
@@ -464,13 +567,15 @@ export class Visitor {
       node.object.object.type === 'Identifier' &&
       node.object.object.name === 'db'
     ) {
-      this._state.collectionName = (
-        node.object.property as babel.types.Identifier
-      ).name;
+      if (node.object.property.type === 'Identifier') {
+        this._state.collectionName = node.object.property.name;
+      } else if (node.object.property.type === 'StringLiteral') {
+        this._state.collectionName = node.object.property.value;
+      }
     }
   }
 
-  _checkIsShellMethod(node: babel.types.MemberExpression): void {
+  _checkIsCollectionSymbol(node: babel.types.MemberExpression): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
@@ -478,7 +583,7 @@ export class Visitor {
       node.property.type === 'Identifier' &&
       node.property.name.includes(PLACEHOLDER)
     ) {
-      this._state.isShellMethod = true;
+      this._state.isCollectionSymbol = true;
     }
   }
 }
