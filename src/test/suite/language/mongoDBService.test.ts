@@ -151,10 +151,22 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Method);
     });
 
-    test('provide shell collection methods completion if collection name is computed property', async () => {
+    test('provide shell collection methods completion for a collection name in a bracket notation', async () => {
       const result = await testMongoDBService.provideCompletionItems(
         ['use("test");', 'db["test"].'].join('\n'),
         { line: 1, character: 11 }
+      );
+      const completion = result.find(
+        (item: CompletionItem) => item.label === 'find'
+      );
+
+      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+    });
+
+    test('provide shell collection methods completion for a collection name in getCollection', async () => {
+      const result = await testMongoDBService.provideCompletionItems(
+        ['use("test");', 'db.getCollection("test").'].join('\n'),
+        { line: 1, character: 41 }
       );
       const completion = result.find(
         (item: CompletionItem) => item.label === 'find'

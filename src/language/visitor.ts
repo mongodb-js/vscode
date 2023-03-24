@@ -561,7 +561,9 @@ export class Visitor {
     }
   }
 
-  _checkHasCollectionNameMemberExpression(node: babel.types.MemberExpression) {
+  _checkHasCollectionNameMemberExpression(
+    node: babel.types.MemberExpression
+  ): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
@@ -595,7 +597,7 @@ export class Visitor {
     this._checkHasCollectionNameCallExpression(node);
   }
 
-  _checkIsCollectionSymbol(node: babel.types.MemberExpression): void {
+  _checkIsCollectionMemberExpression(node: babel.types.MemberExpression): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
@@ -605,5 +607,25 @@ export class Visitor {
     ) {
       this._state.isCollectionSymbol = true;
     }
+  }
+
+  _checkIsCollectionCallExpression(node: babel.types.MemberExpression): void {
+    if (
+      node.object.type === 'CallExpression' &&
+      node.object.callee.type === 'MemberExpression' &&
+      node.object.callee.object.type === 'Identifier' &&
+      node.object.callee.object.name === 'db' &&
+      node.object.callee.property.type === 'Identifier' &&
+      node.object.callee.property.name === 'getCollection' &&
+      node.property.type === 'Identifier' &&
+      node.property.name.includes(PLACEHOLDER)
+    ) {
+      this._state.isCollectionSymbol = true;
+    }
+  }
+
+  _checkIsCollectionSymbol(node: babel.types.MemberExpression): void {
+    this._checkIsCollectionMemberExpression(node);
+    this._checkIsCollectionCallExpression(node);
   }
 }
