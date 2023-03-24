@@ -587,7 +587,7 @@ export default class MongoDBService {
   /**
    * If the current node is 'db.collection.find({ _id: <trigger>});'.
    */
-  _provideBSONCompletionItems(state: CompletionState) {
+  _provideIdentifierObjectValueCompletionItems(state: CompletionState) {
     if (state.isIdentifierObjectValue) {
       this._connection.console.log('VISITOR found bson completions');
       return getFilteredCompletions({ meta: ['bson'] }).map((item) => {
@@ -611,24 +611,28 @@ export default class MongoDBService {
   }
 
   /**
-   * If the current node is 'db.collection.find({ $expr: { $gt: [{ $getField: { $literal: '<trigger>' } }, 200] } });'.
+   * If the current node is 'db.collection.find({ field: "<trigger>" });'.
    */
-  _provideFieldReferenceCompletionItems(state: CompletionState) {
+  _provideTextObjectValueCompletionItems(state: CompletionState) {
     if (state.isTextObjectValue) {
       const fields =
         this._fields[`${state.databaseName}.${state.collectionName}`];
       this._connection.console.log('VISITOR found field reference completions');
 
-      return getFilteredCompletions({ fields, meta: ['field:reference'] }).map(
-        (item) => {
-          return {
-            label: item.value,
-            kind: CompletionItemKind.Reference,
-            preselect: true,
-            detail: item.description,
-          };
-        }
-      );
+      return getFilteredCompletions({
+        fields,
+        meta: ['field:reference', 'variable:*'],
+      }).map((item) => {
+        return {
+          label: item.value,
+          kind:
+            item.meta === 'field:reference'
+              ? CompletionItemKind.Reference
+              : CompletionItemKind.Variable,
+          preselect: true,
+          detail: item.description,
+        };
+      });
     }
   }
 
@@ -750,8 +754,8 @@ export default class MongoDBService {
       this._provideStageCompletionItems.bind(this, state),
       this._provideQueryOperatorCompletionItems.bind(this, state),
       this._provideAggregationOperatorCompletionItems.bind(this, state),
-      this._provideBSONCompletionItems.bind(this, state),
-      this._provideFieldReferenceCompletionItems.bind(this, state),
+      this._provideIdentifierObjectValueCompletionItems.bind(this, state),
+      this._provideTextObjectValueCompletionItems.bind(this, state),
       this._provideCollectionSymbolCompletionItems.bind(this, state),
       this._provideFindCursorCompletionItems.bind(this, state),
       this._provideAggregationCursorCompletionItems.bind(this, state),

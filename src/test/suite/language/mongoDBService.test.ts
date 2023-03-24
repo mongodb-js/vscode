@@ -578,6 +578,30 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('detail');
     });
 
+    test('provide system variable completion in find', async () => {
+      const result = await testMongoDBService.provideCompletionItems(
+        'db.collection.find({ _id: "$$N" });',
+        { line: 0, character: 30 }
+      );
+      const completion = result.find(
+        (item: CompletionItem) => item.label === '$$NOW'
+      );
+
+      expect(completion).to.have.property('kind', CompletionItemKind.Variable);
+    });
+
+    test('provide system variable completion in aggregate', async () => {
+      const result = await testMongoDBService.provideCompletionItems(
+        'db.collection.aggregate([{ $match: { _id: "$$R" }}]);',
+        { line: 0, character: 46 }
+      );
+      const completion = result.find(
+        (item: CompletionItem) => item.label === '$$ROOT'
+      );
+
+      expect(completion).to.have.property('kind', CompletionItemKind.Variable);
+    });
+
     test('provide field reference completion in find when has db', async () => {
       testMongoDBService._cacheFields('test.collection', ['price']);
 
@@ -610,6 +634,20 @@ suite('MongoDBService Test Suite', () => {
       const result = await testMongoDBService.provideCompletionItems(
         "use('test'); db.collection.aggregate({ $match: { $expr: { $gt: [{ $getField: { $literal: '$p' } }, 200] } } });",
         { line: 0, character: 92 }
+      );
+      const completion = result.find(
+        (item: CompletionItem) => item.label === '$price'
+      );
+
+      expect(completion).to.have.property('kind', CompletionItemKind.Reference);
+    });
+
+    test('provide field reference completion in aggregate when collection is specified via getCollection', async () => {
+      testMongoDBService._cacheFields('test.collection', ['price']);
+
+      const result = await testMongoDBService.provideCompletionItems(
+        "use('test'); db.getCollection('collection').aggregate({ $match: '$p' });",
+        { line: 0, character: 67 }
       );
       const completion = result.find(
         (item: CompletionItem) => item.label === '$price'
