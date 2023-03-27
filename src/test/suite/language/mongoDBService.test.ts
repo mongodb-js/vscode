@@ -981,7 +981,7 @@ suite('MongoDBService Test Suite', () => {
         'documentation',
         'Switch current database.'
       );
-      expect(useCompletion).to.have.property('detail', 'use(<databaseName>);');
+      expect(useCompletion).to.have.property('detail', 'use(<databaseName>)');
     });
 
     test('provide db names completion for literal', async () => {
