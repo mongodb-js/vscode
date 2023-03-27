@@ -5,6 +5,7 @@ import {
   CompletionItemKind,
   InsertTextFormat,
   DiagnosticSeverity,
+  MarkupContent,
 } from 'vscode-languageclient/node';
 import type { CompletionItem } from 'vscode-languageclient/node';
 import chai from 'chai';
@@ -136,7 +137,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'find'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell collection methods completion if function scope', async () => {
@@ -148,7 +153,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'find'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell collection methods completion for a collection name in a bracket notation', async () => {
@@ -160,7 +169,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'find'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell collection methods completion for a collection name in getCollection', async () => {
@@ -172,7 +185,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'find'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell collection methods completion if single quotes', async () => {
@@ -184,7 +201,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'find'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell db methods completion with dot the same line', async () => {
@@ -196,7 +217,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'getCollectionNames'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell db methods completion with dot next line', async () => {
@@ -211,7 +236,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'getCollectionNames'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell db methods completion with dot after space', async () => {
@@ -223,7 +252,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'getCollectionNames'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell aggregation cursor methods completion', async () => {
@@ -234,12 +267,12 @@ suite('MongoDBService Test Suite', () => {
       const aggCompletion = result.find(
         (item: CompletionItem) => item.label === 'toArray'
       );
-      const completion = result.find(
+      const otherCompletion = result.find(
         (item: CompletionItem) => item.label === 'allowPartialResults'
       );
 
-      expect(aggCompletion).to.have.property('kind', CompletionItemKind.Method);
-      expect(completion).to.be.undefined;
+      expect(aggCompletion?.kind).to.be.eql(CompletionItemKind.Method);
+      expect(otherCompletion).to.be.undefined;
     });
 
     test('provide shell find cursor methods completion without args', async () => {
@@ -251,7 +284,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'allowPartialResults'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell find cursor methods completion with args at the same line', async () => {
@@ -265,7 +302,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'allowPartialResults'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide shell find cursor methods completion with args next line', async () => {
@@ -283,7 +324,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === 'allowPartialResults'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Method);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide fields completion in find in dot notation when has db', async () => {
@@ -470,7 +515,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide stages completion in aggregata when has db', async () => {
+    test('provide stages completion in aggregate when has db', async () => {
       const result = await testMongoDBService.provideCompletionItems(
         'use("test"); db.collection.aggregate([{ $m}]);',
         { line: 0, character: 42 }
@@ -485,10 +530,13 @@ suite('MongoDBService Test Suite', () => {
         'insertTextFormat',
         InsertTextFormat.Snippet
       );
-      expect(completion).to.have.property('detail');
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide stages completion if db not found', async () => {
+    test('provide stages completion in aggregate if db not found', async () => {
       const result = await testMongoDBService.provideCompletionItems(
         'db.collection.aggregate([{ $m}]);',
         { line: 0, character: 29 }
@@ -497,10 +545,14 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$match'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide stages completion if object is multi-lined', async () => {
+    test('provide stages completion in find if object is multi-lined', async () => {
       const result = await testMongoDBService.provideCompletionItems(
         ['use("test");', '', 'db.aggregate.find([{', '  $c', '}]);'].join('\n'),
         { line: 3, character: 4 }
@@ -509,7 +561,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$count'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide query completion for the $match stage', async () => {
@@ -522,6 +578,7 @@ suite('MongoDBService Test Suite', () => {
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion).to.have.property('documentation');
     });
 
     test('provide query completion in find', async () => {
@@ -533,7 +590,13 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$expr'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include(
+        '[Documentation]'
+      );
     });
 
     test('do not provide query completion for other than $match stages', async () => {
@@ -566,7 +629,10 @@ suite('MongoDBService Test Suite', () => {
         'insertTextFormat',
         InsertTextFormat.Snippet
       );
-      expect(completion).to.have.property('detail');
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide bson completion in aggregate', async () => {
@@ -587,7 +653,10 @@ suite('MongoDBService Test Suite', () => {
         'insertTextFormat',
         InsertTextFormat.Snippet
       );
-      expect(completion).to.have.property('detail');
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide system variable completion in find', async () => {
@@ -599,7 +668,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$$NOW'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Variable);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Variable);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide system variable completion in aggregate', async () => {
@@ -611,7 +684,11 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$$ROOT'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Variable);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Variable);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
     test('provide field reference completion in find when has db', async () => {
@@ -677,7 +754,13 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$dateToString'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include(
+        '[Documentation]'
+      );
     });
 
     test('do not provide aggregation expression completion for the $match stage', async () => {
@@ -701,7 +784,13 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$convert'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include(
+        '[Documentation]'
+      );
     });
 
     test('do not provide aggregation conversion completion for the $match stage', async () => {
@@ -725,7 +814,13 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$addToSet'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include(
+        '[Documentation]'
+      );
     });
 
     test('provide aggregation accumulator completion for the $group stage', async () => {
@@ -737,7 +832,13 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$addToSet'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include(
+        '[Documentation]'
+      );
     });
 
     test('do not provide aggregation accumulator completion for the $match stage', async () => {
@@ -773,7 +874,13 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$bottom'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include(
+        '[Documentation]'
+      );
     });
 
     test('provide aggregation accumulator direction completion for the $group stage', async () => {
@@ -785,7 +892,13 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$bottom'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include(
+        '[Documentation]'
+      );
     });
 
     test('do not provide aggregation accumulator direction completion for the $match stage', async () => {
@@ -821,7 +934,13 @@ suite('MongoDBService Test Suite', () => {
         (item: CompletionItem) => item.label === '$documentNumber'
       );
 
-      expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
+      expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
+
+      const documentation = completion?.documentation;
+      expect(MarkupContent.is(documentation)).to.be.eql(true);
+      expect((documentation as MarkupContent).value).to.include(
+        '[Documentation]'
+      );
     });
 
     test('do not provide aggregation accumulator window completion for the $group stage', async () => {
@@ -858,6 +977,11 @@ suite('MongoDBService Test Suite', () => {
         'kind',
         CompletionItemKind.Function
       );
+      expect(useCompletion).to.have.property(
+        'documentation',
+        'Switch current database.'
+      );
+      expect(useCompletion).to.have.property('detail', 'use(<databaseName>);');
     });
 
     test('provide db names completion for literal', async () => {
