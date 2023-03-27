@@ -658,8 +658,8 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._cacheFields('test.collection', ['price']);
 
       const result = await testMongoDBService.provideCompletionItems(
-        "use('test'); db.getCollection('collection').aggregate({ $match: '$p' });",
-        { line: 0, character: 67 }
+        "use('test'); db.getCollection('collection').aggregate([{ $match: '$p' }]);",
+        { line: 0, character: 68 }
       );
       const completion = result.find(
         (item: CompletionItem) => item.label === '$price'
