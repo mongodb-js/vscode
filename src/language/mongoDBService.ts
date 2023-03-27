@@ -473,7 +473,8 @@ export default class MongoDBService {
     variable: string;
     description?: string;
   }) {
-    const link = `https://www.mongodb.com/docs/manual/reference/aggregation-variables/#mongodb-variable-variable.${variable}`;
+    const title = variable.replace(/[$]/g, '');
+    const link = `https://www.mongodb.com/docs/manual/reference/aggregation-variables/#mongodb-variable-variable.${title}`;
     return {
       kind: MarkupKind.Markdown,
       value: description
