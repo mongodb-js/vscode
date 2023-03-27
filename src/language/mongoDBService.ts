@@ -336,7 +336,7 @@ export default class MongoDBService {
         label: 'use',
         kind: CompletionItemKind.Function,
         documentation: 'Switch current database.',
-        detail: 'use(<databaseName>);',
+        detail: 'use(<databaseName>)',
         preselect: true,
       },
     ];
