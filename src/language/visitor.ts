@@ -561,7 +561,9 @@ export class Visitor {
     }
   }
 
-  _checkHasCollectionName(node: babel.types.MemberExpression): void {
+  _checkHasCollectionNameMemberExpression(
+    node: babel.types.MemberExpression
+  ): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
@@ -573,6 +575,26 @@ export class Visitor {
         this._state.collectionName = node.object.property.value;
       }
     }
+  }
+
+  _checkHasCollectionNameCallExpression(node: babel.types.MemberExpression) {
+    if (
+      node.object.type === 'CallExpression' &&
+      node.object.callee.type === 'MemberExpression' &&
+      node.object.callee.object.type === 'Identifier' &&
+      node.object.callee.object.name === 'db' &&
+      node.object.callee.property.type === 'Identifier' &&
+      node.object.callee.property.name === 'getCollection' &&
+      node.object.arguments.length === 1 &&
+      node.object.arguments[0].type === 'StringLiteral'
+    ) {
+      this._state.collectionName = node.object.arguments[0].value;
+    }
+  }
+
+  _checkHasCollectionName(node: babel.types.MemberExpression): void {
+    this._checkHasCollectionNameMemberExpression(node);
+    this._checkHasCollectionNameCallExpression(node);
   }
 
   _checkIsCollectionMemberExpression(node: babel.types.MemberExpression): void {
