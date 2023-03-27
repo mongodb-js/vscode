@@ -335,6 +335,8 @@ export default class MongoDBService {
       {
         label: 'use',
         kind: CompletionItemKind.Function,
+        documentation: 'Switch current database.',
+        detail: 'use(<databaseName>)',
         preselect: true,
       },
     ];
@@ -431,6 +433,56 @@ export default class MongoDBService {
     }
   }
 
+  _getAggregationDocumentation({
+    operator,
+    description,
+  }: {
+    operator: string;
+    description?: string;
+  }) {
+    const title = operator.replace(/[$]/g, '');
+    const link = `https://www.mongodb.com/docs/manual/reference/operator/aggregation/${title}/`;
+    return {
+      kind: MarkupKind.Markdown,
+      value: description
+        ? `${description}\n\n[Read More](${link})`
+        : `[Documentation](${link})`,
+    };
+  }
+
+  _getBsonDocumentation({
+    bsonType,
+    description,
+  }: {
+    bsonType: string;
+    description?: string;
+  }) {
+    const link = `https://www.mongodb.com/docs/mongodb-shell/reference/data-types/#${bsonType}`;
+    return {
+      kind: MarkupKind.Markdown,
+      value: description
+        ? `${description}\n\n[Read More](${link})`
+        : `[Documentation](${link})`,
+    };
+  }
+
+  _getSystemVariableDocumentation({
+    variable,
+    description,
+  }: {
+    variable: string;
+    description?: string;
+  }) {
+    const title = variable.replace(/[$]/g, '');
+    const link = `https://www.mongodb.com/docs/manual/reference/aggregation-variables/#mongodb-variable-variable.${title}`;
+    return {
+      kind: MarkupKind.Markdown,
+      value: description
+        ? `${description}\n\n[Read More](${link})`
+        : `[Documentation](${link})`,
+    };
+  }
+
   /**
    * Get and cache collection and field names based on the namespace.
    */
@@ -489,11 +541,14 @@ export default class MongoDBService {
 
         return {
           label: item.value,
+          kind: CompletionItemKind.Keyword,
           insertText: snippet,
           insertTextFormat: InsertTextFormat.Snippet,
-          kind: CompletionItemKind.Keyword,
+          documentation: this._getAggregationDocumentation({
+            operator: item.value,
+            description: item.description,
+          }),
           preselect: true,
-          detail: item.description,
         };
       });
     }
@@ -530,8 +585,11 @@ export default class MongoDBService {
             item.meta === 'field:identifier'
               ? CompletionItemKind.Field
               : CompletionItemKind.Keyword,
+          documentation: this._getAggregationDocumentation({
+            operator: item.value,
+            description: item.description,
+          }),
           preselect: true,
-          detail: item.description,
         };
       });
     }
@@ -577,8 +635,11 @@ export default class MongoDBService {
             item.meta === 'field:identifier'
               ? CompletionItemKind.Field
               : CompletionItemKind.Keyword,
+          documentation: this._getAggregationDocumentation({
+            operator: item.value,
+            description: item.description,
+          }),
           preselect: true,
-          detail: item.description,
         };
       });
     }
@@ -600,11 +661,14 @@ export default class MongoDBService {
 
         return {
           label: item.value,
+          kind: CompletionItemKind.Constructor,
           insertText: snippet,
           insertTextFormat: InsertTextFormat.Snippet,
-          kind: CompletionItemKind.Constructor,
+          documentation: this._getBsonDocumentation({
+            bsonType: item.value,
+            description: item.description,
+          }),
           preselect: true,
-          detail: item.description,
         };
       });
     }
@@ -629,8 +693,14 @@ export default class MongoDBService {
             item.meta === 'field:reference'
               ? CompletionItemKind.Reference
               : CompletionItemKind.Variable,
+          documentation:
+            item.meta === 'variable:system'
+              ? this._getSystemVariableDocumentation({
+                  variable: item.value,
+                  description: item.description,
+                })
+              : item.description,
           preselect: true,
-          detail: item.description,
         };
       });
     }
