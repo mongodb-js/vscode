@@ -19,11 +19,10 @@ MongoDB for VS Code makes it easy to work with MongoDB, whether your own instanc
 
 MongoDB Playgrounds are the most convenient way to prototype and execute CRUD operations and other MongoDB commands directly inside VS Code.
 
-- Prototype your queries, aggregations, and MongoDB commands with MongoDB syntax highlighting and intelligent autocomplete for MongoDB shell API, MongoDB operators, and for database, collection, and field names.
+- Prototype your queries, aggregations, and MongoDB commands with convenient syntax highlighting and intelligent autocomplete for MongoDB shell API, BSON types, MQL operators, aggregation stage snippets, system variables, and for database, collection, and field names.
 - Run your playgrounds and see the results instantly. Click the play button in the tab bar to see the output.
 - Edit documents returned by your playground.
 - Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB.
-- Build aggregations quickly with helpful and well-commented stage snippets.
 
 ![Playgrounds](resources/screenshots/playground.png)
 
@@ -64,7 +63,9 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 ## Extension Settings
 
 - `mdb.shell`: The MongoDB shell to use (The new `mongosh` or the legacy `mongo`).
-- `mdb.show`: Show or hide the MongoDB view.
+- `mdb.showMongoDBConnectionExplorer`: Show or hide the MongoDB Connection explorer.
+- `mdb.showMongoDBPlaygrounds`: Show or hide the MongoDB Playgrounds explorer.
+- `mdb.showMongoDBHelpExplorer`: Show or hide the MongoDB Help explorer.
 - `mdb.defaultLimit`: The number of documents to fetch when viewing documents from a collection.
 - `mdb.confirmRunAll`: Show a confirmation message before running commands in a playground.
 - `mdb.confirmDeleteDocument`: Show a confirmation message before deleting a document in the tree view.
@@ -79,6 +80,8 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 
 ## Additional Settings
 
+### Autocomplete
+
 _These global settings affect how MongoDB for VS Code provides intelligent autocomplete inside snippets and string literals (off by default). Changing the default configuration may affect the behavior and performance of other extensions and of VS Code itself. If you do not change the default settings, you can still trigger intelligent autocomplete inside a snippet or string literal with `Ctrl+Space`._
 
 - `editor.suggest.snippetsPreventQuickSuggestions`: By default, VS Code prevents code completion in snippet mode (editing placeholders in inserted code). Setting this to `false` allows snippet (eg. `$match`, `$addFields`) and field completion based on the document schema for the `db.collection.aggregate()` expressions.
@@ -91,6 +94,12 @@ _These global settings affect how MongoDB for VS Code provides intelligent autoc
   "strings": true
 }
 ```
+
+### Syntax Highlighting
+
+The MongoDB playgrounds are JavaScript files, which causes JavaScript syntax highlighting to override any customizations made to the MongoDB syntax colors.
+
+Currently, there is no way to resolve this except for turning off semantic highlighting for a current workspace, or for all themes that are being used by setting `editor.semanticHighlighting.enabled` to `false`.
 
 ## Telemetry
 
