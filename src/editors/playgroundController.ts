@@ -581,8 +581,6 @@ export default class PlaygroundController {
 
     this._playgroundResult = evaluateResponse.result;
 
-    this._explorerController.refresh();
-
     await this._openPlaygroundResult();
 
     return true;

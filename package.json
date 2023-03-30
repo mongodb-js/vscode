@@ -812,7 +812,7 @@
         "command": "mdb.saveMongoDBDocument",
         "key": "ctrl+s",
         "mac": "cmd+s",
-        "when": "mdb.isPlayground == true"
+        "when": "editorLangId == json"
       }
     ],
     "capabilities": {
