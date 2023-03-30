@@ -619,7 +619,7 @@
         },
         {
           "command": "mdb.saveMongoDBDocument",
-          "when": "editorLangId == json"
+          "when": "resourceScheme == VIEW_DOCUMENT_SCHEME"
         },
         {
           "command": "mdb.runSelectedPlaygroundBlocks",
@@ -812,7 +812,7 @@
         "command": "mdb.saveMongoDBDocument",
         "key": "ctrl+s",
         "mac": "cmd+s",
-        "when": "editorLangId == json"
+        "when": "resourceScheme == VIEW_DOCUMENT_SCHEME"
       }
     ],
     "capabilities": {

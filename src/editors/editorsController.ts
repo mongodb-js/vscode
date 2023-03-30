@@ -224,7 +224,6 @@ export default class EditorsController {
       DOCUMENT_SOURCE_URI_IDENTIFIER
     ) as DocumentSource;
 
-    // If not MongoDB document save to disk instead of MongoDB.
     if (
       activeEditor.document.uri.scheme !== 'VIEW_DOCUMENT_SCHEME' ||
       !namespace ||
@@ -233,8 +232,9 @@ export default class EditorsController {
       documentId === null ||
       documentId === undefined
     ) {
-      await vscode.commands.executeCommand('workbench.action.files.save');
-
+      void vscode.window.showErrorMessage(
+        `The current file can not be saved as a MongoDB document. Invalid URL: ${activeEditor.document.uri.toString()}`
+      );
       return false;
     }
 
