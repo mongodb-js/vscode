@@ -6,6 +6,7 @@ import {
   DidChangeConfigurationNotification,
   CompletionItem,
   TextDocumentPositionParams,
+  // SignatureHelpParams,
   RequestType,
   TextDocumentSyncKind,
   Connection,
@@ -66,6 +67,10 @@ connection.onInitialize((params: InitializeParams) => {
         resolveProvider: true,
         triggerCharacters: ['.'],
       },
+      /* signatureHelpProvider: {
+        resolveProvider: true,
+        triggerCharacters: [ ',' ]
+      } */
       // documentFormattingProvider: true,
       // documentRangeFormattingProvider: true,
       // codeLensProvider: {
@@ -206,6 +211,16 @@ connection.onCompletion((params: TextDocumentPositionParams) => {
     params.position
   );
 });
+
+/* connection.onSignatureHelp((params: SignatureHelpParams) => {
+  const textFromEditor = documents.get(params.textDocument.uri)?.getText();
+
+  return mongoDBService.provideSignatureHelp(
+    textFromEditor ? textFromEditor : '',
+    params.position,
+    params.context
+  );
+}); */
 
 // This handler resolves additional information for the item selected in
 // the completion list.

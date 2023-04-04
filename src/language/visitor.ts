@@ -29,6 +29,8 @@ export interface CompletionState {
   isIdentifierObjectValue: boolean;
   isTextObjectValue: boolean;
   isStage: boolean;
+  isFind: boolean;
+  isAggregation: boolean;
   stageOperator: string | null;
   isCollectionSymbol: boolean;
   isUseCallExpression: boolean;
@@ -56,6 +58,7 @@ export class Visitor {
       return;
     }
 
+    this._checkIsFind(path.node);
     this._checkIsBSONSelection(path.node);
     this._checkIsUseCall(path.node);
     this._checkIsCollectionNameAsCallExpression(path.node);
@@ -190,6 +193,8 @@ export class Visitor {
       isIdentifierObjectValue: false,
       isTextObjectValue: false,
       isStage: false,
+      isFind: false,
+      isAggregation: false,
       stageOperator: null,
       isCollectionSymbol: false,
       isUseCallExpression: false,
@@ -289,6 +294,24 @@ export class Visitor {
       }
     });
   }
+
+  _checkIsFind(node: babel.types.CallExpression) {
+    if (
+      node.callee.type === 'MemberExpression' &&
+      node.callee.property.type === 'Identifier' &&
+      node.callee.property.name === 'find' &&
+      node.arguments.length === 1 &&
+      node.arguments[0].type === 'ObjectExpression' &&
+      node.arguments[0].loc &&
+      node.arguments[0].loc.start.line <= this._selection.start.line &&
+      node.arguments[0].loc.end.line >= this._selection.start.line
+    ) {
+      this._state.isFind = true;
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _checkIsAggregation(node: babel.types.ArrayExpression): void {}
 
   _checkIsStage(node: babel.types.ArrayExpression): void {
     if (node.elements) {

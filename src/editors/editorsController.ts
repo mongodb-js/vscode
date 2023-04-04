@@ -33,6 +33,7 @@ import PlaygroundResultProvider, {
 } from './playgroundResultProvider';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
+import MongodbHelpProvider from './mongodbHelpProvider';
 
 const log = createLogger('editors controller');
 
@@ -452,6 +453,12 @@ export default class EditorsController {
             PlaygroundDiagnosticsCodeActionProvider.providedCodeActionKinds,
         }
       )
+    );
+    this._context.subscriptions.push(
+      vscode.languages.registerSignatureHelpProvider({ language: 'javascript' }, new MongodbHelpProvider(), {
+        triggerCharacters: MongodbHelpProvider.triggerCharacters,
+        retriggerCharacters: MongodbHelpProvider.retriggerCharacters
+      })
     );
   }
 

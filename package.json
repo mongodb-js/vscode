@@ -818,6 +818,9 @@
     "capabilities": {
       "codeLensProvider": {
         "resolveProvider": "true"
+      },
+      "signatureHelpProvider": {
+        "resolveProvider": "true"
       }
     },
     "configuration": {
