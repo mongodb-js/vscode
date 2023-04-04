@@ -327,6 +327,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
+    this._telemetryService.trackPlaygroundCreated('search');
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -341,6 +342,9 @@ export default class PlaygroundController {
       content = content
         .replace('NEW_DATABASE_NAME', element.databaseName)
         .replace('Create a new database', 'The current database to use');
+      this._telemetryService.trackPlaygroundCreated('createCollection');
+    } else {
+      this._telemetryService.trackPlaygroundCreated('createDatabase');
     }
 
     return this._createPlaygroundFileWithContent(content);
@@ -354,6 +358,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
+    this._telemetryService.trackPlaygroundCreated('index');
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -367,6 +372,7 @@ export default class PlaygroundController {
       .replace('CURRENT_COLLECTION', collectionName)
       .replace('DOCUMENT_CONTENTS', documentContents);
 
+    this._telemetryService.trackPlaygroundCreated('cloneDocument');
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -378,6 +384,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
+    this._telemetryService.trackPlaygroundCreated('insertDocument');
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -386,6 +393,8 @@ export default class PlaygroundController {
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
     const content = useDefaultTemplate ? playgroundTemplate : '';
+
+    this._telemetryService.trackPlaygroundCreated('crud');
     return this._createPlaygroundFileWithContent(content);
   }
 
