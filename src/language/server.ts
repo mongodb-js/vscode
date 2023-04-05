@@ -128,8 +128,6 @@ connection.onDidChangeConfiguration((/* change */) => {
 
 // Only keep settings for open documents.
 documents.onDidClose((e) => {
-  // connection.console.log(`documents.onDidClose: ${JSON.stringify(e)}`);
-
   documentSettings.delete(e.document.uri);
 });
 
@@ -251,10 +249,7 @@ connection.onSignatureHelp((params: SignatureHelpParams) => {
     return mongodbSignatures;
   }
 
-  return typeScriptService.doSignatureHelp(
-    document,
-    params.position
-  );
+  return typeScriptService.doSignatureHelp(document, params.position);
 });
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {
