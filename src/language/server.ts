@@ -74,8 +74,8 @@ connection.onInitialize((params: InitializeParams) => {
       },
       signatureHelpProvider: {
         resolveProvider: true,
-        triggerCharacters: [ ',' ]
-      }
+        triggerCharacters: [','],
+      },
       // documentFormattingProvider: true,
       // documentRangeFormattingProvider: true,
       // codeLensProvider: {
@@ -240,7 +240,21 @@ connection.onSignatureHelp((params: SignatureHelpParams) => {
     return;
   }
 
-  return typeScriptService.doSignatureHelp(document, params.position);
+  const textFromEditor = document.getText() || '';
+  const mongodbSignatures = mongoDBService.provideSignatureHelp(
+    textFromEditor,
+    params.position,
+    params.context
+  );
+
+  if (mongodbSignatures) {
+    return mongodbSignatures;
+  }
+
+  return typeScriptService.doSignatureHelp(
+    document,
+    params.position
+  );
 });
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {

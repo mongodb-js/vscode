@@ -1,6 +1,10 @@
 import { Connection } from 'vscode-languageserver/node';
-import type { SignatureHelp, SignatureInformation, ParameterInformation } from 'vscode-languageserver/node';
-import * as ts from 'typescript';
+import type {
+  SignatureHelp,
+  SignatureInformation,
+  ParameterInformation,
+} from 'vscode-languageserver/node';
+import ts from 'typescript';
 import { TextDocument, Position } from 'vscode-languageserver-textdocument';
 import { readFileSync } from 'fs';
 import { join, basename, dirname } from 'path';
@@ -12,9 +16,13 @@ type TypeScriptServiceHost = {
 };
 
 // Server folder.
-const serverPath = basename(__dirname) === 'dist' ? dirname(__dirname) : dirname(dirname(__dirname));
+const serverPath =
+  basename(__dirname) === 'dist'
+    ? dirname(__dirname)
+    : dirname(dirname(__dirname));
+
 // TypeScript library folder.
-const librarPath = join(serverPath, '../node_modules/typescript/lib');
+const librarPath = join(serverPath, 'node_modules/typescript/lib');
 const contents: { [name: string]: string } = {};
 
 export default class TypeScriptService {
@@ -47,10 +55,10 @@ export default class TypeScriptService {
     const compilerOptions = {
       allowNonTsExtensions: true,
       allowJs: true,
-      lib: ['lib.es2020.full.d.ts'],
+      lib: ['lib.es2020.full.d.ts'], // Should match to lib from tsconfig.json.
       target: ts.ScriptTarget.Latest,
       moduleResolution: ts.ModuleResolutionKind.Classic,
-      experimentalDecorators: false
+      experimentalDecorators: false,
     };
     let currentTextDocument = TextDocument.create('init', 'javascript', 1, '');
 
@@ -77,11 +85,11 @@ export default class TypeScriptService {
         return {
           getText: (start, end) => text.substring(start, end),
           getLength: () => text.length,
-          getChangeRange: () => undefined
+          getChangeRange: () => undefined,
         };
       },
       getCurrentDirectory: () => '',
-      getDefaultLibFileName: () => 'es2020.full',
+      getDefaultLibFileName: () => 'es2020.full', // Should match to lib from tsconfig.json.
       readFile: (path: string): string | undefined => {
         if (path === currentTextDocument.uri) {
           return currentTextDocument.getText();
@@ -100,7 +108,7 @@ export default class TypeScriptService {
           return false;
         }
         return true;
-      }
+      },
     };
 
     // Create the language service files.
@@ -117,25 +125,38 @@ export default class TypeScriptService {
       },
       dispose() {
         jsLanguageService.dispose();
-      }
+      },
     };
   }
 
-  doSignatureHelp(document: TextDocument, position: Position): SignatureHelp | null {
-    const jsDocument = TextDocument.create(document.uri, 'javascript', document.version, document.getText());
+  doSignatureHelp(
+    document: TextDocument,
+    position: Position
+  ): SignatureHelp | null {
+    const jsDocument = TextDocument.create(
+      document.uri,
+      'javascript',
+      document.version,
+      document.getText()
+    );
     const jsLanguageService = this._host.getLanguageService(jsDocument);
-    const signHelp = jsLanguageService.getSignatureHelpItems(jsDocument.uri, jsDocument.offsetAt(position), undefined);
+    const signHelp = jsLanguageService.getSignatureHelpItems(
+      jsDocument.uri,
+      jsDocument.offsetAt(position),
+      undefined
+    );
+
     if (signHelp) {
       const ret: SignatureHelp = {
         activeSignature: signHelp.selectedItemIndex,
         activeParameter: signHelp.argumentIndex,
-        signatures: []
+        signatures: [],
       };
-      signHelp.items.forEach(item => {
+      signHelp.items.forEach((item) => {
         const signature: SignatureInformation = {
           label: '',
           documentation: undefined,
-          parameters: []
+          parameters: [],
         };
 
         signature.label += ts.displayPartsToString(item.prefixDisplayParts);
@@ -143,12 +164,14 @@ export default class TypeScriptService {
           const label = ts.displayPartsToString(p.displayParts);
           const parameter: ParameterInformation = {
             label: label,
-            documentation: ts.displayPartsToString(p.documentation)
+            documentation: ts.displayPartsToString(p.documentation),
           };
           signature.label += label;
-          signature.parameters!.push(parameter);
+          signature.parameters?.push(parameter);
           if (i < a.length - 1) {
-            signature.label += ts.displayPartsToString(item.separatorDisplayParts);
+            signature.label += ts.displayPartsToString(
+              item.separatorDisplayParts
+            );
           }
         });
         signature.label += ts.displayPartsToString(item.suffixDisplayParts);

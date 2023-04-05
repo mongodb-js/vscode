@@ -29,6 +29,8 @@ export interface CompletionState {
   isIdentifierObjectValue: boolean;
   isTextObjectValue: boolean;
   isStage: boolean;
+  isFind: boolean;
+  isAggregation: boolean;
   stageOperator: string | null;
   isCollectionSymbol: boolean;
   isUseCallExpression: boolean;
@@ -56,6 +58,8 @@ export class Visitor {
       return;
     }
 
+    this._checkIsFind(path.node);
+    this._checkIsAggregation(path.node);
     this._checkIsBSONSelection(path.node);
     this._checkIsUseCall(path.node);
     this._checkIsCollectionNameAsCallExpression(path.node);
@@ -190,6 +194,8 @@ export class Visitor {
       isIdentifierObjectValue: false,
       isTextObjectValue: false,
       isStage: false,
+      isFind: false,
+      isAggregation: false,
       stageOperator: null,
       isCollectionSymbol: false,
       isUseCallExpression: false,
@@ -288,6 +294,40 @@ export class Visitor {
         this._state.isTextObjectValue = true;
       }
     });
+  }
+
+  _checkIsFind(node: babel.types.CallExpression) {
+    if (
+      node.callee.type === 'MemberExpression' &&
+      node.callee.property.type === 'Identifier' &&
+      node.callee.property.name === 'find' &&
+      node.loc &&
+      ((node.loc.start.line < this._selection.start.line &&
+        node.loc.end.line > this._selection.start.line + 1) ||
+        (node.loc.start.line === this._selection.start.line &&
+          node.loc.start.column <= this._selection.start.character) ||
+        (node.loc.end.line === this._selection.start.line + 1 &&
+          node.loc.end.column >= this._selection.start.character))
+    ) {
+      this._state.isFind = true;
+    }
+  }
+
+  _checkIsAggregation(node: babel.types.CallExpression): void {
+    if (
+      node.callee.type === 'MemberExpression' &&
+      node.callee.property.type === 'Identifier' &&
+      node.callee.property.name === 'aggregate' &&
+      node.loc &&
+      ((node.loc.start.line < this._selection.start.line &&
+        node.loc.end.line > this._selection.start.line + 1) ||
+        (node.loc.start.line === this._selection.start.line &&
+          node.loc.start.column <= this._selection.start.character) ||
+        (node.loc.end.line === this._selection.start.line + 1 &&
+          node.loc.end.column >= this._selection.start.character))
+    ) {
+      this._state.isAggregation = true;
+    }
   }
 
   _checkIsStage(node: babel.types.ArrayExpression): void {

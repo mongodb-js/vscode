@@ -4,6 +4,7 @@ import {
   InsertTextFormat,
   MarkupKind,
   DiagnosticSeverity,
+  SignatureHelpContext,
 } from 'vscode-languageserver/node';
 import type {
   CancellationToken,
@@ -842,8 +843,55 @@ export default class MongoDBService {
       }
     }
 
-    this._connection.console.log('VISITOR no completion');
+    this._connection.console.log('VISITOR found no mongodb completion');
     return [];
+  }
+
+  provideSignatureHelp(
+    textFromEditor: string,
+    position: { line: number; character: number },
+    context?: SignatureHelpContext
+  ) {
+    this._connection.console.log(
+      `LS current symbol position: ${util.inspect(position)}`
+    );
+
+    const state = this._visitor.parseASTWithPlaceholder(
+      textFromEditor,
+      position
+    );
+    this._connection.console.log(
+      `VISITOR signature help state: ${util.inspect(state)}`
+    );
+
+    if (state.isFind) {
+      return {
+        activeSignatureHelp: context?.activeSignatureHelp,
+        signatures: [
+          {
+            label: 'Collection.find(query, projection, options) : Cursor',
+            documentation: 'Selects documents in a collection or view.',
+            parameters: [],
+          },
+        ],
+      };
+    }
+
+    if (state.isAggregation) {
+      return {
+        activeSignatureHelp: context?.activeSignatureHelp,
+        signatures: [
+          {
+            label: 'Collection.aggregate(pipeline, options) : Cursor',
+            documentation:
+              'Calculates aggregate values for the data in a collection or a view.',
+            parameters: [],
+          },
+        ],
+      };
+    }
+
+    this._connection.console.log('VISITOR found no mongodb signature help');
   }
 
   // Highlight the usage of commands that only works inside interactive session.
