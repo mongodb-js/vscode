@@ -9,10 +9,13 @@ import {
   RequestType,
   TextDocumentSyncKind,
   Connection,
+  SignatureHelpParams,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
+import TypeScriptService from './tsLanguageService';
+
 import { ServerCommands } from './serverCommands';
 import {
   PlaygroundEvaluateParams,
@@ -29,6 +32,9 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 // MongoDB Playground Service Manager.
 const mongoDBService = new MongoDBService(connection);
+
+// TypeScript language service.
+const typeScriptService = new TypeScriptService(connection);
 
 let hasConfigurationCapability = false;
 // let hasWorkspaceFolderCapability = false;
@@ -66,6 +72,10 @@ connection.onInitialize((params: InitializeParams) => {
         resolveProvider: true,
         triggerCharacters: ['.'],
       },
+      signatureHelpProvider: {
+        resolveProvider: true,
+        triggerCharacters: [ ',' ]
+      }
       // documentFormattingProvider: true,
       // documentRangeFormattingProvider: true,
       // codeLensProvider: {
@@ -221,6 +231,16 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   // }
 
   return item;
+});
+
+connection.onSignatureHelp((params: SignatureHelpParams) => {
+  const document = documents.get(params.textDocument.uri);
+
+  if (!document) {
+    return;
+  }
+
+  return typeScriptService.doSignatureHelp(document, params.position);
 });
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {
