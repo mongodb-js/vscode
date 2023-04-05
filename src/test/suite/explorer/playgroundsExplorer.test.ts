@@ -50,7 +50,9 @@ suite('Playgrounds Controller Test Suite', function () {
     try {
       const rootPath = path.resolve(__dirname, '../../../..');
       const children = await treeController.getPlaygrounds(rootPath);
-      assert.strictEqual(Object.keys(children).length, 7);
+
+      // The number of playground files in the project repository.
+      assert.strictEqual(Object.keys(children).length, 8);
     } catch (error) {
       assert(false, error as Error);
     }
@@ -69,7 +71,9 @@ suite('Playgrounds Controller Test Suite', function () {
       const rootPath = path.resolve(__dirname, '../../../..');
       const children = await treeController.getPlaygrounds(rootPath);
 
-      assert.strictEqual(Object.keys(children).length, 3);
+      // The number of playground files in the project repository,
+      // excluding the ./playgrounds directory.
+      assert.strictEqual(Object.keys(children).length, 4);
     } catch (error) {
       assert(false, error as Error);
     }

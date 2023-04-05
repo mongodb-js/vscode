@@ -32,7 +32,7 @@ export type SegmentProperties = {
 
 type LinkClickedTelemetryEventProperties = {
   screen: string;
-  link_id: string; // eslint-disable-line camelcase
+  link_id: string;
 };
 
 type ExtensionCommandRunTelemetryEventProperties = {
@@ -48,7 +48,6 @@ type DocumentEditedTelemetryEventProperties = {
   source: DocumentSource;
 };
 
-/* eslint-disable camelcase */
 type QueryExportedTelemetryEventProperties = {
   language: string;
   num_stages?: number;
@@ -56,7 +55,18 @@ type QueryExportedTelemetryEventProperties = {
   with_builders: boolean;
   with_driver_syntax: boolean;
 };
-/* eslint-enable camelcase */
+
+type PlaygroundCreatedTelemetryEventProperties = {
+  playground_type: string;
+};
+
+type PlaygroundSavedTelemetryEventProperties = {
+  file_type?: string;
+};
+
+type PlaygroundLoadedTelemetryEventProperties = {
+  file_type?: string;
+};
 
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
@@ -65,7 +75,10 @@ export type TelemetryEventProperties =
   | NewConnectionTelemetryEventProperties
   | DocumentUpdatedTelemetryEventProperties
   | DocumentEditedTelemetryEventProperties
-  | QueryExportedTelemetryEventProperties;
+  | QueryExportedTelemetryEventProperties
+  | PlaygroundCreatedTelemetryEventProperties
+  | PlaygroundSavedTelemetryEventProperties
+  | PlaygroundLoadedTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -78,6 +91,7 @@ export enum TelemetryEventTypes {
   DOCUMENT_EDITED = 'Document Edited',
   QUERY_EXPORTED = 'Query Exported',
   AGGREGATION_EXPORTED = 'Aggregation Exported',
+  PLAYGROUND_CREATED = 'Playground Created',
 }
 
 /**
@@ -117,11 +131,11 @@ export default class TelemetryService {
       const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
       const constants = JSON.parse(constantsFile) as { segmentKey: string };
 
-      log.info('SegmentKey received', { type: typeof constants.segmentKey });
+      log.info('SegmentKey was found', { type: typeof constants.segmentKey });
 
       return constants.segmentKey;
     } catch (error) {
-      log.error('Reading SegmentKey failed', error);
+      log.error('SegmentKey was not found', error);
       return;
     }
   }
@@ -183,7 +197,7 @@ export default class TelemetryService {
       if (error) {
         log.error('Failed to track telemetry', error);
       } else {
-        log.info('Telemetry sent', error);
+        log.info('Telemetry sent', segmentProperties);
       }
     });
   }
@@ -285,12 +299,16 @@ export default class TelemetryService {
     });
   }
 
-  trackPlaygroundLoaded(): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_LOADED);
+  trackPlaygroundLoaded(fileType?: string): void {
+    this.track(TelemetryEventTypes.PLAYGROUND_LOADED, {
+      file_type: fileType,
+    });
   }
 
-  trackPlaygroundSaved(): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
+  trackPlaygroundSaved(fileType?: string): void {
+    this.track(TelemetryEventTypes.PLAYGROUND_SAVED, {
+      file_type: fileType,
+    });
   }
 
   trackDocumentUpdated(source: DocumentSource, success: boolean): void {
@@ -311,5 +329,11 @@ export default class TelemetryService {
     aggExportedProps: QueryExportedTelemetryEventProperties
   ): void {
     this.track(TelemetryEventTypes.AGGREGATION_EXPORTED, aggExportedProps);
+  }
+
+  trackPlaygroundCreated(playgroundType: string): void {
+    this.track(TelemetryEventTypes.PLAYGROUND_CREATED, {
+      playground_type: playgroundType,
+    });
   }
 }

@@ -82,6 +82,18 @@ export const isPlayground = (fileUri?: vscode.Uri) => {
   );
 };
 
+export const getPlaygroundExtensionForTelemetry = (fileUri?: vscode.Uri) => {
+  let fileType;
+
+  if (fileUri?.fsPath.match(/\.(mongodb\.js)$/gi)) {
+    fileType = 'mongodbjs';
+  } else if (fileUri?.fsPath.match(/\.(mongodb)$/gi)) {
+    fileType = 'mongodb';
+  }
+
+  return fileType;
+};
+
 export const getPlaygrounds = async ({
   fsPath,
   excludeFromPlaygroundsSearch,
