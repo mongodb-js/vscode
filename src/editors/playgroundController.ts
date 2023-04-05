@@ -40,7 +40,10 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
-import { isPlayground } from '../utils/playground';
+import {
+  isPlayground,
+  getPlaygroundExtensionForTelemetry,
+} from '../utils/playground';
 
 const log = createLogger('playground controller');
 
@@ -188,14 +191,18 @@ export default class PlaygroundController {
 
     vscode.workspace.onDidOpenTextDocument(async (document) => {
       if (isPlayground(document.uri)) {
-        this._telemetryService.trackPlaygroundLoaded();
+        this._telemetryService.trackPlaygroundLoaded(
+          getPlaygroundExtensionForTelemetry(document.uri)
+        );
         await vscode.languages.setTextDocumentLanguage(document, 'javascript');
       }
     });
 
     vscode.workspace.onDidSaveTextDocument((document) => {
       if (isPlayground(document.uri)) {
-        this._telemetryService.trackPlaygroundSaved();
+        this._telemetryService.trackPlaygroundSaved(
+          getPlaygroundExtensionForTelemetry(document.uri)
+        );
       }
     });
 

@@ -60,6 +60,14 @@ type PlaygroundCreatedTelemetryEventProperties = {
   playground_type: string;
 };
 
+type PlaygroundSavedTelemetryEventProperties = {
+  file_type?: string;
+};
+
+type PlaygroundLoadedTelemetryEventProperties = {
+  file_type?: string;
+};
+
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
   | LinkClickedTelemetryEventProperties
@@ -68,7 +76,9 @@ export type TelemetryEventProperties =
   | DocumentUpdatedTelemetryEventProperties
   | DocumentEditedTelemetryEventProperties
   | QueryExportedTelemetryEventProperties
-  | PlaygroundCreatedTelemetryEventProperties;
+  | PlaygroundCreatedTelemetryEventProperties
+  | PlaygroundSavedTelemetryEventProperties
+  | PlaygroundLoadedTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -121,11 +131,11 @@ export default class TelemetryService {
       const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
       const constants = JSON.parse(constantsFile) as { segmentKey: string };
 
-      log.info('SegmentKey received', { type: typeof constants.segmentKey });
+      log.info('SegmentKey was found', { type: typeof constants.segmentKey });
 
       return constants.segmentKey;
     } catch (error) {
-      log.error('Reading SegmentKey failed', error);
+      log.error('SegmentKey was not found', error);
       return;
     }
   }
@@ -187,7 +197,7 @@ export default class TelemetryService {
       if (error) {
         log.error('Failed to track telemetry', error);
       } else {
-        log.info('Telemetry sent', error);
+        log.info('Telemetry sent', segmentProperties);
       }
     });
   }
@@ -289,12 +299,16 @@ export default class TelemetryService {
     });
   }
 
-  trackPlaygroundLoaded(): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_LOADED);
+  trackPlaygroundLoaded(fileType?: string): void {
+    this.track(TelemetryEventTypes.PLAYGROUND_LOADED, {
+      file_type: fileType,
+    });
   }
 
-  trackPlaygroundSaved(): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
+  trackPlaygroundSaved(fileType?: string): void {
+    this.track(TelemetryEventTypes.PLAYGROUND_SAVED, {
+      file_type: fileType,
+    });
   }
 
   trackDocumentUpdated(source: DocumentSource, success: boolean): void {

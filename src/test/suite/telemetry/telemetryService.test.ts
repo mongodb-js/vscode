@@ -247,7 +247,7 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('track playground loaded event', async () => {
+  test('track mongodb playground loaded event', async () => {
     const docPath = path.resolve(
       __dirname,
       '../../../../src/test/fixture/testSaving.mongodb'
@@ -258,19 +258,44 @@ suite('Telemetry Controller Test Suite', () => {
       sinon.match({
         anonymousId,
         event: 'Playground Loaded',
-        properties: { extension_version: '0.0.0-dev.0' },
+        properties: {
+          file_type: 'mongodb',
+          extension_version: '0.0.0-dev.0',
+        },
+      })
+    );
+  });
+
+  test('track mongodbjs playground loaded event', async () => {
+    const docPath = path.resolve(
+      __dirname,
+      '../../../../src/test/fixture/testSaving.mongodb.js'
+    );
+    await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Playground Loaded',
+        properties: {
+          file_type: 'mongodbjs',
+          extension_version: '0.0.0-dev.0',
+        },
       })
     );
   });
 
   test('track playground saved event', () => {
-    testTelemetryService.trackPlaygroundSaved();
+    testTelemetryService.trackPlaygroundSaved('mongodbjs');
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
       sinon.match({
         anonymousId,
         event: 'Playground Saved',
-        properties: { extension_version: '0.0.0-dev.0' },
+        properties: {
+          file_type: 'mongodbjs',
+          extension_version: '0.0.0-dev.0',
+        },
       })
     );
   });
