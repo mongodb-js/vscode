@@ -168,6 +168,7 @@ connection.onRequest(
   }
 );
 
+// Pass the extension path to the MongoDB service.
 connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
   return mongoDBService.setExtensionPath(extensionPath);
 });
@@ -191,6 +192,7 @@ connection.onRequest(
   }
 );
 
+// Identify if the playground selection is an array or object.
 connection.onRequest(
   ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,
   (params: PlaygroundTextAndSelection) => {
@@ -198,6 +200,7 @@ connection.onRequest(
   }
 );
 
+// Find the current namespace for a playground selection.
 connection.onRequest(
   ServerCommands.GET_NAMESPACE_FOR_SELECTION,
   (params: PlaygroundTextAndSelection) => {
@@ -205,7 +208,7 @@ connection.onRequest(
   }
 );
 
-// This handler provides the list of the completion items.
+// Provide MongoDB completion items.
 connection.onCompletion((params: TextDocumentPositionParams) => {
   const textFromEditor = documents.get(params.textDocument.uri)?.getText();
 
@@ -231,6 +234,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   return item;
 });
 
+// Provide MongoDB or TypeScript help signatures.
 connection.onSignatureHelp((params: SignatureHelpParams) => {
   const document = documents.get(params.textDocument.uri);
 
@@ -287,6 +291,7 @@ connection.onDidOpenTextDocument((/* params */) => {
   // params.textDocument.text the initial full content of the document.
   // connection.console.log(`${params.textDocument.uri} opened.`);
 });
+
 connection.onDidChangeTextDocument((/* params */) => {
   // The content of a text document did change in VSCode.
   // params.textDocument.uri uniquely identifies the document.
@@ -297,6 +302,7 @@ connection.onDidChangeTextDocument((/* params */) => {
   //   )}`
   // );
 });
+
 connection.onDidCloseTextDocument((/* params */) => {
   // A text document got closed in VSCode.
   // params.textDocument.uri uniquely identifies the document.

@@ -157,7 +157,7 @@ export class Visitor {
       end: { line: 0, character: 0 },
     };
 
-    this._state = this._getDefaultNodesForCompletion();
+    this._state = this._getDefaultsForCompletion();
     textFromEditor = this._handleTriggerCharacter(textFromEditor, position);
 
     this.parseAST({ textFromEditor, selection });
@@ -174,7 +174,7 @@ export class Visitor {
       end: { line: 0, character: 0 },
     };
 
-    this._state = this._getDefaultNodesForSignatureHelp();
+    this._state = this._getDefaultsForSignatureHelp();
     textFromEditor = this._handleTriggerCharacter(textFromEditor, position);
 
     this.parseAST({ textFromEditor, selection });
@@ -183,13 +183,13 @@ export class Visitor {
   }
 
   parseASTForExportToLanguage(params): ExportToLanguageState {
-    this._state = this._getDefaultNodesForExportToLanguagep();
+    this._state = this._getDefaultsForExportToLanguagep();
     this.parseAST(params);
     return this._state as ExportToLanguageState;
   }
 
   parseASTForNamespace(params): NamespaceState {
-    this._state = this._getDefaultNodesForNamespace();
+    this._state = this._getDefaultsForNamespace();
     this.parseAST(params);
     return this._state as NamespaceState;
   }
@@ -220,7 +220,7 @@ export class Visitor {
     });
   }
 
-  _getDefaultNodesForCompletion() {
+  _getDefaultsForCompletion() {
     return {
       databaseName: null,
       collectionName: null,
@@ -243,21 +243,21 @@ export class Visitor {
     };
   }
 
-  _getDefaultNodesForSignatureHelp() {
+  _getDefaultsForSignatureHelp() {
     return {
       isFind: false,
       isAggregation: false,
     };
   }
 
-  _getDefaultNodesForExportToLanguagep() {
+  _getDefaultsForExportToLanguagep() {
     return {
       isArraySelection: false,
       isObjectSelection: false,
     };
   }
 
-  _getDefaultNodesForNamespace() {
+  _getDefaultsForNamespace() {
     return {
       databaseName: null,
       collectionName: null,
@@ -360,7 +360,6 @@ export class Visitor {
     });
   }
 
-  // eslint-disable-next-line complexity
   _checkIsFind(node: babel.types.CallExpression) {
     if (
       node.callee.type === 'MemberExpression' &&
@@ -373,7 +372,6 @@ export class Visitor {
     }
   }
 
-  // eslint-disable-next-line complexity
   _checkIsAggregation(node: babel.types.CallExpression): void {
     if (
       node.callee.type === 'MemberExpression' &&

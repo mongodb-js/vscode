@@ -896,7 +896,6 @@ export default class MongoDBService {
   }
 
   // Highlight the usage of commands that only works inside interactive session.
-  // eslint-disable-next-line complexity
   provideDiagnostics(textFromEditor: string) {
     const lines = textFromEditor.split(/\r?\n/g);
     const diagnostics: Diagnostic[] = [];
