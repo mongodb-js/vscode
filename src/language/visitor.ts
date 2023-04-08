@@ -37,11 +37,6 @@ export interface CompletionState {
   isFindCursor: boolean;
 }
 
-export interface SignatureState {
-  isFind: boolean;
-  isAggregation: boolean;
-}
-
 export interface ExportToLanguageState {
   isObjectSelection: boolean;
   isArraySelection: boolean;
@@ -53,7 +48,7 @@ export interface NamespaceState {
 }
 
 export class Visitor {
-  _state: CompletionState | SignatureState | ExportToLanguageState | {};
+  _state: CompletionState | ExportToLanguageState | {};
   _selection: VisitorSelection;
 
   constructor() {
@@ -69,8 +64,6 @@ export class Visitor {
       return;
     }
 
-    this._checkIsFind(path.node);
-    this._checkIsAggregation(path.node);
     this._checkIsBSONSelection(path.node);
     this._checkIsUseCall(path.node);
     this._checkIsCollectionNameAsCallExpression(path.node);
@@ -165,25 +158,8 @@ export class Visitor {
     return this._state as CompletionState;
   }
 
-  parseASTWForSignatureHelp(
-    textFromEditor: string,
-    position: { line: number; character: number }
-  ): SignatureState {
-    const selection: VisitorSelection = {
-      start: position,
-      end: { line: 0, character: 0 },
-    };
-
-    this._state = this._getDefaultsForSignatureHelp();
-    textFromEditor = this._handleTriggerCharacter(textFromEditor, position);
-
-    this.parseAST({ textFromEditor, selection });
-
-    return this._state as SignatureState;
-  }
-
   parseASTForExportToLanguage(params): ExportToLanguageState {
-    this._state = this._getDefaultsForExportToLanguagep();
+    this._state = this._getDefaultsForExportToLanguage();
     this.parseAST(params);
     return this._state as ExportToLanguageState;
   }
@@ -204,7 +180,10 @@ export class Visitor {
         sourceType: 'module',
       });
     } catch (error) {
-      console.error(`parseAST error: ${util.inspect(error)}`);
+      console.error(`parseAST error: ${util.inspect((error as any).message)}`);
+      console.error(
+        `parseAST error textFromEditor: ${util.inspect(textFromEditor)}`
+      );
     }
 
     traverse(ast, {
@@ -230,8 +209,6 @@ export class Visitor {
       isIdentifierObjectValue: false,
       isTextObjectValue: false,
       isStage: false,
-      isFind: false,
-      isAggregation: false,
       stageOperator: null,
       isCollectionSymbol: false,
       isUseCallExpression: false,
@@ -243,14 +220,7 @@ export class Visitor {
     };
   }
 
-  _getDefaultsForSignatureHelp() {
-    return {
-      isFind: false,
-      isAggregation: false,
-    };
-  }
-
-  _getDefaultsForExportToLanguagep() {
+  _getDefaultsForExportToLanguage() {
     return {
       isArraySelection: false,
       isObjectSelection: false,
@@ -358,30 +328,6 @@ export class Visitor {
         this._state.isTextObjectValue = true;
       }
     });
-  }
-
-  _checkIsFind(node: babel.types.CallExpression) {
-    if (
-      node.callee.type === 'MemberExpression' &&
-      node.callee.property.type === 'Identifier' &&
-      node.callee.property.name === 'find' &&
-      this._isWithinFunctionCall(node) &&
-      'isFind' in this._state
-    ) {
-      this._state.isFind = true;
-    }
-  }
-
-  _checkIsAggregation(node: babel.types.CallExpression): void {
-    if (
-      node.callee.type === 'MemberExpression' &&
-      node.callee.property.type === 'Identifier' &&
-      node.callee.property.name === 'aggregate' &&
-      this._isWithinFunctionCall(node) &&
-      'isAggregation' in this._state
-    ) {
-      this._state.isAggregation = true;
-    }
   }
 
   _checkIsStage(node: babel.types.ArrayExpression): void {
@@ -492,22 +438,6 @@ export class Visitor {
       node.loc.end.line - 1 === this._selection.end?.line &&
       node.loc?.end?.column &&
       node.loc.end.column <= this._selection.end?.character
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  _isWithinFunctionCall(node: babel.types.CallExpression): boolean {
-    if (
-      node.loc &&
-      ((node.loc.start.line < this._selection.start.line &&
-        node.loc.end.line > this._selection.start.line + 1) ||
-        (node.loc.start.line === this._selection.start.line &&
-          node.loc.start.column <= this._selection.start.character) ||
-        (node.loc.end.line === this._selection.start.line + 1 &&
-          node.loc.end.column >= this._selection.start.character))
     ) {
       return true;
     }

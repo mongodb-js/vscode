@@ -9,7 +9,6 @@ import {
   RequestType,
   TextDocumentSyncKind,
   Connection,
-  SignatureHelpParams,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -30,7 +29,7 @@ const connection: Connection = createConnection(ProposedFeatures.all);
 // The text document manager supports full document sync only.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-// MongoDB Playground Service Manager.
+// MongoDB language service.
 const mongoDBService = new MongoDBService(connection);
 
 // TypeScript language service.
@@ -67,14 +66,15 @@ connection.onInitialize((params: InitializeParams) => {
           },
         },
       },
-      // Tell the client that the server supports code completion
+      // Tell the client that the server supports code completion.
       completionProvider: {
         resolveProvider: true,
         triggerCharacters: ['.'],
       },
+      // Tell the client that the server supports help signatures.
       signatureHelpProvider: {
         resolveProvider: true,
-        triggerCharacters: [','],
+        triggerCharacters: [',', '('],
       },
       // documentFormattingProvider: true,
       // documentRangeFormattingProvider: true,
@@ -101,7 +101,7 @@ connection.onInitialized(() => {
   // }
 });
 
-// The example settings
+// The example settings.
 interface ExampleSettings {
   maxNumberOfProblems: number;
 }
@@ -160,7 +160,7 @@ connection.onDidChangeWatchedFiles((/* _change */) => {
   // );
 });
 
-// Execute the entire playground script.
+// Execute a playground.
 connection.onRequest(
   ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
   (evaluateParams: PlaygroundEvaluateParams, token) => {
@@ -168,12 +168,14 @@ connection.onRequest(
   }
 );
 
-// Pass the extension path to the MongoDB service.
+// Pass the extension path to the MongoDB and TypeScript services.
 connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
-  return mongoDBService.setExtensionPath(extensionPath);
+  mongoDBService.setExtensionPath(extensionPath);
+  typeScriptService.setExtensionPath(extensionPath);
 });
 
-// Connect to CliServiceProvider to enable shell completions.
+// Connect the MongoDB language service to CliServiceProvider
+// using the current connection of the client.
 connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
   return mongoDBService.connectToServiceProvider(params);
 });
@@ -234,26 +236,19 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   return item;
 });
 
-// Provide MongoDB or TypeScript help signatures.
-connection.onSignatureHelp((params: SignatureHelpParams) => {
-  const document = documents.get(params.textDocument.uri);
+// Provide MongoDB help signatures.
+connection.onSignatureHelp((signatureHelpParms) => {
+  const document = documents.get(signatureHelpParms.textDocument.uri);
 
   if (!document) {
-    return;
+    return Promise.resolve(null);
   }
 
-  const textFromEditor = document.getText() || '';
-  const mongodbSignatures = mongoDBService.provideSignatureHelp(
-    textFromEditor,
-    params.position,
-    params.context
+  // Provide MongoDB or TypeScript help signatures.
+  return typeScriptService.doSignatureHelp(
+    document,
+    signatureHelpParms.position
   );
-
-  if (mongodbSignatures) {
-    return mongodbSignatures;
-  }
-
-  return typeScriptService.doSignatureHelp(document, params.position);
 });
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {

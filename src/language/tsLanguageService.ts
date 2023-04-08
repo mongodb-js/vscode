@@ -7,7 +7,7 @@ import type {
 import ts from 'typescript';
 import { TextDocument, Position } from 'vscode-languageserver-textdocument';
 import { readFileSync } from 'fs';
-import { join, basename, dirname } from 'path';
+import { join } from 'path';
 
 type TypeScriptServiceHost = {
   getLanguageService(jsDocument: TextDocument): ts.LanguageService;
@@ -15,39 +15,70 @@ type TypeScriptServiceHost = {
   dispose(): void;
 };
 
-// Server folder.
-const serverPath =
-  basename(__dirname) === 'dist'
-    ? dirname(__dirname)
-    : dirname(dirname(__dirname));
-
-// TypeScript library folder.
-const librarPath = join(serverPath, 'node_modules/typescript/lib');
 const contents: { [name: string]: string } = {};
+
+// const TS_CONFIG_LIBRARY_NAME = 'es2022.full';
+const MDB_CONFIG_LIBRARY_NAME = 'mongodb';
+const GLOBAL_CONFIG_LIBRARY_NAME = 'global';
 
 export default class TypeScriptService {
   _connection: Connection;
   _host: TypeScriptServiceHost;
+  _extensionPath?: string;
 
   constructor(connection: Connection) {
     this._host = this._getTypeScriptServiceHost();
     this._connection = connection;
   }
 
+  /**
+   * The absolute file path of the directory containing the extension.
+   */
+  setExtensionPath(extensionPath: string): void {
+    this._extensionPath = extensionPath;
+  }
+
   _loadLibrary(name: string) {
+    if (!this._extensionPath) {
+      this._connection.console.error(
+        'Unable to load library ${name}: extensionPath is undefined'
+      );
+      return '';
+    }
+
     let content = contents[name];
-    if (typeof content !== 'string' && librarPath) {
-      const libPath = join(librarPath, name); // From source.
-      try {
-        content = readFileSync(libPath).toString();
-      } catch (e) {
-        this._connection.console.error(
-          `Unable to load library ${name} at ${libPath}`
-        );
+
+    if (typeof content !== 'string') {
+      let libPath;
+
+      /* if (name === `lib.${TS_CONFIG_LIBRARY_NAME}.d.ts`) {
+        libPath = join(this._extensionPath, 'node_modules/typescript/lib', name);
+      } else */
+
+      if (name === `${MDB_CONFIG_LIBRARY_NAME}.d.ts`) {
+        libPath = join(this._extensionPath, 'node_modules/mongodb', name);
+      } else if (name === `${GLOBAL_CONFIG_LIBRARY_NAME}.d.ts`) {
+        libPath = join(this._extensionPath, 'src/types', name);
+      } else {
         content = '';
       }
+
+      if (libPath) {
+        try {
+          content = readFileSync(libPath, 'utf8');
+        } catch (e) {
+          this._connection.console.error(
+            `Unable to load library ${name} at ${libPath}`
+          );
+          content = '';
+        }
+      } else {
+        content = '';
+      }
+
       contents[name] = content;
     }
+
     return content;
   }
 
@@ -55,7 +86,10 @@ export default class TypeScriptService {
     const compilerOptions = {
       allowNonTsExtensions: true,
       allowJs: true,
-      lib: ['lib.es2020.full.d.ts'], // Should match to lib from tsconfig.json.
+      lib: [
+        `${MDB_CONFIG_LIBRARY_NAME}.d.ts`,
+        `${GLOBAL_CONFIG_LIBRARY_NAME}.d.ts`,
+      ], // , `lib.${TS_CONFIG_LIBRARY_NAME}.d.ts`],
       target: ts.ScriptTarget.Latest,
       moduleResolution: ts.ModuleResolutionKind.Classic,
       experimentalDecorators: false,
@@ -89,26 +123,15 @@ export default class TypeScriptService {
         };
       },
       getCurrentDirectory: () => '',
-      getDefaultLibFileName: () => 'es2020.full', // Should match to lib from tsconfig.json.
+      getDefaultLibFileName: () => GLOBAL_CONFIG_LIBRARY_NAME,
       readFile: (path: string): string | undefined => {
         if (path === currentTextDocument.uri) {
           return currentTextDocument.getText();
         }
         return this._loadLibrary(path);
       },
-      fileExists: (path: string): boolean => {
-        if (path === currentTextDocument.uri) {
-          return true;
-        }
-        return !!this._loadLibrary(path);
-      },
-      directoryExists: (path: string): boolean => {
-        // Typescript tries to first find libraries in node_modules/@types and node_modules/@typescript.
-        if (path.startsWith('node_modules')) {
-          return false;
-        }
-        return true;
-      },
+      fileExists: (): boolean => false,
+      directoryExists: (): boolean => false,
     };
 
     // Create the language service files.
@@ -132,7 +155,7 @@ export default class TypeScriptService {
   doSignatureHelp(
     document: TextDocument,
     position: Position
-  ): SignatureHelp | null {
+  ): Promise<SignatureHelp | null> {
     const jsDocument = TextDocument.create(
       document.uri,
       'javascript',
@@ -152,33 +175,41 @@ export default class TypeScriptService {
         activeParameter: signHelp.argumentIndex,
         signatures: [],
       };
-      signHelp.items.forEach((item) => {
-        const signature: SignatureInformation = {
-          label: '',
-          documentation: undefined,
-          parameters: [],
-        };
-
-        signature.label += ts.displayPartsToString(item.prefixDisplayParts);
-        item.parameters.forEach((p, i, a) => {
-          const label = ts.displayPartsToString(p.displayParts);
-          const parameter: ParameterInformation = {
-            label: label,
-            documentation: ts.displayPartsToString(p.documentation),
+      signHelp.items
+        .map((item) => {
+          const hasInt8Array = item.prefixDisplayParts.filter(
+            (prefix) => prefix.text !== 'Int8Array'
+          );
+          item.prefixDisplayParts = hasInt8Array;
+          return item;
+        })
+        .forEach((item) => {
+          const signature: SignatureInformation = {
+            label: '',
+            documentation: undefined,
+            parameters: [],
           };
-          signature.label += label;
-          signature.parameters?.push(parameter);
-          if (i < a.length - 1) {
-            signature.label += ts.displayPartsToString(
-              item.separatorDisplayParts
-            );
-          }
+
+          signature.label += ts.displayPartsToString(item.prefixDisplayParts);
+          item.parameters.forEach((p, i, a) => {
+            const label = ts.displayPartsToString(p.displayParts);
+            const parameter: ParameterInformation = {
+              label: label,
+              documentation: ts.displayPartsToString(p.documentation),
+            };
+            signature.label += label;
+            signature.parameters?.push(parameter);
+            if (i < a.length - 1) {
+              signature.label += ts.displayPartsToString(
+                item.separatorDisplayParts
+              );
+            }
+          });
+          signature.label += ts.displayPartsToString(item.suffixDisplayParts);
+          ret.signatures.push(signature);
         });
-        signature.label += ts.displayPartsToString(item.suffixDisplayParts);
-        ret.signatures.push(signature);
-      });
-      return ret;
+      return Promise.resolve(ret);
     }
-    return null;
+    return Promise.resolve(null);
   }
 }

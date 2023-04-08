@@ -2,9 +2,9 @@
   "compilerOptions": {
     "module": "commonjs",
     "noImplicitAny": false,
-    "target": "es2020",
+    "target": "es2022",
     "outDir": "out",
-    "lib": ["dom", "es2020"],
+    "lib": ["dom", "es2022"],
     "types": ["node"],
     "jsx": "react",
     "sourceMap": true,

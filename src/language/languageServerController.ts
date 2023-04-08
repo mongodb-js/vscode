@@ -43,11 +43,11 @@ export default class LanguageServerController {
 
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode
-    // so VS Code can attach to the server for debugging
+    // so VS Code can attach to the server for debugging.
     const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
-    // If the extension is launched in debug mode then the debug server options are used
-    // Otherwise the run options are used
+    // If the extension is launched in debug mode then the debug server options are used.
+    // Otherwise the run options are used.
     const serverOptions: ServerOptions = {
       run: { module: serverModule, transport: TransportKind.ipc },
       debug: {
@@ -57,15 +57,15 @@ export default class LanguageServerController {
       },
     };
 
-    // Options to control the language client
+    // Options to control the language client.
     const clientOptions: LanguageClientOptions = {
-      // Register the server for mongodb documents
+      // Register the language server for mongodb documents.
       documentSelector: [
-        { scheme: 'untitled', language: 'javascript' },
-        { scheme: 'file', language: 'javascript' },
+        { pattern: '**/*.mongodb.js' },
+        { pattern: '**/*.mongodb' },
       ],
       synchronize: {
-        // Notify the server about file changes in the workspace
+        // Notify the server about file changes in the workspace.
         fileEvents: workspace.createFileSystemWatcher('**/*'),
       },
       outputChannel: vscode.window.createOutputChannel(
@@ -78,7 +78,7 @@ export default class LanguageServerController {
       clientOptions,
     });
 
-    // Create the language server client
+    // Create the language server client.
     this._client = new LanguageClient(
       'mongodbLanguageServer',
       'MongoDB Language Server',
@@ -116,7 +116,7 @@ export default class LanguageServerController {
   }
 
   deactivate(): void {
-    // Stop the language server
+    // Stop the language server.
     void this._client.stop();
   }
 
@@ -126,12 +126,12 @@ export default class LanguageServerController {
     this._isExecutingInProgress = true;
 
     // Instantiate a new CancellationTokenSource object
-    // that generates a cancellation token for each run of a playground
+    // that generates a cancellation token for each run of a playground.
     this._source = new CancellationTokenSource();
 
     // Send a request with a cancellation token
-    // to the language server server to execute scripts from a playground
-    // and return results to the playground controller when ready
+    // to the language server instance to execute scripts from a playground
+    // and return results to the playground controller when ready.
     const result: ShellEvaluateResult = await this._client.sendRequest(
       ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
       playgroundExecuteParameters,

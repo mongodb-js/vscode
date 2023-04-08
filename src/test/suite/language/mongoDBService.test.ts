@@ -7,10 +7,7 @@ import {
   DiagnosticSeverity,
   MarkupContent,
 } from 'vscode-languageclient/node';
-import type {
-  CompletionItem,
-  SignatureInformation,
-} from 'vscode-languageclient/node';
+import type { CompletionItem } from 'vscode-languageclient/node';
 import chai from 'chai';
 import { createConnection } from 'vscode-languageserver/node';
 import fs from 'fs';
@@ -2457,54 +2454,6 @@ suite('MongoDBService Test Suite', () => {
           data: { fix: "db.adminCommand({ getLog: 'startupWarnings' })" },
         },
       ]);
-    });
-  });
-
-  suite('Signature Help', function () {
-    const up = new StreamStub();
-    const down = new StreamStub();
-    const connection = createConnection(up, down);
-
-    connection.listen();
-
-    const testMongoDBService = new MongoDBService(connection);
-
-    before(async () => {
-      await testMongoDBService.connectToServiceProvider(params);
-    });
-
-    test('provide collection find signature', () => {
-      const result = testMongoDBService.provideSignatureHelp(
-        "db.getCollection('sales').find({ year: {}, });",
-        { line: 0, character: 42 }
-      );
-      const completion = result?.signatures.find(
-        (item: SignatureInformation) =>
-          item.label === 'Collection.find(query, projection, options) : Cursor'
-      );
-
-      expect(completion?.documentation).to.be.eql(
-        'Selects documents in a collection or view.'
-      );
-    });
-
-    test('provide collection aggregate signature', () => {
-      const result = testMongoDBService.provideSignatureHelp(
-        [
-          "db.getCollection('sales').aggregate([",
-          "  { $match: { date: { $gte: new Date('2014-01-01'), $lt: new Date('2015-01-01') } } },",
-          ']);',
-        ].join('\n'),
-        { line: 1, character: 86 }
-      );
-      const completion = result?.signatures.find(
-        (item: SignatureInformation) =>
-          item.label === 'Collection.aggregate(pipeline, options) : Cursor'
-      );
-
-      expect(completion?.documentation).to.be.eql(
-        'Calculates aggregate values for the data in a collection or a view.'
-      );
     });
   });
 });
