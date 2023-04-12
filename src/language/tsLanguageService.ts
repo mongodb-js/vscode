@@ -136,11 +136,10 @@ export default class TypeScriptService {
     this._extensionPath = extensionPath;
   }
 
+  /**
+   * Load files related to the language features.
+   */
   _loadLibrary(name: string) {
-    console.log('name----------------------');
-    console.log(name);
-    console.log('----------------------');
-
     if (!this._extensionPath) {
       console.error(
         `Unable to load library ${name}: extensionPath is undefined`
@@ -151,7 +150,7 @@ export default class TypeScriptService {
     let libPath;
 
     if (name === GLOBAL_CONFIG_LIBRARY_NAME) {
-      libPath = join(this._extensionPath, 'src/types', name);
+      libPath = join(this._extensionPath, name);
     }
 
     let content = this._contents[name];
