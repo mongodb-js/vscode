@@ -218,7 +218,7 @@ export default class TypeScriptService {
     const jsLanguageService = ts.createLanguageService(host);
 
     return {
-      // Return a new instance of the language service.
+      // Return a language service instance for a document.
       getLanguageService(jsDocument: TextDocument): ts.LanguageService {
         currentTextDocument = jsDocument;
         return jsLanguageService;
