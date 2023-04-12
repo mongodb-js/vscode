@@ -1,9 +1,15 @@
-import { Connection } from 'vscode-languageserver/node';
+/* ---------------------------------------------------------------------------------------------
+ * See the bundled JavaScript extension of VSCode:
+ * https://github.com/microsoft/vscode/blob/main/extensions/html-language-features/server/src/modes/javascriptMode.ts
+ *-------------------------------------------------------------------------------------------- */
+
 import type {
   SignatureHelp,
   SignatureInformation,
   ParameterInformation,
+  CompletionItem,
 } from 'vscode-languageserver/node';
+import { CompletionItemKind } from 'vscode-languageserver/node';
 import ts from 'typescript';
 import { TextDocument, Position } from 'vscode-languageserver-textdocument';
 import { readFileSync } from 'fs';
@@ -15,20 +21,112 @@ type TypeScriptServiceHost = {
   dispose(): void;
 };
 
-const contents: { [name: string]: string } = {};
+const enum Kind {
+  alias = 'alias',
+  callSignature = 'call',
+  class = 'class',
+  const = 'const',
+  constructorImplementation = 'constructor',
+  constructSignature = 'construct',
+  directory = 'directory',
+  enum = 'enum',
+  enumMember = 'enum member',
+  externalModuleName = 'external module name',
+  function = 'function',
+  indexSignature = 'index',
+  interface = 'interface',
+  keyword = 'keyword',
+  let = 'let',
+  localFunction = 'local function',
+  localVariable = 'local var',
+  method = 'method',
+  memberGetAccessor = 'getter',
+  memberSetAccessor = 'setter',
+  memberVariable = 'property',
+  module = 'module',
+  primitiveType = 'primitive type',
+  script = 'script',
+  type = 'type',
+  variable = 'var',
+  warning = 'warning',
+  string = 'string',
+  parameter = 'parameter',
+  typeParameter = 'type parameter',
+}
 
-// const TS_CONFIG_LIBRARY_NAME = 'es2022.full';
-const MDB_CONFIG_LIBRARY_NAME = 'mongodb';
-const GLOBAL_CONFIG_LIBRARY_NAME = 'global';
+// eslint-disable-next-line complexity
+const convertKind = (kind: string): CompletionItemKind => {
+  switch (kind) {
+    case Kind.primitiveType:
+    case Kind.keyword:
+      return CompletionItemKind.Keyword;
+
+    case Kind.const:
+    case Kind.let:
+    case Kind.variable:
+    case Kind.localVariable:
+    case Kind.alias:
+    case Kind.parameter:
+      return CompletionItemKind.Variable;
+
+    case Kind.memberVariable:
+    case Kind.memberGetAccessor:
+    case Kind.memberSetAccessor:
+      return CompletionItemKind.Field;
+
+    case Kind.function:
+    case Kind.localFunction:
+      return CompletionItemKind.Function;
+
+    case Kind.method:
+    case Kind.constructSignature:
+    case Kind.callSignature:
+    case Kind.indexSignature:
+      return CompletionItemKind.Method;
+
+    case Kind.enum:
+      return CompletionItemKind.Enum;
+
+    case Kind.enumMember:
+      return CompletionItemKind.EnumMember;
+
+    case Kind.module:
+    case Kind.externalModuleName:
+      return CompletionItemKind.Module;
+
+    case Kind.class:
+    case Kind.type:
+      return CompletionItemKind.Class;
+
+    case Kind.interface:
+      return CompletionItemKind.Interface;
+
+    case Kind.warning:
+      return CompletionItemKind.Text;
+
+    case Kind.script:
+      return CompletionItemKind.File;
+
+    case Kind.directory:
+      return CompletionItemKind.Folder;
+
+    case Kind.string:
+      return CompletionItemKind.Constant;
+
+    default:
+      return CompletionItemKind.Property;
+  }
+};
+
+const GLOBAL_CONFIG_LIBRARY_NAME = 'global.d.ts';
 
 export default class TypeScriptService {
-  _connection: Connection;
   _host: TypeScriptServiceHost;
   _extensionPath?: string;
+  _contents: { [name: string]: string } = Object.create(null);
 
-  constructor(connection: Connection) {
+  constructor() {
     this._host = this._getTypeScriptServiceHost();
-    this._connection = connection;
   }
 
   /**
@@ -39,70 +137,57 @@ export default class TypeScriptService {
   }
 
   _loadLibrary(name: string) {
+    console.log('name----------------------');
+    console.log(name);
+    console.log('----------------------');
+
     if (!this._extensionPath) {
-      this._connection.console.error(
-        'Unable to load library ${name}: extensionPath is undefined'
+      console.error(
+        `Unable to load library ${name}: extensionPath is undefined`
       );
       return '';
     }
 
-    let content = contents[name];
+    let libPath;
 
-    if (typeof content !== 'string') {
-      let libPath;
+    if (name === GLOBAL_CONFIG_LIBRARY_NAME) {
+      libPath = join(this._extensionPath, 'src/types', name);
+    }
 
-      /* if (name === `lib.${TS_CONFIG_LIBRARY_NAME}.d.ts`) {
-        libPath = join(this._extensionPath, 'node_modules/typescript/lib', name);
-      } else */
+    let content = this._contents[name];
 
-      if (name === `${MDB_CONFIG_LIBRARY_NAME}.d.ts`) {
-        libPath = join(this._extensionPath, 'node_modules/mongodb', name);
-      } else if (name === `${GLOBAL_CONFIG_LIBRARY_NAME}.d.ts`) {
-        libPath = join(this._extensionPath, 'src/types', name);
-      } else {
+    if (typeof content !== 'string' && libPath) {
+      try {
+        content = readFileSync(libPath, 'utf8');
+      } catch (e) {
+        console.error(`Unable to load library ${name} at ${libPath}`);
         content = '';
       }
 
-      if (libPath) {
-        try {
-          content = readFileSync(libPath, 'utf8');
-        } catch (e) {
-          this._connection.console.error(
-            `Unable to load library ${name} at ${libPath}`
-          );
-          content = '';
-        }
-      } else {
-        content = '';
-      }
-
-      contents[name] = content;
+      this._contents[name] = content;
     }
 
     return content;
   }
 
-  _getTypeScriptServiceHost() {
+  _getTypeScriptServiceHost(): TypeScriptServiceHost {
     const compilerOptions = {
       allowNonTsExtensions: true,
       allowJs: true,
-      lib: [
-        `${MDB_CONFIG_LIBRARY_NAME}.d.ts`,
-        `${GLOBAL_CONFIG_LIBRARY_NAME}.d.ts`,
-      ], // , `lib.${TS_CONFIG_LIBRARY_NAME}.d.ts`],
       target: ts.ScriptTarget.Latest,
       moduleResolution: ts.ModuleResolutionKind.Classic,
       experimentalDecorators: false,
     };
-    let currentTextDocument = TextDocument.create('init', 'javascript', 1, '');
+    let currentTextDocument = TextDocument.create('init', 'plaintext', 1, '');
 
     // Create the language service host to allow the LS to communicate with the host.
     const host: ts.LanguageServiceHost = {
       getCompilationSettings: () => compilerOptions,
-      getScriptFileNames: () => [currentTextDocument.uri],
-      getScriptKind: () => {
-        return ts.ScriptKind.JS;
-      },
+      getScriptFileNames: () => [
+        currentTextDocument.uri,
+        GLOBAL_CONFIG_LIBRARY_NAME,
+      ],
+      getScriptKind: () => ts.ScriptKind.JS,
       getScriptVersion: (fileName: string) => {
         if (fileName === currentTextDocument.uri) {
           return String(currentTextDocument.version);
@@ -124,12 +209,7 @@ export default class TypeScriptService {
       },
       getCurrentDirectory: () => '',
       getDefaultLibFileName: () => GLOBAL_CONFIG_LIBRARY_NAME,
-      readFile: (path: string): string | undefined => {
-        if (path === currentTextDocument.uri) {
-          return currentTextDocument.getText();
-        }
-        return this._loadLibrary(path);
-      },
+      readFile: (): string | undefined => undefined,
       fileExists: (): boolean => false,
       directoryExists: (): boolean => false,
     };
@@ -175,41 +255,71 @@ export default class TypeScriptService {
         activeParameter: signHelp.argumentIndex,
         signatures: [],
       };
-      signHelp.items
-        .map((item) => {
-          const hasInt8Array = item.prefixDisplayParts.filter(
-            (prefix) => prefix.text !== 'Int8Array'
-          );
-          item.prefixDisplayParts = hasInt8Array;
-          return item;
-        })
-        .forEach((item) => {
-          const signature: SignatureInformation = {
-            label: '',
-            documentation: undefined,
-            parameters: [],
-          };
+      signHelp.items.forEach((item) => {
+        const signature: SignatureInformation = {
+          label: '',
+          documentation: undefined,
+          parameters: [],
+        };
 
-          signature.label += ts.displayPartsToString(item.prefixDisplayParts);
-          item.parameters.forEach((p, i, a) => {
-            const label = ts.displayPartsToString(p.displayParts);
-            const parameter: ParameterInformation = {
-              label: label,
-              documentation: ts.displayPartsToString(p.documentation),
-            };
-            signature.label += label;
-            signature.parameters?.push(parameter);
-            if (i < a.length - 1) {
-              signature.label += ts.displayPartsToString(
-                item.separatorDisplayParts
-              );
-            }
-          });
-          signature.label += ts.displayPartsToString(item.suffixDisplayParts);
-          ret.signatures.push(signature);
+        signature.label += ts.displayPartsToString(item.prefixDisplayParts);
+        item.parameters.forEach((p, i, a) => {
+          const label = ts.displayPartsToString(p.displayParts);
+          const parameter: ParameterInformation = {
+            label: label,
+            documentation: ts.displayPartsToString(p.documentation),
+          };
+          signature.label += label;
+          signature.parameters?.push(parameter);
+          if (i < a.length - 1) {
+            signature.label += ts.displayPartsToString(
+              item.separatorDisplayParts
+            );
+          }
         });
+        signature.label += ts.displayPartsToString(item.suffixDisplayParts);
+        ret.signatures.push(signature);
+      });
       return Promise.resolve(ret);
     }
     return Promise.resolve(null);
+  }
+
+  doComplete(document: TextDocument, position: Position): CompletionItem[] {
+    const jsDocument = TextDocument.create(
+      document.uri,
+      'javascript',
+      document.version,
+      document.getText()
+    );
+    const jsLanguageService = this._host.getLanguageService(jsDocument);
+    const offset = jsDocument.offsetAt(position);
+    const jsCompletion = jsLanguageService.getCompletionsAtPosition(
+      jsDocument.uri,
+      offset,
+      {
+        includeExternalModuleExports: false,
+        includeInsertTextCompletions: false,
+      }
+    );
+
+    return (
+      jsCompletion?.entries.map((entry) => {
+        // Data used for resolving item details (see 'doResolve').
+        const data = {
+          languageId: 'javascript',
+          uri: document.uri,
+          offset: offset,
+        };
+        return {
+          uri: document.uri,
+          position: position,
+          label: entry.name,
+          sortText: entry.sortText,
+          kind: convertKind(entry.kind),
+          data,
+        };
+      }) || []
+    );
   }
 }

@@ -304,7 +304,7 @@ class LanguageServerControllerStub {
     return Promise.resolve();
   }
 
-  deactivate(): void {
+  deactivate(): Thenable<void> | undefined {
     return;
   }
 

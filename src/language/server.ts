@@ -33,7 +33,7 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 const mongoDBService = new MongoDBService(connection);
 
 // TypeScript language service.
-const typeScriptService = new TypeScriptService(connection);
+const typeScriptService = new TypeScriptService();
 
 let hasConfigurationCapability = false;
 // let hasWorkspaceFolderCapability = false;
@@ -218,6 +218,12 @@ connection.onCompletion((params: TextDocumentPositionParams) => {
     textFromEditor ? textFromEditor : '',
     params.position
   );
+
+  /* const document = documents.get(params.textDocument.uri);
+  if (!document) {
+    return Promise.resolve([]);
+  }
+  return typeScriptService.doComplete(document, params.position); */
 });
 
 // This handler resolves additional information for the item selected in

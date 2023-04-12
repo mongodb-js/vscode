@@ -88,6 +88,9 @@ export default class LanguageServerController {
   }
 
   async startLanguageServer(): Promise<void> {
+    // Start the client. This will also launch the server.
+    await this._client.start();
+
     // Push the disposable client to the context's subscriptions so that the
     // client can be deactivated on extension deactivation.
     if (!this._context.subscriptions.includes(this._client)) {
@@ -115,9 +118,13 @@ export default class LanguageServerController {
     );
   }
 
-  deactivate(): void {
+  deactivate(): Thenable<void> | undefined {
+    if (!this._client) {
+      return undefined;
+    }
+
     // Stop the language server.
-    void this._client.stop();
+    return this._client.stop();
   }
 
   async evaluate(
