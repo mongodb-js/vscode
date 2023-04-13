@@ -242,7 +242,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   return item;
 });
 
-// Provide MongoDB help signatures.
+// Provide MongoDB signature help.
 connection.onSignatureHelp((signatureHelpParms) => {
   const document = documents.get(signatureHelpParms.textDocument.uri);
 

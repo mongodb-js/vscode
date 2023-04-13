@@ -33,6 +33,7 @@ const enum Kind {
   typeParameter = 'type parameter',
 }
 
+// eslint-disable-next-line complexity
 export const convertKind = (kind: string): CompletionItemKind => {
   switch (kind) {
     case Kind.primitiveType:
