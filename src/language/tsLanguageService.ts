@@ -1,19 +1,18 @@
 /* ---------------------------------------------------------------------------------------------
- * See the bundled JavaScript extension of VSCode:
+ * See the bundled extension of VSCode as an example:
  * https://github.com/microsoft/vscode/blob/main/extensions/html-language-features/server/src/modes/javascriptMode.ts
  *-------------------------------------------------------------------------------------------- */
-
+import ts from 'typescript';
 import type {
   SignatureHelp,
   SignatureInformation,
   ParameterInformation,
   CompletionItem,
 } from 'vscode-languageserver/node';
-import { CompletionItemKind } from 'vscode-languageserver/node';
-import ts from 'typescript';
 import { TextDocument, Position } from 'vscode-languageserver-textdocument';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+
+import { loadLibrary, GLOBAL_CONFIG_LIBRARY_NAME } from './loadLibrary';
+import { convertKind } from './convertKind';
 
 type TypeScriptServiceHost = {
   getLanguageService(jsDocument: TextDocument): ts.LanguageService;
@@ -21,109 +20,9 @@ type TypeScriptServiceHost = {
   dispose(): void;
 };
 
-const enum Kind {
-  alias = 'alias',
-  callSignature = 'call',
-  class = 'class',
-  const = 'const',
-  constructorImplementation = 'constructor',
-  constructSignature = 'construct',
-  directory = 'directory',
-  enum = 'enum',
-  enumMember = 'enum member',
-  externalModuleName = 'external module name',
-  function = 'function',
-  indexSignature = 'index',
-  interface = 'interface',
-  keyword = 'keyword',
-  let = 'let',
-  localFunction = 'local function',
-  localVariable = 'local var',
-  method = 'method',
-  memberGetAccessor = 'getter',
-  memberSetAccessor = 'setter',
-  memberVariable = 'property',
-  module = 'module',
-  primitiveType = 'primitive type',
-  script = 'script',
-  type = 'type',
-  variable = 'var',
-  warning = 'warning',
-  string = 'string',
-  parameter = 'parameter',
-  typeParameter = 'type parameter',
-}
-
-// eslint-disable-next-line complexity
-const convertKind = (kind: string): CompletionItemKind => {
-  switch (kind) {
-    case Kind.primitiveType:
-    case Kind.keyword:
-      return CompletionItemKind.Keyword;
-
-    case Kind.const:
-    case Kind.let:
-    case Kind.variable:
-    case Kind.localVariable:
-    case Kind.alias:
-    case Kind.parameter:
-      return CompletionItemKind.Variable;
-
-    case Kind.memberVariable:
-    case Kind.memberGetAccessor:
-    case Kind.memberSetAccessor:
-      return CompletionItemKind.Field;
-
-    case Kind.function:
-    case Kind.localFunction:
-      return CompletionItemKind.Function;
-
-    case Kind.method:
-    case Kind.constructSignature:
-    case Kind.callSignature:
-    case Kind.indexSignature:
-      return CompletionItemKind.Method;
-
-    case Kind.enum:
-      return CompletionItemKind.Enum;
-
-    case Kind.enumMember:
-      return CompletionItemKind.EnumMember;
-
-    case Kind.module:
-    case Kind.externalModuleName:
-      return CompletionItemKind.Module;
-
-    case Kind.class:
-    case Kind.type:
-      return CompletionItemKind.Class;
-
-    case Kind.interface:
-      return CompletionItemKind.Interface;
-
-    case Kind.warning:
-      return CompletionItemKind.Text;
-
-    case Kind.script:
-      return CompletionItemKind.File;
-
-    case Kind.directory:
-      return CompletionItemKind.Folder;
-
-    case Kind.string:
-      return CompletionItemKind.Constant;
-
-    default:
-      return CompletionItemKind.Property;
-  }
-};
-
-const GLOBAL_CONFIG_LIBRARY_NAME = 'global.d.ts';
-
 export default class TypeScriptService {
   _host: TypeScriptServiceHost;
   _extensionPath?: string;
-  _contents: { [name: string]: string } = Object.create(null);
 
   constructor() {
     this._host = this._getTypeScriptServiceHost();
@@ -137,38 +36,8 @@ export default class TypeScriptService {
   }
 
   /**
-   * Load files related to the language features.
+   * Create a TypeScript service host.
    */
-  _loadLibrary(name: string) {
-    if (!this._extensionPath) {
-      console.error(
-        `Unable to load library ${name}: extensionPath is undefined`
-      );
-      return '';
-    }
-
-    let libPath;
-
-    if (name === GLOBAL_CONFIG_LIBRARY_NAME) {
-      libPath = join(this._extensionPath, name);
-    }
-
-    let content = this._contents[name];
-
-    if (typeof content !== 'string' && libPath) {
-      try {
-        content = readFileSync(libPath, 'utf8');
-      } catch (e) {
-        console.error(`Unable to load library ${name} at ${libPath}`);
-        content = '';
-      }
-
-      this._contents[name] = content;
-    }
-
-    return content;
-  }
-
   _getTypeScriptServiceHost(): TypeScriptServiceHost {
     const compilerOptions = {
       allowNonTsExtensions: true,
@@ -177,9 +46,8 @@ export default class TypeScriptService {
       moduleResolution: ts.ModuleResolutionKind.Classic,
       experimentalDecorators: false,
     };
-    let currentTextDocument = TextDocument.create('init', 'plaintext', 1, '');
+    let currentTextDocument = TextDocument.create('init', 'javascript', 1, '');
 
-    // Create the language service host to allow the LS to communicate with the host.
     const host: ts.LanguageServiceHost = {
       getCompilationSettings: () => compilerOptions,
       getScriptFileNames: () => [
@@ -193,12 +61,15 @@ export default class TypeScriptService {
         }
         return '1';
       },
-      getScriptSnapshot: (fileName: string) => {
+      getScriptSnapshot: (libraryName: string) => {
         let text = '';
-        if (fileName === currentTextDocument.uri) {
+        if (libraryName === currentTextDocument.uri) {
           text = currentTextDocument.getText();
         } else {
-          text = this._loadLibrary(fileName);
+          text = loadLibrary({
+            libraryName,
+            extensionPath: this._extensionPath,
+          });
         }
         return {
           getText: (start, end) => text.substring(start, end),
@@ -214,23 +85,26 @@ export default class TypeScriptService {
     };
 
     // Create the language service files.
-    const jsLanguageService = ts.createLanguageService(host);
+    const languageService = ts.createLanguageService(host);
 
     return {
       // Return a language service instance for a document.
       getLanguageService(jsDocument: TextDocument): ts.LanguageService {
         currentTextDocument = jsDocument;
-        return jsLanguageService;
+        return languageService;
       },
       getCompilationSettings() {
         return compilerOptions;
       },
       dispose() {
-        jsLanguageService.dispose();
+        languageService.dispose();
       },
     };
   }
 
+  /**
+   * Provide MongoDB signature help.
+   */
   doSignatureHelp(
     document: TextDocument,
     position: Position
@@ -241,8 +115,8 @@ export default class TypeScriptService {
       document.version,
       document.getText()
     );
-    const jsLanguageService = this._host.getLanguageService(jsDocument);
-    const signHelp = jsLanguageService.getSignatureHelpItems(
+    const languageService = this._host.getLanguageService(jsDocument);
+    const signHelp = languageService.getSignatureHelpItems(
       jsDocument.uri,
       jsDocument.offsetAt(position),
       undefined
@@ -284,6 +158,16 @@ export default class TypeScriptService {
     return Promise.resolve(null);
   }
 
+  /**
+   * Provide MongoDB completions.
+   * This is a draft method that can replace completions currently provided by the MongoDBService.
+   *
+   * TODO:
+   *  - Provide the full completion list.
+   *  - Use a proper icon.
+   *  - Display description.
+   *  - Include a link to the documentation.
+   */
   doComplete(document: TextDocument, position: Position): CompletionItem[] {
     const jsDocument = TextDocument.create(
       document.uri,
@@ -291,9 +175,9 @@ export default class TypeScriptService {
       document.version,
       document.getText()
     );
-    const jsLanguageService = this._host.getLanguageService(jsDocument);
+    const languageService = this._host.getLanguageService(jsDocument);
     const offset = jsDocument.offsetAt(position);
-    const jsCompletion = jsLanguageService.getCompletionsAtPosition(
+    const jsCompletion = languageService.getCompletionsAtPosition(
       jsDocument.uri,
       offset,
       {
