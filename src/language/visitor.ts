@@ -48,7 +48,7 @@ export interface NamespaceState {
 }
 
 export class Visitor {
-  _state: CompletionState | ExportToLanguageState | {};
+  _state: CompletionState | ExportToLanguageState | NamespaceState | {};
   _selection: VisitorSelection;
 
   constructor() {
