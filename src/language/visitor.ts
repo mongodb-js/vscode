@@ -23,8 +23,6 @@ type ObjectKey =
 export interface CompletionState {
   databaseName: string | null;
   collectionName: string | null;
-  isObjectSelection: boolean;
-  isArraySelection: boolean;
   isObjectKey: boolean;
   isIdentifierObjectValue: boolean;
   isTextObjectValue: boolean;
@@ -39,12 +37,22 @@ export interface CompletionState {
   isFindCursor: boolean;
 }
 
+export interface ExportToLanguageState {
+  isObjectSelection: boolean;
+  isArraySelection: boolean;
+}
+
+export interface NamespaceState {
+  databaseName: string | null;
+  collectionName: string | null;
+}
+
 export class Visitor {
-  _state: CompletionState;
+  _state: CompletionState | ExportToLanguageState | {};
   _selection: VisitorSelection;
 
   constructor() {
-    this._state = this._getDefaultNodesValues();
+    this._state = {};
     this._selection = {
       start: { line: 0, character: 0 },
       end: { line: 0, character: 0 },
@@ -133,7 +141,7 @@ export class Visitor {
     return textLines.join('\n');
   }
 
-  parseASTWithPlaceholder(
+  parseASTForCompletion(
     textFromEditor: string,
     position: { line: number; character: number }
   ): CompletionState {
@@ -142,16 +150,27 @@ export class Visitor {
       end: { line: 0, character: 0 },
     };
 
+    this._state = this._getDefaultsForCompletion();
     textFromEditor = this._handleTriggerCharacter(textFromEditor, position);
 
-    return this.parseAST({ textFromEditor, selection });
+    this.parseAST({ textFromEditor, selection });
+
+    return this._state as CompletionState;
   }
 
-  parseAST({
-    textFromEditor,
-    selection,
-  }: VisitorTextAndSelection): CompletionState {
-    this._state = this._getDefaultNodesValues();
+  parseASTForExportToLanguage(params): ExportToLanguageState {
+    this._state = this._getDefaultsForExportToLanguage();
+    this.parseAST(params);
+    return this._state as ExportToLanguageState;
+  }
+
+  parseASTForNamespace(params): NamespaceState {
+    this._state = this._getDefaultsForNamespace();
+    this.parseAST(params);
+    return this._state as NamespaceState;
+  }
+
+  parseAST({ textFromEditor, selection }: VisitorTextAndSelection) {
     this._selection = selection;
 
     let ast;
@@ -161,8 +180,10 @@ export class Visitor {
         sourceType: 'module',
       });
     } catch (error) {
-      console.error(`parseAST error: ${util.inspect(error)}`);
-      return this._state;
+      console.error(`parseAST error: ${util.inspect((error as any).message)}`);
+      console.error(
+        `parseAST error textFromEditor: ${util.inspect(textFromEditor)}`
+      );
     }
 
     traverse(ast, {
@@ -176,11 +197,9 @@ export class Visitor {
         this._visitObjectProperty(path);
       },
     });
-
-    return this._state;
   }
 
-  _getDefaultNodesValues() {
+  _getDefaultsForCompletion() {
     return {
       databaseName: null,
       collectionName: null,
@@ -201,13 +220,28 @@ export class Visitor {
     };
   }
 
+  _getDefaultsForExportToLanguage() {
+    return {
+      isArraySelection: false,
+      isObjectSelection: false,
+    };
+  }
+
+  _getDefaultsForNamespace() {
+    return {
+      databaseName: null,
+      collectionName: null,
+    };
+  }
+
   _checkIsUseCallAsSimpleString(node: babel.types.CallExpression): void {
     if (
       node.callee.type === 'Identifier' &&
       node.callee.name === 'use' &&
       node.arguments.length === 1 &&
       node.arguments[0].type === 'StringLiteral' &&
-      node.arguments[0].value.includes(PLACEHOLDER)
+      node.arguments[0].value.includes(PLACEHOLDER) &&
+      'isUseCallExpression' in this._state
     ) {
       this._state.isUseCallExpression = true;
     }
@@ -220,7 +254,8 @@ export class Visitor {
       node.arguments[0].type === 'TemplateLiteral' &&
       node.arguments[0].quasis.length === 1 &&
       node.arguments[0].quasis[0].value?.raw &&
-      node.arguments[0].quasis[0].value?.raw.includes(PLACEHOLDER)
+      node.arguments[0].quasis[0].value?.raw.includes(PLACEHOLDER) &&
+      'isUseCallExpression' in this._state
     ) {
       this._state.isUseCallExpression = true;
     }
@@ -234,7 +269,8 @@ export class Visitor {
   _checkIsGlobalSymbol(node: babel.types.ExpressionStatement): void {
     if (
       node.expression.type === 'Identifier' &&
-      node.expression.name.includes('TRIGGER_CHARACTER')
+      node.expression.name.includes('TRIGGER_CHARACTER') &&
+      'isGlobalSymbol' in this._state
     ) {
       this._state.isGlobalSymbol = true;
     }
@@ -244,7 +280,8 @@ export class Visitor {
     if (
       node.expression.type === 'MemberExpression' &&
       node.expression.object.type === 'Identifier' &&
-      node.expression.object.name === 'db'
+      node.expression.object.name === 'db' &&
+      'isDbSymbol' in this._state
     ) {
       this._state.isDbSymbol = true;
     }
@@ -255,7 +292,8 @@ export class Visitor {
       if (
         item.type === 'ObjectProperty' &&
         item.key.type === 'Identifier' &&
-        item.key.name.includes(PLACEHOLDER)
+        item.key.name.includes(PLACEHOLDER) &&
+        'isObjectKey' in this._state
       ) {
         this._state.isObjectKey = true;
       }
@@ -267,7 +305,8 @@ export class Visitor {
       if (
         item.type === 'ObjectProperty' &&
         item.value.type === 'Identifier' &&
-        item.value.name.includes(PLACEHOLDER)
+        item.value.name.includes(PLACEHOLDER) &&
+        'isIdentifierObjectValue' in this._state
       ) {
         this._state.isIdentifierObjectValue = true;
       }
@@ -277,13 +316,14 @@ export class Visitor {
   _checkIsTextObjectValue(node: babel.types.ObjectExpression): void {
     node.properties.find((item: ObjectKey) => {
       if (
-        (item.type === 'ObjectProperty' &&
+        ((item.type === 'ObjectProperty' &&
           item.value.type === 'StringLiteral' &&
           item.value.value.includes(PLACEHOLDER)) ||
-        (item.type === 'ObjectProperty' &&
-          item.value.type === 'TemplateLiteral' &&
-          item.value?.quasis.length === 1 &&
-          item.value.quasis[0].value?.raw.includes(PLACEHOLDER))
+          (item.type === 'ObjectProperty' &&
+            item.value.type === 'TemplateLiteral' &&
+            item.value?.quasis.length === 1 &&
+            item.value.quasis[0].value?.raw.includes(PLACEHOLDER))) &&
+        'isTextObjectValue' in this._state
       ) {
         this._state.isTextObjectValue = true;
       }
@@ -298,7 +338,8 @@ export class Visitor {
             if (
               item.type === 'ObjectProperty' &&
               item.key.type === 'Identifier' &&
-              item.key.name.includes(PLACEHOLDER)
+              item.key.name.includes(PLACEHOLDER) &&
+              'isStage' in this._state
             ) {
               this._state.isStage = true;
             }
@@ -324,7 +365,8 @@ export class Visitor {
                   if (
                     path.node.type === 'ObjectProperty' &&
                     path.node.key.type === 'Identifier' &&
-                    path.node.key.name.includes(PLACEHOLDER)
+                    path.node.key.name.includes(PLACEHOLDER) &&
+                    'stageOperator' in this._state
                   ) {
                     this._state.stageOperator = name;
                   }
@@ -342,13 +384,13 @@ export class Visitor {
   ): boolean {
     if (
       node.loc?.start?.line &&
-      (node.loc.start.line - 1 < this._selection.start?.line ||
-        (node.loc.start.line - 1 === this._selection.start?.line &&
-          node.loc.start.column < this._selection.start?.character)) &&
-      node.loc?.end?.line &&
-      (node.loc.end.line - 1 > this._selection.end?.line ||
-        (node.loc.end.line - 1 === this._selection.end?.line &&
-          node.loc.end.column > this._selection.end?.character))
+      (node.loc.start.line - 1 < this._selection.start.line ||
+        (node.loc.start.line - 1 === this._selection.start.line &&
+          node.loc.start.column < this._selection.start.character)) &&
+      node.loc.end.line &&
+      (node.loc.end.line - 1 > this._selection.end.line ||
+        (node.loc.end.line - 1 === this._selection.end.line &&
+          node.loc.end.column > this._selection.end.character))
     ) {
       return true;
     }
@@ -404,13 +446,21 @@ export class Visitor {
   }
 
   _checkIsArrayWithinSelection(node: babel.types.Node): void {
-    if (node.type === 'ArrayExpression' && this._isWithinSelection(node)) {
+    if (
+      node.type === 'ArrayExpression' &&
+      this._isWithinSelection(node) &&
+      'isArraySelection' in this._state
+    ) {
       this._state.isArraySelection = true;
     }
   }
 
   _checkIsObjectWithinSelection(node: babel.types.Node): void {
-    if (node.type === 'ObjectExpression' && this._isWithinSelection(node)) {
+    if (
+      node.type === 'ObjectExpression' &&
+      this._isWithinSelection(node) &&
+      'isObjectSelection' in this._state
+    ) {
       this._state.isObjectSelection = true;
     }
   }
@@ -477,7 +527,8 @@ export class Visitor {
       ((node.property.type === 'Identifier' &&
         node.property.name.includes(PLACEHOLDER)) ||
         (node.property.type === 'StringLiteral' &&
-          node.property.value.includes(PLACEHOLDER)))
+          node.property.value.includes(PLACEHOLDER))) &&
+      'isCollectionName' in this._state
     ) {
       this._state.isCollectionName = true;
     }
@@ -486,7 +537,8 @@ export class Visitor {
   _checkGetCollectionAsSimpleString(node: babel.types.CallExpression): void {
     if (
       node.arguments[0].type === 'StringLiteral' &&
-      node.arguments[0].value.includes(PLACEHOLDER)
+      node.arguments[0].value.includes(PLACEHOLDER) &&
+      'isCollectionName' in this._state
     ) {
       this._state.isCollectionName = true;
     }
@@ -496,7 +548,8 @@ export class Visitor {
     if (
       node.arguments[0].type === 'TemplateLiteral' &&
       node.arguments[0].quasis.length === 1 &&
-      node.arguments[0].quasis[0].value.raw.includes(PLACEHOLDER)
+      node.arguments[0].quasis[0].value.raw.includes(PLACEHOLDER) &&
+      'isCollectionName' in this._state
     ) {
       this._state.isCollectionName = true;
     }
@@ -526,7 +579,8 @@ export class Visitor {
       node.object.callee.type === 'MemberExpression' &&
       !node.object.callee.computed &&
       node.object.callee.property.type === 'Identifier' &&
-      node.object.callee.property.name === 'aggregate'
+      node.object.callee.property.name === 'aggregate' &&
+      'isAggregationCursor' in this._state
     ) {
       this._state.isAggregationCursor = true;
     }
@@ -540,7 +594,8 @@ export class Visitor {
       node.object.callee.type === 'MemberExpression' &&
       !node.object.callee.computed &&
       node.object.callee.property.type === 'Identifier' &&
-      node.object.callee.property.name === 'find'
+      node.object.callee.property.name === 'find' &&
+      'isFindCursor' in this._state
     ) {
       this._state.isFindCursor = true;
     }
@@ -555,7 +610,8 @@ export class Visitor {
       node.loc &&
       (this._selection.start.line > node.loc.end.line - 1 ||
         (this._selection.start.line === node.loc.end.line - 1 &&
-          this._selection.start.character >= node.loc.end.column))
+          this._selection.start.character >= node.loc.end.column)) &&
+      'databaseName' in this._state
     ) {
       this._state.databaseName = node.arguments[0].value;
     }
@@ -569,9 +625,15 @@ export class Visitor {
       node.object.object.type === 'Identifier' &&
       node.object.object.name === 'db'
     ) {
-      if (node.object.property.type === 'Identifier') {
+      if (
+        node.object.property.type === 'Identifier' &&
+        'collectionName' in this._state
+      ) {
         this._state.collectionName = node.object.property.name;
-      } else if (node.object.property.type === 'StringLiteral') {
+      } else if (
+        node.object.property.type === 'StringLiteral' &&
+        'collectionName' in this._state
+      ) {
         this._state.collectionName = node.object.property.value;
       }
     }
@@ -586,7 +648,8 @@ export class Visitor {
       node.object.callee.property.type === 'Identifier' &&
       node.object.callee.property.name === 'getCollection' &&
       node.object.arguments.length === 1 &&
-      node.object.arguments[0].type === 'StringLiteral'
+      node.object.arguments[0].type === 'StringLiteral' &&
+      'collectionName' in this._state
     ) {
       this._state.collectionName = node.object.arguments[0].value;
     }
@@ -603,7 +666,8 @@ export class Visitor {
       node.object.object.type === 'Identifier' &&
       node.object.object.name === 'db' &&
       node.property.type === 'Identifier' &&
-      node.property.name.includes(PLACEHOLDER)
+      node.property.name.includes(PLACEHOLDER) &&
+      'isCollectionSymbol' in this._state
     ) {
       this._state.isCollectionSymbol = true;
     }
@@ -618,7 +682,8 @@ export class Visitor {
       node.object.callee.property.type === 'Identifier' &&
       node.object.callee.property.name === 'getCollection' &&
       node.property.type === 'Identifier' &&
-      node.property.name.includes(PLACEHOLDER)
+      node.property.name.includes(PLACEHOLDER) &&
+      'isCollectionSymbol' in this._state
     ) {
       this._state.isCollectionSymbol = true;
     }

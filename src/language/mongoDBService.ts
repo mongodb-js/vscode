@@ -399,7 +399,7 @@ export default class MongoDBService {
   getExportToLanguageMode(
     params: PlaygroundTextAndSelection
   ): ExportToLanguageMode {
-    const state = this._visitor.parseAST(params);
+    const state = this._visitor.parseASTForExportToLanguage(params);
 
     if (state.isArraySelection) {
       return ExportToLanguageMode.AGGREGATION;
@@ -420,7 +420,7 @@ export default class MongoDBService {
     params: PlaygroundTextAndSelection
   ): ExportToLanguageNamespace {
     try {
-      const state = this._visitor.parseAST(params);
+      const state = this._visitor.parseASTForNamespace(params);
       return {
         databaseName: state.databaseName,
         collectionName: state.collectionName,
@@ -802,13 +802,10 @@ export default class MongoDBService {
     position: { line: number; character: number }
   ): Promise<CompletionItem[]> {
     this._connection.console.log(
-      `LS current symbol position: ${util.inspect(position)}`
+      `Provide completion items for a position: ${util.inspect(position)}`
     );
 
-    const state = this._visitor.parseASTWithPlaceholder(
-      textFromEditor,
-      position
-    );
+    const state = this._visitor.parseASTForCompletion(textFromEditor, position);
     this._connection.console.log(
       `VISITOR completion state: ${util.inspect(state)}`
     );
@@ -842,12 +839,11 @@ export default class MongoDBService {
       }
     }
 
-    this._connection.console.log('VISITOR no completion');
+    this._connection.console.log('VISITOR found no mongodb completion');
     return [];
   }
 
   // Highlight the usage of commands that only works inside interactive session.
-  // eslint-disable-next-line complexity
   provideDiagnostics(textFromEditor: string) {
     const lines = textFromEditor.split(/\r?\n/g);
     const diagnostics: Diagnostic[] = [];

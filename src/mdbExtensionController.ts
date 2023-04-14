@@ -677,13 +677,13 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   async deactivate(): Promise<void> {
     await this._connectionController.disconnect();
+    await this._languageServerController.deactivate();
 
     this._explorerController.deactivate();
     this._helpExplorer.deactivate();
     this._playgroundsExplorer.deactivate();
     this._playgroundController.deactivate();
     this._telemetryService.deactivate();
-    this._languageServerController.deactivate();
     this._editorsController.deactivate();
   }
 }
