@@ -105,10 +105,13 @@ export default class TypeScriptService {
   /**
    * Provide MongoDB signature help.
    */
-  doSignatureHelp(
-    document: TextDocument,
-    position: Position
-  ): Promise<SignatureHelp | null> {
+  doSignatureHelp({
+    document,
+    position,
+  }: {
+    document: TextDocument;
+    position: Position;
+  }): Promise<SignatureHelp | null> {
     const jsDocument = TextDocument.create(
       document.uri,
       'javascript',
@@ -168,7 +171,13 @@ export default class TypeScriptService {
    *  - Display description.
    *  - Include a link to the documentation.
    */
-  doComplete(document: TextDocument, position: Position): CompletionItem[] {
+  doComplete({
+    document,
+    position,
+  }: {
+    document: TextDocument;
+    position: Position;
+  }): CompletionItem[] {
     const jsDocument = TextDocument.create(
       document.uri,
       'javascript',

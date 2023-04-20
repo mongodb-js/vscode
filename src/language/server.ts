@@ -212,18 +212,21 @@ connection.onRequest(
 
 // Provide MongoDB completion items.
 connection.onCompletion((params: TextDocumentPositionParams) => {
-  const textFromEditor = documents.get(params.textDocument.uri)?.getText();
-
-  return mongoDBService.provideCompletionItems(
-    textFromEditor ? textFromEditor : '',
-    params.position
-  );
+  const document = documents.get(params.textDocument.uri);
 
   /* const document = documents.get(params.textDocument.uri);
   if (!document) {
     return Promise.resolve([]);
   }
-  return typeScriptService.doComplete(document, params.position); */
+  return typeScriptService.doComplete({
+    document,
+    position: params.position,
+  }); */
+
+  return mongoDBService.provideCompletionItems({
+    document,
+    position: params.position,
+  });
 });
 
 // This handler resolves additional information for the item selected in
@@ -251,10 +254,10 @@ connection.onSignatureHelp((signatureHelpParms) => {
   }
 
   // Provide MongoDB or TypeScript help signatures.
-  return typeScriptService.doSignatureHelp(
+  return typeScriptService.doSignatureHelp({
     document,
-    signatureHelpParms.position
-  );
+    position: signatureHelpParms.position,
+  });
 });
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {
