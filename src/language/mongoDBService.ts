@@ -748,11 +748,15 @@ export default class MongoDBService {
    * because some of the collection names have special characters
    * and must be edited to the bracket notation based on the current line content.
    */
-  _getCollectionCompletionItems(
-    databaseName: string,
-    currentLineText: string,
-    position: { line: number; character: number }
-  ) {
+  _getCollectionCompletionItems({
+    databaseName,
+    currentLineText,
+    position,
+  }: {
+    databaseName: string;
+    currentLineText: string;
+    position: { line: number; character: number };
+  }) {
     return this._collections[databaseName].map((collectioName) => {
       if (this._isValidPropertyName(collectioName)) {
         return {
@@ -765,7 +769,7 @@ export default class MongoDBService {
       return {
         label: collectioName,
         kind: CompletionItemKind.Folder,
-        // The current line with the collection name containing special characters.
+        // The current line text, e.g. `{ db. } // Comment`.
         filterText: currentLineText,
         textEdit: {
           range: {
@@ -775,11 +779,14 @@ export default class MongoDBService {
               character: currentLineText.length,
             },
           },
-          // The collection name converted into the bracket notation.
+          // The completion item with the collection name converted into the bracket notation.
           newText: [
             currentLineText.slice(0, position.character - 1),
             `['${collectioName}']`,
-            currentLineText.slice(position.character, currentLineText.length),
+            currentLineText.slice(
+              position.character,
+              currentLineText.length
+            ),
           ].join(''),
         },
         preselect: true,
@@ -803,11 +810,11 @@ export default class MongoDBService {
 
       return [
         ...this._shellSymbolCompletionItems.Database,
-        ...this._getCollectionCompletionItems(
-          state.databaseName,
+        ...this._getCollectionCompletionItems({
+          databaseName: state.databaseName,
           currentLineText,
-          position
-        ),
+          position,
+        }),
       ];
     }
 
@@ -829,11 +836,11 @@ export default class MongoDBService {
   ) {
     if (state.isCollectionName && state.databaseName) {
       this._connection.console.log('VISITOR found collection name completions');
-      return this._getCollectionCompletionItems(
-        state.databaseName,
+      return this._getCollectionCompletionItems({
+        databaseName: state.databaseName,
         currentLineText,
-        position
-      );
+        position,
+      });
     }
   }
 
