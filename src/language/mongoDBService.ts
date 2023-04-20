@@ -744,7 +744,7 @@ export default class MongoDBService {
 
   /**
    * Convert cached collection names into completion items.
-   * We do not cache items completion items as we do for other entities,
+   * We do not cache completion items as we do for other entities,
    * because some of the collection names have special characters
    * and must be edited to the bracket notation based on the current line content.
    */
