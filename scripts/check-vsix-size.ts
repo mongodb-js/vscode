@@ -12,7 +12,7 @@ const vsixFileName = path.resolve(
 );
 const size = fs.statSync(vsixFileName).size;
 
-const maxSize = 7 * 1000000; // 7 MB
+const maxSize = 9 * 1000000; // 9 MB
 
 if (size >= maxSize) {
   throw new Error(

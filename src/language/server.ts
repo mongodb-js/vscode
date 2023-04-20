@@ -13,6 +13,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
+import TypeScriptService from './tsLanguageService';
 
 import { ServerCommands } from './serverCommands';
 import {
@@ -30,6 +31,9 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 // MongoDB language service.
 const mongoDBService = new MongoDBService(connection);
+
+// TypeScript language service.
+const typeScriptService = new TypeScriptService();
 
 let hasConfigurationCapability = false;
 // let hasWorkspaceFolderCapability = false;
@@ -66,6 +70,11 @@ connection.onInitialize((params: InitializeParams) => {
       completionProvider: {
         resolveProvider: true,
         triggerCharacters: ['.'],
+      },
+      // Tell the client that the server supports help signatures.
+      signatureHelpProvider: {
+        resolveProvider: true,
+        triggerCharacters: [',', '('],
       },
       // documentFormattingProvider: true,
       // documentRangeFormattingProvider: true,
@@ -159,9 +168,10 @@ connection.onRequest(
   }
 );
 
-// Pass the extension path to the MongoDB service.
+// Pass the extension path to the MongoDB and TypeScript services.
 connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
   mongoDBService.setExtensionPath(extensionPath);
+  typeScriptService.setExtensionPath(extensionPath);
 });
 
 // Connect the MongoDB language service to CliServiceProvider
@@ -204,6 +214,15 @@ connection.onRequest(
 connection.onCompletion((params: TextDocumentPositionParams) => {
   const document = documents.get(params.textDocument.uri);
 
+  /* const document = documents.get(params.textDocument.uri);
+  if (!document) {
+    return Promise.resolve([]);
+  }
+  return typeScriptService.doComplete({
+    document,
+    position: params.position,
+  }); */
+
   return mongoDBService.provideCompletionItems({
     document,
     position: params.position,
@@ -224,6 +243,21 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   // }
 
   return item;
+});
+
+// Provide MongoDB signature help.
+connection.onSignatureHelp((signatureHelpParms) => {
+  const document = documents.get(signatureHelpParms.textDocument.uri);
+
+  if (!document) {
+    return Promise.resolve(null);
+  }
+
+  // Provide MongoDB or TypeScript help signatures.
+  return typeScriptService.doSignatureHelp({
+    document,
+    position: signatureHelpParms.position,
+  });
 });
 
 connection.onRequest('textDocument/rangeFormatting', (event) => {
