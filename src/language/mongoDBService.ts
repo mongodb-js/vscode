@@ -4,6 +4,8 @@ import {
   InsertTextFormat,
   MarkupKind,
   DiagnosticSeverity,
+  Range,
+  Position,
 } from 'vscode-languageserver/node';
 import type {
   CancellationToken,
@@ -60,9 +62,9 @@ export default class MongoDBService {
   _connectionOptions?: MongoClientOptions;
 
   _databaseCompletionItems: CompletionItem[] = [];
-  _collectionCompletionItems: { [database: string]: CompletionItem[] } = {};
   _shellSymbolCompletionItems: { [symbol: string]: CompletionItem[] } = {};
   _globalSymbolCompletionItems: CompletionItem[] = [];
+  _collections: { [database: string]: string[] } = {};
   _fields: { [namespace: string]: string[] } = {};
 
   _visitor: Visitor;
@@ -487,25 +489,15 @@ export default class MongoDBService {
    * Get and cache collection and field names based on the namespace.
    */
   async _getCompletionValuesAndUpdateCache(
-    textFromEditor: string,
-    position: { line: number; character: number },
     currentDatabaseName: string | null,
     currentCollectionName: string | null
   ) {
-    if (
-      currentDatabaseName &&
-      !this._collectionCompletionItems[currentDatabaseName]
-    ) {
+    if (currentDatabaseName && !this._collections[currentDatabaseName]) {
       // Get collection names for the current database.
       const collections = await this._getCollections(currentDatabaseName);
 
       // Create and cache collection completion items.
-      this._cacheCollectionCompletionItems(
-        textFromEditor,
-        position,
-        currentDatabaseName,
-        collections
-      );
+      this._cacheCollections(currentDatabaseName, collections);
     }
 
     if (currentDatabaseName && currentCollectionName) {
@@ -751,17 +743,71 @@ export default class MongoDBService {
   }
 
   /**
+   * Convert cached collection names into completion items.
+   * We do not cache items completion items as we do for other entities,
+   * because some of the collection names have special characters
+   * and must be edited to the bracket notation based on the current line content.
+   */
+  _getCollectionCompletionItems(
+    databaseName: string,
+    currentLineText: string,
+    position: { line: number; character: number }
+  ) {
+    return this._collections[databaseName].map((collectioName) => {
+      if (this._isValidPropertyName(collectioName)) {
+        return {
+          label: collectioName,
+          kind: CompletionItemKind.Folder,
+          preselect: true,
+        };
+      }
+
+      return {
+        label: collectioName,
+        kind: CompletionItemKind.Folder,
+        // The current line with the collection name containing special characters.
+        filterText: currentLineText,
+        textEdit: {
+          range: {
+            start: { line: position.line, character: 0 },
+            end: {
+              line: position.line,
+              character: currentLineText.length,
+            },
+          },
+          // The collection name converted into the bracket notation.
+          newText: [
+            currentLineText.slice(0, position.character - 1),
+            `['${collectioName}']`,
+            currentLineText.slice(position.character, currentLineText.length),
+          ].join(''),
+        },
+        preselect: true,
+      };
+    });
+  }
+
+  /**
    * If the current node is 'db.<trigger>'.
    */
-  _provideDbSymbolCompletionItems(state: CompletionState) {
+  _provideDbSymbolCompletionItems(
+    state: CompletionState,
+    currentLineText: string,
+    position: { line: number; character: number }
+  ) {
     // If we found 'use("db")' and the current node is 'db.<trigger>'.
     if (state.isDbSymbol && state.databaseName) {
       this._connection.console.log(
         'VISITOR found db symbol and collection name completions'
       );
+
       return [
         ...this._shellSymbolCompletionItems.Database,
-        ...this._collectionCompletionItems[state.databaseName],
+        ...this._getCollectionCompletionItems(
+          state.databaseName,
+          currentLineText,
+          position
+        ),
       ];
     }
 
@@ -776,10 +822,18 @@ export default class MongoDBService {
    * If the current node can be used as a collection name
    * e.g. 'db.<trigger>.find()' or 'let a = db.<trigger>'.
    */
-  _provideCollectionNameCompletionItems(state: CompletionState) {
+  _provideCollectionNameCompletionItems(
+    state: CompletionState,
+    currentLineText: string,
+    position: { line: number; character: number }
+  ) {
     if (state.isCollectionName && state.databaseName) {
       this._connection.console.log('VISITOR found collection name completions');
-      return this._collectionCompletionItems[state.databaseName];
+      return this._getCollectionCompletionItems(
+        state.databaseName,
+        currentLineText,
+        position
+      );
     }
   }
 
@@ -797,24 +851,35 @@ export default class MongoDBService {
    * Parse code from a playground to identify
    * where the cursor is and suggests only suitable completion items.
    */
-  async provideCompletionItems(
-    textFromEditor: string,
-    position: { line: number; character: number }
-  ): Promise<CompletionItem[]> {
+  async provideCompletionItems({
+    document,
+    position,
+  }: {
+    document?: Document;
+    position: { line: number; character: number };
+  }): Promise<CompletionItem[]> {
     this._connection.console.log(
       `Provide completion items for a position: ${util.inspect(position)}`
     );
 
-    const state = this._visitor.parseASTForCompletion(textFromEditor, position);
+    const state = this._visitor.parseASTForCompletion(
+      document?.getText(),
+      position
+    );
     this._connection.console.log(
       `VISITOR completion state: ${util.inspect(state)}`
     );
 
     await this._getCompletionValuesAndUpdateCache(
-      textFromEditor,
-      position,
       state.databaseName,
       state.collectionName
+    );
+
+    const currentLineText = document?.getText(
+      Range.create(
+        Position.create(position.line, 0),
+        Position.create(position.line + 1, 0)
+      )
     );
 
     const completionOptions = [
@@ -827,8 +892,18 @@ export default class MongoDBService {
       this._provideFindCursorCompletionItems.bind(this, state),
       this._provideAggregationCursorCompletionItems.bind(this, state),
       this._provideGlobalSymbolCompletionItems.bind(this, state),
-      this._provideDbSymbolCompletionItems.bind(this, state),
-      this._provideCollectionNameCompletionItems.bind(this, state),
+      this._provideDbSymbolCompletionItems.bind(
+        this,
+        state,
+        currentLineText,
+        position
+      ),
+      this._provideCollectionNameCompletionItems.bind(
+        this,
+        state,
+        currentLineText,
+        position
+      ),
       this._provideDbNameCompletionItems.bind(this, state),
     ];
 
@@ -960,53 +1035,10 @@ export default class MongoDBService {
   }
 
   /**
-   * Convert collection names to Completion Items and cache them.
+   * Cache collection names.
    */
-  _cacheCollectionCompletionItems(
-    textFromEditor: string,
-    position: { line: number; character: number },
-    database: string,
-    collections: Document[]
-  ): void {
-    this._collectionCompletionItems[database] = collections.map((item) => {
-      if (this._isValidPropertyName(item.name)) {
-        return {
-          label: item.name,
-          kind: CompletionItemKind.Folder,
-          preselect: true,
-        };
-      }
-
-      // Convert invalid property names to array-like format.
-      const filterText = textFromEditor.split('\n')[position.line];
-
-      return {
-        label: item.name,
-        kind: CompletionItemKind.Folder,
-        // Find the line with invalid property name.
-        filterText: [
-          filterText.slice(0, position.character),
-          `.${item.name}`,
-          filterText.slice(position.character, filterText.length),
-        ].join(''),
-        textEdit: {
-          range: {
-            start: { line: position.line, character: 0 },
-            end: {
-              line: position.line,
-              character: filterText.length,
-            },
-          },
-          // Replace with array-like format.
-          newText: [
-            filterText.slice(0, position.character - 1),
-            `['${item.name}']`,
-            filterText.slice(position.character, filterText.length),
-          ].join(''),
-          preselect: true,
-        },
-      };
-    });
+  _cacheCollections(database: string, collections: Document[]): void {
+    this._collections[database] = collections.map((item) => item.name);
   }
 
   _clearCachedFields(): void {
@@ -1018,7 +1050,7 @@ export default class MongoDBService {
   }
 
   _clearCachedCollections(): void {
-    this._collectionCompletionItems = {};
+    this._collections = {};
   }
 
   async _clearCurrentConnection(): Promise<void> {

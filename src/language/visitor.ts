@@ -142,7 +142,7 @@ export class Visitor {
   }
 
   parseASTForCompletion(
-    textFromEditor: string,
+    textFromEditor: string = '',
     position: { line: number; character: number }
   ): CompletionState {
     const selection: VisitorSelection = {
