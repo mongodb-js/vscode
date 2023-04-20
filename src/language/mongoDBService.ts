@@ -757,17 +757,17 @@ export default class MongoDBService {
     currentLineText: string;
     position: { line: number; character: number };
   }) {
-    return this._collections[databaseName].map((collectioName) => {
-      if (this._isValidPropertyName(collectioName)) {
+    return this._collections[databaseName].map((collectionName) => {
+      if (this._isValidPropertyName(collectionName)) {
         return {
-          label: collectioName,
+          label: collectionName,
           kind: CompletionItemKind.Folder,
           preselect: true,
         };
       }
 
       return {
-        label: collectioName,
+        label: collectionName,
         kind: CompletionItemKind.Folder,
         // The current line text, e.g. `{ db. } // Comment`.
         filterText: currentLineText,
@@ -782,11 +782,8 @@ export default class MongoDBService {
           // The completion item with the collection name converted into the bracket notation.
           newText: [
             currentLineText.slice(0, position.character - 1),
-            `['${collectioName}']`,
-            currentLineText.slice(
-              position.character,
-              currentLineText.length
-            ),
+            `['${collectionName}']`,
+            currentLineText.slice(position.character, currentLineText.length),
           ].join(''),
         },
         preselect: true,
