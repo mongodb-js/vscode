@@ -309,6 +309,11 @@ export default class MDBExtensionController implements vscode.Disposable {
       (connectionTreeItem: ConnectionTreeItem): Promise<boolean> => {
         connectionTreeItem.resetCache();
         this._explorerController.refresh();
+        this._languageServerController.resetCache({
+          databases: true,
+          collections: true,
+          fields: true,
+        });
 
         return Promise.resolve(true);
       }
@@ -413,6 +418,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       (databaseTreeItem: DatabaseTreeItem): Promise<boolean> => {
         databaseTreeItem.resetCache();
         this._explorerController.refresh();
+        this._languageServerController.resetCache({
+          collections: true,
+          fields: true,
+        });
 
         return Promise.resolve(true);
       }
@@ -476,6 +485,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
         collectionTreeItem.resetCache();
         this._explorerController.refresh();
+        this._languageServerController.resetCache({ fields: true });
 
         return Promise.resolve(true);
       }
@@ -505,6 +515,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       async (documentsListTreeItem: DocumentListTreeItem): Promise<boolean> => {
         await documentsListTreeItem.resetCache();
         this._explorerController.refresh();
+        this._languageServerController.resetCache({ fields: true });
 
         return Promise.resolve(true);
       }
@@ -525,6 +536,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
         schemaTreeItem.resetCache();
         this._explorerController.refresh();
+        this._languageServerController.resetCache({ fields: true });
 
         return Promise.resolve(true);
       }

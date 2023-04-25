@@ -22,6 +22,12 @@ import { ServerCommands } from './serverCommands';
 
 const log = createLogger('language server controller');
 
+enum CompletionsCache {
+  DATABASES = 'databases',
+  COLLECTIONS = 'collections',
+  FIELDS = 'fields',
+}
+
 /**
  * This controller manages the language server and client.
  */
@@ -183,6 +189,10 @@ export default class LanguageServerController {
     await this._client.sendRequest(
       ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER
     );
+  }
+
+  resetCache(clear: { [name in CompletionsCache]?: boolean }): void {
+    this._client.sendRequest(ServerCommands.CLEAR_CACHED_COMPLETIONS, clear);
   }
 
   cancelAll(): void {

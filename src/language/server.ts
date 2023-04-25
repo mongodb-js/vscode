@@ -180,7 +180,7 @@ connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
 connection.onRequest(
   ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
   ({ namespace, schemaFields }) => {
-    return mongoDBService._cacheFields(namespace, schemaFields);
+    return mongoDBService.cacheFields(namespace, schemaFields);
   }
 );
 
@@ -197,6 +197,14 @@ connection.onRequest(
   ServerCommands.GET_NAMESPACE_FOR_SELECTION,
   (params: PlaygroundTextAndSelection) => {
     return mongoDBService.getNamespaceForSelection(params);
+  }
+);
+
+// Clear cached completions by provided cache names.
+connection.onRequest(
+  ServerCommands.CLEAR_CACHED_COMPLETIONS,
+  (clear: { [name: string]: boolean }) => {
+    return mongoDBService.clearCachedCompletions(clear);
   }
 );
 
