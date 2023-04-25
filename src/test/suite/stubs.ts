@@ -348,8 +348,8 @@ class LanguageServerControllerStub {
     return Promise.resolve();
   }
 
-  resetCache(/* clear: { [name: string]: boolean } */): void {
-    return;
+  resetCache(/* clear: { [name: string]: boolean } */): Promise<void> {
+    return Promise.resolve();
   }
 }
 

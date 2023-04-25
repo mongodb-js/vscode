@@ -191,8 +191,13 @@ export default class LanguageServerController {
     );
   }
 
-  resetCache(clear: { [name in CompletionsCache]?: boolean }): void {
-    this._client.sendRequest(ServerCommands.CLEAR_CACHED_COMPLETIONS, clear);
+  async resetCache(clear: {
+    [name in CompletionsCache]?: boolean;
+  }): Promise<void> {
+    await this._client.sendRequest(
+      ServerCommands.CLEAR_CACHED_COMPLETIONS,
+      clear
+    );
   }
 
   cancelAll(): void {

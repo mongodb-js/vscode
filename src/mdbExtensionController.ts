@@ -306,16 +306,16 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_CONNECTION,
-      (connectionTreeItem: ConnectionTreeItem): Promise<boolean> => {
+      async (connectionTreeItem: ConnectionTreeItem): Promise<boolean> => {
         connectionTreeItem.resetCache();
         this._explorerController.refresh();
-        this._languageServerController.resetCache({
+        await this._languageServerController.resetCache({
           databases: true,
           collections: true,
           fields: true,
         });
 
-        return Promise.resolve(true);
+        return true;
       }
     );
     this.registerCommand(
@@ -415,15 +415,15 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_DATABASE,
-      (databaseTreeItem: DatabaseTreeItem): Promise<boolean> => {
+      async (databaseTreeItem: DatabaseTreeItem): Promise<boolean> => {
         databaseTreeItem.resetCache();
         this._explorerController.refresh();
-        this._languageServerController.resetCache({
+        await this._languageServerController.resetCache({
           collections: true,
           fields: true,
         });
 
-        return Promise.resolve(true);
+        return true;
       }
     );
     this.registerCommand(
@@ -482,12 +482,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_COLLECTION,
-      (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
+      async (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
         collectionTreeItem.resetCache();
         this._explorerController.refresh();
-        this._languageServerController.resetCache({ fields: true });
+        await this._languageServerController.resetCache({ fields: true });
 
-        return Promise.resolve(true);
+        return true;
       }
     );
     this.registerCommand(
@@ -515,9 +515,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       async (documentsListTreeItem: DocumentListTreeItem): Promise<boolean> => {
         await documentsListTreeItem.resetCache();
         this._explorerController.refresh();
-        this._languageServerController.resetCache({ fields: true });
+        await this._languageServerController.resetCache({ fields: true });
 
-        return Promise.resolve(true);
+        return true;
       }
     );
     this.registerCommand(
@@ -533,12 +533,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_SCHEMA,
-      (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
+      async (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
         schemaTreeItem.resetCache();
         this._explorerController.refresh();
-        this._languageServerController.resetCache({ fields: true });
+        await this._languageServerController.resetCache({ fields: true });
 
-        return Promise.resolve(true);
+        return true;
       }
     );
     this.registerCommand(
