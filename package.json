@@ -1,5 +1,5 @@
 {
-  "preview": true,
+  "preview": false,
   "name": "mongodb-vscode",
   "displayName": "MongoDB for VS Code",
   "description": "Connect to MongoDB and Atlas directly from your VS Code environment, navigate your databases and collections, inspect your schema and use playgrounds to prototype queries and aggregations.",
