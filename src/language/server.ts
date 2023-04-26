@@ -1,24 +1,26 @@
+import type {
+  InitializeParams,
+  CompletionItem,
+  TextDocumentPositionParams,
+  Connection,
+} from 'vscode-languageserver/node';
 import {
   createConnection,
   TextDocuments,
   ProposedFeatures,
-  InitializeParams,
   DidChangeConfigurationNotification,
-  CompletionItem,
-  TextDocumentPositionParams,
   RequestType,
   TextDocumentSyncKind,
-  Connection,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
-
 import { ServerCommands } from './serverCommands';
-import {
+import type {
   PlaygroundEvaluateParams,
   PlaygroundTextAndSelection,
 } from '../types/playgroundType';
+import type { ClearCompletionsCache } from '../types/completionsCache';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -180,7 +182,7 @@ connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
 connection.onRequest(
   ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
   ({ namespace, schemaFields }) => {
-    return mongoDBService._cacheFields(namespace, schemaFields);
+    return mongoDBService.cacheFields(namespace, schemaFields);
   }
 );
 
@@ -197,6 +199,14 @@ connection.onRequest(
   ServerCommands.GET_NAMESPACE_FOR_SELECTION,
   (params: PlaygroundTextAndSelection) => {
     return mongoDBService.getNamespaceForSelection(params);
+  }
+);
+
+// Clear cached completions by provided cache names.
+connection.onRequest(
+  ServerCommands.CLEAR_CACHED_COMPLETIONS,
+  (clear: ClearCompletionsCache) => {
+    return mongoDBService.clearCachedCompletions(clear);
   }
 );
 

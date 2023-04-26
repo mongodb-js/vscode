@@ -33,6 +33,7 @@ import type {
   PlaygroundTextAndSelection,
   MongoClientOptions,
 } from '../types/playgroundType';
+import type { ClearCompletionsCache } from '../types/completionsCache';
 import { Visitor } from './visitor';
 import type { CompletionState } from './visitor';
 
@@ -134,10 +135,11 @@ export default class MongoDBService {
    * Disconnect from CliServiceProvider.
    */
   async disconnectFromServiceProvider(): Promise<void> {
-    this._clearCachedDatabases();
-    this._clearCachedCollections();
-    this._clearCachedFields();
-
+    this.clearCachedCompletions({
+      databases: true,
+      collections: true,
+      fields: true,
+    });
     await this._clearCurrentConnection();
   }
 
@@ -148,7 +150,7 @@ export default class MongoDBService {
     params: PlaygroundEvaluateParams,
     token: CancellationToken
   ): Promise<ShellEvaluateResult | undefined> {
-    this._clearCachedFields();
+    this.clearCachedFields();
 
     return new Promise((resolve) => {
       if (this._connectionId !== params.connectionId) {
@@ -511,7 +513,7 @@ export default class MongoDBService {
         );
 
         // Create and cache field completion items.
-        this._cacheFields(namespace, schemaFields);
+        this.cacheFields(namespace, schemaFields);
       }
     }
   }
@@ -1021,7 +1023,7 @@ export default class MongoDBService {
   /**
    * Convert schema field names to Completion Items and cache them.
    */
-  _cacheFields(namespace: string, fields: string[]): void {
+  cacheFields(namespace: string, fields: string[]): void {
     if (namespace) {
       this._fields[namespace] = fields ? fields : [];
     }
@@ -1045,15 +1047,15 @@ export default class MongoDBService {
     this._collections[database] = collections.map((item) => item.name);
   }
 
-  _clearCachedFields(): void {
+  clearCachedFields(): void {
     this._fields = {};
   }
 
-  _clearCachedDatabases(): void {
+  clearCachedDatabases(): void {
     this._databaseCompletionItems = [];
   }
 
-  _clearCachedCollections(): void {
+  clearCachedCollections(): void {
     this._collections = {};
   }
 
@@ -1066,6 +1068,18 @@ export default class MongoDBService {
       const serviceProvider = this._serviceProvider;
       this._serviceProvider = undefined;
       await serviceProvider.close(true);
+    }
+  }
+
+  clearCachedCompletions(clear: ClearCompletionsCache): void {
+    if (clear.fields) {
+      this._fields = {};
+    }
+    if (clear.databases) {
+      this._databaseCompletionItems = [];
+    }
+    if (clear.collections) {
+      this._collections = {};
     }
   }
 }

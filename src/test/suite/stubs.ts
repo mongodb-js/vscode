@@ -347,6 +347,10 @@ class LanguageServerControllerStub {
   updateCurrentSessionFields(): Promise<void> {
     return Promise.resolve();
   }
+
+  resetCache(/* clear: { [name: string]: boolean } */): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 class StreamStub extends Duplex {
