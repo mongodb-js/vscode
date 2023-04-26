@@ -33,6 +33,7 @@ import type {
   PlaygroundTextAndSelection,
   MongoClientOptions,
 } from '../types/playgroundType';
+import type { ClearCompletionsCache } from '../types/completionsCache';
 import { Visitor } from './visitor';
 import type { CompletionState } from './visitor';
 
@@ -1070,7 +1071,7 @@ export default class MongoDBService {
     }
   }
 
-  clearCachedCompletions(clear: { [name: string]: boolean }): void {
+  clearCachedCompletions(clear: ClearCompletionsCache): void {
     if (clear.fields) {
       this._fields = {};
     }

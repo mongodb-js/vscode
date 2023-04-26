@@ -1,32 +1,30 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import type { MongoClientOptions } from 'mongodb';
-import {
-  LanguageClient,
+import type {
   LanguageClientOptions,
   ServerOptions,
+} from 'vscode-languageclient/node';
+import {
+  LanguageClient,
   TransportKind,
   CancellationTokenSource,
 } from 'vscode-languageclient/node';
-import { workspace, ExtensionContext } from 'vscode';
+import type { ExtensionContext } from 'vscode';
+import { workspace } from 'vscode';
 
 import { createLogger } from '../logging';
-import {
+import type {
   PlaygroundEvaluateParams,
   ShellEvaluateResult,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
   PlaygroundTextAndSelection,
 } from '../types/playgroundType';
+import type { ClearCompletionsCache } from '../types/completionsCache';
 import { ServerCommands } from './serverCommands';
 
 const log = createLogger('language server controller');
-
-enum CompletionsCache {
-  DATABASES = 'databases',
-  COLLECTIONS = 'collections',
-  FIELDS = 'fields',
-}
 
 /**
  * This controller manages the language server and client.
@@ -191,9 +189,7 @@ export default class LanguageServerController {
     );
   }
 
-  async resetCache(clear: {
-    [name in CompletionsCache]?: boolean;
-  }): Promise<void> {
+  async resetCache(clear: ClearCompletionsCache): Promise<void> {
     await this._client.sendRequest(
       ServerCommands.CLEAR_CACHED_COMPLETIONS,
       clear
