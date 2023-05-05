@@ -44,7 +44,7 @@ Select queries and aggregations within your Playground files and translate them 
 
 ### Document Editing
 
-Editing docunments with MongoDB for VS Code is as natural as editing any file in the code editor. Open a document in an editor tab, edit it and save the changes back to MongoDB.
+Editing documents with MongoDB for VS Code is as natural as editing any file in the code editor. Open a document in an editor tab, edit it, and save the changes back to MongoDB.
 
 ![Document editing](resources/screenshots/edit.gif)
 
