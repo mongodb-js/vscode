@@ -50,11 +50,11 @@ Editing documents with MongoDB for VS Code is as natural as editing any file in 
 
 ### Quick access to the MongoDB Shell
 
-Launch the MongoDB Shell from the command palette to quickly connect to the same cluster you have active in VS Code.
+Launch the [MongoDB Shell](https://www.mongodb.com/products/shell) from the command palette to quickly connect to the same cluster you have active in VS Code.
 
 ![MongoDB Shell](resources/screenshots/shell-launcher.png)
 
-_Note: The shell binary needs to be in your `$PATH`. The shell binary can be either the [MongoDB Shell](https://www.mongodb.com/products/shell) (`mongosh`) or the legacy `mongo` shell. In the extension's settings you can switch between the two. `mongosh` is the default._
+_Note: The `mongosh` binary needs to be in your `$PATH`. You can download the `mongosh` from the [MongoDB Download Center](https://www.mongodb.com/try/download/shell)._
 
 ### Terraform snippet for MongoDB Atlas
 
