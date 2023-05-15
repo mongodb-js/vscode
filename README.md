@@ -4,6 +4,12 @@
 
 MongoDB for VS Code makes it easy to work with your data in MongoDB directly from your VS Code environment. MongoDB for VS Code is the perfect companion for [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register), but you can also use it with your self-managed MongoDB instances.
 
+<p align="center">
+  <a title="Watch the MongoDB for VS Code demo video" href="https://mdb.link/vs-code-demo-video">
+    <img src="https://github.com/mongodb-js/vscode/raw/main/resources/screenshots/get-started.png" width="700" alt="MongoDB for VS Code demo video call to action">
+  </a>
+</p>
+
 ## Features
 
 ### Navigate your MongoDB Data
