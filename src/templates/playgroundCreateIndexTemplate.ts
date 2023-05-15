@@ -20,10 +20,6 @@ db.getCollection('CURRENT_COLLECTION')
        * '$**': 1, // wildcard index on all fields and subfields in a document
        * 'path.to.field.$**': 1 // wildcard index on a specific field and its subpaths
        *
-       * Columnstore index
-       * '$**': 'columnstore', // columnstore index on multiple specific field
-       * 'path.to.field.$**': 'columnstore', // columnstore index on one field and all the subfields
-       *
        * Text index
        * fieldA: 'text',
        * fieldB: 'text'
@@ -46,7 +42,6 @@ db.getCollection('CURRENT_COLLECTION')
        * expireAfterSeconds: TTL,
        * collation: {},
        * wildcardProjection: {},
-       * columnstoreProjection: {} // added in MongoDB 6.3
        */
     }
   );
