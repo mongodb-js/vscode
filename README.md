@@ -70,7 +70,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 
 ## Extension Settings
 
-| Setting	| Description | Default |
+| Setting | Description | Default |
 |--------------------------------------------------------------------------	|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|----------------------------------------------------------------------------------------------------------------------------	|
 | `mdb.shell` | The MongoDB shell to use ( `mongosh`  or the legacy  `mongo` ).              | `mongosh` |
 | `mdb.showMongoDBConnectionExplorer` | Show or hide the MongoDB Connection explorer.    | `true`  |
