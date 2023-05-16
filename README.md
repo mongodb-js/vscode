@@ -85,6 +85,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 | `mdb.useDefaultTemplateForPlayground` | Choose whether to use the default template for playground files or to start with an empty playground editor. | `true` |
 | `mdb.uniqueObjectIdPerCursor` | The default behavior is to generate a single ObjectId and insert it on all cursors. Set to true to generate a unique ObjectId per cursor instead. | `false` |
 | `mdb.sendTelemetry` | Opt-in and opt-out for diagnostic and telemetry collection.  | `true`  |
+
 ## Additional Settings
 
 ### Autocomplete
