@@ -73,7 +73,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 | Setting | Description | Default |
 | - | - | - |
 | `mdb.shell` | The MongoDB shell to use ( `mongosh`  or the legacy  `mongo` ).              | `mongosh` |
-| `mdb.showMongoDBConnectionExplorer` | Show or hide the MongoDB Connection explorer.    | `true`  |
+| `mdb.showMongoDBConnectionExplorer` | Show or hide the MongoDB Connection explorer. | `true` |
 | `mdb.showMongoDBPlaygrounds` | Show or hide the MongoDB Playgrounds explorer. | `true` |
 | `mdb.showMongoDBHelpExplorer` | Show or hide the MongoDB Help panel. | `true` |
 | `mdb.defaultLimit` | The number of documents to fetch when viewing documents from a collection. | `10` |
