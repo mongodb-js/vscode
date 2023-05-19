@@ -969,7 +969,7 @@
     "@iconify/react": "^1.1.4",
     "@leafygreen-ui/logo": "^6.3.0",
     "@leafygreen-ui/toggle": "^7.0.5",
-    "@mongodb-js/mongodb-constants": "^0.4.0",
+    "@mongodb-js/mongodb-constants": "^0.6.0",
     "@mongosh/browser-runtime-electron": "^1.8.0",
     "@mongosh/i18n": "^1.8.0",
     "@mongosh/service-provider-server": "^1.8.0",

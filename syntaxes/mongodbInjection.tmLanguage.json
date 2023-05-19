@@ -182,6 +182,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$median\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$median.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$min\\b",
           "captures": {
             "0": {
@@ -195,6 +204,15 @@
           "captures": {
             "0": {
               "name": "keyword.other.$minN.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$percentile\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$percentile.mongodb"
             }
           }
         },
