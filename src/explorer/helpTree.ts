@@ -109,9 +109,16 @@ export default class HelpTree
         'report'
       );
 
+      const telemetryUserIdentity =
+        this._telemetryService?.getTelemetryUserIdentity();
+
       const atlas = new HelpLinkTreeItem(
         'Create Free Atlas Cluster',
-        LINKS.createAtlasCluster,
+        LINKS.createAtlasCluster(
+          telemetryUserIdentity?.userId ??
+            telemetryUserIdentity?.anonymousId ??
+            ''
+        ),
         'freeClusterCTA',
         'atlas',
         true

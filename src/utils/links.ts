@@ -14,8 +14,10 @@ const LINKS = {
   mongodbDocs: 'https://docs.mongodb.com/manual/',
   feedback: 'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/',
   reportBug: 'https://github.com/mongodb-js/vscode/issues',
-  createAtlasCluster:
-    'https://mongodb.com/products/vs-code/vs-code-atlas-signup',
+  createAtlasCluster: (userId: string) => {
+    const ajsAid = userId ? `?ajs_aid=${encodeURIComponent(userId)}` : '';
+    return `https://mongodb.com/products/vs-code/vs-code-atlas-signup${ajsAid}`;
+  },
   aggregationDocs: (title: string) => {
     return `https://www.mongodb.com/docs/manual/reference/operator/aggregation/${title}/`;
   },
