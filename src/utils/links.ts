@@ -14,6 +14,9 @@ const LINKS = {
   github: 'https://github.com/mongodb-js/vscode',
   reportBug: 'https://github.com/mongodb-js/vscode/issues',
   atlas: 'https://www.mongodb.com/cloud/atlas',
+  /**
+   * @param anonymousId Segment analytics `anonymousId` (not `userId`) {@link https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/querystring/}
+   */
   createAtlasCluster: (anonymousId: string) => {
     const ajsAid = anonymousId
       ? `?ajs_aid=${encodeURIComponent(anonymousId)}`
