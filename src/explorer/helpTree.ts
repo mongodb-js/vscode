@@ -83,14 +83,14 @@ export default class HelpTree
 
       const extensionDocs = new HelpLinkTreeItem(
         'Extension Documentation',
-        LINKS.extensionDocs,
+        LINKS.extensionDocs(),
         'extensionDocumentation',
         'book'
       );
 
       const mdbDocs = new HelpLinkTreeItem(
         'MongoDB Documentation',
-        'https://docs.mongodb.com/manual/',
+        LINKS.mongodbDocs,
         'mongoDBDocumentation',
         'leaf'
       );

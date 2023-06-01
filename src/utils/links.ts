@@ -10,13 +10,20 @@ const addUTMAttrs = (url: string) => {
 
 const LINKS = {
   changelog: 'https://github.com/mongodb-js/vscode/blob/main/CHANGELOG.md',
-  extensionDocs: 'https://docs.mongodb.com/mongodb-vscode/',
-  mongodbDocs: 'https://docs.mongodb.com/manual/',
   feedback: 'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/',
+  github: 'https://github.com/mongodb-js/vscode',
   reportBug: 'https://github.com/mongodb-js/vscode/issues',
-  createAtlasCluster: (userId: string) => {
-    const ajsAid = userId ? `?ajs_aid=${encodeURIComponent(userId)}` : '';
+  atlas: 'https://www.mongodb.com/cloud/atlas',
+  createAtlasCluster: (anonymousId: string) => {
+    const ajsAid = anonymousId
+      ? `?ajs_aid=${encodeURIComponent(anonymousId)}`
+      : '';
     return `https://mongodb.com/products/vs-code/vs-code-atlas-signup${ajsAid}`;
+  },
+  docs: 'https://docs.mongodb.com/',
+  mongodbDocs: 'https://docs.mongodb.com/manual/',
+  extensionDocs(subcategory = '') {
+    return `https://docs.mongodb.com/mongodb-vscode/${subcategory}`;
   },
   aggregationDocs: (title: string) => {
     return `https://www.mongodb.com/docs/manual/reference/operator/aggregation/${title}/`;
@@ -27,6 +34,18 @@ const LINKS = {
   systemVariableDocs: (name: string) => {
     return `https://www.mongodb.com/docs/manual/reference/aggregation-variables/#mongodb-variable-variable.${name}`;
   },
+  kerberosPrincipalDocs:
+    'https://docs.mongodb.com/manual/core/kerberos/#principals',
+  ldapDocs: 'https://docs.mongodb.com/manual/core/security-ldap/',
+  authDatabaseDocs:
+    'https://docs.mongodb.com/manual/core/security-users/#user-authentication-database',
+  sshConnectionDocs:
+    'https://docs.mongodb.com/compass/current/connect/advanced-connection-options/ssh-connection/#ssh-connection',
+  configureSSLDocs(subsection = '') {
+    return `https://docs.mongodb.com/manual/tutorial/configure-ssl/${subsection}`;
+  },
+  pemKeysDocs:
+    'https://docs.mongodb.com/manual/reference/configuration-options/#net.ssl.PEMKeyPassword',
 };
 
 export default Object.fromEntries(

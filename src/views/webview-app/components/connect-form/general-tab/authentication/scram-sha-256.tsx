@@ -8,6 +8,7 @@ import {
   UsernameChangedAction,
 } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
+import LINKS from '../../../../../../utils/links';
 
 type DispatchProps = {
   onAuthSourceChanged: (newAuthSource: string) => void;
@@ -78,7 +79,7 @@ class ScramSha256 extends React.Component<props> {
           changeHandler={this.onAuthSourceChanged}
           value={mongodbDatabaseName || ''}
           // Opens "Authentication Database" documentation.
-          linkTo="https://docs.mongodb.com/manual/core/security-users/#user-authentication-database"
+          linkTo={LINKS.authDatabaseDocs}
         />
       </div>
     );
