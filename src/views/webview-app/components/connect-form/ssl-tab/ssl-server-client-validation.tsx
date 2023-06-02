@@ -12,6 +12,7 @@ import {
 import { AppState } from '../../../store/store';
 
 import styles from '../../../connect.module.less';
+import LINKS from '../../../../../utils/links';
 
 type StateProps = {
   isValid: boolean;
@@ -63,7 +64,7 @@ class SSLServerClientValidation extends React.Component<props> {
           error={!isValid && sslCA === undefined}
           onClick={this.onCertificateAuthorityChanged}
           values={sslCA}
-          link="https://docs.mongodb.com/manual/tutorial/configure-ssl/#certificate-authorities"
+          link={LINKS.configureSSLDocs('#certificate-authorities')}
         />
         <FileInputButton
           label="Client Certificate and Key (.pem)"
@@ -71,7 +72,7 @@ class SSLServerClientValidation extends React.Component<props> {
           error={!isValid && sslCert === undefined}
           onClick={this.onClientCertificateChanged}
           values={sslCert}
-          link="https://docs.mongodb.com/manual/tutorial/configure-ssl/#pem-file"
+          link={LINKS.configureSSLDocs('#pem-file')}
         />
         <FormInput
           label="Client Key Password"
@@ -80,7 +81,7 @@ class SSLServerClientValidation extends React.Component<props> {
           changeHandler={this.onClientKeyPasswordChanged}
           value={sslPass || ''}
           // Opens documentation about net.ssl.PEMKeyPassword.
-          linkTo="https://docs.mongodb.com/manual/reference/configuration-options/#net.ssl.PEMKeyPassword"
+          linkTo={LINKS.pemKeysDocs}
         />
       </div>
     );

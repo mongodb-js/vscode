@@ -12,31 +12,32 @@ import {
 } from '../../store/actions';
 
 import styles from './resources-panel.less';
+import LINKS from '../../../../utils/links';
 
 const ResourceLinks = [
   {
     title: 'Product overview',
     description: 'Get an overview on MongoDB',
     linkId: 'productOverview',
-    url: 'https://docs.mongodb.com/',
+    url: LINKS.docs,
   },
   {
     title: 'Extension documentation',
     description: 'Check the documentation about the extension',
     linkId: 'extensionDocumentation',
-    url: 'https://docs.mongodb.com/mongodb-vscode/',
+    url: LINKS.extensionDocs(),
   },
   {
     title: 'Connect to your database',
     description: 'Connect in just a few steps',
     linkId: 'connectInfo',
-    url: 'https://docs.mongodb.com/mongodb-vscode/connect',
+    url: LINKS.extensionDocs('connect'),
   },
   {
     title: 'Interact with your data',
     description: 'Play with your data, create queries and aggregations',
     linkId: 'interactWithYourData',
-    url: 'https://docs.mongodb.com/mongodb-vscode/playgrounds',
+    url: LINKS.extensionDocs('playgrounds'),
   },
 ];
 
@@ -44,22 +45,22 @@ const FooterFeatures = [
   {
     title: 'Navigate databases',
     linkId: 'navigateDatabaseInfo',
-    url: 'https://docs.mongodb.com/mongodb-vscode/databases-collections',
+    url: LINKS.extensionDocs('databases-collections'),
   },
   {
     title: 'Perform CRUD operations',
     linkId: 'crudInfo',
-    url: 'https://docs.mongodb.com/mongodb-vscode/crud-ops',
+    url: LINKS.extensionDocs('crud-ops'),
   },
   {
     title: 'Run aggregation pipelines',
     linkId: 'aggPipelineInfo',
-    url: 'https://docs.mongodb.com/mongodb-vscode/run-agg-pipelines',
+    url: LINKS.extensionDocs('run-agg-pipelines'),
   },
   {
     title: 'Playgrounds',
     linkId: 'playgroundsInfo',
-    url: 'https://docs.mongodb.com/mongodb-vscode/playgrounds',
+    url: LINKS.extensionDocs('playgrounds'),
   },
 ];
 
@@ -67,17 +68,17 @@ const FooterLinks = [
   {
     title: 'Github',
     linkId: 'github',
-    url: 'https://github.com/mongodb-js/vscode',
+    url: LINKS.github,
   },
   {
     title: 'Suggest a feature',
     linkId: 'feedback',
-    url: 'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/',
+    url: LINKS.feedback,
   },
   {
     title: 'Report a bug',
     linkId: 'reportABug',
-    url: 'https://github.com/mongodb-js/vscode/issues',
+    url: LINKS.reportBug,
   },
 ];
 

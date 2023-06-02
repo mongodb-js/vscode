@@ -15,6 +15,7 @@ import InfoSprinkle from '../info-sprinkle/info-sprinkle';
 import { CONNECTION_STATUS } from '../../extension-app-message-constants';
 
 import styles from './connection-status.less';
+import LINKS from '../../../../utils/links';
 
 const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
 
@@ -92,7 +93,7 @@ export class ConnectionStatus extends React.Component<
             <div>All set. Ready to start?</div>
             <div>
               Create a playground.
-              <InfoSprinkle linkTo="https://docs.mongodb.com/mongodb-vscode/playgrounds" />
+              <InfoSprinkle linkTo={LINKS.extensionDocs('playgrounds')} />
             </div>
           </div>
           <button

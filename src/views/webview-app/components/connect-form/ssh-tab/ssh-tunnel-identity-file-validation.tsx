@@ -13,6 +13,7 @@ import { AppState } from '../../../store/store';
 import FormInput from '../../form/form-input';
 import FileInputButton from '../../form/file-input-button';
 import FormGroup from '../../form/form-group';
+import LINKS from '../../../../../utils/links';
 
 type DispatchProps = {
   onChangeSSHTunnelIdentityFile: () => void;
@@ -97,7 +98,7 @@ class SSHTunnelIdentityFileValidation extends React.Component<props> {
           error={!isValid && sshTunnelHostname === undefined}
           changeHandler={this.onSSHTunnelHostnameChanged}
           value={sshTunnelHostname || ''}
-          linkTo="https://docs.mongodb.com/compass/current/connect"
+          linkTo={LINKS.sshConnectionDocs}
         />
         <FormInput
           label="SSH Tunnel Port"

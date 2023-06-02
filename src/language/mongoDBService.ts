@@ -36,6 +36,7 @@ import type {
 import type { ClearCompletionsCache } from '../types/completionsCache';
 import { Visitor } from './visitor';
 import type { CompletionState } from './visitor';
+import LINKS from '../utils/links';
 
 import DIAGNOSTIC_CODES from './diagnosticCodes';
 
@@ -445,7 +446,7 @@ export default class MongoDBService {
     description?: string;
   }) {
     const title = operator.replace(/[$]/g, '');
-    const link = `https://www.mongodb.com/docs/manual/reference/operator/aggregation/${title}/`;
+    const link = LINKS.aggregationDocs(title);
     return {
       kind: MarkupKind.Markdown,
       value: description
@@ -461,7 +462,7 @@ export default class MongoDBService {
     bsonType: string;
     description?: string;
   }) {
-    const link = `https://www.mongodb.com/docs/mongodb-shell/reference/data-types/#${bsonType}`;
+    const link = LINKS.bsonDocs(bsonType);
     return {
       kind: MarkupKind.Markdown,
       value: description
@@ -478,7 +479,7 @@ export default class MongoDBService {
     description?: string;
   }) {
     const title = variable.replace(/[$]/g, '');
-    const link = `https://www.mongodb.com/docs/manual/reference/aggregation-variables/#mongodb-variable-variable.${title}`;
+    const link = LINKS.systemVariableDocs(title);
     return {
       kind: MarkupKind.Markdown,
       value: description

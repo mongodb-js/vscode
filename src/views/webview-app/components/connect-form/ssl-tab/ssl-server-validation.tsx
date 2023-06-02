@@ -7,6 +7,7 @@ import { ActionTypes, OnChangeSSLCAAction } from '../../../store/actions';
 import { AppState } from '../../../store/store';
 
 import styles from '../../../connect.module.less';
+import LINKS from '../../../../../utils/links';
 
 type StateProps = {
   isValid: boolean;
@@ -39,7 +40,7 @@ class SSLServerValidation extends React.Component<props> {
           error={!isValid && sslCA === undefined}
           id="sslCA"
           label="Certificate Authority"
-          link="https://docs.mongodb.com/manual/tutorial/configure-ssl/#certificate-authorities"
+          link={LINKS.configureSSLDocs('#certificate-authorities')}
           multi
           onClick={this.onClickChangeSSLCA}
           values={this.props.sslCA}

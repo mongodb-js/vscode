@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import path from 'path';
-
 import { getImagesPath } from '../extensionConstants';
 import { TelemetryService } from '../telemetry';
 import { openLink } from '../utils/linkHelper';
+import LINKS from '../utils/links';
 
 const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
@@ -76,47 +76,49 @@ export default class HelpTree
     if (!element) {
       const whatsNew = new HelpLinkTreeItem(
         "What's New",
-        'https://github.com/mongodb-js/vscode/blob/main/CHANGELOG.md',
+        LINKS.changelog,
         'whatsNew',
         'megaphone'
       );
 
       const extensionDocs = new HelpLinkTreeItem(
         'Extension Documentation',
-        'https://docs.mongodb.com/mongodb-vscode/',
+        LINKS.extensionDocs(),
         'extensionDocumentation',
         'book'
       );
 
       const mdbDocs = new HelpLinkTreeItem(
         'MongoDB Documentation',
-        'https://docs.mongodb.com/manual/',
+        LINKS.mongodbDocs,
         'mongoDBDocumentation',
         'leaf'
       );
 
       const feedback = new HelpLinkTreeItem(
         'Suggest a Feature',
-        'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/',
+        LINKS.feedback,
         'feedback',
         'lightbulb'
       );
 
       const reportBug = new HelpLinkTreeItem(
         'Report a Bug',
-        'https://github.com/mongodb-js/vscode/issues',
+        LINKS.reportBug,
         'reportABug',
         'report'
       );
 
       const telemetryUserIdentity =
         this._telemetryService?.getTelemetryUserIdentity();
-      const ajsAid = telemetryUserIdentity
-        ? `&ajs_aid=${telemetryUserIdentity[0]}`
-        : '';
+
       const atlas = new HelpLinkTreeItem(
         'Create Free Atlas Cluster',
-        `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product${ajsAid}`,
+        LINKS.createAtlasCluster(
+          telemetryUserIdentity?.userId ??
+            telemetryUserIdentity?.anonymousId ??
+            ''
+        ),
         'freeClusterCTA',
         'atlas',
         true

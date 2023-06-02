@@ -10,6 +10,7 @@ import {
 import FormInput from '../../../form/form-input';
 
 import styles from '../../../../connect.module.less';
+import LINKS from '../../../../../../utils/links';
 
 type DispatchProps = {
   kerberosParametersChanged: (newParams: KerberosParameters) => void;
@@ -126,7 +127,7 @@ class Kerberos extends React.Component<props> {
           changeHandler={this.onPrincipalChanged}
           value={kerberosPrincipal || ''}
           // Open the help page for the principal.
-          linkTo="https://docs.mongodb.com/manual/core/kerberos/#principals"
+          linkTo={LINKS.kerberosPrincipalDocs}
         />
         <FormInput
           label="Password"

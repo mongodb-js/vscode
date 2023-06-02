@@ -10,6 +10,7 @@ import { VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID } from '../../extension-app-messa
 import AtlasLogo from './atlas-logo';
 
 import styles from './atlas-cta.less';
+import LINKS from '../../../../utils/links';
 
 type DispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;
@@ -19,7 +20,7 @@ type DispatchProps = {
 class AtlasCTA extends React.Component<DispatchProps> {
   onAtlasCtaClicked = (): void => {
     const telemetryUserId = window[VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID];
-    const atlasLink = `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${telemetryUserId}`;
+    const atlasLink = LINKS.createAtlasCluster(telemetryUserId);
     this.props.openTrustedLink(atlasLink);
 
     this.onLinkClicked('overviewPage', 'freeClusterCTA');
@@ -43,7 +44,7 @@ class AtlasCTA extends React.Component<DispatchProps> {
               className={styles['atlas-cta-text-link']}
               target="_blank"
               rel="noopener"
-              href="https://www.mongodb.com/cloud/atlas"
+              href={LINKS.atlas}
               onClick={this.onLinkClicked.bind(
                 this,
                 'overviewPage',
