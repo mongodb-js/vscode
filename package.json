@@ -985,7 +985,7 @@
     "mongodb-build-info": "^1.5.0",
     "mongodb-cloud-info": "^1.1.3",
     "mongodb-connection-string-url": "^2.6.0",
-    "mongodb-data-service": "^22.5.1",
+    "mongodb-data-service": "^22.7.0",
     "mongodb-query-parser": "^2.4.11",
     "mongodb-schema": "^10.0.2",
     "numeral": "^2.0.6",

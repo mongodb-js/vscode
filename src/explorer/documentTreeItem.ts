@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
 import type { DataService } from 'mongodb-data-service';
-import { promisify } from 'util';
 import { toJSString } from 'mongodb-query-parser';
 
 import formatError from '../utils/formatError';
@@ -104,10 +103,7 @@ export default class DocumentTreeItem
     }
 
     try {
-      const deleteOne = promisify(
-        this.dataService.deleteOne.bind(this.dataService)
-      );
-      const deleteResult = await deleteOne(
+      const deleteResult = await this.dataService.deleteOne(
         this.namespace,
         { _id: this.documentId },
         {}

@@ -27,6 +27,7 @@ import {
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
 import TelemetryService from './telemetry/telemetryService';
+import LINKS from './utils/links';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
 
@@ -307,7 +308,7 @@ export default class ConnectionController {
     // TODO: Allow overriding appname + use driverInfo instead
     // (https://jira.mongodb.org/browse/MONGOSH-1015)
     connectionStringData.searchParams.set(
-      'appname',
+      'appName',
       `${packageJSON.name} ${packageJSON.version}`
     );
 
@@ -416,7 +417,11 @@ export default class ConnectionController {
   }
 
   async _connectWithDataService(connectionOptions: ConnectionOptions) {
-    return connect(connectionOptions);
+    return connect({
+      connectionOptions,
+      productName: packageJSON.name,
+      productDocsLink: LINKS.extensionDocs(),
+    });
   }
 
   async _connect(
@@ -831,7 +836,12 @@ export default class ConnectionController {
   }
 
   getMongoClientConnectionOptions():
-    | { url: string; options: MongoClientOptions }
+    | {
+        url: string;
+        options: NonNullable<
+          ReturnType<DataService['getMongoClientConnectionOptions']>
+        >['options'];
+      }
     | undefined {
     return this._activeDataService?.getMongoClientConnectionOptions();
   }

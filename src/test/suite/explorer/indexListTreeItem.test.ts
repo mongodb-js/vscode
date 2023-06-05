@@ -3,7 +3,7 @@ import { beforeEach, afterEach } from 'mocha';
 import assert from 'assert';
 import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
-import { DataService } from 'mongodb-data-service';
+import type { DataService, IndexDefinition } from 'mongodb-data-service';
 
 import formatError from '../../../utils/formatError';
 import IndexListTreeItem from '../../../explorer/indexListTreeItem';
@@ -29,10 +29,10 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb): void => {
-          cb(null, []);
+        indexes: (): ReturnType<DataService['indexes']> => {
+          return Promise.resolve([]);
         },
-      } as DataService,
+      } as unknown as DataService,
       false,
       false,
       []
@@ -76,10 +76,10 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb): void => {
+        indexes: (ns): ReturnType<DataService['indexes']> => {
           namespaceRequested = ns;
 
-          cb(null, fakeFetchIndexes);
+          return Promise.resolve(fakeFetchIndexes as any[]);
         },
       } as DataService,
       false,
@@ -118,10 +118,10 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb): void => {
-          cb(null, []);
+        indexes: (): ReturnType<DataService['indexes']> => {
+          return Promise.resolve([] as IndexDefinition[]);
         },
-      } as DataService,
+      } as unknown as DataService,
       false,
       false,
       []
@@ -143,10 +143,10 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb): void => {
-          cb(new Error(expectedMessage), []);
+        indexes: (): ReturnType<DataService['indexes']> => {
+          return Promise.reject(new Error(expectedMessage));
         },
-      } as DataService,
+      } as unknown as DataService,
       false,
       false,
       []
@@ -191,10 +191,10 @@ suite('IndexListTreeItem Test Suite', () => {
       'pineapple',
       'tasty_fruits',
       {
-        indexes: (ns, opts, cb): void => {
-          cb(null, fakeFetchIndexes);
+        indexes: (): ReturnType<DataService['indexes']> => {
+          return Promise.resolve(fakeFetchIndexes as any[]);
         },
-      } as DataService,
+      } as unknown as DataService,
       false,
       false,
       []
@@ -216,10 +216,10 @@ suite('IndexListTreeItem Test Suite', () => {
       testIndexListTreeItem.collectionName,
       testIndexListTreeItem.databaseName,
       {
-        indexes: (ns, opts, cb): void => {
-          cb(null, []);
+        indexes: (): ReturnType<DataService['indexes']> => {
+          return Promise.resolve([]);
         },
-      } as DataService,
+      } as unknown as DataService,
       testIndexListTreeItem.isExpanded,
       testIndexListTreeItem.cacheIsUpToDate,
       testIndexListTreeItem.getChildrenCache()

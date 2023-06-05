@@ -114,7 +114,9 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     let dataServ;
 
     beforeEach(async () => {
-      dataServ = await connect({ connectionString: TEST_DATABASE_URI });
+      dataServ = await connect({
+        connectionOptions: { connectionString: TEST_DATABASE_URI },
+      });
     });
 
     afterEach(async () => {

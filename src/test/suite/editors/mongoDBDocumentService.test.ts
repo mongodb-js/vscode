@@ -62,16 +62,10 @@ suite('MongoDB Document Service Test Suite', () => {
     );
 
     const fakeGetActiveDataService = sandbox.fake.returns({
-      findOneAndReplace: (
-        namespace: string,
-        filter: object,
-        replacement: object,
-        options: object,
-        callback: (error: Error | null, result: object) => void
-      ) => {
+      findOneAndReplace: () => {
         document.price = 5000;
 
-        return callback(null, document);
+        return Promise.resolve(document);
       },
     });
     sandbox.replace(
