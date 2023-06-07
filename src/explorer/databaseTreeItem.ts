@@ -1,4 +1,3 @@
-import util from 'util';
 import * as vscode from 'vscode';
 import path from 'path';
 
@@ -210,10 +209,9 @@ export default class DatabaseTreeItem
     }
 
     try {
-      const dropDatabase = util.promisify(
-        this._dataService.dropDatabase.bind(this._dataService)
+      const successfullyDroppedDatabase = await this._dataService.dropDatabase(
+        databaseName
       );
-      const successfullyDroppedDatabase = await dropDatabase(databaseName);
 
       this.isDropped = successfullyDroppedDatabase;
 

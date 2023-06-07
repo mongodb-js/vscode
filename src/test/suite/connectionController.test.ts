@@ -765,7 +765,9 @@ suite('Connection Controller Test Suite', function () {
       async (connectionOptions) => {
         await sleep(50);
 
-        return connect(connectionOptions);
+        return connect({
+          connectionOptions,
+        });
       }
     );
 
@@ -1112,12 +1114,23 @@ suite('Connection Controller Test Suite', function () {
     const mongoClientConnectionOptions =
       testConnectionController.getMongoClientConnectionOptions();
 
+    assert(mongoClientConnectionOptions !== undefined);
+
+    delete mongoClientConnectionOptions.options.parentHandle;
+
     assert.deepStrictEqual(mongoClientConnectionOptions, {
       url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
         useSystemCA: undefined,
+        authMechanismProperties: {},
+        oidc: {
+          allowedFlows: ['auth-code'],
+        },
+        productDocsLink:
+          'https://docs.mongodb.com/mongodb-vscode/?utm_source=vscode&utm_medium=product',
+        productName: 'mongodb-vscode',
       },
     });
   });

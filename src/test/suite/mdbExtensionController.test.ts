@@ -5,12 +5,7 @@ import assert from 'assert';
 import { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
-import type {
-  Document,
-  Filter,
-  FindOneAndReplaceOptions,
-  DeleteOptions,
-} from 'mongodb';
+import type { Document, Filter } from 'mongodb';
 
 import {
   CollectionTreeItem,
@@ -756,9 +751,9 @@ suite('MDBExtensionController Test Suite', function () {
         { name: 'testColName', type: CollectionTypes.collection },
         'testDbName',
         {
-          dropCollection: (namespace, callback): void => {
+          dropCollection: (namespace): Promise<boolean> => {
             calledNamespace = namespace;
-            callback(null, true);
+            return Promise.resolve(true);
           },
         },
         false,
@@ -866,9 +861,9 @@ suite('MDBExtensionController Test Suite', function () {
       const testDatabaseTreeItem = new DatabaseTreeItem(
         'iMissTangerineAltoids',
         {
-          dropDatabase: (dbName, callback): void => {
+          dropDatabase: (dbName): Promise<boolean> => {
             calledDatabaseName = dbName;
-            callback(null, true);
+            return Promise.resolve(true);
           },
         },
         false,
@@ -1074,16 +1069,10 @@ suite('MDBExtensionController Test Suite', function () {
         find: () => {
           return Promise.resolve([mockDocument]);
         },
-        findOneAndReplace: (
-          namespace: string,
-          filter: Filter<Document>,
-          replacement: Document,
-          options: FindOneAndReplaceOptions,
-          callback: (error: Error | null, result: object) => void
-        ) => {
+        findOneAndReplace: () => {
           mockDocument.name = 'something sweet';
 
-          return callback(null, mockDocument);
+          return Promise.resolve(mockDocument);
         },
       });
       sandbox.replace(
@@ -1492,21 +1481,14 @@ suite('MDBExtensionController Test Suite', function () {
       };
       let calledDelete = false;
       const dataServiceStub = {
-        deleteOne: (
-          namespace: string,
-          filter: Filter<Document>,
-          options: DeleteOptions,
-          callback: (
-            error: Error | undefined,
-            result: { deletedCount: number }
-          ) => void
-        ) => {
+        deleteOne: (): ReturnType<DataService['deleteOne']> => {
           calledDelete = true;
-          callback(undefined, {
+          return Promise.resolve({
+            acknowledged: true,
             deletedCount: 1,
           });
         },
-      } as Pick<DataService, 'deleteOne'> as unknown as DataService;
+      } as unknown as DataService;
       const documentTreeItem = new DocumentTreeItem(
         mockDocument,
         'waffle.house',
@@ -1536,20 +1518,16 @@ suite('MDBExtensionController Test Suite', function () {
       const dataServiceStub = {
         deleteOne: (
           namespace: string,
-          filter: Filter<Document>,
-          options: DeleteOptions,
-          callback: (
-            error: Error | undefined,
-            result: { deletedCount: number }
-          ) => void
-        ) => {
+          filter: Filter<Document>
+        ): ReturnType<DataService['deleteOne']> => {
           _idUsed = filter;
           namespaceUsed = namespace;
-          callback(undefined, {
+          return Promise.resolve({
+            acknowledged: true,
             deletedCount: 1,
           });
         },
-      } as Pick<DataService, 'deleteOne'> as unknown as DataService;
+      } as unknown as DataService;
       const documentTreeItem = new DocumentTreeItem(
         mockDocument,
         'waffle.house',

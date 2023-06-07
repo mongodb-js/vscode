@@ -1,5 +1,4 @@
 import { connect, DataService } from 'mongodb-data-service';
-import util from 'util';
 import type { Document } from 'bson';
 
 export const TEST_USER_USERNAME = 'testUser';
@@ -15,7 +14,9 @@ let testDataService;
 export const createTestDataService = async (
   connectionString: string
 ): Promise<DataService> => {
-  testDataService = await connect({ connectionString });
+  testDataService = await connect({
+    connectionOptions: { connectionString },
+  });
   return testDataService;
 };
 
@@ -23,17 +24,15 @@ export const seedTestDB = async (
   collectionName: string,
   documentsArray: Document[]
 ): Promise<void> => {
-  const insertMany = util.promisify(
-    testDataService.insertMany.bind(testDataService)
+  await testDataService.insertMany(
+    `${TEST_DB_NAME}.${collectionName}`,
+    documentsArray,
+    {}
   );
-  await insertMany(`${TEST_DB_NAME}.${collectionName}`, documentsArray, {});
 };
 
 export const cleanupTestDB = async (): Promise<void> => {
-  const dropDatabase = util.promisify(
-    testDataService.dropDatabase.bind(testDataService)
-  );
-  await dropDatabase(TEST_DB_NAME);
+  await testDataService.dropDatabase(TEST_DB_NAME);
 };
 
 export const disconnectFromTestDB = async (): Promise<void> => {

@@ -14,3 +14,4 @@ ignores:
  - "vscode-languageserver-textdocument"
  - "vscode"
  - "webpack-cli"
+ - "@mongodb-js/oidc-plugin"

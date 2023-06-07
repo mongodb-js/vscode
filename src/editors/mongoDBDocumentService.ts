@@ -1,4 +1,3 @@
-import util from 'util';
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
@@ -75,9 +74,9 @@ export default class MongoDBDocumentService {
       );
     }
 
-    const dataservice = this._connectionController.getActiveDataService();
+    const dataService = this._connectionController.getActiveDataService();
 
-    if (dataservice === null) {
+    if (dataService === null) {
       return this._saveDocumentFailed(
         `no longer connected to '${connectionName}'`
       );
@@ -86,12 +85,14 @@ export default class MongoDBDocumentService {
     this._statusView.showMessage('Saving document...');
 
     try {
-      const findOneAndReplace = util.promisify(
-        dataservice.findOneAndReplace.bind(dataservice)
+      await dataService.findOneAndReplace(
+        namespace,
+        { _id: documentId },
+        newDocument,
+        {
+          returnDocument: 'after',
+        }
       );
-      await findOneAndReplace(namespace, { _id: documentId }, newDocument, {
-        returnDocument: 'after',
-      });
 
       this._statusView.hideMessage();
       this._telemetryService.trackDocumentUpdated(source, true);
@@ -118,9 +119,9 @@ export default class MongoDBDocumentService {
       );
     }
 
-    const dataservice = this._connectionController.getActiveDataService();
+    const dataService = this._connectionController.getActiveDataService();
 
-    if (dataservice === null) {
+    if (dataService === null) {
       return this._fetchDocumentFailed(
         `no longer connected to ${connectionName}`
       );
@@ -129,7 +130,7 @@ export default class MongoDBDocumentService {
     this._statusView.showMessage('Fetching document...');
 
     try {
-      const documents = await dataservice.find(
+      const documents = await dataService.find(
         namespace,
         { _id: documentId },
         { limit: 1 }

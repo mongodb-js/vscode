@@ -14,6 +14,16 @@ const baseConfig = {
   // }
 };
 
+const mongodbNodeDriverExternals = {
+  snappy: 'snappy',
+  'snappy/package.json': 'snappy/package.json',
+  'bson-ext': 'bson-ext',
+  'win-export-certificate-and-key': 'win-export-certificate-and-key',
+  'os-dns-native': 'os-dns-native',
+  'mongodb-client-encryption': 'mongodb-client-encryption',
+  'compass-preferences-model': 'compass-preferences-model',
+};
+
 const extensionConfig = {
   ...baseConfig,
   experiments: {
@@ -47,13 +57,7 @@ const extensionConfig = {
     keytar: 'keytar',
     electron: 'electron',
     '@electron/remote': '@electron/remote',
-    snappy: 'snappy',
-    'snappy/package.json': 'snappy/package.json',
-    'bson-ext': 'bson-ext',
-    'win-export-certificate-and-key': 'win-export-certificate-and-key',
-    'os-dns-native': 'os-dns-native',
-    'mongodb-client-encryption': 'mongodb-client-encryption',
-    'compass-preferences-model': 'compass-preferences-model',
+    ...mongodbNodeDriverExternals,
   },
   module: {
     rules: [
@@ -106,13 +110,7 @@ const languageServerConfig = {
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
     vscode: 'vscode',
-    snappy: 'snappy',
-    'snappy/package.json': 'snappy/package.json',
-    'bson-ext': 'bson-ext',
-    'win-export-certificate-and-key': 'win-export-certificate-and-key',
-    'os-dns-native': 'os-dns-native',
-    'mongodb-client-encryption': 'mongodb-client-encryption',
-    'compass-preferences-model': 'compass-preferences-model',
+    ...mongodbNodeDriverExternals,
   },
   module: {
     rules: [
@@ -162,13 +160,6 @@ const languageServerWorkerConfig = {
   externals: {
     // The vscode-module is created on-the-fly and must be excluded.
     vscode: 'vscode',
-    snappy: 'snappy',
-    'snappy/package.json': 'snappy/package.json',
-    'bson-ext': 'bson-ext',
-    'win-export-certificate-and-key': 'win-export-certificate-and-key',
-    'os-dns-native': 'os-dns-native',
-    'mongodb-client-encryption': 'mongodb-client-encryption',
-    'compass-preferences-model': 'compass-preferences-model',
   },
   module: {
     rules: [
@@ -215,9 +206,7 @@ const webviewConfig = {
     },
   },
   externals: {
-    'os-dns-native': 'os-dns-native',
-    'mongodb-client-encryption': 'mongodb-client-encryption',
-    'compass-preferences-model': 'compass-preferences-model',
+    ...mongodbNodeDriverExternals,
   },
   module: {
     rules: [

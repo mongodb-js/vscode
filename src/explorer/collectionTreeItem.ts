@@ -1,4 +1,3 @@
-import util from 'util';
 import * as vscode from 'vscode';
 import path from 'path';
 import type { DataService } from 'mongodb-data-service';
@@ -367,12 +366,10 @@ export default class CollectionTreeItem
     }
 
     try {
-      const dropCollection = util.promisify(
-        this._dataService.dropCollection.bind(this._dataService)
-      );
-      const successfullyDroppedCollection = await dropCollection(
-        `${this.databaseName}.${collectionName}`
-      );
+      const successfullyDroppedCollection =
+        await this._dataService.dropCollection(
+          `${this.databaseName}.${collectionName}`
+        );
 
       this.isDropped = successfullyDroppedCollection;
 
