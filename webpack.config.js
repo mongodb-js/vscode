@@ -22,7 +22,6 @@ const mongodbNodeDriverExternals = {
   'os-dns-native': 'os-dns-native',
   'mongodb-client-encryption': 'mongodb-client-encryption',
   'compass-preferences-model': 'compass-preferences-model',
-  // '@mongodb-js/oidc-plugin': '@mongodb-js/oidc-plugin',
 };
 
 const extensionConfig = {
