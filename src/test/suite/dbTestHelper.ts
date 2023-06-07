@@ -14,7 +14,9 @@ let testDataService;
 export const createTestDataService = async (
   connectionString: string
 ): Promise<DataService> => {
-  testDataService = await connect({ connectionString });
+  testDataService = await connect({
+    connectionOptions: { connectionString },
+  });
   return testDataService;
 };
 

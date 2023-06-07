@@ -1124,6 +1124,13 @@ suite('Connection Controller Test Suite', function () {
         autoEncryption: undefined,
         monitorCommands: true,
         useSystemCA: undefined,
+        authMechanismProperties: {},
+        oidc: {
+          allowedFlows: ['auth-code'],
+        },
+        productDocsLink:
+          'https://docs.mongodb.com/mongodb-vscode/?utm_source=vscode&utm_medium=product',
+        productName: 'mongodb-vscode',
       },
     });
   });

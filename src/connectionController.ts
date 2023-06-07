@@ -308,7 +308,7 @@ export default class ConnectionController {
     // TODO: Allow overriding appname + use driverInfo instead
     // (https://jira.mongodb.org/browse/MONGOSH-1015)
     connectionStringData.searchParams.set(
-      'appName',
+      'appname',
       `${packageJSON.name} ${packageJSON.version}`
     );
 
