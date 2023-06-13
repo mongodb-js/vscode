@@ -63,7 +63,9 @@ jobs:
         shell: bash
 
       - name: Run Tests
-        run: npm run test
+        run: |
+          npm run ls duplexer
+          npm run test
         shell: bash
 
       - name: Prepare build for release
