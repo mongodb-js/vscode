@@ -35,13 +35,12 @@ jobs:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Setup Node.js Environment
-        uses: actions/setup-node@v2.1.2
-        # uses: actions/setup-node@v3
+        uses: actions/setup-node@3
         with:
           # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0
           node-version: 16.x
@@ -57,9 +56,6 @@ jobs:
         shell: bash
         run: |
           npm ci --omit=optional
-          npm --version
-          node --version
-          npm ls duplexer
 
       - name: Run Checks
         run: npm run check
@@ -69,7 +65,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          npm i duplexer
           npm run test
         shell: bash
 
