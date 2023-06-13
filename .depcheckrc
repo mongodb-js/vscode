@@ -15,3 +15,10 @@ ignores:
  - "vscode"
  - "webpack-cli"
  - "@mongodb-js/oidc-plugin"
+ - css-loader
+ - less
+ - less-loader
+ - node-loader
+ - postcss-loader
+ - style-loader
+ - ts-loader

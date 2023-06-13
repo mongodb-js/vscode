@@ -17,3 +17,4 @@ webpack.test.config.js
 .eslintignore
 playgrounds/**
 resources
+.sbom/**
