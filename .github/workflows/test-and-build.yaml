@@ -43,7 +43,7 @@ jobs:
         uses: actions/setup-node@v2.1.2
         with:
           # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0
-          node-version: ^16.16.0
+          node-version: 16.x
 
       - name: Run node-gyp bug workaround script
         run: |
@@ -95,6 +95,42 @@ jobs:
         with:
           name: VSIX built on ${{ runner.os }}
           path: "*.vsix"
+
+      - name: Run Snyk Test
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          npm run snyk-test
+
+      - name: Create Jira Tickets
+        if: >
+          runner.os == 'Linux' &&
+          (
+            github.event_name == 'push' && github.ref == 'refs/heads/main' ||
+            github.event_name == 'workflow_dispatch' ||
+            github.event_name == 'schedule'
+          )
+        shell: bash
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_BASE_URL: "https://jira.mongodb.org"
+          JIRA_PROJECT: "VSCODE"
+          JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
+        run: |
+          npm run create-jira-tickets > /dev/null
+
+      - name: Generate Vulnerability Report (Fail on >= High)
+        if: runner.os == 'Linux'
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          # The standard output is suppressed since Github Actions logs are
+          # available for everyone with read access to the repo, which is everyone that is
+          # logged in for public repos.
+          # This command is only here to fail on failures for `main` and tags.
+          npm run generate-vulnerability-report > /dev/null
 
       - name: Create Draft Release
         run: |
