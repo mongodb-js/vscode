@@ -65,6 +65,7 @@ jobs:
       - name: Run Tests
         run: |
           npm ls duplexer
+          ls node_modules/duplexer
           npm run test
         shell: bash
 
