@@ -56,7 +56,7 @@ jobs:
       - name: Install Dependencies
         shell: bash
         run: |
-          npm install # --omit=optional
+          npm ci --omit=optional
           npm --version
           node --version
           npm ls duplexer
