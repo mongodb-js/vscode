@@ -41,6 +41,7 @@ jobs:
 
       - name: Setup Node.js Environment
         uses: actions/setup-node@v2.1.2
+        # uses: actions/setup-node@v3
         with:
           # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0
           node-version: 16.x
@@ -54,7 +55,11 @@ jobs:
 
       - name: Install Dependencies
         shell: bash
-        run: npm ci --omit=optional
+        run: |
+          npm ci --omit=optional
+          npm --version
+          node --version
+          npm ls duplexer
 
       - name: Run Checks
         run: npm run check
@@ -64,8 +69,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          # pwd
-          # ls node_modules
           npm i duplexer
           npm run test
         shell: bash
