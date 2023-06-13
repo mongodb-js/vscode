@@ -64,9 +64,9 @@ jobs:
 
       - name: Run Tests
         run: |
-          pwd
-          ls node_modules
-          npm ls duplexer
+          # pwd
+          # ls node_modules
+          npm i duplexer
           npm run test
         shell: bash
 
