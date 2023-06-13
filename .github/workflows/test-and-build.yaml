@@ -104,7 +104,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          npm run snyk-test
+          npm run snyk-test > /dev/null 2>&1
 
       - name: Create Jira Tickets
         if: >
