@@ -51,6 +51,7 @@ module.exports = (env, argv) => {
 
       // Electron:
       '@electron/remote': '@electron/remote',
+      electron: 'commonjs2 electron',
 
       // MongoDB node driver externals:
       snappy: 'snappy',
