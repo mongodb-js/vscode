@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js Environment
-        uses: actions/setup-node@v2.1.2
+        uses: actions/setup-node@v3
         with:
-          node-version: ^14.17.5
+          node-version: 16.x
 
-      - name: Install npm@7
-        run: npm install -g npm@8.3.1
+      - name: Install npm
+        run: npm install -g npm@8.19.4
 
       - name: Run node-gyp bug workaround script
         run: |
