@@ -17,9 +17,7 @@ async function main(): Promise<any> {
 
     // Download VS Code, unzip it and run the integration test
     await runTests({
-      // Download latest stable release.
-      // Might be different from the vscode engine specified in package.json
-      version: 'stable',
+      version: 'insiders', // Download latest insiders.
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [testWorkspace, '--disable-extensions'],
