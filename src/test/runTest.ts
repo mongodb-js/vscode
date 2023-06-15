@@ -17,6 +17,7 @@ async function main(): Promise<any> {
 
     // Download VS Code, unzip it and run the integration test
     await runTests({
+      version: 'stable',
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [testWorkspace, '--disable-extensions'],
