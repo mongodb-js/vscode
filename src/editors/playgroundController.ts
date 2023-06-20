@@ -191,9 +191,11 @@ export default class PlaygroundController {
 
     vscode.workspace.onDidOpenTextDocument(async (document) => {
       if (isPlayground(document.uri)) {
-        this._telemetryService.trackPlaygroundLoaded(
+        // TODO: re-enable with fewer 'Playground Loaded' events
+        // https://jira.mongodb.org/browse/VSCODE-432
+        /* this._telemetryService.trackPlaygroundLoaded(
           getPlaygroundExtensionForTelemetry(document.uri)
-        );
+        ); */
         await vscode.languages.setTextDocumentLanguage(document, 'javascript');
       }
     });

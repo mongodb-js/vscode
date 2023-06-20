@@ -247,7 +247,8 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('track mongodb playground loaded event', async () => {
+  // TODO: re-enable two tests after https://jira.mongodb.org/browse/VSCODE-432
+  test.skip('track mongodb playground loaded event', async () => {
     const docPath = path.resolve(
       __dirname,
       '../../../../src/test/fixture/testSaving.mongodb'
@@ -266,7 +267,7 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('track mongodbjs playground loaded event', async () => {
+  test.skip('track mongodbjs playground loaded event', async () => {
     const docPath = path.resolve(
       __dirname,
       '../../../../src/test/fixture/testSaving.mongodb.js'
