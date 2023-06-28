@@ -1,5 +1,5 @@
 {
-  "preview": true,
+  "preview": false,
   "name": "mongodb-vscode",
   "displayName": "MongoDB for VS Code",
   "description": "Connect to MongoDB and Atlas directly from your VS Code environment, navigate your databases and collections, inspect your schema and use playgrounds to prototype queries and aggregations.",
@@ -24,6 +24,7 @@
     "MongoDB",
     "MongoDB Atlas",
     "MQL",
+    "Database",
     "Databases"
   ],
   "icon": "images/mongodb.png",
@@ -37,11 +38,10 @@
     "clean": "rimraf ./out/* ./dist/* ",
     "lint": "eslint . && prettier --check .",
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
-    "update-snippets": "ts-node ./scripts/update-snippets.ts",
     "precompile": "npm run clean",
     "compile": "npm-run-all compile:*",
     "compile:keyfile": "ts-node ./scripts/generate-keyfile.ts",
-    "compile:resources": "npm run update-grammar && npm run update-snippets",
+    "compile:resources": "npm run update-grammar",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
     "watch": "npm run compile && npm-run-all -p watch:*",
@@ -52,38 +52,29 @@
     "test-extension": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "test-webview": "jest",
     "posttest": "mongodb-runner stop --port=27018",
+    "analyze-bundle": "webpack --mode production --analyze",
     "vscode:prepublish": "npm run clean && npm run compile:keyfile && npm run compile:resources && webpack --mode production",
-    "check": "npm run lint && npm run check-dependencies",
-    "check-dependencies": "depcheck",
-    "package": "npm list --production --parseable --depth=99999 --loglevel=info || true && vsce package --githubBranch main",
+    "check": "npm run lint && npm run depcheck",
+    "depcheck": "depcheck",
+    "package": "cross-env NODE_OPTIONS='--require ./scripts/no-npm-list-fail.js' vsce package --githubBranch main",
     "local-install": "npm run package && code --install-extension ./mongodb-vscode-*.vsix",
     "check-vsix-size": "ts-node ./scripts/check-vsix-size.ts",
     "release-draft": "node ./scripts/release-draft.js",
-    "reformat": "prettier --write ."
+    "reformat": "prettier --write .",
+    "snyk-test": "node scripts/snyk-test.js",
+    "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
+    "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues"
   },
   "engines": {
-    "vscode": "^1.71.0",
+    "vscode": "^1.79.1",
     "node": "^16.16.0",
-    "npm": "^8.8.0"
+    "npm": "^8.15.1"
   },
   "activationEvents": [
-    "onCommand:mdb.connect",
-    "onCommand:mdb.connectWithURI",
-    "onCommand:mdb.openOverviewPage",
-    "onCommand:mdb.createPlayground",
-    "onCommand:mdb.addConnection",
-    "onCommand:mdb.addConnectionWithURI",
-    "onCommand:mdb.disconnect",
-    "onCommand:mdb.removeConnection",
-    "onCommand:mdb.openMongoDBShell",
-    "onCommand:mdb.saveMongoDBDocument",
-    "onCommand:mdb.insertObjectIdToEditor",
-    "onCommand:mdb.generateObjectIdToClipboard",
     "onView:mongoDB",
-    "onView:mongoDBConnectionExplorer",
-    "onView:mongoDBPlaygroundsExplorer",
     "onLanguage:json",
-    "onLanguage:mongodb"
+    "onLanguage:javascript",
+    "onLanguage:plaintext"
   ],
   "contributes": {
     "viewsContainers": {
@@ -121,21 +112,10 @@
       },
       {
         "view": "mongoDBPlaygroundsExplorer",
-        "contents": "No '.mongodb' playground files found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromPlaygroundExplorer)"
+        "contents": "No MongoDB playground files found in the workspace.\n[Create New Playground](command:mdb.createNewPlaygroundFromTreeView)"
       }
     ],
     "languages": [
-      {
-        "id": "mongodb",
-        "aliases": [
-          "MongoDB",
-          "mongodb"
-        ],
-        "extensions": [
-          ".mongodb"
-        ],
-        "configuration": "./languages/mongodb-language-configuration.json"
-      },
       {
         "id": "terraform",
         "aliases": [
@@ -149,16 +129,14 @@
     ],
     "grammars": [
       {
-        "language": "mongodb",
-        "path": "./syntaxes/mongodb.tmLanguage.json",
-        "scopeName": "source.mongodb"
+        "path": "./syntaxes/mongodbInjection.tmLanguage.json",
+        "scopeName": "mongodb.injection",
+        "injectTo": [
+          "source.js"
+        ]
       }
     ],
     "snippets": [
-      {
-        "language": "mongodb",
-        "path": "./snippets/stage-autocompleter.json"
-      },
       {
         "language": "terraform",
         "path": "./snippets/atlas-terraform.json"
@@ -198,10 +176,6 @@
         "title": "MongoDB: Create MongoDB Playground"
       },
       {
-        "command": "mdb.refreshPlaygrounds",
-        "title": "MongoDB: Refresh Playgrounds List"
-      },
-      {
         "command": "mdb.refreshPlaygroundsFromTreeView",
         "title": "Refresh",
         "icon": {
@@ -210,15 +184,11 @@
         }
       },
       {
-        "command": "mdb.createNewPlaygroundFromViewAction",
-        "title": "Create MongoDB Playground"
-      },
-      {
         "command": "mdb.createNewPlaygroundFromOverviewPage",
         "title": "Create MongoDB Playground"
       },
       {
-        "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
+        "command": "mdb.createNewPlaygroundFromTreeView",
         "title": "Create MongoDB Playground",
         "icon": {
           "light": "images/light/add.svg",
@@ -318,7 +288,7 @@
         }
       },
       {
-        "command": "mdb.openPlaygroundFromTreeItem",
+        "command": "mdb.openPlaygroundFromTreeView",
         "title": "Open Playground"
       },
       {
@@ -378,6 +348,10 @@
         "title": "Refresh"
       },
       {
+        "command": "mdb.insertDocumentFromTreeView",
+        "title": "Insert Document..."
+      },
+      {
         "command": "mdb.refreshSchema",
         "title": "Refresh"
       },
@@ -425,11 +399,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "mdb.createNewPlaygroundFromViewAction",
-          "when": "view == mongoDBPlaygroundsExplorer"
-        },
-        {
-          "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
+          "command": "mdb.createNewPlaygroundFromTreeView",
           "when": "view == mongoDBPlaygroundsExplorer",
           "group": "navigation@1"
         },
@@ -494,7 +464,7 @@
           "group": "5@2"
         },
         {
-          "command": "mdb.openPlaygroundFromTreeItem",
+          "command": "mdb.openPlaygroundFromTreeView",
           "when": "view == mongoDBPlaygroundsExplorer && viewItem == playgroundsTreeItem",
           "group": "1@1"
         },
@@ -559,9 +529,14 @@
           "group": "2@1"
         },
         {
-          "command": "mdb.dropCollection",
+          "command": "mdb.insertDocumentFromTreeView",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "3@1"
+        },
+        {
+          "command": "mdb.dropCollection",
+          "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
+          "group": "4@1"
         },
         {
           "command": "mdb.searchForDocuments",
@@ -575,16 +550,23 @@
         },
         {
           "command": "mdb.viewCollectionDocuments",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "1@1"
         },
         {
           "command": "mdb.refreshDocumentList",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "1@2"
         },
         {
           "command": "mdb.searchForDocuments",
           "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
           "group": "2@1"
+        },
+        {
+          "command": "mdb.insertDocumentFromTreeView",
+          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
+          "group": "3@1"
         },
         {
           "command": "mdb.refreshSchema",
@@ -632,37 +614,45 @@
         {
           "command": "mdb.runPlayground",
           "group": "navigation",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
         }
       ],
       "commandPalette": [
         {
+          "command": "mdb.disconnect",
+          "when": "mdb.connectedToMongoDB == true"
+        },
+        {
           "command": "mdb.saveMongoDBDocument",
-          "when": "editorLangId == json"
+          "when": "resourceScheme == VIEW_DOCUMENT_SCHEME"
         },
         {
           "command": "mdb.runSelectedPlaygroundBlocks",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
         },
         {
           "command": "mdb.runAllPlaygroundBlocks",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true"
+        },
+        {
+          "command": "mdb.exportToRuby",
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToPython",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToJava",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToCsharp",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.exportToNode",
-          "when": "editorLangId == mongodb"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -681,15 +671,11 @@
           "when": "false"
         },
         {
-          "command": "mdb.createNewPlaygroundFromViewAction",
-          "when": "false"
-        },
-        {
           "command": "mdb.createNewPlaygroundFromOverviewPage",
           "when": "false"
         },
         {
-          "command": "mdb.createNewPlaygroundFromPlaygroundExplorer",
+          "command": "mdb.createNewPlaygroundFromTreeView",
           "when": "false"
         },
         {
@@ -717,7 +703,7 @@
           "when": "false"
         },
         {
-          "command": "mdb.openPlaygroundFromTreeItem",
+          "command": "mdb.openPlaygroundFromTreeView",
           "when": "false"
         },
         {
@@ -758,6 +744,10 @@
         },
         {
           "command": "mdb.refreshDocumentList",
+          "when": "false"
+        },
+        {
+          "command": "mdb.insertDocumentFromTreeView",
           "when": "false"
         },
         {
@@ -815,19 +805,19 @@
         "command": "mdb.runSelectedPlaygroundBlocks",
         "key": "ctrl+alt+s",
         "mac": "cmd+alt+s",
-        "when": "editorLangId == mongodb"
+        "when": "mdb.isPlayground == true"
       },
       {
         "command": "mdb.runAllPlaygroundBlocks",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "editorLangId == mongodb"
+        "when": "mdb.isPlayground == true"
       },
       {
         "command": "mdb.saveMongoDBDocument",
         "key": "ctrl+s",
         "mac": "cmd+s",
-        "when": "editorLangId == json"
+        "when": "resourceScheme == VIEW_DOCUMENT_SCHEME"
       }
     ],
     "capabilities": {
@@ -974,84 +964,85 @@
     }
   },
   "dependencies": {
-    "@babel/parser": "^7.19.1",
-    "@babel/traverse": "^7.19.1",
-    "@fortawesome/fontawesome-svg-core": "^6.2.0",
-    "@fortawesome/free-solid-svg-icons": "^6.2.0",
+    "@babel/parser": "^7.22.5",
+    "@babel/traverse": "^7.22.5",
+    "@fortawesome/fontawesome-svg-core": "^6.4.0",
+    "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
-    "@iconify-icons/codicon": "^1.2.16",
+    "@iconify-icons/codicon": "^1.2.25",
     "@iconify/react": "^1.1.4",
-    "@leafygreen-ui/logo": "^6.1.3",
-    "@leafygreen-ui/palette": "^3.4.2",
+    "@leafygreen-ui/logo": "^6.3.0",
     "@leafygreen-ui/toggle": "^7.0.5",
-    "@mongodb-js/mongodb-constants": "^0.1.1",
-    "@mongosh/browser-runtime-electron": "^1.6.0",
-    "@mongosh/i18n": "^1.6.0",
-    "@mongosh/service-provider-server": "^1.6.0",
-    "@mongosh/shell-api": "^1.6.0",
-    "analytics-node": "^5.1.2",
-    "bson": "^4.7.0",
-    "bson-transpilers": "^2.0.0",
+    "@mongodb-js/mongodb-constants": "^0.6.1",
+    "@mongosh/browser-runtime-electron": "^1.10.0",
+    "@mongosh/i18n": "^1.10.0",
+    "@mongosh/service-provider-server": "^1.10.0",
+    "@mongosh/shell-api": "^1.10.0",
+    "analytics-node": "^6.2.0",
+    "bson": "^5.3.0",
+    "bson-transpilers": "^2.0.4",
     "classnames": "^2.3.2",
     "debug": "^4.3.4",
-    "dotenv": "^16.0.2",
+    "dotenv": "^16.1.4",
     "micromatch": "^4.0.5",
-    "mongodb": "^4.10.0",
-    "mongodb-cloud-info": "^1.1.3",
-    "mongodb-connection-string-url": "^2.5.3",
-    "mongodb-data-service": "^22.1.1",
-    "mongodb-ns": "^2.4.0",
-    "mongodb-query-parser": "^2.4.6",
-    "mongodb-schema": "^9.0.0",
+    "mongodb": "^5.6.0",
+    "mongodb-build-info": "^1.5.0",
+    "mongodb-cloud-info": "^2.0.1",
+    "mongodb-connection-string-url": "^2.6.0",
+    "mongodb-data-service": "^22.8.0",
+    "mongodb-query-parser": "^2.5.0",
+    "mongodb-schema": "^11.1.0",
     "numeral": "^2.0.6",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
-    "react-redux": "^7.2.8",
-    "redux": "^4.2.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-redux": "^8.1.0",
+    "redux": "^4.2.1",
     "ts-log": "^2.2.5",
     "uuid": "^8.3.2",
-    "vscode-languageclient": "^8.0.2",
-    "vscode-languageserver": "^8.0.2",
-    "vscode-languageserver-textdocument": "^1.0.7"
+    "vscode-languageclient": "^8.1.0",
+    "vscode-languageserver": "^8.1.0",
+    "vscode-languageserver-textdocument": "^1.0.10"
   },
   "devDependencies": {
+    "@mongodb-js/oidc-plugin": "^0.2.4",
     "@mongodb-js/prettier-config-compass": "^1.0.0",
-    "@types/analytics-node": "^3.1.9",
-    "@types/babel__core": "^7.1.19",
-    "@types/babel__traverse": "^7.18.1",
-    "@types/chai": "^4.3.3",
-    "@types/chai-fs": "^2.0.2",
-    "@types/chai-json-schema": "^1.4.6",
-    "@types/debug": "^4.1.7",
-    "@types/enzyme": "^3.10.12",
+    "@mongodb-js/sbom-tools": "^0.5.2",
+    "@mongosh/service-provider-core": "^1.10.0",
+    "@types/analytics-node": "^3.1.11",
+    "@types/babel__core": "^7.20.1",
+    "@types/babel__traverse": "^7.20.1",
+    "@types/chai": "^4.3.5",
+    "@types/debug": "^4.1.8",
+    "@types/enzyme": "^3.10.13",
     "@types/glob": "^7.2.0",
     "@types/jest": "^26.0.24",
+    "@types/micromatch": "^4.0.2",
+    "@types/mkdirp": "^2.0.0",
     "@types/mocha": "^8.2.3",
-    "@types/node": "^14.18.29",
-    "@types/react": "^17.0.50",
-    "@types/react-dom": "^17.0.17",
+    "@types/node": "^14.18.51",
+    "@types/react": "^17.0.62",
+    "@types/react-dom": "^17.0.20",
     "@types/sinon": "^9.0.11",
     "@types/uuid": "^8.3.4",
-    "@types/vscode": "^1.71.0",
-    "@typescript-eslint/eslint-plugin": "^5.38.0",
-    "@typescript-eslint/parser": "^5.38.0",
-    "@vscode/test-electron": "^2.1.5",
+    "@types/vscode": "^1.79.1",
+    "@typescript-eslint/eslint-plugin": "^5.59.11",
+    "@typescript-eslint/parser": "^5.59.11",
+    "@vscode/test-electron": "^2.3.3",
+    "@vscode/vsce": "^2.19.0",
+    "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
     "autoprefixer": "^9.8.8",
     "buffer": "^6.0.3",
-    "chai": "^4.3.6",
+    "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
-    "chai-fs": "^2.0.0",
-    "chai-json-schema": "^1.5.1",
     "chalk": "^4.1.2",
     "cli-ux": "^5.6.7",
-    "context-map-webpack-plugin": "^0.1.0",
     "cross-env": "^7.0.3",
     "css-loader": "^3.6.0",
     "depcheck": "^1.4.3",
     "download": "^8.0.0",
+    "electron": "^23.3.7",
     "enzyme": "^3.11.0",
-    "enzyme-adapter-react-16": "^1.15.6",
-    "eslint": "^8.23.1",
+    "eslint": "^8.42.0",
     "eslint-config-mongodb-js": "^5.0.3",
     "eslint-plugin-mocha": "^10.1.0",
     "execa": "^1.0.0",
@@ -1061,33 +1052,32 @@
     "jest-transform-stub": "^2.0.0",
     "less": "^3.13.1",
     "less-loader": "^5.0.0",
-    "meow": "^9.0.0",
     "mkdirp": "^1.0.4",
     "mocha": "^8.4.0",
-    "mocha-junit-reporter": "^2.0.2",
-    "mocha-multi": "^1.1.6",
-    "mongodb-build-info": "^1.4.0",
-    "mongodb-client-encryption": "^2.2.1",
-    "mongodb-runner": "^4.9.0",
+    "mocha-junit-reporter": "^2.2.0",
+    "mocha-multi": "^1.1.7",
+    "mongodb-client-encryption": "^2.8.0",
+    "mongodb-runner": "^4.10.0",
     "node-loader": "^0.6.0",
     "npm-run-all": "^4.1.5",
     "ora": "^5.4.1",
     "postcss-loader": "^3.0.0",
     "pre-commit": "^1.2.2",
-    "prettier": "^2.7.1",
+    "prettier": "^2.8.8",
     "process": "^0.11.10",
-    "semver": "^7.3.7",
+    "semver": "^7.5.1",
     "sinon": "^9.2.4",
     "sinon-chai": "^3.7.0",
     "stream-browserify": "^3.0.0",
     "style-loader": "^1.3.0",
     "ts-jest": "^26.5.6",
-    "ts-loader": "^9.4.1",
+    "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
-    "typescript": "^4.8.3",
-    "vsce": "^2.11.0",
-    "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0",
+    "typescript": "^4.9.5",
+    "webpack": "^5.87.0",
+    "webpack-bundle-analyzer": "^4.9.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-merge": "^5.9.0",
     "xvfb-maybe": "^0.2.1",
     "yargs-parser": "^20.2.9"
   },

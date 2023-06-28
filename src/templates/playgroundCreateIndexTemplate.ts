@@ -1,4 +1,5 @@
-const template = `// MongoDB Playground
+const template = `/* global use, db */
+// MongoDB Playground
 // Use Ctrl+Space inside a snippet or a string literal to trigger completions.
 
 // The current database to use.
@@ -12,12 +13,12 @@ db.getCollection('CURRENT_COLLECTION')
        * Keys
        *
        * Normal index
-       * fieldA:  1, //ascending
-       * fieldB: -1  //descending
+       * fieldA:  1, // ascending
+       * fieldB: -1  // descending
        *
        * Wildcard index
-       * '$**': 1, //wildcard index on all fields and subfields in a document
-       * 'path.to.field.$**': 1 //wildcard index on a specific field and its subpaths
+       * '$**': 1, // wildcard index on all fields and subfields in a document
+       * 'path.to.field.$**': 1 // wildcard index on a specific field and its subpaths
        *
        * Text index
        * fieldA: 'text',
@@ -33,13 +34,14 @@ db.getCollection('CURRENT_COLLECTION')
       /*
        * Options (https://docs.mongodb.com/manual/reference/method/db.collection.createIndex/#options-for-all-index-types)
        *
-       * background: true, //ignored in 4.2+
+       * background: true, // ignored in 4.2+
        * unique: false,
        * name: 'some name',
        * partialFilterExpression: {},
        * sparse: false,
        * expireAfterSeconds: TTL,
-       * collation: {}
+       * collation: {},
+       * wildcardProjection: {},
        */
     }
   );

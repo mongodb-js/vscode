@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
+import type { Document } from 'bson';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
-import CodeActionProvider from './codeActionProvider';
+import PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
+import PlaygroundDiagnosticsCodeActionProvider from './playgroundDiagnosticsCodeActionProvider';
 import ConnectionController from '../connectionController';
 import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
@@ -35,7 +37,7 @@ import TelemetryService from '../telemetry/telemetryService';
 const log = createLogger('editors controller');
 
 export function getFileDisplayNameForDocument(
-  documentId: EJSON.SerializableTypes,
+  documentId: any,
   namespace: string
 ) {
   let displayName = `${namespace}:${EJSON.stringify(documentId)}`;
@@ -83,7 +85,8 @@ export function getViewCollectionDocumentsUri(
  * new editors and the data they need. It also manages active editors.
  */
 export default class EditorsController {
-  _codeActionProvider: CodeActionProvider;
+  _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _playgroundController: PlaygroundController;
   _collectionDocumentsOperationsStore =
@@ -110,11 +113,10 @@ export default class EditorsController {
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider,
-    codeActionProvider: CodeActionProvider,
+    playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider,
+    playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider,
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider
   ) {
-    log.info('activating...');
-
     this._connectionController = connectionController;
     this._playgroundController = playgroundController;
     this._context = context;
@@ -143,7 +145,10 @@ export default class EditorsController {
       new CollectionDocumentsCodeLensProvider(
         this._collectionDocumentsOperationsStore
       );
-    this._codeActionProvider = codeActionProvider;
+    this._playgroundSelectedCodeActionProvider =
+      playgroundSelectedCodeActionProvider;
+    this._playgroundDiagnosticsCodeActionProvider =
+      playgroundDiagnosticsCodeActionProvider;
 
     vscode.workspace.onDidCloseTextDocument((e) => {
       const uriParams = new URLSearchParams(e.uri.query);
@@ -152,17 +157,15 @@ export default class EditorsController {
 
       this._documentIdStore.removeByDocumentIdReference(documentIdReference);
     });
-
-    log.info('activated.');
   }
 
   async openMongoDBDocument(data: EditDocumentInfo): Promise<boolean> {
     try {
-      const mdbDocument = (await this._mongoDBDocumentService.fetchDocument(
+      const mdbDocument = await this._mongoDBDocumentService.fetchDocument(
         data
-      )) as EJSON.SerializableTypes;
+      );
 
-      if (mdbDocument === null) {
+      if (!mdbDocument) {
         void vscode.window.showErrorMessage(`
           Unable to open mongodb document: document ${JSON.stringify(
             data.documentId
@@ -221,7 +224,6 @@ export default class EditorsController {
       DOCUMENT_SOURCE_URI_IDENTIFIER
     ) as DocumentSource;
 
-    // If not MongoDB document save to disk instead of MongoDB.
     if (
       activeEditor.document.uri.scheme !== 'VIEW_DOCUMENT_SCHEME' ||
       !namespace ||
@@ -230,8 +232,9 @@ export default class EditorsController {
       documentId === null ||
       documentId === undefined
     ) {
-      await vscode.commands.executeCommand('workbench.action.files.save');
-
+      void vscode.window.showErrorMessage(
+        `The current file can not be saved as a MongoDB document. Invalid URL: ${activeEditor.document.uri.toString()}`
+      );
       return false;
     }
 
@@ -262,7 +265,7 @@ export default class EditorsController {
   }
 
   async onViewCollectionDocuments(namespace: string): Promise<boolean> {
-    log.info('view collection documents', namespace);
+    log.info('View collection documents', namespace);
 
     const operationId =
       this._collectionDocumentsOperationsStore.createNewOperation();
@@ -294,7 +297,7 @@ export default class EditorsController {
     connectionId: string,
     namespace: string
   ): Promise<boolean> {
-    log.info('view more collection documents', namespace);
+    log.info('View more collection documents', namespace);
 
     // A user might click to fetch more documents multiple times,
     // this ensures it only performs one fetch at a time.
@@ -344,7 +347,7 @@ export default class EditorsController {
 
   _saveDocumentToMemoryFileSystem(
     fileUri: vscode.Uri,
-    document: EJSON.SerializableTypes
+    document: Document
   ): void {
     this._memoryFileSystemProvider.writeFile(
       fileUri,
@@ -400,7 +403,7 @@ export default class EditorsController {
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
-        { language: 'mongodb' },
+        { language: 'javascript' },
         this._activeConnectionCodeLensProvider
       )
     );
@@ -432,10 +435,21 @@ export default class EditorsController {
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeActionsProvider(
-        'mongodb',
-        this._codeActionProvider,
+        'javascript',
+        this._playgroundSelectedCodeActionProvider,
         {
-          providedCodeActionKinds: CodeActionProvider.providedCodeActionKinds,
+          providedCodeActionKinds:
+            PlaygroundSelectedCodeActionProvider.providedCodeActionKinds,
+        }
+      )
+    );
+    this._context.subscriptions.push(
+      vscode.languages.registerCodeActionsProvider(
+        'javascript',
+        this._playgroundDiagnosticsCodeActionProvider,
+        {
+          providedCodeActionKinds:
+            PlaygroundDiagnosticsCodeActionProvider.providedCodeActionKinds,
         }
       )
     );

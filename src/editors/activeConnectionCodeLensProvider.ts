@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
+import { TextEditor } from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import ConnectionController from '../connectionController';
+import { isPlayground } from '../utils/playground';
 
 export default class ActiveConnectionCodeLensProvider
   implements vscode.CodeLensProvider
@@ -8,23 +10,38 @@ export default class ActiveConnectionCodeLensProvider
   _connectionController: ConnectionController;
   _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
+  activeTextEditor?: TextEditor;
 
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
   constructor(connectionController: ConnectionController) {
     this._connectionController = connectionController;
+    this.activeTextEditor = vscode.window.activeTextEditor;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
   }
 
+  setActiveTextEditor(activeTextEditor?: TextEditor) {
+    this.activeTextEditor = activeTextEditor;
+    this._onDidChangeCodeLenses.fire();
+  }
+
   refresh(): void {
     this._onDidChangeCodeLenses.fire();
   }
 
+  isPlayground(): boolean {
+    return isPlayground(this.activeTextEditor?.document.uri);
+  }
+
   provideCodeLenses(): vscode.CodeLens[] {
+    if (!this.isPlayground()) {
+      return [];
+    }
+
     const codeLens = new vscode.CodeLens(new vscode.Range(0, 0, 0, 0));
     let message = '';
 

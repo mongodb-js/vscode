@@ -1,1 +1,1 @@
-show dbs
+use('test');

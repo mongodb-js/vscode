@@ -1,8 +1,14 @@
-# MongoDB for VS Code ![PREVIEW](https://img.shields.io/badge/-PREVIEW-orange)
+# MongoDB for VS Code
 
 [![Build Status](https://github.com/mongodb-js/vscode/actions/workflows/test-and-build.yaml/badge.svg?branchName=main)](https://github.com/mongodb-js/vscode/actions/workflows/test-and-build.yaml)
 
-MongoDB for VS Code makes it easy to work with MongoDB, whether your own instance or in [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register).
+MongoDB for VS Code makes it easy to work with your data in MongoDB directly from your VS Code environment. MongoDB for VS Code is the perfect companion for [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register), but you can also use it with your self-managed MongoDB instances.
+
+<p align="center">
+  <a title="Watch the MongoDB for VS Code demo video" href="https://mdb.link/vs-code-demo-video">
+    <img src="https://github.com/mongodb-js/vscode/raw/main/resources/screenshots/get-started.png" width="700" alt="MongoDB for VS Code demo video call to action">
+  </a>
+</p>
 
 ## Features
 
@@ -13,21 +19,22 @@ MongoDB for VS Code makes it easy to work with MongoDB, whether your own instanc
 - Edit documents and save changes to the database
 - Get a quick overview of your schema and your indexes
 
+Read more about this functionality in the [online documentation](https://www.mongodb.com/docs/mongodb-vscode/databases-collections/).
+
 ![Explore data with MongoDB for VS Code](resources/screenshots/explore-data.png)
 
 ### MongoDB Playgrounds
 
-MongoDB Playgrounds are the most convenient way to prototype and execute CRUD operations and other MongoDB commands directly inside VS Code.
+[MongoDB Playgrounds](https://www.mongodb.com/docs/mongodb-vscode/playgrounds/) are the most convenient way to prototype and execute CRUD operations and other MongoDB commands directly inside VS Code.
 
-- Prototype your queries, aggregations, and MongoDB commands with MongoDB syntax highlighting and intelligent autocomplete for MongoDB shell API, MongoDB operators, and for database, collection, and field names.
+- Prototype your queries, aggregations, and MongoDB commands with convenient syntax highlighting and intelligent autocomplete for MongoDB Shell API, BSON types, MongoDB Query API, system variables, and for database, collection, and field names.
 - Run your playgrounds and see the results instantly. Click the play button in the tab bar to see the output.
 - Edit documents returned by your playground.
-- Save your playgrounds in your workspace and use them to document how your application interacts with MongoDB.
-- Build aggregations quickly with helpful and well-commented stage snippets.
+- Save your playground together with your application code to always have a place where all your queries are documented and can be tested just with one click.
 
 ![Playgrounds](resources/screenshots/playground.png)
 
-_Make sure you are connected to a server or cluster before using a playground. You can't run a playground and you won't get completions if you are not connected._
+_Note: Make sure you are connected to a server or cluster before using a playground. You can't run a playground and you won't get intelligent completions if you are not connected._
 
 #### From Query API to your favorite language
 
@@ -39,21 +46,21 @@ Select queries and aggregations within your Playground files and translate them 
  * Python 3
  * Ruby
 
-![Query Translator](resources/screenshots/query-translator.png)
+![Export to language](resources/screenshots/export-to-language.gif)
 
 ### Document Editing
 
-MongoDB for VS Code makes it extremely easy to make changes to documents in your collections. You can open documents in an editor tab, edit them and save the changes back to MongoDB.
+Editing documents with MongoDB for VS Code is as natural as editing any file in the code editor. Open a document in an editor tab, edit it, and save the changes back to MongoDB.
 
-![Document editing](resources/screenshots/edit.png)
+![Document editing](resources/screenshots/edit.gif)
 
 ### Quick access to the MongoDB Shell
 
-Launch the MongoDB Shell from the command palette to quickly connect to the same cluster you have active in VS Code.
+Launch the [MongoDB Shell](https://www.mongodb.com/products/shell) from the command palette to quickly connect to the same cluster you have active in VS Code.
 
 ![MongoDB Shell](resources/screenshots/shell-launcher.png)
 
-_The shell binary needs to be in your `$PATH`. The shell binary can be either the new [MongoDB Shell](https://www.mongodb.com/products/shell) (`mongosh`) or the legacy `mongo` shell. In the extension's settings you can switch between the two._
+_Note: The `mongosh` binary needs to be in your `$PATH`. You can download the `mongosh` from the [MongoDB Download Center](https://www.mongodb.com/try/download/shell)._
 
 ### Terraform snippet for MongoDB Atlas
 
@@ -63,23 +70,27 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 
 ## Extension Settings
 
-- `mdb.shell`: The MongoDB shell to use (The new `mongosh` or the legacy `mongo`).
-- `mdb.show`: Show or hide the MongoDB view.
-- `mdb.defaultLimit`: The number of documents to fetch when viewing documents from a collection.
-- `mdb.confirmRunAll`: Show a confirmation message before running commands in a playground.
-- `mdb.confirmDeleteDocument`: Show a confirmation message before deleting a document in the tree view.
-- `mdb.excludeFromPlaygroundsSearch`: Exclude files and folders while searching for playground in the the current workspace.
-- `mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections`: When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used.
-- `mdb.connectionSaving.defaultConnectionSavingLocation`: When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved.
-- `mdb.useDefaultTemplateForPlayground`: Choose whether to use the default template for playground files or to start with an empty playground editor.
-- `mdb.uniqueObjectIdPerCursor`: The default behavior is to generate a single ObjectId and insert it on all cursors. Set to true to generate a unique ObjectId per cursor instead.
-- `mdb.sendTelemetry`: Opt-in and opt-out for diagnostic and telemetry collection.
-
-![Settings](resources/screenshots/settings.png)
+| Setting | Description | Default |
+| - | - | - |
+| `mdb.shell` | The MongoDB shell to use ( `mongosh`  or the legacy  `mongo` ). | `mongosh` |
+| `mdb.showMongoDBConnectionExplorer` | Show or hide the MongoDB Connection explorer. | `true` |
+| `mdb.showMongoDBPlaygrounds` | Show or hide the MongoDB Playgrounds explorer. | `true` |
+| `mdb.showMongoDBHelpExplorer` | Show or hide the MongoDB Help panel. | `true` |
+| `mdb.defaultLimit` | The number of documents to fetch when viewing documents from a collection. | `10` |
+| `mdb.confirmRunAll` | Show a confirmation message before running commands in a playground. | `true` |
+| `mdb.confirmDeleteDocument` | Show a confirmation message before deleting a document in the tree view. | `true` |
+| `mdb.excludeFromPlaygroundsSearch` | Exclude files and folders while searching for playground files in the current workspace. | Refer to [`package.json`](https://github.com/mongodb-js/vscode/blob/7b10092db4c8c10c4aa9c45b443c8ed3d5f37d5c/package.json) |
+| `mdb.connectionSaving.`  `hideOptionToChooseWhereToSaveNewConnections` | When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used. | `true` |
+| `mdb.connectionSaving.`  `defaultConnectionSavingLocation` | When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved. | `Global` |
+| `mdb.useDefaultTemplateForPlayground` | Choose whether to use the default template for playground files or to start with an empty playground editor. | `true` |
+| `mdb.uniqueObjectIdPerCursor` | The default behavior is to generate a single ObjectId and insert it on all cursors. Set to true to generate a unique ObjectId per cursor instead. | `false` |
+| `mdb.sendTelemetry` | Opt-in and opt-out for diagnostic and telemetry collection.  | `true`  |
 
 ## Additional Settings
 
-_These global settings affect how MongoDB for VS Code provides intelligent autocomplete inside snippets and string literals (off by default). Changing the default configuration may affect the behavior and performance of other extensions and of VS Code itself. If you do not change the default settings, you can still trigger intelligent autocomplete inside a snippet or string literal with `Ctrl+Space`._
+### Autocomplete
+
+_Note: these global settings affect how MongoDB for VS Code provides intelligent autocomplete inside snippets and string literals (off by default). Changing the default configuration may affect the behavior and performance of other extensions and of VS Code itself. If you do not change the default settings, you can still trigger intelligent autocomplete inside a snippet or string literal with `Ctrl+Space`._
 
 - `editor.suggest.snippetsPreventQuickSuggestions`: By default, VS Code prevents code completion in snippet mode (editing placeholders in inserted code). Setting this to `false` allows snippet (eg. `$match`, `$addFields`) and field completion based on the document schema for the `db.collection.aggregate()` expressions.
 - `editor.quickSuggestions`: By default, VS Code prevents code completion inside string literals. To enable database names completions for `use('dbName')` expression use this configuration:
@@ -91,6 +102,12 @@ _These global settings affect how MongoDB for VS Code provides intelligent autoc
   "strings": true
 }
 ```
+
+### Syntax Highlighting
+
+MongoDB playgrounds are JavaScript files, which causes JavaScript syntax highlighting to override any customizations made to the MongoDB syntax colors.
+
+Currently, there is no way to resolve this except for turning off semantic highlighting for a current workspace, or for all themes that are being used by setting `editor.semanticHighlighting.enabled` to `false`.
 
 ## Telemetry
 

@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as util from 'util';
 import { URLSearchParams } from 'url';
 
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
@@ -85,8 +84,7 @@ export default class CollectionViewProvider
     }
 
     try {
-      const find = util.promisify(dataservice.find.bind(dataservice));
-      const documents = await find(
+      const documents = await dataservice.find(
         namespace,
         {}, // No filter.
         { limit: documentLimit }

@@ -8,9 +8,11 @@ import * as linkHelper from '../../../utils/linkHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 suite('Help Explorer Test Suite', function () {
+  const sandbox = sinon.createSandbox();
+
   afterEach(() => {
-    sinon.restore();
     mdbTestExtension.testExtensionController._helpExplorer.deactivate();
+    sandbox.restore();
   });
 
   test('tree view should be not created until it is activated', () => {
@@ -42,11 +44,12 @@ suite('Help Explorer Test Suite', function () {
     const atlasHelpItem = helpTreeItems[5];
 
     assert.strictEqual(atlasHelpItem.label, 'Create Free Atlas Cluster');
-    const telemetryUserIdentity =
+    assert.strictEqual(atlasHelpItem.url.includes('mongodb.com'), true);
+    const { userId, anonymousId } =
       mdbTestExtension.testExtensionController._telemetryService.getTelemetryUserIdentity();
     assert.strictEqual(
-      atlasHelpItem.url,
-      `https://mongodb.com/products/vs-code/vs-code-atlas-signup?utm_campaign=vs-code-extension&utm_source=visual-studio&utm_medium=product&ajs_aid=${telemetryUserIdentity[0]}`
+      new URL(atlasHelpItem.url).searchParams.get('ajs_aid'),
+      userId ?? anonymousId
     );
     assert.strictEqual(atlasHelpItem.iconName, 'atlas');
     assert.strictEqual(atlasHelpItem.linkId, 'freeClusterCTA');
@@ -63,8 +66,8 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._telemetryService
     );
 
-    const stubExecuteCommand = sinon.fake();
-    sinon.replace(vscode.commands, 'executeCommand', stubExecuteCommand);
+    const stubExecuteCommand = sandbox.fake();
+    sandbox.replace(vscode.commands, 'executeCommand', stubExecuteCommand);
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[1];
     void testHelpExplorer._treeController.onClickHelpItem(
@@ -91,8 +94,8 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._telemetryService
     );
 
-    const stubExecuteCommand = sinon.fake();
-    sinon.replace(linkHelper, 'openLink', stubExecuteCommand);
+    const stubExecuteCommand = sandbox.fake();
+    sandbox.replace(linkHelper, 'openLink', stubExecuteCommand);
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
     void testHelpExplorer._treeController.onClickHelpItem(
@@ -107,8 +110,8 @@ suite('Help Explorer Test Suite', function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
 
-    const stubLinkClickedTelemetry = sinon.fake();
-    sinon.replace(
+    const stubLinkClickedTelemetry = sandbox.fake();
+    sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'trackLinkClicked',
       stubLinkClickedTelemetry
@@ -117,7 +120,7 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._telemetryService
     );
 
-    sinon.replace(vscode.commands, 'executeCommand', sinon.fake());
+    sandbox.replace(vscode.commands, 'executeCommand', sandbox.fake());
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
     void testHelpExplorer._treeController.onClickHelpItem(

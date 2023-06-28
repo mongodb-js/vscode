@@ -6,7 +6,7 @@ import { ActionTypes, SetConnectionFormTabAction } from '../../store/actions';
 import { AppState } from '../../store/store';
 import { CONNECTION_FORM_TABS } from '../../store/constants';
 
-const styles = require('./connection-form.less');
+import styles from './connection-form.less';
 
 type StateProps = {
   connectionFormTab: CONNECTION_FORM_TABS;

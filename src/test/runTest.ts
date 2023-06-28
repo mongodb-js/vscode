@@ -1,5 +1,4 @@
-import path = require('path');
-
+import path from 'path';
 import { runTests } from '@vscode/test-electron';
 
 // More information on vscode specific tests: https://github.com/microsoft/vscode-test
@@ -10,8 +9,7 @@ async function main(): Promise<any> {
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.join(__dirname, '../../');
 
-    // The path to test runner
-    // Passed to --extensionTestsPath
+    // The path to test runner pased to --extensionTestsPath
     const extensionTestsPath = path.join(__dirname, './suite/index');
 
     // This is the workspace we open in our tests.
@@ -19,6 +17,7 @@ async function main(): Promise<any> {
 
     // Download VS Code, unzip it and run the integration test
     await runTests({
+      version: 'insiders', // Download latest insiders.
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [testWorkspace, '--disable-extensions'],

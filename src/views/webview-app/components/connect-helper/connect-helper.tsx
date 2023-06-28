@@ -7,7 +7,7 @@ import {
   ToggleShowConnectionFormAction,
 } from '../../store/actions';
 
-const styles = require('./connect-helper.less');
+import styles from './connect-helper.less';
 
 type DispatchProps = {
   onOpenConnectionStringInput: () => void;

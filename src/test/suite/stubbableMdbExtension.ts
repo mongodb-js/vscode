@@ -1,5 +1,5 @@
 import MDBExtensionController from '../../mdbExtensionController';
-import { TestExtensionContext } from './stubs';
+import { ExtensionContextStub } from './stubs';
 
 // This interface has the instance of the extension we use for testing.
 // This should be used for integration tests and higher level extension
@@ -7,6 +7,6 @@ import { TestExtensionContext } from './stubs';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace mdbTestExtension {
-  export let testExtensionContext: TestExtensionContext;
+  export let extensionContextStub: ExtensionContextStub;
   export let testExtensionController: MDBExtensionController;
 }

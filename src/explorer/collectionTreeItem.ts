@@ -1,6 +1,6 @@
-import * as util from 'util';
 import * as vscode from 'vscode';
 import path from 'path';
+import type { DataService } from 'mongodb-data-service';
 
 import DocumentListTreeItem, {
   CollectionTypes,
@@ -72,7 +72,7 @@ export default class CollectionTreeItem
   databaseName: string;
   namespace: string;
 
-  private _dataService: any;
+  private _dataService: DataService;
   private _type: CollectionTypes;
   documentCount: number | null = null;
 
@@ -81,6 +81,8 @@ export default class CollectionTreeItem
   cacheIsUpToDate = false;
 
   isDropped = false;
+
+  iconPath: { light: string; dark: string };
 
   constructor(
     collection: CollectionModelType,
@@ -320,16 +322,13 @@ export default class CollectionTreeItem
     try {
       // We fetch the document when we expand in order to show
       // the document count in the document list tree item `description`.
-      const estimatedCount = util.promisify(
-        this._dataService.estimatedCount.bind(this._dataService)
-      );
-
-      this.documentCount = await estimatedCount(
+      this.documentCount = await this._dataService.estimatedCount(
         this.namespace,
-        {} // No options.
+        {}, // No options.
+        undefined
       );
 
-      return this.documentCount as number;
+      return this.documentCount;
     } catch (err) {
       this.documentCount = null;
       return 0;
@@ -367,12 +366,10 @@ export default class CollectionTreeItem
     }
 
     try {
-      const dropCollection = util.promisify(
-        this._dataService.dropCollection.bind(this._dataService)
-      );
-      const successfullyDroppedCollection = await dropCollection(
-        `${this.databaseName}.${collectionName}`
-      );
+      const successfullyDroppedCollection =
+        await this._dataService.dropCollection(
+          `${this.databaseName}.${collectionName}`
+        );
 
       this.isDropped = successfullyDroppedCollection;
 

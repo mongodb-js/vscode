@@ -1,9 +1,12 @@
 import * as vscode from 'vscode';
+import path from 'path';
 import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
 import vm from 'vm';
+import os from 'os';
+import transpiler from 'bson-transpilers';
 
 import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import CodeActionProvider from './codeActionProvider';
+import PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
 import ConnectionController, {
   DataServiceEventTypes,
 } from '../connectionController';
@@ -19,12 +22,15 @@ import { LanguageServerController } from '../language';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumentTemplate';
+import playgroundInsertDocumentTemplate from '../templates/playgroundInsertDocumentTemplate';
 import {
   PlaygroundResult,
-  ShellExecuteAllResult,
+  ShellEvaluateResult,
   ExportToLanguageAddons,
   ExportToLanguageNamespace,
   ExportToLanguageMode,
+  ThisDiagnosticFix,
+  AllDiagnosticFixes,
 } from '../types/playgroundType';
 import PlaygroundResultProvider, {
   PLAYGROUND_RESULT_SCHEME,
@@ -34,9 +40,12 @@ import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import { StatusView } from '../views';
 import TelemetryService from '../telemetry/telemetryService';
+import {
+  isPlayground,
+  getPlaygroundExtensionForTelemetry,
+} from '../utils/playground';
 
 const log = createLogger('playground controller');
-const transpiler = require('bson-transpilers');
 
 interface ToCompile {
   filter?: string;
@@ -98,11 +107,11 @@ export default class PlaygroundController {
   _languageServerController: LanguageServerController;
   _selectedText?: string;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
-  _codeActionProvider: CodeActionProvider;
+  _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  _telemetryService: TelemetryService;
 
   _isPartialRun = false;
 
-  private _telemetryService: TelemetryService;
   private _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   private _outputChannel: OutputChannel;
   private _playgroundResultViewColumn?: vscode.ViewColumn;
@@ -121,10 +130,11 @@ export default class PlaygroundController {
     playgroundResultViewProvider: PlaygroundResultProvider,
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider,
-    codeActionProvider: CodeActionProvider,
+    playgroundSelectedCodeActionProvide: PlaygroundSelectedCodeActionProvider,
     explorerController: ExplorerController
   ) {
     this._connectionController = connectionController;
+    this._activeTextEditor = vscode.window.activeTextEditor;
     this._languageServerController = languageServerController;
     this._telemetryService = telemetryService;
     this._statusView = statusView;
@@ -133,7 +143,8 @@ export default class PlaygroundController {
       vscode.window.createOutputChannel('Playground output');
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
-    this._codeActionProvider = codeActionProvider;
+    this._playgroundSelectedCodeActionProvider =
+      playgroundSelectedCodeActionProvide;
     this._explorerController = explorerController;
 
     this._connectionController.addEventListener(
@@ -151,18 +162,55 @@ export default class PlaygroundController {
         this._playgroundResultTextDocument = editor?.document;
       }
 
+      void vscode.commands.executeCommand(
+        'setContext',
+        'mdb.isPlayground',
+        isPlayground(editor?.document.uri)
+      );
+
       if (editor?.document.languageId !== 'Log') {
         this._activeTextEditor = editor;
+        this._activeConnectionCodeLensProvider.setActiveTextEditor(
+          this._activeTextEditor
+        );
+        this._playgroundSelectedCodeActionProvider.setActiveTextEditor(
+          this._activeTextEditor
+        );
         log.info('Active editor path', editor?.document.uri?.path);
       }
     };
 
+    vscode.workspace.textDocuments.forEach((document) => {
+      if (isPlayground(document.uri)) {
+        void vscode.languages.setTextDocumentLanguage(document, 'javascript');
+      }
+    });
+
     vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor);
     onDidChangeActiveTextEditor(vscode.window.activeTextEditor);
 
+    vscode.workspace.onDidOpenTextDocument(async (document) => {
+      if (isPlayground(document.uri)) {
+        // TODO: re-enable with fewer 'Playground Loaded' events
+        // https://jira.mongodb.org/browse/VSCODE-432
+        /* this._telemetryService.trackPlaygroundLoaded(
+          getPlaygroundExtensionForTelemetry(document.uri)
+        ); */
+        await vscode.languages.setTextDocumentLanguage(document, 'javascript');
+      }
+    });
+
+    vscode.workspace.onDidSaveTextDocument((document) => {
+      if (isPlayground(document.uri)) {
+        this._telemetryService.trackPlaygroundSaved(
+          getPlaygroundExtensionForTelemetry(document.uri)
+        );
+      }
+    });
+
     vscode.window.onDidChangeTextEditorSelection(
       async (changeEvent: vscode.TextEditorSelectionChangeEvent) => {
-        if (changeEvent?.textEditor?.document?.languageId !== 'mongodb') {
+        if (!isPlayground(changeEvent?.textEditor?.document?.uri)) {
           return;
         }
 
@@ -187,7 +235,7 @@ export default class PlaygroundController {
             selection: sortedSelections[0],
           });
 
-        this._codeActionProvider.refresh({
+        this._playgroundSelectedCodeActionProvider.refresh({
           selection: sortedSelections[0],
           mode,
         });
@@ -230,11 +278,44 @@ export default class PlaygroundController {
     content: string | undefined
   ): Promise<boolean> {
     try {
-      const document = await vscode.workspace.openTextDocument({
-        language: 'mongodb',
-        content,
+      // The MacOS default folder for saving files is a read-only root (/) directory,
+      // therefore we explicitly specify the workspace folder path
+      // or OS home directory if a user has not opened workspaces.
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      const filePath = workspaceFolder?.uri.fsPath || os.homedir();
+
+      // We count open untitled playground files to use this number as part of a new playground path.
+      const numberUntitledPlaygrounds = vscode.workspace.textDocuments.filter(
+        (doc) => isPlayground(doc.uri)
+      ).length;
+
+      // We need a secondary `mongodb` extension otherwise VSCode will
+      // suggest playground-1.js name when saving playground to the disk.
+      // Users can open playgrounds from the disk
+      // and we need a way to distinguish this files from regular JS files.
+      const fileName = path.join(
+        filePath,
+        `playground-${numberUntitledPlaygrounds + 1}.mongodb.js`
+      );
+
+      // Does not create a physical file, it only creates a URI from specified component parts.
+      // An untitled file URI: untitled:/extensionPath/playground-1.mongodb.js
+      const documentUri = vscode.Uri.from({
+        path: fileName,
+        scheme: 'untitled',
       });
 
+      // Fill in initial content.
+      const edit = new vscode.WorkspaceEdit();
+      edit.insert(documentUri, new vscode.Position(0, 0), `${content}`);
+      await vscode.workspace.applyEdit(edit);
+
+      // Actually show the editor.
+      // We open playgrounds by URI to use the secondary `mongodb` extension
+      // as an identifier that distinguishes them from regular JS files.
+      const document = await vscode.workspace.openTextDocument(documentUri);
+
+      // Focus new text document.
       await vscode.window.showTextDocument(document);
 
       return true;
@@ -255,6 +336,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
+    this._telemetryService.trackPlaygroundCreated('search');
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -269,6 +351,9 @@ export default class PlaygroundController {
       content = content
         .replace('NEW_DATABASE_NAME', element.databaseName)
         .replace('Create a new database', 'The current database to use');
+      this._telemetryService.trackPlaygroundCreated('createCollection');
+    } else {
+      this._telemetryService.trackPlaygroundCreated('createDatabase');
     }
 
     return this._createPlaygroundFileWithContent(content);
@@ -282,6 +367,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
+    this._telemetryService.trackPlaygroundCreated('index');
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -295,6 +381,19 @@ export default class PlaygroundController {
       .replace('CURRENT_COLLECTION', collectionName)
       .replace('DOCUMENT_CONTENTS', documentContents);
 
+    this._telemetryService.trackPlaygroundCreated('cloneDocument');
+    return this._createPlaygroundFileWithContent(content);
+  }
+
+  createPlaygroundForInsertDocument(
+    databaseName: string,
+    collectionName: string
+  ): Promise<boolean> {
+    const content = playgroundInsertDocumentTemplate
+      .replace('CURRENT_DATABASE', databaseName)
+      .replace('CURRENT_COLLECTION', collectionName);
+
+    this._telemetryService.trackPlaygroundCreated('insertDocument');
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -302,26 +401,13 @@ export default class PlaygroundController {
     const useDefaultTemplate = !!vscode.workspace
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
+    const content = useDefaultTemplate ? playgroundTemplate : '';
 
-    try {
-      const document = await vscode.workspace.openTextDocument({
-        language: 'mongodb',
-        content: useDefaultTemplate ? playgroundTemplate : '',
-      });
-
-      await vscode.window.showTextDocument(document);
-
-      return true;
-    } catch (error) {
-      void vscode.window.showErrorMessage(
-        `Unable to create a playground: ${formatError(error).message}`
-      );
-
-      return false;
-    }
+    this._telemetryService.trackPlaygroundCreated('crud');
+    return this._createPlaygroundFileWithContent(content);
   }
 
-  async _evaluate(codeToEvaluate: string): Promise<ShellExecuteAllResult> {
+  async _evaluate(codeToEvaluate: string): Promise<ShellEvaluateResult> {
     const connectionId = this._connectionController.getActiveConnectionId();
 
     if (!connectionId) {
@@ -334,8 +420,8 @@ export default class PlaygroundController {
 
     try {
       // Send a request to the language server to execute scripts from a playground.
-      const result: ShellExecuteAllResult =
-        await this._languageServerController.executeAll({
+      const result: ShellEvaluateResult =
+        await this._languageServerController.evaluate({
           codeToEvaluate,
           connectionId,
         });
@@ -372,7 +458,7 @@ export default class PlaygroundController {
     return this._activeTextEditor?.document.getText(selection) || '';
   }
 
-  async _evaluateWithCancelModal(): Promise<ShellExecuteAllResult> {
+  async _evaluateWithCancelModal(): Promise<ShellEvaluateResult> {
     if (!this._connectionController.isCurrentlyConnected()) {
       throw new Error(
         'Please connect to a database before running a playground.'
@@ -395,7 +481,7 @@ export default class PlaygroundController {
           });
 
           // Run all playground scripts.
-          const result: ShellExecuteAllResult = await this._evaluate(
+          const result: ShellEvaluateResult = await this._evaluate(
             this._codeToEvaluate
           );
 
@@ -405,7 +491,7 @@ export default class PlaygroundController {
 
       return progressResult;
     } catch (error) {
-      log.error('Evaluate playground with cancel modal error', error);
+      log.error('Evaluating playground with cancel modal failed', error);
 
       return {
         outputLines: undefined,
@@ -493,7 +579,7 @@ export default class PlaygroundController {
 
     this._outputChannel.clear();
 
-    const evaluateResponse: ShellExecuteAllResult =
+    const evaluateResponse: ShellEvaluateResult =
       await this._evaluateWithCancelModal();
 
     if (evaluateResponse?.outputLines?.length) {
@@ -512,8 +598,6 @@ export default class PlaygroundController {
     }
 
     this._playgroundResult = evaluateResponse.result;
-
-    this._explorerController.refresh();
 
     await this._openPlaygroundResult();
 
@@ -538,10 +622,10 @@ export default class PlaygroundController {
   runAllPlaygroundBlocks(): Promise<boolean> {
     if (
       !this._activeTextEditor ||
-      this._activeTextEditor.document.languageId !== 'mongodb'
+      !isPlayground(this._activeTextEditor.document.uri)
     ) {
       void vscode.window.showErrorMessage(
-        "Please open a '.mongodb' playground file before running it."
+        'Please open a MongoDB playground file before running it.'
       );
 
       return Promise.resolve(false);
@@ -556,10 +640,10 @@ export default class PlaygroundController {
   runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
     if (
       !this._activeTextEditor ||
-      this._activeTextEditor.document.languageId !== 'mongodb'
+      !isPlayground(this._activeTextEditor.document.uri)
     ) {
       void vscode.window.showErrorMessage(
-        "Please open a '.mongodb' playground file before running it."
+        'Please open a MongoDB playground file before running it.'
       );
 
       return Promise.resolve(false);
@@ -580,6 +664,31 @@ export default class PlaygroundController {
     }
 
     return this._evaluatePlayground();
+  }
+
+  async fixThisInvalidInteractiveSyntax({
+    documentUri,
+    range,
+    fix,
+  }: ThisDiagnosticFix) {
+    const edit = new vscode.WorkspaceEdit();
+    edit.replace(documentUri, range, fix);
+    await vscode.workspace.applyEdit(edit);
+    return true;
+  }
+
+  async fixAllInvalidInteractiveSyntax({
+    documentUri,
+    diagnostics,
+  }: AllDiagnosticFixes) {
+    const edit = new vscode.WorkspaceEdit();
+
+    for (const { range, fix } of diagnostics) {
+      edit.replace(documentUri, range, fix);
+    }
+
+    await vscode.workspace.applyEdit(edit);
+    return true;
   }
 
   async openPlayground(filePath: string): Promise<boolean> {
@@ -611,9 +720,9 @@ export default class PlaygroundController {
       ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
       textFromEditor: this._getAllText(),
       selectedText: this._selectedText,
-      selection: this._codeActionProvider.selection,
+      selection: this._playgroundSelectedCodeActionProvider.selection,
       language,
-      mode: this._codeActionProvider.mode,
+      mode: this._playgroundSelectedCodeActionProvider.mode,
     });
 
     return this._transpile();
@@ -664,9 +773,15 @@ export default class PlaygroundController {
         },
       };
 
-      if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
+      if (
+        this._playgroundSelectedCodeActionProvider.mode ===
+        ExportToLanguageMode.AGGREGATION
+      ) {
         toCompile.aggregation = selectedText;
-      } else if (this._codeActionProvider.mode === ExportToLanguageMode.QUERY) {
+      } else if (
+        this._playgroundSelectedCodeActionProvider.mode ===
+        ExportToLanguageMode.QUERY
+      ) {
         toCompile.filter = selectedText;
       }
 
@@ -689,7 +804,7 @@ export default class PlaygroundController {
     const { selectedText, importStatements, driverSyntax, builders, language } =
       this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
 
-    log.info(`Start export to ${language} language`);
+    log.info(`Exporting to the '${language}' language...`);
 
     try {
       const transpiledContent = await this.getTranspiledContent();
@@ -719,10 +834,16 @@ export default class PlaygroundController {
         language,
       };
 
-      log.info(`Export to ${language} language result`, this._playgroundResult);
+      log.info(
+        `Exported to the '${language}' language`,
+        this._playgroundResult
+      );
 
       /* eslint-disable camelcase */
-      if (this._codeActionProvider.mode === ExportToLanguageMode.AGGREGATION) {
+      if (
+        this._playgroundSelectedCodeActionProvider.mode ===
+        ExportToLanguageMode.AGGREGATION
+      ) {
         const aggExportedProps = {
           language,
           num_stages: selectedText
@@ -734,7 +855,10 @@ export default class PlaygroundController {
         };
 
         this._telemetryService.trackAggregationExported(aggExportedProps);
-      } else if (this._codeActionProvider.mode === ExportToLanguageMode.QUERY) {
+      } else if (
+        this._playgroundSelectedCodeActionProvider.mode ===
+        ExportToLanguageMode.QUERY
+      ) {
         const queryExportedProps = {
           language,
           with_import_statements: importStatements,
@@ -748,8 +872,8 @@ export default class PlaygroundController {
 
       await this._openPlaygroundResult();
     } catch (error) {
+      log.error(`Export to the '${language}' language failed`, error);
       const printableError = formatError(error);
-      log.error(`Export to ${language} language error`, printableError);
       void vscode.window.showErrorMessage(
         `Unable to export to ${language} language: ${printableError.message}`
       );

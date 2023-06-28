@@ -2,7 +2,7 @@
 
 ## Workflow
 
-MongoDB welcomes community contributions! If you’re interested in making a contribution to MongoDB Compass, please follow the steps below before you start writing any code:
+MongoDB welcomes community contributions! If you’re interested in making a contribution to MongoDB for VS Code, please follow the steps below before you start writing any code:
 
 1. Sign the [contributor's agreement](http://www.mongodb.com/contributor). This will allow us to review and accept contributions.
 1. Fork the repository on GitHub
@@ -37,13 +37,12 @@ npm run watch
 
 #### Code Tour
 
-- `out` compiled extension code
+- `out` Compiled extension code
 - `images` Icons, logos, etc.
-- `snippets` [Bundled MongoDB Snippets][snippet guide]
-- `syntaxes` [Syntax highlighting for `.mongodb` files][syntax guide]
-- `src`
-  - `test/suite` where tests live with files names `*.test.ts`
-- `scripts` project helper scripts
+- `snippets` Bundled Terraform Snippets
+- `syntaxes` [Syntax highlighting](https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide#injection-grammars) for MongoDB keywords
+- `src/test/suite` Where tests live with '`*.test.ts`' files names
+- `scripts` Project helper scripts
 
 ## Releases
 
@@ -57,7 +56,7 @@ https://code.visualstudio.com/api/working-with-extensions/continuous-integration
 
 1. To kick off a release run `npm run release-draft *.*.*|major|minor|patch` on the main branch. This will run the [release draft script](https://github.com/mongodb-js/vscode/blob/main/scripts/release-draft.js) which creates a new tag for the release.
 1. When that tag has been created, a GitHub action for building the extension is automatically started: https://github.com/mongodb-js/vscode/blob/main/.github/workflows/test-and-build.yaml This creates the `.vsix` artifact for that release version and creates a draft GitHub release, with the `.vsix` artifact attached. At this point you can look in https://github.com/mongodb-js/vscode/releases and see the draft release.
-1. Now is a good time to download the built `.vsix` artifact in the new [GitHub release draft](https://github.com/mongodb-js/vscode/releases) and ensure it works smoothly. https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix
+1. Now let's download the built `.vsix` artifact in the new [GitHub release draft](https://github.com/mongodb-js/vscode/releases) and ensure it works smoothly. https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix Manually test the new version using the testing matrix found here: https://docs.google.com/spreadsheets/d/1014WyX-WPMfZTj6qVyYDA1JowGCFNCOQGgEhIA0O0bs/edit#gid=0 Duplicate the testing template page and rename it the new release. Not every test needs to be performed before we release, however, the critical paths should be tested.
 1. Update the [release notes](https://github.com/mongodb-js/vscode/releases) in GitHub, documenting user facing changes. Once you’re happy with the changes you can publish the release.
 1. When the release is published, the GitHub action https://github.com/mongodb-js/vscode/blob/main/.github/workflows/publish-release.yaml is automatically run, which downloads the release artifact and then publishes it to the VSCode marketplace.
 1. Nice! ✨ Now you can verify it all completed by visiting https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode and seeing the new version is up. You also try installing it in VSCode :) ✨

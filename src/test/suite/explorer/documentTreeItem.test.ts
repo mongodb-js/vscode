@@ -4,7 +4,7 @@ import type { DataService } from 'mongodb-data-service';
 import DocumentTreeItem from '../../../explorer/documentTreeItem';
 import { DataServiceStub } from '../stubs';
 
-const mockDataService = new DataServiceStub() as any as DataService;
+const dataServiceStub = new DataServiceStub() as any as DataService;
 
 suite('DocumentTreeItem Test Suite', () => {
   test('it makes the document _id the label of the document tree item', function () {
@@ -16,7 +16,7 @@ suite('DocumentTreeItem Test Suite', () => {
       mockDocument,
       'namespace',
       1,
-      {} as any,
+      {} as DataService,
       () => Promise.resolve()
     );
 
@@ -41,7 +41,7 @@ suite('DocumentTreeItem Test Suite', () => {
       mockDocument,
       'namespace',
       1,
-      mockDataService,
+      dataServiceStub,
       () => Promise.resolve()
     );
 
@@ -63,7 +63,7 @@ suite('DocumentTreeItem Test Suite', () => {
       mockDocument,
       'namespace',
       1,
-      mockDataService,
+      dataServiceStub,
       () => Promise.resolve()
     );
 

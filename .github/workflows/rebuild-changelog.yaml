@@ -12,7 +12,9 @@ jobs:
     name: Rebuild changelog
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Set up Git
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"

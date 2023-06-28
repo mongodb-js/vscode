@@ -1,11 +1,11 @@
 ignores:
  - "@babel/core"
- - "@leafygreen-ui/palette"
  - "@mongodb-js/prettier-config-compass"
  - "@types/jest"
  - "buffer"
  - "eslint-config-mongodb-js"
  - "keytar"
+ - "electron"
  - "mocha-junit-reporter"
  - "mocha-multi"
  - "mongodb-client-encryption"
@@ -14,3 +14,11 @@ ignores:
  - "vscode-languageserver-textdocument"
  - "vscode"
  - "webpack-cli"
+ - "@mongodb-js/oidc-plugin"
+ - css-loader
+ - less
+ - less-loader
+ - node-loader
+ - postcss-loader
+ - style-loader
+ - ts-loader

@@ -6,7 +6,8 @@
 import * as vscode from 'vscode';
 
 import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
-import CodeActionProvider from './editors/codeActionProvider';
+import PlaygroundSelectedCodeActionProvider from './editors/playgroundSelectedCodeActionProvider';
+import PlaygroundDiagnosticsCodeActionProvider from './editors/playgroundDiagnosticsCodeActionProvider';
 import ConnectionController from './connectionController';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
 import { createLogger } from './logging';
@@ -44,7 +45,8 @@ const log = createLogger('commands');
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
-  _codeActionProvider: CodeActionProvider;
+  _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _context: vscode.ExtensionContext;
   _editorsController: EditorsController;
@@ -96,7 +98,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       new ActiveConnectionCodeLensProvider(this._connectionController);
     this._exportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider();
-    this._codeActionProvider = new CodeActionProvider();
+    this._playgroundSelectedCodeActionProvider =
+      new PlaygroundSelectedCodeActionProvider();
+    this._playgroundDiagnosticsCodeActionProvider =
+      new PlaygroundDiagnosticsCodeActionProvider();
     this._playgroundController = new PlaygroundController(
       this._connectionController,
       this._languageServerController,
@@ -105,7 +110,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
       this._exportToLanguageCodeLensProvider,
-      this._codeActionProvider,
+      this._playgroundSelectedCodeActionProvider,
       this._explorerController
     );
     this._editorsController = new EditorsController(
@@ -117,7 +122,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._playgroundResultViewProvider,
       this._activeConnectionCodeLensProvider,
       this._exportToLanguageCodeLensProvider,
-      this._codeActionProvider,
+      this._playgroundSelectedCodeActionProvider,
+      this._playgroundDiagnosticsCodeActionProvider,
       this._editDocumentCodeLensProvider
     );
     this._webviewController = new WebviewController(
@@ -138,7 +144,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     await this._languageServerController.startLanguageServer();
 
     this.registerCommands();
-
     this.showOverviewPageIfRecentlyInstalled();
   }
 
@@ -195,8 +200,15 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS, () =>
-      this._playgroundsExplorer.refresh()
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX,
+      (data) => this._playgroundController.fixThisInvalidInteractiveSyntax(data)
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX,
+      (data) => this._playgroundController.fixAllInvalidInteractiveSyntax(data)
     );
 
     // ------ EXPORT TO LANGUAGE ------ //
@@ -239,7 +251,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerEditorCommands();
     this.registerTreeViewCommands();
 
-    log.info('Registered commands.');
+    log.info('Commands registered');
   };
 
   registerCommand = (
@@ -294,11 +306,16 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_CONNECTION,
-      (connectionTreeItem: ConnectionTreeItem): Promise<boolean> => {
+      async (connectionTreeItem: ConnectionTreeItem): Promise<boolean> => {
         connectionTreeItem.resetCache();
         this._explorerController.refresh();
+        await this._languageServerController.resetCache({
+          databases: true,
+          collections: true,
+          fields: true,
+        });
 
-        return Promise.resolve(true);
+        return true;
       }
     );
     this.registerCommand(
@@ -398,11 +415,15 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_DATABASE,
-      (databaseTreeItem: DatabaseTreeItem): Promise<boolean> => {
+      async (databaseTreeItem: DatabaseTreeItem): Promise<boolean> => {
         databaseTreeItem.resetCache();
         this._explorerController.refresh();
+        await this._languageServerController.resetCache({
+          collections: true,
+          fields: true,
+        });
 
-        return Promise.resolve(true);
+        return true;
       }
     );
     this.registerCommand(
@@ -461,11 +482,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_COLLECTION,
-      (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
+      async (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
         collectionTreeItem.resetCache();
         this._explorerController.refresh();
+        await this._languageServerController.resetCache({ fields: true });
 
-        return Promise.resolve(true);
+        return true;
       }
     );
     this.registerCommand(
@@ -493,17 +515,30 @@ export default class MDBExtensionController implements vscode.Disposable {
       async (documentsListTreeItem: DocumentListTreeItem): Promise<boolean> => {
         await documentsListTreeItem.resetCache();
         this._explorerController.refresh();
+        await this._languageServerController.resetCache({ fields: true });
 
-        return Promise.resolve(true);
+        return true;
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_INSERT_DOCUMENT_FROM_TREE_VIEW,
+      async (
+        documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem
+      ): Promise<boolean> => {
+        return this._playgroundController.createPlaygroundForInsertDocument(
+          documentsListTreeItem.databaseName,
+          documentsListTreeItem.collectionName
+        );
       }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_SCHEMA,
-      (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
+      async (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
         schemaTreeItem.resetCache();
         this._explorerController.refresh();
+        await this._languageServerController.resetCache({ fields: true });
 
-        return Promise.resolve(true);
+        return true;
       }
     );
     this.registerCommand(
@@ -534,11 +569,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_VIEW_ACTION,
-      () => this._playgroundController.createPlayground()
-    );
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER,
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW,
       () => this._playgroundController.createPlayground()
     );
     this.registerCommand(
@@ -658,13 +689,13 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   async deactivate(): Promise<void> {
     await this._connectionController.disconnect();
+    await this._languageServerController.deactivate();
 
     this._explorerController.deactivate();
     this._helpExplorer.deactivate();
     this._playgroundsExplorer.deactivate();
     this._playgroundController.deactivate();
     this._telemetryService.deactivate();
-    this._languageServerController.deactivate();
     this._editorsController.deactivate();
   }
 }

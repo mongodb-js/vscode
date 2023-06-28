@@ -9,7 +9,7 @@ import {
 } from '../../store/actions';
 import FormGroup from './form-group';
 
-const styles = require('./form.less');
+import styles from './form.less';
 
 type DispatchProps = {
   onConnectClicked: () => void;

@@ -7,6 +7,7 @@ import {
   LDAPUsernameChangedAction,
 } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
+import LINKS from '../../../../../../utils/links';
 
 type DispatchProps = {
   onLDAPPasswordChanged: (newPassword: string) => void;
@@ -58,7 +59,7 @@ class LDAP extends React.Component<props> {
           changeHandler={this.onUsernameChanged}
           value={ldapUsername || ''}
           // Open the help page for LDAP.
-          linkTo="https://docs.mongodb.com/manual/core/security-ldap/"
+          linkTo={LINKS.ldapDocs}
         />
         <FormInput
           label="Password"

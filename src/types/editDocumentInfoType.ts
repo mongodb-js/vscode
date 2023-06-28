@@ -1,10 +1,9 @@
-import { EJSON } from 'bson';
 import { DocumentSource } from '../documentSource';
 
 export type EditDocumentInfo = {
   source: DocumentSource;
   line: number;
-  documentId: EJSON.SerializableTypes;
+  documentId: any;
   namespace: string;
   connectionId: string | null;
 };

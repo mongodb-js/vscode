@@ -1,4 +1,3 @@
-import * as util from 'util';
 import * as vscode from 'vscode';
 import { DataService } from 'mongodb-data-service';
 import path from 'path';
@@ -97,10 +96,7 @@ export default class IndexListTreeItem
     let indexes;
 
     try {
-      const fetchIndexes = util.promisify(
-        this._dataService.indexes.bind(this._dataService)
-      );
-      indexes = await fetchIndexes(
+      indexes = await this._dataService.indexes(
         this._namespace,
         {} // No options.
       );

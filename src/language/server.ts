@@ -1,23 +1,26 @@
+import type {
+  InitializeParams,
+  CompletionItem,
+  TextDocumentPositionParams,
+  Connection,
+} from 'vscode-languageserver/node';
 import {
   createConnection,
   TextDocuments,
   ProposedFeatures,
-  InitializeParams,
   DidChangeConfigurationNotification,
-  CompletionItem,
-  TextDocumentPositionParams,
   RequestType,
   TextDocumentSyncKind,
-  Connection,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
 import { ServerCommands } from './serverCommands';
-import {
-  PlaygroundExecuteParameters,
+import type {
+  PlaygroundEvaluateParams,
   PlaygroundTextAndSelection,
 } from '../types/playgroundType';
+import type { ClearCompletionsCache } from '../types/completionsCache';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -27,7 +30,7 @@ const connection: Connection = createConnection(ProposedFeatures.all);
 // The text document manager supports full document sync only.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-// MongoDB Playground Service Manager.
+// MongoDB language service.
 const mongoDBService = new MongoDBService(connection);
 
 let hasConfigurationCapability = false;
@@ -54,7 +57,14 @@ connection.onInitialize((params: InitializeParams) => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
-      // Tell the client that the server supports code completion
+      textDocument: {
+        completion: {
+          completionItem: {
+            preselectSupport: true,
+          },
+        },
+      },
+      // Tell the client that the server supports code completion.
       completionProvider: {
         resolveProvider: true,
         triggerCharacters: ['.'],
@@ -84,7 +94,7 @@ connection.onInitialized(() => {
   // }
 });
 
-// The example settings
+// The example settings.
 interface ExampleSettings {
   maxNumberOfProblems: number;
 }
@@ -111,17 +121,20 @@ connection.onDidChangeConfiguration((/* change */) => {
 
 // Only keep settings for open documents.
 documents.onDidClose((e) => {
-  // connection.console.log(`documents.onDidClose: ${JSON.stringify(e)}`);
-
   documentSettings.delete(e.document.uri);
 });
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-documents.onDidChangeContent((/* change */) => {
-  // connection.console.log(
-  //   `documents.onDidChangeContent: ${JSON.stringify(change)}`
-  // );
+documents.onDidChangeContent(async (change) => {
+  const textFromEditor = change.document.getText();
+
+  const diagnostics = mongoDBService.provideDiagnostics(
+    textFromEditor ? textFromEditor : ''
+  );
+
+  // Send the computed diagnostics to VSCode.
+  await connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
 });
 
 connection.onRequest(new RequestType('textDocument/codeLens'), (/* event*/) => {
@@ -140,19 +153,21 @@ connection.onDidChangeWatchedFiles((/* _change */) => {
   // );
 });
 
-// Execute the entire playground script.
+// Execute a playground.
 connection.onRequest(
-  ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
-  (executionParameters: PlaygroundExecuteParameters, token) => {
-    return mongoDBService.executeAll(executionParameters, token);
+  ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
+  (evaluateParams: PlaygroundEvaluateParams, token) => {
+    return mongoDBService.evaluate(evaluateParams, token);
   }
 );
 
+// Pass the extension path to the MongoDB service.
 connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
-  return mongoDBService.setExtensionPath(extensionPath);
+  mongoDBService.setExtensionPath(extensionPath);
 });
 
-// Connect to CliServiceProvider to enable shell completions.
+// Connect the MongoDB language service to CliServiceProvider
+// using the current connection of the client.
 connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
   return mongoDBService.connectToServiceProvider(params);
 });
@@ -163,6 +178,15 @@ connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
   return mongoDBService.disconnectFromServiceProvider();
 });
 
+// Set fields for tests.
+connection.onRequest(
+  ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
+  ({ namespace, schemaFields }) => {
+    return mongoDBService.cacheFields(namespace, schemaFields);
+  }
+);
+
+// Identify if the playground selection is an array or object.
 connection.onRequest(
   ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,
   (params: PlaygroundTextAndSelection) => {
@@ -170,6 +194,7 @@ connection.onRequest(
   }
 );
 
+// Find the current namespace for a playground selection.
 connection.onRequest(
   ServerCommands.GET_NAMESPACE_FOR_SELECTION,
   (params: PlaygroundTextAndSelection) => {
@@ -177,14 +202,22 @@ connection.onRequest(
   }
 );
 
-// This handler provides the list of the completion items.
-connection.onCompletion((params: TextDocumentPositionParams) => {
-  const textFromEditor = documents.get(params.textDocument.uri)?.getText();
+// Clear cached completions by provided cache names.
+connection.onRequest(
+  ServerCommands.CLEAR_CACHED_COMPLETIONS,
+  (clear: ClearCompletionsCache) => {
+    return mongoDBService.clearCachedCompletions(clear);
+  }
+);
 
-  return mongoDBService.provideCompletionItems(
-    textFromEditor ? textFromEditor : '',
-    params.position
-  );
+// Provide MongoDB completion items.
+connection.onCompletion((params: TextDocumentPositionParams) => {
+  const document = documents.get(params.textDocument.uri);
+
+  return mongoDBService.provideCompletionItems({
+    document,
+    position: params.position,
+  });
 });
 
 // This handler resolves additional information for the item selected in
@@ -238,6 +271,7 @@ connection.onDidOpenTextDocument((/* params */) => {
   // params.textDocument.text the initial full content of the document.
   // connection.console.log(`${params.textDocument.uri} opened.`);
 });
+
 connection.onDidChangeTextDocument((/* params */) => {
   // The content of a text document did change in VSCode.
   // params.textDocument.uri uniquely identifies the document.
@@ -248,6 +282,7 @@ connection.onDidChangeTextDocument((/* params */) => {
   //   )}`
   // );
 });
+
 connection.onDidCloseTextDocument((/* params */) => {
   // A text document got closed in VSCode.
   // params.textDocument.uri uniquely identifies the document.

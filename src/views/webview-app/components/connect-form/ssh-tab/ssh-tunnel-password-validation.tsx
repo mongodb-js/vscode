@@ -11,6 +11,7 @@ import {
 import { AppState } from '../../../store/store';
 import FormInput from '../../form/form-input';
 import FormGroup from '../../form/form-group';
+import LINKS from '../../../../../utils/links';
 
 type DispatchProps = {
   onSSHTunnelHostnameChanged: (sshTunnelHostname: string) => void;
@@ -83,7 +84,7 @@ class SSHTunnelPasswordValidation extends React.Component<props> {
           error={!isValid && sshTunnelHostname === undefined}
           changeHandler={this.onSSHTunnelHostnameChanged}
           value={sshTunnelHostname || ''}
-          linkTo="https://docs.mongodb.com/compass/current/connect"
+          linkTo={LINKS.sshConnectionDocs}
         />
         <FormInput
           label="SSH Tunnel Port"

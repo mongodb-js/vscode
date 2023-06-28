@@ -1,4 +1,4 @@
-import * as path from 'path';
+import path from 'path';
 import * as vscode from 'vscode';
 import { config } from 'dotenv';
 import { DataService } from 'mongodb-data-service';
@@ -8,14 +8,13 @@ import SegmentAnalytics from 'analytics-node';
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
-import {
-  getConnectionTelemetryProperties,
-  NewConnectionTelemetryEventProperties,
-} from './connectionTelemetry';
-import type { ShellExecuteAllResult } from '../types/playgroundType';
+import { getConnectionTelemetryProperties } from './connectionTelemetry';
+import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
+import type { ShellEvaluateResult } from '../types/playgroundType';
 import { StorageController } from '../storage';
 
 const log = createLogger('telemetry');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../package.json');
 
 type PlaygroundTelemetryEventProperties = {
@@ -27,13 +26,13 @@ type PlaygroundTelemetryEventProperties = {
 export type SegmentProperties = {
   event: string;
   userId?: string;
-  anonymousId?: string;
+  anonymousId: string;
   properties: unknown;
 };
 
 type LinkClickedTelemetryEventProperties = {
   screen: string;
-  link_id: string; // eslint-disable-line camelcase
+  link_id: string;
 };
 
 type ExtensionCommandRunTelemetryEventProperties = {
@@ -49,7 +48,6 @@ type DocumentEditedTelemetryEventProperties = {
   source: DocumentSource;
 };
 
-/* eslint-disable camelcase */
 type QueryExportedTelemetryEventProperties = {
   language: string;
   num_stages?: number;
@@ -57,7 +55,18 @@ type QueryExportedTelemetryEventProperties = {
   with_builders: boolean;
   with_driver_syntax: boolean;
 };
-/* eslint-enable camelcase */
+
+type PlaygroundCreatedTelemetryEventProperties = {
+  playground_type: string;
+};
+
+type PlaygroundSavedTelemetryEventProperties = {
+  file_type?: string;
+};
+
+type PlaygroundLoadedTelemetryEventProperties = {
+  file_type?: string;
+};
 
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
@@ -66,7 +75,10 @@ export type TelemetryEventProperties =
   | NewConnectionTelemetryEventProperties
   | DocumentUpdatedTelemetryEventProperties
   | DocumentEditedTelemetryEventProperties
-  | QueryExportedTelemetryEventProperties;
+  | QueryExportedTelemetryEventProperties
+  | PlaygroundCreatedTelemetryEventProperties
+  | PlaygroundSavedTelemetryEventProperties
+  | PlaygroundLoadedTelemetryEventProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -79,6 +91,7 @@ export enum TelemetryEventTypes {
   DOCUMENT_EDITED = 'Document Edited',
   QUERY_EXPORTED = 'Query Exported',
   AGGREGATION_EXPORTED = 'Aggregation Exported',
+  PLAYGROUND_CREATED = 'Playground Created',
 }
 
 /**
@@ -87,7 +100,7 @@ export enum TelemetryEventTypes {
 export default class TelemetryService {
   _segmentAnalytics?: SegmentAnalytics;
   _segmentUserId?: string;
-  _segmentAnonymousId?: string;
+  _segmentAnonymousId: string;
   _segmentKey?: string; // The segment API write key.
 
   private _context: vscode.ExtensionContext;
@@ -104,22 +117,6 @@ export default class TelemetryService {
     this._segmentUserId = userId;
     this._segmentAnonymousId = anonymousId;
     this._segmentKey = this._readSegmentKey();
-
-    vscode.workspace.onDidOpenTextDocument((document) => {
-      if (
-        document &&
-        document.languageId === 'mongodb' &&
-        document.uri.scheme === 'file'
-      ) {
-        this.trackPlaygroundLoaded();
-      }
-    });
-
-    vscode.workspace.onDidSaveTextDocument((document) => {
-      if (document && document.languageId === 'mongodb') {
-        this.trackPlaygroundSaved();
-      }
-    });
   }
 
   private _readSegmentKey(): string | undefined {
@@ -130,36 +127,39 @@ export default class TelemetryService {
         this._context.extensionPath,
         './constants.json'
       );
-      const constantsFile = fs.readFileSync(segmentKeyFileLocation).toString();
+      // eslint-disable-next-line no-sync
+      const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
       const constants = JSON.parse(constantsFile) as { segmentKey: string };
 
-      log.info('TELEMETRY key received', typeof constants.segmentKey);
+      log.info('SegmentKey was found', { type: typeof constants.segmentKey });
 
       return constants.segmentKey;
     } catch (error) {
-      log.error('TELEMETRY key error', error);
-
+      log.error('SegmentKey was not found', error);
       return;
     }
   }
 
   activateSegmentAnalytics(): void {
-    if (this._segmentKey) {
-      this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
-        // Segment batches messages and flushes asynchronously to the server.
-        // The flushAt is a number of messages to enqueue before flushing.
-        // For the development mode we want to flush every submitted message.
-        // Otherwise, we use 20 that is the default libraries' value.
-        flushAt: process.env.MODE === 'development' ? 1 : 20,
-        // The number of milliseconds to wait
-        // before flushing the queue automatically.
-        flushInterval: 10000, // 10 seconds is the default libraries' value.
-      });
-
-      const segmentProperties = this.getTelemetryUserIdentity();
-      this._segmentAnalytics.identify(segmentProperties);
-      log.info('TELEMETRY identify', segmentProperties);
+    if (!this._segmentKey) {
+      return;
     }
+
+    log.info('Activating segment analytics...');
+    this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
+      // Segment batches messages and flushes asynchronously to the server.
+      // The flushAt is a number of messages to enqueue before flushing.
+      // For the development mode we want to flush every submitted message.
+      // Otherwise, we use 20 that is the default libraries' value.
+      flushAt: process.env.MODE === 'development' ? 1 : 20,
+      // The number of milliseconds to wait
+      // before flushing the queue automatically.
+      flushInterval: 10000, // 10 seconds is the default libraries' value.
+    });
+
+    const segmentProperties = this.getTelemetryUserIdentity();
+    this._segmentAnalytics.identify(segmentProperties);
+    log.info('Segment analytics activated with properties', segmentProperties);
   }
 
   deactivate(): void {
@@ -188,58 +188,59 @@ export default class TelemetryService {
     return true;
   }
 
+  _segmentAnalyticsTrack(segmentProperties: SegmentProperties) {
+    if (!this._isTelemetryFeatureEnabled()) {
+      return;
+    }
+
+    this._segmentAnalytics?.track(segmentProperties, (error?: Error) => {
+      if (error) {
+        log.error('Failed to track telemetry', error);
+      } else {
+        log.info('Telemetry sent', segmentProperties);
+      }
+    });
+  }
+
   track(
     eventType: TelemetryEventTypes,
     properties?: TelemetryEventProperties
   ): void {
-    if (this._isTelemetryFeatureEnabled()) {
-      const segmentProperties: SegmentProperties = {
-        ...this.getTelemetryUserIdentity(),
-        event: eventType,
-        properties: {
-          ...properties,
-          extension_version: `${version}`,
-        },
-      };
+    this._segmentAnalyticsTrack({
+      ...this.getTelemetryUserIdentity(),
+      event: eventType,
+      properties: {
+        ...properties,
+        extension_version: `${version}`,
+      },
+    });
+  }
 
-      log.info('TELEMETRY track', segmentProperties);
-
-      this._segmentAnalytics?.track(segmentProperties, (error?: Error) => {
-        if (error) {
-          log.error('TELEMETRY track error', error);
-        }
-
-        log.info('TELEMETRY track done');
-      });
-    }
+  async _getConnectionTelemetryProperties(
+    dataService: DataService,
+    connectionType: ConnectionTypes
+  ) {
+    return await getConnectionTelemetryProperties(dataService, connectionType);
   }
 
   async trackNewConnection(
     dataService: DataService,
     connectionType: ConnectionTypes
   ): Promise<void> {
-    try {
-      if (!this._isTelemetryFeatureEnabled()) {
-        return;
-      }
+    const connectionTelemetryProperties =
+      await this._getConnectionTelemetryProperties(dataService, connectionType);
 
-      const connectionTelemetryProperties =
-        await getConnectionTelemetryProperties(dataService, connectionType);
-
-      this.track(
-        TelemetryEventTypes.NEW_CONNECTION,
-        connectionTelemetryProperties
-      );
-    } catch (error) {
-      log.error('TELEMETRY track new connection', error);
-    }
+    this.track(
+      TelemetryEventTypes.NEW_CONNECTION,
+      connectionTelemetryProperties
+    );
   }
 
   trackCommandRun(command: string): void {
     this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
   }
 
-  getPlaygroundResultType(res: ShellExecuteAllResult): string {
+  getPlaygroundResultType(res: ShellEvaluateResult): string {
     if (!res || !res.result || !res.result.type) {
       return 'other';
     }
@@ -270,6 +271,7 @@ export default class TelemetryService {
     if (this._segmentUserId) {
       return {
         userId: this._segmentUserId,
+        anonymousId: this._segmentAnonymousId,
       };
     }
 
@@ -279,7 +281,7 @@ export default class TelemetryService {
   }
 
   trackPlaygroundCodeExecuted(
-    result: ShellExecuteAllResult,
+    result: ShellEvaluateResult,
     partial: boolean,
     error: boolean
   ): void {
@@ -297,12 +299,16 @@ export default class TelemetryService {
     });
   }
 
-  trackPlaygroundLoaded(): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_LOADED);
+  trackPlaygroundLoaded(fileType?: string): void {
+    this.track(TelemetryEventTypes.PLAYGROUND_LOADED, {
+      file_type: fileType,
+    });
   }
 
-  trackPlaygroundSaved(): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_SAVED);
+  trackPlaygroundSaved(fileType?: string): void {
+    this.track(TelemetryEventTypes.PLAYGROUND_SAVED, {
+      file_type: fileType,
+    });
   }
 
   trackDocumentUpdated(source: DocumentSource, success: boolean): void {
@@ -323,5 +329,11 @@ export default class TelemetryService {
     aggExportedProps: QueryExportedTelemetryEventProperties
   ): void {
     this.track(TelemetryEventTypes.AGGREGATION_EXPORTED, aggExportedProps);
+  }
+
+  trackPlaygroundCreated(playgroundType: string): void {
+    this.track(TelemetryEventTypes.PLAYGROUND_CREATED, {
+      playground_type: playgroundType,
+    });
   }
 }

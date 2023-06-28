@@ -14,6 +14,9 @@ enum EXTENSION_COMMANDS {
   MDB_RUN_ALL_PLAYGROUND_BLOCKS = 'mdb.runAllPlaygroundBlocks',
   MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runPlayground',
 
+  MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixThisInvalidInteractiveSyntax',
+  MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixAllInvalidInteractiveSyntax',
+
   MDB_EXPORT_TO_PYTHON = 'mdb.exportToPython',
   MDB_EXPORT_TO_JAVA = 'mdb.exportToJava',
   MDB_EXPORT_TO_CSHARP = 'mdb.exportToCsharp',
@@ -26,7 +29,6 @@ enum EXTENSION_COMMANDS {
   MDB_SAVE_MONGODB_DOCUMENT = 'mdb.saveMongoDBDocument',
 
   MDB_CHANGE_ACTIVE_CONNECTION = 'mdb.changeActiveConnection',
-  MDB_REFRESH_PLAYGROUNDS = 'mdb.refreshPlaygrounds',
 
   MDB_CODELENS_SHOW_MORE_DOCUMENTS = 'mdb.codeLens.showMoreDocumentsClicked',
 
@@ -34,10 +36,9 @@ enum EXTENSION_COMMANDS {
   MDB_ADD_CONNECTION = 'mdb.addConnection',
   MDB_ADD_CONNECTION_WITH_URI = 'mdb.addConnectionWithURI',
   MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW = 'mdb.refreshPlaygroundsFromTreeView',
-  MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW = 'mdb.openPlaygroundFromTreeItem',
+  MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW = 'mdb.openPlaygroundFromTreeView',
   MDB_CONNECT_TO_CONNECTION_TREE_VIEW = 'mdb.connectToConnectionTreeItem',
-  MDB_CREATE_PLAYGROUND_FROM_VIEW_ACTION = 'mdb.createNewPlaygroundFromViewAction',
-  MDB_CREATE_PLAYGROUND_FROM_PLAYGROUND_EXPLORER = 'mdb.createNewPlaygroundFromPlaygroundExplorer',
+  MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW = 'mdb.createNewPlaygroundFromTreeView',
   MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW = 'mdb.disconnectFromConnectionTreeItem',
   MDB_REFRESH_CONNECTION = 'mdb.refreshConnection',
   MDB_COPY_CONNECTION_STRING = 'mdb.copyConnectionString',
@@ -54,6 +55,7 @@ enum EXTENSION_COMMANDS {
   MDB_VIEW_COLLECTION_DOCUMENTS = 'mdb.viewCollectionDocuments',
   MDB_REFRESH_COLLECTION = 'mdb.refreshCollection',
   MDB_REFRESH_DOCUMENT_LIST = 'mdb.refreshDocumentList',
+  MDB_INSERT_DOCUMENT_FROM_TREE_VIEW = 'mdb.insertDocumentFromTreeView',
   MDB_REFRESH_SCHEMA = 'mdb.refreshSchema',
   MDB_COPY_SCHEMA_FIELD_NAME = 'mdb.copySchemaFieldName',
   MDB_REFRESH_INDEXES = 'mdb.refreshIndexes',

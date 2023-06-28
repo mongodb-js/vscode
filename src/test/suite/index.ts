@@ -1,10 +1,10 @@
 import Mocha from 'mocha';
 import glob from 'glob';
-import path = require('path');
+import path from 'path';
 import MDBExtensionController from '../../mdbExtensionController';
 import { ext } from '../../extensionConstants';
 import KeytarStub from './keytarStub';
-import { TestExtensionContext } from './stubs';
+import { ExtensionContextStub } from './stubs';
 import { mdbTestExtension } from './stubbableMdbExtension';
 
 export async function run(): Promise<void> {
@@ -24,16 +24,16 @@ export async function run(): Promise<void> {
   const testsRoot = path.join(__dirname, '..');
 
   // Activate the extension.
-  mdbTestExtension.testExtensionContext = new TestExtensionContext();
+  mdbTestExtension.extensionContextStub = new ExtensionContextStub();
   mdbTestExtension.testExtensionController = new MDBExtensionController(
-    mdbTestExtension.testExtensionContext,
+    mdbTestExtension.extensionContextStub,
     { shouldTrackTelemetry: false }
   );
 
   await mdbTestExtension.testExtensionController.activate();
 
   return new Promise((c, e) => {
-    glob(
+    void glob(
       '**/**.test.js',
       {
         cwd: testsRoot,

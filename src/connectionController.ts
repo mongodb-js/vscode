@@ -27,9 +27,11 @@ import {
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
 import TelemetryService from './telemetry/telemetryService';
+import LINKS from './utils/links';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJSON = require('../package.json');
 
 const log = createLogger('connection controller');
-const packageJSON = require('../package.json');
 
 const MAX_CONNECTION_NAME_LENGTH = 512;
 
@@ -155,7 +157,7 @@ export default class ConnectionController {
       } catch (error) {
         // Here we're lenient when loading connections in case their
         // connections have become corrupted.
-        log.error(`Connection migration failed: ${formatError(error).message}`);
+        log.error('Migrating previously saved connections failed', error);
         return;
       }
     }
@@ -164,7 +166,7 @@ export default class ConnectionController {
     // Return saved connection as it is.
     if (!ext.keytarModule) {
       log.error(
-        'Load saved connections failed: VSCode extension keytar module is undefined.'
+        'Getting connection info with secrets failed because VSCode extension keytar module is undefined'
       );
       return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
     }
@@ -197,9 +199,7 @@ export default class ConnectionController {
     } catch (error) {
       // Here we're lenient when loading connections in case their
       // connections have become corrupted.
-      log.error(
-        `Merging connection with secrets failed: ${formatError(error).message}`
-      );
+      log.error('Getting connection info with secrets failed', error);
       return;
     }
   }
@@ -301,7 +301,7 @@ export default class ConnectionController {
   async addNewConnectionStringAndConnect(
     connectionString: string
   ): Promise<boolean> {
-    log.info('Trying to connect to a new connection configuration');
+    log.info('Trying to connect to a new connection configuration...');
 
     const connectionStringData = new ConnectionString(connectionString);
 
@@ -313,7 +313,7 @@ export default class ConnectionController {
     );
 
     try {
-      const connectResult = await this.saveNewConnectionAndConnect(
+      const connectResult = await this.saveNewConnectionFromFormAndConnect(
         {
           id: uuidv4(),
           connectionOptions: {
@@ -326,11 +326,10 @@ export default class ConnectionController {
       return connectResult.successfullyConnected;
     } catch (error) {
       const printableError = formatError(error);
-      log.error('Failed to connect', printableError);
+      log.error('Failed to connect with a connection string', error);
       void vscode.window.showErrorMessage(
         `Unable to connect: ${printableError.message}`
       );
-
       return false;
     }
   }
@@ -391,7 +390,7 @@ export default class ConnectionController {
     return savedConnectionInfo;
   }
 
-  async saveNewConnectionAndConnect(
+  async saveNewConnectionFromFormAndConnect(
     originalConnectionInfo: ConnectionInfo,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
@@ -412,15 +411,17 @@ export default class ConnectionController {
       connectionOptions: originalConnectionInfo.connectionOptions, // The connection options with secrets.
     };
 
-    log.info(
-      `Connect called to connect to instance: ${savedConnectionInfo.name}`
-    );
+    log.info('Connect called to connect to instance', savedConnectionInfo.name);
 
     return this._connect(savedConnectionInfo.id, connectionType);
   }
 
   async _connectWithDataService(connectionOptions: ConnectionOptions) {
-    return connect(connectionOptions);
+    return connect({
+      connectionOptions,
+      productName: packageJSON.name,
+      productDocsLink: LINKS.extensionDocs(),
+    });
   }
 
   async _connect(
@@ -491,6 +492,12 @@ export default class ConnectionController {
     // Send metrics to Segment
     this.sendTelemetry(dataService, connectionType);
 
+    void vscode.commands.executeCommand(
+      'setContext',
+      'mdb.connectedToMongoDB',
+      true
+    );
+
     return {
       successfullyConnected: true,
       connectionErrorMessage: '',
@@ -533,19 +540,18 @@ export default class ConnectionController {
 
       return true;
     } catch (error) {
+      log.error('Failed to connect by a connection id', error);
       const printableError = formatError(error);
-      log.error('Failed to connect', printableError);
       void vscode.window.showErrorMessage(
         `Unable to connect: ${printableError.message}`
       );
-
       return false;
     }
   }
 
   async disconnect(): Promise<boolean> {
     log.info(
-      'Disconnect called, currently connected to:',
+      'Disconnect called, currently connected to',
       this._currentConnectionId
     );
 
@@ -570,6 +576,12 @@ export default class ConnectionController {
       await this._activeDataService.disconnect();
       void vscode.window.showInformationMessage('MongoDB disconnected.');
       this._activeDataService = null;
+
+      void vscode.commands.executeCommand(
+        'setContext',
+        'mdb.connectedToMongoDB',
+        false
+      );
     } catch (error) {
       // Show an error, however we still reset the active connection to free up the extension.
       void vscode.window.showErrorMessage(
@@ -824,7 +836,12 @@ export default class ConnectionController {
   }
 
   getMongoClientConnectionOptions():
-    | { url: string; options: MongoClientOptions }
+    | {
+        url: string;
+        options: NonNullable<
+          ReturnType<DataService['getMongoClientConnectionOptions']>
+        >['options'];
+      }
     | undefined {
     return this._activeDataService?.getMongoClientConnectionOptions();
   }

@@ -22,7 +22,7 @@ import ReplicaSetInput from './replica-set-input';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';
 
-const styles = require('./host.less');
+import styles from './host.less';
 
 enum CONNECTION_TYPE {
   STANDALONE = 'STANDALONE',

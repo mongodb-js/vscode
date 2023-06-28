@@ -7,6 +7,8 @@ on:
       - 'v*.*.*'
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
 
 jobs:
   test-and-build:
@@ -33,26 +35,27 @@ jobs:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Setup Node.js Environment
-        uses: actions/setup-node@v2.1.2
+        uses: actions/setup-node@v3
         with:
           # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0
-          node-version: ^14.17.5
+          node-version: 16.x
 
       - name: Run node-gyp bug workaround script
         run: |
           curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
 
-      - name: Install npm@8.3.1
-        run: npm install -g npm@8.3.1
+      - name: Install npm
+        run: npm install -g npm@8.19.4
 
       - name: Install Dependencies
         shell: bash
-        run: npm ci --omit=optional
+        run: |
+          npm ci --omit=optional
 
       - name: Run Checks
         run: npm run check
@@ -61,7 +64,8 @@ jobs:
         shell: bash
 
       - name: Run Tests
-        run: npm run test
+        run: |
+          npm run test
         shell: bash
 
       - name: Prepare build for release
@@ -93,6 +97,42 @@ jobs:
         with:
           name: VSIX built on ${{ runner.os }}
           path: "*.vsix"
+
+      - name: Run Snyk Test
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          npm run snyk-test > /dev/null 2>&1
+
+      - name: Create Jira Tickets
+        if: >
+          runner.os == 'Linux' &&
+          (
+            github.event_name == 'push' && github.ref == 'refs/heads/main' ||
+            github.event_name == 'workflow_dispatch' ||
+            github.event_name == 'schedule'
+          )
+        shell: bash
+        env:
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_BASE_URL: "https://jira.mongodb.org"
+          JIRA_PROJECT: "VSCODE"
+          JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
+        run: |
+          npm run create-vulnerability-tickets > /dev/null
+
+      - name: Generate Vulnerability Report (Fail on >= High)
+        if: runner.os == 'Linux'
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          # The standard output is suppressed since Github Actions logs are
+          # available for everyone with read access to the repo, which is everyone that is
+          # logged in for public repos.
+          # This command is only here to fail on failures for `main` and tags.
+          npm run generate-vulnerability-report > /dev/null
 
       - name: Create Draft Release
         run: |

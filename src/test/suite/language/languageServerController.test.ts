@@ -1,11 +1,14 @@
-import { before, after } from 'mocha';
+import * as vscode from 'vscode';
+import { before, beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import fs from 'fs';
 import path from 'path';
 import sinon from 'sinon';
+import type { DataService } from 'mongodb-data-service';
+import chaiAsPromised from 'chai-as-promised';
 
 import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
-import CodeActionProvider from '../../../editors/codeActionProvider';
+import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { ExplorerController } from '../../../explorer';
@@ -18,29 +21,27 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import TelemetryService from '../../../telemetry/telemetryService';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;
 
-chai.use(require('chai-as-promised'));
+chai.use(chaiAsPromised);
 
 suite('Language Server Controller Test Suite', () => {
-  const mockExtensionContext = new TestExtensionContext();
+  const extensionContextStub = new ExtensionContextStub();
 
-  mockExtensionContext.extensionPath = '../../';
+  // The test extension runner.
+  extensionContextStub.extensionPath = '../../';
 
-  const mockStorageController = new StorageController(mockExtensionContext);
-  const testLanguageServerController = new LanguageServerController(
-    mockExtensionContext
-  );
+  const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
-    mockStorageController,
-    mockExtensionContext
+    testStorageController,
+    extensionContextStub
   );
-  const testStatusView = new StatusView(mockExtensionContext);
+  const testStatusView = new StatusView(extensionContextStub);
   const testConnectionController = new ConnectionController(
     testStatusView,
-    mockStorageController,
+    testStorageController,
     testTelemetryService
   );
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
@@ -58,28 +59,40 @@ suite('Language Server Controller Test Suite', () => {
   );
   const testExportToLanguageCodeLensProvider =
     new ExportToLanguageCodeLensProvider();
-  const testCodeActionProvider = new CodeActionProvider();
-  const testPlaygroundController = new PlaygroundController(
-    testConnectionController,
-    testLanguageServerController,
-    testTelemetryService,
-    testStatusView,
-    testPlaygroundResultProvider,
-    testActiveDBCodeLensProvider,
-    testExportToLanguageCodeLensProvider,
-    testCodeActionProvider,
-    testExplorerController
-  );
+  const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
+
+  let languageServerControllerStub: LanguageServerController;
+  let testPlaygroundController: PlaygroundController;
+
+  const sandbox = sinon.createSandbox();
 
   before(async () => {
-    await testLanguageServerController.startLanguageServer();
+    languageServerControllerStub = new LanguageServerController(
+      extensionContextStub
+    );
+    testPlaygroundController = new PlaygroundController(
+      testConnectionController,
+      languageServerControllerStub,
+      testTelemetryService,
+      testStatusView,
+      testPlaygroundResultProvider,
+      testActiveDBCodeLensProvider,
+      testExportToLanguageCodeLensProvider,
+      testCodeActionProvider,
+      testExplorerController
+    );
+    await languageServerControllerStub.startLanguageServer();
+    await testPlaygroundController._connectToServiceProvider();
+  });
 
-    sinon.replace(
+  beforeEach(() => {
+    sandbox.stub(vscode.window, 'showErrorMessage');
+    sandbox.replace(
       testConnectionController,
       'getActiveConnectionName',
       () => 'fakeName'
     );
-    sinon.replace(
+    sandbox.replace(
       testConnectionController,
       'getActiveDataService',
       () =>
@@ -88,21 +101,23 @@ suite('Language Server Controller Test Suite', () => {
             url: TEST_DATABASE_URI,
             options: {},
           }),
-        } as any)
+        } as unknown as DataService)
     );
-    sinon.replace(testConnectionController, 'isCurrentlyConnected', () => true);
-
-    await testPlaygroundController._connectToServiceProvider();
+    sandbox.replace(
+      testConnectionController,
+      'isCurrentlyConnected',
+      () => true
+    );
   });
 
-  after(() => {
-    sinon.restore();
+  afterEach(() => {
+    sandbox.restore();
   });
 
   test('cancel a long-running script', async () => {
-    expect(testLanguageServerController._isExecutingInProgress).to.equal(false);
+    expect(languageServerControllerStub._isExecutingInProgress).to.equal(false);
 
-    await testLanguageServerController.executeAll({
+    await languageServerControllerStub.evaluate({
       codeToEvaluate: `
         const names = [
           "flour",
@@ -123,17 +138,17 @@ suite('Language Server Controller Test Suite', () => {
       connectionId: 'pineapple',
     });
 
-    testLanguageServerController.cancelAll();
-    expect(testLanguageServerController._isExecutingInProgress).to.equal(false);
+    languageServerControllerStub.cancelAll();
+    expect(languageServerControllerStub._isExecutingInProgress).to.equal(false);
   });
 
-  test('the language server dependency bundle exists', () => {
-    const extensionPath = mdbTestExtension.testExtensionContext.extensionPath;
+  test('the language server dependency bundle exists', async () => {
+    const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const languageServerModuleBundlePath = path.join(
       extensionPath,
       'dist',
       'languageServer.js'
     );
-    expect(fs.existsSync(languageServerModuleBundlePath)).to.equal(true);
+    await fs.promises.stat(languageServerModuleBundlePath);
   });
 });

@@ -11,7 +11,7 @@ import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 import EXTENSION_COMMANDS from '../commands';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 
-const log = createLogger('explorer controller');
+const log = createLogger('explorer tree controller');
 
 export default class ExplorerTreeController
   implements vscode.TreeDataProvider<vscode.TreeItem>
@@ -48,7 +48,7 @@ export default class ExplorerTreeController
     treeView: vscode.TreeView<vscode.TreeItem>
   ): void => {
     treeView.onDidCollapseElement((event: any) => {
-      log.info('Tree item was collapsed:', event.element.label);
+      log.info('Tree item was collapsed', event.element.label);
 
       if (event.element.onDidCollapse) {
         event.element.onDidCollapse();
@@ -64,7 +64,7 @@ export default class ExplorerTreeController
     });
 
     treeView.onDidExpandElement(async (event: any): Promise<void> => {
-      log.info('Tree item was expanded:', event.element.label);
+      log.info('Tree item was expanded', event.element.label);
 
       if (!event.element.onDidExpand) {
         return;

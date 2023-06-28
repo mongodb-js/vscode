@@ -16,8 +16,9 @@ import {
   TEST_DATABASE_URI,
 } from '../dbTestHelper';
 import SchemaTreeItem from '../../../explorer/schemaTreeItem';
-import { TestExtensionContext } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
 
 suite('FieldTreeItem Test Suite', function () {
@@ -38,7 +39,7 @@ suite('FieldTreeItem Test Suite', function () {
   });
 
   test('it should have a different icon depending on the field type', () => {
-    ext.context = new TestExtensionContext();
+    ext.context = new ExtensionContextStub();
 
     const stringField = new FieldTreeItem(
       {
@@ -51,7 +52,7 @@ suite('FieldTreeItem Test Suite', function () {
       {}
     );
 
-    const iconPath: any = stringField.iconPath;
+    const iconPath = stringField.iconPath as { light: string; dark: string };
     assert(iconPath.dark.includes('string.svg'));
     assert(iconPath.light.includes('string.svg'));
 
@@ -66,7 +67,7 @@ suite('FieldTreeItem Test Suite', function () {
       {}
     );
 
-    const numberIcon: any = numberField.iconPath;
+    const numberIcon = numberField.iconPath as { light: string; dark: string };
     assert(numberIcon.dark.includes('number.svg'));
     assert(numberIcon.light.includes('number.svg'));
   });

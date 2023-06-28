@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as React from 'react';
 import { mount, shallow } from 'enzyme';
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import { Provider } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { createStore } from 'redux';

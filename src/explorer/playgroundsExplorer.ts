@@ -2,14 +2,13 @@ import * as vscode from 'vscode';
 import PlaygroundsTree from './playgroundsTree';
 import { createLogger } from '../logging';
 
-const log = createLogger('explorer controller');
+const log = createLogger('playgrounds explorer');
 
 export default class PlaygroundsExplorer {
   private _treeController: PlaygroundsTree;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
   constructor() {
-    log.info('activate playgrounds explorer');
     this._treeController = new PlaygroundsTree();
   }
 
@@ -26,7 +25,9 @@ export default class PlaygroundsExplorer {
   };
 
   public activatePlaygroundsTreeView(): void {
+    log.info('Activating playgrounds explorer...');
     this.createPlaygroundsTreeView();
+    log.info('Playgrounds explorer activated');
   }
 
   public deactivate(): void {

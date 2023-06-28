@@ -1,60 +1,55 @@
-#! /usr/bin/env ts-node
+import path from 'path';
+import mkdirp from 'mkdirp';
+import ora from 'ora';
+import fs from 'fs';
+import { promisify } from 'util';
 
-import path = require('path');
-import mkdirp = require('mkdirp');
-import ora = require('ora');
-import download = require('download');
-import meow = require('meow');
+import {
+  ACCUMULATORS,
+  CONVERSION_OPERATORS,
+  EXPRESSION_OPERATORS,
+  QUERY_OPERATORS,
+  STAGE_OPERATORS,
+} from '@mongodb-js/mongodb-constants';
 
-import formatError from '../src/utils/formatError';
+const writeFile = promisify(fs.writeFile);
+const SYNTAXES_DIR = path.join(__dirname, '..', 'syntaxes');
 
-const DEFAULT_DEST = path.join(__dirname, '..', 'syntaxes');
+const mongodbeywords = [
+  ...ACCUMULATORS,
+  ...CONVERSION_OPERATORS,
+  ...EXPRESSION_OPERATORS,
+  ...QUERY_OPERATORS,
+  ...STAGE_OPERATORS,
+];
 
-const languageURL =
-  'https://raw.githubusercontent.com/mongodb-js/vscode-mongodb-language/master/syntaxes/mongodb.tmLanguage.json';
-
-const cli = meow(
-  `
-  Downloads the latest mongodb.tmLanguage.json from mongodb-js/vscode-mongodb-language
-
-	Usage
-	  $ update-grammar.ts
-
-	Options
-    --dest Directory to download to [Default: ${DEFAULT_DEST}]
-    --src URL of mongodb.tmLanguage.json [Default: ${languageURL}]
-
-	Examples
-	  $ ./update-grammar.ts
-	  ℹ Downlading latest mongodb.tmLanguage.json
-    ✔ Downloaded to /Users/lucas/vsc/syntaxes/mongodb.tmLanguage.json
-`,
-  {
-    flags: {
-      dest: {
-        default: DEFAULT_DEST,
-      },
-      url: {
-        default: languageURL,
-      },
+const injectionGrammar = {
+  scopeName: 'mongodb.injection',
+  injectionSelector: 'L:meta.objectliteral.js',
+  patterns: [{ include: '#object-member' }],
+  repository: {
+    'object-member': {
+      patterns: mongodbeywords.map((keyword) => ({
+        name: 'meta.object.member.mongodb',
+        match: `\\${keyword.name}\\b`,
+        captures: {
+          0: {
+            name: `keyword.other.${keyword.name}.mongodb`,
+          },
+        },
+      })),
     },
-  }
-);
+  },
+};
 
 (async () => {
-  await mkdirp(DEFAULT_DEST);
-
-  const ui = ora().info('Downlading latest mongodb.tmLanguage.json').start();
-
-  try {
-    await download(cli.flags.url, cli.flags.dest);
-    ui.succeed(
-      `Downloaded to ${path.join(
-        cli.flags.dest as string,
-        'mongodb.tmLanguage.json'
-      )}`
-    );
-  } catch (error) {
-    ui.fail(`Download failed: ${formatError(error).message}`);
-  }
+  const ui = ora().start();
+  ui.info('Creating the MongoDB injection grammar...');
+  await mkdirp(SYNTAXES_DIR);
+  ui.succeed(`The '${SYNTAXES_DIR}' folder has been created`);
+  await writeFile(
+    `${SYNTAXES_DIR}/mongodbInjection.tmLanguage.json`,
+    JSON.stringify(injectionGrammar, null, 2)
+  );
+  ui.succeed('MongoDB injection grammar has been saved');
 })();

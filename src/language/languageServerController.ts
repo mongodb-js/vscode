@@ -1,26 +1,30 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import type { MongoClientOptions } from 'mongodb';
-import {
-  LanguageClient,
+import type {
   LanguageClientOptions,
   ServerOptions,
+} from 'vscode-languageclient/node';
+import {
+  LanguageClient,
   TransportKind,
   CancellationTokenSource,
 } from 'vscode-languageclient/node';
-import { workspace, ExtensionContext } from 'vscode';
+import type { ExtensionContext } from 'vscode';
+import { workspace } from 'vscode';
 
 import { createLogger } from '../logging';
-import {
-  PlaygroundExecuteParameters,
-  ShellExecuteAllResult,
+import type {
+  PlaygroundEvaluateParams,
+  ShellEvaluateResult,
   ExportToLanguageMode,
   ExportToLanguageNamespace,
   PlaygroundTextAndSelection,
 } from '../types/playgroundType';
+import type { ClearCompletionsCache } from '../types/completionsCache';
 import { ServerCommands } from './serverCommands';
 
-const log = createLogger('LanguageServerController');
+const log = createLogger('language server controller');
 
 /**
  * This controller manages the language server and client.
@@ -43,11 +47,11 @@ export default class LanguageServerController {
 
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode
-    // so VS Code can attach to the server for debugging
+    // so VS Code can attach to the server for debugging.
     const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
-    // If the extension is launched in debug mode then the debug server options are used
-    // Otherwise the run options are used
+    // If the extension is launched in debug mode then the debug server options are used.
+    // Otherwise the run options are used.
     const serverOptions: ServerOptions = {
       run: { module: serverModule, transport: TransportKind.ipc },
       debug: {
@@ -57,15 +61,15 @@ export default class LanguageServerController {
       },
     };
 
-    // Options to control the language client
+    // Options to control the language client.
     const clientOptions: LanguageClientOptions = {
-      // Register the server for mongodb documents
+      // Register the language server for mongodb documents.
       documentSelector: [
-        { scheme: 'untitled', language: 'mongodb' },
-        { scheme: 'file', language: 'mongodb' },
+        { pattern: '**/*.mongodb.js' },
+        { pattern: '**/*.mongodb' },
       ],
       synchronize: {
-        // Notify the server about file changes in the workspace
+        // Notify the server about file changes in the workspace.
         fileEvents: workspace.createFileSystemWatcher('**/*'),
       },
       outputChannel: vscode.window.createOutputChannel(
@@ -73,12 +77,12 @@ export default class LanguageServerController {
       ),
     };
 
-    log.info('Creating MongoDB Language Server', {
+    log.info('Create MongoDB Language Server', {
       serverOptions,
       clientOptions,
     });
 
-    // Create the language server client
+    // Create the language server client.
     this._client = new LanguageClient(
       'mongodbLanguageServer',
       'MongoDB Language Server',
@@ -88,6 +92,9 @@ export default class LanguageServerController {
   }
 
   async startLanguageServer(): Promise<void> {
+    // Start the client. This will also launch the server.
+    await this._client.start();
+
     // Push the disposable client to the context's subscriptions so that the
     // client can be deactivated on extension deactivation.
     if (!this._context.subscriptions.includes(this._client)) {
@@ -115,29 +122,29 @@ export default class LanguageServerController {
     );
   }
 
-  deactivate(): void {
+  deactivate(): Thenable<void> | undefined {
     if (!this._client) {
       return undefined;
     }
 
-    // Stop the language server
-    void this._client.stop();
+    // Stop the language server.
+    return this._client.stop();
   }
 
-  async executeAll(
-    playgroundExecuteParameters: PlaygroundExecuteParameters
-  ): Promise<ShellExecuteAllResult> {
+  async evaluate(
+    playgroundExecuteParameters: PlaygroundEvaluateParams
+  ): Promise<ShellEvaluateResult> {
     this._isExecutingInProgress = true;
 
     // Instantiate a new CancellationTokenSource object
-    // that generates a cancellation token for each run of a playground
+    // that generates a cancellation token for each run of a playground.
     this._source = new CancellationTokenSource();
 
     // Send a request with a cancellation token
-    // to the language server server to execute scripts from a playground
-    // and return results to the playground controller when ready
-    const result: ShellExecuteAllResult = await this._client.sendRequest(
-      ServerCommands.EXECUTE_ALL_FROM_PLAYGROUND,
+    // to the language server instance to execute scripts from a playground
+    // and return results to the playground controller when ready.
+    const result: ShellEvaluateResult = await this._client.sendRequest(
+      ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
       playgroundExecuteParameters,
       this._source.token
     );
@@ -182,6 +189,13 @@ export default class LanguageServerController {
     );
   }
 
+  async resetCache(clear: ClearCompletionsCache): Promise<void> {
+    await this._client.sendRequest(
+      ServerCommands.CLEAR_CACHED_COMPLETIONS,
+      clear
+    );
+  }
+
   cancelAll(): void {
     // Send a request for cancellation. As a result
     // the associated CancellationToken will be notified of the cancellation,
@@ -191,5 +205,12 @@ export default class LanguageServerController {
       this._source?.cancel();
       this._isExecutingInProgress = false;
     }
+  }
+
+  async updateCurrentSessionFields(params): Promise<void> {
+    await this._client.sendRequest(
+      ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
+      params
+    );
   }
 }

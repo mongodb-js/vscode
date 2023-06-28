@@ -8,10 +8,7 @@
 
 The language server protocol [(LSP)](https://microsoft.github.io/language-server-protocol/specification) is mainly used as a tool between the editor (the client) and a language smartness provider (the server) to integrate features like autocomplete, go to definition, find all references, list document symbols, signature help and much more. You can find the complete list of supported features in [the official documentation](https://code.visualstudio.com/api/language-extensions/language-server-extension-guide).
 
-We can also extend the mongodb language server and client with custom methods to leverage it as a background worker. Because the language server is a separate JSON RPC enabled process, we can add RPC definitions for:
-
-- Execute playground .mongodb scripts with mongosh repl evaluator thingie
-- Schema analysis and caching
+We extend the mongodb language server and client with custom methods to leverage it as a background worker.
 
 ### Debugging
 
