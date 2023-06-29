@@ -26,7 +26,9 @@ import {
 } from './storage/storageController';
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
-import TelemetryService from './telemetry/telemetryService';
+import TelemetryService, {
+  TelemetryEventTypes,
+} from './telemetry/telemetryService';
 import LINKS from './utils/links';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -76,6 +78,35 @@ interface ConnectionSecretsInfo {
 
 type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
   Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
+
+export class KeytarModuleUnavailableError extends Error {
+  name = 'KeytarModuleUnavailableError';
+  message = 'Keytar module not found';
+}
+
+export class ConnectionMigrationFailedError extends Error {
+  name = 'ConnectionMigrationFailedError';
+  failedConnectionIdsAndNames: {
+    connectionId: string;
+    connectionName: string;
+  }[];
+  constructor(
+    failedConnectionIdsAndNames: {
+      connectionId: string;
+      connectionName: string;
+    }[]
+  ) {
+    super(
+      [
+        'Could not migration the following connections:',
+        failedConnectionIdsAndNames
+          .map(({ connectionName }) => connectionName)
+          .join(', '),
+      ].join(' ')
+    );
+    this.failedConnectionIdsAndNames = failedConnectionIdsAndNames;
+  }
+}
 
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
@@ -162,18 +193,8 @@ export default class ConnectionController {
       }
     }
 
-    // If connection has a new format already and keytar module is undefined.
-    // Return saved connection as it is.
-    if (!ext.keytarModule) {
-      log.error(
-        'Getting connection info with secrets failed because VSCode extension keytar module is undefined'
-      );
-      return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
-    }
-
     try {
-      const unparsedSecrets = await ext.keytarModule.getPassword(
-        this._serviceName,
+      const unparsedSecrets = await this._storageController.getSecret(
         savedConnectionInfo.id
       );
 
@@ -204,19 +225,233 @@ export default class ConnectionController {
     }
   }
 
-  private async _loadSavedConnectionsByStore(
-    savedConnections: ConnectionsFromStorage
-  ): Promise<void> {
-    if (!savedConnections || !Object.keys(savedConnections).length) {
+  _notifyKeytarMigrationError(migrationError: Error) {
+    const notificationAction = {
+      title: "Don't show again",
+    };
+
+    const keytarUnavailableErrAlreadyShown = this._storageController.get(
+      StorageVariables.GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_NOTIFIED
+    );
+    if (
+      migrationError instanceof KeytarModuleUnavailableError &&
+      !keytarUnavailableErrAlreadyShown
+    ) {
+      void vscode.window
+        .showInformationMessage(
+          `Failed to update connection storage - ${migrationError.message}`,
+          notificationAction
+        )
+        .then((action) => {
+          if (action === notificationAction) {
+            return this._storageController.update(
+              StorageVariables.GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_NOTIFIED,
+              true
+            );
+          }
+        });
       return;
     }
 
+    const connectionMigrationFailedErrorAlreadyShown =
+      this._storageController.get(
+        StorageVariables.GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_NOTIFIED
+      );
+    if (
+      migrationError instanceof ConnectionMigrationFailedError &&
+      !connectionMigrationFailedErrorAlreadyShown
+    ) {
+      void vscode.window
+        .showInformationMessage(
+          `Failed to update connection storage - ${migrationError.message}`,
+          notificationAction
+        )
+        .then((action) => {
+          if (action === notificationAction) {
+            return this._storageController.update(
+              StorageVariables.GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_NOTIFIED,
+              true
+            );
+          }
+        });
+      return;
+    }
+  }
+
+  async _trackKeytarMigrationError(
+    migrationError: Error,
+    totalConnections: number
+  ): Promise<void> {
+    log.error(migrationError);
+
+    const keytarUnavailableErrAlreadyTracked = this._storageController.get(
+      StorageVariables.GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_TRACKED
+    );
+    if (
+      migrationError instanceof KeytarModuleUnavailableError &&
+      !keytarUnavailableErrAlreadyTracked
+    ) {
+      this._telemetryService.track(
+        TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
+        {
+          reason: 'KEYTAR_UNAVAILABLE',
+          totalConnections,
+        }
+      );
+      await this._storageController.update(
+        StorageVariables.GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_TRACKED,
+        true
+      );
+      return;
+    }
+
+    const connectionMigrationFailedErrorAlreadyTracked =
+      this._storageController.get(
+        StorageVariables.GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_TRACKED
+      );
+    if (
+      migrationError instanceof ConnectionMigrationFailedError &&
+      !connectionMigrationFailedErrorAlreadyTracked
+    ) {
+      this._telemetryService.track(
+        TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
+        {
+          reason: 'CONNECTION_MIGRATION_FAILED',
+          totalConnections,
+          failedConnections: migrationError.failedConnectionIdsAndNames.length,
+          errorMessage: migrationError.message,
+        }
+      );
+      await this._storageController.update(
+        StorageVariables.GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_TRACKED,
+        true
+      );
+      return;
+    }
+  }
+
+  async _migrateKeytarSecrets(
+    connectionIdsAndNames: Array<{
+      connectionId: string;
+      connectionName: string;
+    }>
+  ): Promise<
+    | { migrationStatus: 'success'; migrationError: null }
+    | { migrationStatus: 'failed'; migrationError: Error }
+  > {
+    if (!ext.keytarModule) {
+      return {
+        migrationStatus: 'failed',
+        migrationError: new KeytarModuleUnavailableError(),
+      };
+    }
+
+    const failedConnections: Array<{
+      connectionId: string;
+      connectionName: string;
+    }> = [];
+
+    for (const connection of connectionIdsAndNames) {
+      try {
+        const secretsFromKeyTar = await ext.keytarModule.getPassword(
+          this._serviceName,
+          connection.connectionId
+        );
+
+        if (!secretsFromKeyTar) {
+          // There could be no secrets:
+          // - if the connection actually did not have any secret
+          // - or if the user manually removed secret from the keychain
+          // regardless, we consider this non-fatal and continue
+          continue;
+        }
+
+        log.debug('_migrateKeytarSecrets: saving secrets to SecretStorage');
+        await this._storageController.storeSecret(
+          connection.connectionId,
+          secretsFromKeyTar
+        );
+
+        log.debug('_migrateKeytarSecrets: removing secrets from keytar');
+        await ext.keytarModule.deletePassword(
+          this._serviceName,
+          connection.connectionId
+        );
+      } catch (error) {
+        failedConnections.push(connection);
+      }
+    }
+
+    if (failedConnections.length) {
+      return {
+        migrationStatus: 'failed',
+        migrationError: new ConnectionMigrationFailedError(failedConnections),
+      };
+    }
+
+    return {
+      migrationStatus: 'success',
+      migrationError: null,
+    };
+  }
+
+  async _attemptKeytarSecretsMigration(
+    connectionIdsAndNames: Array<{
+      connectionId: string;
+      connectionName: string;
+    }>
+  ): Promise<void> {
+    const keytarMigrationAlreadyAttempted = this._storageController.get(
+      StorageVariables.GLOBAL_KEYTAR_SECRETS_MIGRATED
+    );
+    if (!keytarMigrationAlreadyAttempted) {
+      const { migrationStatus, migrationError } =
+        await this._migrateKeytarSecrets(connectionIdsAndNames);
+
+      // We won't attempt migration again if it was successful or if the keytar
+      // module is not available
+      if (
+        migrationStatus === 'success' ||
+        migrationError instanceof KeytarModuleUnavailableError
+      ) {
+        await this._storageController.update(
+          StorageVariables.GLOBAL_KEYTAR_SECRETS_MIGRATED,
+          true
+        );
+      }
+
+      if (migrationError) {
+        await this._trackKeytarMigrationError(
+          migrationError,
+          connectionIdsAndNames.length
+        );
+        this._notifyKeytarMigrationError(migrationError);
+      }
+    }
+  }
+
+  private async _loadSavedConnectionsByStore(
+    savedConnections: ConnectionsFromStorage
+  ): Promise<void> {
+    const savedConnectionIds = savedConnections
+      ? Object.keys(savedConnections)
+      : [];
+    if (!savedConnectionIds.length) {
+      return;
+    }
+
+    await this._attemptKeytarSecretsMigration(
+      savedConnectionIds.map((connectionId) => ({
+        connectionId,
+        connectionName: savedConnections[connectionId].name,
+      }))
+    );
     /** User connections are being saved both in:
      * 1. Vscode global/workspace storage (without secrets) + keychain (secrets)
      * 2. Memory of the extension (with secrets)
      */
     await Promise.all(
-      Object.keys(savedConnections).map(async (connectionId) => {
+      savedConnectionIds.map(async (connectionId) => {
         // Get connection info from vscode storage and merge with secrets.
         const connectionInfoWithSecrets =
           await this._getConnectionInfoWithSecrets(
@@ -234,24 +469,20 @@ export default class ConnectionController {
   }
 
   async loadSavedConnections(): Promise<void> {
-    await Promise.all([
-      (async () => {
-        // Try to pull in the connections previously saved in the global storage of vscode.
-        const existingGlobalConnections = this._storageController.get(
-          StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-          StorageLocation.GLOBAL
-        );
-        await this._loadSavedConnectionsByStore(existingGlobalConnections);
-      })(),
-      (async () => {
-        // Try to pull in the connections previously saved in the workspace storage of vscode.
-        const existingWorkspaceConnections = this._storageController.get(
-          StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-          StorageLocation.WORKSPACE
-        );
-        await this._loadSavedConnectionsByStore(existingWorkspaceConnections);
-      })(),
-    ]);
+    const existingGlobalConnections = this._storageController.get(
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL
+    );
+
+    const existingWorkspaceConnections = this._storageController.get(
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageLocation.WORKSPACE
+    );
+
+    await this._loadSavedConnectionsByStore({
+      ...existingGlobalConnections,
+      ...existingWorkspaceConnections,
+    });
   }
 
   async connectWithURI(): Promise<boolean> {
@@ -353,21 +584,13 @@ export default class ConnectionController {
     });
   }
 
-  private async _saveSecretsToKeychain({
+  private async _saveSecretsToSecretsStorage({
     connectionId,
     secrets,
   }: ConnectionSecretsInfo): Promise<void> {
-    if (!ext.keytarModule) {
-      return;
-    }
-
     const secretsAsString = JSON.stringify(secrets);
 
-    await ext.keytarModule.setPassword(
-      this._serviceName,
-      connectionId,
-      secretsAsString
-    );
+    await this._storageController.storeSecret(connectionId, secretsAsString);
   }
 
   private async _saveConnection(
@@ -382,7 +605,7 @@ export default class ConnectionController {
       connectionOptions: safeConnectionInfo.connectionOptions, // The connection info without secrets.
     });
 
-    await this._saveSecretsToKeychain({
+    await this._saveSecretsToSecretsStorage({
       connectionId: savedConnectionInfo.id,
       secrets, // Only secrets.
     });
@@ -595,16 +818,14 @@ export default class ConnectionController {
     return true;
   }
 
-  private async _removeSecretsFromKeychain(connectionId: string) {
-    if (ext.keytarModule) {
-      await ext.keytarModule.deletePassword(this._serviceName, connectionId);
-    }
+  private async _removeSecretsFromSecretsStorage(connectionId: string) {
+    await this._storageController.deleteSecret(connectionId);
   }
 
   async removeSavedConnection(connectionId: string): Promise<void> {
     delete this._connections[connectionId];
 
-    await this._removeSecretsFromKeychain(connectionId);
+    await this._removeSecretsFromSecretsStorage(connectionId);
     this._storageController.removeConnection(connectionId);
 
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);

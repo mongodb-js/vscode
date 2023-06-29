@@ -7,6 +7,14 @@ export enum StorageVariables {
   // Only exists on globalState.
   GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW = 'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW',
   GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS',
+  // Is used to identify that a migration has been attempted
+  GLOBAL_KEYTAR_SECRETS_MIGRATED = 'GLOBAL_KEYTAR_SECRETS_MIGRATED',
+  // Is used to avoid sending multiple telemetry events for these errors
+  GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_TRACKED = 'GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_TRACKED',
+  GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_TRACKED = 'GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_TRACKED',
+  // Is used to avoid showing users the failed migration multiple times
+  GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_NOTIFIED = 'GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_NOTIFIED',
+  GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_NOTIFIED = 'GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_NOTIFIED',
   // Analytics user identify.
   GLOBAL_USER_ID = 'GLOBAL_USER_ID',
   GLOBAL_ANONYMOUS_ID = 'GLOBAL_ANONYMOUS_ID',
@@ -36,6 +44,11 @@ interface StorageVariableContents {
   [StorageVariables.GLOBAL_USER_ID]: string;
   [StorageVariables.GLOBAL_ANONYMOUS_ID]: string;
   [StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW]: boolean;
+  [StorageVariables.GLOBAL_KEYTAR_SECRETS_MIGRATED]: boolean;
+  [StorageVariables.GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_TRACKED]: boolean;
+  [StorageVariables.GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_TRACKED]: boolean;
+  [StorageVariables.GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_NOTIFIED]: boolean;
+  [StorageVariables.GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_NOTIFIED]: boolean;
   [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: ConnectionsFromStorage;
   [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: ConnectionsFromStorage;
 }
@@ -48,11 +61,14 @@ export default class StorageController {
     [StorageLocation.WORKSPACE]: vscode.Memento;
   };
 
+  _secretsStorage: vscode.SecretStorage;
+
   constructor(context: vscode.ExtensionContext) {
     this._storage = {
       [StorageLocation.GLOBAL]: context.globalState,
       [StorageLocation.WORKSPACE]: context.workspaceState,
     };
+    this._secretsStorage = context.secrets;
   }
 
   get<T extends StoredVariableName>(
@@ -242,5 +258,18 @@ export default class StorageController {
     }
 
     return StorageLocation.NONE;
+  }
+
+  async getSecret(key: string): Promise<string | null> {
+    return (await this._secretsStorage.get(key)) ?? null;
+  }
+
+  async storeSecret(key: string, value: string): Promise<void> {
+    await this._secretsStorage.store(key, value);
+  }
+
+  async deleteSecret(key: string): Promise<boolean> {
+    await this._secretsStorage.delete(key);
+    return true;
   }
 }

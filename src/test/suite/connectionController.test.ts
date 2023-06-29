@@ -2,13 +2,16 @@ import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
 import util from 'util';
 import * as vscode from 'vscode';
-import { afterEach, beforeEach } from 'mocha';
+import { afterEach, beforeEach, describe } from 'mocha';
 import assert from 'assert';
 import { connect } from 'mongodb-data-service';
 
+import * as extConstants from '../../extensionConstants';
 import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/constants/auth-strategies';
 import ConnectionController, {
+  ConnectionMigrationFailedError,
   DataServiceEventTypes,
+  KeytarModuleUnavailableError,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
@@ -28,6 +31,7 @@ import {
   TEST_USER_USERNAME,
   TEST_USER_PASSWORD,
 } from './dbTestHelper';
+import KeytarStub from './keytarStub';
 
 const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
@@ -51,12 +55,17 @@ suite('Connection Controller Test Suite', function () {
     testStorageController,
     testTelemetryService
   );
+  let showInformationMessageStub: SinonStub;
   let showErrorMessageStub: SinonStub;
   const sandbox = sinon.createSandbox();
 
   beforeEach(() => {
-    sandbox.stub(vscode.window, 'showInformationMessage');
-    showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+    showInformationMessageStub = sandbox
+      .stub(vscode.window, 'showInformationMessage')
+      .resolves();
+    showErrorMessageStub = sandbox
+      .stub(vscode.window, 'showErrorMessage')
+      .resolves();
   });
 
   afterEach(async () => {
@@ -1149,5 +1158,247 @@ suite('Connection Controller Test Suite', function () {
         },
       });
     assert.strictEqual(connectionString, expectedConnectionStringWithProxy);
+  });
+
+  describe('_attemptKeytarSecretsMigration', function () {
+    const serviceName = 'mdb.vscode.savedConnections';
+    const testGlobalSandbox = sinon.createSandbox();
+    const testSandbox = sinon.createSandbox();
+    let keytarStub: KeytarStub;
+    let telemetryTrackStub: SinonStub;
+
+    beforeEach(async function () {
+      keytarStub = new KeytarStub();
+      testGlobalSandbox.replace(extConstants.ext, 'keytarModule', keytarStub);
+
+      // To fake a successful auth connection
+      telemetryTrackStub = testGlobalSandbox
+        .stub(testTelemetryService, 'track')
+        .callsFake(() => {});
+
+      // This is to ensure that we store secrets initially in keytar until this sandbox is restored
+      testSandbox.replace(
+        testConnectionController,
+        '_connect',
+        testSandbox.stub().resolves({ successfullyConnected: true })
+      );
+      testSandbox.replace(
+        testStorageController,
+        'getSecret',
+        testSandbox
+          .stub()
+          .callsFake((key: string) => keytarStub.getPassword(serviceName, key))
+      );
+      testSandbox.replace(
+        testStorageController,
+        'storeSecret',
+        testSandbox
+          .stub()
+          .callsFake((key: string, value: string) =>
+            keytarStub.setPassword(serviceName, key, value)
+          )
+      );
+
+      // save and store connection secrets in keytar aboce
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI_USER
+      );
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
+      );
+    });
+
+    afterEach(function () {
+      testGlobalSandbox.restore();
+      testSandbox.restore();
+    });
+
+    test('should successfully migrate connection secrets from old keytar storage to the new secrets storage and only once', async function () {
+      const _migrateKeytarSecretsSpy = sandbox.spy(
+        testConnectionController,
+        '_migrateKeytarSecrets'
+      );
+
+      // First connection is with the password
+      const savedConnections = testConnectionController.getSavedConnections();
+      const [connectionWithSecret] = savedConnections;
+      // Assert that our secret is in keytar
+      assert.strictEqual(
+        await keytarStub.getPassword(serviceName, connectionWithSecret.id),
+        JSON.stringify({ password: TEST_USER_PASSWORD })
+      );
+
+      // Clearing in-memory state and restoring the stub
+      await testConnectionController.disconnect();
+      testConnectionController.clearAllConnections();
+      testSandbox.restore();
+
+      // This will trigger the migration
+      await testConnectionController.loadSavedConnections();
+
+      // Secrets in keytar have been removed
+      assert.strictEqual(
+        await keytarStub.getPassword(serviceName, connectionWithSecret.id),
+        null
+      );
+
+      // Secrets are now in secrets storage
+      assert.deepStrictEqual(
+        await testStorageController._secretsStorage.get(
+          connectionWithSecret.id
+        ),
+        JSON.stringify({ password: TEST_USER_PASSWORD })
+      );
+
+      // Assert that no tracking was done
+      assert(telemetryTrackStub.notCalled);
+      assert(showInformationMessageStub.notCalled);
+
+      // Attempt migration again
+      testConnectionController.clearAllConnections();
+      await testConnectionController.loadSavedConnections();
+      assert(_migrateKeytarSecretsSpy.calledOnce);
+    });
+
+    test('should neither attempt subsequent migration nor should it track and notify migration errors multiple times, if migration errored because keytar was not found', async () => {
+      sandbox.replace(extConstants.ext, 'keytarModule', null as any);
+      const _migrateKeytarSecretsSpy = sandbox.spy(
+        testConnectionController,
+        '_migrateKeytarSecrets'
+      );
+      // Clearing in-memory state and restoring the stub
+      await testConnectionController.disconnect();
+      testConnectionController.clearAllConnections();
+      //  This will reset storage controller
+      testSandbox.restore();
+
+      // This will trigger the migration
+      await testConnectionController.loadSavedConnections();
+      testConnectionController.clearAllConnections();
+      await testConnectionController.loadSavedConnections();
+
+      assert(_migrateKeytarSecretsSpy.calledOnce);
+
+      // Assert that we tracked only once
+      assert(telemetryTrackStub.calledOnce);
+      assert.deepStrictEqual(telemetryTrackStub.lastCall.args, [
+        'KeyTar Secrets Migration Failed',
+        { reason: 'KEYTAR_UNAVAILABLE', totalConnections: 2 },
+      ]);
+
+      // Assert that we notified the user
+      assert(showInformationMessageStub.calledOnce);
+      assert.deepStrictEqual(showInformationMessageStub.lastCall.args, [
+        `Failed to update connection storage - ${
+          new KeytarModuleUnavailableError().message
+        }`,
+        { title: "Don't show again" },
+      ]);
+    });
+
+    test('should only attempt subsequent migration if the migration errored because of something other than keytar unavailable', async () => {
+      const _migrateKeytarSecretsStub = testSandbox
+        .stub(testConnectionController, '_migrateKeytarSecrets')
+        .resolves({
+          migrationError: new Error('Something else happened'),
+          migrationStatus: 'failed',
+        });
+
+      // Clearing in-memory state
+      await testConnectionController.disconnect();
+      testConnectionController.clearAllConnections();
+
+      // Attempting migration
+      await testConnectionController.loadSavedConnections();
+      // Assert that no tracking was done because this is not a trackable error
+      assert(telemetryTrackStub.notCalled);
+      assert(showInformationMessageStub.notCalled);
+
+      // Attempting migration again, with a trackable error
+      const dummyError = new ConnectionMigrationFailedError([
+        {
+          connectionId: '1',
+          connectionName: 'test-connection',
+        },
+      ]);
+      _migrateKeytarSecretsStub.resolves({
+        migrationError: dummyError,
+        migrationStatus: 'failed',
+      });
+      testConnectionController.clearAllConnections();
+      await testConnectionController.loadSavedConnections();
+
+      assert.strictEqual(_migrateKeytarSecretsStub.callCount, 2);
+
+      // Assert that we tracked this time
+      assert(telemetryTrackStub.calledOnce);
+      assert.deepStrictEqual(telemetryTrackStub.lastCall.args, [
+        'KeyTar Secrets Migration Failed',
+        {
+          reason: 'CONNECTION_MIGRATION_FAILED',
+          totalConnections: 2,
+          failedConnections: 1,
+          errorMessage: dummyError.message,
+        },
+      ]);
+
+      // Assert that we showed it to user
+      assert(showInformationMessageStub.calledOnce);
+      assert.deepStrictEqual(showInformationMessageStub.lastCall.args, [
+        `Failed to update connection storage - ${dummyError.message}`,
+        { title: "Don't show again" },
+      ]);
+    });
+
+    test('should not show the keytar unavailable error message if it has already been shown before', async () => {
+      sandbox.replace(extConstants.ext, 'keytarModule', null as any);
+      const originalGet = testStorageController.get.bind(testStorageController);
+      testSandbox.stub(testStorageController, 'get').callsFake((key) => {
+        if (
+          key === StorageVariables.GLOBAL_KEYTAR_ERR_KEYTAR_UNAVAILABLE_NOTIFIED
+        ) {
+          return true;
+        }
+        return originalGet(key);
+      });
+
+      // Clearing in-memory state and restoring the stub
+      await testConnectionController.disconnect();
+      testConnectionController.clearAllConnections();
+
+      await testConnectionController.loadSavedConnections();
+      assert(showInformationMessageStub.notCalled);
+    });
+
+    test('should not show the connection migration failed error message if it has already been shown before', async () => {
+      testSandbox
+        .stub(testConnectionController, '_migrateKeytarSecrets')
+        .resolves({
+          migrationStatus: 'failed',
+          migrationError: new ConnectionMigrationFailedError([
+            {
+              connectionId: '1',
+              connectionName: 'testConnection',
+            },
+          ]),
+        });
+      const originalGet = testStorageController.get.bind(testStorageController);
+      testSandbox.stub(testStorageController, 'get').callsFake((key) => {
+        if (
+          key ===
+          StorageVariables.GLOBAL_KEYTAR_ERR_CONNECTION_MIGRATION_FAILED_NOTIFIED
+        ) {
+          return true;
+        }
+        return originalGet(key);
+      });
+
+      // Clearing in-memory state and restoring the stub
+      await testConnectionController.disconnect();
+      testConnectionController.clearAllConnections();
+
+      await testConnectionController.loadSavedConnections();
+      assert(showInformationMessageStub.notCalled);
+    });
   });
 });
