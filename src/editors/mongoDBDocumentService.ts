@@ -24,12 +24,17 @@ export default class MongoDBDocumentService {
   _statusView: StatusView;
   _telemetryService: TelemetryService;
 
-  constructor(
-    context: vscode.ExtensionContext,
-    connectionController: ConnectionController,
-    statusView: StatusView,
-    telemetryService: TelemetryService
-  ) {
+  constructor({
+    context,
+    connectionController,
+    statusView,
+    telemetryService,
+  }: {
+    context: vscode.ExtensionContext;
+    connectionController: ConnectionController;
+    statusView: StatusView;
+    telemetryService: TelemetryService;
+  }) {
     this._context = context;
     this._connectionController = connectionController;
     this._statusView = statusView;

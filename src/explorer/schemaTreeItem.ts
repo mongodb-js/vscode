@@ -61,16 +61,25 @@ export default class SchemaTreeItem
 
   iconPath: { light: string; dark: string };
 
-  constructor(
-    collectionName: string,
-    databaseName: string,
-    dataService: DataService,
-    isExpanded: boolean,
-    hasClickedShowMoreFields: boolean,
-    hasMoreFieldsToShow: boolean,
-    cacheIsUpToDate: boolean,
-    childrenCache: { [fieldName: string]: FieldTreeItem }
-  ) {
+  constructor({
+    collectionName,
+    databaseName,
+    dataService,
+    isExpanded,
+    hasClickedShowMoreFields,
+    hasMoreFieldsToShow,
+    cacheIsUpToDate,
+    childrenCache,
+  }: {
+    collectionName: string;
+    databaseName: string;
+    dataService: DataService;
+    isExpanded: boolean;
+    hasClickedShowMoreFields: boolean;
+    hasMoreFieldsToShow: boolean;
+    cacheIsUpToDate: boolean;
+    childrenCache: { [fieldName: string]: FieldTreeItem };
+  }) {
     super(
       ITEM_LABEL,
       isExpanded
@@ -139,17 +148,17 @@ export default class SchemaTreeItem
     for (let i = 0; i < fieldsToShow; i++) {
       if (currentCache[schema.fields[i].name]) {
         // Use the past cached field item.
-        newFieldTreeItems[schema.fields[i].name] = new FieldTreeItem(
-          schema.fields[i],
-          currentCache[schema.fields[i].name].isExpanded,
-          currentCache[schema.fields[i].name].getChildrenCache()
-        );
+        newFieldTreeItems[schema.fields[i].name] = new FieldTreeItem({
+          field: schema.fields[i],
+          isExpanded: currentCache[schema.fields[i].name].isExpanded,
+          existingCache: currentCache[schema.fields[i].name].getChildrenCache(),
+        });
       } else {
-        newFieldTreeItems[schema.fields[i].name] = new FieldTreeItem(
-          schema.fields[i],
-          false, // Not expanded.
-          {} // No past cache.
-        );
+        newFieldTreeItems[schema.fields[i].name] = new FieldTreeItem({
+          field: schema.fields[i],
+          isExpanded: false, // Not expanded.
+          existingCache: {}, // No past cache.
+        });
       }
     }
 
@@ -169,11 +178,11 @@ export default class SchemaTreeItem
 
       // We manually rebuild each node to ensure we update the expanded state.
       Object.keys(pastChildrenCache).forEach((fieldName) => {
-        this.childrenCache[fieldName] = new FieldTreeItem(
-          pastChildrenCache[fieldName].field,
-          pastChildrenCache[fieldName].isExpanded,
-          pastChildrenCache[fieldName].getChildrenCache()
-        );
+        this.childrenCache[fieldName] = new FieldTreeItem({
+          field: pastChildrenCache[fieldName].field,
+          isExpanded: pastChildrenCache[fieldName].isExpanded,
+          existingCache: pastChildrenCache[fieldName].getChildrenCache(),
+        });
       });
 
       if (!this.hasClickedShowMoreFields && this.hasMoreFieldsToShow) {

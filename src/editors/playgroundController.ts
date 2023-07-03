@@ -11,11 +11,7 @@ import ConnectionController, {
   DataServiceEventTypes,
 } from '../connectionController';
 import { createLogger } from '../logging';
-import {
-  ExplorerController,
-  ConnectionTreeItem,
-  DatabaseTreeItem,
-} from '../explorer';
+import { ConnectionTreeItem, DatabaseTreeItem } from '../explorer';
 import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import formatError from '../utils/formatError';
 import { LanguageServerController } from '../language';
@@ -118,21 +114,28 @@ export default class PlaygroundController {
   private _playgroundResultTextDocument?: vscode.TextDocument;
   private _statusView: StatusView;
   private _playgroundResultViewProvider: PlaygroundResultProvider;
-  private _explorerController: ExplorerController;
 
   private _codeToEvaluate = '';
 
-  constructor(
-    connectionController: ConnectionController,
-    languageServerController: LanguageServerController,
-    telemetryService: TelemetryService,
-    statusView: StatusView,
-    playgroundResultViewProvider: PlaygroundResultProvider,
-    activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
-    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider,
-    playgroundSelectedCodeActionProvide: PlaygroundSelectedCodeActionProvider,
-    explorerController: ExplorerController
-  ) {
+  constructor({
+    connectionController,
+    languageServerController,
+    telemetryService,
+    statusView,
+    playgroundResultViewProvider,
+    activeConnectionCodeLensProvider,
+    exportToLanguageCodeLensProvider,
+    playgroundSelectedCodeActionProvider,
+  }: {
+    connectionController: ConnectionController;
+    languageServerController: LanguageServerController;
+    telemetryService: TelemetryService;
+    statusView: StatusView;
+    playgroundResultViewProvider: PlaygroundResultProvider;
+    activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
+    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+    playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  }) {
     this._connectionController = connectionController;
     this._activeTextEditor = vscode.window.activeTextEditor;
     this._languageServerController = languageServerController;
@@ -144,8 +147,7 @@ export default class PlaygroundController {
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._playgroundSelectedCodeActionProvider =
-      playgroundSelectedCodeActionProvide;
-    this._explorerController = explorerController;
+      playgroundSelectedCodeActionProvider;
 
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,

@@ -36,14 +36,21 @@ export default class IndexListTreeItem
 
   private _childrenCache: IndexTreeItem[] = [];
 
-  constructor(
-    collectionName: string,
-    databaseName: string,
-    dataService: DataService,
-    isExpanded: boolean,
-    cacheIsUpToDate: boolean,
-    childrenCache: IndexTreeItem[] // Existing cache.
-  ) {
+  constructor({
+    collectionName,
+    databaseName,
+    dataService,
+    isExpanded,
+    cacheIsUpToDate,
+    childrenCache,
+  }: {
+    collectionName: string;
+    databaseName: string;
+    dataService: DataService;
+    isExpanded: boolean;
+    cacheIsUpToDate: boolean;
+    childrenCache: IndexTreeItem[]; // Existing cache.
+  }) {
     super(
       ITEM_LABEL,
       isExpanded
@@ -79,11 +86,11 @@ export default class IndexListTreeItem
       // We manually rebuild each node to ensure we update the expanded state.
       pastChildrenCache.forEach((cachedItem: IndexTreeItem) => {
         this._childrenCache.push(
-          new IndexTreeItem(
-            cachedItem.index,
-            cachedItem.namespace,
-            cachedItem.isExpanded
-          )
+          new IndexTreeItem({
+            index: cachedItem.index,
+            namespace: cachedItem.namespace,
+            isExpanded: cachedItem.isExpanded,
+          })
         );
       });
 
@@ -110,11 +117,11 @@ export default class IndexListTreeItem
     if (indexes) {
       this._childrenCache = sortTreeItemsByLabel(
         indexes.map((index: IndexModel) => {
-          return new IndexTreeItem(
+          return new IndexTreeItem({
             index,
-            this._namespace,
-            false /* Not expanded. */
-          );
+            namespace: this._namespace,
+            isExpanded: false,
+          });
         })
       ) as IndexTreeItem[];
     } else {

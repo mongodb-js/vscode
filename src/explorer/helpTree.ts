@@ -30,13 +30,19 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
   url: string;
   useRedirect: boolean;
 
-  constructor(
-    title: string,
-    url: string,
-    linkId: string,
-    iconName?: string,
-    useRedirect = false
-  ) {
+  constructor({
+    title,
+    url,
+    linkId,
+    iconName,
+    useRedirect = false,
+  }: {
+    title: string;
+    url: string;
+    linkId: string;
+    iconName?: string;
+    useRedirect?: boolean;
+  }) {
     super(title, vscode.TreeItemCollapsibleState.None);
 
     this.linkId = linkId;
@@ -74,55 +80,55 @@ export default class HelpTree
   async getChildren(element?: any): Promise<any[]> {
     // When no element is present we are at the root.
     if (!element) {
-      const whatsNew = new HelpLinkTreeItem(
-        "What's New",
-        LINKS.changelog,
-        'whatsNew',
-        'megaphone'
-      );
+      const whatsNew = new HelpLinkTreeItem({
+        title: "What's New",
+        url: LINKS.changelog,
+        linkId: 'whatsNew',
+        iconName: 'megaphone',
+      });
 
-      const extensionDocs = new HelpLinkTreeItem(
-        'Extension Documentation',
-        LINKS.extensionDocs(),
-        'extensionDocumentation',
-        'book'
-      );
+      const extensionDocs = new HelpLinkTreeItem({
+        title: 'Extension Documentation',
+        url: LINKS.extensionDocs(),
+        linkId: 'extensionDocumentation',
+        iconName: 'book',
+      });
 
-      const mdbDocs = new HelpLinkTreeItem(
-        'MongoDB Documentation',
-        LINKS.mongodbDocs,
-        'mongoDBDocumentation',
-        'leaf'
-      );
+      const mdbDocs = new HelpLinkTreeItem({
+        title: 'MongoDB Documentation',
+        url: LINKS.mongodbDocs,
+        linkId: 'mongoDBDocumentation',
+        iconName: 'leaf',
+      });
 
-      const feedback = new HelpLinkTreeItem(
-        'Suggest a Feature',
-        LINKS.feedback,
-        'feedback',
-        'lightbulb'
-      );
+      const feedback = new HelpLinkTreeItem({
+        title: 'Suggest a Feature',
+        url: LINKS.feedback,
+        linkId: 'feedback',
+        iconName: 'lightbulb',
+      });
 
-      const reportBug = new HelpLinkTreeItem(
-        'Report a Bug',
-        LINKS.reportBug,
-        'reportABug',
-        'report'
-      );
+      const reportBug = new HelpLinkTreeItem({
+        title: 'Report a Bug',
+        url: LINKS.reportBug,
+        linkId: 'reportABug',
+        iconName: 'report',
+      });
 
       const telemetryUserIdentity =
         this._telemetryService?.getTelemetryUserIdentity();
 
-      const atlas = new HelpLinkTreeItem(
-        'Create Free Atlas Cluster',
-        LINKS.createAtlasCluster(
+      const atlas = new HelpLinkTreeItem({
+        title: 'Create Free Atlas Cluster',
+        url: LINKS.createAtlasCluster(
           telemetryUserIdentity?.userId ??
             telemetryUserIdentity?.anonymousId ??
             ''
         ),
-        'freeClusterCTA',
-        'atlas',
-        true
-      );
+        linkId: 'freeClusterCTA',
+        iconName: 'atlas',
+        useRedirect: true,
+      });
 
       return Promise.resolve([
         whatsNew,

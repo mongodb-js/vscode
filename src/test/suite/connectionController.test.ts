@@ -46,11 +46,11 @@ suite('Connection Controller Test Suite', function () {
     testStorageController,
     extensionContextStub
   );
-  const testConnectionController = new ConnectionController(
-    new StatusView(extensionContextStub),
-    testStorageController,
-    testTelemetryService
-  );
+  const testConnectionController = new ConnectionController({
+    statusView: new StatusView(extensionContextStub),
+    storageController: testStorageController,
+    telemetryService: testTelemetryService,
+  });
   let showErrorMessageStub: SinonStub;
   const sandbox = sinon.createSandbox();
 

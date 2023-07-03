@@ -73,7 +73,13 @@ export class IndexFieldTreeItem
   indexKey: string;
   indexKeyType: IndexKeyType;
 
-  constructor(indexKey: string, indexKeyType: IndexKeyType) {
+  constructor({
+    indexKey,
+    indexKeyType,
+  }: {
+    indexKey: string;
+    indexKeyType: IndexKeyType;
+  }) {
     super(indexKey, vscode.TreeItemCollapsibleState.None);
 
     this.indexKey = indexKey;
@@ -110,7 +116,15 @@ export default class IndexTreeItem
   isExpanded: boolean;
   cacheIsUpToDate = true;
 
-  constructor(index: IndexModel, namespace: string, isExpanded: boolean) {
+  constructor({
+    index,
+    namespace,
+    isExpanded,
+  }: {
+    index: IndexModel;
+    namespace: string;
+    isExpanded: boolean;
+  }) {
     super(
       index.name,
       isExpanded
@@ -140,7 +154,11 @@ export default class IndexTreeItem
 
     return Promise.resolve(
       Object.keys(this.index.key).map(
-        (indexKey) => new IndexFieldTreeItem(indexKey, this.index.key[indexKey])
+        (indexKey) =>
+          new IndexFieldTreeItem({
+            indexKey,
+            indexKeyType: this.index.key[indexKey],
+          })
       )
     );
   }

@@ -81,11 +81,15 @@ export default class WebviewController {
   _storageController: StorageController;
   _telemetryService: TelemetryService;
 
-  constructor(
-    connectionController: ConnectionController,
-    storageController: StorageController,
-    telemetryService: TelemetryService
-  ) {
+  constructor({
+    connectionController,
+    storageController,
+    telemetryService,
+  }: {
+    connectionController: ConnectionController;
+    storageController: StorageController;
+    telemetryService: TelemetryService;
+  }) {
     this._connectionController = connectionController;
     this._storageController = storageController;
     this._telemetryService = telemetryService;

@@ -106,11 +106,15 @@ export default class ConnectionController {
   // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();
 
-  constructor(
-    statusView: StatusView,
-    storageController: StorageController,
-    telemetryService: TelemetryService
-  ) {
+  constructor({
+    statusView,
+    storageController,
+    telemetryService,
+  }: {
+    statusView: StatusView;
+    storageController: StorageController;
+    telemetryService: TelemetryService;
+  }) {
     this._statusView = statusView;
     this._storageController = storageController;
     this._telemetryService = telemetryService;

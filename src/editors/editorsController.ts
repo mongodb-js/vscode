@@ -104,19 +104,31 @@ export default class EditorsController {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
 
-  constructor(
-    context: vscode.ExtensionContext,
-    connectionController: ConnectionController,
-    playgroundController: PlaygroundController,
-    statusView: StatusView,
-    telemetryService: TelemetryService,
-    playgroundResultViewProvider: PlaygroundResultProvider,
-    activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider,
-    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider,
-    playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider,
-    playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider,
-    editDocumentCodeLensProvider: EditDocumentCodeLensProvider
-  ) {
+  constructor({
+    context,
+    connectionController,
+    playgroundController,
+    statusView,
+    telemetryService,
+    playgroundResultViewProvider,
+    activeConnectionCodeLensProvider,
+    exportToLanguageCodeLensProvider,
+    playgroundSelectedCodeActionProvider,
+    playgroundDiagnosticsCodeActionProvider,
+    editDocumentCodeLensProvider,
+  }: {
+    context: vscode.ExtensionContext;
+    connectionController: ConnectionController;
+    playgroundController: PlaygroundController;
+    statusView: StatusView;
+    telemetryService: TelemetryService;
+    playgroundResultViewProvider: PlaygroundResultProvider;
+    activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
+    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+    playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+    playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
+    editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
+  }) {
     this._connectionController = connectionController;
     this._playgroundController = playgroundController;
     this._context = context;
@@ -124,20 +136,20 @@ export default class EditorsController {
     this._telemetryService = telemetryService;
     this._memoryFileSystemProvider = new MemoryFileSystemProvider();
     this._documentIdStore = new DocumentIdStore();
-    this._mongoDBDocumentService = new MongoDBDocumentService(
-      this._context,
-      this._connectionController,
-      this._statusView,
-      this._telemetryService
-    );
+    this._mongoDBDocumentService = new MongoDBDocumentService({
+      context: this._context,
+      connectionController: this._connectionController,
+      statusView: this._statusView,
+      telemetryService: this._telemetryService,
+    });
     this._editDocumentCodeLensProvider = editDocumentCodeLensProvider;
-    this._collectionViewProvider = new CollectionDocumentsProvider(
-      this._context,
+    this._collectionViewProvider = new CollectionDocumentsProvider({
+      context: this._context,
       connectionController,
-      this._collectionDocumentsOperationsStore,
-      new StatusView(context),
-      this._editDocumentCodeLensProvider
-    );
+      operationsStore: this._collectionDocumentsOperationsStore,
+      statusView: new StatusView(context),
+      editDocumentCodeLensProvider: this._editDocumentCodeLensProvider,
+    });
     this._playgroundResultViewProvider = playgroundResultViewProvider;
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;

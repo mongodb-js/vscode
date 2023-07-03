@@ -44,14 +44,21 @@ export default class ConnectionTreeItem
 
   isExpanded: boolean;
 
-  constructor(
-    connectionId: string,
-    collapsibleState: vscode.TreeItemCollapsibleState,
-    isExpanded: boolean,
-    connectionController: ConnectionController,
-    cacheIsUpToDate: boolean,
-    childrenCache: { [key: string]: DatabaseTreeItem } // Existing cache.
-  ) {
+  constructor({
+    connectionId,
+    collapsibleState,
+    isExpanded,
+    connectionController,
+    cacheIsUpToDate,
+    childrenCache,
+  }: {
+    connectionId: string;
+    collapsibleState: vscode.TreeItemCollapsibleState;
+    isExpanded: boolean;
+    connectionController: ConnectionController;
+    cacheIsUpToDate: boolean;
+    childrenCache: { [key: string]: DatabaseTreeItem }; // Existing cache.
+  }) {
     super(
       connectionController.getSavedConnectionName(connectionId),
       collapsibleState
@@ -139,13 +146,13 @@ export default class ConnectionTreeItem
           return;
         }
 
-        this._childrenCache[databaseName] = new DatabaseTreeItem(
+        this._childrenCache[databaseName] = new DatabaseTreeItem({
           databaseName,
           dataService,
-          prevChild.isExpanded,
-          prevChild.cacheIsUpToDate,
-          prevChild.getChildrenCache()
-        );
+          isExpanded: prevChild.isExpanded,
+          cacheIsUpToDate: prevChild.cacheIsUpToDate,
+          childrenCache: prevChild.getChildrenCache(),
+        });
       });
 
       return Object.values(this._childrenCache);
@@ -167,21 +174,21 @@ export default class ConnectionTreeItem
       if (pastChildrenCache[name]) {
         // We create a new element here instead of reusing the cached one
         // in order to ensure the expanded state is set.
-        this._childrenCache[name] = new DatabaseTreeItem(
-          name,
+        this._childrenCache[name] = new DatabaseTreeItem({
+          databaseName: name,
           dataService,
-          pastChildrenCache[name].isExpanded,
-          pastChildrenCache[name].cacheIsUpToDate,
-          pastChildrenCache[name].getChildrenCache()
-        );
+          isExpanded: pastChildrenCache[name].isExpanded,
+          cacheIsUpToDate: pastChildrenCache[name].cacheIsUpToDate,
+          childrenCache: pastChildrenCache[name].getChildrenCache(),
+        });
       } else {
-        this._childrenCache[name] = new DatabaseTreeItem(
-          name,
+        this._childrenCache[name] = new DatabaseTreeItem({
+          databaseName: name,
           dataService,
-          false, // Collapsed.
-          false, // Cache is not up to date (no cache).
-          {} // No existing cache.
-        );
+          isExpanded: false,
+          cacheIsUpToDate: false, // Cache is not up to date (no cache).
+          childrenCache: {}, // No existing cache.
+        });
       }
     });
 

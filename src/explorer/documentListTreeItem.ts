@@ -31,7 +31,15 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
   isShowMoreItem = true;
   onShowMoreClicked: () => void;
 
-  constructor(namespace: string, showMore: () => void, documentsShown: number) {
+  constructor({
+    namespace,
+    showMore,
+    documentsShown,
+  }: {
+    namespace: string;
+    showMore: () => void;
+    documentsShown: number;
+  }) {
     super('Show more...', vscode.TreeItemCollapsibleState.None);
 
     // We assign the item a unique id so that when it is selected the selection
@@ -110,18 +118,29 @@ export default class DocumentListTreeItem
 
   iconPath: { light: string; dark: string };
 
-  constructor(
-    collectionName: string,
-    databaseName: string,
-    type: CollectionTypes,
-    dataService: DataService,
-    isExpanded: boolean,
-    maxDocumentsToShow: number,
-    cachedDocumentCount: number | null,
-    refreshDocumentCount: () => Promise<number>,
-    cacheIsUpToDate: boolean,
-    childrenCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem> // Existing cache.
-  ) {
+  constructor({
+    collectionName,
+    databaseName,
+    type,
+    dataService,
+    isExpanded,
+    maxDocumentsToShow,
+    cachedDocumentCount,
+    refreshDocumentCount,
+    cacheIsUpToDate,
+    childrenCache,
+  }: {
+    collectionName: string;
+    databaseName: string;
+    type: CollectionTypes;
+    dataService: DataService;
+    isExpanded: boolean;
+    maxDocumentsToShow: number;
+    cachedDocumentCount: number | null;
+    refreshDocumentCount: () => Promise<number>;
+    cacheIsUpToDate: boolean;
+    childrenCache: Array<DocumentTreeItem | ShowMoreDocumentsTreeItem>; // Existing cache.
+  }) {
     super(ITEM_LABEL, getCollapsableStateForDocumentList(isExpanded, type));
 
     this.collectionName = collectionName;
@@ -172,13 +191,13 @@ export default class DocumentListTreeItem
 
       pastChildrenCache.forEach((pastTreeItem, index) => {
         this._childrenCache.push(
-          new DocumentTreeItem(
-            (pastTreeItem as DocumentTreeItem).document,
-            this.namespace,
-            index,
-            this._dataService,
-            () => this.resetCache()
-          )
+          new DocumentTreeItem({
+            document: (pastTreeItem as DocumentTreeItem).document,
+            namespace: this.namespace,
+            documentIndexInTree: index,
+            dataService: this._dataService,
+            resetDocumentListCache: () => this.resetCache(),
+          })
         );
       });
 
@@ -186,11 +205,11 @@ export default class DocumentListTreeItem
         return [
           ...this._childrenCache,
           // Add a `Show more...` item when there are more documents to show.
-          new ShowMoreDocumentsTreeItem(
-            this.namespace,
-            () => this.onShowMoreClicked(),
-            this._maxDocumentsToShow
-          ),
+          new ShowMoreDocumentsTreeItem({
+            namespace: this.namespace,
+            showMore: () => this.onShowMoreClicked(),
+            documentsShown: this._maxDocumentsToShow,
+          }),
         ];
       }
 
@@ -218,13 +237,13 @@ export default class DocumentListTreeItem
     if (documents) {
       documents.forEach((document, index) => {
         this._childrenCache.push(
-          new DocumentTreeItem(
+          new DocumentTreeItem({
             document,
-            this.namespace,
-            index,
-            this._dataService,
-            () => this.resetCache()
-          )
+            namespace: this.namespace,
+            documentIndexInTree: index,
+            dataService: this._dataService,
+            resetDocumentListCache: () => this.resetCache(),
+          })
         );
       });
     }
@@ -232,11 +251,11 @@ export default class DocumentListTreeItem
     if (this.hasMoreDocumentsToShow()) {
       return [
         ...this._childrenCache,
-        new ShowMoreDocumentsTreeItem(
-          this.namespace,
-          () => this.onShowMoreClicked(),
-          this._maxDocumentsToShow
-        ),
+        new ShowMoreDocumentsTreeItem({
+          namespace: this.namespace,
+          showMore: () => this.onShowMoreClicked(),
+          documentsShown: this._maxDocumentsToShow,
+        }),
       ];
     }
 

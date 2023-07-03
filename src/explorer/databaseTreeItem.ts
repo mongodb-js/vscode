@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import path from 'path';
+import type { DataService } from 'mongodb-data-service';
 
 import CollectionTreeItem from './collectionTreeItem';
 import formatError from '../utils/formatError';
@@ -25,20 +26,26 @@ export default class DatabaseTreeItem
   cacheIsUpToDate: boolean;
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };
 
-  private _dataService: any;
+  private _dataService: DataService;
 
   databaseName: string;
   isExpanded: boolean;
 
   isDropped = false;
 
-  constructor(
-    databaseName: string,
-    dataService: any,
-    isExpanded: boolean,
-    cacheIsUpToDate: boolean,
-    childrenCache: { [key: string]: CollectionTreeItem } // Existing cache.
-  ) {
+  constructor({
+    databaseName,
+    dataService,
+    isExpanded,
+    cacheIsUpToDate,
+    childrenCache,
+  }: {
+    databaseName: string;
+    dataService: DataService;
+    isExpanded: boolean;
+    cacheIsUpToDate: boolean;
+    childrenCache: { [key: string]: CollectionTreeItem }; // Existing cache.
+  }) {
     super(
       databaseName,
       isExpanded
@@ -78,17 +85,17 @@ export default class DatabaseTreeItem
           return;
         }
 
-        this._childrenCache[collectionName] = new CollectionTreeItem(
-          prevChild.collection,
-          this.databaseName,
-          this._dataService,
-          prevChild.isExpanded,
-          prevChild.cacheIsUpToDate,
-          prevChild.documentCount,
-          prevChild.getDocumentListChild(),
-          prevChild.getSchemaChild(),
-          prevChild.getIndexListChild()
-        );
+        this._childrenCache[collectionName] = new CollectionTreeItem({
+          collection: prevChild.collection,
+          databaseName: this.databaseName,
+          dataService: this._dataService,
+          isExpanded: prevChild.isExpanded,
+          cacheIsUpToDate: prevChild.cacheIsUpToDate,
+          cachedDocumentCount: prevChild.documentCount,
+          existingDocumentListChild: prevChild.getDocumentListChild(),
+          existingSchemaChild: prevChild.getSchemaChild(),
+          existingIndexListChild: prevChild.getIndexListChild(),
+        });
       });
 
       return Object.values(this._childrenCache);
@@ -128,26 +135,30 @@ export default class DatabaseTreeItem
 
       collectionTreeEntries.forEach((collection: any) => {
         if (pastChildrenCache[collection.name]) {
-          this._childrenCache[collection.name] = new CollectionTreeItem(
+          this._childrenCache[collection.name] = new CollectionTreeItem({
             collection,
-            this.databaseName,
-            this._dataService,
-            pastChildrenCache[collection.name].isExpanded,
-            pastChildrenCache[collection.name].cacheIsUpToDate,
-            pastChildrenCache[collection.name].documentCount,
-            pastChildrenCache[collection.name].getDocumentListChild(),
-            pastChildrenCache[collection.name].getSchemaChild(),
-            pastChildrenCache[collection.name].getIndexListChild()
-          );
+            databaseName: this.databaseName,
+            dataService: this._dataService,
+            isExpanded: pastChildrenCache[collection.name].isExpanded,
+            cacheIsUpToDate: pastChildrenCache[collection.name].cacheIsUpToDate,
+            cachedDocumentCount:
+              pastChildrenCache[collection.name].documentCount,
+            existingDocumentListChild:
+              pastChildrenCache[collection.name].getDocumentListChild(),
+            existingSchemaChild:
+              pastChildrenCache[collection.name].getSchemaChild(),
+            existingIndexListChild:
+              pastChildrenCache[collection.name].getIndexListChild(),
+          });
         } else {
-          this._childrenCache[collection.name] = new CollectionTreeItem(
+          this._childrenCache[collection.name] = new CollectionTreeItem({
             collection,
-            this.databaseName,
-            this._dataService,
-            false, // Not expanded.
-            false, // No cache.
-            null // No document count yet.
-          );
+            databaseName: this.databaseName,
+            dataService: this._dataService,
+            isExpanded: false,
+            cacheIsUpToDate: false, // No cache.
+            cachedDocumentCount: null, // No document count yet.
+          });
         }
       });
     } else {
