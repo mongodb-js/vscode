@@ -27,6 +27,15 @@ const expect = chai.expect;
 
 chai.use(chaiAsPromised);
 
+const mockFileName = path.join(
+  'nonexistent',
+  `playground-${uuidv4()}.mongodb.js`
+);
+const mockDocumentUri = vscode.Uri.from({
+  path: mockFileName,
+  scheme: 'untitled',
+});
+
 suite('Playground Controller Test Suite', function () {
   this.timeout(5000);
 
@@ -101,25 +110,23 @@ suite('Playground Controller Test Suite', function () {
     let fakeConnectToServiceProvider: SinonSpy;
 
     beforeEach(async () => {
-      const fakeGetActiveConnectionName = sandbox.fake.returns('fakeName');
       const mockActiveDataService = {
         getMongoClientConnectionOptions: () => ({
           url: 'mongodb://username@ldaphost:27017/?authMechanism=MONGODB-X509&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true&authSource=%24external&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsCAFile=./path/to/ca&tlsCertificateKeyFile=./path/to/cert',
           options: { monitorCommands: true },
         }),
       } as DataService;
-      const fakeGetActiveConnectionId = sandbox.fake.returns('pineapple');
-      fakeConnectToServiceProvider = sandbox.fake.resolves(undefined);
 
+      fakeConnectToServiceProvider = sandbox.fake.resolves(undefined);
       sandbox.replace(
         testPlaygroundController._connectionController,
         'getActiveConnectionName',
-        fakeGetActiveConnectionName
+        () => 'fakeName'
       );
       sandbox.replace(
         testPlaygroundController._connectionController,
         'getActiveConnectionId',
-        fakeGetActiveConnectionId
+        () => 'pineapple'
       );
       sandbox.replace(
         testPlaygroundController._languageServerController,
@@ -205,19 +212,13 @@ suite('Playground Controller Test Suite', function () {
   suite('playground is open', () => {
     let mockActiveTestEditor;
 
-    const fileName = path.join(
-      'nonexistent',
-      `playground-${uuidv4()}.mongodb.js`
-    );
-    const documentUri = vscode.Uri.from({ path: fileName, scheme: 'untitled' });
-
     beforeEach(() => {
       mockActiveTestEditor = {
         document: {
           languageId: 'javascript',
-          uri: documentUri,
+          uri: mockDocumentUri,
           getText: () => "use('dbName');",
-          lineAt: sandbox.fake.returns({ text: "use('dbName');" }),
+          lineAt: () => ({ text: "use('dbName');" }),
         },
         selections: [
           new vscode.Selection(
@@ -238,7 +239,7 @@ suite('Playground Controller Test Suite', function () {
         sandbox.replace(
           testPlaygroundController._connectionController,
           'isCurrentlyConnected',
-          sandbox.fake.returns(false)
+          () => false
         );
       });
 
@@ -276,34 +277,31 @@ suite('Playground Controller Test Suite', function () {
       let showTextDocumentStub: SinonStub;
 
       beforeEach(async () => {
-        const fakeGetActiveConnectionName = sandbox.fake.returns('fakeName');
-        const fakeGetActiveDataService = sandbox.fake.returns({
-          getMongoClientConnectionOptions: () => ({
-            url: TEST_DATABASE_URI,
-            options: {},
-          }),
-        });
-        const fakeGetActiveConnectionId = sandbox.fake.returns('pineapple');
-
         sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionName',
-          fakeGetActiveConnectionName
+          () => 'fakeName'
         );
         sandbox.replace(
           testPlaygroundController._connectionController,
           'isCurrentlyConnected',
-          sandbox.fake.returns(true)
+          () => true
         );
         sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveDataService',
-          fakeGetActiveDataService
+          () =>
+            ({
+              getMongoClientConnectionOptions: () => ({
+                url: TEST_DATABASE_URI,
+                options: {},
+              }),
+            } as unknown as DataService)
         );
         sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionId',
-          fakeGetActiveConnectionId
+          () => 'pineapple'
         );
         showTextDocumentStub = sandbox.stub(vscode.window, 'showTextDocument');
 
@@ -444,6 +442,48 @@ suite('Playground Controller Test Suite', function () {
         vscode.window,
         'showInformationMessage'
       );
+      const mockActiveTestEditor = {
+        document: {
+          languageId: 'javascript',
+          uri: mockDocumentUri,
+          getText: () => "use('dbName');",
+          lineAt: () => ({ text: "use('dbName');" }),
+        },
+        selections: [
+          new vscode.Selection(
+            new vscode.Position(0, 0),
+            new vscode.Position(0, 0)
+          ),
+        ],
+      } as unknown as vscode.TextEditor;
+      testPlaygroundController._activeTextEditor = mockActiveTestEditor;
+
+      sandbox.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionName',
+        () => 'fakeName'
+      );
+      sandbox.replace(
+        testPlaygroundController._connectionController,
+        'isCurrentlyConnected',
+        () => true
+      );
+      sandbox.replace(
+        testPlaygroundController._connectionController,
+        'getActiveDataService',
+        () =>
+          ({
+            getMongoClientConnectionOptions: () => ({
+              url: TEST_DATABASE_URI,
+              options: {},
+            }),
+          } as unknown as DataService)
+      );
+      sandbox.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionId',
+        () => 'pineapple'
+      );
     });
 
     test('show a confirmation message if mdb.confirmRunAll is true', async () => {
@@ -470,7 +510,6 @@ suite('Playground Controller Test Suite', function () {
 
       expect(result).to.be.equal(true);
       expect(showInformationMessageStub).to.have.been.calledOnce;
-      // sandbox.assert.called(showInformationMessageStub);
     });
 
     test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
@@ -501,8 +540,6 @@ suite('Playground Controller Test Suite', function () {
 
       expect(result).to.be.equal(true);
       expect(showInformationMessageStub).to.not.have.been.called;
-
-      // sandbox.assert.notCalled(showInformationMessageStub);
     });
 
     test('do not run a playground if user selected No in the confirmation message', async () => {
