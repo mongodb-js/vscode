@@ -13,7 +13,7 @@ import TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
 
 function getIconPath(
-  type: CollectionTypes,
+  type: string,
   isExpanded: boolean
 ): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
@@ -42,10 +42,9 @@ function getIconPath(
   };
 }
 
-type CollectionModelType = {
-  name: string;
-  type: CollectionTypes;
-};
+export type CollectionDetailsType = Awaited<
+  ReturnType<DataService['listCollections']>
+>[number];
 
 function isChildCacheOutOfSync(
   child: DocumentListTreeItem | SchemaTreeItem | IndexListTreeItem
@@ -67,13 +66,13 @@ export default class CollectionTreeItem
   private _schemaChild: SchemaTreeItem;
   private _indexListChild: IndexListTreeItem;
 
-  collection: CollectionModelType;
+  collection: CollectionDetailsType;
   collectionName: string;
   databaseName: string;
   namespace: string;
 
   private _dataService: DataService;
-  private _type: CollectionTypes;
+  private _type: string;
   documentCount: number | null = null;
 
   isExpanded: boolean;
@@ -95,7 +94,7 @@ export default class CollectionTreeItem
     existingSchemaChild,
     existingIndexListChild,
   }: {
-    collection: CollectionModelType;
+    collection: CollectionDetailsType;
     databaseName: string;
     dataService: DataService;
     isExpanded: boolean;

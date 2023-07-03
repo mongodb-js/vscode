@@ -3,6 +3,7 @@ import path from 'path';
 import type { DataService } from 'mongodb-data-service';
 
 import CollectionTreeItem from './collectionTreeItem';
+import type { CollectionDetailsType } from './collectionTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
@@ -114,8 +115,8 @@ export default class DatabaseTreeItem
       // Create new collection tree items, using previously cached items
       // where possible.
 
-      const systemCollections: string[] = [];
-      const otherCollections: string[] = [];
+      const systemCollections: CollectionDetailsType[] = [];
+      const otherCollections: CollectionDetailsType[] = [];
 
       collections.forEach((collection) => {
         if (collection.name.startsWith('system.')) {
@@ -125,15 +126,17 @@ export default class DatabaseTreeItem
         }
       });
 
-      const sortFunction = (collectionA: any, collectionB: any) =>
-        (collectionA.name || '').localeCompare(collectionB.name || '');
+      const sortFunction = (
+        collectionA: CollectionDetailsType,
+        collectionB: CollectionDetailsType
+      ) => (collectionA.name || '').localeCompare(collectionB.name || '');
 
       const collectionTreeEntries = [
         ...otherCollections.sort(sortFunction),
         ...systemCollections.sort(sortFunction),
       ];
 
-      collectionTreeEntries.forEach((collection: any) => {
+      collectionTreeEntries.forEach((collection) => {
         if (pastChildrenCache[collection.name]) {
           this._childrenCache[collection.name] = new CollectionTreeItem({
             collection,
@@ -198,7 +201,7 @@ export default class DatabaseTreeItem
         value: '',
         placeHolder: 'e.g. myNewCollection',
         prompt: `Are you sure you wish to drop this database? Enter the database name '${databaseName}' to confirm.`,
-        validateInput: (inputDatabaseName: any) => {
+        validateInput: (inputDatabaseName) => {
           if (
             inputDatabaseName &&
             !databaseName.startsWith(inputDatabaseName)

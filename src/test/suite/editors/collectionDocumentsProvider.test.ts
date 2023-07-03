@@ -37,9 +37,34 @@ suite('Collection Documents Provider Test Suite', () => {
     extensionContextStub
   );
   const sandbox = sinon.createSandbox();
+  let testConnectionController: ConnectionController;
+  let testStatusView: StatusView;
+
+  let testQueryStore: CollectionDocumentsOperationsStore;
+  let testCodeLensProvider: EditDocumentCodeLensProvider;
+  let testCollectionViewProvider: CollectionDocumentsProvider;
 
   beforeEach(() => {
     sandbox.stub(vscode.window, 'showInformationMessage');
+    testStatusView = new StatusView(extensionContextStub);
+
+    testConnectionController = new ConnectionController({
+      statusView: testStatusView,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+
+    testQueryStore = new CollectionDocumentsOperationsStore();
+    testCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
+    testCollectionViewProvider = new CollectionDocumentsProvider({
+      context: extensionContextStub,
+      connectionController: testConnectionController,
+      operationsStore: testQueryStore,
+      statusView: testStatusView,
+      editDocumentCodeLensProvider: testCodeLensProvider,
+    });
   });
 
   afterEach(() => {
@@ -53,24 +78,7 @@ suite('Collection Documents Provider Test Suite', () => {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
 
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
     testConnectionController.setActiveDataService(testDataService);
-
-    const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
-    );
-    const testCollectionViewProvider = new CollectionDocumentsProvider(
-      extensionContextStub,
-      testConnectionController,
-      testQueryStore,
-      new StatusView(extensionContextStub),
-      testCodeLensProvider
-    );
 
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
@@ -111,24 +119,7 @@ suite('Collection Documents Provider Test Suite', () => {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
 
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
     testConnectionController.setActiveDataService(testDataService);
-
-    const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
-    );
-    const testCollectionViewProvider = new CollectionDocumentsProvider(
-      extensionContextStub,
-      testConnectionController,
-      testQueryStore,
-      new StatusView(extensionContextStub),
-      testCodeLensProvider
-    );
 
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
@@ -153,24 +144,7 @@ suite('Collection Documents Provider Test Suite', () => {
     const testDataService = {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
     testConnectionController.setActiveDataService(testDataService);
-
-    const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
-    );
-    const testCollectionViewProvider = new CollectionDocumentsProvider(
-      extensionContextStub,
-      testConnectionController,
-      testQueryStore,
-      new StatusView(extensionContextStub),
-      testCodeLensProvider
-    );
 
     const operationId = testQueryStore.createNewOperation();
     testQueryStore.operations[operationId].currentLimit = 5;
@@ -203,26 +177,9 @@ suite('Collection Documents Provider Test Suite', () => {
       DataService,
       'find'
     > as unknown as DataService;
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
     testConnectionController.setActiveDataService(mockActiveDataService);
 
-    const testStatusView = new StatusView(extensionContextStub);
-
-    const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
-    );
-    const testCollectionViewProvider = new CollectionDocumentsProvider(
-      extensionContextStub,
-      testConnectionController,
-      testQueryStore,
-      testStatusView,
-      testCodeLensProvider
-    );
+    testCollectionViewProvider._statusView = testStatusView;
 
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
@@ -245,23 +202,6 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets different code lenses for different namespaces from the same connection', async () => {
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
-    const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
-    );
-    const testCollectionViewProvider = new CollectionDocumentsProvider(
-      extensionContextStub,
-      testConnectionController,
-      testQueryStore,
-      new StatusView(extensionContextStub),
-      testCodeLensProvider
-    );
-
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 
@@ -435,23 +375,6 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets different code lenses for identical namespaces from the different connections', async () => {
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
-    const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
-    );
-    const testCollectionViewProvider = new CollectionDocumentsProvider(
-      extensionContextStub,
-      testConnectionController,
-      testQueryStore,
-      new StatusView(extensionContextStub),
-      testCodeLensProvider
-    );
-
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 

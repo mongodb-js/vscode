@@ -11,7 +11,6 @@ import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensP
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import { ExplorerController } from '../../../explorer';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -39,11 +38,11 @@ suite('Language Server Controller Test Suite', () => {
     extensionContextStub
   );
   const testStatusView = new StatusView(extensionContextStub);
-  const testConnectionController = new ConnectionController(
-    testStatusView,
-    testStorageController,
-    testTelemetryService
-  );
+  const testConnectionController = new ConnectionController({
+    statusView: testStatusView,
+    storageController: testStorageController,
+    telemetryService: testTelemetryService,
+  });
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
     testConnectionController
   );
@@ -52,9 +51,6 @@ suite('Language Server Controller Test Suite', () => {
     testEditDocumentCodeLensProvider
   );
   const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
-    testConnectionController
-  );
-  const testExplorerController = new ExplorerController(
     testConnectionController
   );
   const testExportToLanguageCodeLensProvider =
@@ -70,17 +66,16 @@ suite('Language Server Controller Test Suite', () => {
     languageServerControllerStub = new LanguageServerController(
       extensionContextStub
     );
-    testPlaygroundController = new PlaygroundController(
-      testConnectionController,
-      languageServerControllerStub,
-      testTelemetryService,
-      testStatusView,
-      testPlaygroundResultProvider,
-      testActiveDBCodeLensProvider,
-      testExportToLanguageCodeLensProvider,
-      testCodeActionProvider,
-      testExplorerController
-    );
+    testPlaygroundController = new PlaygroundController({
+      connectionController: testConnectionController,
+      languageServerController: languageServerControllerStub,
+      telemetryService: testTelemetryService,
+      statusView: testStatusView,
+      playgroundResultViewProvider: testPlaygroundResultProvider,
+      activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
+      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
+      playgroundSelectedCodeActionProvider: testCodeActionProvider,
+    });
     await languageServerControllerStub.startLanguageServer();
     await testPlaygroundController._connectToServiceProvider();
   });

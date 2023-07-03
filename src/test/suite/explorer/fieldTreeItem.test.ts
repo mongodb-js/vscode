@@ -1,5 +1,6 @@
 import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
+import type { DataService } from 'mongodb-data-service';
 
 import { ext } from '../../../extensionConstants';
 import FieldTreeItem, {
@@ -21,6 +22,38 @@ import { ExtensionContextStub } from '../stubs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
 
+function getTestFieldTreeItem(
+  options?: Partial<ConstructorParameters<typeof FieldTreeItem>[0]>
+) {
+  return new FieldTreeItem({
+    field: {
+      name: 'test',
+      probability: 1,
+      type: 'String',
+      types: [],
+    },
+    isExpanded: false,
+    existingCache: {},
+    ...options,
+  });
+}
+
+function getTestSchemaTreeItem(
+  options?: Partial<ConstructorParameters<typeof SchemaTreeItem>[0]>
+) {
+  return new SchemaTreeItem({
+    databaseName: 'zebraWearwolf',
+    collectionName: 'giraffeVampire',
+    dataService: {} as DataService,
+    isExpanded: false,
+    hasClickedShowMoreFields: false,
+    hasMoreFieldsToShow: false,
+    cacheIsUpToDate: false,
+    childrenCache: {},
+    ...options,
+  });
+}
+
 suite('FieldTreeItem Test Suite', function () {
   this.timeout(10000);
   test('its context value should be in the package json', function () {
@@ -41,31 +74,20 @@ suite('FieldTreeItem Test Suite', function () {
   test('it should have a different icon depending on the field type', () => {
     ext.context = new ExtensionContextStub();
 
-    const stringField = new FieldTreeItem(
-      {
-        name: 'test',
-        probability: 1,
-        type: 'String',
-        types: [],
-      },
-      false,
-      {}
-    );
+    const stringField = getTestFieldTreeItem();
 
     const iconPath = stringField.iconPath as { light: string; dark: string };
     assert(iconPath.dark.includes('string.svg'));
     assert(iconPath.light.includes('string.svg'));
 
-    const numberField = new FieldTreeItem(
-      {
+    const numberField = getTestFieldTreeItem({
+      field: {
         name: 'test',
         probability: 1,
         type: 'Number',
         types: [],
       },
-      false,
-      {}
-    );
+    });
 
     const numberIcon = numberField.iconPath as { light: string; dark: string };
     assert(numberIcon.dark.includes('number.svg'));
@@ -89,7 +111,10 @@ suite('FieldTreeItem Test Suite', function () {
         },
       ],
     };
-    assert(getIconFileNameForField(notFullProbability) === 'mixed-type');
+    assert.strictEqual(
+      getIconFileNameForField(notFullProbability),
+      'mixed-type'
+    );
   });
 
   test('getIconFileNameForField should return "mixed-type" for a field without 1 probability', () => {
@@ -104,12 +129,15 @@ suite('FieldTreeItem Test Suite', function () {
         },
       ],
     };
-    assert(getIconFileNameForField(notFullProbability) === 'mixed-type');
+    assert.strictEqual(
+      getIconFileNameForField(notFullProbability),
+      'mixed-type'
+    );
   });
 
   test('it should have the fieldtype in the tooltip', () => {
-    const testField = new FieldTreeItem(
-      {
+    const testField = getTestFieldTreeItem({
+      field: {
         name: 'test',
         probability: 0.5,
         type: 'String',
@@ -126,15 +154,9 @@ suite('FieldTreeItem Test Suite', function () {
           },
         ],
       },
-      false,
-      {}
-    );
+    });
 
-    const tooltipMatches = testField.tooltip === 'test - mixed-type';
-    assert(
-      tooltipMatches,
-      `Expected tooltip '${testField.tooltip}' to equal 'test - mixed-type'`
-    );
+    assert.strictEqual(testField.tooltip, 'test - mixed-type');
   });
 
   suite('Full database tests', () => {
@@ -155,30 +177,17 @@ suite('FieldTreeItem Test Suite', function () {
 
     test('field name is pulled from the name of a field', async () => {
       await seedTestDB('pie', [{ _id: 1, blueberryPie: 'yes' }]);
-      const testSchemaTreeItem = new SchemaTreeItem(
-        'pie',
-        TEST_DB_NAME,
+      const testSchemaTreeItem = getTestSchemaTreeItem({
+        databaseName: TEST_DB_NAME,
+        collectionName: 'pie',
+        isExpanded: true,
         dataService,
-        true,
-        false,
-        false,
-        false,
-        {}
-      );
+      });
       const schemaFields = await testSchemaTreeItem.getChildren();
 
-      assert(
-        schemaFields[0].label === '_id',
-        `Expected field name to be "_id" recieved ${schemaFields[0].label}`
-      );
-      assert(
-        schemaFields[1].label === 'blueberryPie',
-        `Expected field name to be "blueberryPie" recieved ${schemaFields[0].label}`
-      );
-      assert(
-        schemaFields[1].fieldName === 'blueberryPie',
-        `Expected field name to be "blueberryPie" recieved ${schemaFields[0].label}`
-      );
+      assert.strictEqual(schemaFields[0].label, '_id');
+      assert.strictEqual(schemaFields[1].label, 'blueberryPie');
+      assert.strictEqual(schemaFields[1].fieldName, 'blueberryPie');
     });
 
     test('it shows dropdowns for nested subdocuments', async () => {
@@ -203,25 +212,17 @@ suite('FieldTreeItem Test Suite', function () {
         },
       ]);
 
-      const testSchemaTreeItem = new SchemaTreeItem(
-        'gryffindor',
-        TEST_DB_NAME,
+      const testSchemaTreeItem = getTestSchemaTreeItem({
+        databaseName: TEST_DB_NAME,
+        collectionName: 'gryffindor',
         dataService,
-        false,
-        false,
-        false,
-        false,
-        {}
-      );
+      });
 
       await testSchemaTreeItem.onDidExpand();
 
       const schemaFields = await testSchemaTreeItem.getChildren();
 
-      assert(
-        schemaFields.length === 2,
-        `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
-      );
+      assert.strictEqual(schemaFields.length, 2);
       assert(
         !fieldIsExpandable(schemaFields[0].field),
         'Expected _id field not to have expandable state'
@@ -233,10 +234,7 @@ suite('FieldTreeItem Test Suite', function () {
 
       const subdocuments = await schemaFields[1].getChildren();
 
-      assert(
-        subdocuments.length === 1,
-        `Expected subdocument to have 1 field found ${subdocuments.length}`
-      );
+      assert.strictEqual(subdocuments.length, 1);
       assert(
         fieldIsExpandable(subdocuments[0].field),
         'Expected subdocument to be expandable'
@@ -244,10 +242,7 @@ suite('FieldTreeItem Test Suite', function () {
 
       const nestedSubDocument = await subdocuments[0].getChildren();
 
-      assert(
-        nestedSubDocument.length === 3,
-        'Expected nested subdocument to have 3 fields'
-      );
+      assert.strictEqual(nestedSubDocument.length, 3);
     });
 
     test('it shows dropdowns for arrays', async () => {
@@ -262,25 +257,17 @@ suite('FieldTreeItem Test Suite', function () {
         },
       ]);
 
-      const testSchemaTreeItem = new SchemaTreeItem(
-        'gryffindor',
-        TEST_DB_NAME,
+      const testSchemaTreeItem = getTestSchemaTreeItem({
+        databaseName: TEST_DB_NAME,
+        collectionName: 'gryffindor',
         dataService,
-        false,
-        false,
-        false,
-        false,
-        {}
-      );
+      });
 
       await testSchemaTreeItem.onDidExpand();
 
       const schemaFields = await testSchemaTreeItem.getChildren();
 
-      assert(
-        schemaFields.length === 2,
-        `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
-      );
+      assert.strictEqual(schemaFields.length, 2);
       assert(
         fieldIsExpandable(schemaFields[1].field),
         'Expected field to have expandable state'
@@ -288,10 +275,7 @@ suite('FieldTreeItem Test Suite', function () {
 
       const arrayFieldContainer = await schemaFields[1].getChildren();
 
-      assert(
-        arrayFieldContainer.length === 1,
-        `Expected array field to have 1 field found ${arrayFieldContainer.length}`
-      );
+      assert.strictEqual(arrayFieldContainer.length, 1);
       assert(
         !fieldIsExpandable(arrayFieldContainer[0].field),
         'Expected array field container to not be expandable'
@@ -320,16 +304,11 @@ suite('FieldTreeItem Test Suite', function () {
         },
       ]);
 
-      const testSchemaTreeItem = new SchemaTreeItem(
-        'beach',
-        TEST_DB_NAME,
+      const testSchemaTreeItem = getTestSchemaTreeItem({
+        databaseName: TEST_DB_NAME,
+        collectionName: 'beach',
         dataService,
-        false,
-        false,
-        false,
-        false,
-        {}
-      );
+      });
 
       await testSchemaTreeItem.onDidExpand();
 
@@ -337,10 +316,7 @@ suite('FieldTreeItem Test Suite', function () {
 
       const nestedSubDocuments = await schemaFields[1].getChildren();
 
-      assert(
-        nestedSubDocuments.length === 1,
-        `Expected array field fields to have 1 field found ${nestedSubDocuments.length}`
-      );
+      assert.strictEqual(nestedSubDocuments.length, 1);
       assert(
         fieldIsExpandable(nestedSubDocuments[0].field),
         'Expected subdocument in array to be expandable'
@@ -348,14 +324,8 @@ suite('FieldTreeItem Test Suite', function () {
 
       const subdocFields = await nestedSubDocuments[0].getChildren();
 
-      assert(
-        subdocFields.length === 2,
-        `Expected subdocument in array field to have 2 fields found ${subdocFields.length}`
-      );
-      assert(
-        subdocFields[1].label === 'sunset',
-        'Expected subdocument field to have correct label'
-      );
+      assert.strictEqual(subdocFields.length, 2);
+      assert.strictEqual(subdocFields[1].label, 'sunset');
       assert(
         !fieldIsExpandable(subdocFields[1].field),
         'Expected subdocument boolean field to not be expandable'

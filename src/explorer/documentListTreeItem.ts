@@ -51,7 +51,7 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
 
 const getCollapsableStateForDocumentList = (
   isExpanded: boolean,
-  type: CollectionTypes
+  type: string
 ): vscode.TreeItemCollapsibleState => {
   if (type === CollectionTypes.view) {
     return vscode.TreeItemCollapsibleState.None;
@@ -77,10 +77,7 @@ function getIconPath(): { light: string; dark: string } {
   };
 }
 
-function getTooltip(
-  type: CollectionTypes,
-  documentCount: number | null
-): string {
+function getTooltip(type: string, documentCount: number | null): string {
   const typeString = type === CollectionTypes.view ? 'View' : 'Collection';
   if (documentCount !== null) {
     return `${typeString} Documents - ${documentCount}`;
@@ -110,7 +107,7 @@ export default class DocumentListTreeItem
   collectionName: string;
   databaseName: string;
   namespace: string;
-  type: CollectionTypes;
+  type: string;
 
   private _dataService: DataService;
 
@@ -132,7 +129,7 @@ export default class DocumentListTreeItem
   }: {
     collectionName: string;
     databaseName: string;
-    type: CollectionTypes;
+    type: string;
     dataService: DataService;
     isExpanded: boolean;
     maxDocumentsToShow: number;

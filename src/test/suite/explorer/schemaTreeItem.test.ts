@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import sinon from 'sinon';
 import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
-import { inspect } from 'util';
 import type { DataService } from 'mongodb-data-service';
 import type { Document } from 'mongodb';
 
@@ -24,6 +23,22 @@ import { ExtensionContextStub } from '../stubs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
 
+function getTestSchemaTreeItem(
+  options?: Partial<ConstructorParameters<typeof SchemaTreeItem>[0]>
+) {
+  return new SchemaTreeItem({
+    databaseName: TEST_DB_NAME,
+    collectionName: 'cheesePizza',
+    dataService: {} as DataService,
+    isExpanded: false,
+    hasClickedShowMoreFields: false,
+    hasMoreFieldsToShow: false,
+    cacheIsUpToDate: false,
+    childrenCache: {},
+    ...options,
+  });
+}
+
 suite('SchemaTreeItem Test Suite', function () {
   this.timeout(10000);
   const sandbox = sinon.createSandbox();
@@ -34,16 +49,7 @@ suite('SchemaTreeItem Test Suite', function () {
 
   test('its context value should be in the package json', () => {
     let schemaRegisteredCommandInPackageJson = false;
-    const testSchemaTreeItem = new SchemaTreeItem(
-      'cheesePizza',
-      TEST_DB_NAME,
-      {} as DataService,
-      false,
-      false,
-      false,
-      false,
-      {}
-    );
+    const testSchemaTreeItem = getTestSchemaTreeItem();
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
       if (contextItem.when.includes(testSchemaTreeItem.contextValue)) {
@@ -58,16 +64,7 @@ suite('SchemaTreeItem Test Suite', function () {
   });
 
   test('when the "show more" click handler function is called it sets the schema to show more fields', () => {
-    const testSchemaTreeItem = new SchemaTreeItem(
-      'favoritePiesIWantToEatRightNow',
-      TEST_DB_NAME,
-      {} as DataService,
-      false,
-      false,
-      false,
-      false,
-      {}
-    );
+    const testSchemaTreeItem = getTestSchemaTreeItem();
 
     assert(
       !testSchemaTreeItem.hasClickedShowMoreFields,
@@ -97,16 +94,10 @@ suite('SchemaTreeItem Test Suite', function () {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
 
-    const testSchemaTreeItem = new SchemaTreeItem(
-      'peanutButter',
-      TEST_DB_NAME,
-      testDataService,
-      true,
-      false,
-      false,
-      false,
-      {}
-    );
+    const testSchemaTreeItem = getTestSchemaTreeItem({
+      dataService: testDataService,
+      isExpanded: true,
+    });
 
     const showInformationMessageStub = sandbox.stub(
       vscode.window,
@@ -115,14 +106,10 @@ suite('SchemaTreeItem Test Suite', function () {
 
     const schemaFields = await testSchemaTreeItem.getChildren();
 
-    assert(
-      schemaFields.length === 0,
-      `Expected ${0} documents to be returned, found ${schemaFields.length}`
-    );
-
-    assert(
-      showInformationMessageStub.firstCall.args[0] === expectedMessage,
-      `Expected message to be '${expectedMessage}' found ${showInformationMessageStub.firstCall.args[0]}`
+    assert.strictEqual(schemaFields.length, 0);
+    assert.strictEqual(
+      showInformationMessageStub.firstCall.args[0],
+      expectedMessage
     );
   });
 
@@ -137,16 +124,10 @@ suite('SchemaTreeItem Test Suite', function () {
     const testDataService = {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
-    const testSchemaTreeItem = new SchemaTreeItem(
-      'favoritePiesIWantToEatRightNow',
-      TEST_DB_NAME,
-      testDataService,
-      true,
-      false,
-      false,
-      false,
-      {}
-    );
+    const testSchemaTreeItem = getTestSchemaTreeItem({
+      dataService: testDataService,
+      isExpanded: true,
+    });
 
     const schemaFields = await testSchemaTreeItem.getChildren();
     assert.strictEqual(FIELDS_TO_SHOW, 15, 'Expeted FIELDS_TO_SHOW to be 15');
@@ -158,9 +139,9 @@ suite('SchemaTreeItem Test Suite', function () {
         schemaFields.length
       }`
     );
-    assert(
-      schemaFields[amountOfFieldsExpected].label === 'Show more fields...',
-      `Expected a tree item child with the label "Show more fields..." found ${schemaFields[amountOfFieldsExpected].label}`
+    assert.strictEqual(
+      schemaFields[amountOfFieldsExpected].label,
+      'Show more fields...'
     );
   });
 
@@ -174,26 +155,17 @@ suite('SchemaTreeItem Test Suite', function () {
     const testDataService = {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
-    const testSchemaTreeItem = new SchemaTreeItem(
-      'favoritePiesIWantToEatRightNow',
-      TEST_DB_NAME,
-      testDataService,
-      true,
-      false,
-      false,
-      false,
-      {}
-    );
+    const testSchemaTreeItem = getTestSchemaTreeItem({
+      dataService: testDataService,
+      isExpanded: true,
+    });
 
     testSchemaTreeItem.onShowMoreClicked();
 
     const schemaFields = await testSchemaTreeItem.getChildren();
     const amountOfFieldsExpected = 30;
 
-    assert(
-      schemaFields.length === amountOfFieldsExpected,
-      `Expected ${amountOfFieldsExpected} documents to be returned, found ${schemaFields.length}`
-    );
+    assert.strictEqual(schemaFields.length, amountOfFieldsExpected);
   });
 
   test('When schema parsing fails it displays an error message', async () => {
@@ -203,16 +175,10 @@ suite('SchemaTreeItem Test Suite', function () {
       find: findStub,
     } as Pick<DataService, 'find'> as unknown as DataService;
 
-    const testSchemaTreeItem = new SchemaTreeItem(
-      'favoritePiesIWantToEatRightNow',
-      TEST_DB_NAME,
-      testDataService,
-      true,
-      false,
-      false,
-      false,
-      {}
-    );
+    const testSchemaTreeItem = getTestSchemaTreeItem({
+      dataService: testDataService,
+      isExpanded: true,
+    });
 
     try {
       await testSchemaTreeItem.getChildren();
@@ -248,71 +214,46 @@ suite('SchemaTreeItem Test Suite', function () {
     });
 
     test('when not expanded it has not yet pulled the schema', async () => {
-      await seedTestDB('favoritePiesIWantToEatRightNow', [
+      await seedTestDB('pizza', [
         {
           _id: 10,
           someField: 'applePie',
         },
       ]);
 
-      const testSchemaTreeItem = new SchemaTreeItem(
-        'favoritePiesIWantToEatRightNow',
-        TEST_DB_NAME,
+      const testSchemaTreeItem = getTestSchemaTreeItem({
+        collectionName: 'pizza',
         dataService,
-        false,
-        false,
-        false,
-        false,
-        {}
-      );
+      });
 
       const schemaFields = await testSchemaTreeItem.getChildren();
 
-      assert(
-        schemaFields.length === 0,
-        `Expected no schema tree items to be returned, recieved ${schemaFields.length}`
-      );
+      assert.strictEqual(schemaFields.length, 0);
     });
 
     test('when expanded shows the fields of a schema', async () => {
-      await seedTestDB('favoritePiesIWantToEatRightNow', [
+      await seedTestDB('pizza', [
         {
           _id: 1,
           nameOfTastyPie: 'applePie',
         },
       ]);
-
-      const testSchemaTreeItem = new SchemaTreeItem(
-        'favoritePiesIWantToEatRightNow',
-        TEST_DB_NAME,
+      const testSchemaTreeItem = getTestSchemaTreeItem({
+        collectionName: 'pizza',
         dataService,
-        false,
-        false,
-        false,
-        false,
-        {}
-      );
+      });
 
       await testSchemaTreeItem.onDidExpand();
 
       const schemaFields = await testSchemaTreeItem.getChildren();
 
-      assert(
-        schemaFields.length === 2,
-        `Expected 2 schema tree items to be returned, recieved ${schemaFields.length}`
-      );
-      assert(
-        schemaFields[0].label === '_id',
-        `Expected label of schema tree item to be the field name, recieved ${schemaFields[0].label}`
-      );
-      assert(
-        schemaFields[1].label === 'nameOfTastyPie',
-        `Expected label of schema tree item to be the field name, recieved ${schemaFields[1].label}`
-      );
+      assert.strictEqual(schemaFields.length, 2);
+      assert.strictEqual(schemaFields[0].label, '_id');
+      assert.strictEqual(schemaFields[1].label, 'nameOfTastyPie');
     });
 
     test('it only shows a dropdown for fields which are always documents - and not for polymorphic', async () => {
-      await seedTestDB('favoritePiesIWantToEatRightNow', [
+      await seedTestDB('pizza', [
         {
           _id: 1,
           alwaysDocument: {
@@ -331,51 +272,27 @@ suite('SchemaTreeItem Test Suite', function () {
         },
       ]);
 
-      const testSchemaTreeItem = new SchemaTreeItem(
-        'favoritePiesIWantToEatRightNow',
-        TEST_DB_NAME,
+      const testSchemaTreeItem = getTestSchemaTreeItem({
+        collectionName: 'pizza',
         dataService,
-        false,
-        false,
-        false,
-        false,
-        {}
-      );
+      });
 
       await testSchemaTreeItem.onDidExpand();
 
       const schemaFields = await testSchemaTreeItem.getChildren();
 
-      assert(
-        schemaFields.length === 3,
-        `Expected 3 schema tree items to be returned, recieved ${
-          schemaFields.length
-        }: ${inspect(schemaFields)}`
-      );
+      assert.strictEqual(schemaFields.length, 3);
       assert(
         fieldIsExpandable(schemaFields[1].field),
         'Expected field to have expandable state'
       );
-      assert(
-        fieldIsExpandable(schemaFields[2].field) === false,
-        'Expected field to have none expandable state'
-      );
+      assert.strictEqual(fieldIsExpandable(schemaFields[2].field), false);
     });
   });
 
   test('it should have an icon with the name schema', () => {
     ext.context = new ExtensionContextStub();
-
-    const testSchemaTreeItem = new SchemaTreeItem(
-      'favoritePiesIWantToEatRightNow',
-      TEST_DB_NAME,
-      {} as DataService,
-      false,
-      false,
-      false,
-      false,
-      {}
-    );
+    const testSchemaTreeItem = getTestSchemaTreeItem();
 
     const schemaIconPath = testSchemaTreeItem.iconPath;
     assert(

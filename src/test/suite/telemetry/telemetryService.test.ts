@@ -571,13 +571,13 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track on create collection', async () => {
-      const testDatabaseTreeItem = new DatabaseTreeItem(
-        'databaseName',
-        new DataServiceStub(),
-        false,
-        false,
-        {}
-      );
+      const testDatabaseTreeItem = new DatabaseTreeItem({
+        databaseName: 'databaseName',
+        dataService: new DataServiceStub() as unknown as DataService,
+        isExpanded: false,
+        cacheIsUpToDate: false,
+        childrenCache: {},
+      });
       await vscode.commands.executeCommand(
         'mdb.addCollection',
         testDatabaseTreeItem
@@ -643,13 +643,13 @@ suite('Telemetry Controller Test Suite', () => {
           return Promise.resolve([mockDocument]);
         },
       } as Pick<DataService, 'find'> as unknown as DataService;
-      const documentItem = new DocumentTreeItem(
-        mockDocument,
-        'waffle.house',
-        0,
-        dataServiceStub,
-        () => Promise.resolve()
-      );
+      const documentItem = new DocumentTreeItem({
+        document: mockDocument,
+        namespace: 'waffle.house',
+        documentIndexInTree: 0,
+        dataService: dataServiceStub,
+        resetDocumentListCache: () => Promise.resolve(),
+      });
       await vscode.commands.executeCommand(
         'mdb.cloneDocumentFromTreeView',
         documentItem

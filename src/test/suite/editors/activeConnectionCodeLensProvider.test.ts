@@ -21,32 +21,36 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     extensionContextStub
   );
   const testStatusView = new StatusView(extensionContextStub);
+  let testConnectionController: ConnectionController;
+  let testCodeLensProvider: ActiveConnectionCodeLensProvider;
+  let sandbox: sinon.SinonSandbox;
+
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+    testConnectionController = new ConnectionController({
+      statusView: testStatusView,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+    testCodeLensProvider = new ActiveConnectionCodeLensProvider(
+      testConnectionController
+    );
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
 
   suite('the MongoDB playground in JS', () => {
-    const sandbox = sinon.createSandbox();
-
     suite('user is not connected', () => {
-      const testConnectionController = new ConnectionController(
-        testStatusView,
-        testStorageController,
-        testTelemetryService
-      );
-      const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
-        testConnectionController
-      );
-      const fakeShowQuickPick = sandbox.fake();
-
       beforeEach(() => {
         testCodeLensProvider.setActiveTextEditor(
           vscode.window.activeTextEditor
         );
+        const fakeShowQuickPick = sandbox.fake();
         sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
         const fakeIsPlayground = sandbox.fake.returns(true);
         sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
-      });
-
-      afterEach(() => {
-        sandbox.restore();
       });
 
       test('show disconnected message in code lenses', () => {
@@ -63,15 +67,6 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     });
 
     suite('user is connected', () => {
-      const testConnectionController = new ConnectionController(
-        testStatusView,
-        testStorageController,
-        testTelemetryService
-      );
-      const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
-        testConnectionController
-      );
-
       beforeEach(() => {
         const findStub = sandbox.stub();
         findStub.resolves([
@@ -123,20 +118,9 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   });
 
   suite('the regular JS file', () => {
-    const sandbox = sinon.createSandbox();
-
     suite('user is not connected', () => {
-      const testConnectionController = new ConnectionController(
-        testStatusView,
-        testStorageController,
-        testTelemetryService
-      );
-      const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
-        testConnectionController
-      );
-      const fakeShowQuickPick = sandbox.fake();
-
       beforeEach(() => {
+        const fakeShowQuickPick = sandbox.fake();
         sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
         const fakeIsPlayground = sandbox.fake.returns(false);
         sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
@@ -155,15 +139,6 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     });
 
     suite('user is connected', () => {
-      const testConnectionController = new ConnectionController(
-        testStatusView,
-        testStorageController,
-        testTelemetryService
-      );
-      const testCodeLensProvider = new ActiveConnectionCodeLensProvider(
-        testConnectionController
-      );
-
       beforeEach(() => {
         const findStub = sandbox.stub();
         findStub.resolves([

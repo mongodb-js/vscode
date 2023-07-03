@@ -114,7 +114,10 @@ export default class PlaygroundsTree
     this._playgroundsTreeItems = Object.fromEntries(
       playgrounds.map((playground) => [
         playground.path,
-        new PlaygroundsTreeItem(playground.name, playground.path),
+        new PlaygroundsTreeItem({
+          fileName: playground.name,
+          filePath: playground.path,
+        }),
       ])
     );
 
@@ -138,7 +141,10 @@ export default class PlaygroundsTree
 
           if (Object.keys(playgrounds).length > 0) {
             this._playgroundsTreeHeaders.push(
-              new PlaygroundsTreeHeader(folder.uri, playgrounds)
+              new PlaygroundsTreeHeader({
+                fileUri: folder.uri,
+                playgroundsTreeItems: playgrounds,
+              })
             );
           }
         }

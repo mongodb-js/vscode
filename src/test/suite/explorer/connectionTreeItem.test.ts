@@ -14,6 +14,18 @@ import { mdbTestExtension } from '../stubbableMdbExtension';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
 
+function getTestConnectionTreeItem() {
+  return new ConnectionTreeItem({
+    connectionId: 'test',
+    collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+    isExpanded: true,
+    connectionController:
+      mdbTestExtension.testExtensionController._connectionController,
+    cacheIsUpToDate: false,
+    childrenCache: {},
+  });
+}
+
 suite('ConnectionTreeItem Test Suite', () => {
   test('its context value should be in the package json', function () {
     let connectedRegisteredCommandInPackageJson = false;
@@ -43,14 +55,7 @@ suite('ConnectionTreeItem Test Suite', () => {
     const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
-      testConnectionTreeItem = new ConnectionTreeItem(
-        '',
-        vscode.TreeItemCollapsibleState.Expanded,
-        true,
-        mdbTestExtension.testExtensionController._connectionController,
-        false,
-        {}
-      );
+      testConnectionTreeItem = getTestConnectionTreeItem();
     });
 
     afterEach(() => {
@@ -101,14 +106,7 @@ suite('ConnectionTreeItem Test Suite', () => {
     const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
-      testConnectionTreeItem = new ConnectionTreeItem(
-        '',
-        vscode.TreeItemCollapsibleState.Expanded,
-        true,
-        mdbTestExtension.testExtensionController._connectionController,
-        false,
-        {}
-      );
+      testConnectionTreeItem = getTestConnectionTreeItem();
     });
 
     afterEach(() => {

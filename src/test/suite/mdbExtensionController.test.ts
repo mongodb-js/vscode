@@ -25,10 +25,13 @@ import {
   StorageVariables,
 } from '../../storage/storageController';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
+import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
 
 const testDatabaseURI = 'mongodb://localhost:27018';
 
-function getTestConnectionTreeItem() {
+function getTestConnectionTreeItem(
+  options?: Partial<ConstructorParameters<typeof ConnectionTreeItem>[0]>
+) {
   return new ConnectionTreeItem({
     connectionId: 'tasty_sandwhich',
     collapsibleState: vscode.TreeItemCollapsibleState.None,
@@ -37,6 +40,7 @@ function getTestConnectionTreeItem() {
       mdbTestExtension.testExtensionController._connectionController,
     cacheIsUpToDate: false,
     childrenCache: {},
+    ...options,
   });
 }
 
@@ -47,7 +51,7 @@ function getTestCollectionTreeItem(
     collection: {
       name: 'testColName',
       type: CollectionTypes.collection,
-    },
+    } as unknown as CollectionDetailsType,
     databaseName: 'testDbName',
     dataService: {} as DataService,
     isExpanded: false,
@@ -58,7 +62,7 @@ function getTestCollectionTreeItem(
 }
 
 function getTestDatabaseTreeItem(
-  options?: Partial<ConstructorParameters<typeof CollectionTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof DatabaseTreeItem>[0]>
 ) {
   return new DatabaseTreeItem({
     databaseName: 'zebra',
@@ -277,7 +281,9 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.treeItemRemoveConnection command should call removeMongoDBConnection on the connection controller with the tree item connection id', async () => {
-      const testTreeItem = getTestConnectionTreeItem();
+      const testTreeItem = getTestConnectionTreeItem({
+        connectionId: 'craving_for_pancakes_with_maple_syrup',
+      });
       const fakeRemoveMongoDBConnection = sandbox.fake();
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
@@ -420,7 +426,7 @@ suite('MDBExtensionController Test Suite', function () {
       let count = 9000;
       const testTreeItem = getTestCollectionTreeItem({
         dataService: {
-          estimatedCount: { estimatedCount: () => Promise.resolve(count) },
+          estimatedCount: () => Promise.resolve(count),
         } as unknown as DataService,
       });
       await testTreeItem.onDidExpand();
@@ -465,14 +471,14 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshIndexes command should reset its cache and call to refresh the explorer controller', async () => {
-      const testTreeItem = new IndexListTreeItem(
-        'zebraWearwolf',
-        'giraffeVampire',
-        {} as DataService,
-        false,
-        false,
-        []
-      );
+      const testTreeItem = new IndexListTreeItem({
+        collectionName: 'zebraWearwolf',
+        databaseName: 'giraffeVampire',
+        dataService: {} as DataService,
+        isExpanded: false,
+        cacheIsUpToDate: false,
+        childrenCache: [],
+      });
 
       // Set cached.
       testTreeItem.cacheIsUpToDate = true;
@@ -693,7 +699,7 @@ suite('MDBExtensionController Test Suite', function () {
         collection: {
           name: 'doesntExistColName',
           type: CollectionTypes.collection,
-        },
+        } as unknown as CollectionDetailsType,
         dataService:
           testConnectionController.getActiveDataService() ?? undefined,
       });
@@ -721,7 +727,10 @@ suite('MDBExtensionController Test Suite', function () {
 
     test('mdb.dropCollection fails when the input doesnt match the collection name', async () => {
       const testCollectionTreeItem = getTestCollectionTreeItem({
-        collection: { name: 'orange', type: CollectionTypes.collection },
+        collection: {
+          name: 'orange',
+          type: CollectionTypes.collection,
+        } as unknown as CollectionDetailsType,
       });
       const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('apple');
@@ -832,7 +841,9 @@ suite('MDBExtensionController Test Suite', function () {
           storageLocation: StorageLocation.NONE,
         };
 
-      const testTreeItem = getTestConnectionTreeItem();
+      const testTreeItem = getTestConnectionTreeItem({
+        connectionId: 'blueBerryPancakesAndTheSmellOfBacon',
+      });
 
       const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves(/* Return undefined. */);
@@ -860,7 +871,9 @@ suite('MDBExtensionController Test Suite', function () {
           storageLocation: StorageLocation.NONE,
         };
 
-      const testTreeItem = getTestConnectionTreeItem();
+      const testTreeItem = getTestConnectionTreeItem({
+        connectionId: 'blueBerryPancakesAndTheSmellOfBacon',
+      });
       const inputBoxResolvesStub = sandbox.stub();
       inputBoxResolvesStub.onCall(0).resolves('orange juice');
       sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
@@ -1274,7 +1287,7 @@ suite('MDBExtensionController Test Suite', function () {
         collection: {
           name: 'pineapple',
           type: CollectionTypes.collection,
-        },
+        } as unknown as CollectionDetailsType,
         databaseName: 'plants',
       });
       const fakeCreatePlaygroundForInsertDocument = sandbox.fake();

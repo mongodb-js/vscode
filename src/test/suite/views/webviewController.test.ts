@@ -40,11 +40,14 @@ suite('Webview Test Suite', () => {
       fakeVSCodeCreateWebviewPanel
     );
 
-    const testWebviewController = new WebviewController(
-      mdbTestExtension.testExtensionController._connectionController,
-      mdbTestExtension.testExtensionController._storageController,
-      mdbTestExtension.testExtensionController._telemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController:
+        mdbTestExtension.testExtensionController._connectionController,
+      storageController:
+        mdbTestExtension.testExtensionController._storageController,
+      telemetryService:
+        mdbTestExtension.testExtensionController._telemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -121,11 +124,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     let messageReceivedSet = false;
     let messageReceived;
     const fakeWebview = {
@@ -157,11 +160,11 @@ suite('Webview Test Suite', () => {
       fakeVSCodeCreateWebviewPanel
     );
 
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -190,11 +193,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     let messageReceivedSet = false;
     let messageReceived;
     const fakeWebview = {
@@ -226,11 +229,11 @@ suite('Webview Test Suite', () => {
       fakeVSCodeCreateWebviewPanel
     );
 
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -259,11 +262,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     let messageReceived;
     const fakeWebview = {
       html: '',
@@ -289,11 +292,11 @@ suite('Webview Test Suite', () => {
       fakeVSCodeCreateWebviewPanel
     );
 
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -318,11 +321,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     let messageReceived;
     const fakeWebview = {
       html: '',
@@ -350,11 +353,11 @@ suite('Webview Test Suite', () => {
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
     );
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
     );
@@ -383,11 +386,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     const fakeVSCodeOpenDialog = sinon.fake.resolves({
       path: '/somefilepath/test.text',
     });
@@ -419,11 +422,11 @@ suite('Webview Test Suite', () => {
 
     sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
 
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -443,11 +446,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     let messageReceived;
     const fakeWebview = {
       html: '',
@@ -486,11 +489,11 @@ suite('Webview Test Suite', () => {
 
     sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
 
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -509,11 +512,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     let messageReceived;
     const fakeWebview = {
       html: '',
@@ -536,11 +539,11 @@ suite('Webview Test Suite', () => {
       fakeVSCodeCreateWebviewPanel
     );
 
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -567,11 +570,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     let messageReceived;
     const fakeWebview = {
       html: '',
@@ -597,11 +600,11 @@ suite('Webview Test Suite', () => {
       fakeVSCodeCreateWebviewPanel
     );
 
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -620,11 +623,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     let messageReceived;
     const fakeWebview = {
       html: '',
@@ -651,11 +654,11 @@ suite('Webview Test Suite', () => {
       fakeVSCodeCreateWebviewPanel
     );
 
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -678,11 +681,11 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    const testConnectionController = new ConnectionController(
-      new StatusView(extensionContextStub),
-      testStorageController,
-      testTelemetryService
-    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
     let messageReceived;
     const fakeWebview = {
       html: '',
@@ -710,11 +713,11 @@ suite('Webview Test Suite', () => {
       mockRenameConnectionOnConnectionController
     );
 
-    const testWebviewController = new WebviewController(
-      testConnectionController,
-      testStorageController,
-      testTelemetryService
-    );
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -753,11 +756,11 @@ suite('Webview Test Suite', () => {
     let testWebviewController;
 
     beforeEach(() => {
-      testConnectionController = new ConnectionController(
-        new StatusView(extensionContextStub),
-        testStorageController,
-        testTelemetryService
-      );
+      testConnectionController = new ConnectionController({
+        statusView: new StatusView(extensionContextStub),
+        storageController: testStorageController,
+        telemetryService: testTelemetryService,
+      });
 
       fakeWebview = {
         html: '',
@@ -777,11 +780,11 @@ suite('Webview Test Suite', () => {
         fakeVSCodeCreateWebviewPanel
       );
 
-      testWebviewController = new WebviewController(
-        testConnectionController,
-        testStorageController,
-        testTelemetryService
-      );
+      testWebviewController = new WebviewController({
+        connectionController: testConnectionController,
+        storageController: testStorageController,
+        telemetryService: testTelemetryService,
+      });
 
       testWebviewController.openWebview(mdbTestExtension.extensionContextStub);
     });

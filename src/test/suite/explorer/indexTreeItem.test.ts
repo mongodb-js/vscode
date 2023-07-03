@@ -7,8 +7,8 @@ import IndexTreeItem, {
 
 suite('IndexTreeItem Test Suite', () => {
   test('it has tree items for each key in the index', async () => {
-    const testIndexTreeItem = new IndexTreeItem(
-      {
+    const testIndexTreeItem = new IndexTreeItem({
+      index: {
         v: 1,
         key: {
           _id: 1,
@@ -17,32 +17,23 @@ suite('IndexTreeItem Test Suite', () => {
         name: '_id_1_gnocchi_1',
         ns: 'tasty_fruits.pineapple',
       },
-      'tasty_fruits.pineapple',
-      false
-    );
+      namespace: 'tasty_fruits.pineapple',
+      isExpanded: false,
+    });
 
     const indexKeyTreeItems = await testIndexTreeItem.getChildren();
 
-    assert(
-      indexKeyTreeItems.length === 2,
-      `Expected 2 tree items to be returned, found ${indexKeyTreeItems.length}`
-    );
-    assert(
-      indexKeyTreeItems[0].label === '_id',
-      `Expected first child tree item to be named '_id' found ${indexKeyTreeItems[0].label}`
-    );
-    assert(
-      indexKeyTreeItems[1].label === 'gnocchi',
-      `Expected the second child tree item to be named 'gnocchi' found ${indexKeyTreeItems[1].label}`
-    );
+    assert.strictEqual(indexKeyTreeItems.length, 2);
+    assert.strictEqual(indexKeyTreeItems[0].label, '_id');
+    assert.strictEqual(indexKeyTreeItems[1].label, 'gnocchi');
   });
 
   suite('IndexFieldTreeItem', () => {
     test('it has an icon for the index type', () => {
-      const testIndexFieldTreeItem = new IndexFieldTreeItem(
-        'locations',
-        IndexKeyType.GEOSPHERE
-      );
+      const testIndexFieldTreeItem = new IndexFieldTreeItem({
+        indexKey: 'locations',
+        indexKeyType: IndexKeyType.GEOSPHERE,
+      });
 
       const iconPath = testIndexFieldTreeItem.iconPath as {
         light: string;
