@@ -32,6 +32,11 @@ export type ConnectionsFromStorage = {
   [connectionId: string]: StoreConnectionInfo;
 };
 
+export enum SecretStorageLocation {
+  Keytar = 'vscode.Keytar',
+  SecretStorage = 'vscode.SecretStorage',
+}
+
 interface StorageVariableContents {
   [StorageVariables.GLOBAL_USER_ID]: string;
   [StorageVariables.GLOBAL_ANONYMOUS_ID]: string;
@@ -48,11 +53,14 @@ export default class StorageController {
     [StorageLocation.WORKSPACE]: vscode.Memento;
   };
 
+  _secretStorage: vscode.SecretStorage;
+
   constructor(context: vscode.ExtensionContext) {
     this._storage = {
       [StorageLocation.GLOBAL]: context.globalState,
       [StorageLocation.WORKSPACE]: context.workspaceState,
     };
+    this._secretStorage = context.secrets;
   }
 
   get<T extends StoredVariableName>(
@@ -123,9 +131,9 @@ export default class StorageController {
     );
   }
 
-  async saveConnection(
-    storeConnectionInfo: StoreConnectionInfo
-  ): Promise<StoreConnectionInfo> {
+  async saveConnection<T extends StoreConnectionInfo>(
+    storeConnectionInfo: T
+  ): Promise<T> {
     const dontShowSaveLocationPrompt = vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .get('hideOptionToChooseWhereToSaveNewConnections');
@@ -242,5 +250,18 @@ export default class StorageController {
     }
 
     return StorageLocation.NONE;
+  }
+
+  async getSecret(key: string): Promise<string | null> {
+    return (await this._secretStorage.get(key)) ?? null;
+  }
+
+  async deleteSecret(key: string): Promise<boolean> {
+    await this._secretStorage.delete(key);
+    return true;
+  }
+
+  async setSecret(key: string, value: string): Promise<void> {
+    await this._secretStorage.store(key, value);
   }
 }

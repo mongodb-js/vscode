@@ -4,7 +4,6 @@ import {
   ConnectionInfo,
   ConnectionOptions,
   getConnectionTitle,
-  ConnectionSecrets,
   extractSecrets,
   mergeSecrets,
   connect,
@@ -22,11 +21,13 @@ import formatError from './utils/formatError';
 import LegacyConnectionModel from './views/webview-app/connection-model/legacy-connection-model';
 import {
   StorageLocation,
-  ConnectionsFromStorage,
+  SecretStorageLocation,
 } from './storage/storageController';
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
-import TelemetryService from './telemetry/telemetryService';
+import TelemetryService, {
+  TelemetryEventTypes,
+} from './telemetry/telemetryService';
 import LINKS from './utils/links';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -50,6 +51,7 @@ export interface StoreConnectionInfo {
   id: string; // Connection model id or a new uuid.
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
+  secretStorageLocation?: SecretStorageLocation;
   connectionOptions?: ConnectionOptions;
   connectionModel?: LegacyConnectionModel;
 }
@@ -69,20 +71,24 @@ interface ConnectionQuickPicks {
   data: { type: NewConnectionType; connectionId?: string };
 }
 
-interface ConnectionSecretsInfo {
-  connectionId: string;
-  secrets: ConnectionSecrets;
-}
+type StoreConnectionInfoWithConnectionModel = StoreConnectionInfo &
+  Required<Pick<StoreConnectionInfo, 'connectionModel'>>;
 
 type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
   Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
+
+type MigratedStoreConnectionInfo = StoreConnectionInfo &
+  Required<Pick<StoreConnectionInfo, 'secretStorageLocation'>>;
+
+type MigratedStoreConnectionInfoWithConnectionOptions =
+  StoreConnectionInfoWithConnectionOptions & MigratedStoreConnectionInfo;
 
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
   _connections: {
-    [connectionId: string]: StoreConnectionInfoWithConnectionOptions;
+    [connectionId: string]: MigratedStoreConnectionInfoWithConnectionOptions;
   } = {};
   _activeDataService: DataService | null = null;
   _storageController: StorageController;
@@ -116,142 +122,185 @@ export default class ConnectionController {
     this._telemetryService = telemetryService;
   }
 
-  async _migratePreviouslySavedConnection(
-    savedConnectionInfo: StoreConnectionInfo
-  ): Promise<StoreConnectionInfoWithConnectionOptions> {
-    if (!savedConnectionInfo.connectionModel) {
-      throw new Error(
-        'The connectionModel object is missing in saved connection info.'
+  async loadSavedConnections(): Promise<void> {
+    const globalAndWorkspaceConnections = {
+      ...this._storageController.get(
+        StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+        StorageLocation.GLOBAL
+      ),
+      ...this._storageController.get(
+        StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+        StorageLocation.WORKSPACE
+      ),
+    };
+
+    let connectionsDidChange = false;
+    const connectionsWithSecretsInKeytar: Array<{
+      connectionId: string;
+      connectionName: string;
+    }> = [];
+    const totalConnectionEntries = Object.entries(
+      globalAndWorkspaceConnections
+    );
+    for (const [connectionId, connectionInfo] of totalConnectionEntries) {
+      const connectionInfoWithSecret = await this._getConnectionInfoWithSecrets(
+        connectionInfo
       );
+
+      if (connectionInfoWithSecret) {
+        connectionsDidChange = true;
+        this._connections[connectionId] = connectionInfoWithSecret;
+
+        if (
+          connectionInfoWithSecret.secretStorageLocation ===
+          SecretStorageLocation.Keytar
+        ) {
+          connectionsWithSecretsInKeytar.push({
+            connectionId,
+            connectionName: connectionInfo.name,
+          });
+        }
+      }
     }
 
+    if (connectionsDidChange) {
+      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    }
+
+    if (connectionsWithSecretsInKeytar.length) {
+      log.error('Could not migrate secrets for a few connections', connectionsWithSecretsInKeytar);
+      this._telemetryService.track(
+        TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
+        {
+          totalConnections: totalConnectionEntries.length,
+          connectionsWithSecretsInKeytar: connectionsWithSecretsInKeytar.length,
+        }
+      );
+      void vscode.window.showInformationMessage(
+        [
+          'Could not migrate secrets for a few connections. Please review the following connections:',
+          connectionsWithSecretsInKeytar
+            .map(({ connectionName }) => connectionName)
+            .join(', '),
+        ].join('\n')
+      );
+    }
+  }
+
+  async _getConnectionInfoWithSecrets(
+    connectionInfo: StoreConnectionInfo
+  ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
+    try {
+      if (connectionInfo.connectionModel) {
+        return this._migratePreviouslySavedConnection(
+          connectionInfo as StoreConnectionInfoWithConnectionModel
+        );
+      }
+
+      if (!connectionInfo.secretStorageLocation) {
+        return this._migrateKeytarSecrets(
+          connectionInfo as StoreConnectionInfoWithConnectionOptions
+        );
+      }
+
+      // We tried migrating this connection earlier but failed because Keytar was not
+      // available. So we return simply the connection without secrets.
+      if (
+        connectionInfo.secretStorageLocation === SecretStorageLocation.Keytar
+      ) {
+        return connectionInfo as MigratedStoreConnectionInfoWithConnectionOptions;
+      }
+
+      const unparsedSecrets =
+        (await this._storageController.getSecret(connectionInfo.id)) ?? '';
+
+      return this._mergedConnectionInfoWithSecrets(
+        connectionInfo as MigratedStoreConnectionInfoWithConnectionOptions,
+        unparsedSecrets
+      );
+    } catch (error) {
+      log.error('Error while retrieving connection info', error);
+      return undefined;
+    }
+  }
+
+  async _migratePreviouslySavedConnection(
+    savedConnectionInfo: StoreConnectionInfoWithConnectionModel
+  ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
     // Transform a raw connection model from storage to an ampersand model.
     const newConnectionInfoWithSecrets = convertConnectionModelToInfo(
       savedConnectionInfo.connectionModel
     );
 
-    // Further use connectionOptions instead of connectionModel.
-    const newSavedConnectionInfoWithSecrets = {
+    const connectionInfoWithSecret = {
       id: savedConnectionInfo.id,
       name: savedConnectionInfo.name,
       storageLocation: savedConnectionInfo.storageLocation,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
       connectionOptions: newConnectionInfoWithSecrets.connectionOptions,
     };
 
-    await this._saveConnection(newSavedConnectionInfoWithSecrets);
-
-    return newSavedConnectionInfoWithSecrets;
+    await this._saveConnectionWithSecret(connectionInfoWithSecret);
+    return connectionInfoWithSecret;
   }
 
-  async _getConnectionInfoWithSecrets(
-    savedConnectionInfo: StoreConnectionInfo
-  ): Promise<StoreConnectionInfoWithConnectionOptions | undefined> {
-    // Migrate previously saved connections to a new format.
-    // Save only secrets to keychain.
-    // Remove connectionModel and use connectionOptions instead.
-    if (savedConnectionInfo.connectionModel) {
-      try {
-        return await this._migratePreviouslySavedConnection(
-          savedConnectionInfo
-        );
-      } catch (error) {
-        // Here we're lenient when loading connections in case their
-        // connections have become corrupted.
-        log.error('Migrating previously saved connections failed', error);
-        return;
-      }
-    }
-
-    // If connection has a new format already and keytar module is undefined.
-    // Return saved connection as it is.
+  async _migrateKeytarSecrets(
+    savedConnectionInfo: StoreConnectionInfoWithConnectionOptions
+  ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
+    // If the Keytar module is not available, we simply mark the connections
+    // storage as Keytar and return
     if (!ext.keytarModule) {
-      log.error(
-        'Getting connection info with secrets failed because VSCode extension keytar module is undefined'
+      log.error('Could not migrate Keytar secrets, module not found');
+      return await this._storageController.saveConnection<MigratedStoreConnectionInfoWithConnectionOptions>(
+        {
+          ...savedConnectionInfo,
+          secretStorageLocation: SecretStorageLocation.Keytar,
+        }
       );
-      return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
     }
 
-    try {
-      const unparsedSecrets = await ext.keytarModule.getPassword(
+    // If there is nothing in keytar, we will save an empty object as secrets in
+    // new storage and mark this connection as migrated
+    const keytarSecrets =
+      (await ext.keytarModule.getPassword(
         this._serviceName,
         savedConnectionInfo.id
-      );
+      )) || '{}';
 
-      // Ignore empty secrets.
-      if (!unparsedSecrets) {
-        return savedConnectionInfo as StoreConnectionInfoWithConnectionOptions;
-      }
-
-      const secrets = JSON.parse(unparsedSecrets);
-      const connectionOptions = savedConnectionInfo.connectionOptions;
-      const connectionInfoWithSecrets = mergeSecrets(
+    const migratedConnectionInfoWithSecrets =
+      this._mergedConnectionInfoWithSecrets(
         {
-          id: savedConnectionInfo.id,
-          connectionOptions,
-        } as ConnectionInfo,
-        secrets
+          ...savedConnectionInfo,
+          secretStorageLocation: SecretStorageLocation.SecretStorage,
+        },
+        keytarSecrets
       );
 
-      return {
-        ...savedConnectionInfo,
-        connectionOptions: connectionInfoWithSecrets.connectionOptions,
-      };
-    } catch (error) {
-      // Here we're lenient when loading connections in case their
-      // connections have become corrupted.
-      log.error('Getting connection info with secrets failed', error);
-      return;
-    }
+    await this._saveConnectionWithSecret(migratedConnectionInfoWithSecrets);
+
+    return migratedConnectionInfoWithSecrets;
   }
 
-  private async _loadSavedConnectionsByStore(
-    savedConnections: ConnectionsFromStorage
-  ): Promise<void> {
-    if (!savedConnections || !Object.keys(savedConnections).length) {
-      return;
+  _mergedConnectionInfoWithSecrets<
+    T extends StoreConnectionInfoWithConnectionOptions
+  >(connectionInfo: T, unparsedSecrets: string) {
+    if (!unparsedSecrets) {
+      return connectionInfo;
     }
 
-    /** User connections are being saved both in:
-     * 1. Vscode global/workspace storage (without secrets) + keychain (secrets)
-     * 2. Memory of the extension (with secrets)
-     */
-    await Promise.all(
-      Object.keys(savedConnections).map(async (connectionId) => {
-        // Get connection info from vscode storage and merge with secrets.
-        const connectionInfoWithSecrets =
-          await this._getConnectionInfoWithSecrets(
-            savedConnections[connectionId]
-          );
-
-        // Save connection info with secrets to extension memory.
-        if (connectionInfoWithSecrets) {
-          this._connections[connectionId] = connectionInfoWithSecrets;
-        }
-
-        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-      })
+    const secrets = JSON.parse(unparsedSecrets);
+    const connectionInfoWithSecrets = mergeSecrets(
+      {
+        id: connectionInfo.id,
+        connectionOptions: connectionInfo.connectionOptions,
+      } as ConnectionInfo,
+      secrets
     );
-  }
 
-  async loadSavedConnections(): Promise<void> {
-    await Promise.all([
-      (async () => {
-        // Try to pull in the connections previously saved in the global storage of vscode.
-        const existingGlobalConnections = this._storageController.get(
-          StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-          StorageLocation.GLOBAL
-        );
-        await this._loadSavedConnectionsByStore(existingGlobalConnections);
-      })(),
-      (async () => {
-        // Try to pull in the connections previously saved in the workspace storage of vscode.
-        const existingWorkspaceConnections = this._storageController.get(
-          StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-          StorageLocation.WORKSPACE
-        );
-        await this._loadSavedConnectionsByStore(existingWorkspaceConnections);
-      })(),
-    ]);
+    return {
+      ...connectionInfo,
+      connectionOptions: connectionInfoWithSecrets.connectionOptions,
+    };
   }
 
   async connectWithURI(): Promise<boolean> {
@@ -353,26 +402,9 @@ export default class ConnectionController {
     });
   }
 
-  private async _saveSecretsToKeychain({
-    connectionId,
-    secrets,
-  }: ConnectionSecretsInfo): Promise<void> {
-    if (!ext.keytarModule) {
-      return;
-    }
-
-    const secretsAsString = JSON.stringify(secrets);
-
-    await ext.keytarModule.setPassword(
-      this._serviceName,
-      connectionId,
-      secretsAsString
-    );
-  }
-
-  private async _saveConnection(
-    newStoreConnectionInfoWithSecrets: StoreConnectionInfo
-  ): Promise<StoreConnectionInfo> {
+  private async _saveConnectionWithSecret(
+    newStoreConnectionInfoWithSecrets: MigratedStoreConnectionInfoWithConnectionOptions
+  ): Promise<MigratedStoreConnectionInfoWithConnectionOptions> {
     // We don't want to store secrets to disc.
     const { connectionInfo: safeConnectionInfo, secrets } = extractSecrets(
       newStoreConnectionInfoWithSecrets as ConnectionInfo
@@ -381,11 +413,10 @@ export default class ConnectionController {
       ...newStoreConnectionInfoWithSecrets,
       connectionOptions: safeConnectionInfo.connectionOptions, // The connection info without secrets.
     });
-
-    await this._saveSecretsToKeychain({
-      connectionId: savedConnectionInfo.id,
-      secrets, // Only secrets.
-    });
+    await this._storageController.setSecret(
+      savedConnectionInfo.id,
+      JSON.stringify(secrets)
+    );
 
     return savedConnectionInfo;
   }
@@ -401,10 +432,13 @@ export default class ConnectionController {
       // To begin we just store it on the session, the storage controller
       // handles changing this based on user preference.
       storageLocation: StorageLocation.NONE,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
       connectionOptions: originalConnectionInfo.connectionOptions,
     };
 
-    const savedConnectionInfo = await this._saveConnection(newConnectionInfo);
+    const savedConnectionInfo = await this._saveConnectionWithSecret(
+      newConnectionInfo
+    );
 
     this._connections[savedConnectionInfo.id] = {
       ...savedConnectionInfo,
@@ -596,9 +630,15 @@ export default class ConnectionController {
   }
 
   private async _removeSecretsFromKeychain(connectionId: string) {
+    // Even though we migrated to SecretStorage from keytar, we are still removing
+    // secrets from keytar to make sure that we don't leave any left-overs when a
+    // connection is removed. This block can safely be removed after our migration
+    // has been out for some time.
     if (ext.keytarModule) {
       await ext.keytarModule.deletePassword(this._serviceName, connectionId);
     }
+
+    await this._storageController.deleteSecret(connectionId);
   }
 
   async removeSavedConnection(connectionId: string): Promise<void> {
