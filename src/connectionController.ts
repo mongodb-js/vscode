@@ -293,7 +293,7 @@ export default class ConnectionController {
       {
         id: connectionInfo.id,
         connectionOptions: connectionInfo.connectionOptions,
-      } as ConnectionInfo,
+      },
       secrets
     );
 
