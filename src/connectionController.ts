@@ -21,6 +21,7 @@ import formatError from './utils/formatError';
 import LegacyConnectionModel from './views/webview-app/connection-model/legacy-connection-model';
 import {
   StorageLocation,
+  SecretStorageLocationType,
   SecretStorageLocation,
 } from './storage/storageController';
 import { StorageController, StorageVariables } from './storage';
@@ -51,7 +52,7 @@ export interface StoreConnectionInfo {
   id: string; // Connection model id or a new uuid.
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
-  secretStorageLocation?: SecretStorageLocation;
+  secretStorageLocation?: SecretStorageLocationType;
   connectionOptions?: ConnectionOptions;
   connectionModel?: LegacyConnectionModel;
 }

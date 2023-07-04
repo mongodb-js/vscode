@@ -32,10 +32,14 @@ export type ConnectionsFromStorage = {
   [connectionId: string]: StoreConnectionInfo;
 };
 
-export enum SecretStorageLocation {
-  Keytar = 'vscode.Keytar',
-  SecretStorage = 'vscode.SecretStorage',
-}
+export const SecretStorageLocation = {
+  Keytar: 'vscode.Keytar',
+  SecretStorage: 'vscode.SecretStorage',
+} as const;
+
+export type SecretStorageLocationType =
+  | typeof SecretStorageLocation.Keytar
+  | typeof SecretStorageLocation.SecretStorage;
 
 interface StorageVariableContents {
   [StorageVariables.GLOBAL_USER_ID]: string;
