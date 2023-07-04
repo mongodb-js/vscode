@@ -166,7 +166,7 @@ export default class ConnectionController {
 
     if (connectionsWithSecretsInKeytar.length) {
       log.error(
-        'Could not migrate secrets for a few connections',
+        `Could not migrate secrets for ${connectionsWithSecretsInKeytar.length} connections`,
         connectionsWithSecretsInKeytar
       );
       this._telemetryService.track(
@@ -178,7 +178,7 @@ export default class ConnectionController {
       );
       void vscode.window.showInformationMessage(
         [
-          'Could not migrate secrets for a few connections. Please review the following connections:',
+          `Could not migrate secrets for ${connectionsWithSecretsInKeytar.length} connections. Please review the following connections:`,
           connectionsWithSecretsInKeytar
             .map(({ connectionName }) => connectionName)
             .join(', '),
