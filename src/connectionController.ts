@@ -630,6 +630,7 @@ export default class ConnectionController {
   }
 
   private async _removeSecretsFromKeychain(connectionId: string) {
+    await this._storageController.deleteSecret(connectionId);
     // Even though we migrated to SecretStorage from keytar, we are still removing
     // secrets from keytar to make sure that we don't leave any left-overs when a
     // connection is removed. This block can safely be removed after our migration
@@ -637,8 +638,6 @@ export default class ConnectionController {
     if (ext.keytarModule) {
       await ext.keytarModule.deletePassword(this._serviceName, connectionId);
     }
-
-    await this._storageController.deleteSecret(connectionId);
   }
 
   async removeSavedConnection(connectionId: string): Promise<void> {
