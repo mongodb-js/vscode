@@ -89,7 +89,7 @@ export default class ConnectionController {
   // on the workspace, or globally in vscode.
   _connections: {
     [connectionId: string]: MigratedStoreConnectionInfoWithConnectionOptions;
-  } = {};
+  } = Object.create(null);
   _activeDataService: DataService | null = null;
   _storageController: StorageController;
 
