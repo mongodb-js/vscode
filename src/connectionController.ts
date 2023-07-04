@@ -123,7 +123,7 @@ export default class ConnectionController {
   }
 
   async loadSavedConnections(): Promise<void> {
-    const globalAndWorkspaceConnections = {
+    const globalAndWorkspaceConnections = Object.entries({
       ...this._storageController.get(
         StorageVariables.GLOBAL_SAVED_CONNECTIONS,
         StorageLocation.GLOBAL
@@ -132,17 +132,14 @@ export default class ConnectionController {
         StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
         StorageLocation.WORKSPACE
       ),
-    };
+    });
 
     let connectionsDidChange = false;
     const connectionsWithSecretsInKeytar: Array<{
       connectionId: string;
       connectionName: string;
     }> = [];
-    const totalConnectionEntries = Object.entries(
-      globalAndWorkspaceConnections
-    );
-    for (const [connectionId, connectionInfo] of totalConnectionEntries) {
+    for (const [connectionId, connectionInfo] of globalAndWorkspaceConnections) {
       const connectionInfoWithSecret = await this._getConnectionInfoWithSecrets(
         connectionInfo
       );
@@ -175,7 +172,7 @@ export default class ConnectionController {
       this._telemetryService.track(
         TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
         {
-          totalConnections: totalConnectionEntries.length,
+          totalConnections: globalAndWorkspaceConnections.length,
           connectionsWithSecretsInKeytar: connectionsWithSecretsInKeytar.length,
         }
       );
