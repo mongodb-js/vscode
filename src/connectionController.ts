@@ -134,7 +134,6 @@ export default class ConnectionController {
       ),
     });
 
-    let connectionsDidChange = false;
     const connectionsWithSecretsInKeytar: Array<{
       connectionId: string;
       connectionName: string;
@@ -145,7 +144,6 @@ export default class ConnectionController {
       );
 
       if (connectionInfoWithSecret) {
-        connectionsDidChange = true;
         this._connections[connectionId] = connectionInfoWithSecret;
 
         if (
@@ -160,7 +158,7 @@ export default class ConnectionController {
       }
     }
 
-    if (connectionsDidChange) {
+    if (Object.keys(this._connections).length) {
       this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     }
 
