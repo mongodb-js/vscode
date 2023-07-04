@@ -168,7 +168,10 @@ export default class ConnectionController {
     }
 
     if (connectionsWithSecretsInKeytar.length) {
-      log.error('Could not migrate secrets for a few connections', connectionsWithSecretsInKeytar);
+      log.error(
+        'Could not migrate secrets for a few connections',
+        connectionsWithSecretsInKeytar
+      );
       this._telemetryService.track(
         TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
         {
