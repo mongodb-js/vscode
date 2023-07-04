@@ -192,13 +192,13 @@ export default class ConnectionController {
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
     try {
       if (connectionInfo.connectionModel) {
-        return this._migratePreviouslySavedConnection(
+        return this._migrateConnectionsWithConnectionModel(
           connectionInfo as StoreConnectionInfoWithConnectionModel
         );
       }
 
       if (!connectionInfo.secretStorageLocation) {
-        return this._migrateKeytarSecrets(
+        return this._migrateConnectionsWithKeytarSecrets(
           connectionInfo as StoreConnectionInfoWithConnectionOptions
         );
       }
@@ -224,7 +224,7 @@ export default class ConnectionController {
     }
   }
 
-  async _migratePreviouslySavedConnection(
+  async _migrateConnectionsWithConnectionModel(
     savedConnectionInfo: StoreConnectionInfoWithConnectionModel
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
     // Transform a raw connection model from storage to an ampersand model.
@@ -244,7 +244,7 @@ export default class ConnectionController {
     return connectionInfoWithSecret;
   }
 
-  async _migrateKeytarSecrets(
+  async _migrateConnectionsWithKeytarSecrets(
     savedConnectionInfo: StoreConnectionInfoWithConnectionOptions
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
     // If the Keytar module is not available, we simply mark the connections

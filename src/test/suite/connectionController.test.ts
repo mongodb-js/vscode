@@ -797,7 +797,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(testConnectionController.isCurrentlyConnected(), false);
   });
 
-  test('_migratePreviouslySavedConnection converts an old previously saved connection model without secrets to a new connection info format', async () => {
+  test('_migrateConnectionsWithConnectionModel converts an old previously saved connection model without secrets to a new connection info format', async () => {
     const oldSavedConnectionInfo = {
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
@@ -821,7 +821,7 @@ suite('Connection Controller Test Suite', function () {
       },
     };
     const newSavedConnectionInfoWithSecrets =
-      await testConnectionController._migratePreviouslySavedConnection(
+      await testConnectionController._migrateConnectionsWithConnectionModel(
         oldSavedConnectionInfo
       );
 
@@ -837,7 +837,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('_migratePreviouslySavedConnection converts an old previously saved connection model with secrets to a new connection info format', async () => {
+  test('_migrateConnectionsWithConnectionModel converts an old previously saved connection model with secrets to a new connection info format', async () => {
     const oldSavedConnectionInfo = {
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
       name: 'host.u88dd.test.test',
@@ -874,7 +874,7 @@ suite('Connection Controller Test Suite', function () {
     };
 
     const newSavedConnectionInfoWithSecrets =
-      await testConnectionController._migratePreviouslySavedConnection(
+      await testConnectionController._migrateConnectionsWithConnectionModel(
         oldSavedConnectionInfo
       );
 
@@ -890,7 +890,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('_migratePreviouslySavedConnection does not store secrets to disc', async () => {
+  test('_migrateConnectionsWithConnectionModel does not store secrets to disc', async () => {
     const oldSavedConnectionInfo = {
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
       name: 'host.u88dd.test.test',
@@ -935,7 +935,7 @@ suite('Connection Controller Test Suite', function () {
       fakeSaveConnection
     );
 
-    await testConnectionController._migratePreviouslySavedConnection(
+    await testConnectionController._migrateConnectionsWithConnectionModel(
       oldSavedConnectionInfo
     );
 
@@ -982,7 +982,7 @@ suite('Connection Controller Test Suite', function () {
 
     sandbox.replace(
       testConnectionController,
-      '_migratePreviouslySavedConnection',
+      '_migrateConnectionsWithConnectionModel',
       fakeMigratePreviouslySavedConnection
     );
 
@@ -1017,7 +1017,7 @@ suite('Connection Controller Test Suite', function () {
 
     sandbox.replace(
       testConnectionController,
-      '_migratePreviouslySavedConnection',
+      '_migrateConnectionsWithConnectionModel',
       fakeMigratePreviouslySavedConnection
     );
 
