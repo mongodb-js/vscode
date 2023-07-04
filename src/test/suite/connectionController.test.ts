@@ -1296,9 +1296,9 @@ suite('Connection Controller Test Suite', function () {
               await testStorageController.getSecret(savedConnection.id),
               expectedSecret
             );
-            assert(
-              updatedConnection.secretStorageLocation ===
-                SecretStorageLocation.SecretStorage
+            assert.strictEqual(
+              updatedConnection.secretStorageLocation,
+              SecretStorageLocation.SecretStorage
             );
           });
         });
@@ -1358,9 +1358,9 @@ suite('Connection Controller Test Suite', function () {
             await testStorageController.getSecret(savedConnection.id),
             '{}'
           );
-          assert(
-            updatedConnection.secretStorageLocation ===
-              SecretStorageLocation.SecretStorage
+          assert.strictEqual(
+            updatedConnection.secretStorageLocation,
+            SecretStorageLocation.SecretStorage
           );
         });
 
@@ -1403,9 +1403,9 @@ suite('Connection Controller Test Suite', function () {
             await testStorageController.getSecret(savedConnection.id),
             null
           );
-          assert(
-            updatedConnection.secretStorageLocation ===
-              SecretStorageLocation.Keytar
+          assert.strictEqual(
+            updatedConnection.secretStorageLocation,
+            SecretStorageLocation.Keytar
           );
         });
       }
@@ -1426,11 +1426,12 @@ suite('Connection Controller Test Suite', function () {
 
         // By default the connection secrets are already stored in SecretStorage
         const savedConnections = testConnectionController.getSavedConnections();
-        assert(
+        assert.strictEqual(
           savedConnections.every(
             ({ secretStorageLocation }) =>
               secretStorageLocation === SecretStorageLocation.SecretStorage
-          )
+          ),
+          true
         );
 
         await testConnectionController.disconnect();
@@ -1445,10 +1446,11 @@ suite('Connection Controller Test Suite', function () {
         );
 
         // Additionally make sure that we are retrieving secrets properly
-        assert(
+        assert.strictEqual(
           savedConnectionsAfterFreshLoad[1].connectionOptions?.connectionString.includes(
             TEST_USER_PASSWORD
-          )
+          ),
+          true
         );
       });
     });
@@ -1470,7 +1472,7 @@ suite('Connection Controller Test Suite', function () {
       );
 
       await testConnectionController.loadSavedConnections();
-      assert(isConnectionChanged);
+      assert.strictEqual(isConnectionChanged, true);
     });
 
     test('should track and also notify the users of failed keytar secrets migration', async () => {
@@ -1497,7 +1499,7 @@ suite('Connection Controller Test Suite', function () {
       await testConnectionController.loadSavedConnections();
 
       // Notified to user
-      assert(showInformationMessageStub.calledOnce);
+      assert.strictEqual(showInformationMessageStub.calledOnce, true);
       assert.deepStrictEqual(showInformationMessageStub.lastCall.args, [
         [
           'Could not migrate secrets for a few connections. Please review the following connections:',
@@ -1506,7 +1508,7 @@ suite('Connection Controller Test Suite', function () {
       ]);
 
       // Tracked
-      assert(fakeTrack.calledOnce);
+      assert.strictEqual(fakeTrack.calledOnce, true);
       assert.deepStrictEqual(fakeTrack.lastCall.args, [
         'Keytar Secrets Migration Failed',
         { totalConnections: 1, connectionsWithSecretsInKeytar: 1 },
