@@ -1466,7 +1466,7 @@ suite('Connection Controller Test Suite', function () {
           );
         });
 
-        test.only('should be able to load other connections even if the _migrateConnectionWithKeytarSecrets throws', async () => {
+        test('should be able to load other connections even if the _migrateConnectionWithKeytarSecrets throws', async () => {
           // We replace the keytar module with our stub to make sure that later,
           // during migration, we are able to find the secrets in the correct
           // place
@@ -1510,7 +1510,7 @@ suite('Connection Controller Test Suite', function () {
           });
         });
 
-        test.only('should be able to re-attempt migration for connections that failed in previous load and were not marked migrated', async () => {
+        test('should be able to re-attempt migration for connections that failed in previous load and were not marked migrated', async () => {
           // We replace the keytar module with our stub to make sure that later,
           // during migration, we are able to find the secrets in the correct
           // place
