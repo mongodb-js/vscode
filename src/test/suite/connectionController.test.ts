@@ -1465,6 +1465,111 @@ suite('Connection Controller Test Suite', function () {
             SecretStorageLocation.Keytar
           );
         });
+
+        test.only('should be able to load other connections even if the _migrateConnectionWithKeytarSecrets throws', async () => {
+          // We replace the keytar module with our stub to make sure that later,
+          // during migration, we are able to find the secrets in the correct
+          // place
+          extensionSandbox.replace(ext, 'keytarModule', keytarStub);
+
+          // Adding a few connections
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI
+          );
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI_USER
+          );
+
+          const [firstConnection, secondConnection] =
+            testConnectionController.getSavedConnections();
+
+          // Clearing the connection and disconnect
+          await testConnectionController.disconnect();
+          testConnectionController.clearAllConnections();
+
+          // Faking the failure of _migrateConnectionWithKeytarSecrets with an
+          // error thrown from keytar.getPassword
+          const originalGetPasswordFn = keytarStub.getPassword.bind(keytarStub);
+          testSandbox.replace(keytarStub, 'getPassword', (serviceName, key) => {
+            if (key === secondConnection.id) {
+              throw new Error('Something bad happened');
+            }
+            return originalGetPasswordFn(serviceName, key);
+          });
+
+          // Now load all connections, it should not reject
+          await assert.doesNotReject(
+            testConnectionController.loadSavedConnections()
+          );
+
+          assert.deepStrictEqual(testConnectionController._connections, {
+            [firstConnection.id]: {
+              ...firstConnection,
+              secretStorageLocation: SecretStorageLocation.SecretStorage,
+            },
+          });
+        });
+
+        test.only('should be able to re-attempt migration for connections that failed in previous load and were not marked migrated', async () => {
+          // We replace the keytar module with our stub to make sure that later,
+          // during migration, we are able to find the secrets in the correct
+          // place
+          extensionSandbox.replace(ext, 'keytarModule', keytarStub);
+
+          // Add a few connections
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI
+          );
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI_USER
+          );
+
+          const [firstConnection, secondConnection] =
+            testConnectionController.getSavedConnections();
+
+          // Clear all connections and disconnect
+          await testConnectionController.disconnect();
+          testConnectionController.clearAllConnections();
+
+          // Faking the failure of _migrateConnectionWithKeytarSecrets with an
+          // error thrown from keytar.getPassword
+          testSandbox.replace(keytarStub, 'getPassword', (service, key) => {
+            if (key === firstConnection.id) {
+              return Promise.resolve('{}');
+            }
+            throw new Error('Something bad happened');
+          });
+
+          // Now load all connections
+          await testConnectionController.loadSavedConnections();
+
+          // And only first connection should appear in our connection list
+          // because we don't include connections with failed keytar migration
+          assert.deepStrictEqual(testConnectionController._connections, {
+            [firstConnection.id]: {
+              ...firstConnection,
+              secretStorageLocation: SecretStorageLocation.SecretStorage,
+            },
+          });
+
+          // Now reset the keytar method to original
+          testSandbox.restore();
+
+          // Load all connections again
+          await testConnectionController.loadSavedConnections();
+
+          // Now we should be able to see the migrated connection
+          assert.deepStrictEqual(testConnectionController._connections, {
+            [firstConnection.id]: {
+              ...firstConnection,
+              secretStorageLocation: SecretStorageLocation.SecretStorage,
+            },
+            [secondConnection.id]: {
+              ...secondConnection,
+              secretStorageLocation: SecretStorageLocation.SecretStorage,
+            },
+          });
+        });
       }
     );
 

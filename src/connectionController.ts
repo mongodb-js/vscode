@@ -220,13 +220,13 @@ export default class ConnectionController {
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
     try {
       if (connectionInfo.connectionModel) {
-        return this._migrateConnectionWithConnectionModel(
+        return await this._migrateConnectionWithConnectionModel(
           connectionInfo as StoreConnectionInfoWithConnectionModel
         );
       }
 
       if (!connectionInfo.secretStorageLocation) {
-        return this._migrateConnectionWithKeytarSecrets(
+        return await this._migrateConnectionWithKeytarSecrets(
           connectionInfo as StoreConnectionInfoWithConnectionOptions
         );
       }
