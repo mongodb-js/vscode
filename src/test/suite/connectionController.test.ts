@@ -31,6 +31,7 @@ import {
 } from './dbTestHelper';
 import KeytarStub from './keytarStub';
 import { ext } from '../../extensionConstants';
+import { KeytarInterface } from '../../utils/keytar';
 
 const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
@@ -527,6 +528,62 @@ suite('Connection Controller Test Suite', function () {
     );
 
     assert.strictEqual(Object.keys(postGlobalStoreConnections).length, 0);
+  });
+
+  test('when a connection is removed, the secrets for that connection are also removed', async () => {
+    const keytarDeleteSpy = sandbox
+      .stub(ext.keytarModule as KeytarInterface, 'deletePassword')
+      .resolves();
+    const secretStorageDeleteSpy = sandbox.spy(
+      testStorageController,
+      'deleteSecret'
+    );
+
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI_USER
+    );
+
+    const [connection] = testConnectionController.getSavedConnections();
+    await testConnectionController.removeSavedConnection(connection.id);
+    assert.strictEqual(keytarDeleteSpy.calledOnce, true);
+    assert.strictEqual(secretStorageDeleteSpy.calledOnce, true);
+  });
+
+  test('when a connection is removed, should be able to remove the secrets safely from SecretStorage even if keytar is not available', async () => {
+    sandbox.replace(ext, 'keytarModule', null as any);
+    const secretStorageDeleteSpy = sandbox.spy(
+      testStorageController,
+      'deleteSecret'
+    );
+
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI_USER
+    );
+
+    const [connection] = testConnectionController.getSavedConnections();
+    await testConnectionController.removeSavedConnection(connection.id);
+    assert.strictEqual(secretStorageDeleteSpy.calledOnce, true);
+  });
+
+  test('when a connection is removed, should be able to remove the secrets safely from SecretStorage even if keytar.deletePassword rejects', async () => {
+    const keytarDeleteSpy = sandbox
+      .stub(ext.keytarModule as KeytarInterface, 'deletePassword')
+      .rejects();
+    const secretStorageDeleteSpy = sandbox.spy(
+      testStorageController,
+      'deleteSecret'
+    );
+
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI_USER
+    );
+
+    const [connection] = testConnectionController.getSavedConnections();
+    await assert.doesNotReject(
+      testConnectionController.removeSavedConnection(connection.id)
+    );
+    assert.strictEqual(keytarDeleteSpy.calledOnce, true);
+    assert.strictEqual(secretStorageDeleteSpy.calledOnce, true);
   });
 
   test('a saved to workspace connection can be renamed and loaded', async () => {

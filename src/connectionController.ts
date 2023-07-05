@@ -78,11 +78,12 @@ type StoreConnectionInfoWithConnectionModel = StoreConnectionInfo &
 type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
   Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
 
-type MigratedStoreConnectionInfo = StoreConnectionInfo &
+type StoreConnectionInfoWithSecretStorageLocation = StoreConnectionInfo &
   Required<Pick<StoreConnectionInfo, 'secretStorageLocation'>>;
 
 type MigratedStoreConnectionInfoWithConnectionOptions =
-  StoreConnectionInfoWithConnectionOptions & MigratedStoreConnectionInfo;
+  StoreConnectionInfoWithConnectionOptions &
+    StoreConnectionInfoWithSecretStorageLocation;
 
 type FailedMigrationConnectionDescriptor = {
   connectionId: string;
@@ -662,8 +663,10 @@ export default class ConnectionController {
     // secrets from keytar to make sure that we don't leave any left-overs when a
     // connection is removed. This block can safely be removed after our migration
     // has been out for some time.
-    if (ext.keytarModule) {
-      await ext.keytarModule.deletePassword(this._serviceName, connectionId);
+    try {
+      await ext.keytarModule?.deletePassword(this._serviceName, connectionId);
+    } catch (error) {
+      log.error('Failed to remove secret from keytar', error);
     }
   }
 
