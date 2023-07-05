@@ -90,6 +90,17 @@ type FailedMigrationConnectionDescriptor = {
   connectionName: string;
 };
 
+export const keytarMigrationFailedMessage = (failedConnections: number) => {
+  // Writing the message this way to keep it readable.
+  return [
+    `Unable to migrate ${failedConnections} of your cluster connections from the deprecated Keytar to the VS Code SecretStorage.`,
+    'Keytar is officially archived and not being maintained.',
+    'In an effort to promote good security practices by not depending on an archived piece of software, VS Code removes Keytar shim in favour of built-in storage utility for secrets.',
+    'Please review your connections and delete or recreate those with missing secrets.',
+    'You can still access your secrets via OS keychain.',
+  ].join(' ');
+};
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
@@ -205,12 +216,7 @@ export default class ConnectionController {
         }
       );
       void vscode.window.showInformationMessage(
-        [
-          `Could not migrate secrets for ${connectionsThatDidNotMigrate.length} connections. Please review the following connections:`,
-          connectionsThatDidNotMigrate
-            .map(({ connectionName }) => connectionName)
-            .join(', '),
-        ].join('\n')
+        keytarMigrationFailedMessage(connectionsThatDidNotMigrate.length)
       );
     }
   }

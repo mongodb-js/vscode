@@ -9,6 +9,7 @@ import { connect } from 'mongodb-data-service';
 import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/constants/auth-strategies';
 import ConnectionController, {
   DataServiceEventTypes,
+  keytarMigrationFailedMessage,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
@@ -1682,16 +1683,11 @@ suite('Connection Controller Test Suite', function () {
       // Clear any connections and load so we get our stubbed connections from above.
       testConnectionController.clearAllConnections();
       await testConnectionController.loadSavedConnections();
-      const [, secondConnection] =
-        testConnectionController.getSavedConnections();
 
       // Notified to user
       assert.strictEqual(showInformationMessageStub.calledOnce, true);
       assert.deepStrictEqual(showInformationMessageStub.lastCall.args, [
-        [
-          'Could not migrate secrets for 1 connections. Please review the following connections:',
-          secondConnection.name,
-        ].join('\n'),
+        keytarMigrationFailedMessage(1),
       ]);
 
       // Tracked
