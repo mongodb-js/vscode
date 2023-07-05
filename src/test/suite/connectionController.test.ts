@@ -1517,7 +1517,7 @@ suite('Connection Controller Test Suite', function () {
       );
       const trackStub = testSandbox.stub(testTelemetryService, 'track');
 
-      // Load the connections
+      // Clear any connections and load so we get our stubbed connections from above.
       testConnectionController.clearAllConnections();
       await testConnectionController.loadSavedConnections();
       const [, secondConnection] =
@@ -1538,6 +1538,60 @@ suite('Connection Controller Test Suite', function () {
         'Keytar Secrets Migration Failed',
         { totalConnections: 2, connectionsWithFailedKeytarMigration: 1 },
       ]);
+    });
+
+    test('should neither track nor notify the user if none of the failed migrations are from current load of extension', async () => {
+      testSandbox.replace(testStorageController, 'get', (key, storage) => {
+        if (
+          storage === StorageLocation.WORKSPACE ||
+          key === StorageVariables.WORKSPACE_SAVED_CONNECTIONS
+        ) {
+          return {};
+        }
+
+        return {
+          'random-connection-1': {
+            id: 'random-connection-1',
+            name: 'localhost:27017',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.Keytar,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+            },
+          },
+          'random-connection-2': {
+            id: 'random-connection-2',
+            name: 'localhost:27018',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.Keytar,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+            },
+          },
+        } as any;
+      });
+      testSandbox.replace(
+        testConnectionController,
+        '_getConnectionInfoWithSecrets',
+        (connectionInfo) =>
+          Promise.resolve({
+            ...connectionInfo,
+            secretStorageLocation: SecretStorageLocation.Keytar,
+          } as any)
+      );
+      const trackStub = testSandbox.stub(testTelemetryService, 'track');
+
+      // Clear any connections and load so we get our stubbed connections from above.
+      testConnectionController.clearAllConnections();
+      await testConnectionController.loadSavedConnections();
+
+      // No notification sent to the user
+      assert.strictEqual(showInformationMessageStub.notCalled, true);
+
+      // No tracking done
+      assert.strictEqual(trackStub.notCalled, true);
     });
   });
 });
