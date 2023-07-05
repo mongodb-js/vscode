@@ -23,10 +23,9 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   const testStatusView = new StatusView(extensionContextStub);
   let testConnectionController: ConnectionController;
   let testCodeLensProvider: ActiveConnectionCodeLensProvider;
-  let sandbox: sinon.SinonSandbox;
+  const sandbox = sinon.createSandbox();
 
   beforeEach(() => {
-    sandbox = sinon.createSandbox();
     testConnectionController = new ConnectionController({
       statusView: testStatusView,
       storageController: testStorageController,
@@ -124,10 +123,6 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
         const fakeIsPlayground = sandbox.fake.returns(false);
         sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
-      });
-
-      afterEach(() => {
-        sandbox.restore();
       });
 
       test('show not show the active connection code lenses', () => {
