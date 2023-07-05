@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import path from 'path';
+import type { DataService } from 'mongodb-data-service';
 
 import CollectionTreeItem from './collectionTreeItem';
+import type { CollectionDetailsType } from './collectionTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import TreeItemParent from './treeItemParentInterface';
@@ -25,20 +27,26 @@ export default class DatabaseTreeItem
   cacheIsUpToDate: boolean;
   private _childrenCache: { [collectionName: string]: CollectionTreeItem };
 
-  private _dataService: any;
+  private _dataService: DataService;
 
   databaseName: string;
   isExpanded: boolean;
 
   isDropped = false;
 
-  constructor(
-    databaseName: string,
-    dataService: any,
-    isExpanded: boolean,
-    cacheIsUpToDate: boolean,
-    childrenCache: { [key: string]: CollectionTreeItem } // Existing cache.
-  ) {
+  constructor({
+    databaseName,
+    dataService,
+    isExpanded,
+    cacheIsUpToDate,
+    childrenCache,
+  }: {
+    databaseName: string;
+    dataService: DataService;
+    isExpanded: boolean;
+    cacheIsUpToDate: boolean;
+    childrenCache: { [key: string]: CollectionTreeItem }; // Existing cache.
+  }) {
     super(
       databaseName,
       isExpanded
@@ -78,17 +86,17 @@ export default class DatabaseTreeItem
           return;
         }
 
-        this._childrenCache[collectionName] = new CollectionTreeItem(
-          prevChild.collection,
-          this.databaseName,
-          this._dataService,
-          prevChild.isExpanded,
-          prevChild.cacheIsUpToDate,
-          prevChild.documentCount,
-          prevChild.getDocumentListChild(),
-          prevChild.getSchemaChild(),
-          prevChild.getIndexListChild()
-        );
+        this._childrenCache[collectionName] = new CollectionTreeItem({
+          collection: prevChild.collection,
+          databaseName: this.databaseName,
+          dataService: this._dataService,
+          isExpanded: prevChild.isExpanded,
+          cacheIsUpToDate: prevChild.cacheIsUpToDate,
+          cachedDocumentCount: prevChild.documentCount,
+          existingDocumentListChild: prevChild.getDocumentListChild(),
+          existingSchemaChild: prevChild.getSchemaChild(),
+          existingIndexListChild: prevChild.getIndexListChild(),
+        });
       });
 
       return Object.values(this._childrenCache);
@@ -107,8 +115,8 @@ export default class DatabaseTreeItem
       // Create new collection tree items, using previously cached items
       // where possible.
 
-      const systemCollections: string[] = [];
-      const otherCollections: string[] = [];
+      const systemCollections: CollectionDetailsType[] = [];
+      const otherCollections: CollectionDetailsType[] = [];
 
       collections.forEach((collection) => {
         if (collection.name.startsWith('system.')) {
@@ -118,36 +126,42 @@ export default class DatabaseTreeItem
         }
       });
 
-      const sortFunction = (collectionA: any, collectionB: any) =>
-        (collectionA.name || '').localeCompare(collectionB.name || '');
+      const sortFunction = (
+        collectionA: CollectionDetailsType,
+        collectionB: CollectionDetailsType
+      ) => (collectionA.name || '').localeCompare(collectionB.name || '');
 
       const collectionTreeEntries = [
         ...otherCollections.sort(sortFunction),
         ...systemCollections.sort(sortFunction),
       ];
 
-      collectionTreeEntries.forEach((collection: any) => {
+      collectionTreeEntries.forEach((collection) => {
         if (pastChildrenCache[collection.name]) {
-          this._childrenCache[collection.name] = new CollectionTreeItem(
+          this._childrenCache[collection.name] = new CollectionTreeItem({
             collection,
-            this.databaseName,
-            this._dataService,
-            pastChildrenCache[collection.name].isExpanded,
-            pastChildrenCache[collection.name].cacheIsUpToDate,
-            pastChildrenCache[collection.name].documentCount,
-            pastChildrenCache[collection.name].getDocumentListChild(),
-            pastChildrenCache[collection.name].getSchemaChild(),
-            pastChildrenCache[collection.name].getIndexListChild()
-          );
+            databaseName: this.databaseName,
+            dataService: this._dataService,
+            isExpanded: pastChildrenCache[collection.name].isExpanded,
+            cacheIsUpToDate: pastChildrenCache[collection.name].cacheIsUpToDate,
+            cachedDocumentCount:
+              pastChildrenCache[collection.name].documentCount,
+            existingDocumentListChild:
+              pastChildrenCache[collection.name].getDocumentListChild(),
+            existingSchemaChild:
+              pastChildrenCache[collection.name].getSchemaChild(),
+            existingIndexListChild:
+              pastChildrenCache[collection.name].getIndexListChild(),
+          });
         } else {
-          this._childrenCache[collection.name] = new CollectionTreeItem(
+          this._childrenCache[collection.name] = new CollectionTreeItem({
             collection,
-            this.databaseName,
-            this._dataService,
-            false, // Not expanded.
-            false, // No cache.
-            null // No document count yet.
-          );
+            databaseName: this.databaseName,
+            dataService: this._dataService,
+            isExpanded: false,
+            cacheIsUpToDate: false, // No cache.
+            cachedDocumentCount: null, // No document count yet.
+          });
         }
       });
     } else {
@@ -187,7 +201,7 @@ export default class DatabaseTreeItem
         value: '',
         placeHolder: 'e.g. myNewCollection',
         prompt: `Are you sure you wish to drop this database? Enter the database name '${databaseName}' to confirm.`,
-        validateInput: (inputDatabaseName: any) => {
+        validateInput: (inputDatabaseName) => {
           if (
             inputDatabaseName &&
             !databaseName.startsWith(inputDatabaseName)

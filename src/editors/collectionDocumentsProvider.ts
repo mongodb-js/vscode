@@ -22,13 +22,19 @@ export default class CollectionViewProvider
   _statusView: StatusView;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
 
-  constructor(
-    context: vscode.ExtensionContext,
-    connectionController: ConnectionController,
-    operationsStore: CollectionDocumentsOperationsStore,
-    statusView: StatusView,
-    editDocumentCodeLensProvider: EditDocumentCodeLensProvider
-  ) {
+  constructor({
+    context,
+    connectionController,
+    operationsStore,
+    statusView,
+    editDocumentCodeLensProvider,
+  }: {
+    context: vscode.ExtensionContext;
+    connectionController: ConnectionController;
+    operationsStore: CollectionDocumentsOperationsStore;
+    statusView: StatusView;
+    editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
+  }) {
     this._context = context;
     this._connectionController = connectionController;
     this._operationsStore = operationsStore;

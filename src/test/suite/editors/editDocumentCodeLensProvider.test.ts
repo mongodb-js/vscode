@@ -22,11 +22,11 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     extensionContextStub
   );
   const testStatusView = new StatusView(extensionContextStub);
-  const testConnectionController = new ConnectionController(
-    testStatusView,
-    testStorageController,
-    testTelemetryService
-  );
+  const testConnectionController = new ConnectionController({
+    statusView: testStatusView,
+    storageController: testStorageController,
+    telemetryService: testTelemetryService,
+  });
   const sandbox = sinon.createSandbox();
 
   afterEach(() => {

@@ -22,7 +22,7 @@ export default class PlaygroundsTreeItem
 
   contextValue = PLAYGROUND_ITEM;
 
-  constructor(fileName: string, filePath: string) {
+  constructor({ fileName, filePath }: { fileName: string; filePath: string }) {
     super(fileName);
     this.filePath = filePath;
 

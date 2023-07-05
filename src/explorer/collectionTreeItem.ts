@@ -13,7 +13,7 @@ import TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
 
 function getIconPath(
-  type: CollectionTypes,
+  type: string,
   isExpanded: boolean
 ): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
@@ -42,10 +42,9 @@ function getIconPath(
   };
 }
 
-type CollectionModelType = {
-  name: string;
-  type: CollectionTypes;
-};
+export type CollectionDetailsType = Awaited<
+  ReturnType<DataService['listCollections']>
+>[number];
 
 function isChildCacheOutOfSync(
   child: DocumentListTreeItem | SchemaTreeItem | IndexListTreeItem
@@ -67,13 +66,13 @@ export default class CollectionTreeItem
   private _schemaChild: SchemaTreeItem;
   private _indexListChild: IndexListTreeItem;
 
-  collection: CollectionModelType;
+  collection: CollectionDetailsType;
   collectionName: string;
   databaseName: string;
   namespace: string;
 
   private _dataService: DataService;
-  private _type: CollectionTypes;
+  private _type: string;
   documentCount: number | null = null;
 
   isExpanded: boolean;
@@ -84,17 +83,27 @@ export default class CollectionTreeItem
 
   iconPath: { light: string; dark: string };
 
-  constructor(
-    collection: CollectionModelType,
-    databaseName: string,
-    dataService: any,
-    isExpanded: boolean,
-    cacheIsUpToDate: boolean,
-    cachedDocumentCount: number | null,
-    existingDocumentListChild?: DocumentListTreeItem,
-    existingSchemaChild?: SchemaTreeItem,
-    existingIndexListChild?: IndexListTreeItem
-  ) {
+  constructor({
+    collection,
+    databaseName,
+    dataService,
+    isExpanded,
+    cacheIsUpToDate,
+    cachedDocumentCount,
+    existingDocumentListChild,
+    existingSchemaChild,
+    existingIndexListChild,
+  }: {
+    collection: CollectionDetailsType;
+    databaseName: string;
+    dataService: DataService;
+    isExpanded: boolean;
+    cacheIsUpToDate: boolean;
+    cachedDocumentCount: number | null;
+    existingDocumentListChild?: DocumentListTreeItem;
+    existingSchemaChild?: SchemaTreeItem;
+    existingIndexListChild?: IndexListTreeItem;
+  }) {
     super(
       collection.name,
       isExpanded
@@ -113,40 +122,40 @@ export default class CollectionTreeItem
     this.cacheIsUpToDate = cacheIsUpToDate;
     this._documentListChild = existingDocumentListChild
       ? existingDocumentListChild
-      : new DocumentListTreeItem(
-          this.collectionName,
-          this.databaseName,
-          this._type,
-          this._dataService,
-          false, // Collapsed.
-          MAX_DOCUMENTS_VISIBLE,
-          this.documentCount,
-          this.refreshDocumentCount,
-          false, // Cache is not up to date.
-          [] // Empty cache.
-        );
+      : new DocumentListTreeItem({
+          collectionName: this.collectionName,
+          databaseName: this.databaseName,
+          type: this._type,
+          dataService: this._dataService,
+          isExpanded: false,
+          maxDocumentsToShow: MAX_DOCUMENTS_VISIBLE,
+          cachedDocumentCount: this.documentCount,
+          refreshDocumentCount: this.refreshDocumentCount,
+          cacheIsUpToDate: false,
+          childrenCache: [], // Empty cache.
+        });
     this._schemaChild = existingSchemaChild
       ? existingSchemaChild
-      : new SchemaTreeItem(
-          this.collectionName,
-          this.databaseName,
-          this._dataService,
-          false, // Collapsed.
-          false, // Hasn't been clicked to show more documents.
-          false, // No more fields to show.
-          false, // Cached is not up to date.
-          {} // Empty cache.
-        );
+      : new SchemaTreeItem({
+          collectionName: this.collectionName,
+          databaseName: this.databaseName,
+          dataService: this._dataService,
+          isExpanded: false,
+          hasClickedShowMoreFields: false,
+          hasMoreFieldsToShow: false,
+          cacheIsUpToDate: false,
+          childrenCache: {}, // Empty cache.
+        });
     this._indexListChild = existingIndexListChild
       ? existingIndexListChild
-      : new IndexListTreeItem(
-          this.collectionName,
-          this.databaseName,
-          this._dataService,
-          false, // Collapsed.
-          false, // Cache is not up to date.
-          [] // Empty cache.
-        );
+      : new IndexListTreeItem({
+          collectionName: this.collectionName,
+          databaseName: this.databaseName,
+          dataService: this._dataService,
+          isExpanded: false,
+          cacheIsUpToDate: false,
+          childrenCache: [], // Empty cache.
+        });
 
     this.tooltip =
       collection.type === CollectionTypes.view
@@ -187,42 +196,42 @@ export default class CollectionTreeItem
   }
 
   rebuildDocumentListTreeItem(): void {
-    this._documentListChild = new DocumentListTreeItem(
-      this.collectionName,
-      this.databaseName,
-      this._type,
-      this._dataService,
-      this._documentListChild.isExpanded,
-      this._documentListChild.getMaxDocumentsToShow(),
-      this.documentCount,
-      this.refreshDocumentCount,
-      this._documentListChild.cacheIsUpToDate,
-      this._documentListChild.getChildrenCache()
-    );
+    this._documentListChild = new DocumentListTreeItem({
+      collectionName: this.collectionName,
+      databaseName: this.databaseName,
+      type: this._type,
+      dataService: this._dataService,
+      isExpanded: this._documentListChild.isExpanded,
+      maxDocumentsToShow: this._documentListChild.getMaxDocumentsToShow(),
+      cachedDocumentCount: this.documentCount,
+      refreshDocumentCount: this.refreshDocumentCount,
+      cacheIsUpToDate: this._documentListChild.cacheIsUpToDate,
+      childrenCache: this._documentListChild.getChildrenCache(),
+    });
   }
 
   rebuildSchemaTreeItem(): void {
-    this._schemaChild = new SchemaTreeItem(
-      this.collectionName,
-      this.databaseName,
-      this._dataService,
-      this._schemaChild.isExpanded,
-      this._schemaChild.hasClickedShowMoreFields,
-      this._schemaChild.hasMoreFieldsToShow,
-      this._schemaChild.cacheIsUpToDate,
-      this._schemaChild.childrenCache
-    );
+    this._schemaChild = new SchemaTreeItem({
+      collectionName: this.collectionName,
+      databaseName: this.databaseName,
+      dataService: this._dataService,
+      isExpanded: this._schemaChild.isExpanded,
+      hasClickedShowMoreFields: this._schemaChild.hasClickedShowMoreFields,
+      hasMoreFieldsToShow: this._schemaChild.hasMoreFieldsToShow,
+      cacheIsUpToDate: this._schemaChild.cacheIsUpToDate,
+      childrenCache: this._schemaChild.childrenCache,
+    });
   }
 
   rebuildIndexListTreeItem(): void {
-    this._indexListChild = new IndexListTreeItem(
-      this.collectionName,
-      this.databaseName,
-      this._dataService,
-      this._indexListChild.isExpanded,
-      this._indexListChild.cacheIsUpToDate,
-      this._indexListChild.getChildrenCache()
-    );
+    this._indexListChild = new IndexListTreeItem({
+      collectionName: this.collectionName,
+      databaseName: this.databaseName,
+      dataService: this._dataService,
+      isExpanded: this._indexListChild.isExpanded,
+      cacheIsUpToDate: this._indexListChild.cacheIsUpToDate,
+      childrenCache: this._indexListChild.getChildrenCache(),
+    });
   }
 
   rebuildChildrenCache(): void {
@@ -259,36 +268,36 @@ export default class CollectionTreeItem
     this.cacheIsUpToDate = false;
     this.documentCount = null;
 
-    this._documentListChild = new DocumentListTreeItem(
-      this.collectionName,
-      this.databaseName,
-      this._type,
-      this._dataService,
-      false, // Collapsed.
-      MAX_DOCUMENTS_VISIBLE,
-      this.documentCount,
-      this.refreshDocumentCount,
-      false, // Cache is not up to date.
-      [] // Empty cache.
-    );
-    this._schemaChild = new SchemaTreeItem(
-      this.collectionName,
-      this.databaseName,
-      this._dataService,
-      false, // Collapsed.
-      false, // Hasn't been clicked to show more documents.
-      false, // No more fields to show.
-      false, // Cached is not up to date.
-      {} // Empty cache.
-    );
-    this._indexListChild = new IndexListTreeItem(
-      this.collectionName,
-      this.databaseName,
-      this._dataService,
-      false, // Collapsed.
-      false, // Cache is not up to date.
-      [] // Empty cache.
-    );
+    this._documentListChild = new DocumentListTreeItem({
+      collectionName: this.collectionName,
+      databaseName: this.databaseName,
+      type: this._type,
+      dataService: this._dataService,
+      isExpanded: false,
+      maxDocumentsToShow: MAX_DOCUMENTS_VISIBLE,
+      cachedDocumentCount: this.documentCount,
+      refreshDocumentCount: this.refreshDocumentCount,
+      cacheIsUpToDate: false,
+      childrenCache: [], // Empty cache.
+    });
+    this._schemaChild = new SchemaTreeItem({
+      collectionName: this.collectionName,
+      databaseName: this.databaseName,
+      dataService: this._dataService,
+      isExpanded: false,
+      hasClickedShowMoreFields: false,
+      hasMoreFieldsToShow: false,
+      cacheIsUpToDate: false,
+      childrenCache: {}, // Empty cache.
+    });
+    this._indexListChild = new IndexListTreeItem({
+      collectionName: this.collectionName,
+      databaseName: this.databaseName,
+      dataService: this._dataService,
+      isExpanded: false,
+      cacheIsUpToDate: false,
+      childrenCache: [], // Empty cache.
+    });
   }
 
   getDocumentListChild(): DocumentListTreeItem {

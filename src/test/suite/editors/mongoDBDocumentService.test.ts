@@ -24,17 +24,17 @@ suite('MongoDB Document Service Test Suite', () => {
     testStorageController,
     extensionContextStub
   );
-  const testConnectionController = new ConnectionController(
-    testStatusView,
-    testStorageController,
-    testTelemetryService
-  );
-  const testMongoDBDocumentService = new MongoDBDocumentService(
-    extensionContextStub,
-    testConnectionController,
-    testStatusView,
-    testTelemetryService
-  );
+  const testConnectionController = new ConnectionController({
+    statusView: testStatusView,
+    storageController: testStorageController,
+    telemetryService: testTelemetryService,
+  });
+  const testMongoDBDocumentService = new MongoDBDocumentService({
+    context: extensionContextStub,
+    connectionController: testConnectionController,
+    statusView: testStatusView,
+    telemetryService: testTelemetryService,
+  });
 
   const sandbox = sinon.createSandbox();
 

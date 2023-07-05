@@ -76,11 +76,11 @@ export default class MDBExtensionController implements vscode.Disposable {
       context,
       options.shouldTrackTelemetry
     );
-    this._connectionController = new ConnectionController(
-      this._statusView,
-      this._storageController,
-      this._telemetryService
-    );
+    this._connectionController = new ConnectionController({
+      statusView: this._statusView,
+      storageController: this._storageController,
+      telemetryService: this._telemetryService,
+    });
     this._languageServerController = new LanguageServerController(context);
     this._explorerController = new ExplorerController(
       this._connectionController
@@ -102,35 +102,37 @@ export default class MDBExtensionController implements vscode.Disposable {
       new PlaygroundSelectedCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
       new PlaygroundDiagnosticsCodeActionProvider();
-    this._playgroundController = new PlaygroundController(
-      this._connectionController,
-      this._languageServerController,
-      this._telemetryService,
-      this._statusView,
-      this._playgroundResultViewProvider,
-      this._activeConnectionCodeLensProvider,
-      this._exportToLanguageCodeLensProvider,
-      this._playgroundSelectedCodeActionProvider,
-      this._explorerController
-    );
-    this._editorsController = new EditorsController(
+    this._playgroundController = new PlaygroundController({
+      connectionController: this._connectionController,
+      languageServerController: this._languageServerController,
+      telemetryService: this._telemetryService,
+      statusView: this._statusView,
+      playgroundResultViewProvider: this._playgroundResultViewProvider,
+      activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
+      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
+      playgroundSelectedCodeActionProvider:
+        this._playgroundSelectedCodeActionProvider,
+    });
+    this._editorsController = new EditorsController({
       context,
-      this._connectionController,
-      this._playgroundController,
-      this._statusView,
-      this._telemetryService,
-      this._playgroundResultViewProvider,
-      this._activeConnectionCodeLensProvider,
-      this._exportToLanguageCodeLensProvider,
-      this._playgroundSelectedCodeActionProvider,
-      this._playgroundDiagnosticsCodeActionProvider,
-      this._editDocumentCodeLensProvider
-    );
-    this._webviewController = new WebviewController(
-      this._connectionController,
-      this._storageController,
-      this._telemetryService
-    );
+      connectionController: this._connectionController,
+      playgroundController: this._playgroundController,
+      statusView: this._statusView,
+      telemetryService: this._telemetryService,
+      playgroundResultViewProvider: this._playgroundResultViewProvider,
+      activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
+      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
+      playgroundSelectedCodeActionProvider:
+        this._playgroundSelectedCodeActionProvider,
+      playgroundDiagnosticsCodeActionProvider:
+        this._playgroundDiagnosticsCodeActionProvider,
+      editDocumentCodeLensProvider: this._editDocumentCodeLensProvider,
+    });
+    this._webviewController = new WebviewController({
+      connectionController: this._connectionController,
+      storageController: this._storageController,
+      telemetryService: this._telemetryService,
+    });
     this._editorsController.registerProviders();
   }
 

@@ -175,11 +175,15 @@ export default class FieldTreeItem
 
   iconPath: string | { light: string; dark: string };
 
-  constructor(
-    field: SchemaFieldType,
-    isExpanded: boolean,
-    existingCache: { [fieldName: string]: FieldTreeItem }
-  ) {
+  constructor({
+    field,
+    isExpanded,
+    existingCache,
+  }: {
+    field: SchemaFieldType;
+    isExpanded: boolean;
+    existingCache: { [fieldName: string]: FieldTreeItem };
+  }) {
     super(field.name, getCollapsibleStateForField(field, isExpanded));
 
     this.field = field;
@@ -219,17 +223,18 @@ export default class FieldTreeItem
       if (subDocumentFields) {
         subDocumentFields.forEach((subField) => {
           if (pastChildrenCache[subField.name]) {
-            this._childrenCache[subField.name] = new FieldTreeItem(
-              subField,
-              pastChildrenCache[subField.name].isExpanded,
-              pastChildrenCache[subField.name].getChildrenCache()
-            );
+            this._childrenCache[subField.name] = new FieldTreeItem({
+              field: subField,
+              isExpanded: pastChildrenCache[subField.name].isExpanded,
+              existingCache:
+                pastChildrenCache[subField.name].getChildrenCache(),
+            });
           } else {
-            this._childrenCache[subField.name] = new FieldTreeItem(
-              subField,
-              false,
-              {}
-            );
+            this._childrenCache[subField.name] = new FieldTreeItem({
+              field: subField,
+              isExpanded: false,
+              existingCache: {},
+            });
           }
         });
       }
@@ -244,17 +249,18 @@ export default class FieldTreeItem
       if (arrayElementFields) {
         arrayElementFields.forEach((arrayField) => {
           if (pastChildrenCache[arrayField.name]) {
-            this._childrenCache[arrayField.name] = new FieldTreeItem(
-              arrayField,
-              pastChildrenCache[arrayField.name].isExpanded,
-              pastChildrenCache[arrayField.name].getChildrenCache()
-            );
+            this._childrenCache[arrayField.name] = new FieldTreeItem({
+              field: arrayField,
+              isExpanded: pastChildrenCache[arrayField.name].isExpanded,
+              existingCache:
+                pastChildrenCache[arrayField.name].getChildrenCache(),
+            });
           } else {
-            this._childrenCache[arrayField.name] = new FieldTreeItem(
-              arrayField,
-              false,
-              {}
-            );
+            this._childrenCache[arrayField.name] = new FieldTreeItem({
+              field: arrayField,
+              isExpanded: false,
+              existingCache: {},
+            });
           }
         });
       }

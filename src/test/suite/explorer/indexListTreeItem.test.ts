@@ -11,6 +11,20 @@ import IndexListTreeItem from '../../../explorer/indexListTreeItem';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
 
+function getTestIndexListTreeItem(
+  options?: Partial<ConstructorParameters<typeof IndexListTreeItem>[0]>
+) {
+  return new IndexListTreeItem({
+    collectionName: 'zebraWearwolf',
+    databaseName: 'giraffeVampire',
+    dataService: {} as DataService,
+    isExpanded: false,
+    cacheIsUpToDate: false,
+    childrenCache: [],
+    ...options,
+  });
+}
+
 suite('IndexListTreeItem Test Suite', () => {
   let showErrorMessageStub: SinonStub;
   const sandbox = sinon.createSandbox();
@@ -25,18 +39,7 @@ suite('IndexListTreeItem Test Suite', () => {
 
   test('its context value should be in the package json', () => {
     let indexListRegisteredCommandInPackageJson = false;
-    const testIndexListTreeItem = new IndexListTreeItem(
-      'pineapple',
-      'tasty_fruits',
-      {
-        indexes: (): ReturnType<DataService['indexes']> => {
-          return Promise.resolve([]);
-        },
-      } as unknown as DataService,
-      false,
-      false,
-      []
-    );
+    const testIndexListTreeItem = getTestIndexListTreeItem();
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
       if (contextItem.when.includes(testIndexListTreeItem.contextValue)) {
@@ -58,7 +61,7 @@ suite('IndexListTreeItem Test Suite', () => {
           _id: 1,
         },
         name: '_id_',
-        ns: 'tasty_fruits.pineapple',
+        ns: 'giraffeVampire.pineapple',
       },
       {
         v: 1,
@@ -67,25 +70,21 @@ suite('IndexListTreeItem Test Suite', () => {
           gnocchi: -1,
         },
         name: '_id_1_gnocchi_1',
-        ns: 'tasty_fruits.pineapple',
+        ns: 'giraffeVampire.pineapple',
       },
     ];
 
     let namespaceRequested = '';
-    const testIndexListTreeItem = new IndexListTreeItem(
-      'pineapple',
-      'tasty_fruits',
-      {
+    const testIndexListTreeItem = getTestIndexListTreeItem({
+      collectionName: 'pineapple',
+      dataService: {
         indexes: (ns): ReturnType<DataService['indexes']> => {
           namespaceRequested = ns;
 
           return Promise.resolve(fakeFetchIndexes as any[]);
         },
       } as DataService,
-      false,
-      false,
-      []
-    );
+    });
 
     await testIndexListTreeItem.onDidExpand();
 
@@ -97,35 +96,21 @@ suite('IndexListTreeItem Test Suite', () => {
       assert(false, `Expected no error, found: ${formatError(error).message}`);
     }
 
-    assert(namespaceRequested === 'tasty_fruits.pineapple');
-
-    assert(
-      indexTreeItems.length === 2,
-      `Expected 2 indexTreeItems to be returned, found ${indexTreeItems.length}`
-    );
-    assert(
-      indexTreeItems[0].label === '_id_',
-      `Expected first child tree item to be named '_id_' found ${indexTreeItems[0].label}`
-    );
-    assert(
-      indexTreeItems[1].label === '_id_1_gnocchi_1',
-      `Expected the second child tree item to be named '_id_1_gnocchi_1' found ${indexTreeItems[1].label}`
-    );
+    assert.strictEqual(namespaceRequested, 'giraffeVampire.pineapple');
+    assert.strictEqual(indexTreeItems.length, 2);
+    assert.strictEqual(indexTreeItems[0].label, '_id_');
+    assert.strictEqual(indexTreeItems[1].label, '_id_1_gnocchi_1');
   });
 
   test('it shows an indexes icon', () => {
-    const testIndexListTreeItem = new IndexListTreeItem(
-      'pineapple',
-      'tasty_fruits',
-      {
+    const testIndexListTreeItem = getTestIndexListTreeItem({
+      collectionName: 'pineapple',
+      dataService: {
         indexes: (): ReturnType<DataService['indexes']> => {
           return Promise.resolve([] as IndexDefinition[]);
         },
       } as unknown as DataService,
-      false,
-      false,
-      []
-    );
+    });
 
     const indexesIconPath = testIndexListTreeItem.iconPath as {
       light: string;
@@ -139,27 +124,22 @@ suite('IndexListTreeItem Test Suite', () => {
 
   test('when theres an error fetching indexes, the error is thrown in the caller (no timeout)', async () => {
     const expectedMessage = 'Some error message indexes could throw';
-    const testIndexListTreeItem = new IndexListTreeItem(
-      'pineapple',
-      'tasty_fruits',
-      {
+    const testIndexListTreeItem = getTestIndexListTreeItem({
+      dataService: {
         indexes: (): ReturnType<DataService['indexes']> => {
           return Promise.reject(new Error(expectedMessage));
         },
       } as unknown as DataService,
-      false,
-      false,
-      []
-    );
+    });
 
     await testIndexListTreeItem.onDidExpand();
 
     try {
       await testIndexListTreeItem.getChildren();
 
-      assert(
-        showErrorMessageStub.firstCall.args[0] === expectedMessage,
-        `Expected error message "${expectedMessage}" when disconnecting with no active connection, recieved "${showErrorMessageStub.firstCall.args[0]}"`
+      assert.strictEqual(
+        showErrorMessageStub.firstCall.args[0],
+        expectedMessage
       );
     } catch (error) {
       assert(!!error, 'Expected an error disconnect response.');
@@ -174,7 +154,7 @@ suite('IndexListTreeItem Test Suite', () => {
           _id: 1,
         },
         name: '_id_',
-        ns: 'tasty_fruits.pineapple',
+        ns: 'giraffeVampire.pineapple',
       },
       {
         v: 1,
@@ -183,22 +163,18 @@ suite('IndexListTreeItem Test Suite', () => {
           gnocchi: -1,
         },
         name: '_id_1_gnocchi_1',
-        ns: 'tasty_fruits.pineapple',
+        ns: 'giraffeVampire.pineapple',
       },
     ];
 
-    const testIndexListTreeItem = new IndexListTreeItem(
-      'pineapple',
-      'tasty_fruits',
-      {
+    const testIndexListTreeItem = getTestIndexListTreeItem({
+      collectionName: 'pineapple',
+      dataService: {
         indexes: (): ReturnType<DataService['indexes']> => {
           return Promise.resolve(fakeFetchIndexes as any[]);
         },
       } as unknown as DataService,
-      false,
-      false,
-      []
-    );
+    });
 
     await testIndexListTreeItem.onDidExpand();
 
@@ -212,18 +188,18 @@ suite('IndexListTreeItem Test Suite', () => {
 
     indexTreeItems[0].onDidExpand();
 
-    const newIndexListTreeItem = new IndexListTreeItem(
-      testIndexListTreeItem.collectionName,
-      testIndexListTreeItem.databaseName,
-      {
+    const newIndexListTreeItem = getTestIndexListTreeItem({
+      collectionName: testIndexListTreeItem.collectionName,
+      databaseName: testIndexListTreeItem.databaseName,
+      dataService: {
         indexes: (): ReturnType<DataService['indexes']> => {
           return Promise.resolve([]);
         },
       } as unknown as DataService,
-      testIndexListTreeItem.isExpanded,
-      testIndexListTreeItem.cacheIsUpToDate,
-      testIndexListTreeItem.getChildrenCache()
-    );
+      isExpanded: testIndexListTreeItem.isExpanded,
+      cacheIsUpToDate: testIndexListTreeItem.cacheIsUpToDate,
+      childrenCache: testIndexListTreeItem.getChildrenCache(),
+    });
 
     let newIndexTreeItems;
     try {
@@ -232,18 +208,14 @@ suite('IndexListTreeItem Test Suite', () => {
       assert(false, `Expected no error, found: ${formatError(error).message}`);
     }
 
-    assert(
-      newIndexTreeItems[1].label === '_id_1_gnocchi_1',
-      `Expected the second child tree item to be named '_id_1_gnocchi_1' found ${newIndexTreeItems[1].label}`
-    );
+    assert.strictEqual(newIndexTreeItems[1].label, '_id_1_gnocchi_1');
     assert(
       newIndexTreeItems[0].isExpanded,
       'Expected the first index in list to be expanded'
     );
-    assert(
-      newIndexTreeItems[0].collapsibleState ===
-        vscode.TreeItemCollapsibleState.Expanded,
-      'Expected the first index in list have expanded tree state'
+    assert.strictEqual(
+      newIndexTreeItems[0].collapsibleState,
+      vscode.TreeItemCollapsibleState.Expanded
     );
   });
 });

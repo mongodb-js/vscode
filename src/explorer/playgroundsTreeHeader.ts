@@ -14,12 +14,15 @@ export default class PlaygroundsTreeHeader
   doesNotRequireTreeUpdate = true;
   cacheIsUpToDate = true;
 
-  constructor(
-    fileUri: vscode.Uri,
+  constructor({
+    fileUri,
+    playgroundsTreeItems,
+  }: {
+    fileUri: vscode.Uri;
     playgroundsTreeItems: {
       [key: string]: PlaygroundsTreeItem;
-    }
-  ) {
+    };
+  }) {
     super(fileUri.path, vscode.TreeItemCollapsibleState.Expanded);
     this._playgroundsTreeItems = playgroundsTreeItems;
 

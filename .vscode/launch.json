@@ -35,7 +35,6 @@
       "type": "node",
       "request": "attach",
       "name": "Attach to Language Server",
-      "protocol": "inspector",
       "port": 6009,
       "sourceMaps": true,
       "outFiles": [

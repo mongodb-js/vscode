@@ -6,7 +6,6 @@ import sinon from 'sinon';
 import ActiveConnectionCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
-import { ExplorerController } from '../../../explorer';
 import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
@@ -49,22 +48,24 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
         );
       const testExportToLanguageCodeLensProvider =
         new ExportToLanguageCodeLensProvider();
-      const testExplorerController = new ExplorerController(
-        mdbTestExtension.testExtensionController._connectionController
-      );
 
       mdbTestExtension.testExtensionController._playgroundController =
-        new PlaygroundController(
-          mdbTestExtension.testExtensionController._connectionController,
-          mdbTestExtension.testExtensionController._languageServerController,
-          mdbTestExtension.testExtensionController._telemetryService,
-          mdbTestExtension.testExtensionController._statusView,
-          mdbTestExtension.testExtensionController._playgroundResultViewProvider,
+        new PlaygroundController({
+          connectionController:
+            mdbTestExtension.testExtensionController._connectionController,
+          languageServerController:
+            mdbTestExtension.testExtensionController._languageServerController,
+          telemetryService:
+            mdbTestExtension.testExtensionController._telemetryService,
+          statusView: mdbTestExtension.testExtensionController._statusView,
+          playgroundResultViewProvider:
+            mdbTestExtension.testExtensionController
+              ._playgroundResultViewProvider,
           activeConnectionCodeLensProvider,
-          testExportToLanguageCodeLensProvider,
-          testCodeActionProvider,
-          testExplorerController
-        );
+          exportToLanguageCodeLensProvider:
+            testExportToLanguageCodeLensProvider,
+          playgroundSelectedCodeActionProvider: testCodeActionProvider,
+        });
 
       const fakeOpenPlaygroundResult = sandbox.fake();
       sandbox.replace(

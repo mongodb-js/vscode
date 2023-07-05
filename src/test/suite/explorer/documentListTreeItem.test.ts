@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { before } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
 
@@ -14,27 +13,30 @@ import DocumentListTreeItem, {
 
 import { DataServiceStub, mockDocuments } from '../stubs';
 
-suite('DocumentListTreeItem Test Suite', () => {
-  let dataServiceStub: DataService;
+const dataServiceStub = new DataServiceStub() as unknown as DataService;
 
-  before(() => {
-    dataServiceStub = new DataServiceStub() as unknown as DataService;
+function getTestDocumentListTreeItem(
+  options?: Partial<ConstructorParameters<typeof DocumentListTreeItem>[0]>
+) {
+  return new DocumentListTreeItem({
+    collectionName: 'collectionName',
+    databaseName: 'mock_db_name',
+    type: CollectionTypes.collection,
+    dataService: dataServiceStub as unknown as DataService,
+    isExpanded: false,
+    maxDocumentsToShow: MAX_DOCUMENTS_VISIBLE,
+    cachedDocumentCount: null,
+    refreshDocumentCount: (): Promise<number> => Promise.resolve(25),
+    cacheIsUpToDate: false,
+    childrenCache: [],
+    ...options,
   });
+}
 
+suite('DocumentListTreeItem Test Suite', () => {
   test('its context value should be in the package json', () => {
     let documentListRegisteredCommandInPackageJson = false;
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'collectionName',
-      'databaseName',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      null,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testDocumentListTreeItem = getTestDocumentListTreeItem();
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
       if (contextItem.when.includes(testDocumentListTreeItem.contextValue)) {
@@ -49,199 +51,92 @@ suite('DocumentListTreeItem Test Suite', () => {
   });
 
   test('when the "show more" click handler is called => it increases the amount of documents to show by 10', () => {
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'collectionName',
-      'databaseName',
-      CollectionTypes.collection,
-      {} as DataService,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      null,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testDocumentListTreeItem = getTestDocumentListTreeItem();
 
     const maxDocumentsToShow = testDocumentListTreeItem.getMaxDocumentsToShow();
-    assert(
-      maxDocumentsToShow === 10,
-      `Expected max documents to show to be 20, found ${maxDocumentsToShow}.`
-    );
+    assert.strictEqual(maxDocumentsToShow, 10);
 
     testDocumentListTreeItem.onShowMoreClicked();
 
     const newMaxDocumentsToShow =
       testDocumentListTreeItem.getMaxDocumentsToShow();
-    assert(
-      newMaxDocumentsToShow === 20,
-      `Expected max documents to show to be 20, found ${newMaxDocumentsToShow}.`
-    );
+    assert.strictEqual(newMaxDocumentsToShow, 20);
   });
 
   suite('when not expanded', () => {
     test('it does not show documents', async () => {
-      const testDocumentListTreeItem = new DocumentListTreeItem(
-        'mock_collection_name',
-        'mock_db_name',
-        CollectionTypes.collection,
-        dataServiceStub,
-        false,
-        MAX_DOCUMENTS_VISIBLE,
-        null,
-        (): Promise<number> => Promise.resolve(25),
-        false,
-        []
-      );
+      const testDocumentListTreeItem = getTestDocumentListTreeItem();
 
       const collections = await testDocumentListTreeItem.getChildren();
-      assert(
-        collections.length === 0,
-        `Expected no collections to be returned, found ${collections.length}`
-      );
+      assert.strictEqual(collections.length, 0);
     });
 
     test('it does not have a document count in the description', async () => {
-      const testDocumentListTreeItem = new DocumentListTreeItem(
-        'mock_collection_name',
-        'mock_db_name',
-        CollectionTypes.collection,
-        dataServiceStub,
-        false,
-        MAX_DOCUMENTS_VISIBLE,
-        null,
-        (): Promise<number> => Promise.resolve(25),
-        false,
-        []
-      );
+      const testDocumentListTreeItem = getTestDocumentListTreeItem();
 
       await testDocumentListTreeItem.getChildren();
 
-      assert(
-        testDocumentListTreeItem.description === undefined,
-        `Expected no document count description found ${testDocumentListTreeItem.description}`
-      );
+      assert.strictEqual(testDocumentListTreeItem.description, undefined);
     });
   });
 
   test('a "view" type of document list does not show a dropdown', () => {
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'mock_collection_name',
-      'mock_db_name',
-      CollectionTypes.view,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      null,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testDocumentListTreeItem = getTestDocumentListTreeItem({
+      type: CollectionTypes.view,
+    });
 
-    assert(
-      testDocumentListTreeItem.collapsibleState ===
-        vscode.TreeItemCollapsibleState.None
+    assert.strictEqual(
+      testDocumentListTreeItem.collapsibleState,
+      vscode.TreeItemCollapsibleState.None
     );
   });
 
   test('when expanded shows the documents of a collection in tree', async () => {
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'mock_collection_name_1',
-      'mock_db_name',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      25,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testDocumentListTreeItem = getTestDocumentListTreeItem({
+      collectionName: 'mock_collection_name_1',
+      cachedDocumentCount: 25,
+    });
+
     await testDocumentListTreeItem.onDidExpand();
 
     const documents = await testDocumentListTreeItem.getChildren();
 
-    assert(
-      documents.length === 11,
-      `Expected 11 documents to be returned, found ${documents.length}`
-    );
-    assert(
-      documents[1].label === `"${mockDocuments[1]._id}"`,
-      `Expected a tree item child with the label document name ${mockDocuments[1]._id} found ${documents[1].label}`
-    );
+    assert.strictEqual(documents.length, 11);
+    assert.strictEqual(documents[1].label, `"${mockDocuments[1]._id}"`);
   });
 
   test('it should show a show more item when there are more documents to show', async () => {
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'mock_collection_name_2',
-      'mock_db_name',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      25,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testDocumentListTreeItem = getTestDocumentListTreeItem({
+      collectionName: 'mock_collection_name_2',
+      cachedDocumentCount: 25,
+    });
     await testDocumentListTreeItem.onDidExpand();
 
     const documents = await testDocumentListTreeItem.getChildren();
 
-    assert(
-      documents.length === 11,
-      `Expected 11 documents to be returned, found ${documents.length}`
-    );
-    assert(
-      documents[10].label === 'Show more...',
-      `Expected a tree item child with the label "show more..." found ${documents[10].label}`
-    );
+    assert.strictEqual(documents.length, 11);
+    assert.strictEqual(documents[10].label, 'Show more...');
   });
 
   test('it should show more documents after the show more click handler is called', async () => {
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'mock_collection_name_3',
-      'mock_db_name',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      25,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testDocumentListTreeItem = getTestDocumentListTreeItem({
+      collectionName: 'mock_collection_name_3',
+      cachedDocumentCount: 25,
+    });
 
     await testDocumentListTreeItem.onDidExpand();
     testDocumentListTreeItem.onShowMoreClicked();
 
     const documents = await testDocumentListTreeItem.getChildren();
-    assert(
-      documents.length === 21,
-      `Expected 21 documents to be returned, found ${documents.length}`
-    );
-    assert(
-      documents[19].label === `"${mockDocuments[19]._id}"`,
-      `Expected a document tree item with the label ${mockDocuments[19]._id}, found ${documents[19].label}`
-    );
-    assert(
-      documents[20].label === 'Show more...',
-      `Expected a tree item child with the label "show more..." found ${documents[10].label}`
-    );
+    assert.strictEqual(documents.length, 21);
+    assert.strictEqual(documents[19].label, `"${mockDocuments[19]._id}"`);
+    assert.strictEqual(documents[20].label, 'Show more...');
   });
 
   test('it should not show a show more item when there not are more documents to show', async () => {
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'mock_collection_name_4',
-      'mock_db_name',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      25,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testDocumentListTreeItem = getTestDocumentListTreeItem({
+      collectionName: 'mock_collection_name_4',
+    });
 
     await testDocumentListTreeItem.onDidExpand();
 
@@ -251,72 +146,43 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const documents = await testDocumentListTreeItem.getChildren();
 
-    assert(
-      documents.length === 25,
-      `Expected 25 documents to be returned, found ${documents.length}`
-    );
-    assert(
-      documents[documents.length - 1].label !== 'Show more...',
-      'Expected the last tree item to not have the label "show more..."'
+    assert.strictEqual(documents.length, 25);
+    assert.notStrictEqual(
+      documents[documents.length - 1].label,
+      'Show more...'
     );
   });
 
   test('when expanded it updates the count of documents', async () => {
     let maxDocs;
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'mock_collection_name_1',
-      'mock_db_name',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      maxDocs,
-      (): Promise<number> => {
+    const testDocumentListTreeItem = getTestDocumentListTreeItem({
+      collectionName: 'mock_collection_name_1',
+      cachedDocumentCount: maxDocs,
+      refreshDocumentCount: (): Promise<number> => {
         maxDocs = 25;
         return Promise.resolve(25);
       },
-      false,
-      []
-    );
+    });
     await testDocumentListTreeItem.onDidExpand();
 
-    const newTestDocList = new DocumentListTreeItem(
-      'mock_collection_name_4',
-      'mock_db_name',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      maxDocs,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const newTestDocList = getTestDocumentListTreeItem({
+      collectionName: 'mock_collection_name_4',
+      cachedDocumentCount: maxDocs,
+    });
 
     await newTestDocList.onDidExpand();
 
     const documents = await newTestDocList.getChildren();
 
-    assert(
-      documents.length === 11,
-      `Expected 11 documents to be returned, found ${documents.length}`
-    );
-    assert(newTestDocList.description === '25');
+    assert.strictEqual(documents.length, 11);
+    assert.strictEqual(newTestDocList.description, '25');
   });
 
   test('it shows a documents icon', () => {
-    const testCollectionViewTreeItem = new DocumentListTreeItem(
-      'mock_collection_name_4',
-      'mock_db_name',
-      CollectionTypes.view,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      null,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testCollectionViewTreeItem = getTestDocumentListTreeItem({
+      collectionName: 'mock_collection_name_4',
+      type: CollectionTypes.view,
+    });
 
     const viewIconPath = testCollectionViewTreeItem.iconPath;
     assert(
@@ -324,18 +190,10 @@ suite('DocumentListTreeItem Test Suite', () => {
       'Expected icon path to point to an svg by the name "documents" a dark mode'
     );
 
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'mock_collection_name_4',
-      'mock_db_name',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      null,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testDocumentListTreeItem = getTestDocumentListTreeItem({
+      collectionName: 'mock_collection_name_4',
+      type: CollectionTypes.collection,
+    });
 
     const collectionIconPath = testDocumentListTreeItem.iconPath;
     assert(
@@ -345,55 +203,37 @@ suite('DocumentListTreeItem Test Suite', () => {
   });
 
   test('it shows the document count in the description', () => {
-    const testDocumentListTreeItem = new DocumentListTreeItem(
-      'mock_collection_name_4',
-      'mock_db_name',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      25,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+    const testDocumentListTreeItem = getTestDocumentListTreeItem({
+      cachedDocumentCount: 25,
+    });
 
-    assert(testDocumentListTreeItem.description === '25');
+    assert.strictEqual(testDocumentListTreeItem.description, '25');
   });
 
-  test('the tooltip shows the unformated document count', () => {
-    const testNewDocListItem = new DocumentListTreeItem(
-      'mock_collection_name_4',
-      'mock_db_name',
-      CollectionTypes.collection,
-      dataServiceStub,
-      false,
-      MAX_DOCUMENTS_VISIBLE,
-      2200000,
-      (): Promise<number> => Promise.resolve(25),
-      false,
-      []
-    );
+  test('the tooltip shows the unformatted document count', () => {
+    const testDocumentListTreeItem = getTestDocumentListTreeItem({
+      cachedDocumentCount: 2200000,
+    });
 
-    assert(
-      testNewDocListItem._documentCount === 2200000,
-      `Expected document count to be '2200000' found '${testNewDocListItem._documentCount}'`
+    assert.strictEqual(testDocumentListTreeItem._documentCount, 2200000);
+    assert.strictEqual(testDocumentListTreeItem.description, '2M');
+    assert.strictEqual(
+      testDocumentListTreeItem.tooltip,
+      'Collection Documents - 2200000'
     );
-    assert(testNewDocListItem.description === '2M');
-    assert(testNewDocListItem.tooltip === 'Collection Documents - 2200000');
   });
 
   suite('formatDocCount', () => {
     test('It formats the document count when the count is 0', () => {
       const num = 0;
       const result = formatDocCount(num);
-      assert(result === '0');
+      assert.strictEqual(result, '0');
     });
 
     test('It formats the document count when the count is 10009', () => {
       const num = 10009;
       const result = formatDocCount(num);
-      assert(result === '10K');
+      assert.strictEqual(result, '10K');
     });
   });
 });

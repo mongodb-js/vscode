@@ -27,11 +27,11 @@ suite('Playground Result Provider Test Suite', () => {
     extensionContextStub
   );
   const testStatusView = new StatusView(extensionContextStub);
-  const testConnectionController = new ConnectionController(
-    testStatusView,
-    testStorageController,
-    testTelemetryService
-  );
+  const testConnectionController = new ConnectionController({
+    statusView: testStatusView,
+    storageController: testStorageController,
+    telemetryService: testTelemetryService,
+  });
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
     testConnectionController
   );
@@ -352,13 +352,13 @@ suite('Playground Result Provider Test Suite', () => {
     expect(firstCodeLensesInfo[1].line).to.be.equal(9);
 
     const testQueryStore = new CollectionDocumentsOperationsStore();
-    const testCollectionViewProvider = new CollectionDocumentsProvider(
-      extensionContextStub,
-      testConnectionController,
-      testQueryStore,
-      testStatusView,
-      testEditDocumentCodeLensProvider
-    );
+    const testCollectionViewProvider = new CollectionDocumentsProvider({
+      context: extensionContextStub,
+      connectionController: testConnectionController,
+      operationsStore: testQueryStore,
+      statusView: testStatusView,
+      editDocumentCodeLensProvider: testEditDocumentCodeLensProvider,
+    });
 
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();

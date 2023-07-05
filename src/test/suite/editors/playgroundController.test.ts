@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { before, beforeEach, afterEach } from 'mocha';
+import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
@@ -12,7 +12,6 @@ import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensP
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import { ExplorerController } from '../../../explorer';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { LanguageServerController } from '../../../language';
@@ -28,6 +27,15 @@ const expect = chai.expect;
 
 chai.use(chaiAsPromised);
 
+const mockFileName = path.join(
+  'nonexistent',
+  `playground-${uuidv4()}.mongodb.js`
+);
+const mockDocumentUri = vscode.Uri.from({
+  path: mockFileName,
+  scheme: 'untitled',
+});
+
 suite('Playground Controller Test Suite', function () {
   this.timeout(5000);
 
@@ -36,59 +44,61 @@ suite('Playground Controller Test Suite', function () {
   // The test extension runner.
   extensionContextStub.extensionPath = '../../';
 
-  const testStorageController = new StorageController(extensionContextStub);
-  const testTelemetryService = new TelemetryService(
-    testStorageController,
-    extensionContextStub
-  );
-  const testStatusView = new StatusView(extensionContextStub);
-  const testConnectionController = new ConnectionController(
-    testStatusView,
-    testStorageController,
-    testTelemetryService
-  );
-  const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-    testConnectionController
-  );
-  const testPlaygroundResultProvider = new PlaygroundResultProvider(
-    testConnectionController,
-    testEditDocumentCodeLensProvider
-  );
-  const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
-    testConnectionController
-  );
-  const testExportToLanguageCodeLensProvider =
-    new ExportToLanguageCodeLensProvider();
-  const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
-  const testExplorerController = new ExplorerController(
-    testConnectionController
-  );
-
+  let testStorageController: StorageController;
+  let testTelemetryService: TelemetryService;
+  let testStatusView: StatusView;
+  let testConnectionController: ConnectionController;
+  let testEditDocumentCodeLensProvider: EditDocumentCodeLensProvider;
+  let testPlaygroundResultProvider: PlaygroundResultProvider;
+  let testActiveDBCodeLensProvider: ActiveDBCodeLensProvider;
+  let testExportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+  let testCodeActionProvider: PlaygroundSelectedCodeActionProvider;
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
   let showErrorMessageStub: SinonStub;
+  let sandbox: sinon.SinonSandbox;
 
-  const sandbox = sinon.createSandbox();
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+    testStorageController = new StorageController(extensionContextStub);
+    testTelemetryService = new TelemetryService(
+      testStorageController,
+      extensionContextStub
+    );
+    testStatusView = new StatusView(extensionContextStub);
+    testConnectionController = new ConnectionController({
+      statusView: testStatusView,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+    testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
+    testPlaygroundResultProvider = new PlaygroundResultProvider(
+      testConnectionController,
+      testEditDocumentCodeLensProvider
+    );
+    testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
+      testConnectionController
+    );
+    testExportToLanguageCodeLensProvider =
+      new ExportToLanguageCodeLensProvider();
+    testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
 
-  before(() => {
     languageServerControllerStub = new LanguageServerControllerStub(
       extensionContextStub,
       testStorageController
     );
-    testPlaygroundController = new PlaygroundController(
-      testConnectionController,
-      languageServerControllerStub,
-      testTelemetryService,
-      testStatusView,
-      testPlaygroundResultProvider,
-      testActiveDBCodeLensProvider,
-      testExportToLanguageCodeLensProvider,
-      testCodeActionProvider,
-      testExplorerController
-    );
-  });
-
-  beforeEach(() => {
+    testPlaygroundController = new PlaygroundController({
+      connectionController: testConnectionController,
+      languageServerController: languageServerControllerStub,
+      telemetryService: testTelemetryService,
+      statusView: testStatusView,
+      playgroundResultViewProvider: testPlaygroundResultProvider,
+      activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
+      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
+      playgroundSelectedCodeActionProvider: testCodeActionProvider,
+    });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
@@ -100,25 +110,23 @@ suite('Playground Controller Test Suite', function () {
     let fakeConnectToServiceProvider: SinonSpy;
 
     beforeEach(async () => {
-      const fakeGetActiveConnectionName = sandbox.fake.returns('fakeName');
       const mockActiveDataService = {
         getMongoClientConnectionOptions: () => ({
           url: 'mongodb://username@ldaphost:27017/?authMechanism=MONGODB-X509&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true&authSource=%24external&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsCAFile=./path/to/ca&tlsCertificateKeyFile=./path/to/cert',
           options: { monitorCommands: true },
         }),
       } as DataService;
-      const fakeGetActiveConnectionId = sandbox.fake.returns('pineapple');
-      fakeConnectToServiceProvider = sandbox.fake.resolves(undefined);
 
+      fakeConnectToServiceProvider = sandbox.fake.resolves(undefined);
       sandbox.replace(
         testPlaygroundController._connectionController,
         'getActiveConnectionName',
-        fakeGetActiveConnectionName
+        () => 'fakeName'
       );
       sandbox.replace(
         testPlaygroundController._connectionController,
         'getActiveConnectionId',
-        fakeGetActiveConnectionId
+        () => 'pineapple'
       );
       sandbox.replace(
         testPlaygroundController._languageServerController,
@@ -202,27 +210,24 @@ suite('Playground Controller Test Suite', function () {
   });
 
   suite('playground is open', () => {
-    const fileName = path.join(
-      'nonexistent',
-      `playground-${uuidv4()}.mongodb.js`
-    );
-    const documentUri = vscode.Uri.from({ path: fileName, scheme: 'untitled' });
-    const mockActiveTestEditor: unknown = {
-      document: {
-        languageId: 'javascript',
-        uri: documentUri,
-        getText: () => "use('dbName');",
-        lineAt: sandbox.fake.returns({ text: "use('dbName');" }),
-      },
-      selections: [
-        new vscode.Selection(
-          new vscode.Position(0, 0),
-          new vscode.Position(0, 0)
-        ),
-      ],
-    };
+    let mockActiveTestEditor;
 
     beforeEach(() => {
+      mockActiveTestEditor = {
+        document: {
+          languageId: 'javascript',
+          uri: mockDocumentUri,
+          getText: () => "use('dbName');",
+          lineAt: () => ({ text: "use('dbName');" }),
+        },
+        selections: [
+          new vscode.Selection(
+            new vscode.Position(0, 0),
+            new vscode.Position(0, 0)
+          ),
+        ],
+      };
+
       testPlaygroundController._activeTextEditor =
         mockActiveTestEditor as vscode.TextEditor;
       testPlaygroundController._selectedText = undefined;
@@ -234,7 +239,7 @@ suite('Playground Controller Test Suite', function () {
         sandbox.replace(
           testPlaygroundController._connectionController,
           'isCurrentlyConnected',
-          sandbox.fake.returns(false)
+          () => false
         );
       });
 
@@ -272,34 +277,31 @@ suite('Playground Controller Test Suite', function () {
       let showTextDocumentStub: SinonStub;
 
       beforeEach(async () => {
-        const fakeGetActiveConnectionName = sandbox.fake.returns('fakeName');
-        const fakeGetActiveDataService = sandbox.fake.returns({
-          getMongoClientConnectionOptions: () => ({
-            url: TEST_DATABASE_URI,
-            options: {},
-          }),
-        });
-        const fakeGetActiveConnectionId = sandbox.fake.returns('pineapple');
-
         sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionName',
-          fakeGetActiveConnectionName
+          () => 'fakeName'
         );
         sandbox.replace(
           testPlaygroundController._connectionController,
           'isCurrentlyConnected',
-          sandbox.fake.returns(true)
+          () => true
         );
         sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveDataService',
-          fakeGetActiveDataService
+          () =>
+            ({
+              getMongoClientConnectionOptions: () => ({
+                url: TEST_DATABASE_URI,
+                options: {},
+              }),
+            } as unknown as DataService)
         );
         sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionId',
-          fakeGetActiveConnectionId
+          () => 'pineapple'
         );
         showTextDocumentStub = sandbox.stub(vscode.window, 'showTextDocument');
 
@@ -376,41 +378,35 @@ suite('Playground Controller Test Suite', function () {
           () => mockActiveTestEditor as vscode.TextEditor
         );
 
-        const testExplorerController = new ExplorerController(
-          testConnectionController
-        );
-        const playgroundControllerTest = new PlaygroundController(
-          testConnectionController,
-          languageServerControllerStub,
-          testTelemetryService,
-          testStatusView,
-          testPlaygroundResultProvider,
-          testActiveDBCodeLensProvider,
-          testExportToLanguageCodeLensProvider,
-          testCodeActionProvider,
-          testExplorerController
-        );
+        const playgroundController = new PlaygroundController({
+          connectionController: testConnectionController,
+          languageServerController: languageServerControllerStub,
+          telemetryService: testTelemetryService,
+          statusView: testStatusView,
+          playgroundResultViewProvider: testPlaygroundResultProvider,
+          activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
+          exportToLanguageCodeLensProvider:
+            testExportToLanguageCodeLensProvider,
+          playgroundSelectedCodeActionProvider: testCodeActionProvider,
+        });
 
-        expect(playgroundControllerTest._activeTextEditor).to.deep.equal(
+        expect(playgroundController._activeTextEditor).to.deep.equal(
           mockActiveTestEditor
         );
       });
 
       test('exportToLanguage thrown an error for invalid syntax', async () => {
-        const testExplorerController = new ExplorerController(
-          testConnectionController
-        );
-        const playgroundControllerTest = new PlaygroundController(
-          testConnectionController,
-          languageServerControllerStub,
-          testTelemetryService,
-          testStatusView,
-          testPlaygroundResultProvider,
-          testActiveDBCodeLensProvider,
-          testExportToLanguageCodeLensProvider,
-          testCodeActionProvider,
-          testExplorerController
-        );
+        const playgroundController = new PlaygroundController({
+          connectionController: testConnectionController,
+          languageServerController: languageServerControllerStub,
+          telemetryService: testTelemetryService,
+          statusView: testStatusView,
+          playgroundResultViewProvider: testPlaygroundResultProvider,
+          activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
+          exportToLanguageCodeLensProvider:
+            testExportToLanguageCodeLensProvider,
+          playgroundSelectedCodeActionProvider: testCodeActionProvider,
+        });
         const textFromEditor = 'var x = { name: qwerty }';
         const selection = {
           start: { line: 0, character: 8 },
@@ -421,14 +417,13 @@ suite('Playground Controller Test Suite', function () {
           document: { getText: () => textFromEditor },
         } as vscode.TextEditor;
 
-        playgroundControllerTest._selectedText = '{ name: qwerty }';
-        playgroundControllerTest._playgroundSelectedCodeActionProvider.selection =
+        playgroundController._selectedText = '{ name: qwerty }';
+        playgroundController._playgroundSelectedCodeActionProvider.selection =
           selection;
-        playgroundControllerTest._playgroundSelectedCodeActionProvider.mode =
-          mode;
-        playgroundControllerTest._activeTextEditor = activeTextEditor;
+        playgroundController._playgroundSelectedCodeActionProvider.mode = mode;
+        playgroundController._activeTextEditor = activeTextEditor;
 
-        await playgroundControllerTest.exportToLanguage('csharp');
+        await playgroundController.exportToLanguage('csharp');
 
         const expectedMessage =
           "Unable to export to csharp language: Symbol 'qwerty' is undefined";
@@ -446,6 +441,48 @@ suite('Playground Controller Test Suite', function () {
       showInformationMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
+      );
+      const mockActiveTestEditor = {
+        document: {
+          languageId: 'javascript',
+          uri: mockDocumentUri,
+          getText: () => "use('dbName');",
+          lineAt: () => ({ text: "use('dbName');" }),
+        },
+        selections: [
+          new vscode.Selection(
+            new vscode.Position(0, 0),
+            new vscode.Position(0, 0)
+          ),
+        ],
+      } as unknown as vscode.TextEditor;
+      testPlaygroundController._activeTextEditor = mockActiveTestEditor;
+
+      sandbox.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionName',
+        () => 'fakeName'
+      );
+      sandbox.replace(
+        testPlaygroundController._connectionController,
+        'isCurrentlyConnected',
+        () => true
+      );
+      sandbox.replace(
+        testPlaygroundController._connectionController,
+        'getActiveDataService',
+        () =>
+          ({
+            getMongoClientConnectionOptions: () => ({
+              url: TEST_DATABASE_URI,
+              options: {},
+            }),
+          } as unknown as DataService)
+      );
+      sandbox.replace(
+        testPlaygroundController._connectionController,
+        'getActiveConnectionId',
+        () => 'pineapple'
       );
     });
 
@@ -472,7 +509,7 @@ suite('Playground Controller Test Suite', function () {
       const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
       expect(result).to.be.equal(true);
-      sandbox.assert.called(showInformationMessageStub);
+      expect(showInformationMessageStub).to.have.been.calledOnce;
     });
 
     test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
@@ -502,7 +539,7 @@ suite('Playground Controller Test Suite', function () {
       const result = await testPlaygroundController.runAllPlaygroundBlocks();
 
       expect(result).to.be.equal(true);
-      sandbox.assert.notCalled(showInformationMessageStub);
+      expect(showInformationMessageStub).to.not.have.been.called;
     });
 
     test('do not run a playground if user selected No in the confirmation message', async () => {

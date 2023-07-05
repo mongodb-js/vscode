@@ -20,13 +20,19 @@ export default class DocumentTreeItem
   documentId: any;
   resetDocumentListCache: () => Promise<void>;
 
-  constructor(
-    document: Document,
-    namespace: string,
-    documentIndexInTree: number,
-    dataService: DataService,
-    resetDocumentListCache: () => Promise<void>
-  ) {
+  constructor({
+    document,
+    namespace,
+    documentIndexInTree,
+    dataService,
+    resetDocumentListCache,
+  }: {
+    document: Document;
+    namespace: string;
+    documentIndexInTree: number;
+    dataService: DataService;
+    resetDocumentListCache: () => Promise<void>;
+  }) {
     // A document can not have a `_id` when it is in a view. In this instance
     // we just show the document's index in the tree.
     super(

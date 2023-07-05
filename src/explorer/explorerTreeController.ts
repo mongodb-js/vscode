@@ -167,18 +167,18 @@ export default class ExplorerTreeController
           connectionExpandedState = vscode.TreeItemCollapsibleState.None;
         }
 
-        this._connectionTreeItems[connection.id] = new ConnectionTreeItem(
-          connection.id,
-          connectionExpandedState,
-          isActiveConnection,
-          this._connectionController,
-          pastConnectionTreeItems[connection.id]
+        this._connectionTreeItems[connection.id] = new ConnectionTreeItem({
+          connectionId: connection.id,
+          collapsibleState: connectionExpandedState,
+          isExpanded: isActiveConnection,
+          connectionController: this._connectionController,
+          cacheIsUpToDate: pastConnectionTreeItems[connection.id]
             ? pastConnectionTreeItems[connection.id].cacheIsUpToDate
             : false,
-          pastConnectionTreeItems[connection.id]
+          childrenCache: pastConnectionTreeItems[connection.id]
             ? pastConnectionTreeItems[connection.id].getChildrenCache()
-            : {}
-        );
+            : {},
+        });
       });
 
       return Promise.resolve(
