@@ -797,7 +797,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(testConnectionController.isCurrentlyConnected(), false);
   });
 
-  test('_migrateConnectionsWithConnectionModel converts an old previously saved connection model without secrets to a new connection info format', async () => {
+  test('_migrateConnectionWithConnectionModel converts an old previously saved connection model without secrets to a new connection info format', async () => {
     const oldSavedConnectionInfo = {
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
@@ -821,7 +821,7 @@ suite('Connection Controller Test Suite', function () {
       },
     };
     const newSavedConnectionInfoWithSecrets =
-      await testConnectionController._migrateConnectionsWithConnectionModel(
+      await testConnectionController._migrateConnectionWithConnectionModel(
         oldSavedConnectionInfo
       );
 
@@ -837,7 +837,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('_migrateConnectionsWithConnectionModel converts an old previously saved connection model with secrets to a new connection info format', async () => {
+  test('_migrateConnectionWithConnectionModel converts an old previously saved connection model with secrets to a new connection info format', async () => {
     const oldSavedConnectionInfo = {
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
       name: 'host.u88dd.test.test',
@@ -874,7 +874,7 @@ suite('Connection Controller Test Suite', function () {
     };
 
     const newSavedConnectionInfoWithSecrets =
-      await testConnectionController._migrateConnectionsWithConnectionModel(
+      await testConnectionController._migrateConnectionWithConnectionModel(
         oldSavedConnectionInfo
       );
 
@@ -890,7 +890,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('_migrateConnectionsWithConnectionModel does not store secrets to disc', async () => {
+  test('_migrateConnectionWithConnectionModel does not store secrets to disc', async () => {
     const oldSavedConnectionInfo = {
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
       name: 'host.u88dd.test.test',
@@ -935,7 +935,7 @@ suite('Connection Controller Test Suite', function () {
       fakeSaveConnection
     );
 
-    await testConnectionController._migrateConnectionsWithConnectionModel(
+    await testConnectionController._migrateConnectionWithConnectionModel(
       oldSavedConnectionInfo
     );
 
@@ -982,7 +982,7 @@ suite('Connection Controller Test Suite', function () {
 
     sandbox.replace(
       testConnectionController,
-      '_migrateConnectionsWithConnectionModel',
+      '_migrateConnectionWithConnectionModel',
       fakeMigratePreviouslySavedConnection
     );
 
@@ -1017,7 +1017,7 @@ suite('Connection Controller Test Suite', function () {
 
     sandbox.replace(
       testConnectionController,
-      '_migrateConnectionsWithConnectionModel',
+      '_migrateConnectionWithConnectionModel',
       fakeMigratePreviouslySavedConnection
     );
 
@@ -1475,43 +1475,68 @@ suite('Connection Controller Test Suite', function () {
       assert.strictEqual(isConnectionChanged, true);
     });
 
-    test('should track and also notify the users of failed keytar secrets migration', async () => {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
-      const [savedConnection] = testConnectionController.getSavedConnections();
+    test('should track and also notify the users of unique failed keytar secrets migration (in the current load of extension)', async () => {
+      testSandbox.replace(testStorageController, 'get', (key, storage) => {
+        if (
+          storage === StorageLocation.WORKSPACE ||
+          key === StorageVariables.WORKSPACE_SAVED_CONNECTIONS
+        ) {
+          return {};
+        }
 
-      testConnectionController.clearAllConnections();
-
+        return {
+          'random-connection-1': {
+            id: 'random-connection-1',
+            name: 'localhost:27017',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.Keytar,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+            },
+          },
+          'random-connection-2': {
+            id: 'random-connection-2',
+            name: 'localhost:27018',
+            storageLocation: 'GLOBAL',
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+            },
+          },
+        } as any;
+      });
       testSandbox.replace(
         testConnectionController,
         '_getConnectionInfoWithSecrets',
-        () =>
+        (connectionInfo) =>
           Promise.resolve({
-            ...savedConnection,
+            ...connectionInfo,
             secretStorageLocation: SecretStorageLocation.Keytar,
           } as any)
       );
+      const trackStub = testSandbox.stub(testTelemetryService, 'track');
 
-      const fakeTrack = sinon.stub();
-      testSandbox.replace(testTelemetryService, 'track', fakeTrack);
-
+      // Load the connections
+      testConnectionController.clearAllConnections();
       await testConnectionController.loadSavedConnections();
+      const [, secondConnection] =
+        testConnectionController.getSavedConnections();
 
       // Notified to user
       assert.strictEqual(showInformationMessageStub.calledOnce, true);
       assert.deepStrictEqual(showInformationMessageStub.lastCall.args, [
         [
-          'Could not migrate secrets for a few connections. Please review the following connections:',
-          savedConnection.name,
+          'Could not migrate secrets for 1 connections. Please review the following connections:',
+          secondConnection.name,
         ].join('\n'),
       ]);
 
       // Tracked
-      assert.strictEqual(fakeTrack.calledOnce, true);
-      assert.deepStrictEqual(fakeTrack.lastCall.args, [
+      assert.strictEqual(trackStub.calledOnce, true);
+      assert.deepStrictEqual(trackStub.lastCall.args, [
         'Keytar Secrets Migration Failed',
-        { totalConnections: 1, connectionsWithSecretsInKeytar: 1 },
+        { totalConnections: 2, connectionsWithFailedKeytarMigration: 1 },
       ]);
     });
   });

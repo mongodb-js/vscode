@@ -70,7 +70,7 @@ type PlaygroundLoadedTelemetryEventProperties = {
 
 type KeytarSecretsMigrationFailedProperties = {
   totalConnections: number;
-  connectionsWithSecretsInKeytar: number;
+  connectionsWithFailedKeytarMigration: number;
 };
 
 export type TelemetryEventProperties =

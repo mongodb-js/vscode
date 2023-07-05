@@ -84,6 +84,11 @@ type MigratedStoreConnectionInfo = StoreConnectionInfo &
 type MigratedStoreConnectionInfoWithConnectionOptions =
   StoreConnectionInfoWithConnectionOptions & MigratedStoreConnectionInfo;
 
+type FailedMigrationConnectionDescriptor = {
+  connectionId: string;
+  connectionName: string;
+};
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
@@ -135,50 +140,73 @@ export default class ConnectionController {
       ),
     });
 
-    const connectionsWithSecretsInKeytar: Array<{
-      connectionId: string;
-      connectionName: string;
-    }> = [];
-    for (const [connectionId, connectionInfo] of globalAndWorkspaceConnections) {
-      const connectionInfoWithSecret = await this._getConnectionInfoWithSecrets(
-        connectionInfo
+    // A list of connection ids that we could not migrate in previous load of
+    // connections because of Keytar not being available.
+    const connectionIdsThatDidNotMigrateEarlier =
+      globalAndWorkspaceConnections.reduce<string[]>(
+        (ids, [connectionId, connectionInfo]) => {
+          if (
+            connectionInfo.secretStorageLocation ===
+            SecretStorageLocation.Keytar
+          ) {
+            return [...ids, connectionId];
+          }
+          return ids;
+        },
+        []
       );
 
-      if (connectionInfoWithSecret) {
-        this._connections[connectionId] = connectionInfoWithSecret;
+    // A list of connection descriptors that we could not migration in the
+    // current load of connections because of Keytar not being available.
+    const connectionsThatDidNotMigrate = (
+      await Promise.all(
+        globalAndWorkspaceConnections.map<
+          Promise<FailedMigrationConnectionDescriptor | undefined>
+        >(async ([connectionId, connectionInfo]) => {
+          const connectionInfoWithSecrets =
+            await this._getConnectionInfoWithSecrets(connectionInfo);
+          if (!connectionInfoWithSecrets) {
+            return;
+          }
 
-        if (
-          connectionInfoWithSecret.secretStorageLocation ===
-          SecretStorageLocation.Keytar
-        ) {
-          connectionsWithSecretsInKeytar.push({
-            connectionId,
-            connectionName: connectionInfo.name,
-          });
-        }
-      }
-    }
+          this._connections[connectionId] = connectionInfoWithSecrets;
+          const connectionSecretsInKeytar =
+            connectionInfoWithSecrets.secretStorageLocation ===
+            SecretStorageLocation.Keytar;
+          if (
+            connectionSecretsInKeytar &&
+            !connectionIdsThatDidNotMigrateEarlier.includes(connectionId)
+          ) {
+            return {
+              connectionId,
+              connectionName: connectionInfo.name,
+            };
+          }
+        })
+      )
+    ).filter((conn): conn is FailedMigrationConnectionDescriptor => !!conn);
 
     if (Object.keys(this._connections).length) {
       this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     }
 
-    if (connectionsWithSecretsInKeytar.length) {
+    if (connectionsThatDidNotMigrate.length) {
       log.error(
-        `Could not migrate secrets for ${connectionsWithSecretsInKeytar.length} connections`,
-        connectionsWithSecretsInKeytar
+        `Could not migrate secrets for ${connectionsThatDidNotMigrate.length} connections`,
+        connectionsThatDidNotMigrate
       );
       this._telemetryService.track(
         TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
         {
           totalConnections: globalAndWorkspaceConnections.length,
-          connectionsWithSecretsInKeytar: connectionsWithSecretsInKeytar.length,
+          connectionsWithFailedKeytarMigration:
+            connectionsThatDidNotMigrate.length,
         }
       );
       void vscode.window.showInformationMessage(
         [
-          `Could not migrate secrets for ${connectionsWithSecretsInKeytar.length} connections. Please review the following connections:`,
-          connectionsWithSecretsInKeytar
+          `Could not migrate secrets for ${connectionsThatDidNotMigrate.length} connections. Please review the following connections:`,
+          connectionsThatDidNotMigrate
             .map(({ connectionName }) => connectionName)
             .join(', '),
         ].join('\n')
@@ -191,13 +219,13 @@ export default class ConnectionController {
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
     try {
       if (connectionInfo.connectionModel) {
-        return this._migrateConnectionsWithConnectionModel(
+        return this._migrateConnectionWithConnectionModel(
           connectionInfo as StoreConnectionInfoWithConnectionModel
         );
       }
 
       if (!connectionInfo.secretStorageLocation) {
-        return this._migrateConnectionsWithKeytarSecrets(
+        return this._migrateConnectionWithKeytarSecrets(
           connectionInfo as StoreConnectionInfoWithConnectionOptions
         );
       }
@@ -223,7 +251,7 @@ export default class ConnectionController {
     }
   }
 
-  async _migrateConnectionsWithConnectionModel(
+  async _migrateConnectionWithConnectionModel(
     savedConnectionInfo: StoreConnectionInfoWithConnectionModel
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
     // Transform a raw connection model from storage to an ampersand model.
@@ -231,7 +259,7 @@ export default class ConnectionController {
       savedConnectionInfo.connectionModel
     );
 
-    const connectionInfoWithSecret = {
+    const connectionInfoWithSecrets = {
       id: savedConnectionInfo.id,
       name: savedConnectionInfo.name,
       storageLocation: savedConnectionInfo.storageLocation,
@@ -239,11 +267,11 @@ export default class ConnectionController {
       connectionOptions: newConnectionInfoWithSecrets.connectionOptions,
     };
 
-    await this._saveConnectionWithSecret(connectionInfoWithSecret);
-    return connectionInfoWithSecret;
+    await this._saveConnectionWithSecrets(connectionInfoWithSecrets);
+    return connectionInfoWithSecrets;
   }
 
-  async _migrateConnectionsWithKeytarSecrets(
+  async _migrateConnectionWithKeytarSecrets(
     savedConnectionInfo: StoreConnectionInfoWithConnectionOptions
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
     // If the Keytar module is not available, we simply mark the connections
@@ -275,7 +303,7 @@ export default class ConnectionController {
         keytarSecrets
       );
 
-    await this._saveConnectionWithSecret(migratedConnectionInfoWithSecrets);
+    await this._saveConnectionWithSecrets(migratedConnectionInfoWithSecrets);
 
     return migratedConnectionInfoWithSecrets;
   }
@@ -401,7 +429,7 @@ export default class ConnectionController {
     });
   }
 
-  private async _saveConnectionWithSecret(
+  private async _saveConnectionWithSecrets(
     newStoreConnectionInfoWithSecrets: MigratedStoreConnectionInfoWithConnectionOptions
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions> {
     // We don't want to store secrets to disc.
@@ -435,7 +463,7 @@ export default class ConnectionController {
       connectionOptions: originalConnectionInfo.connectionOptions,
     };
 
-    const savedConnectionInfo = await this._saveConnectionWithSecret(
+    const savedConnectionInfo = await this._saveConnectionWithSecrets(
       newConnectionInfo
     );
 
