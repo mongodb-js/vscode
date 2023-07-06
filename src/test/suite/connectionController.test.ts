@@ -9,12 +9,14 @@ import { connect } from 'mongodb-data-service';
 import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/constants/auth-strategies';
 import ConnectionController, {
   DataServiceEventTypes,
+  keytarMigrationFailedMessage,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
 import {
   StorageLocation,
   DefaultSavingLocations,
+  SecretStorageLocation,
 } from '../../storage/storageController';
 import READ_PREFERENCES from '../../views/webview-app/connection-model/constants/read-preferences';
 import SSH_TUNNEL_TYPES from '../../views/webview-app/connection-model/constants/ssh-tunnel-types';
@@ -28,6 +30,9 @@ import {
   TEST_USER_USERNAME,
   TEST_USER_PASSWORD,
 } from './dbTestHelper';
+import KeytarStub from './keytarStub';
+import { ext } from '../../extensionConstants';
+import { KeytarInterface } from '../../utils/keytar';
 
 const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
@@ -52,10 +57,14 @@ suite('Connection Controller Test Suite', function () {
     telemetryService: testTelemetryService,
   });
   let showErrorMessageStub: SinonStub;
+  let showInformationMessageStub: SinonStub;
   const sandbox = sinon.createSandbox();
 
   beforeEach(() => {
-    sandbox.stub(vscode.window, 'showInformationMessage');
+    showInformationMessageStub = sandbox.stub(
+      vscode.window,
+      'showInformationMessage'
+    );
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
@@ -354,6 +363,7 @@ suite('Connection Controller Test Suite', function () {
         name: 'tester',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
         storageLocation: StorageLocation.NONE,
+        secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
     };
 
@@ -521,6 +531,62 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(Object.keys(postGlobalStoreConnections).length, 0);
   });
 
+  test('when a connection is removed, the secrets for that connection are also removed', async () => {
+    const keytarDeleteSpy = sandbox
+      .stub(ext.keytarModule as KeytarInterface, 'deletePassword')
+      .resolves();
+    const secretStorageDeleteSpy = sandbox.spy(
+      testStorageController,
+      'deleteSecret'
+    );
+
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI_USER
+    );
+
+    const [connection] = testConnectionController.getSavedConnections();
+    await testConnectionController.removeSavedConnection(connection.id);
+    assert.strictEqual(keytarDeleteSpy.calledOnce, true);
+    assert.strictEqual(secretStorageDeleteSpy.calledOnce, true);
+  });
+
+  test('when a connection is removed, should be able to remove the secrets safely from SecretStorage even if keytar is not available', async () => {
+    sandbox.replace(ext, 'keytarModule', null as any);
+    const secretStorageDeleteSpy = sandbox.spy(
+      testStorageController,
+      'deleteSecret'
+    );
+
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI_USER
+    );
+
+    const [connection] = testConnectionController.getSavedConnections();
+    await testConnectionController.removeSavedConnection(connection.id);
+    assert.strictEqual(secretStorageDeleteSpy.calledOnce, true);
+  });
+
+  test('when a connection is removed, should be able to remove the secrets safely from SecretStorage even if keytar.deletePassword rejects', async () => {
+    const keytarDeleteSpy = sandbox
+      .stub(ext.keytarModule as KeytarInterface, 'deletePassword')
+      .rejects();
+    const secretStorageDeleteSpy = sandbox.spy(
+      testStorageController,
+      'deleteSecret'
+    );
+
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI_USER
+    );
+
+    const [connection] = testConnectionController.getSavedConnections();
+    await assert.doesNotReject(
+      testConnectionController.removeSavedConnection(connection.id)
+    );
+    assert.strictEqual(keytarDeleteSpy.calledOnce, true);
+    assert.strictEqual(secretStorageDeleteSpy.calledOnce, true);
+  });
+
   test('a saved to workspace connection can be renamed and loaded', async () => {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
@@ -684,6 +750,7 @@ suite('Connection Controller Test Suite', function () {
           name: `test${i}`,
           connectionOptions: { connectionString: TEST_DATABASE_URI },
           storageLocation: StorageLocation.NONE,
+          secretStorageLocation: SecretStorageLocation.SecretStorage,
         };
       }
 
@@ -733,6 +800,7 @@ suite('Connection Controller Test Suite', function () {
       name: 'asdfasdg',
       connectionOptions: { connectionString: testDatabaseURI2WithTimeout },
       storageLocation: StorageLocation.NONE,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
     };
 
     void testConnectionController.connectWithConnectionId(connectionId);
@@ -757,6 +825,7 @@ suite('Connection Controller Test Suite', function () {
       name: 'asdfasdg',
       connectionOptions: { connectionString: TEST_DATABASE_URI },
       storageLocation: StorageLocation.NONE,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
     };
 
     sandbox.replace(
@@ -786,7 +855,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(testConnectionController.isCurrentlyConnected(), false);
   });
 
-  test('_migratePreviouslySavedConnection converts an old previously saved connection model without secrets to a new connection info format', async () => {
+  test('_migrateConnectionWithConnectionModel converts an old previously saved connection model without secrets to a new connection info format', async () => {
     const oldSavedConnectionInfo = {
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
@@ -810,7 +879,7 @@ suite('Connection Controller Test Suite', function () {
       },
     };
     const newSavedConnectionInfoWithSecrets =
-      await testConnectionController._migratePreviouslySavedConnection(
+      await testConnectionController._migrateConnectionWithConnectionModel(
         oldSavedConnectionInfo
       );
 
@@ -818,6 +887,7 @@ suite('Connection Controller Test Suite', function () {
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
       storageLocation: 'GLOBAL',
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
       connectionOptions: {
         connectionString:
           'mongodb://localhost:27017/?readPreference=primary&ssl=false&directConnection=true',
@@ -825,7 +895,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('_migratePreviouslySavedConnection converts an old previously saved connection model with secrets to a new connection info format', async () => {
+  test('_migrateConnectionWithConnectionModel converts an old previously saved connection model with secrets to a new connection info format', async () => {
     const oldSavedConnectionInfo = {
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
       name: 'host.u88dd.test.test',
@@ -862,7 +932,7 @@ suite('Connection Controller Test Suite', function () {
     };
 
     const newSavedConnectionInfoWithSecrets =
-      await testConnectionController._migratePreviouslySavedConnection(
+      await testConnectionController._migrateConnectionWithConnectionModel(
         oldSavedConnectionInfo
       );
 
@@ -870,6 +940,7 @@ suite('Connection Controller Test Suite', function () {
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
       name: 'host.u88dd.test.test',
       storageLocation: 'WORKSPACE',
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
       connectionOptions: {
         connectionString:
           'mongodb+srv://username:password@compass-data-sets.e06dc.mongodb.net/test?authSource=admin&replicaSet=host-shard-0&readPreference=primary&appname=mongodb-vscode+0.6.14&ssl=true',
@@ -877,7 +948,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('_migratePreviouslySavedConnection does not store secrets to disc', async () => {
+  test('_migrateConnectionWithConnectionModel does not store secrets to disc', async () => {
     const oldSavedConnectionInfo = {
       id: 'fb210b47-f85d-4823-8552-aa6d7825156b',
       name: 'host.u88dd.test.test',
@@ -922,7 +993,7 @@ suite('Connection Controller Test Suite', function () {
       fakeSaveConnection
     );
 
-    await testConnectionController._migratePreviouslySavedConnection(
+    await testConnectionController._migrateConnectionWithConnectionModel(
       oldSavedConnectionInfo
     );
 
@@ -960,6 +1031,7 @@ suite('Connection Controller Test Suite', function () {
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
       storageLocation: 'GLOBAL',
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
       connectionOptions: {
         connectionString:
           'mongodb://localhost:27017/?readPreference=primary&ssl=false',
@@ -968,7 +1040,7 @@ suite('Connection Controller Test Suite', function () {
 
     sandbox.replace(
       testConnectionController,
-      '_migratePreviouslySavedConnection',
+      '_migrateConnectionWithConnectionModel',
       fakeMigratePreviouslySavedConnection
     );
 
@@ -984,6 +1056,7 @@ suite('Connection Controller Test Suite', function () {
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
       storageLocation: StorageLocation.GLOBAL,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
       connectionOptions: {
         connectionString:
           'mongodb://localhost:27017/?readPreference=primary&ssl=false',
@@ -1002,7 +1075,7 @@ suite('Connection Controller Test Suite', function () {
 
     sandbox.replace(
       testConnectionController,
-      '_migratePreviouslySavedConnection',
+      '_migrateConnectionWithConnectionModel',
       fakeMigratePreviouslySavedConnection
     );
 
@@ -1149,5 +1222,534 @@ suite('Connection Controller Test Suite', function () {
         },
       });
     assert.strictEqual(connectionString, expectedConnectionStringWithProxy);
+  });
+
+  suite('loadSavedConnections', () => {
+    const serviceName = 'mdb.vscode.savedConnections';
+    const extensionSandbox = sinon.createSandbox();
+    const keytarSandbox = sinon.createSandbox();
+    const testSandbox = sinon.createSandbox();
+    let keytarStub: KeytarStub;
+
+    beforeEach(() => {
+      // To fake a successful auth connection
+      testSandbox.replace(
+        testConnectionController,
+        '_connect',
+        testSandbox.stub().resolves({ successfullyConnected: true })
+      );
+    });
+
+    afterEach(() => {
+      testSandbox.restore();
+      keytarSandbox.restore();
+      extensionSandbox.restore();
+    });
+
+    suite(
+      'when there are connections requiring secrets migrations from Keytar',
+      () => {
+        beforeEach(() => {
+          // Replace the storage location with keytar to have some connection
+          // secrets in keytar before the tests
+          keytarStub = new KeytarStub();
+          keytarSandbox.replace(
+            testStorageController,
+            'getSecret',
+            (key: string) => keytarStub.getPassword(serviceName, key)
+          );
+          keytarSandbox.replace(
+            testStorageController,
+            'setSecret',
+            (key: string, value: string) =>
+              keytarStub.setPassword(serviceName, key, value)
+          );
+          keytarSandbox.replace(
+            testStorageController,
+            'deleteSecret',
+            (key: string) => keytarStub.deletePassword(serviceName, key)
+          );
+
+          // Also replace the saveConnection method on StorageController to remove
+          // the secretStorage field while saving the connections because we are
+          // initially faking that we store in keytar to actually run the
+          // migration code
+          const originalSaveConnectionFn =
+            testStorageController.saveConnection.bind(testStorageController);
+          keytarSandbox.replace(
+            testStorageController,
+            'saveConnection',
+            (connectionInfo) => {
+              const connectionInfoWithoutSecretStorage = {
+                ...connectionInfo,
+              };
+              delete connectionInfoWithoutSecretStorage.secretStorageLocation;
+              return originalSaveConnectionFn(
+                connectionInfoWithoutSecretStorage
+              );
+            }
+          );
+        });
+
+        [
+          {
+            name: 'should be able to migrate secrets and load a connection that does not have any credentials',
+            uri: TEST_DATABASE_URI,
+            expectedSecret: '{}',
+          },
+          {
+            name: 'should be able to migrate secrets and load a connection that has credentials',
+            uri: TEST_DATABASE_URI_USER,
+            expectedSecret: JSON.stringify({ password: TEST_USER_PASSWORD }),
+          },
+        ].forEach(({ name, uri, expectedSecret }) => {
+          test(name, async () => {
+            // We replace the keytar module with our stub to make sure that later,
+            // during migration, we are able to find the secrets in the correct
+            // place
+            extensionSandbox.replace(ext, 'keytarModule', keytarStub);
+
+            await testConnectionController.addNewConnectionStringAndConnect(
+              uri
+            );
+
+            // Make sure we actually saved in keytar and that there is nothing in secretStorage
+            const [savedConnection] =
+              testConnectionController.getSavedConnections();
+            assert.strictEqual(
+              await (ext.keytarModule as KeytarStub).getPassword(
+                serviceName,
+                savedConnection.id
+              ),
+              expectedSecret
+            );
+            assert.strictEqual(
+              await testStorageController._secretStorage.get(
+                savedConnection.id
+              ),
+              undefined
+            );
+
+            // Also assert that our connections do not have secretStorage field in them
+            assert.strictEqual(
+              'secretStorageLocation' in savedConnection,
+              false
+            );
+
+            // Reset the modification done by the keytarSandbox
+            keytarSandbox.restore();
+
+            // Disconnect and clear the connections
+            await testConnectionController.disconnect();
+            testConnectionController.clearAllConnections();
+
+            // Load all connections now, after this the migration is expected to be
+            // finished
+            await testConnectionController.loadSavedConnections();
+            const [updatedConnection] =
+              testConnectionController.getSavedConnections();
+
+            // Assert that we have our secrets now in SecretStorage
+            assert.strictEqual(
+              await testStorageController.getSecret(savedConnection.id),
+              expectedSecret
+            );
+            assert.strictEqual(
+              updatedConnection.secretStorageLocation,
+              SecretStorageLocation.SecretStorage
+            );
+          });
+        });
+
+        test('should be able to load a connection for which there was nothing found in keytar (user removed the secrets manually)', async () => {
+          // We replace the keytar module with our stub to make sure that later,
+          // during migration, we are able to find the secrets in the correct
+          // place
+          extensionSandbox.replace(ext, 'keytarModule', keytarStub);
+
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI_USER
+          );
+
+          const expectedSecret = JSON.stringify({
+            password: TEST_USER_PASSWORD,
+          });
+
+          // Make sure we actually saved in keytar and that there is nothing in secretStorage
+          const [savedConnection] =
+            testConnectionController.getSavedConnections();
+          assert.strictEqual(
+            await (ext.keytarModule as KeytarStub).getPassword(
+              serviceName,
+              savedConnection.id
+            ),
+            expectedSecret
+          );
+          assert.strictEqual(
+            await testStorageController._secretStorage.get(savedConnection.id),
+            undefined
+          );
+
+          // Here we are manually removing the secret from keytar so that it is
+          // not found during migration
+          await (ext.keytarModule as KeytarStub).deletePassword(
+            serviceName,
+            savedConnection.id
+          );
+
+          // Reset the modification done by the keytarSandbox
+          keytarSandbox.restore();
+
+          // Disconnect and clear the connections
+          await testConnectionController.disconnect();
+          testConnectionController.clearAllConnections();
+
+          // Load all connections now, after this the migration is expected to be
+          // finished
+          await testConnectionController.loadSavedConnections();
+          const [updatedConnection] =
+            testConnectionController.getSavedConnections();
+
+          // Assert that we have an empty object as secrets now in SecretStorage
+          // because we removed the original secrets above
+          assert.strictEqual(
+            await testStorageController.getSecret(savedConnection.id),
+            '{}'
+          );
+          assert.strictEqual(
+            updatedConnection.secretStorageLocation,
+            SecretStorageLocation.SecretStorage
+          );
+        });
+
+        test('should be able to load a connection (in broken state) even when keytar module is gone', async () => {
+          // Here we try to mimick that the keytar module is gone away
+          extensionSandbox.replace(ext, 'keytarModule', null as any);
+
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI_USER
+          );
+
+          // Make sure we actually saved in keytar and that there is nothing in
+          // secretStorage
+          const [savedConnection] =
+            testConnectionController.getSavedConnections();
+          assert.strictEqual(
+            await keytarStub.getPassword(serviceName, savedConnection.id),
+            JSON.stringify({ password: TEST_USER_PASSWORD })
+          );
+          assert.strictEqual(
+            await testStorageController._secretStorage.get(savedConnection.id),
+            undefined
+          );
+
+          // Reset the modification done by the keytarSandbox
+          keytarSandbox.restore();
+
+          // Disconnect and clear the connections
+          await testConnectionController.disconnect();
+          testConnectionController.clearAllConnections();
+
+          // Load all connections now, after this the migration is expected to be
+          // finished
+          await testConnectionController.loadSavedConnections();
+          const [updatedConnection] =
+            testConnectionController.getSavedConnections();
+
+          // Assert that we have nothing now in our SecretStorage
+          assert.strictEqual(
+            await testStorageController.getSecret(savedConnection.id),
+            null
+          );
+          assert.strictEqual(
+            updatedConnection.secretStorageLocation,
+            SecretStorageLocation.Keytar
+          );
+        });
+
+        test('should be able to load other connections even if the _migrateConnectionWithKeytarSecrets throws', async () => {
+          // We replace the keytar module with our stub to make sure that later,
+          // during migration, we are able to find the secrets in the correct
+          // place
+          extensionSandbox.replace(ext, 'keytarModule', keytarStub);
+
+          // Adding a few connections
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI
+          );
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI_USER
+          );
+
+          const [firstConnection, secondConnection] =
+            testConnectionController.getSavedConnections();
+
+          // Clearing the connection and disconnect
+          await testConnectionController.disconnect();
+          testConnectionController.clearAllConnections();
+
+          // Faking the failure of _migrateConnectionWithKeytarSecrets with an
+          // error thrown from keytar.getPassword
+          const originalGetPasswordFn = keytarStub.getPassword.bind(keytarStub);
+          testSandbox.replace(keytarStub, 'getPassword', (serviceName, key) => {
+            if (key === secondConnection.id) {
+              throw new Error('Something bad happened');
+            }
+            return originalGetPasswordFn(serviceName, key);
+          });
+
+          // Now load all connections, it should not reject
+          await assert.doesNotReject(
+            testConnectionController.loadSavedConnections()
+          );
+
+          assert.deepStrictEqual(testConnectionController._connections, {
+            [firstConnection.id]: {
+              ...firstConnection,
+              secretStorageLocation: SecretStorageLocation.SecretStorage,
+            },
+          });
+        });
+
+        test('should be able to re-attempt migration for connections that failed in previous load and were not marked migrated', async () => {
+          // We replace the keytar module with our stub to make sure that later,
+          // during migration, we are able to find the secrets in the correct
+          // place
+          extensionSandbox.replace(ext, 'keytarModule', keytarStub);
+
+          // Add a few connections
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI
+          );
+          await testConnectionController.addNewConnectionStringAndConnect(
+            TEST_DATABASE_URI_USER
+          );
+
+          const [firstConnection, secondConnection] =
+            testConnectionController.getSavedConnections();
+
+          // Clear all connections and disconnect
+          await testConnectionController.disconnect();
+          testConnectionController.clearAllConnections();
+
+          // Faking the failure of _migrateConnectionWithKeytarSecrets with an
+          // error thrown from keytar.getPassword
+          testSandbox.replace(keytarStub, 'getPassword', (service, key) => {
+            if (key === firstConnection.id) {
+              return Promise.resolve('{}');
+            }
+            throw new Error('Something bad happened');
+          });
+
+          // Now load all connections
+          await testConnectionController.loadSavedConnections();
+
+          // And only first connection should appear in our connection list
+          // because we don't include connections with failed keytar migration
+          assert.deepStrictEqual(testConnectionController._connections, {
+            [firstConnection.id]: {
+              ...firstConnection,
+              secretStorageLocation: SecretStorageLocation.SecretStorage,
+            },
+          });
+
+          // Now reset the keytar method to original
+          testSandbox.restore();
+
+          // Load all connections again
+          await testConnectionController.loadSavedConnections();
+
+          // Now we should be able to see the migrated connection
+          assert.deepStrictEqual(testConnectionController._connections, {
+            [firstConnection.id]: {
+              ...firstConnection,
+              secretStorageLocation: SecretStorageLocation.SecretStorage,
+            },
+            [secondConnection.id]: {
+              ...secondConnection,
+              secretStorageLocation: SecretStorageLocation.SecretStorage,
+            },
+          });
+        });
+      }
+    );
+
+    suite('when connection secrets are already in SecretStorage', () => {
+      afterEach(() => {
+        testSandbox.restore();
+      });
+
+      test('should be able to load connection with its secrets', async () => {
+        await testConnectionController.addNewConnectionStringAndConnect(
+          TEST_DATABASE_URI
+        );
+        await testConnectionController.addNewConnectionStringAndConnect(
+          TEST_DATABASE_URI_USER
+        );
+
+        // By default the connection secrets are already stored in SecretStorage
+        const savedConnections = testConnectionController.getSavedConnections();
+        assert.strictEqual(
+          savedConnections.every(
+            ({ secretStorageLocation }) =>
+              secretStorageLocation === SecretStorageLocation.SecretStorage
+          ),
+          true
+        );
+
+        await testConnectionController.disconnect();
+        testConnectionController.clearAllConnections();
+
+        await testConnectionController.loadSavedConnections();
+        const savedConnectionsAfterFreshLoad =
+          testConnectionController.getSavedConnections();
+        assert.deepStrictEqual(
+          savedConnections,
+          testConnectionController.getSavedConnections()
+        );
+
+        // Additionally make sure that we are retrieving secrets properly
+        assert.strictEqual(
+          savedConnectionsAfterFreshLoad[1].connectionOptions?.connectionString.includes(
+            TEST_USER_PASSWORD
+          ),
+          true
+        );
+      });
+    });
+
+    test('should fire a CONNECTIONS_DID_CHANGE event if connections are loaded successfully', async () => {
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI_USER
+      );
+
+      await testConnectionController.disconnect();
+      testConnectionController.clearAllConnections();
+
+      let isConnectionChanged = false;
+      testConnectionController.addEventListener(
+        DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+        () => {
+          isConnectionChanged = true;
+        }
+      );
+
+      await testConnectionController.loadSavedConnections();
+      assert.strictEqual(isConnectionChanged, true);
+    });
+
+    test('should track and also notify the users of unique failed keytar secrets migration (in the current load of extension)', async () => {
+      testSandbox.replace(testStorageController, 'get', (key, storage) => {
+        if (
+          storage === StorageLocation.WORKSPACE ||
+          key === StorageVariables.WORKSPACE_SAVED_CONNECTIONS
+        ) {
+          return {};
+        }
+
+        return {
+          'random-connection-1': {
+            id: 'random-connection-1',
+            name: 'localhost:27017',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.Keytar,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+            },
+          },
+          'random-connection-2': {
+            id: 'random-connection-2',
+            name: 'localhost:27018',
+            storageLocation: 'GLOBAL',
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+            },
+          },
+        } as any;
+      });
+      testSandbox.replace(
+        testConnectionController,
+        '_getConnectionInfoWithSecrets',
+        (connectionInfo) =>
+          Promise.resolve({
+            ...connectionInfo,
+            secretStorageLocation: SecretStorageLocation.Keytar,
+          } as any)
+      );
+      const trackStub = testSandbox.stub(testTelemetryService, 'track');
+
+      // Clear any connections and load so we get our stubbed connections from above.
+      testConnectionController.clearAllConnections();
+      await testConnectionController.loadSavedConnections();
+
+      // Notified to user
+      assert.strictEqual(showInformationMessageStub.calledOnce, true);
+      assert.deepStrictEqual(showInformationMessageStub.lastCall.args, [
+        keytarMigrationFailedMessage(1),
+      ]);
+
+      // Tracked
+      assert.strictEqual(trackStub.calledOnce, true);
+      assert.deepStrictEqual(trackStub.lastCall.args, [
+        'Keytar Secrets Migration Failed',
+        { totalConnections: 2, connectionsWithFailedKeytarMigration: 1 },
+      ]);
+    });
+
+    test('should neither track nor notify the user if none of the failed migrations are from current load of extension', async () => {
+      testSandbox.replace(testStorageController, 'get', (key, storage) => {
+        if (
+          storage === StorageLocation.WORKSPACE ||
+          key === StorageVariables.WORKSPACE_SAVED_CONNECTIONS
+        ) {
+          return {};
+        }
+
+        return {
+          'random-connection-1': {
+            id: 'random-connection-1',
+            name: 'localhost:27017',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.Keytar,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+            },
+          },
+          'random-connection-2': {
+            id: 'random-connection-2',
+            name: 'localhost:27018',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.Keytar,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+            },
+          },
+        } as any;
+      });
+      testSandbox.replace(
+        testConnectionController,
+        '_getConnectionInfoWithSecrets',
+        (connectionInfo) =>
+          Promise.resolve({
+            ...connectionInfo,
+            secretStorageLocation: SecretStorageLocation.Keytar,
+          } as any)
+      );
+      const trackStub = testSandbox.stub(testTelemetryService, 'track');
+
+      // Clear any connections and load so we get our stubbed connections from above.
+      testConnectionController.clearAllConnections();
+      await testConnectionController.loadSavedConnections();
+
+      // No notification sent to the user
+      assert.strictEqual(showInformationMessageStub.notCalled, true);
+
+      // No tracking done
+      assert.strictEqual(trackStub.notCalled, true);
+    });
   });
 });

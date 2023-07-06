@@ -21,6 +21,7 @@ import IndexListTreeItem from '../../explorer/indexListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { mockTextEditor } from './stubs';
 import {
+  SecretStorageLocation,
   StorageLocation,
   StorageVariables,
 } from '../../storage/storageController';
@@ -839,6 +840,7 @@ suite('MDBExtensionController Test Suite', function () {
           connectionOptions: { connectionString: 'mongodb://localhost' },
           name: 'NAAAME',
           storageLocation: StorageLocation.NONE,
+          secretStorageLocation: SecretStorageLocation.SecretStorage,
         };
 
       const testTreeItem = getTestConnectionTreeItem({
@@ -869,6 +871,7 @@ suite('MDBExtensionController Test Suite', function () {
           name: 'NAAAME',
           connectionOptions: { connectionString: 'mongodb://localhost' },
           storageLocation: StorageLocation.NONE,
+          secretStorageLocation: SecretStorageLocation.SecretStorage,
         };
 
       const testTreeItem = getTestConnectionTreeItem({

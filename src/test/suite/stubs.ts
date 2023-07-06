@@ -34,6 +34,7 @@ class ExtensionContextStub implements vscode.ExtensionContext {
   storageUri;
   globalStorageUri;
   logUri;
+  _secrets: Record<string, string> = {};
   secrets;
   extension;
 
@@ -45,7 +46,17 @@ class ExtensionContextStub implements vscode.ExtensionContext {
     this.globalStoragePath = '';
     this.logPath = '';
     this.subscriptions = [];
-    this.secrets = {};
+    this.secrets = {
+      get: (key: string) => {
+        return this._secrets[key];
+      },
+      store: (key: string, value: string) => {
+        this._secrets[key] = value;
+      },
+      delete: (key: string) => {
+        delete this._secrets[key];
+      },
+    };
     this.extension = '';
     this.workspaceState = {
       keys: (): readonly string[] => {
