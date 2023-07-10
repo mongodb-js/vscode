@@ -49,12 +49,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Commit CHANGELOG.md changes
-        run: |
-          git add CHANGELOG.md
-          git commit --no-allow-empty -m "chore: update CHANGELOG.md" CHANGELOG.md || true
-      - name: Push updates
-        uses: ad-m/github-push-action@v0.6.0
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          commit-message: Update changelog
+          branch: ci/update-changelog
+          title: 'chore: update CHANGELOG.md'
+          add-paths: |
+            CHANGELOG.md
+          body: |
+            - Update `CHANGELOG.md`
+
+      - name: Merge PR
+        env:
+          PULL_REQUEST_NUMBER: ${{steps.cpr.outputs.pull-request-number}}
+          # NOTE: we don't use a PAT so to not trigger further automation
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge $PULL_REQUEST_NUMBER --squash --delete-branch
