@@ -11,12 +11,6 @@ export default {
     'mongodbPassword', // required
     'mongodbDatabaseName', // optional
   ],
-  KERBEROS: [
-    'kerberosPrincipal', // required
-    'kerberosPassword', // optional
-    'kerberosServiceName', // optional
-    'kerberosCanonicalizeHostname',
-  ],
   X509: [
     'x509Username', // required
   ],

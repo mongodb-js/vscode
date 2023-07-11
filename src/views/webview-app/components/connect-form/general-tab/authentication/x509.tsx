@@ -15,24 +15,11 @@ type props = {
   x509Username?: string;
 } & DispatchProps;
 
-/**
- * The kerberos auth role component.
- */
 class X509 extends React.Component<props> {
-  /**
-   * Handle the username change.
-   *
-   * @param {Event} evt - The event.
-   */
   onUsernameChanged = (evt): void => {
     this.props.onX509UsernameChanged(evt.target.value.trim());
   };
 
-  /**
-   * Render the kerberos component.
-   *
-   * @returns {React.Component} The component.
-   */
   render(): React.ReactNode {
     const { x509Username } = this.props;
 

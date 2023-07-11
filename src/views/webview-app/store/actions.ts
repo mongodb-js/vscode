@@ -16,7 +16,6 @@ export enum ActionTypes {
   HOSTNAME_CHANGED = 'HOSTNAME_CHANGED',
   HOSTS_CHANGED = 'HOSTS_CHANGED',
   IS_SRV_RECORD_TOGGLED = 'IS_SRV_RECORD_TOGGLED',
-  KERBEROS_PARAMETERS_CHANGED = 'KERBEROS_PARAMETERS_CHANGED',
   EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
   LDAP_PASSWORD_CHANGED = 'LDAP_PASSWORD_CHANGED',
   LDAP_USERNAME_CHANGED = 'LDAP_USERNAME_CHANGED',
@@ -106,25 +105,6 @@ export interface HostsChangedAction extends BaseAction {
 
 export interface IsSrvRecordToggledAction extends BaseAction {
   type: ActionTypes.IS_SRV_RECORD_TOGGLED;
-}
-
-export interface KerberosParameters {
-  kerberosCanonicalizeHostname: boolean;
-  kerberosPassword?: string;
-  kerberosPrincipal?: string;
-  kerberosServiceName?: string;
-}
-
-export interface KerberosParametersChanged
-  extends BaseAction,
-    KerberosParameters {
-  type: ActionTypes.KERBEROS_PARAMETERS_CHANGED;
-}
-
-export interface KerberosParametersChanged
-  extends BaseAction,
-    KerberosParameters {
-  type: ActionTypes.KERBEROS_PARAMETERS_CHANGED;
 }
 
 export interface LDAPPasswordChangedAction extends BaseAction {
@@ -284,7 +264,6 @@ export type Actions =
   | HostnameChangedAction
   | HostsChangedAction
   | IsSrvRecordToggledAction
-  | KerberosParametersChanged
   | LDAPPasswordChangedAction
   | LDAPUsernameChangedAction
   | LinkClickedAction

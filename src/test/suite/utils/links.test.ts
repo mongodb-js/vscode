@@ -22,8 +22,6 @@ const expectedLinks = {
     'https://www.mongodb.com/docs/mongodb-shell/reference/data-types/?utm_source=vscode&utm_medium=product#hi',
   systemVariableDocs:
     'https://www.mongodb.com/docs/manual/reference/aggregation-variables/?utm_source=vscode&utm_medium=product#mongodb-variable-variable.hi',
-  kerberosPrincipalDocs:
-    'https://docs.mongodb.com/manual/core/kerberos/?utm_source=vscode&utm_medium=product#principals',
   ldapDocs:
     'https://docs.mongodb.com/manual/core/security-ldap/?utm_source=vscode&utm_medium=product',
   authDatabaseDocs:

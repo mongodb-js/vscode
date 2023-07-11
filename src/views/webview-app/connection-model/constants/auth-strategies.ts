@@ -16,11 +16,6 @@ export enum AUTH_STRATEGY_VALUES {
   X509 = 'X509',
   /**
    * @enterprise
-   * @see http://bit.ly/mongodb-node-driver-kerberos
-   */
-  KERBEROS = 'KERBEROS',
-  /**
-   * @enterprise
    * @see http://bit.ly/mongodb-node-driver-ldap
    */
   LDAP = 'LDAP',
@@ -45,11 +40,6 @@ export const AuthStrategies: AuthStrategy[] = [
     id: AUTH_STRATEGY_VALUES['SCRAM-SHA-256'],
     title: 'SCRAM-SHA-256',
   },
-  // Currently disabled.
-  // {
-  //   id: AUTH_STRATEGY_VALUES.KERBEROS,
-  //   title: 'Kerberos'
-  // },
   {
     id: AUTH_STRATEGY_VALUES.LDAP,
     title: 'LDAP',

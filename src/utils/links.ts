@@ -37,8 +37,6 @@ const LINKS = {
   systemVariableDocs: (name: string) => {
     return `https://www.mongodb.com/docs/manual/reference/aggregation-variables/#mongodb-variable-variable.${name}`;
   },
-  kerberosPrincipalDocs:
-    'https://docs.mongodb.com/manual/core/kerberos/#principals',
   ldapDocs: 'https://docs.mongodb.com/manual/core/security-ldap/',
   authDatabaseDocs:
     'https://docs.mongodb.com/manual/core/security-users/#user-authentication-database',

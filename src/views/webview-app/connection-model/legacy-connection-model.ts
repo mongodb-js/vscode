@@ -139,34 +139,6 @@ const validateMongodb = (attrs: LegacyConnectionModel): void => {
   }
 };
 
-/**
- * Enforce constraints for Kerberos.
- * @param {Object} attrs - Incoming attributes.
- */
-const validateKerberos = (attrs: LegacyConnectionModel): void => {
-  if (attrs.authStrategy !== AUTH_STRATEGIES.KERBEROS) {
-    if (attrs.kerberosServiceName) {
-      throw new TypeError(
-        `The kerberosServiceName field does not apply when using ${attrs.authStrategy} for authStrategy.`
-      );
-    }
-    if (attrs.kerberosPrincipal) {
-      throw new TypeError(
-        `The kerberosPrincipal field does not apply when using ${attrs.authStrategy} for authStrategy.`
-      );
-    }
-    if (attrs.kerberosPassword) {
-      throw new TypeError(
-        `The kerberosPassword field does not apply when using ${attrs.authStrategy} for authStrategy.`
-      );
-    }
-  } else if (!attrs.kerberosPrincipal) {
-    throw new TypeError(
-      'The kerberosPrincipal field is required when using KERBEROS for authStrategy.'
-    );
-  }
-};
-
 const validateX509 = (attrs: LegacyConnectionModel): void => {
   if (
     attrs.authStrategy === AUTH_STRATEGIES.X509 &&
@@ -251,7 +223,6 @@ export const validateConnectionModel = (
   try {
     validateSsl(attrs);
     validateMongodb(attrs);
-    validateKerberos(attrs);
     validateX509(attrs);
     validateLdap(attrs);
     validateSshTunnel(attrs);
