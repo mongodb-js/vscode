@@ -9,7 +9,6 @@ import AUTH_STRATEGIES, {
   AuthStrategies,
 } from '../../../../connection-model/constants/auth-strategies';
 import FormGroup from '../../../form/form-group';
-import Kerberos from './kerberos';
 import LDAP from './ldap';
 import MongoDBAuth from './mongodb-authentication';
 import ScramSha256 from './scram-sha-256';
@@ -20,10 +19,6 @@ import RadioBoxGroup from '../../../form/radio-box-group/radio-box-group';
 type StateProps = {
   authStrategy: AUTH_STRATEGIES;
   isValid: boolean;
-  kerberosCanonicalizeHostname: boolean;
-  kerberosPassword?: string;
-  kerberosPrincipal?: string;
-  kerberosServiceName?: string;
   ldapPassword?: string;
   ldapUsername?: string;
   mongodbDatabaseName?: string;
@@ -56,24 +51,6 @@ export class Authentication extends React.Component<
   renderAuthStrategy(): React.ReactNode {
     const { authStrategy, isValid } = this.props;
 
-    if (authStrategy === AUTH_STRATEGIES.KERBEROS) {
-      const {
-        kerberosCanonicalizeHostname,
-        kerberosPassword,
-        kerberosPrincipal,
-        kerberosServiceName,
-      } = this.props;
-
-      return (
-        <Kerberos
-          isValid={isValid}
-          kerberosCanonicalizeHostname={kerberosCanonicalizeHostname}
-          kerberosPassword={kerberosPassword}
-          kerberosPrincipal={kerberosPrincipal}
-          kerberosServiceName={kerberosServiceName}
-        />
-      );
-    }
     if (authStrategy === AUTH_STRATEGIES.LDAP) {
       const { ldapPassword, ldapUsername } = this.props;
 
@@ -142,11 +119,6 @@ const mapStateToProps = (state: AppState): StateProps => {
   return {
     authStrategy: state.currentConnection.authStrategy,
     isValid: state.isValid,
-    kerberosCanonicalizeHostname:
-      state.currentConnection.kerberosCanonicalizeHostname,
-    kerberosPassword: state.currentConnection.kerberosPassword,
-    kerberosPrincipal: state.currentConnection.kerberosPrincipal,
-    kerberosServiceName: state.currentConnection.kerberosServiceName,
     ldapPassword: state.currentConnection.ldapPassword,
     ldapUsername: state.currentConnection.ldapUsername,
     mongodbDatabaseName: state.currentConnection.mongodbDatabaseName,

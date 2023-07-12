@@ -105,9 +105,6 @@ export const rootReducer = (
           mongodbUsername: undefined,
           mongodbPassword: undefined,
           mongodbDatabaseName: undefined,
-          kerberosPrincipal: undefined,
-          kerberosPassword: undefined,
-          kerberosServiceName: undefined,
           x509Username: undefined,
           ldapUsername: undefined,
           ldapPassword: undefined,
@@ -206,18 +203,6 @@ export const rootReducer = (
         currentConnection: {
           ...state.currentConnection,
           isSrvRecord: !state.currentConnection.isSrvRecord,
-        },
-      };
-
-    case ActionTypes.KERBEROS_PARAMETERS_CHANGED:
-      return {
-        ...state,
-        currentConnection: {
-          ...state.currentConnection,
-          kerberosCanonicalizeHostname: action.kerberosCanonicalizeHostname,
-          kerberosPassword: action.kerberosPassword,
-          kerberosPrincipal: action.kerberosPrincipal,
-          kerberosServiceName: action.kerberosServiceName,
         },
       };
 

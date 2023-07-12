@@ -14,7 +14,6 @@ describe('Authentication Component Test Suite', () => {
       <Authentication
         authStrategy={AUTH_STRATEGIES.NONE}
         isValid
-        kerberosCanonicalizeHostname
         onAuthStrategyChanged={(): void => {}}
       />
     );
@@ -28,7 +27,6 @@ describe('Authentication Component Test Suite', () => {
       <Authentication
         authStrategy={AUTH_STRATEGIES.MONGODB}
         isValid
-        kerberosCanonicalizeHostname
         onAuthStrategyChanged={(): void => {}}
       />
     );
@@ -40,7 +38,6 @@ describe('Authentication Component Test Suite', () => {
       <Authentication
         authStrategy={AUTH_STRATEGIES['SCRAM-SHA-256']}
         isValid
-        kerberosCanonicalizeHostname
         onAuthStrategyChanged={(): void => {}}
       />
     );
