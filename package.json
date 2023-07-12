@@ -1052,7 +1052,7 @@
     "less": "^3.13.1",
     "less-loader": "^5.0.0",
     "mkdirp": "^1.0.4",
-    "mocha": "^8.4.0",
+    "mocha": "^10.2.0",
     "mocha-junit-reporter": "^2.2.0",
     "mocha-multi": "^1.1.7",
     "mongodb-client-encryption": "^2.8.0",
