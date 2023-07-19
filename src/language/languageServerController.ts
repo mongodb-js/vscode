@@ -201,14 +201,14 @@ export default class LanguageServerController {
     connectionString?: string;
     connectionOptions?: MongoClientOptions;
   }): Promise<void> {
-    log.info('Re-connecting MongoDBService...', {
+    log.info('Changing MongoDBService active connection...', {
       connectionId: params.connectionId,
     });
     const res = await this._client.sendRequest(
       ServerCommands.ACTIVE_CONNECTION_CHANGED,
       params
     );
-    log.info('MongoDBService connection changed', res);
+    log.info('MongoDBService active connection has changed', res);
   }
 
   async resetCache(clear: ClearCompletionsCache): Promise<void> {
