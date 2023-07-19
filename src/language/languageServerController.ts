@@ -195,7 +195,9 @@ export default class LanguageServerController {
     log.info('Evaluate response', {
       namespace: res?.result?.namespace,
       type: res?.result?.type,
-      outputLength: JSON.stringify(res?.result?.content || '').length,
+      outputLength: res?.result?.content
+        ? JSON.stringify(res.result.content).length
+        : 0,
       language: res?.result?.language,
     });
 
