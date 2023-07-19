@@ -41,7 +41,6 @@ export default class LanguageServerController {
   constructor(context: ExtensionContext) {
     this._context = context;
 
-    // The server is implemented in node.
     const languageServerPath = path.join(
       context.extensionPath,
       'dist',
@@ -101,7 +100,7 @@ export default class LanguageServerController {
   }
 
   async startLanguageServer(): Promise<void> {
-    log.info('Starting MongoDB Language Server...');
+    log.info('Starting the language server...');
     // Start the client. This will also launch the server.
     await this._client.start();
 
@@ -111,14 +110,14 @@ export default class LanguageServerController {
       this._context.subscriptions.push(this._client);
     }
 
-    // Subscribe on notifications from the server when the client is ready.
+    // Subscribe on notifications from the server when the MongoDBService is ready.
     // If the connection to server got closed, server will restart,
-    // so we need to re-send extensionPath and the active connection.
+    // but we also need to re-send default configurations
     // https://jira.mongodb.org/browse/VSCODE-448
     this._client.onNotification(ServerCommands.MONGODB_SERVICE_CREATED, () => {
       const msg = this._currentConnectionId
-        ? 'MongoDBService restarted because of some problem'
-        : 'MongoDBService is ready';
+        ? 'MongoDBService restored from an internal error'
+        : 'MongoDBService initialized';
       log.info(
         `${msg}. Sending default settings... ${JSON.stringify({
           extensionPath: this._context.extensionPath,
@@ -133,6 +132,11 @@ export default class LanguageServerController {
         connectionString: this._currentConnectionString,
         connectionOptions: this._currentConnectionOptions,
       });
+      // The _currentConnectionId is null when the extension initially activates.
+      // When an unexpected error occurs and the language server restarts after failure,
+      // it loses all default configurations.
+      // But the LanguageServerController still stores the previous _currentConnectionId,
+      // based on what we can tell that the services have been restored.
       if (this._currentConnectionId) {
         void vscode.window.showErrorMessage(
           'An internal error has occurred. The playground services have been restored.'
@@ -158,9 +162,9 @@ export default class LanguageServerController {
   }
 
   deactivate(): Thenable<void> | undefined {
-    log.info('Deactivating MongoDB Language Server...');
+    log.info('Deactivating the language server...');
     if (!this._client) {
-      log.info('The MongoDB Language Server client is not found');
+      log.info('The LanguageServerController client is not found');
       return undefined;
     }
 

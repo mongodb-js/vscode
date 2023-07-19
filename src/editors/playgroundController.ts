@@ -261,6 +261,7 @@ export default class PlaygroundController {
         this._connectionController.getMongoClientConnectionOptions();
     }
 
+    // The connectionId is null when disconnecting.
     await this._languageServerController.activeConnectionChanged({
       connectionId,
       connectionString: mongoClientOption?.url,

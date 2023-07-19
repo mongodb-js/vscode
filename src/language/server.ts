@@ -166,13 +166,12 @@ connection.onRequest(
   }
 );
 
-// Pass the extension path to the MongoDB service.
+// Send default configurations to mongoDBService.
 connection.onRequest(ServerCommands.INITIALIZE_MONGODB_SERVICE, (settings) => {
   mongoDBService.initialize(settings);
 });
 
-// Connect the MongoDB language service to CliServiceProvider
-// using the current connection of the client.
+// Change CliServiceProvider active connection.
 connection.onRequest(ServerCommands.ACTIVE_CONNECTION_CHANGED, (params) => {
   return mongoDBService.activeConnectionChanged(params);
 });

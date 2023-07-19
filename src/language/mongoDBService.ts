@@ -117,7 +117,7 @@ export default class MongoDBService {
   }
 
   /**
-   * Connect to CliServiceProvider.
+   * Change CliServiceProvider active connection.
    */
   async activeConnectionChanged({
     connectionId,
