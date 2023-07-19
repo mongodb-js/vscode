@@ -42,11 +42,6 @@ class LDAP extends React.Component<props> {
     this.props.onLDAPUsernameChanged(evt.target.value.trim());
   };
 
-  /**
-   * Render the kerberos component.
-   *
-   * @returns {React.Component} The component.
-   */
   render(): React.ReactNode {
     const { isValid, ldapPassword, ldapUsername } = this.props;
 

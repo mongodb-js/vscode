@@ -4,10 +4,12 @@ import { MongoDBLogo as LeafyGreenMongoDBLogo } from '@leafygreen-ui/logo';
 
 import styles from './mongodb-logo.less';
 
-class MongoDBLogo extends React.PureComponent {
-  render(): React.ReactNode {
-    return <LeafyGreenMongoDBLogo className={styles['mdb-logo-svg']} />;
-  }
+function MongoDBLogo() {
+  return (
+    <div className={styles['mdb-logo-container']}>
+      <LeafyGreenMongoDBLogo color="green-base" />
+    </div>
+  );
 }
 
 export default MongoDBLogo;
