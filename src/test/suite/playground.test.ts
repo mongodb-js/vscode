@@ -72,7 +72,7 @@ suite('Playground', function () {
       fakeGetMongoClientConnectionOptions
     );
 
-    await mdbTestExtension.testExtensionController._playgroundController._connectToServiceProvider();
+    await mdbTestExtension.testExtensionController._playgroundController._activeConnectionChanged();
     await mdbTestExtension.testExtensionController._playgroundController._languageServerController.updateCurrentSessionFields(
       {
         namespace: 'mongodbVSCodePlaygroundDB.sales',

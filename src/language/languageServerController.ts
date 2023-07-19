@@ -39,8 +39,8 @@ export default class LanguageServerController {
     this._context = context;
 
     // The server is implemented in node.
-    const serverModule = path.join(
-      this._context.extensionPath,
+    const languageServerPath = path.join(
+      context.extensionPath,
       'dist',
       'languageServer.js'
     );
@@ -53,45 +53,54 @@ export default class LanguageServerController {
     // If the extension is launched in debug mode then the debug server options are used.
     // Otherwise the run options are used.
     const serverOptions: ServerOptions = {
-      run: { module: serverModule, transport: TransportKind.ipc },
+      run: { module: languageServerPath, transport: TransportKind.ipc },
       debug: {
-        module: serverModule,
+        module: languageServerPath,
         transport: TransportKind.ipc,
         options: debugOptions,
       },
     };
 
+    const languageServerId = 'mongodbLanguageServer';
+    const languageServerName = 'MongoDB Language Server';
+    // Define the document patterns to register the language server for.
+    const documentSelector = [
+      { pattern: '**/*.mongodb.js' },
+      { pattern: '**/*.mongodb' },
+    ];
     // Options to control the language client.
     const clientOptions: LanguageClientOptions = {
-      // Register the language server for mongodb documents.
-      documentSelector: [
-        { pattern: '**/*.mongodb.js' },
-        { pattern: '**/*.mongodb' },
-      ],
+      documentSelector: documentSelector,
       synchronize: {
         // Notify the server about file changes in the workspace.
         fileEvents: workspace.createFileSystemWatcher('**/*'),
       },
-      outputChannel: vscode.window.createOutputChannel(
-        'MongoDB Language Server'
-      ),
+      outputChannel: vscode.window.createOutputChannel(languageServerName),
     };
 
-    log.info('Create MongoDB Language Server', {
-      serverOptions,
-      clientOptions,
+    log.info('Creating MongoDB Language Server...', {
+      extensionPath: context.extensionPath,
+      languageServer: {
+        id: languageServerId,
+        name: languageServerName,
+        path: languageServerPath,
+        documentSelector: JSON.stringify(documentSelector),
+      },
     });
 
     // Create the language server client.
     this._client = new LanguageClient(
-      'mongodbLanguageServer',
-      'MongoDB Language Server',
+      languageServerId,
+      languageServerName,
       serverOptions,
       clientOptions
     );
   }
 
   async startLanguageServer(): Promise<void> {
+    log.info('Starting MongoDB Language Server...', {
+      extensionPath: this._context.extensionPath,
+    });
     // Start the client. This will also launch the server.
     await this._client.start();
 
@@ -110,6 +119,7 @@ export default class LanguageServerController {
     this._client.onNotification(
       ServerCommands.SHOW_INFO_MESSAGE,
       (messsage) => {
+        log.info('The info message shown to a user', messsage);
         void vscode.window.showInformationMessage(messsage);
       }
     );
@@ -117,13 +127,16 @@ export default class LanguageServerController {
     this._client.onNotification(
       ServerCommands.SHOW_ERROR_MESSAGE,
       (messsage) => {
+        log.info('The error message shown to a user', messsage);
         void vscode.window.showErrorMessage(messsage);
       }
     );
   }
 
   deactivate(): Thenable<void> | undefined {
+    log.info('Deactivating MongoDB Language Server...');
     if (!this._client) {
+      log.info('The MongoDB Language Server client is not found');
       return undefined;
     }
 
@@ -134,6 +147,10 @@ export default class LanguageServerController {
   async evaluate(
     playgroundExecuteParameters: PlaygroundEvaluateParams
   ): Promise<ShellEvaluateResult> {
+    log.info('Running a playground...', {
+      connectionId: playgroundExecuteParameters.connectionId,
+      inputLength: playgroundExecuteParameters.codeToEvaluate.length,
+    });
     this._isExecutingInProgress = true;
 
     // Instantiate a new CancellationTokenSource object
@@ -143,7 +160,7 @@ export default class LanguageServerController {
     // Send a request with a cancellation token
     // to the language server instance to execute scripts from a playground
     // and return results to the playground controller when ready.
-    const result: ShellEvaluateResult = await this._client.sendRequest(
+    const res: ShellEvaluateResult = await this._client.sendRequest(
       ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
       playgroundExecuteParameters,
       this._source.token
@@ -151,7 +168,14 @@ export default class LanguageServerController {
 
     this._isExecutingInProgress = false;
 
-    return result;
+    log.info('Evaluate response', {
+      namespace: res?.result?.namespace,
+      type: res?.result?.type,
+      outputLength: JSON.stringify(res?.result?.content || '').length,
+      language: res?.result?.language,
+    });
+
+    return res;
   }
 
   async getExportToLanguageMode(
@@ -172,24 +196,23 @@ export default class LanguageServerController {
     );
   }
 
-  async connectToServiceProvider(params: {
-    connectionId: string;
-    connectionString: string;
-    connectionOptions: MongoClientOptions;
+  async activeConnectionChanged(params: {
+    connectionId: null | string;
+    connectionString?: string;
+    connectionOptions?: MongoClientOptions;
   }): Promise<void> {
-    await this._client.sendRequest(
-      ServerCommands.CONNECT_TO_SERVICE_PROVIDER,
+    log.info('Re-connecting MongoDBService...', {
+      connectionId: params.connectionId,
+    });
+    const res = await this._client.sendRequest(
+      ServerCommands.ACTIVE_CONNECTION_CHANGED,
       params
     );
-  }
-
-  async disconnectFromServiceProvider(): Promise<void> {
-    await this._client.sendRequest(
-      ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER
-    );
+    log.info('MongoDBService connection changed', res);
   }
 
   async resetCache(clear: ClearCompletionsCache): Promise<void> {
+    log.info('Reseting MongoDBService cache...', clear);
     await this._client.sendRequest(
       ServerCommands.CLEAR_CACHED_COMPLETIONS,
       clear
@@ -197,6 +220,7 @@ export default class LanguageServerController {
   }
 
   cancelAll(): void {
+    log.info('Canceling a playground...');
     // Send a request for cancellation. As a result
     // the associated CancellationToken will be notified of the cancellation,
     // the onCancellationRequested event will be fired,

@@ -5,10 +5,6 @@ import ConnectionController, {
 } from '../connectionController';
 import ExplorerTreeController from './explorerTreeController';
 
-import { createLogger } from '../logging';
-
-const log = createLogger('explorer controller');
-
 export default class ExplorerController {
   private _connectionController: ConnectionController;
   private _treeController: ExplorerTreeController;
@@ -38,14 +34,12 @@ export default class ExplorerController {
   };
 
   activateConnectionsTreeView(): void {
-    log.info('Activating explorer controller...');
     // Listen for a change in connections to occur before we create the tree
     // so that we show the `viewsWelcome` before any connections are added.
     this._connectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       this.createTreeView
     );
-    log.info('Explorer controller activated');
   }
 
   deactivate(): void {

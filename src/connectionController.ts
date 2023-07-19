@@ -509,10 +509,18 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
     if (this._activeDataService) {
+      log.info('Disconnecting from the previous connection...', {
+        connectionId: this._currentConnectionId,
+      });
       await this.disconnect();
     }
 
     this._statusView.showMessage('Connecting to MongoDB...');
+    log.info('Connecting to MongoDB...', {
+      connectionInfo: JSON.stringify(
+        extractSecrets(this._connections[connectionId]).connectionInfo
+      ),
+    });
 
     const connectionOptions = this._connections[connectionId].connectionOptions;
 
@@ -551,7 +559,7 @@ export default class ConnectionController {
       throw connectError;
     }
 
-    log.info('Successfully connected');
+    log.info('Successfully connected', { connectionId });
     void vscode.window.showInformationMessage('MongoDB connection successful.');
 
     this._activeDataService = dataService;

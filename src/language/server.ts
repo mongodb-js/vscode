@@ -168,14 +168,8 @@ connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
 
 // Connect the MongoDB language service to CliServiceProvider
 // using the current connection of the client.
-connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
-  return mongoDBService.connectToServiceProvider(params);
-});
-
-// Clear connectionString and connectionOptions values
-// when there is no active connection.
-connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
-  return mongoDBService.disconnectFromServiceProvider();
+connection.onRequest(ServerCommands.ACTIVE_CONNECTION_CHANGED, (params) => {
+  return mongoDBService.activeConnectionChanged(params);
 });
 
 // Set fields for tests.

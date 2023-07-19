@@ -130,7 +130,7 @@ suite('Playground Controller Test Suite', function () {
       );
       sandbox.replace(
         testPlaygroundController._languageServerController,
-        'connectToServiceProvider',
+        'activeConnectionChanged',
         fakeConnectToServiceProvider
       );
       sandbox.stub(vscode.window, 'showInformationMessage');
@@ -138,7 +138,7 @@ suite('Playground Controller Test Suite', function () {
       testPlaygroundController._connectionController.setActiveDataService(
         mockActiveDataService
       );
-      await testPlaygroundController._connectToServiceProvider();
+      await testPlaygroundController._activeConnectionChanged();
     });
 
     test('it should pass the active connection id to the language server for connecting', () => {
@@ -305,7 +305,7 @@ suite('Playground Controller Test Suite', function () {
         );
         showTextDocumentStub = sandbox.stub(vscode.window, 'showTextDocument');
 
-        await testPlaygroundController._connectToServiceProvider();
+        await testPlaygroundController._activeConnectionChanged();
       });
 
       test('keep a playground in focus after running it', async () => {
@@ -347,7 +347,7 @@ suite('Playground Controller Test Suite', function () {
           .resolves();
 
         const stubConnectToServiceProvider = sinon
-          .stub(testPlaygroundController, '_connectToServiceProvider')
+          .stub(testPlaygroundController, '_activeConnectionChanged')
           .resolves();
 
         try {

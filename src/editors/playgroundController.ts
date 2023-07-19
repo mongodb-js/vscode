@@ -152,7 +152,7 @@ export default class PlaygroundController {
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       () => {
-        void this._connectToServiceProvider();
+        void this._activeConnectionChanged();
       }
     );
 
@@ -163,14 +163,15 @@ export default class PlaygroundController {
         this._playgroundResultViewColumn = editor.viewColumn;
         this._playgroundResultTextDocument = editor?.document;
       }
+      const isPlaygroundEditor = isPlayground(editor?.document.uri);
 
       void vscode.commands.executeCommand(
         'setContext',
         'mdb.isPlayground',
-        isPlayground(editor?.document.uri)
+        isPlaygroundEditor
       );
 
-      if (editor?.document.languageId !== 'Log') {
+      if (isPlaygroundEditor) {
         this._activeTextEditor = editor;
         this._activeConnectionCodeLensProvider.setActiveTextEditor(
           this._activeTextEditor
@@ -178,7 +179,10 @@ export default class PlaygroundController {
         this._playgroundSelectedCodeActionProvider.setActiveTextEditor(
           this._activeTextEditor
         );
-        log.info('Active editor path', editor?.document.uri?.path);
+        log.info('Active editor', {
+          documentPath: editor?.document.uri?.path,
+          documentLanguageId: editor?.document.languageId,
+        });
       }
     };
 
@@ -245,35 +249,23 @@ export default class PlaygroundController {
     );
   }
 
-  async _connectToServiceProvider(): Promise<void> {
-    // Disconnect if already connected.
-    await this._languageServerController.disconnectFromServiceProvider();
-
+  async _activeConnectionChanged(): Promise<void> {
     const dataService = this._connectionController.getActiveDataService();
     const connectionId = this._connectionController.getActiveConnectionId();
-
-    if (!dataService || !connectionId) {
-      this._activeConnectionCodeLensProvider.refresh();
-
-      return;
-    }
-
-    const mongoClientOption =
-      this._connectionController.getMongoClientConnectionOptions();
-
-    if (!mongoClientOption) {
-      this._activeConnectionCodeLensProvider.refresh();
-
-      return;
-    }
-
-    await this._languageServerController.connectToServiceProvider({
-      connectionId,
-      connectionString: mongoClientOption.url,
-      connectionOptions: mongoClientOption.options,
-    });
+    let mongoClientOption;
 
     this._activeConnectionCodeLensProvider.refresh();
+
+    if (dataService && connectionId) {
+      mongoClientOption =
+        this._connectionController.getMongoClientConnectionOptions();
+    }
+
+    await this._languageServerController.activeConnectionChanged({
+      connectionId,
+      connectionString: mongoClientOption?.url,
+      connectionOptions: mongoClientOption?.options,
+    });
   }
 
   async _createPlaygroundFileWithContent(
@@ -440,12 +432,15 @@ export default class PlaygroundController {
       // We re-initialize the language server when we encounter an error.
       // This happens when the language server worker runs out of memory, can't be revitalized, and restarts.
       if (err?.code === -32097) {
+        log.error(
+          'The error with -32097 error code occurred. Trying to restart and reconnect the language server...'
+        );
         void vscode.window.showErrorMessage(
           'An error occurred when running the playground. This can occur when the playground runner runs out of memory.'
         );
 
         await this._languageServerController.startLanguageServer();
-        void this._connectToServiceProvider();
+        void this._activeConnectionChanged();
       }
 
       throw err;

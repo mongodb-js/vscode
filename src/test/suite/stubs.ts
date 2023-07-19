@@ -339,15 +339,11 @@ class LanguageServerControllerStub {
     return Promise.resolve({ databaseName: null, collectionName: null });
   }
 
-  connectToServiceProvider(/* params: {
+  activeConnectionChanged(/* params: {
     connectionString?: string;
     connectionOptions?: MongoClientOptions;
     extensionPath: string;
   }*/): Promise<void> {
-    return Promise.resolve();
-  }
-
-  disconnectFromServiceProvider(): Promise<void> {
     return Promise.resolve();
   }
 
