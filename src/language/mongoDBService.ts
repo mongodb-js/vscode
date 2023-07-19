@@ -57,11 +57,11 @@ interface ServiceProviderParams {
 }
 
 export default class MongoDBService {
-  _extensionPath?: string;
+  _extensionPath?: string; // The absolute file path of the directory containing the extension.
   _connection: Connection;
   _currentConnectionId: string | null = null;
-  _connectionString?: string;
-  _connectionOptions?: MongoClientOptions;
+  _currentConnectionString?: string;
+  _currentConnectionOptions?: MongoClientOptions;
 
   _databaseCompletionItems: CompletionItem[] = [];
   _shellSymbolCompletionItems: { [symbol: string]: CompletionItem[] } = {};
@@ -73,7 +73,8 @@ export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
 
   constructor(connection: Connection) {
-    connection.console.log('MongoDBService initialised');
+    connection.console.log('MongoDBService initializing...');
+
     this._connection = connection;
     this._visitor = new Visitor();
 
@@ -85,24 +86,34 @@ export default class MongoDBService {
    * The connectionString used by LS to connect to MongoDB.
    */
   get connectionString(): string | undefined {
-    return this._connectionString;
+    return this._currentConnectionString;
   }
 
   /**
    * The connectionOptions used by LS to connect to MongoDB.
    */
   get connectionOptions(): MongoClientOptions | undefined {
-    return this._connectionOptions;
+    return this._currentConnectionOptions;
   }
 
-  /**
-   * The absolute file path of the directory containing the extension.
-   */
-  setExtensionPath(extensionPath: string): void {
+  initialize({
+    extensionPath,
+    connectionId,
+    connectionString,
+    connectionOptions,
+  }): void {
+    this._extensionPath = extensionPath;
+    this._currentConnectionId = connectionId;
+    this._currentConnectionString = connectionString;
+    this._currentConnectionOptions = connectionOptions;
     this._connection.console.log(
-      `The extension path is set { extensionPath: ${extensionPath} }`
+      `MongoDBService initialized ${JSON.stringify({
+        extensionPath,
+        connectionId,
+        hasConnectionString: !!connectionString,
+        hasConnectionOptions: !!connectionOptions,
+      })}`
     );
-    this._extensionPath = extensionPath ?? this._extensionPath;
   }
 
   /**
@@ -140,8 +151,8 @@ export default class MongoDBService {
     }
 
     this._currentConnectionId = connectionId;
-    this._connectionString = connectionString;
-    this._connectionOptions = connectionOptions;
+    this._currentConnectionString = connectionString;
+    this._currentConnectionOptions = connectionOptions;
 
     if (connectionId && (!connectionString || !connectionOptions)) {
       this._connection.console.error(

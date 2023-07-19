@@ -79,6 +79,11 @@ connection.onInitialize((params: InitializeParams) => {
 });
 
 connection.onInitialized(() => {
+  void connection.sendNotification(
+    ServerCommands.MONGODB_SERVICE_CREATED,
+    'An instance of MongoDBService is created'
+  );
+
   if (hasConfigurationCapability) {
     // Register for all configuration changes.
     void connection.client.register(
@@ -162,8 +167,8 @@ connection.onRequest(
 );
 
 // Pass the extension path to the MongoDB service.
-connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
-  mongoDBService.setExtensionPath(extensionPath);
+connection.onRequest(ServerCommands.INITIALIZE_MONGODB_SERVICE, (settings) => {
+  mongoDBService.initialize(settings);
 });
 
 // Connect the MongoDB language service to CliServiceProvider

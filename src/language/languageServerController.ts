@@ -34,6 +34,9 @@ export default class LanguageServerController {
   _source?: CancellationTokenSource;
   _isExecutingInProgress = false;
   _client: LanguageClient;
+  _currentConnectionId: string | null = null;
+  _currentConnectionString?: string;
+  _currentConnectionOptions?: MongoClientOptions;
 
   constructor(context: ExtensionContext) {
     this._context = context;
@@ -98,9 +101,7 @@ export default class LanguageServerController {
   }
 
   async startLanguageServer(): Promise<void> {
-    log.info('Starting MongoDB Language Server...', {
-      extensionPath: this._context.extensionPath,
-    });
+    log.info('Starting MongoDB Language Server...');
     // Start the client. This will also launch the server.
     await this._client.start();
 
@@ -111,10 +112,33 @@ export default class LanguageServerController {
     }
 
     // Subscribe on notifications from the server when the client is ready.
-    await this._client.sendRequest(
-      ServerCommands.SET_EXTENSION_PATH,
-      this._context.extensionPath
-    );
+    // If the connection to server got closed, server will restart,
+    // so we need to re-send extensionPath and the active connection.
+    // https://jira.mongodb.org/browse/VSCODE-448
+    this._client.onNotification(ServerCommands.MONGODB_SERVICE_CREATED, () => {
+      const msg = this._currentConnectionId
+        ? 'MongoDBService restarted because of some problem'
+        : 'MongoDBService is ready';
+      log.info(
+        `${msg}. Sending default settings... ${JSON.stringify({
+          extensionPath: this._context.extensionPath,
+          connectionId: this._currentConnectionId,
+          hasConnectionString: !!this._currentConnectionString,
+          hasConnectionOptions: !!this._currentConnectionOptions,
+        })}`
+      );
+      void this._client.sendRequest(ServerCommands.INITIALIZE_MONGODB_SERVICE, {
+        extensionPath: this._context.extensionPath,
+        connectionId: this._currentConnectionId,
+        connectionString: this._currentConnectionString,
+        connectionOptions: this._currentConnectionOptions,
+      });
+      if (this._currentConnectionId) {
+        void vscode.window.showErrorMessage(
+          'Connection to playground got closed. Server will restart'
+        );
+      }
+    });
 
     this._client.onNotification(
       ServerCommands.SHOW_INFO_MESSAGE,
@@ -196,17 +220,28 @@ export default class LanguageServerController {
     );
   }
 
-  async activeConnectionChanged(params: {
+  async activeConnectionChanged({
+    connectionId,
+    connectionString,
+    connectionOptions,
+  }: {
     connectionId: null | string;
     connectionString?: string;
     connectionOptions?: MongoClientOptions;
   }): Promise<void> {
-    log.info('Changing MongoDBService active connection...', {
-      connectionId: params.connectionId,
-    });
+    log.info('Changing MongoDBService active connection...', { connectionId });
+
+    this._currentConnectionId = connectionId;
+    this._currentConnectionString = connectionString;
+    this._currentConnectionOptions = connectionOptions;
+
     const res = await this._client.sendRequest(
       ServerCommands.ACTIVE_CONNECTION_CHANGED,
-      params
+      {
+        connectionId,
+        connectionString,
+        connectionOptions,
+      }
     );
     log.info('MongoDBService active connection has changed', res);
   }
