@@ -179,8 +179,7 @@ export class Visitor {
         sourceType: 'module',
       });
     } catch (error) {
-      // Silent errors here, since when a user hasn't finish typing
-      // it can be invalid JavaScrip what will throw such parsing errors.
+      /* Silent fail. When a user hasn't finished typing it causes parsing JS errors */
     }
 
     traverse(ast, {
