@@ -135,7 +135,7 @@ export default class LanguageServerController {
       });
       if (this._currentConnectionId) {
         void vscode.window.showErrorMessage(
-          'Connection to playground got closed. Server will restart'
+          'An internal error has occurred. The playground services have been restored.'
         );
       }
     });
