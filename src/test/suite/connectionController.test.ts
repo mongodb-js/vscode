@@ -1691,7 +1691,7 @@ suite('Connection Controller Test Suite', function () {
       ]);
 
       // Tracked
-      assert.strictEqual(trackStub.calledOnce, true);
+      assert.strictEqual(trackStub.calledTwice, true);
       assert.deepStrictEqual(trackStub.lastCall.args, [
         'Keytar Secrets Migration Failed',
         { totalConnections: 2, connectionsWithFailedKeytarMigration: 1 },
@@ -1748,8 +1748,75 @@ suite('Connection Controller Test Suite', function () {
       // No notification sent to the user
       assert.strictEqual(showInformationMessageStub.notCalled, true);
 
-      // No tracking done
-      assert.strictEqual(trackStub.notCalled, true);
+      // Tracks only the saved connections laoded event
+      assert.strictEqual(trackStub.calledOnce, true);
+    });
+
+    test('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async () => {
+      testSandbox.replace(testStorageController, 'get', (key, storage) => {
+        if (
+          storage === StorageLocation.WORKSPACE ||
+          key === StorageVariables.WORKSPACE_SAVED_CONNECTIONS
+        ) {
+          return {};
+        }
+
+        return {
+          'random-connection-1': {
+            id: 'random-connection-1',
+            name: 'localhost:27017',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.SecretStorage,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+            },
+          },
+          'random-connection-2': {
+            id: 'random-connection-2',
+            name: 'localhost:27018',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.SecretStorage,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+            },
+          },
+          'random-connection-3': {
+            id: 'random-connection-3',
+            name: 'localhost:27018',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.Keytar,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+            },
+          },
+        } as any;
+      });
+      testSandbox.replace(
+        testConnectionController,
+        '_getConnectionInfoWithSecrets',
+        (connectionInfo) => Promise.resolve(connectionInfo as any)
+      );
+      const trackStub = testSandbox.stub(testTelemetryService, 'track');
+
+      // Clear any connections and load so we get our stubbed connections from above.
+      testConnectionController.clearAllConnections();
+      await testConnectionController.loadSavedConnections();
+
+      // Load connections tracked. Called once because in the current load of
+      // migration there were no errors and hence the error tracking event won't
+      // be called.
+      assert.strictEqual(trackStub.calledOnce, true);
+      assert.deepStrictEqual(trackStub.lastCall.args, [
+        'Saved Connections Loaded',
+        {
+          connectionsWithSecretsInKeytar: 1,
+          connectionsWithSecretsInSecretStorage: 2,
+          totalConnections: 3,
+        },
+      ]);
     });
   });
 });
