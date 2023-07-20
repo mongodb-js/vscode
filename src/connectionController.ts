@@ -202,9 +202,21 @@ export default class ConnectionController {
       )
     ).filter((conn): conn is FailedMigrationConnectionDescriptor => !!conn);
 
-    if (Object.keys(this._connections).length) {
+    const loadedConnections = Object.values(this._connections);
+    if (loadedConnections.length) {
       this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     }
+
+    this._telemetryService.track(TelemetryEventTypes.SAVED_CONNECTIONS_LOADED, {
+      totalConnections: loadedConnections.length,
+      connectionsWithSecretsInKeytar: loadedConnections.filter(
+        (connection) => connection.secretStorageLocation === 'vscode.Keytar'
+      ).length,
+      connectionsWithSecretsInSecretStorage: loadedConnections.filter(
+        (connection) =>
+          connection.secretStorageLocation === 'vscode.SecretStorage'
+      ).length,
+    });
 
     if (connectionsThatDidNotMigrate.length) {
       log.error(

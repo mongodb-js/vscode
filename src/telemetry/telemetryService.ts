@@ -73,6 +73,12 @@ type KeytarSecretsMigrationFailedProperties = {
   connectionsWithFailedKeytarMigration: number;
 };
 
+type SavedConnectionsLoadedProperties = {
+  totalConnections: number;
+  connectionsWithSecretsInKeytar: number;
+  connectionsWithSecretsInSecretStorage: number;
+};
+
 export type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
   | LinkClickedTelemetryEventProperties
@@ -84,7 +90,8 @@ export type TelemetryEventProperties =
   | PlaygroundCreatedTelemetryEventProperties
   | PlaygroundSavedTelemetryEventProperties
   | PlaygroundLoadedTelemetryEventProperties
-  | KeytarSecretsMigrationFailedProperties;
+  | KeytarSecretsMigrationFailedProperties
+  | SavedConnectionsLoadedProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -99,6 +106,7 @@ export enum TelemetryEventTypes {
   AGGREGATION_EXPORTED = 'Aggregation Exported',
   PLAYGROUND_CREATED = 'Playground Created',
   KEYTAR_SECRETS_MIGRATION_FAILED = 'Keytar Secrets Migration Failed',
+  SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
 }
 
 /**
