@@ -333,44 +333,6 @@ suite('Playground Controller Test Suite', function () {
         });
       });
 
-      test('it shows an error message and restarts, and connects the language server when an error occurs in evaluate (out of memory can cause this)', async () => {
-        const mockConnectionDisposedError = new Error(
-          'Pending response rejected since connection got disposed'
-        );
-        (<any>mockConnectionDisposedError).code = -32097;
-        sinon
-          .stub(languageServerControllerStub, 'evaluate')
-          .rejects(mockConnectionDisposedError);
-
-        const stubStartLanguageServer = sinon
-          .stub(languageServerControllerStub, 'startLanguageServer')
-          .resolves();
-
-        const stubConnectToServiceProvider = sinon
-          .stub(testPlaygroundController, '_activeConnectionChanged')
-          .resolves();
-
-        try {
-          await testPlaygroundController._evaluate('console.log("test");');
-
-          // It should have thrown in the above evaluation.
-          expect(true).to.equal(false);
-        } catch (error) {
-          expect((<any>error).message).to.equal(
-            'Pending response rejected since connection got disposed'
-          );
-          expect((<any>error).code).to.equal(-32097);
-        }
-
-        expect(showErrorMessageStub.calledOnce).to.equal(true);
-        expect(showErrorMessageStub.firstCall.args[0]).to.equal(
-          'An error occurred when running the playground. This can occur when the playground runner runs out of memory.'
-        );
-
-        expect(stubStartLanguageServer.calledOnce).to.equal(true);
-        expect(stubConnectToServiceProvider.calledOnce).to.equal(true);
-      });
-
       test('playground controller loads the active editor on start', () => {
         sandbox.replaceGetter(
           vscode.window,

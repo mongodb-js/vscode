@@ -413,39 +413,21 @@ export default class PlaygroundController {
 
     this._statusView.showMessage('Getting results...');
 
-    try {
-      // Send a request to the language server to execute scripts from a playground.
-      const result: ShellEvaluateResult =
-        await this._languageServerController.evaluate({
-          codeToEvaluate,
-          connectionId,
-        });
+    // Send a request to the language server to execute scripts from a playground.
+    const result: ShellEvaluateResult =
+      await this._languageServerController.evaluate({
+        codeToEvaluate,
+        connectionId,
+      });
 
-      this._statusView.hideMessage();
-      this._telemetryService.trackPlaygroundCodeExecuted(
-        result,
-        this._isPartialRun,
-        result ? false : true
-      );
+    this._statusView.hideMessage();
+    this._telemetryService.trackPlaygroundCodeExecuted(
+      result,
+      this._isPartialRun,
+      result ? false : true
+    );
 
-      return result;
-    } catch (err: any) {
-      // We re-initialize the language server when we encounter an error.
-      // This happens when the language server worker runs out of memory, can't be revitalized, and restarts.
-      if (err?.code === -32097) {
-        log.error(
-          'The error with -32097 error code occurred. Trying to restart and reconnect the language server...'
-        );
-        void vscode.window.showErrorMessage(
-          'An error occurred when running the playground. This can occur when the playground runner runs out of memory.'
-        );
-
-        await this._languageServerController.startLanguageServer();
-        void this._activeConnectionChanged();
-      }
-
-      throw err;
-    }
+    return result;
   }
 
   _getAllText(): string {
