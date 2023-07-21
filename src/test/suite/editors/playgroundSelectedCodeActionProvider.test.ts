@@ -177,7 +177,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       expect(codeActions).to.exist;
 
       if (codeActions) {
-        expect(codeActions.length).to.be.equal(6);
+        expect(codeActions.length).to.be.equal(7);
         const actionCommand = codeActions[2].command;
 
         if (actionCommand) {
@@ -213,7 +213,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       expect(codeActions).to.exist;
 
       if (codeActions) {
-        expect(codeActions.length).to.be.equal(6);
+        expect(codeActions.length).to.be.equal(7);
         const actionCommand = codeActions[2].command;
 
         if (actionCommand) {
@@ -278,7 +278,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       expect(codeActions).to.exist;
 
       if (codeActions) {
-        expect(codeActions.length).to.be.equal(6);
+        expect(codeActions.length).to.be.equal(7);
         const actionCommand = codeActions[3].command;
 
         if (actionCommand) {
@@ -347,7 +347,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       expect(codeActions).to.exist;
 
       if (codeActions) {
-        expect(codeActions.length).to.be.equal(6);
+        expect(codeActions.length).to.be.equal(7);
         const actionCommand = codeActions[1].command;
 
         if (actionCommand) {
@@ -422,7 +422,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       expect(codeActions).to.exist;
 
       if (codeActions) {
-        expect(codeActions.length).to.be.equal(6);
+        expect(codeActions.length).to.be.equal(7);
         const actionCommand = codeActions[5].command;
 
         if (actionCommand) {
@@ -461,6 +461,81 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
             content:
               "# Requires the MongoDB Ruby Driver\n# https://docs.mongodb.com/ruby-driver/master/\n\nclient = Mongo::Client.new('mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0', :database => 'db')\n\nresult = client.database['coll'].find({\n  'name' => '22'\n})",
             language: 'ruby',
+          };
+
+          expect(
+            mdbTestExtension.testExtensionController._playgroundController
+              ._playgroundResult
+          ).to.be.deep.equal(expectedResult);
+        }
+      }
+    });
+
+    test('exports to go and includes driver syntax', async () => {
+      const textFromEditor = "use('db'); db.coll.find({ name: '22' })";
+      const selection = {
+        start: { line: 0, character: 24 },
+        end: { line: 0, character: 38 },
+      } as vscode.Selection;
+      const mode = ExportToLanguageMode.QUERY;
+      const activeTextEditor = {
+        document: { getText: () => textFromEditor },
+      } as vscode.TextEditor;
+
+      mdbTestExtension.testExtensionController._playgroundController._selectedText =
+        "{ name: '22' }";
+      mdbTestExtension.testExtensionController._playgroundController._playgroundSelectedCodeActionProvider.selection =
+        selection;
+      mdbTestExtension.testExtensionController._playgroundController._playgroundSelectedCodeActionProvider.mode =
+        mode;
+      mdbTestExtension.testExtensionController._playgroundController._activeTextEditor =
+        activeTextEditor;
+
+      testCodeActionProvider.refresh({ selection, mode });
+
+      const codeActions = testCodeActionProvider.provideCodeActions();
+      expect(codeActions).to.exist;
+
+      if (codeActions) {
+        expect(codeActions.length).to.be.equal(7);
+        const actionCommand = codeActions[6].command;
+
+        if (actionCommand) {
+          expect(actionCommand.command).to.be.equal('mdb.exportToGo');
+          expect(actionCommand.title).to.be.equal('Export To Go');
+
+          await vscode.commands.executeCommand(actionCommand.command);
+
+          let expectedResult: PlaygroundResult = {
+            namespace: 'DATABASE_NAME.COLLECTION_NAME',
+            type: null,
+            content: 'bson.D{{"name", "22"}}',
+            language: 'go',
+          };
+          expect(
+            mdbTestExtension.testExtensionController._playgroundController
+              ._playgroundResult
+          ).to.be.deep.equal(expectedResult);
+
+          const codeLenses =
+            mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+          expect(codeLenses.length).to.be.equal(2);
+
+          await vscode.commands.executeCommand(
+            'mdb.changeExportToLanguageAddons',
+            {
+              ...mdbTestExtension.testExtensionController._playgroundController
+                ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+              driverSyntax: true,
+            }
+          );
+
+          expectedResult = {
+            namespace: 'db.coll',
+            type: null,
+            content:
+              '// Requires the MongoDB Go Driver\n// https://go.mongodb.org/mongo-driver\nctx := context.TODO()\n\n// Set client options\nclientOptions := options.Client().ApplyURI("mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0")\n\n// Connect to MongoDB\nclient, err := mongo.Connect(ctx, clientOptions)\nif err != nil {\n  log.Fatal(err)\n}\ndefer func() {\n  if err := client.Disconnect(ctx); err != nil {\n    log.Fatal(err)\n  }\n}()\n\n// Find data\ncoll := client.Database("db").Collection("coll")\n_, err = coll.Find(ctx, bson.D{{"name", "22"}})\nif err != nil {\n  log.Fatal(err)\n}',
+            language: 'go',
           };
 
           expect(
