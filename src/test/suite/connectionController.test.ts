@@ -1694,7 +1694,7 @@ suite('Connection Controller Test Suite', function () {
       assert.strictEqual(trackStub.calledTwice, true);
       assert.deepStrictEqual(trackStub.lastCall.args, [
         'Keytar Secrets Migration Failed',
-        { total_connections: 2, connections_with_failed_keytar_migration: 1 },
+        { totalConnections: 2, connectionsWithFailedKeytarMigration: 1 },
       ]);
     });
 
@@ -1812,9 +1812,9 @@ suite('Connection Controller Test Suite', function () {
       assert.deepStrictEqual(trackStub.lastCall.args, [
         'Saved Connections Loaded',
         {
-          connections_with_secrets_in_keytar: 1,
-          connections_with_secrets_in_secret_storage: 2,
-          total_connections: 3,
+          connectionsWithSecretsInKeytar: 1,
+          connectionsWithSecretsInSecretStorage: 2,
+          totalConnections: 3,
         },
       ]);
     });
