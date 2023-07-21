@@ -208,11 +208,11 @@ export default class ConnectionController {
     }
 
     this._telemetryService.track(TelemetryEventTypes.SAVED_CONNECTIONS_LOADED, {
-      totalConnections: loadedConnections.length,
-      connectionsWithSecretsInKeytar: loadedConnections.filter(
+      total_connections: loadedConnections.length,
+      connections_with_secrets_in_keytar: loadedConnections.filter(
         (connection) => connection.secretStorageLocation === 'vscode.Keytar'
       ).length,
-      connectionsWithSecretsInSecretStorage: loadedConnections.filter(
+      connections_with_secrets_in_secret_storage: loadedConnections.filter(
         (connection) =>
           connection.secretStorageLocation === 'vscode.SecretStorage'
       ).length,
@@ -226,8 +226,8 @@ export default class ConnectionController {
       this._telemetryService.track(
         TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
         {
-          totalConnections: globalAndWorkspaceConnections.length,
-          connectionsWithFailedKeytarMigration:
+          total_connections: globalAndWorkspaceConnections.length,
+          connections_with_failed_keytar_migration:
             connectionsThatDidNotMigrate.length,
         }
       );
