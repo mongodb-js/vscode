@@ -69,14 +69,14 @@ type PlaygroundLoadedTelemetryEventProperties = {
 };
 
 type KeytarSecretsMigrationFailedProperties = {
-  total_connections: number;
-  connections_with_failed_keytar_migration: number;
+  totalConnections: number;
+  connectionsWithFailedKeytarMigration: number;
 };
 
 type SavedConnectionsLoadedProperties = {
-  total_connections: number;
-  connections_with_secrets_in_keytar: number;
-  connections_with_secrets_in_secret_storage: number;
+  totalConnections: number;
+  connectionsWithSecretsInKeytar: number;
+  connectionsWithSecretsInSecretStorage: number;
 };
 
 export type TelemetryEventProperties =
