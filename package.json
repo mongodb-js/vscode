@@ -659,6 +659,10 @@
           "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
+          "command": "mdb.exportToGo",
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
+        },
+        {
           "command": "mdb.refreshPlaygroundsFromTreeView",
           "when": "false"
         },
