@@ -65,7 +65,9 @@ export default class ExplorerTreeController
 
     treeView.onDidExpandElement(async (event: any): Promise<void> => {
       log.info('Connection tree item was expanded', {
+        connectionId: event.element.connectionId,
         connectionName: event.element.label,
+        isExpanded: event.element.isExpanded,
       });
 
       if (!event.element.onDidExpand) {
