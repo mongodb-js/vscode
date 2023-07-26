@@ -110,6 +110,7 @@ export default class ConnectionController {
   } = Object.create(null);
   _activeDataService: DataService | null = null;
   _storageController: StorageController;
+  _telemetryService: TelemetryService;
 
   private readonly _serviceName = 'mdb.vscode.savedConnections';
   private _currentConnectionId: null | string = null;
@@ -125,7 +126,6 @@ export default class ConnectionController {
   private _disconnecting = false;
 
   private _statusView: StatusView;
-  _telemetryService: TelemetryService;
 
   // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();

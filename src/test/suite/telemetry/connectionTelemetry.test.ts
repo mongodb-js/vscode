@@ -109,6 +109,8 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     });
   });
 
+  // TODO: Enable test back when Insider is fixed https://jira.mongodb.org/browse/VSCODE-452
+  // MS GitHub Issue: https://github.com/microsoft/vscode/issues/188676
   suite.skip('with live connection', function () {
     this.timeout(20000);
     let dataServ;
