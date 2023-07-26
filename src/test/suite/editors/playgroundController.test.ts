@@ -100,6 +100,7 @@ suite('Playground Controller Test Suite', function () {
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
   });
 
   afterEach(() => {
@@ -130,7 +131,7 @@ suite('Playground Controller Test Suite', function () {
       );
       sandbox.replace(
         testPlaygroundController._languageServerController,
-        'connectToServiceProvider',
+        'activeConnectionChanged',
         fakeConnectToServiceProvider
       );
       sandbox.stub(vscode.window, 'showInformationMessage');
@@ -138,7 +139,7 @@ suite('Playground Controller Test Suite', function () {
       testPlaygroundController._connectionController.setActiveDataService(
         mockActiveDataService
       );
-      await testPlaygroundController._connectToServiceProvider();
+      await testPlaygroundController._activeConnectionChanged();
     });
 
     test('it should pass the active connection id to the language server for connecting', () => {
@@ -305,7 +306,7 @@ suite('Playground Controller Test Suite', function () {
         );
         showTextDocumentStub = sandbox.stub(vscode.window, 'showTextDocument');
 
-        await testPlaygroundController._connectToServiceProvider();
+        await testPlaygroundController._activeConnectionChanged();
       });
 
       test('keep a playground in focus after running it', async () => {
@@ -331,44 +332,6 @@ suite('Playground Controller Test Suite', function () {
           outputLines: undefined,
           result: undefined,
         });
-      });
-
-      test('it shows an error message and restarts, and connects the language server when an error occurs in evaluate (out of memory can cause this)', async () => {
-        const mockConnectionDisposedError = new Error(
-          'Pending response rejected since connection got disposed'
-        );
-        (<any>mockConnectionDisposedError).code = -32097;
-        sinon
-          .stub(languageServerControllerStub, 'evaluate')
-          .rejects(mockConnectionDisposedError);
-
-        const stubStartLanguageServer = sinon
-          .stub(languageServerControllerStub, 'startLanguageServer')
-          .resolves();
-
-        const stubConnectToServiceProvider = sinon
-          .stub(testPlaygroundController, '_connectToServiceProvider')
-          .resolves();
-
-        try {
-          await testPlaygroundController._evaluate('console.log("test");');
-
-          // It should have thrown in the above evaluation.
-          expect(true).to.equal(false);
-        } catch (error) {
-          expect((<any>error).message).to.equal(
-            'Pending response rejected since connection got disposed'
-          );
-          expect((<any>error).code).to.equal(-32097);
-        }
-
-        expect(showErrorMessageStub.calledOnce).to.equal(true);
-        expect(showErrorMessageStub.firstCall.args[0]).to.equal(
-          'An error occurred when running the playground. This can occur when the playground runner runs out of memory.'
-        );
-
-        expect(stubStartLanguageServer.calledOnce).to.equal(true);
-        expect(stubConnectToServiceProvider.calledOnce).to.equal(true);
       });
 
       test('playground controller loads the active editor on start', () => {

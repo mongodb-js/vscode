@@ -19,22 +19,31 @@ import WebviewController, {
 import * as linkHelper from '../../../utils/linkHelper';
 
 suite('Webview Test Suite', () => {
+  const sandbox = sinon.createSandbox();
+
+  beforeEach(() => {
+    sandbox.stub(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackNewConnection'
+    );
+  });
+
   afterEach(() => {
-    sinon.restore();
+    sandbox.restore();
   });
 
   test('it creates a web view panel and sets the html content', () => {
-    const stubOnDidRecieveMessage = sinon.stub();
+    const stubOnDidRecieveMessage = sandbox.stub();
     const fakeWebview = {
       html: '',
       onDidReceiveMessage: stubOnDidRecieveMessage,
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
 
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
@@ -131,6 +140,9 @@ suite('Webview Test Suite', () => {
     });
     let messageReceivedSet = false;
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       postMessage: async (): Promise<void> => {
@@ -147,14 +159,14 @@ suite('Webview Test Suite', () => {
         messageReceived = callback;
         messageReceivedSet = true;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
 
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
 
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
@@ -200,6 +212,9 @@ suite('Webview Test Suite', () => {
     });
     let messageReceivedSet = false;
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       postMessage: async (message): Promise<void> => {
@@ -217,13 +232,13 @@ suite('Webview Test Suite', () => {
         messageReceived = callback;
         messageReceivedSet = true;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
 
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
@@ -268,6 +283,9 @@ suite('Webview Test Suite', () => {
       telemetryService: testTelemetryService,
     });
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       postMessage: async (message): Promise<void> => {
@@ -280,13 +298,13 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
 
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
@@ -327,6 +345,9 @@ suite('Webview Test Suite', () => {
       telemetryService: testTelemetryService,
     });
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       postMessage: (message): void => {
@@ -343,12 +364,12 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
@@ -391,11 +412,13 @@ suite('Webview Test Suite', () => {
       storageController: testStorageController,
       telemetryService: testTelemetryService,
     });
-    const fakeVSCodeOpenDialog = sinon.fake.resolves({
+    const fakeVSCodeOpenDialog = sandbox.fake.resolves({
       path: '/somefilepath/test.text',
     });
-
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       postMessage: async (): Promise<void> => {
@@ -408,19 +431,19 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
 
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
     );
 
-    sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
+    sandbox.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
 
     const testWebviewController = new WebviewController({
       connectionController: testConnectionController,
@@ -452,6 +475,9 @@ suite('Webview Test Suite', () => {
       telemetryService: testTelemetryService,
     });
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       postMessage: async (message): Promise<void> => {
@@ -469,25 +495,25 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
 
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
     );
 
-    const fakeVSCodeOpenDialog = sinon.fake.resolves([
+    const fakeVSCodeOpenDialog = sandbox.fake.resolves([
       {
         fsPath: '/somefilepath/test.text',
       },
     ]);
 
-    sinon.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
+    sandbox.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
 
     const testWebviewController = new WebviewController({
       connectionController: testConnectionController,
@@ -518,22 +544,29 @@ suite('Webview Test Suite', () => {
       telemetryService: testTelemetryService,
     });
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
-    const fakeVSCodeExecuteCommand = sinon.fake.resolves(false);
+    const fakeVSCodeExecuteCommand = sandbox.fake.resolves(false);
 
-    sinon.replace(vscode.commands, 'executeCommand', fakeVSCodeExecuteCommand);
+    sandbox.replace(
+      vscode.commands,
+      'executeCommand',
+      fakeVSCodeExecuteCommand
+    );
 
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
 
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
@@ -576,6 +609,9 @@ suite('Webview Test Suite', () => {
       telemetryService: testTelemetryService,
     });
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       postMessage: (message): void => {
@@ -588,13 +624,13 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
 
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
@@ -629,6 +665,9 @@ suite('Webview Test Suite', () => {
       telemetryService: testTelemetryService,
     });
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       postMessage: async (message): Promise<void> => {
@@ -642,13 +681,13 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
 
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
@@ -687,27 +726,31 @@ suite('Webview Test Suite', () => {
       telemetryService: testTelemetryService,
     });
     let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
     const fakeWebview = {
       html: '',
       postMessage: (): void => {},
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sinon.fake.returns(''),
+      asWebviewUri: sandbox.fake.returns(''),
     };
-    const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
     });
 
-    sinon.replace(
+    sandbox.replace(
       vscode.window,
       'createWebviewPanel',
       fakeVSCodeCreateWebviewPanel
     );
 
-    const mockRenameConnectionOnConnectionController = sinon.fake.returns(null);
+    const mockRenameConnectionOnConnectionController =
+      sandbox.fake.returns(null);
 
-    sinon.replace(
+    sandbox.replace(
       testConnectionController,
       'renameConnection',
       mockRenameConnectionOnConnectionController
@@ -768,13 +811,13 @@ suite('Webview Test Suite', () => {
         onDidReceiveMessage: (callback): void => {
           messageReceived = callback;
         },
-        asWebviewUri: sinon.fake.returns(''),
+        asWebviewUri: sandbox.fake.returns(''),
       };
 
-      const fakeVSCodeCreateWebviewPanel = sinon.fake.returns({
+      const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
         webview: fakeWebview,
       });
-      sinon.replace(
+      sandbox.replace(
         vscode.window,
         'createWebviewPanel',
         fakeVSCodeCreateWebviewPanel
@@ -787,11 +830,12 @@ suite('Webview Test Suite', () => {
       });
 
       testWebviewController.openWebview(mdbTestExtension.extensionContextStub);
+      sandbox.stub(testTelemetryService, 'trackNewConnection');
     });
 
     test('it should handle opening trusted links', () => {
-      const stubOpenLink = sinon.fake.resolves(null);
-      sinon.replace(linkHelper, 'openLink', stubOpenLink);
+      const stubOpenLink = sandbox.fake.resolves(null);
+      sandbox.replace(linkHelper, 'openLink', stubOpenLink);
 
       messageReceived({
         command: MESSAGE_TYPES.OPEN_TRUSTED_LINK,

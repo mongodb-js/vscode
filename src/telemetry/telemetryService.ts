@@ -151,8 +151,6 @@ export default class TelemetryService {
     if (!this._segmentKey) {
       return;
     }
-
-    log.info('Activating segment analytics...');
     this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
       // Segment batches messages and flushes asynchronously to the server.
       // The flushAt is a number of messages to enqueue before flushing.
@@ -166,7 +164,7 @@ export default class TelemetryService {
 
     const segmentProperties = this.getTelemetryUserIdentity();
     this._segmentAnalytics.identify(segmentProperties);
-    log.info('Segment analytics activated with properties', segmentProperties);
+    log.info('Segment analytics activated', segmentProperties);
   }
 
   deactivate(): void {

@@ -1,7 +1,6 @@
 import type * as babel from '@babel/core';
 import * as parser from '@babel/parser';
 import traverse from '@babel/traverse';
-import * as util from 'util';
 
 const PLACEHOLDER = 'TRIGGER_CHARACTER';
 
@@ -180,10 +179,7 @@ export class Visitor {
         sourceType: 'module',
       });
     } catch (error) {
-      console.error(`parseAST error: ${util.inspect((error as any).message)}`);
-      console.error(
-        `parseAST error textFromEditor: ${util.inspect(textFromEditor)}`
-      );
+      /* Silent fail. When a user hasn't finished typing it causes parsing JS errors */
     }
 
     traverse(ast, {

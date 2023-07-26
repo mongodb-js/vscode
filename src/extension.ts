@@ -5,6 +5,8 @@ import * as vscode from 'vscode';
 import { ext } from './extensionConstants';
 import { createKeytar } from './utils/keytar';
 import { createLogger } from './logging';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../package.json');
 
 const log = createLogger('extension');
 
@@ -27,14 +29,37 @@ let mdbExtension: MDBExtensionController;
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<void> {
-  log.info('Activating extension...');
   ext.context = context;
+  let hasKeytar = false;
 
   try {
     ext.keytarModule = createKeytar();
+    hasKeytar = true;
   } catch (err) {
     // Couldn't load keytar, proceed without storing & loading connections.
   }
+
+  const defaultConnectionSavingLocation = vscode.workspace
+    .getConfiguration('mdb.connectionSaving')
+    .get('defaultConnectionSavingLocation');
+
+  log.info('Activating extension...', {
+    id: context.extension.id,
+    version: version,
+    mode: vscode.ExtensionMode[context.extensionMode],
+    kind: vscode.ExtensionKind[context.extension.extensionKind],
+    extensionPath: context.extensionPath,
+    logPath: context.logUri.path,
+    workspaceStoragePath: context.storageUri?.path,
+    globalStoragePath: context.globalStorageUri.path,
+    defaultConnectionSavingLocation,
+    hasKeytar,
+    buildInfo: {
+      nodeVersion: process.version,
+      runtimePlatform: process.platform,
+      runtimeArch: process.arch,
+    },
+  });
 
   mdbExtension = new MDBExtensionController(context, {
     shouldTrackTelemetry: true,
@@ -43,12 +68,11 @@ export async function activate(
 
   // Add our extension to a list of disposables for when we are deactivated.
   context.subscriptions.push(mdbExtension);
-
-  log.info('Extension activated');
 }
 
 // Called when our extension is deactivated.
 export async function deactivate(): Promise<void> {
+  log.info('Deactivating extension...');
   if (mdbExtension) {
     await mdbExtension.deactivate();
   }
