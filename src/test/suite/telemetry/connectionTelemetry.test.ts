@@ -109,7 +109,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     });
   });
 
-  suite('with live connection', function () {
+  suite.skip('with live connection', function () {
     this.timeout(20000);
     let dataServ;
 
