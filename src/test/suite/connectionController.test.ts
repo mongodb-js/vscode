@@ -65,6 +65,7 @@ suite('Connection Controller Test Suite', function () {
       vscode.window,
       'showInformationMessage'
     );
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
@@ -201,7 +202,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(wasSetToConnectingWhenDisconnecting, true);
   });
 
-  test.skip('"connect()" should fire a CONNECTIONS_DID_CHANGE event', async () => {
+  test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', async () => {
     let isConnectionChanged = false;
 
     testConnectionController.addEventListener(
