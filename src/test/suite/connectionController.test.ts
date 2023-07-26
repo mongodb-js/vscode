@@ -37,6 +37,8 @@ import { KeytarInterface } from '../../utils/keytar';
 const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
+const CIDRS_URL =
+  'https://raw.githubusercontent.com/mongodb-js/mongodb-cloud-info/main/cidrs.json';
 
 const sleep = (ms: number): Promise<void> => {
   return util.promisify(setTimeout)(ms);
@@ -77,6 +79,26 @@ suite('Connection Controller Test Suite', function () {
     testConnectionController.clearAllConnections();
 
     sandbox.restore();
+  });
+
+  // eslint-disable-next-line mocha/no-exclusive-tests
+  test.only('minimal test with fetch', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fetch = require('cross-fetch');
+    let unparsedCIDRs;
+    try {
+      // The uncaught `TypeError: Cannot read properties of null (reading 'finishWrite')`
+      // is being thrown for several fetch calls with 5000 timeout:
+      // https://github.com/mongodb-js/mongodb-cloud-info/blob/main/index.js#L30
+      for (let i = 0; i < 15; i++) {
+        unparsedCIDRs = await fetch(CIDRS_URL, { timeout: 5000 }).then((res) =>
+          res.json()
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    assert.notStrictEqual(unparsedCIDRs, null);
   });
 
   test('it connects to mongodb', async () => {
