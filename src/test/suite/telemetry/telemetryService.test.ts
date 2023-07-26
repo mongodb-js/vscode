@@ -716,4 +716,48 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
   });
+
+  test('track saved connections loaded', () => {
+    testTelemetryService.trackSavedConnectionsLoaded({
+      saved_connections: 3,
+      loaded_connections: 3,
+      connections_with_secrets_in_keytar: 0,
+      connections_with_secrets_in_secret_storage: 3,
+    });
+
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Saved Connections Loaded',
+        properties: {
+          saved_connections: 3,
+          loaded_connections: 3,
+          connections_with_secrets_in_keytar: 0,
+          connections_with_secrets_in_secret_storage: 3,
+        },
+      })
+    );
+  });
+
+  test('track failed keytar secrets migrations', () => {
+    testTelemetryService.trackKeytarSecretsMigrationFailed({
+      saved_connections: 3,
+      loaded_connections: 3,
+      connections_with_failed_keytar_migration: 1,
+    });
+
+    sandbox.assert.calledWith(
+      fakeSegmentAnalyticsTrack,
+      sinon.match({
+        anonymousId,
+        event: 'Keytar Secrets Migration Failed',
+        properties: {
+          saved_connections: 3,
+          loaded_connections: 3,
+          connections_with_failed_keytar_migration: 1,
+        },
+      })
+    );
+  });
 });

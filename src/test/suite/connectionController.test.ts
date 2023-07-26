@@ -1678,7 +1678,10 @@ suite('Connection Controller Test Suite', function () {
             secretStorageLocation: SecretStorageLocation.Keytar,
           } as any)
       );
-      const trackStub = testSandbox.stub(testTelemetryService, 'track');
+      const trackStub = testSandbox.stub(
+        testTelemetryService,
+        'trackKeytarSecretsMigrationFailed'
+      );
 
       // Clear any connections and load so we get our stubbed connections from above.
       testConnectionController.clearAllConnections();
@@ -1691,10 +1694,13 @@ suite('Connection Controller Test Suite', function () {
       ]);
 
       // Tracked
-      assert.strictEqual(trackStub.calledTwice, true);
+      assert.strictEqual(trackStub.calledOnce, true);
       assert.deepStrictEqual(trackStub.lastCall.args, [
-        'Keytar Secrets Migration Failed',
-        { totalConnections: 2, connectionsWithFailedKeytarMigration: 1 },
+        {
+          saved_connections: 2,
+          loaded_connections: 2,
+          connections_with_failed_keytar_migration: 1,
+        },
       ]);
     });
 
@@ -1739,7 +1745,10 @@ suite('Connection Controller Test Suite', function () {
             secretStorageLocation: SecretStorageLocation.Keytar,
           } as any)
       );
-      const trackStub = testSandbox.stub(testTelemetryService, 'track');
+      const trackStub = testSandbox.stub(
+        testTelemetryService,
+        'trackKeytarSecretsMigrationFailed'
+      );
 
       // Clear any connections and load so we get our stubbed connections from above.
       testConnectionController.clearAllConnections();
@@ -1749,7 +1758,7 @@ suite('Connection Controller Test Suite', function () {
       assert.strictEqual(showInformationMessageStub.notCalled, true);
 
       // Tracks only the saved connections laoded event
-      assert.strictEqual(trackStub.calledOnce, true);
+      assert.strictEqual(trackStub.notCalled, true);
     });
 
     test('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async () => {
@@ -1799,7 +1808,10 @@ suite('Connection Controller Test Suite', function () {
         '_getConnectionInfoWithSecrets',
         (connectionInfo) => Promise.resolve(connectionInfo as any)
       );
-      const trackStub = testSandbox.stub(testTelemetryService, 'track');
+      const trackStub = testSandbox.stub(
+        testTelemetryService,
+        'trackSavedConnectionsLoaded'
+      );
 
       // Clear any connections and load so we get our stubbed connections from above.
       testConnectionController.clearAllConnections();
@@ -1810,11 +1822,11 @@ suite('Connection Controller Test Suite', function () {
       // be called.
       assert.strictEqual(trackStub.calledOnce, true);
       assert.deepStrictEqual(trackStub.lastCall.args, [
-        'Saved Connections Loaded',
         {
-          connectionsWithSecretsInKeytar: 1,
-          connectionsWithSecretsInSecretStorage: 2,
-          totalConnections: 3,
+          connections_with_secrets_in_keytar: 1,
+          connections_with_secrets_in_secret_storage: 2,
+          saved_connections: 3,
+          loaded_connections: 3,
         },
       ]);
     });
