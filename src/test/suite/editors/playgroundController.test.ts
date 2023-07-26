@@ -100,6 +100,7 @@ suite('Playground Controller Test Suite', function () {
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
   });
 
   afterEach(() => {
