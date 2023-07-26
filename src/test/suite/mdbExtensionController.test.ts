@@ -126,6 +126,10 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.stub(vscode.workspace, 'openTextDocument');
       sandbox.stub(vscode.window, 'showTextDocument');
       showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+      sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'trackNewConnection'
+      );
     });
 
     afterEach(() => {
@@ -181,6 +185,10 @@ suite('MDBExtensionController Test Suite', function () {
       );
       showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
       sandbox.stub(vscode.window, 'showTextDocument');
+      sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'trackNewConnection'
+      );
     });
 
     afterEach(() => {

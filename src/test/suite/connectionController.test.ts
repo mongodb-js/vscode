@@ -65,6 +65,7 @@ suite('Connection Controller Test Suite', function () {
       vscode.window,
       'showInformationMessage'
     );
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 

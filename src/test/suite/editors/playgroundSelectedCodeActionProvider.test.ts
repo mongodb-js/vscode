@@ -37,6 +37,10 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
         new LanguageServerController(extensionContextStub)
       );
       sandbox.stub(vscode.window, 'showInformationMessage');
+      sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'trackNewConnection'
+      );
 
       await mdbTestExtension.testExtensionController._connectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
@@ -79,7 +83,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
         .update('confirmRunAll', false);
 
       await mdbTestExtension.testExtensionController._languageServerController.startLanguageServer();
-      await mdbTestExtension.testExtensionController._playgroundController._connectToServiceProvider();
+      await mdbTestExtension.testExtensionController._playgroundController._activeConnectionChanged();
 
       const fakeIsPlayground = sandbox.fake.returns(true);
       sandbox.replace(testCodeActionProvider, 'isPlayground', fakeIsPlayground);
@@ -554,6 +558,10 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
     beforeEach(() => {
       const fakeIsPlayground = sandbox.fake.returns(false);
       sandbox.replace(testCodeActionProvider, 'isPlayground', fakeIsPlayground);
+      sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'trackNewConnection'
+      );
     });
 
     afterEach(() => {
