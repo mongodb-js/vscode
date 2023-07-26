@@ -51,7 +51,7 @@ export default class PlaygroundsTree
 
     treeView.onDidExpandElement(async (event: any): Promise<void> => {
       log.info('Playground tree item was expanded', {
-        laygroundName: event.element.label,
+        playgroundName: event.element.label,
       });
 
       if (!event.element.onDidExpand) {

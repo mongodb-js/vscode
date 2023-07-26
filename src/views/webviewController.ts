@@ -234,7 +234,7 @@ export default class WebviewController {
     // Create and show a new connect dialogue webview.
     const panel = vscode.window.createWebviewPanel(
       'connectDialogueWebview',
-      'MongoDB',
+      'MongoDB Extension',
       vscode.ViewColumn.One, // Editor column to show the webview panel in.
       {
         enableScripts: true,

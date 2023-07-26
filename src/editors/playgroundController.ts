@@ -414,11 +414,18 @@ export default class PlaygroundController {
     this._statusView.showMessage('Getting results...');
 
     // Send a request to the language server to execute scripts from a playground.
-    const result: ShellEvaluateResult =
-      await this._languageServerController.evaluate({
+    let result: ShellEvaluateResult;
+    try {
+      result = await this._languageServerController.evaluate({
         codeToEvaluate,
         connectionId,
       });
+    } catch (error) {
+      log.error(
+        'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.',
+        error
+      );
+    }
 
     this._statusView.hideMessage();
     this._telemetryService.trackPlaygroundCodeExecuted(

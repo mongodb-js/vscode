@@ -139,7 +139,7 @@ export default class LanguageServerController {
       // based on what we can tell that the services have been restored.
       if (this._currentConnectionId) {
         void vscode.window.showErrorMessage(
-          'An internal error has occurred. The playground services have been restored.'
+          'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.'
         );
       }
     });
