@@ -1,5 +1,5 @@
 import { DataService } from 'mongodb-data-service';
-import { getCloudInfo } from 'mongodb-cloud-info';
+// import { getCloudInfo } from 'mongodb-cloud-info';
 import mongoDBBuildInfo from 'mongodb-build-info';
 
 import { ConnectionTypes } from '../connectionController';
@@ -29,7 +29,7 @@ export type NewConnectionTelemetryEventProperties = {
   vscode_mdb_extension_version?: string;
 };
 
-type CloudInfo = {
+/* type CloudInfo = {
   isPublicCloud?: boolean;
   publicCloudName?: string | null;
 };
@@ -66,7 +66,7 @@ async function getCloudInfoFromDataService(
     isPublicCloud: false,
     publicCloudName: null,
   };
-}
+} */
 
 export async function getConnectionTelemetryProperties(
   dataService: DataService,
@@ -82,15 +82,15 @@ export async function getConnectionTelemetryProperties(
 
   try {
     const connectionString = dataService.getConnectionString();
-    const firstHost = connectionString.hosts[0] || '';
-    const [hostname] = firstHost.split(':');
+    // const firstHost = connectionString.hosts[0] || '';
+    // const [hostname] = firstHost.split(':');
     const authMechanism = connectionString.searchParams.get('authMechanism');
     const username = connectionString.username ? 'DEFAULT' : 'NONE';
     const authStrategy = authMechanism ?? username;
 
-    const [instance, cloudInfo] = await Promise.all([
+    const [instance /* , cloudInfo */] = await Promise.all([
       dataService.instance(),
-      getCloudInfoFromDataService(hostname),
+      // getCloudInfoFromDataService(hostname),
     ]);
 
     preparedProperties = {
@@ -100,9 +100,9 @@ export async function getConnectionTelemetryProperties(
       is_localhost: mongoDBBuildInfo.isLocalhost(connectionString.toString()),
       is_data_lake: instance.dataLake.isDataLake,
       is_enterprise: instance.build.isEnterprise,
-      is_public_cloud: cloudInfo.isPublicCloud,
+      // is_public_cloud: cloudInfo.isPublicCloud,
       dl_version: instance.dataLake.version,
-      public_cloud_name: cloudInfo.publicCloudName,
+      // public_cloud_name: cloudInfo.publicCloudName,
       is_genuine: instance.genuineMongoDB.isGenuine,
       non_genuine_server_name: instance.genuineMongoDB.dbType,
       server_version: instance.build.version,
