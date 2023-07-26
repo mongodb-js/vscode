@@ -132,16 +132,6 @@ export default class LanguageServerController {
         connectionString: this._currentConnectionString,
         connectionOptions: this._currentConnectionOptions,
       });
-      // The _currentConnectionId is null when the extension initially activates.
-      // When an unexpected error occurs and the language server restarts after failure,
-      // it loses all default configurations.
-      // But the LanguageServerController still stores the previous _currentConnectionId,
-      // based on what we can tell that the services have been restored.
-      if (this._currentConnectionId) {
-        void vscode.window.showErrorMessage(
-          'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.'
-        );
-      }
     });
 
     this._client.onNotification(

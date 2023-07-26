@@ -5,7 +5,7 @@ import CollectionDocumentsCodeLensProvider from '../../../editors/collectionDocu
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import { mockVSCodeTextDocument } from '../stubs';
 
-suite('Collection Documents Provider Test Suite', () => {
+suite('Collection CodeLens Provider Test Suite', () => {
   test('expected provideCodeLenses to return a code lens with positions at the end of the document', () => {
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new CollectionDocumentsCodeLensProvider(

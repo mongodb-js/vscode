@@ -421,10 +421,10 @@ export default class PlaygroundController {
         connectionId,
       });
     } catch (error) {
-      log.error(
-        'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.',
-        error
-      );
+      const msg =
+        'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.';
+      log.error(msg, error);
+      void vscode.window.showErrorMessage(msg);
     }
 
     this._statusView.hideMessage();

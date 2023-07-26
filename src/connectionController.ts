@@ -125,7 +125,7 @@ export default class ConnectionController {
   private _disconnecting = false;
 
   private _statusView: StatusView;
-  private _telemetryService: TelemetryService;
+  _telemetryService: TelemetryService;
 
   // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();

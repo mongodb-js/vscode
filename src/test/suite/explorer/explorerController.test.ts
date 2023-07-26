@@ -30,6 +30,10 @@ suite('Explorer Controller Test Suite', function () {
       );
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.stub(vscode.window, 'showErrorMessage');
+    sandbox.stub(
+      mdbTestExtension.testExtensionController._telemetryService,
+      'trackNewConnection'
+    );
   });
 
   afterEach(async () => {

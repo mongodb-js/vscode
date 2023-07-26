@@ -37,6 +37,10 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
         new LanguageServerController(extensionContextStub)
       );
       sandbox.stub(vscode.window, 'showInformationMessage');
+      sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'trackNewConnection'
+      );
 
       await mdbTestExtension.testExtensionController._connectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
@@ -479,6 +483,10 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
     beforeEach(() => {
       const fakeIsPlayground = sandbox.fake.returns(false);
       sandbox.replace(testCodeActionProvider, 'isPlayground', fakeIsPlayground);
+      sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'trackNewConnection'
+      );
     });
 
     afterEach(() => {

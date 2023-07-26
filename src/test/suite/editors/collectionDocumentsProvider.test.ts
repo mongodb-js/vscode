@@ -68,6 +68,10 @@ suite('Collection Documents Provider Test Suite', () => {
       statusView: testStatusView,
       editDocumentCodeLensProvider: testCodeLensProvider,
     });
+    sandbox.stub(
+      testConnectionController._telemetryService,
+      'trackNewConnection'
+    );
   });
 
   afterEach(() => {
