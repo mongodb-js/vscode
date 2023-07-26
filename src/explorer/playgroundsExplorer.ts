@@ -1,8 +1,5 @@
 import * as vscode from 'vscode';
 import PlaygroundsTree from './playgroundsTree';
-import { createLogger } from '../logging';
-
-const log = createLogger('playgrounds explorer');
 
 export default class PlaygroundsExplorer {
   private _treeController: PlaygroundsTree;
@@ -25,9 +22,7 @@ export default class PlaygroundsExplorer {
   };
 
   public activatePlaygroundsTreeView(): void {
-    log.info('Activating playgrounds explorer...');
     this.createPlaygroundsTreeView();
-    log.info('Playgrounds explorer activated');
   }
 
   public deactivate(): void {

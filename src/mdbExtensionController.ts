@@ -10,7 +10,6 @@ import PlaygroundSelectedCodeActionProvider from './editors/playgroundSelectedCo
 import PlaygroundDiagnosticsCodeActionProvider from './editors/playgroundDiagnosticsCodeActionProvider';
 import ConnectionController from './connectionController';
 import ConnectionTreeItem from './explorer/connectionTreeItem';
-import { createLogger } from './logging';
 import DatabaseTreeItem from './explorer/databaseTreeItem';
 import DocumentListTreeItem from './explorer/documentListTreeItem';
 import { DocumentSource } from './documentSource';
@@ -39,8 +38,6 @@ import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
-
-const log = createLogger('commands');
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -150,8 +147,6 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   registerCommands = (): void => {
-    log.info('Registering commands...');
-
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
     // ------ CONNECTION ------ //
@@ -252,8 +247,6 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerEditorCommands();
     this.registerTreeViewCommands();
-
-    log.info('Commands registered');
   };
 
   registerCommand = (

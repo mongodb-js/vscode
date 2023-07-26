@@ -77,7 +77,7 @@ suite('Language Server Controller Test Suite', () => {
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
     });
     await languageServerControllerStub.startLanguageServer();
-    await testPlaygroundController._connectToServiceProvider();
+    await testPlaygroundController._activeConnectionChanged();
   });
 
   beforeEach(() => {

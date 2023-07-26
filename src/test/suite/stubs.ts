@@ -247,6 +247,7 @@ class LanguageServerControllerStub {
   _source?: CancellationTokenSource;
   _isExecutingInProgress: boolean;
   _client: LanguageClient;
+  _currentConnectionId: string | null = null;
 
   constructor(
     context: ExtensionContextStub,
@@ -339,15 +340,11 @@ class LanguageServerControllerStub {
     return Promise.resolve({ databaseName: null, collectionName: null });
   }
 
-  connectToServiceProvider(/* params: {
+  activeConnectionChanged(/* params: {
     connectionString?: string;
     connectionOptions?: MongoClientOptions;
     extensionPath: string;
   }*/): Promise<void> {
-    return Promise.resolve();
-  }
-
-  disconnectFromServiceProvider(): Promise<void> {
     return Promise.resolve();
   }
 

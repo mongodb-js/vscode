@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
+import type { SinonStub } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
 
 import { mdbTestExtension } from './stubbableMdbExtension';
@@ -22,6 +23,7 @@ suite('Playground', function () {
 
   const _disposables: vscode.Disposable[] = [];
   const sandbox = sinon.createSandbox();
+  let showErrorMessageStub: SinonStub;
 
   beforeEach(async () => {
     sandbox.replace(
@@ -71,14 +73,18 @@ suite('Playground', function () {
       'getMongoClientConnectionOptions',
       fakeGetMongoClientConnectionOptions
     );
+    showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
 
-    await mdbTestExtension.testExtensionController._playgroundController._connectToServiceProvider();
+    await mdbTestExtension.testExtensionController._playgroundController._activeConnectionChanged();
     await mdbTestExtension.testExtensionController._playgroundController._languageServerController.updateCurrentSessionFields(
       {
         namespace: 'mongodbVSCodePlaygroundDB.sales',
         schemaFields: ['_id', 'name', 'time'],
       }
     );
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update('confirmRunAll', false);
   });
 
   afterEach(async () => {
@@ -87,7 +93,7 @@ suite('Playground', function () {
     sandbox.restore();
   });
 
-  test('show mongodb completion items before other js completion', async () => {
+  test('shows mongodb completion items before other js completion', async () => {
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     const editor = vscode.window.activeTextEditor;
@@ -117,6 +123,38 @@ suite('Playground', function () {
 
     expect(editor.document.getText()).to.be.eql(
       "use('mongodbVSCodePlaygroundDB'); db.sales.find({ name});"
+    );
+  });
+
+  test('restores the language server when the out of memory error occurred', async function () {
+    this.timeout(20000);
+    await vscode.commands.executeCommand('mdb.createPlayground');
+
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      throw new Error('Window active text editor is undefined');
+    }
+
+    const testDocumentUri = editor.document.uri;
+    const edit = new vscode.WorkspaceEdit();
+    edit.replace(
+      testDocumentUri,
+      getFullRange(editor.document),
+      "use('test'); const mockDataArray = []; for(let i = 0; i < 50000; i++) { mockDataArray.push(Math.random() * 10000); } const docs = []; for(let i = 0; i < 10000000; i++) { docs.push({ mockData: [...mockDataArray], a: 'test 123', b: Math.ceil(Math.random() * 10000) }); }"
+    );
+    await vscode.workspace.applyEdit(edit);
+    await vscode.commands.executeCommand('mdb.runPlayground');
+
+    const onDidChangeDiagnostics = () =>
+      new Promise((resolve) => {
+        // The diagnostics are set again when the server restarts.
+        vscode.languages.onDidChangeDiagnostics(resolve);
+      });
+    await onDidChangeDiagnostics();
+
+    expect(showErrorMessageStub.calledOnce).to.equal(true);
+    expect(showErrorMessageStub.firstCall.args[0]).to.equal(
+      'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.'
     );
   });
 });

@@ -4,7 +4,7 @@ import util from 'util';
 
 class Logger implements ILogger {
   static channel: vscode.OutputChannel =
-    vscode.window.createOutputChannel('mongodb');
+    vscode.window.createOutputChannel('MongoDB Extension');
 
   private name: string;
 

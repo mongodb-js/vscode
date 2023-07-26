@@ -79,6 +79,11 @@ connection.onInitialize((params: InitializeParams) => {
 });
 
 connection.onInitialized(() => {
+  void connection.sendNotification(
+    ServerCommands.MONGODB_SERVICE_CREATED,
+    'An instance of MongoDBService is created'
+  );
+
   if (hasConfigurationCapability) {
     // Register for all configuration changes.
     void connection.client.register(
@@ -161,21 +166,14 @@ connection.onRequest(
   }
 );
 
-// Pass the extension path to the MongoDB service.
-connection.onRequest(ServerCommands.SET_EXTENSION_PATH, (extensionPath) => {
-  mongoDBService.setExtensionPath(extensionPath);
+// Send default configurations to mongoDBService.
+connection.onRequest(ServerCommands.INITIALIZE_MONGODB_SERVICE, (settings) => {
+  mongoDBService.initialize(settings);
 });
 
-// Connect the MongoDB language service to CliServiceProvider
-// using the current connection of the client.
-connection.onRequest(ServerCommands.CONNECT_TO_SERVICE_PROVIDER, (params) => {
-  return mongoDBService.connectToServiceProvider(params);
-});
-
-// Clear connectionString and connectionOptions values
-// when there is no active connection.
-connection.onRequest(ServerCommands.DISCONNECT_TO_SERVICE_PROVIDER, () => {
-  return mongoDBService.disconnectFromServiceProvider();
+// Change CliServiceProvider active connection.
+connection.onRequest(ServerCommands.ACTIVE_CONNECTION_CHANGED, (params) => {
+  return mongoDBService.activeConnectionChanged(params);
 });
 
 // Set fields for tests.

@@ -108,6 +108,7 @@ export default class ConnectionController {
   } = Object.create(null);
   _activeDataService: DataService | null = null;
   _storageController: StorageController;
+  _telemetryService: TelemetryService;
 
   private readonly _serviceName = 'mdb.vscode.savedConnections';
   private _currentConnectionId: null | string = null;
@@ -123,7 +124,6 @@ export default class ConnectionController {
   private _disconnecting = false;
 
   private _statusView: StatusView;
-  private _telemetryService: TelemetryService;
 
   // Used by other parts of the extension that respond to changes in the connections.
   private eventEmitter: EventEmitter = new EventEmitter();
@@ -520,10 +520,18 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
     if (this._activeDataService) {
+      log.info('Disconnecting from the previous connection...', {
+        connectionId: this._currentConnectionId,
+      });
       await this.disconnect();
     }
 
     this._statusView.showMessage('Connecting to MongoDB...');
+    log.info('Connecting to MongoDB...', {
+      connectionInfo: JSON.stringify(
+        extractSecrets(this._connections[connectionId]).connectionInfo
+      ),
+    });
 
     const connectionOptions = this._connections[connectionId].connectionOptions;
 
@@ -562,7 +570,7 @@ export default class ConnectionController {
       throw connectError;
     }
 
-    log.info('Successfully connected');
+    log.info('Successfully connected', { connectionId });
     void vscode.window.showInformationMessage('MongoDB connection successful.');
 
     this._activeDataService = dataService;

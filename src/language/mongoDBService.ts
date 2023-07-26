@@ -51,17 +51,17 @@ const SET_WINDOW_FIELDS = '$setWindowFields';
 export const languageServerWorkerFileName = 'languageServerWorker.js';
 
 interface ServiceProviderParams {
-  connectionId: string;
-  connectionString: string;
-  connectionOptions: MongoClientOptions;
+  connectionId: string | null;
+  connectionString?: string;
+  connectionOptions?: MongoClientOptions;
 }
 
 export default class MongoDBService {
-  _extensionPath?: string;
+  _extensionPath?: string; // The absolute file path of the directory containing the extension.
   _connection: Connection;
-  _connectionId?: string;
-  _connectionString?: string;
-  _connectionOptions?: MongoClientOptions;
+  _currentConnectionId: string | null = null;
+  _currentConnectionString?: string;
+  _currentConnectionOptions?: MongoClientOptions;
 
   _databaseCompletionItems: CompletionItem[] = [];
   _shellSymbolCompletionItems: { [symbol: string]: CompletionItem[] } = {};
@@ -73,6 +73,8 @@ export default class MongoDBService {
   _serviceProvider?: CliServiceProvider;
 
   constructor(connection: Connection) {
+    connection.console.log('MongoDBService initializing...');
+
     this._connection = connection;
     this._visitor = new Visitor();
 
@@ -84,41 +86,92 @@ export default class MongoDBService {
    * The connectionString used by LS to connect to MongoDB.
    */
   get connectionString(): string | undefined {
-    return this._connectionString;
+    return this._currentConnectionString;
   }
 
   /**
    * The connectionOptions used by LS to connect to MongoDB.
    */
   get connectionOptions(): MongoClientOptions | undefined {
-    return this._connectionOptions;
+    return this._currentConnectionOptions;
   }
 
-  /**
-   * The absolute file path of the directory containing the extension.
-   */
-  setExtensionPath(extensionPath: string): void {
-    this._extensionPath = extensionPath;
-  }
-
-  /**
-   * Connect to CliServiceProvider.
-   */
-  async connectToServiceProvider({
+  initialize({
+    extensionPath,
     connectionId,
     connectionString,
     connectionOptions,
-  }: ServiceProviderParams): Promise<void> {
-    // If already connected close the previous connection.
-    await this.disconnectFromServiceProvider();
-
-    this._connectionId = connectionId;
-    this._connectionString = connectionString;
-    this._connectionOptions = connectionOptions;
-    this._serviceProvider = await CliServiceProvider.connect(
-      connectionString,
-      connectionOptions
+  }): void {
+    this._extensionPath = extensionPath;
+    this._currentConnectionId = connectionId;
+    this._currentConnectionString = connectionString;
+    this._currentConnectionOptions = connectionOptions;
+    this._connection.console.log(
+      `MongoDBService initialized ${JSON.stringify({
+        extensionPath,
+        connectionId,
+        hasConnectionString: !!connectionString,
+        hasConnectionOptions: !!connectionOptions,
+      })}`
     );
+  }
+
+  /**
+   * Change CliServiceProvider active connection.
+   */
+  async activeConnectionChanged({
+    connectionId,
+    connectionString,
+    connectionOptions,
+  }: ServiceProviderParams): Promise<{
+    connectionId: string | null;
+    successfullyConnected: boolean;
+    connectionErrorMessage?: string;
+  }> {
+    this._connection.console.log(
+      `Changing CliServiceProvider active connection... ${JSON.stringify({
+        currentConnectionId: this._currentConnectionId,
+        newConnectionId: connectionId,
+        hasConnectionString: !!connectionString,
+        hasConnectionOptions: !!connectionOptions,
+      })}`
+    );
+
+    // If already connected close the previous connection.
+    if (
+      this._currentConnectionId &&
+      this._currentConnectionId !== connectionId
+    ) {
+      this.clearCachedCompletions({
+        databases: true,
+        collections: true,
+        fields: true,
+      });
+      await this._closeCurrentConnection();
+    }
+
+    this._currentConnectionId = connectionId;
+    this._currentConnectionString = connectionString;
+    this._currentConnectionOptions = connectionOptions;
+
+    if (connectionId && (!connectionString || !connectionOptions)) {
+      this._connection.console.error(
+        'Failed to change CliServiceProvider active connection: connectionString and connectionOptions are required'
+      );
+      return {
+        connectionId,
+        successfullyConnected: false,
+        connectionErrorMessage:
+          'connectionString and connectionOptions are required',
+      };
+    }
+
+    if (connectionString && connectionOptions) {
+      this._serviceProvider = await CliServiceProvider.connect(
+        connectionString,
+        connectionOptions
+      );
+    }
 
     try {
       // Get database names for the current connection.
@@ -130,18 +183,14 @@ export default class MongoDBService {
         `LS get databases error: ${util.inspect(error)}`
       );
     }
-  }
 
-  /**
-   * Disconnect from CliServiceProvider.
-   */
-  async disconnectFromServiceProvider(): Promise<void> {
-    this.clearCachedCompletions({
-      databases: true,
-      collections: true,
-      fields: true,
-    });
-    await this._clearCurrentConnection();
+    this._connection.console.log(
+      `CliServiceProvider active connection has changed: { connectionId: ${connectionId} }`
+    );
+    return {
+      successfullyConnected: true,
+      connectionId,
+    };
   }
 
   /**
@@ -154,7 +203,7 @@ export default class MongoDBService {
     this.clearCachedFields();
 
     return new Promise((resolve) => {
-      if (this._connectionId !== params.connectionId) {
+      if (this._currentConnectionId !== params.connectionId) {
         void this._connection.sendNotification(
           ServerCommands.SHOW_ERROR_MESSAGE,
           "The playground's active connection does not match the extension's active connection. Please reconnect and try again."
@@ -193,9 +242,6 @@ export default class MongoDBService {
             'dist',
             languageServerWorkerFileName
           )
-        );
-        this._connection.console.log(
-          `WORKER thread is created on path: ${this._extensionPath}`
         );
 
         worker?.on(
@@ -1060,12 +1106,11 @@ export default class MongoDBService {
     this._collections = {};
   }
 
-  async _clearCurrentConnection(): Promise<void> {
-    this._connectionId = undefined;
-    this._connectionString = undefined;
-    this._connectionOptions = undefined;
-
+  async _closeCurrentConnection(): Promise<void> {
     if (this._serviceProvider) {
+      this._connection.console.log(
+        `Disconnecting from a previous connection... { connectionId: ${this._currentConnectionId} }`
+      );
       const serviceProvider = this._serviceProvider;
       this._serviceProvider = undefined;
       await serviceProvider.close(true);

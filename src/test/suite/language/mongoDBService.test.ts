@@ -57,7 +57,7 @@ suite('MongoDBService Test Suite', () => {
 
     before(async () => {
       testMongoDBService._extensionPath = '';
-      await testMongoDBService.connectToServiceProvider(params);
+      await testMongoDBService.activeConnectionChanged(params);
     });
 
     test('catches error when evaluate is called and extension path is empty string', async () => {
@@ -99,13 +99,13 @@ suite('MongoDBService Test Suite', () => {
     const testMongoDBService = new MongoDBService(connection);
 
     test('connect and disconnect from cli service provider', async () => {
-      await testMongoDBService.connectToServiceProvider(params);
+      await testMongoDBService.activeConnectionChanged(params);
 
       expect(testMongoDBService.connectionString).to.be.equal(
         'mongodb://localhost:27018'
       );
 
-      await testMongoDBService.disconnectFromServiceProvider();
+      await testMongoDBService.activeConnectionChanged({ connectionId: null });
 
       expect(testMongoDBService.connectionString).to.be.undefined;
       expect(testMongoDBService.connectionOptions).to.be.undefined;
@@ -129,7 +129,7 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._getSchemaFields = (): Promise<string[]> =>
         Promise.resolve([]);
 
-      await testMongoDBService.connectToServiceProvider(params);
+      await testMongoDBService.activeConnectionChanged(params);
     });
 
     test('provide shell collection methods completion if global scope', async () => {
@@ -1806,7 +1806,7 @@ suite('MongoDBService Test Suite', () => {
     before(async () => {
       testMongoDBService._extensionPath =
         mdbTestExtension.extensionContextStub.extensionPath;
-      await testMongoDBService.connectToServiceProvider(params);
+      await testMongoDBService.activeConnectionChanged(params);
     });
 
     test('evaluate should sum numbers', async () => {
