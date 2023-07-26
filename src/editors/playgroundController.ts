@@ -413,9 +413,9 @@ export default class PlaygroundController {
 
     this._statusView.showMessage('Getting results...');
 
-    // Send a request to the language server to execute scripts from a playground.
     let result: ShellEvaluateResult;
     try {
+      // Send a request to the language server to execute scripts from a playground.
       result = await this._languageServerController.evaluate({
         codeToEvaluate,
         connectionId,
