@@ -46,6 +46,7 @@ export enum ExportToLanguages {
   CSHARP = 'csharp',
   JAVASCRIPT = 'javascript',
   RUBY = 'ruby',
+  GO = 'go',
 }
 
 export enum ExportToLanguageMode {

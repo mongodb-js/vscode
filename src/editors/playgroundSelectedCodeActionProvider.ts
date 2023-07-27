@@ -122,6 +122,17 @@ export default class PlaygroundSelectedCodeActionProvider
         tooltip: 'Export To Ruby',
       };
       codeActions.push(exportToRubyCommand);
+
+      const exportToGoCommand = new vscode.CodeAction(
+        'Export To Go',
+        vscode.CodeActionKind.Empty
+      );
+      exportToGoCommand.command = {
+        command: EXTENSION_COMMANDS.MDB_EXPORT_TO_GO,
+        title: 'Export To Go',
+        tooltip: 'Export To Go',
+      };
+      codeActions.push(exportToGoCommand);
     }
 
     return codeActions;

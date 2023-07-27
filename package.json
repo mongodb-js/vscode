@@ -244,6 +244,10 @@
         "title": "MongoDB: Export To Ruby"
       },
       {
+        "command": "mdb.exportToGo",
+        "title": "MongoDB: Export To Go"
+      },
+      {
         "command": "mdb.addConnection",
         "title": "Add MongoDB Connection",
         "icon": {
@@ -652,6 +656,10 @@
         },
         {
           "command": "mdb.exportToNode",
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
+        },
+        {
+          "command": "mdb.exportToGo",
           "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
         },
         {
