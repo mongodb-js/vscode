@@ -69,8 +69,21 @@ type PlaygroundLoadedTelemetryEventProperties = {
 };
 
 type KeytarSecretsMigrationFailedProperties = {
-  totalConnections: number;
-  connectionsWithFailedKeytarMigration: number;
+  saved_connections: number;
+  loaded_connections: number;
+  connections_with_failed_keytar_migration: number;
+};
+
+type SavedConnectionsLoadedProperties = {
+  // Total number of connections saved on disk
+  saved_connections: number;
+  // Total number of connections that extension was able to load, it might
+  // differ from saved_connections since there might be failures in loading
+  // secrets for a connection in which case we don't list the connections in the
+  // list of loaded connections.
+  loaded_connections: number;
+  connections_with_secrets_in_keytar: number;
+  connections_with_secrets_in_secret_storage: number;
 };
 
 export type TelemetryEventProperties =
@@ -84,7 +97,8 @@ export type TelemetryEventProperties =
   | PlaygroundCreatedTelemetryEventProperties
   | PlaygroundSavedTelemetryEventProperties
   | PlaygroundLoadedTelemetryEventProperties
-  | KeytarSecretsMigrationFailedProperties;
+  | KeytarSecretsMigrationFailedProperties
+  | SavedConnectionsLoadedProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -99,6 +113,7 @@ export enum TelemetryEventTypes {
   AGGREGATION_EXPORTED = 'Aggregation Exported',
   PLAYGROUND_CREATED = 'Playground Created',
   KEYTAR_SECRETS_MIGRATION_FAILED = 'Keytar Secrets Migration Failed',
+  SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
 }
 
 /**
@@ -340,5 +355,23 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.PLAYGROUND_CREATED, {
       playground_type: playgroundType,
     });
+  }
+
+  trackSavedConnectionsLoaded(
+    savedConnectionsLoadedProps: SavedConnectionsLoadedProperties
+  ) {
+    this.track(
+      TelemetryEventTypes.SAVED_CONNECTIONS_LOADED,
+      savedConnectionsLoadedProps
+    );
+  }
+
+  trackKeytarSecretsMigrationFailed(
+    keytarSecretsMigrationFailedProps: KeytarSecretsMigrationFailedProperties
+  ) {
+    this.track(
+      TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
+      keytarSecretsMigrationFailedProps
+    );
   }
 }

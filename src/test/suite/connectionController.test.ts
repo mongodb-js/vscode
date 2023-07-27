@@ -1679,7 +1679,10 @@ suite('Connection Controller Test Suite', function () {
             secretStorageLocation: SecretStorageLocation.Keytar,
           } as any)
       );
-      const trackStub = testSandbox.stub(testTelemetryService, 'track');
+      const trackStub = testSandbox.stub(
+        testTelemetryService,
+        'trackKeytarSecretsMigrationFailed'
+      );
 
       // Clear any connections and load so we get our stubbed connections from above.
       testConnectionController.clearAllConnections();
@@ -1694,8 +1697,11 @@ suite('Connection Controller Test Suite', function () {
       // Tracked
       assert.strictEqual(trackStub.calledOnce, true);
       assert.deepStrictEqual(trackStub.lastCall.args, [
-        'Keytar Secrets Migration Failed',
-        { totalConnections: 2, connectionsWithFailedKeytarMigration: 1 },
+        {
+          saved_connections: 2,
+          loaded_connections: 2,
+          connections_with_failed_keytar_migration: 1,
+        },
       ]);
     });
 
@@ -1740,7 +1746,10 @@ suite('Connection Controller Test Suite', function () {
             secretStorageLocation: SecretStorageLocation.Keytar,
           } as any)
       );
-      const trackStub = testSandbox.stub(testTelemetryService, 'track');
+      const trackStub = testSandbox.stub(
+        testTelemetryService,
+        'trackKeytarSecretsMigrationFailed'
+      );
 
       // Clear any connections and load so we get our stubbed connections from above.
       testConnectionController.clearAllConnections();
@@ -1749,8 +1758,78 @@ suite('Connection Controller Test Suite', function () {
       // No notification sent to the user
       assert.strictEqual(showInformationMessageStub.notCalled, true);
 
-      // No tracking done
+      // Tracks only the saved connections laoded event
       assert.strictEqual(trackStub.notCalled, true);
+    });
+
+    test('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async () => {
+      testSandbox.replace(testStorageController, 'get', (key, storage) => {
+        if (
+          storage === StorageLocation.WORKSPACE ||
+          key === StorageVariables.WORKSPACE_SAVED_CONNECTIONS
+        ) {
+          return {};
+        }
+
+        return {
+          'random-connection-1': {
+            id: 'random-connection-1',
+            name: 'localhost:27017',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.SecretStorage,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+            },
+          },
+          'random-connection-2': {
+            id: 'random-connection-2',
+            name: 'localhost:27018',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.SecretStorage,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+            },
+          },
+          'random-connection-3': {
+            id: 'random-connection-3',
+            name: 'localhost:27018',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.Keytar,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+            },
+          },
+        } as any;
+      });
+      testSandbox.replace(
+        testConnectionController,
+        '_getConnectionInfoWithSecrets',
+        (connectionInfo) => Promise.resolve(connectionInfo as any)
+      );
+      const trackStub = testSandbox.stub(
+        testTelemetryService,
+        'trackSavedConnectionsLoaded'
+      );
+
+      // Clear any connections and load so we get our stubbed connections from above.
+      testConnectionController.clearAllConnections();
+      await testConnectionController.loadSavedConnections();
+
+      // Load connections tracked. Called once because in the current load of
+      // migration there were no errors and hence the error tracking event won't
+      // be called.
+      assert.strictEqual(trackStub.calledOnce, true);
+      assert.deepStrictEqual(trackStub.lastCall.args, [
+        {
+          connections_with_secrets_in_keytar: 1,
+          connections_with_secrets_in_secret_storage: 2,
+          saved_connections: 3,
+          loaded_connections: 3,
+        },
+      ]);
     });
   });
 });

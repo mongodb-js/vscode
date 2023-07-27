@@ -26,9 +26,7 @@ import {
 } from './storage/storageController';
 import { StorageController, StorageVariables } from './storage';
 import { StatusView } from './views';
-import TelemetryService, {
-  TelemetryEventTypes,
-} from './telemetry/telemetryService';
+import TelemetryService from './telemetry/telemetryService';
 import LINKS from './utils/links';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -202,23 +200,36 @@ export default class ConnectionController {
       )
     ).filter((conn): conn is FailedMigrationConnectionDescriptor => !!conn);
 
-    if (Object.keys(this._connections).length) {
+    const loadedConnections = Object.values(this._connections);
+    if (loadedConnections.length) {
       this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     }
+
+    this._telemetryService.trackSavedConnectionsLoaded({
+      saved_connections: globalAndWorkspaceConnections.length,
+      loaded_connections: loadedConnections.length,
+      connections_with_secrets_in_keytar: loadedConnections.filter(
+        (connection) =>
+          connection.secretStorageLocation === SecretStorageLocation.Keytar
+      ).length,
+      connections_with_secrets_in_secret_storage: loadedConnections.filter(
+        (connection) =>
+          connection.secretStorageLocation ===
+          SecretStorageLocation.SecretStorage
+      ).length,
+    });
 
     if (connectionsThatDidNotMigrate.length) {
       log.error(
         `Could not migrate secrets for ${connectionsThatDidNotMigrate.length} connections`,
         connectionsThatDidNotMigrate
       );
-      this._telemetryService.track(
-        TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
-        {
-          totalConnections: globalAndWorkspaceConnections.length,
-          connectionsWithFailedKeytarMigration:
-            connectionsThatDidNotMigrate.length,
-        }
-      );
+      this._telemetryService.trackKeytarSecretsMigrationFailed({
+        saved_connections: globalAndWorkspaceConnections.length,
+        loaded_connections: loadedConnections.length,
+        connections_with_failed_keytar_migration:
+          connectionsThatDidNotMigrate.length,
+      });
       void vscode.window.showInformationMessage(
         keytarMigrationFailedMessage(connectionsThatDidNotMigrate.length)
       );
