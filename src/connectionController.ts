@@ -13,7 +13,7 @@ import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
-
+import { createKeytar } from './utils/keytar';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import { ext } from './extensionConstants';
@@ -296,6 +296,13 @@ export default class ConnectionController {
   async _migrateConnectionWithKeytarSecrets(
     savedConnectionInfo: StoreConnectionInfoWithConnectionOptions
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
+    try {
+      ext.keytarModule =
+        ext.keytarModule === undefined ? createKeytar() : ext.keytarModule;
+    } catch (err) {
+      // Couldn't load keytar, proceed without storing & loading connections.
+    }
+
     // If the Keytar module is not available, we simply mark the connections
     // storage as Keytar and return
     if (!ext.keytarModule) {
