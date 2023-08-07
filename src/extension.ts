@@ -3,7 +3,6 @@
 import * as vscode from 'vscode';
 
 import { ext } from './extensionConstants';
-import { createKeytar } from './utils/keytar';
 import { createLogger } from './logging';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../package.json');
@@ -30,14 +29,6 @@ export async function activate(
   context: vscode.ExtensionContext
 ): Promise<void> {
   ext.context = context;
-  let hasKeytar = false;
-
-  try {
-    ext.keytarModule = createKeytar();
-    hasKeytar = true;
-  } catch (err) {
-    // Couldn't load keytar, proceed without storing & loading connections.
-  }
 
   const defaultConnectionSavingLocation = vscode.workspace
     .getConfiguration('mdb.connectionSaving')
@@ -53,7 +44,6 @@ export async function activate(
     workspaceStoragePath: context.storageUri?.path,
     globalStoragePath: context.globalStorageUri.path,
     defaultConnectionSavingLocation,
-    hasKeytar,
     buildInfo: {
       nodeVersion: process.version,
       runtimePlatform: process.platform,
