@@ -170,7 +170,12 @@ export default class ConnectionController {
         []
       );
 
-    if (connectionIdsThatDidNotMigrateEarlier.length > 0) {
+    const hasConnectionsThatDidNotMigrateEarlier =
+      !!globalAndWorkspaceConnections.some(
+        ([, connectionInfo]) => !connectionInfo.storageLocation
+      );
+
+    if (hasConnectionsThatDidNotMigrateEarlier) {
       try {
         ext.keytarModule =
           ext.keytarModule === undefined ? createKeytar() : ext.keytarModule;
