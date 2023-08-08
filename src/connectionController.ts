@@ -143,6 +143,13 @@ export default class ConnectionController {
   }
 
   async loadSavedConnections(): Promise<void> {
+    try {
+      ext.keytarModule =
+        ext.keytarModule === undefined ? createKeytar() : ext.keytarModule;
+    } catch (err) {
+      // Couldn't load keytar, proceed without storing & loading connections.
+    }
+
     const globalAndWorkspaceConnections = Object.entries({
       ...this._storageController.get(
         StorageVariables.GLOBAL_SAVED_CONNECTIONS,
@@ -296,13 +303,6 @@ export default class ConnectionController {
   async _migrateConnectionWithKeytarSecrets(
     savedConnectionInfo: StoreConnectionInfoWithConnectionOptions
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
-    try {
-      ext.keytarModule =
-        ext.keytarModule === undefined ? createKeytar() : ext.keytarModule;
-    } catch (err) {
-      // Couldn't load keytar, proceed without storing & loading connections.
-    }
-
     // If the Keytar module is not available, we simply mark the connections
     // storage as Keytar and return
     if (!ext.keytarModule) {
