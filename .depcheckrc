@@ -1,7 +1,6 @@
 ignores:
  - "@babel/core"
  - "@mongodb-js/prettier-config-compass"
- - "@mongodb-js/prettier-config-devtools"
  - "@types/jest"
  - "buffer"
  - "eslint-config-mongodb-js"
@@ -23,4 +22,3 @@ ignores:
  - postcss-loader
  - style-loader
  - ts-loader
- - mongodb-runner
