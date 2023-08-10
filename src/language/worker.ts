@@ -1,13 +1,8 @@
 import { CliServiceProvider } from '@mongosh/service-provider-server';
-import dns from 'node:dns';
 import { EJSON } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
 import { ServerCommands } from './serverCommands';
-
-// Adopting dns result order changes with Node v18 and vscode 1.82.0-insider update.
-// Refs https://github.com/microsoft/vscode/issues/189805
-dns.setDefaultResultOrder('ipv4first');
 
 import type {
   ShellEvaluateResult,

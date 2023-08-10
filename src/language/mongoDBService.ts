@@ -15,7 +15,6 @@ import type {
   Diagnostic,
 } from 'vscode-languageserver/node';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
-import dns from 'node:dns';
 import type { Document } from '@mongosh/service-provider-core';
 import { getFilteredCompletions } from '@mongodb-js/mongodb-constants';
 import parseSchema from 'mongodb-schema';
@@ -40,10 +39,6 @@ import type { CompletionState } from './visitor';
 import LINKS from '../utils/links';
 
 import DIAGNOSTIC_CODES from './diagnosticCodes';
-
-// Adopting dns result order changes with Node v18 and vscode 1.82.0-insider update.
-// Refs https://github.com/microsoft/vscode/issues/189805
-dns.setDefaultResultOrder('ipv4first');
 
 const PROJECT = '$project';
 
