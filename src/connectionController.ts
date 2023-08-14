@@ -170,6 +170,20 @@ export default class ConnectionController {
         []
       );
 
+    const hasConnectionsThatDidNotMigrateEarlier =
+      !!globalAndWorkspaceConnections.some(
+        ([, connectionInfo]) => !connectionInfo.storageLocation
+      );
+
+    if (hasConnectionsThatDidNotMigrateEarlier) {
+      try {
+        ext.keytarModule =
+          ext.keytarModule === undefined ? createKeytar() : ext.keytarModule;
+      } catch (err) {
+        // Couldn't load keytar, proceed without storing & loading connections.
+      }
+    }
+
     // A list of connection descriptors that we could not migration in the
     // current load of connections because of Keytar not being available.
     const connectionsThatDidNotMigrate = (
@@ -296,13 +310,6 @@ export default class ConnectionController {
   async _migrateConnectionWithKeytarSecrets(
     savedConnectionInfo: StoreConnectionInfoWithConnectionOptions
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
-    try {
-      ext.keytarModule =
-        ext.keytarModule === undefined ? createKeytar() : ext.keytarModule;
-    } catch (err) {
-      // Couldn't load keytar, proceed without storing & loading connections.
-    }
-
     // If the Keytar module is not available, we simply mark the connections
     // storage as Keytar and return
     if (!ext.keytarModule) {
