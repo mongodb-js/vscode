@@ -722,8 +722,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
 
       // Starting server 7.0, the outcome of dropping nonexistent collections is successful SERVER-43894
-      // TODO: triage how to proceed with the server change.
-      // Probably follow the server behavior and allow deletion of nonexistent collections.
+      // TODO: update or delete the test according to VSCODE-461
       assert(typeof successfullyDropped, 'boolean');
 
       await testConnectionController.disconnect();
