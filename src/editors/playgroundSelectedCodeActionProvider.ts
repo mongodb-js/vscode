@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { TextEditor } from 'vscode';
+import type { TextEditor } from 'vscode';
 
 import EXTENSION_COMMANDS from '../commands';
 import { ExportToLanguageMode } from '../types/playgroundType';

@@ -5,11 +5,11 @@ import { faTimes, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Icon } from '@iconify/react';
 import bookIcon from '@iconify-icons/codicon/book';
 
-import {
-  ActionTypes,
+import type {
   LinkClickedAction,
   ToggleShowResourcesPanelAction,
 } from '../../store/actions';
+import { ActionTypes } from '../../store/actions';
 
 import styles from './resources-panel.less';
 import LINKS from '../../../../utils/links';

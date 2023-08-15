@@ -2,8 +2,9 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, SetConnectionFormTabAction } from '../../store/actions';
-import { AppState } from '../../store/store';
+import type { SetConnectionFormTabAction } from '../../store/actions';
+import { ActionTypes } from '../../store/actions';
+import type { AppState } from '../../store/store';
 import { CONNECTION_FORM_TABS } from '../../store/constants';
 
 import styles from './connection-form.less';

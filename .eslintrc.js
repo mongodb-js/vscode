@@ -59,6 +59,10 @@ module.exports = {
         '@typescript-eslint/no-unsafe-call': 0,
         '@typescript-eslint/no-unsafe-return': 0,
         '@typescript-eslint/no-unsafe-argument': 0,
+        '@typescript-eslint/consistent-type-imports': [
+          'error',
+          { prefer: 'type-imports' },
+        ],
       },
       parserOptions: {
         project: ['./tsconfig.json'], // Specify it only for TypeScript files.

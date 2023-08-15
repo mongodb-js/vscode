@@ -3,8 +3,9 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import FileInputButton from '../../form/file-input-button';
-import { ActionTypes, OnChangeSSLCAAction } from '../../../store/actions';
-import { AppState } from '../../../store/store';
+import type { OnChangeSSLCAAction } from '../../../store/actions';
+import { ActionTypes } from '../../../store/actions';
+import type { AppState } from '../../../store/store';
 
 import styles from '../../../connect.module.less';
 import LINKS from '../../../../../utils/links';

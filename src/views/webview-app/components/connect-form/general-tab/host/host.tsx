@@ -2,22 +2,20 @@ import classnames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
+import type {
   HostnameChangedAction,
   HostsChangedAction,
   IsSrvRecordToggledAction,
   PortChangedAction,
   ReplicaSetChangedAction,
 } from '../../../../store/actions';
+import { ActionTypes } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
-import { AppState } from '../../../../store/store';
+import type { AppState } from '../../../../store/store';
 import FormGroup from '../../../form/form-group';
 import RadioBoxGroup from '../../../form/radio-box-group/radio-box-group';
-import {
-  DEFAULT_HOST,
-  Host,
-} from '../../../../connection-model/legacy-connection-model';
+import type { Host } from '../../../../connection-model/legacy-connection-model';
+import { DEFAULT_HOST } from '../../../../connection-model/legacy-connection-model';
 import ReplicaSetInput from './replica-set-input';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';

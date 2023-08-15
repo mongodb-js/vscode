@@ -6,9 +6,9 @@ import { createLogger } from '../logging';
 import FieldTreeItem from './fieldTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
-import TreeItemParent from './treeItemParentInterface';
+import type TreeItemParent from './treeItemParentInterface';
 import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
-import { DataService } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 
 const log = createLogger('schema tree item');
 

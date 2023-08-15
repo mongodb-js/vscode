@@ -1,4 +1,4 @@
-import * as keytarType from 'keytar';
+import type * as keytarType from 'keytar';
 
 import { getNodeModule } from './getNodeModule';
 

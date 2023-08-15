@@ -1,4 +1,4 @@
-import { DataService } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import { getCloudInfo } from 'mongodb-cloud-info';
 import mongoDBBuildInfo from 'mongodb-build-info';
 

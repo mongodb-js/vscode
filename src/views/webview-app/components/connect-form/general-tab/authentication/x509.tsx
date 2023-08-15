@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
-  X509UsernameChangedAction,
-} from '../../../../store/actions';
+import type { X509UsernameChangedAction } from '../../../../store/actions';
+import { ActionTypes } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
 
 type DispatchProps = {

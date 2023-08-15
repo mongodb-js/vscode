@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
-import ConnectionController from '../connectionController';
+import type ConnectionController from '../connectionController';
 import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import EXTENSION_COMMANDS from '../commands';

@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { AppState } from '../../../store/store';
-import {
-  ActionTypes,
-  ReadPreferenceChangedAction,
-} from '../../../store/actions';
+import type { AppState } from '../../../store/store';
+import type { ReadPreferenceChangedAction } from '../../../store/actions';
+import { ActionTypes } from '../../../store/actions';
 import RadioBoxGroup from '../../form/radio-box-group/radio-box-group';
 import READ_PREFERENCES from '../../../connection-model/constants/read-preferences';
 

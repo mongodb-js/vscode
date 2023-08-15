@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { v4 as uuidv4 } from 'uuid';
 
-import { StoreConnectionInfo } from '../connectionController';
+import type { StoreConnectionInfo } from '../connectionController';
 
 export enum StorageVariables {
   // Only exists on globalState.

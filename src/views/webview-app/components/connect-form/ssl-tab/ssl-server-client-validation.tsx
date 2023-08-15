@@ -3,13 +3,13 @@ import { connect } from 'react-redux';
 
 import FileInputButton from '../../form/file-input-button';
 import FormInput from '../../form/form-input';
-import {
-  ActionTypes,
+import type {
   OnChangeSSLCAAction,
   OnChangeSSLCertAction,
   SSLPassChangedAction,
 } from '../../../store/actions';
-import { AppState } from '../../../store/store';
+import { ActionTypes } from '../../../store/actions';
+import type { AppState } from '../../../store/store';
 
 import styles from '../../../connect.module.less';
 import LINKS from '../../../../../utils/links';

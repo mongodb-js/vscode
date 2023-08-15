@@ -2,19 +2,22 @@ import * as vscode from 'vscode';
 import path from 'path';
 import crypto from 'crypto';
 
-import ConnectionController, { ConnectionTypes } from '../connectionController';
-import LegacyConnectionModel from './webview-app/connection-model/legacy-connection-model';
+import type ConnectionController from '../connectionController';
+import { ConnectionTypes } from '../connectionController';
+import type LegacyConnectionModel from './webview-app/connection-model/legacy-connection-model';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
-import {
+import type {
   MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
-  MESSAGE_TYPES,
-  VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
   OpenFilePickerMessage,
 } from './webview-app/extension-app-message-constants';
+import {
+  MESSAGE_TYPES,
+  VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
+} from './webview-app/extension-app-message-constants';
 import { openLink } from '../utils/linkHelper';
-import { StorageController } from '../storage';
-import TelemetryService from '../telemetry/telemetryService';
+import type { StorageController } from '../storage';
+import type TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('webview controller');
 

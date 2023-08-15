@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import { CliServiceProvider } from '@mongosh/service-provider-server';
+import type * as vscode from 'vscode';
+import type { CliServiceProvider } from '@mongosh/service-provider-server';
 
 export type OutputItem = {
   namespace: string | null;

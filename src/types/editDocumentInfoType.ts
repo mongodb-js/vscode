@@ -1,4 +1,4 @@
-import { DocumentSource } from '../documentSource';
+import type { DocumentSource } from '../documentSource';
 
 export type EditDocumentInfo = {
   source: DocumentSource;

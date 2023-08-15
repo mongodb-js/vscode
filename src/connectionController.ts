@@ -1,14 +1,16 @@
 import * as vscode from 'vscode';
 import {
   convertConnectionModelToInfo,
-  ConnectionInfo,
-  ConnectionOptions,
   getConnectionTitle,
   extractSecrets,
   mergeSecrets,
   connect,
 } from 'mongodb-data-service';
-import type { DataService } from 'mongodb-data-service';
+import type {
+  DataService,
+  ConnectionInfo,
+  ConnectionOptions,
+} from 'mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
@@ -18,15 +20,16 @@ import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-con
 import { createLogger } from './logging';
 import { ext } from './extensionConstants';
 import formatError from './utils/formatError';
-import LegacyConnectionModel from './views/webview-app/connection-model/legacy-connection-model';
+import type LegacyConnectionModel from './views/webview-app/connection-model/legacy-connection-model';
+import type { SecretStorageLocationType } from './storage/storageController';
 import {
   StorageLocation,
-  SecretStorageLocationType,
   SecretStorageLocation,
 } from './storage/storageController';
-import { StorageController, StorageVariables } from './storage';
-import { StatusView } from './views';
-import TelemetryService from './telemetry/telemetryService';
+import type { StorageController } from './storage';
+import { StorageVariables } from './storage';
+import type { StatusView } from './views';
+import type TelemetryService from './telemetry/telemetryService';
 import LINKS from './utils/links';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');

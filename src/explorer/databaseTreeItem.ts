@@ -6,7 +6,7 @@ import CollectionTreeItem from './collectionTreeItem';
 import type { CollectionDetailsType } from './collectionTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
-import TreeItemParent from './treeItemParentInterface';
+import type TreeItemParent from './treeItemParentInterface';
 
 function getIconPath(): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');

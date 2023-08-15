@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { createServer, Server } from 'http';
+import type { Server } from 'http';
+import { createServer } from 'http';
 
 const TRUSTED_DOMAINS: Array<RegExp> = [/^.*mongodb\.com$/i];
 

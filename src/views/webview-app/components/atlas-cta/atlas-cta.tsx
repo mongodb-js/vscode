@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
+import type {
   LinkClickedAction,
   TrustedLinkClickedAction,
 } from '../../store/actions';
+import { ActionTypes } from '../../store/actions';
 import { VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID } from '../../extension-app-message-constants';
 import AtlasLogo from './atlas-logo';
 

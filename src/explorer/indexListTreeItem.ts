@@ -1,12 +1,13 @@
 import * as vscode from 'vscode';
-import { DataService } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import path from 'path';
 
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
-import IndexTreeItem, { IndexModel } from './indexTreeItem';
+import type { IndexModel } from './indexTreeItem';
+import IndexTreeItem from './indexTreeItem';
 import { sortTreeItemsByLabel } from './treeItemUtils';
-import TreeItemParent from './treeItemParentInterface';
+import type TreeItemParent from './treeItemParentInterface';
 
 const ITEM_LABEL = 'Indexes';
 

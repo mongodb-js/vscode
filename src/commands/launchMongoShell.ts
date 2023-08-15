@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import ConnectionController from '../connectionController';
+import type ConnectionController from '../connectionController';
 
 const launchMongoDBShellWithEnv = (
   shellCommand: string,

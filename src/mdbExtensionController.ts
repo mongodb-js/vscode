@@ -9,32 +9,32 @@ import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLens
 import PlaygroundSelectedCodeActionProvider from './editors/playgroundSelectedCodeActionProvider';
 import PlaygroundDiagnosticsCodeActionProvider from './editors/playgroundDiagnosticsCodeActionProvider';
 import ConnectionController from './connectionController';
-import ConnectionTreeItem from './explorer/connectionTreeItem';
-import DatabaseTreeItem from './explorer/databaseTreeItem';
-import DocumentListTreeItem from './explorer/documentListTreeItem';
+import type ConnectionTreeItem from './explorer/connectionTreeItem';
+import type DatabaseTreeItem from './explorer/databaseTreeItem';
+import type DocumentListTreeItem from './explorer/documentListTreeItem';
 import { DocumentSource } from './documentSource';
-import DocumentTreeItem from './explorer/documentTreeItem';
+import type DocumentTreeItem from './explorer/documentTreeItem';
 import EditDocumentCodeLensProvider from './editors/editDocumentCodeLensProvider';
 import { EditorsController, PlaygroundController } from './editors';
 import type { EditDocumentInfo } from './types/editDocumentInfoType';
+import type { CollectionTreeItem } from './explorer';
 import {
   ExplorerController,
   PlaygroundsExplorer,
   HelpExplorer,
-  CollectionTreeItem,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
 import { ExportToLanguages } from './types/playgroundType';
 import EXTENSION_COMMANDS from './commands';
-import FieldTreeItem from './explorer/fieldTreeItem';
-import IndexListTreeItem from './explorer/indexListTreeItem';
+import type FieldTreeItem from './explorer/fieldTreeItem';
+import type IndexListTreeItem from './explorer/indexListTreeItem';
 import { LanguageServerController } from './language';
 import launchMongoShell from './commands/launchMongoShell';
-import SchemaTreeItem from './explorer/schemaTreeItem';
+import type SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
 import { StorageController, StorageVariables } from './storage';
 import TelemetryService from './telemetry/telemetryService';
-import PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
+import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';

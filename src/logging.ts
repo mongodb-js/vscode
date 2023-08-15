@@ -1,4 +1,4 @@
-import { Logger as ILogger } from 'ts-log';
+import type { Logger as ILogger } from 'ts-log';
 import * as vscode from 'vscode';
 import util from 'util';
 

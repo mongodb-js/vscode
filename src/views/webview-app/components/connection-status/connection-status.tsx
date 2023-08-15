@@ -4,13 +4,13 @@ import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 
-import { AppState } from '../../store/store';
-import {
-  ActionTypes,
+import type { AppState } from '../../store/store';
+import type {
   CreateNewPlaygroundAction,
   RenameConnectionAction,
   RequestConnectionStatusAction,
 } from '../../store/actions';
+import { ActionTypes } from '../../store/actions';
 import InfoSprinkle from '../info-sprinkle/info-sprinkle';
 import { CONNECTION_STATUS } from '../../extension-app-message-constants';
 

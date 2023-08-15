@@ -1,5 +1,6 @@
 import assert from 'assert';
-import { shallow, ShallowWrapper } from 'enzyme';
+import type { ShallowWrapper } from 'enzyme';
+import { shallow } from 'enzyme';
 import * as React from 'react';
 import sinon from 'sinon';
 import type { SinonSpy } from 'sinon';

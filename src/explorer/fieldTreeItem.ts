@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import path from 'path';
 
 import { getImagesPath } from '../extensionConstants';
-import TreeItemParent from './treeItemParentInterface';
+import type TreeItemParent from './treeItemParentInterface';
 
 // Loosely based on bson types. These values match with the
 // types returned by `parseSchema` with `mongodb-schema`.

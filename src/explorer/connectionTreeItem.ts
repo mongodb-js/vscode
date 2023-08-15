@@ -2,10 +2,10 @@ import * as vscode from 'vscode';
 import path from 'path';
 
 import DatabaseTreeItem from './databaseTreeItem';
-import ConnectionController from '../connectionController';
+import type ConnectionController from '../connectionController';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
-import TreeItemParent from './treeItemParentInterface';
+import type TreeItemParent from './treeItemParentInterface';
 
 export enum ConnectionItemContextValues {
   disconnected = 'disconnectedConnectionTreeItem',

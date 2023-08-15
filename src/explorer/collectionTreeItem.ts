@@ -9,7 +9,7 @@ import DocumentListTreeItem, {
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import IndexListTreeItem from './indexListTreeItem';
-import TreeItemParent from './treeItemParentInterface';
+import type TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
 
 function getIconPath(

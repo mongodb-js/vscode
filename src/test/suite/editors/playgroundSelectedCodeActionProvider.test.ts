@@ -9,10 +9,8 @@ import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSel
 import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
-import {
-  PlaygroundResult,
-  ExportToLanguageMode,
-} from '../../../types/playgroundType';
+import type { PlaygroundResult } from '../../../types/playgroundType';
+import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub } from '../stubs';
 

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import path from 'path';
 
 import { getImagesPath } from '../extensionConstants';
-import TreeItemParent from './treeItemParentInterface';
+import type TreeItemParent from './treeItemParentInterface';
 
 export enum IndexKeyType {
   ASCENDING = 1,

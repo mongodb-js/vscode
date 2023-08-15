@@ -6,7 +6,7 @@ import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
-import TreeItemParent from './treeItemParentInterface';
+import type TreeItemParent from './treeItemParentInterface';
 import type { DataService } from 'mongodb-data-service';
 
 const log = createLogger('documents tree item');

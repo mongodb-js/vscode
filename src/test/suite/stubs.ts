@@ -9,13 +9,13 @@ import { Duplex } from 'stream';
 import path from 'path';
 import type { Document, Filter, FindOptions } from 'mongodb';
 
-import { StorageController } from '../../storage';
+import type { StorageController } from '../../storage';
 
-import {
+import type {
   ShellEvaluateResult,
-  ExportToLanguageMode,
   ExportToLanguageNamespace,
 } from '../../types/playgroundType';
+import { ExportToLanguageMode } from '../../types/playgroundType';
 
 // Bare mock of the extension context for vscode.
 class ExtensionContextStub implements vscode.ExtensionContext {

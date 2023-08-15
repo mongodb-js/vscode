@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, ConnectionFormChangedAction } from '../../store/actions';
+import type { ConnectionFormChangedAction } from '../../store/actions';
+import { ActionTypes } from '../../store/actions';
 import SSLMethodTab from './ssl-tab/ssl-tab';
 import SSHTunnelTab from './ssh-tab/ssh-tunnel-tab';
 import FormActions from '../form/form-actions';
-import { AppState } from '../../store/store';
+import type { AppState } from '../../store/store';
 import { CONNECTION_FORM_TABS } from '../../store/constants';
 import AdvancedTab from './advanced-tab/advanced-tab';
 import GeneralTab from './general-tab/general-tab';

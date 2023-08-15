@@ -14,7 +14,7 @@ import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import { ExportToLanguageMode } from '../../../types/playgroundType';
-import { LanguageServerController } from '../../../language';
+import type { LanguageServerController } from '../../../language';
 import { PlaygroundController } from '../../../editors';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { StatusView } from '../../../views';

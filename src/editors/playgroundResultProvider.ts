@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 
-import ConnectionController from '../connectionController';
-import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
-import { PlaygroundResult, ExportToLanguages } from '../types/playgroundType';
+import type ConnectionController from '../connectionController';
+import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
+import type { PlaygroundResult } from '../types/playgroundType';
+import { ExportToLanguages } from '../types/playgroundType';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 

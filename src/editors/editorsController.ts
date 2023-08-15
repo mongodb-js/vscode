@@ -2,11 +2,11 @@ import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
-import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
+import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
+import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
 import PlaygroundDiagnosticsCodeActionProvider from './playgroundDiagnosticsCodeActionProvider';
-import ConnectionController from '../connectionController';
+import type ConnectionController from '../connectionController';
 import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
 import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, {
@@ -17,8 +17,8 @@ import CollectionDocumentsProvider, {
 } from './collectionDocumentsProvider';
 import { createLogger } from '../logging';
 import DocumentIdStore from './documentIdStore';
-import { DocumentSource } from '../documentSource';
-import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
+import type { DocumentSource } from '../documentSource';
+import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
@@ -27,12 +27,11 @@ import MongoDBDocumentService, {
   DOCUMENT_SOURCE_URI_IDENTIFIER,
   VIEW_DOCUMENT_SCHEME,
 } from './mongoDBDocumentService';
-import PlaygroundController from './playgroundController';
-import PlaygroundResultProvider, {
-  PLAYGROUND_RESULT_SCHEME,
-} from './playgroundResultProvider';
+import type PlaygroundController from './playgroundController';
+import type PlaygroundResultProvider from './playgroundResultProvider';
+import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
 import { StatusView } from '../views';
-import TelemetryService from '../telemetry/telemetryService';
+import type TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('editors controller');
 

@@ -32,7 +32,7 @@ import {
 } from './dbTestHelper';
 import KeytarStub from './keytarStub';
 import { ext } from '../../extensionConstants';
-import { KeytarInterface } from '../../utils/keytar';
+import type { KeytarInterface } from '../../utils/keytar';
 
 const testDatabaseConnectionName = 'localhost:27018';
 const testDatabaseURI2WithTimeout =
