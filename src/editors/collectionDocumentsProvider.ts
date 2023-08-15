@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import { URLSearchParams } from 'url';
 
-import CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
-import ConnectionController from '../connectionController';
-import EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
+import type CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
+import type ConnectionController from '../connectionController';
+import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import formatError from '../utils/formatError';
-import { StatusView } from '../views';
+import type { StatusView } from '../views';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';

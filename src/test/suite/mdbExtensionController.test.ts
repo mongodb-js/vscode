@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ObjectId } from 'bson';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
-import { DataService } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
 import type { Document, Filter } from 'mongodb';

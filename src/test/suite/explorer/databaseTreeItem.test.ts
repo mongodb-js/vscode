@@ -3,7 +3,7 @@ import { after, before } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
 
-import { CollectionTreeItem } from '../../../explorer';
+import type { CollectionTreeItem } from '../../../explorer';
 import DatabaseTreeItem from '../../../explorer/databaseTreeItem';
 import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
 import {

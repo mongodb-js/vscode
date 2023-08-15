@@ -1,41 +1,43 @@
 import * as vscode from 'vscode';
 import path from 'path';
-import { OutputChannel, ProgressLocation, TextEditor } from 'vscode';
+import type { OutputChannel, TextEditor } from 'vscode';
+import { ProgressLocation } from 'vscode';
 import vm from 'vm';
 import os from 'os';
 import transpiler from 'bson-transpilers';
 
-import ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
-import ConnectionController, {
-  DataServiceEventTypes,
-} from '../connectionController';
+import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
+import type PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
+import type ConnectionController from '../connectionController';
+import { DataServiceEventTypes } from '../connectionController';
 import { createLogger } from '../logging';
-import { ConnectionTreeItem, DatabaseTreeItem } from '../explorer';
-import ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
+import type { ConnectionTreeItem } from '../explorer';
+import { DatabaseTreeItem } from '../explorer';
+import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import formatError from '../utils/formatError';
-import { LanguageServerController } from '../language';
+import type { LanguageServerController } from '../language';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumentTemplate';
 import playgroundInsertDocumentTemplate from '../templates/playgroundInsertDocumentTemplate';
-import {
+import type {
   PlaygroundResult,
   ShellEvaluateResult,
   ExportToLanguageAddons,
   ExportToLanguageNamespace,
-  ExportToLanguageMode,
   ThisDiagnosticFix,
   AllDiagnosticFixes,
 } from '../types/playgroundType';
-import PlaygroundResultProvider, {
+import { ExportToLanguageMode } from '../types/playgroundType';
+import type PlaygroundResultProvider from './playgroundResultProvider';
+import {
   PLAYGROUND_RESULT_SCHEME,
   PLAYGROUND_RESULT_URI,
 } from './playgroundResultProvider';
 import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
-import { StatusView } from '../views';
-import TelemetryService from '../telemetry/telemetryService';
+import type { StatusView } from '../views';
+import type TelemetryService from '../telemetry/telemetryService';
 import {
   isPlayground,
   getPlaygroundExtensionForTelemetry,

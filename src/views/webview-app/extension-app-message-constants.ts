@@ -1,5 +1,5 @@
-import LegacyConnectionModel from './connection-model/legacy-connection-model';
-import { FilePickerActionTypes } from './store/actions';
+import type LegacyConnectionModel from './connection-model/legacy-connection-model';
+import type { FilePickerActionTypes } from './store/actions';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.

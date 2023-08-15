@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { AppState } from '../../store/store';
+import type { AppState } from '../../store/store';
 import OverviewHeader from './overview-header/overview-header';
 import ConnectFormModal from '../connect-form-modal/connect-form-modal';
 import ConnectHelper from '../connect-helper/connect-helper';

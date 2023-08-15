@@ -5,8 +5,8 @@ import sinon from 'sinon';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 
+import type { AppState } from '../../../../../../views/webview-app/store/store';
 import {
-  AppState,
   initialState,
   rootReducer,
 } from '../../../../../../views/webview-app/store/store';

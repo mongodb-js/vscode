@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { TextEditor } from 'vscode';
+import type { TextEditor } from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
-import ConnectionController from '../connectionController';
+import type ConnectionController from '../connectionController';
 import { isPlayground } from '../utils/playground';
 
 export default class ActiveConnectionCodeLensProvider

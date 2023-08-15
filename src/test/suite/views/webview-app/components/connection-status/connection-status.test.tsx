@@ -11,8 +11,8 @@ import ConnectionStatus, {
   ConnectionStatus as PlainConnectionStatus,
 } from '../../../../../../views/webview-app/components/connection-status/connection-status';
 import { CONNECTION_STATUS } from '../../../../../../views/webview-app/extension-app-message-constants';
+import type { AppState } from '../../../../../../views/webview-app/store/store';
 import {
-  AppState,
   initialState,
   rootReducer,
 } from '../../../../../../views/webview-app/store/store';

@@ -1,11 +1,11 @@
 import * as React from 'react';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
-import {
-  ActionTypes,
+import type {
   OpenConnectionStringInputAction,
   ToggleShowConnectionFormAction,
 } from '../../store/actions';
+import { ActionTypes } from '../../store/actions';
 
 import styles from './connect-helper.less';
 

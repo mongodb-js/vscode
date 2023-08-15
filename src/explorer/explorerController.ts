@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 
-import ConnectionController, {
-  DataServiceEventTypes,
-} from '../connectionController';
+import type ConnectionController from '../connectionController';
+import { DataServiceEventTypes } from '../connectionController';
 import ExplorerTreeController from './explorerTreeController';
 
 export default class ExplorerController {

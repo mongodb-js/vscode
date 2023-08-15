@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
+import type {
   SSHTunnelHostnameChangedAction,
   SSHTunnelPasswordChangedAction,
   SSHTunnelPortChangedAction,
   SSHTunnelUsernameChangedAction,
 } from '../../../store/actions';
-import { AppState } from '../../../store/store';
+import { ActionTypes } from '../../../store/actions';
+import type { AppState } from '../../../store/store';
 import FormInput from '../../form/form-input';
 import FormGroup from '../../form/form-group';
 import LINKS from '../../../../../utils/links';

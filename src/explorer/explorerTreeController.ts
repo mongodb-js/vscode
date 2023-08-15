@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 
-import ConnectionController, {
-  DataServiceEventTypes,
-  StoreConnectionInfo,
-} from '../connectionController';
+import type { StoreConnectionInfo } from '../connectionController';
+import type ConnectionController from '../connectionController';
+import { DataServiceEventTypes } from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import { createLogger } from '../logging';
 import { DOCUMENT_ITEM } from './documentTreeItem';

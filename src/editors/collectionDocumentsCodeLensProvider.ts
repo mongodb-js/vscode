@@ -2,7 +2,7 @@ import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 
-import CollectionDocumentsOperationStore from './collectionDocumentsOperationsStore';
+import type CollectionDocumentsOperationStore from './collectionDocumentsOperationsStore';
 import {
   CONNECTION_ID_URI_IDENTIFIER,
   NAMESPACE_URI_IDENTIFIER,

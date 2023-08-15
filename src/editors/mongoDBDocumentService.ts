@@ -1,14 +1,14 @@
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
-import ConnectionController from '../connectionController';
+import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
-import { StatusView } from '../views';
-import TelemetryService from '../telemetry/telemetryService';
+import type { StatusView } from '../views';
+import type TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('document controller');
 

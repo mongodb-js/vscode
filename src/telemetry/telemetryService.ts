@@ -1,17 +1,17 @@
 import path from 'path';
 import * as vscode from 'vscode';
 import { config } from 'dotenv';
-import { DataService } from 'mongodb-data-service';
+import type { DataService } from 'mongodb-data-service';
 import fs from 'fs';
 import SegmentAnalytics from 'analytics-node';
 
-import { ConnectionTypes } from '../connectionController';
+import type { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
-import { DocumentSource } from '../documentSource';
+import type { DocumentSource } from '../documentSource';
 import { getConnectionTelemetryProperties } from './connectionTelemetry';
 import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
 import type { ShellEvaluateResult } from '../types/playgroundType';
-import { StorageController } from '../storage';
+import type { StorageController } from '../storage';
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires

@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
+import type {
   AuthSourceChangedAction,
   PasswordChangedAction,
   UsernameChangedAction,
 } from '../../../../store/actions';
+import { ActionTypes } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
 import LINKS from '../../../../../../utils/links';
 

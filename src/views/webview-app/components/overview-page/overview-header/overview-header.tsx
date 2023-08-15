@@ -4,10 +4,8 @@ import { Icon } from '@iconify/react';
 import bookIcon from '@iconify-icons/codicon/book';
 
 import MongoDBLogo from '../../mongodb-logo/mongodb-logo';
-import {
-  ActionTypes,
-  ToggleShowResourcesPanelAction,
-} from '../../../store/actions';
+import type { ToggleShowResourcesPanelAction } from '../../../store/actions';
+import { ActionTypes } from '../../../store/actions';
 
 import styles from './overview-header.less';
 

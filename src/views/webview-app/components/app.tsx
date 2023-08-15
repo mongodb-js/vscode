@@ -2,18 +2,18 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import OverviewPage from './overview-page/overview-page';
-import {
-  ActionTypes,
+import type {
   ConnectionEventOccuredAction,
   FilePickerActions,
   FilePickerActionTypes,
   SetConnectionStatusAction,
 } from '../store/actions';
-import {
+import { ActionTypes } from '../store/actions';
+import type {
   CONNECTION_STATUS,
   MESSAGE_FROM_EXTENSION_TO_WEBVIEW,
-  MESSAGE_TYPES,
 } from '../extension-app-message-constants';
+import { MESSAGE_TYPES } from '../extension-app-message-constants';
 
 import styles from '../connect.module.less';
 

@@ -6,8 +6,8 @@ import { Provider } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { createStore } from 'redux';
 
+import type { AppState } from '../../../../../../views/webview-app/store/store';
 import {
-  AppState,
   initialState,
   rootReducer,
 } from '../../../../../../views/webview-app/store/store';

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import TreeItemParent from './treeItemParentInterface';
-import PlaygroundsTreeItem from './playgroundsTreeItem';
+import type TreeItemParent from './treeItemParentInterface';
+import type PlaygroundsTreeItem from './playgroundsTreeItem';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 
 export default class PlaygroundsTreeHeader

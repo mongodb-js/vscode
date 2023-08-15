@@ -1,10 +1,10 @@
-import READ_PREFERENCES from '../connection-model/constants/read-preferences';
-import AUTH_STRATEGIES from '../connection-model/constants/auth-strategies';
-import SSL_METHODS from '../connection-model/constants/ssl-methods';
-import SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
-import { CONNECTION_STATUS } from '../extension-app-message-constants';
-import { CONNECTION_FORM_TABS } from './constants';
-import { Host } from '../connection-model/legacy-connection-model';
+import type READ_PREFERENCES from '../connection-model/constants/read-preferences';
+import type AUTH_STRATEGIES from '../connection-model/constants/auth-strategies';
+import type SSL_METHODS from '../connection-model/constants/ssl-methods';
+import type SSH_TUNNEL_TYPES from '../connection-model/constants/ssh-tunnel-types';
+import type { CONNECTION_STATUS } from '../extension-app-message-constants';
+import type { CONNECTION_FORM_TABS } from './constants';
+import type { Host } from '../connection-model/legacy-connection-model';
 
 export enum ActionTypes {
   AUTH_SOURCE_CHANGED = 'AUTH_SOURCE_CHANGED',

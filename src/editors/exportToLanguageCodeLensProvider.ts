@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 
 import EXTENSION_COMMANDS from '../commands';
+import type { ExportToLanguageAddons } from '../types/playgroundType';
 import {
   ExportToLanguageMode,
-  ExportToLanguageAddons,
   ExportToLanguages,
 } from '../types/playgroundType';
 

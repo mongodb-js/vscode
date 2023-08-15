@@ -1,5 +1,5 @@
-import MDBExtensionController from '../../mdbExtensionController';
-import { ExtensionContextStub } from './stubs';
+import type MDBExtensionController from '../../mdbExtensionController';
+import type { ExtensionContextStub } from './stubs';
 
 // This interface has the instance of the extension we use for testing.
 // This should be used for integration tests and higher level extension

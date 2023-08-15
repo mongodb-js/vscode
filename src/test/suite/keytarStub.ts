@@ -1,6 +1,6 @@
 import { promisify } from 'util';
 
-import { KeytarInterface } from '../../utils/keytar';
+import type { KeytarInterface } from '../../utils/keytar';
 
 const retrievalDelay = 1; // ms simulated delay on keytar methods.
 

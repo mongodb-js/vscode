@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ActionTypes, SSLMethodChangedAction } from '../../../store/actions';
-import { AppState } from '../../../store/store';
+import type { SSLMethodChangedAction } from '../../../store/actions';
+import { ActionTypes } from '../../../store/actions';
+import type { AppState } from '../../../store/store';
 import SSL_METHODS, {
   SSLMethodOptions,
 } from '../../../connection-model/constants/ssl-methods';

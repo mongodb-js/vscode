@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
-  ReplicaSetChangedAction,
-} from '../../../../store/actions';
-import { AppState } from '../../../../store/store';
+import type { ReplicaSetChangedAction } from '../../../../store/actions';
+import { ActionTypes } from '../../../../store/actions';
+import type { AppState } from '../../../../store/store';
 import FormInput from '../../../form/form-input';
 
 type StateProps = {

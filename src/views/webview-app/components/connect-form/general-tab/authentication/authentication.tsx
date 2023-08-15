@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import {
-  ActionTypes,
-  AuthStrategyChangedAction,
-} from '../../../../store/actions';
+import type { AuthStrategyChangedAction } from '../../../../store/actions';
+import { ActionTypes } from '../../../../store/actions';
 import AUTH_STRATEGIES, {
   AuthStrategies,
 } from '../../../../connection-model/constants/auth-strategies';
@@ -13,7 +11,7 @@ import LDAP from './ldap';
 import MongoDBAuth from './mongodb-authentication';
 import ScramSha256 from './scram-sha-256';
 import X509 from './x509';
-import { AppState } from '../../../../store/store';
+import type { AppState } from '../../../../store/store';
 import RadioBoxGroup from '../../../form/radio-box-group/radio-box-group';
 
 type StateProps = {
