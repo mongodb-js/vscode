@@ -697,7 +697,9 @@ suite('MDBExtensionController Test Suite', function () {
       assert.strictEqual(calledNamespace, 'testDbName.testColName');
     });
 
-    test('mdb.dropCollection fails when a collection does not exist', async () => {
+    // Starting server 7.0, the outcome of dropping nonexistent collections is successful SERVER-43894
+    // TODO: update or delete the test according to VSCODE-461
+    test.skip('mdb.dropCollection fails when a collection does not exist', async () => {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;
       await testConnectionController.addNewConnectionStringAndConnect(
