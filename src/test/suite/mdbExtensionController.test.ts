@@ -697,7 +697,9 @@ suite('MDBExtensionController Test Suite', function () {
       assert.strictEqual(calledNamespace, 'testDbName.testColName');
     });
 
-    test('mdb.dropCollection fails when a collection does not exist', async () => {
+    // Starting server 7.0, the outcome of dropping nonexistent collections is successful SERVER-43894
+    // TODO: update or delete the test according to VSCODE-461
+    test.skip('mdb.dropCollection fails when a collection does not exist', async () => {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;
       await testConnectionController.addNewConnectionStringAndConnect(
@@ -720,11 +722,16 @@ suite('MDBExtensionController Test Suite', function () {
         'mdb.dropCollection',
         testCollectionTreeItem
       );
+      assert(
+        successfullyDropped === false,
+        'Expected the drop collection command handler to return a false succeeded response'
+      );
 
-      // Starting server 7.0, the outcome of dropping nonexistent collections is successful SERVER-43894
-      // TODO: update or delete the test according to VSCODE-461
-      assert(typeof successfullyDropped, 'boolean');
-
+      const expectedMessage = 'Drop collection failed: ns not found';
+      assert(
+        showErrorMessageStub.firstCall.args[0] === expectedMessage,
+        `Expected "${expectedMessage}" when dropping a collection that doesn't exist, recieved "${showErrorMessageStub.firstCall.args[0]}"`
+      );
       await testConnectionController.disconnect();
       testConnectionController.clearAllConnections();
     });
