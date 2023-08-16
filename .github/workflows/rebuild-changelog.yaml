@@ -8,7 +8,7 @@ on:
   release:
     types: [published]
 
-  # once a week
+  # nightly
   schedule:
     - cron: "0 3 * * *"
 
