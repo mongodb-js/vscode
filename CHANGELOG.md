@@ -1,5 +1,124 @@
 # Change Log
 
+## [v1.2.0](https://github.com/mongodb-js/vscode/releases/tag/v1.2.0) - 2023-08-15
+
+## What's Changed
+* feat: added Export to Go support VSCODE-411 by @GaurabAryal in https://github.com/mongodb-js/vscode/pull/567
+* chore: only load keytar during the migration process VSCODE-450 by @kmruiz in https://github.com/mongodb-js/vscode/pull/572
+* fix: adopt dns result order changes VSCODE-458 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/575
+
+## New Contributors
+* @GaurabAryal made their first contribution in https://github.com/mongodb-js/vscode/pull/567
+* @kmruiz made their first contribution in https://github.com/mongodb-js/vscode/pull/572
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.1.0...v1.2.0
+
+
+## [v1.1.0](https://github.com/mongodb-js/vscode/releases/tag/v1.1.0) - 2023-07-14
+
+# Important Information
+Starting with this release (v1.1.0), our Extension will use VS Code's SecretStorage api to store secrets for saved connections, instead of [Keytar](https://github.com/atom/node-keytar) which is now officially archived and not maintained anymore.
+
+To dig deeper please feel free to follow the links mentioned below:
+- [VS Code's announcement about removal of Keytar shim from VS Code](https://github.com/microsoft/vscode-discussions/discussions/662)
+- [Issue created to remove the direct dependency on Keytar from our extension](https://github.com/mongodb-js/vscode/issues/546)
+
+## What does this mean for our extension users?
+- Nothing much, just update to the latest version of our extension. The extension itself will take care of restoring secrets from Keytar to SecretStorage.
+
+---
+
+### Change log
+* chore(ci): truncate origins for vulnerability reports in jira by @mcasimir in https://github.com/mongodb-js/vscode/pull/547
+* refactor: simplify constructor argument assignment VSCODE-441 by @Anemy in https://github.com/mongodb-js/vscode/pull/551
+* chore: bump minor dependencies by @alenakhineika in https://github.com/mongodb-js/vscode/pull/553
+* chore: added migration step to migrate keytar secrets to vscode SecretStorage - VSCODE-435 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/552
+* feat(tree-explorer): sort dbs in the tree by name by @Anemy in https://github.com/mongodb-js/vscode/pull/488
+* build(deps): bump json5 from 1.0.1 to 1.0.2 by @dependabot in https://github.com/mongodb-js/vscode/pull/463
+* chore: update semver and a few other dependencies, removes unused code - VSCODE-436, VSCODE-437 by @Anemy in https://github.com/mongodb-js/vscode/pull/556
+* chore: fix for ubuntu build failures by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/561
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.0.2...v1.1.0
+
+
+## [v1.0.2](https://github.com/mongodb-js/vscode/releases/tag/v1.0.2) - 2023-06-21
+
+## What's Changed
+* feat: add autocomplete support for `$percentile`, `$median`, and `$$USER_ROLES` COMPASS-6780, COMPASS-6781 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/523
+* chore: add new `utm` attributes to all mongodb links VSCODE-356 by @gribnoysup in https://github.com/mongodb-js/vscode/pull/526
+* chore: bump mongosh and dataservice VSCODE-421 by @Anemy in https://github.com/mongodb-js/vscode/pull/528
+* build(deps): bump `fast-xml-parser` and `@aws-sdk/credential-providers` by @dependabot in https://github.com/mongodb-js/vscode/pull/529
+* chore(deps): bump `mongodb-cloud-info` to 2.0 for ipv6 support by @lerouxb in https://github.com/mongodb-js/vscode/pull/530
+* Add `codeql` by @mcasimir in https://github.com/mongodb-js/vscode/pull/533
+* docs: add testing matrix link and information to `CONTRIBUTING/Releasing` docs by @Anemy in https://github.com/mongodb-js/vscode/pull/531
+* chore: add vulnerability scan VSCODE-424 by @mcasimir in https://github.com/mongodb-js/vscode/pull/532
+* chore(ci): fix `create-jira-tickets` task by @mcasimir in https://github.com/mongodb-js/vscode/pull/534
+* chore: update `mongodb-cloud-info` to v2.0.1 by @lerouxb in https://github.com/mongodb-js/vscode/pull/537
+* chore(ci): fix failing jobs due to outdated actions by @mcasimir in https://github.com/mongodb-js/vscode/pull/535
+* build: bump mongosh to 1.10.0 VSCODE-415 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/542
+* test: run nightly tests against the latest VSCode VSCODE-340 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/543
+* fix: disable playground loaded event VSCODE-432 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/545
+
+## New Contributors
+* @lerouxb made their first contribution in https://github.com/mongodb-js/vscode/pull/530
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.0.1...v1.0.2
+
+
+## [v1.0.1](https://github.com/mongodb-js/vscode/releases/tag/v1.0.1) - 2023-05-17
+
+## What's Changed
+* feat: add playground created telemetry event VSCODE-379 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/508
+* fix: collection with dots in the name disappears from the suggestions list VSCODE-407 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/514
+* feat: clear completions cache on Refresh action on the sidebar VSCODE-408 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/517
+* refactor: remove columnstore indexes COMPASS-6783 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/522
+* docs: README updates VSCODE-395 by @mmarcon in https://github.com/mongodb-js/vscode/pull/516
+* fix(docs): remove br html tag in markdown, remove extra spacing by @Anemy in https://github.com/mongodb-js/vscode/pull/524
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v0.11.1...v1.0.1
+
+
+## [v0.11.1](https://github.com/mongodb-js/vscode/releases/tag/v0.11.1) - 2023-03-31
+
+## What's Changed
+* feat(playground): adds new Time-Series options for collection creation in playgrounds VSCODE-362 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/478
+* feat(playground): makes the creation of Column Store indexes more visible in index creation template VSCODE-364 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/479
+* feat(tree-explorer): add insert document context menu action VSCODE-367 by @Anemy in https://github.com/mongodb-js/vscode/pull/469
+* feat(playgrounds): update playground template VSCODE-337 by @Anemy in https://github.com/mongodb-js/vscode/pull/470
+* fix: make install-local script work VSCODE-310 by @Anemy in https://github.com/mongodb-js/vscode/pull/471
+* feat: playgrounds in JS VSCODE-372 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/482
+* feat: show MongoDB completion items before other JS completion VSCODE-382, VSCODE-385 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/490
+* feat: suggest use and db commands VSCODE-380 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/491
+* feat: add diagnostics feature to the language server VSCODE-375 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/493
+* feat: extend playground completions VSCODE-376, VSCODE-381, VSCODE-389, VSCODE-390 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/497
+* feat: provide shell methods completions after getCollection VSCODE-390 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/498
+* feat: system variables and fields completion VSCODE-377, VSCODE-393 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/500
+* feat: add links to MQL documentation VSCODE-387 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/501
+* docs: document the semantic highlighting issue VSCODE-374 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/503
+* fix: save documents from the tree view and do not reopen them for playground runs VSCODE-399, VSCODE-400 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/504
+
+## New Contributors
+* @himanshusinghs made their first contribution in https://github.com/mongodb-js/vscode/pull/467
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v0.10.0...v0.11.1
+
+
+## [v0.10.0](https://github.com/mongodb-js/vscode/releases/tag/v0.10.0) - 2023-01-12
+
+## What's Changed
+* feat(tree-explorer): Add open and copy document tree view context menu items VSCODE-348 by @Anemy in https://github.com/mongodb-js/vscode/pull/445
+* feat(tree-explorer): add delete document context menu item VSCODE-349 by @Anemy in https://github.com/mongodb-js/vscode/pull/452
+* fix(connections): improve disconnected action error messages by @Anemy in https://github.com/mongodb-js/vscode/pull/453
+* feat(tree-explorer): add clone document context menu item to document item in tree explorer VSCODE-350 by @Anemy in https://github.com/mongodb-js/vscode/pull/458
+* fix(playgrounds): handle out of memory playground worker VSCODE-269 by @Anemy in https://github.com/mongodb-js/vscode/pull/459
+* chore(deps): bump mongosh to 1.6.2, driver to 4.13.0 VSCODE-357 by @Anemy in https://github.com/mongodb-js/vscode/pull/465
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v0.9.5...v0.10.0
+
+
 ## [v0.9.5](https://github.com/mongodb-js/vscode/releases/tag/v0.9.5) - 2022-10-18
 
 ## Added
