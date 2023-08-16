@@ -1,11 +1,16 @@
 name: Rebuild changelog
 
 on:
-  # Once a week or on release published
+  # manually
+  workflow_dispatch:
+
+  # on release published
   release:
     types: [published]
+
+  # once a week
   schedule:
-    - cron: "0 3 * * 0"
+    - cron: "0 3 * * *"
 
 jobs:
   rebuild-changelog:
@@ -14,7 +19,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          # don't checkout a detached HEAD, is important to have a real base
+          # branch when creating a PR
+          ref: ${{ github.head_ref }}
+
+          # this is important so git log can pick up on
+          # the whole history to generate the CHANGELOG
+          fetch-depth: '0'
+
       - name: Set up Git
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
