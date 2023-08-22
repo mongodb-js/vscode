@@ -175,7 +175,7 @@ export default class ConnectionController {
 
     const hasConnectionsThatDidNotMigrateEarlier =
       !!globalAndWorkspaceConnections.some(
-        ([, connectionInfo]) => !connectionInfo.storageLocation
+        ([, connectionInfo]) => !connectionInfo.secretStorageLocation
       );
 
     if (hasConnectionsThatDidNotMigrateEarlier) {
