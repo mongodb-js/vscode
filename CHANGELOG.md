@@ -1,5 +1,20 @@
 # Change Log
 
+## [v1.2.1](https://github.com/mongodb-js/vscode/releases/tag/v1.2.1) - 2023-08-23
+
+## What's Changed
+* chore: use consistent type imports VSCODE-410 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/579
+* chore: start changelog PR from head, add manual trigger and build nightly by @mcasimir in https://github.com/mongodb-js/vscode/pull/580
+* chore: update CHANGELOG.md by @github-actions in https://github.com/mongodb-js/vscode/pull/581
+* fix: disable "Saved Connections Loaded" event by @alenakhineika in https://github.com/mongodb-js/vscode/pull/585
+* fix: check secretStorageLocation instead of storageLocation by @alenakhineika in https://github.com/mongodb-js/vscode/pull/583
+
+## New Contributors
+* @github-actions made their first contribution in https://github.com/mongodb-js/vscode/pull/581
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.2.0...v1.2.1
+
+
 ## [v1.2.0](https://github.com/mongodb-js/vscode/releases/tag/v1.2.0) - 2023-08-15
 
 ## What's Changed
