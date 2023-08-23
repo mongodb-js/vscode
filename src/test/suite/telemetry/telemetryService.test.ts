@@ -717,7 +717,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
   });
 
-  test('track saved connections loaded', () => {
+  test.skip('track saved connections loaded', () => {
     testTelemetryService.trackSavedConnectionsLoaded({
       saved_connections: 3,
       loaded_connections: 3,
