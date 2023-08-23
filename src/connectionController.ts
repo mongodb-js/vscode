@@ -164,7 +164,7 @@ export default class ConnectionController {
         (ids, [connectionId, connectionInfo]) => {
           if (
             connectionInfo.secretStorageLocation ===
-            SecretStorageLocation.Keytar
+            SecretStorageLocation.KeytarSecondAttempt
           ) {
             return [...ids, connectionId];
           }
@@ -175,7 +175,9 @@ export default class ConnectionController {
 
     const hasConnectionsThatDidNotMigrateEarlier =
       !!globalAndWorkspaceConnections.some(
-        ([, connectionInfo]) => !connectionInfo.storageLocation
+        ([, connectionInfo]) =>
+          !connectionInfo.secretStorageLocation ||
+          connectionInfo.secretStorageLocation === 'vscode.Keytar'
       );
 
     if (hasConnectionsThatDidNotMigrateEarlier) {
@@ -203,7 +205,7 @@ export default class ConnectionController {
           this._connections[connectionId] = connectionInfoWithSecrets;
           const connectionSecretsInKeytar =
             connectionInfoWithSecrets.secretStorageLocation ===
-            SecretStorageLocation.Keytar;
+            SecretStorageLocation.KeytarSecondAttempt;
           if (
             connectionSecretsInKeytar &&
             !connectionIdsThatDidNotMigrateEarlier.includes(connectionId)
@@ -229,7 +231,9 @@ export default class ConnectionController {
       loaded_connections: loadedConnections.length,
       connections_with_secrets_in_keytar: loadedConnections.filter(
         (connection) =>
-          connection.secretStorageLocation === SecretStorageLocation.Keytar
+          connection.secretStorageLocation === SecretStorageLocation.Keytar ||
+          connection.secretStorageLocation ===
+            SecretStorageLocation.KeytarSecondAttempt
       ).length,
       connections_with_secrets_in_secret_storage: loadedConnections.filter(
         (connection) =>
@@ -265,7 +269,10 @@ export default class ConnectionController {
         );
       }
 
-      if (!connectionInfo.secretStorageLocation) {
+      if (
+        !connectionInfo.secretStorageLocation ||
+        connectionInfo.secretStorageLocation === 'vscode.Keytar'
+      ) {
         return await this._migrateConnectionWithKeytarSecrets(
           connectionInfo as StoreConnectionInfoWithConnectionOptions
         );
@@ -274,7 +281,8 @@ export default class ConnectionController {
       // We tried migrating this connection earlier but failed because Keytar was not
       // available. So we return simply the connection without secrets.
       if (
-        connectionInfo.secretStorageLocation === SecretStorageLocation.Keytar
+        connectionInfo.secretStorageLocation ===
+        SecretStorageLocation.KeytarSecondAttempt
       ) {
         return connectionInfo as MigratedStoreConnectionInfoWithConnectionOptions;
       }
@@ -322,7 +330,7 @@ export default class ConnectionController {
       return await this._storageController.saveConnection<MigratedStoreConnectionInfoWithConnectionOptions>(
         {
           ...savedConnectionInfo,
-          secretStorageLocation: SecretStorageLocation.Keytar,
+          secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
         }
       );
     }
