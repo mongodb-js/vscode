@@ -1464,7 +1464,7 @@ suite('Connection Controller Test Suite', function () {
           );
           assert.strictEqual(
             updatedConnection.secretStorageLocation,
-            SecretStorageLocation.Keytar
+            SecretStorageLocation.KeytarSecondAttempt
           );
         });
 
@@ -1661,6 +1661,16 @@ suite('Connection Controller Test Suite', function () {
           },
           'random-connection-2': {
             id: 'random-connection-2',
+            name: 'localhost:27017',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+            },
+          },
+          'random-connection-3': {
+            id: 'random-connection-3',
             name: 'localhost:27018',
             storageLocation: 'GLOBAL',
             connectionOptions: {
@@ -1676,7 +1686,7 @@ suite('Connection Controller Test Suite', function () {
         (connectionInfo) =>
           Promise.resolve({
             ...connectionInfo,
-            secretStorageLocation: SecretStorageLocation.Keytar,
+            secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
           } as any)
       );
       const trackStub = testSandbox.stub(
@@ -1691,16 +1701,16 @@ suite('Connection Controller Test Suite', function () {
       // Notified to user
       assert.strictEqual(showInformationMessageStub.calledOnce, true);
       assert.deepStrictEqual(showInformationMessageStub.lastCall.args, [
-        keytarMigrationFailedMessage(1),
+        keytarMigrationFailedMessage(2),
       ]);
 
       // Tracked
       assert.strictEqual(trackStub.calledOnce, true);
       assert.deepStrictEqual(trackStub.lastCall.args, [
         {
-          saved_connections: 2,
-          loaded_connections: 2,
-          connections_with_failed_keytar_migration: 1,
+          saved_connections: 3,
+          loaded_connections: 3,
+          connections_with_failed_keytar_migration: 2,
         },
       ]);
     });
@@ -1719,7 +1729,7 @@ suite('Connection Controller Test Suite', function () {
             id: 'random-connection-1',
             name: 'localhost:27017',
             storageLocation: 'GLOBAL',
-            secretStorageLocation: SecretStorageLocation.Keytar,
+            secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
             connectionOptions: {
               connectionString:
                 'mongodb://localhost:27017/?readPreference=primary&ssl=false',
@@ -1729,7 +1739,7 @@ suite('Connection Controller Test Suite', function () {
             id: 'random-connection-2',
             name: 'localhost:27018',
             storageLocation: 'GLOBAL',
-            secretStorageLocation: SecretStorageLocation.Keytar,
+            secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
             connectionOptions: {
               connectionString:
                 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
@@ -1743,7 +1753,7 @@ suite('Connection Controller Test Suite', function () {
         (connectionInfo) =>
           Promise.resolve({
             ...connectionInfo,
-            secretStorageLocation: SecretStorageLocation.Keytar,
+            secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
           } as any)
       );
       const trackStub = testSandbox.stub(
@@ -1802,6 +1812,16 @@ suite('Connection Controller Test Suite', function () {
                 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
             },
           },
+          'random-connection-4': {
+            id: 'random-connection-4',
+            name: 'localhost:27018',
+            storageLocation: 'GLOBAL',
+            secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
+            connectionOptions: {
+              connectionString:
+                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+            },
+          },
         } as any;
       });
       testSandbox.replace(
@@ -1824,10 +1844,10 @@ suite('Connection Controller Test Suite', function () {
       assert.strictEqual(trackStub.calledOnce, true);
       assert.deepStrictEqual(trackStub.lastCall.args, [
         {
-          connections_with_secrets_in_keytar: 1,
+          connections_with_secrets_in_keytar: 2,
           connections_with_secrets_in_secret_storage: 2,
-          saved_connections: 3,
-          loaded_connections: 3,
+          saved_connections: 4,
+          loaded_connections: 4,
         },
       ]);
     });

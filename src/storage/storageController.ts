@@ -34,11 +34,13 @@ export type ConnectionsFromStorage = {
 
 export const SecretStorageLocation = {
   Keytar: 'vscode.Keytar',
+  KeytarSecondAttempt: 'vscode.KeytarSecondAttempt',
   SecretStorage: 'vscode.SecretStorage',
 } as const;
 
 export type SecretStorageLocationType =
   | typeof SecretStorageLocation.Keytar
+  | typeof SecretStorageLocation.KeytarSecondAttempt
   | typeof SecretStorageLocation.SecretStorage;
 
 interface StorageVariableContents {
