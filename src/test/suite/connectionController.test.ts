@@ -1772,7 +1772,7 @@ suite('Connection Controller Test Suite', function () {
       assert.strictEqual(trackStub.notCalled, true);
     });
 
-    test('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async () => {
+    test.skip('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async () => {
       testSandbox.replace(testStorageController, 'get', (key, storage) => {
         if (
           storage === StorageLocation.WORKSPACE ||

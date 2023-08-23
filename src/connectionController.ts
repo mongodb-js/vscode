@@ -224,7 +224,9 @@ export default class ConnectionController {
       this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     }
 
-    this._telemetryService.trackSavedConnectionsLoaded({
+    // TODO: re-enable with fewer 'Saved Connections Loaded' events
+    // https://jira.mongodb.org/browse/VSCODE-462
+    /* this._telemetryService.trackSavedConnectionsLoaded({
       saved_connections: globalAndWorkspaceConnections.length,
       loaded_connections: loadedConnections.length,
       connections_with_secrets_in_keytar: loadedConnections.filter(
@@ -238,7 +240,7 @@ export default class ConnectionController {
           connection.secretStorageLocation ===
           SecretStorageLocation.SecretStorage
       ).length,
-    });
+    }); */
 
     if (connectionsThatDidNotMigrate.length) {
       log.error(
