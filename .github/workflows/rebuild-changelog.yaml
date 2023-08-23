@@ -65,6 +65,7 @@ jobs:
         uses: peter-evans/create-pull-request@v4
         with:
           commit-message: Update changelog
+          base: main
           branch: ci/update-changelog
           title: 'chore: update CHANGELOG.md'
           add-paths: |
