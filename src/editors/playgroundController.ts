@@ -573,7 +573,11 @@ export default class PlaygroundController {
 
     if (evaluateResponse?.outputLines?.length) {
       for (const line of evaluateResponse.outputLines) {
-        this._outputChannel.appendLine(line.content);
+        this._outputChannel.appendLine(
+          typeof line.content === 'string'
+            ? line.content
+            : JSON.stringify(line.content)
+        );
       }
 
       this._outputChannel.show(true);
