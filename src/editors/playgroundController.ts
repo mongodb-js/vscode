@@ -5,6 +5,7 @@ import { ProgressLocation } from 'vscode';
 import vm from 'vm';
 import os from 'os';
 import transpiler from 'bson-transpilers';
+import util from 'util';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import type PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
@@ -110,8 +111,8 @@ export default class PlaygroundController {
 
   _isPartialRun = false;
 
+  _outputChannel: OutputChannel;
   private _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
-  private _outputChannel: OutputChannel;
   private _playgroundResultViewColumn?: vscode.ViewColumn;
   private _playgroundResultTextDocument?: vscode.TextDocument;
   private _statusView: StatusView;
@@ -576,7 +577,7 @@ export default class PlaygroundController {
         this._outputChannel.appendLine(
           typeof line.content === 'string'
             ? line.content
-            : JSON.stringify(line.content)
+            : util.inspect(line.content)
         );
       }
 

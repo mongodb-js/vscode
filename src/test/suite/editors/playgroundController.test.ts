@@ -212,6 +212,7 @@ suite('Playground Controller Test Suite', function () {
 
   suite('playground is open', () => {
     let mockActiveTestEditor;
+    let showInformationMessageStub: SinonStub;
 
     beforeEach(() => {
       mockActiveTestEditor = {
@@ -232,7 +233,10 @@ suite('Playground Controller Test Suite', function () {
       testPlaygroundController._activeTextEditor =
         mockActiveTestEditor as vscode.TextEditor;
       testPlaygroundController._selectedText = undefined;
-      sandbox.stub(vscode.window, 'showInformationMessage');
+      showInformationMessageStub = sandbox.stub(
+        vscode.window,
+        'showInformationMessage'
+      );
     });
 
     suite('user is not connected', () => {
@@ -394,127 +398,121 @@ suite('Playground Controller Test Suite', function () {
           expectedMessage
         );
       });
-    });
-  });
 
-  suite('confirmation modal', () => {
-    let showInformationMessageStub: SinonStub;
+      suite('output channels', () => {
+        let outputChannelAppendLineStub: SinonStub;
+        let outputChannelClearStub: SinonStub;
+        let outputChannelShowStub: SinonStub;
 
-    beforeEach(() => {
-      showInformationMessageStub = sandbox.stub(
-        vscode.window,
-        'showInformationMessage'
-      );
-      const mockActiveTestEditor = {
-        document: {
-          languageId: 'javascript',
-          uri: mockDocumentUri,
-          getText: () => "use('dbName');",
-          lineAt: () => ({ text: "use('dbName');" }),
-        },
-        selections: [
-          new vscode.Selection(
-            new vscode.Position(0, 0),
-            new vscode.Position(0, 0)
-          ),
-        ],
-      } as unknown as vscode.TextEditor;
-      testPlaygroundController._activeTextEditor = mockActiveTestEditor;
+        beforeEach(function () {
+          outputChannelAppendLineStub = sinon.stub();
+          outputChannelClearStub = sinon.stub();
+          outputChannelShowStub = sinon.stub();
 
-      sandbox.replace(
-        testPlaygroundController._connectionController,
-        'getActiveConnectionName',
-        () => 'fakeName'
-      );
-      sandbox.replace(
-        testPlaygroundController._connectionController,
-        'isCurrentlyConnected',
-        () => true
-      );
-      sandbox.replace(
-        testPlaygroundController._connectionController,
-        'getActiveDataService',
-        () =>
-          ({
-            getMongoClientConnectionOptions: () => ({
-              url: TEST_DATABASE_URI,
-              options: {},
-            }),
-          } as unknown as DataService)
-      );
-      sandbox.replace(
-        testPlaygroundController._connectionController,
-        'getActiveConnectionId',
-        () => 'pineapple'
-      );
-    });
+          const mockOutputChannel = {
+            appendLine: outputChannelAppendLineStub,
+            clear: outputChannelClearStub,
+            show: outputChannelShowStub,
+          } as Partial<vscode.OutputChannel> as unknown as vscode.OutputChannel;
+          sandbox.replace(
+            testPlaygroundController,
+            '_outputChannel',
+            mockOutputChannel
+          );
+          showInformationMessageStub.resolves('Yes');
+        });
 
-    test('show a confirmation message if mdb.confirmRunAll is true', async () => {
-      showInformationMessageStub.resolves('Yes');
+        test('show the output in the vscode output channel as a string', async () => {
+          const outputLines = [
+            'test',
+            { pineapple: 'yes' },
+            ['porcupine', { anObject: true }],
+          ].map((content) => ({ content }));
+          sandbox.replace(
+            testPlaygroundController,
+            '_evaluateWithCancelModal',
+            sandbox.stub().resolves({
+              outputLines,
+              result: '123',
+            })
+          );
 
-      const fakeEvaluateWithCancelModal = sandbox.fake.resolves({
-        outputLines: [],
-        result: '123',
+          expect(outputChannelClearStub).to.not.be.called;
+          expect(outputChannelShowStub).to.not.be.called;
+          expect(outputChannelAppendLineStub).to.not.be.called;
+
+          await testPlaygroundController.runAllPlaygroundBlocks();
+
+          expect(outputChannelClearStub).to.be.calledOnce;
+          expect(outputChannelShowStub).to.be.calledOnce;
+          expect(outputChannelAppendLineStub.calledThrice).to.be.true;
+          expect(outputChannelAppendLineStub.firstCall.args[0]).to.equal(
+            'test'
+          );
+          // Make sure we're not printing anything like [object Object].
+          expect(outputChannelAppendLineStub.secondCall.args[0]).to.equal(
+            "{ pineapple: 'yes' }"
+          );
+          expect(outputChannelAppendLineStub.thirdCall.args[0]).to.equal(
+            "[ 'porcupine', { anObject: true } ]"
+          );
+        });
       });
-      sandbox.replace(
-        testPlaygroundController,
-        '_evaluateWithCancelModal',
-        fakeEvaluateWithCancelModal
-      );
 
-      const fakeOpenPlaygroundResult = sandbox.fake();
-      sandbox.replace(
-        testPlaygroundController,
-        '_openPlaygroundResult',
-        fakeOpenPlaygroundResult
-      );
+      suite('confirmation modal', () => {
+        beforeEach(function () {
+          sandbox.replace(
+            testPlaygroundController,
+            '_evaluateWithCancelModal',
+            sandbox.stub().resolves({
+              outputLines: [],
+              result: '123',
+            })
+          );
+          sandbox.replace(
+            testPlaygroundController,
+            '_openPlaygroundResult',
+            sandbox.stub()
+          );
+        });
 
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
+        test('show a confirmation message if mdb.confirmRunAll is true', async () => {
+          showInformationMessageStub.resolves('Yes');
 
-      expect(result).to.be.equal(true);
-      expect(showInformationMessageStub).to.have.been.calledOnce;
-    });
+          const result =
+            await testPlaygroundController.runAllPlaygroundBlocks();
 
-    test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
-      showInformationMessageStub.resolves('Yes');
+          expect(result).to.be.equal(true);
+          expect(showInformationMessageStub).to.have.been.calledOnce;
+        });
 
-      await vscode.workspace
-        .getConfiguration('mdb')
-        .update('confirmRunAll', false);
+        test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
+          showInformationMessageStub.resolves('Yes');
 
-      const fakeEvaluateWithCancelModal = sandbox.fake.resolves({
-        outputLines: [],
-        result: '123',
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('confirmRunAll', false);
+
+          const result =
+            await testPlaygroundController.runAllPlaygroundBlocks();
+
+          expect(result).to.be.equal(true);
+          expect(showInformationMessageStub).to.not.have.been.called;
+        });
+
+        test('do not run a playground if user selected No in the confirmation message', async () => {
+          showInformationMessageStub.resolves('No');
+
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('confirmRunAll', true);
+
+          const result =
+            await testPlaygroundController.runAllPlaygroundBlocks();
+
+          expect(result).to.be.false;
+        });
       });
-      sandbox.replace(
-        testPlaygroundController,
-        '_evaluateWithCancelModal',
-        fakeEvaluateWithCancelModal
-      );
-
-      const fakeOpenPlaygroundResult = sandbox.fake();
-      sandbox.replace(
-        testPlaygroundController,
-        '_openPlaygroundResult',
-        fakeOpenPlaygroundResult
-      );
-
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
-
-      expect(result).to.be.equal(true);
-      expect(showInformationMessageStub).to.not.have.been.called;
-    });
-
-    test('do not run a playground if user selected No in the confirmation message', async () => {
-      showInformationMessageStub.resolves('No');
-
-      await vscode.workspace
-        .getConfiguration('mdb')
-        .update('confirmRunAll', true);
-
-      const result = await testPlaygroundController.runAllPlaygroundBlocks();
-
-      expect(result).to.be.false;
     });
   });
 });
