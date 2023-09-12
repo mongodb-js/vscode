@@ -1,15 +1,8 @@
 import * as vscode from 'vscode';
-import {
-  convertConnectionModelToInfo,
-  getConnectionTitle,
-  extractSecrets,
-  mergeSecrets,
-  connect,
-} from 'mongodb-data-service';
+import { connect } from 'mongodb-data-service';
 import type {
   DataService,
-  ConnectionInfo,
-  ConnectionOptions,
+  ConnectionOptions as ConnectionOptionsFromCurrentDS,
 } from 'mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
@@ -31,6 +24,24 @@ import { StorageVariables } from './storage';
 import type { StatusView } from './views';
 import type TelemetryService from './telemetry/telemetryService';
 import LINKS from './utils/links';
+import type {
+  ConnectionInfo as ConnectionInfoFromLegacyDS,
+  ConnectionOptions as ConnectionOptionsFromLegacyDS,
+} from 'mongodb-data-service-legacy';
+import {
+  getConnectionTitle,
+  extractSecrets,
+  mergeSecrets,
+  convertConnectionModelToInfo,
+} from 'mongodb-data-service-legacy';
+
+export function launderConnectionOptionTypeFromLegacyToCurrent(
+  opts: ConnectionOptionsFromLegacyDS
+): ConnectionOptionsFromCurrentDS {
+  // Ensure that, at most, the types for OIDC mismatch here.
+  return opts as Omit<typeof opts, 'oidc'>;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
 
@@ -54,7 +65,7 @@ export interface StoreConnectionInfo {
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
   secretStorageLocation?: SecretStorageLocationType;
-  connectionOptions?: ConnectionOptions;
+  connectionOptions?: ConnectionOptionsFromLegacyDS;
   connectionModel?: LegacyConnectionModel;
 }
 
@@ -471,7 +482,7 @@ export default class ConnectionController {
 
   parseNewConnection(
     rawConnectionModel: LegacyConnectionModel
-  ): ConnectionInfo {
+  ): ConnectionInfoFromLegacyDS {
     return convertConnectionModelToInfo({
       ...rawConnectionModel,
       appname: `${packageJSON.name} ${packageJSON.version}`, // Override the default connection appname.
@@ -483,7 +494,7 @@ export default class ConnectionController {
   ): Promise<MigratedStoreConnectionInfoWithConnectionOptions> {
     // We don't want to store secrets to disc.
     const { connectionInfo: safeConnectionInfo, secrets } = extractSecrets(
-      newStoreConnectionInfoWithSecrets as ConnectionInfo
+      newStoreConnectionInfoWithSecrets as ConnectionInfoFromLegacyDS
     );
     const savedConnectionInfo = await this._storageController.saveConnection({
       ...newStoreConnectionInfoWithSecrets,
@@ -498,7 +509,7 @@ export default class ConnectionController {
   }
 
   async saveNewConnectionFromFormAndConnect(
-    originalConnectionInfo: ConnectionInfo,
+    originalConnectionInfo: ConnectionInfoFromLegacyDS,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
     const name = getConnectionTitle(originalConnectionInfo);
@@ -526,9 +537,12 @@ export default class ConnectionController {
     return this._connect(savedConnectionInfo.id, connectionType);
   }
 
-  async _connectWithDataService(connectionOptions: ConnectionOptions) {
+  async _connectWithDataService(
+    connectionOptions: ConnectionOptionsFromLegacyDS
+  ) {
     return connect({
-      connectionOptions,
+      connectionOptions:
+        launderConnectionOptionTypeFromLegacyToCurrent(connectionOptions),
       productName: packageJSON.name,
       productDocsLink: LINKS.extensionDocs(),
     });

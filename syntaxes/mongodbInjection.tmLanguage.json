@@ -1937,6 +1937,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$vectorSearch\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$vectorSearch.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$set\\b",
           "captures": {
             "0": {

@@ -352,17 +352,19 @@ export default class MongoDBService {
     }
 
     try {
-      const documents = this._serviceProvider.find(
-        databaseName,
-        collectionName,
-        {},
-        // TODO: figure out if we need parseSchema for one field at all.
-        // For one document we can simply get deep object keys,
-        // or we could analyze the schema for at least 5-10 documents.
-        // The current behaviour came from Compass when we do the same:
-        // https://github.com/mongodb-js/compass/blob/main/packages/compass-field-store/src/stores/store.js#L193
-        { limit: 1 }
-      );
+      const documents = await this._serviceProvider
+        .find(
+          databaseName,
+          collectionName,
+          {},
+          // TODO: figure out if we need parseSchema for one field at all.
+          // For one document we can simply get deep object keys,
+          // or we could analyze the schema for at least 5-10 documents.
+          // The current behaviour came from Compass when we do the same:
+          // https://github.com/mongodb-js/compass/blob/main/packages/compass-field-store/src/stores/store.js#L193
+          { limit: 1 }
+        )
+        .toArray();
 
       const schema = await parseSchema(documents);
       result = schema?.fields ? schema.fields.map((item) => item.name) : [];
