@@ -10,6 +10,7 @@ import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/const
 import ConnectionController, {
   DataServiceEventTypes,
   keytarMigrationFailedMessage,
+  launderConnectionOptionTypeFromLegacyToCurrent,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
@@ -836,7 +837,8 @@ suite('Connection Controller Test Suite', function () {
         await sleep(50);
 
         return connect({
-          connectionOptions,
+          connectionOptions:
+            launderConnectionOptionTypeFromLegacyToCurrent(connectionOptions),
         });
       }
     );
@@ -1199,9 +1201,7 @@ suite('Connection Controller Test Suite', function () {
         monitorCommands: true,
         useSystemCA: undefined,
         authMechanismProperties: {},
-        oidc: {
-          allowedFlows: ['auth-code'],
-        },
+        oidc: {},
         productDocsLink:
           'https://docs.mongodb.com/mongodb-vscode/?utm_source=vscode&utm_medium=product',
         productName: 'mongodb-vscode',
