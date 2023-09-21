@@ -1,9 +1,11 @@
 import type { DataService } from 'mongodb-data-service';
 import { getCloudInfo } from 'mongodb-cloud-info';
 import mongoDBBuildInfo from 'mongodb-build-info';
+import resolveMongodbSrv from 'resolve-mongodb-srv';
 
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
+import ConnectionString from 'mongodb-connection-string-url';
 
 const log = createLogger('connection telemetry helper');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -34,14 +36,36 @@ type CloudInfo = {
   publicCloudName?: string | null;
 };
 
+async function getHostnameForConnection(
+  connectionStringData: ConnectionString
+): Promise<string | null> {
+  if (connectionStringData.isSRV) {
+    const uri = await resolveMongodbSrv(connectionStringData.toString()).catch(
+      () => null
+    );
+    if (!uri) {
+      return null;
+    }
+    connectionStringData = new ConnectionString(uri, {
+      looseValidation: true,
+    });
+  }
+
+  const [hostname] = (connectionStringData.hosts[0] ?? '').split(':');
+  return hostname;
+}
+
 async function getCloudInfoFromDataService(
-  firstServerHostname: string
+  dataService: DataService
 ): Promise<CloudInfo> {
+  const hostname = await getHostnameForConnection(
+    dataService.getConnectionString()
+  );
   const cloudInfo: {
     isAws?: boolean;
     isAzure?: boolean;
     isGcp?: boolean;
-  } = await getCloudInfo(firstServerHostname);
+  } = await getCloudInfo(hostname);
 
   if (cloudInfo.isAws) {
     return {
@@ -82,15 +106,13 @@ export async function getConnectionTelemetryProperties(
 
   try {
     const connectionString = dataService.getConnectionString();
-    const firstHost = connectionString.hosts[0] || '';
-    const [hostname] = firstHost.split(':');
     const authMechanism = connectionString.searchParams.get('authMechanism');
     const username = connectionString.username ? 'DEFAULT' : 'NONE';
     const authStrategy = authMechanism ?? username;
 
     const [instance, cloudInfo] = await Promise.all([
       dataService.instance(),
-      getCloudInfoFromDataService(hostname),
+      getCloudInfoFromDataService(dataService),
     ]);
 
     preparedProperties = {
