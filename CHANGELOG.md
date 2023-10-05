@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.3.0](https://github.com/mongodb-js/vscode/releases/tag/untagged-646dac0a5b60667472db) - null
+
+Edit the release notes before publishing.
+
+
 ## [v1.2.1](https://github.com/mongodb-js/vscode/releases/tag/v1.2.1) - 2023-08-23
 
 ## What's Changed
@@ -426,18 +431,5 @@ To dig deeper please feel free to follow the links mentioned below:
 - Fixed an issue with connecting to mongodb through the shell while using SSH
 - Fixed a connectivity issue with playgrounds and SSH connections
 - Fixed an issue with having a babel config in a workspace root
-
-
-## [v0.0.2](https://github.com/mongodb-js/vscode/releases/tag/v0.0.2) - 2020-05-13
-
-This is the marketplace preview release of MongoDB for VS Code.
-
-* MongoDB data explorer
-* MongoDB Playgrounds
-* Quick access to the MongoDB Shell
-
-Take a look at [README.md](https://github.com/mongodb-js/vscode/blob/master/README.md) for an overview of the features.
-
-This release can be found on the VS Code marketplace: https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode
 
 
