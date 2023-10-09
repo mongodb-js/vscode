@@ -1,8 +1,14 @@
 # Change Log
 
-## [v1.3.0](https://github.com/mongodb-js/vscode/releases/tag/untagged-646dac0a5b60667472db) - null
+## [v1.3.1](https://github.com/mongodb-js/vscode/releases/tag/v1.3.1) - 2023-10-09
 
-Edit the release notes before publishing.
+## What's Changed
+* fix(playgrounds): stringify non-string types for playground output VSCODE-466 by @Anemy in https://github.com/mongodb-js/vscode/pull/590
+* feat: update mongosh to 2.0.0 and driver to 6.0.0 VSCODE-453 by @addaleax in https://github.com/mongodb-js/vscode/pull/592
+* feat(autocomplete): introduce $vectorSearch aggregation stage to 7.1 and 7.0.x COMPASS-7064 by @mcasimir in https://github.com/mongodb-js/vscode/pull/593
+* fix: resolve SRV hostname before passing it to mongodb-cloud-info VSCODE-442 by @addaleax in https://github.com/mongodb-js/vscode/pull/594
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.2.1...v1.3.1
 
 
 ## [v1.2.1](https://github.com/mongodb-js/vscode/releases/tag/v1.2.1) - 2023-08-23
