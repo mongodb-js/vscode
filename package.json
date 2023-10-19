@@ -973,7 +973,7 @@
   },
   "dependencies": {
     "@babel/parser": "^7.22.6",
-    "@babel/traverse": "^7.22.6",
+    "@babel/traverse": "^7.23.2",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
