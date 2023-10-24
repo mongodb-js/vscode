@@ -23,6 +23,8 @@ export enum ActionTypes {
   ON_CHANGE_SSL_CA = 'ON_CHANGE_SSL_CA',
   ON_CHANGE_SSL_CERT = 'ON_CHANGE_SSL_CERT',
   OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
+  OPEN_MOCK_DATA_GENERATOR = 'OPEN_MOCK_DATA_GENERATOR',
+  INSERT_MOCK_DATA = 'INSERT_MOCK_DATA',
   PASSWORD_CHANGED = 'PASSWORD_CHANGED',
   PORT_CHANGED = 'PORT_CHANGED',
   READ_PREFERENCE_CHANGED = 'READ_PREFERENCE_CHANGED',
@@ -47,6 +49,7 @@ export enum ActionTypes {
   TRUSTED_LINK_CLICKED = 'TRUSTED_LINK_CLICKED',
   USERNAME_CHANGED = 'USERNAME_CHANGED',
   X509_USERNAME_CHANGED = 'X509_USERNAME_CHANGED',
+  SEND_AI_PROMPT = 'SEND_AI_PROMPT'
 }
 
 export type FilePickerActionTypes =
@@ -126,6 +129,15 @@ export interface OnChangeSSLCAAction extends BaseAction {
 
 export interface OnChangeSSLCertAction extends BaseAction {
   type: ActionTypes.ON_CHANGE_SSL_CERT;
+}
+
+export interface OpenMockDataGeneratorAction extends BaseAction {
+  type: ActionTypes.OPEN_MOCK_DATA_GENERATOR;
+}
+
+export interface InsertMockDataAction extends BaseAction {
+  type: ActionTypes.INSERT_MOCK_DATA;
+  data: string;
 }
 
 export interface OpenConnectionStringInputAction extends BaseAction {
@@ -249,6 +261,12 @@ export interface X509UsernameChangedAction extends BaseAction {
   x509Username: string;
 }
 
+export interface SendAiPromptAction extends BaseAction {
+  type: ActionTypes.SEND_AI_PROMPT;
+  aiPrompt: string;
+}
+
+
 export type FilePickerActions =
   | SSHTunnelIdentityFileChangedAction
   | SSLCAChangedAction
@@ -263,6 +281,7 @@ export type Actions =
   | CreateNewPlaygroundAction
   | HostnameChangedAction
   | HostsChangedAction
+  | InsertMockDataAction
   | IsSrvRecordToggledAction
   | LDAPPasswordChangedAction
   | LDAPUsernameChangedAction
@@ -271,6 +290,7 @@ export type Actions =
   | OnChangeSSLCAAction
   | OnChangeSSLCertAction
   | OpenConnectionStringInputAction
+  | OpenMockDataGeneratorAction
   | PasswordChangedAction
   | PortChangedAction
   | ReadPreferenceChangedAction
@@ -294,4 +314,5 @@ export type Actions =
   | ToggleShowResourcesPanelAction
   | TrustedLinkClickedAction
   | UsernameChangedAction
-  | X509UsernameChangedAction;
+  | X509UsernameChangedAction
+  | SendAiPromptAction;

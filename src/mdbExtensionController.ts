@@ -18,6 +18,7 @@ import EditDocumentCodeLensProvider from './editors/editDocumentCodeLensProvider
 import { EditorsController, PlaygroundController } from './editors';
 import type { EditDocumentInfo } from './types/editDocumentInfoType';
 import type { CollectionTreeItem } from './explorer';
+import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
 import {
   ExplorerController,
   PlaygroundsExplorer,
@@ -38,6 +39,8 @@ import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
+// import { log } from 'console';
+// import { any } from 'micromatch';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -382,6 +385,64 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._playgroundController.createPlaygroundForCreateCollection(
           element
         );
+      }
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_ADD_MOCK_DATA,
+      async ()=> {
+        await this._webviewController.openWebview(this._context, true);
+        return true;
+      }
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_SEND_AI_COMMAND,
+      async (aiPrompt)=> {
+      // bring your own endpoint & token ;)
+      const endpoint = '';
+      const azureApiKey = '';
+      const messages = [
+        { role: 'system', content: 'Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary.' }
+      ];
+
+      const fieldTypes = [
+        'productName',
+        'price',
+        'dateOfSale',
+        'customerName',
+        'quantity',
+        'firstName',
+        'lastName',
+        'email',
+        'username',
+        'address',
+        'phone',
+        'registrationDate',
+        'blogTitle',
+        'blogContent',
+        'authorName',
+        'publishDate',
+        'views'
+      ];
+      try {
+        const client = new OpenAIClient(endpoint, new AzureKeyCredential(azureApiKey));
+        const deploymentId = 'gpt35turbo';
+        messages.push({ role: 'user', content: `Given these set of types ${fieldTypes.join(', ')} generate a JSON array with [{name:field_name, type:field_type_from_set_of_types}] for mock data fields for the following prompt: ${aiPrompt}. Example output: [{'name':'full_name', 'type':'customerName'}]` });
+        const result = await client.getChatCompletions(deploymentId, messages);
+        this._webviewController.sendResBack(JSON.parse(result?.choices[0]?.message?.content || ''));
+      } catch (error) {
+        throw error;
+      }
+        return true;
+      }
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_INSERT_MOCK_DATA,
+      async (codeToEval)=> {
+        await this._playgroundController._evaluate(codeToEval);
+        return true;
       }
     );
     this.registerCommand(

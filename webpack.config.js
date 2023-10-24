@@ -21,6 +21,11 @@ module.exports = (env, argv) => {
     devtool: 'source-map',
 
     resolve: {
+      fallback: {
+          path: require.resolve('path-browserify'),
+          crypto: require.resolve('crypto-browserify'),
+          os: require.resolve('os-browserify/browser')
+      },
       alias: {
         // Removes `browserslist` that is pulled in by `babel` and is unnecessary
         // as well as being a particularly large dependency.
@@ -154,6 +159,8 @@ module.exports = (env, argv) => {
       fallback: {
         stream: require.resolve('stream-browserify'),
         buffer: require.resolve('buffer'),
+        crypto: require.resolve('crypto-browserify'),
+        os: require.resolve('os-browserify/browser')
       },
     },
     module: {

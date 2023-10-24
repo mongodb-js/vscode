@@ -5,6 +5,8 @@ enum EXTENSION_COMMANDS {
   MDB_DISCONNECT = 'mdb.disconnect',
   MDB_REMOVE_CONNECTION = 'mdb.removeConnection',
 
+  MDB_SEND_AI_COMMAND = 'mdb.sendAiCommand',
+
   MDB_OPEN_MDB_SHELL = 'mdb.openMongoDBShell',
   MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW = 'mdb.treeViewOpenMongoDBShell',
 
@@ -13,6 +15,8 @@ enum EXTENSION_COMMANDS {
   MDB_RUN_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runSelectedPlaygroundBlocks',
   MDB_RUN_ALL_PLAYGROUND_BLOCKS = 'mdb.runAllPlaygroundBlocks',
   MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS = 'mdb.runPlayground',
+
+  MDB_INSERT_MOCK_DATA = 'mdb.insertMockData',
 
   MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixThisInvalidInteractiveSyntax',
   MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixAllInvalidInteractiveSyntax',
@@ -46,6 +50,7 @@ enum EXTENSION_COMMANDS {
   MDB_REMOVE_CONNECTION_TREE_VIEW = 'mdb.treeItemRemoveConnection',
   MDB_RENAME_CONNECTION = 'mdb.renameConnection',
   MDB_ADD_DATABASE = 'mdb.addDatabase',
+  MDB_ADD_MOCK_DATA = 'mdb.addMockData',
   MDB_SEARCH_FOR_DOCUMENTS = 'mdb.searchForDocuments',
   MDB_COPY_DATABASE_NAME = 'mdb.copyDatabaseName',
   MDB_DROP_DATABASE = 'mdb.dropDatabase',

@@ -22,8 +22,12 @@ export enum MESSAGE_TYPES {
   GET_CONNECTION_STATUS = 'GET_CONNECTION_STATUS',
   OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
+  OPEN_MOCK_DATA_GENERATOR = 'OPEN_MOCK_DATA_GENERATOR',
   OPEN_TRUSTED_LINK = 'OPEN_TRUSTED_LINK',
   RENAME_ACTIVE_CONNECTION = 'RENAME_ACTIVE_CONNECTION',
+  INSERT_MOCK_DATA = 'INSERT_MOCK_DATA',
+  SEND_AI_PROMPT = 'SEND_AI_PROMPT',
+  RECIEVE_AI_RESPONSE = 'RECIEVE_AI_RESPONSE'
 }
 
 interface BasicWebviewMessage {
@@ -32,6 +36,11 @@ interface BasicWebviewMessage {
 
 export interface CreateNewPlaygroundMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CREATE_NEW_PLAYGROUND;
+}
+
+export interface InsertMockDataMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.INSERT_MOCK_DATA;
+  codeToEvaluate: string;
 }
 
 export interface ConnectionStatusMessage extends BasicWebviewMessage {
@@ -44,6 +53,11 @@ export interface ConnectMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT;
   connectionModel: LegacyConnectionModel;
   connectionAttemptId: string;
+}
+
+export interface SendAiPromptMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.SEND_AI_PROMPT;
+  aiPrompt: string;
 }
 
 export interface ConnectResultsMessage extends BasicWebviewMessage {
@@ -61,6 +75,10 @@ export interface OpenConnectionStringInputMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT;
 }
 
+export interface OpenMockDataGenerator extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.OPEN_MOCK_DATA_GENERATOR;
+}
+
 // Note: In the app this is tightly coupled with 'externals.ts'.
 export interface OpenFilePickerMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.OPEN_FILE_PICKER;
@@ -72,6 +90,10 @@ export interface FilePickerResultsMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.FILE_PICKER_RESULTS;
   action: FilePickerActionTypes;
   files: string[] | undefined;
+}
+export interface RecieveAIResponseMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.RECIEVE_AI_RESPONSE;
+  respnse: any;
 }
 
 export interface LinkClickedMessage extends BasicWebviewMessage {
@@ -92,14 +114,18 @@ export interface RenameConnectionMessage extends BasicWebviewMessage {
 export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | ConnectMessage
   | CreateNewPlaygroundMessage
+  | InsertMockDataMessage
   | GetConnectionStatusMessage
   | LinkClickedMessage
   | OpenConnectionStringInputMessage
   | OpenFilePickerMessage
   | OpenTrustedLinkMessage
-  | RenameConnectionMessage;
+  | RenameConnectionMessage
+  | SendAiPromptMessage;
 
 export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
   | ConnectResultsMessage
   | FilePickerResultsMessage
-  | ConnectionStatusMessage;
+  | ConnectionStatusMessage
+  | OpenMockDataGenerator
+  | RecieveAIResponseMessage;

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import assert from 'assert';
 import * as React from 'react';
 import { shallow } from 'enzyme';
@@ -12,7 +14,7 @@ import ResourcesPanel from '../../../../../../views/webview-app/components/resou
 describe('Overview Page Component Test Suite', () => {
   describe('when rendered', () => {
     const wrapper = shallow(
-      <OverviewPage showConnectForm={false} showResourcesPanel={false} />
+      <OverviewPage showConnectForm={false} showResourcesPanel={false} showMockDataGenerator={false} />
     );
 
     test('it shows an overview header', () => {
@@ -38,7 +40,7 @@ describe('Overview Page Component Test Suite', () => {
 
   describe('when rendered with showConnectForm', () => {
     const wrapper = shallow(
-      <OverviewPage showConnectForm showResourcesPanel={false} />
+      <OverviewPage showConnectForm showResourcesPanel={false} showMockDataGenerator={false} />
     );
 
     test('it shows the connect form', () => {
@@ -48,7 +50,7 @@ describe('Overview Page Component Test Suite', () => {
 
   describe('when rendered with showResourcesPanel', () => {
     const wrapper = shallow(
-      <OverviewPage showConnectForm={false} showResourcesPanel />
+      <OverviewPage showConnectForm={false} showResourcesPanel showMockDataGenerator={false} />
     );
 
     test('it shows the resources panel', () => {

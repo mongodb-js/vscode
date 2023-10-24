@@ -1,6 +1,6 @@
 import type { Actions, FilePickerActionTypes } from './actions';
 import { ActionTypes } from './actions';
-import { v4 as uuidv4 } from 'uuid';
+import { NIL, v4 as uuidv4 } from 'uuid';
 
 import LegacyConnectionModel, {
   DEFAULT_HOST,
@@ -33,6 +33,9 @@ export interface AppState {
   isConnected: boolean;
   errorMessage: string;
   showConnectForm: boolean;
+  showMockDataGenerator: boolean;
+  mockDataDB: string;
+  mockDataCollections: any;
   showResourcesPanel: boolean;
   syntaxErrorMessage: string;
   savedMessage: string;
@@ -50,7 +53,10 @@ export const initialState: AppState = {
   isConnected: false,
   errorMessage: '',
   showConnectForm: false,
+  showMockDataGenerator: false,
   showResourcesPanel: false,
+  mockDataDB: '',
+  mockDataCollections: {},
   syntaxErrorMessage: '',
   savedMessage: '',
 };
@@ -150,6 +156,13 @@ export const rootReducer = (
 
       return { ...state };
 
+    case ActionTypes.SEND_AI_PROMPT:
+      vscode.postMessage({
+        command: MESSAGE_TYPES.SEND_AI_PROMPT,
+        aiPrompt: action.aiPrompt,
+      });
+
+      return { ...state };
     case ActionTypes.CONNECTION_FORM_CHANGED:
       return {
         ...state,
@@ -267,6 +280,20 @@ export const rootReducer = (
         ...state,
         isConnected: false,
       };
+    case ActionTypes.OPEN_MOCK_DATA_GENERATOR:
+      // vscode.postMessage({
+      //   command: MESSAGE_TYPES.OPEN_MOCK_DATA_GENERATOR
+      // });
+      return {
+        ...state,
+        showMockDataGenerator: !state.showMockDataGenerator,
+      };
+    case ActionTypes.INSERT_MOCK_DATA:
+      vscode.postMessage({
+        command: MESSAGE_TYPES.INSERT_MOCK_DATA,
+        codeToEvaluate: action.data
+      });
+      return { ...state };
 
     case ActionTypes.PASSWORD_CHANGED:
       return {

@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-
 import OverviewPage from './overview-page/overview-page';
+import MockDataGenerator from './mock-data-generator/mock-data-generator';
+import type { AppState } from '../store/store';
 import type {
   ConnectionEventOccuredAction,
   FilePickerActions,
   FilePickerActionTypes,
   SetConnectionStatusAction,
+  OpenMockDataGeneratorAction
+
 } from '../store/actions';
 import { ActionTypes } from '../store/actions';
 import type {
@@ -33,9 +36,18 @@ type DispatchProps = {
     connectionStatus: CONNECTION_STATUS,
     activeConnectionName: string
   ) => void;
+  openMockDataGenerator: (
+    openMockDataGenerator: MESSAGE_TYPES.OPEN_MOCK_DATA_GENERATOR
+  ) => void;
 };
 
-export class App extends React.Component<DispatchProps> {
+type StateProps = {
+  showMockDataGenerator: boolean;
+};
+
+type CombinedProps = StateProps & DispatchProps;
+
+export class App extends React.Component<CombinedProps> {
   componentDidMount(): void {
     window.addEventListener('message', this.handleMessageFromExtension);
   }
@@ -66,6 +78,9 @@ export class App extends React.Component<DispatchProps> {
       case MESSAGE_TYPES.FILE_PICKER_RESULTS:
         this.props.onFilePickerEvent(message.action, message.files);
         return;
+      case MESSAGE_TYPES.OPEN_MOCK_DATA_GENERATOR:
+        this.props.openMockDataGenerator(MESSAGE_TYPES.OPEN_MOCK_DATA_GENERATOR);
+        return;
       default:
         // No-op.
         return;
@@ -73,9 +88,11 @@ export class App extends React.Component<DispatchProps> {
   };
 
   render(): React.ReactNode {
+    const { showMockDataGenerator } = this.props;
     return (
       <div className={styles.page}>
-        <OverviewPage />
+        { showMockDataGenerator && <MockDataGenerator />}
+        { !showMockDataGenerator && <OverviewPage />}
       </div>
     );
   }
@@ -107,6 +124,16 @@ const mapDispatchToProps: DispatchProps = {
     activeConnectionName,
     connectionStatus,
   }),
+  openMockDataGenerator: (
+  ): OpenMockDataGeneratorAction => ({
+    type: ActionTypes.OPEN_MOCK_DATA_GENERATOR
+  }),
 };
 
-export default connect(null, mapDispatchToProps)(App);
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    showMockDataGenerator: state.showMockDataGenerator,
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);

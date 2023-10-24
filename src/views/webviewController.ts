@@ -25,6 +25,8 @@ const getNonce = () => {
   return crypto.randomBytes(16).toString('base64');
 };
 
+let panel;
+
 const openFileOptions = {
   canSelectFiles: true,
   canSelectFolders: false,
@@ -157,6 +159,14 @@ export default class WebviewController {
     });
   };
 
+  sendResBack = (respnse) => {
+    void panel.webview.postMessage({
+      command: MESSAGE_TYPES.RECIEVE_AI_RESPONSE,
+      respnse: respnse
+    });
+  };
+
+  // eslint-disable-next-line complexity
   handleWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel
@@ -169,9 +179,21 @@ export default class WebviewController {
           message.connectionAttemptId
         );
         return;
+      case MESSAGE_TYPES.INSERT_MOCK_DATA:
+        void vscode.commands.executeCommand(
+          EXTENSION_COMMANDS.MDB_INSERT_MOCK_DATA,
+          message.codeToEvaluate,
+        );
+        return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         void vscode.commands.executeCommand(
           EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE
+        );
+        return;
+      case MESSAGE_TYPES.SEND_AI_PROMPT:
+        void vscode.commands.executeCommand(
+          EXTENSION_COMMANDS.MDB_SEND_AI_COMMAND,
+          message.aiPrompt
         );
         return;
       case MESSAGE_TYPES.GET_CONNECTION_STATUS:
@@ -230,12 +252,12 @@ export default class WebviewController {
     }
   };
 
-  openWebview(context: vscode.ExtensionContext): Promise<boolean> {
+  openWebview(context: vscode.ExtensionContext, openMockDataGen?: boolean): Promise<boolean> {
     log.info('Opening webview...');
     const extensionPath = context.extensionPath;
 
     // Create and show a new connect dialogue webview.
-    const panel = vscode.window.createWebviewPanel(
+    panel = vscode.window.createWebviewPanel(
       'connectDialogueWebview',
       'MongoDB',
       vscode.ViewColumn.One, // Editor column to show the webview panel in.
@@ -268,6 +290,11 @@ export default class WebviewController {
         telemetryUserIdentity.anonymousId || telemetryUserIdentity.userId,
       webview: panel.webview,
     });
+    if (openMockDataGen) {
+      void panel.webview.postMessage({
+        command: MESSAGE_TYPES.OPEN_MOCK_DATA_GENERATOR,
+      });
+    }
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
