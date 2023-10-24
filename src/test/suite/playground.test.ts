@@ -93,7 +93,7 @@ suite('Playground', function () {
     sandbox.restore();
   });
 
-  test('shows mongodb completion items before other js completion', async () => {
+  test('shows mongodb completion items before other js completion', async function () {
     this.timeout(20000);
     await vscode.commands.executeCommand('mdb.createPlayground');
 
