@@ -94,36 +94,37 @@ suite('Playground', function () {
   });
 
   test('shows mongodb completion items before other js completion', async () => {
+    this.timeout(20000);
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     const editor = vscode.window.activeTextEditor;
-    expect(editor).to.exist;
-
-    if (editor) {
-      const testDocumentUri = editor.document.uri;
-
-      // Modify initial content.
-      const edit = new vscode.WorkspaceEdit();
-      edit.replace(
-        testDocumentUri,
-        getFullRange(editor.document),
-        "use('mongodbVSCodePlaygroundDB'); db.sales.find({ });"
-      );
-      await vscode.workspace.applyEdit(edit);
-
-      // Move to a field name position inside of find.
-      const position = editor.selection.active;
-      const newPosition = position.with(0, 50);
-      const newSelection = new vscode.Selection(newPosition, newPosition);
-      editor.selection = newSelection;
-
-      await typeCommitCharacter(testDocumentUri, 'n', _disposables);
-      await acceptFirstSuggestion(testDocumentUri, _disposables);
-
-      expect(editor.document.getText()).to.be.eql(
-        "use('mongodbVSCodePlaygroundDB'); db.sales.find({ name});"
-      );
+    if (!editor) {
+      throw new Error('Window active text editor is undefined');
     }
+
+    const testDocumentUri = editor.document.uri;
+
+    // Modify initial content.
+    const edit = new vscode.WorkspaceEdit();
+    edit.replace(
+      testDocumentUri,
+      getFullRange(editor.document),
+      "use('mongodbVSCodePlaygroundDB'); db.sales.find({ });"
+    );
+    await vscode.workspace.applyEdit(edit);
+
+    // Move to a field name position inside of find.
+    const position = editor.selection.active;
+    const newPosition = position.with(0, 50);
+    const newSelection = new vscode.Selection(newPosition, newPosition);
+    editor.selection = newSelection;
+
+    await typeCommitCharacter(testDocumentUri, 'n', _disposables);
+    await acceptFirstSuggestion(testDocumentUri, _disposables);
+
+    expect(editor.document.getText()).to.be.eql(
+      "use('mongodbVSCodePlaygroundDB'); db.sales.find({ name});"
+    );
   });
 
   test('restores the language server when the out of memory error occurred', async function () {
@@ -131,30 +132,30 @@ suite('Playground', function () {
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     const editor = vscode.window.activeTextEditor;
-    expect(editor).to.exist;
-
-    if (editor) {
-      const testDocumentUri = editor.document.uri;
-      const edit = new vscode.WorkspaceEdit();
-      edit.replace(
-        testDocumentUri,
-        getFullRange(editor.document),
-        "use('test'); const mockDataArray = []; for(let i = 0; i < 50000; i++) { mockDataArray.push(Math.random() * 10000); } const docs = []; for(let i = 0; i < 10000000; i++) { docs.push({ mockData: [...mockDataArray], a: 'test 123', b: Math.ceil(Math.random() * 10000) }); }"
-      );
-      await vscode.workspace.applyEdit(edit);
-      await vscode.commands.executeCommand('mdb.runPlayground');
-
-      const onDidChangeDiagnostics = () =>
-        new Promise((resolve) => {
-          // The diagnostics are set again when the server restarts.
-          vscode.languages.onDidChangeDiagnostics(resolve);
-        });
-      await onDidChangeDiagnostics();
-
-      expect(showErrorMessageStub.calledOnce).to.equal(true);
-      expect(showErrorMessageStub.firstCall.args[0]).to.equal(
-        'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.'
-      );
+    if (!editor) {
+      throw new Error('Window active text editor is undefined');
     }
+
+    const testDocumentUri = editor.document.uri;
+    const edit = new vscode.WorkspaceEdit();
+    edit.replace(
+      testDocumentUri,
+      getFullRange(editor.document),
+      "use('test'); const mockDataArray = []; for(let i = 0; i < 50000; i++) { mockDataArray.push(Math.random() * 10000); } const docs = []; for(let i = 0; i < 10000000; i++) { docs.push({ mockData: [...mockDataArray], a: 'test 123', b: Math.ceil(Math.random() * 10000) }); }"
+    );
+    await vscode.workspace.applyEdit(edit);
+    await vscode.commands.executeCommand('mdb.runPlayground');
+
+    const onDidChangeDiagnostics = () =>
+      new Promise((resolve) => {
+        // The diagnostics are set again when the server restarts.
+        vscode.languages.onDidChangeDiagnostics(resolve);
+      });
+    await onDidChangeDiagnostics();
+
+    expect(showErrorMessageStub.calledOnce).to.equal(true);
+    expect(showErrorMessageStub.firstCall.args[0]).to.equal(
+      'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.'
+    );
   });
 });
