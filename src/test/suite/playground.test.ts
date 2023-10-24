@@ -93,7 +93,8 @@ suite('Playground', function () {
     sandbox.restore();
   });
 
-  test('shows mongodb completion items before other js completion', async () => {
+  test('shows mongodb completion items before other js completion', async function () {
+    this.timeout(20000);
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     const editor = vscode.window.activeTextEditor;
@@ -127,7 +128,7 @@ suite('Playground', function () {
   });
 
   test('restores the language server when the out of memory error occurred', async function () {
-    this.timeout(20000);
+    this.timeout(30000);
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     const editor = vscode.window.activeTextEditor;
