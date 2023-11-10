@@ -29,7 +29,7 @@ const INCREASED_TEST_TIMEOUT = 5000;
 suite('MongoDBService Test Suite', () => {
   const params = {
     connectionId: 'pineapple',
-    connectionString: 'mongodb://localhost:27018',
+    connectionString: 'mongodb://localhost:27088',
     connectionOptions: {
       readPreference: READ_PREFERENCES.PRIMARY,
       productDocsLink: LINKS.extensionDocs(),
@@ -102,7 +102,7 @@ suite('MongoDBService Test Suite', () => {
       await testMongoDBService.activeConnectionChanged(params);
 
       expect(testMongoDBService.connectionString).to.be.equal(
-        'mongodb://localhost:27018'
+        'mongodb://localhost:27088'
       );
 
       await testMongoDBService.activeConnectionChanged({ connectionId: null });

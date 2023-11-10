@@ -8,8 +8,7 @@ import getCloudInfoModule from 'mongodb-cloud-info';
 
 import { ConnectionTypes } from '../../../connectionController';
 import { getConnectionTelemetryProperties } from '../../../telemetry/connectionTelemetry';
-
-const TEST_DATABASE_URI = 'mongodb://localhost:27018';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 suite('ConnectionTelemetry Controller Test Suite', function () {
   suite('with mock data service', function () {
@@ -20,7 +19,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     before(() => {
       const getConnectionStringStub = sandbox.stub();
       getConnectionStringStub.returns({
-        hosts: ['localhost:27018'],
+        hosts: ['localhost:27088'],
         searchParams: { get: () => null },
         username: 'authMechanism',
       } as unknown as ReturnType<DataService['getConnectionString']>);

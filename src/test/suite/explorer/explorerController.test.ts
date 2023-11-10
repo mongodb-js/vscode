@@ -118,8 +118,8 @@ suite('Explorer Controller Test Suite', function () {
       `Expected there be 1 connection tree item, found ${connectionsItems.length}`
     );
     assert(
-      connectionsItems[0].label === 'localhost:27018',
-      'There should be a connection tree item with the label "localhost:27018"'
+      connectionsItems[0].label === 'localhost:27088',
+      'There should be a connection tree item with the label "localhost:27088"'
     );
     assert(
       connectionsItems[0].description === 'connected',
@@ -153,8 +153,8 @@ suite('Explorer Controller Test Suite', function () {
       testConnectionController._connections[connectionId].name;
 
     assert(
-      connectionName === 'localhost:27018',
-      `Expected active connection name to be 'localhost:27018' found ${connectionName}`
+      connectionName === 'localhost:27088',
+      `Expected active connection name to be 'localhost:27088' found ${connectionName}`
     );
 
     try {
@@ -172,8 +172,8 @@ suite('Explorer Controller Test Suite', function () {
       `Expected there be 2 connection tree item, found ${connectionsItems.length}`
     );
     assert(
-      connectionsItems[0].label === 'localhost:27018',
-      `First connection tree item should have label "localhost:27018" found ${connectionsItems[0].label}`
+      connectionsItems[0].label === 'localhost:27088',
+      `First connection tree item should have label "localhost:27088" found ${connectionsItems[0].label}`
     );
     assert(
       connectionsItems[0].isExpanded === false,

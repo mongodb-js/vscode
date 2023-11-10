@@ -386,7 +386,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
             namespace: 'db.coll',
             type: null,
             content:
-              "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0')\nfilter={\n    'name': '22'\n}\n\nresult = client['db']['coll'].find(\n  filter=filter\n)",
+              "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0')\nfilter={\n    'name': '22'\n}\n\nresult = client['db']['coll'].find(\n  filter=filter\n)",
             language: 'python',
           };
 
@@ -461,7 +461,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
             namespace: 'db.coll',
             type: null,
             content:
-              "# Requires the MongoDB Ruby Driver\n# https://docs.mongodb.com/ruby-driver/master/\n\nclient = Mongo::Client.new('mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0', :database => 'db')\n\nresult = client.database['coll'].find({\n  'name' => '22'\n})",
+              "# Requires the MongoDB Ruby Driver\n# https://docs.mongodb.com/ruby-driver/master/\n\nclient = Mongo::Client.new('mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0', :database => 'db')\n\nresult = client.database['coll'].find({\n  'name' => '22'\n})",
             language: 'ruby',
           };
 
@@ -536,7 +536,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
             namespace: 'db.coll',
             type: null,
             content:
-              '// Requires the MongoDB Go Driver\n// https://go.mongodb.org/mongo-driver\nctx := context.TODO()\n\n// Set client options\nclientOptions := options.Client().ApplyURI("mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0")\n\n// Connect to MongoDB\nclient, err := mongo.Connect(ctx, clientOptions)\nif err != nil {\n  log.Fatal(err)\n}\ndefer func() {\n  if err := client.Disconnect(ctx); err != nil {\n    log.Fatal(err)\n  }\n}()\n\n// Find data\ncoll := client.Database("db").Collection("coll")\n_, err = coll.Find(ctx, bson.D{{"name", "22"}})\nif err != nil {\n  log.Fatal(err)\n}',
+              '// Requires the MongoDB Go Driver\n// https://go.mongodb.org/mongo-driver\nctx := context.TODO()\n\n// Set client options\nclientOptions := options.Client().ApplyURI("mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0")\n\n// Connect to MongoDB\nclient, err := mongo.Connect(ctx, clientOptions)\nif err != nil {\n  log.Fatal(err)\n}\ndefer func() {\n  if err := client.Disconnect(ctx); err != nil {\n    log.Fatal(err)\n  }\n}()\n\n// Find data\ncoll := client.Database("db").Collection("coll")\n_, err = coll.Find(ctx, bson.D{{"name", "22"}})\nif err != nil {\n  log.Fatal(err)\n}',
             language: 'go',
           };
 

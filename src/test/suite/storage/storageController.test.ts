@@ -103,7 +103,7 @@ suite('Storage Controller Test Suite', () => {
       id: 'conn2',
       name: 'saved2',
       storageLocation: StorageLocation.WORKSPACE,
-      connectionOptions: { connectionString: 'mongodb://localhost:27018' },
+      connectionOptions: { connectionString: 'mongodb://localhost:27088' },
     });
 
     const updatedWorkspaceModels = testStorageController.get(

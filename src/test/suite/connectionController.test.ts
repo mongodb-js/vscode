@@ -35,7 +35,7 @@ import KeytarStub from './keytarStub';
 import { ext } from '../../extensionConstants';
 import type { KeytarInterface } from '../../utils/keytar';
 
-const testDatabaseConnectionName = 'localhost:27018';
+const testDatabaseConnectionName = 'localhost:27088';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
 
@@ -96,7 +96,7 @@ suite('Connection Controller Test Suite', function () {
       testConnectionController.getSavedConnections().length,
       1
     );
-    assert.strictEqual(name, 'localhost:27018');
+    assert.strictEqual(name, 'localhost:27088');
     assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
 
     assert.notStrictEqual(dataService, null);
@@ -253,7 +253,7 @@ suite('Connection Controller Test Suite', function () {
 
   test('the connection model loads both global and workspace stored connection models', async () => {
     const expectedDriverUrl =
-      'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0';
+      'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0';
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -285,7 +285,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(Object.keys(connections).length, 4);
     assert.strictEqual(
       connections[Object.keys(connections)[0]].name,
-      'localhost:27018'
+      'localhost:27088'
     );
     assert.strictEqual(
       connections[Object.keys(connections)[2]].connectionOptions
@@ -419,11 +419,11 @@ suite('Connection Controller Test Suite', function () {
     const name = testConnectionController._connections[activeId || ''].name;
 
     assert.strictEqual(activeId, id);
-    assert.strictEqual(name, 'localhost:27018');
+    assert.strictEqual(name, 'localhost:27088');
   });
 
   test('"copyConnectionStringByConnectionId" returns the driver uri of a connection', async () => {
-    const expectedDriverUrl = 'mongodb://localhost:27018/';
+    const expectedDriverUrl = 'mongodb://localhost:27088/';
 
     await testConnectionController.loadSavedConnections();
     await testConnectionController.addNewConnectionStringAndConnect(
@@ -667,8 +667,8 @@ suite('Connection Controller Test Suite', function () {
     const connectionIds = Object.keys(connections);
 
     assert.strictEqual(connectionIds.length, 2);
-    assert.strictEqual(connections[connectionIds[0]].name, 'localhost:27018');
-    assert.strictEqual(connections[connectionIds[1]].name, 'localhost:27018');
+    assert.strictEqual(connections[connectionIds[0]].name, 'localhost:27088');
+    assert.strictEqual(connections[connectionIds[1]].name, 'localhost:27088');
 
     const inputBoxResolvesStub = sandbox.stub();
     inputBoxResolvesStub.onCall(0).resolves('Lynx');
@@ -689,7 +689,7 @@ suite('Connection Controller Test Suite', function () {
 
     assert.strictEqual(connectionQuickPicks.length, 3);
     assert.strictEqual(connectionQuickPicks[0].label, 'Add new connection');
-    assert.strictEqual(connectionQuickPicks[1].label, 'localhost:27018');
+    assert.strictEqual(connectionQuickPicks[1].label, 'localhost:27088');
     assert.strictEqual(connectionQuickPicks[2].label, 'Lynx');
   });
 
@@ -711,7 +711,7 @@ suite('Connection Controller Test Suite', function () {
       assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
       assert.strictEqual(
         testConnectionController.getActiveConnectionName(),
-        'localhost:27018'
+        'localhost:27088'
       );
     });
 
@@ -1144,7 +1144,7 @@ suite('Connection Controller Test Suite', function () {
     );
     assert.strictEqual(
       testConnectionController._connections[connections[0].id].name,
-      'localhost:27018'
+      'localhost:27088'
     );
   });
 
@@ -1195,7 +1195,7 @@ suite('Connection Controller Test Suite', function () {
     delete mongoClientConnectionOptions.options.parentHandle;
 
     assert.deepStrictEqual(mongoClientConnectionOptions, {
-      url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
+      url: 'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0',
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
@@ -1211,10 +1211,10 @@ suite('Connection Controller Test Suite', function () {
 
   test('_getConnectionStringWithProxy returns string with proxy options', () => {
     const expectedConnectionStringWithProxy =
-      'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test';
+      'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test';
     const connectionString =
       testConnectionController._getConnectionStringWithProxy({
-        url: 'mongodb://localhost:27018/?appname=mongodb-vscode+0.0.0-dev.0',
+        url: 'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0',
         options: {
           proxyHost: 'localhost',
           proxyPassword: 'gwce7tr8733ujbr',
@@ -1671,11 +1671,11 @@ suite('Connection Controller Test Suite', function () {
           },
           'random-connection-3': {
             id: 'random-connection-3',
-            name: 'localhost:27018',
+            name: 'localhost:27088',
             storageLocation: 'GLOBAL',
             connectionOptions: {
               connectionString:
-                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+                'mongodb://localhost:27088/?readPreference=primary&ssl=false',
             },
           },
         } as any;
@@ -1737,12 +1737,12 @@ suite('Connection Controller Test Suite', function () {
           },
           'random-connection-2': {
             id: 'random-connection-2',
-            name: 'localhost:27018',
+            name: 'localhost:27088',
             storageLocation: 'GLOBAL',
             secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
             connectionOptions: {
               connectionString:
-                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+                'mongodb://localhost:27088/?readPreference=primary&ssl=false',
             },
           },
         } as any;
@@ -1794,32 +1794,32 @@ suite('Connection Controller Test Suite', function () {
           },
           'random-connection-2': {
             id: 'random-connection-2',
-            name: 'localhost:27018',
+            name: 'localhost:27088',
             storageLocation: 'GLOBAL',
             secretStorageLocation: SecretStorageLocation.SecretStorage,
             connectionOptions: {
               connectionString:
-                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+                'mongodb://localhost:27088/?readPreference=primary&ssl=false',
             },
           },
           'random-connection-3': {
             id: 'random-connection-3',
-            name: 'localhost:27018',
+            name: 'localhost:27088',
             storageLocation: 'GLOBAL',
             secretStorageLocation: SecretStorageLocation.Keytar,
             connectionOptions: {
               connectionString:
-                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+                'mongodb://localhost:27088/?readPreference=primary&ssl=false',
             },
           },
           'random-connection-4': {
             id: 'random-connection-4',
-            name: 'localhost:27018',
+            name: 'localhost:27088',
             storageLocation: 'GLOBAL',
             secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
             connectionOptions: {
               connectionString:
-                'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+                'mongodb://localhost:27088/?readPreference=primary&ssl=false',
             },
           },
         } as any;

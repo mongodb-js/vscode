@@ -28,7 +28,7 @@ import {
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
 
-const testDatabaseURI = 'mongodb://localhost:27018';
+const testDatabaseURI = 'mongodb://localhost:27088';
 
 function getTestConnectionTreeItem(
   options?: Partial<ConstructorParameters<typeof ConnectionTreeItem>[0]>

@@ -16,7 +16,7 @@ import {
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-const TEST_DATABASE_URI = 'mongodb://localhost:27018';
+const TEST_DATABASE_URI = 'mongodb://localhost:27088';
 
 suite('Playground', function () {
   this.timeout(8000);
@@ -56,7 +56,7 @@ suite('Playground', function () {
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveConnectionName',
-      sandbox.fake.returns('localhost:27018')
+      sandbox.fake.returns('localhost:27088')
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
