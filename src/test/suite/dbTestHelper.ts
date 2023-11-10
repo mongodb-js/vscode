@@ -5,8 +5,9 @@ import type { Document } from 'bson';
 export const TEST_USER_USERNAME = 'testUser';
 export const TEST_USER_PASSWORD = 'password';
 
-export const TEST_DATABASE_URI = 'mongodb://localhost:27088';
-export const TEST_DATABASE_URI_USER = `mongodb://${TEST_USER_USERNAME}:${TEST_USER_PASSWORD}@localhost:27088`;
+export const TEST_DATABASE_PORT = '27088';
+export const TEST_DATABASE_URI = `mongodb://localhost:${TEST_DATABASE_PORT}`;
+export const TEST_DATABASE_URI_USER = `mongodb://${TEST_USER_USERNAME}:${TEST_USER_PASSWORD}@localhost:${TEST_DATABASE_PORT}`;
 
 export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 

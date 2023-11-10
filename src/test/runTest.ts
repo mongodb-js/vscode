@@ -1,36 +1,26 @@
+/* eslint-disable no-console */
 import path from 'path';
 import { runTests } from '@vscode/test-electron';
-import crossSpawn from 'cross-spawn';
-import fs from 'fs';
+import { MongoCluster } from 'mongodb-runner';
+import os from 'os';
+
+import { TEST_DATABASE_PORT } from './suite/dbTestHelper';
 
 // More information on vscode specific tests: https://github.com/microsoft/vscode-test
 
-function startTestMongoDBServer() {
-  console.log('Starting MongoDB server');
-  crossSpawn.sync('npm', ['run', 'start-test-server'], { stdio: 'inherit' });
-}
-
-function cleanupTestMongoDBServer() {
-  console.log('Stopping MongoDB server and cleaning up server data');
-  try {
-    crossSpawn.sync('npm', ['run', 'stop-test-server'], {
-      // If it's taking too long we might as well kill the process and
-      // move on, mongodb-runner is flaky sometimes.
-      timeout: 30_000,
-      stdio: 'inherit',
-    });
-  } catch (e) {
-    console.error('Failed to stop MongoDB Server', e);
-  }
-  try {
-    fs.rmdirSync('.mongodb', { recursive: true });
-  } catch (e) {
-    console.error('Failed to clean up server data', e);
-  }
+async function startTestMongoDBServer() {
+  console.log('Starting MongoDB server on port', TEST_DATABASE_PORT);
+  return await MongoCluster.start({
+    topology: 'standalone',
+    tmpDir: path.join(os.tmpdir(), 'vscode-test-mongodb-runner'),
+    args: ['--port', TEST_DATABASE_PORT],
+  });
 }
 
 async function main(): Promise<any> {
-  startTestMongoDBServer();
+  const testMongoDBServer = await startTestMongoDBServer();
+
+  let failed = false;
 
   try {
     // The folder containing the Extension Manifest package.json
@@ -53,9 +43,14 @@ async function main(): Promise<any> {
   } catch (err) {
     console.error('Failed to run tests:');
     console.error(err);
-    process.exit(1);
+    failed = true;
   } finally {
-    cleanupTestMongoDBServer();
+    console.log('Stopping MongoDB server on port', TEST_DATABASE_PORT);
+    await testMongoDBServer.close();
+  }
+
+  if (failed) {
+    process.exit(1);
   }
 }
 
