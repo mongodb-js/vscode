@@ -149,7 +149,7 @@ suite('Webview Test Suite', () => {
         assert(testConnectionController.isCurrentlyConnected());
         assert(
           testConnectionController.getActiveConnectionName() ===
-            'localhost:27018'
+            'localhost:27088'
         );
 
         await testConnectionController.disconnect();
@@ -191,9 +191,9 @@ suite('Webview Test Suite', () => {
     messageReceived({
       command: MESSAGE_TYPES.CONNECT,
       connectionModel: {
-        port: 27018,
+        port: 27088,
         hostname: 'localhost',
-        hosts: [{ host: 'localhost', port: 27018 }],
+        hosts: [{ host: 'localhost', port: 27088 }],
       },
     });
   });
@@ -219,7 +219,7 @@ suite('Webview Test Suite', () => {
       html: '',
       postMessage: async (message): Promise<void> => {
         assert(message.connectionSuccess);
-        const expectedMessage = 'Successfully connected to localhost:27018.';
+        const expectedMessage = 'Successfully connected to localhost:27088.';
         assert(
           message.connectionMessage === expectedMessage,
           `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
@@ -263,9 +263,9 @@ suite('Webview Test Suite', () => {
     messageReceived({
       command: MESSAGE_TYPES.CONNECT,
       connectionModel: {
-        port: 27018,
+        port: 27088,
         hostname: 'localhost',
-        hosts: [{ host: 'localhost', port: 27018 }],
+        hosts: [{ host: 'localhost', port: 27088 }],
       },
     });
   });
@@ -387,7 +387,7 @@ suite('Webview Test Suite', () => {
     messageReceived({
       command: MESSAGE_TYPES.CONNECT,
       connectionModel: {
-        port: 27018,
+        port: 27088,
         hostname: 'shouldfail',
         connectTimeoutMS: 500,
         socketTimeoutMS: 500,
@@ -673,7 +673,7 @@ suite('Webview Test Suite', () => {
       postMessage: async (message): Promise<void> => {
         assert(message.command === 'CONNECTION_STATUS_MESSAGE');
         assert(message.connectionStatus === 'CONNECTED');
-        assert(message.activeConnectionName === 'localhost:27018');
+        assert(message.activeConnectionName === 'localhost:27088');
         await testConnectionController.disconnect();
 
         done();

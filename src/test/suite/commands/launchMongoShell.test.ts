@@ -61,10 +61,10 @@ suite('Commands Test Suite', () => {
 
     test('openMongoDBShell should open a terminal with the active connection driver url', async () => {
       const expectedDriverUrl =
-        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+        'mongodb://localhost:27088/?readPreference=primary&ssl=false';
 
       getMongoClientConnectionOptionsStub.returns({
-        url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        url: 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
         options: {},
       });
       isCurrentlyConnectedStub.returns(true);
@@ -92,10 +92,10 @@ suite('Commands Test Suite', () => {
 
     test('powershell openMongoDBShell should open a terminal with the active connection driver url', async () => {
       const expectedDriverUrl =
-        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+        'mongodb://localhost:27088/?readPreference=primary&ssl=false';
 
       getMongoClientConnectionOptionsStub.returns({
-        url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        url: 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
         options: {},
       });
 
@@ -126,10 +126,10 @@ suite('Commands Test Suite', () => {
 
     test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async () => {
       const expectedDriverUrl =
-        'mongodb://localhost:27018/?readPreference=primary&ssl=false';
+        'mongodb://localhost:27088/?readPreference=primary&ssl=false';
 
       getMongoClientConnectionOptionsStub.returns({
-        url: 'mongodb://localhost:27018/?readPreference=primary&ssl=false',
+        url: 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
         options: {},
       });
 
