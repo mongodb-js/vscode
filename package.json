@@ -67,8 +67,8 @@
   },
   "engines": {
     "vscode": "^1.79.1",
-    "node": "^16.16.0",
-    "npm": "^8.15.1"
+    "node": ">=16.16.0",
+    "npm": ">=8.19.4"
   },
   "activationEvents": [
     "onView:mongoDB",
