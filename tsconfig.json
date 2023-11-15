@@ -8,6 +8,7 @@
     "types": ["node"],
     "jsx": "react",
     "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
     "rootDir": "src",
     "esModuleInterop": true,
     "skipLibCheck": true,

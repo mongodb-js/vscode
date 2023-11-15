@@ -11,7 +11,7 @@ import {
   initialState,
   rootReducer,
 } from '../../../../../../views/webview-app/store/store';
-import ConnectForm from '../../../../../../views/webview-app/components/connect-form/connection-form';
+import ConnectForm from '../../../../../../views/webview-app/components/connect-form/old-connection-form';
 import ConnectFormModal, {
   ConnectFormModal as NoStoreConnectFormModal,
 } from '../../../../../../views/webview-app/components/connect-form-modal/connect-form-modal';

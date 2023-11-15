@@ -6,7 +6,6 @@ ignores:
  - "buffer"
  - "eslint-config-mongodb-js"
  - "keytar"
- - "electron"
  - "mocha-junit-reporter"
  - "mocha-multi"
  - "mongodb-client-encryption"

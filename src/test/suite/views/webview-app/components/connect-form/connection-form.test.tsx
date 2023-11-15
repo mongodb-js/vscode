@@ -2,7 +2,7 @@ import assert from 'assert';
 import * as React from 'react';
 import { shallow } from 'enzyme';
 
-import { ConnectionForm } from '../../../../../../views/webview-app/components/connect-form/connection-form';
+import { ConnectionForm } from '../../../../../../views/webview-app/components/connect-form/old-connection-form';
 import FormActions from '../../../../../../views/webview-app/components/form/form-actions';
 import { CONNECTION_FORM_TABS } from '../../../../../../views/webview-app/store/constants';
 import GeneralTab from '../../../../../../views/webview-app/components/connect-form/general-tab/general-tab';

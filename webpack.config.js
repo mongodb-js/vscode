@@ -35,9 +35,15 @@ module.exports = (env, argv) => {
         // This alias can be removed once `mongodb-data-service` will not include `mongodb-connection-model` anymore.
         'ampersand-sync': false,
 
+        // Used in hadron-ipc for serializing some error information.
+        // It's node specific and not something we need here.
+        v8: false,
+
         // Removes `electron`: is an optional dependency of `oidc-plugin`, but also installed as dev-dep,
         // webpack would bring it inside the bundle otherwise.
         electron: false,
+
+        // Note: mongodb-js/compass-logging 1.1.9 wasn't working, only 1.1.6
       },
     },
 
@@ -59,7 +65,6 @@ module.exports = (env, argv) => {
       'win-export-certificate-and-key': 'win-export-certificate-and-key',
       'os-dns-native': 'os-dns-native',
       'mongodb-client-encryption': 'mongodb-client-encryption',
-      'compass-preferences-model': 'compass-preferences-model',
     },
     plugins: [
       webpackDependenciesPlugin,
@@ -153,7 +158,28 @@ module.exports = (env, argv) => {
       // @leafygreen/logo via @emotion/server:
       fallback: {
         stream: require.resolve('stream-browserify'),
+
+        // TODO: Remove the not needed deps here.
+        // Remove the unused.
+        // webpack 5+ doesn't auto-polyfill.
         buffer: require.resolve('buffer'),
+        crypto: require.resolve('crypto-browserify'),
+        fs: false,
+        http: require.resolve('stream-http'),
+        os: require.resolve('os-browserify/browser'),
+        path: require.resolve('path-browserify'), // Used in file-input in compass-components.
+        timers: require.resolve('timers-browserify'),
+        url: require.resolve('url'),
+        util: require.resolve('util'),
+        zlib: require.resolve('browserify-zlib'),
+        dns: false,
+        tls: false,
+        net: false,
+
+        // These are included because `client-side-encryption` is
+        // including them, but we don't need them.
+        querystring: false,
+        child_process: false,
       },
     },
     module: {
