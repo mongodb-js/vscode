@@ -6,13 +6,11 @@ ignores:
  - "buffer"
  - "eslint-config-mongodb-js"
  - "keytar"
- - "electron"
  - "mocha-junit-reporter"
  - "mocha-multi"
  - "mongodb-client-encryption"
  - "pre-commit"
  - "process"
- - "vscode-languageserver-textdocument"
  - "vscode"
  - "webpack-cli"
  - "@mongodb-js/oidc-plugin"
@@ -23,4 +21,3 @@ ignores:
  - postcss-loader
  - style-loader
  - ts-loader
- - mongodb-runner
