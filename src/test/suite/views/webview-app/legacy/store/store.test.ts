@@ -1,6 +1,6 @@
 import assert from 'assert';
 
-import { rootReducer } from '../../../../../views/webview-app/legacy/store/store';
+import { rootReducer } from '../../../../../../views/webview-app/legacy/store/store';
 
 describe('Webview Store Test Suite', () => {
   test('ensure the state updates on an action call', () => {

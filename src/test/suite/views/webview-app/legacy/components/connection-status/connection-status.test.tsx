@@ -9,13 +9,13 @@ import { Provider } from 'react-redux';
 
 import ConnectionStatus, {
   ConnectionStatus as PlainConnectionStatus,
-} from '../../../../../../views/webview-app/legacy/components/connection-status/connection-status';
-import { CONNECTION_STATUS } from '../../../../../../views/webview-app/extension-app-message-constants';
-import type { AppState } from '../../../../../../views/webview-app/legacy/store/store';
+} from '../../../../../../../views/webview-app/legacy/components/connection-status/connection-status';
+import { CONNECTION_STATUS } from '../../../../../../../views/webview-app/extension-app-message-constants';
+import type { AppState } from '../../../../../../../views/webview-app/legacy/store/store';
 import {
   initialState,
   rootReducer,
-} from '../../../../../../views/webview-app/legacy/store/store';
+} from '../../../../../../../views/webview-app/legacy/store/store';
 
 describe('Connection Status Component Test Suite', () => {
   describe('connected connection status', () => {

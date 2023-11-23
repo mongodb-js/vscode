@@ -5,12 +5,12 @@ import { mount } from 'enzyme';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
-import FormActions from '../../../../../../views/webview-app/legacy/components/form/form-actions';
-import type { AppState } from '../../../../../../views/webview-app/legacy/store/store';
+import FormActions from '../../../../../../../views/webview-app/legacy/components/form/form-actions';
+import type { AppState } from '../../../../../../../views/webview-app/legacy/store/store';
 import {
   initialState,
   rootReducer,
-} from '../../../../../../views/webview-app/legacy/store/store';
+} from '../../../../../../../views/webview-app/legacy/store/store';
 
 describe('Connect Form Actions Component Test Suite', () => {
   describe('when rendered', () => {

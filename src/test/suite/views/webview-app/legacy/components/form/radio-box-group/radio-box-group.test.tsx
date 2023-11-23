@@ -2,7 +2,7 @@ import assert from 'assert';
 import * as React from 'react';
 import { mount } from 'enzyme';
 
-import RadioBoxGroup from '../../../../../../../views/webview-app/legacy/components/form/radio-box-group/radio-box-group';
+import RadioBoxGroup from '../../../../../../../../views/webview-app/legacy/components/form/radio-box-group/radio-box-group';
 
 describe('Radio Box Group Component Test Suite', () => {
   describe('when rendered', () => {

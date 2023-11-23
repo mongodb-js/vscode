@@ -5,12 +5,12 @@ import sinon from 'sinon';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 
-import type { AppState } from '../../../../../../views/webview-app/legacy/store/store';
+import type { AppState } from '../../../../../../../views/webview-app/legacy/store/store';
 import {
   initialState,
   rootReducer,
-} from '../../../../../../views/webview-app/legacy/store/store';
-import ResourcesPanel from '../../../../../../views/webview-app/legacy/components/resources-panel/resources-panel';
+} from '../../../../../../../views/webview-app/legacy/store/store';
+import ResourcesPanel from '../../../../../../../views/webview-app/legacy/components/resources-panel/resources-panel';
 
 describe('Resources Panel Component Test Suite', () => {
   describe('when rendered', () => {

@@ -6,15 +6,15 @@ import { Provider } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { createStore } from 'redux';
 
-import type { AppState } from '../../../../../../views/webview-app/legacy/store/store';
+import type { AppState } from '../../../../../../../views/webview-app/legacy/store/store';
 import {
   initialState,
   rootReducer,
-} from '../../../../../../views/webview-app/legacy/store/store';
-import ConnectForm from '../../../../../../views/webview-app/legacy/components/connect-form/connection-form';
+} from '../../../../../../../views/webview-app/legacy/store/store';
+import ConnectForm from '../../../../../../../views/webview-app/legacy/components/connect-form/connection-form';
 import ConnectFormModal, {
   ConnectFormModal as NoStoreConnectFormModal,
-} from '../../../../../../views/webview-app/legacy/components/connect-form-modal/connect-form-modal';
+} from '../../../../../../../views/webview-app/legacy/components/connect-form-modal/connect-form-modal';
 
 describe('Connect Form Modal Component Test Suite', () => {
   describe('when rendered', () => {

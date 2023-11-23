@@ -2,12 +2,12 @@ import assert from 'assert';
 import * as React from 'react';
 import { shallow } from 'enzyme';
 
-import { OverviewPage } from '../../../../../../views/webview-app/legacy/components/overview-page/overview-page';
-import ConnectHelper from '../../../../../../views/webview-app/legacy/components/connect-helper/connect-helper';
-import ConnectionStatus from '../../../../../../views/webview-app/legacy/components/connection-status/connection-status';
-import OverviewHeader from '../../../../../../views/webview-app/legacy/components/overview-page/overview-header/overview-header';
-import ConnectionFormModal from '../../../../../../views/webview-app/legacy/components/connect-form-modal/connect-form-modal';
-import ResourcesPanel from '../../../../../../views/webview-app/legacy/components/resources-panel/resources-panel';
+import { OverviewPage } from '../../../../../../../views/webview-app/legacy/components/overview-page/overview-page';
+import ConnectHelper from '../../../../../../../views/webview-app/legacy/components/connect-helper/connect-helper';
+import ConnectionStatus from '../../../../../../../views/webview-app/legacy/components/connection-status/connection-status';
+import OverviewHeader from '../../../../../../../views/webview-app/legacy/components/overview-page/overview-header/overview-header';
+import ConnectionFormModal from '../../../../../../../views/webview-app/legacy/components/connect-form-modal/connect-form-modal';
+import ResourcesPanel from '../../../../../../../views/webview-app/legacy/components/resources-panel/resources-panel';
 
 describe('Overview Page Component Test Suite', () => {
   describe('when rendered', () => {
