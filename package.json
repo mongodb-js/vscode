@@ -1036,7 +1036,7 @@
     "@types/vscode": "^1.79.1",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
-    "@vscode/test-electron": "^2.3.3",
+    "@vscode/test-electron": "^2.3.7",
     "@vscode/vsce": "^2.19.0",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
     "autoprefixer": "^10.4.16",
