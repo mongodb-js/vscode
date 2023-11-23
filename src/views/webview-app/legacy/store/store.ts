@@ -7,19 +7,12 @@ import LegacyConnectionModel, {
   validateConnectionModel,
 } from '../connection-model/legacy-connection-model';
 import SSL_METHODS from '../connection-model/constants/ssl-methods';
-import type { MESSAGE_FROM_WEBVIEW_TO_EXTENSION } from '../extension-app-message-constants';
 import {
   CONNECTION_STATUS,
   MESSAGE_TYPES,
-} from '../extension-app-message-constants';
+} from '../../extension-app-message-constants';
 import { CONNECTION_FORM_TABS } from './constants';
-
-interface VSCodeApi {
-  postMessage: (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) => void;
-}
-
-declare const acquireVsCodeApi: () => VSCodeApi;
-const vscode = acquireVsCodeApi();
+import { vscode } from '../../vscode-api';
 
 export interface AppState {
   activeConnectionName: string;

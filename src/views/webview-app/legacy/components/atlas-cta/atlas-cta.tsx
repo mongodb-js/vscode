@@ -6,11 +6,11 @@ import type {
   TrustedLinkClickedAction,
 } from '../../store/actions';
 import { ActionTypes } from '../../store/actions';
-import { VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID } from '../../extension-app-message-constants';
+import { VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID } from '../../../extension-app-message-constants';
 import AtlasLogo from './atlas-logo';
 
 import styles from './atlas-cta.less';
-import LINKS from '../../../../utils/links';
+import LINKS from '../../../../../utils/links';
 
 type DispatchProps = {
   onLinkClicked: (screen: string, linkId: string) => void;

@@ -7,7 +7,7 @@ import type {
 } from '../../../../store/actions';
 import { ActionTypes } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
-import LINKS from '../../../../../../utils/links';
+import LINKS from '../../../../../../../utils/links';
 
 type DispatchProps = {
   onLDAPPasswordChanged: (newPassword: string) => void;

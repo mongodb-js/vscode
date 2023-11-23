@@ -8,8 +8,8 @@ import { Provider } from 'react-redux';
 import {
   initialState,
   rootReducer,
-} from '../../../../../../views/webview-app/store/store';
-import AtlasCTA from '../../../../../../views/webview-app/components/atlas-cta/atlas-cta';
+} from '../../../../../../views/webview-app/legacy/store/store';
+import AtlasCTA from '../../../../../../views/webview-app/legacy/components/atlas-cta/atlas-cta';
 import { VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID } from '../../../../../../views/webview-app/extension-app-message-constants';
 
 describe('Resources Panel Component Test Suite', () => {

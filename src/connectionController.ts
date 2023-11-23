@@ -13,7 +13,7 @@ import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-con
 import { createLogger } from './logging';
 import { ext } from './extensionConstants';
 import formatError from './utils/formatError';
-import type LegacyConnectionModel from './views/webview-app/connection-model/legacy-connection-model';
+import type LegacyConnectionModel from './views/webview-app/legacy/connection-model/legacy-connection-model';
 import type { SecretStorageLocationType } from './storage/storageController';
 import {
   StorageLocation,

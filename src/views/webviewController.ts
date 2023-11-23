@@ -4,7 +4,7 @@ import crypto from 'crypto';
 
 import type ConnectionController from '../connectionController';
 import { ConnectionTypes } from '../connectionController';
-import type LegacyConnectionModel from './webview-app/connection-model/legacy-connection-model';
+import type LegacyConnectionModel from './webview-app/legacy/connection-model/legacy-connection-model';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
 import type {
@@ -18,6 +18,7 @@ import {
 import { openLink } from '../utils/linkHelper';
 import type { StorageController } from '../storage';
 import type TelemetryService from '../telemetry/telemetryService';
+import { getFeatureFlags } from '../featureFlags';
 
 const log = createLogger('webview controller');
 
@@ -157,6 +158,7 @@ export default class WebviewController {
     });
   };
 
+  // eslint-disable-next-line complexity
   handleWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel
@@ -210,6 +212,12 @@ export default class WebviewController {
             this._connectionController.getActiveConnectionId() as string
           );
         }
+        return;
+      case MESSAGE_TYPES.GET_FEATURE_FLAGS:
+        void panel.webview.postMessage({
+          command: MESSAGE_TYPES.FEATURE_FLAGS_RESULTS,
+          featureFlags: getFeatureFlags(),
+        });
         return;
       default:
         // no-op.

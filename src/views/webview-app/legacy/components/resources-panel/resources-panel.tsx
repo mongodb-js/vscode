@@ -12,7 +12,7 @@ import type {
 import { ActionTypes } from '../../store/actions';
 
 import styles from './resources-panel.less';
-import LINKS from '../../../../utils/links';
+import LINKS from '../../../../../utils/links';
 
 const ResourceLinks = [
   {

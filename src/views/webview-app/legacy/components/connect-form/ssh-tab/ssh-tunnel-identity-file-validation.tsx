@@ -13,7 +13,7 @@ import type { AppState } from '../../../store/store';
 import FormInput from '../../form/form-input';
 import FileInputButton from '../../form/file-input-button';
 import FormGroup from '../../form/form-group';
-import LINKS from '../../../../../utils/links';
+import LINKS from '../../../../../../utils/links';
 
 type DispatchProps = {
   onChangeSSHTunnelIdentityFile: () => void;

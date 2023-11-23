@@ -8,11 +8,11 @@ import { createStore } from 'redux';
 import {
   initialState,
   rootReducer,
-} from '../../../../../views/webview-app/store/store';
+} from '../../../../../views/webview-app/legacy/store/store';
 import App, {
   App as NotConnectedApp,
-} from '../../../../../views/webview-app/components/app';
-import OverviewPage from '../../../../../views/webview-app/components/overview-page/overview-page';
+} from '../../../../../views/webview-app/legacy/components/app';
+import OverviewPage from '../../../../../views/webview-app/legacy/components/overview-page/overview-page';
 import {
   CONNECTION_STATUS,
   MESSAGE_TYPES,

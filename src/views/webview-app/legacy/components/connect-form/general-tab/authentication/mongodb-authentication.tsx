@@ -8,7 +8,7 @@ import type {
 } from '../../../../store/actions';
 import { ActionTypes } from '../../../../store/actions';
 import FormInput from '../../../form/form-input';
-import LINKS from '../../../../../../utils/links';
+import LINKS from '../../../../../../../utils/links';
 
 type DispatchProps = {
   onAuthSourceChanged: (newAuthSource: string) => void;
@@ -23,7 +23,7 @@ type props = {
   mongodbUsername?: string;
 } & DispatchProps;
 
-class ScramSha256 extends React.Component<props> {
+class MongoDBAuthentication extends React.Component<props> {
   /**
    * Handles username change.
    *
@@ -75,7 +75,7 @@ class ScramSha256 extends React.Component<props> {
         <FormInput
           label="Authentication Database"
           placeholder="admin"
-          name="authSource"
+          name="auth-source"
           changeHandler={this.onAuthSourceChanged}
           value={mongodbDatabaseName || ''}
           // Opens "Authentication Database" documentation.
@@ -101,4 +101,4 @@ const mapDispatchToProps: DispatchProps = {
   }),
 };
 
-export default connect(null, mapDispatchToProps)(ScramSha256);
+export default connect(null, mapDispatchToProps)(MongoDBAuthentication);

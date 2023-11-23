@@ -6,7 +6,7 @@ import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import { connect } from 'mongodb-data-service';
 
-import AUTH_STRATEGY_VALUES from '../../views/webview-app/connection-model/constants/auth-strategies';
+import AUTH_STRATEGY_VALUES from '../../views/webview-app/legacy/connection-model/constants/auth-strategies';
 import ConnectionController, {
   DataServiceEventTypes,
   keytarMigrationFailedMessage,
@@ -19,9 +19,9 @@ import {
   DefaultSavingLocations,
   SecretStorageLocation,
 } from '../../storage/storageController';
-import READ_PREFERENCES from '../../views/webview-app/connection-model/constants/read-preferences';
-import SSH_TUNNEL_TYPES from '../../views/webview-app/connection-model/constants/ssh-tunnel-types';
-import SSL_METHODS from '../../views/webview-app/connection-model/constants/ssl-methods';
+import READ_PREFERENCES from '../../views/webview-app/legacy/connection-model/constants/read-preferences';
+import SSH_TUNNEL_TYPES from '../../views/webview-app/legacy/connection-model/constants/ssh-tunnel-types';
+import SSL_METHODS from '../../views/webview-app/legacy/connection-model/constants/ssl-methods';
 import { StatusView } from '../../views';
 import TelemetryService from '../../telemetry/telemetryService';
 import { ExtensionContextStub } from './stubs';

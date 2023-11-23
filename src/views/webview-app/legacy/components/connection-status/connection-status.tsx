@@ -12,10 +12,10 @@ import type {
 } from '../../store/actions';
 import { ActionTypes } from '../../store/actions';
 import InfoSprinkle from '../info-sprinkle/info-sprinkle';
-import { CONNECTION_STATUS } from '../../extension-app-message-constants';
+import { CONNECTION_STATUS } from '../../../extension-app-message-constants';
 
 import styles from './connection-status.less';
-import LINKS from '../../../../utils/links';
+import LINKS from '../../../../../utils/links';
 
 const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
 

@@ -7,9 +7,9 @@ import type { SinonSpy } from 'sinon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 
-import { HostInput } from '../../../../../../../views/webview-app/components/connect-form/general-tab/host/host';
-import FormGroup from '../../../../../../../views/webview-app/components/form/form-group';
-import RadioBoxGroup from '../../../../../../../views/webview-app/components/form/radio-box-group/radio-box-group';
+import { HostInput } from '../../../../../../../views/webview-app/legacy/components/connect-form/general-tab/host/host';
+import FormGroup from '../../../../../../../views/webview-app/legacy/components/form/form-group';
+import RadioBoxGroup from '../../../../../../../views/webview-app/legacy/components/form/radio-box-group/radio-box-group';
 
 describe('Host Component Test Suite', () => {
   test('it shows a form group', () => {

@@ -12,8 +12,8 @@ import { ActionTypes } from '../store/actions';
 import type {
   CONNECTION_STATUS,
   MESSAGE_FROM_EXTENSION_TO_WEBVIEW,
-} from '../extension-app-message-constants';
-import { MESSAGE_TYPES } from '../extension-app-message-constants';
+} from '../../extension-app-message-constants';
+import { MESSAGE_TYPES } from '../../extension-app-message-constants';
 
 import styles from '../connect.module.less';
 

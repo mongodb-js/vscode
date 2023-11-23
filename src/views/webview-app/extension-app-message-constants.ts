@@ -1,5 +1,6 @@
-import type LegacyConnectionModel from './connection-model/legacy-connection-model';
-import type { FilePickerActionTypes } from './store/actions';
+import type { FeatureFlags } from '../../featureFlags';
+import type LegacyConnectionModel from './legacy/connection-model/legacy-connection-model';
+import type { FilePickerActionTypes } from './legacy/store/actions';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
@@ -24,6 +25,8 @@ export enum MESSAGE_TYPES {
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
   OPEN_TRUSTED_LINK = 'OPEN_TRUSTED_LINK',
   RENAME_ACTIVE_CONNECTION = 'RENAME_ACTIVE_CONNECTION',
+  GET_FEATURE_FLAGS = 'GET_FEATURE_FLAGS',
+  FEATURE_FLAGS_RESULTS = 'FEATURE_FLAGS_RESULTS',
 }
 
 interface BasicWebviewMessage {
@@ -89,6 +92,15 @@ export interface RenameConnectionMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION;
 }
 
+export interface GetFeatureFlagsMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.GET_FEATURE_FLAGS;
+}
+
+export interface FeatureFlagsResultsMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.FEATURE_FLAGS_RESULTS;
+  featureFlags: FeatureFlags;
+}
+
 export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | ConnectMessage
   | CreateNewPlaygroundMessage
@@ -97,9 +109,11 @@ export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | OpenConnectionStringInputMessage
   | OpenFilePickerMessage
   | OpenTrustedLinkMessage
-  | RenameConnectionMessage;
+  | RenameConnectionMessage
+  | GetFeatureFlagsMessage;
 
 export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
   | ConnectResultsMessage
   | FilePickerResultsMessage
-  | ConnectionStatusMessage;
+  | ConnectionStatusMessage
+  | FeatureFlagsResultsMessage;

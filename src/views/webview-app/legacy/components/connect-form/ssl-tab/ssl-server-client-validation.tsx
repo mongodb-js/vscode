@@ -12,7 +12,7 @@ import { ActionTypes } from '../../../store/actions';
 import type { AppState } from '../../../store/store';
 
 import styles from '../../../connect.module.less';
-import LINKS from '../../../../../utils/links';
+import LINKS from '../../../../../../utils/links';
 
 type StateProps = {
   isValid: boolean;
