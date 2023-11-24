@@ -966,6 +966,11 @@
           "type": "boolean",
           "default": false,
           "description": "The default behavior is to generate a single ObjectId and insert it on all cursors. Set to true to generate a unique ObjectId per cursor instead."
+        },
+        "mdb.AWSProfile": {
+          "type": "string",
+          "default": "default",
+          "description": "The AWS Profile to set. This will allow MONGODB-AWS authentication using a set profile."
         }
       }
     }

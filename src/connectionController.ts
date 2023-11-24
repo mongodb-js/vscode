@@ -574,6 +574,13 @@ export default class ConnectionController {
       ),
     });
 
+    const awsProfile: string | undefined = vscode.workspace
+      .getConfiguration('mdb')
+      .get('AWSProfile');
+    this._statusView.showMessage(`Using AWS Profile ${awsProfile}`);
+    process.env.AWS_PROFILE = awsProfile;
+
+
     const connectionOptions = this._connections[connectionId].connectionOptions;
 
     if (!connectionOptions) {
