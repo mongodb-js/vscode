@@ -849,4 +849,55 @@ suite('Webview Test Suite', () => {
       );
     });
   });
+
+  test('webview returns the feature flags on a feature flags request', (done) => {
+    const extensionContextStub = new ExtensionContextStub();
+    const testStorageController = new StorageController(extensionContextStub);
+    const testTelemetryService = new TelemetryService(
+      testStorageController,
+      extensionContextStub
+    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+    let messageReceived;
+
+    const fakeWebview = {
+      html: '',
+      postMessage: (message): void => {
+        assert(message.command === 'FEATURE_FLAGS_RESULTS');
+        assert(typeof message.featureFlags === 'object');
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageReceived = callback;
+      },
+      asWebviewUri: sandbox.fake.returns(''),
+    };
+
+    sandbox.replace(
+      vscode.window,
+      'createWebviewPanel',
+      sandbox.fake.returns({
+        webview: fakeWebview,
+      })
+    );
+
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+
+    void testWebviewController.openWebview(
+      mdbTestExtension.extensionContextStub
+    );
+
+    // Mock a connection status request call.
+    messageReceived({
+      command: MESSAGE_TYPES.GET_FEATURE_FLAGS,
+    });
+  });
 });

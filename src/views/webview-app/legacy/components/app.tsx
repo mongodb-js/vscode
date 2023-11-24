@@ -74,7 +74,7 @@ export class App extends React.Component<DispatchProps> {
 
   render(): React.ReactNode {
     return (
-      <div className={styles.page}>
+      <div data-testid="legacy-app" className={styles.page}>
         <OverviewPage />
       </div>
     );

@@ -18,7 +18,7 @@ import {
   MESSAGE_TYPES,
 } from '../../../../../../views/webview-app/extension-app-message-constants';
 
-describe('App Component Test Suite', () => {
+describe('Legacy App Component Test Suite', () => {
   describe('when rendered', () => {
     test('it shows the overview page', () => {
       const wrapper = shallow(
