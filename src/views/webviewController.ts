@@ -18,7 +18,7 @@ import {
 import { openLink } from '../utils/linkHelper';
 import type { StorageController } from '../storage';
 import type TelemetryService from '../telemetry/telemetryService';
-import { getFeatureFlags } from '../featureFlags';
+import { getFeatureFlagsScript } from '../featureFlags';
 
 const log = createLogger('webview controller');
 
@@ -74,6 +74,7 @@ export const getWebviewContent = ({
     </head>
     <body>
       <div id="root"></div>
+      ${getFeatureFlagsScript(nonce)}
       <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
       <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
     </body>
@@ -212,12 +213,6 @@ export default class WebviewController {
             this._connectionController.getActiveConnectionId() as string
           );
         }
-        return;
-      case MESSAGE_TYPES.GET_FEATURE_FLAGS:
-        void panel.webview.postMessage({
-          command: MESSAGE_TYPES.FEATURE_FLAGS_RESULTS,
-          featureFlags: getFeatureFlags(),
-        });
         return;
       default:
         // no-op.
