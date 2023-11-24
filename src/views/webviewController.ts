@@ -159,7 +159,6 @@ export default class WebviewController {
     });
   };
 
-  // eslint-disable-next-line complexity
   handleWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel
