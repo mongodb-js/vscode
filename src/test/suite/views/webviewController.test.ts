@@ -867,8 +867,8 @@ suite('Webview Test Suite', () => {
     const fakeWebview = {
       html: '',
       postMessage: (message): void => {
-        assert(message.command === 'FEATURE_FLAGS_RESULTS');
-        assert(typeof message.featureFlags === 'object');
+        assert.strictEqual(message.command, 'FEATURE_FLAGS_RESULTS');
+        assert.strictEqual(typeof message.featureFlags, 'object');
         done();
       },
       onDidReceiveMessage: (callback): void => {
