@@ -32,9 +32,7 @@ class Logger implements ILogger {
   public info(message?: any, ...optionalParams: any[]): void {
     this.append(
       'INFO ',
-      `${message} ${
-        optionalParams ? util.inspect(optionalParams, { depth: Infinity }) : ''
-      }`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
     );
   }
 
