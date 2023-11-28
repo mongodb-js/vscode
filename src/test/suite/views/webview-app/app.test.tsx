@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { expect } from 'chai';
 import * as React from 'react';
 import sinon from 'sinon';
 import * as featureFlags from '../../../../featureFlags';
@@ -10,12 +10,12 @@ describe('App Component Test Suite', () => {
   test('it renders the old overview page when useNewConnectionForm is falsy', () => {
     sinon.stub(featureFlags, 'getFeatureFlag').returns(false);
     render(<App />);
-    assert.doesNotThrow(() => screen.getAllByTestId('legacy-app'));
+    expect(() => screen.getAllByTestId('legacy-app')).does.not.throw;
   });
 
   test('it renders the new overview page when useNewConnectionForm is truthy', () => {
     sinon.stub(featureFlags, 'getFeatureFlag').returns(true);
     render(<App />);
-    assert.throws(() => screen.getAllByTestId('legacy-app'));
+    expect(() => screen.getAllByTestId('legacy-app')).to.throw;
   });
 });
