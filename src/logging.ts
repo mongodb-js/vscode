@@ -3,8 +3,10 @@ import * as vscode from 'vscode';
 import util from 'util';
 
 class Logger implements ILogger {
-  static channel: vscode.OutputChannel =
-    vscode.window.createOutputChannel('MongoDB Extension');
+  static channel: vscode.LogOutputChannel = vscode.window.createOutputChannel(
+    'MongoDB Extension',
+    { log: true }
+  );
 
   private name: string;
 
@@ -30,7 +32,9 @@ class Logger implements ILogger {
   public info(message?: any, ...optionalParams: any[]): void {
     this.append(
       'INFO ',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
+      `${message} ${
+        optionalParams ? util.inspect(optionalParams, { depth: Infinity }) : ''
+      }`
     );
   }
 
