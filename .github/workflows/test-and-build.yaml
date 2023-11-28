@@ -39,6 +39,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Default Python (3.12) doesn't have support for distutils because of
+      # which the dep install fails constantly on macos
+      # https://github.com/nodejs/node-gyp/issues/2869
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
       - name: Setup Node.js Environment
         uses: actions/setup-node@v3
         with:
