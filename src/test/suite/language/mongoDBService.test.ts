@@ -19,7 +19,7 @@ import MongoDBService, {
 } from '../../../language/mongoDBService';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { StreamStub } from '../stubs';
-import READ_PREFERENCES from '../../../views/webview-app/connection-model/constants/read-preferences';
+import READ_PREFERENCES from '../../../views/webview-app/legacy/connection-model/constants/read-preferences';
 import DIAGNOSTIC_CODES from '../../../language/diagnosticCodes';
 import LINKS from '../../../utils/links';
 

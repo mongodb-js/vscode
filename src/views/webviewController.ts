@@ -4,7 +4,7 @@ import crypto from 'crypto';
 
 import type ConnectionController from '../connectionController';
 import { ConnectionTypes } from '../connectionController';
-import type LegacyConnectionModel from './webview-app/connection-model/legacy-connection-model';
+import type LegacyConnectionModel from './webview-app/legacy/connection-model/legacy-connection-model';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
 import type {
@@ -18,6 +18,7 @@ import {
 import { openLink } from '../utils/linkHelper';
 import type { StorageController } from '../storage';
 import type TelemetryService from '../telemetry/telemetryService';
+import { getFeatureFlagsScript } from '../featureFlags';
 
 const log = createLogger('webview controller');
 
@@ -73,6 +74,7 @@ export const getWebviewContent = ({
     </head>
     <body>
       <div id="root"></div>
+      ${getFeatureFlagsScript(nonce)}
       <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
       <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
     </body>
