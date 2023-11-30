@@ -5,6 +5,7 @@ const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const { merge } = require('webpack-merge');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const { WebpackDependenciesPlugin } = require('@mongodb-js/sbom-tools');
 
@@ -197,6 +198,7 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
+      new ForkTsCheckerWebpackPlugin(),
       // This is here to deal with some node.js code brought in
       // by @leafygreen/logo via @emotion/server:
       new webpack.ProvidePlugin({
