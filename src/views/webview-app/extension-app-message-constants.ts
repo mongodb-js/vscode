@@ -24,6 +24,7 @@ export enum MESSAGE_TYPES {
   OPEN_FILE_PICKER = 'OPEN_FILE_PICKER',
   OPEN_TRUSTED_LINK = 'OPEN_TRUSTED_LINK',
   RENAME_ACTIVE_CONNECTION = 'RENAME_ACTIVE_CONNECTION',
+  THEME_CHANGED = 'THEME_CHANGED',
 }
 
 interface BasicWebviewMessage {
@@ -89,6 +90,11 @@ export interface RenameConnectionMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION;
 }
 
+export interface ThemeChangedMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.THEME_CHANGED;
+  darkMode: boolean;
+}
+
 export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | ConnectMessage
   | CreateNewPlaygroundMessage
@@ -102,4 +108,5 @@ export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
 export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
   | ConnectResultsMessage
   | FilePickerResultsMessage
-  | ConnectionStatusMessage;
+  | ConnectionStatusMessage
+  | ThemeChangedMessage;

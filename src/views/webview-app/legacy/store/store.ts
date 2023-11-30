@@ -12,7 +12,7 @@ import {
   MESSAGE_TYPES,
 } from '../../extension-app-message-constants';
 import { CONNECTION_FORM_TABS } from './constants';
-import { vscode } from '../../vscode-api';
+import vscode from '../../vscode-api';
 
 export interface AppState {
   activeConnectionName: string;

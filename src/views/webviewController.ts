@@ -85,6 +85,7 @@ export default class WebviewController {
   _connectionController: ConnectionController;
   _storageController: StorageController;
   _telemetryService: TelemetryService;
+  _activeWebviewPanels: vscode.WebviewPanel[] = [];
 
   constructor({
     connectionController,
@@ -98,6 +99,7 @@ export default class WebviewController {
     this._connectionController = connectionController;
     this._storageController = storageController;
     this._telemetryService = telemetryService;
+    vscode.window.onDidChangeActiveColorTheme(this.onThemeChanged);
   }
 
   handleWebviewConnectAttempt = async (
@@ -232,6 +234,31 @@ export default class WebviewController {
     }
   };
 
+  onWebviewPanelClosed = (disposedPanel: vscode.WebviewPanel) => {
+    this._activeWebviewPanels = this._activeWebviewPanels.filter(
+      (panel) => panel !== disposedPanel
+    );
+  };
+
+  onThemeChanged = (theme: vscode.ColorTheme) => {
+    const darkModeDetected =
+      theme.kind === vscode.ColorThemeKind.Dark ||
+      theme.kind === vscode.ColorThemeKind.HighContrast;
+    for (const panel of this._activeWebviewPanels) {
+      void panel.webview
+        .postMessage({
+          command: MESSAGE_TYPES.THEME_CHANGED,
+          darkMode: darkModeDetected,
+        })
+        .then(undefined, (error) => {
+          log.warn(
+            'Could not post THEME_CHANGED to webview, most like already disposed',
+            error
+          );
+        });
+    }
+  };
+
   openWebview(context: vscode.ExtensionContext): Promise<boolean> {
     log.info('Opening webview...');
     const extensionPath = context.extensionPath;
@@ -250,6 +277,9 @@ export default class WebviewController {
         ],
       }
     );
+
+    panel.onDidDispose(() => this.onWebviewPanelClosed(panel));
+    this._activeWebviewPanels.push(panel);
 
     panel.iconPath = vscode.Uri.file(
       path.join(
