@@ -198,6 +198,9 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
+      // This plugin has been added to avoid Out of memory crashes of webpack on
+      // our Github runners. It does so by moving the type checking to a
+      // separate process.
       new ForkTsCheckerWebpackPlugin(),
       // This is here to deal with some node.js code brought in
       // by @leafygreen/logo via @emotion/server:
