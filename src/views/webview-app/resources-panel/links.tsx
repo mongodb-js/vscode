@@ -1,5 +1,12 @@
 import React from 'react';
-import { Icon, css, spacing } from '@mongodb-js/compass-components';
+import {
+  Icon,
+  css,
+  cx,
+  palette,
+  spacing,
+  useDarkMode,
+} from '@mongodb-js/compass-components';
 import LINKS from '../../../utils/links';
 import { trackExtensionLinkClicked } from '../vscode-api';
 import { TELEMETRY_SCREEN_ID } from './panel';
@@ -46,6 +53,15 @@ const linkStyles = css({
   position: 'relative',
   backgroundColor: 'var(--vscode-sideBar-background, rgba(50, 50, 50, 0.25))',
   color: 'var(--vscode-editor-foreground)',
+  '&:hover': {
+    color: palette.green.base,
+  },
+});
+
+const linkLightModeStyles = css({
+  '&:hover': {
+    color: palette.green.dark2,
+  },
 });
 
 const linkBlockStyles = css({
@@ -54,26 +70,31 @@ const linkBlockStyles = css({
   gap: spacing[1],
 });
 
-const ResourcesPanelLinks: React.FC = () => (
-  <div className={linksContainerStyles}>
-    {ResourceLinks.map((resourceLink) => (
-      <a
-        className={linkStyles}
-        href={resourceLink.url}
-        onClick={() => {
-          trackExtensionLinkClicked(TELEMETRY_SCREEN_ID, resourceLink.linkId);
-        }}
-        key={`link-${resourceLink.linkId}`}
-        data-testid={`link-${resourceLink.linkId}`}
-      >
-        <div className={linkBlockStyles}>
-          <strong>{resourceLink.title}</strong>
-          <span>{resourceLink.description}</span>
-        </div>
-        <Icon glyph="ArrowRight" />
-      </a>
-    ))}
-  </div>
-);
+const ResourcesPanelLinks: React.FC = () => {
+  const isDarkMode = useDarkMode();
+  return (
+    <div className={linksContainerStyles}>
+      {ResourceLinks.map((resourceLink) => (
+        <a
+          className={cx(linkStyles, {
+            [linkLightModeStyles]: !isDarkMode,
+          })}
+          href={resourceLink.url}
+          onClick={() => {
+            trackExtensionLinkClicked(TELEMETRY_SCREEN_ID, resourceLink.linkId);
+          }}
+          key={`link-${resourceLink.linkId}`}
+          data-testid={`link-${resourceLink.linkId}`}
+        >
+          <div className={linkBlockStyles}>
+            <strong>{resourceLink.title}</strong>
+            <span>{resourceLink.description}</span>
+          </div>
+          <Icon glyph="ArrowRight" />
+        </a>
+      ))}
+    </div>
+  );
+};
 
 export default ResourcesPanelLinks;

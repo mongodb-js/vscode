@@ -1,5 +1,13 @@
 import React from 'react';
-import { Body, Button, css, spacing } from '@mongodb-js/compass-components';
+import {
+  Body,
+  Button,
+  css,
+  cx,
+  palette,
+  spacing,
+  useDarkMode,
+} from '@mongodb-js/compass-components';
 import LINKS from '../../utils/links';
 import AtlasLogo from './atlas-logo';
 import { openTrustedLink, trackExtensionLinkClicked } from './vscode-api';
@@ -29,7 +37,23 @@ const txtStyles = css({
   textAlign: 'left',
 });
 
+const linkDarkModeStyles = css({
+  color: palette.green.base,
+  '&:hover': {
+    color: palette.green.base,
+  },
+});
+
+const linkLightModeStyles = css({
+  color: palette.green.dark2,
+  '&:hover': {
+    color: palette.green.dark2,
+  },
+});
+
 const AtlasCta: React.FC = () => {
+  const isDarkMode = useDarkMode();
+
   const handleAtlasCTAClicked = () => {
     const telemetryUserId = window[VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID];
     const atlasLink = LINKS.createAtlasCluster(telemetryUserId);
@@ -48,6 +72,10 @@ const AtlasCta: React.FC = () => {
           <Body as="div">
             Create one for free using&nbsp;
             <a
+              className={cx({
+                [linkDarkModeStyles]: isDarkMode,
+                [linkLightModeStyles]: !isDarkMode,
+              })}
               data-testid="link-atlas"
               target="_blank"
               rel="noopener"

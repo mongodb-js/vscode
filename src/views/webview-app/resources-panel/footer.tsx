@@ -1,5 +1,5 @@
 import React from 'react';
-import { css } from '@mongodb-js/compass-components';
+import { css, cx, palette, useDarkMode } from '@mongodb-js/compass-components';
 import LINKS from '../../../utils/links';
 import { trackExtensionLinkClicked } from '../vscode-api';
 import { TELEMETRY_SCREEN_ID } from './panel';
@@ -52,7 +52,7 @@ const footerStyles = css({
   textAlign: 'left',
 });
 
-const footerItem = css({
+const footerItemStyles = css({
   width: '50%',
   display: 'inline-block',
   '&:last-child': {
@@ -60,56 +60,71 @@ const footerItem = css({
   },
 });
 
-const footerItemTitle = css({
+const footerItemTitleStyles = css({
   margin: '10px 0px',
   fontWeight: 'bold',
 });
 
-const footerItemLink = css({
+const footerItemLinkStyles = css({
   margin: '5px 0px',
   textDecoration: 'none',
   display: 'block',
   color: 'var(--vscode-editor-foreground)',
+  '&:hover': {
+    color: palette.green.base,
+  },
 });
 
-const ResourcesPanelFooter: React.FC = () => (
-  <div className={footerStyles}>
-    <div className={footerItem}>
-      <div className={footerItemTitle}>Key features</div>
-      {FooterFeatures.map((footerFeature) => (
-        <a
-          className={footerItemLink}
-          href={footerFeature.url}
-          key={`footer-feature-${footerFeature.linkId}`}
-          data-testid={`footer-feature-${footerFeature.linkId}`}
-          onClick={() => {
-            trackExtensionLinkClicked(
-              TELEMETRY_SCREEN_ID,
-              footerFeature.linkId
-            );
-          }}
-        >
-          {footerFeature.title}
-        </a>
-      ))}
+const footerItemLinkLightModeStyles = css({
+  '&:hover': {
+    color: palette.green.dark2,
+  },
+});
+
+const ResourcesPanelFooter: React.FC = () => {
+  const isDarkMode = useDarkMode();
+  const itemLinkStyles = cx(footerItemLinkStyles, {
+    [footerItemLinkLightModeStyles]: !isDarkMode,
+  });
+  return (
+    <div className={footerStyles}>
+      <div className={footerItemStyles}>
+        <div className={footerItemTitleStyles}>Key features</div>
+        {FooterFeatures.map((footerFeature) => (
+          <a
+            className={itemLinkStyles}
+            href={footerFeature.url}
+            key={`footer-feature-${footerFeature.linkId}`}
+            data-testid={`footer-feature-${footerFeature.linkId}`}
+            onClick={() => {
+              trackExtensionLinkClicked(
+                TELEMETRY_SCREEN_ID,
+                footerFeature.linkId
+              );
+            }}
+          >
+            {footerFeature.title}
+          </a>
+        ))}
+      </div>
+      <div className={footerItemStyles}>
+        <div className={footerItemTitleStyles}>Contribute</div>
+        {FooterLinks.map((footerLink) => (
+          <a
+            className={itemLinkStyles}
+            href={footerLink.url}
+            key={`footer-link-${footerLink.linkId}`}
+            data-testid={`footer-link-${footerLink.linkId}`}
+            onClick={() => {
+              trackExtensionLinkClicked(TELEMETRY_SCREEN_ID, footerLink.linkId);
+            }}
+          >
+            {footerLink.title}
+          </a>
+        ))}
+      </div>
     </div>
-    <div className={footerItem}>
-      <div className={footerItemTitle}>Contribute</div>
-      {FooterLinks.map((footerLink) => (
-        <a
-          className={footerItemLink}
-          href={footerLink.url}
-          key={`footer-link-${footerLink.linkId}`}
-          data-testid={`footer-link-${footerLink.linkId}`}
-          onClick={() => {
-            trackExtensionLinkClicked(TELEMETRY_SCREEN_ID, footerLink.linkId);
-          }}
-        >
-          {footerLink.title}
-        </a>
-      ))}
-    </div>
-  </div>
-);
+  );
+};
 
 export default ResourcesPanelFooter;

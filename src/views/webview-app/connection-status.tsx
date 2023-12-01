@@ -8,6 +8,7 @@ import {
   cx,
   palette,
   spacing,
+  useDarkMode,
 } from '@mongodb-js/compass-components';
 import { CONNECTION_STATUS } from './extension-app-message-constants';
 import LINKS from '../../utils/links';
@@ -35,6 +36,10 @@ const connectedStatusDotStyles = cx(
     backgroundColor: palette.green.base,
   })
 );
+
+const connectedStatusDotLightModeStyles = css({
+  backgroundColor: palette.green.dark2,
+});
 
 const disconnectedStatusDotStyles = cx(
   statusDotStyles,
@@ -91,11 +96,16 @@ const ctaTextStyles = css({
 const ConnectionStatusConnected: React.FC<{ connectionName: string }> = ({
   connectionName,
 }) => {
+  const isDarkMode = useDarkMode();
   return (
     <div className={connectedContainerStyles}>
       <div className={statusContainerStyles}>
         <Body as="div">
-          <span className={connectedStatusDotStyles} />
+          <span
+            className={cx(connectedStatusDotStyles, {
+              [connectedStatusDotLightModeStyles]: !isDarkMode,
+            })}
+          />
           Connected to:
         </Body>
         <Body as="div" className={connectionNameStyles}>
