@@ -152,10 +152,11 @@ suite('Explorer Controller Test Suite', function () {
     const connectionName =
       testConnectionController._connections[connectionId].name;
 
-    assert(
-      connectionName === 'localhost:27088',
-      `Expected active connection name to be 'localhost:27088' found ${connectionName}`
-    );
+    const connectionsItemsFirstConnect = await treeController.getChildren();
+
+    assert.strictEqual(connectionName, 'localhost:27088');
+    // Ensure we auto expand when it's successfully connected to.
+    assert(connectionsItemsFirstConnect[0].isExpanded);
 
     try {
       await testConnectionController.addNewConnectionStringAndConnect(
