@@ -24,6 +24,6 @@ describe('ConnectHelper test suite', function () {
   });
 
   test.skip('when clicked on open connection form, it should open connection form', function () {
-    // TODO
+    // TODO(VSCODE-488)
   });
 });
