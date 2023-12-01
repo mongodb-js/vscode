@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Body,
   css,
+  focusRing,
   Icon,
   MongoDBLogo,
   spacing,
@@ -27,17 +28,20 @@ const resourcesBtnContainer = css({
   right: spacing[3],
 });
 
-const resourcesBtnStyles = css({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  background: 'none',
-  border: 'none',
-  color: 'inherit',
-  '&:hover': {
-    cursor: 'pointer',
+const resourcesBtnStyles = css(
+  {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    background: 'none',
+    border: 'none',
+    color: 'inherit',
+    '&:hover': {
+      cursor: 'pointer',
+    },
   },
-});
+  focusRing
+);
 
 const OverviewHeader: React.FC<{ onResourcesClick: () => void }> = ({
   onResourcesClick,
@@ -50,7 +54,11 @@ const OverviewHeader: React.FC<{ onResourcesClick: () => void }> = ({
         and transforming your data
       </Body>
       <Body as="div" className={resourcesBtnContainer}>
-        <button className={resourcesBtnStyles} onClick={onResourcesClick}>
+        <button
+          type="button"
+          className={resourcesBtnStyles}
+          onClick={onResourcesClick}
+        >
           <Icon size={32} glyph="University" />
           Resources
         </button>
