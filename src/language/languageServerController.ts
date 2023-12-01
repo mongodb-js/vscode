@@ -77,7 +77,9 @@ export default class LanguageServerController {
         // Notify the server about file changes in the workspace.
         fileEvents: workspace.createFileSystemWatcher('**/*'),
       },
-      outputChannel: vscode.window.createOutputChannel(languageServerName),
+      outputChannel: vscode.window.createOutputChannel(languageServerName, {
+        log: true,
+      }),
     };
 
     log.info('Creating MongoDB Language Server...', {
