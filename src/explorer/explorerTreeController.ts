@@ -173,7 +173,12 @@ export default class ExplorerTreeController
         this._connectionTreeItems[connection.id] = new ConnectionTreeItem({
           connectionId: connection.id,
           collapsibleState: connectionExpandedState,
-          isExpanded: isActiveConnection,
+          // Set expanded when we're connecting to a connection so that it
+          // expands when it's connected.
+          isExpanded:
+            isBeingConnectedTo ||
+            connectionExpandedState ===
+              vscode.TreeItemCollapsibleState.Expanded,
           connectionController: this._connectionController,
           cacheIsUpToDate: pastConnectionTreeItems[connection.id]
             ? pastConnectionTreeItems[connection.id].cacheIsUpToDate
