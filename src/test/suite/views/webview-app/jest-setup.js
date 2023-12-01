@@ -3,6 +3,8 @@
 
 const Enzyme = require('enzyme');
 const Adapter = require('@wojtekmaj/enzyme-adapter-react-17');
+const chai = require('chai');
+chai.use(require('sinon-chai'));
 Enzyme.configure({ adapter: new Adapter() });
 
 // eslint-disable-next-line no-undef

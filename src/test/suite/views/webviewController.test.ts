@@ -41,6 +41,7 @@ suite('Webview Test Suite', () => {
     };
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
 
     sandbox.replace(
@@ -164,6 +165,7 @@ suite('Webview Test Suite', () => {
 
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
 
     sandbox.replace(
@@ -236,6 +238,7 @@ suite('Webview Test Suite', () => {
     };
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
 
     sandbox.replace(
@@ -302,6 +305,7 @@ suite('Webview Test Suite', () => {
     };
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
 
     sandbox.replace(
@@ -368,6 +372,7 @@ suite('Webview Test Suite', () => {
     };
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
     sandbox.replace(
       vscode.window,
@@ -436,6 +441,7 @@ suite('Webview Test Suite', () => {
 
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
     sandbox.replace(
       vscode.window,
@@ -499,6 +505,7 @@ suite('Webview Test Suite', () => {
     };
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
 
     sandbox.replace(
@@ -564,6 +571,7 @@ suite('Webview Test Suite', () => {
 
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
 
     sandbox.replace(
@@ -628,6 +636,7 @@ suite('Webview Test Suite', () => {
     };
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
 
     sandbox.replace(
@@ -685,6 +694,7 @@ suite('Webview Test Suite', () => {
     };
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
 
     sandbox.replace(
@@ -739,6 +749,7 @@ suite('Webview Test Suite', () => {
     };
     const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
       webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
     });
 
     sandbox.replace(
@@ -784,6 +795,75 @@ suite('Webview Test Suite', () => {
     await testConnectionController.disconnect();
   });
 
+  test('it notifies all the webviews of the change of current theme and gulps the error if any', function (done) {
+    const extensionContextStub = new ExtensionContextStub();
+    const testStorageController = new StorageController(extensionContextStub);
+    const testTelemetryService = new TelemetryService(
+      testStorageController,
+      extensionContextStub
+    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
+    const totalExpectedPostMessageCalls = 3;
+    let callsSoFar = 0;
+    const fakeWebview = {
+      html: '',
+      // eslint-disable-next-line @typescript-eslint/require-await
+      postMessage: async (message): Promise<void> => {
+        assert(message.command === 'THEME_CHANGED');
+        assert(message.darkMode === true);
+        if (++callsSoFar === 1) {
+          // This should be fine since we catch the rejection and proceed ahead silently
+          throw new Error('BAM');
+        }
+        if (++callsSoFar === totalExpectedPostMessageCalls) {
+          done();
+        }
+      },
+      onDidReceiveMessage: (): void => {},
+      asWebviewUri: sandbox.fake.returns(''),
+    };
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
+      webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
+    });
+
+    sandbox.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+
+    void testWebviewController.openWebview(
+      mdbTestExtension.extensionContextStub
+    );
+
+    void testWebviewController.openWebview(
+      mdbTestExtension.extensionContextStub
+    );
+
+    void testWebviewController.openWebview(
+      mdbTestExtension.extensionContextStub
+    );
+
+    // Mock a theme change
+    void testWebviewController.onThemeChanged({
+      kind: vscode.ColorThemeKind.Dark,
+    });
+  });
+
   suite('with a rendered webview', () => {
     const extensionContextStub = new ExtensionContextStub();
     const testStorageController = new StorageController(extensionContextStub);
@@ -816,6 +896,7 @@ suite('Webview Test Suite', () => {
 
       const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
         webview: fakeWebview,
+        onDidDispose: sandbox.fake.returns(''),
       });
       sandbox.replace(
         vscode.window,

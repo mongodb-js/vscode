@@ -16,6 +16,6 @@ describe('App Component Test Suite', () => {
   test('it renders the new overview page when useNewConnectionForm is truthy', () => {
     sinon.stub(featureFlags, 'getFeatureFlag').returns(true);
     render(<App />);
-    expect(() => screen.getAllByTestId('legacy-app')).to.throw;
+    expect(screen.queryByTestId('legacy-app')).to.be.null;
   });
 });
