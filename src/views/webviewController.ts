@@ -86,6 +86,7 @@ export default class WebviewController {
   _storageController: StorageController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
+  _themeChangedSubscription: vscode.Disposable;
 
   constructor({
     connectionController,
@@ -99,7 +100,13 @@ export default class WebviewController {
     this._connectionController = connectionController;
     this._storageController = storageController;
     this._telemetryService = telemetryService;
-    vscode.window.onDidChangeActiveColorTheme(this.onThemeChanged);
+    this._themeChangedSubscription = vscode.window.onDidChangeActiveColorTheme(
+      this.onThemeChanged
+    );
+  }
+
+  deactivate(): void {
+    this._themeChangedSubscription?.dispose();
   }
 
   handleWebviewConnectAttempt = async (

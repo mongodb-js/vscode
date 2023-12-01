@@ -696,5 +696,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._playgroundController.deactivate();
     this._telemetryService.deactivate();
     this._editorsController.deactivate();
+    this._webviewController.deactivate();
   }
 }
