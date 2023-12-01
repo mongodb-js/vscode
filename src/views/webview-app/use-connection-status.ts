@@ -20,7 +20,7 @@ const useConnectionStatus = () => {
         setConnectionStatus(message.connectionStatus);
         setConnectionName(message.activeConnectionName);
       }
-      // TODO: Also listen on the new connected event whenever that is
+      // TODO(VSCODE-489): Also listen on the new connected event whenever that is
       // implemented
     };
     window.addEventListener('message', handleConnectionStatusResponse);
