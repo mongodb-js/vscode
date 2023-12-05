@@ -113,6 +113,25 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'mdb.changeActiveConnection'
         );
       });
+
+      test('show active connection and default database in code lenses, when connected to a default database', () => {
+        sandbox.replace(
+          testConnectionController,
+          'getActiveConnectionDefaultDB',
+          sandbox.fake.returns('fakeDBName')
+        );
+        const codeLens = testCodeLensProvider.provideCodeLenses();
+        expect(codeLens).to.be.an('array');
+        expect(codeLens.length).to.be.equal(1);
+        expect(codeLens[0].command?.title).to.be.equal(
+          'Currently connected to fakeName with default database fakeDBName. Click here to change connection.'
+        );
+        expect(codeLens[0].range.start.line).to.be.equal(0);
+        expect(codeLens[0].range.end.line).to.be.equal(0);
+        expect(codeLens[0].command?.command).to.be.equal(
+          'mdb.changeActiveConnection'
+        );
+      });
     });
   });
 

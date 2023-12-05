@@ -48,7 +48,11 @@ export default class ActiveConnectionCodeLensProvider
     if (this._connectionController.isConnecting()) {
       message = 'Connecting...';
     } else if (this._connectionController.getActiveDataService()) {
-      message = `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`;
+      const defaultDB =
+        this._connectionController.getActiveConnectionDefaultDB();
+      message = defaultDB
+        ? `Currently connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}. Click here to change connection.`
+        : `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`;
     } else {
       message = 'Disconnected. Click here to connect.';
     }
