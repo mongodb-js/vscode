@@ -14,6 +14,7 @@ import type {
   MarkupContent,
   Diagnostic,
 } from 'vscode-languageserver/node';
+import ConnectionString from 'mongodb-connection-string-url';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
 import type { Document } from '@mongosh/service-provider-core';
 import { getFilteredCompletions } from '@mongodb-js/mongodb-constants';
@@ -35,7 +36,7 @@ import type {
 } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
 import { Visitor } from './visitor';
-import type { CompletionState } from './visitor';
+import type { CompletionState, NamespaceState } from './visitor';
 import LINKS from '../utils/links';
 
 import DIAGNOSTIC_CODES from './diagnosticCodes';
@@ -94,6 +95,16 @@ export default class MongoDBService {
    */
   get connectionOptions(): MongoClientOptions | undefined {
     return this._currentConnectionOptions;
+  }
+
+  get defaultConnectedDB(): string | null {
+    if (!this.connectionString) {
+      return null;
+    }
+    const connectionString = new ConnectionString(this.connectionString);
+    return connectionString.pathname !== '/'
+      ? connectionString.pathname.substring(1)
+      : null;
   }
 
   initialize({
@@ -446,6 +457,22 @@ export default class MongoDBService {
   }
 
   /**
+   * @param state  The state returned from Visitor.
+   * @returns The state with the default connected database, if available, if
+   * and only if the state returned from visitor does not already mention a
+   * database
+   */
+  withDefaultDatabase<T extends NamespaceState | CompletionState>(state: T): T {
+    if (state.databaseName === null && this.defaultConnectedDB !== null) {
+      return {
+        ...state,
+        databaseName: this.defaultConnectedDB,
+      };
+    }
+    return state;
+  }
+
+  /**
    * Parse code from a playground to identify
    * a context in which export to language action is being called.
    */
@@ -473,7 +500,9 @@ export default class MongoDBService {
     params: PlaygroundTextAndSelection
   ): ExportToLanguageNamespace {
     try {
-      const state = this._visitor.parseASTForNamespace(params);
+      const state = this.withDefaultDatabase(
+        this._visitor.parseASTForNamespace(params)
+      );
       return {
         databaseName: state.databaseName,
         collectionName: state.collectionName,
@@ -917,9 +946,8 @@ export default class MongoDBService {
       `Provide completion items for a position: ${util.inspect(position)}`
     );
 
-    const state = this._visitor.parseASTForCompletion(
-      document?.getText(),
-      position
+    const state = this.withDefaultDatabase(
+      this._visitor.parseASTForCompletion(document?.getText(), position)
     );
     this._connection.console.log(
       `VISITOR completion state: ${util.inspect(state)}`

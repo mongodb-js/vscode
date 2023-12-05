@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import { before } from 'mocha';
+import { before, beforeEach, afterEach } from 'mocha';
 import {
   CancellationTokenSource,
   CompletionItemKind,
@@ -22,6 +22,7 @@ import { StreamStub } from '../stubs';
 import READ_PREFERENCES from '../../../views/webview-app/legacy/connection-model/constants/read-preferences';
 import DIAGNOSTIC_CODES from '../../../language/diagnosticCodes';
 import LINKS from '../../../utils/links';
+import Sinon from 'sinon';
 
 const expect = chai.expect;
 const INCREASED_TEST_TIMEOUT = 5000;
@@ -572,7 +573,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('do not provide fields completionin find outside object property', async () => {
+    test('do not provide fields completion in find outside object property', async () => {
       const content = 'use("test"); db.collection.find(j);';
       const position = { line: 0, character: 28 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1308,488 +1309,721 @@ suite('MongoDBService Test Suite', () => {
       expect(result[0]).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide collection names completion for valid object names', async () => {
-      const content = 'use("test"); db.';
-      const position = { line: 0, character: 16 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+    [
+      {
+        suiteDescription:
+          'when connected to a default db and not explicitly using a db',
+        dbInUse: 'defaultDB',
+        defaultContent: '',
+        beforeAssertions: () => {
+          Sinon.stub(testMongoDBService, 'defaultConnectedDB').get(
+            () => 'defaultDB'
+          );
+        },
+      },
+      {
+        suiteDescription:
+          'when connected to a default db and also explicitly using another db',
+        dbInUse: 'anotherTestDB',
+        defaultContent: "use('anotherTestDB');",
+        beforeAssertions: () => {
+          Sinon.stub(testMongoDBService, 'defaultConnectedDB').get(
+            () => 'defaultDB'
+          );
+        },
+      },
+      {
+        suiteDescription:
+          'when not connected to a default db and explicitly using another db',
+        dbInUse: 'anotherTestDB',
+        defaultContent: "use('anotherTestDB');",
+        beforeAssertions: () => {
+          Sinon.stub(testMongoDBService, 'defaultConnectedDB').get(() => null);
+        },
+      },
+    ].forEach(
+      ({ suiteDescription, beforeAssertions, defaultContent, dbInUse }) => {
+        suite(suiteDescription, () => {
+          beforeEach(beforeAssertions);
+          afterEach(() => {
+            Sinon.restore();
+            testMongoDBService.clearCachedCompletions({
+              databases: true,
+              collections: true,
+              fields: true,
+            });
+          });
 
-      testMongoDBService._cacheCollections('test', [{ name: 'empty' }]);
+          test('provide collection names completion for valid object names', async () => {
+            const content = defaultContent ? `${defaultContent} db.` : 'db.';
+            const position = { line: 0, character: content.length };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content
+            );
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'empty'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            testMongoDBService._cacheCollections(dbInUse, [{ name: 'empty' }]);
 
-    test('provide collection names completion for object names with dashes', async () => {
-      const content = "use('berlin'); db.";
-      const position = { line: 0, character: 18 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'empty'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-      testMongoDBService._cacheCollections('berlin', [{ name: 'coll-name' }]);
+          test('provide collection names completion for object names with dashes', async () => {
+            const content = defaultContent ? `${defaultContent} db.` : 'db.';
+            const position = { line: 0, character: content.length };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content
+            );
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'coll-name'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-      expect(findCollectionCompletion)
-        .to.have.property('textEdit')
-        .that.has.property('newText', "use('berlin'); db['coll-name']");
-    });
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'coll-name' },
+            ]);
 
-    test('provide collection names completion for object names with dots', async () => {
-      const content = ["use('test');", '', 'db.'].join('\n');
-      const position = { line: 2, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'coll-name'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+            expect(findCollectionCompletion)
+              .to.have.property('textEdit')
+              .that.has.property(
+                'newText',
+                defaultContent
+                  ? defaultContent + " db['coll-name']"
+                  : "db['coll-name']"
+              );
+          });
 
-      testMongoDBService._cacheCollections('test', [
-        { name: 'animals.humans' },
-      ]);
+          test('provide collection names completion for object names with dots', async () => {
+            const content = defaultContent
+              ? [defaultContent, '', 'db.']
+              : ['db.'];
+            const position = {
+              line: content.length - 1,
+              character: content[content.length - 1].length,
+            };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'animals.humans'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-      expect(findCollectionCompletion)
-        .to.have.property('textEdit')
-        .that.has.property('newText', "db['animals.humans']");
-    });
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'animals.humans' },
+            ]);
 
-    test('provide collection names completion in variable declarations', async () => {
-      const content = ["use('berlin');", '', 'let a = db.'].join('\n');
-      const position = { line: 2, character: 11 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'animals.humans'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+            expect(findCollectionCompletion)
+              .to.have.property('textEdit')
+              .that.has.property('newText', "db['animals.humans']");
+          });
 
-      testMongoDBService._cacheCollections('berlin', [
-        { name: 'cocktailbars' },
-      ]);
+          test('provide collection names completion in variable declarations', async () => {
+            const content = defaultContent
+              ? [defaultContent, '', 'let a = db.']
+              : ['let a = db.'];
+            const position = {
+              line: content.length - 1,
+              character: content[content.length - 1].length,
+            };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'cocktailbars'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'label',
-        'cocktailbars'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'cocktailbars' },
+            ]);
 
-    test('provide collection names completion for db symbol with bracket notation', async () => {
-      const content = "use('berlin'); db['']";
-      const position = { line: 0, character: 19 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'cocktailbars'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'label',
+              'cocktailbars'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-      testMongoDBService._cacheCollections('berlin', [{ name: 'coll-name' }]);
+          test('provide collection names completion for db symbol with bracket notation', async () => {
+            const content = defaultContent
+              ? defaultContent + " db['']"
+              : "db['']";
+            const completionCharacterIdx = content.indexOf("['") + 2; // index starts at 0 and we are finding index of 2 characters.
+            const position = { line: 0, character: completionCharacterIdx };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content
+            );
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'coll-name'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'coll-name' },
+            ]);
 
-    test('provide collection names completion for getCollection as a simple string', async () => {
-      const content = "use('berlin'); db.getCollection('')";
-      const position = { line: 0, character: 33 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'coll-name'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-      testMongoDBService._cacheCollections('berlin', [{ name: 'coll-name' }]);
+          test('provide collection names completion for getCollection as a simple string', async () => {
+            const content = defaultContent
+              ? defaultContent + " db.getCollection('')"
+              : "db.getCollection('')";
+            const completionCharacterIdx = content.lastIndexOf("('") + 2; // index starts at 0 and we are finding index of 2 characters.
+            const position = { line: 0, character: completionCharacterIdx };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content
+            );
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'coll-name'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'coll-name' },
+            ]);
 
-    test('provide collection names completion for getCollection as a string template', async () => {
-      const content = "use('berlin'); db.getCollection(``)";
-      const position = { line: 0, character: 33 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'coll-name'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-      testMongoDBService._cacheCollections('berlin', [{ name: 'coll-name' }]);
+          test('provide collection names completion for getCollection as a string template', async () => {
+            const content = defaultContent
+              ? defaultContent + ' db.getCollection(``)'
+              : 'db.getCollection(``)';
+            const completionCharacterIdx = content.lastIndexOf('(`') + 2; // index starts at 0 and we are finding index of 2 characters.
+            const position = { line: 0, character: completionCharacterIdx };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content
+            );
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'coll-name'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'coll-name' },
+            ]);
 
-    test('provide collection names and shell db symbol completion for db symbol with dot notation', async () => {
-      const content = "use('berlin'); db.";
-      const position = { line: 0, character: 18 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'coll-name'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-      testMongoDBService._cacheCollections('berlin', [{ name: 'coll-name' }]);
+          test('provide collection names and shell db symbol completion for db symbol with dot notation', async () => {
+            const content = defaultContent ? defaultContent + ' db.' : 'db.';
+            const position = { line: 0, character: content.length };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content
+            );
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'coll-name'
-      );
-      const findShellCompletion = result.find(
-        (item: CompletionItem) => item.label === 'getCollectionNames'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-      expect(findShellCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Method
-      );
-      expect(findShellCompletion).to.have.property('documentation');
-      expect(findShellCompletion).to.have.property('detail');
-    });
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'coll-name' },
+            ]);
 
-    test('provide only collection names and shell db symbol completion after find cursor', async () => {
-      const content = [
-        "use('berlin');",
-        '',
-        'let a = db.cocktailbars.find({}).toArray();',
-        '',
-        'db.',
-      ].join('\n');
-      const position = { line: 4, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'coll-name'
+            );
+            const findShellCompletion = result.find(
+              (item: CompletionItem) => item.label === 'getCollectionNames'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+            expect(findShellCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Method
+            );
+            expect(findShellCompletion).to.have.property('documentation');
+            expect(findShellCompletion).to.have.property('detail');
+          });
 
-      testMongoDBService._cacheCollections('berlin', [
-        { name: 'cocktailbars' },
-      ]);
+          test('provide only collection names and shell db symbol completion after find cursor', async () => {
+            const content = [
+              '',
+              'let a = db.cocktailbars.find({}).toArray();',
+              '',
+              'db.',
+            ];
+            if (defaultContent) {
+              content.unshift(defaultContent);
+            }
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'cocktailbars'
-      );
-      const findShellCompletion = result.find(
-        (item: CompletionItem) => item.label === 'getCollectionNames'
-      );
-      const findCursorCompletion = result.find(
-        (item: CompletionItem) => item.label === 'toArray'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-      expect(findShellCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Method
-      );
-      expect(findShellCompletion).to.have.property('documentation');
-      expect(findShellCompletion).to.have.property('detail');
-      expect(findCursorCompletion).to.be.undefined;
-    });
+            const position = { line: content.length - 1, character: 3 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-    test('provide only collection names and shell db symbol completion after aggregate cursor', async () => {
-      const content = [
-        "use('berlin');",
-        '',
-        'let a = db.cocktailbars.aggregate({}).toArray();',
-        '',
-        'db.',
-      ].join('\n');
-      const position = { line: 4, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'cocktailbars' },
+            ]);
 
-      testMongoDBService._cacheCollections('berlin', [
-        { name: 'cocktailbars' },
-      ]);
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'cocktailbars'
+            );
+            const findShellCompletion = result.find(
+              (item: CompletionItem) => item.label === 'getCollectionNames'
+            );
+            const findCursorCompletion = result.find(
+              (item: CompletionItem) => item.label === 'toArray'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+            expect(findShellCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Method
+            );
+            expect(findShellCompletion).to.have.property('documentation');
+            expect(findShellCompletion).to.have.property('detail');
+            expect(findCursorCompletion).to.be.undefined;
+          });
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'cocktailbars'
-      );
-      const findShellCompletion = result.find(
-        (item: CompletionItem) => item.label === 'getCollectionNames'
-      );
-      const findCursorCompletion = result.find(
-        (item: CompletionItem) => item.label === 'toArray'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-      expect(findShellCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Method
-      );
-      expect(findShellCompletion).to.have.property('documentation');
-      expect(findShellCompletion).to.have.property('detail');
-      expect(findCursorCompletion).to.be.undefined;
-    });
+          test('provide only collection names and shell db symbol completion after aggregate cursor', async () => {
+            const content = [
+              '',
+              'let a = db.cocktailbars.aggregate({}).toArray();',
+              '',
+              'db.',
+            ];
+            if (defaultContent) {
+              content.unshift(defaultContent);
+            }
 
-    test('provide only collection names completion in the middle of expression', async () => {
-      const content = "use('berlin'); db..find().close()";
-      const position = { line: 0, character: 18 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+            const position = { line: content.length - 1, character: 3 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      testMongoDBService._cacheCollections('berlin', [{ name: 'cocktails' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'cocktailbars' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'cocktails'
-      );
-      const findShellCompletion = result.find(
-        (item: CompletionItem) => item.label === 'getCollectionNames'
-      );
-      const findCursorCompletion = result.find(
-        (item: CompletionItem) => item.label === 'close'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-      expect(findShellCompletion).to.be.undefined;
-      expect(findCursorCompletion).to.be.undefined;
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'cocktailbars'
+            );
+            const findShellCompletion = result.find(
+              (item: CompletionItem) => item.label === 'getCollectionNames'
+            );
+            const findCursorCompletion = result.find(
+              (item: CompletionItem) => item.label === 'toArray'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+            expect(findShellCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Method
+            );
+            expect(findShellCompletion).to.have.property('documentation');
+            expect(findShellCompletion).to.have.property('detail');
+            expect(findCursorCompletion).to.be.undefined;
+          });
 
-    test('provide collection names with dashes completion in the middle of expression', async () => {
-      const content = "use('berlin'); db..find()";
-      const position = { line: 0, character: 18 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+          test('provide only collection names completion in the middle of expression', async () => {
+            const content = defaultContent
+              ? defaultContent + ' db..find().close()'
+              : 'db..find().close()';
+            const completionCharacterIdx = content.indexOf('db.') + 3; // Index starts with 0 and we are finding index of 3 characters
+            const position = { line: 0, character: completionCharacterIdx };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content
+            );
 
-      testMongoDBService._cacheCollections('berlin', [{ name: 'coll-name' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'cocktails' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'coll-name'
-      );
-      expect(findCollectionCompletion)
-        .to.have.property('textEdit')
-        .that.has.property('newText', "use('berlin'); db['coll-name'].find()");
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'cocktails'
+            );
+            const findShellCompletion = result.find(
+              (item: CompletionItem) => item.label === 'getCollectionNames'
+            );
+            const findCursorCompletion = result.find(
+              (item: CompletionItem) => item.label === 'close'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+            expect(findShellCompletion).to.be.undefined;
+            expect(findCursorCompletion).to.be.undefined;
+          });
 
-    test('provide collection names completion after single line comment', async () => {
-      const content = ["use('test');", '', '// Comment', 'db.'].join('\n');
-      const position = { line: 3, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+          test('provide collection names with dashes completion in the middle of expression', async () => {
+            const content = defaultContent
+              ? defaultContent + ' db..find()'
+              : 'db..find()';
+            const completionCharacterIdx = content.indexOf('db.') + 3; // Index starts with 0 and we are finding index of 3 characters
+            const position = { line: 0, character: completionCharacterIdx };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content
+            );
 
-      testMongoDBService._cacheCollections('test', [{ name: 'collection' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'coll-name' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'collection'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'coll-name'
+            );
+            expect(findCollectionCompletion)
+              .to.have.property('textEdit')
+              .that.has.property(
+                'newText',
+                defaultContent
+                  ? defaultContent + " db['coll-name'].find()"
+                  : "db['coll-name'].find()"
+              );
+          });
 
-    test('provide collection names completion after single line comment with new line character', async () => {
-      const content = ["use('test');", '', '// Comment\\n', 'db.'].join('\n');
-      const position = { line: 3, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+          test('provide collection names completion after single line comment', async () => {
+            const content = ['', '// Comment', 'db.'];
+            if (defaultContent) {
+              content.unshift(defaultContent);
+            }
+            const position = { line: content.length - 1, character: 3 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      testMongoDBService._cacheCollections('test', [{ name: 'collection' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'collection' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'collection'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'collection'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-    test('provide collection names completion after multi-line comment', async () => {
-      const content = [
-        "use('test');",
-        '',
-        '/*',
-        ' * Comment',
-        '*/',
-        'db.',
-      ].join('\n');
-      const position = { line: 5, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+          test('provide collection names completion after single line comment with new line character', async () => {
+            const content = ['', '// Comment\\n', 'db.'];
+            if (defaultContent) {
+              content.unshift(defaultContent);
+            }
+            const position = { line: content.length - 1, character: 3 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      testMongoDBService._cacheCollections('test', [{ name: 'collection' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'collection' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'collection'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'collection'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-    test('provide collection names completion after end of line comment', async () => {
-      const content = ["use('test'); // Comment", '', 'db.'].join('\n');
-      const position = { line: 2, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+          test('provide collection names completion after multi-line comment', async () => {
+            const content = ['', '/*', ' * Comment', '*/', 'db.'];
+            if (defaultContent) {
+              content.unshift(defaultContent);
+            }
+            const position = { line: content.length - 1, character: 3 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      testMongoDBService._cacheCollections('test', [{ name: 'collection' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'collection' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'collection'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'collection'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-    test('provide collection names completion at the same line block comment starts', async () => {
-      const content = ["use('test');", '', 'db. /*', '* Comment', '*/'].join(
-        '\n'
-      );
-      const position = { line: 2, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+          test('provide collection names completion after end of line comment', async () => {
+            const content = [
+              defaultContent ? defaultContent + ' // Comment' : ' // Comment',
+              '',
+              'db.',
+            ];
+            const position = { line: 2, character: 3 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      testMongoDBService._cacheCollections('test', [{ name: 'collection' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'collection' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'collection'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'collection'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-    test('provide collection names completion at the same line block comment ends', async () => {
-      const content = ["use('test')", '', '/*', '  * Comment', '*/ db.'].join(
-        '\n'
-      );
-      const position = { line: 4, character: 6 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+          test('provide collection names completion at the same line block comment starts', async () => {
+            const content = ['', 'db. /*', '* Comment', '*/'];
+            if (defaultContent) {
+              content.unshift(defaultContent);
+            }
+            const position = { line: content.length - 3, character: 3 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      testMongoDBService._cacheCollections('test', [{ name: 'collection' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'collection' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'collection'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'collection'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-    test('provide collection names completion at the same line with end line comment', async () => {
-      const content = ["use('test')", '', 'db. // Comment'].join('\n');
-      const position = { line: 2, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+          test('provide collection names completion at the same line block comment ends', async () => {
+            const content = ['', '/*', '  * Comment', '*/ db.'];
+            if (defaultContent) {
+              content.unshift(defaultContent);
+            }
+            const position = { line: content.length - 1, character: 6 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      testMongoDBService._cacheCollections('test', [{ name: 'collection' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'collection' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'collection'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'collection'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
 
-    test('provide collection names completion if code without a semicolon', async () => {
-      const content = ["use('test')", '', 'db.'].join('\n');
-      const position = { line: 2, character: 3 };
-      const document = TextDocument.create('init', 'javascript', 1, content);
+          test('provide collection names completion at the same line with end line comment', async () => {
+            const content = ['', 'db. // Comment'];
+            if (defaultContent) {
+              content.unshift(defaultContent);
+            }
+            const position = { line: content.length - 1, character: 3 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
 
-      testMongoDBService._cacheCollections('test', [{ name: 'collection' }]);
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'collection' },
+            ]);
 
-      const result = await testMongoDBService.provideCompletionItems({
-        document,
-        position,
-      });
-      const findCollectionCompletion = result.find(
-        (item: CompletionItem) => item.label === 'collection'
-      );
-      expect(findCollectionCompletion).to.have.property(
-        'kind',
-        CompletionItemKind.Folder
-      );
-    });
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'collection'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
+
+          test('provide collection names completion if code without a semicolon', async () => {
+            const content = ['', 'db.'];
+            if (defaultContent) {
+              content.unshift(defaultContent);
+            }
+            const position = { line: content.length - 1, character: 3 };
+            const document = TextDocument.create(
+              'init',
+              'javascript',
+              1,
+              content.join('\n')
+            );
+
+            testMongoDBService._cacheCollections(dbInUse, [
+              { name: 'collection' },
+            ]);
+
+            const result = await testMongoDBService.provideCompletionItems({
+              document,
+              position,
+            });
+            const findCollectionCompletion = result.find(
+              (item: CompletionItem) => item.label === 'collection'
+            );
+            expect(findCollectionCompletion).to.have.property(
+              'kind',
+              CompletionItemKind.Folder
+            );
+          });
+        });
+      }
+    );
   });
 
   suite('Evaluate', function () {

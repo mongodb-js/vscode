@@ -30,6 +30,7 @@ import {
   TEST_DATABASE_URI_USER,
   TEST_USER_USERNAME,
   TEST_USER_PASSWORD,
+  TEST_DB_NAME,
 } from './dbTestHelper';
 import KeytarStub from './keytarStub';
 import { ext } from '../../extensionConstants';
@@ -1850,6 +1851,45 @@ suite('Connection Controller Test Suite', function () {
           loaded_connections: 4,
         },
       ]);
+    });
+  });
+
+  suite('getActiveConnectionDefaultDB', () => {
+    suite('when connected to a connection and a default database', () => {
+      test('it should return the default connected database', async () => {
+        const succesfullyConnected =
+          await testConnectionController.addNewConnectionStringAndConnect(
+            `${TEST_DATABASE_URI}/${TEST_DB_NAME}`
+          );
+        assert.strictEqual(succesfullyConnected, true);
+        assert.strictEqual(
+          testConnectionController.getActiveConnectionDefaultDB(),
+          TEST_DB_NAME
+        );
+      });
+    });
+
+    suite('when connected to a connection without a default database', () => {
+      test('it should return the null', async () => {
+        const succesfullyConnected =
+          await testConnectionController.addNewConnectionStringAndConnect(
+            `${TEST_DATABASE_URI}`
+          );
+        assert.strictEqual(succesfullyConnected, true);
+        assert.strictEqual(
+          testConnectionController.getActiveConnectionDefaultDB(),
+          null
+        );
+      });
+    });
+
+    suite('when not connected to a connection', () => {
+      test('it should return the null', () => {
+        assert.strictEqual(
+          testConnectionController.getActiveConnectionDefaultDB(),
+          null
+        );
+      });
     });
   });
 });

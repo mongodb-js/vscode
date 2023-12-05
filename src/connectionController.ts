@@ -1122,4 +1122,17 @@ export default class ConnectionController {
       selectedQuickPickItem.data.connectionId
     );
   }
+
+  getActiveConnectionDefaultDB(): string | null {
+    try {
+      const connectionString = new ConnectionString(
+        this.getActiveConnectionString()
+      );
+      return connectionString.pathname !== '/'
+        ? connectionString.pathname.substring(1)
+        : null;
+    } catch {
+      return null;
+    }
+  }
 }
