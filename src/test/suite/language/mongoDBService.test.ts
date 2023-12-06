@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import { before, beforeEach, afterEach } from 'mocha';
+import { before, after, beforeEach, afterEach } from 'mocha';
 import {
   CancellationTokenSource,
   CompletionItemKind,
@@ -13,6 +13,8 @@ import { createConnection } from 'vscode-languageserver/node';
 import fs from 'fs';
 import path from 'path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import type { Db } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 import MongoDBService, {
   languageServerWorkerFileName,
@@ -2029,6 +2031,9 @@ suite('MongoDBService Test Suite', () => {
   suite('Evaluate', function () {
     this.timeout(INCREASED_TEST_TIMEOUT);
 
+    const mongoClient = new MongoClient(params.connectionString, {
+      readPreference: params.connectionOptions.readPreference,
+    });
     const up = new StreamStub();
     const down = new StreamStub();
     const connection = createConnection(up, down);
@@ -2041,6 +2046,11 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._extensionPath =
         mdbTestExtension.extensionContextStub.extensionPath;
       await testMongoDBService.activeConnectionChanged(params);
+      await mongoClient.connect();
+    });
+
+    after(async () => {
+      await mongoClient.close(true);
     });
 
     test('evaluate should sum numbers', async () => {
@@ -2063,6 +2073,122 @@ suite('MongoDBService Test Suite', () => {
       };
 
       expect(result).to.deep.equal(expectedResult);
+    });
+
+    suite('DB commands evaluation', () => {
+      const dbName1 = 'testDB1';
+      const collectionName1 = 'testCollection1';
+      let db1: Db;
+      const dbName2 = 'testDB2';
+      const collectionName2 = 'testCollection2';
+      let db2: Db;
+      beforeEach(async () => {
+        db1 = mongoClient.db(dbName1);
+        const TestCollection1 = await db1.createCollection(collectionName1);
+        await TestCollection1.insertOne({ name: 'Test1', number: 1 });
+
+        db2 = mongoClient.db(dbName2);
+        const TestCollection2 = await db2.createCollection(collectionName2);
+        await TestCollection2.insertOne({ name: 'Test2', number: 2 });
+      });
+
+      afterEach(async () => {
+        await db1.dropDatabase();
+        await db2.dropDatabase();
+      });
+
+      suite(
+        'when connected to a default database and no explicit call to use specified',
+        () => {
+          test('it should evaluate the playground in the context of default database', async () => {
+            await testMongoDBService.activeConnectionChanged({
+              ...params,
+              connectionString: `${params.connectionString}/${dbName1}`,
+            });
+
+            const source = new CancellationTokenSource();
+            const result = await testMongoDBService.evaluate(
+              {
+                connectionId: 'pineapple',
+                codeToEvaluate: `db.getCollection("${collectionName1}").findOne({}, { _id: 0, name: 1, number: 1 })`,
+              },
+              source.token
+            );
+            const expectedResult = {
+              outputLines: [],
+              result: {
+                namespace: `${dbName1}.${collectionName1}`,
+                type: 'Document',
+                content: { name: 'Test1', number: 1 },
+                language: 'json',
+              },
+            };
+
+            expect(result).to.deep.equal(expectedResult);
+          });
+        }
+      );
+
+      suite(
+        'when connected to a default database and an explicit call to use a database is specified',
+        () => {
+          test('it should evaluate the playground in the context of specified database', async () => {
+            await testMongoDBService.activeConnectionChanged({
+              ...params,
+              connectionString: `${params.connectionString}/${dbName1}`,
+            });
+
+            const source = new CancellationTokenSource();
+            const result = await testMongoDBService.evaluate(
+              {
+                connectionId: 'pineapple',
+                codeToEvaluate: `use('${dbName2}'); db.getCollection("${collectionName2}").findOne({}, { _id: 0, name: 1, number: 1 })`,
+              },
+              source.token
+            );
+            const expectedResult = {
+              outputLines: [],
+              result: {
+                namespace: `${dbName2}.${collectionName2}`,
+                type: 'Document',
+                content: { name: 'Test2', number: 2 },
+                language: 'json',
+              },
+            };
+
+            expect(result).to.deep.equal(expectedResult);
+          });
+        }
+      );
+
+      suite(
+        'when not connected to any default database and an explicit call to use a database is specified',
+        () => {
+          test('it should evaluate the playground in the context of specified database', async () => {
+            await testMongoDBService.activeConnectionChanged(params);
+
+            const source = new CancellationTokenSource();
+            const result = await testMongoDBService.evaluate(
+              {
+                connectionId: 'pineapple',
+                codeToEvaluate: `use('${dbName2}'); db.getCollection("${collectionName2}").findOne({}, { _id: 0, name: 1, number: 1 })`,
+              },
+              source.token
+            );
+            const expectedResult = {
+              outputLines: [],
+              result: {
+                namespace: `${dbName2}.${collectionName2}`,
+                type: 'Document',
+                content: { name: 'Test2', number: 2 },
+                language: 'json',
+              },
+            };
+
+            expect(result).to.deep.equal(expectedResult);
+          });
+        }
+      );
     });
 
     test('should not run when the connectionId does not match', async () => {
