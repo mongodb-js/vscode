@@ -14,7 +14,6 @@ import type {
   MarkupContent,
   Diagnostic,
 } from 'vscode-languageserver/node';
-import ConnectionString from 'mongodb-connection-string-url';
 import { CliServiceProvider } from '@mongosh/service-provider-server';
 import type { Document } from '@mongosh/service-provider-core';
 import { getFilteredCompletions } from '@mongodb-js/mongodb-constants';
@@ -40,6 +39,7 @@ import type { CompletionState, NamespaceState } from './visitor';
 import LINKS from '../utils/links';
 
 import DIAGNOSTIC_CODES from './diagnosticCodes';
+import { getDBFromConnectionString } from '../utils/connection-string-db';
 
 const PROJECT = '$project';
 
@@ -95,16 +95,6 @@ export default class MongoDBService {
    */
   get connectionOptions(): MongoClientOptions | undefined {
     return this._currentConnectionOptions;
-  }
-
-  get defaultConnectedDB(): string | null {
-    if (!this.connectionString) {
-      return null;
-    }
-    const connectionString = new ConnectionString(this.connectionString);
-    return connectionString.pathname !== '/'
-      ? connectionString.pathname.substring(1)
-      : null;
   }
 
   initialize({
@@ -463,10 +453,13 @@ export default class MongoDBService {
    * database
    */
   withDefaultDatabase<T extends NamespaceState | CompletionState>(state: T): T {
-    if (state.databaseName === null && this.defaultConnectedDB !== null) {
+    const defaultDB = this.connectionString
+      ? getDBFromConnectionString(this.connectionString)
+      : null;
+    if (state.databaseName === null && defaultDB !== null) {
       return {
         ...state,
-        databaseName: this.defaultConnectedDB,
+        databaseName: defaultDB,
       };
     }
     return state;

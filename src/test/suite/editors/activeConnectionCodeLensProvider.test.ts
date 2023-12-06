@@ -10,6 +10,7 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { ExtensionContextStub } from '../stubs';
 import TelemetryService from '../../../telemetry/telemetryService';
+import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 const expect = chai.expect;
 
@@ -100,6 +101,13 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       });
 
       test('show active connection in code lenses', () => {
+        sandbox.replace(
+          testConnectionController,
+          'getMongoClientConnectionOptions',
+          sandbox.fake.returns({
+            url: TEST_DATABASE_URI,
+          })
+        );
         const codeLens = testCodeLensProvider.provideCodeLenses();
 
         expect(codeLens).to.be.an('array');
@@ -117,8 +125,10 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       test('show active connection and default database in code lenses, when connected to a default database', () => {
         sandbox.replace(
           testConnectionController,
-          'getActiveConnectionDefaultDB',
-          sandbox.fake.returns('fakeDBName')
+          'getMongoClientConnectionOptions',
+          sandbox.fake.returns({
+            url: `${TEST_DATABASE_URI}/fakeDBName`,
+          })
         );
         const codeLens = testCodeLensProvider.provideCodeLenses();
         expect(codeLens).to.be.an('array');

@@ -1318,8 +1318,8 @@ suite('MongoDBService Test Suite', () => {
         dbInUse: 'defaultDB',
         defaultContent: '',
         beforeAssertions: () => {
-          Sinon.stub(testMongoDBService, 'defaultConnectedDB').get(
-            () => 'defaultDB'
+          Sinon.stub(testMongoDBService, 'connectionString').get(
+            () => `${params.connectionString}/defaultDB`
           );
         },
       },
@@ -1329,8 +1329,8 @@ suite('MongoDBService Test Suite', () => {
         dbInUse: 'anotherTestDB',
         defaultContent: "use('anotherTestDB');",
         beforeAssertions: () => {
-          Sinon.stub(testMongoDBService, 'defaultConnectedDB').get(
-            () => 'defaultDB'
+          Sinon.stub(testMongoDBService, 'connectionString').get(
+            () => `${params.connectionString}/defaultDB`
           );
         },
       },
@@ -1340,7 +1340,7 @@ suite('MongoDBService Test Suite', () => {
         dbInUse: 'anotherTestDB',
         defaultContent: "use('anotherTestDB');",
         beforeAssertions: () => {
-          Sinon.stub(testMongoDBService, 'defaultConnectedDB').get(() => null);
+          () => params.connectionString;
         },
       },
     ].forEach(
