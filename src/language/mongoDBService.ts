@@ -35,10 +35,11 @@ import type {
 } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
 import { Visitor } from './visitor';
-import type { CompletionState } from './visitor';
+import type { CompletionState, NamespaceState } from './visitor';
 import LINKS from '../utils/links';
 
 import DIAGNOSTIC_CODES from './diagnosticCodes';
+import { getDBFromConnectionString } from '../utils/connection-string-db';
 
 const PROJECT = '$project';
 
@@ -446,6 +447,25 @@ export default class MongoDBService {
   }
 
   /**
+   * @param state The state returned from Visitor.
+   * @returns The state with the default connected database, if available, if
+   * and only if the state returned from visitor does not already mention a
+   * database
+   */
+  withDefaultDatabase<T extends NamespaceState | CompletionState>(state: T): T {
+    const defaultDB = this.connectionString
+      ? getDBFromConnectionString(this.connectionString)
+      : null;
+    if (state.databaseName === null && defaultDB !== null) {
+      return {
+        ...state,
+        databaseName: defaultDB,
+      };
+    }
+    return state;
+  }
+
+  /**
    * Parse code from a playground to identify
    * a context in which export to language action is being called.
    */
@@ -473,7 +493,9 @@ export default class MongoDBService {
     params: PlaygroundTextAndSelection
   ): ExportToLanguageNamespace {
     try {
-      const state = this._visitor.parseASTForNamespace(params);
+      const state = this.withDefaultDatabase(
+        this._visitor.parseASTForNamespace(params)
+      );
       return {
         databaseName: state.databaseName,
         collectionName: state.collectionName,
@@ -917,9 +939,8 @@ export default class MongoDBService {
       `Provide completion items for a position: ${util.inspect(position)}`
     );
 
-    const state = this._visitor.parseASTForCompletion(
-      document?.getText(),
-      position
+    const state = this.withDefaultDatabase(
+      this._visitor.parseASTForCompletion(document?.getText(), position)
     );
     this._connection.console.log(
       `VISITOR completion state: ${util.inspect(state)}`

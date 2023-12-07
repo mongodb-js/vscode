@@ -3,6 +3,7 @@ import type { TextEditor } from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import type ConnectionController from '../connectionController';
 import { isPlayground } from '../utils/playground';
+import { getDBFromConnectionString } from '../utils/connection-string-db';
 
 export default class ActiveConnectionCodeLensProvider
   implements vscode.CodeLensProvider
@@ -48,7 +49,14 @@ export default class ActiveConnectionCodeLensProvider
     if (this._connectionController.isConnecting()) {
       message = 'Connecting...';
     } else if (this._connectionController.getActiveDataService()) {
-      message = `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`;
+      const connectionString =
+        this._connectionController.getMongoClientConnectionOptions()?.url;
+      const defaultDB = connectionString
+        ? getDBFromConnectionString(connectionString)
+        : null;
+      message = defaultDB
+        ? `Currently connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}. Click here to change connection.`
+        : `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`;
     } else {
       message = 'Disconnected. Click here to connect.';
     }
