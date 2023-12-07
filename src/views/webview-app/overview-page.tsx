@@ -1,5 +1,11 @@
-import React, { useCallback, useState } from 'react';
-import { HorizontalRule, css, spacing } from '@mongodb-js/compass-components';
+import React, { useCallback, useLayoutEffect, useState } from 'react';
+import {
+  HorizontalRule,
+  css,
+  resetGlobalCSS,
+  spacing,
+} from '@mongodb-js/compass-components';
+
 import OverviewHeader from './overview-header';
 import ConnectionStatus from './connection-status';
 import ConnectHelper from './connect-helper';
@@ -31,6 +37,13 @@ const OverviewPage: React.FC = () => {
     () => setShowResourcesPanel(true),
     []
   );
+
+  useLayoutEffect(() => {
+    // TODO(VSCODE-490): Move this reset css call to the top level entry point
+    // of the app and out of the react lifecycle.
+    resetGlobalCSS();
+  }, []);
+
   return (
     <div className={pageStyles}>
       {showResourcesPanel && (

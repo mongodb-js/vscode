@@ -1,6 +1,6 @@
 import React from 'react';
 import CompassConnectionForm from '@mongodb-js/connection-form';
-import { Modal, ModalBody, css, spacing } from '@mongodb-js/compass-components';
+import { Modal, css, spacing } from '@mongodb-js/compass-components';
 import { v4 as uuidv4 } from 'uuid';
 
 const modalContentStyles = css({
@@ -9,7 +9,10 @@ const modalContentStyles = css({
 });
 
 const formContainerStyles = css({
-  padding: spacing[1],
+  padding: spacing[3],
+  position: 'relative',
+  display: 'flex',
+  flexDirection: 'column',
 });
 
 function createNewConnectionInfo() {
@@ -39,26 +42,24 @@ const ConnectionForm: React.FunctionComponent<{
         data-testid="connection-form-modal"
         size="large"
       >
-        <ModalBody>
-          <div className={formContainerStyles}>
-            <CompassConnectionForm
-              onConnectClicked={onConnectClicked}
-              initialConnectionInfo={initialConnectionInfo}
-              preferences={{
-                protectConnectionStrings: false,
-                forceConnectionOptions: [],
-                showKerberosPasswordField: false,
-                showOIDCDeviceAuthFlow: false,
-                enableOidc: false,
-                enableDebugUseCsfleSchemaMap: false,
-                protectConnectionStringsForNewConnections: false,
-                showOIDCAuth: false,
-                showKerberosAuth: false,
-                showCSFLE: false,
-              }}
-            />
-          </div>
-        </ModalBody>
+        <div className={formContainerStyles}>
+          <CompassConnectionForm
+            onConnectClicked={onConnectClicked}
+            initialConnectionInfo={initialConnectionInfo}
+            preferences={{
+              protectConnectionStrings: false,
+              forceConnectionOptions: [],
+              showKerberosPasswordField: false,
+              showOIDCDeviceAuthFlow: false,
+              enableOidc: false,
+              enableDebugUseCsfleSchemaMap: false,
+              protectConnectionStringsForNewConnections: false,
+              showOIDCAuth: false,
+              showKerberosAuth: false,
+              showCSFLE: false,
+            }}
+          />
+        </div>
       </Modal>
     </>
   );
