@@ -447,7 +447,7 @@ export default class MongoDBService {
   }
 
   /**
-   * @param state  The state returned from Visitor.
+   * @param state The state returned from Visitor.
    * @returns The state with the default connected database, if available, if
    * and only if the state returned from visitor does not already mention a
    * database
