@@ -11,7 +11,7 @@ describe('ConnectHelper test suite', function () {
     render(
       <ConnectHelper
         onClickOpenConnectionForm={() => {
-          /* todo */
+          /* noop */
         }}
       />
     );
@@ -25,7 +25,7 @@ describe('ConnectHelper test suite', function () {
     render(
       <ConnectHelper
         onClickOpenConnectionForm={() => {
-          /* todo */
+          /* noop */
         }}
       />
     );
