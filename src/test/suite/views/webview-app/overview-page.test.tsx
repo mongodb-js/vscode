@@ -1,6 +1,7 @@
 import React from 'react';
 import { expect } from 'chai';
 import { cleanup, render, screen } from '@testing-library/react';
+
 import OverviewPage from '../../../../views/webview-app/overview-page';
 
 describe('OverviewPage test suite', function () {
@@ -25,5 +26,15 @@ describe('OverviewPage test suite', function () {
     screen.getByText('Resources').click();
     screen.getByLabelText('Close').click();
     expect(screen.queryByText('Product overview')).to.be.null;
+  });
+
+  test('it renders the new connection form when opened', function () {
+    render(<OverviewPage />);
+
+    const connectionFormTestId = 'connection-form-modal';
+    expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
+
+    screen.getByText('Open form').click();
+    expect(screen.getByTestId(connectionFormTestId)).to.exist;
   });
 });

@@ -56,7 +56,9 @@ const getOSCommandShortcutName = (): string => {
   return 'Cmd';
 };
 
-const ConnectHelper: React.FC = () => {
+const ConnectHelper: React.FC<{
+  onClickOpenConnectionForm: () => void;
+}> = ({ onClickOpenConnectionForm }) => {
   return (
     <div className={containerStyles}>
       <div className={cardContainerStyles}>
@@ -89,9 +91,7 @@ const ConnectHelper: React.FC = () => {
           <Button
             aria-label="Open connection form"
             darkMode
-            onClick={() => {
-              // TODO
-            }}
+            onClick={onClickOpenConnectionForm}
           >
             Open form
           </Button>
