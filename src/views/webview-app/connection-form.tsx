@@ -2,6 +2,7 @@ import React from 'react';
 import CompassConnectionForm from '@mongodb-js/connection-form';
 import { Modal, css, spacing } from '@mongodb-js/compass-components';
 import { v4 as uuidv4 } from 'uuid';
+import type { ConnectionInfo } from 'mongodb-data-service-legacy';
 
 const modalContentStyles = css({
   // Override LeafyGreen width to accommodate the strict connection-form size.
@@ -27,10 +28,11 @@ function createNewConnectionInfo() {
 const initialConnectionInfo = createNewConnectionInfo();
 
 const ConnectionForm: React.FunctionComponent<{
-  onConnectClicked: (onConnectClicked: unknown) => void;
+  onConnectClicked: (onConnectClicked: ConnectionInfo) => void;
   onClose: () => void;
   open: boolean;
-}> = ({ onConnectClicked, onClose, open }) => {
+  connectionErrorMessage: string;
+}> = ({ connectionErrorMessage, onConnectClicked, onClose, open }) => {
   return (
     <Modal
       // Warning: This property may be removed in future
@@ -57,6 +59,7 @@ const ConnectionForm: React.FunctionComponent<{
             showKerberosAuth: false,
             showCSFLE: false,
           }}
+          connectionErrorMessage={connectionErrorMessage}
         />
       </div>
     </Modal>

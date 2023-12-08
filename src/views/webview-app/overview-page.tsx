@@ -12,6 +12,7 @@ import ConnectHelper from './connect-helper';
 import AtlasCta from './atlas-cta';
 import ResourcesPanel from './resources-panel/panel';
 import { ConnectionForm } from './connection-form';
+import useConnectionForm from './use-connection-form';
 
 const pageStyles = css({
   width: '90%',
@@ -28,7 +29,13 @@ const pageStyles = css({
 
 const OverviewPage: React.FC = () => {
   const [showResourcesPanel, setShowResourcesPanel] = useState(false);
-  const [showConnectionForm, setShowConnectionForm] = useState(false);
+  const {
+    showConnectionForm,
+    openConnectionForm,
+    closeConnectionForm,
+    connectionErrorMessage,
+    handleConnectClicked,
+  } = useConnectionForm();
   const handleResourcesPanelClose = useCallback(
     () => setShowResourcesPanel(false),
     []
@@ -51,21 +58,16 @@ const OverviewPage: React.FC = () => {
       )}
       {showConnectionForm && (
         <ConnectionForm
-          onConnectClicked={(connectionInfo) => {
-            // TODO(VSCODE-489): Type connection form and post message to the webview controller.
-            // Maintain connecting status.
-            console.log('connect', connectionInfo);
-          }}
-          onClose={() => setShowConnectionForm(false)}
+          onConnectClicked={handleConnectClicked}
+          onClose={closeConnectionForm}
           open={showConnectionForm}
+          connectionErrorMessage={connectionErrorMessage}
         />
       )}
       <OverviewHeader onResourcesClick={handleResourcesClick} />
       <HorizontalRule />
       <ConnectionStatus />
-      <ConnectHelper
-        onClickOpenConnectionForm={() => setShowConnectionForm(true)}
-      />
+      <ConnectHelper onClickOpenConnectionForm={openConnectionForm} />
       <AtlasCta />
     </div>
   );

@@ -59,13 +59,14 @@ const showFilePicker = (
   });
 };
 
-const sendConnectToExtension = (
+// TODO: VSCODE-491 - Remove this entirely when getting rid of legacy
+const sendLegacyConnectToExtension = (
   connectionModel: LegacyConnectionModel
 ): string => {
   const connectionAttemptId = uuidv4();
 
   vscode.postMessage({
-    command: MESSAGE_TYPES.CONNECT,
+    command: MESSAGE_TYPES.LEGACY_CONNECT,
     connectionModel,
     connectionAttemptId,
   });
@@ -124,7 +125,9 @@ export const rootReducer = (
         isValid: true,
         isConnecting: true,
         isConnected: false,
-        connectionAttemptId: sendConnectToExtension(state.currentConnection),
+        connectionAttemptId: sendLegacyConnectToExtension(
+          state.currentConnection
+        ),
       };
 
     case ActionTypes.CREATE_NEW_PLAYGROUND:

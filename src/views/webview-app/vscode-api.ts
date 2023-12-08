@@ -1,3 +1,4 @@
+import type { ConnectionInfo } from 'mongodb-data-service-legacy';
 import {
   MESSAGE_TYPES,
   type MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
@@ -9,6 +10,17 @@ interface VSCodeApi {
 
 declare const acquireVsCodeApi: () => VSCodeApi;
 const vscode = acquireVsCodeApi();
+
+export const sendConnectToExtension = (
+  connectionInfo: ConnectionInfo,
+  connectionAttemptId: string
+) => {
+  vscode.postMessage({
+    command: MESSAGE_TYPES.CONNECT,
+    connectionInfo,
+    connectionAttemptId,
+  });
+};
 
 export const renameActiveConnection = () => {
   vscode.postMessage({

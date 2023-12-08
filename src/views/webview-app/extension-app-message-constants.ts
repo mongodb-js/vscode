@@ -1,5 +1,6 @@
 import type LegacyConnectionModel from './legacy/connection-model/legacy-connection-model';
 import type { FilePickerActionTypes } from './legacy/store/actions';
+import type { ConnectionInfo } from 'mongodb-data-service-legacy';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
@@ -14,6 +15,7 @@ export const VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID =
 
 export enum MESSAGE_TYPES {
   CONNECT = 'CONNECT',
+  LEGACY_CONNECT = 'LEGACY_CONNECT',
   CONNECT_RESULT = 'CONNECT_RESULT',
   CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
   EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
@@ -43,6 +45,13 @@ export interface ConnectionStatusMessage extends BasicWebviewMessage {
 
 export interface ConnectMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT;
+  connectionInfo: ConnectionInfo;
+  connectionAttemptId: string;
+}
+
+// TODO: VSCODE-491 - Remove this entirely when getting rid of legacy
+export interface LegacyConnectMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.LEGACY_CONNECT;
   connectionModel: LegacyConnectionModel;
   connectionAttemptId: string;
 }
@@ -97,6 +106,7 @@ export interface ThemeChangedMessage extends BasicWebviewMessage {
 
 export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | ConnectMessage
+  | LegacyConnectMessage
   | CreateNewPlaygroundMessage
   | GetConnectionStatusMessage
   | LinkClickedMessage

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import path from 'path';
 import crypto from 'crypto';
+import type { ConnectionInfo } from 'mongodb-data-service-legacy';
 
 import type ConnectionController from '../connectionController';
 import { ConnectionTypes } from '../connectionController';
@@ -109,7 +110,8 @@ export default class WebviewController {
     this._themeChangedSubscription?.dispose();
   }
 
-  handleWebviewConnectAttempt = async (
+  // TODO: VSCODE-491 - Remove this entirely when getting rid of legacy
+  handleWebviewLegacyConnectAttempt = async (
     panel: vscode.WebviewPanel,
     rawConnectionModel: LegacyConnectionModel,
     connectionAttemptId: string
@@ -117,6 +119,45 @@ export default class WebviewController {
     try {
       const connectionInfo =
         this._connectionController.parseNewConnection(rawConnectionModel);
+      const { successfullyConnected, connectionErrorMessage } =
+        await this._connectionController.saveNewConnectionFromFormAndConnect(
+          connectionInfo,
+          ConnectionTypes.CONNECTION_FORM
+        );
+
+      try {
+        // The webview may have been closed in which case this will throw.
+        void panel.webview.postMessage({
+          command: MESSAGE_TYPES.CONNECT_RESULT,
+          connectionAttemptId,
+          connectionSuccess: successfullyConnected,
+          connectionMessage: successfullyConnected
+            ? `Successfully connected to ${this._connectionController.getActiveConnectionName()}.`
+            : connectionErrorMessage,
+        });
+      } catch (err) {
+        log.error('Unable to send connection result to webview', err);
+      }
+    } catch (error) {
+      void vscode.window.showErrorMessage(
+        `Unable to load connection: ${error}`
+      );
+
+      void panel.webview.postMessage({
+        command: MESSAGE_TYPES.CONNECT_RESULT,
+        connectionAttemptId,
+        connectionSuccess: false,
+        connectionMessage: `Unable to load connection: ${error}`,
+      });
+    }
+  };
+
+  handleWebviewConnectAttempt = async (
+    panel: vscode.WebviewPanel,
+    connectionInfo: ConnectionInfo,
+    connectionAttemptId: string
+  ) => {
+    try {
       const { successfullyConnected, connectionErrorMessage } =
         await this._connectionController.saveNewConnectionFromFormAndConnect(
           connectionInfo,
@@ -168,15 +209,24 @@ export default class WebviewController {
     });
   };
 
+  // eslint-disable-next-line complexity
   handleWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel
   ): Promise<void> => {
     switch (message.command) {
+      // TODO: VSCODE-491 - Remove this case entirely when getting rid of legacy
+      case MESSAGE_TYPES.LEGACY_CONNECT:
+        await this.handleWebviewLegacyConnectAttempt(
+          panel,
+          message.connectionModel,
+          message.connectionAttemptId
+        );
+        return;
       case MESSAGE_TYPES.CONNECT:
         await this.handleWebviewConnectAttempt(
           panel,
-          message.connectionModel,
+          message.connectionInfo,
           message.connectionAttemptId
         );
         return;
