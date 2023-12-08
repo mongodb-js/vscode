@@ -32,36 +32,34 @@ const ConnectionForm: React.FunctionComponent<{
   open: boolean;
 }> = ({ onConnectClicked, onClose, open }) => {
   return (
-    <>
-      <Modal
-        // Warning: This property may be removed in future
-        // modal releases.
-        contentClassName={modalContentStyles}
-        setOpen={() => onClose()}
-        open={open}
-        data-testid="connection-form-modal"
-        size="large"
-      >
-        <div className={formContainerStyles}>
-          <CompassConnectionForm
-            onConnectClicked={onConnectClicked}
-            initialConnectionInfo={initialConnectionInfo}
-            preferences={{
-              protectConnectionStrings: false,
-              forceConnectionOptions: [],
-              showKerberosPasswordField: false,
-              showOIDCDeviceAuthFlow: false,
-              enableOidc: false,
-              enableDebugUseCsfleSchemaMap: false,
-              protectConnectionStringsForNewConnections: false,
-              showOIDCAuth: false,
-              showKerberosAuth: false,
-              showCSFLE: false,
-            }}
-          />
-        </div>
-      </Modal>
-    </>
+    <Modal
+      // Warning: This property may be removed in future
+      // modal releases.
+      contentClassName={modalContentStyles}
+      setOpen={() => onClose()}
+      open={open}
+      data-testid="connection-form-modal"
+      size="large"
+    >
+      <div className={formContainerStyles}>
+        <CompassConnectionForm
+          onConnectClicked={onConnectClicked}
+          initialConnectionInfo={initialConnectionInfo}
+          preferences={{
+            protectConnectionStrings: false,
+            forceConnectionOptions: [],
+            showKerberosPasswordField: false,
+            showOIDCDeviceAuthFlow: false,
+            enableOidc: false,
+            enableDebugUseCsfleSchemaMap: false,
+            protectConnectionStringsForNewConnections: false,
+            showOIDCAuth: false,
+            showKerberosAuth: false,
+            showCSFLE: false,
+          }}
+        />
+      </div>
+    </Modal>
   );
 };
 
