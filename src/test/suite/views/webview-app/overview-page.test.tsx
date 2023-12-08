@@ -1,10 +1,8 @@
 import React from 'react';
 import { expect } from 'chai';
 import { cleanup, render, screen } from '@testing-library/react';
-import sinon from 'sinon';
 
 import OverviewPage from '../../../../views/webview-app/overview-page';
-import * as featureFlags from '../../../../featureFlags';
 
 describe('OverviewPage test suite', function () {
   afterEach(cleanup);
@@ -30,19 +28,13 @@ describe('OverviewPage test suite', function () {
     expect(screen.queryByText('Product overview')).to.be.null;
   });
 
-  describe('with the new connection form feature flag useNewConnectionForm enabled', function () {
-    beforeEach(function () {
-      sinon.stub(featureFlags, 'getFeatureFlag').returns(true);
+  test('it renders the new connection form when opened', function () {
+    render(<OverviewPage />);
 
-      render(<OverviewPage />);
-    });
+    const connectionFormTestId = 'connection-form-modal';
+    expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
 
-    test('it renders the new connection form when opened', function () {
-      const connectionFormTestId = 'connection-form-modal';
-      expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
-
-      screen.getByText('Open form').click();
-      expect(screen.getByTestId(connectionFormTestId)).to.exist;
-    });
+    screen.getByText('Open form').click();
+    expect(screen.getByTestId(connectionFormTestId)).to.exist;
   });
 });

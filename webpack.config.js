@@ -157,13 +157,6 @@ module.exports = (env, argv) => {
         buffer: require.resolve('buffer'),
         crypto: require.resolve('crypto-browserify'),
         path: require.resolve('path-browserify'),
-        // We don't want to bundle the mongodb driver code with the webview.
-        // There's a chance in the future that one of the dependencies
-        // like connection-form will accidentally use this as a dependency,
-        // when that happens the webpack with fail asking for a lot of
-        // polyfills. Instead of adding the polyfills we should
-        // update the upstream usage and, where applicable, prevent future
-        // regressions with lint rules.
         mongodb: false,
       },
     },
