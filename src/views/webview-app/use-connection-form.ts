@@ -39,6 +39,7 @@ export default function useConnectionForm() {
     handleConnectClicked: (connectionInfo: ConnectionInfo) => {
       const nextAttemptId = uuidv4();
       setConnectionAttemptId(nextAttemptId);
+      setConnectionErrorMessage('');
       sendConnectToExtension(connectionInfo, nextAttemptId);
     },
   };
