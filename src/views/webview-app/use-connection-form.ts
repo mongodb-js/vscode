@@ -6,7 +6,7 @@ import { MESSAGE_TYPES } from './extension-app-message-constants';
 import type { MESSAGE_FROM_EXTENSION_TO_WEBVIEW } from './extension-app-message-constants';
 
 export default function useConnectionForm() {
-  const [showConnectionForm, setShowConnectionForm] = useState(false);
+  const [connectionFormOpened, setConnectionFormOpened] = useState(false);
   const [connectionAttemptId, setConnectionAttemptId] = useState('');
   const [connectionErrorMessage, setConnectionErrorMessage] = useState('');
 
@@ -18,7 +18,7 @@ export default function useConnectionForm() {
         message.connectionAttemptId === connectionAttemptId
       ) {
         if (message.connectionSuccess) {
-          setShowConnectionForm(false);
+          setConnectionFormOpened(false);
         } else {
           setConnectionErrorMessage(message.connectionMessage);
         }
@@ -29,10 +29,10 @@ export default function useConnectionForm() {
   }, [connectionAttemptId]);
 
   return {
-    showConnectionForm,
+    connectionFormOpened,
     connectionErrorMessage,
-    openConnectionForm: () => setShowConnectionForm(true),
-    closeConnectionForm: () => setShowConnectionForm(false),
+    openConnectionForm: () => setConnectionFormOpened(true),
+    closeConnectionForm: () => setConnectionFormOpened(false),
     handleConnectClicked: (connectionInfo: ConnectionInfo) => {
       const nextAttemptId = uuidv4();
       setConnectionAttemptId(nextAttemptId);

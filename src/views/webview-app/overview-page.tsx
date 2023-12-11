@@ -30,7 +30,7 @@ const pageStyles = css({
 const OverviewPage: React.FC = () => {
   const [showResourcesPanel, setShowResourcesPanel] = useState(false);
   const {
-    showConnectionForm,
+    connectionFormOpened,
     openConnectionForm,
     closeConnectionForm,
     connectionErrorMessage,
@@ -56,11 +56,11 @@ const OverviewPage: React.FC = () => {
       {showResourcesPanel && (
         <ResourcesPanel onClose={handleResourcesPanelClose} />
       )}
-      {showConnectionForm && (
+      {connectionFormOpened && (
         <ConnectionForm
           onConnectClicked={handleConnectClicked}
           onClose={closeConnectionForm}
-          open={showConnectionForm}
+          open={connectionFormOpened}
           connectionErrorMessage={connectionErrorMessage}
         />
       )}
