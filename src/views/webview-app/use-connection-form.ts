@@ -32,7 +32,10 @@ export default function useConnectionForm() {
     connectionFormOpened,
     connectionErrorMessage,
     openConnectionForm: () => setConnectionFormOpened(true),
-    closeConnectionForm: () => setConnectionFormOpened(false),
+    closeConnectionForm: () => {
+      setConnectionFormOpened(false);
+      setConnectionErrorMessage('');
+    },
     handleConnectClicked: (connectionInfo: ConnectionInfo) => {
       const nextAttemptId = uuidv4();
       setConnectionAttemptId(nextAttemptId);
