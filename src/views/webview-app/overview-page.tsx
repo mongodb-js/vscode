@@ -1,6 +1,7 @@
 import React, { useCallback, useLayoutEffect, useState } from 'react';
 import {
   HorizontalRule,
+  SpinLoaderWithLabel,
   css,
   resetGlobalCSS,
   spacing,
@@ -12,6 +13,7 @@ import ConnectHelper from './connect-helper';
 import AtlasCta from './atlas-cta';
 import ResourcesPanel from './resources-panel/panel';
 import { ConnectionForm } from './connection-form';
+import useConnectionForm from './use-connection-form';
 
 const pageStyles = css({
   width: '90%',
@@ -26,9 +28,28 @@ const pageStyles = css({
   fontSize: '14px',
 });
 
+const loadingContainerStyles = css({
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1,
+});
+
 const OverviewPage: React.FC = () => {
   const [showResourcesPanel, setShowResourcesPanel] = useState(false);
-  const [showConnectionForm, setShowConnectionForm] = useState(false);
+  const {
+    connectionInProgress,
+    connectionFormOpened,
+    openConnectionForm,
+    closeConnectionForm,
+    connectionErrorMessage,
+    handleConnectClicked,
+  } = useConnectionForm();
   const handleResourcesPanelClose = useCallback(
     () => setShowResourcesPanel(false),
     []
@@ -46,26 +67,26 @@ const OverviewPage: React.FC = () => {
 
   return (
     <div className={pageStyles}>
+      {connectionInProgress && (
+        <div className={loadingContainerStyles}>
+          <SpinLoaderWithLabel progressText="Connecting..." />
+        </div>
+      )}
       {showResourcesPanel && (
         <ResourcesPanel onClose={handleResourcesPanelClose} />
       )}
-      {showConnectionForm && (
+      {connectionFormOpened && (
         <ConnectionForm
-          onConnectClicked={(connectionInfo) => {
-            // TODO(VSCODE-489): Type connection form and post message to the webview controller.
-            // Maintain connecting status.
-            console.log('connect', connectionInfo);
-          }}
-          onClose={() => setShowConnectionForm(false)}
-          open={showConnectionForm}
+          onConnectClicked={handleConnectClicked}
+          onClose={closeConnectionForm}
+          open={connectionFormOpened}
+          connectionErrorMessage={connectionErrorMessage}
         />
       )}
       <OverviewHeader onResourcesClick={handleResourcesClick} />
       <HorizontalRule />
       <ConnectionStatus />
-      <ConnectHelper
-        onClickOpenConnectionForm={() => setShowConnectionForm(true)}
-      />
+      <ConnectHelper onClickOpenConnectionForm={openConnectionForm} />
       <AtlasCta />
     </div>
   );

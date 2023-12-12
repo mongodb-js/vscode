@@ -48,7 +48,8 @@ describe('Connect Form Actions Component Test Suite', () => {
       wrapper.find('#connectButton').simulate('click');
       assert(fakeVscodeWindowPostMessage.called);
       assert(
-        fakeVscodeWindowPostMessage.firstCall.args[0].command === 'CONNECT'
+        fakeVscodeWindowPostMessage.firstCall.args[0].command ===
+          'LEGACY_CONNECT'
       );
       assert.deepStrictEqual(
         fakeVscodeWindowPostMessage.firstCall.args[0].connectionModel,

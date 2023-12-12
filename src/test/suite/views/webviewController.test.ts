@@ -127,6 +127,80 @@ suite('Webview Test Suite', () => {
     );
   });
 
+  // TODO: VSCODE-491 - Remove this test case entirely when getting rid of legacy
+  test('web view listens for a legacy connect message and adds the connection', (done) => {
+    const extensionContextStub = new ExtensionContextStub();
+    const testStorageController = new StorageController(extensionContextStub);
+    const testTelemetryService = new TelemetryService(
+      testStorageController,
+      extensionContextStub
+    );
+    const testConnectionController = new ConnectionController({
+      statusView: new StatusView(extensionContextStub),
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+    let messageReceivedSet = false;
+    let messageReceived;
+
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
+
+    const fakeWebview = {
+      html: '',
+      postMessage: async (): Promise<void> => {
+        assert(testConnectionController.isCurrentlyConnected());
+        assert(
+          testConnectionController.getActiveConnectionName() ===
+            'localhost:27088'
+        );
+
+        await testConnectionController.disconnect();
+        done();
+      },
+      onDidReceiveMessage: (callback): void => {
+        messageReceived = callback;
+        messageReceivedSet = true;
+      },
+      asWebviewUri: sandbox.fake.returns(''),
+    };
+
+    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
+      webview: fakeWebview,
+      onDidDispose: sandbox.fake.returns(''),
+    });
+
+    sandbox.replace(
+      vscode.window,
+      'createWebviewPanel',
+      fakeVSCodeCreateWebviewPanel
+    );
+
+    const testWebviewController = new WebviewController({
+      connectionController: testConnectionController,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+
+    void testWebviewController.openWebview(
+      mdbTestExtension.extensionContextStub
+    );
+
+    assert(
+      messageReceivedSet,
+      'Ensure it starts listening for messages from the webview.'
+    );
+
+    // Mock a connection call.
+    messageReceived({
+      command: MESSAGE_TYPES.LEGACY_CONNECT,
+      connectionModel: {
+        port: 27088,
+        hostname: 'localhost',
+        hosts: [{ host: 'localhost', port: 27088 }],
+      },
+    });
+  });
+
   test('web view listens for a connect message and adds the connection', (done) => {
     const extensionContextStub = new ExtensionContextStub();
     const testStorageController = new StorageController(extensionContextStub);
@@ -192,11 +266,13 @@ suite('Webview Test Suite', () => {
     // Mock a connection call.
     messageReceived({
       command: MESSAGE_TYPES.CONNECT,
-      connectionModel: {
-        port: 27088,
-        hostname: 'localhost',
-        hosts: [{ host: 'localhost', port: 27088 }],
+      connectionInfo: {
+        id: 2,
+        connectionOptions: {
+          connectionString: 'mongodb://localhost:27088',
+        },
       },
+      connectionAttemptId: 1,
     });
   });
 
@@ -264,7 +340,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.CONNECT,
+      command: MESSAGE_TYPES.LEGACY_CONNECT,
       connectionModel: {
         port: 27088,
         hostname: 'localhost',
@@ -326,7 +402,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.CONNECT,
+      command: MESSAGE_TYPES.LEGACY_CONNECT,
       connectionModel: {
         port: 2700002, // Bad port number.
         hostname: 'localhost',
@@ -390,7 +466,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.CONNECT,
+      command: MESSAGE_TYPES.LEGACY_CONNECT,
       connectionModel: {
         port: 27088,
         hostname: 'shouldfail',
