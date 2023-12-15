@@ -38,6 +38,7 @@ import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
+import { ConnectionStorage } from './storage/connectionStorage';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -45,6 +46,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
   _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
+  _connectionStorage: ConnectionStorage;
   _context: vscode.ExtensionContext;
   _editorsController: EditorsController;
   _playgroundController: PlaygroundController;
@@ -68,6 +70,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._context = context;
     this._statusView = new StatusView(context);
     this._storageController = new StorageController(context);
+    this._connectionStorage = new ConnectionStorage({
+      storageController: this._storageController,
+    });
     this._telemetryService = new TelemetryService(
       this._storageController,
       context,
@@ -669,7 +674,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Show the overview page when it hasn't been show to the
     // user yet, and they have no saved connections.
     if (!hasBeenShownViewAlready) {
-      if (!this._storageController.hasSavedConnections()) {
+      if (!this._connectionStorage.hasSavedConnections()) {
         void vscode.commands.executeCommand(
           EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE
         );

@@ -1403,7 +1403,7 @@ suite('MDBExtensionController Test Suite', function () {
       });
 
       suite(
-        'when a user hasnt been shown the initial overview page yet and they have no connections saved',
+        "when a user hasn't been shown the initial overview page yet and they have no connections saved",
         () => {
           let fakeUpdate: SinonSpy;
 
@@ -1414,7 +1414,7 @@ suite('MDBExtensionController Test Suite', function () {
               sandbox.fake.returns(false)
             );
             sandbox.replace(
-              mdbTestExtension.testExtensionController._storageController,
+              mdbTestExtension.testExtensionController._connectionStorage,
               'hasSavedConnections',
               sandbox.fake.returns(false)
             );
@@ -1468,7 +1468,7 @@ suite('MDBExtensionController Test Suite', function () {
               sandbox.fake.returns(undefined)
             );
             sandbox.replace(
-              mdbTestExtension.testExtensionController._storageController,
+              mdbTestExtension.testExtensionController._connectionStorage,
               'hasSavedConnections',
               sandbox.fake.returns(true)
             );
