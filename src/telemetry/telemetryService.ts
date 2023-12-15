@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { config } from 'dotenv';
 import type { DataService } from 'mongodb-data-service';
 import fs from 'fs';
-import SegmentAnalytics from 'analytics-node';
+import { Analytics as SegmentAnalytics } from '@segment/analytics-node';
 
 import type { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
@@ -27,7 +27,7 @@ export type SegmentProperties = {
   event: string;
   userId?: string;
   anonymousId: string;
-  properties: unknown;
+  properties: Record<string, any>;
 };
 
 type LinkClickedTelemetryEventProperties = {
@@ -166,12 +166,8 @@ export default class TelemetryService {
     if (!this._segmentKey) {
       return;
     }
-    this._segmentAnalytics = new SegmentAnalytics(this._segmentKey, {
-      // Segment batches messages and flushes asynchronously to the server.
-      // The flushAt is a number of messages to enqueue before flushing.
-      // For the development mode we want to flush every submitted message.
-      // Otherwise, we use 20 that is the default libraries' value.
-      flushAt: process.env.MODE === 'development' ? 1 : 20,
+    this._segmentAnalytics = new SegmentAnalytics({
+      writeKey: this._segmentKey,
       // The number of milliseconds to wait
       // before flushing the queue automatically.
       flushInterval: 10000, // 10 seconds is the default libraries' value.
@@ -184,7 +180,7 @@ export default class TelemetryService {
 
   deactivate(): void {
     // Flush on demand to make sure that nothing is left in the queue.
-    void this._segmentAnalytics?.flush();
+    void this._segmentAnalytics?.closeAndFlush();
   }
 
   // Checks user settings and extension running mode
@@ -213,7 +209,7 @@ export default class TelemetryService {
       return;
     }
 
-    this._segmentAnalytics?.track(segmentProperties, (error?: Error) => {
+    this._segmentAnalytics?.track(segmentProperties, (error?: unknown) => {
       if (error) {
         log.error('Failed to track telemetry', error);
       } else {
@@ -226,14 +222,18 @@ export default class TelemetryService {
     eventType: TelemetryEventTypes,
     properties?: TelemetryEventProperties
   ): void {
-    this._segmentAnalyticsTrack({
-      ...this.getTelemetryUserIdentity(),
-      event: eventType,
-      properties: {
-        ...properties,
-        extension_version: `${version}`,
-      },
-    });
+    try {
+      this._segmentAnalyticsTrack({
+        ...this.getTelemetryUserIdentity(),
+        event: eventType,
+        properties: {
+          ...properties,
+          extension_version: `${version}`,
+        },
+      });
+    } catch (e) {
+      log.error('Exception caught while tracking telemetry', e);
+    }
   }
 
   async _getConnectionTelemetryProperties(
