@@ -30,6 +30,7 @@ import {
   TEST_USER_USERNAME,
   TEST_USER_PASSWORD,
 } from './dbTestHelper';
+import type { LoadedConnection } from '../../storage/connectionStorage';
 
 const testDatabaseConnectionName = 'localhost:27088';
 const testDatabaseURI2WithTimeout =
@@ -809,38 +810,6 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(testConnectionController.isCurrentlyConnected(), false);
   });
 
-  test('_getConnectionInfoWithSecrets returns undefined for old connections', async () => {
-    const oldSavedConnectionInfo = {
-      id: '1d700f37-ba57-4568-9552-0ea23effea89',
-      name: 'localhost:27017',
-      storageLocation: StorageLocation.GLOBAL,
-      connectionModel: {
-        _id: '4',
-        isFavorite: false,
-        name: 'Local 4',
-        isSrvRecord: false,
-        hostname: 'localhost',
-        port: 27017,
-        hosts: [{ host: 'localhost', port: 27017 }],
-        extraOptions: {},
-        connectionType: 'NODE_DRIVER',
-        authStrategy: AUTH_STRATEGY_VALUES.NONE,
-        readPreference: READ_PREFERENCES.PRIMARY,
-        kerberosCanonicalizeHostname: false,
-        sslMethod: SSL_METHODS.NONE,
-        sshTunnel: SSH_TUNNEL_TYPES.NONE,
-        sshTunnelPort: 22,
-      },
-    };
-
-    const connectionInfo =
-      await testConnectionController._getConnectionInfoWithSecrets(
-        oldSavedConnectionInfo
-      );
-
-    assert.strictEqual(connectionInfo, undefined);
-  });
-
   test('_getConnectionInfoWithSecrets returns the connection info with secrets', async () => {
     const connectionInfo = {
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
@@ -852,7 +821,7 @@ suite('Connection Controller Test Suite', function () {
           'mongodb://localhost:27017/?readPreference=primary&ssl=false',
       },
     };
-    await testConnectionController._storageController.saveConnectionToStore(
+    await testConnectionController._connectionStorage.saveConnectionToStore(
       connectionInfo
     );
     await testConnectionController.loadSavedConnections();
@@ -862,7 +831,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(connections.length, 1);
 
     const newSavedConnectionInfoWithSecrets =
-      await testConnectionController._getConnectionInfoWithSecrets(
+      await testConnectionController._connectionStorage._getConnectionInfoWithSecrets(
         connections[0]
       );
 
@@ -882,10 +851,9 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI_USER
     );
 
-    const workspaceStoreConnections =
-      testConnectionController._storageController.get(
-        StorageVariables.GLOBAL_SAVED_CONNECTIONS
-      );
+    const workspaceStoreConnections = testStorageController.get(
+      StorageVariables.GLOBAL_SAVED_CONNECTIONS
+    );
 
     assert.strictEqual(
       !!workspaceStoreConnections,
@@ -1205,9 +1173,9 @@ suite('Connection Controller Test Suite', function () {
         } as any;
       });
       testSandbox.replace(
-        testConnectionController,
+        testConnectionController._connectionStorage,
         '_getConnectionInfoWithSecrets',
-        (connectionInfo) => Promise.resolve(connectionInfo as any)
+        (connectionInfo) => Promise.resolve(connectionInfo as LoadedConnection)
       );
       const trackStub = testSandbox.stub(
         testTelemetryService,

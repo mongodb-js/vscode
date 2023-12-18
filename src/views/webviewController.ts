@@ -120,7 +120,7 @@ export default class WebviewController {
       const connectionInfo =
         this._connectionController.parseNewConnection(rawConnectionModel);
       const { successfullyConnected, connectionErrorMessage } =
-        await this._connectionController.saveNewConnectionFromFormAndConnect(
+        await this._connectionController.saveNewConnectionAndConnect(
           connectionInfo,
           ConnectionTypes.CONNECTION_FORM
         );
@@ -159,7 +159,7 @@ export default class WebviewController {
   ) => {
     try {
       const { successfullyConnected, connectionErrorMessage } =
-        await this._connectionController.saveNewConnectionFromFormAndConnect(
+        await this._connectionController.saveNewConnectionAndConnect(
           connectionInfo,
           ConnectionTypes.CONNECTION_FORM
         );

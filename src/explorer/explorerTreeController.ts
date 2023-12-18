@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 
-import type { StoreConnectionInfo } from '../connectionController';
 import type ConnectionController from '../connectionController';
 import { DataServiceEventTypes } from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
@@ -139,7 +138,7 @@ export default class ExplorerTreeController
       this._connectionTreeItems = {};
 
       // Create new connection tree items, using cached children wherever possible.
-      connections.forEach((connection: StoreConnectionInfo) => {
+      connections.forEach((connection) => {
         const isActiveConnection =
           connection.id === this._connectionController.getActiveConnectionId();
         const isBeingConnectedTo =
