@@ -4,6 +4,7 @@ const webpack = require('webpack');
 
 const autoprefixer = require('autoprefixer');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const DuplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack-plugin');
 const { merge } = require('webpack-merge');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
@@ -66,6 +67,7 @@ module.exports = (env, argv) => {
       webpackDependenciesPlugin,
       ...(argv.analyze
         ? [
+            new DuplicatePackageCheckerPlugin(),
             new BundleAnalyzerPlugin({
               analyzerPort: 'auto',
             }),
