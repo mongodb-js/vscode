@@ -4,7 +4,7 @@ import util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
-import { connect } from 'mongodb-data-service';
+import * as mongodbDataService from 'mongodb-data-service';
 
 import AUTH_STRATEGY_VALUES from '../../views/webview-app/legacy/connection-model/constants/auth-strategies';
 import ConnectionController, {
@@ -783,14 +783,15 @@ suite('Connection Controller Test Suite', function () {
     };
 
     sandbox.replace(
-      testConnectionController,
-      '_connectWithDataService',
+      mongodbDataService,
+      'connect',
       async (connectionOptions) => {
         await sleep(50);
 
-        return connect({
-          connectionOptions:
-            launderConnectionOptionTypeFromLegacyToCurrent(connectionOptions),
+        return mongodbDataService.connect({
+          connectionOptions: launderConnectionOptionTypeFromLegacyToCurrent(
+            connectionOptions.connectionOptions
+          ),
         });
       }
     );
@@ -821,7 +822,7 @@ suite('Connection Controller Test Suite', function () {
           'mongodb://localhost:27017/?readPreference=primary&ssl=false',
       },
     };
-    await testConnectionController._connectionStorage.saveConnectionToStore(
+    await testConnectionController._connectionStorage._saveConnectionToStore(
       connectionInfo
     );
     await testConnectionController.loadSavedConnections();
@@ -939,6 +940,7 @@ suite('Connection Controller Test Suite', function () {
     assert(mongoClientConnectionOptions !== undefined);
 
     delete mongoClientConnectionOptions.options.parentHandle;
+    delete mongoClientConnectionOptions.options.oidc?.openBrowser;
 
     assert.deepStrictEqual(mongoClientConnectionOptions, {
       url: 'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0',

@@ -8,7 +8,7 @@ import { useDetectVsCodeDarkMode } from './use-detect-vscode-dark-mode';
 const App: React.FC = () => {
   const darkMode = useDetectVsCodeDarkMode();
 
-  return getFeatureFlag('useNewConnectionForm') ? (
+  return true || getFeatureFlag('useNewConnectionForm') ? (
     <LeafyGreenProvider darkMode={darkMode}>
       <OverviewPage />
     </LeafyGreenProvider>

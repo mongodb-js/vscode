@@ -932,6 +932,11 @@
           "default": true,
           "description": "Show a confirmation message before deleting a document from the tree view."
         },
+        "mdb.persistOIDCTokens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remain logged in when using the MONGODB-OIDC authentication mechanism for MongoDB server connection. Access tokens are encrypted using the system keychain before being stored."
+        },
         "mdb.sendTelemetry": {
           "type": "boolean",
           "default": true,
@@ -991,6 +996,7 @@
     "classnames": "^2.3.2",
     "debug": "^4.3.4",
     "dotenv": "^16.3.1",
+    "lodash": "^4.17.21",
     "micromatch": "^4.0.5",
     "mongodb": "^6.0.0",
     "mongodb-build-info": "^1.6.2",

@@ -432,7 +432,7 @@ suite('Webview Test Suite', () => {
       html: '',
       postMessage: (message): void => {
         assert(!message.connectionSuccess);
-        const expectedMessage = 'connection attempt overriden';
+        const expectedMessage = 'connection attempt overridden';
         assert(
           message.connectionMessage === expectedMessage,
           `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
