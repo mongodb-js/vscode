@@ -32,9 +32,12 @@ export type ConnectionsFromStorage = {
   [connectionId: string]: StoreConnectionInfo;
 };
 
+// Keytar is deprecated and no longer used. All new
+// connections use 'SecretStorage'.
 export const SecretStorageLocation = {
   Keytar: 'vscode.Keytar',
   KeytarSecondAttempt: 'vscode.KeytarSecondAttempt',
+
   SecretStorage: 'vscode.SecretStorage',
 } as const;
 

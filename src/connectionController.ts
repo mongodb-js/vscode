@@ -8,10 +8,8 @@ import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
-import { createKeytar } from './utils/keytar';
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
-import { ext } from './extensionConstants';
 import formatError from './utils/formatError';
 import type LegacyConnectionModel from './views/webview-app/legacy/connection-model/legacy-connection-model';
 import type { SecretStorageLocationType } from './storage/storageController';
@@ -84,41 +82,21 @@ interface ConnectionQuickPicks {
   data: { type: NewConnectionType; connectionId?: string };
 }
 
-type StoreConnectionInfoWithConnectionModel = StoreConnectionInfo &
-  Required<Pick<StoreConnectionInfo, 'connectionModel'>>;
-
 type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
   Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
 
 type StoreConnectionInfoWithSecretStorageLocation = StoreConnectionInfo &
   Required<Pick<StoreConnectionInfo, 'secretStorageLocation'>>;
 
-type MigratedStoreConnectionInfoWithConnectionOptions =
-  StoreConnectionInfoWithConnectionOptions &
-    StoreConnectionInfoWithSecretStorageLocation;
-
-type FailedMigrationConnectionDescriptor = {
-  connectionId: string;
-  connectionName: string;
-};
-
-export const keytarMigrationFailedMessage = (failedConnections: number) => {
-  // Writing the message this way to keep it readable.
-  return [
-    `Unable to migrate ${failedConnections} of your cluster connections from the deprecated Keytar to the VS Code SecretStorage.`,
-    'Keytar is officially archived and not being maintained.',
-    'In an effort to promote good security practices by not depending on an archived piece of software, VS Code removes Keytar shim in favour of built-in storage utility for secrets.',
-    'Please review your connections and delete or recreate those with missing secrets.',
-    'You can still access your secrets via OS keychain.',
-  ].join(' ');
-};
+type LoadedConnection = StoreConnectionInfoWithConnectionOptions &
+  StoreConnectionInfoWithSecretStorageLocation;
 
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
   // on the workspace, or globally in vscode.
   _connections: {
-    [connectionId: string]: MigratedStoreConnectionInfoWithConnectionOptions;
+    [connectionId: string]: LoadedConnection;
   } = Object.create(null);
   _activeDataService: DataService | null = null;
   _storageController: StorageController;
@@ -168,45 +146,9 @@ export default class ConnectionController {
       ),
     });
 
-    // A list of connection ids that we could not migrate in previous load of
-    // connections because of Keytar not being available.
-    const connectionIdsThatDidNotMigrateEarlier =
-      globalAndWorkspaceConnections.reduce<string[]>(
-        (ids, [connectionId, connectionInfo]) => {
-          if (
-            connectionInfo.secretStorageLocation ===
-            SecretStorageLocation.KeytarSecondAttempt
-          ) {
-            return [...ids, connectionId];
-          }
-          return ids;
-        },
-        []
-      );
-
-    const hasConnectionsThatDidNotMigrateEarlier =
-      !!globalAndWorkspaceConnections.some(
-        ([, connectionInfo]) =>
-          !connectionInfo.secretStorageLocation ||
-          connectionInfo.secretStorageLocation === 'vscode.Keytar'
-      );
-
-    if (hasConnectionsThatDidNotMigrateEarlier) {
-      try {
-        ext.keytarModule =
-          ext.keytarModule === undefined ? createKeytar() : ext.keytarModule;
-      } catch (err) {
-        // Couldn't load keytar, proceed without storing & loading connections.
-      }
-    }
-
-    // A list of connection descriptors that we could not migration in the
-    // current load of connections because of Keytar not being available.
-    const connectionsThatDidNotMigrate = (
-      await Promise.all(
-        globalAndWorkspaceConnections.map<
-          Promise<FailedMigrationConnectionDescriptor | undefined>
-        >(async ([connectionId, connectionInfo]) => {
+    await Promise.all(
+      globalAndWorkspaceConnections.map(
+        async ([connectionId, connectionInfo]) => {
           const connectionInfoWithSecrets =
             await this._getConnectionInfoWithSecrets(connectionInfo);
           if (!connectionInfoWithSecrets) {
@@ -214,21 +156,9 @@ export default class ConnectionController {
           }
 
           this._connections[connectionId] = connectionInfoWithSecrets;
-          const connectionSecretsInKeytar =
-            connectionInfoWithSecrets.secretStorageLocation ===
-            SecretStorageLocation.KeytarSecondAttempt;
-          if (
-            connectionSecretsInKeytar &&
-            !connectionIdsThatDidNotMigrateEarlier.includes(connectionId)
-          ) {
-            return {
-              connectionId,
-              connectionName: connectionInfo.name,
-            };
-          }
-        })
+        }
       )
-    ).filter((conn): conn is FailedMigrationConnectionDescriptor => !!conn);
+    );
 
     const loadedConnections = Object.values(this._connections);
     if (loadedConnections.length) {
@@ -240,11 +170,6 @@ export default class ConnectionController {
     /* this._telemetryService.trackSavedConnectionsLoaded({
       saved_connections: globalAndWorkspaceConnections.length,
       loaded_connections: loadedConnections.length,
-      connections_with_secrets_in_keytar: loadedConnections.filter(
-        (connection) =>
-          connection.secretStorageLocation === SecretStorageLocation.Keytar ||
-          connection.secretStorageLocation ===
-            SecretStorageLocation.KeytarSecondAttempt
       ).length,
       connections_with_secrets_in_secret_storage: loadedConnections.filter(
         (connection) =>
@@ -252,57 +177,32 @@ export default class ConnectionController {
           SecretStorageLocation.SecretStorage
       ).length,
     }); */
-
-    if (connectionsThatDidNotMigrate.length) {
-      log.error(
-        `Could not migrate secrets for ${connectionsThatDidNotMigrate.length} connections`,
-        connectionsThatDidNotMigrate
-      );
-      this._telemetryService.trackKeytarSecretsMigrationFailed({
-        saved_connections: globalAndWorkspaceConnections.length,
-        loaded_connections: loadedConnections.length,
-        connections_with_failed_keytar_migration:
-          connectionsThatDidNotMigrate.length,
-      });
-      void vscode.window.showInformationMessage(
-        keytarMigrationFailedMessage(connectionsThatDidNotMigrate.length)
-      );
-    }
   }
 
+  // TODO: Move this into the connectionStorage.
   async _getConnectionInfoWithSecrets(
     connectionInfo: StoreConnectionInfo
-  ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
+  ): Promise<LoadedConnection | undefined> {
     try {
-      if (connectionInfo.connectionModel) {
-        return await this._migrateConnectionWithConnectionModel(
-          connectionInfo as StoreConnectionInfoWithConnectionModel
-        );
-      }
-
-      if (
-        !connectionInfo.secretStorageLocation ||
-        connectionInfo.secretStorageLocation === 'vscode.Keytar'
-      ) {
-        return await this._migrateConnectionWithKeytarSecrets(
-          connectionInfo as StoreConnectionInfoWithConnectionOptions
-        );
-      }
-
       // We tried migrating this connection earlier but failed because Keytar was not
       // available. So we return simply the connection without secrets.
       if (
+        connectionInfo.connectionModel ||
+        !connectionInfo.secretStorageLocation ||
+        connectionInfo.secretStorageLocation === 'vscode.Keytar' ||
         connectionInfo.secretStorageLocation ===
-        SecretStorageLocation.KeytarSecondAttempt
+          SecretStorageLocation.KeytarSecondAttempt
       ) {
-        return connectionInfo as MigratedStoreConnectionInfoWithConnectionOptions;
+        // We had migrations in VSCode for ~5 months. We drop the connections
+        // that did not migrate.
+        return undefined;
       }
 
       const unparsedSecrets =
         (await this._storageController.getSecret(connectionInfo.id)) ?? '';
 
       return this._mergedConnectionInfoWithSecrets(
-        connectionInfo as MigratedStoreConnectionInfoWithConnectionOptions,
+        connectionInfo as LoadedConnection,
         unparsedSecrets
       );
     } catch (error) {
@@ -311,66 +211,10 @@ export default class ConnectionController {
     }
   }
 
-  async _migrateConnectionWithConnectionModel(
-    savedConnectionInfo: StoreConnectionInfoWithConnectionModel
-  ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
-    // Transform a raw connection model from storage to an ampersand model.
-    const newConnectionInfoWithSecrets = convertConnectionModelToInfo(
-      savedConnectionInfo.connectionModel
-    );
-
-    const connectionInfoWithSecrets = {
-      id: savedConnectionInfo.id,
-      name: savedConnectionInfo.name,
-      storageLocation: savedConnectionInfo.storageLocation,
-      secretStorageLocation: SecretStorageLocation.SecretStorage,
-      connectionOptions: newConnectionInfoWithSecrets.connectionOptions,
-    };
-
-    await this._saveConnectionWithSecrets(connectionInfoWithSecrets);
-    return connectionInfoWithSecrets;
-  }
-
-  async _migrateConnectionWithKeytarSecrets(
-    savedConnectionInfo: StoreConnectionInfoWithConnectionOptions
-  ): Promise<MigratedStoreConnectionInfoWithConnectionOptions | undefined> {
-    // If the Keytar module is not available, we simply mark the connections
-    // storage as Keytar and return
-    if (!ext.keytarModule) {
-      log.error('Could not migrate Keytar secrets, module not found');
-      return await this._storageController.saveConnection<MigratedStoreConnectionInfoWithConnectionOptions>(
-        {
-          ...savedConnectionInfo,
-          secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
-        }
-      );
-    }
-
-    // If there is nothing in keytar, we will save an empty object as secrets in
-    // new storage and mark this connection as migrated
-    const keytarSecrets =
-      (await ext.keytarModule.getPassword(
-        this._serviceName,
-        savedConnectionInfo.id
-      )) || '{}';
-
-    const migratedConnectionInfoWithSecrets =
-      this._mergedConnectionInfoWithSecrets(
-        {
-          ...savedConnectionInfo,
-          secretStorageLocation: SecretStorageLocation.SecretStorage,
-        },
-        keytarSecrets
-      );
-
-    await this._saveConnectionWithSecrets(migratedConnectionInfoWithSecrets);
-
-    return migratedConnectionInfoWithSecrets;
-  }
-
-  _mergedConnectionInfoWithSecrets<
-    T extends StoreConnectionInfoWithConnectionOptions
-  >(connectionInfo: T, unparsedSecrets: string) {
+  _mergedConnectionInfoWithSecrets(
+    connectionInfo: LoadedConnection,
+    unparsedSecrets: string
+  ): LoadedConnection {
     if (!unparsedSecrets) {
       return connectionInfo;
     }
@@ -490,8 +334,8 @@ export default class ConnectionController {
   }
 
   private async _saveConnectionWithSecrets(
-    newStoreConnectionInfoWithSecrets: MigratedStoreConnectionInfoWithConnectionOptions
-  ): Promise<MigratedStoreConnectionInfoWithConnectionOptions> {
+    newStoreConnectionInfoWithSecrets: LoadedConnection
+  ): Promise<LoadedConnection> {
     // We don't want to store secrets to disc.
     const { connectionInfo: safeConnectionInfo, secrets } = extractSecrets(
       newStoreConnectionInfoWithSecrets as ConnectionInfoFromLegacyDS
@@ -729,15 +573,6 @@ export default class ConnectionController {
 
   private async _removeSecretsFromKeychain(connectionId: string) {
     await this._storageController.deleteSecret(connectionId);
-    // Even though we migrated to SecretStorage from keytar, we are still removing
-    // secrets from keytar to make sure that we don't leave any left-overs when a
-    // connection is removed. This block can safely be removed after our migration
-    // has been out for some time.
-    try {
-      await ext.keytarModule?.deletePassword(this._serviceName, connectionId);
-    } catch (error) {
-      log.error('Failed to remove secret from keytar', error);
-    }
   }
 
   async removeSavedConnection(connectionId: string): Promise<void> {

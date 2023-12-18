@@ -2,8 +2,6 @@ import Mocha from 'mocha';
 import glob from 'glob';
 import path from 'path';
 import MDBExtensionController from '../../mdbExtensionController';
-import { ext } from '../../extensionConstants';
-import KeytarStub from './keytarStub';
 import { ExtensionContextStub } from './stubs';
 import { mdbTestExtension } from './stubbableMdbExtension';
 
@@ -43,12 +41,6 @@ export async function run(): Promise<void> {
         if (err) {
           return e(err);
         }
-
-        // We avoid using the user's credential store when running tests
-        // in order to ensure we're not polluting the credential store
-        // and because its tough to get the credential store running on
-        // headless linux.
-        ext.keytarModule = new KeytarStub();
 
         // Add files to the test suite.
         files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
