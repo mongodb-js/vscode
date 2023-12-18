@@ -232,13 +232,7 @@ export class ConnectionStorage {
     return (
       await Promise.all(
         globalAndWorkspaceConnections.map(async (connectionInfo) => {
-          const connectionInfoWithSecrets =
-            await this._getConnectionInfoWithSecrets(connectionInfo);
-          if (!connectionInfoWithSecrets) {
-            return;
-          }
-
-          return connectionInfoWithSecrets;
+          return await this._getConnectionInfoWithSecrets(connectionInfo);
         })
       )
     ).filter((connection) => !!connection) as LoadedConnection[];
