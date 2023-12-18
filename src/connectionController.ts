@@ -66,6 +66,7 @@ interface ConnectionQuickPicks {
   label: string;
   data: { type: NewConnectionType; connectionId?: string };
 }
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
