@@ -195,7 +195,7 @@ export default class ConnectionController {
     );
 
     try {
-      const connectResult = await this.saveNewConnectionFromFormAndConnect(
+      const connectResult = await this.saveNewConnectionAndConnect(
         {
           id: uuidv4(),
           connectionOptions: {
@@ -235,8 +235,7 @@ export default class ConnectionController {
     });
   }
 
-  // TODO: Save from form / connection string...
-  async saveNewConnectionFromFormAndConnect(
+  async saveNewConnectionAndConnect(
     originalConnectionInfo: ConnectionInfoFromLegacyDS,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
