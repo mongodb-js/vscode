@@ -431,15 +431,16 @@ suite('Webview Test Suite', () => {
     const fakeWebview = {
       html: '',
       postMessage: (message): void => {
-        assert(!message.connectionSuccess);
-        const expectedMessage = 'connection attempt overriden';
-        assert(
-          message.connectionMessage === expectedMessage,
-          `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
-        );
+        try {
+          assert.strictEqual(message.connectionSuccess, false);
+          const expectedMessage = 'connection attempt cancelled';
+          assert.strictEqual(message.connectionMessage, expectedMessage);
 
-        void testConnectionController.disconnect();
-        done();
+          void testConnectionController.disconnect();
+          done();
+        } catch (err) {
+          done(err);
+        }
       },
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;

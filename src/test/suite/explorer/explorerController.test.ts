@@ -10,6 +10,7 @@ import {
 } from '../../../storage/storageController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
+import { createConnectionAttempt } from '../../../connectionAttempt';
 
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=500&serverSelectionTimeoutMS=500';
@@ -67,7 +68,7 @@ suite('Explorer Controller Test Suite', function () {
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
     };
-    testConnectionController.setConnnecting(true);
+    testConnectionController._connectionAttempt = createConnectionAttempt();
 
     const connectionsItems = await treeController.getChildren();
 

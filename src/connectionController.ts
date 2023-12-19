@@ -15,7 +15,6 @@ import type LegacyConnectionModel from './views/webview-app/legacy/connection-mo
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
 import type TelemetryService from './telemetry/telemetryService';
-import LINKS from './utils/links';
 import type {
   ConnectionInfo as ConnectionInfoFromLegacyDS,
   ConnectionOptions as ConnectionOptionsFromLegacyDS,
@@ -26,6 +25,8 @@ import {
 } from 'mongodb-data-service-legacy';
 import type { LoadedConnection } from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
+import type { ConnectionAttempt } from './connectionAttempt';
+import { createConnectionAttempt } from './connectionAttempt';
 
 export function launderConnectionOptionTypeFromLegacyToCurrent(
   opts: ConnectionOptionsFromLegacyDS
@@ -81,13 +82,7 @@ export default class ConnectionController {
   private readonly _serviceName = 'mdb.vscode.savedConnections';
   private _currentConnectionId: null | string = null;
 
-  // When we are connecting to a server we save a connection version to
-  // the request. That way if a new connection attempt is made while
-  // the connection is being established, we know we can ignore the
-  // request when it is completed so we don't have two live connections at once.
-  private _connectingVersion: null | string = null;
-
-  private _connecting = false;
+  _connectionAttempt: null | ConnectionAttempt = null;
   private _connectingConnectionId: null | string = null;
   private _disconnecting = false;
 
@@ -256,26 +251,15 @@ export default class ConnectionController {
     return this._connect(savedConnectionWithoutSecrets.id, connectionType);
   }
 
-  async _connectWithDataService(
-    connectionOptions: ConnectionOptionsFromLegacyDS
-  ) {
-    return connect({
-      connectionOptions:
-        launderConnectionOptionTypeFromLegacyToCurrent(connectionOptions),
-      productName: packageJSON.name,
-      productDocsLink: LINKS.extensionDocs(),
-    });
-  }
-
   async _connect(
     connectionId: string,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
-    // Store a version of this connection, so we can see when the conection
-    // is successful if it is still the most recent connection attempt.
-    this._connectingVersion = connectionId;
-    const connectingAttemptVersion = this._connectingVersion;
-    this._connecting = true;
+    // Cancel the current connection attempt if we're connecting.
+    this._connectionAttempt?.cancelConnectionAttempt();
+
+    const connectionAttempt = createConnectionAttempt(connect);
+    this._connectionAttempt = connectionAttempt;
     this._connectingConnectionId = connectionId;
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
@@ -284,6 +268,13 @@ export default class ConnectionController {
         connectionId: this._currentConnectionId,
       });
       await this.disconnect();
+    }
+
+    if (connectionAttempt.isClosed()) {
+      return {
+        successfullyConnected: false,
+        connectionErrorMessage: 'connection attempt cancelled',
+      };
     }
 
     this._statusView.showMessage('Connecting to MongoDB...');
@@ -300,34 +291,30 @@ export default class ConnectionController {
     }
 
     let dataService;
-    let connectError;
-
     try {
-      dataService = await this._connectWithDataService(connectionOptions);
+      dataService = await connectionAttempt.connect(
+        launderConnectionOptionTypeFromLegacyToCurrent(connectionOptions)
+      );
+
+      if (!dataService || connectionAttempt.isClosed()) {
+        return {
+          successfullyConnected: false,
+          connectionErrorMessage: 'connection attempt cancelled',
+        };
+      }
     } catch (error) {
-      connectError = error;
-    }
-
-    const shouldEndPrevConnectAttempt = this._endPrevConnectAttempt({
-      connectionId,
-      connectingAttemptVersion,
-      dataService,
-    });
-
-    if (shouldEndPrevConnectAttempt) {
-      return {
-        successfullyConnected: false,
-        connectionErrorMessage: 'connection attempt overriden',
-      };
-    }
-
-    this._statusView.hideMessage();
-
-    if (connectError) {
-      this._connecting = false;
-      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-
-      throw connectError;
+      throw error;
+    } finally {
+      if (
+        this._connectionAttempt === connectionAttempt &&
+        this._connectingConnectionId === connectionId
+      ) {
+        // When this is still the most recent connection attempt cleanup the connecting messages.
+        this._statusView.hideMessage();
+        this._connectionAttempt = null;
+        this._connectingConnectionId = null;
+        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+      }
     }
 
     log.info('Successfully connected', { connectionId });
@@ -335,7 +322,7 @@ export default class ConnectionController {
 
     this._activeDataService = dataService;
     this._currentConnectionId = connectionId;
-    this._connecting = false;
+    this._connectionAttempt = null;
     this._connectingConnectionId = null;
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
@@ -355,30 +342,8 @@ export default class ConnectionController {
     };
   }
 
-  private _endPrevConnectAttempt({
-    connectionId,
-    connectingAttemptVersion,
-    dataService,
-  }: {
-    connectionId: string;
-    connectingAttemptVersion: null | string;
-    dataService: DataService | null;
-  }): boolean {
-    if (
-      connectingAttemptVersion !== this._connectingVersion ||
-      !this._connections[connectionId]
-    ) {
-      // If the current attempt is no longer the most recent attempt
-      // or the connection no longer exists we silently end the connection
-      // and return.
-      void dataService?.disconnect().catch(() => {
-        /* ignore */
-      });
-
-      return true;
-    }
-
-    return false;
+  cancelConnectionAttempt() {
+    this._connectionAttempt?.cancelConnectionAttempt();
   }
 
   async connectWithConnectionId(connectionId: string): Promise<boolean> {
@@ -584,7 +549,7 @@ export default class ConnectionController {
   }
 
   isConnecting(): boolean {
-    return this._connecting;
+    return !!this._connectionAttempt;
   }
 
   isDisconnecting(): boolean {
@@ -745,26 +710,15 @@ export default class ConnectionController {
     this._connections = {};
     this._activeDataService = null;
     this._currentConnectionId = null;
-    this._connecting = false;
+    this._connectionAttempt?.cancelConnectionAttempt();
+    this._connectionAttempt = null;
     this._disconnecting = false;
     this._connectingConnectionId = '';
-    this._connectingVersion = null;
   }
 
-  getConnectingVersion(): string | null {
-    return this._connectingVersion;
-  }
-
+  // Exposed for testing.
   setActiveDataService(newDataService: DataService): void {
     this._activeDataService = newDataService;
-  }
-
-  setConnnecting(connecting: boolean): void {
-    this._connecting = connecting;
-  }
-
-  setDisconnecting(disconnecting: boolean): void {
-    this._disconnecting = disconnecting;
   }
 
   getConnectionQuickPicks(): ConnectionQuickPicks[] {

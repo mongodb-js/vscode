@@ -230,6 +230,9 @@ export default class WebviewController {
           message.connectionAttemptId
         );
         return;
+      case MESSAGE_TYPES.CANCEL_CONNECT:
+        this._connectionController.cancelConnectionAttempt();
+        return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         void vscode.commands.executeCommand(
           EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE
