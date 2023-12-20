@@ -88,7 +88,7 @@ const ConnectionForm: React.FunctionComponent<{
         >
           <CancelLoader
             onCancel={onCancelConnectClicked}
-            progressText="Connecting..."
+            progressText="Connecting…"
             cancelText="Cancel"
           />
         </div>
