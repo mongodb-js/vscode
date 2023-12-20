@@ -11,7 +11,7 @@ const packageJSON = require('../package.json');
 const log = createLogger('connection attempt');
 
 function isConnectionAttemptTerminatedError(err: Error) {
-  return err?.name === 'MongoError' && err?.message === 'Topology closed';
+  return err?.name === 'MongoTopologyClosedError';
 }
 
 export class ConnectionAttempt {
