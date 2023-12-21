@@ -1,20 +1,15 @@
 import * as vscode from 'vscode';
-import { connect } from 'mongodb-data-service';
+import { connect, createConnectionAttempt } from 'mongodb-data-service';
 import type {
   DataService,
+  ConnectionAttempt,
   ConnectionOptions as ConnectionOptionsFromCurrentDS,
 } from 'mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
-import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
-import { createLogger } from './logging';
-import formatError from './utils/formatError';
-import type LegacyConnectionModel from './views/webview-app/legacy/connection-model/legacy-connection-model';
-import type { StorageController } from './storage';
-import type { StatusView } from './views';
-import type TelemetryService from './telemetry/telemetryService';
+import { mongoLogId } from 'mongodb-log-writer';
 import type {
   ConnectionInfo as ConnectionInfoFromLegacyDS,
   ConnectionOptions as ConnectionOptionsFromLegacyDS,
@@ -23,10 +18,17 @@ import {
   extractSecrets,
   convertConnectionModelToInfo,
 } from 'mongodb-data-service-legacy';
+
+import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
+import { createLogger } from './logging';
+import formatError from './utils/formatError';
+import type LegacyConnectionModel from './views/webview-app/legacy/connection-model/legacy-connection-model';
+import type { StorageController } from './storage';
+import type { StatusView } from './views';
+import type TelemetryService from './telemetry/telemetryService';
 import type { LoadedConnection } from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
-import type { ConnectionAttempt } from './connectionAttempt';
-import { createConnectionAttempt } from './connectionAttempt';
+import LINKS from './utils/links';
 
 export function launderConnectionOptionTypeFromLegacyToCurrent(
   opts: ConnectionOptionsFromLegacyDS
@@ -258,7 +260,15 @@ export default class ConnectionController {
     // Cancel the current connection attempt if we're connecting.
     this._connectionAttempt?.cancelConnectionAttempt();
 
-    const connectionAttempt = createConnectionAttempt(connect);
+    const connectionAttempt = createConnectionAttempt({
+      connectFn: (connectionConfig) =>
+        connect({
+          ...connectionConfig,
+          productName: packageJSON.name,
+          productDocsLink: LINKS.extensionDocs(),
+        }),
+      logger: Object.assign(log, { mongoLogId }),
+    });
     this._connectionAttempt = connectionAttempt;
     this._connectingConnectionId = connectionId;
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
