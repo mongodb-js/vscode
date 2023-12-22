@@ -44,7 +44,7 @@ suite('Connection Storage Test Suite', function () {
     });
 
     sandbox.stub(vscode.window, 'showInformationMessage');
-    // showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+    sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
   afterEach(function () {

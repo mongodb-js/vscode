@@ -1,6 +1,13 @@
 import React from 'react';
 import CompassConnectionForm from '@mongodb-js/connection-form';
-import { Modal, css, spacing } from '@mongodb-js/compass-components';
+import {
+  CancelLoader,
+  Modal,
+  css,
+  cx,
+  spacing,
+  useDarkMode,
+} from '@mongodb-js/compass-components';
 import { v4 as uuidv4 } from 'uuid';
 import type { ConnectionInfo } from 'mongodb-data-service-legacy';
 
@@ -16,6 +23,24 @@ const formContainerStyles = css({
   flexDirection: 'column',
 });
 
+const connectingContainerStyles = css({
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+  background: 'rgba(255, 255, 255, 0.8)',
+  borderRadius: spacing[4],
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1,
+});
+
+const connectingContainerDarkModeStyles = css({
+  background: 'rgba(0, 0, 0, 0.8)',
+});
+
 function createNewConnectionInfo() {
   return {
     id: uuidv4(),
@@ -28,11 +53,22 @@ function createNewConnectionInfo() {
 const initialConnectionInfo = createNewConnectionInfo();
 
 const ConnectionForm: React.FunctionComponent<{
-  onConnectClicked: (onConnectClicked: ConnectionInfo) => void;
+  isConnecting: boolean;
+  onCancelConnectClicked: () => void;
+  onConnectClicked: (connectionInfo: ConnectionInfo) => void;
   onClose: () => void;
   open: boolean;
   connectionErrorMessage: string;
-}> = ({ connectionErrorMessage, onConnectClicked, onClose, open }) => {
+}> = ({
+  connectionErrorMessage,
+  isConnecting,
+  onCancelConnectClicked,
+  onConnectClicked,
+  onClose,
+  open,
+}) => {
+  const darkMode = useDarkMode();
+
   return (
     <Modal
       // Warning: This property may be removed in future
@@ -43,6 +79,20 @@ const ConnectionForm: React.FunctionComponent<{
       data-testid="connection-form-modal"
       size="large"
     >
+      {isConnecting && (
+        <div
+          className={cx(
+            connectingContainerStyles,
+            darkMode && connectingContainerDarkModeStyles
+          )}
+        >
+          <CancelLoader
+            onCancel={onCancelConnectClicked}
+            progressText="Connecting…"
+            cancelText="Cancel"
+          />
+        </div>
+      )}
       <div className={formContainerStyles}>
         <CompassConnectionForm
           onConnectClicked={onConnectClicked}

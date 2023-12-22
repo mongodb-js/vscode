@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
+import { connect, createConnectionAttempt } from 'mongodb-data-service';
+import { mongoLogId } from 'mongodb-log-writer';
 
 import {
   DefaultSavingLocations,
@@ -10,6 +12,9 @@ import {
 } from '../../../storage/storageController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
+import { createLogger } from '../../../logging';
+
+const log = createLogger('test explorer controller');
 
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=500&serverSelectionTimeoutMS=500';
@@ -67,7 +72,10 @@ suite('Explorer Controller Test Suite', function () {
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
     };
-    testConnectionController.setConnnecting(true);
+    testConnectionController._connectionAttempt = createConnectionAttempt({
+      connectFn: connect,
+      logger: Object.assign(log, { mongoLogId }),
+    });
 
     const connectionsItems = await treeController.getChildren();
 

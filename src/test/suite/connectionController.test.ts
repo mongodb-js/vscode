@@ -214,7 +214,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(isConnectionChanged, true);
   });
 
-  const expectedTimesToFire = 3;
+  const expectedTimesToFire = 4;
 
   test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, async () => {
     let connectionEventFiredCount = 0;
@@ -230,7 +230,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
     await testConnectionController.disconnect();
-    await sleep(500);
+    await sleep(100);
 
     assert.strictEqual(connectionEventFiredCount, expectedTimesToFire);
   });
@@ -664,35 +664,6 @@ suite('Connection Controller Test Suite', function () {
       assert.strictEqual(
         testConnectionController.getActiveConnectionName(),
         'localhost:27088'
-      );
-    });
-
-    test('updates the connecting version on each new connection attempt', async () => {
-      assert.strictEqual(testConnectionController.getConnectingVersion(), null);
-
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
-
-      const currentConnectingVersion =
-        testConnectionController.getConnectingVersion();
-
-      assert.notStrictEqual(currentConnectingVersion, null);
-
-      const id =
-        testConnectionController._connections[
-          Object.keys(testConnectionController._connections)[0]
-        ].id;
-
-      assert.strictEqual(currentConnectingVersion, id);
-
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
-
-      assert.notStrictEqual(
-        testConnectionController.getConnectingVersion(),
-        currentConnectingVersion
       );
     });
 
