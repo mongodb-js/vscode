@@ -1,7 +1,6 @@
 import React, { useCallback, useLayoutEffect, useState } from 'react';
 import {
   HorizontalRule,
-  SpinLoaderWithLabel,
   css,
   resetGlobalCSS,
   spacing,
@@ -28,26 +27,15 @@ const pageStyles = css({
   fontSize: '14px',
 });
 
-const loadingContainerStyles = css({
-  position: 'absolute',
-  top: 0,
-  right: 0,
-  bottom: 0,
-  left: 0,
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1,
-});
-
 const OverviewPage: React.FC = () => {
   const [showResourcesPanel, setShowResourcesPanel] = useState(false);
   const {
-    connectionInProgress,
+    isConnecting,
     connectionFormOpened,
     openConnectionForm,
     closeConnectionForm,
     connectionErrorMessage,
+    handleCancelConnectClicked,
     handleConnectClicked,
   } = useConnectionForm();
   const handleResourcesPanelClose = useCallback(
@@ -67,16 +55,13 @@ const OverviewPage: React.FC = () => {
 
   return (
     <div className={pageStyles}>
-      {connectionInProgress && (
-        <div className={loadingContainerStyles}>
-          <SpinLoaderWithLabel progressText="Connecting..." />
-        </div>
-      )}
       {showResourcesPanel && (
         <ResourcesPanel onClose={handleResourcesPanelClose} />
       )}
       {connectionFormOpened && (
         <ConnectionForm
+          isConnecting={isConnecting}
+          onCancelConnectClicked={handleCancelConnectClicked}
           onConnectClicked={handleConnectClicked}
           onClose={closeConnectionForm}
           open={connectionFormOpened}

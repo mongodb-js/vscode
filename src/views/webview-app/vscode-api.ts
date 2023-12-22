@@ -22,6 +22,12 @@ export const sendConnectToExtension = (
   });
 };
 
+export const sendCancelConnectToExtension = () => {
+  vscode.postMessage({
+    command: MESSAGE_TYPES.CANCEL_CONNECT,
+  });
+};
+
 export const renameActiveConnection = () => {
   vscode.postMessage({
     command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION,

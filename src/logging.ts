@@ -50,6 +50,13 @@ class Logger implements ILogger {
     );
   }
 
+  public fatal(message?: any, ...optionalParams: any[]): void {
+    this.append(
+      'FATAL',
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
+    );
+  }
+
   private append(type: string, message: string) {
     // https://code.visualstudio.com/api/references/vscode-api#window.createOutputChannel
 

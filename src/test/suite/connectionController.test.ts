@@ -4,7 +4,7 @@ import util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
-import { connect } from 'mongodb-data-service';
+import * as mongodbDataService from 'mongodb-data-service';
 
 import AUTH_STRATEGY_VALUES from '../../views/webview-app/legacy/connection-model/constants/auth-strategies';
 import ConnectionController, {
@@ -214,7 +214,7 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(isConnectionChanged, true);
   });
 
-  const expectedTimesToFire = 3;
+  const expectedTimesToFire = 4;
 
   test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, async () => {
     let connectionEventFiredCount = 0;
@@ -230,7 +230,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
     await testConnectionController.disconnect();
-    await sleep(500);
+    await sleep(100);
 
     assert.strictEqual(connectionEventFiredCount, expectedTimesToFire);
   });
@@ -667,35 +667,6 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('updates the connecting version on each new connection attempt', async () => {
-      assert.strictEqual(testConnectionController.getConnectingVersion(), null);
-
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
-
-      const currentConnectingVersion =
-        testConnectionController.getConnectingVersion();
-
-      assert.notStrictEqual(currentConnectingVersion, null);
-
-      const id =
-        testConnectionController._connections[
-          Object.keys(testConnectionController._connections)[0]
-        ].id;
-
-      assert.strictEqual(currentConnectingVersion, id);
-
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
-
-      assert.notStrictEqual(
-        testConnectionController.getConnectingVersion(),
-        currentConnectingVersion
-      );
-    });
-
     test('it only connects to the most recent connection attempt', async () => {
       for (let i = 0; i < 5; i++) {
         const id = `${i}`;
@@ -783,14 +754,15 @@ suite('Connection Controller Test Suite', function () {
     };
 
     sandbox.replace(
-      testConnectionController,
-      '_connectWithDataService',
+      mongodbDataService,
+      'connect',
       async (connectionOptions) => {
         await sleep(50);
 
-        return connect({
-          connectionOptions:
-            launderConnectionOptionTypeFromLegacyToCurrent(connectionOptions),
+        return mongodbDataService.connect({
+          connectionOptions: launderConnectionOptionTypeFromLegacyToCurrent(
+            connectionOptions.connectionOptions
+          ),
         });
       }
     );

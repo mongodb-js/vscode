@@ -15,6 +15,7 @@ export const VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID =
 
 export enum MESSAGE_TYPES {
   CONNECT = 'CONNECT',
+  CANCEL_CONNECT = 'CANCEL_CONNECT',
   LEGACY_CONNECT = 'LEGACY_CONNECT',
   CONNECT_RESULT = 'CONNECT_RESULT',
   CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
@@ -47,6 +48,10 @@ export interface ConnectMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT;
   connectionInfo: ConnectionInfo;
   connectionAttemptId: string;
+}
+
+export interface CancelConnectMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.CANCEL_CONNECT;
 }
 
 // TODO: VSCODE-491 - Remove this entirely when getting rid of legacy
@@ -106,6 +111,7 @@ export interface ThemeChangedMessage extends BasicWebviewMessage {
 
 export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | ConnectMessage
+  | CancelConnectMessage
   | LegacyConnectMessage
   | CreateNewPlaygroundMessage
   | GetConnectionStatusMessage
