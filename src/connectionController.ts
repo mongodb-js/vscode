@@ -14,15 +14,11 @@ import type {
   ConnectionInfo as ConnectionInfoFromLegacyDS,
   ConnectionOptions as ConnectionOptionsFromLegacyDS,
 } from 'mongodb-data-service-legacy';
-import {
-  extractSecrets,
-  convertConnectionModelToInfo,
-} from 'mongodb-data-service-legacy';
+import { extractSecrets } from 'mongodb-data-service-legacy';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import formatError from './utils/formatError';
-import type LegacyConnectionModel from './views/webview-app/legacy/connection-model/legacy-connection-model';
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
 import type TelemetryService from './telemetry/telemetryService';
@@ -222,15 +218,6 @@ export default class ConnectionController {
       newDataService,
       connectionType
     );
-  }
-
-  parseNewConnection(
-    rawConnectionModel: LegacyConnectionModel
-  ): ConnectionInfoFromLegacyDS {
-    return convertConnectionModelToInfo({
-      ...rawConnectionModel,
-      appname: `${packageJSON.name} ${packageJSON.version}`, // Override the default connection appname.
-    });
   }
 
   async saveNewConnectionAndConnect(

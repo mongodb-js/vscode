@@ -6,7 +6,6 @@ import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import * as mongodbDataService from 'mongodb-data-service';
 
-import AUTH_STRATEGY_VALUES from '../../views/webview-app/legacy/connection-model/constants/auth-strategies';
 import ConnectionController, {
   DataServiceEventTypes,
   launderConnectionOptionTypeFromLegacyToCurrent,
@@ -18,9 +17,6 @@ import {
   DefaultSavingLocations,
   SecretStorageLocation,
 } from '../../storage/storageController';
-import READ_PREFERENCES from '../../views/webview-app/legacy/connection-model/constants/read-preferences';
-import SSH_TUNNEL_TYPES from '../../views/webview-app/legacy/connection-model/constants/ssh-tunnel-types';
-import SSL_METHODS from '../../views/webview-app/legacy/connection-model/constants/ssl-methods';
 import { StatusView } from '../../views';
 import TelemetryService from '../../telemetry/telemetryService';
 import { ExtensionContextStub } from './stubs';
@@ -864,40 +860,6 @@ suite('Connection Controller Test Suite', function () {
       testConnectionController._connections[connections[0].id].name,
       'localhost:27088'
     );
-  });
-
-  test('parseNewConnection converts a connection model to a connection info and overrides a default appname', () => {
-    const connectionInfo = testConnectionController.parseNewConnection({
-      _id: 'c4871b21-92c4-40e2-a2c2-fdd551cff114',
-      isFavorite: false,
-      name: 'Local',
-      isSrvRecord: true,
-      hostname: 'host.u88dd.test.test',
-      port: 27017,
-      hosts: [
-        { host: 'host-shard-00-00.u88dd.test.test', port: 27017 },
-        { host: 'host-shard-00-01.u88dd.test.test', port: 27017 },
-        { host: 'host-shard-00-02.u88dd.test.test', port: 27017 },
-      ],
-      extraOptions: {},
-      readPreference: READ_PREFERENCES.PRIMARY,
-      authStrategy: AUTH_STRATEGY_VALUES.MONGODB,
-      kerberosCanonicalizeHostname: false,
-      sslMethod: SSL_METHODS.SYSTEMCA,
-      sshTunnel: SSH_TUNNEL_TYPES.NONE,
-      sshTunnelPort: 22,
-      mongodbUsername: 'username',
-      mongodbPassword: 'somepassword',
-      mongodbDatabaseName: 'admin',
-    });
-
-    assert.deepStrictEqual(connectionInfo, {
-      id: 'c4871b21-92c4-40e2-a2c2-fdd551cff114',
-      connectionOptions: {
-        connectionString:
-          'mongodb+srv://username:somepassword@host.u88dd.test.test/?authSource=admin&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true',
-      },
-    });
   });
 
   test('getMongoClientConnectionOptions returns url and options properties', async () => {

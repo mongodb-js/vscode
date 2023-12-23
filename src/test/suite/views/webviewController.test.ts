@@ -127,80 +127,6 @@ suite('Webview Test Suite', () => {
     );
   });
 
-  // TODO: VSCODE-491 - Remove this test case entirely when getting rid of legacy
-  test('web view listens for a legacy connect message and adds the connection', (done) => {
-    const extensionContextStub = new ExtensionContextStub();
-    const testStorageController = new StorageController(extensionContextStub);
-    const testTelemetryService = new TelemetryService(
-      testStorageController,
-      extensionContextStub
-    );
-    const testConnectionController = new ConnectionController({
-      statusView: new StatusView(extensionContextStub),
-      storageController: testStorageController,
-      telemetryService: testTelemetryService,
-    });
-    let messageReceivedSet = false;
-    let messageReceived;
-
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
-    const fakeWebview = {
-      html: '',
-      postMessage: async (): Promise<void> => {
-        assert(testConnectionController.isCurrentlyConnected());
-        assert(
-          testConnectionController.getActiveConnectionName() ===
-            'localhost:27088'
-        );
-
-        await testConnectionController.disconnect();
-        done();
-      },
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
-        messageReceivedSet = true;
-      },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
-      onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
-
-    const testWebviewController = new WebviewController({
-      connectionController: testConnectionController,
-      storageController: testStorageController,
-      telemetryService: testTelemetryService,
-    });
-
-    void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
-    );
-
-    assert(
-      messageReceivedSet,
-      'Ensure it starts listening for messages from the webview.'
-    );
-
-    // Mock a connection call.
-    messageReceived({
-      command: MESSAGE_TYPES.LEGACY_CONNECT,
-      connectionModel: {
-        port: 27088,
-        hostname: 'localhost',
-        hosts: [{ host: 'localhost', port: 27088 }],
-      },
-    });
-  });
-
   test('web view listens for a connect message and adds the connection', (done) => {
     const extensionContextStub = new ExtensionContextStub();
     const testStorageController = new StorageController(extensionContextStub);
@@ -340,11 +266,13 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.LEGACY_CONNECT,
-      connectionModel: {
-        port: 27088,
-        hostname: 'localhost',
-        hosts: [{ host: 'localhost', port: 27088 }],
+      command: MESSAGE_TYPES.CONNECT,
+      connectionAttemptId: 'pineapple',
+      connectionInfo: {
+        id: 'test',
+        connectionOptions: {
+          connectionString: 'mongodb://localhost:27088',
+        },
       },
     });
   });
@@ -402,10 +330,14 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.LEGACY_CONNECT,
-      connectionModel: {
-        port: 2700002, // Bad port number.
-        hostname: 'localhost',
+      command: MESSAGE_TYPES.CONNECT,
+      connectionAttemptId: 'pineapple',
+      connectionInfo: {
+        id: 'test',
+        connectionOptions: {
+          // bad port number.
+          connectionString: 'mongodb://localhost:2700002',
+        },
       },
     });
   });
@@ -467,152 +399,20 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.LEGACY_CONNECT,
-      connectionModel: {
-        port: 27088,
-        hostname: 'shouldfail',
-        connectTimeoutMS: 500,
-        socketTimeoutMS: 500,
-        serverSelectionTimeoutMS: 500,
+      command: MESSAGE_TYPES.CONNECT,
+      connectionAttemptId: 'pineapple',
+      connectionInfo: {
+        id: 'test',
+        connectionOptions: {
+          connectionString:
+            'mongodb://shouldfail:27088?connectTimeoutMS=500&serverSelectionTimeoutMS=500&socketTimeoutMS=500',
+        },
       },
     });
 
     void testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
-  });
-
-  test('web view opens file picker on file picker request', (done) => {
-    const extensionContextStub = new ExtensionContextStub();
-    const testStorageController = new StorageController(extensionContextStub);
-    const testTelemetryService = new TelemetryService(
-      testStorageController,
-      extensionContextStub
-    );
-    const testConnectionController = new ConnectionController({
-      statusView: new StatusView(extensionContextStub),
-      storageController: testStorageController,
-      telemetryService: testTelemetryService,
-    });
-    const fakeVSCodeOpenDialog = sandbox.fake.resolves({
-      path: '/somefilepath/test.text',
-    });
-    let messageReceived;
-
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
-    const fakeWebview = {
-      html: '',
-      postMessage: async (): Promise<void> => {
-        assert(fakeVSCodeOpenDialog.called);
-        assert(fakeVSCodeOpenDialog.firstCall.args[0].canSelectFiles);
-
-        await testConnectionController.disconnect();
-        done();
-      },
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
-      },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
-      onDidDispose: sandbox.fake.returns(''),
-    });
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
-
-    sandbox.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
-
-    const testWebviewController = new WebviewController({
-      connectionController: testConnectionController,
-      storageController: testStorageController,
-      telemetryService: testTelemetryService,
-    });
-
-    void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
-    );
-
-    // Mock a connection call.
-    messageReceived({
-      command: MESSAGE_TYPES.OPEN_FILE_PICKER,
-      action: 'file_action',
-    });
-  });
-
-  test('web view returns file name on file picker request', (done) => {
-    const extensionContextStub = new ExtensionContextStub();
-    const testStorageController = new StorageController(extensionContextStub);
-    const testTelemetryService = new TelemetryService(
-      testStorageController,
-      extensionContextStub
-    );
-    const testConnectionController = new ConnectionController({
-      statusView: new StatusView(extensionContextStub),
-      storageController: testStorageController,
-      telemetryService: testTelemetryService,
-    });
-    let messageReceived;
-
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
-    const fakeWebview = {
-      html: '',
-      postMessage: async (message): Promise<void> => {
-        try {
-          assert.strictEqual(message.action, 'file_action');
-          assert.strictEqual(message.files[0], '/somefilepath/test.text');
-
-          done();
-        } catch (e) {
-          done(e);
-        }
-
-        await testConnectionController.disconnect();
-      },
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
-      },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
-      onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
-
-    const fakeVSCodeOpenDialog = sandbox.fake.resolves([
-      {
-        fsPath: '/somefilepath/test.text',
-      },
-    ]);
-
-    sandbox.replace(vscode.window, 'showOpenDialog', fakeVSCodeOpenDialog);
-
-    const testWebviewController = new WebviewController({
-      connectionController: testConnectionController,
-      storageController: testStorageController,
-      telemetryService: testTelemetryService,
-    });
-
-    void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
-    );
-
-    messageReceived({
-      command: MESSAGE_TYPES.OPEN_FILE_PICKER,
-      action: 'file_action',
-    });
   });
 
   test('web view runs the "connectWithURI" command when open connection string input is recieved', (done) => {
