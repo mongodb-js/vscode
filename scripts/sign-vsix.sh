@@ -17,6 +17,7 @@ done
 
 logout_artifactory() {
     docker logout "${ARTIFACTORY_HOST}" > /dev/null 2>&1
+    echo "logged out from artifactory"
 }
 
 trap logout_artifactory EXIT
