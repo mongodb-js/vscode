@@ -99,7 +99,8 @@ jobs:
         run: npm run check-vsix-size
         shell: bash
 
-      - name: Sign the .vsix
+      - name: Sign .vsix
+        if: runner.os == 'Linux'
         env:
           ARTIFACTORY_HOST: ${{ secrets.ARTIFACTORY_HOST }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
