@@ -25,6 +25,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          # NOTE: this is necessary to get the full history
+          # and check if tags are already present
           fetch-depth: 0
 
       - name: Setup Node.js Environment
@@ -34,8 +36,11 @@ jobs:
 
       - name: Determine Next Version
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
+
           VERSION_BUMP=${{ github.event.inputs.versionBump }}
 
           if [[ "$VERSION_BUMP" == "major" || "$VERSION_BUMP" == "minor" || "$VERSION_BUMP" == "patch" ]]; then
@@ -43,7 +48,7 @@ jobs:
             PREV_VERSION=$(npx semver --coerce ${PREV_VERSION_TAG})
 
             NEXT_VERSION=$(npx semver -i $VERSION_INPUT $PREV_VERSION)
-          else;
+          else
             NEXT_VERSION=${{ github.event.inputs.exactVersion }}
           fi
 
@@ -56,7 +61,23 @@ jobs:
           npm version "${NEXT_VERSION}" --no-git-tag-version
           echo "RELEASE_TAG=v${NEXT_VERSION}" >> $GITHUB_ENV
 
-      - uses: ./.github/workflows/actions/test-and-build
+      - name: Validate release tag
+        shell: bash
+        run: |
+          RELEASE_TAG=${{ inputs.RELEASE_TAG }}
+
+          if [ -z "${RELEASE_TAG}" ]; then
+            echo "RELEASE_TAG is not set or is empty"
+            exit 1
+          fi
+
+          if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Error: Tag $RELEASE_TAG already exists."
+            exit 1
+          fi
+
+      - name: Run tests and build
+        uses: ./.github/workflows/actions/test-and-build
         with:
           SEGMENT_KEY: ${{ secrets.SEGMENT_KEY }}
           ARTIFACTORY_HOST: ${{ secrets.ARTIFACTORY_HOST }}
@@ -69,12 +90,11 @@ jobs:
 
       - name: Create Draft Release
         run: |
-          if [ -z "${RELEASE_TAG}" ]; then
-            echo "RELEASE_TAG is not set or is empty"
-            exit 1
-          fi
-
+          set -e
           echo Creating draft release for: "${RELEASE_TAG}"
+          ls *.vsix
+          ls *.vsix.sig
+
           gh release create "${RELEASE_TAG}" \
             --title "${RELEASE_VERSION}" \
             --notes "Edit the release notes before publishing." \
@@ -82,7 +102,7 @@ jobs:
             --draft \
             *.vsix \
             *.vsix.sig
-
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
