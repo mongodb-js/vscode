@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: 16.x
 
-      - uses: ./.github/workflows/actions/test-and-build-action.yml
+      - uses: ./.github/workflows/actions/test-and-build
         with:
           SEGMENT_KEY: ${{ secrets.SEGMENT_KEY }}
           ARTIFACTORY_HOST: ${{ secrets.ARTIFACTORY_HOST }}

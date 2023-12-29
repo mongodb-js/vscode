@@ -58,7 +58,7 @@ jobs:
       - name: Update version in package json and package lock
         run: npm version ${{ env.NEXT_VERSION }} --no-git-tag-version
 
-      - uses: ./.github/workflows/actions/test-and-build-action.yml
+      - uses: ./.github/workflows/actions/test-and-build
         with:
           SEGMENT_KEY: ${{ secrets.SEGMENT_KEY }}
           ARTIFACTORY_HOST: ${{ secrets.ARTIFACTORY_HOST }}
