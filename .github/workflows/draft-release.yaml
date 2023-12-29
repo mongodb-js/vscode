@@ -72,7 +72,9 @@ jobs:
           fi
 
           if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "Error: Tag $RELEASE_TAG already exists."
+            echo "Error: Tag $RELEASE_TAG already existing"
+            echo "If you are trying to re-create a draft release with this version, please delete the release and the tag first."
+            echo "If this version has already been release consider using a different one."
             exit 1
           fi
 
