@@ -53,10 +53,8 @@ jobs:
           # Validates the version before using it
           npx semver v"${NEXT_VERSION}"
 
+          npm version "${NEXT_VERSION}" --no-git-tag-version
           echo "RELEASE_TAG=v${NEXT_VERSION}" >> $GITHUB_ENV
-
-      - name: Update version in package json and package lock
-        run: npm version ${{ env.NEXT_VERSION }} --no-git-tag-version
 
       - uses: ./.github/workflows/actions/test-and-build
         with:
@@ -71,6 +69,11 @@ jobs:
 
       - name: Create Draft Release
         run: |
+          if [ -z "${RELEASE_TAG}" ]; then
+            echo "RELEASE_TAG is not set or is empty"
+            exit 1
+          fi
+
           echo Creating draft release for: "${RELEASE_TAG}"
           gh release create "${RELEASE_TAG}" \
             --title "${RELEASE_VERSION}" \
