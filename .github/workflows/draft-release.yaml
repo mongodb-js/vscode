@@ -3,10 +3,20 @@ name: Draft release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version (*.*.*|major|minor|patch)'
+      versionBump:
+        description: 'Version bump'
+        type: choice
         required: true
         default: 'patch'
+        options:
+        - patch
+        - minor
+        - major
+        - exact-version
+
+      exactVersion:
+        description: 'Exact version: (Only effective selecting "exact-version" as version bump)'
+        required: false
 
 jobs:
   prepare-release:
@@ -26,13 +36,15 @@ jobs:
         shell: bash
         run: |
           set -e
-          NEXT_VERSION=${{ github.event.inputs.version }}
+          VERSION_BUMP=${{ github.event.inputs.versionBump }}
 
-          if [[ "$NEXT_VERSION" == "major" || "$NEXT_VERSION" == "minor" || "$NEXT_VERSION" == "patch" ]]; then
+          if [[ "$VERSION_BUMP" == "major" || "$VERSION_BUMP" == "minor" || "$VERSION_BUMP" == "patch" ]]; then
             PREV_VERSION_TAG=$(gh api repos/:owner/:repo/releases --jq '. | map(select(.draft == false)) | .[0] | .tag_name')
             PREV_VERSION=$(npx semver --coerce ${PREV_VERSION_TAG})
 
             NEXT_VERSION=$(npx semver -i $VERSION_INPUT $PREV_VERSION)
+          else;
+            NEXT_VERSION=${{ github.event.inputs.exactVersion }}
           fi
 
           # Remove the 'v' prefix from NEXT_VERSION if it exists
