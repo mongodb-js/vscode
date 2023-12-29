@@ -23,6 +23,7 @@ import { mdbTestExtension } from '../stubbableMdbExtension';
 import { StreamStub } from '../stubs';
 import READ_PREFERENCES from '../../../views/webview-app/legacy/connection-model/constants/read-preferences';
 import DIAGNOSTIC_CODES from '../../../language/diagnosticCodes';
+import { ServerCommands } from '../../../language/serverCommands';
 import LINKS from '../../../utils/links';
 import Sinon from 'sinon';
 
@@ -2595,7 +2596,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const expectedResult = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'number',
@@ -2647,7 +2647,6 @@ suite('MongoDBService Test Suite', () => {
               source.token
             );
             const expectedResult = {
-              outputLines: [],
               result: {
                 namespace: `${dbName1}.${collectionName1}`,
                 type: 'Document',
@@ -2679,7 +2678,6 @@ suite('MongoDBService Test Suite', () => {
               source.token
             );
             const expectedResult = {
-              outputLines: [],
               result: {
                 namespace: `${dbName2}.${collectionName2}`,
                 type: 'Document',
@@ -2708,7 +2706,6 @@ suite('MongoDBService Test Suite', () => {
               source.token
             );
             const expectedResult = {
-              outputLines: [],
               result: {
                 namespace: `${dbName2}.${collectionName2}`,
                 type: 'Document',
@@ -2746,7 +2743,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const expectedResult = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'number',
@@ -2768,7 +2764,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const firstRes = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'number',
@@ -2787,7 +2782,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const secondRes = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'number',
@@ -2811,7 +2805,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const expectedResult = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'object',
@@ -2838,7 +2831,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const expectedResult = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'object',
@@ -2863,7 +2855,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const expectedResult = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'object',
@@ -2889,7 +2880,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const expectedResult = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'undefined',
@@ -2911,7 +2901,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const expectedResult = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'object',
@@ -2934,7 +2923,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const expectedResult = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'string',
@@ -2959,7 +2947,6 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
       const expectedResult = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'string',
@@ -2973,8 +2960,17 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('includes results from print() and console.log()', async () => {
+    test('sends print() and console.log() output continuously', async () => {
       const source = new CancellationTokenSource();
+
+      const consoleOutputs: unknown[] = [];
+
+      Sinon.stub(connection, 'sendNotification')
+        .withArgs(ServerCommands.SHOW_CONSOLE_OUTPUT)
+        .callsFake((_, params) =>
+          Promise.resolve(void consoleOutputs.push(...params))
+        );
+
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2982,13 +2978,13 @@ suite('MongoDBService Test Suite', () => {
         },
         source.token
       );
+
+      Sinon.restore();
+
+      const expectedConsoleOutputs = ['Hello', 1, 2, 3];
+      expect(consoleOutputs).to.deep.equal(expectedConsoleOutputs);
+
       const expectedResult = {
-        outputLines: [
-          { namespace: null, type: null, content: 'Hello', language: null },
-          { namespace: null, type: null, content: 1, language: null },
-          { namespace: null, type: null, content: 2, language: null },
-          { namespace: null, type: null, content: 3, language: null },
-        ],
         result: {
           namespace: null,
           type: 'number',

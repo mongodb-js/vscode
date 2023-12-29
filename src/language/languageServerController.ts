@@ -12,6 +12,7 @@ import {
 } from 'vscode-languageclient/node';
 import type { ExtensionContext } from 'vscode';
 import { workspace } from 'vscode';
+import util from 'util';
 
 import { createLogger } from '../logging';
 import type {
@@ -37,6 +38,7 @@ export default class LanguageServerController {
   _currentConnectionId: string | null = null;
   _currentConnectionString?: string;
   _currentConnectionOptions?: MongoClientOptions;
+  _consoleOutputChannel?: vscode.OutputChannel;
 
   constructor(context: ExtensionContext) {
     this._context = context;
@@ -149,6 +151,19 @@ export default class LanguageServerController {
       (messsage) => {
         log.info('The error message shown to a user', messsage);
         void vscode.window.showErrorMessage(messsage);
+      }
+    );
+
+    this._client.onNotification(
+      ServerCommands.SHOW_CONSOLE_OUTPUT,
+      (outputs) => {
+        for (const line of outputs) {
+          this._consoleOutputChannel?.appendLine(
+            typeof line === 'string' ? line : util.inspect(line)
+          );
+        }
+
+        this._consoleOutputChannel?.show(true);
       }
     );
   }

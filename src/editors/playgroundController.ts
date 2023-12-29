@@ -5,7 +5,6 @@ import { ProgressLocation } from 'vscode';
 import vm from 'vm';
 import os from 'os';
 import transpiler from 'bson-transpilers';
-import util from 'util';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import type PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
@@ -158,6 +157,8 @@ export default class PlaygroundController {
         void this._activeConnectionChanged();
       }
     );
+
+    languageServerController._consoleOutputChannel = this._outputChannel;
 
     const onDidChangeActiveTextEditor = (
       editor: vscode.TextEditor | undefined
@@ -467,7 +468,7 @@ export default class PlaygroundController {
             // If a user clicked the cancel button terminate all playground scripts.
             this._languageServerController.cancelAll();
 
-            return { outputLines: undefined, result: undefined };
+            return { result: undefined };
           });
 
           // Run all playground scripts.
@@ -483,10 +484,7 @@ export default class PlaygroundController {
     } catch (error) {
       log.error('Evaluating playground with cancel modal failed', error);
 
-      return {
-        outputLines: undefined,
-        result: undefined,
-      };
+      return { result: undefined };
     }
   }
 
@@ -572,22 +570,7 @@ export default class PlaygroundController {
     const evaluateResponse: ShellEvaluateResult =
       await this._evaluateWithCancelModal();
 
-    if (evaluateResponse?.outputLines?.length) {
-      for (const line of evaluateResponse.outputLines) {
-        this._outputChannel.appendLine(
-          typeof line.content === 'string'
-            ? line.content
-            : util.inspect(line.content)
-        );
-      }
-
-      this._outputChannel.show(true);
-    }
-
-    if (
-      !evaluateResponse ||
-      (!evaluateResponse.outputLines && !evaluateResponse.result)
-    ) {
+    if (!evaluateResponse || !evaluateResponse.result) {
       return false;
     }
 

@@ -332,10 +332,7 @@ suite('Playground Controller Test Suite', function () {
         const result =
           await testPlaygroundController._evaluateWithCancelModal();
 
-        expect(result).to.deep.equal({
-          outputLines: undefined,
-          result: undefined,
-        });
+        expect(result).to.deep.equal({ result: undefined });
       });
 
       test('playground controller loads the active editor on start', () => {
@@ -405,9 +402,9 @@ suite('Playground Controller Test Suite', function () {
         let outputChannelShowStub: SinonStub;
 
         beforeEach(function () {
-          outputChannelAppendLineStub = sinon.stub();
-          outputChannelClearStub = sinon.stub();
-          outputChannelShowStub = sinon.stub();
+          outputChannelAppendLineStub = sandbox.stub();
+          outputChannelClearStub = sandbox.stub();
+          outputChannelShowStub = sandbox.stub();
 
           const mockOutputChannel = {
             appendLine: outputChannelAppendLineStub,
@@ -422,40 +419,20 @@ suite('Playground Controller Test Suite', function () {
           showInformationMessageStub.resolves('Yes');
         });
 
-        test('show the output in the vscode output channel as a string', async () => {
-          const outputLines = [
-            'test',
-            { pineapple: 'yes' },
-            ['porcupine', { anObject: true }],
-          ].map((content) => ({ content }));
+        test('clear output channel when evaluating', async () => {
           sandbox.replace(
             testPlaygroundController,
             '_evaluateWithCancelModal',
             sandbox.stub().resolves({
-              outputLines,
               result: '123',
             })
           );
 
           expect(outputChannelClearStub).to.not.be.called;
-          expect(outputChannelShowStub).to.not.be.called;
-          expect(outputChannelAppendLineStub).to.not.be.called;
 
           await testPlaygroundController.runAllPlaygroundBlocks();
 
           expect(outputChannelClearStub).to.be.calledOnce;
-          expect(outputChannelShowStub).to.be.calledOnce;
-          expect(outputChannelAppendLineStub.calledThrice).to.be.true;
-          expect(outputChannelAppendLineStub.firstCall.args[0]).to.equal(
-            'test'
-          );
-          // Make sure we're not printing anything like [object Object].
-          expect(outputChannelAppendLineStub.secondCall.args[0]).to.equal(
-            "{ pineapple: 'yes' }"
-          );
-          expect(outputChannelAppendLineStub.thirdCall.args[0]).to.equal(
-            "[ 'porcupine', { anObject: true } ]"
-          );
         });
       });
 
@@ -464,10 +441,7 @@ suite('Playground Controller Test Suite', function () {
           sandbox.replace(
             testPlaygroundController,
             '_evaluateWithCancelModal',
-            sandbox.stub().resolves({
-              outputLines: [],
-              result: '123',
-            })
+            sandbox.stub().resolves({ result: '123' })
           );
           sandbox.replace(
             testPlaygroundController,
@@ -478,6 +452,10 @@ suite('Playground Controller Test Suite', function () {
 
         test('show a confirmation message if mdb.confirmRunAll is true', async () => {
           showInformationMessageStub.resolves('Yes');
+
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('confirmRunAll', true);
 
           const result =
             await testPlaygroundController.runAllPlaygroundBlocks();

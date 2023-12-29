@@ -267,9 +267,16 @@ export default class MongoDBService {
           )
         );
 
-        worker?.on(
-          'message',
-          ({ error, data }: { data?: ShellEvaluateResult; error?: any }) => {
+        worker?.on('message', ({ name, payload }) => {
+          if (name === ServerCommands.SHOW_CONSOLE_OUTPUT) {
+            void this._connection.sendNotification(name, payload);
+          }
+
+          if (name === ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND) {
+            const { error, data } = payload as {
+              data?: ShellEvaluateResult;
+              error?: any;
+            };
             if (error) {
               this._connection.console.error(
                 `WORKER error: ${util.inspect(error)}`
@@ -283,7 +290,7 @@ export default class MongoDBService {
               resolve(data);
             });
           }
-        );
+        });
 
         worker.postMessage({
           name: ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,

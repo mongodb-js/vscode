@@ -322,7 +322,6 @@ class LanguageServerControllerStub {
 
   evaluate(/* codeToEvaluate: string */): Promise<ShellEvaluateResult> {
     return Promise.resolve({
-      outputLines: [],
       result: {
         namespace: null,
         type: null,
