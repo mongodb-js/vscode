@@ -1,0 +1,73 @@
+name: Draft release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (*.*.*|major|minor|patch)'
+        required: true
+        default: 'patch'
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: Determine Next Version
+        shell: bash
+        run: |
+          set -e
+          NEXT_VERSION=${{ github.event.inputs.version }}
+
+          if [[ "$NEXT_VERSION" == "major" || "$NEXT_VERSION" == "minor" || "$NEXT_VERSION" == "patch" ]]; then
+            PREV_VERSION_TAG=$(gh api repos/:owner/:repo/releases --jq '. | map(select(.draft == false)) | .[0] | .tag_name')
+            PREV_VERSION=$(npx semver --coerce ${PREV_VERSION_TAG})
+
+            NEXT_VERSION=$(npx semver -i $VERSION_INPUT $PREV_VERSION)
+          fi
+
+          # Remove the 'v' prefix from NEXT_VERSION if it exists
+          NEXT_VERSION="${NEXT_VERSION#v}"
+
+          # Validates the version before using it
+          npx semver v"${NEXT_VERSION}"
+
+          echo "RELEASE_TAG=v${NEXT_VERSION}" >> $GITHUB_ENV
+
+      - name: Update version in package json and package lock
+        run: npm version ${{ env.NEXT_VERSION }} --no-git-tag-version
+
+      - uses: ./.github/workflows/actions/test-and-build-action.yml
+        with:
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY }}
+          ARTIFACTORY_HOST: ${{ secrets.ARTIFACTORY_HOST }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          GARASIGN_PASSWORD: ${{ secrets.GARASIGN_PASSWORD }}
+          GARASIGN_USERNAME: ${{ secrets.GARASIGN_USERNAME }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+      - name: Create Draft Release
+        run: |
+          echo Creating draft release for: "${RELEASE_TAG}"
+          gh release create "${RELEASE_TAG}" \
+            --title "${RELEASE_VERSION}" \
+            --notes "Edit the release notes before publishing." \
+            --target main \
+            --draft \
+            *.vsix \
+            *.vsix.sig
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
