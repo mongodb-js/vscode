@@ -25,6 +25,7 @@ runs:
     - name: Install Deps Ubuntu
       if: ${{ runner.os == 'Linux' }}
       run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
+      shell: bash
 
     # Default Python (3.12) doesn't have support for distutils because of
     # which the dep install fails constantly on macos
