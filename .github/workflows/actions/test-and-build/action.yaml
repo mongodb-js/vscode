@@ -20,110 +20,116 @@ inputs:
 
 runs:
   using: "composite"
-  env:
-    SEGMENT_KEY: ${{ inputs.SEGMENT_KEY }}
-
-  # Steps represent a sequence of tasks that will be executed as part of the job
   steps:
-    - name: Install Deps Ubuntu
-      if: ${{ runner.os == 'Linux' }}
-      run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
-
-    # Default Python (3.12) doesn't have support for distutils because of
-    # which the dep install fails constantly on macos
-    # https://github.com/nodejs/node-gyp/issues/2869
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Run node-gyp bug workaround script
-      run: |
-        curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
-
-    - name: Install npm
-      run: npm install -g npm@8.19.4
-
-    - name: Install Dependencies
-      shell: bash
-      run: |
-        npm ci --omit=optional
-
-    - name: Run Checks
-      run: npm run check
-      # the glob here just fails
-      if: ${{ runner.os != 'Windows' }}
+    - run: echo Hello
       shell: bash
 
-    - name: Run Tests
-      run: |
-        npm run test
-      shell: bash
+# runs:
+#   using: "composite"
+#   env:
+#     SEGMENT_KEY: ${{ inputs.SEGMENT_KEY }}
 
-    - name: Build .vsix
-      env:
-        NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
-      # NOTE: --githubBranch is "The GitHub branch used to infer relative links in README.md."
-      run: |
-        npx vsce package --githubBranch main
-      shell: bash
+# # Steps represent a sequence of tasks that will be executed as part of the job
+# steps:
+#   - name: Install Deps Ubuntu
+#     if: ${{ runner.os == 'Linux' }}
+#     run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
 
-    - name: Check .vsix filesize
-      run: npm run check-vsix-size
-      shell: bash
+#   # Default Python (3.12) doesn't have support for distutils because of
+#   # which the dep install fails constantly on macos
+#   # https://github.com/nodejs/node-gyp/issues/2869
+#   - uses: actions/setup-python@v4
+#     with:
+#       python-version: '3.11'
 
-    - name: Sign .vsix
-      if: runner.os == 'Linux'
-      env:
-        ARTIFACTORY_HOST: ${{ inputs.ARTIFACTORY_HOST }}
-        ARTIFACTORY_PASSWORD: ${{ inputs.ARTIFACTORY_PASSWORD }}
-        ARTIFACTORY_USERNAME: ${{ inputs.ARTIFACTORY_USERNAME }}
-        GARASIGN_PASSWORD: ${{ inputs.GARASIGN_PASSWORD }}
-        GARASIGN_USERNAME: ${{ inputs.GARASIGN_USERNAME }}
-      run: |
-        bash scripts/sign-vsix.sh
-        ls *.vsix.sig
-      shell: bash
+#   - name: Run node-gyp bug workaround script
+#     run: |
+#       curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: VSIX built on ${{ runner.os }}
-        path: |
-          *.vsix
-          *.vsix.sig
+#   - name: Install npm
+#     run: npm install -g npm@8.19.4
 
-    - name: Run Snyk Test
-      if: runner.os == 'Linux'
-      shell: bash
-      env:
-        SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
-      run: |
-        npm run snyk-test > /dev/null 2>&1
+#   - name: Install Dependencies
+#     shell: bash
+#     run: |
+#       npm ci --omit=optional
 
-    - name: Create Jira Tickets
-      if: >
-        runner.os == 'Linux' &&
-        (
-          github.event_name == 'push' && github.ref == 'refs/heads/main' ||
-          github.event_name == 'workflow_dispatch' ||
-          github.event_name == 'schedule'
-        )
-      shell: bash
-      env:
-        JIRA_API_TOKEN: ${{ inputs.JIRA_API_TOKEN }}
-        JIRA_BASE_URL: "https://jira.mongodb.org"
-        JIRA_PROJECT: "VSCODE"
-        JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
-      run: |
-        npm run create-vulnerability-tickets > /dev/null
+#   - name: Run Checks
+#     run: npm run check
+#     # the glob here just fails
+#     if: ${{ runner.os != 'Windows' }}
+#     shell: bash
 
-    - name: Generate Vulnerability Report (Fail on >= High)
-      if: runner.os == 'Linux'
-      continue-on-error: ${{ github.event_name == 'pull_request' }}
-      shell: bash
-      run: |
-        # The standard output is suppressed since Github Actions logs are
-        # available for everyone with read access to the repo, which is everyone that is
-        # logged in for public repos.
-        # This command is only here to fail on failures for `main` and tags.
-        npm run generate-vulnerability-report > /dev/null
+#   - name: Run Tests
+#     run: |
+#       npm run test
+#     shell: bash
+
+#   - name: Build .vsix
+#     env:
+#       NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
+#     # NOTE: --githubBranch is "The GitHub branch used to infer relative links in README.md."
+#     run: |
+#       npx vsce package --githubBranch main
+#     shell: bash
+
+#   - name: Check .vsix filesize
+#     run: npm run check-vsix-size
+#     shell: bash
+
+#   - name: Sign .vsix
+#     if: runner.os == 'Linux'
+#     env:
+#       ARTIFACTORY_HOST: ${{ inputs.ARTIFACTORY_HOST }}
+#       ARTIFACTORY_PASSWORD: ${{ inputs.ARTIFACTORY_PASSWORD }}
+#       ARTIFACTORY_USERNAME: ${{ inputs.ARTIFACTORY_USERNAME }}
+#       GARASIGN_PASSWORD: ${{ inputs.GARASIGN_PASSWORD }}
+#       GARASIGN_USERNAME: ${{ inputs.GARASIGN_USERNAME }}
+#     run: |
+#       bash scripts/sign-vsix.sh
+#       ls *.vsix.sig
+#     shell: bash
+
+#   - name: Upload artifacts
+#     uses: actions/upload-artifact@v2
+#     with:
+#       name: VSIX built on ${{ runner.os }}
+#       path: |
+#         *.vsix
+#         *.vsix.sig
+
+#   - name: Run Snyk Test
+#     if: runner.os == 'Linux'
+#     shell: bash
+#     env:
+#       SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
+#     run: |
+#       npm run snyk-test > /dev/null 2>&1
+
+#   - name: Create Jira Tickets
+#     if: >
+#       runner.os == 'Linux' &&
+#       (
+#         github.event_name == 'push' && github.ref == 'refs/heads/main' ||
+#         github.event_name == 'workflow_dispatch' ||
+#         github.event_name == 'schedule'
+#       )
+#     shell: bash
+#     env:
+#       JIRA_API_TOKEN: ${{ inputs.JIRA_API_TOKEN }}
+#       JIRA_BASE_URL: "https://jira.mongodb.org"
+#       JIRA_PROJECT: "VSCODE"
+#       JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
+#     run: |
+#       npm run create-vulnerability-tickets > /dev/null
+
+#   - name: Generate Vulnerability Report (Fail on >= High)
+#     if: runner.os == 'Linux'
+#     continue-on-error: ${{ github.event_name == 'pull_request' }}
+#     shell: bash
+#     run: |
+#       # The standard output is suppressed since Github Actions logs are
+#       # available for everyone with read access to the repo, which is everyone that is
+#       # logged in for public repos.
+#       # This command is only here to fail on failures for `main` and tags.
+#       npm run generate-vulnerability-report > /dev/null
