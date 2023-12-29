@@ -1,22 +1,22 @@
 name: Run test and build
-description: Test and build action, reused among workflows
-inputs:
-  SEGMENT_KEY:
-    required: true
-  ARTIFACTORY_HOST:
-    required: true
-  ARTIFACTORY_PASSWORD:
-    required: true
-  ARTIFACTORY_USERNAME:
-    required: true
-  GARASIGN_PASSWORD:
-    required: true
-  GARASIGN_USERNAME:
-    required: true
-  SNYK_TOKEN:
-    required: true
-  JIRA_API_TOKEN:
-    required: true
+# description: Test and build action, reused among workflows
+# inputs:
+#   SEGMENT_KEY:
+#     required: true
+#   ARTIFACTORY_HOST:
+#     required: true
+#   ARTIFACTORY_PASSWORD:
+#     required: true
+#   ARTIFACTORY_USERNAME:
+#     required: true
+#   GARASIGN_PASSWORD:
+#     required: true
+#   GARASIGN_USERNAME:
+#     required: true
+#   SNYK_TOKEN:
+#     required: true
+#   JIRA_API_TOKEN:
+#     required: true
 
 runs:
   using: "composite"
