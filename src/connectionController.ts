@@ -3,18 +3,14 @@ import { connect, createConnectionAttempt } from 'mongodb-data-service';
 import type {
   DataService,
   ConnectionAttempt,
-  ConnectionOptions as ConnectionOptionsFromCurrentDS,
+  ConnectionOptions,
 } from 'mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { mongoLogId } from 'mongodb-log-writer';
-import type {
-  ConnectionInfo as ConnectionInfoFromLegacyDS,
-  ConnectionOptions as ConnectionOptionsFromLegacyDS,
-} from 'mongodb-data-service-legacy';
-import { extractSecrets } from 'mongodb-data-service-legacy';
+import { extractSecrets } from '@mongodb-js/connection-storage/main';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
@@ -25,13 +21,6 @@ import type TelemetryService from './telemetry/telemetryService';
 import type { LoadedConnection } from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
-
-export function launderConnectionOptionTypeFromLegacyToCurrent(
-  opts: ConnectionOptionsFromLegacyDS
-): ConnectionOptionsFromCurrentDS {
-  // Ensure that, at most, the types for OIDC mismatch here.
-  return opts as Omit<typeof opts, 'oidc'>;
-}
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -221,15 +210,18 @@ export default class ConnectionController {
   }
 
   async saveNewConnectionAndConnect(
-    originalConnectionInfo: ConnectionInfoFromLegacyDS,
+    connection: {
+      connectionOptions: ConnectionOptions;
+      id: string;
+    },
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
     const savedConnectionWithoutSecrets =
-      await this._connectionStorage.saveNewConnection(originalConnectionInfo);
+      await this._connectionStorage.saveNewConnection(connection);
 
     this._connections[savedConnectionWithoutSecrets.id] = {
       ...savedConnectionWithoutSecrets,
-      connectionOptions: originalConnectionInfo.connectionOptions, // The connection options with secrets.
+      connectionOptions: connection.connectionOptions, // The connection options with secrets.
     };
 
     log.info(
@@ -289,9 +281,7 @@ export default class ConnectionController {
 
     let dataService;
     try {
-      dataService = await connectionAttempt.connect(
-        launderConnectionOptionTypeFromLegacyToCurrent(connectionOptions)
-      );
+      dataService = await connectionAttempt.connect(connectionOptions);
 
       if (!dataService || connectionAttempt.isClosed()) {
         return {

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import path from 'path';
 import crypto from 'crypto';
-import type { ConnectionInfo } from 'mongodb-data-service-legacy';
+import type { ConnectionOptions } from 'mongodb-data-service';
 
 import type ConnectionController from '../connectionController';
 import { ConnectionTypes } from '../connectionController';
@@ -98,13 +98,16 @@ export default class WebviewController {
 
   handleWebviewConnectAttempt = async (
     panel: vscode.WebviewPanel,
-    connectionInfo: ConnectionInfo,
+    connection: {
+      connectionOptions: ConnectionOptions;
+      id: string;
+    },
     connectionAttemptId: string
   ) => {
     try {
       const { successfullyConnected, connectionErrorMessage } =
         await this._connectionController.saveNewConnectionAndConnect(
-          connectionInfo,
+          connection,
           ConnectionTypes.CONNECTION_FORM
         );
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ComponentProps } from 'react';
 import CompassConnectionForm from '@mongodb-js/connection-form';
 import {
   CancelLoader,
@@ -9,7 +10,6 @@ import {
   useDarkMode,
 } from '@mongodb-js/compass-components';
 import { v4 as uuidv4 } from 'uuid';
-import type { ConnectionInfo } from 'mongodb-data-service-legacy';
 
 const modalContentStyles = css({
   // Override LeafyGreen width to accommodate the strict connection-form size.
@@ -55,7 +55,9 @@ const initialConnectionInfo = createNewConnectionInfo();
 const ConnectionForm: React.FunctionComponent<{
   isConnecting: boolean;
   onCancelConnectClicked: () => void;
-  onConnectClicked: (onConnectClicked: ConnectionInfo) => void;
+  onConnectClicked: ComponentProps<
+    typeof CompassConnectionForm
+  >['onConnectClicked'];
   onClose: () => void;
   open: boolean;
   connectionErrorMessage: string;

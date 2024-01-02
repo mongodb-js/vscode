@@ -62,7 +62,12 @@ const OverviewPage: React.FC = () => {
         <ConnectionForm
           isConnecting={isConnecting}
           onCancelConnectClicked={handleCancelConnectClicked}
-          onConnectClicked={handleConnectClicked}
+          onConnectClicked={({ id, connectionOptions }) =>
+            handleConnectClicked({
+              id,
+              connectionOptions,
+            })
+          }
           onClose={closeConnectionForm}
           open={connectionFormOpened}
           connectionErrorMessage={connectionErrorMessage}

@@ -8,7 +8,6 @@ import * as mongodbDataService from 'mongodb-data-service';
 
 import ConnectionController, {
   DataServiceEventTypes,
-  launderConnectionOptionTypeFromLegacyToCurrent,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
@@ -756,9 +755,7 @@ suite('Connection Controller Test Suite', function () {
         await sleep(50);
 
         return mongodbDataService.connect({
-          connectionOptions: launderConnectionOptionTypeFromLegacyToCurrent(
-            connectionOptions.connectionOptions
-          ),
+          connectionOptions: connectionOptions.connectionOptions,
         });
       }
     );

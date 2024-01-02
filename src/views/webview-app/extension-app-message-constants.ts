@@ -1,4 +1,4 @@
-import type { ConnectionInfo } from 'mongodb-data-service-legacy';
+import type { ConnectionOptions } from 'mongodb-data-service';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
@@ -41,7 +41,10 @@ export interface ConnectionStatusMessage extends BasicWebviewMessage {
 
 export interface ConnectMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT;
-  connectionInfo: ConnectionInfo;
+  connectionInfo: {
+    id: string;
+    connectionOptions: ConnectionOptions;
+  };
   connectionAttemptId: string;
 }
 
