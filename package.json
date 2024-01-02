@@ -1017,7 +1017,7 @@
     "@babel/preset-typescript": "^7.22.5",
     "@mongodb-js/oidc-plugin": "^0.3.0",
     "@mongodb-js/prettier-config-compass": "^1.0.0",
-    "@mongodb-js/sbom-tools": "^0.5.4",
+    "@mongodb-js/sbom-tools": "^0.5.11",
     "@mongosh/service-provider-core": "^2.0.2",
     "@testing-library/react": "^12.1.5",
     "@types/babel__core": "^7.20.1",
