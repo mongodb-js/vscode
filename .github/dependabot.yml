@@ -23,11 +23,6 @@ updates:
           - mongodb-data-service
           - bson-transpilers
           - "@mongodb-js/connection-form"
-      devtools-shared:
-        patterns:
-          - "@mongodb-js/mongodb-constants"
-          - mongodb-runner
-          - "@mongodb-js/sbom-tools"
       mongosh:
         patterns:
           - "@mongosh/*"
