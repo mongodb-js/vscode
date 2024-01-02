@@ -52,6 +52,7 @@ module.exports = (env, argv) => {
       keytar: 'keytar',
 
       // Electron:
+      electron: 'electron',
       '@electron/remote': '@electron/remote',
 
       // MongoDB node driver externals:
