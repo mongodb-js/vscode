@@ -1,0 +1,33 @@
+---
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+    allow:
+      - dependency-name: mongodb
+      - dependency-name: bson
+      - dependency-name: "@mongosh/*"
+      - dependency-name: "@mongodb-js/*"
+      - dependency-name: mongodb-*
+      - dependency-name: bson-*
+    groups:
+      driver:
+        patterns:
+          - mongodb
+          - bson
+      compass:
+        patterns:
+          - "@mongodb-js/compass-*"
+          - mongodb-data-service
+          - bson-transpilers
+          - "@mongodb-js/connection-form"
+      mongosh:
+        patterns:
+          - "@mongosh/*"
+    commit-message:
+      prefix: chore
+      include: scope
+    labels:
+      - dependencies
