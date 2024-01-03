@@ -62,7 +62,8 @@
     "reformat": "prettier --write .",
     "snyk-test": "node scripts/snyk-test.js",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
-    "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues"
+    "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
+    "wdio": "wdio run ./wdio.conf.ts"
   },
   "engines": {
     "vscode": "^1.79.1",
@@ -1026,6 +1027,7 @@
     "@mongodb-js/sbom-tools": "^0.5.4",
     "@mongosh/service-provider-core": "^2.0.2",
     "@testing-library/react": "^12.1.5",
+    "@testing-library/webdriverio": "^3.2.1",
     "@types/babel__core": "^7.20.1",
     "@types/babel__traverse": "^7.20.1",
     "@types/chai": "^4.3.5",
@@ -1046,6 +1048,10 @@
     "@typescript-eslint/parser": "^5.61.0",
     "@vscode/test-electron": "^2.3.8",
     "@vscode/vsce": "^2.19.0",
+    "@wdio/cli": "^8.27.1",
+    "@wdio/local-runner": "^8.27.0",
+    "@wdio/mocha-framework": "^8.27.0",
+    "@wdio/spec-reporter": "^8.27.0",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
     "autoprefixer": "^10.4.16",
     "buffer": "^6.0.3",
@@ -1090,6 +1096,8 @@
     "ts-loader": "^9.4.4",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5",
+    "wdio-vscode-service": "^5.2.2",
+    "wdio-wait-for": "^3.0.10",
     "webpack": "^5.88.1",
     "webpack-bundle-analyzer": "^4.9.0",
     "webpack-cli": "^5.1.4",
