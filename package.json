@@ -1051,20 +1051,16 @@
     "buffer": "^6.0.3",
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
-    "chalk": "^4.1.2",
-    "cli-ux": "^5.6.7",
     "cross-env": "^7.0.3",
     "crypto-browserify": "^3.12.0",
     "css-loader": "^6.8.1",
     "depcheck": "^1.4.3",
-    "download": "^8.0.0",
     "duplicate-package-checker-webpack-plugin": "^3.0.0",
     "electron": "^23.3.9",
     "enzyme": "^3.11.0",
     "eslint": "^8.44.0",
     "eslint-config-mongodb-js": "^5.0.3",
     "eslint-plugin-mocha": "^10.1.0",
-    "execa": "^1.0.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "glob": "^7.2.3",
     "jest": "^26.6.3",
@@ -1086,7 +1082,6 @@
     "pre-commit": "^1.2.2",
     "prettier": "^2.8.8",
     "process": "^0.11.10",
-    "semver": "^7.5.3",
     "sinon": "^9.2.4",
     "sinon-chai": "^3.7.0",
     "stream-browserify": "^3.0.0",
@@ -1099,8 +1094,7 @@
     "webpack-bundle-analyzer": "^4.9.0",
     "webpack-cli": "^5.1.4",
     "webpack-merge": "^5.9.0",
-    "xvfb-maybe": "^0.2.1",
-    "yargs-parser": "^20.2.9"
+    "xvfb-maybe": "^0.2.1"
   },
   "overrides": {
     "mongodb-connection-model": {
