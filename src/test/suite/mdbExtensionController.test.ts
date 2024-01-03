@@ -14,6 +14,7 @@ import {
   DatabaseTreeItem,
   DocumentTreeItem,
   SchemaTreeItem,
+  StreamProcessorTreeItem,
 } from '../../explorer';
 import EXTENSION_COMMANDS from '../../commands';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
@@ -71,6 +72,18 @@ function getTestDatabaseTreeItem(
     isExpanded: false,
     cacheIsUpToDate: false,
     childrenCache: {},
+    ...options,
+  });
+}
+
+function getTestStreamProcessorTreeItem(
+  options?: Partial<ConstructorParameters<typeof StreamProcessorTreeItem>[0]>
+) {
+  return new StreamProcessorTreeItem({
+    streamProcessorName: 'zebra',
+    streamProcessorState: 'CREATED',
+    dataService: {} as DataService,
+    isExpanded: false,
     ...options,
   });
 }
@@ -1393,6 +1406,193 @@ suite('MDBExtensionController Test Suite', function () {
       });
       assert.strictEqual(namespaceUsed, 'waffle.house');
       assert.strictEqual(result, true);
+    });
+
+    test('mdb.addStreamProcessor should create a MongoDB playground with create stream processor template', async () => {
+      const testConnectionTreeItem = getTestConnectionTreeItem();
+      await vscode.commands.executeCommand(
+        'mdb.addStreamProcessor',
+        testConnectionTreeItem
+      );
+
+      const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
+      assert(content.includes('// create a new stream processor'));
+      assert(content.includes("sp.createStreamProcessor('newStreamProcessor'"));
+    });
+
+    test('mdb.startStreamProcessor starts the stream processor', async () => {
+      let calledProcessorName = '';
+      const testProcessorTreeItem = getTestStreamProcessorTreeItem({
+        dataService: {
+          startStreamProcessor: (spName: string) => {
+            calledProcessorName = spName;
+            return Promise.resolve(true);
+          },
+        } as unknown as DataService,
+      });
+
+      const started = await vscode.commands.executeCommand(
+        'mdb.startStreamProcessor',
+        testProcessorTreeItem
+      );
+
+      assert.strictEqual(started, true);
+      assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'STARTED');
+      assert.strictEqual(
+        calledProcessorName,
+        testProcessorTreeItem.streamProcessorName
+      );
+      assert.strictEqual(
+        showInformationMessageStub.firstCall.args[0],
+        'Stream processor successfully started.'
+      );
+    });
+
+    test('mdb.startStreamProcessor shows error when fails', async () => {
+      let calledProcessorName = '';
+      const testProcessorTreeItem = getTestStreamProcessorTreeItem({
+        dataService: {
+          startStreamProcessor: (spName: string) => {
+            calledProcessorName = spName;
+            return Promise.reject(new Error('Fake test error'));
+          },
+        } as unknown as DataService,
+      });
+
+      const started = await vscode.commands.executeCommand(
+        'mdb.startStreamProcessor',
+        testProcessorTreeItem
+      );
+
+      assert.strictEqual(started, false);
+      assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'CREATED');
+      assert.strictEqual(
+        calledProcessorName,
+        testProcessorTreeItem.streamProcessorName
+      );
+      assert.strictEqual(
+        showErrorMessageStub.firstCall.args[0],
+        'Start stream processor failed: Fake test error'
+      );
+    });
+
+    test('mdb.stopStreamProcessor stops the stream processor', async () => {
+      let calledProcessorName = '';
+      const testProcessorTreeItem = getTestStreamProcessorTreeItem({
+        dataService: {
+          stopStreamProcessor: (spName: string) => {
+            calledProcessorName = spName;
+            return Promise.resolve(true);
+          },
+        } as unknown as DataService,
+      });
+
+      const stopped = await vscode.commands.executeCommand(
+        'mdb.stopStreamProcessor',
+        testProcessorTreeItem
+      );
+
+      assert.strictEqual(stopped, true);
+      assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'STOPPED');
+      assert.strictEqual(
+        calledProcessorName,
+        testProcessorTreeItem.streamProcessorName
+      );
+      assert.strictEqual(
+        showInformationMessageStub.firstCall.args[0],
+        'Stream processor successfully stopped.'
+      );
+    });
+
+    test('mdb.stopStreamProcessor shows error when fails', async () => {
+      let calledProcessorName = '';
+      const testProcessorTreeItem = getTestStreamProcessorTreeItem({
+        dataService: {
+          stopStreamProcessor: (spName: string) => {
+            calledProcessorName = spName;
+            return Promise.reject(new Error('Fake test error'));
+          },
+        } as unknown as DataService,
+      });
+
+      const stopped = await vscode.commands.executeCommand(
+        'mdb.stopStreamProcessor',
+        testProcessorTreeItem
+      );
+
+      assert.strictEqual(stopped, false);
+      assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'CREATED');
+      assert.strictEqual(
+        calledProcessorName,
+        testProcessorTreeItem.streamProcessorName
+      );
+      assert.strictEqual(
+        showErrorMessageStub.firstCall.args[0],
+        'Stop stream processor failed: Fake test error'
+      );
+    });
+
+    test('mdb.dropStreamProcessor drops the stream processor after inputting the name', async () => {
+      let calledProcessorName = '';
+      const testProcessorTreeItem = getTestStreamProcessorTreeItem({
+        streamProcessorName: 'iMissTangerineAltoids',
+        dataService: {
+          dropStreamProcessor: (spName): Promise<boolean> => {
+            calledProcessorName = spName;
+            return Promise.resolve(true);
+          },
+        } as unknown as DataService,
+      });
+
+      const inputBoxResolvesStub = sandbox.stub();
+      inputBoxResolvesStub.onCall(0).resolves('iMissTangerineAltoids');
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+
+      const dropped = await vscode.commands.executeCommand(
+        'mdb.dropStreamProcessor',
+        testProcessorTreeItem
+      );
+      assert.strictEqual(dropped, true);
+      assert.strictEqual(calledProcessorName, 'iMissTangerineAltoids');
+      assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'DROPPED');
+      assert.strictEqual(
+        showInformationMessageStub.firstCall.args[0],
+        'Stream processor successfully dropped.'
+      );
+    });
+
+    test('mdb.dropStreamProcessor shows error when fails', async () => {
+      let calledProcessorName = '';
+      const testProcessorTreeItem = getTestStreamProcessorTreeItem({
+        dataService: {
+          dropStreamProcessor: (spName: string) => {
+            calledProcessorName = spName;
+            return Promise.reject(new Error('Fake test error'));
+          },
+        } as unknown as DataService,
+      });
+
+      const inputBoxResolvesStub = sandbox.stub();
+      inputBoxResolvesStub
+        .onCall(0)
+        .resolves(testProcessorTreeItem.streamProcessorName);
+      sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+
+      const started = await vscode.commands.executeCommand(
+        'mdb.dropStreamProcessor',
+        testProcessorTreeItem
+      );
+
+      assert.strictEqual(started, false);
+      assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'CREATED');
+      assert.strictEqual(
+        calledProcessorName,
+        testProcessorTreeItem.streamProcessorName
+      );
+      assert.strictEqual(
+        showErrorMessageStub.firstCall.args[0],
+        'Drop stream processor failed: Fake test error'
+      );
     });
 
     suite('with mock execute command', function () {
