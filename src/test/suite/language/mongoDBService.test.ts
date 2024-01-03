@@ -2960,40 +2960,47 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('sends print() and console.log() output continuously', async () => {
-      const source = new CancellationTokenSource();
+    suite('continous console logging', function () {
+      let consoleOutputs: unknown[];
 
-      const consoleOutputs: unknown[] = [];
+      beforeEach(function () {
+        consoleOutputs = [];
 
-      Sinon.stub(connection, 'sendNotification')
-        .withArgs(ServerCommands.SHOW_CONSOLE_OUTPUT)
-        .callsFake((_, params) =>
-          Promise.resolve(void consoleOutputs.push(...params))
+        Sinon.stub(connection, 'sendNotification')
+          .withArgs(ServerCommands.SHOW_CONSOLE_OUTPUT)
+          .callsFake((_, params) =>
+            Promise.resolve(void consoleOutputs.push(...params))
+          );
+      });
+
+      afterEach(function () {
+        Sinon.restore();
+      });
+
+      test('sends print() and console.log() output continuously', async () => {
+        const source = new CancellationTokenSource();
+
+        const result = await testMongoDBService.evaluate(
+          {
+            connectionId: 'pineapple',
+            codeToEvaluate: 'print("Hello"); console.log(1,2,3); 42',
+          },
+          source.token
         );
 
-      const result = await testMongoDBService.evaluate(
-        {
-          connectionId: 'pineapple',
-          codeToEvaluate: 'print("Hello"); console.log(1,2,3); 42',
-        },
-        source.token
-      );
+        const expectedConsoleOutputs = ['Hello', 1, 2, 3];
+        expect(consoleOutputs).to.deep.equal(expectedConsoleOutputs);
 
-      Sinon.restore();
-
-      const expectedConsoleOutputs = ['Hello', 1, 2, 3];
-      expect(consoleOutputs).to.deep.equal(expectedConsoleOutputs);
-
-      const expectedResult = {
-        result: {
-          namespace: null,
-          type: 'number',
-          content: 42,
-          language: 'plaintext',
-        },
-      };
-
-      expect(result).to.deep.equal(expectedResult);
+        const expectedResult = {
+          result: {
+            namespace: null,
+            type: 'number',
+            content: 42,
+            language: 'plaintext',
+          },
+        };
+        expect(result).to.deep.equal(expectedResult);
+      });
     });
   });
 

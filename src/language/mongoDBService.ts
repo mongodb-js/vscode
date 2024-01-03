@@ -272,7 +272,7 @@ export default class MongoDBService {
             void this._connection.sendNotification(name, payload);
           }
 
-          if (name === ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND) {
+          if (name === ServerCommands.CODE_EXECUTION_RESULT) {
             const { error, data } = payload as {
               data?: ShellEvaluateResult;
               error?: any;

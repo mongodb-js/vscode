@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import path from 'path';
-import type { OutputChannel, TextEditor } from 'vscode';
+import type { TextEditor } from 'vscode';
 import { ProgressLocation } from 'vscode';
 import vm from 'vm';
 import os from 'os';
@@ -110,7 +110,6 @@ export default class PlaygroundController {
 
   _isPartialRun = false;
 
-  _outputChannel: OutputChannel;
   private _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   private _playgroundResultViewColumn?: vscode.ViewColumn;
   private _playgroundResultTextDocument?: vscode.TextDocument;
@@ -144,8 +143,6 @@ export default class PlaygroundController {
     this._telemetryService = telemetryService;
     this._statusView = statusView;
     this._playgroundResultViewProvider = playgroundResultViewProvider;
-    this._outputChannel =
-      vscode.window.createOutputChannel('Playground output');
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._playgroundSelectedCodeActionProvider =
@@ -157,8 +154,6 @@ export default class PlaygroundController {
         void this._activeConnectionChanged();
       }
     );
-
-    languageServerController._consoleOutputChannel = this._outputChannel;
 
     const onDidChangeActiveTextEditor = (
       editor: vscode.TextEditor | undefined
@@ -564,8 +559,6 @@ export default class PlaygroundController {
         return false;
       }
     }
-
-    this._outputChannel.clear();
 
     const evaluateResponse: ShellEvaluateResult =
       await this._evaluateWithCancelModal();

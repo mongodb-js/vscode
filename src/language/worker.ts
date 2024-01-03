@@ -88,7 +88,7 @@ const execute = async (
 const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
   if (name === ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND) {
     parentPort?.postMessage({
-      name: ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
+      name: ServerCommands.CODE_EXECUTION_RESULT,
       payload: await execute(
         data.codeToEvaluate,
         data.connectionString,

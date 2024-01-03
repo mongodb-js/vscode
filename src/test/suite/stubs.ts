@@ -248,6 +248,8 @@ class LanguageServerControllerStub {
   _isExecutingInProgress: boolean;
   _client: LanguageClient;
   _currentConnectionId: string | null = null;
+  _consoleOutputChannel =
+    vscode.window.createOutputChannel('Playground output');
 
   constructor(
     context: ExtensionContextStub,

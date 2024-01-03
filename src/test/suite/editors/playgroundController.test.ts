@@ -396,46 +396,6 @@ suite('Playground Controller Test Suite', function () {
         );
       });
 
-      suite('output channels', () => {
-        let outputChannelAppendLineStub: SinonStub;
-        let outputChannelClearStub: SinonStub;
-        let outputChannelShowStub: SinonStub;
-
-        beforeEach(function () {
-          outputChannelAppendLineStub = sandbox.stub();
-          outputChannelClearStub = sandbox.stub();
-          outputChannelShowStub = sandbox.stub();
-
-          const mockOutputChannel = {
-            appendLine: outputChannelAppendLineStub,
-            clear: outputChannelClearStub,
-            show: outputChannelShowStub,
-          } as Partial<vscode.OutputChannel> as unknown as vscode.OutputChannel;
-          sandbox.replace(
-            testPlaygroundController,
-            '_outputChannel',
-            mockOutputChannel
-          );
-          showInformationMessageStub.resolves('Yes');
-        });
-
-        test('clear output channel when evaluating', async () => {
-          sandbox.replace(
-            testPlaygroundController,
-            '_evaluateWithCancelModal',
-            sandbox.stub().resolves({
-              result: '123',
-            })
-          );
-
-          expect(outputChannelClearStub).to.not.be.called;
-
-          await testPlaygroundController.runAllPlaygroundBlocks();
-
-          expect(outputChannelClearStub).to.be.calledOnce;
-        });
-      });
-
       suite('confirmation modal', () => {
         beforeEach(function () {
           sandbox.replace(
