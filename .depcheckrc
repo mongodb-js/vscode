@@ -23,7 +23,6 @@ ignores:
  - style-loader
  - ts-loader
  - mongodb-runner
- - "@testing-library/webdriverio"
  - "@wdio/local-runner"
  - "@wdio/mocha-framework"
  - "@wdio/spec-reporter"
