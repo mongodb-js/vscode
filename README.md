@@ -80,6 +80,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 | `mdb.defaultLimit` | The number of documents to fetch when viewing documents from a collection. | `10` |
 | `mdb.confirmRunAll` | Show a confirmation message before running commands in a playground. | `true` |
 | `mdb.confirmDeleteDocument` | Show a confirmation message before deleting a document in the tree view. | `true` |
+| `mdb.persistOIDCTokens` | Remain logged in when using the MONGODB-OIDC authentication mechanism for MongoDB server connection. Access tokens are encrypted using the system keychain before being stored. | `true` |
 | `mdb.excludeFromPlaygroundsSearch` | Exclude files and folders while searching for playground files in the current workspace. | Refer to [`package.json`](https://github.com/mongodb-js/vscode/blob/7b10092db4c8c10c4aa9c45b443c8ed3d5f37d5c/package.json) |
 | `mdb.connectionSaving.`  `hideOptionToChooseWhereToSaveNewConnections` | When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used. | `true` |
 | `mdb.connectionSaving.`  `defaultConnectionSavingLocation` | When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved. | `Global` |

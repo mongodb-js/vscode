@@ -113,7 +113,7 @@ export class ConnectionStorage {
         storeConnectionInfo.storageLocation
       )
     ) {
-      await this.saveConnectionToStore(storeConnectionInfo);
+      await this._saveConnectionToStore(storeConnectionInfo);
     }
 
     return storeConnectionInfo;
@@ -161,7 +161,7 @@ export class ConnectionStorage {
     return savedConnectionInfo;
   }
 
-  async saveConnectionToStore(
+  async _saveConnectionToStore(
     storeConnectionInfo: StoreConnectionInfo
   ): Promise<void> {
     const variableName =
@@ -229,13 +229,32 @@ export class ConnectionStorage {
       ),
     });
 
-    return (
+    const loadedConnections = (
       await Promise.all(
         globalAndWorkspaceConnections.map(async (connectionInfo) => {
           return await this._getConnectionInfoWithSecrets(connectionInfo);
         })
       )
-    ).filter((connection) => !!connection) as LoadedConnection[];
+    ).filter((connection): connection is LoadedConnection => !!connection);
+
+    const toBeReSaved: LoadedConnection[] = [];
+    // Scrub OIDC tokens from connections when the option to store them has been disabled.
+    if (!vscode.workspace.getConfiguration('mdb').get('persistOIDCTokens')) {
+      for (const connection of loadedConnections) {
+        if (connection.connectionOptions.oidc?.serializedState) {
+          delete connection.connectionOptions.oidc?.serializedState;
+          toBeReSaved.push(connection);
+        }
+      }
+    }
+
+    await Promise.all(
+      toBeReSaved.map(async (connectionInfo) => {
+        await this.saveConnectionWithSecrets(connectionInfo);
+      })
+    );
+
+    return loadedConnections;
   }
 
   async removeConnection(connectionId: string) {
