@@ -12,6 +12,7 @@ import {
 } from 'vscode-languageclient/node';
 import type { ExtensionContext } from 'vscode';
 import { workspace } from 'vscode';
+import util from 'util';
 
 import { createLogger } from '../logging';
 import type {
@@ -37,6 +38,9 @@ export default class LanguageServerController {
   _currentConnectionId: string | null = null;
   _currentConnectionString?: string;
   _currentConnectionOptions?: MongoClientOptions;
+
+  _consoleOutputChannel =
+    vscode.window.createOutputChannel('Playground output');
 
   constructor(context: ExtensionContext) {
     this._context = context;
@@ -151,6 +155,19 @@ export default class LanguageServerController {
         void vscode.window.showErrorMessage(messsage);
       }
     );
+
+    this._client.onNotification(
+      ServerCommands.SHOW_CONSOLE_OUTPUT,
+      (outputs) => {
+        for (const line of outputs) {
+          this._consoleOutputChannel.appendLine(
+            typeof line === 'string' ? line : util.inspect(line)
+          );
+        }
+
+        this._consoleOutputChannel.show(true);
+      }
+    );
   }
 
   deactivate(): Thenable<void> | undefined {
@@ -172,6 +189,8 @@ export default class LanguageServerController {
       inputLength: playgroundExecuteParameters.codeToEvaluate.length,
     });
     this._isExecutingInProgress = true;
+
+    this._consoleOutputChannel.clear();
 
     // Instantiate a new CancellationTokenSource object
     // that generates a cancellation token for each run of a playground.
