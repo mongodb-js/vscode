@@ -22,4 +22,3 @@ ignores:
  - style-loader
  - ts-loader
  - mongodb-runner
- - "@mongodb-js/compass-utils"
