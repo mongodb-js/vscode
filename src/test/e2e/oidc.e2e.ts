@@ -25,6 +25,16 @@ const defaults: MongoClusterOptions = {
   version: process.env.MONGODB_VERSION,
 };
 
+const DEFAULT_TOKEN_PAYLOAD = {
+  expires_in: 3600,
+  payload: {
+    // Define the user information stored inside the access tokens
+    groups: ['testgroup'],
+    sub: 'testuser',
+    aud: 'resource-server-audience-value',
+  },
+};
+
 export async function startTestServer(
   config: Partial<MongoClusterOptions> & { alwaysStartNewServer?: boolean } = {}
 ): Promise<MongoCluster> {
@@ -41,7 +51,8 @@ export async function startTestServer(
 }
 
 suite('OIDC tests', () => {
-  let getTokenPayload: typeof oidcMockProviderConfig.getTokenPayload;
+  const getTokenPayload: typeof oidcMockProviderConfig.getTokenPayload = () =>
+    DEFAULT_TOKEN_PAYLOAD;
   let overrideRequestHandler: typeof oidcMockProviderConfig.overrideRequestHandler;
   let oidcMockProviderConfig: OIDCMockProviderConfig;
   let oidcMockProvider: OIDCMockProvider;
@@ -71,7 +82,6 @@ suite('OIDC tests', () => {
       },
     };
     oidcMockProvider = await OIDCMockProvider.create(oidcMockProviderConfig);
-    // console.log('OIDC server listening', oidcMockProvider.issuer);
 
     tmpdir = path.join(
       os.tmpdir(),
@@ -105,7 +115,6 @@ suite('OIDC tests', () => {
     cs.searchParams.set('authMechanism', 'MONGODB-OIDC');
 
     connectionString = cs.toString();
-    // console.log('Server started', connectionString);
   });
 
   after(async function () {
@@ -115,9 +124,6 @@ suite('OIDC tests', () => {
   });
 
   test('should connect successfully with a connection string', async function () {
-    // connectionString = 'mongodb://localhost:27096/?authMechanism=MONGODB-OIDC';
-
-    // await new Promise((resolve) => setTimeout(resolve, 60000));
     const workbench = await browser.getWorkbench();
 
     // Connect with OIDC connection string
@@ -128,7 +134,6 @@ suite('OIDC tests', () => {
     await connectionStringInput.setText(connectionString);
     await connectionStringInput.confirm();
     await browser.waitUntil(invisibilityOf(connectionStringInput.elem));
-    await new Promise((resolve) => setTimeout(resolve, 50000));
 
     // Check if we have connection successful notification
     await browser.waitUntil(
