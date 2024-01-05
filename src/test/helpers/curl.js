@@ -8,7 +8,7 @@ const fetch = require('node-fetch');
 const filePath = path.join(__dirname, 'request-test.txt');
 // fetch() a URL and ignore the response body
 (async function () {
-  await fs.writeFile(filePath, process.argv[2]);
+  // await fs.writeFile(filePath, process.argv[2]);
   console.log('Request received', process.argv[2]);
   (await fetch(process.argv[2])).body?.resume();
 })().catch(async (err) => {
