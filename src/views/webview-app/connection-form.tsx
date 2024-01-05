@@ -104,10 +104,10 @@ const ConnectionForm: React.FunctionComponent<{
             forceConnectionOptions: [],
             showKerberosPasswordField: false,
             showOIDCDeviceAuthFlow: false,
-            enableOidc: false,
+            enableOidc: true,
             enableDebugUseCsfleSchemaMap: false,
             protectConnectionStringsForNewConnections: false,
-            showOIDCAuth: false,
+            showOIDCAuth: true,
             showKerberosAuth: false,
             showCSFLE: false,
           }}

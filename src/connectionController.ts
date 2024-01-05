@@ -9,8 +9,10 @@ import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
+import { cloneDeep, merge } from 'lodash';
 import { mongoLogId } from 'mongodb-log-writer';
 import { extractSecrets } from '@mongodb-js/connection-info';
+import { adjustConnectionOptionsBeforeConnect } from '@mongodb-js/connection-form';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
@@ -18,6 +20,7 @@ import formatError from './utils/formatError';
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
 import type TelemetryService from './telemetry/telemetryService';
+import { openLink } from './utils/linkHelper';
 import type { LoadedConnection } from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
@@ -55,6 +58,14 @@ interface ConnectionQuickPicks {
   data: { type: NewConnectionType; connectionId?: string };
 }
 
+type RecursivePartial<T> = {
+  [P in keyof T]?: T[P] extends (infer U)[]
+    ? RecursivePartial<U>[]
+    : T[P] extends object | undefined
+    ? RecursivePartial<T[P]>
+    : T[P];
+};
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
@@ -62,6 +73,14 @@ export default class ConnectionController {
   _connections: {
     [connectionId: string]: LoadedConnection;
   } = Object.create(null);
+  // Additional connection information that is merged with the connections
+  // when connecting. This is useful for instances like OIDC sessions where we
+  // have a setting on the system for storing credentials.
+  // When the setting is on this `connectionMergeInfos` would have the session
+  // credential information and merge it before connecting.
+  connectionMergeInfos: Record<string, RecursivePartial<LoadedConnection>> =
+    Object.create(null);
+
   _activeDataService: DataService | null = null;
   _connectionStorage: ConnectionStorage;
   _telemetryService: TelemetryService;
@@ -266,6 +285,15 @@ export default class ConnectionController {
       };
     }
 
+    const connectionInfo: LoadedConnection = merge(
+      cloneDeep(this._connections[connectionId]),
+      this.connectionMergeInfos[connectionId] ?? {}
+    );
+
+    if (!connectionInfo.connectionOptions) {
+      throw new Error('Connect failed: connectionOptions are missing.');
+    }
+
     this._statusView.showMessage('Connecting to MongoDB...');
     log.info('Connecting to MongoDB...', {
       connectionInfo: JSON.stringify(
@@ -273,15 +301,35 @@ export default class ConnectionController {
       ),
     });
 
-    const connectionOptions = this._connections[connectionId].connectionOptions;
-
-    if (!connectionOptions) {
-      throw new Error('Connect failed: connectionOptions are missing.');
-    }
-
     let dataService;
     try {
-      dataService = await connectionAttempt.connect(connectionOptions);
+      const connectionOptions = adjustConnectionOptionsBeforeConnect({
+        connectionOptions: connectionInfo.connectionOptions,
+        defaultAppName: packageJSON.name,
+        notifyDeviceFlow: undefined,
+        preferences: {
+          forceConnectionOptions: [],
+          browserCommandForOIDCAuth: undefined, // We overwrite this below.
+        },
+      });
+      dataService = await connectionAttempt.connect({
+        ...connectionOptions,
+        oidc: {
+          ...cloneDeep(connectionOptions.oidc),
+          openBrowser: async ({ signal, url }) => {
+            try {
+              await openLink(url);
+            } catch (err) {
+              if (signal.aborted) return;
+              // If opening the link fails we default to regular link opening.
+              await vscode.commands.executeCommand(
+                'vscode.open',
+                vscode.Uri.parse(url)
+              );
+            }
+          },
+        },
+      });
 
       if (!dataService || connectionAttempt.isClosed()) {
         return {
@@ -307,6 +355,9 @@ export default class ConnectionController {
     log.info('Successfully connected', { connectionId });
     void vscode.window.showInformationMessage('MongoDB connection successful.');
 
+    dataService.addReauthenticationHandler(
+      this._reauthenticationHandler.bind(this)
+    );
     this._activeDataService = dataService;
     this._currentConnectionId = connectionId;
     this._connectionAttempt = null;
@@ -323,10 +374,93 @@ export default class ConnectionController {
       true
     );
 
+    void this.onConnectSuccess({
+      connectionInfo,
+      dataService,
+    });
+
     return {
       successfullyConnected: true,
       connectionErrorMessage: '',
     };
+  }
+
+  // Used to re-authenticate with OIDC.
+  async _reauthenticationHandler() {
+    const removeConfirmationResponse =
+      await vscode.window.showInformationMessage(
+        'You need to re-authenticate to the database in order to continue.',
+        { modal: true },
+        'Confirm'
+      );
+
+    if (removeConfirmationResponse !== 'Confirm') {
+      throw new Error('Reauthentication declined by user');
+    }
+  }
+
+  private async onConnectSuccess({
+    connectionInfo,
+    dataService,
+  }: {
+    connectionInfo: LoadedConnection;
+    dataService: DataService;
+  }) {
+    if (connectionInfo.storageLocation === 'NONE') {
+      return;
+    }
+
+    let mergeConnectionInfo: LoadedConnection | {} = {};
+    if (vscode.workspace.getConfiguration('mdb').get('persistOIDCTokens')) {
+      mergeConnectionInfo = {
+        connectionOptions: await dataService.getUpdatedSecrets(),
+      };
+      this.connectionMergeInfos[connectionInfo.id] = merge(
+        cloneDeep(this.connectionMergeInfos[connectionInfo.id]),
+        mergeConnectionInfo
+      );
+    }
+
+    await this._connectionStorage.saveConnection({
+      ...merge(
+        this._connections[connectionInfo.id] ?? connectionInfo,
+        mergeConnectionInfo
+      ),
+    });
+
+    // ?. because mocks in tests don't provide it
+    dataService.on?.('connectionInfoSecretsChanged', () => {
+      void (async () => {
+        try {
+          if (
+            !vscode.workspace.getConfiguration('mdb').get('persistOIDCTokens')
+          ) {
+            return;
+          }
+          // Get updated secrets first (and not in parallel) so that the
+          // race condition window between load() and save() is as short as possible.
+          const mergeConnectionInfo = {
+            connectionOptions: await dataService.getUpdatedSecrets(),
+          };
+          if (!mergeConnectionInfo) return;
+          this.connectionMergeInfos[connectionInfo.id] = merge(
+            cloneDeep(this.connectionMergeInfos[connectionInfo.id]),
+            mergeConnectionInfo
+          );
+
+          if (!this._connections[connectionInfo.id]) return;
+          await this._connectionStorage.saveConnection({
+            ...merge(this._connections[connectionInfo.id], mergeConnectionInfo),
+          });
+        } catch (err: any) {
+          log.warn(
+            'Connection Controller',
+            'Failed to update connection store with updated secrets',
+            { err: err?.stack }
+          );
+        }
+      })();
+    });
   }
 
   cancelConnectionAttempt() {

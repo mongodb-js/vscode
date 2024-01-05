@@ -786,7 +786,7 @@ suite('Connection Controller Test Suite', function () {
           'mongodb://localhost:27017/?readPreference=primary&ssl=false',
       },
     };
-    await testConnectionController._connectionStorage.saveConnectionToStore(
+    await testConnectionController._connectionStorage._saveConnectionToStore(
       connectionInfo
     );
     await testConnectionController.loadSavedConnections();
@@ -870,6 +870,7 @@ suite('Connection Controller Test Suite', function () {
     assert(mongoClientConnectionOptions !== undefined);
 
     delete mongoClientConnectionOptions.options.parentHandle;
+    delete mongoClientConnectionOptions.options.oidc?.openBrowser;
 
     assert.deepStrictEqual(mongoClientConnectionOptions, {
       url: 'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0',

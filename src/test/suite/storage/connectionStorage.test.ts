@@ -284,7 +284,7 @@ suite('Connection Storage Test Suite', function () {
           'mongodb://localhost:27017/?readPreference=primary&ssl=false',
       },
     };
-    await testConnectionStorage.saveConnectionToStore(connectionInfo);
+    await testConnectionStorage._saveConnectionToStore(connectionInfo);
     const connections = await testConnectionStorage.loadConnections();
 
     expect(connections.length).to.equal(1);

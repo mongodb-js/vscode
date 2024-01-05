@@ -96,7 +96,9 @@ suite('Commands Test Suite', () => {
 
       getMongoClientConnectionOptionsStub.returns({
         url: 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
-        options: {},
+        options: {
+          parentHandle: 'pineapple',
+        },
       });
 
       isCurrentlyConnectedStub.returns(true);
@@ -109,6 +111,10 @@ suite('Commands Test Suite', () => {
       assert(
         terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
         `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+      );
+      assert.strictEqual(
+        terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE,
+        'pineapple'
       );
 
       const shellCommandText = sendTextStub.firstCall.args[0];
@@ -143,6 +149,10 @@ suite('Commands Test Suite', () => {
       assert(
         terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
         `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+      );
+      assert.strictEqual(
+        terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE,
+        undefined
       );
     });
   });
