@@ -54,6 +54,7 @@ suite('OIDC tests', () => {
 
   before(async function () {
     if (process.platform !== 'linux') {
+      // return;
       this.skip();
     }
 
@@ -70,6 +71,7 @@ suite('OIDC tests', () => {
       },
     };
     oidcMockProvider = await OIDCMockProvider.create(oidcMockProviderConfig);
+    // console.log('OIDC server listening', oidcMockProvider.issuer);
 
     tmpdir = path.join(
       os.tmpdir(),
@@ -103,6 +105,7 @@ suite('OIDC tests', () => {
     cs.searchParams.set('authMechanism', 'MONGODB-OIDC');
 
     connectionString = cs.toString();
+    // console.log('Server started', connectionString);
   });
 
   after(async function () {
@@ -114,6 +117,7 @@ suite('OIDC tests', () => {
   test('should connect successfully with a connection string', async function () {
     // connectionString = 'mongodb://localhost:27096/?authMechanism=MONGODB-OIDC';
 
+    // await new Promise((resolve) => setTimeout(resolve, 60000));
     const workbench = await browser.getWorkbench();
 
     // Connect with OIDC connection string
@@ -124,6 +128,7 @@ suite('OIDC tests', () => {
     await connectionStringInput.setText(connectionString);
     await connectionStringInput.confirm();
     await browser.waitUntil(invisibilityOf(connectionStringInput.elem));
+    await new Promise((resolve) => setTimeout(resolve, 50000));
 
     // Check if we have connection successful notification
     await browser.waitUntil(

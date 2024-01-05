@@ -48,9 +48,10 @@
     "watch:extension": "npm run compile:extension -- -watch",
     "watch:extension-bundles": "webpack --mode development --watch",
     "pretest": "npm run compile",
-    "test": "npm run test-webview && npm run test-extension",
+    "test": "npm run test-webview && npm run test-extension && npm run test-e2e",
     "test-extension": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "test-webview": "jest",
+    "test-e2e": "xvfb-maybe --auto-servernum --server-args=\"-screen 0 1024x768x24\" -- wdio run ./wdio.conf.ts",
     "analyze-bundle": "webpack --mode production --analyze",
     "vscode:prepublish": "npm run clean && npm run compile:keyfile && npm run compile:resources && webpack --mode production",
     "check": "npm run lint && npm run depcheck",
@@ -62,8 +63,7 @@
     "reformat": "prettier --write .",
     "snyk-test": "node scripts/snyk-test.js",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
-    "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
-    "wdio": "wdio run ./wdio.conf.ts"
+    "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues"
   },
   "engines": {
     "vscode": "^1.79.1",
@@ -972,6 +972,11 @@
           "type": "boolean",
           "default": false,
           "description": "The default behavior is to generate a single ObjectId and insert it on all cursors. Set to true to generate a unique ObjectId per cursor instead."
+        },
+        "mdb.browserCommandForOIDCAuth": {
+          "type": "string",
+          "default": "",
+          "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser."
         }
       }
     }
@@ -1080,6 +1085,7 @@
     "mocha-multi": "^1.1.7",
     "mongodb-client-encryption": "^6.0.0",
     "mongodb-runner": "^5.4.5",
+    "node-fetch": "^3.3.2",
     "node-loader": "^0.6.0",
     "npm-run-all": "^4.1.5",
     "ora": "^5.4.1",
