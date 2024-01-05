@@ -3,7 +3,7 @@ import {
   getConnectionTitle,
   extractSecrets,
   mergeSecrets,
-} from '@mongodb-js/connection-storage/main';
+} from '@mongodb-js/connection-info';
 import type { ConnectionOptions } from 'mongodb-data-service';
 
 import { createLogger } from '../logging';

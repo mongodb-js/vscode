@@ -54,6 +54,7 @@ module.exports = (env, argv) => {
       // Electron:
       electron: 'electron',
       '@electron/remote': '@electron/remote',
+      'hadron-ipc': 'hadron-ipc',
 
       // MongoDB node driver externals:
       snappy: 'snappy',

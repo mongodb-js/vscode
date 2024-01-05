@@ -10,7 +10,7 @@ import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { mongoLogId } from 'mongodb-log-writer';
-import { extractSecrets } from '@mongodb-js/connection-storage/main';
+import { extractSecrets } from '@mongodb-js/connection-info';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
