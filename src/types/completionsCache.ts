@@ -1,3 +1,7 @@
 export type ClearCompletionsCache = {
-  [key in 'databases' | 'collections' | 'fields']?: boolean;
+  [key in
+    | 'databases'
+    | 'collections'
+    | 'fields'
+    | 'streamProcessors']?: boolean;
 };

@@ -248,6 +248,8 @@ class LanguageServerControllerStub {
   _isExecutingInProgress: boolean;
   _client: LanguageClient;
   _currentConnectionId: string | null = null;
+  _consoleOutputChannel =
+    vscode.window.createOutputChannel('Playground output');
 
   constructor(
     context: ExtensionContextStub,
@@ -322,7 +324,6 @@ class LanguageServerControllerStub {
 
   evaluate(/* codeToEvaluate: string */): Promise<ShellEvaluateResult> {
     return Promise.resolve({
-      outputLines: [],
       result: {
         namespace: null,
         type: null,

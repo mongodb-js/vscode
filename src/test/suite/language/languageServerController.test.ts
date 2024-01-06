@@ -4,6 +4,7 @@ import chai from 'chai';
 import fs from 'fs';
 import path from 'path';
 import sinon from 'sinon';
+import type { SinonStub } from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -145,5 +146,50 @@ suite('Language Server Controller Test Suite', () => {
       'languageServer.js'
     );
     await fs.promises.stat(languageServerModuleBundlePath);
+  });
+
+  suite('console output channels', () => {
+    let outputChannelAppendLineStub: SinonStub;
+    let outputChannelClearStub: SinonStub;
+    let outputChannelShowStub: SinonStub;
+
+    beforeEach(function () {
+      outputChannelAppendLineStub = sandbox.stub();
+      outputChannelClearStub = sandbox.stub();
+      outputChannelShowStub = sandbox.stub();
+
+      const mockOutputChannel = {
+        appendLine: outputChannelAppendLineStub,
+        clear: outputChannelClearStub,
+        show: outputChannelShowStub,
+      } as Partial<vscode.OutputChannel> as unknown as vscode.OutputChannel;
+      sandbox.replace(
+        languageServerControllerStub,
+        '_consoleOutputChannel',
+        mockOutputChannel
+      );
+    });
+
+    test('clear output channel when evaluating', async () => {
+      sandbox.replace(
+        testPlaygroundController,
+        '_evaluateWithCancelModal',
+        sandbox.stub().resolves({
+          result: '123',
+        })
+      );
+
+      expect(outputChannelClearStub).to.not.be.called;
+
+      await languageServerControllerStub.evaluate({
+        codeToEvaluate: `
+          print('test');
+          console.log({ pineapple: 'yes' });
+        `,
+        connectionId: 'pineapple',
+      });
+
+      expect(outputChannelClearStub).to.be.calledOnce;
+    });
   });
 });

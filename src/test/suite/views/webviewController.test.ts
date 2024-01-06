@@ -433,8 +433,10 @@ suite('Webview Test Suite', () => {
       postMessage: (message): void => {
         try {
           assert.strictEqual(message.connectionSuccess, false);
-          const expectedMessage = 'connection attempt cancelled';
-          assert.strictEqual(message.connectionMessage, expectedMessage);
+          assert.strictEqual(
+            message.connectionMessage,
+            'connection attempt cancelled'
+          );
 
           void testConnectionController.disconnect();
           done();

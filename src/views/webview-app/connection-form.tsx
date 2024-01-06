@@ -55,7 +55,7 @@ const initialConnectionInfo = createNewConnectionInfo();
 const ConnectionForm: React.FunctionComponent<{
   isConnecting: boolean;
   onCancelConnectClicked: () => void;
-  onConnectClicked: (onConnectClicked: ConnectionInfo) => void;
+  onConnectClicked: (connectionInfo: ConnectionInfo) => void;
   onClose: () => void;
   open: boolean;
   connectionErrorMessage: string;
@@ -102,10 +102,10 @@ const ConnectionForm: React.FunctionComponent<{
             forceConnectionOptions: [],
             showKerberosPasswordField: false,
             showOIDCDeviceAuthFlow: false,
-            enableOidc: false,
+            enableOidc: true,
             enableDebugUseCsfleSchemaMap: false,
             protectConnectionStringsForNewConnections: false,
-            showOIDCAuth: false,
+            showOIDCAuth: true,
             showKerberosAuth: false,
             showCSFLE: false,
           }}

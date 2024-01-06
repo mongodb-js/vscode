@@ -2,15 +2,26 @@ import * as vscode from 'vscode';
 
 import type ConnectionController from '../connectionController';
 
-const launchMongoDBShellWithEnv = (
-  shellCommand: string,
-  mdbConnectionString: string,
-  envVariableString: string
-) => {
+const launchMongoDBShellWithEnv = ({
+  shellCommand,
+  mdbConnectionString,
+  envVariableString,
+  parentHandle,
+}: {
+  shellCommand: string;
+  mdbConnectionString: string;
+  envVariableString: string;
+  parentHandle?: string;
+}) => {
   const mongoDBShell = vscode.window.createTerminal({
     name: 'MongoDB Shell',
     env: {
       MDB_CONNECTION_STRING: mdbConnectionString,
+      ...(parentHandle
+        ? {
+            MONGOSH_OIDC_PARENT_HANDLE: parentHandle, // For OIDC to share the state and avoid extra logins.
+          }
+        : {}),
     },
   });
 
@@ -18,48 +29,20 @@ const launchMongoDBShellWithEnv = (
   mongoDBShell.show();
 };
 
-const launchMongoDBShellOnPowershell = (
-  shellCommand: string,
-  mdbConnectionString: string
-): void => {
-  launchMongoDBShellWithEnv(
-    shellCommand,
-    mdbConnectionString,
-    '$Env:MDB_CONNECTION_STRING'
-  );
+const getPowershellEnvString = () => {
+  return '$Env:MDB_CONNECTION_STRING';
 };
 
-const launchMongoDBShellOnCmd = (
-  shellCommand: string,
-  mdbConnectionString: string
-): void => {
-  launchMongoDBShellWithEnv(
-    shellCommand,
-    mdbConnectionString,
-    '%MDB_CONNECTION_STRING%'
-  );
+const getCmdEnvString = () => {
+  return '%MDB_CONNECTION_STRING%';
 };
 
-const launchMongoDBShellOnGitBash = (
-  shellCommand: string,
-  mdbConnectionString: string
-): void => {
-  launchMongoDBShellWithEnv(
-    shellCommand,
-    mdbConnectionString,
-    '$MDB_CONNECTION_STRING'
-  );
+const getGitBashEnvString = () => {
+  return '$MDB_CONNECTION_STRING';
 };
 
-const launchMongoDBShellOnBash = (
-  shellCommand: string,
-  mdbConnectionString: string
-): void => {
-  launchMongoDBShellWithEnv(
-    shellCommand,
-    mdbConnectionString,
-    '$MDB_CONNECTION_STRING'
-  );
+const getBashEnvString = () => {
+  return '$MDB_CONNECTION_STRING';
 };
 
 const openMongoDBShell = (
@@ -94,18 +77,30 @@ const openMongoDBShell = (
   }
 
   const mdbConnectionString = connectionController.getActiveConnectionString();
+  const parentHandle =
+    connectionController.getMongoClientConnectionOptions()?.options
+      .parentHandle;
+
+  let envVariableString = '';
 
   if (userShell.includes('powershell.exe')) {
-    launchMongoDBShellOnPowershell(shellCommand, mdbConnectionString);
+    envVariableString = getPowershellEnvString();
   } else if (userShell.includes('cmd.exe')) {
-    launchMongoDBShellOnCmd(shellCommand, mdbConnectionString);
+    envVariableString = getCmdEnvString();
   } else if (userShell.toLocaleLowerCase().includes('git\\bin\\bash.exe')) {
-    launchMongoDBShellOnGitBash(shellCommand, mdbConnectionString);
+    envVariableString = getGitBashEnvString();
   } else {
     // Assume it's a bash environment. This may fail on certain
     // shells but should cover most cases.
-    launchMongoDBShellOnBash(shellCommand, mdbConnectionString);
+    envVariableString = getBashEnvString();
   }
+
+  launchMongoDBShellWithEnv({
+    shellCommand,
+    mdbConnectionString,
+    parentHandle,
+    envVariableString,
+  });
 
   return Promise.resolve(true);
 };

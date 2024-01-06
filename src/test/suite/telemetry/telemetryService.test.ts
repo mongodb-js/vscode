@@ -370,7 +370,6 @@ suite('Telemetry Controller Test Suite', () => {
   suite('prepare playground result types', () => {
     test('convert AggregationCursor shellApiType to aggregation telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'AggregationCursor',
@@ -384,7 +383,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert BulkWriteResult shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'BulkWriteResult',
@@ -398,7 +396,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert Collection shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'Collection',
@@ -412,7 +409,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert Cursor shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'Cursor',
@@ -426,7 +422,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert Database shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'Database',
@@ -440,7 +435,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert DeleteResult shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'DeleteResult',
@@ -454,7 +448,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert InsertManyResult shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'InsertManyResult',
@@ -468,7 +461,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert InsertOneResult shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'InsertOneResult',
@@ -482,7 +474,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert ReplicaSet shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'ReplicaSet',
@@ -496,7 +487,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert Shard shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'Shard',
@@ -510,7 +500,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert ShellApi shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'ShellApi',
@@ -524,7 +513,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('convert UpdateResult shellApiType to other telemetry type', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: 'UpdateResult',
@@ -538,7 +526,6 @@ suite('Telemetry Controller Test Suite', () => {
 
     test('return other telemetry type if evaluation returns a string', () => {
       const res = {
-        outputLines: [],
         result: {
           namespace: null,
           type: null,
