@@ -4,11 +4,15 @@ import fs from 'fs/promises';
 import { createHash } from 'crypto';
 import { before, after, suite, test } from 'mocha';
 import { browser } from '@wdio/globals';
-import { invisibilityOf } from 'wdio-wait-for';
 import ConnectionString from 'mongodb-connection-string-url';
 import { MongoCluster, type MongoClusterOptions } from 'mongodb-runner';
 import { OIDCMockProvider } from '@mongodb-js/oidc-mock-provider';
 import { type OIDCMockProviderConfig } from '@mongodb-js/oidc-mock-provider';
+
+import {
+  connectWithConnectionString,
+  connectWithConnectionStringUsingCommand,
+} from './commands';
 
 function hash(input: string): string {
   return createHash('sha256').update(input).digest('hex').slice(0, 12);
@@ -51,7 +55,7 @@ export async function startTestServer(
 }
 
 suite('OIDC tests', () => {
-  const getTokenPayload: typeof oidcMockProviderConfig.getTokenPayload = () =>
+  let getTokenPayload: typeof oidcMockProviderConfig.getTokenPayload = () =>
     DEFAULT_TOKEN_PAYLOAD;
   let overrideRequestHandler: typeof oidcMockProviderConfig.overrideRequestHandler;
   let oidcMockProviderConfig: OIDCMockProviderConfig;
@@ -62,11 +66,15 @@ suite('OIDC tests', () => {
   let tmpdir: string;
   let cluster: MongoCluster;
   let connectionString: string;
+  // let defaultConnectionName: string;
 
   before(async function () {
     if (process.platform !== 'linux') {
-      // return;
-      this.skip();
+      // defaultConnectionName = 'localhost:27096';
+      connectionString =
+        'mongodb://localhost:27096/?authMechanism=MONGODB-OIDC';
+      return;
+      // this.skip();
     }
 
     oidcMockProviderEndpointAccesses = {};
@@ -114,6 +122,7 @@ suite('OIDC tests', () => {
     const cs = new ConnectionString(cluster.connectionString);
     cs.searchParams.set('authMechanism', 'MONGODB-OIDC');
 
+    defaultConnectionName = `${cs.hostname}:${cs.port}`;
     connectionString = cs.toString();
   });
 
@@ -123,17 +132,34 @@ suite('OIDC tests', () => {
     if (tmpdir) await fs.rmdir(tmpdir, { recursive: true });
   });
 
-  test('should connect successfully with a connection string', async function () {
-    const workbench = await browser.getWorkbench();
+  test('should connect successfully with a connection string (UI based)', async function () {
+    await connectWithConnectionString(browser, connectionString);
+  });
 
-    // Connect with OIDC connection string
-    const connectionStringInput = await workbench.executeCommand(
-      'MongoDB: Connect with Connection String...'
-    );
-    await connectionStringInput.wait();
-    await connectionStringInput.setText(connectionString);
-    await connectionStringInput.confirm();
-    await browser.waitUntil(invisibilityOf(connectionStringInput.elem));
+  test('should connect successfully with a connection string', async function () {
+    // Unable to use this assert just one call because of the reason mentioned
+    // below
+
+    // let tokenFetchCalls = 0;
+    getTokenPayload = () => {
+      // tokenFetchCalls++;
+      return DEFAULT_TOKEN_PAYLOAD;
+    };
+    const workbench = await browser.getWorkbench();
+    await connectWithConnectionStringUsingCommand(browser, connectionString);
+
+    // Note: Commented this one out because second call to executeCommand after
+    // already using it to connect with connection string does not work for some
+    // reasons. However when using executeCommand for any command other than the
+    // command "MongoDB: Connect with connection string", it works as expected.
+    // Most likely has something to do with the nature of our connect with
+    // connection string command which follows up with a second prompt to enter
+    // the connection string. Because of this we are not able to test if opening
+    // shell works fine or not.
+
+    // await workbench.executeCommand( 'MongoDB: Launch MongoDB Shell'
+    // );
+    // expect(tokenFetchCalls).toBe(1);
 
     // Check if we have connection successful notification
     await browser.waitUntil(

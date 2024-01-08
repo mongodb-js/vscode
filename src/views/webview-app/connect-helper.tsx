@@ -72,6 +72,7 @@ const ConnectHelper: React.FC<{
             </Body>
           </div>
           <Button
+            data-testid="connect-with-connection-string-btn"
             aria-label="Connect with connection string"
             darkMode={false}
             onClick={connectWithConnectionString}
