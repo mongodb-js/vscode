@@ -122,7 +122,7 @@ suite('OIDC tests', () => {
     const cs = new ConnectionString(cluster.connectionString);
     cs.searchParams.set('authMechanism', 'MONGODB-OIDC');
 
-    defaultConnectionName = `${cs.hostname}:${cs.port}`;
+    // defaultConnectionName = `${cs.hostname}:${cs.port}`;
     connectionString = cs.toString();
   });
 
