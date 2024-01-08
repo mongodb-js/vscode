@@ -14,7 +14,6 @@ export type PlaygroundResult = OutputItem | undefined;
 
 export type ShellEvaluateResult =
   | {
-      outputLines: PlaygroundDebug;
       result: PlaygroundResult;
     }
   | undefined;

@@ -22,16 +22,20 @@ type ObjectKey =
 export interface CompletionState {
   databaseName: string | null;
   collectionName: string | null;
+  streamProcessorName: string | null;
   isObjectKey: boolean;
   isIdentifierObjectValue: boolean;
   isTextObjectValue: boolean;
   isStage: boolean;
   stageOperator: string | null;
   isCollectionSymbol: boolean;
+  isStreamProcessorSymbol: boolean;
   isUseCallExpression: boolean;
   isGlobalSymbol: boolean;
   isDbSymbol: boolean;
+  isSpSymbol: boolean;
   isCollectionName: boolean;
+  isStreamProcessorName: boolean;
   isAggregationCursor: boolean;
   isFindCursor: boolean;
 }
@@ -66,6 +70,7 @@ export class Visitor {
     this._checkIsBSONSelection(path.node);
     this._checkIsUseCall(path.node);
     this._checkIsCollectionNameAsCallExpression(path.node);
+    this._checkIsStreamProcessorNameAsCallExpression(path.node);
     this._checkHasDatabaseName(path.node);
   }
 
@@ -79,12 +84,16 @@ export class Visitor {
     this._checkIsCollectionSymbol(path.node);
     this._checkIsCollectionNameAsMemberExpression(path.node);
     this._checkHasCollectionName(path.node);
+    this._checkIsStreamProcessorSymbol(path.node);
+    this._checkIsStreamProcessorNameAsMemberExpression(path.node);
+    this._checkHasStreamProcessorName(path.node);
   }
 
   _visitExpressionStatement(path: babel.NodePath): void {
     if (path.node.type === 'ExpressionStatement') {
       this._checkIsGlobalSymbol(path.node);
       this._checkIsDbSymbol(path.node);
+      this._checkIsSpSymbol(path.node);
     }
   }
 
@@ -199,6 +208,7 @@ export class Visitor {
     return {
       databaseName: null,
       collectionName: null,
+      streamProcessorName: null,
       isObjectSelection: false,
       isArraySelection: false,
       isObjectKey: false,
@@ -207,10 +217,13 @@ export class Visitor {
       isStage: false,
       stageOperator: null,
       isCollectionSymbol: false,
+      isStreamProcessorSymbol: false,
       isUseCallExpression: false,
       isGlobalSymbol: false,
       isDbSymbol: false,
+      isSpSymbol: false,
       isCollectionName: false,
+      isStreamProcessorName: false,
       isAggregationCursor: false,
       isFindCursor: false,
     };
@@ -245,6 +258,8 @@ export class Visitor {
 
   _checkIsUseCallAsTemplate(node: babel.types.CallExpression): void {
     if (
+      node.callee.type === 'Identifier' &&
+      node.callee.name === 'use' &&
       node.arguments &&
       node.arguments.length === 1 &&
       node.arguments[0].type === 'TemplateLiteral' &&
@@ -280,6 +295,17 @@ export class Visitor {
       'isDbSymbol' in this._state
     ) {
       this._state.isDbSymbol = true;
+    }
+  }
+
+  _checkIsSpSymbol(node: babel.types.ExpressionStatement): void {
+    if (
+      node.expression.type === 'MemberExpression' &&
+      node.expression.object.type === 'Identifier' &&
+      node.expression.object.name === 'sp' &&
+      'isSpSymbol' in this._state
+    ) {
+      this._state.isSpSymbol = true;
     }
   }
 
@@ -688,5 +714,144 @@ export class Visitor {
   _checkIsCollectionSymbol(node: babel.types.MemberExpression): void {
     this._checkIsCollectionMemberExpression(node);
     this._checkIsCollectionCallExpression(node);
+  }
+
+  _checkIsStreamProcessorNameAsMemberExpression(
+    node: babel.types.MemberExpression
+  ): void {
+    if (
+      node.object.type === 'Identifier' &&
+      node.object.name === 'sp' &&
+      ((node.property.type === 'Identifier' &&
+        node.property.name.includes(PLACEHOLDER)) ||
+        (node.property.type === 'StringLiteral' &&
+          node.property.value.includes(PLACEHOLDER))) &&
+      'isStreamProcessorName' in this._state
+    ) {
+      this._state.isSpSymbol = true;
+      this._state.isStreamProcessorName = true;
+    }
+  }
+
+  _checkIsStreamProcessorNameAsCallExpression(
+    node: babel.types.CallExpression
+  ): void {
+    if (
+      node.callee.type === 'MemberExpression' &&
+      node.callee.object.type === 'Identifier' &&
+      node.callee.object.name === 'sp' &&
+      node.callee.property.type === 'Identifier' &&
+      node.callee.property.name === 'getProcessor' &&
+      node.arguments.length === 1
+    ) {
+      this._checkGetStreamProcessorAsSimpleString(node);
+      this._checkGetStreamProcessorAsTemplate(node);
+    }
+  }
+
+  _checkGetStreamProcessorAsSimpleString(
+    node: babel.types.CallExpression
+  ): void {
+    if (
+      node.arguments[0].type === 'StringLiteral' &&
+      node.arguments[0].value.includes(PLACEHOLDER) &&
+      'isStreamProcessorName' in this._state
+    ) {
+      this._state.isStreamProcessorName = true;
+    }
+  }
+
+  _checkGetStreamProcessorAsTemplate(node: babel.types.CallExpression): void {
+    if (
+      node.arguments[0].type === 'TemplateLiteral' &&
+      node.arguments[0].quasis.length === 1 &&
+      node.arguments[0].quasis[0].value.raw.includes(PLACEHOLDER) &&
+      'isStreamProcessorName' in this._state
+    ) {
+      this._state.isStreamProcessorName = true;
+    }
+  }
+
+  _checkHasStreamProcessorName(node: babel.types.MemberExpression): void {
+    this._checkHasStreamProcessorNameMemberExpression(node);
+    this._checkHasStreamProcessorNameCallExpression(node);
+  }
+
+  _checkHasStreamProcessorNameMemberExpression(
+    node: babel.types.MemberExpression
+  ): void {
+    if (
+      node.object.type === 'MemberExpression' &&
+      node.object.object.type === 'Identifier' &&
+      node.object.object.name === 'sp'
+    ) {
+      if (
+        node.object.property.type === 'Identifier' &&
+        'streamProcessorName' in this._state
+      ) {
+        this._state.streamProcessorName = node.object.property.name;
+      } else if (
+        node.object.property.type === 'StringLiteral' &&
+        'streamProcessorName' in this._state
+      ) {
+        this._state.streamProcessorName = node.object.property.value;
+      }
+    }
+  }
+
+  _checkHasStreamProcessorNameCallExpression(
+    node: babel.types.MemberExpression
+  ) {
+    if (
+      node.object.type === 'CallExpression' &&
+      node.object.callee.type === 'MemberExpression' &&
+      node.object.callee.object.type === 'Identifier' &&
+      node.object.callee.object.name === 'sp' &&
+      node.object.callee.property.type === 'Identifier' &&
+      node.object.callee.property.name === 'getProcessor' &&
+      node.object.arguments.length === 1 &&
+      node.object.arguments[0].type === 'StringLiteral' &&
+      'streamProcessorName' in this._state
+    ) {
+      this._state.streamProcessorName = node.object.arguments[0].value;
+    }
+  }
+
+  _checkIsStreamProcessorSymbol(node: babel.types.MemberExpression): void {
+    this._checkIsStreamProcessorMemberExpression(node);
+    this._checkIsStreamProcessorCallExpression(node);
+  }
+
+  _checkIsStreamProcessorMemberExpression(
+    node: babel.types.MemberExpression
+  ): void {
+    if (
+      node.object.type === 'MemberExpression' &&
+      node.object.object.type === 'Identifier' &&
+      node.object.object.name === 'sp' &&
+      node.property.type === 'Identifier' &&
+      node.property.name.includes(PLACEHOLDER) &&
+      'isStreamProcessorSymbol' in this._state
+    ) {
+      this._state.isStreamProcessorSymbol = true;
+    }
+  }
+
+  _checkIsStreamProcessorCallExpression(
+    node: babel.types.MemberExpression
+  ): void {
+    if (
+      node.object.type === 'CallExpression' &&
+      node.object.callee.type === 'MemberExpression' &&
+      node.object.callee.object.type === 'Identifier' &&
+      node.object.callee.object.name === 'sp' &&
+      node.object.callee.property.type === 'Identifier' &&
+      node.object.callee.property.name === 'getProcessor' &&
+      node.property.type === 'Identifier' &&
+      node.property.name.includes(PLACEHOLDER) &&
+      'isStreamProcessorSymbol' in this._state
+    ) {
+      this._state.isStreamProcessorSymbol = true;
+    }
   }
 }

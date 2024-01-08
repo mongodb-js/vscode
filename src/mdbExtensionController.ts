@@ -317,6 +317,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           databases: true,
           collections: true,
           fields: true,
+          streamProcessors: true,
         });
 
         return true;
