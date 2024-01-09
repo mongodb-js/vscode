@@ -27,6 +27,9 @@ import {
 } from './dbTestHelper';
 import type { LoadedConnection } from '../../storage/connectionStorage';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../../../package.json');
+
 const testDatabaseConnectionName = 'localhost:27088';
 const testDatabaseURI2WithTimeout =
   'mongodb://shouldfail?connectTimeoutMS=1000&serverSelectionTimeoutMS=1000';
@@ -240,8 +243,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('the connection model loads both global and workspace stored connection models', async () => {
-    const expectedDriverUrl =
-      'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0';
+    const expectedDriverUrl = `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`;
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -843,7 +845,7 @@ suite('Connection Controller Test Suite', function () {
     );
     assert.strictEqual(
       connections[0].connectionOptions?.connectionString.includes(
-        'appname=mongodb-vscode+0.0.0-dev.0'
+        `appname=mongodb-vscode+${version}`
       ),
       true
     );
@@ -873,7 +875,7 @@ suite('Connection Controller Test Suite', function () {
     delete mongoClientConnectionOptions.options.oidc?.openBrowser;
 
     assert.deepStrictEqual(mongoClientConnectionOptions, {
-      url: 'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0',
+      url: `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`,
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
@@ -888,11 +890,10 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('_getConnectionStringWithProxy returns string with proxy options', () => {
-    const expectedConnectionStringWithProxy =
-      'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test';
+    const expectedConnectionStringWithProxy = `mongodb://localhost:27088/?appname=mongodb-vscode+${version}&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test`;
     const connectionString =
       testConnectionController._getConnectionStringWithProxy({
-        url: 'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0',
+        url: `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`,
         options: {
           proxyHost: 'localhost',
           proxyPassword: 'gwce7tr8733ujbr',

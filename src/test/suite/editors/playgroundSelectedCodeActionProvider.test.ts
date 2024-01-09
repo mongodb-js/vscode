@@ -14,6 +14,9 @@ import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub } from '../stubs';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../../../../package.json');
+
 const expect = chai.expect;
 
 suite('Playground Selected CodeAction Provider Test Suite', function () {
@@ -385,8 +388,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
           expectedResult = {
             namespace: 'db.coll',
             type: null,
-            content:
-              "# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0')\nfilter={\n    'name': '22'\n}\n\nresult = client['db']['coll'].find(\n  filter=filter\n)",
+            content: `# Requires the PyMongo package.\n# https://api.mongodb.com/python/current\n\nclient = MongoClient('mongodb://localhost:27088/?appname=mongodb-vscode+${version}')\nfilter={\n    'name': '22'\n}\n\nresult = client['db']['coll'].find(\n  filter=filter\n)`,
             language: 'python',
           };
 
@@ -460,8 +462,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
           expectedResult = {
             namespace: 'db.coll',
             type: null,
-            content:
-              "# Requires the MongoDB Ruby Driver\n# https://docs.mongodb.com/ruby-driver/master/\n\nclient = Mongo::Client.new('mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0', :database => 'db')\n\nresult = client.database['coll'].find({\n  'name' => '22'\n})",
+            content: `# Requires the MongoDB Ruby Driver\n# https://docs.mongodb.com/ruby-driver/master/\n\nclient = Mongo::Client.new('mongodb://localhost:27088/?appname=mongodb-vscode+${version}', :database => 'db')\n\nresult = client.database['coll'].find({\n  'name' => '22'\n})`,
             language: 'ruby',
           };
 
@@ -535,8 +536,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
           expectedResult = {
             namespace: 'db.coll',
             type: null,
-            content:
-              '// Requires the MongoDB Go Driver\n// https://go.mongodb.org/mongo-driver\nctx := context.TODO()\n\n// Set client options\nclientOptions := options.Client().ApplyURI("mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0")\n\n// Connect to MongoDB\nclient, err := mongo.Connect(ctx, clientOptions)\nif err != nil {\n  log.Fatal(err)\n}\ndefer func() {\n  if err := client.Disconnect(ctx); err != nil {\n    log.Fatal(err)\n  }\n}()\n\n// Find data\ncoll := client.Database("db").Collection("coll")\n_, err = coll.Find(ctx, bson.D{{"name", "22"}})\nif err != nil {\n  log.Fatal(err)\n}',
+            content: `// Requires the MongoDB Go Driver\n// https://go.mongodb.org/mongo-driver\nctx := context.TODO()\n\n// Set client options\nclientOptions := options.Client().ApplyURI("mongodb://localhost:27088/?appname=mongodb-vscode+${version}")\n\n// Connect to MongoDB\nclient, err := mongo.Connect(ctx, clientOptions)\nif err != nil {\n  log.Fatal(err)\n}\ndefer func() {\n  if err := client.Disconnect(ctx); err != nil {\n    log.Fatal(err)\n  }\n}()\n\n// Find data\ncoll := client.Database("db").Collection("coll")\n_, err = coll.Find(ctx, bson.D{{"name", "22"}})\nif err != nil {\n  log.Fatal(err)\n}`,
             language: 'go',
           };
 

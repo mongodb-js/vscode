@@ -47,7 +47,7 @@ jobs:
             PREV_VERSION_TAG=$(gh api repos/:owner/:repo/releases --jq '. | map(select(.draft == false)) | .[0] | .tag_name')
             PREV_VERSION=$(npx semver --coerce ${PREV_VERSION_TAG})
 
-            NEXT_VERSION=$(npx semver -i $VERSION_INPUT $PREV_VERSION)
+            NEXT_VERSION=$(npx semver -i $VERSION_BUMP $PREV_VERSION)
           else
             NEXT_VERSION=${{ github.event.inputs.exactVersion }}
           fi
@@ -59,13 +59,11 @@ jobs:
           npx semver v"${NEXT_VERSION}"
 
           npm version "${NEXT_VERSION}" --no-git-tag-version
-          echo "RELEASE_TAG=v${NEXT_VERSION}" >> $GITHUB_ENV
+          echo "RELEASE_TAG=v${NEXT_VERSION}" >> "$GITHUB_ENV"
 
       - name: Validate release tag
         shell: bash
         run: |
-          RELEASE_TAG=${{ inputs.RELEASE_TAG }}
-
           if [ -z "${RELEASE_TAG}" ]; then
             echo "RELEASE_TAG is not set or is empty"
             exit 1
@@ -98,7 +96,7 @@ jobs:
           ls *.vsix.sig
 
           gh release create "${RELEASE_TAG}" \
-            --title "${RELEASE_VERSION}" \
+            --title "${RELEASE_TAG}" \
             --notes "Edit the release notes before publishing." \
             --target main \
             --draft \

@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.4.0](https://github.com/mongodb-js/vscode/releases/tag/untagged-cda8b18ef8ec5f1910ea) - null
+
+Edit the release notes before publishing.
+
+
 ## [v1.3.1](https://github.com/mongodb-js/vscode/releases/tag/v1.3.1) - 2023-10-09
 
 ## What's Changed
@@ -423,19 +428,5 @@ To dig deeper please feel free to follow the links mentioned below:
 ### Changed
 
 - Connections in the tree view are now alphabetically sorted
-
-
-## [v0.0.3](https://github.com/mongodb-js/vscode/releases/tag/v0.0.3) - 2020-05-26
-
-### Added
-
-- Added `require` support in playgrounds
-
-### Fixed
-
-- Fixed an issue with file pathing on SSL and SSH connections on windows
-- Fixed an issue with connecting to mongodb through the shell while using SSH
-- Fixed a connectivity issue with playgrounds and SSH connections
-- Fixed an issue with having a babel config in a workspace root
 
 
