@@ -101,9 +101,6 @@ suite('OIDC Tests', function () {
 
   before(async function () {
     if (process.platform !== 'linux') {
-      connectionString =
-        'mongodb://localhost:27096/?authMechanism=MONGODB-OIDC';
-      return;
       // OIDC is only supported on Linux in the 7.0+ enterprise server.
       return this.skip();
     }
