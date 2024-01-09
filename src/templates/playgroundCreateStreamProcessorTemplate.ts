@@ -2,12 +2,12 @@ const template = `/* global sp */
 // MongoDB Playground
 // Use Ctrl+Space inside a snippet or a string literal to trigger completions.
 
-// create a new stream processor
+// Create a new stream processor.
 /* sp.createStreamProcessor('newStreamProcessor', [
   {
     $source: {
-      "connectionName": "myKafka",
-      "topic": "source"
+      connectionName: 'myKafka',
+      topic: 'source'
     }
   },
   {
@@ -15,8 +15,8 @@ const template = `/* global sp */
   },
   {
     $emit: {
-      "connectionName": "mySink",
-      "topic" : "target",
+      connectionName: 'mySink',
+      topic : 'target',
     }
   }
 ]); */

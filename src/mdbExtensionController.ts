@@ -666,6 +666,10 @@ export default class MDBExtensionController implements vscode.Disposable {
         return true;
       }
     );
+    this.registerAtlasStreamsTreeViewCommands();
+  }
+
+  registerAtlasStreamsTreeViewCommands() {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_ADD_STREAM_PROCESSOR,
       async (element: ConnectionTreeItem): Promise<boolean> => {

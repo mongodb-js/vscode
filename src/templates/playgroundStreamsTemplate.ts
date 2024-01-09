@@ -8,16 +8,17 @@ const template = `/* global sp */
 // For more documentation on playgrounds please refer to
 // https://www.mongodb.com/docs/mongodb-vscode/playgrounds/
 
-// Connection can be added in Atlas UI or using Atlas CLI. See doc linked below for more info
+// A connection can be added in the Atlas UI or using the Atlas CLI.
+// See the documentation linked below for more information.
 // https://www.mongodb.com/docs/atlas/atlas-sp/manage-processing-instance/#add-a-connection-to-the-connection-registry
-// List avialable connections
+// List available connections
 sp.listConnections();
 
 // Use process to quickly test out the stream processing
 sp.process([
   {
-    $source:{
-      "connectionName": "sample_stream_solar"
+    $source: {
+      connectionName: 'sample_stream_solar'
     }
   }
 ]);

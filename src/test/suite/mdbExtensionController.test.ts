@@ -1416,7 +1416,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
 
       const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
-      assert(content.includes('// create a new stream processor'));
+      assert(content.includes('// Create a new stream processor.'));
       assert(content.includes("sp.createStreamProcessor('newStreamProcessor'"));
     });
 
