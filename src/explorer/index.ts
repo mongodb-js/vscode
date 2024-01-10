@@ -7,6 +7,7 @@ import DocumentTreeItem from './documentTreeItem';
 import HelpExplorer from './helpExplorer';
 import SchemaTreeItem from './schemaTreeItem';
 import PlaygroundsExplorer from './playgroundsExplorer';
+import StreamProcessorTreeItem from './streamProcessorTreeItem';
 
 export {
   CollectionTreeItem,
@@ -18,4 +19,5 @@ export {
   HelpExplorer,
   PlaygroundsExplorer,
   SchemaTreeItem,
+  StreamProcessorTreeItem,
 };

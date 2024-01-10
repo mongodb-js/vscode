@@ -99,6 +99,54 @@ suite('ConnectionTreeItem Test Suite', () => {
         );
       }
     });
+
+    suite('when connected to a Stream Processing Instnace', function () {
+      beforeEach(function () {
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._connectionController,
+          'isConnectedToAtlasStreams',
+          () => true
+        );
+      });
+
+      test('returns stream processor tree items', async () => {
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._connectionController,
+          'getActiveDataService',
+          () => new DataServiceStub() as unknown as DataService
+        );
+
+        const spItems = await testConnectionTreeItem.getChildren();
+
+        assert.strictEqual(spItems.length, 2);
+        assert.strictEqual(spItems[0].label, 'mockStreamProcessor1');
+        assert.strictEqual(spItems[1].label, 'mockStreamProcessor2');
+      });
+
+      test('when listStreamProcessors errors it wraps it in a nice message', async () => {
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._connectionController,
+          'getActiveDataService',
+          () =>
+            ({
+              listStreamProcessors: () =>
+                new Promise(() => {
+                  throw Error('peaches');
+                }),
+            } as unknown as DataService)
+        );
+
+        try {
+          await testConnectionTreeItem.getChildren();
+          assert(false);
+        } catch (error) {
+          assert.strictEqual(
+            formatError(error).message,
+            'Unable to list stream processors: peaches'
+          );
+        }
+      });
+    });
   });
 
   suite('#listDatabases', () => {
