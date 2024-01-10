@@ -315,6 +315,20 @@ suite('OIDC Tests', function () {
 
   test('can successfully re-authenticate', async function () {
     showInformationMessageStub.resolves('Confirm');
+    const originalReAuthHandler =
+      testConnectionController._reauthenticationHandler.bind(
+        testConnectionController
+      );
+    let resolveReAuthPromise: (value?: unknown) => void;
+    const reAuthPromise = new Promise((resolve) => {
+      resolveReAuthPromise = resolve;
+    });
+    sandbox
+      .stub(testConnectionController, '_reauthenticationHandler')
+      .callsFake(async () => {
+        resolveReAuthPromise();
+        await originalReAuthHandler();
+      });
     let tokenFetchCalls = 0;
     let afterReauth = false;
     getTokenPayload = () => {
@@ -332,14 +346,14 @@ suite('OIDC Tests', function () {
     assert.strictEqual(connected, true);
     afterReauth = true;
 
-    // Wait for auth to expire
+    // Wait for auth to expire, our auth expire in 1 second
     await new Promise((resolve) => setTimeout(resolve, 1100));
 
     // Trigger a command on data service for reauthentication
     await testConnectionController.getActiveDataService()?.count('x.y', {});
 
-    // Minor pause
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Wait for reauthentication promise to resolve
+    await reAuthPromise;
 
     assert.strictEqual(tokenFetchCalls, 2);
     assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
