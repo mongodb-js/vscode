@@ -27,7 +27,8 @@ function hash(input: string): string {
   return createHash('sha256').update(input).digest('hex').slice(0, 12);
 }
 
-// Need to be provided via CI env
+// Need to be provided via CI env because we can't get a hold for node.js exec
+// path in our tests - they run inside a vscode process
 const browserShellCommand = process.env.BROWSER_AUTH_COMMAND;
 
 const clusters = new Map<string, MongoCluster>();
