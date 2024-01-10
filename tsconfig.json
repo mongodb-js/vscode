@@ -5,7 +5,7 @@
     "target": "es2022",
     "outDir": "out",
     "lib": ["dom", "es2022"],
-    "types": ["node"],
+    "types": ["node", "wdio-vscode-service"],
     "jsx": "react",
     "sourceMap": true,
     "rootDir": "src",
@@ -17,5 +17,12 @@
     // "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
     // "noUnusedParameters": true,  /* Report errors on unused parameters. */
   },
-  "exclude": ["node_modules", "dist", "out", ".vscode-test", "scripts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "out",
+    ".vscode-test",
+    "scripts",
+    "wdio.conf.ts"
+  ]
 }

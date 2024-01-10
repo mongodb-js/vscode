@@ -10,3 +10,4 @@ constants.json
 .env
 .eslintcache
 .sbom
+.e2e

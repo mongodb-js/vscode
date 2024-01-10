@@ -336,22 +336,27 @@ export default class ConnectionController {
           browserCommandForOIDCAuth: undefined, // We overwrite this below.
         },
       });
+      const browserAuthCommand = vscode.workspace
+        .getConfiguration('mdb')
+        .get('browserCommandForOIDCAuth');
       dataService = await connectionAttempt.connect({
         ...connectionOptions,
         oidc: {
           ...cloneDeep(connectionOptions.oidc),
-          openBrowser: async ({ signal, url }) => {
-            try {
-              await openLink(url);
-            } catch (err) {
-              if (signal.aborted) return;
-              // If opening the link fails we default to regular link opening.
-              await vscode.commands.executeCommand(
-                'vscode.open',
-                vscode.Uri.parse(url)
-              );
-            }
-          },
+          openBrowser: browserAuthCommand
+            ? { command: browserAuthCommand }
+            : async ({ signal, url }) => {
+                try {
+                  await openLink(url);
+                } catch (err) {
+                  if (signal.aborted) return;
+                  // If opening the link fails we default to regular link opening.
+                  await vscode.commands.executeCommand(
+                    'vscode.open',
+                    vscode.Uri.parse(url)
+                  );
+                }
+              },
         },
       });
 

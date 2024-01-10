@@ -99,7 +99,10 @@ const ConnectionStatusConnected: React.FC<{ connectionName: string }> = ({
   const isDarkMode = useDarkMode();
   return (
     <div className={connectedContainerStyles}>
-      <div className={statusContainerStyles}>
+      <div
+        className={statusContainerStyles}
+        data-testid="connection-status-connected"
+      >
         <Body as="div">
           <span
             className={cx(connectedStatusDotStyles, {

@@ -23,3 +23,10 @@ ignores:
  - style-loader
  - ts-loader
  - mongodb-runner
+ - "@wdio/local-runner"
+ - "@wdio/mocha-framework"
+ - "@wdio/spec-reporter"
+ - wdio-vscode-service
+ - wdio-wait-for
+ - "@wdio/globals"
+ - "@wdio/types"

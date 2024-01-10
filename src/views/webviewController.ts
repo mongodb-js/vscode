@@ -74,7 +74,7 @@ export const getWebviewContent = ({
         <title>MongoDB</title>
     </head>
     <body>
-      <div id="root"></div>
+      <div id="mdb-overview-root"></div>
       ${getFeatureFlagsScript(nonce)}
       <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
       <script nonce="${nonce}" src="${jsAppFileUrl}"></script>

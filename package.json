@@ -48,9 +48,10 @@
     "watch:extension": "npm run compile:extension -- -watch",
     "watch:extension-bundles": "webpack --mode development --watch",
     "pretest": "npm run compile",
-    "test": "npm run test-webview && npm run test-extension",
+    "test": "npm run test-webview && npm run test-extension && npm run test-e2e",
     "test-extension": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "test-webview": "jest",
+    "test-e2e": "xvfb-maybe --auto-servernum --server-args=\"-screen 0 1024x768x24\" -- wdio run ./wdio.conf.ts",
     "analyze-bundle": "webpack --mode production --analyze",
     "vscode:prepublish": "npm run clean && npm run compile:keyfile && npm run compile:resources && webpack --mode production",
     "check": "npm run lint && npm run depcheck",
@@ -1029,6 +1030,11 @@
           "type": "boolean",
           "default": false,
           "description": "The default behavior is to generate a single ObjectId and insert it on all cursors. Set to true to generate a unique ObjectId per cursor instead."
+        },
+        "mdb.browserCommandForOIDCAuth": {
+          "type": "string",
+          "default": "",
+          "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser."
         }
       }
     }
@@ -1079,6 +1085,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.22.5",
+    "@mongodb-js/oidc-mock-provider": "^0.6.9",
     "@mongodb-js/oidc-plugin": "^0.3.0",
     "@mongodb-js/prettier-config-compass": "^1.0.0",
     "@mongodb-js/sbom-tools": "^0.5.4",
@@ -1104,6 +1111,10 @@
     "@typescript-eslint/parser": "^5.61.0",
     "@vscode/test-electron": "^2.3.8",
     "@vscode/vsce": "^2.19.0",
+    "@wdio/cli": "^8.27.1",
+    "@wdio/local-runner": "^8.27.0",
+    "@wdio/mocha-framework": "^8.27.0",
+    "@wdio/spec-reporter": "^8.27.0",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
     "autoprefixer": "^10.4.16",
     "buffer": "^6.0.3",
@@ -1132,6 +1143,7 @@
     "mocha-multi": "^1.1.7",
     "mongodb-client-encryption": "^6.0.0",
     "mongodb-runner": "^5.4.5",
+    "node-fetch": "^2.6.7",
     "node-loader": "^0.6.0",
     "npm-run-all": "^4.1.5",
     "ora": "^5.4.1",
@@ -1148,6 +1160,9 @@
     "ts-loader": "^9.4.4",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5",
+    "wdio-vscode-service": "^5.2.2",
+    "wdio-wait-for": "^3.0.10",
+    "webdriverio": "^8.27.0",
     "webpack": "^5.88.1",
     "webpack-bundle-analyzer": "^4.9.0",
     "webpack-cli": "^5.1.4",
