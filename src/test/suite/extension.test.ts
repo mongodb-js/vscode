@@ -55,6 +55,10 @@ suite('Extension Test Suite', () => {
       'mdb.copyDocumentContentsFromTreeView',
       'mdb.cloneDocumentFromTreeView',
       'mdb.deleteDocumentFromTreeView',
+      'mdb.addStreamProcessor',
+      'mdb.startStreamProcessor',
+      'mdb.stopStreamProcessor',
+      'mdb.dropStreamProcessor',
 
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked',

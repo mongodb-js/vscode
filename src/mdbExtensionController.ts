@@ -39,6 +39,7 @@ import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
+import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -663,6 +664,95 @@ export default class MDBExtensionController implements vscode.Disposable {
         void vscode.window.showInformationMessage('Copied to clipboard.');
 
         return true;
+      }
+    );
+    this.registerAtlasStreamsTreeViewCommands();
+  }
+
+  registerAtlasStreamsTreeViewCommands() {
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_ADD_STREAM_PROCESSOR,
+      async (element: ConnectionTreeItem): Promise<boolean> => {
+        if (!element) {
+          void vscode.window.showErrorMessage(
+            'Please wait for the connection to finish loading before adding a stream processor.'
+          );
+
+          return false;
+        }
+
+        if (
+          element.connectionId !==
+          this._connectionController.getActiveConnectionId()
+        ) {
+          void vscode.window.showErrorMessage(
+            'Please connect to this connection before adding a stream processor.'
+          );
+
+          return false;
+        }
+
+        if (this._connectionController.isDisconnecting()) {
+          void vscode.window.showErrorMessage(
+            'Unable to add stream processor: currently disconnecting.'
+          );
+
+          return false;
+        }
+
+        if (this._connectionController.isConnecting()) {
+          void vscode.window.showErrorMessage(
+            'Unable to add stream processor: currently connecting.'
+          );
+
+          return false;
+        }
+
+        return this._playgroundController.createPlaygroundForCreateStreamProcessor(
+          element
+        );
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_START_STREAM_PROCESSOR,
+      async (element: StreamProcessorTreeItem): Promise<boolean> => {
+        const started = await element.onStartClicked();
+        if (started) {
+          void vscode.window.showInformationMessage(
+            'Stream processor successfully started.'
+          );
+          // Refresh explorer view after a processor is started.
+          this._explorerController.refresh();
+        }
+        return started;
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_STOP_STREAM_PROCESSOR,
+      async (element: StreamProcessorTreeItem): Promise<boolean> => {
+        const stopped = await element.onStopClicked();
+        if (stopped) {
+          void vscode.window.showInformationMessage(
+            'Stream processor successfully stopped.'
+          );
+          // Refresh explorer view after a processor is stopped.
+          this._explorerController.refresh();
+        }
+        return stopped;
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_DROP_STREAM_PROCESSOR,
+      async (element: StreamProcessorTreeItem): Promise<boolean> => {
+        const dropped = await element.onDropClicked();
+        if (dropped) {
+          void vscode.window.showInformationMessage(
+            'Stream processor successfully dropped.'
+          );
+          // Refresh explorer view after a processor is dropped.
+          this._explorerController.refresh();
+        }
+        return dropped;
       }
     );
   }
