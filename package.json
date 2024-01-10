@@ -397,6 +397,26 @@
       {
         "command": "mdb.deleteDocumentFromTreeView",
         "title": "Delete Document..."
+      },
+      {
+        "command": "mdb.addStreamProcessor",
+        "title": "Add StreamProcessor...",
+        "icon": {
+          "light": "images/light/plus-circle.svg",
+          "dark": "images/dark/plus-circle.svg"
+        }
+      },
+      {
+        "command": "mdb.startStreamProcessor",
+        "title": "Start Stream Processor"
+      },
+      {
+        "command": "mdb.stopStreamProcessor",
+        "title": "Stop Stream Processor"
+      },
+      {
+        "command": "mdb.dropStreamProcessor",
+        "title": "Drop Stream Processor..."
       }
     ],
     "menus": {
@@ -428,12 +448,22 @@
       "view/item/context": [
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == false",
           "group": "inline"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == false",
+          "group": "1@1"
+        },
+        {
+          "command": "mdb.addStreamProcessor",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == true",
+          "group": "inline"
+        },
+        {
+          "command": "mdb.addStreamProcessor",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == true",
           "group": "1@1"
         },
         {
@@ -611,6 +641,18 @@
           "command": "mdb.deleteDocumentFromTreeView",
           "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
           "group": "3@1"
+        },
+        {
+          "command": "mdb.startStreamProcessor",
+          "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem"
+        },
+        {
+          "command": "mdb.stopStreamProcessor",
+          "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem"
+        },
+        {
+          "command": "mdb.dropStreamProcessor",
+          "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem"
         }
       ],
       "editor/title": [
@@ -639,27 +681,27 @@
         },
         {
           "command": "mdb.exportToRuby",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
         },
         {
           "command": "mdb.exportToPython",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
         },
         {
           "command": "mdb.exportToJava",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
         },
         {
           "command": "mdb.exportToCsharp",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
         },
         {
           "command": "mdb.exportToNode",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
         },
         {
           "command": "mdb.exportToGo",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",
@@ -803,6 +845,22 @@
         },
         {
           "command": "mdb.deleteDocumentFromTreeView",
+          "when": "false"
+        },
+        {
+          "command": "mdb.addStreamProcessor",
+          "when": "false"
+        },
+        {
+          "command": "mdb.startStreamProcessor",
+          "when": "false"
+        },
+        {
+          "command": "mdb.stopStreamProcessor",
+          "when": "false"
+        },
+        {
+          "command": "mdb.dropStreamProcessor",
           "when": "false"
         }
       ]

@@ -24,6 +24,7 @@ import { openLink } from './utils/linkHelper';
 import type { LoadedConnection } from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
+import { isAtlasStream } from 'mongodb-build-info';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -374,6 +375,12 @@ export default class ConnectionController {
       true
     );
 
+    void vscode.commands.executeCommand(
+      'setContext',
+      'mdb.isAtlasStreams',
+      this.isConnectedToAtlasStreams()
+    );
+
     void this.onConnectSuccess({
       connectionInfo,
       dataService,
@@ -517,6 +524,11 @@ export default class ConnectionController {
       void vscode.commands.executeCommand(
         'setContext',
         'mdb.connectedToMongoDB',
+        false
+      );
+      void vscode.commands.executeCommand(
+        'setContext',
+        'mdb.isAtlasStreams',
         false
       );
     } catch (error) {
@@ -744,6 +756,13 @@ export default class ConnectionController {
     }
 
     return connectionStringData.toString();
+  }
+
+  isConnectedToAtlasStreams() {
+    return (
+      this.isCurrentlyConnected() &&
+      isAtlasStream(this.getActiveConnectionString())
+    );
   }
 
   getActiveConnectionString(): string {

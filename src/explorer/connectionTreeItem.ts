@@ -1,11 +1,16 @@
 import * as vscode from 'vscode';
 import path from 'path';
+import type {
+  DataService,
+  StreamProcessor,
+} from 'mongodb-data-service/lib/data-service';
 
 import DatabaseTreeItem from './databaseTreeItem';
 import type ConnectionController from '../connectionController';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
+import StreamProcessorTreeItem from './streamProcessorTreeItem';
 
 export enum ConnectionItemContextValues {
   disconnected = 'disconnectedConnectionTreeItem',
@@ -36,7 +41,9 @@ export default class ConnectionTreeItem
 {
   contextValue = ConnectionItemContextValues.disconnected;
 
-  private _childrenCache: { [key: string]: DatabaseTreeItem };
+  private _childrenCache: {
+    [key: string]: DatabaseTreeItem | StreamProcessorTreeItem;
+  };
   cacheIsUpToDate: boolean;
 
   private _connectionController: ConnectionController;
@@ -57,7 +64,9 @@ export default class ConnectionTreeItem
     isExpanded: boolean;
     connectionController: ConnectionController;
     cacheIsUpToDate: boolean;
-    childrenCache: { [key: string]: DatabaseTreeItem }; // Existing cache.
+    childrenCache: {
+      [key: string]: DatabaseTreeItem | StreamProcessorTreeItem;
+    }; // Existing cache.
   }) {
     super(
       connectionController.getSavedConnectionName(connectionId),
@@ -118,6 +127,23 @@ export default class ConnectionTreeItem
     }
   }
 
+  async listStreamProcessors(): Promise<StreamProcessor[]> {
+    const dataService = this._connectionController.getActiveDataService();
+
+    if (dataService === null) {
+      throw new Error('Not currently connected.');
+    }
+
+    try {
+      const processors = await dataService.listStreamProcessors();
+      return processors;
+    } catch (error) {
+      throw new Error(
+        `Unable to list stream processors: ${formatError(error).message}`
+      );
+    }
+  }
+
   async getChildren(): Promise<any[]> {
     if (
       !this.isExpanded ||
@@ -133,69 +159,95 @@ export default class ConnectionTreeItem
       throw new Error('Not currently connected.');
     }
 
+    const isAtlasStreams =
+      this._connectionController.isConnectedToAtlasStreams();
+
     if (this.cacheIsUpToDate) {
       const pastChildrenCache = this._childrenCache;
       this._childrenCache = {};
 
-      // We create a new database tree item here instead of reusing the
+      // We create a new tree item here instead of reusing the
       // cached one in order to ensure the expanded state is set.
-      Object.keys(pastChildrenCache).forEach((databaseName) => {
-        const prevChild = pastChildrenCache[databaseName];
+      Object.keys(pastChildrenCache).forEach((childName) => {
+        const prevChild = pastChildrenCache[childName];
 
         if (prevChild.isDropped) {
           return;
         }
 
-        this._childrenCache[databaseName] = new DatabaseTreeItem({
-          databaseName,
-          dataService,
-          isExpanded: prevChild.isExpanded,
-          cacheIsUpToDate: prevChild.cacheIsUpToDate,
-          childrenCache: prevChild.getChildrenCache(),
-        });
+        if (isAtlasStreams) {
+          const spItem = prevChild as StreamProcessorTreeItem;
+          this._childrenCache[childName] = new StreamProcessorTreeItem({
+            dataService,
+            isExpanded: spItem.isExpanded,
+            streamProcessorName: spItem.streamProcessorName,
+            streamProcessorState: spItem.streamProcessorState,
+          });
+        } else {
+          const dbItem = prevChild as DatabaseTreeItem;
+          this._childrenCache[childName] = new DatabaseTreeItem({
+            databaseName: childName,
+            dataService,
+            isExpanded: dbItem.isExpanded,
+            cacheIsUpToDate: dbItem.cacheIsUpToDate,
+            childrenCache: dbItem.getChildrenCache(),
+          });
+        }
       });
 
       return Object.values(this._childrenCache);
     }
 
-    const databases = await this.listDatabases();
-    databases.sort((a: string, b: string) => {
-      return a.localeCompare(b);
-    });
-
+    this._childrenCache = await (isAtlasStreams
+      ? this._buildChildrenCacheForStreams(dataService)
+      : this._buildChildrenCacheForDatabases(dataService));
     this.cacheIsUpToDate = true;
+    return Object.values(this._childrenCache);
+  }
 
-    if (!databases) {
-      this._childrenCache = {};
-      return [];
-    }
+  private async _buildChildrenCacheForDatabases(dataService: DataService) {
+    const databases = await this.listDatabases();
+    databases.sort((a: string, b: string) => a.localeCompare(b));
 
-    const pastChildrenCache = this._childrenCache;
-    this._childrenCache = {};
+    const newChildrenCache: Record<string, DatabaseTreeItem> = {};
 
-    databases.forEach((name: string) => {
-      if (pastChildrenCache[name]) {
-        // We create a new element here instead of reusing the cached one
-        // in order to ensure the expanded state is set.
-        this._childrenCache[name] = new DatabaseTreeItem({
-          databaseName: name,
-          dataService,
-          isExpanded: pastChildrenCache[name].isExpanded,
-          cacheIsUpToDate: pastChildrenCache[name].cacheIsUpToDate,
-          childrenCache: pastChildrenCache[name].getChildrenCache(),
-        });
-      } else {
-        this._childrenCache[name] = new DatabaseTreeItem({
-          databaseName: name,
-          dataService,
-          isExpanded: false,
-          cacheIsUpToDate: false, // Cache is not up to date (no cache).
-          childrenCache: {}, // No existing cache.
-        });
-      }
+    databases.forEach((databaseName: string) => {
+      const cachedItem = this._childrenCache[databaseName] as DatabaseTreeItem;
+      // We create a new element here instead of reusing the cached one
+      // in order to ensure the expanded state is set.
+      newChildrenCache[databaseName] = new DatabaseTreeItem({
+        dataService,
+        databaseName,
+        isExpanded: cachedItem ? cachedItem.isExpanded : false,
+        cacheIsUpToDate: cachedItem ? cachedItem.cacheIsUpToDate : false,
+        childrenCache: cachedItem ? cachedItem.getChildrenCache() : {},
+      });
     });
 
-    return Object.values(this._childrenCache);
+    return newChildrenCache;
+  }
+
+  private async _buildChildrenCacheForStreams(dataService: DataService) {
+    const processors = await this.listStreamProcessors();
+    processors.sort((a, b) => a.name.localeCompare(b.name));
+
+    const newChildrenCache: Record<string, StreamProcessorTreeItem> = {};
+
+    processors.forEach((sp) => {
+      const cachedItem = this._childrenCache[
+        sp.name
+      ] as StreamProcessorTreeItem;
+      // We create a new element here instead of reusing the cached one
+      // in order to ensure the expanded state is set.
+      newChildrenCache[sp.name] = new StreamProcessorTreeItem({
+        dataService,
+        streamProcessorName: sp.name,
+        streamProcessorState: sp.state,
+        isExpanded: cachedItem ? cachedItem.isExpanded : false,
+      });
+    });
+
+    return newChildrenCache;
   }
 
   onDidCollapse(): void {
@@ -235,7 +287,9 @@ export default class ConnectionTreeItem
     this.cacheIsUpToDate = false;
   }
 
-  getChildrenCache(): { [key: string]: DatabaseTreeItem } {
+  getChildrenCache(): {
+    [key: string]: DatabaseTreeItem | StreamProcessorTreeItem;
+  } {
     return this._childrenCache;
   }
 }
