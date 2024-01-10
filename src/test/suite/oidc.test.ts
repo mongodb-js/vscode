@@ -31,13 +31,13 @@ function hash(input: string): string {
 // path in our tests - they run inside a vscode process
 const browserShellCommand = process.env.BROWSER_AUTH_COMMAND;
 
-const clusters = new Map<string, MongoCluster>();
+const UNIQUE_TASK_ID =
+  process.env.GITHUB_RUN_ID && process.env.GITHUB_RUN_NUMBER
+    ? `${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_NUMBER}`
+    : '';
 const defaultClusterOptions: MongoClusterOptions = {
   topology: 'standalone',
-  tmpDir: path.join(
-    os.tmpdir(),
-    `vscode-tests-${hash(process.env.EVERGREEN_TASK_ID ?? '')}`
-  ),
+  tmpDir: path.join(os.tmpdir(), `vscode-tests-${hash(UNIQUE_TASK_ID)}-data`),
   logDir: process.env.MONGODB_RUNNER_LOGDIR,
   version: process.env.MONGODB_VERSION,
 };
@@ -51,21 +51,6 @@ const DEFAULT_TOKEN_PAYLOAD = {
     aud: 'resource-server-audience-value',
   },
 };
-
-export async function startTestServer(
-  config: Partial<MongoClusterOptions> & { alwaysStartNewServer?: boolean } = {}
-): Promise<MongoCluster> {
-  const key = JSON.stringify(config);
-  const existing = !config.alwaysStartNewServer && clusters.get(key);
-  if (existing && !existing.isClosed()) return existing;
-  const cluster = await MongoCluster.start({
-    ...defaultClusterOptions,
-    ...config,
-  });
-
-  clusters.set(key, cluster);
-  return cluster;
-}
 
 suite('OIDC Tests', function () {
   this.timeout(50000);
@@ -134,7 +119,8 @@ suite('OIDC Tests', function () {
       authNamePrefix: 'dev',
     };
 
-    cluster = await startTestServer({
+    cluster = await MongoCluster.start({
+      ...defaultClusterOptions,
       version: '7.0.x',
       downloadOptions: { enterprise: true },
       args: [
