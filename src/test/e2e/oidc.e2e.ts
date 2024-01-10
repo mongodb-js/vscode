@@ -10,9 +10,10 @@ import { OIDCMockProvider } from '@mongodb-js/oidc-mock-provider';
 import { type OIDCMockProviderConfig } from '@mongodb-js/oidc-mock-provider';
 
 import {
-  connectWithConnectionString,
+  connectWithConnectionStringUsingWebviewForm,
   connectWithConnectionStringUsingCommand,
 } from './commands';
+import { openMongoDbShell } from './commands/open-mongodb-shell';
 
 function hash(input: string): string {
   return createHash('sha256').update(input).digest('hex').slice(0, 12);
@@ -138,12 +139,32 @@ suite('OIDC tests', () => {
     if (tmpdir) await fs.rmdir(tmpdir, { recursive: true });
   });
 
-  // Because it does not work for the reasons mentioned in the method itself
-  test.skip('should connect successfully with a connection string (UI based)', async function () {
-    await connectWithConnectionString(browser, connectionString);
+  test('should connect successfully with a connection string (UI based)', async function () {
+    const workbench = await browser.getWorkbench();
+    const webview = await connectWithConnectionStringUsingWebviewForm(
+      browser,
+      connectionString
+    );
+
+    // Need to close the webview otherwise the browser selectors will continue targeting it.
+    await webview.close();
+
+    // Check if we have connection successful notification
+    await browser.waitUntil(
+      async () => {
+        const notifs = await workbench.getNotifications();
+        const messages = await Promise.all(notifs.map((n) => n.getMessage()));
+        return messages.includes('MongoDB connection successful.');
+      },
+      {
+        timeoutMsg: 'Could not find connection successful notification',
+      }
+    );
+
+    await openMongoDbShell(browser);
   });
 
-  test('should connect successfully with a connection string', async function () {
+  test.skip('should connect successfully with a connection string', async function () {
     // Unable to use this assert just one call because of the reason mentioned
     // below
 

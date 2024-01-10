@@ -1,5 +1,7 @@
 import WaitUtils from 'wdio-wait-for';
 import type { browser as wdioBrowser } from '@wdio/globals';
+import { openMongoDBOverviewPage } from './open-mongodb-overview-page';
+import { setInputValue } from './set-input-value';
 
 export async function connectWithConnectionStringUsingCommand(
   browser: typeof wdioBrowser,
@@ -36,6 +38,9 @@ export async function connectWithConnectionString(
   // asks for connection string hence this can't be used to type in connection
   // string unfortunately.
 
+  // Closing the webview also closes the connection string native popup for some reasons. :(
+  // await mongodbWebView.close();
+
   // const activeElementHandle = await browser.getActiveElement();
   // const activeElement = await browser.$(activeElementHandle);
   // await activeElement.waitForDisplayed();
@@ -48,4 +53,40 @@ export async function connectWithConnectionString(
   // const editorElementFromBrowser = await
   // browser.$('div.monaco-inputbox input'); const editorElement = await
   // workbench.elem.$('div.monaco-inputbox input');
+}
+
+export async function connectWithConnectionStringUsingWebviewForm(
+  browser: typeof wdioBrowser,
+  connectionString: string
+) {
+  const webview = await openMongoDBOverviewPage(browser);
+  const openConnectionFormBtn = await browser.$(
+    '[data-testid="open-connection-form-btn"]'
+  );
+  await openConnectionFormBtn.waitForClickable();
+  await openConnectionFormBtn.click({ button: 0 });
+
+  const connectionStringInput = await browser.$(
+    '[data-testid="connectionString"]'
+  );
+  await setInputValue(browser, connectionStringInput, connectionString);
+
+  const connectBtn = await browser.$('[data-testid="connect-button"]');
+  await connectBtn.waitForClickable();
+  await connectBtn.click({ button: 0 });
+
+  await browser.waitUntil(
+    async () => {
+      const connectionFormModal = await browser.$(
+        '[data-testid="connection-form-modal"]'
+      );
+      const isDisplayed = await connectionFormModal.isDisplayed();
+      return !isDisplayed;
+    },
+    {
+      timeoutMsg: 'Connection Form modal still present',
+    }
+  );
+
+  return webview;
 }
