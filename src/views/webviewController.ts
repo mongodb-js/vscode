@@ -1,17 +1,13 @@
 import * as vscode from 'vscode';
 import path from 'path';
 import crypto from 'crypto';
-import type { ConnectionInfo } from 'mongodb-data-service-legacy';
+import type { ConnectionOptions } from 'mongodb-data-service';
 
 import type ConnectionController from '../connectionController';
 import { ConnectionTypes } from '../connectionController';
-import type LegacyConnectionModel from './webview-app/legacy/connection-model/legacy-connection-model';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
-import type {
-  MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
-  OpenFilePickerMessage,
-} from './webview-app/extension-app-message-constants';
+import type { MESSAGE_FROM_WEBVIEW_TO_EXTENSION } from './webview-app/extension-app-message-constants';
 import {
   MESSAGE_TYPES,
   VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
@@ -25,16 +21,6 @@ const log = createLogger('webview controller');
 
 const getNonce = () => {
   return crypto.randomBytes(16).toString('base64');
-};
-
-const openFileOptions = {
-  canSelectFiles: true,
-  canSelectFolders: false,
-  canSelectMany: false, // Can be overridden.
-  openLabel: 'Open',
-  filters: {
-    'All files': ['*'],
-  },
 };
 
 export const getReactAppUri = (
@@ -110,57 +96,18 @@ export default class WebviewController {
     this._themeChangedSubscription?.dispose();
   }
 
-  // TODO: VSCODE-491 - Remove this entirely when getting rid of legacy
-  handleWebviewLegacyConnectAttempt = async (
-    panel: vscode.WebviewPanel,
-    rawConnectionModel: LegacyConnectionModel,
-    connectionAttemptId: string
-  ): Promise<void> => {
-    try {
-      const connectionInfo =
-        this._connectionController.parseNewConnection(rawConnectionModel);
-      const { successfullyConnected, connectionErrorMessage } =
-        await this._connectionController.saveNewConnectionAndConnect(
-          connectionInfo,
-          ConnectionTypes.CONNECTION_FORM
-        );
-
-      try {
-        // The webview may have been closed in which case this will throw.
-        void panel.webview.postMessage({
-          command: MESSAGE_TYPES.CONNECT_RESULT,
-          connectionAttemptId,
-          connectionSuccess: successfullyConnected,
-          connectionMessage: successfullyConnected
-            ? `Successfully connected to ${this._connectionController.getActiveConnectionName()}.`
-            : connectionErrorMessage,
-        });
-      } catch (err) {
-        log.error('Unable to send connection result to webview', err);
-      }
-    } catch (error) {
-      void vscode.window.showErrorMessage(
-        `Unable to load connection: ${error}`
-      );
-
-      void panel.webview.postMessage({
-        command: MESSAGE_TYPES.CONNECT_RESULT,
-        connectionAttemptId,
-        connectionSuccess: false,
-        connectionMessage: `Unable to load connection: ${error}`,
-      });
-    }
-  };
-
   handleWebviewConnectAttempt = async (
     panel: vscode.WebviewPanel,
-    connectionInfo: ConnectionInfo,
+    connection: {
+      connectionOptions: ConnectionOptions;
+      id: string;
+    },
     connectionAttemptId: string
   ) => {
     try {
       const { successfullyConnected, connectionErrorMessage } =
         await this._connectionController.saveNewConnectionAndConnect(
-          connectionInfo,
+          connection,
           ConnectionTypes.CONNECTION_FORM
         );
 
@@ -189,24 +136,6 @@ export default class WebviewController {
         connectionMessage: `Unable to load connection: ${error}`,
       });
     }
-  };
-
-  handleWebviewOpenFilePickerRequest = async (
-    message: OpenFilePickerMessage,
-    panel: vscode.WebviewPanel
-  ): Promise<void> => {
-    const files = await vscode.window.showOpenDialog({
-      ...openFileOptions,
-      canSelectMany: message.multi,
-    });
-    void panel.webview.postMessage({
-      command: MESSAGE_TYPES.FILE_PICKER_RESULTS,
-      action: message.action,
-      files:
-        files && files.length > 0
-          ? files.map((file) => file.fsPath)
-          : undefined,
-    });
   };
 
   // eslint-disable-next-line complexity
@@ -215,14 +144,6 @@ export default class WebviewController {
     panel: vscode.WebviewPanel
   ): Promise<void> => {
     switch (message.command) {
-      // TODO: VSCODE-491 - Remove this case entirely when getting rid of legacy
-      case MESSAGE_TYPES.LEGACY_CONNECT:
-        await this.handleWebviewLegacyConnectAttempt(
-          panel,
-          message.connectionModel,
-          message.connectionAttemptId
-        );
-        return;
       case MESSAGE_TYPES.CONNECT:
         await this.handleWebviewConnectAttempt(
           panel,
@@ -245,9 +166,6 @@ export default class WebviewController {
           activeConnectionName:
             this._connectionController.getActiveConnectionName(),
         });
-        return;
-      case MESSAGE_TYPES.OPEN_FILE_PICKER:
-        await this.handleWebviewOpenFilePickerRequest(message, panel);
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
         void vscode.commands.executeCommand(

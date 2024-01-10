@@ -3,16 +3,12 @@ import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import { expect } from 'chai';
 
-import AUTH_STRATEGY_VALUES from '../../../views/webview-app/legacy/connection-model/constants/auth-strategies';
 import { StorageController, StorageVariables } from '../../../storage';
 import {
   StorageLocation,
   DefaultSavingLocations,
   SecretStorageLocation,
 } from '../../../storage/storageController';
-import READ_PREFERENCES from '../../../views/webview-app/legacy/connection-model/constants/read-preferences';
-import SSH_TUNNEL_TYPES from '../../../views/webview-app/legacy/connection-model/constants/ssh-tunnel-types';
-import SSL_METHODS from '../../../views/webview-app/legacy/connection-model/constants/ssl-methods';
 import { ExtensionContextStub } from '../stubs';
 import {
   TEST_DATABASE_URI,
@@ -260,11 +256,11 @@ suite('Connection Storage Test Suite', function () {
         hosts: [{ host: 'localhost', port: 27017 }],
         extraOptions: {},
         connectionType: 'NODE_DRIVER',
-        authStrategy: AUTH_STRATEGY_VALUES.NONE,
-        readPreference: READ_PREFERENCES.PRIMARY,
+        authStrategy: 'NONE',
+        readPreference: 'primary',
         kerberosCanonicalizeHostname: false,
-        sslMethod: SSL_METHODS.NONE,
-        sshTunnel: SSH_TUNNEL_TYPES.NONE,
+        sslMethod: 'NONE',
+        sshTunnel: 'NONE',
         sshTunnelPort: 22,
       },
     };

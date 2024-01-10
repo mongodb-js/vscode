@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { ConnectionInfo } from 'mongodb-data-service-legacy';
+import type { ConnectionOptions } from 'mongodb-data-service';
 import {
   sendConnectToExtension,
   sendCancelConnectToExtension,
@@ -45,14 +45,17 @@ export default function useConnectionForm() {
     handleCancelConnectClicked: () => {
       sendCancelConnectToExtension();
     },
-    handleConnectClicked: (connectionInfo: ConnectionInfo) => {
+    handleConnectClicked: (connectionAttempt: {
+      id: string;
+      connectionOptions: ConnectionOptions;
+    }) => {
       // Clears the error message from previous connect attempt
       setConnectionErrorMessage('');
 
       const nextAttemptId = uuidv4();
       setConnectionAttemptId(nextAttemptId);
       setIsConnecting(true);
-      sendConnectToExtension(connectionInfo, nextAttemptId);
+      sendConnectToExtension(connectionAttempt, nextAttemptId);
     },
   };
 }

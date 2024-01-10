@@ -3,7 +3,7 @@ import { connect, createConnectionAttempt } from 'mongodb-data-service';
 import type {
   DataService,
   ConnectionAttempt,
-  ConnectionOptions as ConnectionOptionsFromCurrentDS,
+  ConnectionOptions,
 } from 'mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
@@ -11,20 +11,12 @@ import type { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { cloneDeep, merge } from 'lodash';
 import { mongoLogId } from 'mongodb-log-writer';
-import type {
-  ConnectionInfo as ConnectionInfoFromLegacyDS,
-  ConnectionOptions as ConnectionOptionsFromLegacyDS,
-} from 'mongodb-data-service-legacy';
-import {
-  extractSecrets,
-  convertConnectionModelToInfo,
-} from 'mongodb-data-service-legacy';
+import { extractSecrets } from '@mongodb-js/connection-info';
 import { adjustConnectionOptionsBeforeConnect } from '@mongodb-js/connection-form';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import formatError from './utils/formatError';
-import type LegacyConnectionModel from './views/webview-app/legacy/connection-model/legacy-connection-model';
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
 import type TelemetryService from './telemetry/telemetryService';
@@ -74,13 +66,6 @@ type RecursivePartial<T> = {
     ? RecursivePartial<T[P]>
     : T[P];
 };
-
-export function launderConnectionOptionTypeFromLegacyToCurrent(
-  opts: ConnectionOptionsFromLegacyDS
-): ConnectionOptionsFromCurrentDS {
-  // Ensure that, at most, the types for OIDC mismatch here.
-  return opts as Omit<typeof opts, 'oidc'>;
-}
 
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
@@ -244,25 +229,19 @@ export default class ConnectionController {
     );
   }
 
-  parseNewConnection(
-    rawConnectionModel: LegacyConnectionModel
-  ): ConnectionInfoFromLegacyDS {
-    return convertConnectionModelToInfo({
-      ...rawConnectionModel,
-      appname: `${packageJSON.name} ${packageJSON.version}`, // Override the default connection appname.
-    });
-  }
-
   async saveNewConnectionAndConnect(
-    originalConnectionInfo: ConnectionInfoFromLegacyDS,
+    connection: {
+      connectionOptions: ConnectionOptions;
+      id: string;
+    },
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
     const savedConnectionWithoutSecrets =
-      await this._connectionStorage.saveNewConnection(originalConnectionInfo);
+      await this._connectionStorage.saveNewConnection(connection);
 
     this._connections[savedConnectionWithoutSecrets.id] = {
       ...savedConnectionWithoutSecrets,
-      connectionOptions: originalConnectionInfo.connectionOptions, // The connection options with secrets.
+      connectionOptions: connection.connectionOptions, // The connection options with secrets.
     };
 
     log.info(
@@ -326,9 +305,7 @@ export default class ConnectionController {
     let dataService;
     try {
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
-        connectionOptions: launderConnectionOptionTypeFromLegacyToCurrent(
-          connectionInfo.connectionOptions
-        ),
+        connectionOptions: connectionInfo.connectionOptions,
         defaultAppName: packageJSON.name,
         notifyDeviceFlow: undefined,
         preferences: {
