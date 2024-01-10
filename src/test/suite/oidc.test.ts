@@ -77,7 +77,6 @@ suite('OIDC Tests', function () {
   let oidcMockProvider: OIDCMockProvider;
   let oidcMockProviderEndpointAccesses: Record<string, number>;
 
-  let i = 0;
   let tmpdir: string;
   let cluster: MongoCluster;
   let connectionString: string;
@@ -105,10 +104,7 @@ suite('OIDC Tests', function () {
     };
     oidcMockProvider = await OIDCMockProvider.create(oidcMockProviderConfig);
 
-    tmpdir = path.join(
-      os.tmpdir(),
-      `vscode-oidc-${Date.now().toString(32)}-${++i}`
-    );
+    tmpdir = path.join(os.tmpdir(), `vscode-oidc-${Date.now().toString(32)}`);
     await fs.mkdir(path.join(tmpdir, 'db'), { recursive: true });
     const serverOidcConfig = {
       issuer: oidcMockProvider.issuer,
