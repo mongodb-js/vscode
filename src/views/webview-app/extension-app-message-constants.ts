@@ -15,6 +15,7 @@ export enum MESSAGE_TYPES {
   CONNECT = 'CONNECT',
   CANCEL_CONNECT = 'CANCEL_CONNECT',
   CONNECT_RESULT = 'CONNECT_RESULT',
+  CONNECTION_FORM_OPENED = 'CONNECTION_FORM_OPENED',
   CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
   EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
   CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
@@ -31,6 +32,10 @@ interface BasicWebviewMessage {
 
 export interface CreateNewPlaygroundMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CREATE_NEW_PLAYGROUND;
+}
+
+export interface ConnectionFormOpenedMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.CONNECTION_FORM_OPENED;
 }
 
 export interface ConnectionStatusMessage extends BasicWebviewMessage {
@@ -90,6 +95,7 @@ export interface ThemeChangedMessage extends BasicWebviewMessage {
 export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | ConnectMessage
   | CancelConnectMessage
+  | ConnectionFormOpenedMessage
   | CreateNewPlaygroundMessage
   | GetConnectionStatusMessage
   | LinkClickedMessage

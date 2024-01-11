@@ -90,6 +90,8 @@ export default class ConnectionController {
   private _currentConnectionId: null | string = null;
 
   _connectionAttempt: null | ConnectionAttempt = null;
+  _connectionStringInputCancellationToken: null | vscode.CancellationTokenSource =
+    null;
   private _connectingConnectionId: null | string = null;
   private _disconnecting = false;
 
@@ -144,33 +146,44 @@ export default class ConnectionController {
 
     log.info('connectWithURI command called');
 
+    const cancellationToken = new vscode.CancellationTokenSource();
+    this._connectionStringInputCancellationToken = cancellationToken;
+
     try {
-      connectionString = await vscode.window.showInputBox({
-        value: '',
-        ignoreFocusOut: true,
-        placeHolder:
-          'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
-        prompt: 'Enter your connection string (SRV or standard)',
-        validateInput: (uri: string) => {
-          if (
-            !uri.startsWith('mongodb://') &&
-            !uri.startsWith('mongodb+srv://')
-          ) {
-            return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
-          }
+      connectionString = await vscode.window.showInputBox(
+        {
+          value: '',
+          ignoreFocusOut: true,
+          placeHolder:
+            'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
+          prompt: 'Enter your connection string (SRV or standard)',
+          validateInput: (uri: string) => {
+            if (
+              !uri.startsWith('mongodb://') &&
+              !uri.startsWith('mongodb+srv://')
+            ) {
+              return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
+            }
 
-          try {
-            // eslint-disable-next-line no-new
-            new ConnectionString(uri);
-          } catch (error) {
-            return formatError(error).message;
-          }
+            try {
+              // eslint-disable-next-line no-new
+              new ConnectionString(uri);
+            } catch (error) {
+              return formatError(error).message;
+            }
 
-          return null;
+            return null;
+          },
         },
-      });
+        cancellationToken.token
+      );
     } catch (e) {
       return false;
+    } finally {
+      if (this._connectionStringInputCancellationToken === cancellationToken) {
+        this._connectionStringInputCancellationToken.dispose();
+        this._connectionStringInputCancellationToken = null;
+      }
     }
 
     if (!connectionString) {
@@ -685,6 +698,10 @@ export default class ConnectionController {
     listener: () => void
   ): void {
     this.eventEmitter.removeListener(eventType, listener);
+  }
+
+  closeConnectionStringInput() {
+    this._connectionStringInputCancellationToken?.cancel();
   }
 
   isConnecting(): boolean {

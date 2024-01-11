@@ -4,6 +4,7 @@ import type { ConnectionOptions } from 'mongodb-data-service';
 import {
   sendConnectToExtension,
   sendCancelConnectToExtension,
+  sendFormOpenedToExtension,
 } from './vscode-api';
 import { MESSAGE_TYPES } from './extension-app-message-constants';
 import type { MESSAGE_FROM_EXTENSION_TO_WEBVIEW } from './extension-app-message-constants';
@@ -37,7 +38,10 @@ export default function useConnectionForm() {
     connectionFormOpened,
     isConnecting,
     connectionErrorMessage,
-    openConnectionForm: () => setConnectionFormOpened(true),
+    openConnectionForm: () => {
+      setConnectionFormOpened(true);
+      sendFormOpenedToExtension();
+    },
     closeConnectionForm: () => {
       setConnectionFormOpened(false);
       setConnectionErrorMessage('');
