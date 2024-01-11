@@ -644,15 +644,18 @@
         },
         {
           "command": "mdb.startStreamProcessor",
-          "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem",
+          "group": "6@1"
         },
         {
           "command": "mdb.stopStreamProcessor",
-          "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem",
+          "group": "6@2"
         },
         {
           "command": "mdb.dropStreamProcessor",
-          "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem"
+          "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem",
+          "group": "6@3"
         }
       ],
       "editor/title": [
