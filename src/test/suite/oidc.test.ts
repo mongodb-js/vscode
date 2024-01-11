@@ -1,6 +1,7 @@
 import os from 'os';
 import path from 'path';
-import assert from 'assert';
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import fs from 'fs/promises';
 import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
@@ -22,6 +23,8 @@ import { ConnectionString } from 'mongodb-connection-string-url';
 
 import launchMongoShell from '../../commands/launchMongoShell';
 import { getFullRange } from './suggestTestHelpers';
+
+chai.use(chaiAsPromised);
 
 function hash(input: string): string {
   return createHash('sha256').update(input).digest('hex').slice(0, 12);
@@ -182,36 +185,30 @@ suite('OIDC Tests', function () {
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
       );
-    assert.strictEqual(succesfullyConnected, true);
+    expect(succesfullyConnected).to.be.true;
 
     await launchMongoShell(testConnectionController);
-    assert.strictEqual(createTerminalStub.called, true);
+    expect(createTerminalStub).to.be.called;
 
     const terminalOptions: vscode.TerminalOptions =
       createTerminalStub.firstCall.args[0];
     const terminalConnectionString = terminalOptions.env?.MDB_CONNECTION_STRING;
+
     if (!terminalConnectionString) {
-      assert.fail('Terminal connection string not found');
+      expect.fail('Terminal connection string not found');
     }
     const terminalCsWithoutAppName = new ConnectionString(
       terminalConnectionString
     );
     terminalCsWithoutAppName.searchParams.delete('appname');
 
-    assert.strictEqual(
-      terminalCsWithoutAppName.toString(),
-      connectionString,
-      `Expected open terminal to set shell arg as driver url "${connectionString}" found "${terminalCsWithoutAppName}"`
-    );
+    expect(terminalCsWithoutAppName.toString()).to.equal(connectionString);
 
     const shellCommandText = sendTextStub.firstCall.args[0];
-    assert.strictEqual(shellCommandText, 'mongosh $MDB_CONNECTION_STRING;');
+    expect(shellCommandText).to.equal('mongosh $MDB_CONNECTION_STRING;');
 
     // Required for shell to share the OIDC state
-    assert.notStrictEqual(
-      terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE,
-      undefined
-    );
+    expect(terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE).to.not.be.undefined;
   });
 
   test('it persists tokens for further attempt if the settings is set to true', async function () {
@@ -224,24 +221,23 @@ suite('OIDC Tests', function () {
       return DEFAULT_TOKEN_PAYLOAD;
     };
 
-    assert.strictEqual(
+    expect(
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
-      ),
-      true
-    );
+      )
+    ).to.be.true;
+
     const connectionId = testConnectionController.getActiveConnectionId();
     if (!connectionId) {
-      assert.fail('Connection id not found for active connection');
+      expect.fail('Connection id not found for active connection');
     }
 
     await testConnectionController.disconnect();
 
-    assert.strictEqual(
-      await testConnectionController.connectWithConnectionId(connectionId),
-      true
-    );
-    assert.strictEqual(tokenFetchCalls, 1);
+    expect(
+      await testConnectionController.connectWithConnectionId(connectionId)
+    ).to.be.true;
+    expect(tokenFetchCalls).to.equal(1);
   });
 
   test('it will not persist tokens for further attempt if the settings is set to false', async function () {
@@ -254,25 +250,23 @@ suite('OIDC Tests', function () {
       return DEFAULT_TOKEN_PAYLOAD;
     };
 
-    assert.strictEqual(
+    expect(
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
-      ),
-      true
-    );
+      )
+    ).to.be.true;
 
     const connectionId = testConnectionController.getActiveConnectionId();
     if (!connectionId) {
-      assert.fail('Connection id not found for active connection');
+      expect.fail('Connection id not found for active connection');
     }
 
     await testConnectionController.disconnect();
 
-    assert.strictEqual(
-      await testConnectionController.connectWithConnectionId(connectionId),
-      true
-    );
-    assert.strictEqual(tokenFetchCalls, 2);
+    expect(
+      await testConnectionController.connectWithConnectionId(connectionId)
+    ).to.be.true;
+    expect(tokenFetchCalls).to.equal(2);
   });
 
   test('can cancel a connection attempt and then successfully connect', async function () {
@@ -306,7 +300,7 @@ suite('OIDC Tests', function () {
         connectionString
       );
     emitter.emit('secondConnectionEstablished');
-    assert.strictEqual(connected, true);
+    expect(connected).to.be.true;
   });
 
   test('can successfully re-authenticate', async function () {
@@ -335,11 +329,11 @@ suite('OIDC Tests', function () {
       };
     };
 
-    const connected =
+    expect(
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
-      );
-    assert.strictEqual(connected, true);
+      )
+    ).to.be.true;
     afterReauth = true;
 
     // Wait for auth to expire, our auth expire in 1 second
@@ -351,8 +345,8 @@ suite('OIDC Tests', function () {
     // Wait for reauthentication promise to resolve
     await reAuthPromise;
 
-    assert.strictEqual(tokenFetchCalls, 2);
-    assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
+    expect(tokenFetchCalls).to.equal(2);
+    expect(testConnectionController.isCurrentlyConnected()).to.be.true;
   });
 
   test('can decline re-authentication if wanted', async function () {
@@ -367,11 +361,11 @@ suite('OIDC Tests', function () {
       };
     };
 
-    const connected =
+    expect(
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
-      );
-    assert.strictEqual(connected, true);
+      )
+    ).to.be.true;
     afterReauth = true;
 
     // Wait for auth to expire
@@ -382,15 +376,15 @@ suite('OIDC Tests', function () {
       .getActiveDataService()
       ?.count('x.y', {})
       .catch((error) => {
-        assert.strictEqual(error.message, 'Reauthentication declined by user');
+        expect(error.message).to.equal('Reauthentication declined by user');
       });
 
     // Minor pause
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Because we declined the auth in showInformationMessage above
-    assert.strictEqual(tokenFetchCalls, 1);
-    assert.strictEqual(testConnectionController.isCurrentlyConnected(), false);
+    expect(tokenFetchCalls).to.equal(1);
+    expect(testConnectionController.isCurrentlyConnected()).to.be.false;
   });
 
   test('shares the oidc state also with the playgrounds', async function () {
@@ -400,11 +394,11 @@ suite('OIDC Tests', function () {
       return DEFAULT_TOKEN_PAYLOAD;
     };
 
-    const succesfullyConnected =
+    expect(
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
-      );
-    assert.strictEqual(succesfullyConnected, true);
+      )
+    ).to.be.true;
 
     await vscode.commands.executeCommand('mdb.createPlayground');
 
@@ -422,6 +416,6 @@ suite('OIDC Tests', function () {
     );
     await vscode.workspace.applyEdit(edit);
     await vscode.commands.executeCommand('mdb.runPlayground');
-    assert.strictEqual(tokenFetchCalls, 1);
+    expect(tokenFetchCalls).to.equal(1);
   });
 });
