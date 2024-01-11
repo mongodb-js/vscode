@@ -309,6 +309,7 @@ suite('OIDC Tests', function () {
       testConnectionController._reauthenticationHandler.bind(
         testConnectionController
       );
+    let reAuthCalled = false;
     let resolveReAuthPromise: (value?: unknown) => void;
     const reAuthPromise = new Promise((resolve) => {
       resolveReAuthPromise = resolve;
@@ -316,6 +317,7 @@ suite('OIDC Tests', function () {
     sandbox
       .stub(testConnectionController, '_reauthenticationHandler')
       .callsFake(async () => {
+        reAuthCalled = true;
         resolveReAuthPromise();
         await originalReAuthHandler();
       });
@@ -336,11 +338,10 @@ suite('OIDC Tests', function () {
     ).to.be.true;
     afterReauth = true;
 
-    // Wait for auth to expire, our auth expire in 1 second
-    await new Promise((resolve) => setTimeout(resolve, 1100));
-
     // Trigger a command on data service for reauthentication
-    await testConnectionController.getActiveDataService()?.count('x.y', {});
+    while (reAuthCalled === false) {
+      await testConnectionController.getActiveDataService()?.count('x.y', {});
+    }
 
     // Wait for reauthentication promise to resolve
     await reAuthPromise;
@@ -351,6 +352,22 @@ suite('OIDC Tests', function () {
 
   test('can decline re-authentication if wanted', async function () {
     showInformationMessageStub.resolves('Declined');
+    const originalReAuthHandler =
+      testConnectionController._reauthenticationHandler.bind(
+        testConnectionController
+      );
+    let reAuthCalled = false;
+    let resolveReAuthPromise: (value?: unknown) => void;
+    const reAuthPromise = new Promise((resolve) => {
+      resolveReAuthPromise = resolve;
+    });
+    sandbox
+      .stub(testConnectionController, '_reauthenticationHandler')
+      .callsFake(async () => {
+        reAuthCalled = true;
+        resolveReAuthPromise();
+        await originalReAuthHandler();
+      });
     let tokenFetchCalls = 0;
     let afterReauth = false;
     getTokenPayload = () => {
@@ -368,19 +385,17 @@ suite('OIDC Tests', function () {
     ).to.be.true;
     afterReauth = true;
 
-    // Wait for auth to expire
-    await new Promise((resolve) => setTimeout(resolve, 1100));
-
     // Trigger a command on data service for reauthentication
-    await testConnectionController
-      .getActiveDataService()
-      ?.count('x.y', {})
-      .catch((error) => {
-        expect(error.message).to.equal('Reauthentication declined by user');
-      });
+    while (reAuthCalled === false) {
+      await testConnectionController
+        .getActiveDataService()
+        ?.count('x.y', {})
+        .catch((error) => {
+          expect(error.message).to.equal('Reauthentication declined by user');
+        });
+    }
 
-    // Minor pause
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await reAuthPromise;
 
     // Because we declined the auth in showInformationMessage above
     expect(tokenFetchCalls).to.equal(1);
