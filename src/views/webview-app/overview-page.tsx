@@ -30,12 +30,14 @@ const pageStyles = css({
 const OverviewPage: React.FC = () => {
   const [showResourcesPanel, setShowResourcesPanel] = useState(false);
   const {
+    initialConnectionInfo,
     isConnecting,
     connectionFormOpened,
     openConnectionForm,
     closeConnectionForm,
     connectionErrorMessage,
     handleCancelConnectClicked,
+    handleSaveConnectionClicked,
     handleConnectClicked,
   } = useConnectionForm();
   const handleResourcesPanelClose = useCallback(
@@ -61,6 +63,13 @@ const OverviewPage: React.FC = () => {
       {connectionFormOpened && (
         <ConnectionForm
           isConnecting={isConnecting}
+          initialConnectionInfo={initialConnectionInfo}
+          onSaveConnectionClicked={({ id, connectionOptions }) =>
+            handleSaveConnectionClicked({
+              id,
+              connectionOptions,
+            })
+          }
           onCancelConnectClicked={handleCancelConnectClicked}
           onConnectClicked={({ id, connectionOptions }) =>
             handleConnectClicked({

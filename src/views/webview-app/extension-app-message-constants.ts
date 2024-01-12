@@ -17,6 +17,8 @@ export enum MESSAGE_TYPES {
   CONNECT_RESULT = 'CONNECT_RESULT',
   CONNECTION_FORM_OPENED = 'CONNECTION_FORM_OPENED',
   CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
+  OPEN_EDIT_CONNECTION = 'OPEN_EDIT_CONNECTION',
+  EDIT_AND_CONNECT_CONNECTION = 'EDIT_AND_CONNECT_CONNECTION',
   EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
   CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
   GET_CONNECTION_STATUS = 'GET_CONNECTION_STATUS',
@@ -42,6 +44,21 @@ export interface ConnectionStatusMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE;
   connectionStatus: CONNECTION_STATUS;
   activeConnectionName: string;
+}
+
+export interface OpenEditConnectionMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION;
+  connection: {
+    id: string;
+    name: string;
+    connectionOptions: ConnectionOptions;
+  };
+}
+
+export interface EditAndConnectConnection extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION;
+  connectionOptions: ConnectionOptions;
+  connectionId: string;
 }
 
 export interface ConnectMessage extends BasicWebviewMessage {
@@ -101,9 +118,11 @@ export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | LinkClickedMessage
   | OpenConnectionStringInputMessage
   | OpenTrustedLinkMessage
-  | RenameConnectionMessage;
+  | RenameConnectionMessage
+  | EditAndConnectConnection;
 
 export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
   | ConnectResultsMessage
   | ConnectionStatusMessage
-  | ThemeChangedMessage;
+  | ThemeChangedMessage
+  | OpenEditConnectionMessage;

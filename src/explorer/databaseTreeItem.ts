@@ -214,7 +214,7 @@ export default class DatabaseTreeItem
       });
     } catch (e) {
       return Promise.reject(
-        new Error(`An error occured parsing the database name: ${e}`)
+        new Error(`An error occurred parsing the database name: ${e}`)
       );
     }
 

@@ -211,15 +211,13 @@ export default class ConnectionController {
     );
 
     try {
-      const connectResult = await this.saveNewConnectionAndConnect(
-        {
-          id: uuidv4(),
-          connectionOptions: {
-            connectionString: connectionStringData.toString(),
-          },
+      const connectResult = await this.saveNewConnectionAndConnect({
+        connectionId: uuidv4(),
+        connectionOptions: {
+          connectionString: connectionStringData.toString(),
         },
-        ConnectionTypes.CONNECTION_STRING
-      );
+        connectionType: ConnectionTypes.CONNECTION_STRING,
+      });
 
       return connectResult.successfullyConnected;
     } catch (error) {
@@ -242,33 +240,44 @@ export default class ConnectionController {
     );
   }
 
-  async saveNewConnectionAndConnect(
-    connection: {
-      connectionOptions: ConnectionOptions;
-      id: string;
-    },
-    connectionType: ConnectionTypes
-  ): Promise<ConnectionAttemptResult> {
-    const savedConnectionWithoutSecrets =
-      await this._connectionStorage.saveNewConnection(connection);
+  async saveNewConnectionAndConnect({
+    connectionOptions,
+    connectionId,
+    connectionType,
+  }: {
+    connectionOptions: ConnectionOptions;
+    connectionId: string;
+    connectionType: ConnectionTypes;
+  }): Promise<ConnectionAttemptResult> {
+    const connection = this._connectionStorage.createNewConnection({
+      connectionId,
+      connectionOptions,
+    });
 
-    this._connections[savedConnectionWithoutSecrets.id] = {
-      ...savedConnectionWithoutSecrets,
-      connectionOptions: connection.connectionOptions, // The connection options with secrets.
-    };
-
-    log.info(
-      'Connect called to connect to instance',
-      savedConnectionWithoutSecrets.name
-    );
-
-    return this._connect(savedConnectionWithoutSecrets.id, connectionType);
+    return this.saveAndConnect(connection, connectionType);
   }
 
+  async saveAndConnect(
+    connection: LoadedConnection,
+    connectionType: ConnectionTypes
+  ) {
+    await this._connectionStorage.saveConnection(connection);
+
+    this._connections[connection.id] = cloneDeep(connection);
+
+    return this._connect(connection.id, connectionType);
+  }
+
+  // eslint-disable-next-line complexity
   async _connect(
     connectionId: string,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
+    log.info(
+      'Connect called to connect to instance',
+      this._connections[connectionId]?.name || 'empty connection name'
+    );
+
     // Cancel the current connection attempt if we're connecting.
     this._connectionAttempt?.cancelConnectionAttempt();
 
@@ -553,7 +562,7 @@ export default class ConnectionController {
     } catch (error) {
       // Show an error, however we still reset the active connection to free up the extension.
       void vscode.window.showErrorMessage(
-        'An error occured while disconnecting from the current connection.'
+        'An error occurred while disconnecting from the current connection.'
       );
     }
 
@@ -645,6 +654,50 @@ export default class ConnectionController {
     const connectionIdToRemove = connectionIds[connectionIndexToRemove];
 
     return this.removeMongoDBConnection(connectionIdToRemove);
+  }
+
+  async updateConnection({
+    connectionId,
+    connectionOptions,
+  }: {
+    connectionId: string;
+    connectionOptions: ConnectionOptions;
+  }): Promise<boolean> {
+    if (!this._connections[connectionId]) {
+      throw new Error('Cannot find connection to update.');
+    }
+
+    this._connections[connectionId] = {
+      ...this._connections[connectionId],
+      connectionOptions,
+    };
+    await this._connectionStorage.saveConnection(
+      this._connections[connectionId]
+    );
+
+    return true;
+  }
+
+  async updateConnectionAndConnect({
+    connectionId,
+    connectionOptions,
+  }: {
+    connectionId: string;
+    connectionOptions: ConnectionOptions;
+  }): Promise<boolean> {
+    if (!this._connections[connectionId]) {
+      throw new Error('Cannot find connection to update.');
+    }
+
+    this._connections[connectionId] = {
+      ...this._connections[connectionId],
+      connectionOptions,
+    };
+    await this._connectionStorage.saveConnection(
+      this._connections[connectionId]
+    );
+
+    return await this.connectWithConnectionId(connectionId);
   }
 
   async renameConnection(connectionId: string): Promise<boolean> {
@@ -742,6 +795,20 @@ export default class ConnectionController {
     return this._connections[this._currentConnectionId]
       ? this._connections[this._currentConnectionId].name
       : '';
+  }
+
+  getConnectionConnectionOptions(
+    connectionId: string
+  ): ConnectionOptions | undefined {
+    const connectionStringWithoutAppName = new ConnectionString(
+      this._connections[connectionId]?.connectionOptions.connectionString
+    );
+    connectionStringWithoutAppName.searchParams.delete('appname');
+
+    return {
+      ...this._connections[connectionId]?.connectionOptions,
+      connectionString: connectionStringWithoutAppName.toString(),
+    };
   }
 
   _getConnectionStringWithProxy({
