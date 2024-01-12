@@ -157,12 +157,14 @@ export default class WebviewController {
         this._connectionController.cancelConnectionAttempt();
         return;
       case MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION:
-        this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED);
-        await this._connectionController.updateConnectionAndConnect({
-          connectionId: message.connectionId,
-          connectionOptions: message.connectionOptions,
+        const success =
+          await this._connectionController.updateConnectionAndConnect({
+            connectionId: message.connectionId,
+            connectionOptions: message.connectionOptions,
+          });
+        this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED, {
+          success,
         });
-        // TODO: telemetry for success / failure
         return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         void vscode.commands.executeCommand(
