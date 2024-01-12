@@ -593,6 +593,27 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(name, 'new connection name');
   });
 
+  test('close connection string input calls to cancel the cancellation token', function (done) {
+    const inputBoxResolvesStub = sandbox.stub();
+    inputBoxResolvesStub.callsFake(() => {
+      try {
+        const cancellationToken = inputBoxResolvesStub.firstCall.args[1];
+        assert.strictEqual(cancellationToken.isCancellationRequested, false);
+
+        testConnectionController.closeConnectionStringInput();
+
+        assert.strictEqual(cancellationToken.isCancellationRequested, true);
+      } catch (err) {
+        done(err);
+      }
+
+      done();
+    });
+    sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+
+    void testConnectionController.connectWithURI();
+  });
+
   test('ConnectionQuickPicks workspace connections list is displayed in the alphanumerical case insensitive order', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')

@@ -159,6 +159,11 @@ export default class WebviewController {
           EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE
         );
         return;
+      case MESSAGE_TYPES.CONNECTION_FORM_OPENED:
+        // If the connection string input is open we want to close it
+        // when the user opens the form.
+        this._connectionController.closeConnectionStringInput();
+        return;
       case MESSAGE_TYPES.GET_CONNECTION_STATUS:
         void panel.webview.postMessage({
           command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,

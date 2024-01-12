@@ -41,9 +41,15 @@ describe('OverviewPage test suite', function () {
       render(<OverviewPage />);
 
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
+      const postMessageSpy = Sinon.spy(vscode, 'postMessage');
+      expect(postMessageSpy).to.not.be.called;
 
       screen.getByText('Open form').click();
       expect(screen.getByTestId(connectionFormTestId)).to.exist;
+      const message = postMessageSpy.firstCall.args[0];
+      expect(message).to.deep.equal({
+        command: MESSAGE_TYPES.CONNECTION_FORM_OPENED,
+      });
 
       screen.getByLabelText('Close modal').click();
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;

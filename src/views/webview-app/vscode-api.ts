@@ -28,6 +28,14 @@ export const sendCancelConnectToExtension = () => {
   });
 };
 
+// When the form is opened we want to close the connection string
+// input if it's open, so we message the extension.
+export const sendFormOpenedToExtension = () => {
+  vscode.postMessage({
+    command: MESSAGE_TYPES.CONNECTION_FORM_OPENED,
+  });
+};
+
 export const renameActiveConnection = () => {
   vscode.postMessage({
     command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION,
