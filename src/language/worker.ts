@@ -57,7 +57,7 @@ const execute = async (
       onPrint(values: EvaluationResult[]) {
         parentPort?.postMessage({
           name: ServerCommands.SHOW_CONSOLE_OUTPUT,
-          payload: values.map((v) => v.printable),
+          payload: values.map((v) => JSON.parse(EJSON.stringify(v.printable))),
         });
       },
     });
