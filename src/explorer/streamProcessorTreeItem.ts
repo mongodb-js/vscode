@@ -127,7 +127,7 @@ export default class StreamProcessorTreeItem
       });
     } catch (e) {
       return Promise.reject(
-        new Error(`An error occured parsing the stream processor name: ${e}`)
+        new Error(`An error occurred parsing the stream processor name: ${e}`)
       );
     }
 

@@ -156,12 +156,14 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
     // ------ CONNECTION ------ //
-    this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE, () =>
-      this._webviewController.openWebview(this._context)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT, () =>
-      this._webviewController.openWebview(this._context)
-    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE, () => {
+      this._webviewController.openWebview(this._context);
+      return Promise.resolve(true);
+    });
+    this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT, () => {
+      this._webviewController.openWebview(this._context);
+      return Promise.resolve(true);
+    });
     this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, () =>
       this._connectionController.connectWithURI()
     );
@@ -288,9 +290,10 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   registerTreeViewCommands(): void {
-    this.registerCommand(EXTENSION_COMMANDS.MDB_ADD_CONNECTION, () =>
-      this._webviewController.openWebview(this._context)
-    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_ADD_CONNECTION, () => {
+      this._webviewController.openWebview(this._context);
+      return Promise.resolve(true);
+    });
     this.registerCommand(EXTENSION_COMMANDS.MDB_ADD_CONNECTION_WITH_URI, () =>
       this._connectionController.connectWithURI()
     );
@@ -342,6 +345,31 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION_TREE_VIEW,
       (element: ConnectionTreeItem) =>
         this._connectionController.removeMongoDBConnection(element.connectionId)
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_EDIT_CONNECTION,
+      (element: ConnectionTreeItem) => {
+        const connectionOptions =
+          this._connectionController.getConnectionConnectionOptions(
+            element.connectionId
+          );
+
+        if (!connectionOptions) {
+          return Promise.resolve(false);
+        }
+
+        void this._webviewController.openEditConnection({
+          connection: {
+            id: element.connectionId,
+            name: this._connectionController.getSavedConnectionName(
+              element.connectionId
+            ),
+            connectionOptions,
+          },
+          context: this._context,
+        });
+        return Promise.resolve(true);
+      }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_RENAME_CONNECTION,

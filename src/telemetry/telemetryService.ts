@@ -74,6 +74,10 @@ type KeytarSecretsMigrationFailedProperties = {
   connections_with_failed_keytar_migration: number;
 };
 
+type ConnectionEditedTelemetryEventProperties = {
+  success: boolean;
+};
+
 type SavedConnectionsLoadedProperties = {
   // Total number of connections saved on disk
   saved_connections: number;
@@ -92,6 +96,7 @@ export type TelemetryEventProperties =
   | ExtensionCommandRunTelemetryEventProperties
   | NewConnectionTelemetryEventProperties
   | DocumentUpdatedTelemetryEventProperties
+  | ConnectionEditedTelemetryEventProperties
   | DocumentEditedTelemetryEventProperties
   | QueryExportedTelemetryEventProperties
   | PlaygroundCreatedTelemetryEventProperties
@@ -105,6 +110,8 @@ export enum TelemetryEventTypes {
   EXTENSION_LINK_CLICKED = 'Link Clicked',
   EXTENSION_COMMAND_RUN = 'Command Run',
   NEW_CONNECTION = 'New Connection',
+  CONNECTION_EDITED = 'Connection Edited',
+  OPEN_EDIT_CONNECTION = 'Open Edit Connection',
   PLAYGROUND_SAVED = 'Playground Saved',
   PLAYGROUND_LOADED = 'Playground Loaded',
   DOCUMENT_UPDATED = 'Document Updated',

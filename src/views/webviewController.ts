@@ -16,6 +16,7 @@ import { openLink } from '../utils/linkHelper';
 import type { StorageController } from '../storage';
 import type TelemetryService from '../telemetry/telemetryService';
 import { getFeatureFlagsScript } from '../featureFlags';
+import { TelemetryEventTypes } from '../telemetry/telemetryService';
 
 const log = createLogger('webview controller');
 
@@ -106,10 +107,11 @@ export default class WebviewController {
   ) => {
     try {
       const { successfullyConnected, connectionErrorMessage } =
-        await this._connectionController.saveNewConnectionAndConnect(
-          connection,
-          ConnectionTypes.CONNECTION_FORM
-        );
+        await this._connectionController.saveNewConnectionAndConnect({
+          connectionId: connection.id,
+          connectionOptions: connection.connectionOptions,
+          connectionType: ConnectionTypes.CONNECTION_FORM,
+        });
 
       try {
         // The webview may have been closed in which case this will throw.
@@ -153,6 +155,14 @@ export default class WebviewController {
         return;
       case MESSAGE_TYPES.CANCEL_CONNECT:
         this._connectionController.cancelConnectionAttempt();
+        return;
+      case MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION:
+        this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED);
+        await this._connectionController.updateConnectionAndConnect({
+          connectionId: message.connectionId,
+          connectionOptions: message.connectionOptions,
+        });
+        // TODO: telemetry for success / failure
         return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         void vscode.commands.executeCommand(
@@ -204,7 +214,7 @@ export default class WebviewController {
     }
   };
 
-  onRecievedWebviewMessage = async (
+  onReceivedWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel
   ): Promise<void> => {
@@ -212,7 +222,7 @@ export default class WebviewController {
     try {
       await this.handleWebviewMessage(message, panel);
     } catch (err) {
-      log.error('Error occured when parsing message from webview', err);
+      log.error('Error occurred when parsing message from webview', err);
       return;
     }
   };
@@ -242,7 +252,30 @@ export default class WebviewController {
     }
   };
 
-  openWebview(context: vscode.ExtensionContext): Promise<boolean> {
+  openEditConnection = async ({
+    connection,
+    context,
+  }: {
+    connection: {
+      id: string;
+      name?: string;
+      connectionOptions: ConnectionOptions;
+    };
+    context: vscode.ExtensionContext;
+  }) => {
+    const webviewPanel = this.openWebview(context);
+
+    // Wait for the panel to open.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    this._telemetryService.track(TelemetryEventTypes.OPEN_EDIT_CONNECTION);
+
+    void webviewPanel.webview.postMessage({
+      command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION,
+      connection,
+    });
+  };
+
+  openWebview(context: vscode.ExtensionContext): vscode.WebviewPanel {
     log.info('Opening webview...');
     const extensionPath = context.extensionPath;
 
@@ -287,11 +320,11 @@ export default class WebviewController {
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
       (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) =>
-        this.onRecievedWebviewMessage(message, panel),
+        this.onReceivedWebviewMessage(message, panel),
       undefined,
       context.subscriptions
     );
 
-    return Promise.resolve(true);
+    return panel;
   }
 }

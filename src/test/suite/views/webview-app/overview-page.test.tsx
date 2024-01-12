@@ -117,6 +117,32 @@ describe('OverviewPage test suite', function () {
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
     });
 
+    it('should show the connection form and the connection name when an editing request happens', function () {
+      render(<OverviewPage />);
+
+      expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
+      expect(screen.queryByText('pineapple')).to.not.exist;
+
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION,
+              connection: {
+                id: 'test',
+                name: 'pineapple',
+                connectionOptions: {
+                  connectionString: 'mongodb://localhost:27017',
+                },
+              },
+            },
+          })
+        );
+      });
+      expect(screen.getByTestId(connectionFormTestId)).to.exist;
+      expect(screen.getByText('pineapple')).to.exist;
+    });
+
     it('should not display results from other connection attempts', function () {
       render(<OverviewPage />);
       screen.getByText('Open form').click();

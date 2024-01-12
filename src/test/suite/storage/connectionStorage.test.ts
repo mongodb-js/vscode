@@ -20,12 +20,13 @@ import { ConnectionStorage } from '../../../storage/connectionStorage';
 
 const testDatabaseConnectionName = 'localhost:27088';
 
-const newTestConnection = (id: string) => ({
-  id,
-  connectionOptions: {
-    connectionString: TEST_DATABASE_URI,
-  },
-});
+const newTestConnection = (connectionStorage: ConnectionStorage, id: string) =>
+  connectionStorage.createNewConnection({
+    connectionId: id,
+    connectionOptions: {
+      connectionString: TEST_DATABASE_URI,
+    },
+  });
 
 suite('Connection Storage Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
@@ -64,8 +65,12 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
 
-    await testConnectionStorage.saveNewConnection(newTestConnection('1'));
-    await testConnectionStorage.saveNewConnection(newTestConnection('2'));
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, '1')
+    );
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, '2')
+    );
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update(
@@ -73,8 +78,12 @@ suite('Connection Storage Test Suite', function () {
         DefaultSavingLocations.Workspace
       );
 
-    await testConnectionStorage.saveNewConnection(newTestConnection('3'));
-    await testConnectionStorage.saveNewConnection(newTestConnection('4'));
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, '3')
+    );
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, '4')
+    );
 
     const connections = await testConnectionStorage.loadConnections();
 
@@ -94,7 +103,9 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
 
-    await testConnectionStorage.saveNewConnection(newTestConnection('1'));
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, '1')
+    );
 
     const globalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
@@ -123,7 +134,9 @@ suite('Connection Storage Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionStorage.saveNewConnection(newTestConnection('1'));
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, '1')
+    );
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -154,7 +167,9 @@ suite('Connection Storage Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations['Session Only']
       );
-    await testConnectionStorage.saveNewConnection(newTestConnection('1'));
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, '1')
+    );
 
     const objectString = JSON.stringify(undefined);
     const globalStoreConnections = testStorageController.get(
@@ -180,8 +195,8 @@ suite('Connection Storage Test Suite', function () {
         DefaultSavingLocations.Workspace
       );
     const connectionId = 'pie';
-    await testConnectionStorage.saveNewConnection(
-      newTestConnection(connectionId)
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, connectionId)
     );
 
     const workspaceStoreConnections = testStorageController.get(
@@ -205,8 +220,8 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
     const connectionId = 'pineapple';
-    await testConnectionStorage.saveNewConnection(
-      newTestConnection(connectionId)
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, connectionId)
     );
 
     const globalStoreConnections = testStorageController.get(
@@ -233,8 +248,8 @@ suite('Connection Storage Test Suite', function () {
     );
 
     const connectionId = 'pie';
-    await testConnectionStorage.saveNewConnection(
-      newTestConnection(connectionId)
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, connectionId)
     );
 
     await testConnectionStorage.removeConnection(connectionId);
@@ -312,13 +327,17 @@ suite('Connection Storage Test Suite', function () {
       });
 
       test('should be able to load connection with its secrets', async () => {
-        await testConnectionStorage.saveNewConnection(newTestConnection('1'));
-        await testConnectionStorage.saveNewConnection({
-          id: '2',
-          connectionOptions: {
-            connectionString: TEST_DATABASE_URI_USER,
-          },
-        });
+        await testConnectionStorage.saveConnection(
+          newTestConnection(testConnectionStorage, '1')
+        );
+        await testConnectionStorage.saveConnection(
+          testConnectionStorage.createNewConnection({
+            connectionId: '2',
+            connectionOptions: {
+              connectionString: TEST_DATABASE_URI_USER,
+            },
+          })
+        );
 
         // By default the connection secrets are already stored in SecretStorage
         const savedConnections = await testConnectionStorage.loadConnections();
@@ -405,16 +424,16 @@ suite('Connection Storage Test Suite', function () {
         DefaultSavingLocations.Workspace
       );
 
-    await testConnectionStorage.saveNewConnection(
-      newTestConnection('pineapple')
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, 'pineapple')
     );
 
     expect(testConnectionStorage.hasSavedConnections()).to.equal(true);
   });
 
   test('when there are saved global connections, hasSavedConnections returns true', async () => {
-    await testConnectionStorage.saveNewConnection(
-      newTestConnection('pineapple')
+    await testConnectionStorage.saveConnection(
+      newTestConnection(testConnectionStorage, 'pineapple')
     );
 
     expect(testConnectionStorage.hasSavedConnections()).to.equal(true);

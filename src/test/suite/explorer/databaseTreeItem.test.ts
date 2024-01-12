@@ -56,7 +56,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     assert.strictEqual(
       collections.length,
       0,
-      `Expected no collections to be returned, recieved ${collections.length}`
+      `Expected no collections to be returned, received ${collections.length}`
     );
   });
 
@@ -68,7 +68,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     const collections = await testDatabaseTreeItem.getChildren();
     assert(
       collections.length > 0,
-      `Expected more than one collection to be returned, recieved ${collections.length}`
+      `Expected more than one collection to be returned, received ${collections.length}`
     );
 
     assert.strictEqual(

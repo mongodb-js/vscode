@@ -41,6 +41,7 @@ enum EXTENSION_COMMANDS {
   MDB_CONNECT_TO_CONNECTION_TREE_VIEW = 'mdb.connectToConnectionTreeItem',
   MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW = 'mdb.createNewPlaygroundFromTreeView',
   MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW = 'mdb.disconnectFromConnectionTreeItem',
+  MDB_EDIT_CONNECTION = 'mdb.editConnection',
   MDB_REFRESH_CONNECTION = 'mdb.refreshConnection',
   MDB_COPY_CONNECTION_STRING = 'mdb.copyConnectionString',
   MDB_REMOVE_CONNECTION_TREE_VIEW = 'mdb.treeItemRemoveConnection',
