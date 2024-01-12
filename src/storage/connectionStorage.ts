@@ -1,13 +1,10 @@
 import * as vscode from 'vscode';
-import type {
-  ConnectionInfo as ConnectionInfoFromLegacyDS,
-  ConnectionOptions as ConnectionOptionsFromLegacyDS,
-} from 'mongodb-data-service-legacy';
 import {
   getConnectionTitle,
   extractSecrets,
   mergeSecrets,
-} from 'mongodb-data-service-legacy';
+} from '@mongodb-js/connection-info';
+import type { ConnectionOptions } from 'mongodb-data-service';
 
 import { createLogger } from '../logging';
 import type StorageController from './storageController';
@@ -26,7 +23,7 @@ export interface StoreConnectionInfo {
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
   secretStorageLocation?: SecretStorageLocationType;
-  connectionOptions?: ConnectionOptionsFromLegacyDS;
+  connectionOptions?: ConnectionOptions;
 }
 
 type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
@@ -46,16 +43,19 @@ export class ConnectionStorage {
   }
 
   // Returns the saved connection (without secrets).
-  async saveNewConnection(originalConnectionInfo: ConnectionInfoFromLegacyDS) {
-    const name = getConnectionTitle(originalConnectionInfo);
+  async saveNewConnection(connection: {
+    connectionOptions: ConnectionOptions;
+    id: string;
+  }): Promise<LoadedConnection> {
+    const name = getConnectionTitle(connection);
     const newConnectionInfo = {
-      id: originalConnectionInfo.id,
+      id: connection.id,
       name,
       // To begin we just store it on the session, the storage controller
       // handles changing this based on user preference.
       storageLocation: StorageLocation.NONE,
       secretStorageLocation: SecretStorageLocation.SecretStorage,
-      connectionOptions: originalConnectionInfo.connectionOptions,
+      connectionOptions: connection.connectionOptions,
     };
 
     return await this.saveConnectionWithSecrets(newConnectionInfo);
@@ -147,7 +147,7 @@ export class ConnectionStorage {
   ): Promise<LoadedConnection> {
     // We don't want to store secrets to disc.
     const { connectionInfo: safeConnectionInfo, secrets } = extractSecrets(
-      newStoreConnectionInfoWithSecrets as ConnectionInfoFromLegacyDS
+      newStoreConnectionInfoWithSecrets
     );
     const savedConnectionInfo = await this.saveConnection({
       ...newStoreConnectionInfoWithSecrets,

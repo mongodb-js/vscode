@@ -20,6 +20,8 @@ import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTem
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumentTemplate';
 import playgroundInsertDocumentTemplate from '../templates/playgroundInsertDocumentTemplate';
+import playgroundStreamsTemplate from '../templates/playgroundStreamsTemplate';
+import playgroundCreateStreamProcessorTemplate from '../templates/playgroundCreateStreamProcessorTemplate';
 import type {
   PlaygroundResult,
   ShellEvaluateResult,
@@ -391,11 +393,25 @@ export default class PlaygroundController {
     return this._createPlaygroundFileWithContent(content);
   }
 
+  async createPlaygroundForCreateStreamProcessor(
+    element: ConnectionTreeItem
+  ): Promise<boolean> {
+    const content = playgroundCreateStreamProcessorTemplate;
+
+    element.cacheIsUpToDate = false;
+
+    this._telemetryService.trackPlaygroundCreated('createStreamProcessor');
+
+    return this._createPlaygroundFileWithContent(content);
+  }
+
   async createPlayground(): Promise<boolean> {
     const useDefaultTemplate = !!vscode.workspace
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
-    const content = useDefaultTemplate ? playgroundTemplate : '';
+    const isStreams = this._connectionController.isConnectedToAtlasStreams();
+    const template = isStreams ? playgroundStreamsTemplate : playgroundTemplate;
+    const content = useDefaultTemplate ? template : '';
 
     this._telemetryService.trackPlaygroundCreated('crud');
     return this._createPlaygroundFileWithContent(content);

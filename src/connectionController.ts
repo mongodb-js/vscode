@@ -3,7 +3,7 @@ import { connect, createConnectionAttempt } from 'mongodb-data-service';
 import type {
   DataService,
   ConnectionAttempt,
-  ConnectionOptions as ConnectionOptionsFromCurrentDS,
+  ConnectionOptions,
 } from 'mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
@@ -11,20 +11,12 @@ import type { MongoClientOptions } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { cloneDeep, merge } from 'lodash';
 import { mongoLogId } from 'mongodb-log-writer';
-import type {
-  ConnectionInfo as ConnectionInfoFromLegacyDS,
-  ConnectionOptions as ConnectionOptionsFromLegacyDS,
-} from 'mongodb-data-service-legacy';
-import {
-  extractSecrets,
-  convertConnectionModelToInfo,
-} from 'mongodb-data-service-legacy';
+import { extractSecrets } from '@mongodb-js/connection-info';
 import { adjustConnectionOptionsBeforeConnect } from '@mongodb-js/connection-form';
 
 import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import formatError from './utils/formatError';
-import type LegacyConnectionModel from './views/webview-app/legacy/connection-model/legacy-connection-model';
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
 import type TelemetryService from './telemetry/telemetryService';
@@ -32,6 +24,7 @@ import { openLink } from './utils/linkHelper';
 import type { LoadedConnection } from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
+import { isAtlasStream } from 'mongodb-build-info';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -74,13 +67,6 @@ type RecursivePartial<T> = {
     : T[P];
 };
 
-export function launderConnectionOptionTypeFromLegacyToCurrent(
-  opts: ConnectionOptionsFromLegacyDS
-): ConnectionOptionsFromCurrentDS {
-  // Ensure that, at most, the types for OIDC mismatch here.
-  return opts as Omit<typeof opts, 'oidc'>;
-}
-
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
@@ -104,6 +90,8 @@ export default class ConnectionController {
   private _currentConnectionId: null | string = null;
 
   _connectionAttempt: null | ConnectionAttempt = null;
+  _connectionStringInputCancellationToken: null | vscode.CancellationTokenSource =
+    null;
   private _connectingConnectionId: null | string = null;
   private _disconnecting = false;
 
@@ -158,33 +146,44 @@ export default class ConnectionController {
 
     log.info('connectWithURI command called');
 
+    const cancellationToken = new vscode.CancellationTokenSource();
+    this._connectionStringInputCancellationToken = cancellationToken;
+
     try {
-      connectionString = await vscode.window.showInputBox({
-        value: '',
-        ignoreFocusOut: true,
-        placeHolder:
-          'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
-        prompt: 'Enter your connection string (SRV or standard)',
-        validateInput: (uri: string) => {
-          if (
-            !uri.startsWith('mongodb://') &&
-            !uri.startsWith('mongodb+srv://')
-          ) {
-            return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
-          }
+      connectionString = await vscode.window.showInputBox(
+        {
+          value: '',
+          ignoreFocusOut: true,
+          placeHolder:
+            'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
+          prompt: 'Enter your connection string (SRV or standard)',
+          validateInput: (uri: string) => {
+            if (
+              !uri.startsWith('mongodb://') &&
+              !uri.startsWith('mongodb+srv://')
+            ) {
+              return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
+            }
 
-          try {
-            // eslint-disable-next-line no-new
-            new ConnectionString(uri);
-          } catch (error) {
-            return formatError(error).message;
-          }
+            try {
+              // eslint-disable-next-line no-new
+              new ConnectionString(uri);
+            } catch (error) {
+              return formatError(error).message;
+            }
 
-          return null;
+            return null;
+          },
         },
-      });
+        cancellationToken.token
+      );
     } catch (e) {
       return false;
+    } finally {
+      if (this._connectionStringInputCancellationToken === cancellationToken) {
+        this._connectionStringInputCancellationToken.dispose();
+        this._connectionStringInputCancellationToken = null;
+      }
     }
 
     if (!connectionString) {
@@ -243,25 +242,19 @@ export default class ConnectionController {
     );
   }
 
-  parseNewConnection(
-    rawConnectionModel: LegacyConnectionModel
-  ): ConnectionInfoFromLegacyDS {
-    return convertConnectionModelToInfo({
-      ...rawConnectionModel,
-      appname: `${packageJSON.name} ${packageJSON.version}`, // Override the default connection appname.
-    });
-  }
-
   async saveNewConnectionAndConnect(
-    originalConnectionInfo: ConnectionInfoFromLegacyDS,
+    connection: {
+      connectionOptions: ConnectionOptions;
+      id: string;
+    },
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
     const savedConnectionWithoutSecrets =
-      await this._connectionStorage.saveNewConnection(originalConnectionInfo);
+      await this._connectionStorage.saveNewConnection(connection);
 
     this._connections[savedConnectionWithoutSecrets.id] = {
       ...savedConnectionWithoutSecrets,
-      connectionOptions: originalConnectionInfo.connectionOptions, // The connection options with secrets.
+      connectionOptions: connection.connectionOptions, // The connection options with secrets.
     };
 
     log.info(
@@ -325,9 +318,7 @@ export default class ConnectionController {
     let dataService;
     try {
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
-        connectionOptions: launderConnectionOptionTypeFromLegacyToCurrent(
-          connectionInfo.connectionOptions
-        ),
+        connectionOptions: connectionInfo.connectionOptions,
         defaultAppName: packageJSON.name,
         notifyDeviceFlow: undefined,
         preferences: {
@@ -335,22 +326,27 @@ export default class ConnectionController {
           browserCommandForOIDCAuth: undefined, // We overwrite this below.
         },
       });
+      const browserAuthCommand = vscode.workspace
+        .getConfiguration('mdb')
+        .get('browserCommandForOIDCAuth');
       dataService = await connectionAttempt.connect({
         ...connectionOptions,
         oidc: {
           ...cloneDeep(connectionOptions.oidc),
-          openBrowser: async ({ signal, url }) => {
-            try {
-              await openLink(url);
-            } catch (err) {
-              if (signal.aborted) return;
-              // If opening the link fails we default to regular link opening.
-              await vscode.commands.executeCommand(
-                'vscode.open',
-                vscode.Uri.parse(url)
-              );
-            }
-          },
+          openBrowser: browserAuthCommand
+            ? { command: browserAuthCommand }
+            : async ({ signal, url }) => {
+                try {
+                  await openLink(url);
+                } catch (err) {
+                  if (signal.aborted) return;
+                  // If opening the link fails we default to regular link opening.
+                  await vscode.commands.executeCommand(
+                    'vscode.open',
+                    vscode.Uri.parse(url)
+                  );
+                }
+              },
         },
       });
 
@@ -397,6 +393,12 @@ export default class ConnectionController {
       true
     );
 
+    void vscode.commands.executeCommand(
+      'setContext',
+      'mdb.isAtlasStreams',
+      this.isConnectedToAtlasStreams()
+    );
+
     void this.onConnectSuccess({
       connectionInfo,
       dataService,
@@ -418,6 +420,7 @@ export default class ConnectionController {
       );
 
     if (removeConfirmationResponse !== 'Confirm') {
+      await this.disconnect();
       throw new Error('Reauthentication declined by user');
     }
   }
@@ -540,6 +543,11 @@ export default class ConnectionController {
       void vscode.commands.executeCommand(
         'setContext',
         'mdb.connectedToMongoDB',
+        false
+      );
+      void vscode.commands.executeCommand(
+        'setContext',
+        'mdb.isAtlasStreams',
         false
       );
     } catch (error) {
@@ -692,6 +700,10 @@ export default class ConnectionController {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
+  closeConnectionStringInput() {
+    this._connectionStringInputCancellationToken?.cancel();
+  }
+
   isConnecting(): boolean {
     return !!this._connectionAttempt;
   }
@@ -767,6 +779,13 @@ export default class ConnectionController {
     }
 
     return connectionStringData.toString();
+  }
+
+  isConnectedToAtlasStreams() {
+    return (
+      this.isCurrentlyConnected() &&
+      isAtlasStream(this.getActiveConnectionString())
+    );
   }
 
   getActiveConnectionString(): string {

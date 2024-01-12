@@ -21,7 +21,6 @@ import MongoDBService, {
 } from '../../../language/mongoDBService';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { StreamStub } from '../stubs';
-import READ_PREFERENCES from '../../../views/webview-app/legacy/connection-model/constants/read-preferences';
 import DIAGNOSTIC_CODES from '../../../language/diagnosticCodes';
 import { ServerCommands } from '../../../language/serverCommands';
 import LINKS from '../../../utils/links';
@@ -35,7 +34,6 @@ suite('MongoDBService Test Suite', () => {
     connectionId: 'pineapple',
     connectionString: 'mongodb://localhost:27088',
     connectionOptions: {
-      readPreference: READ_PREFERENCES.PRIMARY,
       productDocsLink: LINKS.extensionDocs(),
       productName: 'MongoDB for VS Code',
     },
@@ -2565,7 +2563,7 @@ suite('MongoDBService Test Suite', () => {
     this.timeout(INCREASED_TEST_TIMEOUT);
 
     const mongoClient = new MongoClient(params.connectionString, {
-      readPreference: params.connectionOptions.readPreference,
+      readPreference: 'primary',
     });
     const up = new StreamStub();
     const down = new StreamStub();

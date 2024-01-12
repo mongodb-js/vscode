@@ -157,7 +157,22 @@ for (let i = 0; i < numberOfDocumentsToMock; i++) {
   });
 }
 
+const mockStreamProcessors = [
+  {
+    name: 'mockStreamProcessor1',
+    state: 'STARTED',
+  },
+  {
+    name: 'mockStreamProcessor2',
+    state: 'STOPPPED',
+  },
+];
+
 class DataServiceStub {
+  listStreamProcessors(): Promise<any> {
+    return Promise.resolve(mockStreamProcessors);
+  }
+
   listDatabases(): Promise<any> {
     return Promise.resolve(
       mockDatabaseNames.map((dbName) => ({ name: dbName }))
@@ -377,6 +392,7 @@ export {
   mockTextEditor,
   mockDatabaseNames,
   mockDatabases,
+  mockStreamProcessors,
   mockVSCodeTextDocument,
   DataServiceStub,
   ExtensionContextStub,

@@ -5,7 +5,6 @@ ignores:
  - "@types/jest"
  - "buffer"
  - "eslint-config-mongodb-js"
- - "electron"
  - "mocha-junit-reporter"
  - "mocha-multi"
  - "mongodb-client-encryption"

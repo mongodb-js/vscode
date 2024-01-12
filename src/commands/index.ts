@@ -66,6 +66,10 @@ enum EXTENSION_COMMANDS {
   MDB_COPY_DOCUMENT_CONTENTS_FROM_TREE_VIEW = 'mdb.copyDocumentContentsFromTreeView',
   MDB_CLONE_DOCUMENT_FROM_TREE_VIEW = 'mdb.cloneDocumentFromTreeView',
   MDB_DELETE_DOCUMENT_FROM_TREE_VIEW = 'mdb.deleteDocumentFromTreeView',
+  MDB_ADD_STREAM_PROCESSOR = 'mdb.addStreamProcessor',
+  MDB_START_STREAM_PROCESSOR = 'mdb.startStreamProcessor',
+  MDB_STOP_STREAM_PROCESSOR = 'mdb.stopStreamProcessor',
+  MDB_DROP_STREAM_PROCESSOR = 'mdb.dropStreamProcessor',
 }
 
 export default EXTENSION_COMMANDS;

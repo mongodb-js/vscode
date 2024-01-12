@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { ConnectionInfo } from 'mongodb-data-service-legacy';
+import type { ConnectionOptions } from 'mongodb-data-service';
 import {
   sendConnectToExtension,
   sendCancelConnectToExtension,
+  sendFormOpenedToExtension,
 } from './vscode-api';
 import { MESSAGE_TYPES } from './extension-app-message-constants';
 import type { MESSAGE_FROM_EXTENSION_TO_WEBVIEW } from './extension-app-message-constants';
@@ -37,7 +38,10 @@ export default function useConnectionForm() {
     connectionFormOpened,
     isConnecting,
     connectionErrorMessage,
-    openConnectionForm: () => setConnectionFormOpened(true),
+    openConnectionForm: () => {
+      setConnectionFormOpened(true);
+      sendFormOpenedToExtension();
+    },
     closeConnectionForm: () => {
       setConnectionFormOpened(false);
       setConnectionErrorMessage('');
@@ -45,14 +49,17 @@ export default function useConnectionForm() {
     handleCancelConnectClicked: () => {
       sendCancelConnectToExtension();
     },
-    handleConnectClicked: (connectionInfo: ConnectionInfo) => {
+    handleConnectClicked: (connectionAttempt: {
+      id: string;
+      connectionOptions: ConnectionOptions;
+    }) => {
       // Clears the error message from previous connect attempt
       setConnectionErrorMessage('');
 
       const nextAttemptId = uuidv4();
       setConnectionAttemptId(nextAttemptId);
       setIsConnecting(true);
-      sendConnectToExtension(connectionInfo, nextAttemptId);
+      sendConnectToExtension(connectionAttempt, nextAttemptId);
     },
   };
 }

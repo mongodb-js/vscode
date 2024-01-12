@@ -69,14 +69,22 @@ runs:
       if: ${{ runner.os != 'Windows' }}
       shell: bash
 
+    - name: Set BROWSER_AUTH_COMMAND
+      run: |
+        BROWSER_AUTH_COMMAND=$(echo "$(which node) $(pwd)/src/test/fixture/curl.js")
+        echo "BROWSER_AUTH_COMMAND=$BROWSER_AUTH_COMMAND" >> $GITHUB_ENV
+      shell: bash
+
     - name: Run Tests
+      env:
+        BROWSER_AUTH_COMMAND: ${{ env.BROWSER_AUTH_COMMAND }}
       run: |
         npm run test
       shell: bash
 
     - name: Build .vsix
       env:
-        NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
+        NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
       # NOTE: --githubBranch is "The GitHub branch used to infer relative links in README.md."
       run: |
         npx vsce package --githubBranch main

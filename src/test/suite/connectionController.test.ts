@@ -6,10 +6,8 @@ import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import * as mongodbDataService from 'mongodb-data-service';
 
-import AUTH_STRATEGY_VALUES from '../../views/webview-app/legacy/connection-model/constants/auth-strategies';
 import ConnectionController, {
   DataServiceEventTypes,
-  launderConnectionOptionTypeFromLegacyToCurrent,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
@@ -18,9 +16,6 @@ import {
   DefaultSavingLocations,
   SecretStorageLocation,
 } from '../../storage/storageController';
-import READ_PREFERENCES from '../../views/webview-app/legacy/connection-model/constants/read-preferences';
-import SSH_TUNNEL_TYPES from '../../views/webview-app/legacy/connection-model/constants/ssh-tunnel-types';
-import SSL_METHODS from '../../views/webview-app/legacy/connection-model/constants/ssl-methods';
 import { StatusView } from '../../views';
 import TelemetryService from '../../telemetry/telemetryService';
 import { ExtensionContextStub } from './stubs';
@@ -31,6 +26,9 @@ import {
   TEST_USER_PASSWORD,
 } from './dbTestHelper';
 import type { LoadedConnection } from '../../storage/connectionStorage';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../../../package.json');
 
 const testDatabaseConnectionName = 'localhost:27088';
 const testDatabaseURI2WithTimeout =
@@ -245,8 +243,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('the connection model loads both global and workspace stored connection models', async () => {
-    const expectedDriverUrl =
-      'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0';
+    const expectedDriverUrl = `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`;
 
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -596,6 +593,27 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(name, 'new connection name');
   });
 
+  test('close connection string input calls to cancel the cancellation token', function (done) {
+    const inputBoxResolvesStub = sandbox.stub();
+    inputBoxResolvesStub.callsFake(() => {
+      try {
+        const cancellationToken = inputBoxResolvesStub.firstCall.args[1];
+        assert.strictEqual(cancellationToken.isCancellationRequested, false);
+
+        testConnectionController.closeConnectionStringInput();
+
+        assert.strictEqual(cancellationToken.isCancellationRequested, true);
+      } catch (err) {
+        done(err);
+      }
+
+      done();
+    });
+    sandbox.replace(vscode.window, 'showInputBox', inputBoxResolvesStub);
+
+    void testConnectionController.connectWithURI();
+  });
+
   test('ConnectionQuickPicks workspace connections list is displayed in the alphanumerical case insensitive order', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -760,9 +778,7 @@ suite('Connection Controller Test Suite', function () {
         await sleep(50);
 
         return mongodbDataService.connect({
-          connectionOptions: launderConnectionOptionTypeFromLegacyToCurrent(
-            connectionOptions.connectionOptions
-          ),
+          connectionOptions: connectionOptions.connectionOptions,
         });
       }
     );
@@ -850,7 +866,7 @@ suite('Connection Controller Test Suite', function () {
     );
     assert.strictEqual(
       connections[0].connectionOptions?.connectionString.includes(
-        'appname=mongodb-vscode+0.0.0-dev.0'
+        `appname=mongodb-vscode+${version}`
       ),
       true
     );
@@ -864,40 +880,6 @@ suite('Connection Controller Test Suite', function () {
       testConnectionController._connections[connections[0].id].name,
       'localhost:27088'
     );
-  });
-
-  test('parseNewConnection converts a connection model to a connection info and overrides a default appname', () => {
-    const connectionInfo = testConnectionController.parseNewConnection({
-      _id: 'c4871b21-92c4-40e2-a2c2-fdd551cff114',
-      isFavorite: false,
-      name: 'Local',
-      isSrvRecord: true,
-      hostname: 'host.u88dd.test.test',
-      port: 27017,
-      hosts: [
-        { host: 'host-shard-00-00.u88dd.test.test', port: 27017 },
-        { host: 'host-shard-00-01.u88dd.test.test', port: 27017 },
-        { host: 'host-shard-00-02.u88dd.test.test', port: 27017 },
-      ],
-      extraOptions: {},
-      readPreference: READ_PREFERENCES.PRIMARY,
-      authStrategy: AUTH_STRATEGY_VALUES.MONGODB,
-      kerberosCanonicalizeHostname: false,
-      sslMethod: SSL_METHODS.SYSTEMCA,
-      sshTunnel: SSH_TUNNEL_TYPES.NONE,
-      sshTunnelPort: 22,
-      mongodbUsername: 'username',
-      mongodbPassword: 'somepassword',
-      mongodbDatabaseName: 'admin',
-    });
-
-    assert.deepStrictEqual(connectionInfo, {
-      id: 'c4871b21-92c4-40e2-a2c2-fdd551cff114',
-      connectionOptions: {
-        connectionString:
-          'mongodb+srv://username:somepassword@host.u88dd.test.test/?authSource=admin&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true',
-      },
-    });
   });
 
   test('getMongoClientConnectionOptions returns url and options properties', async () => {
@@ -914,7 +896,7 @@ suite('Connection Controller Test Suite', function () {
     delete mongoClientConnectionOptions.options.oidc?.openBrowser;
 
     assert.deepStrictEqual(mongoClientConnectionOptions, {
-      url: 'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0',
+      url: `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`,
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
@@ -929,11 +911,10 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('_getConnectionStringWithProxy returns string with proxy options', () => {
-    const expectedConnectionStringWithProxy =
-      'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test';
+    const expectedConnectionStringWithProxy = `mongodb://localhost:27088/?appname=mongodb-vscode+${version}&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test`;
     const connectionString =
       testConnectionController._getConnectionStringWithProxy({
-        url: 'mongodb://localhost:27088/?appname=mongodb-vscode+0.0.0-dev.0',
+        url: `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`,
         options: {
           proxyHost: 'localhost',
           proxyPassword: 'gwce7tr8733ujbr',
