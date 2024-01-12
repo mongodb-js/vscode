@@ -54,7 +54,7 @@ const OverviewPage: React.FC = () => {
   }, []);
 
   return (
-    <div className={pageStyles}>
+    <div data-testid="overview-page" className={pageStyles}>
       {showResourcesPanel && (
         <ResourcesPanel onClose={handleResourcesPanelClose} />
       )}

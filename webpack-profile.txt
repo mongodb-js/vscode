@@ -1,0 +1,1273 @@
+asset extension.js 21.3 MiB [compared for emit] (name: extension) 1 related asset
+orphan modules 104 KiB [orphan] 78 modules
+runtime modules 4.2 KiB 7 modules
+modules by path ./node_modules/ 18.1 MiB
+  javascript modules 17.2 MiB 2263 modules
+  json modules 922 KiB
+    modules by path ./node_modules/iconv-lite/ 86.7 KiB
+      ./node_modules/iconv-lite/encodings/tables/shiftjis.json 8.78 KiB [built] [code generated]
+        0 ms -> 0 ms -> 0 ms -> 0 ms -> 312 ms -> 0 ms -> 0 ms -> 0 ms -> 0 ms -> 340 ms -> 0 ms -> 0 ms -> 0 ms -> 195 ms -> 0 ms -> 0 ms -> 0 ms -> 0 ms -> 0 ms -> 0 ms -> 0 ms ->
+        5 ms (resolving: 3 ms, restoring: 0 ms, integration: 0 ms, building: 2 ms, storing: 0 ms)
+      + 7 modules
+    modules by path ./node_modules/@aws-sdk/ 15.4 KiB
+      ./node_modules/@aws-sdk/client-sso/package.json 2.84 KiB [built] [code generated]
+        0 ms -> 0 ms -> 0 ms -> 0 ms -> 0 ms -> 99 ms -> 496 ms -> 167 ms -> 0 ms -> 471 ms -> 75 ms -> 628 ms -> 122 ms -> 584 ms ->
+        4 ms (resolving: 3 ms, restoring: 0 ms, integration: 0 ms, building: 1 ms, storing: 0 ms)
+      ./node_modules/@aws-sdk/client-sts/package.json 3.03 KiB [built] [code generated]
+        0 ms -> 0 ms -> 0 ms -> 0 ms -> 0 ms -> 99 ms -> 496 ms -> 167 ms -> 0 ms -> 471 ms -> 96 ms -> 628 ms -> 122 ms -> 586 ms ->
+        3 ms (resolving: 3 ms, restoring: 0 ms, integration: 0 ms, building: 0 ms, storing: 0 ms)
+      + 3 modules
+    + 14 modules
+modules by path ./src/ 357 KiB 72 modules
++ 49 modules
+
+LOG from webpack.Compilation.ModuleProfile
+<i> 4036 ms resolve to new modules
+<i> 2008 ms build modules
++ 103 hidden lines
+
+WARNING in ./node_modules/@aws-sdk/util-user-agent-node/dist-es/is-crt-available.js 3:78-96
+Module not found: Error: Can't resolve 'aws-crt' in '/Users/maurizio/Work/vscode/node_modules/@aws-sdk/util-user-agent-node/dist-es'
+ @ ./node_modules/@aws-sdk/util-user-agent-node/dist-es/index.js 4:0-52 15:25-39
+ @ ./node_modules/@aws-sdk/client-cognito-identity/dist-es/runtimeConfig.js 4:0-65 29:12-28
+ @ ./node_modules/@aws-sdk/client-cognito-identity/dist-es/CognitoIdentityClient.js 12:0-73 16:26-44
+ @ ./node_modules/@aws-sdk/client-cognito-identity/dist-es/index.js 1:0-40 1:0-40
+ @ ./node_modules/@aws-sdk/credential-providers/dist-es/fromCognitoIdentityPool.js 1:0-73 5:16-37
+ @ ./node_modules/@aws-sdk/credential-providers/dist-es/index.js 2:0-42 2:0-42
+ @ ./node_modules/mongodb/lib/deps.js 45:35-75
+ @ ./node_modules/mongodb/lib/client-side-encryption/client_encryption.js 5:15-33
+ @ ./node_modules/mongodb/lib/index.js 61:26-79
+ @ ./node_modules/mongodb-data-service/lib/run-command.js 4:18-36
+ @ ./node_modules/mongodb-data-service/lib/instance-detail-helper.js 9:22-46
+ @ ./node_modules/mongodb-data-service/lib/index.js 9:33-68
+ @ ./src/connectionController.ts 31:31-62
+ @ ./src/mdbExtensionController.ts 38:47-80
+ @ ./src/extension.ts 47:49-84
+
+WARNING in ./node_modules/@mongodb-js/connection-form/node_modules/ejson-shell-parser/dist/ejson-shell-parser.esm.js 221:25-33
+export 'Map' (imported as 'bson') was not found in 'bson' (possible exports: BSON, BSONError, BSONRegExp, BSONRuntimeError, BSONSymbol, BSONType, BSONValue, BSONVersionError, Binary, Code, DBRef, Decimal128, Double, EJSON, Int32, Long, MaxKey, MinKey, ObjectId, Timestamp, UUID, calculateObjectSize, deserialize, deserializeStream, serialize, serializeWithBufferAndIndex, setInternalBufferSize)
+ @ ./node_modules/@mongodb-js/connection-form/dist/utils/csfle-handler.js 30:42-71
+ @ ./node_modules/@mongodb-js/connection-form/dist/hooks/use-connect-form.js 15:24-57
+ @ ./node_modules/@mongodb-js/connection-form/dist/index.js 12:27-62
+ @ ./src/connectionController.ts 38:26-64
+ @ ./src/mdbExtensionController.ts 38:47-80
+ @ ./src/extension.ts 47:49-84
+
+WARNING in ./node_modules/ejson-shell-parser/dist/ejson-shell-parser.esm.js 221:25-33
+export 'Map' (imported as 'bson') was not found in 'bson' (possible exports: BSON, BSONError, BSONRegExp, BSONRuntimeError, BSONSymbol, BSONType, BSONValue, BSONVersionError, Binary, Code, DBRef, Decimal128, Double, EJSON, Int32, Long, MaxKey, MinKey, ObjectId, Timestamp, UUID, calculateObjectSize, deserialize, deserializeStream, serialize, serializeWithBufferAndIndex, setInternalBufferSize)
+ @ ./node_modules/mongodb-query-parser/dist/index.js 30:42-71
+ @ ./src/explorer/documentTreeItem.ts 32:31-62
+ @ ./src/explorer/index.ts 17:43-72
+ @ ./src/mdbExtensionController.ts 42:19-40
+ @ ./src/extension.ts 47:49-84
+
+WARNING in ./node_modules/express/lib/view.js 81:13-25
+Critical dependency: the request of a dependency is an expression
+ @ ./node_modules/express/lib/application.js 22:11-28
+ @ ./node_modules/express/lib/express.js 18:12-36
+ @ ./node_modules/express/index.js 11:0-41
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/rfc-8252-http-server.js 10:34-52
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/plugin.js 31:31-64
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/api.js 4:17-36
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/index.js 4:12-28
+ @ ./node_modules/@mongodb-js/devtools-connect/lib/connect.js 33:22-56
+ @ ./node_modules/@mongodb-js/devtools-connect/lib/index.js 19:16-36
+ @ ./node_modules/mongodb-data-service/lib/connect-mongo-client.js 8:27-66
+ @ ./node_modules/mongodb-data-service/lib/data-service.js 48:31-64
+ @ ./node_modules/mongodb-data-service/lib/connect.js 3:23-48
+ @ ./node_modules/mongodb-data-service/lib/index.js 7:34-54
+ @ ./src/connectionController.ts 31:31-62
+ @ ./src/mdbExtensionController.ts 38:47-80
+ @ ./src/extension.ts 47:49-84
+
+WARNING in ./node_modules/mongodb/lib/deps.js 34:8-55
+Module not found: Error: Can't resolve '@mongodb-js/zstd' in '/Users/maurizio/Work/vscode/node_modules/mongodb/lib'
+ @ ./node_modules/mongodb/lib/client-side-encryption/client_encryption.js 5:15-33
+ @ ./node_modules/mongodb/lib/index.js 61:26-79
+ @ ./node_modules/mongodb-data-service/lib/run-command.js 4:18-36
+ @ ./node_modules/mongodb-data-service/lib/instance-detail-helper.js 9:22-46
+ @ ./node_modules/mongodb-data-service/lib/index.js 9:33-68
+ @ ./src/connectionController.ts 31:31-62
+ @ ./src/mdbExtensionController.ts 38:47-80
+ @ ./src/extension.ts 47:49-84
+
+WARNING in ./node_modules/mongodb/lib/deps.js 57:35-58
+Module not found: Error: Can't resolve 'gcp-metadata' in '/Users/maurizio/Work/vscode/node_modules/mongodb/lib'
+ @ ./node_modules/mongodb/lib/client-side-encryption/client_encryption.js 5:15-33
+ @ ./node_modules/mongodb/lib/index.js 61:26-79
+ @ ./node_modules/mongodb-data-service/lib/run-command.js 4:18-36
+ @ ./node_modules/mongodb-data-service/lib/instance-detail-helper.js 9:22-46
+ @ ./node_modules/mongodb-data-service/lib/index.js 9:33-68
+ @ ./src/connectionController.ts 31:31-62
+ @ ./src/mdbExtensionController.ts 38:47-80
+ @ ./src/extension.ts 47:49-84
+
+WARNING in ./node_modules/node-fetch/lib/index.mjs 157:11-38
+Module not found: Error: Can't resolve 'encoding' in '/Users/maurizio/Work/vscode/node_modules/node-fetch/lib'
+ @ ./node_modules/@segment/analytics-node/dist/esm/lib/fetch.js 8:22-42
+ @ ./node_modules/@segment/analytics-node/dist/esm/lib/http-client.js 2:0-48 8:33-45
+ @ ./node_modules/@segment/analytics-node/dist/esm/index.js 3:0-53 3:0-53
+ @ ./src/telemetry/telemetryService.ts 34:25-59
+ @ ./src/mdbExtensionController.ts 50:43-82
+ @ ./src/extension.ts 47:49-84
+
+5 warnings have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack 5.88.1 compiled with 7 warnings in 11614 ms
+
+asset languageServer.js 8.4 MiB [compared for emit] (name: languageServer) 1 related asset
+orphan modules 83.3 KiB [orphan] 72 modules
+runtime modules 1.04 KiB 5 modules
+modules by path ./node_modules/ 7.16 MiB
+  javascript modules 6.47 MiB 1412 modules
+  json modules 701 KiB 27 modules
+modules by path ./src/ 82 KiB
+  modules by path ./src/language/*.ts 77.4 KiB 5 modules
+  modules by path ./src/utils/*.ts 3.79 KiB
+    ./src/utils/formatError.ts 538 bytes [built] [code generated]
+      0 ms -> 0 ms ->
+      270 ms (resolving: 46 ms, restoring: 0 ms, integration: 0 ms, building: 224 ms, storing: 0 ms)
+    + 2 modules
+  ./src/types/playgroundType.ts 846 bytes [built] [code generated]
+    0 ms -> 0 ms ->
+    0 ms (resolving: 0 ms, restoring: 0 ms, integration: 0 ms, building: 0 ms, storing: 0 ms)
++ 42 modules
+
+LOG from webpack.Compilation.ModuleProfile
+<i> 3015 ms resolve to new modules
+<i> 2242 ms build modules
++ 73 hidden lines
+
+WARNING in ./node_modules/@aws-sdk/util-user-agent-node/dist-es/is-crt-available.js 3:78-96
+Module not found: Error: Can't resolve 'aws-crt' in '/Users/maurizio/Work/vscode/node_modules/@aws-sdk/util-user-agent-node/dist-es'
+ @ ./node_modules/@aws-sdk/util-user-agent-node/dist-es/index.js 4:0-52 15:25-39
+ @ ./node_modules/@aws-sdk/client-sts/dist-es/runtimeConfig.js 4:0-65 29:12-28
+ @ ./node_modules/@aws-sdk/client-sts/dist-es/STSClient.js 12:0-73 16:26-44
+ @ ./node_modules/@aws-sdk/client-sts/dist-es/index.js 1:0-28 1:0-28
+ @ ./node_modules/@aws-sdk/credential-providers/dist-es/fromIni.js 1:0-98 5:37-58 6:67-103
+ @ ./node_modules/@aws-sdk/credential-providers/dist-es/index.js 5:0-26 5:0-26
+ @ ./node_modules/mongodb/lib/deps.js 45:35-75
+ @ ./node_modules/mongodb/lib/client-side-encryption/auto_encrypter.js 6:15-33
+ @ ./node_modules/mongodb/lib/index.js 101:23-73
+ @ ./node_modules/@mongosh/service-provider-server/lib/cli-service-provider.js 10:11-29
+ @ ./node_modules/@mongosh/service-provider-server/lib/index.js 7:47-80
+ @ ./src/language/mongoDBService.ts 32:34-77
+ @ ./src/language/server.ts 8:41-68
+
+WARNING in ./node_modules/express/lib/view.js 81:13-25
+Critical dependency: the request of a dependency is an expression
+ @ ./node_modules/express/lib/application.js 22:11-28
+ @ ./node_modules/express/lib/express.js 18:12-36
+ @ ./node_modules/express/index.js 11:0-41
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/rfc-8252-http-server.js 10:34-52
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/plugin.js 31:31-64
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/api.js 4:17-36
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/index.js 4:12-28
+ @ ./node_modules/@mongodb-js/devtools-connect/lib/connect.js 33:22-56
+ @ ./node_modules/@mongodb-js/devtools-connect/lib/index.js 19:16-36
+ @ ./node_modules/@mongosh/service-provider-server/lib/cli-service-provider.js 66:39-78 122:39-78 414:39-78
+ @ ./node_modules/@mongosh/service-provider-server/lib/index.js 7:47-80
+ @ ./src/language/mongoDBService.ts 32:34-77
+ @ ./src/language/server.ts 8:41-68
+
+WARNING in ./node_modules/mongodb/lib/deps.js 34:8-55
+Module not found: Error: Can't resolve '@mongodb-js/zstd' in '/Users/maurizio/Work/vscode/node_modules/mongodb/lib'
+ @ ./node_modules/mongodb/lib/client-side-encryption/auto_encrypter.js 6:15-33
+ @ ./node_modules/mongodb/lib/index.js 101:23-73
+ @ ./node_modules/@mongosh/service-provider-server/lib/cli-service-provider.js 10:11-29
+ @ ./node_modules/@mongosh/service-provider-server/lib/index.js 7:47-80
+ @ ./src/language/mongoDBService.ts 32:34-77
+ @ ./src/language/server.ts 8:41-68
+
+WARNING in ./node_modules/mongodb/lib/deps.js 57:35-58
+Module not found: Error: Can't resolve 'gcp-metadata' in '/Users/maurizio/Work/vscode/node_modules/mongodb/lib'
+ @ ./node_modules/mongodb/lib/client-side-encryption/auto_encrypter.js 6:15-33
+ @ ./node_modules/mongodb/lib/index.js 101:23-73
+ @ ./node_modules/@mongosh/service-provider-server/lib/cli-service-provider.js 10:11-29
+ @ ./node_modules/@mongosh/service-provider-server/lib/index.js 7:47-80
+ @ ./src/language/mongoDBService.ts 32:34-77
+ @ ./src/language/server.ts 8:41-68
+
+4 warnings have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack 5.88.1 compiled with 4 warnings in 8537 ms
+
+asset languageServerWorker.js 8.86 MiB [compared for emit] (name: languageServerWorker) 1 related asset
+orphan modules 83.3 KiB [orphan] 72 modules
+runtime modules 1.04 KiB 5 modules
+cacheable modules 7.67 MiB
+  javascript modules 6.98 MiB
+    modules by path ./node_modules/ 6.97 MiB 1470 modules
+    modules by path ./src/language/*.ts 4.09 KiB 2 modules
+    browserslist (ignored) 15 bytes [built] [code generated]
+      119 ms -> 464 ms -> 254 ms -> 715 ms -> 122 ms -> 516 ms -> 0 ms -> 0 ms -> 0 ms -> 0 ms -> 223 ms -> 91 ms -> 153 ms -> 432 ms ->
+      1 ms (resolving: 1 ms, restoring: 0 ms, integration: 0 ms, building: 0 ms, storing: 0 ms)
+  json modules 713 KiB
+    modules by path ./node_modules/iconv-lite/ 86.7 KiB 8 modules
+    modules by path ./node_modules/@aws-sdk/ 15.4 KiB 5 modules
+    modules by path ./node_modules/@babel/ 12 KiB 3 modules
+    modules by path ./node_modules/@mongosh/ 3.71 KiB 2 modules
+    + 12 modules
++ 47 modules
+
+LOG from webpack.Compilation.ModuleProfile
+<i> 3086 ms resolve to new modules
+<i>  | 2607 ms build modules > 1256 x javascript/auto
+<i> 3159 ms build modules
++ 92 hidden lines
+
+WARNING in ./node_modules/@aws-sdk/util-user-agent-node/dist-es/is-crt-available.js 3:78-96
+Module not found: Error: Can't resolve 'aws-crt' in '/Users/maurizio/Work/vscode/node_modules/@aws-sdk/util-user-agent-node/dist-es'
+ @ ./node_modules/@aws-sdk/util-user-agent-node/dist-es/index.js 4:0-52 15:25-39
+ @ ./node_modules/@aws-sdk/client-sso/dist-es/runtimeConfig.js 2:0-65 26:12-28
+ @ ./node_modules/@aws-sdk/client-sso/dist-es/SSOClient.js 11:0-73 15:26-44
+ @ ./node_modules/@aws-sdk/client-sso/dist-es/index.js 1:0-28 1:0-28
+ @ ./node_modules/@aws-sdk/credential-providers/dist-es/fromSSO.js 1:0-48 3:89-98
+ @ ./node_modules/@aws-sdk/credential-providers/dist-es/index.js 9:0-26 9:0-26
+ @ ./node_modules/mongodb/lib/deps.js 45:35-75
+ @ ./node_modules/mongodb/lib/client-side-encryption/client_encryption.js 5:15-33
+ @ ./node_modules/mongodb/lib/index.js 61:26-79
+ @ ./node_modules/@mongosh/service-provider-server/lib/cli-service-provider.js 10:11-29
+ @ ./node_modules/@mongosh/service-provider-server/lib/index.js 7:47-80
+ @ ./src/language/worker.ts 3:34-77
+
+WARNING in ./node_modules/express/lib/view.js 81:13-25
+Critical dependency: the request of a dependency is an expression
+ @ ./node_modules/express/lib/application.js 22:11-28
+ @ ./node_modules/express/lib/express.js 18:12-36
+ @ ./node_modules/express/index.js 11:0-41
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/rfc-8252-http-server.js 10:34-52
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/plugin.js 31:31-64
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/api.js 4:17-36
+ @ ./node_modules/@mongodb-js/oidc-plugin/dist/index.js 4:12-28
+ @ ./node_modules/@mongodb-js/devtools-connect/lib/connect.js 33:22-56
+ @ ./node_modules/@mongodb-js/devtools-connect/lib/index.js 19:16-36
+ @ ./node_modules/@mongosh/service-provider-server/lib/cli-service-provider.js 66:39-78 122:39-78 414:39-78
+ @ ./node_modules/@mongosh/service-provider-server/lib/index.js 7:47-80
+ @ ./src/language/worker.ts 3:34-77
+
+WARNING in ./node_modules/mongodb/lib/deps.js 34:8-55
+Module not found: Error: Can't resolve '@mongodb-js/zstd' in '/Users/maurizio/Work/vscode/node_modules/mongodb/lib'
+ @ ./node_modules/mongodb/lib/client-side-encryption/client_encryption.js 5:15-33
+ @ ./node_modules/mongodb/lib/index.js 61:26-79
+ @ ./node_modules/@mongosh/service-provider-server/lib/cli-service-provider.js 10:11-29
+ @ ./node_modules/@mongosh/service-provider-server/lib/index.js 7:47-80
+ @ ./src/language/worker.ts 3:34-77
+
+WARNING in ./node_modules/mongodb/lib/deps.js 57:35-58
+Module not found: Error: Can't resolve 'gcp-metadata' in '/Users/maurizio/Work/vscode/node_modules/mongodb/lib'
+ @ ./node_modules/mongodb/lib/client-side-encryption/client_encryption.js 5:15-33
+ @ ./node_modules/mongodb/lib/index.js 61:26-79
+ @ ./node_modules/@mongosh/service-provider-server/lib/cli-service-provider.js 10:11-29
+ @ ./node_modules/@mongosh/service-provider-server/lib/index.js 7:47-80
+ @ ./src/language/worker.ts 3:34-77
+
+WARNING in ./node_modules/@babel/core/lib/config/files/configuration.js 201:150-157
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/import.cjs 2:9-25
+Critical dependency: the request of a dependency is an expression
+ @ ./node_modules/@babel/core/lib/config/files/module-types.js 37:12-35
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/module-types.js 67:26-44
+require.extensions is not supported by webpack. Use a loader instead.
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/module-types.js 67:55-73
+require.extensions is not supported by webpack. Use a loader instead.
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/module-types.js 67:85-103
+require.extensions is not supported by webpack. Use a loader instead.
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/module-types.js 99:13-31
+require.extensions is not supported by webpack. Use a loader instead.
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/module-types.js 101:4-22
+require.extensions is not supported by webpack. Use a loader instead.
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/module-types.js 104:62-69
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/module-types.js 108:10-28
+require.extensions is not supported by webpack. Use a loader instead.
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/module-types.js 108:54-72
+require.extensions is not supported by webpack. Use a loader instead.
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/module-types.js 114:60-67
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+ @ ./node_modules/@babel/core/lib/config/files/configuration.js 50:19-44
+ @ ./node_modules/@babel/core/lib/config/files/index.js 73:21-47
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/plugins.js 108:146-153
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+ @ ./node_modules/@babel/core/lib/config/files/index.js 74:15-35
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+WARNING in ./node_modules/@babel/core/lib/config/files/plugins.js 123:15-34
+Critical dependency: the request of a dependency is an expression
+ @ ./node_modules/@babel/core/lib/config/files/index.js 74:15-35
+ @ ./node_modules/@babel/core/lib/index.js 184:13-38
+ @ ./node_modules/@mongosh/async-rewriter2/lib/async-writer-babel.js 29:27-49
+ @ ./node_modules/@mongosh/async-rewriter2/lib/index.js 6:45-76
+ @ ./node_modules/@mongosh/shell-evaluator/lib/shell-evaluator.js 9:42-77
+ @ ./node_modules/@mongosh/shell-evaluator/lib/index.js 4:26-54
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/open-context-runtime.js 7:26-61
+ @ ./node_modules/@mongosh/browser-runtime-core/lib/index.js 4:29-62
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/electron-runtime.js 5:31-71
+ @ ./node_modules/@mongosh/browser-runtime-electron/lib/index.js 4:25-54
+ @ ./src/language/worker.ts 5:35-79
+
+10 warnings have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack 5.88.1 compiled with 17 warnings in 8832 ms
+
+asset webviewApp.js 11.4 MiB [compared for emit] (name: webviewApp) 1 related asset
+orphan modules 26.6 KiB [orphan] 8 modules
+runtime modules 4.42 KiB 8 modules
+modules by path ./node_modules/ 10.1 MiB
+  javascript modules 9.8 MiB 1063 modules
+  json modules 265 KiB 8 modules
+modules by path ./src/ 49.3 KiB 19 modules
+optional modules 120 bytes [optional]
+  buffer (ignored) 15 bytes [optional] [built] [code generated]
+    0 ms -> 0 ms -> 0 ms -> 0 ms -> 707 ms -> 619 ms -> 0 ms -> 0 ms ->
+    1 ms (resolving: 1 ms, restoring: 0 ms, integration: 0 ms, building: 0 ms, storing: 0 ms)
+  buffer (ignored) 15 bytes [optional] [built] [code generated]
+    0 ms -> 0 ms -> 0 ms -> 0 ms -> 707 ms -> 619 ms -> 360 ms -> 0 ms -> 0 ms ->
+    1 ms (resolving: 1 ms, restoring: 0 ms, integration: 0 ms, building: 0 ms, storing: 0 ms)
+  crypto (ignored) 15 bytes [optional] [built] [code generated]
+    0 ms -> 0 ms -> 0 ms -> 0 ms -> 707 ms -> 619 ms -> 0 ms -> 0 ms -> 0 ms ->
+    1 ms (resolving: 1 ms, restoring: 0 ms, integration: 0 ms, building: 0 ms, storing: 0 ms)
+  + 5 modules
++ 8 modules
+
+LOG from webpack.Compilation.ModuleProfile
+<i>  | 237 ms (parallelism 2.5) resolve to new modules > ./node_modules/@lezer/lr/dist/index.cjs
+<i> 3415 ms resolve to new modules
+<i>  | 237 ms (parallelism 2.5) resolve to existing modules > ./node_modules/@lezer/lr/dist/index.cjs
+<i> 683 ms resolve to existing modules
++ 62 hidden lines
+
+WARNING in ./node_modules/@mongodb-js/connection-form/node_modules/ejson-shell-parser/dist/ejson-shell-parser.esm.js 221:25-33
+export 'Map' (imported as 'bson') was not found in 'bson' (possible exports: BSON, BSONError, BSONRegExp, BSONRuntimeError, BSONSymbol, BSONType, BSONValue, BSONVersionError, Binary, Code, DBRef, Decimal128, Double, EJSON, Int32, Long, MaxKey, MinKey, ObjectId, Timestamp, UUID, calculateObjectSize, deserialize, deserializeStream, serialize, serializeWithBufferAndIndex, setInternalBufferSize)
+ @ ./node_modules/@mongodb-js/connection-form/dist/utils/csfle-handler.js 30:42-71
+ @ ./node_modules/@mongodb-js/connection-form/dist/hooks/use-connect-form.js 15:24-57
+ @ ./node_modules/@mongodb-js/connection-form/dist/index.js 12:27-62
+ @ ./src/views/webview-app/connection-form.tsx 8:42-80
+ @ ./src/views/webview-app/overview-page.tsx 36:26-54
+ @ ./src/views/webview-app/app.tsx 7:40-66
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/@mongodb-js/compass-components/lib/components/error-boundary.js 47:11-18
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/@mongodb-js/compass-components/lib/components'
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 162:23-61
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/@mongodb-js/compass-components/lib/components/guide-cue/guide-cue-service.js 17:12-19
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/@mongodb-js/compass-components/lib/components/guide-cue'
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/guide-cue/guide-cue.js 28:28-58
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 231:18-61
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_duplex.js 98:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/browserify-sign/node_modules/readable-stream/lib'
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 5:0-51
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_readable.js 490:4-11
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/browserify-sign/node_modules/readable-stream/lib'
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_writable.js 267:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/browserify-sign/node_modules/readable-stream/lib'
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 4:0-55
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/internal/streams/async_iterator.js 39:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/browserify-sign/node_modules/readable-stream/lib/internal/streams'
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_readable.js 920:42-86
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/internal/streams/destroy.js 13:8-15
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/browserify-sign/node_modules/readable-stream/lib/internal/streams'
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_writable.js 74:18-55
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 4:0-55
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/debug/src/browser.js 226:18-25
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/debug/src'
+ @ ./node_modules/@mongodb-js/connection-form/node_modules/mongodb-query-parser/dist/index.js 32:32-48
+ @ ./node_modules/@mongodb-js/connection-form/dist/utils/csfle-handler.js 29:31-62
+ @ ./node_modules/@mongodb-js/connection-form/dist/hooks/use-connect-form.js 15:24-57
+ @ ./node_modules/@mongodb-js/connection-form/dist/index.js 12:27-62
+ @ ./src/views/webview-app/connection-form.tsx 8:42-80
+ @ ./src/views/webview-app/overview-page.tsx 36:26-54
+ @ ./src/views/webview-app/app.tsx 7:40-66
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/duplexer2/node_modules/readable-stream/lib/_stream_readable.js 559:64-71
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/duplexer2/node_modules/readable-stream/lib'
+ @ ./node_modules/duplexer2/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/duplexer2/index.js 3:13-39
+ @ ./node_modules/multipipe/index.js 6:15-35
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/duplexer2/node_modules/readable-stream/lib/_stream_writable.js 57:18-25
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/duplexer2/node_modules/readable-stream/lib'
+ @ ./node_modules/duplexer2/node_modules/readable-stream/readable-browser.js 4:0-55
+ @ ./node_modules/duplexer2/index.js 3:13-39
+ @ ./node_modules/multipipe/index.js 6:15-35
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_duplex.js 98:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/hash-base/node_modules/readable-stream/lib'
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 5:0-51
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_readable.js 490:4-11
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/hash-base/node_modules/readable-stream/lib'
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_writable.js 267:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/hash-base/node_modules/readable-stream/lib'
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 4:0-55
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/internal/streams/async_iterator.js 39:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/hash-base/node_modules/readable-stream/lib/internal/streams'
+ @ ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_readable.js 920:42-86
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/internal/streams/destroy.js 13:8-15
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/hash-base/node_modules/readable-stream/lib/internal/streams'
+ @ ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_readable.js 63:18-55
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/is-electron-renderer/index.js 3:13-20
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/is-electron-renderer'
+ @ ./node_modules/@mongodb-js/compass-components/lib/hooks/use-scrollbars.js 34:47-78
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 144:23-56
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/multipipe/index.js 63:12-19
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/multipipe'
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/path-browserify/index.js 124:16-23
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/path-browserify'
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/file-input.js 31:31-46
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 50:34-68
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/pbkdf2/lib/default-encoding.js 6:31-38
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/pbkdf2/lib'
+ @ ./node_modules/pbkdf2/lib/async.js 4:22-51
+ @ ./node_modules/pbkdf2/browser.js 1:0-39
+ @ ./node_modules/crypto-browserify/index.js 14:8-25
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/process-nextick-args/index.js 3:11-18
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/process-nextick-args'
+ @ ./node_modules/duplexer2/node_modules/readable-stream/lib/_stream_readable.js 26:10-41
+ @ ./node_modules/duplexer2/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/duplexer2/index.js 3:13-39
+ @ ./node_modules/multipipe/index.js 6:15-35
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/randombytes/browser.js 44:11-18
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/randombytes'
+ @ ./node_modules/crypto-browserify/index.js 3:64-101
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/randomfill/browser.js 39:43-50
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/randomfill'
+ @ ./node_modules/crypto-browserify/index.js 68:9-30
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/readable-stream/lib/_stream_duplex.js 82:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/readable-stream/lib'
+ @ ./node_modules/readable-stream/readable.js 6:0-51
+ @ ./node_modules/html-tokenize/index.js 2:16-52
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 2:0-37 159:22-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/readable-stream/lib/_stream_readable.js 440:4-11
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/readable-stream/lib'
+ @ ./node_modules/readable-stream/readable.js 2:10-63
+ @ ./node_modules/html-tokenize/index.js 2:16-52
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 2:0-37 159:22-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/readable-stream/lib/_stream_writable.js 147:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/readable-stream/lib'
+ @ ./node_modules/readable-stream/readable.js 5:0-55
+ @ ./node_modules/html-tokenize/index.js 2:16-52
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 2:0-37 159:22-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/readable-stream/readable.js 9:5-12
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/readable-stream'
+ @ ./node_modules/html-tokenize/index.js 2:16-52
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 2:0-37 159:22-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/safer-buffer/safer.js 61:29-36
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/safer-buffer'
+ @ ./node_modules/asn1.js/lib/asn1/base/buffer.js 5:15-45
+ @ ./node_modules/asn1.js/lib/asn1/base/index.js 6:21-54 7:21-54
+ @ ./node_modules/asn1.js/lib/asn1.js 8:12-34
+ @ ./node_modules/parse-asn1/asn1.js 5:11-29
+ @ ./node_modules/parse-asn1/index.js 1:11-28
+ @ ./node_modules/browserify-sign/browser/verify.js 7:16-37
+ @ ./node_modules/browserify-sign/browser/index.js 8:13-32
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/semver/internal/debug.js 2:9-16
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/semver/internal'
+ @ ./node_modules/semver/internal/re.js 6:14-32
+ @ ./node_modules/semver/index.js 2:19-43
+ @ ./node_modules/@mongodb-js/compass-editor/node_modules/@mongodb-js/mongodb-constants/dist/filter.js 4:17-34
+ @ ./node_modules/@mongodb-js/compass-editor/node_modules/@mongodb-js/mongodb-constants/dist/index.js 29:15-34
+ @ ./node_modules/@mongodb-js/compass-editor/dist/codemirror/aggregation-autocompleter.js 4:28-68
+ @ ./node_modules/@mongodb-js/compass-editor/dist/index.js 19:34-83
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/csfle-tab/encrypted-field-config-input.js 29:25-62
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/csfle-tab/csfle-tab.js 33:55-96
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/advanced-options-tabs.js 36:36-68
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-connection-options.js 8:48-104
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/connection-form.js 33:54-94
+ @ ./node_modules/@mongodb-js/connection-form/dist/index.js 7:42-81
+ @ ./src/views/webview-app/connection-form.tsx 8:42-80
+ @ ./src/views/webview-app/overview-page.tsx 36:26-54
+ @ ./src/views/webview-app/app.tsx 7:40-66
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_duplex.js 98:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/stream-browserify/node_modules/readable-stream/lib'
+ @ ./node_modules/stream-browserify/index.js 30:16-64
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_readable.js 490:4-11
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/stream-browserify/node_modules/readable-stream/lib'
+ @ ./node_modules/stream-browserify/index.js 28:18-68
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_writable.js 267:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/stream-browserify/node_modules/readable-stream/lib'
+ @ ./node_modules/stream-browserify/index.js 29:18-68
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/internal/streams/async_iterator.js 39:2-9
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/stream-browserify/node_modules/readable-stream/lib/internal/streams'
+ @ ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_readable.js 920:42-86
+ @ ./node_modules/stream-browserify/index.js 28:18-68
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/internal/streams/destroy.js 13:8-15
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/stream-browserify/node_modules/readable-stream/lib/internal/streams'
+ @ ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_writable.js 74:18-55
+ @ ./node_modules/stream-browserify/index.js 29:18-68
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/through/index.js 58:6-13
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/through'
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 1:0-30 160:23-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/@lezer/lr/dist/index.cjs 1022:23-30
+Module not found: Error: Can't resolve 'process/browser' in '/Users/maurizio/Work/vscode/node_modules/@lezer/lr/dist'
+ @ ./node_modules/@lezer/javascript/dist/index.cjs 5:9-29
+ @ ./node_modules/@codemirror/lang-javascript/dist/index.cjs 3:19-47
+ @ ./node_modules/@mongodb-js/compass-editor/dist/editor.js 34:26-64
+ @ ./node_modules/@mongodb-js/compass-editor/dist/index.js 6:15-34
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/csfle-tab/encrypted-field-config-input.js 29:25-62
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/csfle-tab/csfle-tab.js 33:55-96
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/advanced-options-tabs.js 36:36-68
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-connection-options.js 8:48-104
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/connection-form.js 33:54-94
+ @ ./node_modules/@mongodb-js/connection-form/dist/index.js 7:42-81
+ @ ./src/views/webview-app/connection-form.tsx 8:42-80
+ @ ./src/views/webview-app/overview-page.tsx 36:26-54
+ @ ./src/views/webview-app/app.tsx 7:40-66
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/@mongodb-js/compass-components/lib/components/error-boundary.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 162:23-61
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/@mongodb-js/compass-components/lib/components/guide-cue/guide-cue-service.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/guide-cue/guide-cue.js 28:28-58
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 231:18-61
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_duplex.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 5:0-51
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_readable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_writable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 4:0-55
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/internal/streams/async_iterator.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_readable.js 920:42-86
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/browserify-sign/node_modules/readable-stream/lib/internal/streams/destroy.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/lib/_stream_writable.js 74:18-55
+ @ ./node_modules/browserify-sign/node_modules/readable-stream/readable-browser.js 4:0-55
+ @ ./node_modules/browserify-sign/browser/index.js 5:13-39
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/debug/src/browser.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/@mongodb-js/connection-form/node_modules/mongodb-query-parser/dist/index.js 32:32-48
+ @ ./node_modules/@mongodb-js/connection-form/dist/utils/csfle-handler.js 29:31-62
+ @ ./node_modules/@mongodb-js/connection-form/dist/hooks/use-connect-form.js 15:24-57
+ @ ./node_modules/@mongodb-js/connection-form/dist/index.js 12:27-62
+ @ ./src/views/webview-app/connection-form.tsx 8:42-80
+ @ ./src/views/webview-app/overview-page.tsx 36:26-54
+ @ ./src/views/webview-app/app.tsx 7:40-66
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/duplexer2/node_modules/readable-stream/lib/_stream_readable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/duplexer2/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/duplexer2/index.js 3:13-39
+ @ ./node_modules/multipipe/index.js 6:15-35
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/duplexer2/node_modules/readable-stream/lib/_stream_writable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/duplexer2/node_modules/readable-stream/readable-browser.js 4:0-55
+ @ ./node_modules/duplexer2/index.js 3:13-39
+ @ ./node_modules/multipipe/index.js 6:15-35
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_duplex.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 5:0-51
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_readable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_writable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 4:0-55
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/internal/streams/async_iterator.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_readable.js 920:42-86
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/hash-base/node_modules/readable-stream/lib/internal/streams/destroy.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/hash-base/node_modules/readable-stream/lib/_stream_readable.js 63:18-55
+ @ ./node_modules/hash-base/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/hash-base/index.js 3:16-52
+ @ ./node_modules/ripemd160/index.js 4:15-35
+ @ ./node_modules/create-hmac/browser.js 7:16-36
+ @ ./node_modules/crypto-browserify/index.js 5:21-58
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/is-electron-renderer/index.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/@mongodb-js/compass-components/lib/hooks/use-scrollbars.js 34:47-78
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 144:23-56
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/multipipe/index.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/path-browserify/index.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/file-input.js 31:31-46
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 50:34-68
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/pbkdf2/lib/default-encoding.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/pbkdf2/lib/async.js 4:22-51
+ @ ./node_modules/pbkdf2/browser.js 1:0-39
+ @ ./node_modules/crypto-browserify/index.js 14:8-25
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/process-nextick-args/index.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/duplexer2/node_modules/readable-stream/lib/_stream_readable.js 26:10-41
+ @ ./node_modules/duplexer2/node_modules/readable-stream/readable-browser.js 1:10-63
+ @ ./node_modules/duplexer2/index.js 3:13-39
+ @ ./node_modules/multipipe/index.js 6:15-35
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/randombytes/browser.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/crypto-browserify/index.js 3:64-101
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/randomfill/browser.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/crypto-browserify/index.js 68:9-30
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/readable-stream/lib/_stream_duplex.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/readable-stream/readable.js 6:0-51
+ @ ./node_modules/html-tokenize/index.js 2:16-52
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 2:0-37 159:22-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/readable-stream/lib/_stream_readable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/readable-stream/readable.js 2:10-63
+ @ ./node_modules/html-tokenize/index.js 2:16-52
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 2:0-37 159:22-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/readable-stream/lib/_stream_writable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/readable-stream/readable.js 5:0-55
+ @ ./node_modules/html-tokenize/index.js 2:16-52
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 2:0-37 159:22-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/readable-stream/readable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/html-tokenize/index.js 2:16-52
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 2:0-37 159:22-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/safer-buffer/safer.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/asn1.js/lib/asn1/base/buffer.js 5:15-45
+ @ ./node_modules/asn1.js/lib/asn1/base/index.js 6:21-54 7:21-54
+ @ ./node_modules/asn1.js/lib/asn1.js 8:12-34
+ @ ./node_modules/parse-asn1/asn1.js 5:11-29
+ @ ./node_modules/parse-asn1/index.js 1:11-28
+ @ ./node_modules/browserify-sign/browser/verify.js 7:16-37
+ @ ./node_modules/browserify-sign/browser/index.js 8:13-32
+ @ ./node_modules/crypto-browserify/index.js 39:11-37
+ @ ./node_modules/bson/lib/bson.cjs 135:15-44
+ @ ./node_modules/@mongodb-js/compass-components/lib/components/bson-value.js 28:15-30
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 198:19-53
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/semver/internal/debug.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/semver/internal/re.js 6:14-32
+ @ ./node_modules/semver/index.js 2:19-43
+ @ ./node_modules/@mongodb-js/compass-editor/node_modules/@mongodb-js/mongodb-constants/dist/filter.js 4:17-34
+ @ ./node_modules/@mongodb-js/compass-editor/node_modules/@mongodb-js/mongodb-constants/dist/index.js 29:15-34
+ @ ./node_modules/@mongodb-js/compass-editor/dist/codemirror/aggregation-autocompleter.js 4:28-68
+ @ ./node_modules/@mongodb-js/compass-editor/dist/index.js 19:34-83
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/csfle-tab/encrypted-field-config-input.js 29:25-62
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/csfle-tab/csfle-tab.js 33:55-96
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/advanced-options-tabs.js 36:36-68
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-connection-options.js 8:48-104
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/connection-form.js 33:54-94
+ @ ./node_modules/@mongodb-js/connection-form/dist/index.js 7:42-81
+ @ ./src/views/webview-app/connection-form.tsx 8:42-80
+ @ ./src/views/webview-app/overview-page.tsx 36:26-54
+ @ ./src/views/webview-app/app.tsx 7:40-66
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_duplex.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/stream-browserify/index.js 30:16-64
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_readable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/stream-browserify/index.js 28:18-68
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_writable.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/stream-browserify/index.js 29:18-68
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/internal/streams/async_iterator.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_readable.js 920:42-86
+ @ ./node_modules/stream-browserify/index.js 28:18-68
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/stream-browserify/node_modules/readable-stream/lib/internal/streams/destroy.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/stream-browserify/node_modules/readable-stream/lib/_stream_writable.js 74:18-55
+ @ ./node_modules/stream-browserify/index.js 29:18-68
+ @ ./node_modules/multipipe/index.js 7:18-47 8:15-44
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 3:0-29 194:11-15
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/through/index.js
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.browser.esm.js 1:0-30 160:23-30
+ @ ./node_modules/@leafygreen-ui/emotion/dist/esm/index.js 1:0-47 1:257-258
+ @ ./node_modules/@mongodb-js/compass-components/lib/index.js 36:16-49
+ @ ./src/views/webview-app/app.tsx 8:29-70
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+ERROR in ./node_modules/@lezer/lr/dist/index.cjs
+Cannot read properties of undefined (reading 'module')
+ @ ./node_modules/@lezer/javascript/dist/index.cjs 5:9-29
+ @ ./node_modules/@codemirror/lang-javascript/dist/index.cjs 3:19-47
+ @ ./node_modules/@mongodb-js/compass-editor/dist/editor.js 34:26-64
+ @ ./node_modules/@mongodb-js/compass-editor/dist/index.js 6:15-34
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/csfle-tab/encrypted-field-config-input.js 29:25-62
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/csfle-tab/csfle-tab.js 33:55-96
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-options-tabs/advanced-options-tabs.js 36:36-68
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/advanced-connection-options.js 8:48-104
+ @ ./node_modules/@mongodb-js/connection-form/dist/components/connection-form.js 33:54-94
+ @ ./node_modules/@mongodb-js/connection-form/dist/index.js 7:42-81
+ @ ./src/views/webview-app/connection-form.tsx 8:42-80
+ @ ./src/views/webview-app/overview-page.tsx 36:26-54
+ @ ./src/views/webview-app/app.tsx 7:40-66
+ @ ./src/views/webview-app/index.tsx 31:30-46
+
+70 errors have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack 5.88.1 compiled with 70 errors and 1 warning in 10069 ms
