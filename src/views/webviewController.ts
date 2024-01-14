@@ -10,6 +10,7 @@ import EXTENSION_COMMANDS from '../commands';
 import type { MESSAGE_FROM_WEBVIEW_TO_EXTENSION } from './webview-app/extension-app-message-constants';
 import {
   MESSAGE_TYPES,
+  VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID,
   VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
 } from './webview-app/extension-app-message-constants';
 import { openLink } from '../utils/linkHelper';
@@ -48,6 +49,10 @@ export const getWebviewContent = ({
   // Use a nonce to only allow specific scripts to be run.
   const nonce = getNonce();
 
+  const showOIDCDeviceAuthFlow = vscode.workspace
+    .getConfiguration('mdb')
+    .get('showOIDCDeviceAuthFlow');
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -63,6 +68,9 @@ export const getWebviewContent = ({
       <div id="root"></div>
       ${getFeatureFlagsScript(nonce)}
       <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
+      <script nonce="${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
+    showOIDCDeviceAuthFlow ? 'true' : 'false'
+  };</script>
       <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
     </body>
   </html>`;

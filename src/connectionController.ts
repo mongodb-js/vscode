@@ -67,6 +67,45 @@ type RecursivePartial<T> = {
     : T[P];
 };
 
+function isOIDCAuth(connectionString: string): boolean {
+  const authMechanismString = (
+    new ConnectionString(connectionString).searchParams.get('authMechanism') ||
+    ''
+  ).toUpperCase();
+
+  return authMechanismString === 'MONGODB-OIDC';
+}
+
+function getNotifyDeviceFlowForConnectionAttempt(
+  connectionOptions: ConnectionOptions
+) {
+  const isOIDCConnectionAttempt = isOIDCAuth(
+    connectionOptions.connectionString
+  );
+  let notifyDeviceFlow:
+    | ((deviceFlowInformation: {
+        verificationUrl: string;
+        userCode: string;
+      }) => void)
+    | undefined;
+
+  if (isOIDCConnectionAttempt) {
+    notifyDeviceFlow = ({
+      verificationUrl,
+      userCode,
+    }: {
+      verificationUrl: string;
+      userCode: string;
+    }) => {
+      void vscode.window.showInformationMessage(
+        `Visit the following URL to complete authentication: ${verificationUrl}  Enter the following code on that page: ${userCode}`
+      );
+    };
+  }
+
+  return notifyDeviceFlow;
+}
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
@@ -265,6 +304,7 @@ export default class ConnectionController {
     return this._connect(savedConnectionWithoutSecrets.id, connectionType);
   }
 
+  // eslint-disable-next-line complexity
   async _connect(
     connectionId: string,
     connectionType: ConnectionTypes
@@ -317,10 +357,14 @@ export default class ConnectionController {
 
     let dataService;
     try {
+      const notifyDeviceFlow = getNotifyDeviceFlowForConnectionAttempt(
+        connectionInfo.connectionOptions
+      );
+
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
         connectionOptions: connectionInfo.connectionOptions,
         defaultAppName: packageJSON.name,
-        notifyDeviceFlow: undefined,
+        notifyDeviceFlow,
         preferences: {
           forceConnectionOptions: [],
           browserCommandForOIDCAuth: undefined, // We overwrite this below.
