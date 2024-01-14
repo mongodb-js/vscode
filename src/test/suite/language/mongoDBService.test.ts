@@ -2981,12 +2981,13 @@ suite('MongoDBService Test Suite', () => {
         const result = await testMongoDBService.evaluate(
           {
             connectionId: 'pineapple',
-            codeToEvaluate: 'print("Hello"); console.log(1,2,3); 42',
+            codeToEvaluate:
+              'print("Hello"); console.log(1,2,3); console.log(true); 42',
           },
           source.token
         );
 
-        const expectedConsoleOutputs = ['Hello', 1, 2, 3];
+        const expectedConsoleOutputs = ['Hello', '1', '2', '3', 'true'];
         expect(consoleOutputs).to.deep.equal(expectedConsoleOutputs);
 
         const expectedResult = {
