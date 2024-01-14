@@ -76,7 +76,8 @@ function isOIDCAuth(connectionString: string): boolean {
   return authMechanismString === 'MONGODB-OIDC';
 }
 
-function getNotifyDeviceFlowForConnectionAttempt(
+// Exported for testing.
+export function getNotifyDeviceFlowForConnectionAttempt(
   connectionOptions: ConnectionOptions
 ) {
   const isOIDCConnectionAttempt = isOIDCAuth(
