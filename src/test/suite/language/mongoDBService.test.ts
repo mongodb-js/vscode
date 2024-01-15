@@ -2977,17 +2977,24 @@ suite('MongoDBService Test Suite', () => {
 
       test('sends print() and console.log() output continuously', async () => {
         const source = new CancellationTokenSource();
+        const hexString = '65a482edbf4fc24c5255a8fa';
 
         const result = await testMongoDBService.evaluate(
           {
             connectionId: 'pineapple',
-            codeToEvaluate:
-              'print("Hello"); console.log(1,2,3); console.log(true); 42',
+            codeToEvaluate: `print("Hello"); console.log(1,2,3); console.log(true); console.log(ObjectId(\'${hexString}\')); 42`,
           },
           source.token
         );
 
-        const expectedConsoleOutputs = ['Hello', '1', '2', '3', 'true'];
+        const expectedConsoleOutputs = [
+          'Hello',
+          '1',
+          '2',
+          '3',
+          'true',
+          `ObjectId(\'${hexString}\')`,
+        ];
         expect(consoleOutputs).to.deep.equal(expectedConsoleOutputs);
 
         const expectedResult = {
