@@ -560,7 +560,7 @@ export default class ConnectionController {
         `Unable to connect: ${printableError.message}`
       );
       return {
-        successfullyConnected: true,
+        successfullyConnected: false,
         connectionErrorMessage: '',
       };
     }
@@ -707,7 +707,7 @@ export default class ConnectionController {
   }: {
     connectionId: string;
     connectionOptions: ConnectionOptions;
-  }): Promise<boolean> {
+  }): Promise<void> {
     if (!this._connections[connectionId]) {
       throw new Error('Cannot find connection to update.');
     }
@@ -719,8 +719,6 @@ export default class ConnectionController {
     await this._connectionStorage.saveConnection(
       this._connections[connectionId]
     );
-
-    return true;
   }
 
   async updateConnectionAndConnect({
