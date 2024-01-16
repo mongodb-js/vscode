@@ -1077,7 +1077,7 @@
     "dotenv": "^16.3.1",
     "lodash": "^4.17.21",
     "micromatch": "^4.0.5",
-    "mongodb": "^6.0.0",
+    "mongodb": "^6.3.0",
     "mongodb-build-info": "^1.6.2",
     "mongodb-cloud-info": "^2.1.0",
     "mongodb-connection-string-url": "^2.6.0",
