@@ -173,9 +173,10 @@ export default class WebviewController {
         this._connectionController.cancelConnectionAttempt();
         return;
       case MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION:
-        await this._connectionController.updateConnectionAndConnect({
-          connectionId: message.connectionInfo.id,
-          connectionOptions: message.connectionInfo.connectionOptions,
+        await this.handleWebviewConnectAttempt({
+          panel,
+          connection: message.connectionInfo,
+          isEditingConnection: true,
         });
         this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED);
         return;
