@@ -275,6 +275,10 @@
         "title": "Remove Connection..."
       },
       {
+        "command": "mdb.editConnection",
+        "title": "Edit Connection..."
+      },
+      {
         "command": "mdb.addDatabase",
         "title": "Add Database...",
         "icon": {
@@ -482,6 +486,11 @@
           "group": "3@1"
         },
         {
+          "command": "mdb.editConnection",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "group": "3@2"
+        },
+        {
           "command": "mdb.copyConnectionString",
           "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "4@1"
@@ -510,6 +519,11 @@
           "command": "mdb.renameConnection",
           "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
           "group": "2@1"
+        },
+        {
+          "command": "mdb.editConnection",
+          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
+          "group": "2@2"
         },
         {
           "command": "mdb.copyConnectionString",
@@ -744,6 +758,10 @@
         },
         {
           "command": "mdb.renameConnection",
+          "when": "false"
+        },
+        {
+          "command": "mdb.editConnection",
           "when": "false"
         },
         {
@@ -1008,11 +1026,6 @@
           "default": true,
           "description": "Allow the collection of anonymous diagnostic and usage telemetry data to help improve the product."
         },
-        "mdb.connectionSaving.hideOptionToChooseWhereToSaveNewConnections": {
-          "type": "boolean",
-          "default": true,
-          "description": "When a connection is added, a prompt is shown that let's the user decide where the new connection should be saved. When this setting is checked, the prompt is not shown and the default connection saving location setting is used."
-        },
         "mdb.connectionSaving.defaultConnectionSavingLocation": {
           "type": "string",
           "enum": [
@@ -1050,7 +1063,7 @@
     "@babel/parser": "^7.22.6",
     "@babel/traverse": "^7.23.2",
     "@mongodb-js/compass-components": "^1.20.0",
-    "@mongodb-js/connection-form": "^1.20.4",
+    "@mongodb-js/connection-form": "^1.22.2",
     "@mongodb-js/connection-info": "^0.1.1",
     "@mongodb-js/mongodb-constants": "^0.7.1",
     "@mongosh/browser-runtime-electron": "^2.0.2",

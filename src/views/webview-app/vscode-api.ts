@@ -11,14 +11,21 @@ interface VSCodeApi {
 declare const acquireVsCodeApi: () => VSCodeApi;
 const vscode = acquireVsCodeApi();
 
+export const sendEditConnectionToExtension = (
+  connectionInfo: ConnectMessage['connectionInfo']
+) => {
+  vscode.postMessage({
+    command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION,
+    connectionInfo,
+  });
+};
+
 export const sendConnectToExtension = (
-  connectionInfo: ConnectMessage['connectionInfo'],
-  connectionAttemptId: string
+  connectionInfo: ConnectMessage['connectionInfo']
 ) => {
   vscode.postMessage({
     command: MESSAGE_TYPES.CONNECT,
     connectionInfo,
-    connectionAttemptId,
   });
 };
 

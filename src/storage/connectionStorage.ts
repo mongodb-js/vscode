@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import {
-  getConnectionTitle,
   extractSecrets,
+  getConnectionTitle,
   mergeSecrets,
 } from '@mongodb-js/connection-info';
 import type { ConnectionOptions } from 'mongodb-data-service';
@@ -11,7 +11,6 @@ import type StorageController from './storageController';
 import type { SecretStorageLocationType } from './storageController';
 import {
   DefaultSavingLocations,
-  SecretStorageLocation,
   StorageLocation,
   StorageVariables,
 } from './storageController';
@@ -42,23 +41,24 @@ export class ConnectionStorage {
     this._storageController = storageController;
   }
 
-  // Returns the saved connection (without secrets).
-  async saveNewConnection(connection: {
+  createNewConnection({
+    connectionOptions,
+    connectionId,
+  }: {
     connectionOptions: ConnectionOptions;
-    id: string;
-  }): Promise<LoadedConnection> {
-    const name = getConnectionTitle(connection);
-    const newConnectionInfo = {
-      id: connection.id,
-      name,
-      // To begin we just store it on the session, the storage controller
-      // handles changing this based on user preference.
-      storageLocation: StorageLocation.NONE,
-      secretStorageLocation: SecretStorageLocation.SecretStorage,
-      connectionOptions: connection.connectionOptions,
-    };
+    connectionId: string;
+  }): LoadedConnection {
+    const name = getConnectionTitle({
+      connectionOptions,
+    });
 
-    return await this.saveConnectionWithSecrets(newConnectionInfo);
+    return {
+      id: connectionId,
+      name,
+      storageLocation: this.getPreferredStorageLocationFromConfiguration(),
+      secretStorageLocation: 'vscode.SecretStorage',
+      connectionOptions: connectionOptions,
+    };
   }
 
   async _getConnectionInfoWithSecrets(
@@ -91,34 +91,6 @@ export class ConnectionStorage {
     }
   }
 
-  async saveConnection<T extends StoreConnectionInfo>(
-    storeConnectionInfo: T
-  ): Promise<T> {
-    const dontShowSaveLocationPrompt = vscode.workspace
-      .getConfiguration('mdb.connectionSaving')
-      .get('hideOptionToChooseWhereToSaveNewConnections');
-
-    if (dontShowSaveLocationPrompt === true) {
-      // The user has chosen not to show the message on where to save the connection.
-      // Save the connection in their default preference.
-      storeConnectionInfo.storageLocation =
-        this.getPreferredStorageLocationFromConfiguration();
-    } else {
-      storeConnectionInfo.storageLocation =
-        await this.getStorageLocationFromPrompt();
-    }
-
-    if (
-      [StorageLocation.GLOBAL, StorageLocation.WORKSPACE].includes(
-        storeConnectionInfo.storageLocation
-      )
-    ) {
-      await this._saveConnectionToStore(storeConnectionInfo);
-    }
-
-    return storeConnectionInfo;
-  }
-
   _mergedConnectionInfoWithSecrets(
     connectionInfo: LoadedConnection,
     unparsedSecrets: string
@@ -142,37 +114,40 @@ export class ConnectionStorage {
     };
   }
 
-  private async saveConnectionWithSecrets(
-    newStoreConnectionInfoWithSecrets: LoadedConnection
-  ): Promise<LoadedConnection> {
+  async saveConnection(connection: LoadedConnection): Promise<void> {
+    if (
+      ![StorageLocation.GLOBAL, StorageLocation.WORKSPACE].includes(
+        connection.storageLocation
+      )
+    ) {
+      return;
+    }
     // We don't want to store secrets to disc.
-    const { connectionInfo: safeConnectionInfo, secrets } = extractSecrets(
-      newStoreConnectionInfoWithSecrets
-    );
-    const savedConnectionInfo = await this.saveConnection({
-      ...newStoreConnectionInfoWithSecrets,
+    const { connectionInfo: safeConnectionInfo, secrets } =
+      extractSecrets(connection);
+    await this._saveConnectionToStore({
+      ...connection,
       connectionOptions: safeConnectionInfo.connectionOptions, // The connection info without secrets.
     });
+
     await this._storageController.setSecret(
-      savedConnectionInfo.id,
+      connection.id,
       JSON.stringify(secrets)
     );
-
-    return savedConnectionInfo;
   }
 
   async _saveConnectionToStore(
-    storeConnectionInfo: StoreConnectionInfo
+    connectionWithoutSecrets: StoreConnectionInfo
   ): Promise<void> {
     const variableName =
-      storeConnectionInfo.storageLocation === StorageLocation.GLOBAL
+      connectionWithoutSecrets.storageLocation === StorageLocation.GLOBAL
         ? StorageVariables.GLOBAL_SAVED_CONNECTIONS
         : StorageVariables.WORKSPACE_SAVED_CONNECTIONS;
 
     // Get the current saved connections.
     let savedConnections = this._storageController.get(
       variableName,
-      storeConnectionInfo.storageLocation
+      connectionWithoutSecrets.storageLocation
     );
 
     if (!savedConnections) {
@@ -180,41 +155,14 @@ export class ConnectionStorage {
     }
 
     // Add the new connection.
-    savedConnections[storeConnectionInfo.id] = storeConnectionInfo;
+    savedConnections[connectionWithoutSecrets.id] = connectionWithoutSecrets;
 
     // Update the store.
     return this._storageController.update(
       variableName,
       savedConnections,
-      storeConnectionInfo.storageLocation
+      connectionWithoutSecrets.storageLocation
     );
-  }
-
-  async getStorageLocationFromPrompt() {
-    const storeOnWorkspace = 'Save the connection on this workspace';
-    const storeGlobally = 'Save the connection globally on vscode';
-    // Prompt the user where they want to save the new connection.
-    const chosenConnectionSavingLocation = await vscode.window.showQuickPick(
-      [
-        storeOnWorkspace,
-        storeGlobally,
-        "Don't save this connection (it will be lost when the session is closed)",
-      ],
-      {
-        placeHolder:
-          'Where would you like to save this new connection? (This message can be disabled in the extension settings.)',
-      }
-    );
-
-    if (chosenConnectionSavingLocation === storeOnWorkspace) {
-      return StorageLocation.WORKSPACE;
-    }
-
-    if (chosenConnectionSavingLocation === storeGlobally) {
-      return StorageLocation.GLOBAL;
-    }
-
-    return StorageLocation.NONE;
   }
 
   async loadConnections() {
@@ -250,7 +198,7 @@ export class ConnectionStorage {
 
     await Promise.all(
       toBeReSaved.map(async (connectionInfo) => {
-        await this.saveConnectionWithSecrets(connectionInfo);
+        await this.saveConnection(connectionInfo);
       })
     );
 

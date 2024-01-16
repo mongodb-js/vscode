@@ -9,7 +9,6 @@ import {
   spacing,
   useDarkMode,
 } from '@mongodb-js/compass-components';
-import { v4 as uuidv4 } from 'uuid';
 import { VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID } from './extension-app-message-constants';
 
 const modalContentStyles = css({
@@ -42,32 +41,25 @@ const connectingContainerDarkModeStyles = css({
   background: 'rgba(0, 0, 0, 0.8)',
 });
 
-function createNewConnectionInfo() {
-  return {
-    id: uuidv4(),
-    connectionOptions: {
-      connectionString: 'mongodb://localhost:27017',
-    },
-  };
-}
-
-const initialConnectionInfo = createNewConnectionInfo();
-
-const ConnectionForm: React.FunctionComponent<{
-  isConnecting: boolean;
-  onCancelConnectClicked: () => void;
-  onConnectClicked: ComponentProps<
-    typeof CompassConnectionForm
-  >['onConnectClicked'];
-  onClose: () => void;
-  open: boolean;
-  connectionErrorMessage: string;
-}> = ({
+const ConnectionForm: React.FunctionComponent<
+  {
+    isConnecting: boolean;
+    onCancelConnectClicked: () => void;
+    onClose: () => void;
+    open: boolean;
+    connectionErrorMessage: string;
+  } & Pick<
+    ComponentProps<typeof CompassConnectionForm>,
+    'onConnectClicked' | 'onSaveConnectionClicked' | 'initialConnectionInfo'
+  >
+> = ({
+  initialConnectionInfo,
   connectionErrorMessage,
   isConnecting,
   onCancelConnectClicked,
   onConnectClicked,
   onClose,
+  onSaveConnectionClicked,
   open,
 }) => {
   const darkMode = useDarkMode();
@@ -99,8 +91,10 @@ const ConnectionForm: React.FunctionComponent<{
       <div className={formContainerStyles}>
         <CompassConnectionForm
           onConnectClicked={onConnectClicked}
+          onSaveConnectionClicked={onSaveConnectionClicked}
           initialConnectionInfo={initialConnectionInfo}
           preferences={{
+            showFavoriteActions: false,
             protectConnectionStrings: false,
             forceConnectionOptions: [],
             showKerberosPasswordField: false,

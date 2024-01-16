@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import * as mongodbDataService from 'mongodb-data-service';
+import { expect } from 'chai';
 import ConnectionString from 'mongodb-connection-string-url';
 
 import ConnectionController, {
@@ -278,16 +279,14 @@ suite('Connection Controller Test Suite', function () {
 
     const connections = testConnectionController._connections;
 
-    assert.strictEqual(Object.keys(connections).length, 4);
-    assert.strictEqual(
-      connections[Object.keys(connections)[0]].name,
+    expect(Object.keys(connections).length).to.equal(4);
+    expect(connections[Object.keys(connections)[0]].name).to.equal(
       'localhost:27088'
     );
-    assert.strictEqual(
+    expect(
       connections[Object.keys(connections)[2]].connectionOptions
-        ?.connectionString,
-      expectedDriverUrl
-    );
+        ?.connectionString
+    ).to.equal(expectedDriverUrl);
   });
 
   test('when a connection is added it is saved to the global storage', async () => {
@@ -365,10 +364,10 @@ suite('Connection Controller Test Suite', function () {
       },
     };
 
-    const successfulConnection =
+    const connectionResult =
       await testConnectionController.connectWithConnectionId('25');
 
-    assert.strictEqual(successfulConnection, true);
+    assert.strictEqual(connectionResult.successfullyConnected, true);
     assert.strictEqual(testConnectionController.getActiveConnectionId(), '25');
   });
 
@@ -638,6 +637,68 @@ suite('Connection Controller Test Suite', function () {
     assert.strictEqual(name, 'new connection name');
   });
 
+  test('a saved to workspace connection can be updated and loaded', async () => {
+    await testConnectionController.loadSavedConnections();
+    await vscode.workspace
+      .getConfiguration('mdb.connectionSaving')
+      .update(
+        'defaultConnectionSavingLocation',
+        DefaultSavingLocations.Workspace
+      );
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
+
+    const workspaceStoreConnections = testStorageController.get(
+      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageLocation.WORKSPACE
+    );
+
+    assert.strictEqual(Object.keys(workspaceStoreConnections).length, 1);
+
+    const connectionId =
+      testConnectionController.getActiveConnectionId() || 'zz';
+
+    const updatedConnectionString = new ConnectionString(TEST_DATABASE_URI);
+    updatedConnectionString.searchParams.set('connectTimeoutMS', '5000');
+    const updateSuccess =
+      await testConnectionController.updateConnectionAndConnect({
+        connectionId,
+        connectionOptions: {
+          connectionString: updatedConnectionString.toString(),
+        },
+      });
+
+    assert.strictEqual(updateSuccess.successfullyConnected, true);
+
+    await testConnectionController.disconnect();
+
+    testConnectionController.clearAllConnections();
+
+    assert.strictEqual(
+      testConnectionController.getSavedConnections().length,
+      0
+    );
+
+    // Activate (which will load the past connection).
+    await testConnectionController.loadSavedConnections();
+
+    assert.strictEqual(
+      testConnectionController.getSavedConnections().length,
+      1
+    );
+
+    const id = testConnectionController.getSavedConnections()[0].id;
+    const connectTimeoutMS = new ConnectionString(
+      testConnectionController.getSavedConnections()[0].connectionOptions.connectionString
+    ).searchParams.get('connectTimeoutMS');
+    const name = testConnectionController._connections[id || 'x'].name;
+
+    assert.strictEqual(name, 'localhost:27088');
+    // Ensure it's updated.
+    assert.strictEqual(connectTimeoutMS, '5000');
+  });
+
   test('close connection string input calls to cancel the cancellation token', function (done) {
     const inputBoxResolvesStub = sandbox.stub();
     inputBoxResolvesStub.callsFake(() => {
@@ -770,7 +831,7 @@ suite('Connection Controller Test Suite', function () {
     } catch (err) {
       assert(
         false,
-        `Expected not to error when disconnecting multiple times, recieved: ${err}`
+        `Expected not to error when disconnecting multiple times, received: ${err}`
       );
     }
 
@@ -888,43 +949,26 @@ suite('Connection Controller Test Suite', function () {
       StorageVariables.GLOBAL_SAVED_CONNECTIONS
     );
 
-    assert.strictEqual(
-      !!workspaceStoreConnections,
-      true,
-      `Expected workspace store to have connections, found ${workspaceStoreConnections}`
-    );
-
+    expect(workspaceStoreConnections).to.not.be.empty;
     const connections = Object.values(workspaceStoreConnections);
 
-    assert.strictEqual(connections.length, 1);
-    assert.strictEqual(
-      connections[0].connectionOptions?.connectionString.includes(
-        TEST_USER_USERNAME
-      ),
-      true
+    expect(connections.length).to.equal(1);
+    expect(connections[0].connectionOptions?.connectionString).to.include(
+      TEST_USER_USERNAME
     );
-    assert.strictEqual(
-      connections[0].connectionOptions?.connectionString.includes(
-        TEST_USER_PASSWORD
-      ),
-      false
+    expect(connections[0].connectionOptions?.connectionString).to.not.include(
+      TEST_USER_PASSWORD
     );
-    assert.strictEqual(
-      connections[0].connectionOptions?.connectionString.includes(
-        `appname=mongodb-vscode+${version}`
-      ),
-      true
+    expect(connections[0].connectionOptions?.connectionString).to.include(
+      `appname=mongodb-vscode+${version}`
     );
-    assert.strictEqual(
-      testConnectionController._connections[
-        connections[0].id
-      ].connectionOptions?.connectionString.includes(TEST_USER_PASSWORD),
-      true
-    );
-    assert.strictEqual(
-      testConnectionController._connections[connections[0].id].name,
-      'localhost:27088'
-    );
+    expect(
+      testConnectionController._connections[connections[0].id].connectionOptions
+        ?.connectionString
+    ).to.include(TEST_USER_PASSWORD);
+    expect(
+      testConnectionController._connections[connections[0].id].name
+    ).to.equal('localhost:27088');
   });
 
   test('getMongoClientConnectionOptions returns url and options properties', async () => {
