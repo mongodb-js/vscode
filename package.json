@@ -1080,7 +1080,7 @@
     "mongodb": "^6.0.0",
     "mongodb-build-info": "^1.6.2",
     "mongodb-cloud-info": "^2.1.0",
-    "mongodb-connection-string-url": "^2.6.0",
+    "mongodb-connection-string-url": "^3.0.0",
     "mongodb-data-service": "^22.17.0",
     "mongodb-log-writer": "^1.4.0",
     "mongodb-query-parser": "^3.1.3",
