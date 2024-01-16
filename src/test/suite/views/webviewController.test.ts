@@ -1,7 +1,7 @@
 import sinon from 'sinon';
 import * as vscode from 'vscode';
 import assert from 'assert';
-import { beforeEach, afterEach } from 'mocha';
+import { before, after, beforeEach, afterEach } from 'mocha';
 import fs from 'fs';
 import path from 'path';
 
@@ -148,6 +148,66 @@ suite('Webview Test Suite', () => {
     );
   });
 
+  test('web view content sets the oidc device auth id globally', () => {
+    const fakeWebview: any = {
+      asWebviewUri: (jsUri) => {
+        return jsUri;
+      },
+    };
+
+    const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
+    const htmlString = getWebviewContent({
+      extensionPath,
+      telemetryUserId: 'test',
+      webview: fakeWebview,
+    });
+
+    assert(
+      htmlString.includes(
+        ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = false;"
+      )
+    );
+  });
+
+  suite('when oidc device auth flow setting is enabled', function () {
+    let originalDeviceAuthFlow;
+    before(async function () {
+      originalDeviceAuthFlow = vscode.workspace.getConfiguration(
+        'mdb.showOIDCDeviceAuthFlow'
+      );
+
+      await vscode.workspace
+        .getConfiguration('mdb')
+        .update('showOIDCDeviceAuthFlow', true);
+    });
+    after(async function () {
+      await vscode.workspace
+        .getConfiguration('mdb')
+        .update('showOIDCDeviceAuthFlow', originalDeviceAuthFlow);
+    });
+
+    test('web view content sets the oidc device auth id globally', () => {
+      const fakeWebview: any = {
+        asWebviewUri: (jsUri) => {
+          return jsUri;
+        },
+      };
+
+      const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
+      const htmlString = getWebviewContent({
+        extensionPath,
+        telemetryUserId: 'test',
+        webview: fakeWebview,
+      });
+
+      assert(
+        htmlString.includes(
+          ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = true;"
+        )
+      );
+    });
+  });
+
   test('web view listens for a connect message and adds the connection', (done) => {
     let messageReceivedSet = false;
     let messageReceived;
@@ -202,7 +262,6 @@ suite('Webview Test Suite', () => {
           connectionString: 'mongodb://localhost:27088',
         },
       },
-      connectionAttemptId: 1,
     });
   });
 
@@ -254,9 +313,8 @@ suite('Webview Test Suite', () => {
     // Mock a connection call.
     messageReceived({
       command: MESSAGE_TYPES.CONNECT,
-      connectionAttemptId: 'pineapple',
       connectionInfo: {
-        id: 'test',
+        id: 'pineapple',
         connectionOptions: {
           connectionString: 'mongodb://localhost:27088',
         },
@@ -301,9 +359,8 @@ suite('Webview Test Suite', () => {
     // Mock a connection call.
     messageReceived({
       command: MESSAGE_TYPES.CONNECT,
-      connectionAttemptId: 'pineapple',
       connectionInfo: {
-        id: 'test',
+        id: 'pineapple',
         connectionOptions: {
           // bad port number.
           connectionString: 'mongodb://localhost:2700002',
@@ -356,9 +413,8 @@ suite('Webview Test Suite', () => {
     // Mock a connection call.
     messageReceived({
       command: MESSAGE_TYPES.CONNECT,
-      connectionAttemptId: 'pineapple',
       connectionInfo: {
-        id: 'test',
+        id: 'pineapple',
         connectionOptions: {
           connectionString:
             'mongodb://shouldfail:27088?connectTimeoutMS=500&serverSelectionTimeoutMS=500&socketTimeoutMS=500',
@@ -561,36 +617,29 @@ suite('Webview Test Suite', () => {
   });
 
   test('calls to edit a connection when an edit connection message is passed', async () => {
-    let messageReceived;
-
     sandbox.stub(testTelemetryService, 'trackNewConnection');
 
-    const fakeWebview = {
-      html: '',
-      postMessage: (): void => {},
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
+    let messageReceived;
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+      webview: {
+        html: '',
+        postMessage: (): void => {},
+        onDidReceiveMessage: (callback): void => {
+          messageReceived = callback;
+        },
+        asWebviewUri: sandbox.fake.returns(''),
       },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
       onDidDispose: sandbox.fake.returns(''),
-    });
+    } as unknown as vscode.WebviewPanel);
 
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
-
-    const mockEditConnectionOnConnectionController = sandbox.fake.returns(null);
-
-    sandbox.replace(
-      testConnectionController,
-      'updateConnectionAndConnect',
-      mockEditConnectionOnConnectionController
-    );
+    const mockEditConnectionOnConnectionController = sandbox
+      .stub(testConnectionController, 'updateConnectionAndConnect')
+      .returns(
+        Promise.resolve({
+          successfullyConnected: true,
+          connectionErrorMessage: '',
+        })
+      );
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -599,9 +648,11 @@ suite('Webview Test Suite', () => {
     // Mock a connection status request call.
     messageReceived({
       command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION,
-      connectionId: 'test',
-      connectionOptions: {
-        connectionString: 'test',
+      connectionInfo: {
+        id: 'pineapple',
+        connectionOptions: {
+          connectionString: 'test',
+        },
       },
     });
 
@@ -609,7 +660,7 @@ suite('Webview Test Suite', () => {
     assert.deepStrictEqual(
       mockEditConnectionOnConnectionController.firstCall.args[0],
       {
-        connectionId: 'test',
+        connectionId: 'pineapple',
         connectionOptions: {
           connectionString: 'test',
         },

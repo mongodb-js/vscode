@@ -67,6 +67,46 @@ type RecursivePartial<T> = {
     : T[P];
 };
 
+function isOIDCAuth(connectionString: string): boolean {
+  const authMechanismString = (
+    new ConnectionString(connectionString).searchParams.get('authMechanism') ||
+    ''
+  ).toUpperCase();
+
+  return authMechanismString === 'MONGODB-OIDC';
+}
+
+// Exported for testing.
+export function getNotifyDeviceFlowForConnectionAttempt(
+  connectionOptions: ConnectionOptions
+) {
+  const isOIDCConnectionAttempt = isOIDCAuth(
+    connectionOptions.connectionString
+  );
+  let notifyDeviceFlow:
+    | ((deviceFlowInformation: {
+        verificationUrl: string;
+        userCode: string;
+      }) => void)
+    | undefined;
+
+  if (isOIDCConnectionAttempt) {
+    notifyDeviceFlow = ({
+      verificationUrl,
+      userCode,
+    }: {
+      verificationUrl: string;
+      userCode: string;
+    }) => {
+      void vscode.window.showInformationMessage(
+        `Visit the following URL to complete authentication: ${verificationUrl}  Enter the following code on that page: ${userCode}`
+      );
+    };
+  }
+
+  return notifyDeviceFlow;
+}
+
 export default class ConnectionController {
   // This is a map of connection ids to their configurations.
   // These connections can be saved on the session (runtime),
@@ -254,13 +294,6 @@ export default class ConnectionController {
       connectionOptions,
     });
 
-    return this.saveAndConnect(connection, connectionType);
-  }
-
-  async saveAndConnect(
-    connection: LoadedConnection,
-    connectionType: ConnectionTypes
-  ) {
     await this._connectionStorage.saveConnection(connection);
 
     this._connections[connection.id] = cloneDeep(connection);
@@ -326,10 +359,14 @@ export default class ConnectionController {
 
     let dataService;
     try {
+      const notifyDeviceFlow = getNotifyDeviceFlowForConnectionAttempt(
+        connectionInfo.connectionOptions
+      );
+
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
         connectionOptions: connectionInfo.connectionOptions,
         defaultAppName: packageJSON.name,
-        notifyDeviceFlow: undefined,
+        notifyDeviceFlow,
         preferences: {
           forceConnectionOptions: [],
           browserCommandForOIDCAuth: undefined, // We overwrite this below.
@@ -502,7 +539,9 @@ export default class ConnectionController {
     this._connectionAttempt?.cancelConnectionAttempt();
   }
 
-  async connectWithConnectionId(connectionId: string): Promise<boolean> {
+  async connectWithConnectionId(
+    connectionId: string
+  ): Promise<ConnectionAttemptResult> {
     if (!this._connections[connectionId]) {
       throw new Error('Connection not found.');
     }
@@ -510,14 +549,20 @@ export default class ConnectionController {
     try {
       await this._connect(connectionId, ConnectionTypes.CONNECTION_ID);
 
-      return true;
+      return {
+        successfullyConnected: true,
+        connectionErrorMessage: '',
+      };
     } catch (error) {
       log.error('Failed to connect by a connection id', error);
       const printableError = formatError(error);
       void vscode.window.showErrorMessage(
         `Unable to connect: ${printableError.message}`
       );
-      return false;
+      return {
+        successfullyConnected: true,
+        connectionErrorMessage: '',
+      };
     }
   }
 
@@ -684,18 +729,11 @@ export default class ConnectionController {
   }: {
     connectionId: string;
     connectionOptions: ConnectionOptions;
-  }): Promise<boolean> {
-    if (!this._connections[connectionId]) {
-      throw new Error('Cannot find connection to update.');
-    }
-
-    this._connections[connectionId] = {
-      ...this._connections[connectionId],
+  }): Promise<ConnectionAttemptResult> {
+    await this.updateConnection({
+      connectionId,
       connectionOptions,
-    };
-    await this._connectionStorage.saveConnection(
-      this._connections[connectionId]
-    );
+    });
 
     return await this.connectWithConnectionId(connectionId);
   }
@@ -1004,8 +1042,9 @@ export default class ConnectionController {
       return true;
     }
 
-    return this.connectWithConnectionId(
+    const { successfullyConnected } = await this.connectWithConnectionId(
       selectedQuickPickItem.data.connectionId
     );
+    return successfullyConnected;
   }
 }

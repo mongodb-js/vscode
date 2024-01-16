@@ -267,11 +267,11 @@ export default class ConnectionTreeItem
 
     // If we aren't the active connection, we reconnect.
     try {
-      const connectSuccess =
+      const { successfullyConnected } =
         await this._connectionController.connectWithConnectionId(
           this.connectionId
         );
-      return connectSuccess;
+      return successfullyConnected;
     } catch (err) {
       this.isExpanded = false;
       void vscode.window.showErrorMessage(

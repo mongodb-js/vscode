@@ -1016,10 +1016,15 @@
           "default": true,
           "description": "Remain logged in when using the MONGODB-OIDC authentication mechanism for MongoDB server connection. Access tokens are encrypted using the system keychain before being stored."
         },
+        "mdb.showOIDCDeviceAuthFlow": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show a checkbox on the connection form to enable device auth flow authentication for MongoDB server OIDC Authentication. This enables a less secure authentication flow that can be used as a fallback when browser-based authentication is unavailable."
+        },
         "mdb.sendTelemetry": {
           "type": "boolean",
           "default": true,
-          "description": "Allow the collection of anonynous diagnostic and usage telemetry data to help improve the product."
+          "description": "Allow the collection of anonymous diagnostic and usage telemetry data to help improve the product."
         },
         "mdb.connectionSaving.defaultConnectionSavingLocation": {
           "type": "string",

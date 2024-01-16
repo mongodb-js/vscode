@@ -81,6 +81,7 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 | `mdb.confirmRunAll` | Show a confirmation message before running commands in a playground. | `true` |
 | `mdb.confirmDeleteDocument` | Show a confirmation message before deleting a document in the tree view. | `true` |
 | `mdb.persistOIDCTokens` | Remain logged in when using the MONGODB-OIDC authentication mechanism for MongoDB server connection. Access tokens are encrypted using the system keychain before being stored. | `true` |
+| `mdb.showOIDCDeviceAuthFlow` | Opt-in and opt-out for diagnostic and telemetry collection.  | `true`  |
 | `mdb.excludeFromPlaygroundsSearch` | Exclude files and folders while searching for playground files in the current workspace. | Refer to [`package.json`](https://github.com/mongodb-js/vscode/blob/7b10092db4c8c10c4aa9c45b443c8ed3d5f37d5c/package.json) |
 | `mdb.connectionSaving.`  `defaultConnectionSavingLocation` | When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved. | `Global` |
 | `mdb.useDefaultTemplateForPlayground` | Choose whether to use the default template for playground files or to start with an empty playground editor. | `true` |

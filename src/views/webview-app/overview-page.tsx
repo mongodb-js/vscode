@@ -32,7 +32,7 @@ const OverviewPage: React.FC = () => {
   const {
     initialConnectionInfo,
     isConnecting,
-    connectionFormOpened,
+    isConnectionFormOpen,
     openConnectionForm,
     closeConnectionForm,
     connectionErrorMessage,
@@ -60,7 +60,7 @@ const OverviewPage: React.FC = () => {
       {showResourcesPanel && (
         <ResourcesPanel onClose={handleResourcesPanelClose} />
       )}
-      {connectionFormOpened && (
+      {isConnectionFormOpen && (
         <ConnectionForm
           isConnecting={isConnecting}
           initialConnectionInfo={initialConnectionInfo}
@@ -78,7 +78,7 @@ const OverviewPage: React.FC = () => {
             })
           }
           onClose={closeConnectionForm}
-          open={connectionFormOpened}
+          open={isConnectionFormOpen}
           connectionErrorMessage={connectionErrorMessage}
         />
       )}

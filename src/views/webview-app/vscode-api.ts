@@ -12,24 +12,20 @@ declare const acquireVsCodeApi: () => VSCodeApi;
 const vscode = acquireVsCodeApi();
 
 export const sendEditConnectionToExtension = (
-  connectionInfo: ConnectMessage['connectionInfo'],
-  connectionId: string
+  connectionInfo: ConnectMessage['connectionInfo']
 ) => {
   vscode.postMessage({
     command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION,
-    connectionOptions: connectionInfo.connectionOptions,
-    connectionId,
+    connectionInfo,
   });
 };
 
 export const sendConnectToExtension = (
-  connectionInfo: ConnectMessage['connectionInfo'],
-  connectionAttemptId: string
+  connectionInfo: ConnectMessage['connectionInfo']
 ) => {
   vscode.postMessage({
     command: MESSAGE_TYPES.CONNECT,
     connectionInfo,
-    connectionAttemptId,
   });
 };
 

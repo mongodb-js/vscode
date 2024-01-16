@@ -10,6 +10,7 @@ import EXTENSION_COMMANDS from '../commands';
 import type { MESSAGE_FROM_WEBVIEW_TO_EXTENSION } from './webview-app/extension-app-message-constants';
 import {
   MESSAGE_TYPES,
+  VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID,
   VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
 } from './webview-app/extension-app-message-constants';
 import { openLink } from '../utils/linkHelper';
@@ -49,6 +50,10 @@ export const getWebviewContent = ({
   // Use a nonce to only allow specific scripts to be run.
   const nonce = getNonce();
 
+  const showOIDCDeviceAuthFlow = vscode.workspace
+    .getConfiguration('mdb')
+    .get('showOIDCDeviceAuthFlow');
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -64,6 +69,9 @@ export const getWebviewContent = ({
       <div id="root"></div>
       ${getFeatureFlagsScript(nonce)}
       <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
+      <script nonce="${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
+    showOIDCDeviceAuthFlow ? 'true' : 'false'
+  };</script>
       <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
@@ -97,27 +105,36 @@ export default class WebviewController {
     this._themeChangedSubscription?.dispose();
   }
 
-  handleWebviewConnectAttempt = async (
-    panel: vscode.WebviewPanel,
+  handleWebviewConnectAttempt = async ({
+    panel,
+    connection,
+    isEditingConnection,
+  }: {
+    panel: vscode.WebviewPanel;
     connection: {
       connectionOptions: ConnectionOptions;
       id: string;
-    },
-    connectionAttemptId: string
-  ) => {
+    };
+    isEditingConnection?: boolean;
+  }) => {
     try {
       const { successfullyConnected, connectionErrorMessage } =
-        await this._connectionController.saveNewConnectionAndConnect({
-          connectionId: connection.id,
-          connectionOptions: connection.connectionOptions,
-          connectionType: ConnectionTypes.CONNECTION_FORM,
-        });
+        isEditingConnection
+          ? await this._connectionController.updateConnectionAndConnect({
+              connectionId: connection.id,
+              connectionOptions: connection.connectionOptions,
+            })
+          : await this._connectionController.saveNewConnectionAndConnect({
+              connectionId: connection.id,
+              connectionOptions: connection.connectionOptions,
+              connectionType: ConnectionTypes.CONNECTION_FORM,
+            });
 
       try {
         // The webview may have been closed in which case this will throw.
         void panel.webview.postMessage({
           command: MESSAGE_TYPES.CONNECT_RESULT,
-          connectionAttemptId,
+          connectionId: connection.id,
           connectionSuccess: successfullyConnected,
           connectionMessage: successfullyConnected
             ? `Successfully connected to ${this._connectionController.getActiveConnectionName()}.`
@@ -133,7 +150,7 @@ export default class WebviewController {
 
       void panel.webview.postMessage({
         command: MESSAGE_TYPES.CONNECT_RESULT,
-        connectionAttemptId,
+        connectionId: connection.id,
         connectionSuccess: false,
         connectionMessage: `Unable to load connection: ${error}`,
       });
@@ -147,24 +164,20 @@ export default class WebviewController {
   ): Promise<void> => {
     switch (message.command) {
       case MESSAGE_TYPES.CONNECT:
-        await this.handleWebviewConnectAttempt(
+        await this.handleWebviewConnectAttempt({
           panel,
-          message.connectionInfo,
-          message.connectionAttemptId
-        );
+          connection: message.connectionInfo,
+        });
         return;
       case MESSAGE_TYPES.CANCEL_CONNECT:
         this._connectionController.cancelConnectionAttempt();
         return;
       case MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION:
-        const success =
-          await this._connectionController.updateConnectionAndConnect({
-            connectionId: message.connectionId,
-            connectionOptions: message.connectionOptions,
-          });
-        this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED, {
-          success,
+        await this._connectionController.updateConnectionAndConnect({
+          connectionId: message.connectionInfo.id,
+          connectionOptions: message.connectionInfo.connectionOptions,
         });
+        this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED);
         return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         void vscode.commands.executeCommand(

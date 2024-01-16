@@ -9,6 +9,7 @@ import type {
   WorkerEvaluate,
   MongoClientOptions,
 } from '../types/playgroundType';
+import util from 'util';
 
 interface EvaluationResult {
   printable: any;
@@ -57,7 +58,11 @@ const execute = async (
       onPrint(values: EvaluationResult[]) {
         parentPort?.postMessage({
           name: ServerCommands.SHOW_CONSOLE_OUTPUT,
-          payload: values.map((v) => v.printable),
+          payload: values.map((v) => {
+            return typeof v.printable === 'string'
+              ? v.printable
+              : util.inspect(v.printable);
+          }),
         });
       },
     });

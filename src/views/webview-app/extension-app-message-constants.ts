@@ -11,6 +11,9 @@ export enum CONNECTION_STATUS {
 export const VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID =
   'VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID';
 
+export const VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID =
+  'VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID';
+
 export enum MESSAGE_TYPES {
   CONNECT = 'CONNECT',
   CANCEL_CONNECT = 'CANCEL_CONNECT',
@@ -57,8 +60,10 @@ export interface OpenEditConnectionMessage extends BasicWebviewMessage {
 
 export interface EditAndConnectConnection extends BasicWebviewMessage {
   command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION;
-  connectionOptions: ConnectionOptions;
-  connectionId: string;
+  connectionInfo: {
+    id: string;
+    connectionOptions: ConnectionOptions;
+  };
 }
 
 export interface ConnectMessage extends BasicWebviewMessage {
@@ -67,7 +72,6 @@ export interface ConnectMessage extends BasicWebviewMessage {
     id: string;
     connectionOptions: ConnectionOptions;
   };
-  connectionAttemptId: string;
 }
 
 export interface CancelConnectMessage extends BasicWebviewMessage {
@@ -78,7 +82,7 @@ export interface ConnectResultsMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT_RESULT;
   connectionSuccess: boolean;
   connectionMessage: string;
-  connectionAttemptId: string;
+  connectionId: string;
 }
 
 export interface GetConnectionStatusMessage extends BasicWebviewMessage {

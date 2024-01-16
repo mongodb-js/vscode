@@ -299,10 +299,13 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CONNECT_TO_CONNECTION_TREE_VIEW,
-      (connectionTreeItem: ConnectionTreeItem) =>
-        this._connectionController.connectWithConnectionId(
-          connectionTreeItem.connectionId
-        )
+      async (connectionTreeItem: ConnectionTreeItem) => {
+        const { successfullyConnected } =
+          await this._connectionController.connectWithConnectionId(
+            connectionTreeItem.connectionId
+          );
+        return successfullyConnected;
+      }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW,

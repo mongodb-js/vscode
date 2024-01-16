@@ -6,9 +6,11 @@ import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import * as mongodbDataService from 'mongodb-data-service';
 import { expect } from 'chai';
+import ConnectionString from 'mongodb-connection-string-url';
 
 import ConnectionController, {
   DataServiceEventTypes,
+  getNotifyDeviceFlowForConnectionAttempt,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
 import { StorageController, StorageVariables } from '../../storage';
@@ -27,7 +29,6 @@ import {
   TEST_USER_PASSWORD,
 } from './dbTestHelper';
 import type { LoadedConnection } from '../../storage/connectionStorage';
-import ConnectionString from 'mongodb-connection-string-url';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../package.json');
@@ -55,10 +56,14 @@ suite('Connection Controller Test Suite', function () {
     telemetryService: testTelemetryService,
   });
   let showErrorMessageStub: SinonStub;
+  let showInformationMessageStub: SinonStub;
   const sandbox = sinon.createSandbox();
 
   beforeEach(() => {
-    sandbox.stub(vscode.window, 'showInformationMessage');
+    showInformationMessageStub = sandbox.stub(
+      vscode.window,
+      'showInformationMessage'
+    );
     sandbox.stub(testTelemetryService, 'trackNewConnection');
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
@@ -359,10 +364,10 @@ suite('Connection Controller Test Suite', function () {
       },
     };
 
-    const successfulConnection =
+    const connectionResult =
       await testConnectionController.connectWithConnectionId('25');
 
-    assert.strictEqual(successfulConnection, true);
+    assert.strictEqual(connectionResult.successfullyConnected, true);
     assert.strictEqual(testConnectionController.getActiveConnectionId(), '25');
   });
 
@@ -460,6 +465,45 @@ suite('Connection Controller Test Suite', function () {
     );
 
     assert.strictEqual(JSON.stringify(workspaceStoreConnections), objectString);
+  });
+
+  test('getNotifyDeviceFlowForConnectionAttempt returns a function that shows a message with the url when oidc is set', function () {
+    const expectedUndefinedDeviceFlow = getNotifyDeviceFlowForConnectionAttempt(
+      {
+        connectionString: TEST_DATABASE_URI,
+      }
+    );
+
+    assert.strictEqual(expectedUndefinedDeviceFlow, undefined);
+
+    const oidcConnectionString = new ConnectionString(TEST_DATABASE_URI);
+    oidcConnectionString.searchParams.set('authMechanism', 'MONGODB-OIDC');
+
+    const expectedFunction = getNotifyDeviceFlowForConnectionAttempt({
+      connectionString: oidcConnectionString.toString(),
+    });
+    assert.notStrictEqual(expectedFunction, undefined);
+    assert.strictEqual(showInformationMessageStub.called, false);
+
+    (
+      expectedFunction as (deviceFlowInformation: {
+        verificationUrl: string;
+        userCode: string;
+      }) => void
+    )({
+      verificationUrl: 'test123',
+      userCode: 'testabc',
+    });
+
+    assert.strictEqual(showInformationMessageStub.called, true);
+    assert.strictEqual(
+      showInformationMessageStub.firstCall.args[0].includes('test123'),
+      true
+    );
+    assert.strictEqual(
+      showInformationMessageStub.firstCall.args[0].includes('testabc'),
+      true
+    );
   });
 
   test('when a connection is removed it is also removed from workspace store', async () => {
@@ -625,7 +669,7 @@ suite('Connection Controller Test Suite', function () {
         },
       });
 
-    assert.strictEqual(updateSuccess, true);
+    assert.strictEqual(updateSuccess.successfullyConnected, true);
 
     await testConnectionController.disconnect();
 
