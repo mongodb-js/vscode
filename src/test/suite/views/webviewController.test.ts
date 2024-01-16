@@ -1,7 +1,7 @@
 import sinon from 'sinon';
 import * as vscode from 'vscode';
 import assert from 'assert';
-import { beforeEach, afterEach } from 'mocha';
+import { before, after, beforeEach, afterEach } from 'mocha';
 import fs from 'fs';
 import path from 'path';
 
@@ -125,6 +125,66 @@ suite('Webview Test Suite', () => {
         ">window['VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID'] = 'MOCK_ANONYMOU_ID';"
       )
     );
+  });
+
+  test('web view content sets the oidc device auth id globally', () => {
+    const fakeWebview: any = {
+      asWebviewUri: (jsUri) => {
+        return jsUri;
+      },
+    };
+
+    const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
+    const htmlString = getWebviewContent({
+      extensionPath,
+      telemetryUserId: 'test',
+      webview: fakeWebview,
+    });
+
+    assert(
+      htmlString.includes(
+        ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = false;"
+      )
+    );
+  });
+
+  suite('when oidc device auth flow setting is enabled', function () {
+    let originalDeviceAuthFlow;
+    before(async function () {
+      originalDeviceAuthFlow = vscode.workspace.getConfiguration(
+        'mdb.showOIDCDeviceAuthFlow'
+      );
+
+      await vscode.workspace
+        .getConfiguration('mdb')
+        .update('showOIDCDeviceAuthFlow', true);
+    });
+    after(async function () {
+      await vscode.workspace
+        .getConfiguration('mdb')
+        .update('showOIDCDeviceAuthFlow', originalDeviceAuthFlow);
+    });
+
+    test('web view content sets the oidc device auth id globally', () => {
+      const fakeWebview: any = {
+        asWebviewUri: (jsUri) => {
+          return jsUri;
+        },
+      };
+
+      const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
+      const htmlString = getWebviewContent({
+        extensionPath,
+        telemetryUserId: 'test',
+        webview: fakeWebview,
+      });
+
+      assert(
+        htmlString.includes(
+          ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = true;"
+        )
+      );
+    });
   });
 
   test('web view listens for a connect message and adds the connection', (done) => {
