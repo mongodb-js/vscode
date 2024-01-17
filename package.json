@@ -1099,7 +1099,7 @@
     "@babel/preset-typescript": "^7.22.5",
     "@mongodb-js/oidc-mock-provider": "^0.6.9",
     "@mongodb-js/oidc-plugin": "^0.3.0",
-    "@mongodb-js/prettier-config-compass": "^1.0.0",
+    "@mongodb-js/prettier-config-compass": "^1.0.1",
     "@mongodb-js/sbom-tools": "^0.5.4",
     "@mongosh/service-provider-core": "^2.0.2",
     "@testing-library/react": "^12.1.5",
