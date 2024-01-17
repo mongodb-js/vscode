@@ -11,12 +11,17 @@ export enum CONNECTION_STATUS {
 export const VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID =
   'VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID';
 
+export const VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID =
+  'VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID';
+
 export enum MESSAGE_TYPES {
   CONNECT = 'CONNECT',
   CANCEL_CONNECT = 'CANCEL_CONNECT',
   CONNECT_RESULT = 'CONNECT_RESULT',
   CONNECTION_FORM_OPENED = 'CONNECTION_FORM_OPENED',
   CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
+  OPEN_EDIT_CONNECTION = 'OPEN_EDIT_CONNECTION',
+  EDIT_AND_CONNECT_CONNECTION = 'EDIT_AND_CONNECT_CONNECTION',
   EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
   CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
   GET_CONNECTION_STATUS = 'GET_CONNECTION_STATUS',
@@ -44,13 +49,29 @@ export interface ConnectionStatusMessage extends BasicWebviewMessage {
   activeConnectionName: string;
 }
 
+export interface OpenEditConnectionMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION;
+  connection: {
+    id: string;
+    name: string;
+    connectionOptions: ConnectionOptions;
+  };
+}
+
+export interface EditAndConnectConnection extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION;
+  connectionInfo: {
+    id: string;
+    connectionOptions: ConnectionOptions;
+  };
+}
+
 export interface ConnectMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT;
   connectionInfo: {
     id: string;
     connectionOptions: ConnectionOptions;
   };
-  connectionAttemptId: string;
 }
 
 export interface CancelConnectMessage extends BasicWebviewMessage {
@@ -61,7 +82,7 @@ export interface ConnectResultsMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT_RESULT;
   connectionSuccess: boolean;
   connectionMessage: string;
-  connectionAttemptId: string;
+  connectionId: string;
 }
 
 export interface GetConnectionStatusMessage extends BasicWebviewMessage {
@@ -101,9 +122,11 @@ export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | LinkClickedMessage
   | OpenConnectionStringInputMessage
   | OpenTrustedLinkMessage
-  | RenameConnectionMessage;
+  | RenameConnectionMessage
+  | EditAndConnectConnection;
 
 export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
   | ConnectResultsMessage
   | ConnectionStatusMessage
-  | ThemeChangedMessage;
+  | ThemeChangedMessage
+  | OpenEditConnectionMessage;

@@ -235,7 +235,8 @@ suite('OIDC Tests', function () {
     await testConnectionController.disconnect();
 
     expect(
-      await testConnectionController.connectWithConnectionId(connectionId)
+      (await testConnectionController.connectWithConnectionId(connectionId))
+        .successfullyConnected
     ).to.be.true;
     expect(tokenFetchCalls).to.equal(1);
   });
@@ -264,7 +265,8 @@ suite('OIDC Tests', function () {
     await testConnectionController.disconnect();
 
     expect(
-      await testConnectionController.connectWithConnectionId(connectionId)
+      (await testConnectionController.connectWithConnectionId(connectionId))
+        .successfullyConnected
     ).to.be.true;
     expect(tokenFetchCalls).to.equal(2);
   });

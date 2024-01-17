@@ -743,7 +743,7 @@ suite('MDBExtensionController Test Suite', function () {
       const expectedMessage = 'Drop collection failed: ns not found';
       assert(
         showErrorMessageStub.firstCall.args[0] === expectedMessage,
-        `Expected "${expectedMessage}" when dropping a collection that doesn't exist, recieved "${showErrorMessageStub.firstCall.args[0]}"`
+        `Expected "${expectedMessage}" when dropping a collection that doesn't exist, received "${showErrorMessageStub.firstCall.args[0]}"`
       );
       await testConnectionController.disconnect();
       testConnectionController.clearAllConnections();

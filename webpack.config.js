@@ -40,6 +40,9 @@ module.exports = (env, argv) => {
         // Removes `electron`: is an optional dependency of `oidc-plugin`, but also installed as dev-dep,
         // webpack would bring it inside the bundle otherwise.
         electron: false,
+
+        // We don't currently support kerberos in our extension.
+        kerberos: false,
       },
     },
 

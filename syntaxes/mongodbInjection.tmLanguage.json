@@ -1721,6 +1721,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$changeStream\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$changeStream.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$collStats\\b",
           "captures": {
             "0": {
@@ -1734,6 +1743,15 @@
           "captures": {
             "0": {
               "name": "keyword.other.$count.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$currentOp\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$currentOp.mongodb"
             }
           }
         },
@@ -1820,6 +1838,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$listLocalSessions\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$listLocalSessions.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$lookup\\b",
           "captures": {
             "0": {
@@ -1892,19 +1919,19 @@
         },
         {
           "name": "meta.object.member.mongodb",
-          "match": "\\$replaceWith\\b",
+          "match": "\\$replaceRoot\\b",
           "captures": {
             "0": {
-              "name": "keyword.other.$replaceWith.mongodb"
+              "name": "keyword.other.$replaceRoot.mongodb"
             }
           }
         },
         {
           "name": "meta.object.member.mongodb",
-          "match": "\\$replaceRoot\\b",
+          "match": "\\$replaceWith\\b",
           "captures": {
             "0": {
-              "name": "keyword.other.$replaceRoot.mongodb"
+              "name": "keyword.other.$replaceWith.mongodb"
             }
           }
         },
@@ -1932,15 +1959,6 @@
           "captures": {
             "0": {
               "name": "keyword.other.$searchMeta.mongodb"
-            }
-          }
-        },
-        {
-          "name": "meta.object.member.mongodb",
-          "match": "\\$vectorSearch\\b",
-          "captures": {
-            "0": {
-              "name": "keyword.other.$vectorSearch.mongodb"
             }
           }
         },
@@ -2018,28 +2036,10 @@
         },
         {
           "name": "meta.object.member.mongodb",
-          "match": "\\$changeStream\\b",
+          "match": "\\$vectorSearch\\b",
           "captures": {
             "0": {
-              "name": "keyword.other.$changeStream.mongodb"
-            }
-          }
-        },
-        {
-          "name": "meta.object.member.mongodb",
-          "match": "\\$currentOp\\b",
-          "captures": {
-            "0": {
-              "name": "keyword.other.$currentOp.mongodb"
-            }
-          }
-        },
-        {
-          "name": "meta.object.member.mongodb",
-          "match": "\\$listLocalSessions\\b",
-          "captures": {
-            "0": {
-              "name": "keyword.other.$listLocalSessions.mongodb"
+              "name": "keyword.other.$vectorSearch.mongodb"
             }
           }
         }

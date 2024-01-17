@@ -10,12 +10,14 @@ import EXTENSION_COMMANDS from '../commands';
 import type { MESSAGE_FROM_WEBVIEW_TO_EXTENSION } from './webview-app/extension-app-message-constants';
 import {
   MESSAGE_TYPES,
+  VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID,
   VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
 } from './webview-app/extension-app-message-constants';
 import { openLink } from '../utils/linkHelper';
 import type { StorageController } from '../storage';
 import type TelemetryService from '../telemetry/telemetryService';
 import { getFeatureFlagsScript } from '../featureFlags';
+import { TelemetryEventTypes } from '../telemetry/telemetryService';
 
 const log = createLogger('webview controller');
 
@@ -48,6 +50,10 @@ export const getWebviewContent = ({
   // Use a nonce to only allow specific scripts to be run.
   const nonce = getNonce();
 
+  const showOIDCDeviceAuthFlow = vscode.workspace
+    .getConfiguration('mdb')
+    .get('showOIDCDeviceAuthFlow');
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -63,6 +69,9 @@ export const getWebviewContent = ({
       <div id="root"></div>
       ${getFeatureFlagsScript(nonce)}
       <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
+      <script nonce="${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
+    showOIDCDeviceAuthFlow ? 'true' : 'false'
+  };</script>
       <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
     </body>
   </html>`;
@@ -96,26 +105,36 @@ export default class WebviewController {
     this._themeChangedSubscription?.dispose();
   }
 
-  handleWebviewConnectAttempt = async (
-    panel: vscode.WebviewPanel,
+  handleWebviewConnectAttempt = async ({
+    panel,
+    connection,
+    isEditingConnection,
+  }: {
+    panel: vscode.WebviewPanel;
     connection: {
       connectionOptions: ConnectionOptions;
       id: string;
-    },
-    connectionAttemptId: string
-  ) => {
+    };
+    isEditingConnection?: boolean;
+  }) => {
     try {
       const { successfullyConnected, connectionErrorMessage } =
-        await this._connectionController.saveNewConnectionAndConnect(
-          connection,
-          ConnectionTypes.CONNECTION_FORM
-        );
+        isEditingConnection
+          ? await this._connectionController.updateConnectionAndConnect({
+              connectionId: connection.id,
+              connectionOptions: connection.connectionOptions,
+            })
+          : await this._connectionController.saveNewConnectionAndConnect({
+              connectionId: connection.id,
+              connectionOptions: connection.connectionOptions,
+              connectionType: ConnectionTypes.CONNECTION_FORM,
+            });
 
       try {
         // The webview may have been closed in which case this will throw.
         void panel.webview.postMessage({
           command: MESSAGE_TYPES.CONNECT_RESULT,
-          connectionAttemptId,
+          connectionId: connection.id,
           connectionSuccess: successfullyConnected,
           connectionMessage: successfullyConnected
             ? `Successfully connected to ${this._connectionController.getActiveConnectionName()}.`
@@ -131,7 +150,7 @@ export default class WebviewController {
 
       void panel.webview.postMessage({
         command: MESSAGE_TYPES.CONNECT_RESULT,
-        connectionAttemptId,
+        connectionId: connection.id,
         connectionSuccess: false,
         connectionMessage: `Unable to load connection: ${error}`,
       });
@@ -145,14 +164,21 @@ export default class WebviewController {
   ): Promise<void> => {
     switch (message.command) {
       case MESSAGE_TYPES.CONNECT:
-        await this.handleWebviewConnectAttempt(
+        await this.handleWebviewConnectAttempt({
           panel,
-          message.connectionInfo,
-          message.connectionAttemptId
-        );
+          connection: message.connectionInfo,
+        });
         return;
       case MESSAGE_TYPES.CANCEL_CONNECT:
         this._connectionController.cancelConnectionAttempt();
+        return;
+      case MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION:
+        await this.handleWebviewConnectAttempt({
+          panel,
+          connection: message.connectionInfo,
+          isEditingConnection: true,
+        });
+        this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED);
         return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         void vscode.commands.executeCommand(
@@ -204,7 +230,7 @@ export default class WebviewController {
     }
   };
 
-  onRecievedWebviewMessage = async (
+  onReceivedWebviewMessage = async (
     message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
     panel: vscode.WebviewPanel
   ): Promise<void> => {
@@ -212,7 +238,7 @@ export default class WebviewController {
     try {
       await this.handleWebviewMessage(message, panel);
     } catch (err) {
-      log.error('Error occured when parsing message from webview', err);
+      log.error('Error occurred when parsing message from webview', err);
       return;
     }
   };
@@ -242,7 +268,30 @@ export default class WebviewController {
     }
   };
 
-  openWebview(context: vscode.ExtensionContext): Promise<boolean> {
+  openEditConnection = async ({
+    connection,
+    context,
+  }: {
+    connection: {
+      id: string;
+      name?: string;
+      connectionOptions: ConnectionOptions;
+    };
+    context: vscode.ExtensionContext;
+  }) => {
+    const webviewPanel = this.openWebview(context);
+
+    // Wait for the panel to open.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    this._telemetryService.track(TelemetryEventTypes.OPEN_EDIT_CONNECTION);
+
+    void webviewPanel.webview.postMessage({
+      command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION,
+      connection,
+    });
+  };
+
+  openWebview(context: vscode.ExtensionContext): vscode.WebviewPanel {
     log.info('Opening webview...');
     const extensionPath = context.extensionPath;
 
@@ -287,11 +336,11 @@ export default class WebviewController {
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
       (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) =>
-        this.onRecievedWebviewMessage(message, panel),
+        this.onReceivedWebviewMessage(message, panel),
       undefined,
       context.subscriptions
     );
 
-    return Promise.resolve(true);
+    return panel;
   }
 }

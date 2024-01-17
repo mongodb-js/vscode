@@ -366,7 +366,7 @@ export default class CollectionTreeItem
       });
     } catch (error) {
       return Promise.reject(
-        new Error(`An error occured parsing the collection name: ${error}`)
+        new Error(`An error occurred parsing the collection name: ${error}`)
       );
     }
 
