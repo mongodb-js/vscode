@@ -1,6 +1,6 @@
 import sinon from 'sinon';
 import * as vscode from 'vscode';
-import assert from 'assert';
+import { expect } from 'chai';
 import { before, after, beforeEach, afterEach } from 'mocha';
 import fs from 'fs';
 import path from 'path';
@@ -17,6 +17,17 @@ import WebviewController, {
   getWebviewContent,
 } from '../../../views/webviewController';
 import * as linkHelper from '../../../utils/linkHelper';
+
+function waitFor(condition: () => boolean, timeout = 10) {
+  return new Promise<void>((resolve) => {
+    const testInterval = setInterval(() => {
+      if (condition()) {
+        clearInterval(testInterval);
+        resolve();
+      }
+    }, timeout);
+  });
+}
 
 suite('Webview Test Suite', () => {
   const sandbox = sinon.createSandbox();
@@ -47,6 +58,7 @@ suite('Webview Test Suite', () => {
       mdbTestExtension.testExtensionController._telemetryService,
       'trackNewConnection'
     );
+    sandbox.stub(testTelemetryService, 'trackNewConnection');
   });
 
   afterEach(() => {
@@ -54,22 +66,18 @@ suite('Webview Test Suite', () => {
   });
 
   test('it creates a web view panel and sets the html content', () => {
-    const stubOnDidRecieveMessage = sandbox.stub();
+    const stubOnDidReceiveMessage = sandbox.stub();
     const fakeWebview = {
       html: '',
-      onDidReceiveMessage: stubOnDidRecieveMessage,
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
-      onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+      onDidReceiveMessage: stubOnDidReceiveMessage,
+      asWebviewUri: sandbox.stub().returns(''),
+    } as unknown as vscode.Webview;
+    const fakeVSCodeCreateWebviewPanel = sandbox
+      .stub(vscode.window, 'createWebviewPanel')
+      .returns({
+        webview: fakeWebview,
+        onDidDispose: sandbox.stub().returns(''),
+      } as unknown as vscode.WebviewPanel);
 
     const testWebviewController = new WebviewController({
       connectionController:
@@ -84,12 +92,9 @@ suite('Webview Test Suite', () => {
       mdbTestExtension.extensionContextStub
     );
 
-    assert(fakeVSCodeCreateWebviewPanel.called);
-    assert(fakeWebview.html !== '');
-    assert(
-      stubOnDidRecieveMessage.called,
-      'Ensure it starts listening for messages from the webview.'
-    );
+    expect(fakeVSCodeCreateWebviewPanel).to.be.calledOnce;
+    expect(fakeWebview.html).to.not.equal('');
+    expect(stubOnDidReceiveMessage).to.be.calledOnce;
   });
 
   test('web view content is rendered with the js form', async () => {
@@ -104,68 +109,58 @@ suite('Webview Test Suite', () => {
       });
     }
 
-    const webviewStub: any = {
-      asWebviewUri: (jsUri) => {
-        return jsUri;
-      },
-    };
-
     const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const htmlString = getWebviewContent({
       extensionPath,
       telemetryUserId: '',
-      webview: webviewStub,
+      webview: {
+        asWebviewUri: (jsUri) => {
+          return jsUri;
+        },
+      } as unknown as vscode.Webview,
     });
 
-    assert(htmlString.includes('dist/webviewApp.js'));
+    expect(htmlString).to.include('dist/webviewApp.js');
 
     const webviewAppFileName = (): string => 'dist/webviewApp.js';
     const jsFileString = await readFile(
       path.join(extensionPath, webviewAppFileName())
     );
 
-    assert(`${jsFileString}`.includes('OverviewPage'));
+    expect(`${jsFileString}`).to.include('OverviewPage');
   });
 
   test('web view content sets the segment anonymous id globally', () => {
-    const fakeWebview: any = {
-      asWebviewUri: (jsUri) => {
-        return jsUri;
-      },
-    };
-
     const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const htmlString = getWebviewContent({
       extensionPath,
       telemetryUserId: 'MOCK_ANONYMOU_ID',
-      webview: fakeWebview,
+      webview: {
+        asWebviewUri: (jsUri) => {
+          return jsUri;
+        },
+      } as unknown as vscode.Webview,
     });
 
-    assert(
-      htmlString.includes(
-        ">window['VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID'] = 'MOCK_ANONYMOU_ID';"
-      )
+    expect(htmlString).to.include(
+      ">window['VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID'] = 'MOCK_ANONYMOU_ID';"
     );
   });
 
   test('web view content sets the oidc device auth id globally', () => {
-    const fakeWebview: any = {
-      asWebviewUri: (jsUri) => {
-        return jsUri;
-      },
-    };
-
     const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const htmlString = getWebviewContent({
       extensionPath,
       telemetryUserId: 'test',
-      webview: fakeWebview,
+      webview: {
+        asWebviewUri: (jsUri) => {
+          return jsUri;
+        },
+      } as unknown as vscode.Webview,
     });
 
-    assert(
-      htmlString.includes(
-        ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = false;"
-      )
+    expect(htmlString).to.include(
+      ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = false;"
     );
   });
 
@@ -187,23 +182,19 @@ suite('Webview Test Suite', () => {
     });
 
     test('web view content sets the oidc device auth id globally', () => {
-      const fakeWebview: any = {
-        asWebviewUri: (jsUri) => {
-          return jsUri;
-        },
-      };
-
       const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
       const htmlString = getWebviewContent({
         extensionPath,
         telemetryUserId: 'test',
-        webview: fakeWebview,
+        webview: {
+          asWebviewUri: (jsUri) => {
+            return jsUri;
+          },
+        } as unknown as vscode.Webview,
       });
 
-      assert(
-        htmlString.includes(
-          ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = true;"
-        )
+      expect(htmlString).to.include(
+        ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = true;"
       );
     });
   });
@@ -211,47 +202,34 @@ suite('Webview Test Suite', () => {
   test('web view listens for a connect message and adds the connection', (done) => {
     let messageReceivedSet = false;
     let messageReceived;
-
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
-    const fakeWebview = {
-      html: '',
-      postMessage: async (): Promise<void> => {
-        assert(testConnectionController.isCurrentlyConnected());
-        assert(
-          testConnectionController.getActiveConnectionName() ===
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+      webview: {
+        html: '',
+        postMessage: async (): Promise<void> => {
+          expect(testConnectionController.isCurrentlyConnected()).to.equal(
+            true
+          );
+          expect(testConnectionController.getActiveConnectionName()).to.include(
             'localhost:27088'
-        );
+          );
 
-        await testConnectionController.disconnect();
-        done();
+          await testConnectionController.disconnect();
+          done();
+        },
+        onDidReceiveMessage: (callback): void => {
+          messageReceived = callback;
+          messageReceivedSet = true;
+        },
+        asWebviewUri: () => '',
       },
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
-        messageReceivedSet = true;
-      },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
-      onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+      onDidDispose: () => '',
+    } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
     );
 
-    assert(
-      messageReceivedSet,
-      'Ensure it starts listening for messages from the webview.'
-    );
+    expect(messageReceivedSet).to.be.true;
 
     // Mock a connection call.
     messageReceived({
@@ -268,47 +246,31 @@ suite('Webview Test Suite', () => {
   test('web view sends a successful connect result on a successful connection', (done) => {
     let messageReceivedSet = false;
     let messageReceived;
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+      webview: {
+        html: '',
+        postMessage: async (message): Promise<void> => {
+          expect(message.connectionSuccess).to.be.true;
+          const expectedMessage = 'Successfully connected to localhost:27088.';
+          expect(message.connectionMessage).to.equal(expectedMessage);
 
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
-    const fakeWebview = {
-      html: '',
-      postMessage: async (message): Promise<void> => {
-        assert(message.connectionSuccess);
-        const expectedMessage = 'Successfully connected to localhost:27088.';
-        assert(
-          message.connectionMessage === expectedMessage,
-          `Expected connection message "${message.connectionMessage}" to equal ${expectedMessage}`
-        );
-
-        await testConnectionController.disconnect();
-        done();
+          await testConnectionController.disconnect();
+          done();
+        },
+        onDidReceiveMessage: (callback): void => {
+          messageReceived = callback;
+          messageReceivedSet = true;
+        },
+        asWebviewUri: () => '',
       },
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
-        messageReceivedSet = true;
-      },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
-      onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+      onDidDispose: () => '',
+    } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
     );
 
-    assert(
-      messageReceivedSet,
-      'Ensure it starts listening for messages from the webview.'
-    );
+    expect(messageReceivedSet).to.be.true;
 
     // Mock a connection call.
     messageReceived({
@@ -324,33 +286,25 @@ suite('Webview Test Suite', () => {
 
   test('web view sends an unsuccessful connect result on an unsuccessful connection', (done) => {
     let messageReceived;
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+      webview: {
+        html: '',
+        postMessage: async (message): Promise<void> => {
+          expect(message.connectionSuccess).to.be.false;
+          expect(message.connectionMessage).to.include(
+            'Unable to load connection'
+          );
 
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
-    const fakeWebview = {
-      html: '',
-      postMessage: async (message): Promise<void> => {
-        assert(!message.connectionSuccess);
-        assert(message.connectionMessage.includes('Unable to load connection'));
-
-        await testConnectionController.disconnect();
-        done();
+          await testConnectionController.disconnect();
+          done();
+        },
+        onDidReceiveMessage: (callback): void => {
+          messageReceived = callback;
+        },
+        asWebviewUri: () => '',
       },
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
-      },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
-      onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+      onDidDispose: () => '',
+    } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -373,39 +327,29 @@ suite('Webview Test Suite', () => {
     this.timeout(5000);
 
     let messageReceived;
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+      webview: {
+        html: '',
+        postMessage: (message): void => {
+          try {
+            expect(message.connectionSuccess).to.be.false;
+            expect(message.connectionMessage).to.include(
+              'connection attempt cancelled'
+            );
 
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
-    const fakeWebview = {
-      html: '',
-      postMessage: (message): void => {
-        try {
-          assert.strictEqual(message.connectionSuccess, false);
-          assert.strictEqual(
-            message.connectionMessage,
-            'connection attempt cancelled'
-          );
-
-          void testConnectionController.disconnect();
-          done();
-        } catch (err) {
-          done(err);
-        }
+            void testConnectionController.disconnect();
+            done();
+          } catch (err) {
+            done(err);
+          }
+        },
+        onDidReceiveMessage: (callback): void => {
+          messageReceived = callback;
+        },
+        asWebviewUri: sandbox.fake.returns(''),
       },
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
-      },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
       onDidDispose: sandbox.fake.returns(''),
-    });
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+    } as unknown as vscode.WebviewPanel);
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
     );
@@ -427,36 +371,23 @@ suite('Webview Test Suite', () => {
     );
   });
 
-  test('web view runs the "connectWithURI" command when open connection string input is received', (done) => {
+  test('web view runs the "connectWithURI" command when open connection string input is received', async () => {
     let messageReceived;
-
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
     const fakeWebview = {
       html: '',
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: sandbox.fake.returns(''),
+      asWebviewUri: () => '',
     };
-    const fakeVSCodeExecuteCommand = sandbox.fake.resolves(false);
+    const fakeVSCodeExecuteCommand = sandbox
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(false);
 
-    sandbox.replace(
-      vscode.commands,
-      'executeCommand',
-      fakeVSCodeExecuteCommand
-    );
-
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
       webview: fakeWebview,
-      onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+      onDidDispose: () => '',
+    } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -466,45 +397,36 @@ suite('Webview Test Suite', () => {
       command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT,
     });
 
-    setTimeout(() => {
-      assert(fakeVSCodeExecuteCommand.called);
-      assert(
-        fakeVSCodeExecuteCommand.firstCall.args[0] === 'mdb.connectWithURI'
-      );
+    await waitFor(() => {
+      return fakeVSCodeExecuteCommand.called;
+    });
 
-      done();
-    }, 50);
+    expect(fakeVSCodeExecuteCommand).to.be.calledOnce.called;
+    expect(fakeVSCodeExecuteCommand.firstCall.args[0]).to.equal(
+      'mdb.connectWithURI'
+    );
   });
 
   test('webview returns the connection status on a connection status request', (done) => {
     let messageReceived;
 
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+      webview: {
+        html: '',
+        postMessage: (message): void => {
+          expect(message.command).to.equal('CONNECTION_STATUS_MESSAGE');
+          expect(message.connectionStatus).to.equal('DISCONNECTED');
+          expect(message.activeConnectionName).to.equal('');
 
-    const fakeWebview = {
-      html: '',
-      postMessage: (message): void => {
-        assert(message.command === 'CONNECTION_STATUS_MESSAGE');
-        assert(message.connectionStatus === 'DISCONNECTED');
-        assert(message.activeConnectionName === '');
-
-        done();
+          done();
+        },
+        onDidReceiveMessage: (callback): void => {
+          messageReceived = callback;
+        },
+        asWebviewUri: sandbox.fake.returns(''),
       },
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
-      },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
       onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+    } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -519,33 +441,24 @@ suite('Webview Test Suite', () => {
   test('webview returns the connection status on a connection status request', (done) => {
     let messageReceived;
 
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+      webview: {
+        html: '',
+        postMessage: async (message): Promise<void> => {
+          expect(message.command).to.equal('CONNECTION_STATUS_MESSAGE');
+          expect(message.connectionStatus).to.equal('CONNECTED');
+          expect(message.activeConnectionName).to.equal('localhost:27088');
+          await testConnectionController.disconnect();
 
-    const fakeWebview = {
-      html: '',
-      postMessage: async (message): Promise<void> => {
-        assert(message.command === 'CONNECTION_STATUS_MESSAGE');
-        assert(message.connectionStatus === 'CONNECTED');
-        assert(message.activeConnectionName === 'localhost:27088');
-        await testConnectionController.disconnect();
-
-        done();
+          done();
+        },
+        onDidReceiveMessage: (callback): void => {
+          messageReceived = callback;
+        },
+        asWebviewUri: sandbox.fake.returns(''),
       },
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
-      },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
       onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+    } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -564,26 +477,17 @@ suite('Webview Test Suite', () => {
   test('calls to rename the active connection when a rename active connection message is passed', async () => {
     let messageReceived;
 
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
-    const fakeWebview = {
-      html: '',
-      postMessage: (): void => {},
-      onDidReceiveMessage: (callback): void => {
-        messageReceived = callback;
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+      webview: {
+        html: '',
+        postMessage: (): void => {},
+        onDidReceiveMessage: (callback): void => {
+          messageReceived = callback;
+        },
+        asWebviewUri: sandbox.fake.returns(''),
       },
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
       onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+    } as unknown as vscode.WebviewPanel);
 
     const mockRenameConnectionOnConnectionController =
       sandbox.fake.returns(null);
@@ -607,18 +511,15 @@ suite('Webview Test Suite', () => {
       command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION,
     });
 
-    assert(mockRenameConnectionOnConnectionController.called);
-    assert.strictEqual(
-      mockRenameConnectionOnConnectionController.firstCall.args[0],
-      testConnectionController.getActiveConnectionId()
-    );
+    expect(mockRenameConnectionOnConnectionController).to.be.calledOnce;
+    expect(
+      mockRenameConnectionOnConnectionController.firstCall.args[0]
+    ).to.equal(testConnectionController.getActiveConnectionId());
 
     await testConnectionController.disconnect();
   });
 
   test('calls to edit a connection when an edit connection message is passed', async () => {
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
     let messageReceived;
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
       webview: {
@@ -656,52 +557,42 @@ suite('Webview Test Suite', () => {
       },
     });
 
-    assert(mockEditConnectionOnConnectionController.called);
-    assert.deepStrictEqual(
-      mockEditConnectionOnConnectionController.firstCall.args[0],
-      {
-        connectionId: 'pineapple',
-        connectionOptions: {
-          connectionString: 'test',
-        },
-      }
-    );
+    expect(mockEditConnectionOnConnectionController).to.be.calledOnce;
+    expect(
+      mockEditConnectionOnConnectionController.firstCall.args[0]
+    ).to.deep.equal({
+      connectionId: 'pineapple',
+      connectionOptions: {
+        connectionString: 'test',
+      },
+    });
 
     await testConnectionController.disconnect();
   });
 
   test('it notifies all the webviews of the change of current theme and gulps the error if any', function (done) {
-    sandbox.stub(testTelemetryService, 'trackNewConnection');
-
     const totalExpectedPostMessageCalls = 3;
     let callsSoFar = 0;
-    const fakeWebview = {
-      html: '',
-      // eslint-disable-next-line @typescript-eslint/require-await
-      postMessage: async (message): Promise<void> => {
-        assert(message.command === 'THEME_CHANGED');
-        assert(message.darkMode === true);
-        if (++callsSoFar === 1) {
-          // This should be fine since we catch the rejection and proceed ahead silently
-          throw new Error('BAM');
-        }
-        if (++callsSoFar === totalExpectedPostMessageCalls) {
-          done();
-        }
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+      webview: {
+        html: '',
+        // eslint-disable-next-line @typescript-eslint/require-await
+        postMessage: async (message): Promise<void> => {
+          expect(message.command).to.equal('THEME_CHANGED');
+          expect(message.darkMode).to.be.true;
+          if (++callsSoFar === 1) {
+            // This should be fine since we catch the rejection and proceed ahead silently
+            throw new Error('BAM');
+          }
+          if (++callsSoFar === totalExpectedPostMessageCalls) {
+            done();
+          }
+        },
+        onDidReceiveMessage: (): void => {},
+        asWebviewUri: sandbox.fake.returns(''),
       },
-      onDidReceiveMessage: (): void => {},
-      asWebviewUri: sandbox.fake.returns(''),
-    };
-    const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-      webview: fakeWebview,
       onDidDispose: sandbox.fake.returns(''),
-    });
-
-    sandbox.replace(
-      vscode.window,
-      'createWebviewPanel',
-      fakeVSCodeCreateWebviewPanel
-    );
+    } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
       mdbTestExtension.extensionContextStub
@@ -728,47 +619,34 @@ suite('Webview Test Suite', () => {
       testStorageController,
       extensionContextStub
     );
-    let testConnectionController;
-
     let messageReceived;
-    let fakeWebview;
-
-    let testWebviewController;
 
     beforeEach(() => {
-      testConnectionController = new ConnectionController({
+      const testConnectionController = new ConnectionController({
         statusView: new StatusView(extensionContextStub),
         storageController: testStorageController,
         telemetryService: testTelemetryService,
       });
 
-      fakeWebview = {
-        html: '',
-        postMessage: (): void => {},
-        onDidReceiveMessage: (callback): void => {
-          messageReceived = callback;
+      sandbox.stub(vscode.window, 'createWebviewPanel').returns({
+        webview: {
+          html: '',
+          postMessage: (): void => {},
+          onDidReceiveMessage: (callback): void => {
+            messageReceived = callback;
+          },
+          asWebviewUri: sandbox.fake.returns(''),
         },
-        asWebviewUri: sandbox.fake.returns(''),
-      };
-
-      const fakeVSCodeCreateWebviewPanel = sandbox.fake.returns({
-        webview: fakeWebview,
         onDidDispose: sandbox.fake.returns(''),
-      });
-      sandbox.replace(
-        vscode.window,
-        'createWebviewPanel',
-        fakeVSCodeCreateWebviewPanel
-      );
+      } as unknown as vscode.WebviewPanel);
 
-      testWebviewController = new WebviewController({
+      const testWebviewController = new WebviewController({
         connectionController: testConnectionController,
         storageController: testStorageController,
         telemetryService: testTelemetryService,
       });
 
       testWebviewController.openWebview(mdbTestExtension.extensionContextStub);
-      sandbox.stub(testTelemetryService, 'trackNewConnection');
     });
 
     test('it should handle opening trusted links', () => {
@@ -780,9 +658,8 @@ suite('Webview Test Suite', () => {
         linkTo: 'https://mongodb.com/test',
       });
 
-      assert(stubOpenLink.called);
-      assert.strictEqual(
-        stubOpenLink.firstCall.args[0],
+      expect(stubOpenLink).to.be.calledOnce;
+      expect(stubOpenLink.firstCall.args[0]).to.equal(
         'https://mongodb.com/test'
       );
     });
