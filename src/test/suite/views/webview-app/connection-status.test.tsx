@@ -15,12 +15,12 @@ describe('ConnectionStatus test suite', function () {
     Sinon.restore();
   });
 
-  test('it should show a loading status by default', function () {
+  it('should show a loading status by default', function () {
     render(<ConnectionStatus />);
     expect(screen.getByText('Loading...')).to.not.be.null;
   });
 
-  test('it should periodically request connection status', function () {
+  it('should periodically request connection status', function () {
     const postMessageStub = Sinon.stub(vscode, 'postMessage');
     render(<ConnectionStatus />);
     expect(postMessageStub).to.have.been.calledWithExactly({
@@ -29,7 +29,7 @@ describe('ConnectionStatus test suite', function () {
   });
 
   describe('when GET_CONNECTION_STATUS gets responded with a disconnecting state', function () {
-    test('it should show a disconnecting status', function () {
+    it('should show a disconnecting status', function () {
       render(<ConnectionStatus />);
       act(() => {
         window.dispatchEvent(
@@ -47,7 +47,7 @@ describe('ConnectionStatus test suite', function () {
   });
 
   describe('when GET_CONNECTION_STATUS gets responded with a disconnected state', function () {
-    test('it should show a disconnected status', function () {
+    it('should show a disconnected status', function () {
       render(<ConnectionStatus />);
       act(() => {
         window.dispatchEvent(
@@ -65,7 +65,7 @@ describe('ConnectionStatus test suite', function () {
   });
 
   describe('when GET_CONNECTION_STATUS gets responded with a connecting state', function () {
-    test('it should show a connecting status', function () {
+    it('should show a connecting status', function () {
       render(<ConnectionStatus />);
       act(() => {
         window.dispatchEvent(
@@ -98,12 +98,12 @@ describe('ConnectionStatus test suite', function () {
       });
     });
 
-    test('it should show a connected status', function () {
+    it('should show a connected status', function () {
       expect(screen.getByText('Connected to:')).to.not.be.null;
       expect(screen.getByText('vscode-connection')).to.not.be.null;
     });
 
-    test('it should allow editing the name of the connection', function () {
+    it('should allow editing the name of the connection', function () {
       const postMessageStub = Sinon.stub(vscode, 'postMessage');
       screen.getByLabelText('Rename connection').click();
 
@@ -112,7 +112,7 @@ describe('ConnectionStatus test suite', function () {
       });
     });
 
-    test('it should allow creating new playground', function () {
+    it('should allow creating new playground', function () {
       const postMessageStub = Sinon.stub(vscode, 'postMessage');
       screen.getByLabelText('Create playground').click();
 
