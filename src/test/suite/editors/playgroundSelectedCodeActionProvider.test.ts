@@ -536,7 +536,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
           expectedResult = {
             namespace: 'db.coll',
             type: null,
-            content: `// Requires the MongoDB Go Driver\n// https://go.mongodb.org/mongo-driver\nctx := context.TODO()\n\n// Set client options\nclientOptions := options.Client().ApplyURI("mongodb://localhost:27088/?appname=mongodb-vscode+${version}")\n\n// Connect to MongoDB\nclient, err := mongo.Connect(ctx, clientOptions)\nif err != nil {\n  log.Fatal(err)\n}\ndefer func() {\n  if err := client.Disconnect(ctx); err != nil {\n    log.Fatal(err)\n  }\n}()\n\n// Find data\ncoll := client.Database("db").Collection("coll")\n_, err = coll.Find(ctx, bson.D{{"name", "22"}})\nif err != nil {\n  log.Fatal(err)\n}`,
+            content: `// Requires the MongoDB Go Driver\n// https://go.mongodb.org/mongo-driver\nctx := context.TODO()\n\n// Set client options\nclientOptions := options.Client().ApplyURI(\"mongodb://localhost:27088/?appname=mongodb-vscode+${version}\")\n\n// Connect to MongoDB\nclient, err := mongo.Connect(ctx, clientOptions)\nif err != nil {\n  log.Fatal(err)\n}\ndefer func() {\n  if err := client.Disconnect(ctx); err != nil {\n    log.Fatal(err)\n  }\n}()\n\ncoll := client.Database(\"db\").Collection(\"coll\")\n_, err = coll.Find(ctx, bson.D{{\"name\", \"22\"}})\nif err != nil {\n  log.Fatal(err)\n}`,
             language: 'go',
           };
 
