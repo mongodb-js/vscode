@@ -185,7 +185,7 @@ suite('SchemaTreeItem Test Suite', function () {
       assert(false, 'Didnt expect to succeed.');
     } catch (error) {
       const expectedMessage =
-        "Unable to parse schema: Cannot use 'in' operator to search for 'stream' in invalid schema to parse";
+        "Unable to parse schema: Cannot use 'in' operator to search for 'Symbol(Symbol.iterator)' in invalid schema to parse";
 
       assert.strictEqual(
         (<any>error).message,
