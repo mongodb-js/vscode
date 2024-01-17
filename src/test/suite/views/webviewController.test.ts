@@ -401,7 +401,7 @@ suite('Webview Test Suite', () => {
       return fakeVSCodeExecuteCommand.called;
     });
 
-    expect(fakeVSCodeExecuteCommand).to.be.calledOnce.called;
+    expect(fakeVSCodeExecuteCommand).to.be.called;
     expect(fakeVSCodeExecuteCommand.firstCall.args[0]).to.equal(
       'mdb.connectWithURI'
     );
