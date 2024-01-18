@@ -1,7 +1,8 @@
 import React from 'react';
 import { expect } from 'chai';
-import Sinon from 'sinon';
+import sinon from 'sinon';
 import { cleanup, render, screen, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import OverviewPage from '../../../../views/webview-app/overview-page';
 import vscode from '../../../../views/webview-app/vscode-api';
@@ -12,9 +13,10 @@ const connectionFormTestId = 'connection-form-modal';
 describe('OverviewPage test suite', function () {
   afterEach(() => {
     cleanup();
-    Sinon.restore();
+    sinon.restore();
   });
-  it('should render OverviewPage', function () {
+
+  it('should render the OverviewPage', function () {
     render(<OverviewPage />);
     expect(
       screen.getByText(
@@ -23,47 +25,45 @@ describe('OverviewPage test suite', function () {
     ).to.exist;
   });
 
-  it('on click of resources, it should open resources panel', function () {
+  it('should open and close the resources panel', async function () {
     render(<OverviewPage />);
-    screen.getByText('Resources').click();
-    expect(screen.getByText('Product overview')).to.exist;
-  });
 
-  it('on click of close button on resources panel, it should close resources panel', function () {
-    render(<OverviewPage />);
-    screen.getByText('Resources').click();
-    screen.getByLabelText('Close').click();
+    expect(screen.queryByText('Product overview')).to.not.exist;
+    await userEvent.click(screen.getByText('Resources'));
+    expect(screen.getByText('Product overview')).to.exist;
+
+    await userEvent.click(screen.getByLabelText('Close'));
     expect(screen.queryByText('Product overview')).to.be.null;
   });
 
   describe('Connection Form', function () {
-    it('is able to open and close the new connection form', function () {
+    it('is able to open and close the new connection form', async function () {
       render(<OverviewPage />);
 
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
-      const postMessageSpy = Sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(vscode, 'postMessage');
       expect(postMessageSpy).to.not.be.called;
 
-      screen.getByText('Open form').click();
+      await userEvent.click(screen.getByTestId('open-connection-form-button'));
       expect(screen.getByTestId(connectionFormTestId)).to.exist;
       const message = postMessageSpy.firstCall.args[0];
       expect(message).to.deep.equal({
         command: MESSAGE_TYPES.CONNECTION_FORM_OPENED,
       });
 
-      screen.getByLabelText('Close modal').click();
+      await userEvent.click(screen.getByLabelText('Close modal'));
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
     });
 
-    it('should send connect request to webview controller when clicked on Connect button', function () {
-      const postMessageSpy = Sinon.spy(vscode, 'postMessage');
+    it('should send connect request to webview controller when clicked on Connect button', async function () {
+      const postMessageSpy = sinon.spy(vscode, 'postMessage');
 
       render(<OverviewPage />);
-      screen.getByText('Open form').click();
+      await userEvent.click(screen.getByTestId('open-connection-form-button'));
 
       expect(screen.getByDisplayValue('mongodb://localhost:27017/')).to.not.be
         .null;
-      screen.getByTestId('connect-button').click();
+      await userEvent.click(screen.getByTestId('connect-button'));
       const argsWithoutConnectId = postMessageSpy.lastCall.args[0] as any;
       expect(argsWithoutConnectId.command).to.equal(MESSAGE_TYPES.CONNECT);
       expect(
@@ -71,11 +71,11 @@ describe('OverviewPage test suite', function () {
       ).to.equal('mongodb://localhost:27017');
     });
 
-    it('should display error message returned from connection attempt', function () {
+    it('should display error message returned from connection attempt', async function () {
       render(<OverviewPage />);
-      const postMessageSpy = Sinon.spy(vscode, 'postMessage');
-      screen.getByText('Open form').click();
-      screen.getByTestId('connect-button').click();
+      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      await userEvent.click(screen.getByTestId('open-connection-form-button'));
+      await userEvent.click(screen.getByTestId('connect-button'));
       const connectionId = (postMessageSpy.lastCall.args[0] as any)
         .connectionInfo.id;
 
@@ -94,11 +94,11 @@ describe('OverviewPage test suite', function () {
       expect(screen.queryByTestId('connection-error-summary')).to.not.be.null;
     });
 
-    it('should close the connection modal when connected successfully', function () {
+    it('should close the connection modal when connected successfully', async function () {
       render(<OverviewPage />);
-      const postMessageSpy = Sinon.spy(vscode, 'postMessage');
-      screen.getByText('Open form').click();
-      screen.getByTestId('connect-button').click();
+      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      await userEvent.click(screen.getByTestId('open-connection-form-button'));
+      await userEvent.click(screen.getByTestId('connect-button'));
       const connectionId = (postMessageSpy.lastCall.args[0] as any)
         .connectionInfo.id;
 
@@ -117,10 +117,10 @@ describe('OverviewPage test suite', function () {
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
     });
 
-    it('should handle editing a connection', function () {
+    it('should handle editing a connection', async function () {
       render(<OverviewPage />);
 
-      const postMessageSpy = Sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(vscode, 'postMessage');
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
       expect(screen.queryByText('pineapple')).to.not.exist;
 
@@ -146,7 +146,7 @@ describe('OverviewPage test suite', function () {
       expect(screen.getByText('pineapple')).to.exist;
 
       expect(postMessageSpy).to.not.be.called;
-      screen.getByTestId('connect-button').click();
+      await userEvent.click(screen.getByTestId('connect-button'));
       expect(postMessageSpy).to.be.calledOnce;
 
       const editAttempt = postMessageSpy.lastCall.args[0] as any;
@@ -161,10 +161,10 @@ describe('OverviewPage test suite', function () {
       });
     });
 
-    it('should not display results from other connection attempts', function () {
+    it('should not display results from other connection attempts', async function () {
       render(<OverviewPage />);
-      screen.getByText('Open form').click();
-      screen.getByTestId('connect-button').click();
+      await userEvent.click(screen.getByTestId('open-connection-form-button'));
+      await userEvent.click(screen.getByTestId('connect-button'));
 
       act(() => {
         window.dispatchEvent(

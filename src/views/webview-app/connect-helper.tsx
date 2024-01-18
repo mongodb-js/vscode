@@ -61,6 +61,7 @@ const ConnectHelper: React.FC<{
 }> = ({ onClickOpenConnectionForm }) => {
   return (
     <div className={containerStyles}>
+      <input type="text" />
       <div className={cardContainerStyles}>
         <div className={leftCardStyles}>
           <div>
@@ -91,6 +92,7 @@ const ConnectHelper: React.FC<{
           <Button
             aria-label="Open connection form"
             darkMode
+            data-testid="open-connection-form-button"
             onClick={onClickOpenConnectionForm}
           >
             Open form

@@ -34,8 +34,4 @@ describe('ConnectHelper test suite', function () {
       command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT,
     });
   });
-
-  it.skip('when clicked on open connection form, it should open connection form', function () {
-    // TODO(VSCODE-488)
-  });
 });
