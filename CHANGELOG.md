@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.5.0](https://github.com/mongodb-js/vscode/releases/tag/untagged-bf7d742ca55d7b3fe4c6) - null
+
+Edit the release notes before publishing.
+
+
 ## [v1.4.0](https://github.com/mongodb-js/vscode/releases/tag/v1.4.0) - 2024-01-09
 
 ## What's Changed
@@ -429,23 +434,5 @@ To dig deeper please feel free to follow the links mentioned below:
 
 - Fixed an issue with the launch shell command in powershell
 - Fixed an issue with the tree explorer freezing when double clicking an open schema
-
-
-## [v0.0.4](https://github.com/mongodb-js/vscode/releases/tag/v0.0.4) - 2020-06-17
-
-### Added
-
-- Added `Launch MongoDB Shell` right click action for the active connection in the tree view
-
-### Fixed
-
-- Fixed an issue with connecting to ssl with the launch shell command
-- Fixed an issue with the launch shell command on windows
-- Fixed playgrounds not being able to run in WSL environments
-- Updated our connection model dependency to pull in a fix for connection strings with `readPreferenceTags`
-
-### Changed
-
-- Connections in the tree view are now alphabetically sorted
 
 
