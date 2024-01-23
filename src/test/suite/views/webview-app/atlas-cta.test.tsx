@@ -12,13 +12,13 @@ describe('AtlasCta test suite', function () {
     Sinon.restore();
   });
 
-  test('it should render Atlas CTA', function () {
+  it('should render Atlas CTA', function () {
     render(<AtlasCta />);
     expect(screen.getByText('Create free cluster')).to.not.be.null;
     expect(screen.getByTestId('link-atlas')).to.not.be.null;
   });
 
-  test('it should track clicks on MongoDB Atlas link', function () {
+  it('should track clicks on MongoDB Atlas link', function () {
     const postMessageStub = Sinon.stub(vscode, 'postMessage');
     render(<AtlasCta />);
     screen.getByTestId('link-atlas').click();
@@ -29,7 +29,7 @@ describe('AtlasCta test suite', function () {
     });
   });
 
-  test('when clicked on "Create free cluster" button, it should open create account page on atlas and also track the link', function () {
+  it('when clicked on "Create free cluster" button, it should open create account page on atlas and also track the link', function () {
     const postMessageStub = Sinon.stub(vscode, 'postMessage');
     render(<AtlasCta />);
     screen.getByText('Create free cluster').click();

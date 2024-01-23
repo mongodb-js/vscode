@@ -5,7 +5,7 @@
     "target": "es2022",
     "outDir": "out",
     "lib": ["dom", "es2022"],
-    "types": ["node"],
+    "types": ["node", "mocha"],
     "jsx": "react",
     "sourceMap": true,
     "rootDir": "src",
