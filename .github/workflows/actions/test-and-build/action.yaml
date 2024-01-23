@@ -69,15 +69,7 @@ runs:
       if: ${{ runner.os != 'Windows' }}
       shell: bash
 
-    - name: Set BROWSER_AUTH_COMMAND
-      run: |
-        BROWSER_AUTH_COMMAND=$(echo "$(which node) $(pwd)/src/test/fixture/curl.js")
-        echo "BROWSER_AUTH_COMMAND=$BROWSER_AUTH_COMMAND" >> $GITHUB_ENV
-      shell: bash
-
     - name: Run Tests
-      env:
-        BROWSER_AUTH_COMMAND: ${{ env.BROWSER_AUTH_COMMAND }}
       run: |
         npm run test
       shell: bash
