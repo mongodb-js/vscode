@@ -46,6 +46,8 @@ export enum ExportToLanguages {
   JAVASCRIPT = 'javascript',
   RUBY = 'ruby',
   GO = 'go',
+  RUST = 'rust',
+  PHP = 'php',
 }
 
 export enum ExportToLanguageMode {

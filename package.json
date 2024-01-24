@@ -247,6 +247,14 @@
         "title": "MongoDB: Export To Go"
       },
       {
+        "command": "mdb.exportToRust",
+        "title": "MongoDB: Export To Rust"
+      },
+      {
+        "command": "mdb.exportToPHP",
+        "title": "MongoDB: Export To PHP"
+      },
+      {
         "command": "mdb.addConnection",
         "title": "Add MongoDB Connection",
         "icon": {
@@ -718,6 +726,14 @@
         },
         {
           "command": "mdb.exportToGo",
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+        },
+        {
+          "command": "mdb.exportToRust",
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+        },
+        {
+          "command": "mdb.exportToPHP",
           "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
         },
         {
