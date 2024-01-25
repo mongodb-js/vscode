@@ -195,7 +195,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       }
     });
 
-    test('exports to java and includes builders', async () => {
+    test('exports to java and includes builders and import statements', async () => {
       const textFromEditor = "{ name: '22' }";
       const selection = {
         start: { line: 0, character: 0 },
@@ -256,6 +256,26 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
             mdbTestExtension.testExtensionController._playgroundController
               ._playgroundResult
           ).to.be.deep.equal(expectedResult);
+
+          await vscode.commands.executeCommand(
+            'mdb.changeExportToLanguageAddons',
+            {
+              ...mdbTestExtension.testExtensionController._playgroundController
+                ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+              driverSyntax: true,
+              importStatements: true,
+            }
+          );
+
+          // Java includes generic import statements
+          const mongoClientImport = 'import com.mongodb.MongoClient;';
+          // but also import statements which depend on the exportToLanguageMode. the following is for QUERY
+          const queryImport = 'import com.mongodb.client.FindIterable;';
+          const content =
+            mdbTestExtension.testExtensionController._playgroundController
+              ._playgroundResult?.content;
+          expect(content).to.include(mongoClientImport);
+          expect(content).to.include(queryImport);
         }
       }
     });
