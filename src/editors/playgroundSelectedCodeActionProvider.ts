@@ -133,6 +133,28 @@ export default class PlaygroundSelectedCodeActionProvider
         tooltip: 'Export To Go',
       };
       codeActions.push(exportToGoCommand);
+
+      const exportToRustCommand = new vscode.CodeAction(
+        'Export To Rust',
+        vscode.CodeActionKind.Empty
+      );
+      exportToRustCommand.command = {
+        command: EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST,
+        title: 'Export To Rust',
+        tooltip: 'Export To Rust',
+      };
+      codeActions.push(exportToRustCommand);
+
+      const exportToPHPCommand = new vscode.CodeAction(
+        'Export To PHP',
+        vscode.CodeActionKind.Empty
+      );
+      exportToPHPCommand.command = {
+        command: EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP,
+        title: 'Export To PHP',
+        tooltip: 'Export To PHP',
+      };
+      codeActions.push(exportToPHPCommand);
     }
 
     return codeActions;
