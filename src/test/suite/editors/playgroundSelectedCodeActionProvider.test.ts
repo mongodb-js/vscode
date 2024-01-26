@@ -368,11 +368,6 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
 
           const driverSyntaxRawQuery =
             'Bson filter = new Document("name", "22");';
-          console.log(
-            'CONTENT DRIVER',
-            mdbTestExtension.testExtensionController._playgroundController
-              ._playgroundResult?.content
-          );
           expect(
             mdbTestExtension.testExtensionController._playgroundController
               ._playgroundResult?.content
