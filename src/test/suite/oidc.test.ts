@@ -31,8 +31,8 @@ function hash(input: string): string {
 }
 
 // Need to be provided via CI env because we can't get a hold for node.js exec
-// path in our tests - they run inside a vscode process
-const browserShellCommand = process.env.BROWSER_AUTH_COMMAND;
+// path in our tests - they run inside a vscode process in the built dir.
+const browserShellCommand = `$(echo "$(which node) ${__dirname}/../../../src/test/fixture/curl.js")`;
 
 const UNIQUE_TASK_ID =
   process.env.GITHUB_RUN_ID && process.env.GITHUB_RUN_NUMBER
