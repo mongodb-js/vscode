@@ -1,5 +1,24 @@
 # Change Log
 
+## [v1.5.0](https://github.com/mongodb-js/vscode/releases/tag/v1.5.0) - 2024-01-24
+
+## What's Changed
+* VSCODE-505: stream support in UI by @shaketbaby in https://github.com/mongodb-js/vscode/pull/643
+* feat(webview): use new connection form, remove old form VSCODE-491 by @Anemy in https://github.com/mongodb-js/vscode/pull/636
+* fix: add explicit ordering for stream processor context menu actions by @pulkitkalra-mdb in https://github.com/mongodb-js/vscode/pull/654
+* chore: close connection string input when opening form VSCODE-507 by @Anemy in https://github.com/mongodb-js/vscode/pull/656
+* fix: ensure extension output populates ObjectIds in stream by @pulkitkalra-mdb in https://github.com/mongodb-js/vscode/pull/657
+* feat(connect-form): add OIDC device auth flow with preference VSCODE-503 by @Anemy in https://github.com/mongodb-js/vscode/pull/658
+* feat(connections): add edit connection context menu action VSCODE-406 by @Anemy in https://github.com/mongodb-js/vscode/pull/655
+* chore(deps): update mongodb and devtools dependencies by @Anemy in https://github.com/mongodb-js/vscode/pull/662
+* chore: cancel connection attempt when removing connection, update assert to expect in webview and connection controller tests by @Anemy in https://github.com/mongodb-js/vscode/pull/667
+
+## New Contributors
+* @pulkitkalra-mdb made their first contribution in https://github.com/mongodb-js/vscode/pull/654
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.4.0...v1.5.0
+
+
 ## [v1.4.0](https://github.com/mongodb-js/vscode/releases/tag/v1.4.0) - 2024-01-09
 
 ## What's Changed
@@ -429,23 +448,5 @@ To dig deeper please feel free to follow the links mentioned below:
 
 - Fixed an issue with the launch shell command in powershell
 - Fixed an issue with the tree explorer freezing when double clicking an open schema
-
-
-## [v0.0.4](https://github.com/mongodb-js/vscode/releases/tag/v0.0.4) - 2020-06-17
-
-### Added
-
-- Added `Launch MongoDB Shell` right click action for the active connection in the tree view
-
-### Fixed
-
-- Fixed an issue with connecting to ssl with the launch shell command
-- Fixed an issue with the launch shell command on windows
-- Fixed playgrounds not being able to run in WSL environments
-- Updated our connection model dependency to pull in a fix for connection strings with `readPreferenceTags`
-
-### Changed
-
-- Connections in the tree view are now alphabetically sorted
 
 
