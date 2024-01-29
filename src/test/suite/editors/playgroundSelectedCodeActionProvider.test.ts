@@ -240,280 +240,410 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
 
       test('include builders (only)', async () => {
         const codeActions = testCodeActionProvider.provideCodeActions();
-        expect(codeActions).to.exist;
 
-        if (codeActions) {
-          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[2].command;
-
-          if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToJava');
-            expect(actionCommand.title).to.be.equal('Export To Java');
-
-            await vscode.commands.executeCommand(actionCommand.command);
-
-            const codeLenses =
-              mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-            expect(codeLenses.length).to.be.equal(3);
-            const lensesObj = { lenses: codeLenses };
-            expect(lensesObj).to.have.nested.property(
-              'lenses[0].command.title',
-              'Include Import Statements'
-            );
-            expect(lensesObj).to.have.nested.property(
-              'lenses[1].command.title',
-              'Include Driver Syntax'
-            );
-            expect(lensesObj).to.have.nested.property(
-              'lenses[2].command.title',
-              'Use Builders'
-            );
-          }
-
-          // Only java queries supports builders.
-          await vscode.commands.executeCommand(
-            'mdb.changeExportToLanguageAddons',
-            {
-              ...mdbTestExtension.testExtensionController._playgroundController
-                ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
-              builders: true,
-              importStatements: false,
-              driverSyntax: false,
-            }
-          );
-
-          const codeLenses =
-            mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-          const lensesObj = { lenses: codeLenses };
-          expect(lensesObj).to.have.nested.property(
-            'lenses[0].command.title',
-            'Include Import Statements'
-          );
-          expect(lensesObj).to.have.nested.property(
-            'lenses[1].command.title',
-            'Include Driver Syntax'
-          );
-          expect(lensesObj).to.have.nested.property(
-            'lenses[2].command.title',
-            'Use Raw Query'
-          );
-
-          expectedResult.content = 'eq("name", "22")';
-          expect(
-            mdbTestExtension.testExtensionController._playgroundController
-              ._playgroundResult
-          ).to.be.deep.equal(expectedResult);
+        if (!codeActions) {
+          expect.fail('No code actions');
+          return false;
         }
+
+        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+        const actionCommand = codeActions[2].command;
+
+        if (!actionCommand) {
+          expect.fail('Action command not found');
+          return false;
+        }
+
+        expect(actionCommand.command).to.be.equal('mdb.exportToJava');
+        expect(actionCommand.title).to.be.equal('Export To Java');
+
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        let codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(3);
+        let lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Include Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Include Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Builders'
+        );
+
+        // Only java queries supports builders.
+        await vscode.commands.executeCommand(
+          'mdb.changeExportToLanguageAddons',
+          {
+            ...mdbTestExtension.testExtensionController._playgroundController
+              ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+            builders: true,
+            importStatements: false,
+            driverSyntax: false,
+          }
+        );
+
+        codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Include Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Include Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Raw Query'
+        );
+
+        expectedResult.content = 'eq("name", "22")';
+        expect(
+          mdbTestExtension.testExtensionController._playgroundController
+            ._playgroundResult
+        ).to.be.deep.equal(expectedResult);
       });
 
       test('include driver syntax (only)', async () => {
         const codeActions = testCodeActionProvider.provideCodeActions();
-        expect(codeActions).to.exist;
 
-        if (codeActions) {
-          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[2].command;
-
-          if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToJava');
-            expect(actionCommand.title).to.be.equal('Export To Java');
-
-            await vscode.commands.executeCommand(actionCommand.command);
-
-            const codeLenses =
-              mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-            expect(codeLenses.length).to.be.equal(3);
-            const lensesObj = { lenses: codeLenses };
-            expect(lensesObj).to.have.nested.property(
-              'lenses[0].command.title',
-              'Include Import Statements'
-            );
-            expect(lensesObj).to.have.nested.property(
-              'lenses[1].command.title',
-              'Include Driver Syntax'
-            );
-            expect(lensesObj).to.have.nested.property(
-              'lenses[2].command.title',
-              'Use Builders'
-            );
-          }
-
-          // Only java queries supports builders.
-          await vscode.commands.executeCommand(
-            'mdb.changeExportToLanguageAddons',
-            {
-              ...mdbTestExtension.testExtensionController._playgroundController
-                ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
-              builders: false,
-              importStatements: false,
-              driverSyntax: true,
-            }
-          );
-
-          const codeLenses =
-            mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-          const lensesObj = { lenses: codeLenses };
-          expect(lensesObj).to.have.nested.property(
-            'lenses[0].command.title',
-            'Include Import Statements'
-          );
-          expect(lensesObj).to.have.nested.property(
-            'lenses[1].command.title',
-            'Exclude Driver Syntax'
-          );
-          expect(lensesObj).to.have.nested.property(
-            'lenses[2].command.title',
-            'Use Builders'
-          );
-
-          const driverSyntaxRawQuery =
-            'Bson filter = new Document("name", "22");';
-          expect(
-            mdbTestExtension.testExtensionController._playgroundController
-              ._playgroundResult?.content
-          ).to.include(driverSyntaxRawQuery);
+        if (!codeActions) {
+          expect.fail('No code actions');
+          return false;
         }
+
+        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+        const actionCommand = codeActions[2].command;
+
+        if (!actionCommand) {
+          expect.fail('Action command not found');
+          return false;
+        }
+
+        expect(actionCommand.command).to.be.equal('mdb.exportToJava');
+        expect(actionCommand.title).to.be.equal('Export To Java');
+
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        let codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(3);
+        let lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Include Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Include Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Builders'
+        );
+
+        await vscode.commands.executeCommand(
+          'mdb.changeExportToLanguageAddons',
+          {
+            ...mdbTestExtension.testExtensionController._playgroundController
+              ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+            builders: false,
+            importStatements: false,
+            driverSyntax: true,
+          }
+        );
+
+        codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Include Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Exclude Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Builders'
+        );
+
+        const driverSyntaxRawQuery =
+          'Bson filter = new Document("name", "22");';
+        expect(
+          mdbTestExtension.testExtensionController._playgroundController
+            ._playgroundResult?.content
+        ).to.include(driverSyntaxRawQuery);
       });
 
       test('include import statements (only)', async () => {
         const codeActions = testCodeActionProvider.provideCodeActions();
-        expect(codeActions).to.exist;
 
-        if (codeActions) {
-          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[2].command;
-
-          if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToJava');
-            expect(actionCommand.title).to.be.equal('Export To Java');
-
-            await vscode.commands.executeCommand(actionCommand.command);
-
-            const codeLenses =
-              mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-            expect(codeLenses.length).to.be.equal(3);
-            const lensesObj = { lenses: codeLenses };
-            expect(lensesObj).to.have.nested.property(
-              'lenses[0].command.title',
-              'Include Import Statements'
-            );
-            expect(lensesObj).to.have.nested.property(
-              'lenses[1].command.title',
-              'Include Driver Syntax'
-            );
-            expect(lensesObj).to.have.nested.property(
-              'lenses[2].command.title',
-              'Use Builders'
-            );
-          }
-
-          // Only java queries supports builders.
-          await vscode.commands.executeCommand(
-            'mdb.changeExportToLanguageAddons',
-            {
-              ...mdbTestExtension.testExtensionController._playgroundController
-                ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
-              builders: false,
-              importStatements: true,
-              driverSyntax: false,
-            }
-          );
-
-          const codeLenses =
-            mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-          const lensesObj = { lenses: codeLenses };
-          expect(lensesObj).to.have.nested.property(
-            'lenses[0].command.title',
-            'Exclude Import Statements'
-          );
-          expect(lensesObj).to.have.nested.property(
-            'lenses[1].command.title',
-            'Include Driver Syntax'
-          );
-          expect(lensesObj).to.have.nested.property(
-            'lenses[2].command.title',
-            'Use Builders'
-          );
-
-          const rawQueryWithImport =
-            'import org.bson.Document;\n\nnew Document("name", "22")';
-          expect(
-            mdbTestExtension.testExtensionController._playgroundController
-              ._playgroundResult?.content
-          ).to.deep.equal(rawQueryWithImport);
+        if (!codeActions) {
+          expect.fail('No code actions');
+          return false;
         }
+
+        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+        const actionCommand = codeActions[2].command;
+
+        if (!actionCommand) {
+          expect.fail('Action command not found');
+          return false;
+        }
+
+        expect(actionCommand.command).to.be.equal('mdb.exportToJava');
+        expect(actionCommand.title).to.be.equal('Export To Java');
+
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        let codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(3);
+        let lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Include Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Include Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Builders'
+        );
+
+        await vscode.commands.executeCommand(
+          'mdb.changeExportToLanguageAddons',
+          {
+            ...mdbTestExtension.testExtensionController._playgroundController
+              ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+            builders: false,
+            importStatements: true,
+            driverSyntax: false,
+          }
+        );
+
+        codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Exclude Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Include Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Builders'
+        );
+
+        // imports without driver syntax are limited
+        const rawQueryWithImport =
+          'import org.bson.Document;\n\nnew Document("name", "22")';
+        expect(
+          mdbTestExtension.testExtensionController._playgroundController
+            ._playgroundResult?.content
+        ).to.deep.equal(rawQueryWithImport);
       });
 
-      test('include driver syntax and import statements', async () => {
+      test('include driver syntax and import statements (in a single export)', async () => {
         const codeActions = testCodeActionProvider.provideCodeActions();
-        expect(codeActions).to.exist;
 
-        if (codeActions) {
-          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[2].command;
-
-          if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToJava');
-            expect(actionCommand.title).to.be.equal('Export To Java');
-
-            await vscode.commands.executeCommand(actionCommand.command);
-
-            const codeLenses =
-              mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-            expect(codeLenses.length).to.be.equal(3);
-            const lensesObj = { lenses: codeLenses };
-            expect(lensesObj).to.have.nested.property(
-              'lenses[0].command.title',
-              'Include Import Statements'
-            );
-            expect(lensesObj).to.have.nested.property(
-              'lenses[1].command.title',
-              'Include Driver Syntax'
-            );
-            expect(lensesObj).to.have.nested.property(
-              'lenses[2].command.title',
-              'Use Builders'
-            );
-          }
-
-          // Only java queries supports builders.
-          await vscode.commands.executeCommand(
-            'mdb.changeExportToLanguageAddons',
-            {
-              ...mdbTestExtension.testExtensionController._playgroundController
-                ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
-              builders: false,
-              importStatements: true,
-              driverSyntax: true,
-            }
-          );
-
-          const codeLenses =
-            mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
-          const lensesObj = { lenses: codeLenses };
-          expect(lensesObj).to.have.nested.property(
-            'lenses[0].command.title',
-            'Exclude Import Statements'
-          );
-          expect(lensesObj).to.have.nested.property(
-            'lenses[1].command.title',
-            'Exclude Driver Syntax'
-          );
-          expect(lensesObj).to.have.nested.property(
-            'lenses[2].command.title',
-            'Use Builders'
-          );
-
-          // Java includes generic import statements
-          const mongoClientImport = 'import com.mongodb.MongoClient;';
-          // but also import statements which depend on the exportToLanguageMode. the following is for QUERY
-          const queryImport = 'import com.mongodb.client.FindIterable;';
-          const content =
-            mdbTestExtension.testExtensionController._playgroundController
-              ._playgroundResult?.content;
-          expect(content).to.include(mongoClientImport);
-          expect(content).to.include(queryImport);
+        if (!codeActions) {
+          expect.fail('No code actions');
+          return false;
         }
+
+        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+        const actionCommand = codeActions[2].command;
+
+        if (!actionCommand) {
+          expect.fail('Action command not found');
+          return false;
+        }
+
+        expect(actionCommand.command).to.be.equal('mdb.exportToJava');
+        expect(actionCommand.title).to.be.equal('Export To Java');
+
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        let codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(3);
+        let lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Include Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Include Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Builders'
+        );
+        await vscode.commands.executeCommand(
+          'mdb.changeExportToLanguageAddons',
+          {
+            ...mdbTestExtension.testExtensionController._playgroundController
+              ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+            builders: false,
+            importStatements: true,
+            driverSyntax: true,
+          }
+        );
+
+        codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Exclude Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Exclude Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Builders'
+        );
+
+        // With driver syntax, java includes generic import statements
+        const mongoClientImport = 'import com.mongodb.MongoClient;';
+        // as well as import statements which depend on the exportToLanguageMode. the following is for QUERY
+        const queryImport = 'import com.mongodb.client.FindIterable;';
+        const content =
+          mdbTestExtension.testExtensionController._playgroundController
+            ._playgroundResult?.content;
+        expect(content).to.include(mongoClientImport);
+        expect(content).to.include(queryImport);
+      });
+
+      test('include driver syntax and then import statements in a subsequent export', async () => {
+        const codeActions = testCodeActionProvider.provideCodeActions();
+
+        if (!codeActions) {
+          expect.fail('No code actions');
+          return false;
+        }
+
+        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+        const actionCommand = codeActions[2].command;
+
+        if (!actionCommand) {
+          expect.fail('Action command not found');
+          return false;
+        }
+
+        expect(actionCommand.command).to.be.equal('mdb.exportToJava');
+        expect(actionCommand.title).to.be.equal('Export To Java');
+
+        /* 1st export - we'll select drivers only */
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        let codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(3);
+        let lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Include Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Include Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Builders'
+        );
+
+        await vscode.commands.executeCommand(
+          'mdb.changeExportToLanguageAddons',
+          {
+            ...mdbTestExtension.testExtensionController._playgroundController
+              ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+            builders: false,
+            importStatements: false,
+            driverSyntax: true,
+          }
+        );
+
+        codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        lensesObj = { lenses: codeLenses };
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Include Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Exclude Driver Syntax'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[2].command.title',
+          'Use Builders'
+        );
+
+        /* 2nd export - this time we add import statements on top of drivers */
+        await vscode.commands.executeCommand(actionCommand.command);
+
+        codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(3);
+        lensesObj = { lenses: codeLenses };
+        // the state is persisted from the 1st export
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Exclude Driver Syntax'
+        );
+
+        // We add import on top of the drivers
+        await vscode.commands.executeCommand(
+          'mdb.changeExportToLanguageAddons',
+          {
+            ...mdbTestExtension.testExtensionController._playgroundController
+              ._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+            importStatements: true,
+          }
+        );
+
+        codeLenses =
+          mdbTestExtension.testExtensionController._playgroundController._exportToLanguageCodeLensProvider.provideCodeLenses();
+        expect(codeLenses.length).to.be.equal(3);
+        lensesObj = { lenses: codeLenses };
+        // the state is persisted from the 1st export
+        expect(lensesObj).to.have.nested.property(
+          'lenses[0].command.title',
+          'Exclude Import Statements'
+        );
+        expect(lensesObj).to.have.nested.property(
+          'lenses[1].command.title',
+          'Exclude Driver Syntax'
+        );
+
+        // The imports and driver syntax are both applied
+        const mongoClientImport = 'import com.mongodb.MongoClient;';
+        const queryImport = 'import com.mongodb.client.FindIterable;';
+        const content =
+          mdbTestExtension.testExtensionController._playgroundController
+            ._playgroundResult?.content;
+        expect(content).to.include(mongoClientImport);
+        expect(content).to.include(queryImport);
       });
     });
 
