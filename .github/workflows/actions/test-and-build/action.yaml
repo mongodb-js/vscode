@@ -89,13 +89,18 @@ runs:
     - name: Sign .vsix
       if: runner.os == 'Linux'
       env:
-        ARTIFACTORY_HOST: ${{ inputs.ARTIFACTORY_HOST }}
         ARTIFACTORY_PASSWORD: ${{ inputs.ARTIFACTORY_PASSWORD }}
         ARTIFACTORY_USERNAME: ${{ inputs.ARTIFACTORY_USERNAME }}
         GARASIGN_PASSWORD: ${{ inputs.GARASIGN_PASSWORD }}
         GARASIGN_USERNAME: ${{ inputs.GARASIGN_USERNAME }}
       run: |
-        bash scripts/sign-vsix.sh
+        set -e
+        FILE_TO_SIGN=$(find . -maxdepth 1 -name '*.vsix' -print -quit)
+        if [ -z "$FILE_TO_SIGN" ]; then
+          echo "Error: No .vsix file found in the current directory." >&2
+          exit 1
+        fi
+        node scripts/sign-vsix.js "${FILE_TO_SIGN}"
         ls *.vsix.sig
       shell: bash
 
