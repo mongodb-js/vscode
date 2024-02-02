@@ -175,34 +175,6 @@ module.exports = (env, argv) => {
           exclude: /node_modules/,
           options: {},
         },
-        {
-          test: /\.less$/,
-          exclude: [/\.global/, /bootstrap/, /node_modules/, /global\.less/],
-          use: [
-            { loader: 'style-loader' },
-            {
-              loader: 'css-loader',
-              options: {
-                modules: true,
-                importLoaders: 1,
-              },
-            },
-            {
-              loader: 'postcss-loader',
-              options: {
-                postcssOptions: {
-                  plugins: [autoprefixer()],
-                },
-              },
-            },
-            {
-              loader: 'less-loader',
-              options: {
-                noIeCompat: true,
-              },
-            },
-          ],
-        },
       ],
     },
     plugins: [
