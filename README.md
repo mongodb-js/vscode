@@ -46,6 +46,8 @@ Select queries and aggregations within your Playground files and translate them 
  * Python 3
  * Ruby
  * Go
+ * Rust
+ * PHP
 
 ![Export to language](resources/screenshots/export-to-language.gif)
 

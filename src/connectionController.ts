@@ -618,6 +618,13 @@ export default class ConnectionController {
   }
 
   async removeSavedConnection(connectionId: string): Promise<void> {
+    if (
+      this._connectionAttempt &&
+      connectionId === this._connectingConnectionId
+    ) {
+      this.cancelConnectionAttempt();
+    }
+
     delete this._connections[connectionId];
 
     await this._connectionStorage.removeConnection(connectionId);

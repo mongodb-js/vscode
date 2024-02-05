@@ -3,7 +3,6 @@ import type { SinonStub } from 'sinon';
 import util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
-import assert from 'assert';
 import * as mongodbDataService from 'mongodb-data-service';
 import { expect } from 'chai';
 import ConnectionString from 'mongodb-connection-string-url';
@@ -89,15 +88,12 @@ suite('Connection Controller Test Suite', function () {
     const name = testConnectionController._connections[connnectionId].name;
     const dataService = testConnectionController.getActiveDataService();
 
-    assert.strictEqual(succesfullyConnected, true);
-    assert.strictEqual(
-      testConnectionController.getSavedConnections().length,
-      1
-    );
-    assert.strictEqual(name, 'localhost:27088');
-    assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
+    expect(succesfullyConnected).to.be.true;
+    expect(testConnectionController.getSavedConnections().length).to.equal(1);
+    expect(name).to.equal('localhost:27088');
+    expect(testConnectionController.isCurrentlyConnected()).to.be.true;
 
-    assert.notStrictEqual(dataService, null);
+    expect(dataService).to.not.equal(null);
   });
 
   test('"disconnect()" disconnects from the active connection', async () => {
@@ -106,9 +102,8 @@ suite('Connection Controller Test Suite', function () {
         TEST_DATABASE_URI
       );
 
-    assert.strictEqual(succesfullyConnected, true);
-    assert.strictEqual(
-      testConnectionController.getConnectionStatus(),
+    expect(succesfullyConnected).to.be.true;
+    expect(testConnectionController.getConnectionStatus()).to.equal(
       'CONNECTED'
     );
 
@@ -121,15 +116,14 @@ suite('Connection Controller Test Suite', function () {
     const connnectionId = testConnectionController.getActiveConnectionId();
     const dataService = testConnectionController.getActiveDataService();
 
-    assert.strictEqual(
-      testConnectionController.getConnectionStatus(),
+    expect(testConnectionController.getConnectionStatus()).to.equal(
       'DISCONNECTED'
     );
-    assert.strictEqual(successfullyDisconnected, true);
-    assert.strictEqual(connectionsCount, 1);
-    assert.strictEqual(connnectionId, null);
-    assert.strictEqual(testConnectionController.isCurrentlyConnected(), false);
-    assert.strictEqual(dataService, null);
+    expect(successfullyDisconnected).to.be.true;
+    expect(connectionsCount).to.equal(1);
+    expect(connnectionId).to.equal(null);
+    expect(testConnectionController.isCurrentlyConnected()).to.be.false;
+    expect(dataService).to.equal(null);
   });
 
   test('"removeMongoDBConnection()" returns a reject promise when there is no active connection', async () => {
@@ -137,8 +131,8 @@ suite('Connection Controller Test Suite', function () {
     const successfullyRemovedMongoDBConnection =
       await testConnectionController.onRemoveMongoDBConnection();
 
-    assert.strictEqual(showErrorMessageStub.firstCall.args[0], expectedMessage);
-    assert.strictEqual(successfullyRemovedMongoDBConnection, false);
+    expect(showErrorMessageStub.firstCall.args[0]).to.equal(expectedMessage);
+    expect(successfullyRemovedMongoDBConnection).to.be.false;
   });
 
   test('"disconnect()" fails when there is no active connection', async () => {
@@ -146,8 +140,8 @@ suite('Connection Controller Test Suite', function () {
     const successfullyDisconnected =
       await testConnectionController.disconnect();
 
-    assert.strictEqual(showErrorMessageStub.firstCall.args[0], expectedMessage);
-    assert.strictEqual(successfullyDisconnected, false);
+    expect(showErrorMessageStub.firstCall.args[0]).to.equal(expectedMessage);
+    expect(successfullyDisconnected).to.be.false;
   });
 
   test('when adding a new connection it disconnects from the current connection', async () => {
@@ -156,7 +150,7 @@ suite('Connection Controller Test Suite', function () {
         TEST_DATABASE_URI
       );
 
-    assert.strictEqual(succesfullyConnected, true);
+    expect(succesfullyConnected).to.be.true;
 
     try {
       await testConnectionController.addNewConnectionStringAndConnect(
@@ -165,15 +159,9 @@ suite('Connection Controller Test Suite', function () {
     } catch (error) {
       const expectedError = 'Failed to connect';
 
-      assert.strictEqual(
-        formatError(error).message.includes(expectedError),
-        true
-      );
-      assert.strictEqual(testConnectionController.getActiveDataService(), null);
-      assert.strictEqual(
-        testConnectionController.getActiveConnectionId(),
-        null
-      );
+      expect(formatError(error).message.includes(expectedError)).to.be.true;
+      expect(testConnectionController.getActiveDataService()).to.equal(null);
+      expect(testConnectionController.getActiveConnectionId()).to.equal(null);
     }
   });
 
@@ -183,7 +171,7 @@ suite('Connection Controller Test Suite', function () {
         TEST_DATABASE_URI
       );
 
-    assert.strictEqual(succesfullyConnected, true);
+    expect(succesfullyConnected).to.be.true;
 
     let wasSetToConnectingWhenDisconnecting = false;
     sandbox.replace(testConnectionController, 'disconnect', () => {
@@ -197,26 +185,25 @@ suite('Connection Controller Test Suite', function () {
         TEST_DATABASE_URI
       );
 
-    assert.strictEqual(succesfullyConnected2, true);
-    assert.strictEqual(wasSetToConnectingWhenDisconnecting, true);
+    expect(succesfullyConnected2).to.be.true;
+    expect(wasSetToConnectingWhenDisconnecting).to.be.true;
   });
 
-  test('"connect()" should fire a CONNECTIONS_DID_CHANGE event', async () => {
-    let isConnectionChanged = false;
-
+  test('"connect()" should fire 3 CONNECTIONS_DID_CHANGE event', (done) => {
+    let eventCounter = 0;
     testConnectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => {
-        isConnectionChanged = true;
+        eventCounter++;
+        if (eventCounter === 3) {
+          done();
+        }
       }
     );
 
-    await testConnectionController.addNewConnectionStringAndConnect(
+    void testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
-    await sleep(50);
-
-    assert.strictEqual(isConnectionChanged, true);
   });
 
   const expectedTimesToFire = 4;
@@ -237,16 +224,13 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.disconnect();
     await sleep(100);
 
-    assert.strictEqual(connectionEventFiredCount, expectedTimesToFire);
+    expect(connectionEventFiredCount).to.equal(expectedTimesToFire);
   });
 
   test('when there are no existing connections in the store and the connection controller loads connections', async () => {
     await testConnectionController.loadSavedConnections();
 
-    const connectionsCount =
-      testConnectionController.getSavedConnections().length;
-
-    assert.strictEqual(connectionsCount, 0);
+    expect(testConnectionController.getSavedConnections().length).to.equal(0);
   });
 
   test('the connection model loads both global and workspace stored connection models', async () => {
@@ -303,12 +287,11 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.GLOBAL
     );
 
-    assert.strictEqual(Object.keys(globalStoreConnections).length, 1);
+    expect(Object.keys(globalStoreConnections).length).to.equal(1);
 
     const id = Object.keys(globalStoreConnections)[0];
 
-    assert.strictEqual(
-      globalStoreConnections[id].name,
+    expect(globalStoreConnections[id].name).to.equal(
       testDatabaseConnectionName
     );
 
@@ -316,7 +299,7 @@ suite('Connection Controller Test Suite', function () {
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS
     );
 
-    assert.strictEqual(workspaceStoreConnections, undefined);
+    expect(workspaceStoreConnections).to.equal(undefined);
   });
 
   test('when a connection is added it is saved to the workspace store', async () => {
@@ -336,12 +319,11 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.WORKSPACE
     );
 
-    assert.strictEqual(Object.keys(workspaceStoreConnections).length, 1);
+    expect(Object.keys(workspaceStoreConnections).length).to.equal(1);
 
     const id = Object.keys(workspaceStoreConnections)[0];
 
-    assert.strictEqual(
-      workspaceStoreConnections[id].name,
+    expect(workspaceStoreConnections[id].name).to.equal(
       testDatabaseConnectionName
     );
 
@@ -350,7 +332,7 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.GLOBAL
     );
 
-    assert.strictEqual(globalStoreConnections, undefined);
+    expect(globalStoreConnections).to.equal(undefined);
   });
 
   test('a connection can be connected to by id', async () => {
@@ -367,8 +349,8 @@ suite('Connection Controller Test Suite', function () {
     const connectionResult =
       await testConnectionController.connectWithConnectionId('25');
 
-    assert.strictEqual(connectionResult.successfullyConnected, true);
-    assert.strictEqual(testConnectionController.getActiveConnectionId(), '25');
+    expect(connectionResult.successfullyConnected).to.be.true;
+    expect(testConnectionController.getActiveConnectionId()).to.equal('25');
   });
 
   test('a saved connection can be loaded and connected to workspace store', async () => {
@@ -388,23 +370,17 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.WORKSPACE
     );
 
-    assert.strictEqual(Object.keys(workspaceStoreConnections).length, 1);
+    expect(Object.keys(workspaceStoreConnections).length).to.equal(1);
 
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
 
-    assert.strictEqual(
-      testConnectionController.getSavedConnections().length,
-      0
-    );
+    expect(testConnectionController.getSavedConnections().length).to.equal(0);
 
     // Activate (which will load the past connection).
     await testConnectionController.loadSavedConnections();
 
-    assert.strictEqual(
-      testConnectionController.getSavedConnections().length,
-      1
-    );
+    expect(testConnectionController.getSavedConnections().length).to.equal(1);
 
     const id = testConnectionController.getSavedConnections()[0].id;
 
@@ -413,8 +389,8 @@ suite('Connection Controller Test Suite', function () {
     const activeId = testConnectionController.getActiveConnectionId();
     const name = testConnectionController._connections[activeId || ''].name;
 
-    assert.strictEqual(activeId, id);
-    assert.strictEqual(name, 'localhost:27088');
+    expect(activeId).to.equal(id);
+    expect(name).to.equal('localhost:27088');
   });
 
   test('"copyConnectionStringByConnectionId" returns the driver uri of a connection', async () => {
@@ -427,14 +403,14 @@ suite('Connection Controller Test Suite', function () {
 
     const activeConnectionId = testConnectionController.getActiveConnectionId();
 
-    assert.notStrictEqual(activeConnectionId, null);
+    expect(activeConnectionId).to.not.equal(null);
 
     const testDriverUrl =
       testConnectionController.copyConnectionStringByConnectionId(
         activeConnectionId || ''
       );
 
-    assert.strictEqual(testDriverUrl, expectedDriverUrl);
+    expect(testDriverUrl).to.equal(expectedDriverUrl);
   });
 
   test('when a connection is added and the user has set it to not save on default it is not saved', async () => {
@@ -457,14 +433,14 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.GLOBAL
     );
 
-    assert.strictEqual(JSON.stringify(globalStoreConnections), objectString);
+    expect(JSON.stringify(globalStoreConnections)).to.equal(objectString);
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE
     );
 
-    assert.strictEqual(JSON.stringify(workspaceStoreConnections), objectString);
+    expect(JSON.stringify(workspaceStoreConnections)).to.equal(objectString);
   });
 
   test('getNotifyDeviceFlowForConnectionAttempt returns a function that shows a message with the url when oidc is set', function () {
@@ -474,7 +450,7 @@ suite('Connection Controller Test Suite', function () {
       }
     );
 
-    assert.strictEqual(expectedUndefinedDeviceFlow, undefined);
+    expect(expectedUndefinedDeviceFlow).to.equal(undefined);
 
     const oidcConnectionString = new ConnectionString(TEST_DATABASE_URI);
     oidcConnectionString.searchParams.set('authMechanism', 'MONGODB-OIDC');
@@ -482,8 +458,8 @@ suite('Connection Controller Test Suite', function () {
     const expectedFunction = getNotifyDeviceFlowForConnectionAttempt({
       connectionString: oidcConnectionString.toString(),
     });
-    assert.notStrictEqual(expectedFunction, undefined);
-    assert.strictEqual(showInformationMessageStub.called, false);
+    expect(expectedFunction).to.not.equal(undefined);
+    expect(showInformationMessageStub.called).to.equal(false);
 
     (
       expectedFunction as (deviceFlowInformation: {
@@ -495,15 +471,9 @@ suite('Connection Controller Test Suite', function () {
       userCode: 'testabc',
     });
 
-    assert.strictEqual(showInformationMessageStub.called, true);
-    assert.strictEqual(
-      showInformationMessageStub.firstCall.args[0].includes('test123'),
-      true
-    );
-    assert.strictEqual(
-      showInformationMessageStub.firstCall.args[0].includes('testabc'),
-      true
-    );
+    expect(showInformationMessageStub.called).to.be.true;
+    expect(showInformationMessageStub.firstCall.args[0]).to.include('test123');
+    expect(showInformationMessageStub.firstCall.args[0]).to.include('testabc');
   });
 
   test('when a connection is removed it is also removed from workspace store', async () => {
@@ -523,7 +493,7 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.WORKSPACE
     );
 
-    assert.strictEqual(Object.keys(workspaceStoreConnections).length, 1);
+    expect(Object.keys(workspaceStoreConnections).length).to.equal(1);
 
     const connectionId =
       testConnectionController.getActiveConnectionId() || 'a';
@@ -536,7 +506,7 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.WORKSPACE
     );
 
-    assert.strictEqual(Object.keys(postWorkspaceStoreConnections).length, 0);
+    expect(Object.keys(postWorkspaceStoreConnections).length).to.equal(0);
   });
 
   test('when a connection is removed it is also removed from global storage', async () => {
@@ -553,7 +523,7 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.GLOBAL
     );
 
-    assert.strictEqual(Object.keys(globalStoreConnections).length, 1);
+    expect(Object.keys(globalStoreConnections).length).to.equal(1);
 
     const connectionId =
       testConnectionController.getActiveConnectionId() || 'a';
@@ -564,7 +534,7 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.GLOBAL
     );
 
-    assert.strictEqual(Object.keys(postGlobalStoreConnections).length, 0);
+    expect(Object.keys(postGlobalStoreConnections).length).to.equal(0);
   });
 
   test('when a connection is removed, the secrets for that connection are also removed', async () => {
@@ -579,7 +549,7 @@ suite('Connection Controller Test Suite', function () {
 
     const [connection] = testConnectionController.getSavedConnections();
     await testConnectionController.removeSavedConnection(connection.id);
-    assert.strictEqual(secretStorageDeleteSpy.calledOnce, true);
+    expect(secretStorageDeleteSpy.calledOnce).to.be.true;
   });
 
   test('a saved to workspace connection can be renamed and loaded', async () => {
@@ -599,7 +569,7 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.WORKSPACE
     );
 
-    assert.strictEqual(Object.keys(workspaceStoreConnections).length, 1);
+    expect(Object.keys(workspaceStoreConnections).length).to.equal(1);
 
     const connectionId =
       testConnectionController.getActiveConnectionId() || 'zz';
@@ -612,29 +582,23 @@ suite('Connection Controller Test Suite', function () {
       connectionId
     );
 
-    assert.strictEqual(renameSuccess, true);
+    expect(renameSuccess).to.be.true;
 
     await testConnectionController.disconnect();
 
     testConnectionController.clearAllConnections();
 
-    assert.strictEqual(
-      testConnectionController.getSavedConnections().length,
-      0
-    );
+    expect(testConnectionController.getSavedConnections().length).to.equal(0);
 
     // Activate (which will load the past connection).
     await testConnectionController.loadSavedConnections();
 
-    assert.strictEqual(
-      testConnectionController.getSavedConnections().length,
-      1
-    );
+    expect(testConnectionController.getSavedConnections().length).to.equal(1);
 
     const id = testConnectionController.getSavedConnections()[0].id;
     const name = testConnectionController._connections[id || 'x'].name;
 
-    assert.strictEqual(name, 'new connection name');
+    expect(name, 'new connection name');
   });
 
   test('a saved to workspace connection can be updated and loaded', async () => {
@@ -654,7 +618,7 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.WORKSPACE
     );
 
-    assert.strictEqual(Object.keys(workspaceStoreConnections).length, 1);
+    expect(Object.keys(workspaceStoreConnections).length).to.equal(1);
 
     const connectionId =
       testConnectionController.getActiveConnectionId() || 'zz';
@@ -669,24 +633,18 @@ suite('Connection Controller Test Suite', function () {
         },
       });
 
-    assert.strictEqual(updateSuccess.successfullyConnected, true);
+    expect(updateSuccess.successfullyConnected).to.be.true;
 
     await testConnectionController.disconnect();
 
     testConnectionController.clearAllConnections();
 
-    assert.strictEqual(
-      testConnectionController.getSavedConnections().length,
-      0
-    );
+    expect(testConnectionController.getSavedConnections().length).to.equal(0);
 
     // Activate (which will load the past connection).
     await testConnectionController.loadSavedConnections();
 
-    assert.strictEqual(
-      testConnectionController.getSavedConnections().length,
-      1
-    );
+    expect(testConnectionController.getSavedConnections().length).to.equal(1);
 
     const id = testConnectionController.getSavedConnections()[0].id;
     const connectTimeoutMS = new ConnectionString(
@@ -694,9 +652,9 @@ suite('Connection Controller Test Suite', function () {
     ).searchParams.get('connectTimeoutMS');
     const name = testConnectionController._connections[id || 'x'].name;
 
-    assert.strictEqual(name, 'localhost:27088');
+    expect(name).to.equal('localhost:27088');
     // Ensure it's updated.
-    assert.strictEqual(connectTimeoutMS, '5000');
+    expect(connectTimeoutMS).to.equal('5000');
   });
 
   test('close connection string input calls to cancel the cancellation token', function (done) {
@@ -704,11 +662,11 @@ suite('Connection Controller Test Suite', function () {
     inputBoxResolvesStub.callsFake(() => {
       try {
         const cancellationToken = inputBoxResolvesStub.firstCall.args[1];
-        assert.strictEqual(cancellationToken.isCancellationRequested, false);
+        expect(cancellationToken.isCancellationRequested).to.be.false;
 
         testConnectionController.closeConnectionStringInput();
 
-        assert.strictEqual(cancellationToken.isCancellationRequested, true);
+        expect(cancellationToken.isCancellationRequested).to.be.true;
       } catch (err) {
         done(err);
       }
@@ -742,9 +700,9 @@ suite('Connection Controller Test Suite', function () {
     const connections = testConnectionController._connections;
     const connectionIds = Object.keys(connections);
 
-    assert.strictEqual(connectionIds.length, 2);
-    assert.strictEqual(connections[connectionIds[0]].name, 'localhost:27088');
-    assert.strictEqual(connections[connectionIds[1]].name, 'localhost:27088');
+    expect(connectionIds.length).to.equal(2);
+    expect(connections[connectionIds[0]].name).to.equal('localhost:27088');
+    expect(connections[connectionIds[1]].name).to.equal('localhost:27088');
 
     const inputBoxResolvesStub = sandbox.stub();
     inputBoxResolvesStub.onCall(0).resolves('Lynx');
@@ -754,39 +712,36 @@ suite('Connection Controller Test Suite', function () {
       connectionIds[0]
     );
 
-    assert.strictEqual(renameSuccess, true);
+    expect(renameSuccess).to.be.true;
 
     await testConnectionController.loadSavedConnections();
 
-    assert.strictEqual(connectionIds.length, 2);
+    expect(connectionIds.length).to.equal(2);
 
     const connectionQuickPicks =
       testConnectionController.getConnectionQuickPicks();
 
-    assert.strictEqual(connectionQuickPicks.length, 3);
-    assert.strictEqual(connectionQuickPicks[0].label, 'Add new connection');
-    assert.strictEqual(connectionQuickPicks[1].label, 'localhost:27088');
-    assert.strictEqual(connectionQuickPicks[2].label, 'Lynx');
+    expect(connectionQuickPicks.length).to.equal(3);
+    expect(connectionQuickPicks[0].label).to.equal('Add new connection');
+    expect(connectionQuickPicks[1].label).to.equal('localhost:27088');
+    expect(connectionQuickPicks[2].label).to.equal('Lynx');
   });
 
   suite('connecting to a new connection when already connecting', () => {
     test('connects to the new connection', async () => {
-      void testConnectionController.addNewConnectionStringAndConnect(
-        testDatabaseURI2WithTimeout
-      );
+      await Promise.all([
+        testConnectionController.addNewConnectionStringAndConnect(
+          testDatabaseURI2WithTimeout
+        ),
+        testConnectionController.addNewConnectionStringAndConnect(
+          TEST_DATABASE_URI
+        ),
+      ]);
 
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      expect(testConnectionController.isConnecting()).to.be.false;
 
-      assert(!testConnectionController.isConnecting());
-
-      // Ensure the first connection completes.
-      await sleep(1050);
-
-      assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
-      assert.strictEqual(
-        testConnectionController.getActiveConnectionName(),
+      expect(testConnectionController.isCurrentlyConnected()).to.be.true;
+      expect(testConnectionController.getActiveConnectionName()).to.equal(
         'localhost:27088'
       );
     });
@@ -803,43 +758,55 @@ suite('Connection Controller Test Suite', function () {
         };
       }
 
+      const connectPromises: Promise<unknown>[] = [];
       for (let i = 0; i < 5; i++) {
         const id = `${i}`;
-        void testConnectionController.connectWithConnectionId(id);
+        connectPromises.push(
+          testConnectionController.connectWithConnectionId(id)
+        );
       }
 
       // Ensure the connections complete.
-      await sleep(1000);
+      await Promise.all(connectPromises);
 
-      assert.strictEqual(testConnectionController.isConnecting(), false);
-      assert.strictEqual(testConnectionController.isCurrentlyConnected(), true);
-      assert.strictEqual(
-        testConnectionController.getActiveConnectionName(),
+      expect(testConnectionController.isConnecting()).to.be.false;
+      expect(testConnectionController.isCurrentlyConnected()).to.be.true;
+      expect(testConnectionController.getActiveConnectionName()).to.equal(
         'test4'
       );
     });
   });
 
-  test('two disconnects on one connection at once', async () => {
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
-
-    try {
-      void testConnectionController.disconnect();
-      void testConnectionController.disconnect();
-    } catch (err) {
-      assert(
-        false,
-        `Expected not to error when disconnecting multiple times, received: ${err}`
+  suite('when connected', function () {
+    beforeEach(async function () {
+      await testConnectionController.addNewConnectionStringAndConnect(
+        TEST_DATABASE_URI
       );
-    }
+    });
 
-    // Ensure the disconnects complete.
-    await sleep(100);
+    test('two disconnects on one connection at once complete without erroring', (done) => {
+      let disconnectsCompleted = 0;
+      async function disconnect() {
+        try {
+          await testConnectionController.disconnect();
 
-    assert.strictEqual(testConnectionController.isCurrentlyConnected(), false);
-    assert.strictEqual(testConnectionController.getActiveDataService(), null);
+          ++disconnectsCompleted;
+          if (disconnectsCompleted === 2) {
+            expect(testConnectionController.isCurrentlyConnected()).to.be.false;
+            expect(testConnectionController.getActiveDataService()).to.equal(
+              null
+            );
+
+            done();
+          }
+        } catch (err) {
+          return done(err);
+        }
+      }
+
+      void disconnect();
+      void disconnect();
+    });
   });
 
   test('a connection which fails can be removed while it is being connected to', async () => {
@@ -854,17 +821,16 @@ suite('Connection Controller Test Suite', function () {
 
     void testConnectionController.connectWithConnectionId(connectionId);
 
-    assert.strictEqual(testConnectionController.isConnecting(), true);
-    assert.strictEqual(
-      testConnectionController.getConnectionStatus(),
+    expect(testConnectionController.isConnecting()).to.be.true;
+    expect(testConnectionController.getConnectionStatus()).to.equal(
       'CONNECTING'
     );
 
-    try {
-      await testConnectionController.removeSavedConnection(connectionId);
-    } catch (error) {
-      assert.strictEqual(formatError(error), false);
-    }
+    await testConnectionController.removeSavedConnection(connectionId);
+
+    // Check that it's removed.
+    expect(testConnectionController.isConnecting()).to.be.false;
+    expect(testConnectionController._connections[connectionId]).to.be.undefined;
   });
 
   test('a successfully connecting connection can be removed while it is being connected to', async () => {
@@ -883,25 +849,21 @@ suite('Connection Controller Test Suite', function () {
       async (connectionOptions) => {
         await sleep(50);
 
+        expect(testConnectionController.isConnecting()).to.be.true;
+
         return mongodbDataService.connect({
           connectionOptions: connectionOptions.connectionOptions,
         });
       }
     );
 
-    void testConnectionController.connectWithConnectionId(connectionId);
+    await Promise.all([
+      testConnectionController.connectWithConnectionId(connectionId),
 
-    // Ensure the connection attempt has started.
-    await sleep(10);
+      testConnectionController.removeSavedConnection(connectionId),
+    ]);
 
-    assert.strictEqual(testConnectionController.isConnecting(), true);
-
-    await testConnectionController.removeSavedConnection(connectionId);
-
-    // Wait for the connection to timeout and complete (and not error in the process).
-    await sleep(250);
-
-    assert.strictEqual(testConnectionController.isCurrentlyConnected(), false);
+    expect(testConnectionController.isCurrentlyConnected()).to.be.false;
   });
 
   test('_getConnectionInfoWithSecrets returns the connection info with secrets', async () => {
@@ -922,14 +884,14 @@ suite('Connection Controller Test Suite', function () {
 
     const connections = testConnectionController.getSavedConnections();
 
-    assert.strictEqual(connections.length, 1);
+    expect(connections.length).to.equal(1);
 
     const newSavedConnectionInfoWithSecrets =
       await testConnectionController._connectionStorage._getConnectionInfoWithSecrets(
         connections[0]
       );
 
-    assert.deepStrictEqual(newSavedConnectionInfoWithSecrets, connectionInfo);
+    expect(newSavedConnectionInfoWithSecrets).to.deep.equal(connectionInfo);
   });
 
   test('addNewConnectionStringAndConnect saves connection without secrets to the global storage', async () => {
@@ -979,12 +941,14 @@ suite('Connection Controller Test Suite', function () {
     const mongoClientConnectionOptions =
       testConnectionController.getMongoClientConnectionOptions();
 
-    assert(mongoClientConnectionOptions !== undefined);
+    expect(mongoClientConnectionOptions).to.not.equal(undefined);
 
-    delete mongoClientConnectionOptions.options.parentHandle;
-    delete mongoClientConnectionOptions.options.oidc?.openBrowser;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    delete mongoClientConnectionOptions!.options.parentHandle;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
 
-    assert.deepStrictEqual(mongoClientConnectionOptions, {
+    expect(mongoClientConnectionOptions).to.deep.equal({
       url: `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`,
       options: {
         autoEncryption: undefined,
@@ -1011,7 +975,7 @@ suite('Connection Controller Test Suite', function () {
           proxyUsername: 'test',
         },
       });
-    assert.strictEqual(connectionString, expectedConnectionStringWithProxy);
+    expect(connectionString).to.equal(expectedConnectionStringWithProxy);
   });
 
   suite('loadSavedConnections', () => {
@@ -1047,13 +1011,12 @@ suite('Connection Controller Test Suite', function () {
 
         // By default the connection secrets are already stored in SecretStorage
         const savedConnections = testConnectionController.getSavedConnections();
-        assert.strictEqual(
+        expect(
           savedConnections.every(
             ({ secretStorageLocation }) =>
               secretStorageLocation === SecretStorageLocation.SecretStorage
-          ),
-          true
-        );
+          )
+        ).to.be.true;
 
         await testConnectionController.disconnect();
         testConnectionController.clearAllConnections();
@@ -1061,18 +1024,14 @@ suite('Connection Controller Test Suite', function () {
         await testConnectionController.loadSavedConnections();
         const savedConnectionsAfterFreshLoad =
           testConnectionController.getSavedConnections();
-        assert.deepStrictEqual(
-          savedConnections,
+        expect(savedConnections).to.deep.equal(
           testConnectionController.getSavedConnections()
         );
 
         // Additionally make sure that we are retrieving secrets properly
-        assert.strictEqual(
-          savedConnectionsAfterFreshLoad[1].connectionOptions?.connectionString.includes(
-            TEST_USER_PASSWORD
-          ),
-          true
-        );
+        expect(
+          savedConnectionsAfterFreshLoad[1].connectionOptions?.connectionString
+        ).to.include(TEST_USER_PASSWORD);
       });
     });
 
@@ -1093,7 +1052,7 @@ suite('Connection Controller Test Suite', function () {
       );
 
       await testConnectionController.loadSavedConnections();
-      assert.strictEqual(isConnectionChanged, true);
+      expect(isConnectionChanged).to.be.true;
     });
 
     test('should ignore older unsupported secrets', async () => {
@@ -1153,12 +1112,10 @@ suite('Connection Controller Test Suite', function () {
       testConnectionController.clearAllConnections();
       await testConnectionController.loadSavedConnections();
 
-      assert.strictEqual(
-        Object.keys(testConnectionController._connections).length,
-        1
-      );
-      assert.strictEqual(
-        Object.values(testConnectionController._connections)[0],
+      expect(
+        Object.keys(testConnectionController._connections).length
+      ).to.equal(1);
+      expect(Object.values(testConnectionController._connections)[0]).to.equal(
         loadedConnection
       );
     });
@@ -1232,8 +1189,8 @@ suite('Connection Controller Test Suite', function () {
       // Load connections tracked. Called once because in the current load of
       // migration there were no errors and hence the error tracking event won't
       // be called.
-      assert.strictEqual(trackStub.calledOnce, true);
-      assert.deepStrictEqual(trackStub.lastCall.args, [
+      expect(trackStub.calledOnce).to.be.true;
+      expect(trackStub.lastCall.args).to.deep.equal([
         {
           connections_with_secrets_in_keytar: 2,
           connections_with_secrets_in_secret_storage: 2,
