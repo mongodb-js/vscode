@@ -32,6 +32,10 @@
     "color": "#3D4F58",
     "theme": "dark"
   },
+  "enabledApiProposals": [
+    "chatAgents2",
+    "chatRequestAccess"
+  ],
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./dist/extension.js",
   "scripts": {
