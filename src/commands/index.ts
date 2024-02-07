@@ -23,6 +23,8 @@ enum EXTENSION_COMMANDS {
   MDB_EXPORT_TO_NODE = 'mdb.exportToNode',
   MDB_EXPORT_TO_RUBY = 'mdb.exportToRuby',
   MDB_EXPORT_TO_GO = 'mdb.exportToGo',
+  MDB_EXPORT_TO_RUST = 'mdb.exportToRust',
+  MDB_EXPORT_TO_PHP = 'mdb.exportToPHP',
   MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS = 'mdb.changeExportToLanguageAddons',
 
   MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS = 'mdb.openMongoDBDocumentFromCodeLens',
