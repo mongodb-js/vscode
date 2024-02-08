@@ -16,6 +16,7 @@ import { DatabaseTreeItem } from '../explorer';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import formatError from '../utils/formatError';
 import type { LanguageServerController } from '../language';
+import playgroundBasicTextTemplate from '../templates/playgroundBasicTextTemplate';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumentTemplate';
@@ -379,6 +380,23 @@ export default class PlaygroundController {
       .replace('CURRENT_COLLECTION', collectionName);
 
     this._telemetryService.trackPlaygroundCreated('index');
+    return this._createPlaygroundFileWithContent(content);
+  }
+
+  createPlaygroundWithText({
+    databaseName,
+    text,
+  }: {
+    databaseName: string;
+    collectionName: string;
+    text: string;
+  }): Promise<boolean> {
+    const content = playgroundBasicTextTemplate
+      .replace('CURRENT_DATABASE', databaseName)
+      // .replace('CURRENT_COLLECTION', collectionName)
+      .replace('PLAYGROUND_CONTENT', text);
+
+    this._telemetryService.trackPlaygroundCreated('agent');
     return this._createPlaygroundFileWithContent(content);
   }
 

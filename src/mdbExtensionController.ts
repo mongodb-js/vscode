@@ -40,7 +40,7 @@ import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
-import { activateAgent } from './agent/agent';
+import { AgentController } from './agent/agent';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -64,6 +64,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+  _copilotAgentController: AgentController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -139,7 +140,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
     this._editorsController.registerProviders();
 
-    activateAgent(context);
+    this._copilotAgentController = new AgentController({
+      context,
+      playgroundController: this._playgroundController,
+    });
   }
 
   async activate(): Promise<void> {

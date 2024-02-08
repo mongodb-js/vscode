@@ -75,6 +75,7 @@
   },
   "activationEvents": [
     "onView:mongoDB",
+    "onStartupFinished",
     "onLanguage:json",
     "onLanguage:javascript",
     "onLanguage:plaintext"
