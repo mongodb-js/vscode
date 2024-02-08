@@ -97,6 +97,21 @@ const countAggregationStagesInString = (str: string) => {
     .length;
 };
 
+enum TranspilerExportMode {
+  PIPELINE = 'Pipeline',
+  QUERY = 'Query',
+  DELETE_QUERY = 'Delete Query',
+  UPDATE_QUERY = 'Update Query',
+}
+const exportModeMapping: Record<
+  ExportToLanguageMode,
+  TranspilerExportMode | undefined
+> = {
+  [ExportToLanguageMode.AGGREGATION]: TranspilerExportMode.PIPELINE,
+  [ExportToLanguageMode.QUERY]: TranspilerExportMode.QUERY,
+  [ExportToLanguageMode.OTHER]: undefined,
+};
+
 /**
  * This controller manages playground.
  */
@@ -807,7 +822,13 @@ export default class PlaygroundController {
       let imports = '';
 
       if (importStatements) {
-        imports = transpiler.shell[language].getImports(driverSyntax);
+        const exportMode = this._playgroundSelectedCodeActionProvider.mode
+          ? exportModeMapping[this._playgroundSelectedCodeActionProvider.mode]
+          : undefined;
+        imports = transpiler.shell[language].getImports(
+          exportMode,
+          driverSyntax
+        );
       }
 
       this._playgroundResult = {
