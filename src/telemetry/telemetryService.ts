@@ -25,7 +25,6 @@ type PlaygroundTelemetryEventProperties = {
 
 export type SegmentProperties = {
   event: string;
-  userId?: string;
   anonymousId: string;
   properties: Record<string, any>;
 };
@@ -128,7 +127,6 @@ export enum TelemetryEventTypes {
  */
 export default class TelemetryService {
   _segmentAnalytics?: SegmentAnalytics;
-  _segmentUserId?: string;
   _segmentAnonymousId: string;
   _segmentKey?: string; // The segment API write key.
 
@@ -140,10 +138,9 @@ export default class TelemetryService {
     context: vscode.ExtensionContext,
     shouldTrackTelemetry?: boolean
   ) {
-    const { userId, anonymousId } = storageController.getUserIdentity();
+    const { anonymousId } = storageController.getUserIdentity();
     this._context = context;
     this._shouldTrackTelemetry = shouldTrackTelemetry || false;
-    this._segmentUserId = userId;
     this._segmentAnonymousId = anonymousId;
     this._segmentKey = this._readSegmentKey();
   }
@@ -295,13 +292,6 @@ export default class TelemetryService {
   }
 
   getTelemetryUserIdentity() {
-    if (this._segmentUserId) {
-      return {
-        userId: this._segmentUserId,
-        anonymousId: this._segmentAnonymousId,
-      };
-    }
-
     return {
       anonymousId: this._segmentAnonymousId,
     };
