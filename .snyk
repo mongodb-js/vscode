@@ -12,7 +12,12 @@ ignore:
         created: 2023-07-12T09:00:55.557Z
   SNYK-JS-AXIOS-6032459:
     - '*':
-        reason: "This vulnerability doesn't affect us"
+        reason: This vulnerability doesn't affect us
         expires: 2023-12-10T10:34:29.166Z
         created: 2023-11-10T10:34:29.178Z
+  SNYK-JS-IP-6240864:
+    - '*':
+        reason: Not affected because we are not using the vulnerable method
+        expires: 2024-03-13T10:46:19.607Z
+        created: 2024-02-12T10:46:19.610Z
 patch: {}
