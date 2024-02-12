@@ -1,6 +1,4 @@
 import assert from 'assert';
-import { before } from 'mocha';
-import { v4 as uuidv4 } from 'uuid';
 
 import StorageController, {
   StorageVariables,
@@ -45,7 +43,7 @@ suite('Storage Controller Test Suite', () => {
     );
   });
 
-  suite('for a new user that does not have anonymousId or userId', () => {
+  suite('for a new user that does not have anonymousId', () => {
     const extensionContextStub = new ExtensionContextStub();
     extensionContextStub._globalState = {};
     const testStorageController = new StorageController(extensionContextStub);
@@ -55,34 +53,7 @@ suite('Storage Controller Test Suite', () => {
       const anonymousId = testStorageController.get(
         StorageVariables.GLOBAL_ANONYMOUS_ID
       );
-      const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
       assert.deepStrictEqual(userIdentity, { anonymousId });
-      assert(!userId);
-    });
-  });
-
-  suite('for an old user that does not have anonymousId but has userId', () => {
-    const extensionContextStub = new ExtensionContextStub();
-    extensionContextStub._globalState = {};
-    const testStorageController = new StorageController(extensionContextStub);
-    const id = uuidv4();
-
-    before(async () => {
-      await testStorageController.update(
-        StorageVariables.GLOBAL_USER_ID,
-        id,
-        StorageLocation.GLOBAL
-      );
-    });
-
-    test('getUserIdentity returns userId from the global storage and returns it to telemetry', () => {
-      const userIdentity = testStorageController.getUserIdentity();
-      const anonymousId = testStorageController.get(
-        StorageVariables.GLOBAL_ANONYMOUS_ID
-      );
-      const userId = testStorageController.get(StorageVariables.GLOBAL_USER_ID);
-      assert(userId === id);
-      assert.deepStrictEqual(userIdentity, { userId, anonymousId });
     });
   });
 });

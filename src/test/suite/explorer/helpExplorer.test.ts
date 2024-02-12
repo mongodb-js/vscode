@@ -45,11 +45,11 @@ suite('Help Explorer Test Suite', function () {
 
     assert.strictEqual(atlasHelpItem.label, 'Create Free Atlas Cluster');
     assert.strictEqual(atlasHelpItem.url.includes('mongodb.com'), true);
-    const { userId, anonymousId } =
+    const { anonymousId } =
       mdbTestExtension.testExtensionController._telemetryService.getTelemetryUserIdentity();
     assert.strictEqual(
       new URL(atlasHelpItem.url).searchParams.get('ajs_aid'),
-      userId ?? anonymousId
+      anonymousId
     );
     assert.strictEqual(atlasHelpItem.iconName, 'atlas');
     assert.strictEqual(atlasHelpItem.linkId, 'freeClusterCTA');

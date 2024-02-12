@@ -120,11 +120,7 @@ export default class HelpTree
 
       const atlas = new HelpLinkTreeItem({
         title: 'Create Free Atlas Cluster',
-        url: LINKS.createAtlasCluster(
-          telemetryUserIdentity?.userId ??
-            telemetryUserIdentity?.anonymousId ??
-            ''
-        ),
+        url: LINKS.createAtlasCluster(telemetryUserIdentity?.anonymousId ?? ''),
         linkId: 'freeClusterCTA',
         iconName: 'atlas',
         useRedirect: true,
