@@ -312,12 +312,11 @@ export class AgentController {
           {
             name: 'query',
             description:
-              'I can write a query for you. Ask something that can written as a query.\nFor instance, you can ask "Show me all of the documents where the "address" has the word "street" in it."',
+              'Ask something that can written as a MongoDB query or pipeline.\nFor instance, you can ask "Show me all of the documents where the "address" has the word "street" in it."',
           },
           {
             name: 'docs',
-            description:
-              'Ask a question about MongoDB, and I will respond using our documentation.',
+            description: 'Ask anything about MongoDB.',
           },
           // { name: 'schema', description: 'Get the schema breakdown of a collection based on a sample of documents.' },
         ];
