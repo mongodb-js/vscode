@@ -142,6 +142,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this._copilotAgentController = new AgentController({
       context,
+      connectionController: this._connectionController,
       playgroundController: this._playgroundController,
     });
   }

@@ -134,7 +134,7 @@ export default class PlaygroundController {
   private _statusView: StatusView;
   private _playgroundResultViewProvider: PlaygroundResultProvider;
 
-  private _codeToEvaluate = '';
+  _codeToEvaluate = '';
 
   constructor({
     connectionController,
