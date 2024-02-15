@@ -1099,7 +1099,7 @@
     "mongodb-connection-string-url": "^3.0.0",
     "mongodb-data-service": "^22.17.4",
     "mongodb-log-writer": "^1.4.0",
-    "mongodb-query-parser": "^4.0.2",
+    "mongodb-query-parser": "^4.1.0",
     "mongodb-schema": "^12.1.1",
     "numeral": "^2.0.6",
     "react": "^17.0.2",
