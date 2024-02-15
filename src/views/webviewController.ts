@@ -328,8 +328,7 @@ export default class WebviewController {
 
     panel.webview.html = getWebviewContent({
       extensionPath,
-      telemetryUserId:
-        telemetryUserIdentity.anonymousId || telemetryUserIdentity.userId,
+      telemetryUserId: telemetryUserIdentity.anonymousId,
       webview: panel.webview,
     });
 
