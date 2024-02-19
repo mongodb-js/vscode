@@ -22,6 +22,8 @@ interface BasicChatAgentResult extends vscode.ChatAgentResult2 {
 
 type ChatAgentResult = BasicChatAgentResult | QueryChatAgentResult;
 
+const USE_HISTORY = true;
+
 const OPEN_AI_CONTENT_IN_PLAYGROUND = 'mdb.open_ai_content_playground';
 const SELECT_COLLECTION_FOR_AI_QUERY = 'mdb.select_collection_for_ai_query';
 const RUN_AI_GENERATED_CONTENT = 'mdb.run_ai_content';
@@ -31,17 +33,13 @@ const NUM_DOCUMENTS_TO_SAMPLE = 4;
 
 function handleEmptyQueryRequest({
   request,
-}: // context,
-// progress,
-// token,
-{
+}: {
   request: vscode.ChatAgentRequest;
   context: vscode.ChatAgentContext;
   progress: vscode.Progress<vscode.ChatAgentProgress>;
   token: vscode.CancellationToken;
 }): ChatAgentResult {
   console.log('chat request agent id:', request.agentId);
-  // if ()
 
   return {
     subCommand: '',
@@ -50,24 +48,27 @@ function handleEmptyQueryRequest({
         'Please specify a question when using this command.\n\nUsage: @MongoDB /query find documents where "name" contains "database".',
     },
   };
-
-  // return {
-  //   subCommand: 'query',
-  //   databaseName: 'test',
-  //   collectionName: 'test',
-  //   queryContent: 'test'
-  // };
 }
 
 function getRunnableContentFromString(responseContent: string) {
-  const matchedQueryContent = responseContent.match(
+  const matchedJSQueryContent = responseContent.match(
     /```javascript((.|\n)*)```/
   );
-  console.log('matchedQueryContent', matchedQueryContent);
-  const queryContent =
-    matchedQueryContent && matchedQueryContent.length > 1
-      ? matchedQueryContent[1]
+  console.log('matchedJSQueryContent', matchedJSQueryContent);
+  let queryContent =
+    matchedJSQueryContent && matchedJSQueryContent.length > 1
+      ? matchedJSQueryContent[1]
       : '';
+
+  if (!queryContent || queryContent.length === 0) {
+    const matchedQueryContent = responseContent.match(
+      /```javascript((.|\n)*)```/
+    );
+    if (matchedQueryContent && matchedQueryContent.length > 1) {
+      queryContent = matchedQueryContent[1];
+    }
+    console.log('matchedQueryContent2', matchedQueryContent);
+  }
 
   console.log('queryContent', queryContent);
   return queryContent;
@@ -78,20 +79,13 @@ const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)\n`;
 
 const COL_NAME_ID = 'COLLECTION_NAME';
 const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)`;
-// /\nDATABASE_NAME: (.*)\n/
-
-// @mongodb /query Which cuisine has the highest average food inspection result score? Database NYC, Collection restaurant_inspection_results_2022
 
 function parseForDatabaseAndCollectionName({ text }: { text: string }): {
   databaseName: string;
   collectionName: string;
 } {
-  // let collectionName: string | undefined;
-  // let databaseName: string | undefined;
   const databaseName = text.match(DB_NAME_REGEX)?.[1];
   const collectionName = text.match(COL_NAME_REGEX)?.[1];
-
-  // collectionName = text.match(DB_NAME_REGEX)?.[1];
 
   return {
     databaseName: databaseName ?? 'test',
@@ -176,8 +170,8 @@ export class AgentController {
 
           console.log('evaluate:', content);
 
-          // TODO: This is hacky and private + coupled functions, we should refactor
-          // if we do this legit.
+          // TODO: This is hacky and private + coupled functions, we
+          // should refactor if we do this legit.
           this._playgroundController._codeToEvaluate = content;
           const evaluateResponse =
             await this._playgroundController._evaluateWithCancelModal();
@@ -303,7 +297,7 @@ export class AgentController {
       'mongodb.png'
     );
     agent.description = vscode.l10n.t(
-      'Hello, I am the MongoDB AI assistant, how can I help you?\nYou can ask me to write a query, answer a question about MongoDB with documentation, and much more.'
+      'Ask anything about MongoDB.\nAsk how to write a query, ask a question about your cluster, ask a question.'
     );
     agent.fullName = vscode.l10n.t('MongoDB');
     agent.subCommandProvider = {
@@ -412,11 +406,114 @@ export class AgentController {
     return agent;
   }
 
+  async handleAutoAgent({
+    request,
+    context,
+    progress,
+    token,
+  }: {
+    request: vscode.ChatAgentRequest;
+    context: vscode.ChatAgentContext;
+    progress: vscode.Progress<vscode.ChatAgentProgress>;
+    token: vscode.CancellationToken;
+  }) {
+    const access = await vscode.chat.requestChatAccess('copilot');
+
+    const abortController = new AbortController();
+    token.onCancellationRequested(() => {
+      abortController.abort();
+    });
+
+    // const isConnected = this._connectionController.isCurrentlyConnected();
+
+    const systemMessage = {
+      role: vscode.ChatMessageRole.System,
+      content:
+        // eslint-disable-next-line quotes
+        // `You are a MongoDB expert! You create MongoDB queries and aggregation pipelines, and you are very good at it. Your response will be parsed by a machine. Parse the user's prompt for a database name and collection name. Respond in the format \nDATABASE_NAME: X\nCOLLECTION_NAME: Y\n where X and Y are the names. This is a first phase before we create the code, only respond with the collection name and database name.`,
+        [
+        'You are a MongoDB expert.',
+        'You will be asked a question or given a task from a nice user.',
+        'Keep communications concise, brief, and comprehensive.',
+        'You are connected to a MongoDB database, and have the ability to run commands if needed.',
+        'The commands you can run are:',
+        '- Any mongosh (MongoDB Shell) command.',
+        '- Fetch sample documents and the schema of a collection.',
+        'The user may ask a question or give a task which requires more information from the user, or information resulting from running a database command. In these instances, return the question or the command to run to the user.',
+        // eslint-disable-next-line quotes
+        `Write MongoDB shell commands wrapped in a '''javascript block. If the user asks a question or something that translates into a MongoDB shell command then provide it as a '''javascript code snippet. Respond with markdown, code snippets are possible with '''javascript.`,
+        // eslint-disable-next-line quotes
+        `Instead of use X for database, write it as use('X')`,
+        // TODO: remove vvv
+        'If there is something that the user could provide to complete the generated code, then ask them for it so it can be provided in a follow up. Do not suggest for them to replace some content when they can provide it.',
+        'For instance if the user asks for the size of a collection, without providing the collection name, ask them which collection.',
+      ].join('\n') // TODO: Better without \n?
+    };
+
+    const messages = [
+      systemMessage,
+    ];
+
+    await Promise.all(
+      context.history.map(
+        async historyItem => {
+          let res = '';
+          for await (const fragment of historyItem.response) {
+            res += fragment;
+          }
+
+          messages.push({
+            role: vscode.ChatMessageRole.User,
+            content: historyItem.request.prompt,
+          });
+          messages.push({
+            role: vscode.ChatMessageRole.Assistant,
+            content: res,
+          });
+        }
+      )
+    );
+
+    messages.push({
+      role: vscode.ChatMessageRole.User,
+      content: request.prompt,
+    });
+
+    const chatModelRequest = access.makeRequest(
+      messages,
+      {},
+      token
+    );
+
+    let responseContent = '';
+    for await (const fragment of chatModelRequest.response) {
+      responseContent += fragment;
+      progress.report({ content: fragment });
+    }
+
+    console.log('responseContent', responseContent);
+
+    const queryContent = getRunnableContentFromString(responseContent);
+
+    if (!queryContent || queryContent.trim().length === 0) {
+      return {
+        subCommand: '',
+      }; // No commands to run.
+    }
+
+    return {
+      subCommand: 'generic_runnable_content',
+      progress,
+      queryContent,
+    };
+  }
+
   // @mongodb /query find all documents where the "address" has the word Broadway in it
   // @mongodb /query Which "STREET" has the highest average food inspection result "SCORE"?
   // @mongodb /query Which "CUISINE DESCRIPTION" has the highest average food inspection result "SCORE"? Collection restaurant_inspection_results_2022
   // @mongodb /query Which "CUISINE DESCRIPTION" has the highest average food inspection result "SCORE"? Database NYC, Collection restaurant_inspection_results_2022
   // @mongodb /query Which cuisine has the highest average food inspection result score? Database NYC, Collection restaurant_inspection_results_2022
+  // @mongodb /query What's the height of the tallest roof from the database NYC, collection buildings?
   // @mongodb /query find all documents where the "address" has the word Broadway in it
   // eslint-disable-next-line complexity
   async handleQueryRequest({
@@ -467,7 +564,6 @@ export class AgentController {
       {
         role: vscode.ChatMessageRole.User,
         content: request.prompt,
-        // 'find a document with the "name" "turtle"',
       },
     ];
     const parseForDatabaseAndCollectionNameRequest = access.makeRequest(
@@ -694,7 +790,7 @@ export class AgentController {
         role: vscode.ChatMessageRole.System,
         content:
           // eslint-disable-next-line quotes
-          `You are a MongoDB expert! Reply as someone who is knowledgeable about MongoDB. Keep communications concise, brief, and simple. You have the ability to run MongoDB shell commands by writing them in a '''javascript block. If the user asks a question or something that translates into a MongoDB shell command then provide it as a '''javascript code snippet. Respond with markdown, code snippets are possible with '''javascript. Instead of use X for database, write it as use('X').`,
+          `You are a MongoDB expert! Reply as someone who is knowledgeable about MongoDB. Keep communications concise, brief, and simple. Write MongoDB shell commands wrapped in a '''javascript block. If the user asks a question or something that translates into a MongoDB shell command then provide it as a '''javascript code snippet. Respond with markdown, code snippets are possible with '''javascript. Instead of use X for database, write it as use('X').`,
       },
       {
         role: vscode.ChatMessageRole.User,
@@ -748,6 +844,15 @@ export class AgentController {
       });
     } else if (request.subCommand === 'schema') {
       return await this.handleSchemaRequest({
+        request,
+        context,
+        progress,
+        token,
+      });
+    }
+
+    if (USE_HISTORY) {
+      return await this.handleAutoAgent({
         request,
         context,
         progress,
