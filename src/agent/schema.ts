@@ -67,10 +67,7 @@ export class SchemaFormatter {
     this.addToFormattedSchemaString(prefix + ': ' + bsonType);
   }
 
-  private processDocumentType(
-    prefix: string,
-    pDoc: SimplifiedSchema
-  ) {
+  private processDocumentType(prefix: string, pDoc: SimplifiedSchema) {
     if (!pDoc) {
       return;
     }

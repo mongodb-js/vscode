@@ -432,46 +432,42 @@ export class AgentController {
         // eslint-disable-next-line quotes
         // `You are a MongoDB expert! You create MongoDB queries and aggregation pipelines, and you are very good at it. Your response will be parsed by a machine. Parse the user's prompt for a database name and collection name. Respond in the format \nDATABASE_NAME: X\nCOLLECTION_NAME: Y\n where X and Y are the names. This is a first phase before we create the code, only respond with the collection name and database name.`,
         [
-        'You are a MongoDB expert.',
-        'You will be asked a question or given a task from a nice user.',
-        'Keep communications concise, brief, and comprehensive.',
-        'You are connected to a MongoDB database, and have the ability to run commands if needed.',
-        'The commands you can run are:',
-        '- Any mongosh (MongoDB Shell) command.',
-        '- Fetch sample documents and the schema of a collection.',
-        'The user may ask a question or give a task which requires more information from the user, or information resulting from running a database command. In these instances, return the question or the command to run to the user.',
-        // eslint-disable-next-line quotes
-        `Write MongoDB shell commands wrapped in a '''javascript block. If the user asks a question or something that translates into a MongoDB shell command then provide it as a '''javascript code snippet. Respond with markdown, code snippets are possible with '''javascript.`,
-        // eslint-disable-next-line quotes
-        `Instead of use X for database, write it as use('X')`,
-        // TODO: remove vvv
-        'If there is something that the user could provide to complete the generated code, then ask them for it so it can be provided in a follow up. Do not suggest for them to replace some content when they can provide it.',
-        'For instance if the user asks for the size of a collection, without providing the collection name, ask them which collection.',
-      ].join('\n') // TODO: Better without \n?
+          'You are a MongoDB expert.',
+          'You will be asked a question or given a task from a nice user.',
+          'Keep communications concise, brief, and comprehensive.',
+          'You are connected to a MongoDB database, and have the ability to run commands if needed.',
+          'The commands you can run are:',
+          '- Any mongosh (MongoDB Shell) command.',
+          '- Fetch sample documents and the schema of a collection.',
+          'The user may ask a question or give a task which requires more information from the user, or information resulting from running a database command. In these instances, return the question or the command to run to the user.',
+          // eslint-disable-next-line quotes
+          `Write MongoDB shell commands wrapped in a '''javascript block. If the user asks a question or something that translates into a MongoDB shell command then provide it as a '''javascript code snippet. Respond with markdown, code snippets are possible with '''javascript.`,
+          // eslint-disable-next-line quotes
+          `Instead of use X for database, write it as use('X')`,
+          // TODO: remove vvv
+          'If there is something that the user could provide to complete the generated code, then ask them for it so it can be provided in a follow up. Do not suggest for them to replace some content when they can provide it.',
+          'For instance if the user asks for the size of a collection, without providing the collection name, ask them which collection.',
+        ].join('\n'), // TODO: Better without \n?
     };
 
-    const messages = [
-      systemMessage,
-    ];
+    const messages = [systemMessage];
 
     await Promise.all(
-      context.history.map(
-        async historyItem => {
-          let res = '';
-          for await (const fragment of historyItem.response) {
-            res += fragment;
-          }
-
-          messages.push({
-            role: vscode.ChatMessageRole.User,
-            content: historyItem.request.prompt,
-          });
-          messages.push({
-            role: vscode.ChatMessageRole.Assistant,
-            content: res,
-          });
+      context.history.map(async (historyItem) => {
+        let res = '';
+        for await (const fragment of historyItem.response) {
+          res += fragment;
         }
-      )
+
+        messages.push({
+          role: vscode.ChatMessageRole.User,
+          content: historyItem.request.prompt,
+        });
+        messages.push({
+          role: vscode.ChatMessageRole.Assistant,
+          content: res,
+        });
+      })
     );
 
     messages.push({
@@ -479,11 +475,7 @@ export class AgentController {
       content: request.prompt,
     });
 
-    const chatModelRequest = access.makeRequest(
-      messages,
-      {},
-      token
-    );
+    const chatModelRequest = access.makeRequest(messages, {}, token);
 
     let responseContent = '';
     for await (const fragment of chatModelRequest.response) {
