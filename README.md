@@ -71,6 +71,13 @@ If you use Terraform to manage your infrastructure, MongoDB for VS Code helps yo
 
 ![Terraform snippet](resources/screenshots/terraform.png)
 
+### Atlas Stream Processing
+
+Connect to Atlas Stream Processing instances and develop stream processors using playgrounds.
+
+![Atlas Stream Processing Playground](resources/screenshots/atlas-stream-processing.png)
+
+
 ## Extension Settings
 
 | Setting | Description | Default |
