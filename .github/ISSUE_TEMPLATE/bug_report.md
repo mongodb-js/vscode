@@ -2,6 +2,9 @@
 name: Bug Report
 about: Create a report to help us improve
 title: Bug Report
+labels: ''
+assignees: ''
+
 ---
 
 <!--- Please note this repository's Issue Tracker is not being watched.
