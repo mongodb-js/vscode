@@ -18,6 +18,9 @@ export const DOCUMENT_SOURCE_URI_IDENTIFIER = 'source';
 
 export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
+const isObject = (value: unknown) =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+
 export default class MongoDBDocumentService {
   _context: vscode.ExtensionContext;
   _connectionController: ConnectionController;
@@ -111,7 +114,7 @@ export default class MongoDBDocumentService {
   // This is to revert the effects of simplifyEJSON
   extendEJSON(document: Document): Document {
     for (const [key, item] of Object.entries(document)) {
-      if (item.hasOwnProperty('$uuid')) {
+      if (isObject(item) && item.hasOwnProperty('$uuid')) {
         const base64 = Buffer.from(
           item.$uuid.replaceAll('-', ''),
           'hex'
@@ -134,7 +137,11 @@ export default class MongoDBDocumentService {
       // But, parsers MUST interpret the $uuid key as BSON Binary subtype 4
       // For this reason, we are applying this representation for subtype 4 only
       // see https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#special-rules-for-parsing-uuid-fields
-      if (item.hasOwnProperty('$binary') && item.$binary.subType === '04') {
+      if (
+        isObject(item) &&
+        item.hasOwnProperty('$binary') &&
+        item.$binary.subType === '04'
+      ) {
         const hexString = Buffer.from(item.$binary.base64, 'base64').toString(
           'hex'
         );

@@ -178,7 +178,7 @@ suite('MongoDB Document Service Test Suite', () => {
     expect(result).to.be.deep.equal(JSON.parse(EJSON.stringify(documents[0])));
   });
 
-  test('fetchDocument simplifies the uuid type', async () => {
+  test('fetchDocument calls find and returns a single document when connected - simplifying the uuid type', async () => {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
