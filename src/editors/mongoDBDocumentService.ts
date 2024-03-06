@@ -93,7 +93,7 @@ export default class MongoDBDocumentService {
       await dataService.findOneAndReplace(
         namespace,
         { _id: documentId },
-        newDocument,
+        this.extendEJSON(newDocument),
         {
           returnDocument: 'after',
         }
@@ -106,6 +106,51 @@ export default class MongoDBDocumentService {
 
       return this._saveDocumentFailed(formatError(error).message);
     }
+  }
+
+  extendEJSON(document: Document): Document {
+    for (const [key, item] of Object.entries(document)) {
+      // UUIDs might be represented as {"$uuid": <canonical textual representation of a UUID>} in EJSON
+      // Binary subtypes 3 or 4 are used to represent UUIDs in BSON
+      // But, parsers MUST interpret the $uuid key as BSON Binary subtype 4
+      // For this reason, we are applying this representation for subtype 4 only
+      // see https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#special-rules-for-parsing-uuid-fields
+      if (item.hasOwnProperty('$uuid')) {
+        const base64 = Buffer.from(
+          item.$uuid.replaceAll('-', ''),
+          'hex'
+        ).toString('base64');
+        document[key] = {
+          $binary: {
+            base64,
+            subType: '04',
+          },
+        };
+      }
+    }
+    return document;
+  }
+
+  simplifyEJSON(document: Document): Document {
+    for (const [key, item] of Object.entries(document)) {
+      // UUIDs might be represented as {"$uuid": <canonical textual representation of a UUID>} in EJSON
+      // Binary subtypes 3 or 4 are used to represent UUIDs in BSON
+      // But, parsers MUST interpret the $uuid key as BSON Binary subtype 4
+      // For this reason, we are applying this representation for subtype 4 only
+      // see https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#special-rules-for-parsing-uuid-fields
+      if (item.hasOwnProperty('$binary') && item.$binary.subType === '04') {
+        const hexString = Buffer.from(item.$binary.base64, 'base64').toString(
+          'hex'
+        );
+        const match = /^(.{8})(.{4})(.{4})(.{4})(.{12})$/.exec(hexString);
+        if (!match) continue;
+        const asUUID = match.slice(1, 6).join('-');
+        document[key] = {
+          $uuid: asUUID,
+        };
+      }
+    }
+    return document;
   }
 
   async fetchDocument(data: EditDocumentInfo): Promise<Document | void> {
@@ -147,7 +192,8 @@ export default class MongoDBDocumentService {
         return;
       }
 
-      return JSON.parse(EJSON.stringify(documents[0]));
+      const ejson = JSON.parse(EJSON.stringify(documents[0]));
+      return this.simplifyEJSON(ejson);
     } catch (error) {
       this._statusView.hideMessage();
 
