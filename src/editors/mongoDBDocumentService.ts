@@ -108,13 +108,9 @@ export default class MongoDBDocumentService {
     }
   }
 
+  // This is to revert the effects of simplifyEJSON
   extendEJSON(document: Document): Document {
     for (const [key, item] of Object.entries(document)) {
-      // UUIDs might be represented as {"$uuid": <canonical textual representation of a UUID>} in EJSON
-      // Binary subtypes 3 or 4 are used to represent UUIDs in BSON
-      // But, parsers MUST interpret the $uuid key as BSON Binary subtype 4
-      // For this reason, we are applying this representation for subtype 4 only
-      // see https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#special-rules-for-parsing-uuid-fields
       if (item.hasOwnProperty('$uuid')) {
         const base64 = Buffer.from(
           item.$uuid.replaceAll('-', ''),
