@@ -96,7 +96,7 @@ export default class MongoDBDocumentService {
       await dataService.findOneAndReplace(
         namespace,
         { _id: documentId },
-        this.extendEJSON(newDocument),
+        newDocument,
         {
           returnDocument: 'after',
         }
@@ -109,25 +109,6 @@ export default class MongoDBDocumentService {
 
       return this._saveDocumentFailed(formatError(error).message);
     }
-  }
-
-  // This is to revert the effects of simplifyEJSON
-  extendEJSON(document: Document): Document {
-    for (const [key, item] of Object.entries(document)) {
-      if (isObject(item) && item.hasOwnProperty('$uuid')) {
-        const base64 = Buffer.from(
-          item.$uuid.replaceAll('-', ''),
-          'hex'
-        ).toString('base64');
-        document[key] = {
-          $binary: {
-            base64,
-            subType: '04',
-          },
-        };
-      }
-    }
-    return document;
   }
 
   simplifyEJSON(document: Document): Document {
