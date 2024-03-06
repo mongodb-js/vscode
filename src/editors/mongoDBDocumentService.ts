@@ -111,7 +111,7 @@ export default class MongoDBDocumentService {
     }
   }
 
-  simplifyEJSON(document: Document): Document {
+  _simplifyEJSON(document: Document): Document {
     for (const [key, item] of Object.entries(document)) {
       // UUIDs might be represented as {"$uuid": <canonical textual representation of a UUID>} in EJSON
       // Binary subtypes 3 or 4 are used to represent UUIDs in BSON
@@ -177,7 +177,7 @@ export default class MongoDBDocumentService {
       }
 
       const ejson = JSON.parse(EJSON.stringify(documents[0]));
-      return this.simplifyEJSON(ejson);
+      return this._simplifyEJSON(ejson);
     } catch (error) {
       this._statusView.hideMessage();
 
