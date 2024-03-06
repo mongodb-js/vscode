@@ -120,8 +120,9 @@ export default class MongoDBDocumentService {
       // see https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#special-rules-for-parsing-uuid-fields
       if (
         isObject(item) &&
-        item.hasOwnProperty('$binary') &&
-        item.$binary.subType === '04'
+        Object.prototype.hasOwnProperty.call(item, '$binary') &&
+        item.$binary?.subType === '04' &&
+        typeof item.$binary.base64 === 'string'
       ) {
         const hexString = Buffer.from(item.$binary.base64, 'base64').toString(
           'hex'
