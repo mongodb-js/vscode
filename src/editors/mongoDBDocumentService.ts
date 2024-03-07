@@ -1,5 +1,4 @@
 import type * as vscode from 'vscode';
-import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
@@ -9,6 +8,7 @@ import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
 import type TelemetryService from '../telemetry/telemetryService';
+import { getEJSON } from '../utils/ejson';
 
 const log = createLogger('document controller');
 
@@ -17,9 +17,6 @@ export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 export const DOCUMENT_SOURCE_URI_IDENTIFIER = 'source';
 
 export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
-
-const isObject = (value: unknown) =>
-  value !== null && typeof value === 'object' && !Array.isArray(value);
 
 export default class MongoDBDocumentService {
   _context: vscode.ExtensionContext;
@@ -111,33 +108,6 @@ export default class MongoDBDocumentService {
     }
   }
 
-  _simplifyEJSON(document: Document): Document {
-    for (const [key, item] of Object.entries(document)) {
-      // UUIDs might be represented as {"$uuid": <canonical textual representation of a UUID>} in EJSON
-      // Binary subtypes 3 or 4 are used to represent UUIDs in BSON
-      // But, parsers MUST interpret the $uuid key as BSON Binary subtype 4
-      // For this reason, we are applying this representation for subtype 4 only
-      // see https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#special-rules-for-parsing-uuid-fields
-      if (
-        isObject(item) &&
-        Object.prototype.hasOwnProperty.call(item, '$binary') &&
-        item.$binary?.subType === '04' &&
-        typeof item.$binary.base64 === 'string'
-      ) {
-        const hexString = Buffer.from(item.$binary.base64, 'base64').toString(
-          'hex'
-        );
-        const match = /^(.{8})(.{4})(.{4})(.{4})(.{12})$/.exec(hexString);
-        if (!match) continue;
-        const asUUID = match.slice(1, 6).join('-');
-        document[key] = {
-          $uuid: asUUID,
-        };
-      }
-    }
-    return document;
-  }
-
   async fetchDocument(data: EditDocumentInfo): Promise<Document | void> {
     log.info('Fetch document from MongoDB', data);
 
@@ -177,8 +147,7 @@ export default class MongoDBDocumentService {
         return;
       }
 
-      const ejson = JSON.parse(EJSON.stringify(documents[0]));
-      return this._simplifyEJSON(ejson);
+      return getEJSON(documents[0]);
     } catch (error) {
       this._statusView.hideMessage();
 
