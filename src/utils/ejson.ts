@@ -40,6 +40,6 @@ function simplifyEJSON(item: Document[] | Document): Document {
 }
 
 export function getEJSON(item: Document[] | Document) {
-  const ejson = JSON.parse(EJSON.stringify(item));
+  const ejson = EJSON.serialize(item);
   return simplifyEJSON(ejson);
 }
