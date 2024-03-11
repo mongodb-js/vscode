@@ -1,15 +1,15 @@
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
-const isObject = (value: unknown) =>
+const isObjectOrArray = (value: unknown) =>
   value !== null && typeof value === 'object';
 
-function simplifyEJSON(documents: Document[] | Document): Document {
-  if (!isObject(documents)) return documents;
+function simplifyEJSON(item: Document[] | Document): Document {
+  if (!isObjectOrArray(item)) return item;
 
-  if (Array.isArray(documents)) {
-    return documents.map((item) =>
-      isObject(item) ? simplifyEJSON(item) : item
+  if (Array.isArray(item)) {
+    return item.map((arrayItem) =>
+      isObjectOrArray(arrayItem) ? simplifyEJSON(arrayItem) : arrayItem
     );
   }
 
@@ -19,28 +19,27 @@ function simplifyEJSON(documents: Document[] | Document): Document {
   // For this reason, we are applying this representation for subtype 4 only
   // see https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#special-rules-for-parsing-uuid-fields
   if (
-    Object.prototype.hasOwnProperty.call(documents, '$binary') &&
-    documents.$binary?.subType === '04' &&
-    typeof documents.$binary.base64 === 'string'
+    item.$binary?.subType === '04' &&
+    typeof item.$binary?.base64 === 'string'
   ) {
-    const hexString = Buffer.from(documents.$binary.base64, 'base64').toString(
+    const hexString = Buffer.from(item.$binary.base64, 'base64').toString(
       'hex'
     );
     const match = /^(.{8})(.{4})(.{4})(.{4})(.{12})$/.exec(hexString);
-    if (!match) return documents;
+    if (!match) return item;
     const asUUID = match.slice(1, 6).join('-');
     return { $uuid: asUUID };
   }
 
   return Object.fromEntries(
-    Object.entries(documents).map(([key, value]) => [
+    Object.entries(item).map(([key, value]) => [
       key,
-      isObject(value) ? simplifyEJSON(value) : value,
+      isObjectOrArray(value) ? simplifyEJSON(value) : value,
     ])
   );
 }
 
-export function getEJSON(documents: Document[] | Document) {
-  const ejson = JSON.parse(EJSON.stringify(documents));
+export function getEJSON(item: Document[] | Document) {
+  const ejson = JSON.parse(EJSON.stringify(item));
   return simplifyEJSON(ejson);
 }
