@@ -1087,7 +1087,7 @@
     "@mongosh/service-provider-server": "^2.1.5",
     "@mongosh/shell-api": "^2.1.1",
     "@segment/analytics-node": "^1.1.4",
-    "bson": "^6.4.0",
+    "bson": "^6.5.0",
     "bson-transpilers": "^3.0.0",
     "debug": "^4.3.4",
     "dotenv": "^16.3.1",
