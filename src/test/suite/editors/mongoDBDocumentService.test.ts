@@ -87,6 +87,57 @@ suite('MongoDB Document Service Test Suite', () => {
     expect(document).to.be.deep.equal(newDocument);
   });
 
+  test('replaceDocument calls findOneAndReplace and saves a document when connected - extending the uuid type', async () => {
+    const namespace = 'waffle.house';
+    const connectionId = 'tasty_sandwhich';
+    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+    const document: { _id: string; myUuid?: { $uuid: string } } = {
+      _id: '123',
+    };
+    const newDocument = {
+      _id: '123',
+      myUuid: {
+        $binary: {
+          base64: 'yO2rw/c4TKO2jauSqRR4ow==',
+          subType: '04',
+        },
+      },
+    };
+    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+
+    const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
+    sandbox.replace(
+      testConnectionController,
+      'getActiveConnectionId',
+      fakeActiveConnectionId
+    );
+
+    const fakeGetActiveDataService = sandbox.fake.returns({
+      findOneAndReplace: () => {
+        document.myUuid = { $uuid: 'c8edabc3-f738-4ca3-b68d-ab92a91478a3' };
+
+        return Promise.resolve(document);
+      },
+    });
+    sandbox.replace(
+      testConnectionController,
+      'getActiveDataService',
+      fakeGetActiveDataService
+    );
+    sandbox.stub(testStatusView, 'showMessage');
+    sandbox.stub(testStatusView, 'hideMessage');
+
+    await testMongoDBDocumentService.replaceDocument({
+      namespace,
+      documentId,
+      connectionId,
+      newDocument,
+      source,
+    });
+
+    expect(document).to.be.deep.equal(document);
+  });
+
   test('fetchDocument calls find and returns a single document when connected', async () => {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
@@ -97,7 +148,7 @@ suite('MongoDB Document Service Test Suite', () => {
 
     const fakeGetActiveDataService = sandbox.fake.returns({
       find: () => {
-        return Promise.resolve([{ _id: '123' }]);
+        return Promise.resolve(documents);
       },
     });
     sandbox.replace(
@@ -124,7 +175,60 @@ suite('MongoDB Document Service Test Suite', () => {
       source,
     });
 
-    expect(result).to.be.deep.equal(JSON.parse(EJSON.stringify(documents[0])));
+    expect(result).to.be.deep.equal(EJSON.serialize(documents[0]));
+  });
+
+  test('fetchDocument calls find and returns a single document when connected - simplifying the uuid type', async () => {
+    const namespace = 'waffle.house';
+    const connectionId = 'tasty_sandwhich';
+    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+    const line = 1;
+    const documents = [
+      {
+        _id: '123',
+        myUuid: {
+          $binary: {
+            base64: 'yO2rw/c4TKO2jauSqRR4ow==',
+            subType: '04',
+          },
+        },
+      },
+    ];
+    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+
+    const fakeGetActiveDataService = sandbox.fake.returns({
+      find: () => {
+        return Promise.resolve(documents);
+      },
+    });
+    sandbox.replace(
+      testConnectionController,
+      'getActiveDataService',
+      fakeGetActiveDataService
+    );
+
+    const fakeGetActiveConnectionId = sandbox.fake.returns(connectionId);
+    sandbox.replace(
+      testConnectionController,
+      'getActiveConnectionId',
+      fakeGetActiveConnectionId
+    );
+
+    sandbox.stub(testStatusView, 'showMessage');
+    sandbox.stub(testStatusView, 'hideMessage');
+
+    const result = await testMongoDBDocumentService.fetchDocument({
+      namespace,
+      documentId,
+      line,
+      connectionId,
+      source,
+    });
+
+    expect(result).to.be.deep.equal({
+      _id: '123',
+      myUuid: { $uuid: 'c8edabc3-f738-4ca3-b68d-ab92a91478a3' },
+    });
   });
 
   test("if a user is not connected, documents won't be saved to MongoDB", async () => {
