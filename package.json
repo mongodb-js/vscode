@@ -762,7 +762,7 @@
         },
         {
           "command": "mdb.changeActiveConnection",
-          "when": "false"
+          "when": "mdb.isPlayground"
         },
         {
           "command": "mdb.changeExportToLanguageAddons",

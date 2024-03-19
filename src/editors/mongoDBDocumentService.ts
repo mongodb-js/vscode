@@ -1,5 +1,4 @@
 import type * as vscode from 'vscode';
-import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
@@ -9,6 +8,7 @@ import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
 import type TelemetryService from '../telemetry/telemetryService';
+import { getEJSON } from '../utils/ejson';
 
 const log = createLogger('document controller');
 
@@ -147,7 +147,7 @@ export default class MongoDBDocumentService {
         return;
       }
 
-      return JSON.parse(EJSON.stringify(documents[0]));
+      return getEJSON(documents[0]);
     } catch (error) {
       this._statusView.hideMessage();
 

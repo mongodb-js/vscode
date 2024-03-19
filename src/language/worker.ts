@@ -1,5 +1,4 @@
 import { CliServiceProvider } from '@mongosh/service-provider-server';
-import { EJSON } from 'bson';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
 import { ServerCommands } from './serverCommands';
@@ -10,6 +9,7 @@ import type {
   MongoClientOptions,
 } from '../types/playgroundType';
 import util from 'util';
+import { getEJSON } from '../utils/ejson';
 
 interface EvaluationResult {
   printable: any;
@@ -18,12 +18,12 @@ interface EvaluationResult {
 
 const getContent = ({ type, printable }: EvaluationResult) => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
-    return JSON.parse(EJSON.stringify(printable.documents));
+    return getEJSON(printable.documents);
   }
 
   return typeof printable !== 'object' || printable === null
     ? printable
-    : JSON.parse(EJSON.stringify(printable));
+    : getEJSON(printable);
 };
 
 const getLanguage = (evaluationResult: EvaluationResult) => {
