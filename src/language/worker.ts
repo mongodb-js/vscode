@@ -36,14 +36,25 @@ const getLanguage = (evaluationResult: EvaluationResult) => {
   return 'plaintext';
 };
 
+type ExecuteCodeOptions = {
+  codeToEvaluate: string;
+  connectionString: string;
+  connectionOptions: MongoClientOptions;
+  filePath?: string;
+};
+
 /**
  * Execute code from a playground.
  */
-const execute = async (
-  codeToEvaluate: string,
-  connectionString: string,
-  connectionOptions: MongoClientOptions
-): Promise<{ data?: ShellEvaluateResult; error?: any }> => {
+const execute = async ({
+  codeToEvaluate,
+  connectionString,
+  connectionOptions,
+  filePath,
+}: ExecuteCodeOptions): Promise<{
+  data?: ShellEvaluateResult;
+  error?: any;
+}> => {
   const serviceProvider = await CliServiceProvider.connect(
     connectionString,
     connectionOptions
@@ -66,6 +77,17 @@ const execute = async (
         });
       },
     });
+
+    // In order to support local require direclty from the file where code lives, we can not wrap the
+    // whole code in a function for two reasons:
+    // 1. We need to return the response and can not simply add return. And
+    // 2. We can not use eval to evaluate the *codeToEvaluate* as mongosh async-rewriter can’t see into the eval.
+    // We are also not direclty concatenating the require with the code either due to "use strict"
+    if (filePath) {
+      await runtime.evaluate(`(function () {
+        require = require('module').createRequire('${filePath}');
+      } ())`);
+    }
 
     // Evaluate a playground content.
     const { source, type, printable } = await runtime.evaluate(codeToEvaluate);
@@ -94,11 +116,7 @@ const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
   if (name === ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND) {
     parentPort?.postMessage({
       name: ServerCommands.CODE_EXECUTION_RESULT,
-      payload: await execute(
-        data.codeToEvaluate,
-        data.connectionString,
-        data.connectionOptions
-      ),
+      payload: await execute(data),
     });
   }
 };

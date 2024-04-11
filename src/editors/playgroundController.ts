@@ -449,6 +449,7 @@ export default class PlaygroundController {
       result = await this._languageServerController.evaluate({
         codeToEvaluate,
         connectionId,
+        filePath: vscode.window.activeTextEditor?.document.uri.fsPath,
       });
     } catch (error) {
       const msg =

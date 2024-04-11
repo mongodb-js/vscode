@@ -186,6 +186,7 @@ export default class LanguageServerController {
   ): Promise<ShellEvaluateResult> {
     log.info('Running a playground...', {
       connectionId: playgroundExecuteParameters.connectionId,
+      filePath: playgroundExecuteParameters.filePath,
       inputLength: playgroundExecuteParameters.codeToEvaluate.length,
     });
     this._isExecutingInProgress = true;
