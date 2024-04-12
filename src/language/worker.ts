@@ -78,14 +78,16 @@ const execute = async ({
       },
     });
 
-    // In order to support local require direclty from the file where code lives, we can not wrap the
+    // In order to support local require directly from the file where code lives, we can not wrap the
     // whole code in a function for two reasons:
     // 1. We need to return the response and can not simply add return. And
     // 2. We can not use eval to evaluate the *codeToEvaluate* as mongosh async-rewriter can’t see into the eval.
-    // We are also not direclty concatenating the require with the code either due to "use strict"
+    // We are also not directly concatenating the require with the code either due to "use strict"
     if (filePath) {
       await runtime.evaluate(`(function () {
-        require = require('module').createRequire('${filePath}');
+        globalThis.require = require('module').createRequire(${JSON.stringify(
+          filePath
+        )});
       } ())`);
     }
 
