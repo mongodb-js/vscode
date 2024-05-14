@@ -275,6 +275,10 @@
         "title": "Copy Connection String"
       },
       {
+        "command": "mdb.openInCompass",
+        "title": "Open in Compass"
+      },
+      {
         "command": "mdb.renameConnection",
         "title": "Rename Connection..."
       },
@@ -429,6 +433,10 @@
       {
         "command": "mdb.dropStreamProcessor",
         "title": "Drop Stream Processor..."
+      },
+      {
+        "command": "mdb.reloadConnections",
+        "title": "MongoDB: Reload Connections"
       }
     ],
     "menus": {
@@ -504,6 +512,11 @@
           "group": "4@1"
         },
         {
+          "command": "mdb.openInCompass",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "group": "4@1"
+        },
+        {
           "command": "mdb.disconnectFromConnectionTreeItem",
           "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
           "group": "5@1"
@@ -535,6 +548,11 @@
         },
         {
           "command": "mdb.copyConnectionString",
+          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
+          "group": "3@1"
+        },
+        {
+          "command": "mdb.openInCompass",
           "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
           "group": "3@1"
         },
@@ -773,6 +791,10 @@
           "when": "false"
         },
         {
+          "command": "mdb.openInCompass",
+          "when": "false"
+        },
+        {
           "command": "mdb.renameConnection",
           "when": "false"
         },
@@ -899,6 +921,10 @@
         {
           "command": "mdb.dropStreamProcessor",
           "when": "false"
+        },
+        {
+          "command": "mdb.reloadConnections",
+          "when": "true"
         }
       ]
     },
@@ -1091,6 +1117,7 @@
     "bson-transpilers": "^2.2.0",
     "debug": "^4.3.4",
     "dotenv": "^16.3.1",
+    "jsonlines": "^0.1.1",
     "lodash": "^4.17.21",
     "micromatch": "^4.0.5",
     "mongodb": "^6.3.0",

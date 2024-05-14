@@ -163,9 +163,13 @@ export default class ConnectionController {
       this._connections[connection.id] = connection;
     }
 
-    if (loadedConnections.length) {
-      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    for (const connectionId of Object.keys(this._connections)) {
+      if (!loadedConnections.find(c => c.id === connectionId)) {
+        delete this._connections[connectionId];
+      }
     }
+
+    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
     // TODO: re-enable with fewer 'Saved Connections Loaded' events
     // https://jira.mongodb.org/browse/VSCODE-462

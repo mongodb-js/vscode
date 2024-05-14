@@ -155,6 +155,13 @@ export default class MDBExtensionController implements vscode.Disposable {
   registerCommands = (): void => {
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
+
+    // ------ CONNECTIONS ------ //
+    this.registerCommand(EXTENSION_COMMANDS.MDB_RELOAD_CONNECTIONS, () => {
+      this._connectionController.loadSavedConnections();
+      return Promise.resolve(true);
+    });
+
     // ------ CONNECTION ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE, () => {
       this._webviewController.openWebview(this._context);
@@ -346,6 +353,20 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         await vscode.env.clipboard.writeText(connectionString);
         void vscode.window.showInformationMessage('Copied to clipboard.');
+
+        return true;
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_OPEN_IN_COMPASS,
+      async (element: ConnectionTreeItem): Promise<boolean> => {
+        const connectionString =
+          this._connectionController.copyConnectionStringByConnectionId(
+            element.connectionId
+          );
+
+        await vscode.env.openExternal(vscode.Uri.parse(connectionString));
+        void vscode.window.showInformationMessage('Opening connection in Compass...');
 
         return true;
       }
