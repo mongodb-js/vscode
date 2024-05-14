@@ -73,6 +73,9 @@ enum EXTENSION_COMMANDS {
   MDB_START_STREAM_PROCESSOR = 'mdb.startStreamProcessor',
   MDB_STOP_STREAM_PROCESSOR = 'mdb.stopStreamProcessor',
   MDB_DROP_STREAM_PROCESSOR = 'mdb.dropStreamProcessor',
+
+  MDB_RELOAD_CONNECTIONS = 'mdb.reloadConnections',
+  MDB_OPEN_IN_COMPASS = 'mdb.openInCompass',
 }
 
 export default EXTENSION_COMMANDS;
