@@ -1280,6 +1280,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$toHashedIndexKey\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$toHashedIndexKey.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$toLower\\b",
           "captures": {
             "0": {
