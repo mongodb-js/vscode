@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as vscode from 'vscode';
 import { connect, createConnectionAttempt } from 'mongodb-data-service';
 import type {
@@ -458,6 +459,9 @@ export default class ConnectionController {
 
   // Used to re-authenticate with OIDC.
   async _reauthenticationHandler() {
+    console.log('----------------------');
+    console.log('original _reauthenticationHandler called');
+    console.log('----------------------');
     const removeConfirmationResponse =
       await vscode.window.showInformationMessage(
         'You need to re-authenticate to the database in order to continue.',
@@ -465,8 +469,15 @@ export default class ConnectionController {
         'Confirm'
       );
 
+    console.log('removeConfirmationResponse----------------------');
+    console.log(removeConfirmationResponse);
+    console.log('----------------------');
+
     if (removeConfirmationResponse !== 'Confirm') {
       await this.disconnect();
+      console.log('----------------------');
+      console.log('disconnected');
+      console.log('----------------------');
       throw new Error('Reauthentication declined by user');
     }
   }
