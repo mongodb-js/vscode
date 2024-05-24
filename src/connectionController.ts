@@ -599,8 +599,19 @@ export default class ConnectionController {
 
     this._statusView.showMessage('Disconnecting from current connection...');
 
+    console.log('----------------------');
+    console.log('Disconnecting from current connection...');
+    console.log('----------------------');
+
     try {
       // Disconnect from the active connection.
+
+      console.log(
+        'this._activeDataService.isConnected()----------------------'
+      );
+      console.log(this._activeDataService.isConnected());
+      console.log('----------------------');
+
       await this._activeDataService.disconnect();
       void vscode.window.showInformationMessage('MongoDB disconnected.');
       this._activeDataService = null;
@@ -621,6 +632,10 @@ export default class ConnectionController {
         'An error occurred while disconnecting from the current connection.'
       );
     }
+
+    console.log('----------------------');
+    console.log('after try catch');
+    console.log('----------------------');
 
     this._disconnecting = false;
     this._statusView.hideMessage();
