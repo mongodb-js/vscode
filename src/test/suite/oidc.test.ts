@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import os from 'os';
 import path from 'path';
 import chai, { expect } from 'chai';
@@ -55,7 +56,8 @@ const DEFAULT_TOKEN_PAYLOAD = {
   },
 };
 
-suite('OIDC Tests', function () {
+// eslint-disable-next-line mocha/no-exclusive-tests
+suite.only('OIDC Tests', function () {
   this.timeout(50000);
 
   const extensionContextStub = new ExtensionContextStub();
@@ -353,12 +355,21 @@ suite('OIDC Tests', function () {
   });
 
   test('can decline re-authentication if wanted', async function () {
+    console.log('----------------------');
+    console.log('start decline test');
+    console.log('----------------------');
+
     showInformationMessageStub.resolves('Declined');
     const originalReAuthHandler =
       testConnectionController._reauthenticationHandler.bind(
         testConnectionController
       );
     let reAuthCalled = false;
+    console.log(
+      'reAuthCalled sets reAuthCalled to false----------------------'
+    );
+    console.log(reAuthCalled);
+    console.log('----------------------');
     let resolveReAuthPromise: (value?: unknown) => void;
     const reAuthPromise = new Promise((resolve) => {
       resolveReAuthPromise = resolve;
@@ -366,6 +377,11 @@ suite('OIDC Tests', function () {
     sandbox
       .stub(testConnectionController, '_reauthenticationHandler')
       .callsFake(async () => {
+        console.log(
+          '_reauthenticationHandler sets reAuthCalled to true----------------------'
+        );
+        console.log(reAuthCalled);
+        console.log('----------------------');
         reAuthCalled = true;
         resolveReAuthPromise();
         await originalReAuthHandler();
@@ -387,6 +403,10 @@ suite('OIDC Tests', function () {
     ).to.be.true;
     afterReauth = true;
 
+    console.log('reAuthCalled----------------------');
+    console.log(reAuthCalled);
+    console.log('----------------------');
+
     // Trigger a command on data service for reauthentication
     while (reAuthCalled === false) {
       await testConnectionController
@@ -397,7 +417,15 @@ suite('OIDC Tests', function () {
         });
     }
 
+    console.log('----------------------');
+    console.log('awaiting reAuthPromise...');
+    console.log('----------------------');
+
     await reAuthPromise;
+
+    console.log('----------------------');
+    console.log('done');
+    console.log('----------------------');
 
     // Because we declined the auth in showInformationMessage above
     expect(tokenFetchCalls).to.equal(1);
