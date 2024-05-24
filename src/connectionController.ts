@@ -27,6 +27,8 @@ import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
 import { isAtlasStream } from 'mongodb-build-info';
 
+import * as util from 'util';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
 
@@ -609,7 +611,7 @@ export default class ConnectionController {
       console.log(
         'this._activeDataService.isConnected()----------------------'
       );
-      console.log(this._activeDataService.isConnected());
+      console.log(`${util.inspect(this._activeDataService.isConnected())}`);
       console.log('----------------------');
 
       await this._activeDataService.disconnect();

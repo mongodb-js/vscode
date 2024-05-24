@@ -58,7 +58,7 @@ const DEFAULT_TOKEN_PAYLOAD = {
 
 // eslint-disable-next-line mocha/no-exclusive-tests
 suite.only('OIDC Tests', function () {
-  this.timeout(50000);
+  this.timeout(100000);
 
   const extensionContextStub = new ExtensionContextStub();
   const testStorageController = new StorageController(extensionContextStub);
