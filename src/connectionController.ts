@@ -614,7 +614,16 @@ export default class ConnectionController {
       console.log(`${util.inspect(this._activeDataService.isConnected())}`);
       console.log('----------------------');
 
+      console.log('this._activeDataService----------------------');
+      console.log(`${util.inspect(this._activeDataService)}`);
+      console.log('----------------------');
+
       await this._activeDataService.disconnect();
+
+      console.log('----------------------');
+      console.log('disconnected');
+      console.log('----------------------');
+
       void vscode.window.showInformationMessage('MongoDB disconnected.');
       this._activeDataService = null;
 

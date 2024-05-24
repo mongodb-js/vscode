@@ -372,7 +372,6 @@ suite.only('OIDC Tests', function () {
     console.log('----------------------');
 
     showInformationMessageStub.resolves('Declined');
-
     let tokenFetchCalls = 0;
     let afterReauth = false;
     getTokenPayload = () => {
