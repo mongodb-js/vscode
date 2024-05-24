@@ -614,8 +614,12 @@ export default class ConnectionController {
       console.log(`${util.inspect(this._activeDataService.isConnected())}`);
       console.log('----------------------');
 
-      console.log('this._activeDataService----------------------');
-      console.log(`${util.inspect(this._activeDataService)}`);
+      console.log(
+        'this._activeDataService.getConnectionOptions()----------------------'
+      );
+      console.log(
+        `${util.inspect(this._activeDataService.getConnectionOptions())}`
+      );
       console.log('----------------------');
 
       await this._activeDataService.disconnect();
