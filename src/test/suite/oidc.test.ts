@@ -8,7 +8,7 @@ import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { createHash } from 'crypto';
-import { before, after, afterEach, beforeEach } from 'mocha';
+import { before, afterEach, beforeEach } from 'mocha';
 import EventEmitter, { once } from 'events';
 import { ExtensionContextStub } from './stubs';
 import { StorageController } from '../../storage';
@@ -121,6 +121,9 @@ suite.only('OIDC Tests', function () {
 
     tmpdir = path.join(os.tmpdir(), `vscode-oidc-${Date.now().toString(32)}`);
     await fs.mkdir(path.join(tmpdir, 'db'), { recursive: true });
+  });
+
+  beforeEach(async function () {
     const serverOidcConfig = {
       issuer: oidcMockProvider.issuer,
       clientId: 'testServer',
@@ -129,7 +132,6 @@ suite.only('OIDC Tests', function () {
       audience: 'resource-server-audience-value',
       authNamePrefix: 'dev',
     };
-
     cluster = await MongoCluster.start({
       ...defaultClusterOptions,
       version: '7.0.x',
@@ -149,18 +151,7 @@ suite.only('OIDC Tests', function () {
     cs.searchParams.set('authMechanism', 'MONGODB-OIDC');
 
     connectionString = cs.toString();
-  });
 
-  after(async function () {
-    if (process.platform !== 'linux') {
-      return;
-    }
-
-    await oidcMockProvider?.close();
-    await cluster?.close();
-  });
-
-  beforeEach(async function () {
     sandbox.stub(testTelemetryService, 'trackNewConnection');
     showInformationMessageStub = sandbox.stub(
       vscode.window,
@@ -208,6 +199,13 @@ suite.only('OIDC Tests', function () {
     testConnectionController.clearAllConnections();
 
     sandbox.restore();
+
+    if (process.platform !== 'linux') {
+      return;
+    }
+
+    await oidcMockProvider?.close();
+    await cluster?.close();
   });
 
   test('can successfully connect with a connection string', async function () {
