@@ -89,6 +89,16 @@ suite.only('OIDC Tests', function () {
   let createTerminalStub: SinonStub;
   let sendTextStub: SinonStub;
 
+  const originalReAuthHandler =
+    testConnectionController._reauthenticationHandler.bind(
+      testConnectionController
+    );
+  let reAuthCalled = false;
+  let resolveReAuthPromise: (value?: unknown) => void;
+  const reAuthPromise = new Promise((resolve) => {
+    resolveReAuthPromise = resolve;
+  });
+
   before(async function () {
     if (process.platform !== 'linux') {
       // OIDC is only supported on Linux in the 7.0+ enterprise server.
@@ -169,6 +179,23 @@ suite.only('OIDC Tests', function () {
       sendText: sendTextStub,
       show: () => {},
     });
+
+    sandbox
+      .stub(testConnectionController, '_reauthenticationHandler')
+      .callsFake(async () => {
+        reAuthCalled = true;
+        resolveReAuthPromise();
+
+        console.log('----------------------');
+        console.log('resolveReAuthPromise done');
+        console.log('----------------------');
+
+        await originalReAuthHandler();
+
+        console.log('----------------------');
+        console.log('originalReAuthHandler done');
+        console.log('----------------------');
+      });
   });
 
   afterEach(async function () {
@@ -309,22 +336,6 @@ suite.only('OIDC Tests', function () {
 
   test('can successfully re-authenticate', async function () {
     showInformationMessageStub.resolves('Confirm');
-    const originalReAuthHandler =
-      testConnectionController._reauthenticationHandler.bind(
-        testConnectionController
-      );
-    let reAuthCalled = false;
-    let resolveReAuthPromise: (value?: unknown) => void;
-    const reAuthPromise = new Promise((resolve) => {
-      resolveReAuthPromise = resolve;
-    });
-    sandbox
-      .stub(testConnectionController, '_reauthenticationHandler')
-      .callsFake(async () => {
-        reAuthCalled = true;
-        resolveReAuthPromise();
-        await originalReAuthHandler();
-      });
     let tokenFetchCalls = 0;
     let afterReauth = false;
     getTokenPayload = () => {
@@ -360,32 +371,7 @@ suite.only('OIDC Tests', function () {
     console.log('----------------------');
 
     showInformationMessageStub.resolves('Declined');
-    const originalReAuthHandler =
-      testConnectionController._reauthenticationHandler.bind(
-        testConnectionController
-      );
-    let reAuthCalled = false;
-    console.log(
-      'reAuthCalled sets reAuthCalled to false----------------------'
-    );
-    console.log(reAuthCalled);
-    console.log('----------------------');
-    let resolveReAuthPromise: (value?: unknown) => void;
-    const reAuthPromise = new Promise((resolve) => {
-      resolveReAuthPromise = resolve;
-    });
-    sandbox
-      .stub(testConnectionController, '_reauthenticationHandler')
-      .callsFake(async () => {
-        console.log(
-          '_reauthenticationHandler sets reAuthCalled to true----------------------'
-        );
-        console.log(reAuthCalled);
-        console.log('----------------------');
-        reAuthCalled = true;
-        resolveReAuthPromise();
-        await originalReAuthHandler();
-      });
+
     let tokenFetchCalls = 0;
     let afterReauth = false;
     getTokenPayload = () => {
