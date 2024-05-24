@@ -8,7 +8,7 @@ import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { createHash } from 'crypto';
-import { before, afterEach, beforeEach } from 'mocha';
+import { afterEach, beforeEach } from 'mocha';
 import EventEmitter, { once } from 'events';
 import { ExtensionContextStub } from './stubs';
 import { StorageController } from '../../storage';
@@ -99,7 +99,7 @@ suite.only('OIDC Tests', function () {
     resolveReAuthPromise = resolve;
   });
 
-  before(async function () {
+  beforeEach(async function () {
     if (process.platform !== 'linux') {
       // OIDC is only supported on Linux in the 7.0+ enterprise server.
       return this.skip();
@@ -121,9 +121,7 @@ suite.only('OIDC Tests', function () {
 
     tmpdir = path.join(os.tmpdir(), `vscode-oidc-${Date.now().toString(32)}`);
     await fs.mkdir(path.join(tmpdir, 'db'), { recursive: true });
-  });
 
-  beforeEach(async function () {
     const serverOidcConfig = {
       issuer: oidcMockProvider.issuer,
       clientId: 'testServer',
