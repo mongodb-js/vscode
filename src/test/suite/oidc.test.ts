@@ -123,7 +123,7 @@ suite('OIDC Tests', function () {
 
     cluster = await MongoCluster.start({
       ...defaultClusterOptions,
-      version: '8.0.0-rc4',
+      version: '8.0.x',
       downloadOptions: { enterprise: true },
       args: [
         '--setParameter',
