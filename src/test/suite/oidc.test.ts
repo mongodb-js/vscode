@@ -180,6 +180,7 @@ suite.only('OIDC Tests', function () {
       show: () => {},
     });
 
+    reAuthCalled = false;
     sandbox
       .stub(testConnectionController, '_reauthenticationHandler')
       .callsFake(async () => {
