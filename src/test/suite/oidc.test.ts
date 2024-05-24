@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import os from 'os';
 import path from 'path';
 import chai, { expect } from 'chai';
@@ -56,8 +55,7 @@ const DEFAULT_TOKEN_PAYLOAD = {
   },
 };
 
-// eslint-disable-next-line mocha/no-exclusive-tests
-suite.only('OIDC Tests', function () {
+suite('OIDC Tests', function () {
   this.timeout(50000);
 
   const extensionContextStub = new ExtensionContextStub();
@@ -88,16 +86,6 @@ suite.only('OIDC Tests', function () {
 
   let createTerminalStub: SinonStub;
   let sendTextStub: SinonStub;
-
-  const originalReAuthHandler =
-    testConnectionController._reauthenticationHandler.bind(
-      testConnectionController
-    );
-  let reAuthCalled = false;
-  let resolveReAuthPromise: (value?: unknown) => void;
-  const reAuthPromise = new Promise((resolve) => {
-    resolveReAuthPromise = resolve;
-  });
 
   before(async function () {
     if (process.platform !== 'linux') {
@@ -179,24 +167,6 @@ suite.only('OIDC Tests', function () {
       sendText: sendTextStub,
       show: () => {},
     });
-
-    reAuthCalled = false;
-    sandbox
-      .stub(testConnectionController, '_reauthenticationHandler')
-      .callsFake(async () => {
-        reAuthCalled = true;
-        resolveReAuthPromise();
-
-        console.log('----------------------');
-        console.log('resolveReAuthPromise done');
-        console.log('----------------------');
-
-        await originalReAuthHandler();
-
-        console.log('----------------------');
-        console.log('originalReAuthHandler done');
-        console.log('----------------------');
-      });
   });
 
   afterEach(async function () {
@@ -335,8 +305,24 @@ suite.only('OIDC Tests', function () {
     expect(connected).to.be.true;
   });
 
-  test.skip('can successfully re-authenticate', async function () {
+  test('can successfully re-authenticate', async function () {
     showInformationMessageStub.resolves('Confirm');
+    const originalReAuthHandler =
+      testConnectionController._reauthenticationHandler.bind(
+        testConnectionController
+      );
+    let reAuthCalled = false;
+    let resolveReAuthPromise: (value?: unknown) => void;
+    const reAuthPromise = new Promise((resolve) => {
+      resolveReAuthPromise = resolve;
+    });
+    sandbox
+      .stub(testConnectionController, '_reauthenticationHandler')
+      .callsFake(async () => {
+        reAuthCalled = true;
+        resolveReAuthPromise();
+        await originalReAuthHandler();
+      });
     let tokenFetchCalls = 0;
     let afterReauth = false;
     getTokenPayload = () => {
@@ -366,12 +352,25 @@ suite.only('OIDC Tests', function () {
     expect(testConnectionController.isCurrentlyConnected()).to.be.true;
   });
 
-  test('can decline re-authentication if wanted', async function () {
-    console.log('----------------------');
-    console.log('start decline test');
-    console.log('----------------------');
-
+  // eslint-disable-next-line mocha/no-exclusive-tests
+  test.only('can decline re-authentication if wanted', async function () {
     showInformationMessageStub.resolves('Declined');
+    const originalReAuthHandler =
+      testConnectionController._reauthenticationHandler.bind(
+        testConnectionController
+      );
+    let reAuthCalled = false;
+    let resolveReAuthPromise: (value?: unknown) => void;
+    const reAuthPromise = new Promise((resolve) => {
+      resolveReAuthPromise = resolve;
+    });
+    sandbox
+      .stub(testConnectionController, '_reauthenticationHandler')
+      .callsFake(async () => {
+        reAuthCalled = true;
+        resolveReAuthPromise();
+        await originalReAuthHandler();
+      });
     let tokenFetchCalls = 0;
     let afterReauth = false;
     getTokenPayload = () => {
@@ -391,15 +390,15 @@ suite.only('OIDC Tests', function () {
 
     // Trigger a command on data service for reauthentication
     while (reAuthCalled === false) {
-      await testConnectionController.getActiveDataService()?.count('x.y', {});
+      await testConnectionController
+        .getActiveDataService()
+        ?.count('x.y', {})
+        .catch((error) => {
+          expect(error.message).to.equal('Reauthentication declined by user');
+        });
     }
 
-    // Wait for reauthentication promise to resolve
     await reAuthPromise;
-
-    console.log('----------------------');
-    console.log('done');
-    console.log('----------------------');
 
     // Because we declined the auth in showInformationMessage above
     expect(tokenFetchCalls).to.equal(1);
