@@ -389,24 +389,12 @@ suite.only('OIDC Tests', function () {
     ).to.be.true;
     afterReauth = true;
 
-    console.log('reAuthCalled----------------------');
-    console.log(reAuthCalled);
-    console.log('----------------------');
-
     // Trigger a command on data service for reauthentication
     while (reAuthCalled === false) {
-      await testConnectionController
-        .getActiveDataService()
-        ?.count('x.y', {})
-        .catch((error) => {
-          expect(error.message).to.equal('Reauthentication declined by user');
-        });
+      await testConnectionController.getActiveDataService()?.count('x.y', {});
     }
 
-    console.log('----------------------');
-    console.log('awaiting reAuthPromise...');
-    console.log('----------------------');
-
+    // Wait for reauthentication promise to resolve
     await reAuthPromise;
 
     console.log('----------------------');
