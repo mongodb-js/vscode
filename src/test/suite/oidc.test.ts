@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import os from 'os';
 import path from 'path';
 import chai, { expect } from 'chai';
@@ -23,6 +24,8 @@ import { ConnectionString } from 'mongodb-connection-string-url';
 
 import launchMongoShell from '../../commands/launchMongoShell';
 import { getFullRange } from './suggestTestHelpers';
+
+import * as util from 'util';
 
 chai.use(chaiAsPromised);
 
@@ -381,11 +384,17 @@ suite('OIDC Tests', function () {
       };
     };
 
-    expect(
+    const isConnected =
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
-      )
-    ).to.be.true;
+      );
+
+    expect(isConnected).to.be.true;
+
+    console.log('isConnected----------------------');
+    console.log(`${util.inspect(isConnected)}`);
+    console.log('----------------------');
+
     afterReauth = true;
 
     // Trigger a command on data service for reauthentication
@@ -394,6 +403,9 @@ suite('OIDC Tests', function () {
         .getActiveDataService()
         ?.count('x.y', {})
         .catch((error) => {
+          console.log('error----------------------');
+          console.log(`${util.inspect(error)}`);
+          console.log('----------------------');
           expect(error.message).to.equal('Reauthentication declined by user');
         });
     }
@@ -402,6 +414,15 @@ suite('OIDC Tests', function () {
 
     // Because we declined the auth in showInformationMessage above
     expect(tokenFetchCalls).to.equal(1);
+
+    console.log(
+      'testConnectionController.isCurrentlyConnected()----------------------'
+    );
+    console.log(
+      `${util.inspect(testConnectionController.isCurrentlyConnected())}`
+    );
+    console.log('----------------------');
+
     expect(testConnectionController.isCurrentlyConnected()).to.be.false;
   });
 
