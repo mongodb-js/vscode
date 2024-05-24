@@ -27,8 +27,6 @@ import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
 import { isAtlasStream } from 'mongodb-build-info';
 
-import * as util from 'util';
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
 
@@ -601,32 +599,9 @@ export default class ConnectionController {
 
     this._statusView.showMessage('Disconnecting from current connection...');
 
-    console.log('----------------------');
-    console.log('Disconnecting from current connection...');
-    console.log('----------------------');
-
     try {
       // Disconnect from the active connection.
-
-      console.log(
-        'this._activeDataService.isConnected()----------------------'
-      );
-      console.log(`${util.inspect(this._activeDataService.isConnected())}`);
-      console.log('----------------------');
-
-      console.log(
-        'this._activeDataService.getConnectionOptions()----------------------'
-      );
-      console.log(
-        `${util.inspect(this._activeDataService.getConnectionOptions())}`
-      );
-      console.log('----------------------');
-
       await this._activeDataService.disconnect();
-
-      console.log('----------------------');
-      console.log('disconnected');
-      console.log('----------------------');
 
       void vscode.window.showInformationMessage('MongoDB disconnected.');
       this._activeDataService = null;
@@ -647,10 +622,6 @@ export default class ConnectionController {
         'An error occurred while disconnecting from the current connection.'
       );
     }
-
-    console.log('----------------------');
-    console.log('after try catch');
-    console.log('----------------------');
 
     this._disconnecting = false;
     this._statusView.hideMessage();
