@@ -65,7 +65,7 @@
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues"
   },
   "engines": {
-    "vscode": "^1.89.1",
+    "vscode": "^1.79.1",
     "node": ">=16.16.0",
     "npm": ">=8.19.4"
   },
@@ -1093,7 +1093,7 @@
     "dotenv": "^16.4.5",
     "lodash": "^4.17.21",
     "micromatch": "^4.0.7",
-    "mongodb": "^6.6.2",
+    "mongodb": "^6.3.0",
     "mongodb-build-info": "^1.7.1",
     "mongodb-cloud-info": "^2.1.0",
     "mongodb-connection-string-url": "^3.0.0",
@@ -1113,8 +1113,8 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.22.5",
-    "@mongodb-js/oidc-mock-provider": "^0.9.1",
-    "@mongodb-js/oidc-plugin": "^0.4.0",
+    "@mongodb-js/oidc-mock-provider": "^0.6.10",
+    "@mongodb-js/oidc-plugin": "^0.3.0",
     "@mongodb-js/prettier-config-devtools": "^1.0.1",
     "@mongodb-js/sbom-tools": "^0.5.13",
     "@mongodb-js/signing-utils": "^0.3.4",
@@ -1134,7 +1134,7 @@
     "@types/react-dom": "^17.0.25",
     "@types/sinon": "^9.0.11",
     "@types/uuid": "^8.3.4",
-    "@types/vscode": "^1.89.0",
+    "@types/vscode": "^1.79.1",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/test-electron": "^2.3.10",
