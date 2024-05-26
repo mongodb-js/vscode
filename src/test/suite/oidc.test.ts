@@ -123,7 +123,7 @@ suite('OIDC Tests', function () {
 
     cluster = await MongoCluster.start({
       ...defaultClusterOptions,
-      version: '7.0.x',
+      version: '8.1.0-alpha-1381-g066759c',
       downloadOptions: { enterprise: true },
       args: [
         '--setParameter',
@@ -133,6 +133,8 @@ suite('OIDC Tests', function () {
         'enableTestCommands=true',
         '--setParameter',
         `oidcIdentityProviders=${JSON.stringify([serverOidcConfig])}`,
+        '--setParameter',
+        'JWKSMinimumQuiescePeriodSecs=0',
       ],
     });
 
