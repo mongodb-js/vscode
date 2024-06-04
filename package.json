@@ -65,7 +65,7 @@
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues"
   },
   "engines": {
-    "vscode": "^1.79.1",
+    "vscode": "^1.89.1",
     "node": ">=16.16.0",
     "npm": ">=8.19.4"
   },
