@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { createHash } from 'crypto';
 import { before, after, afterEach, beforeEach } from 'mocha';
 import EventEmitter, { once } from 'events';
+import util from 'util';
 import { ExtensionContextStub } from './stubs';
 import { StorageController } from '../../storage';
 import { TelemetryService } from '../../telemetry';
@@ -24,6 +25,10 @@ import { ConnectionString } from 'mongodb-connection-string-url';
 
 import launchMongoShell from '../../commands/launchMongoShell';
 import { getFullRange } from './suggestTestHelpers';
+
+const sleep = (ms: number): Promise<void> => {
+  return util.promisify(setTimeout)(ms);
+};
 
 chai.use(chaiAsPromised);
 
@@ -121,7 +126,7 @@ suite('OIDC Tests', function () {
 
     cluster = await MongoCluster.start({
       ...defaultClusterOptions,
-      version: 'latest-alpha',
+      version: '7.0.x',
       downloadOptions: { enterprise: true },
       args: [
         '--setParameter',
@@ -131,8 +136,6 @@ suite('OIDC Tests', function () {
         'enableTestCommands=true',
         '--setParameter',
         `oidcIdentityProviders=${JSON.stringify([serverOidcConfig])}`,
-        '--setParameter',
-        'JWKSMinimumQuiescePeriodSecs=0',
       ],
     });
 
@@ -403,6 +406,7 @@ suite('OIDC Tests', function () {
     }
 
     await reAuthPromise;
+    await sleep(100);
 
     // Because we declined the auth in showInformationMessage above
     expect(tokenFetchCalls).to.equal(1);
