@@ -414,8 +414,9 @@ export default class ConnectionController {
         this._statusView.hideMessage();
         this._connectionAttempt = null;
         this._connectingConnectionId = null;
-        this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
       }
+
+      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     }
 
     log.info('Successfully connected', { connectionId });
@@ -424,11 +425,10 @@ export default class ConnectionController {
     dataService.addReauthenticationHandler(
       this._reauthenticationHandler.bind(this)
     );
-    this._activeDataService = dataService;
+    this.setActiveDataService(dataService);
     this._currentConnectionId = connectionId;
     this._connectionAttempt = null;
     this._connectingConnectionId = null;
-    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
     // Send metrics to Segment
@@ -459,9 +459,6 @@ export default class ConnectionController {
 
   // Used to re-authenticate with OIDC.
   async _reauthenticationHandler() {
-    console.log('----------------------');
-    console.log('original _reauthenticationHandler called');
-    console.log('----------------------');
     const removeConfirmationResponse =
       await vscode.window.showInformationMessage(
         'You need to re-authenticate to the database in order to continue.',
@@ -469,15 +466,7 @@ export default class ConnectionController {
         'Confirm'
       );
 
-    console.log('removeConfirmationResponse----------------------');
-    console.log(removeConfirmationResponse);
-    console.log('----------------------');
-
     if (removeConfirmationResponse !== 'Confirm') {
-      await this.disconnect();
-      console.log('----------------------');
-      console.log('disconnected');
-      console.log('----------------------');
       throw new Error('Reauthentication declined by user');
     }
   }
@@ -585,43 +574,37 @@ export default class ConnectionController {
 
     this._currentConnectionId = null;
     this._disconnecting = true;
+    this._statusView.showMessage('Disconnecting from current connection...');
 
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
 
     if (!this._activeDataService) {
-      void vscode.window.showErrorMessage(
-        'Unable to disconnect: no active connection.'
-      );
-
+      log.error('Unable to disconnect: no active connection');
       return false;
     }
 
-    this._statusView.showMessage('Disconnecting from current connection...');
+    const originalDisconnect = this._activeDataService.disconnect.bind(this);
+    this._activeDataService = null;
 
     try {
       // Disconnect from the active connection.
-      await this._activeDataService.disconnect();
-
-      void vscode.window.showInformationMessage('MongoDB disconnected.');
-      this._activeDataService = null;
-
-      void vscode.commands.executeCommand(
-        'setContext',
-        'mdb.connectedToMongoDB',
-        false
-      );
-      void vscode.commands.executeCommand(
-        'setContext',
-        'mdb.isAtlasStreams',
-        false
-      );
+      await originalDisconnect();
     } catch (error) {
-      // Show an error, however we still reset the active connection to free up the extension.
-      void vscode.window.showErrorMessage(
-        'An error occurred while disconnecting from the current connection.'
-      );
+      log.error('Unable to disconnect', error);
     }
+
+    void vscode.commands.executeCommand(
+      'setContext',
+      'mdb.connectedToMongoDB',
+      false
+    );
+    void vscode.commands.executeCommand(
+      'setContext',
+      'mdb.isAtlasStreams',
+      false
+    );
+    void vscode.window.showInformationMessage('MongoDB disconnected.');
 
     this._disconnecting = false;
     this._statusView.hideMessage();
@@ -638,9 +621,7 @@ export default class ConnectionController {
     }
 
     delete this._connections[connectionId];
-
     await this._connectionStorage.removeConnection(connectionId);
-
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
   }
 
@@ -1001,9 +982,13 @@ export default class ConnectionController {
     this._connectingConnectionId = '';
   }
 
-  // Exposed for testing.
   setActiveDataService(newDataService: DataService): void {
     this._activeDataService = newDataService;
+
+    // Disconnect the extension if the MongoDB client is closed.
+    this._activeDataService?.once('close', () => {
+      void this.disconnect();
+    });
   }
 
   getConnectionQuickPicks(): ConnectionQuickPicks[] {

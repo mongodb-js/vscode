@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 
-import getCloudInfoModule from 'mongodb-cloud-info';
+import * as getCloudInfoModule from 'mongodb-cloud-info';
 
 import { ConnectionTypes } from '../../../connectionController';
 import { getConnectionTelemetryProperties } from '../../../telemetry/connectionTelemetry';
@@ -35,12 +35,15 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       dataServiceStub = {
         getConnectionString: getConnectionStringStub,
         instance: instanceStub,
-      } as Pick<
-        DataService,
-        'getConnectionString' | 'instance'
-      > as unknown as DataService;
+      } as unknown as DataService;
 
-      sandbox.stub(getCloudInfoModule, 'getCloudInfo').resolves({});
+      sandbox.stub(getCloudInfoModule, 'getCloudInfo').callsFake(() =>
+        Promise.resolve({
+          isAws: false,
+          isGcp: false,
+          isAzure: false,
+        })
+      );
     });
 
     after(() => {

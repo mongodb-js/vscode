@@ -1234,7 +1234,7 @@ suite('MDBExtensionController Test Suite', function () {
           namespaceUsed = namespace;
           return Promise.resolve([mockDocument]);
         },
-      } as Pick<DataService, 'find'> as unknown as DataService;
+      } as unknown as DataService;
       const documentTreeItem = getTestDocumentTreeItem({
         dataService: dataServiceStub,
       });

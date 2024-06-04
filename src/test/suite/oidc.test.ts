@@ -25,8 +25,6 @@ import { ConnectionString } from 'mongodb-connection-string-url';
 import launchMongoShell from '../../commands/launchMongoShell';
 import { getFullRange } from './suggestTestHelpers';
 
-import * as util from 'util';
-
 chai.use(chaiAsPromised);
 
 function hash(input: string): string {
@@ -357,8 +355,7 @@ suite('OIDC Tests', function () {
     expect(testConnectionController.isCurrentlyConnected()).to.be.true;
   });
 
-  // eslint-disable-next-line mocha/no-exclusive-tests
-  test.only('can decline re-authentication if wanted', async function () {
+  test('can decline re-authentication if wanted', async function () {
     showInformationMessageStub.resolves('Declined');
     const originalReAuthHandler =
       testConnectionController._reauthenticationHandler.bind(
@@ -393,10 +390,6 @@ suite('OIDC Tests', function () {
 
     expect(isConnected).to.be.true;
 
-    console.log('isConnected----------------------');
-    console.log(`${util.inspect(isConnected)}`);
-    console.log('----------------------');
-
     afterReauth = true;
 
     // Trigger a command on data service for reauthentication
@@ -405,9 +398,6 @@ suite('OIDC Tests', function () {
         .getActiveDataService()
         ?.count('x.y', {})
         .catch((error) => {
-          console.log('error----------------------');
-          console.log(`${util.inspect(error)}`);
-          console.log('----------------------');
           expect(error.message).to.equal('Reauthentication declined by user');
         });
     }
@@ -416,15 +406,6 @@ suite('OIDC Tests', function () {
 
     // Because we declined the auth in showInformationMessage above
     expect(tokenFetchCalls).to.equal(1);
-
-    console.log(
-      'testConnectionController.isCurrentlyConnected()----------------------'
-    );
-    console.log(
-      `${util.inspect(testConnectionController.isCurrentlyConnected())}`
-    );
-    console.log('----------------------');
-
     expect(testConnectionController.isCurrentlyConnected()).to.be.false;
   });
 
