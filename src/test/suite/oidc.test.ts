@@ -394,7 +394,7 @@ suite('OIDC Tests', function () {
 
     afterReauth = true;
 
-    // Trigger a command on data service for reauthentication
+    // Trigger a command on data service for reauthentication.
     while (reAuthCalled === false) {
       await testConnectionController
         .getActiveDataService()
