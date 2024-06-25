@@ -883,7 +883,7 @@ suite('Connection Controller Test Suite', function () {
       secretStorageLocation: SecretStorageLocation.SecretStorage,
       connectionOptions: {
         connectionString:
-          'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+          'mongodb://lena:secrer@localhost:27017/?readPreference=primary&ssl=false',
       },
     };
     await testConnectionController._connectionStorage._saveConnectionToStore(
@@ -892,14 +892,12 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.loadSavedConnections();
 
     const connections = testConnectionController.getSavedConnections();
-
     expect(connections.length).to.equal(1);
 
     const newSavedConnectionInfoWithSecrets =
       await testConnectionController._connectionStorage._getConnectionInfoWithSecrets(
         connections[0]
       );
-
     expect(newSavedConnectionInfoWithSecrets).to.deep.equal(connectionInfo);
   });
 

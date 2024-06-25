@@ -37,12 +37,17 @@ class ExtensionContextStub implements vscode.ExtensionContext {
   _secrets: Record<string, string> = {};
   secrets;
   extension;
+  languageModelAccessInformation: vscode.LanguageModelAccessInformation;
 
   asAbsolutePath(relativePath: string): string {
     return relativePath;
   }
 
   constructor() {
+    this.languageModelAccessInformation = {
+      onDidChange: (): any => {},
+      canSendRequest: () => undefined,
+    };
     this.globalStoragePath = '';
     this.logPath = '';
     this.subscriptions = [];
