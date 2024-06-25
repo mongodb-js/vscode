@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import os from 'os';
 import path from 'path';
 import chai, { expect } from 'chai';
@@ -10,7 +9,6 @@ import * as vscode from 'vscode';
 import { createHash } from 'crypto';
 import { before, after, afterEach, beforeEach } from 'mocha';
 import EventEmitter, { once } from 'events';
-import util from 'util';
 import { ExtensionContextStub } from './stubs';
 import { StorageController } from '../../storage';
 import { TelemetryService } from '../../telemetry';
@@ -25,10 +23,6 @@ import { ConnectionString } from 'mongodb-connection-string-url';
 
 import launchMongoShell from '../../commands/launchMongoShell';
 import { getFullRange } from './suggestTestHelpers';
-
-const sleep = (ms: number): Promise<void> => {
-  return util.promisify(setTimeout)(ms);
-};
 
 chai.use(chaiAsPromised);
 
@@ -406,7 +400,6 @@ suite('OIDC Tests', function () {
     }
 
     await reAuthPromise;
-    await sleep(100);
 
     // Because we declined the auth in showInformationMessage above
     expect(tokenFetchCalls).to.equal(1);

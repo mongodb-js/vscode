@@ -197,7 +197,6 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
-    await sleep(100);
 
     testConnectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
@@ -226,7 +225,6 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
     await testConnectionController.disconnect();
-    await sleep(100);
 
     testConnectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,

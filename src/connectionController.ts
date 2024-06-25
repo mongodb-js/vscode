@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import * as vscode from 'vscode';
 import { connect, createConnectionAttempt } from 'mongodb-data-service';
 import type {
