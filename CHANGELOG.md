@@ -3,23 +3,12 @@
 ## [v1.6.0](https://github.com/mongodb-js/vscode/releases/tag/v1.6.0) - 2024-04-23
 
 ## What's Changed
-* chore: update CHANGELOG.md by @github-actions in https://github.com/mongodb-js/vscode/pull/675
 * feat: add export to Rust and PHP VSCODE-411 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/676
 * chore(ci): sign using package by @mabaasit in https://github.com/mongodb-js/vscode/pull/678
 * fix: include export mode when retrieving import statements VSCODE-440 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/677
-* chore(dependabot): update dependabot to use the increase strategy by @mcasimir in https://github.com/mongodb-js/vscode/pull/682
-* chore(deps-dev): bump @mongodb-js/oidc-mock-provider from 0.6.9 to 0.6.10 by @dependabot in https://github.com/mongodb-js/vscode/pull/670
-* chore(deps-dev): bump @mongodb-js/mongodb-downloader from 0.2.9 to 0.2.10 by @dependabot in https://github.com/mongodb-js/vscode/pull/669
 * fix: remove userId COMPASS-7608 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/690
-* chore(deps): bump socks to 2.7.3 VSCODE-520 by @addaleax in https://github.com/mongodb-js/vscode/pull/693
-* chore: add Atlas Stream Processing to readme with screenshot by @Anemy in https://github.com/mongodb-js/vscode/pull/694
 * feat: add changeActiveConnection command to palette by @benjlevesque in https://github.com/mongodb-js/vscode/pull/700
 * feat: show simpler uuid format VSCODE-470 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/701
-* chore(deps): update jose by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/707
-* chore(ci): update create-pull-request, add id by @lerouxb in https://github.com/mongodb-js/vscode/pull/710
-* chore(deps-dev): bump mongodb-runner from 5.4.5 to 5.5.2 by @dependabot in https://github.com/mongodb-js/vscode/pull/664
-* chore(deps): bump @mongodb-js/saslprep from 1.1.0 to 1.1.4 by @dependabot in https://github.com/mongodb-js/vscode/pull/665
-* chore(deps): bump express to 4.19.2 VSCODE-527 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/712
 * feat(playground): add support local require VSCODE-468 by @mabaasit in https://github.com/mongodb-js/vscode/pull/718
 
 ## New Contributors
