@@ -327,11 +327,13 @@ export default class ConnectionController {
     this._connectingConnectionId = connectionId;
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
+    const nextConnectionName = this.getSavedConnectionName(connectionId);
+
     if (this._activeDataService) {
       log.info('Disconnecting from the previous connection...', {
         connectionId: this._currentConnectionId,
       });
-      await this.disconnect();
+      await this.disconnect({ quiet: true });
     }
 
     if (connectionAttempt.isClosed()) {
@@ -350,7 +352,7 @@ export default class ConnectionController {
       throw new Error('Connect failed: connectionOptions are missing.');
     }
 
-    this._statusView.showMessage('Connecting to MongoDB...');
+    this._statusView.showMessage(`Connecting to ${nextConnectionName}...`);
     log.info('Connecting to MongoDB...', {
       connectionInfo: JSON.stringify(
         extractSecrets(this._connections[connectionId]).connectionInfo
@@ -418,7 +420,9 @@ export default class ConnectionController {
     }
 
     log.info('Successfully connected', { connectionId });
-    void vscode.window.showInformationMessage('MongoDB connection successful.');
+    void vscode.window.showInformationMessage(
+      `Set the active connection to ${nextConnectionName}.`
+    );
 
     dataService.addReauthenticationHandler(
       this._reauthenticationHandler.bind(this)
@@ -566,12 +570,13 @@ export default class ConnectionController {
     }
   }
 
-  async disconnect(): Promise<boolean> {
+  async disconnect({ quiet = false } = {}): Promise<boolean> {
     log.info(
       'Disconnect called, currently connected to',
       this._currentConnectionId
     );
 
+    const disconnectingConnectionId = this._currentConnectionId;
     this._currentConnectionId = null;
     this._disconnecting = true;
 
@@ -586,12 +591,24 @@ export default class ConnectionController {
       return false;
     }
 
-    this._statusView.showMessage('Disconnecting from current connection...');
+    const disconnectingConnectionName = disconnectingConnectionId
+      ? this.getSavedConnectionName(disconnectingConnectionId)
+      : 'MongoDB server';
+
+    this._statusView.showMessage(
+      `Disconnecting from ${disconnectingConnectionName}...`
+    );
 
     try {
       // Disconnect from the active connection.
       await this._activeDataService.disconnect();
-      void vscode.window.showInformationMessage('MongoDB disconnected.');
+
+      if (!quiet) {
+        void vscode.window.showInformationMessage(
+          `Disconnected from ${disconnectingConnectionName}.`
+        );
+      }
+
       this._activeDataService = null;
 
       void vscode.commands.executeCommand(
@@ -607,7 +624,7 @@ export default class ConnectionController {
     } catch (error) {
       // Show an error, however we still reset the active connection to free up the extension.
       void vscode.window.showErrorMessage(
-        'An error occurred while disconnecting from the current connection.'
+        `An error occurred while disconnecting from ${disconnectingConnectionName}.`
       );
     }
 
