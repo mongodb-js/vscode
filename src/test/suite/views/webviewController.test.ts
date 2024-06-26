@@ -17,17 +17,7 @@ import WebviewController, {
   getWebviewContent,
 } from '../../../views/webviewController';
 import * as linkHelper from '../../../utils/linkHelper';
-
-function waitFor(condition: () => boolean, timeout = 10) {
-  return new Promise<void>((resolve) => {
-    const testInterval = setInterval(() => {
-      if (condition()) {
-        clearInterval(testInterval);
-        resolve();
-      }
-    }, timeout);
-  });
-}
+import { waitFor } from '../waitFor';
 
 suite('Webview Test Suite', () => {
   const sandbox = sinon.createSandbox();
