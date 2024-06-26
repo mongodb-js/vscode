@@ -14,6 +14,7 @@ import { StorageController } from '../../storage';
 import { TelemetryService } from '../../telemetry';
 import ConnectionController from '../../connectionController';
 import { StatusView } from '../../views';
+import { waitFor } from './waitFor';
 
 import { MongoCluster } from 'mongodb-runner';
 import type { MongoClusterOptions } from 'mongodb-runner';
@@ -380,14 +381,16 @@ suite('OIDC Tests', function () {
       };
     };
 
-    expect(
+    const isConnected =
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
-      )
-    ).to.be.true;
+      );
+
+    expect(isConnected).to.be.true;
+
     afterReauth = true;
 
-    // Trigger a command on data service for reauthentication
+    // Trigger a command on data service for reauthentication.
     while (reAuthCalled === false) {
       await testConnectionController
         .getActiveDataService()
@@ -398,6 +401,9 @@ suite('OIDC Tests', function () {
     }
 
     await reAuthPromise;
+    await waitFor(() => {
+      return testConnectionController.isCurrentlyConnected() === false;
+    }, 100);
 
     // Because we declined the auth in showInformationMessage above
     expect(tokenFetchCalls).to.equal(1);

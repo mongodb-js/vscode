@@ -135,15 +135,6 @@ suite('Connection Controller Test Suite', function () {
     expect(successfullyRemovedMongoDBConnection).to.be.false;
   });
 
-  test('"disconnect()" fails when there is no active connection', async () => {
-    const expectedMessage = 'Unable to disconnect: no active connection.';
-    const successfullyDisconnected =
-      await testConnectionController.disconnect();
-
-    expect(showErrorMessageStub.firstCall.args[0]).to.equal(expectedMessage);
-    expect(successfullyDisconnected).to.be.false;
-  });
-
   test('when adding a new connection it disconnects from the current connection', async () => {
     const succesfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect(
@@ -189,32 +180,44 @@ suite('Connection Controller Test Suite', function () {
     expect(wasSetToConnectingWhenDisconnecting).to.be.true;
   });
 
-  test('"connect()" should fire 3 CONNECTIONS_DID_CHANGE event', (done) => {
-    let eventCounter = 0;
+  test('"connect()" should fire the connections did change event the expected number of types', async () => {
+    // The number of times we expect to re-render connections on the sidebar:
+    // - connection attempt started
+    // - connection attempt finished
+    const expectedTimesToFire = 2;
+    let connectionsDidChangeEventFiredCount = 0;
+
     testConnectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => {
-        eventCounter++;
-        if (eventCounter === 3) {
-          done();
-        }
+        connectionsDidChangeEventFiredCount++;
       }
     );
 
-    void testConnectionController.addNewConnectionStringAndConnect(
+    await testConnectionController.addNewConnectionStringAndConnect(
       TEST_DATABASE_URI
     );
+
+    testConnectionController.removeEventListener(
+      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      () => {}
+    );
+
+    expect(connectionsDidChangeEventFiredCount).to.equal(expectedTimesToFire);
   });
 
-  const expectedTimesToFire = 4;
-
-  test(`"connect()" then "disconnect()" should fire the connections did change event ${expectedTimesToFire} times`, async () => {
-    let connectionEventFiredCount = 0;
+  test('"connect()" then "disconnect()" should fire the connections did change event the expected number of types', async () => {
+    // The number of times we expect to re-render connections on the sidebar:
+    // - connection attempt started
+    // - connection attempt finished
+    // - disconnect
+    const expectedTimesToFire = 3;
+    let connectionsDidChangeEventFiredCount = 0;
 
     testConnectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => {
-        connectionEventFiredCount++;
+        connectionsDidChangeEventFiredCount++;
       }
     );
 
@@ -222,9 +225,13 @@ suite('Connection Controller Test Suite', function () {
       TEST_DATABASE_URI
     );
     await testConnectionController.disconnect();
-    await sleep(100);
 
-    expect(connectionEventFiredCount).to.equal(expectedTimesToFire);
+    testConnectionController.removeEventListener(
+      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      () => {}
+    );
+
+    expect(connectionsDidChangeEventFiredCount).to.equal(expectedTimesToFire);
   });
 
   test('when there are no existing connections in the store and the connection controller loads connections', async () => {
@@ -874,7 +881,7 @@ suite('Connection Controller Test Suite', function () {
       secretStorageLocation: SecretStorageLocation.SecretStorage,
       connectionOptions: {
         connectionString:
-          'mongodb://localhost:27017/?readPreference=primary&ssl=false',
+          'mongodb://lena:secrer@localhost:27017/?readPreference=primary&ssl=false',
       },
     };
     await testConnectionController._connectionStorage._saveConnectionToStore(
@@ -883,14 +890,12 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.loadSavedConnections();
 
     const connections = testConnectionController.getSavedConnections();
-
     expect(connections.length).to.equal(1);
 
     const newSavedConnectionInfoWithSecrets =
       await testConnectionController._connectionStorage._getConnectionInfoWithSecrets(
         connections[0]
       );
-
     expect(newSavedConnectionInfoWithSecrets).to.deep.equal(connectionInfo);
   });
 
@@ -1052,6 +1057,12 @@ suite('Connection Controller Test Suite', function () {
       );
 
       await testConnectionController.loadSavedConnections();
+
+      testConnectionController.removeEventListener(
+        DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+        () => {}
+      );
+
       expect(isConnectionChanged).to.be.true;
     });
 

@@ -75,6 +75,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           },
         ]);
         const instanceStub = sandbox.stub();
+        const onceStub = sandbox.stub();
         instanceStub.resolves({
           dataLake: {},
           build: {},
@@ -84,10 +85,10 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         const activeDataServiceStub = {
           find: findStub,
           instance: instanceStub,
-        } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
+          once: onceStub,
+        } as unknown as DataService;
 
         testConnectionController.setActiveDataService(activeDataServiceStub);
-
         testCodeLensProvider.setActiveTextEditor(
           vscode.window.activeTextEditor
         );
@@ -171,6 +172,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           },
         ]);
         const instanceStub = sandbox.stub();
+        const onceStub = sandbox.stub();
         instanceStub.resolves({
           dataLake: {},
           build: {},
@@ -180,7 +182,9 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         const activeDataServiceStub = {
           find: findStub,
           instance: instanceStub,
-        } as Pick<DataService, 'find' | 'instance'> as unknown as DataService;
+          once: onceStub,
+        } as unknown as DataService;
+
         testConnectionController.setActiveDataService(activeDataServiceStub);
         sandbox.replace(
           testConnectionController,

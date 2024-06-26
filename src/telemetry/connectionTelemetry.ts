@@ -38,13 +38,13 @@ type CloudInfo = {
 
 async function getHostnameForConnection(
   connectionStringData: ConnectionString
-): Promise<string | null> {
+): Promise<string | undefined> {
   if (connectionStringData.isSRV) {
     const uri = await resolveMongodbSrv(connectionStringData.toString()).catch(
       () => null
     );
     if (!uri) {
-      return null;
+      return undefined;
     }
     connectionStringData = new ConnectionString(uri, {
       looseValidation: true,
