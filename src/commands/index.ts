@@ -73,6 +73,10 @@ enum EXTENSION_COMMANDS {
   MDB_START_STREAM_PROCESSOR = 'mdb.startStreamProcessor',
   MDB_STOP_STREAM_PROCESSOR = 'mdb.stopStreamProcessor',
   MDB_DROP_STREAM_PROCESSOR = 'mdb.dropStreamProcessor',
+
+  // Chat participant.
+  OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND = 'mdb.openParticipantQueryInPlayground',
+  RUN_PARTICIPANT_QUERY = 'mdb.runParticipantQuery',
 }
 
 export default EXTENSION_COMMANDS;

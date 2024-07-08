@@ -16,6 +16,7 @@ import { DatabaseTreeItem } from '../explorer';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import formatError from '../utils/formatError';
 import type { LanguageServerController } from '../language';
+import playgroundBasicTextTemplate from '../templates/playgroundBasicTextTemplate';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumentTemplate';
@@ -379,6 +380,21 @@ export default class PlaygroundController {
       .replace('CURRENT_COLLECTION', collectionName);
 
     this._telemetryService.trackPlaygroundCreated('index');
+    return this._createPlaygroundFileWithContent(content);
+  }
+
+  createPlaygroundFromParticipantQuery({
+    text,
+  }: {
+    text: string;
+  }): Promise<boolean> {
+    const useDefaultTemplate = !!vscode.workspace
+      .getConfiguration('mdb')
+      .get('useDefaultTemplateForPlayground');
+    const content = useDefaultTemplate
+      ? playgroundBasicTextTemplate.replace('PLAYGROUND_CONTENT', text)
+      : text;
+    this._telemetryService.trackPlaygroundCreated('agent');
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -800,6 +816,11 @@ export default class PlaygroundController {
     }
 
     return { namespace, expression };
+  }
+
+  async evaluateParticipantQuery({ text }: { text: string }): Promise<boolean> {
+    this._codeToEvaluate = text;
+    return this._evaluatePlayground();
   }
 
   async _transpile(): Promise<boolean> {

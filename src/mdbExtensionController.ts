@@ -40,6 +40,7 @@ import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
+import { ParticipantController } from './participant/participant';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -63,6 +64,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+  _participantController?: ParticipantController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -137,6 +139,11 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
     });
     this._editorsController.registerProviders();
+    this._participantController = new ParticipantController({
+      context,
+      connectionController: this._connectionController,
+      playgroundController: this._playgroundController,
+    });
   }
 
   async activate(): Promise<void> {
@@ -265,6 +272,52 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerEditorCommands();
     this.registerTreeViewCommands();
+
+    // ------ CHAT PARTICIPANT ------ //
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+      () => {
+        if (!this._participantController) {
+          return Promise.resolve(false);
+        }
+        return this._playgroundController.createPlaygroundFromParticipantQuery({
+          text:
+            this._participantController.chatResult.metadata.queryContent || '',
+        });
+      }
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+      () => {
+        if (!this._participantController) {
+          return Promise.resolve(false);
+        }
+        return this._playgroundController.evaluateParticipantQuery({
+          text:
+            this._participantController.chatResult.metadata.queryContent || '',
+        });
+      }
+    );
+  };
+
+  registerParticipantCommand = (
+    command: string,
+    commandHandler: (...args: any[]) => Promise<boolean>
+  ): void => {
+    if (!this._participantController) {
+      return;
+    }
+
+    const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
+      this._telemetryService.trackCommandRun(command);
+
+      return commandHandler(args);
+    };
+
+    this._context.subscriptions.push(
+      this._participantController.participant,
+      vscode.commands.registerCommand(command, commandHandlerWithTelemetry)
+    );
   };
 
   registerCommand = (
