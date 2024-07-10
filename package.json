@@ -43,7 +43,7 @@
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
     "precompile": "npm run clean",
     "compile": "npm-run-all compile:*",
-    "compile:keyfile": "ts-node ./scripts/generate-constants.ts",
+    "compile:keyfile": "ts-node ./scripts/generate-keyfile.ts",
     "compile:resources": "npm run update-grammar",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",

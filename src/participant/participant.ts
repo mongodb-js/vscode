@@ -1,7 +1,4 @@
 import * as vscode from 'vscode';
-import { config } from 'dotenv';
-import fs from 'fs';
-import path from 'path';
 
 import { createLogger } from '../logging';
 import type { PlaygroundController } from '../editors';
@@ -21,14 +18,8 @@ interface ChatResult extends vscode.ChatResult {
   stream?: vscode.ChatResponseStream;
 }
 
-interface GenAIConstants {
-  useMongodbChatParticipant?: string;
-  chatParticipantGenericPrompt?: string;
-  chatParticipantQueryPrompt?: string;
-  chatParticipantModel?: string;
-}
-
-const PARTICIPANT_ID = 'mongodb.participant';
+const CHAT_PARTICIPANT_ID = 'mongodb.participant';
+const CHAT_PARTICIPANT_MODEL = 'gpt-3.5-turbo';
 
 function handleEmptyQueryRequest(participantId: string): ChatResult {
   log.info('Chat request participant id', participantId);
@@ -64,12 +55,6 @@ export class ParticipantController {
   _connectionController: ConnectionController;
   _playgroundController: PlaygroundController;
 
-  private _context: vscode.ExtensionContext;
-  private _useMongodbChatParticipant = false;
-  private _chatParticipantGenericPrompt = 'You are a MongoDB expert!';
-  private _chatParticipantQueryPrompt = 'You are a MongoDB expert!';
-  private _chatParticipantModel = 'gpt-3.5-turbo';
-
   constructor({
     context,
     connectionController,
@@ -83,37 +68,6 @@ export class ParticipantController {
     this.chatResult = { metadata: { command: '' } };
     this._connectionController = connectionController;
     this._playgroundController = playgroundController;
-    this._context = context;
-
-    this._readConstants();
-  }
-
-  private _readConstants(): string | undefined {
-    config({ path: path.join(this._context.extensionPath, '.env') });
-
-    try {
-      const constantsLocation = path.join(
-        this._context.extensionPath,
-        './constants.json'
-      );
-      // eslint-disable-next-line no-sync
-      const constantsFile = fs.readFileSync(constantsLocation, 'utf8');
-      const constants = JSON.parse(constantsFile) as GenAIConstants;
-
-      this._useMongodbChatParticipant =
-        constants.useMongodbChatParticipant === 'true';
-      this._chatParticipantGenericPrompt =
-        constants.chatParticipantGenericPrompt ||
-        this._chatParticipantGenericPrompt;
-      this._chatParticipantQueryPrompt =
-        constants.chatParticipantQueryPrompt ||
-        this._chatParticipantQueryPrompt;
-      this._chatParticipantModel =
-        constants.chatParticipantModel || this._chatParticipantModel;
-    } catch (error) {
-      log.error('An error occurred while reading the constants file', error);
-      return;
-    }
   }
 
   createParticipant(context: vscode.ExtensionContext) {
@@ -121,7 +75,7 @@ export class ParticipantController {
     // when you type `@`, and can contribute sub-commands in the chat input
     // that appear when you type `/`.
     const cat = vscode.chat.createChatParticipant(
-      PARTICIPANT_ID,
+      CHAT_PARTICIPANT_ID,
       this.chatHandler.bind(this)
     );
     cat.iconPath = vscode.Uri.joinPath(
@@ -165,7 +119,7 @@ export class ParticipantController {
     try {
       const [model] = await vscode.lm.selectChatModels({
         vendor: 'copilot',
-        family: this._chatParticipantModel,
+        family: CHAT_PARTICIPANT_MODEL,
       });
       if (model) {
         const chatResponse = await model.sendRequest(messages, {}, token);
@@ -196,14 +150,17 @@ export class ParticipantController {
   }) {
     const messages = [
       // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.Assistant(
-        this._chatParticipantGenericPrompt
-      ),
+      vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
+  You create MongoDB queries and aggregation pipelines,
+  and you are very good at it. The user will provide the basis for the query.
+  Keep your response concise. Respond with markdown, code snippets are possible with '''javascript.
+  You can imagine the schema, collection, and database name.
+  Respond in MongoDB shell syntax using the '''javascript code style.'.`),
     ];
 
     context.history.map((historyItem) => {
       if (
-        historyItem.participant === PARTICIPANT_ID &&
+        historyItem.participant === CHAT_PARTICIPANT_ID &&
         historyItem instanceof vscode.ChatRequestTurn
       ) {
         // eslint-disable-next-line new-cap
@@ -211,7 +168,7 @@ export class ParticipantController {
       }
 
       if (
-        historyItem.participant === PARTICIPANT_ID &&
+        historyItem.participant === CHAT_PARTICIPANT_ID &&
         historyItem instanceof vscode.ChatResponseTurn
       ) {
         let res = '';
@@ -309,9 +266,12 @@ export class ParticipantController {
 
     const messages = [
       // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.Assistant(
-        this._chatParticipantQueryPrompt
-      ),
+      vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
+  You create MongoDB queries and aggregation pipelines,
+  and you are very good at it. The user will provide the basis for the query.
+  Keep your response concise. Respond with markdown, code snippets are possible with '''javascript.
+  You can imagine the schema, collection, and database name.
+  Respond in MongoDB shell syntax using the '''javascript code style.`),
       // eslint-disable-next-line new-cap
       vscode.LanguageModelChatMessage.User(request.prompt),
     ];
@@ -351,15 +311,6 @@ export class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
-    if (!this._useMongodbChatParticipant) {
-      stream.markdown(
-        vscode.l10n.t(
-          'Under construction. Will be available soon. Stay tuned!\n\n'
-        )
-      );
-      return { metadata: { command: '' } };
-    }
-
     if (request.command === 'query') {
       this.chatResult = await this.handleQueryRequest({
         request,
