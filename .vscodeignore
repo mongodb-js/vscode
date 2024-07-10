@@ -18,3 +18,4 @@ webpack.test.config.js
 playgrounds/**
 resources
 .sbom/**
+CHANGELOG.md
