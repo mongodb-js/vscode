@@ -79,7 +79,7 @@ export class ParticipantController {
       this.chatHandler.bind(this)
     );
     cat.iconPath = vscode.Uri.joinPath(
-      context.extensionUri,
+      vscode.Uri.parse(context.extensionPath),
       'images',
       'mongodb.png'
     );
