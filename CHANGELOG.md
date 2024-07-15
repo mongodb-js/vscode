@@ -1,8 +1,13 @@
 # Change Log
 
-## [v1.6.1](https://github.com/mongodb-js/vscode/releases/tag/untagged-7a1aaadb94bbf00b9776) - null
+## [v1.6.1](https://github.com/mongodb-js/vscode/releases/tag/v1.6.1) - 2024-07-15
 
-Edit the release notes before publishing.
+## What's Changed
+* fix: disconnect extension when server is closed VSCODE-536 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/734
+* chore(deps): bump mongosh VSCODE-548 by @mabaasit in https://github.com/mongodb-js/vscode/pull/752
+* fix: remove changelog from the bundle VSCODE-551 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/758
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.6.0...v1.6.1
 
 
 ## [v1.6.0](https://github.com/mongodb-js/vscode/releases/tag/v1.6.0) - 2024-04-23
