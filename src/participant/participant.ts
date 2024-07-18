@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 
 import { createLogger } from '../logging';
-import type { PlaygroundController } from '../editors';
 import type ConnectionController from '../connectionController';
 import EXTENSION_COMMANDS from '../commands';
 
@@ -18,10 +17,10 @@ interface ChatResult extends vscode.ChatResult {
   stream?: vscode.ChatResponseStream;
 }
 
-const CHAT_PARTICIPANT_ID = 'mongodb.participant';
-const CHAT_PARTICIPANT_MODEL = 'gpt-3.5-turbo';
+export const CHAT_PARTICIPANT_ID = 'mongodb.participant';
+export const CHAT_PARTICIPANT_MODEL = 'gpt-4';
 
-function handleEmptyQueryRequest(participantId: string): ChatResult {
+function handleEmptyQueryRequest(participantId?: string): ChatResult {
   log.info('Chat request participant id', participantId);
 
   return {
@@ -35,7 +34,7 @@ function handleEmptyQueryRequest(participantId: string): ChatResult {
   };
 }
 
-function getRunnableContentFromString(responseContent: string) {
+export function getRunnableContentFromString(responseContent: string) {
   const matchedJSQueryContent = responseContent.match(
     /```javascript((.|\n)*)```/
   );
@@ -50,40 +49,37 @@ function getRunnableContentFromString(responseContent: string) {
 }
 
 export class ParticipantController {
-  participant: vscode.ChatParticipant;
-  chatResult: ChatResult;
+  _participant?: vscode.ChatParticipant;
+  _chatResult: ChatResult;
   _connectionController: ConnectionController;
-  _playgroundController: PlaygroundController;
 
   constructor({
-    context,
     connectionController,
-    playgroundController,
   }: {
-    context: vscode.ExtensionContext;
     connectionController: ConnectionController;
-    playgroundController: PlaygroundController;
   }) {
-    this.participant = this.createParticipant(context);
-    this.chatResult = { metadata: { command: '' } };
+    this._chatResult = { metadata: { command: '' } };
     this._connectionController = connectionController;
-    this._playgroundController = playgroundController;
   }
 
   createParticipant(context: vscode.ExtensionContext) {
     // Chat participants appear as top-level options in the chat input
     // when you type `@`, and can contribute sub-commands in the chat input
     // that appear when you type `/`.
-    const cat = vscode.chat.createChatParticipant(
+    this._participant = vscode.chat.createChatParticipant(
       CHAT_PARTICIPANT_ID,
       this.chatHandler.bind(this)
     );
-    cat.iconPath = vscode.Uri.joinPath(
+    this._participant.iconPath = vscode.Uri.joinPath(
       vscode.Uri.parse(context.extensionPath),
       'images',
       'mongodb.png'
     );
-    return cat;
+    return this._participant;
+  }
+
+  getParticipant(context: vscode.ExtensionContext) {
+    return this._participant || this.createParticipant(context);
   }
 
   handleError(err: any, stream: vscode.ChatResponseStream): void {
@@ -230,7 +226,7 @@ export class ParticipantController {
     token: vscode.CancellationToken;
   }) {
     if (!request.prompt || request.prompt.trim().length === 0) {
-      return handleEmptyQueryRequest(this.participant.id);
+      return handleEmptyQueryRequest(this._participant?.id);
     }
 
     let dataService = this._connectionController.getActiveDataService();
@@ -275,7 +271,6 @@ export class ParticipantController {
       // eslint-disable-next-line new-cap
       vscode.LanguageModelChatMessage.User(request.prompt),
     ];
-
     const responseContent = await this.getChatResponseContent({
       messages,
       stream,
@@ -312,13 +307,13 @@ export class ParticipantController {
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
     if (request.command === 'query') {
-      this.chatResult = await this.handleQueryRequest({
+      this._chatResult = await this.handleQueryRequest({
         request,
         context,
         stream,
         token,
       });
-      return this.chatResult;
+      return this._chatResult;
     } else if (request.command === 'docs') {
       // TODO: Implement this.
     } else if (request.command === 'schema') {

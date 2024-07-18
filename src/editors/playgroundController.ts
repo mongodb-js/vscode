@@ -45,6 +45,7 @@ import {
   isPlayground,
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
+import type { ParticipantController } from '../participant/participant';
 
 const log = createLogger('playground controller');
 
@@ -133,6 +134,7 @@ export default class PlaygroundController {
   private _playgroundResultTextDocument?: vscode.TextDocument;
   private _statusView: StatusView;
   private _playgroundResultViewProvider: PlaygroundResultProvider;
+  private _participantController: ParticipantController;
 
   private _codeToEvaluate = '';
 
@@ -145,6 +147,7 @@ export default class PlaygroundController {
     activeConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider,
     playgroundSelectedCodeActionProvider,
+    participantController,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
@@ -154,6 +157,7 @@ export default class PlaygroundController {
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
     playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+    participantController: ParticipantController;
   }) {
     this._connectionController = connectionController;
     this._activeTextEditor = vscode.window.activeTextEditor;
@@ -165,6 +169,7 @@ export default class PlaygroundController {
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._playgroundSelectedCodeActionProvider =
       playgroundSelectedCodeActionProvider;
+    this._participantController = participantController;
 
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,

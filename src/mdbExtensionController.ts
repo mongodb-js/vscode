@@ -64,7 +64,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
-  _participantController?: ParticipantController;
+  _participantController: ParticipantController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -107,6 +107,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       new PlaygroundSelectedCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
       new PlaygroundDiagnosticsCodeActionProvider();
+    this._participantController = new ParticipantController({
+      connectionController: this._connectionController,
+    });
     this._playgroundController = new PlaygroundController({
       connectionController: this._connectionController,
       languageServerController: this._languageServerController,
@@ -117,6 +120,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider:
         this._playgroundSelectedCodeActionProvider,
+      participantController: this._participantController,
     });
     this._editorsController = new EditorsController({
       context,
@@ -139,11 +143,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
     });
     this._editorsController.registerProviders();
-    this._participantController = new ParticipantController({
-      context,
-      connectionController: this._connectionController,
-      playgroundController: this._playgroundController,
-    });
   }
 
   async activate(): Promise<void> {
@@ -277,24 +276,18 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
       () => {
-        if (!this._participantController) {
-          return Promise.resolve(false);
-        }
         return this._playgroundController.createPlaygroundFromParticipantQuery({
           text:
-            this._participantController.chatResult.metadata.queryContent || '',
+            this._participantController._chatResult.metadata.queryContent || '',
         });
       }
     );
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
       () => {
-        if (!this._participantController) {
-          return Promise.resolve(false);
-        }
         return this._playgroundController.evaluateParticipantQuery({
           text:
-            this._participantController.chatResult.metadata.queryContent || '',
+            this._participantController._chatResult.metadata.queryContent || '',
         });
       }
     );
@@ -304,10 +297,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     command: string,
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
-    if (!this._participantController) {
-      return;
-    }
-
     const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
       this._telemetryService.trackCommandRun(command);
 
@@ -315,7 +304,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     };
 
     this._context.subscriptions.push(
-      this._participantController.participant,
+      this._participantController.getParticipant(this._context),
       vscode.commands.registerCommand(command, commandHandlerWithTelemetry)
     );
   };

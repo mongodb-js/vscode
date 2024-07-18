@@ -22,6 +22,7 @@ import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { ExtensionContextStub } from '../stubs';
+import { ParticipantController } from '../../../participant/participant';
 
 const expect = chai.expect;
 
@@ -60,6 +61,7 @@ suite('Language Server Controller Test Suite', () => {
 
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
+  let testParticipantController: ParticipantController;
 
   const sandbox = sinon.createSandbox();
 
@@ -67,6 +69,9 @@ suite('Language Server Controller Test Suite', () => {
     languageServerControllerStub = new LanguageServerController(
       extensionContextStub
     );
+    testParticipantController = new ParticipantController({
+      connectionController: testConnectionController,
+    });
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
       languageServerController: languageServerControllerStub,
@@ -76,6 +81,7 @@ suite('Language Server Controller Test Suite', () => {
       activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
+      participantController: testParticipantController,
     });
     await languageServerControllerStub.startLanguageServer();
     await testPlaygroundController._activeConnectionChanged();
