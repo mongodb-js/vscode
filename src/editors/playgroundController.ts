@@ -16,6 +16,7 @@ import { DatabaseTreeItem } from '../explorer';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import formatError from '../utils/formatError';
 import type { LanguageServerController } from '../language';
+import playgroundBasicTextTemplate from '../templates/playgroundBasicTextTemplate';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumentTemplate';
@@ -44,6 +45,7 @@ import {
   isPlayground,
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
+import type { ParticipantController } from '../participant/participant';
 
 const log = createLogger('playground controller');
 
@@ -132,6 +134,7 @@ export default class PlaygroundController {
   private _playgroundResultTextDocument?: vscode.TextDocument;
   private _statusView: StatusView;
   private _playgroundResultViewProvider: PlaygroundResultProvider;
+  private _participantController: ParticipantController;
 
   private _codeToEvaluate = '';
 
@@ -144,6 +147,7 @@ export default class PlaygroundController {
     activeConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider,
     playgroundSelectedCodeActionProvider,
+    participantController,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
@@ -153,6 +157,7 @@ export default class PlaygroundController {
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
     playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+    participantController: ParticipantController;
   }) {
     this._connectionController = connectionController;
     this._activeTextEditor = vscode.window.activeTextEditor;
@@ -164,6 +169,7 @@ export default class PlaygroundController {
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._playgroundSelectedCodeActionProvider =
       playgroundSelectedCodeActionProvider;
+    this._participantController = participantController;
 
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
@@ -379,6 +385,21 @@ export default class PlaygroundController {
       .replace('CURRENT_COLLECTION', collectionName);
 
     this._telemetryService.trackPlaygroundCreated('index');
+    return this._createPlaygroundFileWithContent(content);
+  }
+
+  createPlaygroundFromParticipantQuery({
+    text,
+  }: {
+    text: string;
+  }): Promise<boolean> {
+    const useDefaultTemplate = !!vscode.workspace
+      .getConfiguration('mdb')
+      .get('useDefaultTemplateForPlayground');
+    const content = useDefaultTemplate
+      ? playgroundBasicTextTemplate.replace('PLAYGROUND_CONTENT', text)
+      : text;
+    this._telemetryService.trackPlaygroundCreated('agent');
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -800,6 +821,11 @@ export default class PlaygroundController {
     }
 
     return { namespace, expression };
+  }
+
+  async evaluateParticipantQuery({ text }: { text: string }): Promise<boolean> {
+    this._codeToEvaluate = text;
+    return this._evaluatePlayground();
   }
 
   async _transpile(): Promise<boolean> {

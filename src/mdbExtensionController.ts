@@ -40,6 +40,7 @@ import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
+import { ParticipantController } from './participant/participant';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -63,6 +64,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+  _participantController: ParticipantController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -105,6 +107,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       new PlaygroundSelectedCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
       new PlaygroundDiagnosticsCodeActionProvider();
+    this._participantController = new ParticipantController({
+      connectionController: this._connectionController,
+    });
     this._playgroundController = new PlaygroundController({
       connectionController: this._connectionController,
       languageServerController: this._languageServerController,
@@ -115,6 +120,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider:
         this._playgroundSelectedCodeActionProvider,
+      participantController: this._participantController,
     });
     this._editorsController = new EditorsController({
       context,
@@ -265,6 +271,42 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerEditorCommands();
     this.registerTreeViewCommands();
+
+    // ------ CHAT PARTICIPANT ------ //
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+      () => {
+        return this._playgroundController.createPlaygroundFromParticipantQuery({
+          text:
+            this._participantController._chatResult.metadata.queryContent || '',
+        });
+      }
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+      () => {
+        return this._playgroundController.evaluateParticipantQuery({
+          text:
+            this._participantController._chatResult.metadata.queryContent || '',
+        });
+      }
+    );
+  };
+
+  registerParticipantCommand = (
+    command: string,
+    commandHandler: (...args: any[]) => Promise<boolean>
+  ): void => {
+    const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
+      this._telemetryService.trackCommandRun(command);
+
+      return commandHandler(args);
+    };
+
+    this._context.subscriptions.push(
+      this._participantController.getParticipant(this._context),
+      vscode.commands.registerCommand(command, commandHandlerWithTelemetry)
+    );
   };
 
   registerCommand = (

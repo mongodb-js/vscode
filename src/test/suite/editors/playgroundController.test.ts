@@ -22,6 +22,7 @@ import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
+import { ParticipantController } from '../../../participant/participant';
 
 const expect = chai.expect;
 
@@ -57,6 +58,7 @@ suite('Playground Controller Test Suite', function () {
   let testPlaygroundController: PlaygroundController;
   let showErrorMessageStub: SinonStub;
   let sandbox: sinon.SinonSandbox;
+  let testParticipantController: ParticipantController;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -84,11 +86,13 @@ suite('Playground Controller Test Suite', function () {
     testExportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider();
     testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
-
     languageServerControllerStub = new LanguageServerControllerStub(
       extensionContextStub,
       testStorageController
     );
+    testParticipantController = new ParticipantController({
+      connectionController: testConnectionController,
+    });
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
       languageServerController: languageServerControllerStub,
@@ -98,6 +102,7 @@ suite('Playground Controller Test Suite', function () {
       activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
+      participantController: testParticipantController,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.stub(testTelemetryService, 'trackNewConnection');
@@ -354,6 +359,7 @@ suite('Playground Controller Test Suite', function () {
           exportToLanguageCodeLensProvider:
             testExportToLanguageCodeLensProvider,
           playgroundSelectedCodeActionProvider: testCodeActionProvider,
+          participantController: testParticipantController,
         });
 
         expect(playgroundController._activeTextEditor).to.deep.equal(
@@ -372,6 +378,7 @@ suite('Playground Controller Test Suite', function () {
           exportToLanguageCodeLensProvider:
             testExportToLanguageCodeLensProvider,
           playgroundSelectedCodeActionProvider: testCodeActionProvider,
+          participantController: testParticipantController,
         });
         const textFromEditor = 'var x = { name: qwerty }';
         const selection = {
