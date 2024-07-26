@@ -14,6 +14,7 @@ const { version } = require('../../package.json');
 export type NewConnectionTelemetryEventProperties = {
   auth_strategy?: string;
   is_atlas?: boolean;
+  atlas_host_id?: string | null;
   is_localhost?: boolean;
   is_data_lake?: boolean;
   is_enterprise?: boolean;
@@ -55,12 +56,7 @@ async function getHostnameForConnection(
   return hostname;
 }
 
-async function getCloudInfoFromDataService(
-  dataService: DataService
-): Promise<CloudInfo> {
-  const hostname = await getHostnameForConnection(
-    dataService.getConnectionString()
-  );
+async function getCloudInfoFromHostname(hostname?: string): Promise<CloudInfo> {
   const cloudInfo: {
     isAws?: boolean;
     isAzure?: boolean;
@@ -109,16 +105,20 @@ export async function getConnectionTelemetryProperties(
     const authMechanism = connectionString.searchParams.get('authMechanism');
     const username = connectionString.username ? 'DEFAULT' : 'NONE';
     const authStrategy = authMechanism ?? username;
+    const hostname = await getHostnameForConnection(connectionString);
 
     const [instance, cloudInfo] = await Promise.all([
       dataService.instance(),
-      getCloudInfoFromDataService(dataService),
+      getCloudInfoFromHostname(hostname),
     ]);
+    const isAtlas = mongoDBBuildInfo.isAtlas(connectionString.toString());
+    const atlasHostId = isAtlas ? hostname : null;
 
     preparedProperties = {
       ...preparedProperties,
       auth_strategy: authStrategy,
-      is_atlas: mongoDBBuildInfo.isAtlas(connectionString.toString()),
+      is_atlas: isAtlas,
+      atlas_host_id: atlasHostId,
       is_localhost: mongoDBBuildInfo.isLocalhost(connectionString.toString()),
       is_data_lake: instance.dataLake.isDataLake,
       is_enterprise: instance.build.isEnterprise,
