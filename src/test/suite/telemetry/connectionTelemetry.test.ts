@@ -1,8 +1,9 @@
-import { before, after, beforeEach, afterEach } from 'mocha';
+import { before, beforeEach, afterEach } from 'mocha';
 import { connect } from 'mongodb-data-service';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
+import mongoDBBuildInfo from 'mongodb-build-info';
 
 import * as getCloudInfoModule from 'mongodb-cloud-info';
 
@@ -13,16 +14,14 @@ import { TEST_DATABASE_URI } from '../dbTestHelper';
 suite('ConnectionTelemetry Controller Test Suite', function () {
   suite('with mock data service', function () {
     this.timeout(8000);
-    let dataServiceStub: DataService;
     const sandbox = sinon.createSandbox();
+    let dataServiceStub;
+    let getConnectionStringStub;
+    let isAtlasStub;
 
     before(() => {
-      const getConnectionStringStub = sandbox.stub();
-      getConnectionStringStub.returns({
-        hosts: ['localhost:27088'],
-        searchParams: { get: () => null },
-        username: 'authMechanism',
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+      getConnectionStringStub = sandbox.stub();
+      isAtlasStub = sinon.stub(mongoDBBuildInfo, 'isAtlas');
 
       const instanceStub = sandbox.stub();
       instanceStub.resolves({
@@ -46,11 +45,51 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       );
     });
 
-    after(() => {
+    afterEach(() => {
       sandbox.restore();
     });
 
+    test('it returns atlas_host_id hostname for atlas clusters', async () => {
+      isAtlasStub.returns(true);
+      getConnectionStringStub.returns({
+        hosts: ['test-data-sets-a011bb.test.net'],
+        searchParams: { get: () => null },
+      } as unknown as ReturnType<DataService['getConnectionString']>);
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_FORM
+      );
+
+      expect(instanceTelemetry.is_atlas).to.equal(true);
+      expect(instanceTelemetry.atlas_host_id).to.equal(
+        'test-data-sets-a011bb.test.net'
+      );
+    });
+
+    test('it returns atlas_host_id null for non atlas clusters', async () => {
+      isAtlasStub.returns(false);
+      getConnectionStringStub.returns({
+        hosts: ['localhost:27088'],
+        searchParams: { get: () => null },
+      } as unknown as ReturnType<DataService['getConnectionString']>);
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_FORM
+      );
+
+      expect(instanceTelemetry.is_atlas).to.equal(false);
+      expect(instanceTelemetry.atlas_host_id).to.equal(null);
+    });
+
     test('it returns is_used_connect_screen true when the connection type is form', async () => {
+      isAtlasStub.returns(false);
+      getConnectionStringStub.returns({
+        hosts: ['localhost:27088'],
+        searchParams: { get: () => null },
+      } as unknown as ReturnType<DataService['getConnectionString']>);
+
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
         ConnectionTypes.CONNECTION_FORM
@@ -62,6 +101,12 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     });
 
     test('it returns is_used_command_palette true when the connection type is string', async () => {
+      isAtlasStub.returns(false);
+      getConnectionStringStub.returns({
+        hosts: ['localhost:27088'],
+        searchParams: { get: () => null },
+      } as unknown as ReturnType<DataService['getConnectionString']>);
+
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
@@ -73,6 +118,12 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     });
 
     test('it returns is_used_saved_connection true when the connection type is id', async () => {
+      isAtlasStub.returns(false);
+      getConnectionStringStub.returns({
+        hosts: ['localhost:27088'],
+        searchParams: { get: () => null },
+      } as unknown as ReturnType<DataService['getConnectionString']>);
+
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
         ConnectionTypes.CONNECTION_ID
@@ -83,7 +134,13 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_used_saved_connection).to.equal(true);
     });
 
-    test('it has is_localhost false for a remote connection', async () => {
+    test('it returns is_localhost false for a remote connection', async () => {
+      isAtlasStub.returns(false);
+      getConnectionStringStub.returns({
+        hosts: ['localhost:27088'],
+        searchParams: { get: () => null },
+      } as unknown as ReturnType<DataService['getConnectionString']>);
+
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
@@ -92,22 +149,50 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_localhost).to.equal(false);
     });
 
-    test('it has a default is atlas false', async () => {
-      const instanceTelemetry = await getConnectionTelemetryProperties(
-        dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING
-      );
+    test('it returns DEFAULT when auth mechanism undefined and username is specified', async () => {
+      isAtlasStub.returns(false);
+      getConnectionStringStub.returns({
+        hosts: ['localhost:27088'],
+        searchParams: { get: () => null },
+        username: 'Artishok',
+      } as unknown as ReturnType<DataService['getConnectionString']>);
 
-      expect(instanceTelemetry.is_atlas).to.equal(false);
-    });
-
-    test('it has a default driver auth mechanism undefined', async () => {
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
 
       expect(instanceTelemetry.auth_strategy).to.equal('DEFAULT');
+    });
+
+    test('it returns NONE when auth mechanism undefined and username undefined', async () => {
+      isAtlasStub.returns(false);
+      getConnectionStringStub.returns({
+        hosts: ['localhost:27088'],
+        searchParams: { get: () => null },
+      } as unknown as ReturnType<DataService['getConnectionString']>);
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_STRING
+      );
+
+      expect(instanceTelemetry.auth_strategy).to.equal('NONE');
+    });
+
+    test('it returns authMechanism when specified', async () => {
+      isAtlasStub.returns(false);
+      getConnectionStringStub.returns({
+        hosts: ['localhost:27088'],
+        searchParams: { get: () => 'SCRAM-SHA-1' },
+      } as unknown as ReturnType<DataService['getConnectionString']>);
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_STRING
+      );
+
+      expect(instanceTelemetry.auth_strategy).to.equal('SCRAM-SHA-1');
     });
   });
 
