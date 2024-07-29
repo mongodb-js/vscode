@@ -3,13 +3,12 @@ import { connect } from 'mongodb-data-service';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
-import mongoDBBuildInfo from 'mongodb-build-info';
-
-import * as getCloudInfoModule from 'mongodb-cloud-info';
 
 import { ConnectionTypes } from '../../../connectionController';
 import { getConnectionTelemetryProperties } from '../../../telemetry/connectionTelemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
+
+import ConnectionString from 'mongodb-connection-string-url';
 
 suite('ConnectionTelemetry Controller Test Suite', function () {
   suite('with mock data service', function () {
@@ -17,62 +16,101 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     const sandbox = sinon.createSandbox();
     let dataServiceStub;
     let getConnectionStringStub;
-    let isAtlasStub;
+    let instanceStub;
 
     before(() => {
       getConnectionStringStub = sandbox.stub();
-      isAtlasStub = sinon.stub(mongoDBBuildInfo, 'isAtlas');
-
-      const instanceStub = sandbox.stub();
-      instanceStub.resolves({
-        dataLake: {},
-        build: {},
-        genuineMongoDB: {},
-        host: {},
-      } as unknown as Awaited<ReturnType<DataService['instance']>>);
-
+      instanceStub = sandbox.stub();
       dataServiceStub = {
+        getCurrentTopologyType: sandbox.stub(),
         getConnectionString: getConnectionStringStub,
         instance: instanceStub,
       } as unknown as DataService;
-
-      sandbox.stub(getCloudInfoModule, 'getCloudInfo').callsFake(() =>
-        Promise.resolve({
-          isAws: false,
-          isGcp: false,
-          isAzure: false,
-        })
-      );
     });
 
     afterEach(() => {
       sandbox.restore();
     });
 
-    test('it returns atlas_host_id hostname for atlas clusters', async () => {
-      isAtlasStub.returns(true);
-      getConnectionStringStub.returns({
-        hosts: ['test-data-sets-a011bb.test.net'],
-        searchParams: { get: () => null },
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+    test('it tracks public cloud info', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://13.64.151.161')
+      );
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
         ConnectionTypes.CONNECTION_FORM
       );
 
-      expect(instanceTelemetry.is_atlas).to.equal(true);
-      expect(instanceTelemetry.atlas_host_id).to.equal(
-        'test-data-sets-a011bb.test.net'
-      );
+      expect(instanceTelemetry.is_public_cloud).to.equal(true);
+      expect(instanceTelemetry.public_cloud_name).to.equal('Azure');
     });
 
-    test('it returns atlas_host_id null for non atlas clusters', async () => {
-      isAtlasStub.returns(false);
-      getConnectionStringStub.returns({
-        hosts: ['localhost:27088'],
-        searchParams: { get: () => null },
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+    test('it tracks non public cloud info', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://localhost:27017')
+      );
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_FORM
+      );
+
+      expect(instanceTelemetry.is_public_cloud).to.equal(false);
+    });
+
+    test('it tracks atlas local dev', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+        isAtlas: false,
+        isLocalAtlas: true,
+        featureCompatibilityVersion: null,
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://localhost:27017')
+      );
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -81,14 +119,96 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       expect(instanceTelemetry.is_atlas).to.equal(false);
       expect(instanceTelemetry.atlas_host_id).to.equal(null);
+      expect(instanceTelemetry.is_atlas_url).to.equal(false);
+      expect(instanceTelemetry.is_local_atlas).to.equal(true);
     });
 
-    test('it returns is_used_connect_screen true when the connection type is form', async () => {
-      isAtlasStub.returns(false);
-      getConnectionStringStub.returns({
-        hosts: ['localhost:27088'],
-        searchParams: { get: () => null },
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+    test('it tracks atlas', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+        isAtlas: true,
+        isLocalAtlas: false,
+        featureCompatibilityVersion: null,
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://test-data-sets-a011bb.mongodb.net')
+      );
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_FORM
+      );
+
+      expect(instanceTelemetry.is_atlas).to.equal(true);
+      expect(instanceTelemetry.atlas_host_id).to.equal(
+        'test-data-sets-a011bb.mongodb.net'
+      );
+      expect(instanceTelemetry.is_atlas_url).to.equal(true);
+      expect(instanceTelemetry.is_local_atlas).to.equal(false);
+    });
+
+    test('it tracks digital ocean', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://example.mongo.ondigitalocean.com:27017')
+      );
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_STRING
+      );
+
+      expect(instanceTelemetry.is_localhost).to.equal(false);
+      expect(instanceTelemetry.is_atlas_url).to.equal(false);
+      expect(instanceTelemetry.is_do_url).to.equal(true);
+      expect(instanceTelemetry.is_genuine).to.equal(true);
+    });
+
+    test('it tracks is_used_connect_screen true when the connection type is form', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://localhost:27017')
+      );
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -100,12 +220,25 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_used_saved_connection).to.equal(false);
     });
 
-    test('it returns is_used_command_palette true when the connection type is string', async () => {
-      isAtlasStub.returns(false);
-      getConnectionStringStub.returns({
-        hosts: ['localhost:27088'],
-        searchParams: { get: () => null },
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+    test('it tracks is_used_command_palette true when the connection type is string', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://localhost:27017')
+      );
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -117,12 +250,25 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_used_saved_connection).to.equal(false);
     });
 
-    test('it returns is_used_saved_connection true when the connection type is id', async () => {
-      isAtlasStub.returns(false);
-      getConnectionStringStub.returns({
-        hosts: ['localhost:27088'],
-        searchParams: { get: () => null },
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+    test('it tracks is_used_saved_connection true when the connection type is id', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://localhost:27017')
+      );
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -134,12 +280,25 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_used_saved_connection).to.equal(true);
     });
 
-    test('it returns is_localhost false for a remote connection', async () => {
-      isAtlasStub.returns(false);
-      getConnectionStringStub.returns({
-        hosts: ['localhost:27088'],
-        searchParams: { get: () => null },
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+    test('it tracks is_localhost false for a remote connection', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://example.mongo.ondigitalocean.com:27017')
+      );
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -149,13 +308,125 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_localhost).to.equal(false);
     });
 
+    test('it tracks is_localhost true for a local connection', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://localhost:27017')
+      );
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_STRING
+      );
+
+      expect(instanceTelemetry.is_localhost).to.equal(true);
+    });
+
+    test('it tracks server info for ubuntu', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: '1.2.3',
+        },
+        genuineMongoDB: {
+          dbType: 'mongo_2',
+          isGenuine: true,
+        },
+        host: {
+          arch: 'debian',
+          os_family: 'ubuntu',
+        },
+        build: {
+          isEnterprise: false,
+          version: '4.3.9',
+        },
+        isAtlas: false,
+        isLocalAtlas: false,
+        featureCompatibilityVersion: null,
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://127.0.0.1')
+      );
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_STRING
+      );
+
+      expect(instanceTelemetry.server_version).to.equal('4.3.9');
+      expect(instanceTelemetry.server_arch).to.equal('debian');
+      expect(instanceTelemetry.server_os_family).to.equal('ubuntu');
+    });
+
+    test('it tracks server info for mac', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: true,
+          version: '1.2.3',
+        },
+        genuineMongoDB: {
+          dbType: 'mongo',
+          isGenuine: false,
+        },
+        host: {
+          arch: 'darwin',
+          os_family: 'mac',
+        },
+        build: {
+          isEnterprise: true,
+          version: '4.3.2',
+        },
+        isAtlas: false,
+        isLocalAtlas: false,
+        featureCompatibilityVersion: null,
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://127.0.0.1')
+      );
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_STRING
+      );
+
+      expect(instanceTelemetry.server_version).to.equal('4.3.2');
+      expect(instanceTelemetry.server_arch).to.equal('darwin');
+      expect(instanceTelemetry.server_os_family).to.equal('mac');
+    });
+
     test('it returns DEFAULT when auth mechanism undefined and username is specified', async () => {
-      isAtlasStub.returns(false);
-      getConnectionStringStub.returns({
-        hosts: ['localhost:27088'],
-        searchParams: { get: () => null },
-        username: 'Artishok',
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://artishok:pass@localhost:27017')
+      );
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -166,11 +437,24 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     });
 
     test('it returns NONE when auth mechanism undefined and username undefined', async () => {
-      isAtlasStub.returns(false);
-      getConnectionStringStub.returns({
-        hosts: ['localhost:27088'],
-        searchParams: { get: () => null },
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://localhost:27017')
+      );
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -181,11 +465,26 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     });
 
     test('it returns authMechanism when specified', async () => {
-      isAtlasStub.returns(false);
-      getConnectionStringStub.returns({
-        hosts: ['localhost:27088'],
-        searchParams: { get: () => 'SCRAM-SHA-1' },
-      } as unknown as ReturnType<DataService['getConnectionString']>);
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString(
+          'mongodb://foo:bar@localhost:27017/?authSource=source&authMechanism=SCRAM-SHA-1'
+        )
+      );
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
