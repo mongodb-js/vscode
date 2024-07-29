@@ -147,14 +147,14 @@ export async function getConnectionTelemetryProperties(
     const resolvedHostname = await getHostnameForConnection(connectionString);
     const { dataLake, genuineMongoDB, host, build, isAtlas, isLocalAtlas } =
       await dataService.instance();
-    const atlasHostId = isAtlas ? resolvedHostname : null;
+    const atlasHostname = isAtlas ? resolvedHostname : null;
 
     preparedProperties = {
       ...preparedProperties,
       ...(await getHostInformation(resolvedHostname)),
       auth_strategy: authStrategy,
       is_atlas: isAtlas,
-      atlas_hostname: atlasHostId,
+      atlas_hostname: atlasHostname,
       is_local_atlas: isLocalAtlas,
       is_data_lake: dataLake.isDataLake,
       dl_version: dataLake.version,
