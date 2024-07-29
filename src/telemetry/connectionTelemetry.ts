@@ -35,7 +35,7 @@ export type NewConnectionTelemetryEventProperties = {
 export type HostInformation = {
   is_localhost?: boolean;
   is_atlas_url?: boolean;
-  is_do_url?: boolean;
+  is_do_url?: boolean; // Is digital ocean url.
   is_public_cloud?: boolean;
   public_cloud_name?: string;
 };
