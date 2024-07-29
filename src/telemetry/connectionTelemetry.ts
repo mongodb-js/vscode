@@ -6,6 +6,7 @@ import resolveMongodbSrv from 'resolve-mongodb-srv';
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import ConnectionString from 'mongodb-connection-string-url';
+import type { TopologyType } from 'mongodb';
 
 const log = createLogger('connection telemetry helper');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -14,38 +15,40 @@ const { version } = require('../../package.json');
 export type NewConnectionTelemetryEventProperties = {
   auth_strategy?: string;
   is_atlas?: boolean;
-  atlas_host_id?: string | null;
-  is_localhost?: boolean;
+  is_local_atlas?: boolean;
+  atlas_hostname?: string | null;
   is_data_lake?: boolean;
   is_enterprise?: boolean;
-  is_public_cloud?: boolean;
   dl_version?: string | null;
-  public_cloud_name?: string | null;
   is_genuine?: boolean;
   non_genuine_server_name?: string | null;
   server_version?: string;
   server_arch?: string;
-  server_os?: string;
+  server_os_family?: string;
   is_used_connect_screen?: boolean;
   is_used_command_palette?: boolean;
   is_used_saved_connection?: boolean;
   vscode_mdb_extension_version?: string;
-};
+  topology_type?: TopologyType;
+} & HostInformation;
 
-type CloudInfo = {
-  isPublicCloud?: boolean;
-  publicCloudName?: string | null;
+export type HostInformation = {
+  is_localhost?: boolean;
+  is_atlas_url?: boolean;
+  is_do_url?: boolean; // Is digital ocean url.
+  is_public_cloud?: boolean;
+  public_cloud_name?: string;
 };
 
 async function getHostnameForConnection(
   connectionStringData: ConnectionString
-): Promise<string | undefined> {
+): Promise<string | null> {
   if (connectionStringData.isSRV) {
     const uri = await resolveMongodbSrv(connectionStringData.toString()).catch(
       () => null
     );
     if (!uri) {
-      return undefined;
+      return null;
     }
     connectionStringData = new ConnectionString(uri, {
       looseValidation: true,
@@ -56,35 +59,71 @@ async function getHostnameForConnection(
   return hostname;
 }
 
-async function getCloudInfoFromHostname(hostname?: string): Promise<CloudInfo> {
-  const cloudInfo: {
-    isAws?: boolean;
-    isAzure?: boolean;
-    isGcp?: boolean;
-  } = await getCloudInfo(hostname);
+async function getPublicCloudInfo(host: string): Promise<{
+  public_cloud_name?: string;
+  is_public_cloud?: boolean;
+}> {
+  try {
+    const { isAws, isAzure, isGcp } = await getCloudInfo(host);
+    let publicCloudName;
 
-  if (cloudInfo.isAws) {
+    if (isAws) {
+      publicCloudName = 'AWS';
+    } else if (isAzure) {
+      publicCloudName = 'Azure';
+    } else if (isGcp) {
+      publicCloudName = 'GCP';
+    }
+
+    if (publicCloudName === undefined) {
+      return { is_public_cloud: false };
+    }
+
     return {
-      isPublicCloud: true,
-      publicCloudName: 'aws',
+      is_public_cloud: true,
+      public_cloud_name: publicCloudName,
+    };
+  } catch (err) {
+    return {};
+  }
+}
+
+async function getHostInformation(
+  host: string | null
+): Promise<HostInformation> {
+  if (!host) {
+    return {
+      is_do_url: false,
+      is_atlas_url: false,
+      is_localhost: false,
     };
   }
-  if (cloudInfo.isGcp) {
+
+  if (mongoDBBuildInfo.isLocalhost(host)) {
     return {
-      isPublicCloud: true,
-      publicCloudName: 'gcp',
+      is_public_cloud: false,
+      is_do_url: false,
+      is_atlas_url: false,
+      is_localhost: true,
     };
   }
-  if (cloudInfo.isAzure) {
+
+  if (mongoDBBuildInfo.isDigitalOcean(host)) {
     return {
-      isPublicCloud: true,
-      publicCloudName: 'azure',
+      is_localhost: false,
+      is_public_cloud: false,
+      is_atlas_url: false,
+      is_do_url: true,
     };
   }
+
+  const publicCloudInfo = await getPublicCloudInfo(host);
 
   return {
-    isPublicCloud: false,
-    publicCloudName: null,
+    is_localhost: false,
+    is_do_url: false,
+    is_atlas_url: mongoDBBuildInfo.isAtlas(host),
+    ...publicCloudInfo,
   };
 }
 
@@ -105,31 +144,27 @@ export async function getConnectionTelemetryProperties(
     const authMechanism = connectionString.searchParams.get('authMechanism');
     const username = connectionString.username ? 'DEFAULT' : 'NONE';
     const authStrategy = authMechanism ?? username;
-    const hostname = await getHostnameForConnection(connectionString);
-
-    const [instance, cloudInfo] = await Promise.all([
-      dataService.instance(),
-      getCloudInfoFromHostname(hostname),
-    ]);
-    const isAtlas = mongoDBBuildInfo.isAtlas(connectionString.toString());
-    const atlasHostId = isAtlas ? hostname : null;
+    const resolvedHostname = await getHostnameForConnection(connectionString);
+    const { dataLake, genuineMongoDB, host, build, isAtlas, isLocalAtlas } =
+      await dataService.instance();
+    const atlasHostname = isAtlas ? resolvedHostname : null;
 
     preparedProperties = {
       ...preparedProperties,
+      ...(await getHostInformation(resolvedHostname)),
       auth_strategy: authStrategy,
       is_atlas: isAtlas,
-      atlas_host_id: atlasHostId,
-      is_localhost: mongoDBBuildInfo.isLocalhost(connectionString.toString()),
-      is_data_lake: instance.dataLake.isDataLake,
-      is_enterprise: instance.build.isEnterprise,
-      is_public_cloud: cloudInfo.isPublicCloud,
-      dl_version: instance.dataLake.version,
-      public_cloud_name: cloudInfo.publicCloudName,
-      is_genuine: instance.genuineMongoDB.isGenuine,
-      non_genuine_server_name: instance.genuineMongoDB.dbType,
-      server_version: instance.build.version,
-      server_arch: instance.host.arch,
-      server_os: instance.host.os,
+      atlas_hostname: atlasHostname,
+      is_local_atlas: isLocalAtlas,
+      is_data_lake: dataLake.isDataLake,
+      dl_version: dataLake.version,
+      is_enterprise: build.isEnterprise,
+      is_genuine: genuineMongoDB.isGenuine,
+      non_genuine_server_name: genuineMongoDB.dbType,
+      server_version: build.version,
+      server_arch: host.arch,
+      server_os_family: host.os_family,
+      topology_type: dataService.getCurrentTopologyType(),
     };
   } catch (error) {
     log.error('Getting connection telemetry properties failed', error);
