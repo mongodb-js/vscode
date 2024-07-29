@@ -16,7 +16,7 @@ export type NewConnectionTelemetryEventProperties = {
   auth_strategy?: string;
   is_atlas?: boolean;
   is_local_atlas?: boolean;
-  atlas_host_id?: string | null;
+  atlas_hostname?: string | null;
   is_data_lake?: boolean;
   is_enterprise?: boolean;
   dl_version?: string | null;
@@ -154,7 +154,7 @@ export async function getConnectionTelemetryProperties(
       ...(await getHostInformation(resolvedHostname)),
       auth_strategy: authStrategy,
       is_atlas: isAtlas,
-      atlas_host_id: atlasHostId,
+      atlas_hostname: atlasHostId,
       is_local_atlas: isLocalAtlas,
       is_data_lake: dataLake.isDataLake,
       dl_version: dataLake.version,

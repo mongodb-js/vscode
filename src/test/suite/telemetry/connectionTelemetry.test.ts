@@ -118,7 +118,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       );
 
       expect(instanceTelemetry.is_atlas).to.equal(false);
-      expect(instanceTelemetry.atlas_host_id).to.equal(null);
+      expect(instanceTelemetry.atlas_hostname).to.equal(null);
       expect(instanceTelemetry.is_atlas_url).to.equal(false);
       expect(instanceTelemetry.is_local_atlas).to.equal(true);
     });
@@ -152,7 +152,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       );
 
       expect(instanceTelemetry.is_atlas).to.equal(true);
-      expect(instanceTelemetry.atlas_host_id).to.equal(
+      expect(instanceTelemetry.atlas_hostname).to.equal(
         'test-data-sets-a011bb.mongodb.net'
       );
       expect(instanceTelemetry.is_atlas_url).to.equal(true);
