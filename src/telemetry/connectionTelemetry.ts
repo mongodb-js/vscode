@@ -24,7 +24,6 @@ export type NewConnectionTelemetryEventProperties = {
   non_genuine_server_name?: string | null;
   server_version?: string;
   server_arch?: string;
-  server_os?: string;
   server_os_family?: string;
   is_used_connect_screen?: boolean;
   is_used_command_palette?: boolean;
@@ -164,7 +163,6 @@ export async function getConnectionTelemetryProperties(
       non_genuine_server_name: genuineMongoDB.dbType,
       server_version: build.version,
       server_arch: host.arch,
-      server_os: host.os,
       server_os_family: host.os_family,
       topology_type: dataService.getCurrentTopologyType(),
     };
