@@ -17,3 +17,5 @@ ignores:
  - node-loader
  - ts-loader
  - mongodb-runner
+ - util
+ - url

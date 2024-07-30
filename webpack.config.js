@@ -160,6 +160,8 @@ module.exports = (env, argv) => {
       // This is here to deal with some node.js code brought in by
       // @leafygreen/logo via @emotion/server:
       fallback: {
+        util: require.resolve('util/'),
+        url: require.resolve('url/'),
         stream: require.resolve('stream-browserify'),
         buffer: require.resolve('buffer'),
         crypto: require.resolve('crypto-browserify'),

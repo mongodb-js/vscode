@@ -64,7 +64,7 @@ const OverviewPage: React.FC = () => {
         <ConnectionForm
           isConnecting={isConnecting}
           initialConnectionInfo={initialConnectionInfo}
-          onSaveConnectionClicked={({ id, connectionOptions }) =>
+          onSaveClicked={({ id, connectionOptions }) =>
             handleSaveConnectionClicked({
               id,
               connectionOptions,

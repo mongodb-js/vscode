@@ -50,7 +50,7 @@ const ConnectionForm: React.FunctionComponent<
     connectionErrorMessage: string;
   } & Pick<
     ComponentProps<typeof CompassConnectionForm>,
-    'onConnectClicked' | 'onSaveConnectionClicked' | 'initialConnectionInfo'
+    'onConnectClicked' | 'onSaveClicked' | 'initialConnectionInfo'
   >
 > = ({
   initialConnectionInfo,
@@ -59,7 +59,7 @@ const ConnectionForm: React.FunctionComponent<
   onCancelConnectClicked,
   onConnectClicked,
   onClose,
-  onSaveConnectionClicked,
+  onSaveClicked,
   open,
 }) => {
   const darkMode = useDarkMode();
@@ -91,7 +91,7 @@ const ConnectionForm: React.FunctionComponent<
       <div className={formContainerStyles}>
         <CompassConnectionForm
           onConnectClicked={onConnectClicked}
-          onSaveConnectionClicked={onSaveConnectionClicked}
+          onSaveClicked={onSaveClicked}
           initialConnectionInfo={initialConnectionInfo}
           preferences={{
             showFavoriteActions: false,
