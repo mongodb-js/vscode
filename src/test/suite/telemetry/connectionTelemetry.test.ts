@@ -16,14 +16,17 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     const sandbox = sinon.createSandbox();
     let dataServiceStub;
     let getConnectionStringStub;
+    let getLastSeenTopology;
     let instanceStub;
 
     before(() => {
       getConnectionStringStub = sandbox.stub();
+      getLastSeenTopology = sandbox.stub();
       instanceStub = sandbox.stub();
       dataServiceStub = {
         getCurrentTopologyType: sandbox.stub(),
         getConnectionString: getConnectionStringStub,
+        getLastSeenTopology: getLastSeenTopology,
         instance: instanceStub,
       } as unknown as DataService;
     });
@@ -51,6 +54,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://13.64.151.161')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('13.64.151.161', {
+          address: '13.64.151.161',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -80,6 +88,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://localhost:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('localhost:27017', {
+          address: 'localhost:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -111,6 +124,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://localhost:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('localhost:27017', {
+          address: 'localhost:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -145,6 +163,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://test-data-sets-a011bb.mongodb.net')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('test-data-sets-00-02-a011bb.mongodb.net', {
+          address: 'test-data-sets-00-02-a011bb.mongodb.net',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -153,7 +176,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       expect(instanceTelemetry.is_atlas).to.equal(true);
       expect(instanceTelemetry.atlas_hostname).to.equal(
-        'test-data-sets-a011bb.mongodb.net'
+        'test-data-sets-00-02-a011bb.mongodb.net'
       );
       expect(instanceTelemetry.is_atlas_url).to.equal(true);
       expect(instanceTelemetry.is_local_atlas).to.equal(false);
@@ -178,6 +201,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://example.mongo.ondigitalocean.com:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('example.mongo.ondigitalocean.com:27017', {
+          address: 'example.mongo.ondigitalocean.com:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -209,6 +237,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://localhost:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('localhost:27017', {
+          address: 'localhost:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -239,6 +272,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://localhost:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('localhost:27017', {
+          address: 'localhost:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -269,6 +307,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://localhost:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('localhost:27017', {
+          address: 'localhost:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -299,6 +342,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://example.mongo.ondigitalocean.com:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('example.mongo.ondigitalocean.com:27017', {
+          address: 'example.mongo.ondigitalocean.com:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -327,6 +375,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://localhost:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('localhost:27017', {
+          address: 'localhost:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -361,6 +414,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://127.0.0.1')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('127.0.0.1', {
+          address: '127.0.0.1',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -397,6 +455,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://127.0.0.1')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('127.0.0.1', {
+          address: '127.0.0.1',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -427,6 +490,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://artishok:pass@localhost:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('localhost:27017', {
+          address: 'localhost:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -455,6 +523,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       getConnectionStringStub.returns(
         new ConnectionString('mongodb://localhost:27017')
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('localhost:27017', {
+          address: 'localhost:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
@@ -485,6 +558,11 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
           'mongodb://foo:bar@localhost:27017/?authSource=source&authMechanism=SCRAM-SHA-1'
         )
       );
+      getLastSeenTopology.returns({
+        servers: new Map().set('localhost:27017', {
+          address: 'localhost:27017',
+        }),
+      });
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,

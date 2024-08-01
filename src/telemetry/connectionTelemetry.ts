@@ -1,11 +1,8 @@
 import type { DataService } from 'mongodb-data-service';
-import { getCloudInfo } from 'mongodb-cloud-info';
 import mongoDBBuildInfo from 'mongodb-build-info';
-import resolveMongodbSrv from 'resolve-mongodb-srv';
 
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
-import ConnectionString from 'mongodb-connection-string-url';
 import type { TopologyType } from 'mongodb';
 
 const log = createLogger('connection telemetry helper');
@@ -40,22 +37,10 @@ export type HostInformation = {
   public_cloud_name?: string;
 };
 
-async function getHostnameForConnection(
-  connectionStringData: ConnectionString
-): Promise<string | null> {
-  if (connectionStringData.isSRV) {
-    const uri = await resolveMongodbSrv(connectionStringData.toString()).catch(
-      () => null
-    );
-    if (!uri) {
-      return null;
-    }
-    connectionStringData = new ConnectionString(uri, {
-      looseValidation: true,
-    });
-  }
-
-  const [hostname] = (connectionStringData.hosts[0] ?? '').split(':');
+function getHostnameForConnection(dataService: DataService): string | null {
+  const lastSeenTopology = dataService.getLastSeenTopology();
+  const resolvedHost = lastSeenTopology?.servers.values().next().value.address;
+  const [hostname] = (resolvedHost ?? '').split(':');
   return hostname;
 }
 
@@ -64,6 +49,7 @@ async function getPublicCloudInfo(host: string): Promise<{
   is_public_cloud?: boolean;
 }> {
   try {
+    const { getCloudInfo } = await import('mongodb-cloud-info');
     const { isAws, isAzure, isGcp } = await getCloudInfo(host);
     let publicCloudName;
 
@@ -84,6 +70,7 @@ async function getPublicCloudInfo(host: string): Promise<{
       public_cloud_name: publicCloudName,
     };
   } catch (err) {
+    // Cannot resolve dns used by mongodb-cloud-info in the browser environment.
     return {};
   }
 }
@@ -144,7 +131,7 @@ export async function getConnectionTelemetryProperties(
     const authMechanism = connectionString.searchParams.get('authMechanism');
     const username = connectionString.username ? 'DEFAULT' : 'NONE';
     const authStrategy = authMechanism ?? username;
-    const resolvedHostname = await getHostnameForConnection(connectionString);
+    const resolvedHostname = getHostnameForConnection(dataService);
     const { dataLake, genuineMongoDB, host, build, isAtlas, isLocalAtlas } =
       await dataService.instance();
     const atlasHostname = isAtlas ? resolvedHostname : null;
