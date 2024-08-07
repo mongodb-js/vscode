@@ -145,7 +145,9 @@ export default function useConnectionForm() {
       }
     };
     window.addEventListener('message', handleConnectResultResponse);
-    () => window.removeEventListener('message', handleConnectResultResponse);
+    return () => {
+      window.removeEventListener('message', handleConnectResultResponse);
+    };
   }, [initialConnectionInfo]);
 
   useEffect(() => {
@@ -165,7 +167,9 @@ export default function useConnectionForm() {
       }
     };
     window.addEventListener('message', handleConnectResultResponse);
-    () => window.removeEventListener('message', handleConnectResultResponse);
+    return () => {
+      window.removeEventListener('message', handleConnectResultResponse);
+    };
   }, []);
 
   return {

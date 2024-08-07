@@ -44,7 +44,7 @@ suite('Telemetry Controller Test Suite', () => {
     } as unknown as Awaited<ReturnType<DataService['instance']>>);
     dataServiceStub = {
       instance: instanceStub,
-    } as Pick<DataService, 'instance'> as unknown as DataService;
+    } as unknown as DataService;
 
     fakeSegmentAnalyticsTrack = sandbox.fake();
     sandbox.replace(
@@ -632,7 +632,7 @@ suite('Telemetry Controller Test Suite', () => {
         find: () => {
           return Promise.resolve([mockDocument]);
         },
-      } as Pick<DataService, 'find'> as unknown as DataService;
+      } as unknown as DataService;
       const documentItem = new DocumentTreeItem({
         document: mockDocument,
         namespace: 'waffle.house',

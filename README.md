@@ -46,6 +46,8 @@ Select queries and aggregations within your Playground files and translate them 
  * Python 3
  * Ruby
  * Go
+ * Rust
+ * PHP
 
 ![Export to language](resources/screenshots/export-to-language.gif)
 
@@ -68,6 +70,13 @@ _Note: The `mongosh` binary needs to be in your `$PATH`. You can download the `m
 If you use Terraform to manage your infrastructure, MongoDB for VS Code helps you get started with the [MongoDB Atlas Provider](https://www.terraform.io/docs/providers/mongodbatlas/index.html). Just open a Terraform file, type `atlas` and you are good to go.
 
 ![Terraform snippet](resources/screenshots/terraform.png)
+
+### Atlas Stream Processing
+
+Connect to Atlas Stream Processing instances and develop stream processors using playgrounds.
+
+![Atlas Stream Processing Playground](resources/screenshots/atlas-stream-processing.png)
+
 
 ## Extension Settings
 

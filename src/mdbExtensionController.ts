@@ -235,6 +235,12 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_GO, () =>
       this._playgroundController.exportToLanguage(ExportToLanguages.GO)
     );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST, () =>
+      this._playgroundController.exportToLanguage(ExportToLanguages.RUST)
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP, () =>
+      this._playgroundController.exportToLanguage(ExportToLanguages.PHP)
+    );
 
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,

@@ -10,7 +10,8 @@ import {
 import type { CompletionItem } from 'vscode-languageclient/node';
 import chai from 'chai';
 import { createConnection } from 'vscode-languageserver/node';
-import fs from 'fs';
+import fs from 'fs/promises';
+import os from 'os';
 import path from 'path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import type { Db } from 'mongodb';
@@ -45,7 +46,7 @@ suite('MongoDBService Test Suite', () => {
       'dist',
       languageServerWorkerFileName
     );
-    await fs.promises.stat(languageServerModuleBundlePath);
+    await fs.stat(languageServerModuleBundlePath);
   });
 
   suite('Extension path', () => {
@@ -3005,6 +3006,44 @@ suite('MongoDBService Test Suite', () => {
             language: 'plaintext',
           },
         };
+        expect(result).to.deep.equal(expectedResult);
+      });
+    });
+
+    suite('evaluate allows to import local files', function () {
+      let tmpDir: string;
+      beforeEach(async () => {
+        tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'local-import'));
+        await fs.writeFile(
+          path.join(tmpDir, 'utils.js'),
+          `module.exports.add = function (a, b) {
+            return a + b;
+          };
+        `
+        );
+      });
+      afterEach(async () => {
+        await fs.rm(tmpDir, { recursive: true });
+      });
+      test('evaluate allows to import file', async () => {
+        const source = new CancellationTokenSource();
+        const result = await testMongoDBService.evaluate(
+          {
+            connectionId: 'pineapple',
+            codeToEvaluate: 'const { add } = require("./utils.js"); add(1, 2);',
+            filePath: path.join(tmpDir, 'utils.js'),
+          },
+          source.token
+        );
+        const expectedResult = {
+          result: {
+            namespace: null,
+            type: 'number',
+            content: 3,
+            language: 'plaintext',
+          },
+        };
+
         expect(result).to.deep.equal(expectedResult);
       });
     });

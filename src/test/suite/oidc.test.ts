@@ -14,6 +14,7 @@ import { StorageController } from '../../storage';
 import { TelemetryService } from '../../telemetry';
 import ConnectionController from '../../connectionController';
 import { StatusView } from '../../views';
+import { waitFor } from './waitFor';
 
 import { MongoCluster } from 'mongodb-runner';
 import type { MongoClusterOptions } from 'mongodb-runner';
@@ -31,8 +32,8 @@ function hash(input: string): string {
 }
 
 // Need to be provided via CI env because we can't get a hold for node.js exec
-// path in our tests - they run inside a vscode process
-const browserShellCommand = process.env.BROWSER_AUTH_COMMAND;
+// path in our tests - they run inside a vscode process in the built dir.
+const browserShellCommand = `$(echo "$(which node) ${__dirname}/../../../src/test/fixture/curl.js")`;
 
 const UNIQUE_TASK_ID =
   process.env.GITHUB_RUN_ID && process.env.GITHUB_RUN_NUMBER
@@ -380,14 +381,16 @@ suite('OIDC Tests', function () {
       };
     };
 
-    expect(
+    const isConnected =
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
-      )
-    ).to.be.true;
+      );
+
+    expect(isConnected).to.be.true;
+
     afterReauth = true;
 
-    // Trigger a command on data service for reauthentication
+    // Trigger a command on data service for reauthentication.
     while (reAuthCalled === false) {
       await testConnectionController
         .getActiveDataService()
@@ -398,6 +401,9 @@ suite('OIDC Tests', function () {
     }
 
     await reAuthPromise;
+    await waitFor(() => {
+      return testConnectionController.isCurrentlyConnected() === false;
+    }, 100);
 
     // Because we declined the auth in showInformationMessage above
     expect(tokenFetchCalls).to.equal(1);

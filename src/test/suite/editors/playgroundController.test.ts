@@ -116,7 +116,8 @@ suite('Playground Controller Test Suite', function () {
           url: 'mongodb://username@ldaphost:27017/?authMechanism=MONGODB-X509&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true&authSource=%24external&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsCAFile=./path/to/ca&tlsCertificateKeyFile=./path/to/cert',
           options: { monitorCommands: true },
         }),
-      } as DataService;
+        once: sandbox.stub(),
+      } as unknown as DataService;
 
       fakeConnectToServiceProvider = sandbox.fake.resolves(undefined);
       sandbox.replace(
@@ -301,6 +302,7 @@ suite('Playground Controller Test Suite', function () {
                 url: TEST_DATABASE_URI,
                 options: {},
               }),
+              once: sandbox.stub(),
             } as unknown as DataService)
         );
         sandbox.replace(

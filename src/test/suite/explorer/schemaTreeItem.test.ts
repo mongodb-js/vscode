@@ -92,7 +92,7 @@ suite('SchemaTreeItem Test Suite', function () {
     findStub.resolves([]);
     const testDataService = {
       find: findStub,
-    } as Pick<DataService, 'find'> as unknown as DataService;
+    } as unknown as DataService;
 
     const testSchemaTreeItem = getTestSchemaTreeItem({
       dataService: testDataService,
@@ -123,7 +123,7 @@ suite('SchemaTreeItem Test Suite', function () {
     findStub.resolves([mockDocWithTwentyFields]);
     const testDataService = {
       find: findStub,
-    } as Pick<DataService, 'find'> as unknown as DataService;
+    } as unknown as DataService;
     const testSchemaTreeItem = getTestSchemaTreeItem({
       dataService: testDataService,
       isExpanded: true,
@@ -154,7 +154,7 @@ suite('SchemaTreeItem Test Suite', function () {
     findStub.resolves([mockDocWithThirtyFields]);
     const testDataService = {
       find: findStub,
-    } as Pick<DataService, 'find'> as unknown as DataService;
+    } as unknown as DataService;
     const testSchemaTreeItem = getTestSchemaTreeItem({
       dataService: testDataService,
       isExpanded: true,
@@ -173,7 +173,7 @@ suite('SchemaTreeItem Test Suite', function () {
     findStub.resolves('invalid schema to parse' as unknown as Document[]);
     const testDataService = {
       find: findStub,
-    } as Pick<DataService, 'find'> as unknown as DataService;
+    } as unknown as DataService;
 
     const testSchemaTreeItem = getTestSchemaTreeItem({
       dataService: testDataService,

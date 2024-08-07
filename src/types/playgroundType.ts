@@ -21,6 +21,7 @@ export type ShellEvaluateResult =
 export type PlaygroundEvaluateParams = {
   codeToEvaluate: string;
   connectionId: string;
+  filePath?: string;
 };
 
 export interface ExportToLanguageAddons {
@@ -46,6 +47,8 @@ export enum ExportToLanguages {
   JAVASCRIPT = 'javascript',
   RUBY = 'ruby',
   GO = 'go',
+  RUST = 'rust',
+  PHP = 'php',
 }
 
 export enum ExportToLanguageMode {

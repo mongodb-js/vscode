@@ -1,5 +1,61 @@
 # Change Log
 
+## [v1.7.0](https://github.com/mongodb-js/vscode/releases/tag/v1.7.0) - 2024-08-01
+
+## What's Changed
+* feat(telemetry): update connection telemetry VSCODE-560 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/764
+* refactor(telemetry): use resolved srv from topology VSCODE-563 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/765
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.6.1...v1.7.0
+
+
+## [v1.6.1](https://github.com/mongodb-js/vscode/releases/tag/v1.6.1) - 2024-07-15
+
+## What's Changed
+* fix: disconnect extension when server is closed VSCODE-536 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/734
+* chore(deps): bump mongosh VSCODE-548 by @mabaasit in https://github.com/mongodb-js/vscode/pull/752
+* fix: remove changelog from the bundle VSCODE-551 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/758
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.6.0...v1.6.1
+
+
+## [v1.6.0](https://github.com/mongodb-js/vscode/releases/tag/v1.6.0) - 2024-04-23
+
+## What's Changed
+* feat: add export to Rust and PHP VSCODE-411 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/676
+* chore(ci): sign using package by @mabaasit in https://github.com/mongodb-js/vscode/pull/678
+* fix: include export mode when retrieving import statements VSCODE-440 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/677
+* fix: remove userId COMPASS-7608 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/690
+* feat: add changeActiveConnection command to palette by @benjlevesque in https://github.com/mongodb-js/vscode/pull/700
+* feat: show simpler uuid format VSCODE-470 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/701
+* feat(playground): add support local require VSCODE-468 by @mabaasit in https://github.com/mongodb-js/vscode/pull/718
+
+## New Contributors
+* @paula-stacho made their first contribution in https://github.com/mongodb-js/vscode/pull/676
+* @benjlevesque made their first contribution in https://github.com/mongodb-js/vscode/pull/700
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.5.0...v1.6.0
+
+
+## [v1.5.0](https://github.com/mongodb-js/vscode/releases/tag/v1.5.0) - 2024-01-24
+
+## What's Changed
+* VSCODE-505: stream support in UI by @shaketbaby in https://github.com/mongodb-js/vscode/pull/643
+* feat(webview): use new connection form, remove old form VSCODE-491 by @Anemy in https://github.com/mongodb-js/vscode/pull/636
+* fix: add explicit ordering for stream processor context menu actions by @pulkitkalra-mdb in https://github.com/mongodb-js/vscode/pull/654
+* chore: close connection string input when opening form VSCODE-507 by @Anemy in https://github.com/mongodb-js/vscode/pull/656
+* fix: ensure extension output populates ObjectIds in stream by @pulkitkalra-mdb in https://github.com/mongodb-js/vscode/pull/657
+* feat(connect-form): add OIDC device auth flow with preference VSCODE-503 by @Anemy in https://github.com/mongodb-js/vscode/pull/658
+* feat(connections): add edit connection context menu action VSCODE-406 by @Anemy in https://github.com/mongodb-js/vscode/pull/655
+* chore(deps): update mongodb and devtools dependencies by @Anemy in https://github.com/mongodb-js/vscode/pull/662
+* chore: cancel connection attempt when removing connection, update assert to expect in webview and connection controller tests by @Anemy in https://github.com/mongodb-js/vscode/pull/667
+
+## New Contributors
+* @pulkitkalra-mdb made their first contribution in https://github.com/mongodb-js/vscode/pull/654
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.4.0...v1.5.0
+
+
 ## [v1.4.0](https://github.com/mongodb-js/vscode/releases/tag/v1.4.0) - 2024-01-09
 
 ## What's Changed
@@ -388,64 +444,5 @@ To dig deeper please feel free to follow the links mentioned below:
 - Added the ability to use print() and console.log() in playgrounds [#184](https://github.com/mongodb-js/vscode/pull/184)
 - Added an overview page (more to come on this in future versions) [#178](https://github.com/mongodb-js/vscode/pull/178)
 - Added a tooltip to fields in a collection's schema to show types found in the sampling for that field [#179](https://github.com/mongodb-js/vscode/pull/179)
-
-
-## [v0.2.0](https://github.com/mongodb-js/vscode/releases/tag/v0.2.0) - 2020-10-01
-
-### Added
-- Added a Playgrounds panel that displays `.mongodb` playground files in the current VSCode workspace
-- Added a setting to configure which folders and files are excluded from the playgrounds panel file searching
-- Added a help and resources panel to the explorer with links to documentation and feedback portals
-- Added a button to the indexes folder in the tree view which creates a playground prefilled with an index creation script
-### Changed
-- Updated our mongosh dependency to 0.4.2 to bring more functionality to playgrounds
-### Fixed
-- Fixed indexes expanded state caching in the connection explorer panel tree view
-
-
-## [v0.1.1](https://github.com/mongodb-js/vscode/releases/tag/v0.1.1) - 2020-08-10
-
-### Added
-
-- Added a search for documents playground shortcut in the tree explorer view
-- Added a copy field name right click action in a collection's schema in the tree explorer view
-- Added a document count for a collection in the tree view (with hover tooltip for the full count)
-- Added the ability to change the current connection when in an open playground file by using the codelens on the first line of the playground
-
-### Changed
-
-- Allow connecting to a new connection while already connecting to another connection
-- Allow removing a new connection while it is connecting
-
-
-## [v0.1.0](https://github.com/mongodb-js/vscode/releases/tag/v0.1.0) - 2020-07-16
-
-### Added
-
-- Added the ability to run partial playgrounds
-- Added indexes to the explorer tree view
-
-### Fixed
-
-- Fixed an issue with the launch shell command in powershell
-- Fixed an issue with the tree explorer freezing when double clicking an open schema
-
-
-## [v0.0.4](https://github.com/mongodb-js/vscode/releases/tag/v0.0.4) - 2020-06-17
-
-### Added
-
-- Added `Launch MongoDB Shell` right click action for the active connection in the tree view
-
-### Fixed
-
-- Fixed an issue with connecting to ssl with the launch shell command
-- Fixed an issue with the launch shell command on windows
-- Fixed playgrounds not being able to run in WSL environments
-- Updated our connection model dependency to pull in a fix for connection strings with `readPreferenceTags`
-
-### Changed
-
-- Connections in the tree view are now alphabetically sorted
 
 

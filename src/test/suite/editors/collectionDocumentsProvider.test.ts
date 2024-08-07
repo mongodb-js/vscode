@@ -80,10 +80,12 @@ suite('Collection Documents Provider Test Suite', () => {
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async () => {
     const findStub = sandbox.stub();
+    const onceStub = sandbox.stub();
     findStub.resolves([{ field: 'Declaration of Independence' }]);
     const testDataService = {
       find: findStub,
-    } as Pick<DataService, 'find'> as unknown as DataService;
+      once: onceStub,
+    } as unknown as DataService;
 
     testConnectionController.setActiveDataService(testDataService);
 
@@ -121,10 +123,12 @@ suite('Collection Documents Provider Test Suite', () => {
     ];
 
     const findStub = sandbox.stub();
+    const onceStub = sandbox.stub();
     findStub.resolves(mockDocuments);
     const testDataService = {
       find: findStub,
-    } as Pick<DataService, 'find'> as unknown as DataService;
+      once: onceStub,
+    } as unknown as DataService;
 
     testConnectionController.setActiveDataService(testDataService);
 
@@ -147,10 +151,12 @@ suite('Collection Documents Provider Test Suite', () => {
 
   test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async () => {
     const findStub = sandbox.stub();
+    const onceStub = sandbox.stub();
     findStub.resolves([{ field: 'Apollo' }, { field: 'Gemini ' }]);
     const testDataService = {
       find: findStub,
-    } as Pick<DataService, 'find'> as unknown as DataService;
+      once: onceStub,
+    } as unknown as DataService;
     testConnectionController.setActiveDataService(testDataService);
 
     const operationId = testQueryStore.createNewOperation();
@@ -180,10 +186,10 @@ suite('Collection Documents Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent shows a status bar item while it is running then hide it', async () => {
-    const mockActiveDataService = { find: () => Promise.resolve([]) } as Pick<
-      DataService,
-      'find'
-    > as unknown as DataService;
+    const mockActiveDataService = {
+      find: () => Promise.resolve([]),
+      once: sandbox.stub(),
+    } as unknown as DataService;
     testConnectionController.setActiveDataService(mockActiveDataService);
 
     testCollectionViewProvider._statusView = testStatusView;

@@ -296,6 +296,7 @@ export default class MongoDBService {
           name: ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
           data: {
             codeToEvaluate: params.codeToEvaluate,
+            filePath: params.filePath,
             connectionString: this.connectionString,
             connectionOptions: this.connectionOptions,
           },
