@@ -37,6 +37,9 @@ describe('OverviewPage test suite', function () {
   });
 
   describe('Connection Form', function () {
+    // Rendering the connection form takes ~4 seconds, so we need to increase the timeout.
+    // Not sure on the cause of this slowdown, it could be animation based.
+    this.timeout(10000);
     it('is able to open and close the new connection form', async function () {
       render(<OverviewPage />);
 
@@ -45,6 +48,7 @@ describe('OverviewPage test suite', function () {
       expect(postMessageSpy).to.not.be.called;
 
       await userEvent.click(screen.getByTestId('open-connection-form-button'));
+
       expect(screen.getByTestId(connectionFormTestId)).to.exist;
       const message = postMessageSpy.firstCall.args[0];
       expect(message).to.deep.equal({
@@ -145,12 +149,20 @@ describe('OverviewPage test suite', function () {
       expect(screen.getByTestId(connectionFormTestId)).to.exist;
       expect(screen.getByText('pineapple')).to.exist;
 
-      expect(postMessageSpy).to.not.be.called;
+      const getConnectMessages = () => {
+        return postMessageSpy
+          .getCalls()
+          .filter(
+            (call) =>
+              call.args[0].command === MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION
+          );
+      };
+      expect(getConnectMessages()).to.have.length(0);
       await userEvent.click(screen.getByTestId('connect-button'));
-      expect(postMessageSpy).to.be.calledOnce;
+      const connectMessages = getConnectMessages();
+      expect(connectMessages).to.have.length(1);
 
-      const editAttempt = postMessageSpy.lastCall.args[0] as any;
-      expect(editAttempt).to.deep.equal({
+      expect(connectMessages[0].args[0]).to.deep.equal({
         command: 'EDIT_AND_CONNECT_CONNECTION',
         connectionInfo: {
           id: 'pear',

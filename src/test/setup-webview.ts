@@ -6,6 +6,28 @@ chai.use(sinonChai);
 // JSDom
 import { JSDOM, VirtualConsole } from 'jsdom';
 
+/**
+ * NB: tabbable requires special overrides to work in jsdom environments as per
+ * documentation
+ *
+ * @see {@link https://github.com/focus-trap/tabbable?tab=readme-ov-file#testing-in-jsdom}
+ */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const tabbable = require('tabbable');
+
+const origTabbable = { ...tabbable };
+
+Object.assign(tabbable, {
+  tabbable: (node, options) =>
+    origTabbable.tabbable(node, { ...options, displayCheck: 'none' }),
+  focusable: (node, options) =>
+    origTabbable.focusable(node, { ...options, displayCheck: 'none' }),
+  isFocusable: (node, options) =>
+    origTabbable.isFocusable(node, { ...options, displayCheck: 'none' }),
+  isTabbable: (node, options) =>
+    origTabbable.isTabbable(node, { ...options, displayCheck: 'none' }),
+});
+
 const virtualConsole = new VirtualConsole();
 virtualConsole.sendTo(console, { omitJSDOMErrors: true });
 virtualConsole.on('jsdomError', (err) => {

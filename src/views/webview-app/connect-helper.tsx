@@ -61,7 +61,6 @@ const ConnectHelper: React.FC<{
 }> = ({ onClickOpenConnectionForm }) => {
   return (
     <div className={containerStyles}>
-      <input type="text" />
       <div className={cardContainerStyles}>
         <div className={leftCardStyles}>
           <div>

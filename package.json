@@ -1092,6 +1092,7 @@
     "bson-transpilers": "^2.2.0",
     "debug": "^4.3.6",
     "dotenv": "^16.4.5",
+    "ejson-shell-parser": "^2.0.1",
     "lodash": "^4.17.21",
     "micromatch": "^4.0.7",
     "mongodb": "^6.8.0",
@@ -1182,9 +1183,7 @@
     "xvfb-maybe": "^0.2.1"
   },
   "overrides": {
-    "@mongodb-js/connection-form": {
-      "react": "$react"
-    }
+    "react": "^18.3.1"
   },
   "precommit": [
     "check"
