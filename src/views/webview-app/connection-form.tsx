@@ -71,7 +71,8 @@ const ConnectionForm: React.FunctionComponent<
       contentClassName={modalContentStyles}
       setOpen={() => onClose()}
       open={open}
-      data-testid="connection-form-modal"
+      id="connection-form"
+      autoFocus
       size="large"
     >
       {isConnecting && (
@@ -88,7 +89,7 @@ const ConnectionForm: React.FunctionComponent<
           />
         </div>
       )}
-      <div className={formContainerStyles}>
+      <div data-testid="connection-form-modal" className={formContainerStyles}>
         <CompassConnectionForm
           onConnectClicked={onConnectClicked}
           onSaveConnectionClicked={onSaveConnectionClicked}

@@ -13,7 +13,7 @@ describe('Resources panel test suite', function () {
     cleanup();
   });
 
-  test('it should render resources panel', function () {
+  it('should render resources panel', function () {
     render(<ResourcesPanel onClose={() => {}} />);
     expect(() => screen.getByLabelText('Close')).to.not.throw;
     expect(screen.getAllByTestId(/link-\w+/)).to.have.length.greaterThan(0);
@@ -25,14 +25,14 @@ describe('Resources panel test suite', function () {
     );
   });
 
-  test('it should call onClose on close btn click', function () {
+  it('should call onClose on close btn click', function () {
     const onCloseFake = Sinon.fake();
     render(<ResourcesPanel onClose={onCloseFake} />);
     screen.getByLabelText('Close').click();
     expect(onCloseFake).to.have.been.calledOnce;
   });
 
-  test('it should track link clicked event on click of any link', function () {
+  it('should track link clicked event on click of any link', function () {
     const postMessageStub = Sinon.stub(vscode, 'postMessage');
     render(<ResourcesPanel onClose={() => {}} />);
     screen.getAllByTestId(/^link-\w+/).forEach((link) => {
