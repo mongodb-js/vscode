@@ -146,11 +146,8 @@ module.exports = (env, argv) => {
       // @mongodb-js/connection-form pulls in a number of large front dependencies.
       // It's used in the webview, but gets pulled into the main extension so we exclude
       // the large onces here since we do use adjustConnectionOptionsBeforeConnect from it.
-      // '@leafygreen-ui': '@leafygreen-ui',
-      // 'prettier': 'prettier',
       '@mongodb-js/compass-components': '@mongodb-js/compass-components',
-      '@mongodb-js/compass-editor': '@mongodb-js/compass-editor'
-
+      '@mongodb-js/compass-editor': '@mongodb-js/compass-editor',
     },
     experiments: {
       // required for `bson`
