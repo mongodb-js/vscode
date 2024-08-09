@@ -183,6 +183,19 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController.changeActiveConnection()
     );
 
+    this.registerCommand(
+      EXTENSION_COMMANDS.OPEN_MONGODB_ISSUE_REPORTER,
+      async () => {
+        return await vscode.commands.executeCommand(
+          'workbench.action.openIssueReporter',
+          {
+            extensionId: 'mongodb.mongodb-vscode',
+            issueSource: 'extension',
+          }
+        );
+      }
+    );
+
     // ------ SHELL ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL, () =>
       launchMongoShell(this._connectionController)
