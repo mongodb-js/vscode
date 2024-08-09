@@ -2,7 +2,6 @@
 const path = require('path');
 const webpack = require('webpack');
 
-const autoprefixer = require('autoprefixer');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const DuplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack-plugin');
 const { merge } = require('webpack-merge');
