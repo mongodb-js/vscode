@@ -182,6 +182,46 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_local_atlas).to.equal(false);
     });
 
+    test('it tracks atlas IPv6', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+        isAtlas: true,
+        isLocalAtlas: false,
+        featureCompatibilityVersion: null,
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://[3fff:0:a88:15a3::ac2f]:8001')
+      );
+      getLastSeenTopology.returns({
+        servers: new Map().set('[3fff:0:a88:15a3::ac2f]:8001', {
+          address: '[3fff:0:a88:15a3::ac2f]:8001',
+        }),
+      });
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_FORM
+      );
+
+      expect(instanceTelemetry.is_atlas).to.equal(true);
+      expect(instanceTelemetry.atlas_hostname).to.equal(
+        '3fff:0:a88:15a3::ac2f'
+      );
+      expect(instanceTelemetry.is_atlas_url).to.equal(true);
+    });
+
     test('it tracks digital ocean', async () => {
       instanceStub.resolves({
         dataLake: {
