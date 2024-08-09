@@ -44,6 +44,10 @@ module.exports = (env, argv) => {
 
         // We don't currently support kerberos in our extension.
         kerberos: false,
+
+        // Optional native-addon dependencies of ssh2
+        'cpu-features': false,
+        './crypto/build/Release/sshcrypto.node': false,
       },
     },
 
@@ -68,9 +72,6 @@ module.exports = (env, argv) => {
       'os-dns-native': 'os-dns-native',
       'mongodb-client-encryption': 'mongodb-client-encryption',
       'compass-preferences-model': 'compass-preferences-model',
-      // Optional native-addon dependencies of ssh2
-      'cpu-features': false,
-      './crypto/build/Release/sshcrypto.node': false,
       '@mongodb-js/zstd': '@mongodb-js/zstd',
       'gcp-metadata': 'gcp-metadata',
       encoding: 'encoding',
