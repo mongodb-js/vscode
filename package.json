@@ -188,6 +188,10 @@
         "title": "MongoDB: Open Overview Page"
       },
       {
+        "command": "mdb.openMongoDBIssueReporter",
+        "title": "MongoDB: Open MongoDB Issue Reporter"
+      },
+      {
         "command": "mdb.openMongoDBShell",
         "title": "MongoDB: Launch MongoDB Shell"
       },
@@ -788,6 +792,10 @@
         {
           "command": "mdb.createNewPlaygroundFromOverviewPage",
           "when": "false"
+        },
+        {
+          "command": "mdb.openMongoDBIssueReporter",
+          "when": "true"
         },
         {
           "command": "mdb.createNewPlaygroundFromTreeView",

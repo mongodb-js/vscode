@@ -5,6 +5,8 @@ enum EXTENSION_COMMANDS {
   MDB_DISCONNECT = 'mdb.disconnect',
   MDB_REMOVE_CONNECTION = 'mdb.removeConnection',
 
+  OPEN_MONGODB_ISSUE_REPORTER = 'mdb.openMongoDBIssueReporter',
+
   MDB_OPEN_MDB_SHELL = 'mdb.openMongoDBShell',
   MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW = 'mdb.treeViewOpenMongoDBShell',
 

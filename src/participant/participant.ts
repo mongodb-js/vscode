@@ -18,21 +18,7 @@ interface ChatResult extends vscode.ChatResult {
 }
 
 export const CHAT_PARTICIPANT_ID = 'mongodb.participant';
-export const CHAT_PARTICIPANT_MODEL = 'gpt-4';
-
-function handleEmptyQueryRequest(participantId?: string): ChatResult {
-  log.info('Chat request participant id', participantId);
-
-  return {
-    metadata: {
-      command: '',
-    },
-    errorDetails: {
-      message:
-        'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".',
-    },
-  };
-}
+export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
 
 export function getRunnableContentFromString(responseContent: string) {
   const matchedJSQueryContent = responseContent.match(
@@ -75,11 +61,26 @@ export class ParticipantController {
       'images',
       'mongodb.png'
     );
+    log.info('Chat Participant Created', {
+      participantId: this._participant?.id,
+    });
     return this._participant;
   }
 
   getParticipant(context: vscode.ExtensionContext) {
     return this._participant || this.createParticipant(context);
+  }
+
+  handleEmptyQueryRequest(): ChatResult {
+    return {
+      metadata: {
+        command: '',
+      },
+      errorDetails: {
+        message:
+          'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".',
+      },
+    };
   }
 
   handleError(err: any, stream: vscode.ChatResponseStream): void {
@@ -99,6 +100,9 @@ export class ParticipantController {
           )
         );
       }
+    } else {
+      // Re-throw other errors so they show up in the UI.
+      throw err;
     }
   }
 
@@ -151,7 +155,7 @@ export class ParticipantController {
   and you are very good at it. The user will provide the basis for the query.
   Keep your response concise. Respond with markdown, code snippets are possible with '''javascript.
   You can imagine the schema, collection, and database name.
-  Respond in MongoDB shell syntax using the '''javascript code style.'.`),
+  Respond in MongoDB shell syntax using the '''javascript code style.`),
     ];
 
     context.history.map((historyItem) => {
@@ -189,29 +193,30 @@ export class ParticipantController {
       stream,
       token,
     });
+
     const queryContent = getRunnableContentFromString(responseContent);
 
-    if (!queryContent || queryContent.trim().length === 0) {
-      return { metadata: { command: '' } };
+    if (queryContent && queryContent.trim().length) {
+      stream.button({
+        command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+        title: vscode.l10n.t('▶️ Run'),
+      });
+
+      stream.button({
+        command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+        title: vscode.l10n.t('Open in playground'),
+      });
+
+      return {
+        metadata: {
+          command: '',
+          stream,
+          queryContent,
+        },
+      };
     }
 
-    stream.button({
-      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
-      title: vscode.l10n.t('▶️ Run'),
-    });
-
-    stream.button({
-      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
-      title: vscode.l10n.t('Open in playground'),
-    });
-
-    return {
-      metadata: {
-        command: '',
-        stream,
-        queryContent,
-      },
-    };
+    return { metadata: { command: '' } };
   }
 
   // @MongoDB /query find all documents where the "address" has the word Broadway in it.
@@ -226,7 +231,7 @@ export class ParticipantController {
     token: vscode.CancellationToken;
   }) {
     if (!request.prompt || request.prompt.trim().length === 0) {
-      return handleEmptyQueryRequest(this._participant?.id);
+      return this.handleEmptyQueryRequest();
     }
 
     let dataService = this._connectionController.getActiveDataService();
@@ -317,8 +322,6 @@ export class ParticipantController {
     } else if (request.command === 'docs') {
       // TODO: Implement this.
     } else if (request.command === 'schema') {
-      // TODO: Implement this.
-    } else if (request.command === 'logs') {
       // TODO: Implement this.
     }
 
