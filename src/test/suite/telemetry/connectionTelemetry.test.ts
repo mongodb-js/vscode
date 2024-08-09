@@ -64,7 +64,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_FORM
       );
-
       expect(instanceTelemetry.is_public_cloud).to.equal(true);
       expect(instanceTelemetry.public_cloud_name).to.equal('Azure');
     });
@@ -98,7 +97,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_FORM
       );
-
       expect(instanceTelemetry.is_public_cloud).to.equal(false);
     });
 
@@ -134,7 +132,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_FORM
       );
-
       expect(instanceTelemetry.is_atlas).to.equal(false);
       expect(instanceTelemetry.atlas_hostname).to.equal(null);
       expect(instanceTelemetry.is_atlas_url).to.equal(false);
@@ -173,7 +170,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_FORM
       );
-
       expect(instanceTelemetry.is_atlas).to.equal(true);
       expect(instanceTelemetry.atlas_hostname).to.equal(
         'test-data-sets-00-02-a011bb.mongodb.net'
@@ -214,12 +210,46 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_FORM
       );
-
       expect(instanceTelemetry.is_atlas).to.equal(true);
       expect(instanceTelemetry.atlas_hostname).to.equal(
         '3fff:0:a88:15a3::ac2f'
       );
-      expect(instanceTelemetry.is_atlas_url).to.equal(true);
+      expect(instanceTelemetry.is_atlas_url).to.equal(false);
+    });
+
+    test('it tracks atlas with fallback to original uri if failed resolving srv', async () => {
+      instanceStub.resolves({
+        dataLake: {
+          isDataLake: false,
+          version: 'na',
+        },
+        genuineMongoDB: {
+          dbType: 'na',
+          isGenuine: true,
+        },
+        host: {},
+        build: {
+          isEnterprise: false,
+          version: 'na',
+        },
+        isAtlas: false,
+        isLocalAtlas: false,
+        featureCompatibilityVersion: null,
+      });
+      getConnectionStringStub.returns(
+        new ConnectionString('mongodb://localhost')
+      );
+      getLastSeenTopology.returns({
+        servers: new Map().set('', {
+          address: '',
+        }),
+      });
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_FORM
+      );
+      expect(instanceTelemetry.is_localhost).to.equal(true);
     });
 
     test('it tracks digital ocean', async () => {
@@ -251,7 +281,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
-
       expect(instanceTelemetry.is_localhost).to.equal(false);
       expect(instanceTelemetry.is_atlas_url).to.equal(false);
       expect(instanceTelemetry.is_do_url).to.equal(true);
@@ -287,7 +316,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_FORM
       );
-
       expect(instanceTelemetry.is_used_connect_screen).to.equal(true);
       expect(instanceTelemetry.is_used_command_palette).to.equal(false);
       expect(instanceTelemetry.is_used_saved_connection).to.equal(false);
@@ -322,7 +350,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
-
       expect(instanceTelemetry.is_used_connect_screen).to.equal(false);
       expect(instanceTelemetry.is_used_command_palette).to.equal(true);
       expect(instanceTelemetry.is_used_saved_connection).to.equal(false);
@@ -357,7 +384,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_ID
       );
-
       expect(instanceTelemetry.is_used_connect_screen).to.equal(false);
       expect(instanceTelemetry.is_used_command_palette).to.equal(false);
       expect(instanceTelemetry.is_used_saved_connection).to.equal(true);
@@ -392,7 +418,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
-
       expect(instanceTelemetry.is_localhost).to.equal(false);
     });
 
@@ -425,7 +450,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
-
       expect(instanceTelemetry.is_localhost).to.equal(true);
     });
 
@@ -464,7 +488,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
-
       expect(instanceTelemetry.server_version).to.equal('4.3.9');
       expect(instanceTelemetry.server_arch).to.equal('debian');
       expect(instanceTelemetry.server_os_family).to.equal('ubuntu');
@@ -505,7 +528,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
-
       expect(instanceTelemetry.server_version).to.equal('4.3.2');
       expect(instanceTelemetry.server_arch).to.equal('darwin');
       expect(instanceTelemetry.server_os_family).to.equal('mac');
@@ -540,7 +562,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
-
       expect(instanceTelemetry.auth_strategy).to.equal('DEFAULT');
     });
 
@@ -573,7 +594,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
-
       expect(instanceTelemetry.auth_strategy).to.equal('NONE');
     });
 
@@ -608,7 +628,6 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         dataServiceStub,
         ConnectionTypes.CONNECTION_STRING
       );
-
       expect(instanceTelemetry.auth_strategy).to.equal('SCRAM-SHA-1');
     });
   });
