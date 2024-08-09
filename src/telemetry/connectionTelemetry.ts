@@ -40,8 +40,12 @@ export type HostInformation = {
 function getHostnameForConnection(dataService: DataService): string | null {
   const lastSeenTopology = dataService.getLastSeenTopology();
   const resolvedHost = lastSeenTopology?.servers.values().next().value.address;
-  const [hostname] = (resolvedHost ?? '').split(':');
-  return hostname;
+
+  if (resolvedHost.startsWith('[')) {
+    return resolvedHost.slice(1).split(']')[0]; // IPv6
+  }
+
+  return resolvedHost.split(':')[0];
 }
 
 async function getPublicCloudInfo(host: string): Promise<{
@@ -138,7 +142,9 @@ export async function getConnectionTelemetryProperties(
 
     preparedProperties = {
       ...preparedProperties,
-      ...(await getHostInformation(resolvedHostname)),
+      ...(await getHostInformation(
+        resolvedHostname || connectionString.toString()
+      )),
       auth_strategy: authStrategy,
       is_atlas: isAtlas,
       atlas_hostname: atlasHostname,
