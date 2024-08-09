@@ -9,6 +9,7 @@ const { merge } = require('webpack-merge');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const { WebpackDependenciesPlugin } = require('@mongodb-js/sbom-tools');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = (env, argv) => {
   const outputPath = path.join(__dirname, 'dist');
@@ -67,6 +68,31 @@ module.exports = (env, argv) => {
       'os-dns-native': 'os-dns-native',
       'mongodb-client-encryption': 'mongodb-client-encryption',
       'compass-preferences-model': 'compass-preferences-model',
+      // Optional native-addon dependencies of ssh2
+      'cpu-features': false,
+      './crypto/build/Release/sshcrypto.node': false,
+      '@mongodb-js/zstd': '@mongodb-js/zstd',
+      'gcp-metadata': 'gcp-metadata',
+      encoding: 'encoding',
+    },
+    optimization: {
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            // Using ASCII-only output means a slightly larger bundle file,
+            // but a significantly smaller executable, since V8 only allows
+            // storing strings as either ISO-8859-1 or UTF-16 and UTF-16 takes
+            // up twice the space that ISO-8859-1 strings do.
+            output: { ascii_only: true },
+            // Not keeping classnames breaks shell-api during minification
+            keep_classnames: true,
+            compress: {
+              // The 'bindings' package relies on `error.stack;` having side effects.
+              pure_getters: false,
+            },
+          },
+        }),
+      ],
     },
     plugins: [
       webpackDependenciesPlugin,
@@ -132,21 +158,11 @@ module.exports = (env, argv) => {
     entry: {
       languageServer: './src/language/server.ts',
     },
-    optimization: {
-      // Don't minimize in order to preserve
-      // the signature names from @mongosh/shell-api.
-      minimize: false,
-    },
   });
 
   const languageServerWorkerConfig = merge(nodeTargetConfig(), {
     entry: {
       languageServerWorker: './src/language/worker.ts',
-    },
-    optimization: {
-      // Don't minimize in order to preserve
-      // the signature names from @mongosh/shell-api.
-      minimize: false,
     },
   });
 
