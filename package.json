@@ -62,7 +62,9 @@
     "reformat": "prettier --write .",
     "snyk-test": "node scripts/snyk-test.js",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
-    "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues"
+    "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
+    "prepare": "husky",
+    "precommit": "ts-node ./scripts/precommit.ts"
   },
   "engines": {
     "vscode": "^1.92.1",
@@ -1154,6 +1156,7 @@
     "eslint-plugin-mocha": "^10.5.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "glob": "^7.2.3",
+    "husky": "^9.1.4",
     "jsdom": "^23.2.0",
     "mkdirp": "^1.0.4",
     "mocha": "^10.7.3",
@@ -1184,8 +1187,5 @@
   },
   "overrides": {
     "react": "^18.3.1"
-  },
-  "precommit": [
-    "check"
-  ]
+  }
 }
