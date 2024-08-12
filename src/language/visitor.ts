@@ -1,6 +1,7 @@
-import type * as babel from '@babel/core';
 import * as parser from '@babel/parser';
+import type { NodePath } from '@babel/traverse';
 import traverse from '@babel/traverse';
+import type * as t from '@babel/types';
 
 const PLACEHOLDER = 'TRIGGER_CHARACTER';
 
@@ -14,10 +15,7 @@ export interface VisitorTextAndSelection {
   selection: VisitorSelection;
 }
 
-type ObjectKey =
-  | babel.types.ObjectProperty
-  | babel.types.SpreadElement
-  | babel.types.ObjectMethod;
+type ObjectKey = t.ObjectProperty | t.SpreadElement | t.ObjectMethod;
 
 export interface CompletionState {
   databaseName: string | null;
@@ -62,7 +60,7 @@ export class Visitor {
     };
   }
 
-  _visitCallExpression(path: babel.NodePath): void {
+  _visitCallExpression(path: NodePath): void {
     if (path.node.type !== 'CallExpression') {
       return;
     }
@@ -74,7 +72,7 @@ export class Visitor {
     this._checkHasDatabaseName(path.node);
   }
 
-  _visitMemberExpression(path: babel.NodePath): void {
+  _visitMemberExpression(path: NodePath): void {
     if (path.node.type !== 'MemberExpression') {
       return;
     }
@@ -89,7 +87,7 @@ export class Visitor {
     this._checkHasStreamProcessorName(path.node);
   }
 
-  _visitExpressionStatement(path: babel.NodePath): void {
+  _visitExpressionStatement(path: NodePath): void {
     if (path.node.type === 'ExpressionStatement') {
       this._checkIsGlobalSymbol(path.node);
       this._checkIsDbSymbol(path.node);
@@ -97,7 +95,7 @@ export class Visitor {
     }
   }
 
-  _visitObjectExpression(path: babel.NodePath): void {
+  _visitObjectExpression(path: NodePath): void {
     if (path.node.type === 'ObjectExpression') {
       this._checkIsObjectKey(path.node);
       this._checkIsIdentifierObjectValue(path.node);
@@ -105,7 +103,7 @@ export class Visitor {
     }
   }
 
-  _visitArrayExpression(path: babel.NodePath): void {
+  _visitArrayExpression(path: NodePath): void {
     if (path.node.type === 'ArrayExpression') {
       this._checkIsBSONSelection(path.node);
       this._checkIsStage(path.node);
@@ -113,13 +111,13 @@ export class Visitor {
     }
   }
 
-  _visitVariableDeclarator(path: babel.NodePath): void {
+  _visitVariableDeclarator(path: NodePath): void {
     if (path.node.type === 'VariableDeclarator') {
       this._checkIsBSONSelection(path.node);
     }
   }
 
-  _visitObjectProperty(path: babel.NodePath): void {
+  _visitObjectProperty(path: NodePath): void {
     if (path.node.type === 'ObjectProperty') {
       this._checkIsBSONSelection(path.node);
     }
@@ -192,7 +190,7 @@ export class Visitor {
     }
 
     traverse(ast, {
-      enter: (path: babel.NodePath) => {
+      enter: (path: NodePath) => {
         this._visitCallExpression(path);
         this._visitMemberExpression(path);
         this._visitExpressionStatement(path);
@@ -243,7 +241,7 @@ export class Visitor {
     };
   }
 
-  _checkIsUseCallAsSimpleString(node: babel.types.CallExpression): void {
+  _checkIsUseCallAsSimpleString(node: t.CallExpression): void {
     if (
       node.callee.type === 'Identifier' &&
       node.callee.name === 'use' &&
@@ -256,7 +254,7 @@ export class Visitor {
     }
   }
 
-  _checkIsUseCallAsTemplate(node: babel.types.CallExpression): void {
+  _checkIsUseCallAsTemplate(node: t.CallExpression): void {
     if (
       node.callee.type === 'Identifier' &&
       node.callee.name === 'use' &&
@@ -272,12 +270,12 @@ export class Visitor {
     }
   }
 
-  _checkIsUseCall(node: babel.types.CallExpression): void {
+  _checkIsUseCall(node: t.CallExpression): void {
     this._checkIsUseCallAsSimpleString(node);
     this._checkIsUseCallAsTemplate(node);
   }
 
-  _checkIsGlobalSymbol(node: babel.types.ExpressionStatement): void {
+  _checkIsGlobalSymbol(node: t.ExpressionStatement): void {
     if (
       node.expression.type === 'Identifier' &&
       node.expression.name.includes('TRIGGER_CHARACTER') &&
@@ -287,7 +285,7 @@ export class Visitor {
     }
   }
 
-  _checkIsDbSymbol(node: babel.types.ExpressionStatement): void {
+  _checkIsDbSymbol(node: t.ExpressionStatement): void {
     if (
       node.expression.type === 'MemberExpression' &&
       node.expression.object.type === 'Identifier' &&
@@ -298,7 +296,7 @@ export class Visitor {
     }
   }
 
-  _checkIsSpSymbol(node: babel.types.ExpressionStatement): void {
+  _checkIsSpSymbol(node: t.ExpressionStatement): void {
     if (
       node.expression.type === 'MemberExpression' &&
       node.expression.object.type === 'Identifier' &&
@@ -309,7 +307,7 @@ export class Visitor {
     }
   }
 
-  _checkIsObjectKey(node: babel.types.ObjectExpression): void {
+  _checkIsObjectKey(node: t.ObjectExpression): void {
     node.properties.find((item: ObjectKey) => {
       if (
         item.type === 'ObjectProperty' &&
@@ -322,7 +320,7 @@ export class Visitor {
     });
   }
 
-  _checkIsIdentifierObjectValue(node: babel.types.ObjectExpression): void {
+  _checkIsIdentifierObjectValue(node: t.ObjectExpression): void {
     node.properties.find((item: ObjectKey) => {
       if (
         item.type === 'ObjectProperty' &&
@@ -335,7 +333,7 @@ export class Visitor {
     });
   }
 
-  _checkIsTextObjectValue(node: babel.types.ObjectExpression): void {
+  _checkIsTextObjectValue(node: t.ObjectExpression): void {
     node.properties.find((item: ObjectKey) => {
       if (
         ((item.type === 'ObjectProperty' &&
@@ -352,7 +350,7 @@ export class Visitor {
     });
   }
 
-  _checkIsStage(node: babel.types.ArrayExpression): void {
+  _checkIsStage(node: t.ArrayExpression): void {
     if (node.elements) {
       node.elements.forEach((item) => {
         if (item?.type === 'ObjectExpression') {
@@ -371,7 +369,7 @@ export class Visitor {
     }
   }
 
-  _checkIsStageOperator(path: babel.NodePath): void {
+  _checkIsStageOperator(path: NodePath): void {
     if (path.node.type === 'ArrayExpression' && path.node.elements) {
       path.node.elements.forEach((item) => {
         if (item?.type === 'ObjectExpression') {
@@ -383,7 +381,7 @@ export class Visitor {
             ) {
               const name = item.key.name;
               path.scope.traverse(item, {
-                enter: (path: babel.NodePath) => {
+                enter: (path: NodePath) => {
                   if (
                     path.node.type === 'ObjectProperty' &&
                     path.node.key.type === 'Identifier' &&
@@ -402,7 +400,7 @@ export class Visitor {
   }
 
   _isParentAroundSelection(
-    node: babel.types.ArrayExpression | babel.types.CallExpression
+    node: t.ArrayExpression | t.CallExpression
   ): boolean {
     if (
       node.loc?.start?.line &&
@@ -420,7 +418,7 @@ export class Visitor {
     return false;
   }
 
-  _isObjectPropBeforeSelection(node: babel.types.ObjectProperty): boolean {
+  _isObjectPropBeforeSelection(node: t.ObjectProperty): boolean {
     if (
       node.key.loc?.end &&
       (node.key.loc?.end.line - 1 < this._selection.start?.line ||
@@ -433,9 +431,7 @@ export class Visitor {
     return false;
   }
 
-  _isVariableIdentifierBeforeSelection(
-    node: babel.types.VariableDeclarator
-  ): boolean {
+  _isVariableIdentifierBeforeSelection(node: t.VariableDeclarator): boolean {
     if (
       node.id.loc?.end &&
       (node.id.loc?.end.line - 1 < this._selection.start?.line ||
@@ -448,9 +444,7 @@ export class Visitor {
     return false;
   }
 
-  _isWithinSelection(
-    node: babel.types.ArrayExpression | babel.types.ObjectExpression
-  ): boolean {
+  _isWithinSelection(node: t.ArrayExpression | t.ObjectExpression): boolean {
     if (
       node.loc?.start?.line &&
       node.loc.start.line - 1 === this._selection.start?.line &&
@@ -467,7 +461,7 @@ export class Visitor {
     return false;
   }
 
-  _checkIsArrayWithinSelection(node: babel.types.Node): void {
+  _checkIsArrayWithinSelection(node: t.Node): void {
     if (
       node.type === 'ArrayExpression' &&
       this._isWithinSelection(node) &&
@@ -477,7 +471,7 @@ export class Visitor {
     }
   }
 
-  _checkIsObjectWithinSelection(node: babel.types.Node): void {
+  _checkIsObjectWithinSelection(node: t.Node): void {
     if (
       node.type === 'ObjectExpression' &&
       this._isWithinSelection(node) &&
@@ -487,7 +481,7 @@ export class Visitor {
     }
   }
 
-  _checkIsBSONSelectionInArray(node: babel.types.Node): void {
+  _checkIsBSONSelectionInArray(node: t.Node): void {
     if (
       node.type === 'ArrayExpression' &&
       this._isParentAroundSelection(node)
@@ -501,7 +495,7 @@ export class Visitor {
     }
   }
 
-  _checkIsBSONSelectionInFunction(node: babel.types.Node): void {
+  _checkIsBSONSelectionInFunction(node: t.Node): void {
     if (node.type === 'CallExpression' && this._isParentAroundSelection(node)) {
       node.arguments.forEach((item) => {
         if (item) {
@@ -512,7 +506,7 @@ export class Visitor {
     }
   }
 
-  _checkIsBSONSelectionInVariable(node: babel.types.Node) {
+  _checkIsBSONSelectionInVariable(node: t.Node) {
     if (
       node.type === 'VariableDeclarator' &&
       node.init &&
@@ -523,7 +517,7 @@ export class Visitor {
     }
   }
 
-  _checkIsBSONSelectionInObject(node: babel.types.Node) {
+  _checkIsBSONSelectionInObject(node: t.Node) {
     if (
       node.type === 'ObjectProperty' &&
       this._isObjectPropBeforeSelection(node)
@@ -533,16 +527,14 @@ export class Visitor {
     }
   }
 
-  _checkIsBSONSelection(node: babel.types.Node): void {
+  _checkIsBSONSelection(node: t.Node): void {
     this._checkIsBSONSelectionInFunction(node);
     this._checkIsBSONSelectionInArray(node);
     this._checkIsBSONSelectionInVariable(node);
     this._checkIsBSONSelectionInObject(node);
   }
 
-  _checkIsCollectionNameAsMemberExpression(
-    node: babel.types.MemberExpression
-  ): void {
+  _checkIsCollectionNameAsMemberExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'Identifier' &&
       node.object.name === 'db' &&
@@ -556,7 +548,7 @@ export class Visitor {
     }
   }
 
-  _checkGetCollectionAsSimpleString(node: babel.types.CallExpression): void {
+  _checkGetCollectionAsSimpleString(node: t.CallExpression): void {
     if (
       node.arguments[0].type === 'StringLiteral' &&
       node.arguments[0].value.includes(PLACEHOLDER) &&
@@ -566,7 +558,7 @@ export class Visitor {
     }
   }
 
-  _checkGetCollectionAsTemplate(node: babel.types.CallExpression): void {
+  _checkGetCollectionAsTemplate(node: t.CallExpression): void {
     if (
       node.arguments[0].type === 'TemplateLiteral' &&
       node.arguments[0].quasis.length === 1 &&
@@ -577,9 +569,7 @@ export class Visitor {
     }
   }
 
-  _checkIsCollectionNameAsCallExpression(
-    node: babel.types.CallExpression
-  ): void {
+  _checkIsCollectionNameAsCallExpression(node: t.CallExpression): void {
     if (
       node.callee.type === 'MemberExpression' &&
       node.callee.object.type === 'Identifier' &&
@@ -593,7 +583,7 @@ export class Visitor {
     }
   }
 
-  _checkHasAggregationCall(node: babel.types.MemberExpression): void {
+  _checkHasAggregationCall(node: t.MemberExpression): void {
     if (
       node.object.type === 'CallExpression' &&
       node.property.type === 'Identifier' &&
@@ -608,7 +598,7 @@ export class Visitor {
     }
   }
 
-  _checkHasFindCall(node: babel.types.MemberExpression): void {
+  _checkHasFindCall(node: t.MemberExpression): void {
     if (
       node.object.type === 'CallExpression' &&
       node.property.type === 'Identifier' &&
@@ -623,7 +613,7 @@ export class Visitor {
     }
   }
 
-  _checkHasDatabaseName(node: babel.types.CallExpression): void {
+  _checkHasDatabaseName(node: t.CallExpression): void {
     if (
       node.callee.type === 'Identifier' &&
       node.callee.name === 'use' &&
@@ -639,9 +629,7 @@ export class Visitor {
     }
   }
 
-  _checkHasCollectionNameMemberExpression(
-    node: babel.types.MemberExpression
-  ): void {
+  _checkHasCollectionNameMemberExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
@@ -661,7 +649,7 @@ export class Visitor {
     }
   }
 
-  _checkHasCollectionNameCallExpression(node: babel.types.MemberExpression) {
+  _checkHasCollectionNameCallExpression(node: t.MemberExpression) {
     if (
       node.object.type === 'CallExpression' &&
       node.object.callee.type === 'MemberExpression' &&
@@ -677,12 +665,12 @@ export class Visitor {
     }
   }
 
-  _checkHasCollectionName(node: babel.types.MemberExpression): void {
+  _checkHasCollectionName(node: t.MemberExpression): void {
     this._checkHasCollectionNameMemberExpression(node);
     this._checkHasCollectionNameCallExpression(node);
   }
 
-  _checkIsCollectionMemberExpression(node: babel.types.MemberExpression): void {
+  _checkIsCollectionMemberExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
@@ -695,7 +683,7 @@ export class Visitor {
     }
   }
 
-  _checkIsCollectionCallExpression(node: babel.types.MemberExpression): void {
+  _checkIsCollectionCallExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'CallExpression' &&
       node.object.callee.type === 'MemberExpression' &&
@@ -711,13 +699,13 @@ export class Visitor {
     }
   }
 
-  _checkIsCollectionSymbol(node: babel.types.MemberExpression): void {
+  _checkIsCollectionSymbol(node: t.MemberExpression): void {
     this._checkIsCollectionMemberExpression(node);
     this._checkIsCollectionCallExpression(node);
   }
 
   _checkIsStreamProcessorNameAsMemberExpression(
-    node: babel.types.MemberExpression
+    node: t.MemberExpression
   ): void {
     if (
       node.object.type === 'Identifier' &&
@@ -733,9 +721,7 @@ export class Visitor {
     }
   }
 
-  _checkIsStreamProcessorNameAsCallExpression(
-    node: babel.types.CallExpression
-  ): void {
+  _checkIsStreamProcessorNameAsCallExpression(node: t.CallExpression): void {
     if (
       node.callee.type === 'MemberExpression' &&
       node.callee.object.type === 'Identifier' &&
@@ -749,9 +735,7 @@ export class Visitor {
     }
   }
 
-  _checkGetStreamProcessorAsSimpleString(
-    node: babel.types.CallExpression
-  ): void {
+  _checkGetStreamProcessorAsSimpleString(node: t.CallExpression): void {
     if (
       node.arguments[0].type === 'StringLiteral' &&
       node.arguments[0].value.includes(PLACEHOLDER) &&
@@ -761,7 +745,7 @@ export class Visitor {
     }
   }
 
-  _checkGetStreamProcessorAsTemplate(node: babel.types.CallExpression): void {
+  _checkGetStreamProcessorAsTemplate(node: t.CallExpression): void {
     if (
       node.arguments[0].type === 'TemplateLiteral' &&
       node.arguments[0].quasis.length === 1 &&
@@ -772,14 +756,12 @@ export class Visitor {
     }
   }
 
-  _checkHasStreamProcessorName(node: babel.types.MemberExpression): void {
+  _checkHasStreamProcessorName(node: t.MemberExpression): void {
     this._checkHasStreamProcessorNameMemberExpression(node);
     this._checkHasStreamProcessorNameCallExpression(node);
   }
 
-  _checkHasStreamProcessorNameMemberExpression(
-    node: babel.types.MemberExpression
-  ): void {
+  _checkHasStreamProcessorNameMemberExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
@@ -799,9 +781,7 @@ export class Visitor {
     }
   }
 
-  _checkHasStreamProcessorNameCallExpression(
-    node: babel.types.MemberExpression
-  ) {
+  _checkHasStreamProcessorNameCallExpression(node: t.MemberExpression) {
     if (
       node.object.type === 'CallExpression' &&
       node.object.callee.type === 'MemberExpression' &&
@@ -817,14 +797,12 @@ export class Visitor {
     }
   }
 
-  _checkIsStreamProcessorSymbol(node: babel.types.MemberExpression): void {
+  _checkIsStreamProcessorSymbol(node: t.MemberExpression): void {
     this._checkIsStreamProcessorMemberExpression(node);
     this._checkIsStreamProcessorCallExpression(node);
   }
 
-  _checkIsStreamProcessorMemberExpression(
-    node: babel.types.MemberExpression
-  ): void {
+  _checkIsStreamProcessorMemberExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'MemberExpression' &&
       node.object.object.type === 'Identifier' &&
@@ -837,9 +815,7 @@ export class Visitor {
     }
   }
 
-  _checkIsStreamProcessorCallExpression(
-    node: babel.types.MemberExpression
-  ): void {
+  _checkIsStreamProcessorCallExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'CallExpression' &&
       node.object.callee.type === 'MemberExpression' &&

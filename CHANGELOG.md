@@ -1,5 +1,24 @@
 # Change Log
 
+## [v1.7.0](https://github.com/mongodb-js/vscode/releases/tag/v1.7.0) - 2024-08-01
+
+## What's Changed
+* feat(telemetry): update connection telemetry VSCODE-560 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/764
+* refactor(telemetry): use resolved srv from topology VSCODE-563 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/765
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.6.1...v1.7.0
+
+
+## [v1.6.1](https://github.com/mongodb-js/vscode/releases/tag/v1.6.1) - 2024-07-15
+
+## What's Changed
+* fix: disconnect extension when server is closed VSCODE-536 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/734
+* chore(deps): bump mongosh VSCODE-548 by @mabaasit in https://github.com/mongodb-js/vscode/pull/752
+* fix: remove changelog from the bundle VSCODE-551 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/758
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.6.0...v1.6.1
+
+
 ## [v1.6.0](https://github.com/mongodb-js/vscode/releases/tag/v1.6.0) - 2024-04-23
 
 ## What's Changed
@@ -425,33 +444,5 @@ To dig deeper please feel free to follow the links mentioned below:
 - Added the ability to use print() and console.log() in playgrounds [#184](https://github.com/mongodb-js/vscode/pull/184)
 - Added an overview page (more to come on this in future versions) [#178](https://github.com/mongodb-js/vscode/pull/178)
 - Added a tooltip to fields in a collection's schema to show types found in the sampling for that field [#179](https://github.com/mongodb-js/vscode/pull/179)
-
-
-## [v0.2.0](https://github.com/mongodb-js/vscode/releases/tag/v0.2.0) - 2020-10-01
-
-### Added
-- Added a Playgrounds panel that displays `.mongodb` playground files in the current VSCode workspace
-- Added a setting to configure which folders and files are excluded from the playgrounds panel file searching
-- Added a help and resources panel to the explorer with links to documentation and feedback portals
-- Added a button to the indexes folder in the tree view which creates a playground prefilled with an index creation script
-### Changed
-- Updated our mongosh dependency to 0.4.2 to bring more functionality to playgrounds
-### Fixed
-- Fixed indexes expanded state caching in the connection explorer panel tree view
-
-
-## [v0.1.1](https://github.com/mongodb-js/vscode/releases/tag/v0.1.1) - 2020-08-10
-
-### Added
-
-- Added a search for documents playground shortcut in the tree explorer view
-- Added a copy field name right click action in a collection's schema in the tree explorer view
-- Added a document count for a collection in the tree view (with hover tooltip for the full count)
-- Added the ability to change the current connection when in an open playground file by using the codelens on the first line of the playground
-
-### Changed
-
-- Allow connecting to a new connection while already connecting to another connection
-- Allow removing a new connection while it is connecting
 
 
