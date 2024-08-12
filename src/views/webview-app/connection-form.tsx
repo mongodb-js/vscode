@@ -71,8 +71,6 @@ const ConnectionForm: React.FunctionComponent<
       contentClassName={modalContentStyles}
       setOpen={() => onClose()}
       open={open}
-      id="connection-form"
-      autoFocus
       size="large"
     >
       {isConnecting && (
