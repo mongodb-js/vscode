@@ -76,7 +76,7 @@ runs:
 
     - name: Build .vsix
       env:
-        NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js"
+        NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
       # NOTE: --githubBranch is "The GitHub branch used to infer relative links in README.md."
       run: |
         npx vsce package --githubBranch main
