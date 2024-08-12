@@ -91,6 +91,7 @@ const ConnectHelper: React.FC<{
           <Button
             aria-label="Open connection form"
             darkMode
+            data-testid="open-connection-form-button"
             onClick={onClickOpenConnectionForm}
           >
             Open form
