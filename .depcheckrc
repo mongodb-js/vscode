@@ -1,6 +1,4 @@
 ignores:
- - "@babel/core"
- - "@babel/preset-typescript"
  - "@mongodb-js/prettier-config-devtools"
  - "@types/jest"
  - "buffer"
