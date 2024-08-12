@@ -30,7 +30,7 @@ suite('getEJSON', function () {
       expect(ejson).to.deep.equal({
         grandparent: {
           parent: {
-            sibling: 1,
+            sibling: { $numberInt: 1 },
             uuid: prettyUuid,
           },
         },
@@ -52,7 +52,7 @@ suite('getEJSON', function () {
         items: [
           {
             parent: {
-              sibling: 1,
+              sibling: { $numberInt: 1 },
               uuid: prettyUuid,
             },
           },

@@ -250,7 +250,9 @@ export default class EditorsController {
     }
 
     try {
-      const newDocument = EJSON.parse(activeEditor.document.getText() || '');
+      const newDocument = EJSON.parse(activeEditor.document.getText() || '', {
+        relaxed: false,
+      });
 
       await this._mongoDBDocumentService.replaceDocument({
         namespace,

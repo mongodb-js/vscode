@@ -138,7 +138,12 @@ export default class MongoDBDocumentService {
       const documents = await dataService.find(
         namespace,
         { _id: documentId },
-        { limit: 1 }
+        {
+          limit: 1,
+
+          promoteValues: false,
+          bsonRegExp: true,
+        }
       );
 
       this._statusView.hideMessage();

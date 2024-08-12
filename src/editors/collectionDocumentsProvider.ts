@@ -6,6 +6,7 @@ import type ConnectionController from '../connectionController';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
+import { getEJSON } from '../utils/ejson';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
@@ -93,7 +94,12 @@ export default class CollectionViewProvider
       const documents = await dataservice.find(
         namespace,
         {}, // No filter.
-        { limit: documentLimit }
+        {
+          limit: documentLimit,
+
+          promoteValues: false,
+          bsonRegExp: true,
+        }
       );
 
       operation.isCurrentlyFetchingMoreDocuments = false;
@@ -109,7 +115,7 @@ export default class CollectionViewProvider
         uri,
       });
 
-      return JSON.stringify(documents, null, 2);
+      return JSON.stringify(getEJSON(documents), null, 2);
     } catch (error) {
       const errorMessage = `Unable to list documents: ${
         formatError(error).message

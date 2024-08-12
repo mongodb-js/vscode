@@ -2649,7 +2649,7 @@ suite('MongoDBService Test Suite', () => {
               result: {
                 namespace: `${dbName1}.${collectionName1}`,
                 type: 'Document',
-                content: { name: 'Test1', number: 1 },
+                content: { name: 'Test1', number: { $numberInt: '1' } },
                 language: 'json',
               },
             };
@@ -2680,7 +2680,7 @@ suite('MongoDBService Test Suite', () => {
               result: {
                 namespace: `${dbName2}.${collectionName2}`,
                 type: 'Document',
-                content: { name: 'Test2', number: 2 },
+                content: { name: 'Test2', number: { $numberInt: 2 } },
                 language: 'json',
               },
             };
@@ -2708,7 +2708,7 @@ suite('MongoDBService Test Suite', () => {
               result: {
                 namespace: `${dbName2}.${collectionName2}`,
                 type: 'Document',
-                content: { name: 'Test2', number: 2 },
+                content: { name: 'Test2', number: { $numberInt: 2 } },
                 language: 'json',
               },
             };
