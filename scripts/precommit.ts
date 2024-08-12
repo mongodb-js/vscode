@@ -27,7 +27,7 @@ async function main(fileList: string[]) {
     ...fileList,
   ]);
 
-  // Re-add potentially reformatted files
+  // Re-add potentially reformatted files.
   await execFileAsync('git', ['add', ...fileList]);
 }
 
