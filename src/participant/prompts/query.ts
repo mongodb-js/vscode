@@ -16,9 +16,10 @@ Respond in MongoDB shell syntax using the \'\'\'javascript code block syntax.`;
     return vscode.LanguageModelChatMessage.Assistant(prompt);
   }
 
-  static getUserPrompt(
-    request: vscode.ChatRequest
-  ): vscode.LanguageModelChatMessage {
+  static getUserPrompt(request: {
+    // vscode.ChatRequest
+    prompt: string;
+  }): vscode.LanguageModelChatMessage {
     // eslint-disable-next-line new-cap
     return vscode.LanguageModelChatMessage.User(request.prompt);
   }
@@ -27,7 +28,10 @@ Respond in MongoDB shell syntax using the \'\'\'javascript code block syntax.`;
     context,
     request,
   }: {
-    request: vscode.ChatRequest;
+    request: {
+      // vscode.ChatRequest
+      prompt: string;
+    };
     context: vscode.ChatContext;
   }): vscode.LanguageModelChatMessage[] {
     const messages = [
