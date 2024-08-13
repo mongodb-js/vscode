@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
 import EXTENSION_COMMANDS from '../commands';
+import type { StorageController } from '../storage';
+import { StorageVariables } from '../storage';
 
 const log = createLogger('participant');
 
@@ -38,14 +40,18 @@ export class ParticipantController {
   _participant?: vscode.ChatParticipant;
   _chatResult: ChatResult;
   _connectionController: ConnectionController;
+  _storageController: StorageController;
 
   constructor({
     connectionController,
+    storageController,
   }: {
     connectionController: ConnectionController;
+    storageController: StorageController;
   }) {
     this._chatResult = { metadata: { command: '' } };
     this._connectionController = connectionController;
+    this._storageController = storageController;
   }
 
   createParticipant(context: vscode.ExtensionContext) {
@@ -311,6 +317,23 @@ export class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
+    const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
+      StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE
+    );
+
+    if (!hasBeenShownWelcomeMessageAlready) {
+      stream.markdown(
+        vscode.l10n.t(`
+  Welcome to MongoDB Participant!\n\n
+  Interact with your MongoDB clusters and generate MongoDB-related code more efficiently with intelligent AI-powered feature, available today in the MongoDB extension.\n\n
+  Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.`)
+      );
+      void this._storageController.update(
+        StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
+        true
+      );
+    }
+
     if (request.command === 'query') {
       this._chatResult = await this.handleQueryRequest({
         request,

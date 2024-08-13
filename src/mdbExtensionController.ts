@@ -109,6 +109,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       new PlaygroundDiagnosticsCodeActionProvider();
     this._participantController = new ParticipantController({
       connectionController: this._connectionController,
+      storageController: this._storageController,
     });
     this._playgroundController = new PlaygroundController({
       connectionController: this._connectionController,

@@ -71,6 +71,7 @@ suite('Language Server Controller Test Suite', () => {
     );
     testParticipantController = new ParticipantController({
       connectionController: testConnectionController,
+      storageController: testStorageController,
     });
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
