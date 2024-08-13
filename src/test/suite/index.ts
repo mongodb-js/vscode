@@ -13,7 +13,7 @@ export async function run(): Promise<void> {
 
   // Create the mocha tester.
   const mocha = new Mocha({
-    reporter: 'mocha-multi',
+    reporter: 'spec',
     reporterOptions,
     ui: 'tdd',
     color: true,
