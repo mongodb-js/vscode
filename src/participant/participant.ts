@@ -17,6 +17,13 @@ interface ChatResult extends vscode.ChatResult {
   stream?: vscode.ChatResponseStream;
 }
 
+interface ChatHandlerArgs {
+  request: vscode.ChatRequest;
+  context: vscode.ChatContext;
+  stream: vscode.ChatResponseStream;
+  token: vscode.CancellationToken;
+}
+
 export const CHAT_PARTICIPANT_ID = 'mongodb.participant';
 export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
 
@@ -142,12 +149,7 @@ export class ParticipantController {
     context,
     stream,
     token,
-  }: {
-    request: vscode.ChatRequest;
-    context: vscode.ChatContext;
-    stream: vscode.ChatResponseStream;
-    token: vscode.CancellationToken;
-  }) {
+  }: ChatHandlerArgs) {
     const messages = [
       // eslint-disable-next-line new-cap
       vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
@@ -220,44 +222,23 @@ export class ParticipantController {
   }
 
   // @MongoDB /query find all documents where the "address" has the word Broadway in it.
-  async handleQueryRequest({
-    request,
-    stream,
-    token,
-  }: {
-    request: vscode.ChatRequest;
-    context?: vscode.ChatContext;
-    stream: vscode.ChatResponseStream;
-    token: vscode.CancellationToken;
-  }) {
+  async handleQueryRequest(chatHandlerArgs: ChatHandlerArgs) {
+    const { request, stream, token } = chatHandlerArgs;
     if (!request.prompt || request.prompt.trim().length === 0) {
       return this.handleEmptyQueryRequest();
     }
 
-    let dataService = this._connectionController.getActiveDataService();
+    const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       stream.markdown(
         "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
       );
-      // We add a delay so the user can read the message.
-      // TODO: maybe there is better way to handle this.
-      // stream.button() does not awaits so we can't use it here.
-      // Followups do not support input so we can't use that either.
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const successfullyConnected =
-        await this._connectionController.changeActiveConnection();
-      dataService = this._connectionController.getActiveDataService();
-
-      if (!dataService || !successfullyConnected) {
-        stream.markdown(
-          'No connection for command provided. Please use a valid connection for running commands.\n\n'
-        );
-        return { metadata: { command: '' } };
-      }
-
-      stream.markdown(
-        `Connected to "${this._connectionController.getActiveConnectionName()}".\n\n`
-      );
+      stream.button({
+        command: EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION_FROM_COPILOT,
+        title: vscode.l10n.t('Connect'),
+        arguments: [chatHandlerArgs],
+      });
+      return { metadata: { command: '' } };
     }
 
     const abortController = new AbortController();
@@ -281,8 +262,8 @@ export class ParticipantController {
       stream,
       token,
     });
-    const queryContent = getRunnableContentFromString(responseContent);
 
+    const queryContent = getRunnableContentFromString(responseContent);
     if (!queryContent || queryContent.trim().length === 0) {
       return { metadata: { command: '' } };
     }
@@ -303,6 +284,19 @@ export class ParticipantController {
         queryContent,
       },
     };
+  }
+
+  async changeActiveConnection(
+    chatHandlerArgs: ChatHandlerArgs
+  ): Promise<boolean> {
+    const successfullyConnected =
+      await this._connectionController.changeActiveConnection();
+    // Prints the user prompt for the second time.
+    // See https://github.com/microsoft/vscode/issues/225516
+    await vscode.commands.executeCommand('workbench.action.chat.open', {
+      query: `@MongoDB /query ${chatHandlerArgs.request.prompt}`,
+    });
+    return successfullyConnected;
   }
 
   async chatHandler(

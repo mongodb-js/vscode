@@ -304,6 +304,10 @@ export default class MDBExtensionController implements vscode.Disposable {
         });
       }
     );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION_FROM_COPILOT,
+      (data) => this._participantController.changeActiveConnection(data)
+    );
   };
 
   registerParticipantCommand = (

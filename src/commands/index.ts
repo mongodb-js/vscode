@@ -34,6 +34,7 @@ enum EXTENSION_COMMANDS {
   MDB_SAVE_MONGODB_DOCUMENT = 'mdb.saveMongoDBDocument',
 
   MDB_CHANGE_ACTIVE_CONNECTION = 'mdb.changeActiveConnection',
+  MDB_CHANGE_ACTIVE_CONNECTION_FROM_COPILOT = 'mdb.changeActiveConnectionFromCopilot',
 
   MDB_CODELENS_SHOW_MORE_DOCUMENTS = 'mdb.codeLens.showMoreDocumentsClicked',
 
