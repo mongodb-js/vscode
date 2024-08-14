@@ -10,7 +10,6 @@ enum QUERY_GENERATION_STATUS {
   ASK_FOR_DATABASE_NAME = 'ASK_FOR_DATABASE_NAME',
   ASK_FOR_COLLECTION_NAME = 'ASK_FOR_COLLECTION_NAME',
   READY_TO_GENERATE_QUERY = 'READY_TO_GENERATE_QUERY',
-  QUERY_GENERATED = 'QUERY_GENERATED',
 }
 
 interface ChatResult extends vscode.ChatResult {
@@ -56,7 +55,6 @@ export class ParticipantController {
   _connectionController: ConnectionController;
 
   _queryGenerationStatus?: QUERY_GENERATION_STATUS;
-  _queryPrompts: string[] = [];
   _databaseName?: string;
   _collectionName?: string;
 
@@ -229,6 +227,54 @@ export class ParticipantController {
     return;
   }
 
+  async getDatabasesTree(): Promise<vscode.MarkdownString[]> {
+    const dataService = this._connectionController.getActiveDataService();
+
+    if (dataService === null) {
+      return [];
+    }
+
+    try {
+      const databases = await dataService.listDatabases({
+        nameOnly: true,
+      });
+      return databases.map((db) => {
+        const dbName = new vscode.MarkdownString(
+          `- <a href="command:workbench.action.chat.open?${db.name}">${db.name}</a>\n`
+        );
+        dbName.supportHtml = true;
+        return dbName;
+      });
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async getCollectionTree(): Promise<vscode.MarkdownString[]> {
+    if (!this._databaseName) {
+      return [];
+    }
+
+    const dataService = this._connectionController.getActiveDataService();
+
+    if (dataService === null) {
+      return [];
+    }
+
+    try {
+      const collections = await dataService.listCollections(this._databaseName);
+      return collections.map((coll) => {
+        const collName = new vscode.MarkdownString(
+          `- <a href="command:workbench.action.chat.open?${coll.name}">${coll.name}</a>\n`
+        );
+        collName.supportHtml = true;
+        return collName;
+      });
+    } catch (error) {
+      return [];
+    }
+  }
+
   // @MongoDB /query find all documents where the "address" has the word Broadway in it.
   // eslint-disable-next-line complexity
   async handleQueryRequest({
@@ -282,7 +328,6 @@ export class ParticipantController {
       // Clean the old chat data.
       this._databaseName = undefined;
       this._collectionName = undefined;
-      this._queryPrompts = [];
 
       // First parse for a database and collection name.
       const messages = [
@@ -290,7 +335,7 @@ export class ParticipantController {
         vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
     Parse the user's prompt to find database and collection names.
     Respond in the format \nDATABASE_NAME: X\nCOLLECTION_NAME: Y\n where X and Y are the names.
-    if you wan't able to find X or Y do not imagine names.
+    If you wan't able to find X or Y do not imagine names.
     This is a first phase before we create the code, only respond with the collection name and database name.`),
         // eslint-disable-next-line new-cap
         vscode.LanguageModelChatMessage.User(request.prompt),
@@ -317,10 +362,6 @@ export class ParticipantController {
           ? QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME
           : QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME;
       }
-
-      if (namespace.databaseName && namespace.collectionName) {
-        this._queryPrompts.push(request.prompt);
-      }
     }
 
     // If we could not find a database and collection name in the user prompt,
@@ -329,9 +370,16 @@ export class ParticipantController {
       this._queryGenerationStatus ===
       QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME
     ) {
+      const tree = await this.getDatabasesTree();
       stream.markdown(
         'What is the name of the database you would like this query to run against?\n\n'
       );
+      // Currently returns plain text because ChatResponseStream.markdown
+      // doesn't support links that execute commands.
+      // See https://github.com/microsoft/vscode/issues/225609
+      for (const item of tree) {
+        stream.markdown(item);
+      }
       if (this._collectionName) {
         this._queryGenerationStatus =
           QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
@@ -339,17 +387,23 @@ export class ParticipantController {
         this._queryGenerationStatus =
           QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME;
       }
-      this._queryPrompts.push(request.prompt);
       return;
     } else if (
       this._queryGenerationStatus ===
       QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME
     ) {
+      if (!this._databaseName) {
+        this._databaseName = request.prompt;
+      }
+      const tree = await this.getCollectionTree();
       stream.markdown(
         'Which collection would you like to query within this database?\n\n'
       );
-      if (!this._databaseName) {
-        this._databaseName = request.prompt;
+      // Currently returns plain text because ChatResponseStream.markdown
+      // doesn't support links that execute commands.
+      // See https://github.com/microsoft/vscode/issues/225609
+      for (const item of tree) {
+        stream.markdown(item);
       }
       this._queryGenerationStatus =
         QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
@@ -359,10 +413,6 @@ export class ParticipantController {
       QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY
     ) {
       this._collectionName = request.prompt;
-    } else if (
-      this._queryGenerationStatus === QUERY_GENERATION_STATUS.QUERY_GENERATED
-    ) {
-      this._queryPrompts.push(request.prompt);
     }
 
     const abortController = new AbortController();
@@ -406,14 +456,36 @@ export class ParticipantController {
 
   ---
 
-  Filtering criteria: ${this._queryPrompts?.join(', ')}
   Database name: ${databaseName}
   Collection name: ${collectionName}
 
   Explain the code snippet you have generated.`),
-      // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.User(request.prompt),
     ];
+
+    context.history.map((historyItem) => {
+      if (
+        historyItem.participant === CHAT_PARTICIPANT_ID &&
+        historyItem instanceof vscode.ChatRequestTurn
+      ) {
+        // eslint-disable-next-line new-cap
+        messages.push(vscode.LanguageModelChatMessage.User(historyItem.prompt));
+      }
+
+      if (
+        historyItem.participant === CHAT_PARTICIPANT_ID &&
+        historyItem instanceof vscode.ChatResponseTurn
+      ) {
+        let res = '';
+        for (const fragment of historyItem.response) {
+          res += fragment;
+        }
+        // eslint-disable-next-line new-cap
+        messages.push(vscode.LanguageModelChatMessage.Assistant(res));
+      }
+    });
+
+    // eslint-disable-next-line new-cap
+    messages.push(vscode.LanguageModelChatMessage.User(request.prompt));
 
     const responseContent = await this.getChatResponseContent({
       messages,
@@ -421,8 +493,6 @@ export class ParticipantController {
       token,
     });
     stream.markdown(responseContent);
-
-    this._queryGenerationStatus = QUERY_GENERATION_STATUS.QUERY_GENERATED;
 
     const runnableContent = getRunnableContentFromString(responseContent);
 
