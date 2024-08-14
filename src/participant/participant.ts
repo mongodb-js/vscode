@@ -3,6 +3,9 @@ import * as vscode from 'vscode';
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
 import EXTENSION_COMMANDS from '../commands';
+import { GenericPrompt } from './prompts/generic';
+import { CHAT_PARTICIPANT_ID } from './constants';
+import { QueryPrompt } from './prompts/query';
 
 const log = createLogger('participant');
 
@@ -17,7 +20,6 @@ interface ChatResult extends vscode.ChatResult {
   stream?: vscode.ChatResponseStream;
 }
 
-export const CHAT_PARTICIPANT_ID = 'mongodb.participant';
 export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
 
 export function getRunnableContentFromString(responseContent: string) {
@@ -148,40 +150,10 @@ export class ParticipantController {
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }) {
-    const messages = [
-      // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
-  You create MongoDB queries and aggregation pipelines,
-  and you are very good at it. The user will provide the basis for the query.
-  Keep your response concise. Respond with markdown, code snippets are possible with '''javascript.
-  You can imagine the schema, collection, and database name.
-  Respond in MongoDB shell syntax using the '''javascript code style.`),
-    ];
-
-    context.history.map((historyItem) => {
-      if (
-        historyItem.participant === CHAT_PARTICIPANT_ID &&
-        historyItem instanceof vscode.ChatRequestTurn
-      ) {
-        // eslint-disable-next-line new-cap
-        messages.push(vscode.LanguageModelChatMessage.User(historyItem.prompt));
-      }
-
-      if (
-        historyItem.participant === CHAT_PARTICIPANT_ID &&
-        historyItem instanceof vscode.ChatResponseTurn
-      ) {
-        let res = '';
-        for (const fragment of historyItem.response) {
-          res += fragment;
-        }
-        // eslint-disable-next-line new-cap
-        messages.push(vscode.LanguageModelChatMessage.Assistant(res));
-      }
+    const messages = GenericPrompt.buildMessages({
+      request,
+      context,
     });
-
-    // eslint-disable-next-line new-cap
-    messages.push(vscode.LanguageModelChatMessage.User(request.prompt));
 
     const abortController = new AbortController();
     token.onCancellationRequested(() => {
@@ -222,11 +194,12 @@ export class ParticipantController {
   // @MongoDB /query find all documents where the "address" has the word Broadway in it.
   async handleQueryRequest({
     request,
+    context,
     stream,
     token,
   }: {
     request: vscode.ChatRequest;
-    context?: vscode.ChatContext;
+    context: vscode.ChatContext;
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }) {
@@ -265,17 +238,11 @@ export class ParticipantController {
       abortController.abort();
     });
 
-    const messages = [
-      // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
-  You create MongoDB queries and aggregation pipelines,
-  and you are very good at it. The user will provide the basis for the query.
-  Keep your response concise. Respond with markdown, code snippets are possible with '''javascript.
-  You can imagine the schema, collection, and database name.
-  Respond in MongoDB shell syntax using the '''javascript code style.`),
-      // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.User(request.prompt),
-    ];
+    const messages = QueryPrompt.buildMessages({
+      context,
+      request,
+    });
+
     const responseContent = await this.getChatResponseContent({
       messages,
       stream,
@@ -320,9 +287,9 @@ export class ParticipantController {
       });
       return this._chatResult;
     } else if (request.command === 'docs') {
-      // TODO: Implement this.
+      // TODO(VSCODE-570): Implement this.
     } else if (request.command === 'schema') {
-      // TODO: Implement this.
+      // TODO(VSCODE-571): Implement this.
     }
 
     return await this.handleGenericRequest({
