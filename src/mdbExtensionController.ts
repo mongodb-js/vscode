@@ -291,7 +291,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => {
         return this._playgroundController.createPlaygroundFromParticipantQuery({
           text:
-            this._participantController._chatResult.metadata.queryContent || '',
+            this._participantController._chatResult?.metadata
+              ?.responseContent || '',
         });
       }
     );
@@ -300,7 +301,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => {
         return this._playgroundController.evaluateParticipantQuery({
           text:
-            this._participantController._chatResult.metadata.queryContent || '',
+            this._participantController._chatResult?.metadata
+              ?.responseContent || '',
         });
       }
     );

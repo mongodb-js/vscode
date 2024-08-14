@@ -87,9 +87,11 @@
         "id": "mongodb.participant",
         "name": "MongoDB",
         "description": "Ask anything about MongoDB, from writing queries to questions about your cluster.",
+        "isSticky": true,
         "commands": [
           {
             "name": "query",
+            "isSticky": true,
             "description": "Ask how to write MongoDB queries or pipelines. For example, you can ask: \"Show me all the documents where the address contains the word street\"."
           }
         ]
