@@ -6,13 +6,10 @@ import EXTENSION_COMMANDS from '../commands';
 
 const log = createLogger('participant');
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const util = require('util');
-
 enum QUERY_GENERATION_STATUS {
-  QUERY_INITIALISED = 'QUERY_INITIALISED',
-  DATABASE_REQUESTED_FROM_USER = 'DATABASE_REQUESTED_FROM_USER',
-  COLLECTION_REQUESTED_FROM_USER = 'COLLECTION_REQUESTED_FROM_USER',
+  ASK_FOR_DATABASE_NAME = 'ASK_FOR_DATABASE_NAME',
+  ASK_FOR_COLLECTION_NAME = 'ASK_FOR_COLLECTION_NAME',
+  READY_TO_GENERATE_QUERY = 'READY_TO_GENERATE_QUERY',
   QUERY_GENERATED = 'QUERY_GENERATED',
 }
 
@@ -25,8 +22,24 @@ interface ChatResult extends vscode.ChatResult {
 export const CHAT_PARTICIPANT_ID = 'mongodb.participant';
 export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
 
-export function getRunnableContentFromString(response: string) {
-  const matchedJSresponseContent = response.match(/```javascript((.|\n)*)```/);
+const DB_NAME_ID = 'DATABASE_NAME';
+const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)\n`;
+
+const COL_NAME_ID = 'COLLECTION_NAME';
+const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)`;
+
+function parseForDatabaseAndCollectionName(text: string): {
+  databaseName?: string;
+  collectionName?: string;
+} {
+  const databaseName = text.match(DB_NAME_REGEX)?.[1];
+  const collectionName = text.match(COL_NAME_REGEX)?.[1];
+
+  return { databaseName, collectionName };
+}
+
+export function getRunnableContentFromString(text: string) {
+  const matchedJSresponseContent = text.match(/```javascript((.|\n)*)```/);
   log.info('matchedJSresponseContent', matchedJSresponseContent);
 
   const responseContent =
@@ -129,9 +142,7 @@ export class ParticipantController {
         const chatResponse = await model.sendRequest(messages, {}, token);
         for await (const fragment of chatResponse.text) {
           responseContent += fragment;
-          stream.markdown(fragment);
         }
-        stream.markdown('\n\n');
       }
     } catch (err) {
       this.handleError(err, stream);
@@ -197,6 +208,7 @@ export class ParticipantController {
       stream,
       token,
     });
+    stream.markdown(responseContent);
 
     const runnableContent = getRunnableContentFromString(responseContent);
 
@@ -230,10 +242,16 @@ export class ParticipantController {
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }) {
-    if (!request.prompt || request.prompt.trim().length === 0) {
+    // A user opened a new chat.
+    const isNewChat = !context.history.find(
+      (historyItem) => historyItem.participant === CHAT_PARTICIPANT_ID
+    );
+
+    if (isNewChat && (!request.prompt || request.prompt.trim().length === 0)) {
       return this.handleEmptyQueryRequest();
     }
 
+    // If a user is not connected yet, open the command palette to choose from saved connections.
     let dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       stream.markdown(
@@ -260,39 +278,85 @@ export class ParticipantController {
       );
     }
 
-    const isNewChat = !context.history.find(
-      (historyItem) => historyItem.participant === CHAT_PARTICIPANT_ID
-    );
-
     if (isNewChat) {
-      this._queryGenerationStatus = QUERY_GENERATION_STATUS.QUERY_INITIALISED;
+      // Clean the old chat data.
+      this._databaseName = undefined;
+      this._collectionName = undefined;
       this._queryPrompts = [];
+
+      // First parse for a database and collection name.
+      const messages = [
+        // eslint-disable-next-line new-cap
+        vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
+    Parse the user's prompt to find database and collection names.
+    Respond in the format \nDATABASE_NAME: X\nCOLLECTION_NAME: Y\n where X and Y are the names.
+    if you wan't able to find X or Y do not imagine names.
+    This is a first phase before we create the code, only respond with the collection name and database name.`),
+        // eslint-disable-next-line new-cap
+        vscode.LanguageModelChatMessage.User(request.prompt),
+      ];
+      const responseContent = await this.getChatResponseContent({
+        messages,
+        stream,
+        token,
+      });
+
+      const namespace = parseForDatabaseAndCollectionName(responseContent);
+
+      if (namespace.databaseName) {
+        this._databaseName = namespace.databaseName;
+      } else {
+        this._queryGenerationStatus =
+          QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME;
+      }
+
+      if (namespace.collectionName) {
+        this._collectionName = namespace.collectionName;
+      } else {
+        this._queryGenerationStatus = namespace.databaseName
+          ? QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME
+          : QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME;
+      }
+
+      if (namespace.databaseName && namespace.collectionName) {
+        this._queryPrompts.push(request.prompt);
+      }
     }
 
+    // If we could not find a database and collection name in the user prompt,
+    // We request them from user in chat.
     if (
-      this._queryGenerationStatus === QUERY_GENERATION_STATUS.QUERY_INITIALISED
+      this._queryGenerationStatus ===
+      QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME
     ) {
       stream.markdown(
         'What is the name of the database you would like this query to run against?\n\n'
       );
-      this._queryGenerationStatus =
-        QUERY_GENERATION_STATUS.DATABASE_REQUESTED_FROM_USER;
+      if (this._collectionName) {
+        this._queryGenerationStatus =
+          QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
+      } else {
+        this._queryGenerationStatus =
+          QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME;
+      }
       this._queryPrompts.push(request.prompt);
       return;
     } else if (
       this._queryGenerationStatus ===
-      QUERY_GENERATION_STATUS.DATABASE_REQUESTED_FROM_USER
+      QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME
     ) {
       stream.markdown(
-        'And which collection would you like to query within this database?\n\n'
+        'Which collection would you like to query within this database?\n\n'
       );
+      if (!this._databaseName) {
+        this._databaseName = request.prompt;
+      }
       this._queryGenerationStatus =
-        QUERY_GENERATION_STATUS.COLLECTION_REQUESTED_FROM_USER;
-      this._databaseName = request.prompt;
+        QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
       return;
     } else if (
       this._queryGenerationStatus ===
-      QUERY_GENERATION_STATUS.COLLECTION_REQUESTED_FROM_USER
+      QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY
     ) {
       this._collectionName = request.prompt;
     } else if (
@@ -300,10 +364,6 @@ export class ParticipantController {
     ) {
       this._queryPrompts.push(request.prompt);
     }
-
-    console.log('this._queryPrompts----------------------');
-    console.log(`${util.inspect(this._queryPrompts)}`);
-    console.log('----------------------');
 
     const abortController = new AbortController();
     token.onCancellationRequested(() => {
@@ -318,17 +378,17 @@ export class ParticipantController {
       vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
 
   You create MongoDB playgrounds and you are very good at it.
-  The user will provide the basis for the query.
+  A user will provide the basis for the query.
   Keep your response concise.
-  Respond with markdown, code snippets.
-  Respond in MongoDB shell syntax using the '''javascript code style.
-  Examples of generated playground:
+  Respond in MongoDB shell syntax inside a single '''javascript markdown code snippet.
+  You can use only the following MongoDB Shell commands: use, aggregate, bulkWrite, countDocu, findOneAndReplace,
+  findOneAndUpdate, insert, insertMany, insertOne, remove, replaceOne, update, updateMany, updateOne.
 
   Example 1:
   ---
-  use('CURRENT_DATABASE');
+  use('');
 
-  db.getCollection('CURRENT_COLLECTION').aggregate([
+  db.getCollection('').aggregate([
     // Find all of the sales that occurred in 2014.
     { $match: { date: { $gte: new Date('2014-01-01'), $lt: new Date('2015-01-01') } } },
     // Group the total sales for each product.
@@ -338,28 +398,29 @@ export class ParticipantController {
 
   Example 2:
   ---
-  use('CURRENT_DATABASE');
+  use('');
 
-  db.getCollection('CURRENT_COLLECTION').find({
+  db.getCollection('').find({
     date: { $gte: new Date('2014-04-04'), $lt: new Date('2014-04-05') }
   }).count();
 
   ---
 
-  Where:
-    - Filtering criteria: ${this._queryPrompts?.join(', ')}
-    - CURRENT_DATABASE: ${databaseName}
-    - CURRENT_COLLECTION: ${collectionName}
+  Filtering criteria: ${this._queryPrompts?.join(', ')}
+  Database name: ${databaseName}
+  Collection name: ${collectionName}
 
-  You can use any MongoDB Shell syntax, not only aggregate or find.`),
+  Explain the code snippet you have generated.`),
       // eslint-disable-next-line new-cap
       vscode.LanguageModelChatMessage.User(request.prompt),
     ];
+
     const responseContent = await this.getChatResponseContent({
       messages,
       stream,
       token,
     });
+    stream.markdown(responseContent);
 
     this._queryGenerationStatus = QUERY_GENERATION_STATUS.QUERY_GENERATED;
 
@@ -386,7 +447,7 @@ export class ParticipantController {
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
-  ): Promise<ChatResult | undefined> {
+  ): Promise<void> {
     if (request.command === 'query') {
       this._chatResult = await this.handleQueryRequest({
         request,
@@ -394,14 +455,14 @@ export class ParticipantController {
         stream,
         token,
       });
-      return this._chatResult;
+      return;
     } else if (request.command === 'docs') {
       // TODO: Implement this.
     } else if (request.command === 'schema') {
       // TODO: Implement this.
     }
 
-    return await this.handleGenericRequest({
+    await this.handleGenericRequest({
       request,
       context,
       stream,
