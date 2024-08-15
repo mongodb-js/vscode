@@ -483,18 +483,20 @@ export class ParticipantController {
     this._queryGenerationStatus = QUERY_GENERATION_STATUS.QUERY_GENERATED;
 
     const runnableContent = getRunnableContentFromString(responseContent);
-
-    if (!runnableContent || runnableContent.trim().length === 0) {
-      return;
+    if (runnableContent && runnableContent.trim().length) {
+      stream.button({
+        command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+        title: vscode.l10n.t('▶️ Run'),
+      });
+      stream.button({
+        command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+        title: vscode.l10n.t('Open in playground'),
+      });
     }
 
-    stream.button({
-      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
-      title: vscode.l10n.t('▶️ Run'),
-    });
-    stream.button({
-      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
-      title: vscode.l10n.t('Open in playground'),
+    await vscode.commands.executeCommand('workbench.action.chat.open', {
+      query: '@MongoDB /query',
+      isPartialQuery: true,
     });
 
     return { metadata: { responseContent } };
