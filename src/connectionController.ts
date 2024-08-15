@@ -419,7 +419,7 @@ export default class ConnectionController {
     }
 
     log.info('Successfully connected', { connectionId });
-    void vscode.window.showInformationMessage('MongoDB connection successful.');
+    this._statusView.showMessage('MongoDB connection successful.');
 
     dataService.addReauthenticationHandler(
       this._reauthenticationHandler.bind(this)
@@ -603,7 +603,7 @@ export default class ConnectionController {
       'mdb.isAtlasStreams',
       false
     );
-    void vscode.window.showInformationMessage('MongoDB disconnected.');
+    this._statusView.showMessage('MongoDB disconnected.');
 
     this._disconnecting = false;
     this._statusView.hideMessage();

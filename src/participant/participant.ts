@@ -54,6 +54,7 @@ export class ParticipantController {
   _chatResult?: ChatResult;
   _connectionController: ConnectionController;
   _storageController: StorageController;
+  _isQueryInProgress?: boolean;
 
   _databaseName?: string;
   _collectionName?: string;
@@ -352,6 +353,8 @@ export class ParticipantController {
       return this.handleEmptyQueryRequest();
     }
 
+    this._isQueryInProgress = true;
+
     // Ask to connect if not connected.
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
@@ -414,13 +417,14 @@ export class ParticipantController {
       databaseName: this._databaseName,
       collectionName: this._collectionName,
     });
-
     const responseContent = await this.getChatResponseContent({
       messages,
       stream,
       token,
     });
+
     stream.markdown(responseContent);
+    this._isQueryInProgress = false;
 
     const runnableContent = getRunnableContentFromString(responseContent);
 
@@ -471,7 +475,10 @@ export class ParticipantController {
       this._chatResult = await this.handleQueryRequest(...args);
       return;
     } else if (request.command === 'connect') {
-      this._chatResult = await this.handleQueryRequest(...args);
+      stream.markdown(vscode.l10n.t('MongoDB connection successful.\n\n'));
+      if (this._isQueryInProgress === true) {
+        this._chatResult = await this.handleQueryRequest(...args);
+      }
       return;
     } else if (request.command === 'database') {
       this._databaseName = request.prompt;
