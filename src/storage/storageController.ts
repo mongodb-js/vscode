@@ -12,6 +12,7 @@ export enum StorageVariables {
   GLOBAL_ANONYMOUS_ID = 'GLOBAL_ANONYMOUS_ID',
   // Only exists on workspaceState.
   WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS',
+  COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE = 'COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE',
 }
 
 // Typically variables default to 'GLOBAL' scope.
@@ -52,6 +53,7 @@ interface StorageVariableContents {
   [StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW]: boolean;
   [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: ConnectionsFromStorage;
   [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: ConnectionsFromStorage;
+  [StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE]: boolean;
 }
 type StoredVariableName = keyof StorageVariableContents;
 type StoredItem<T extends StoredVariableName> = StorageVariableContents[T];
