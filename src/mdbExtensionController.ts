@@ -306,6 +306,20 @@ export default class MDBExtensionController implements vscode.Disposable {
         });
       }
     );
+    this.registerCommand(
+      EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+      (id: string) => this._participantController.connectWithParticipant(id)
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+      (name: string) =>
+        this._participantController.selectDatabaseWithParticipant(name)
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+      (name: string) =>
+        this._participantController.selectCollectionWithParticipant(name)
+    );
   };
 
   registerParticipantCommand = (
