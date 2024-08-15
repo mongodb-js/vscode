@@ -13,6 +13,14 @@ import { NamespacePrompt } from './prompts/namespace';
 
 const log = createLogger('participant');
 
+enum QUERY_GENERATION_STATUS {
+  ASK_TO_CONNECT = 'ASK_TO_CONNECT',
+  ASK_FOR_DATABASE_NAME = 'ASK_FOR_DATABASE_NAME',
+  ASK_FOR_COLLECTION_NAME = 'ASK_FOR_COLLECTION_NAME',
+  READY_TO_GENERATE_QUERY = 'READY_TO_GENERATE_QUERY',
+  QUERY_GENERATED = 'QUERY_GENERATED',
+}
+
 interface ChatResult extends vscode.ChatResult {
   metadata?: {
     responseContent?: string;
@@ -54,8 +62,7 @@ export class ParticipantController {
   _chatResult?: ChatResult;
   _connectionController: ConnectionController;
   _storageController: StorageController;
-  _isQueryInProgress?: boolean;
-
+  _queryGenerationStatus?: QUERY_GENERATION_STATUS;
   _databaseName?: string;
   _collectionName?: string;
 
@@ -356,11 +363,14 @@ export class ParticipantController {
       (historyItem) => historyItem.participant === CHAT_PARTICIPANT_ID
     );
 
-    if (isNewChat && (!request.prompt || request.prompt.trim().length === 0)) {
-      return this.handleEmptyQueryRequest();
+    if (isNewChat) {
+      this._databaseName = undefined;
+      this._collectionName = undefined;
     }
 
-    this._isQueryInProgress = true;
+    if (!request.prompt || request.prompt.trim().length === 0) {
+      return this.handleEmptyQueryRequest();
+    }
 
     // Ask to connect if not connected.
     const dataService = this._connectionController.getActiveDataService();
@@ -372,29 +382,47 @@ export class ParticipantController {
       for (const item of tree) {
         stream.markdown(item);
       }
+      this._queryGenerationStatus = QUERY_GENERATION_STATUS.ASK_TO_CONNECT;
       return;
     }
 
-    if (isNewChat) {
-      // Look for a namespace in the prompt.
-      const messages = NamespacePrompt.buildMessages({
-        request,
-      });
-      const responseContent = await this.getChatResponseContent({
-        messages,
-        stream,
-        token,
-      });
+    // Look for a namespace in the prompt.
+    const messagesWithNamespace = NamespacePrompt.buildMessages({
+      context,
+      request,
+    });
+    const responseContentWithNamespace = await this.getChatResponseContent({
+      messages: messagesWithNamespace,
+      stream,
+      token,
+    });
+    const namespace = parseForDatabaseAndCollectionName(
+      responseContentWithNamespace
+    );
 
-      const namespace = parseForDatabaseAndCollectionName(responseContent);
-      this._databaseName = namespace.databaseName || undefined;
-      this._collectionName = namespace.collectionName || undefined;
+    if (namespace.databaseName) {
+      this._databaseName = namespace.databaseName;
+    }
+    if (namespace.collectionName) {
+      this._collectionName = namespace.collectionName;
+    }
+
+    if (!this._collectionName) {
+      this._queryGenerationStatus =
+        QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME;
+    }
+    if (!this._databaseName) {
+      this._queryGenerationStatus =
+        QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME;
     }
 
     // If we could not find a database or collection name in the user prompt,
     // we fetch available namespaces from the current connection.
     // Users can select a value by clicking on the list item.
-    if (!this._databaseName) {
+    if (
+      this._queryGenerationStatus ===
+      QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME
+    ) {
       const tree = await this.getDatabasesTree();
       stream.markdown(
         'What is the name of the database you would like this query to run against?\n\n'
@@ -402,8 +430,18 @@ export class ParticipantController {
       for (const item of tree) {
         stream.markdown(item);
       }
+      if (this._collectionName) {
+        this._queryGenerationStatus =
+          QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
+      } else {
+        this._queryGenerationStatus =
+          QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME;
+      }
       return;
-    } else if (!this._collectionName) {
+    } else if (
+      this._queryGenerationStatus ===
+      QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME
+    ) {
       const tree = await this.getCollectionTree();
       stream.markdown(
         'Which collection would you like to query within this database?\n\n'
@@ -411,7 +449,17 @@ export class ParticipantController {
       for (const item of tree) {
         stream.markdown(item);
       }
+      if (!this._databaseName) {
+        this._databaseName = request.prompt;
+      }
+      this._queryGenerationStatus =
+        QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
       return;
+    } else if (
+      this._queryGenerationStatus ===
+      QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY
+    ) {
+      this._collectionName = request.prompt;
     }
 
     const abortController = new AbortController();
@@ -432,7 +480,7 @@ export class ParticipantController {
     });
 
     stream.markdown(responseContent);
-    this._isQueryInProgress = false;
+    this._queryGenerationStatus = QUERY_GENERATION_STATUS.QUERY_GENERATED;
 
     const runnableContent = getRunnableContentFromString(responseContent);
 
@@ -461,11 +509,9 @@ export class ParticipantController {
     ]
   ): Promise<void> {
     const [request, , stream] = args;
-
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
       StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE
     );
-
     if (!hasBeenShownWelcomeMessageAlready) {
       stream.markdown(
         vscode.l10n.t(`
@@ -486,7 +532,9 @@ export class ParticipantController {
       // The query can be already generated and returned to the chat,
       // but users still can click on the connections in the list to change the current cluster.
       stream.markdown(vscode.l10n.t('MongoDB connection successful.\n\n'));
-      if (this._isQueryInProgress === true) {
+      if (
+        this._queryGenerationStatus !== QUERY_GENERATION_STATUS.QUERY_GENERATED
+      ) {
         this._chatResult = await this.handleQueryRequest(...args);
       }
       return;
