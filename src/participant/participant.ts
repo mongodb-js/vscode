@@ -203,6 +203,14 @@ export class ParticipantController {
     command: string;
     query?: string;
   }): Promise<boolean> {
+    // We don't want yet users to call these commands from the chat,
+    // therefore we enable them only to be called programmatically by the participant.
+    // Currently, /connect, /database, and /collection commands are part of the query generation flow.
+    // If we allow users to call them directly, they will call the /query command to complete the sequence.
+    // That might be unexpected for users if they want just to change the current namespace.
+    // but it returns a generated query in a Chat response.
+    // We will explore in the future possible ways to debound these commands.
+    // See https://github.com/microsoft/vscode/issues/225516
     void vscode.commands.executeCommand(
       'setContext',
       'mdb.isCalledByParticipant',
@@ -317,7 +325,6 @@ export class ParticipantController {
     }
 
     const dataService = this._connectionController.getActiveDataService();
-
     if (dataService === null) {
       return [];
     }
@@ -384,8 +391,9 @@ export class ParticipantController {
       this._collectionName = namespace.collectionName || undefined;
     }
 
-    // If we could not find a database and collection name in the user prompt,
-    // We request them from user in chat.
+    // If we could not find a database or collection name in the user prompt,
+    // we fetch available namespaces from the current connection.
+    // Users can select a value by clicking on the list item.
     if (!this._databaseName) {
       const tree = await this.getDatabasesTree();
       stream.markdown(
@@ -475,6 +483,8 @@ export class ParticipantController {
       this._chatResult = await this.handleQueryRequest(...args);
       return;
     } else if (request.command === 'connect') {
+      // The query can be already generated and returned to the chat,
+      // but users still can click on the connections in the list to change the current cluster.
       stream.markdown(vscode.l10n.t('MongoDB connection successful.\n\n'));
       if (this._isQueryInProgress === true) {
         this._chatResult = await this.handleQueryRequest(...args);
