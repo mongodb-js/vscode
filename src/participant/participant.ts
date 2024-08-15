@@ -4,6 +4,12 @@ import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
 import type { LoadedConnection } from '../storage/connectionStorage';
 import EXTENSION_COMMANDS from '../commands';
+import type { StorageController } from '../storage';
+import { StorageVariables } from '../storage';
+import { GenericPrompt } from './prompts/generic';
+import { CHAT_PARTICIPANT_ID } from './constants';
+import { QueryPrompt } from './prompts/query';
+import { NamespacePrompt } from './prompts/namespace';
 
 const log = createLogger('participant');
 
@@ -13,7 +19,6 @@ interface ChatResult extends vscode.ChatResult {
   };
 }
 
-export const CHAT_PARTICIPANT_ID = 'mongodb.participant';
 export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
 
 const DB_NAME_ID = 'DATABASE_NAME';
@@ -48,16 +53,20 @@ export class ParticipantController {
   _participant?: vscode.ChatParticipant;
   _chatResult?: ChatResult;
   _connectionController: ConnectionController;
+  _storageController: StorageController;
 
   _databaseName?: string;
   _collectionName?: string;
 
   constructor({
     connectionController,
+    storageController,
   }: {
     connectionController: ConnectionController;
+    storageController: StorageController;
   }) {
     this._connectionController = connectionController;
+    this._storageController = storageController;
   }
 
   createParticipant(context: vscode.ExtensionContext) {
@@ -150,40 +159,10 @@ export class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ) {
-    const messages = [
-      // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
-  You create MongoDB queries and aggregation pipelines,
-  and you are very good at it. The user will provide the basis for the query.
-  Keep your response concise. Respond with markdown, code snippets are possible with '''javascript.
-  You can imagine the schema, collection, and database name.
-  Respond in MongoDB shell syntax using the '''javascript code style.`),
-    ];
-
-    context.history.map((historyItem) => {
-      if (
-        historyItem.participant === CHAT_PARTICIPANT_ID &&
-        historyItem instanceof vscode.ChatRequestTurn
-      ) {
-        // eslint-disable-next-line new-cap
-        messages.push(vscode.LanguageModelChatMessage.User(historyItem.prompt));
-      }
-
-      if (
-        historyItem.participant === CHAT_PARTICIPANT_ID &&
-        historyItem instanceof vscode.ChatResponseTurn
-      ) {
-        let res = '';
-        for (const fragment of historyItem.response) {
-          res += fragment;
-        }
-        // eslint-disable-next-line new-cap
-        messages.push(vscode.LanguageModelChatMessage.Assistant(res));
-      }
+    const messages = GenericPrompt.buildMessages({
+      request,
+      context,
     });
-
-    // eslint-disable-next-line new-cap
-    messages.push(vscode.LanguageModelChatMessage.User(request.prompt));
 
     const abortController = new AbortController();
     token.onCancellationRequested(() => {
@@ -239,17 +218,16 @@ export class ParticipantController {
   }
 
   async connectWithParticipant(id: string): Promise<boolean> {
-    let query;
-    if (!query) {
+    if (!id) {
       await this._connectionController.connectWithURI();
-      query = this._connectionController.getActiveConnectionId();
     } else {
       await this._connectionController.connectWithConnectionId(id);
-      query = id;
     }
+
+    const connectionName = this._connectionController.getActiveConnectionName();
     return this._printAndCallParticipantCommand({
       command: 'connect',
-      query,
+      query: connectionName,
     });
   }
 
@@ -389,16 +367,9 @@ export class ParticipantController {
 
     if (isNewChat) {
       // Look for a namespace in the prompt.
-      const messages = [
-        // eslint-disable-next-line new-cap
-        vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
-    Parse the user's prompt to find database and collection names.
-    Respond in the format \nDATABASE_NAME: X\nCOLLECTION_NAME: Y\n where X and Y are the names.
-    If you wan't able to find X or Y do not imagine names.
-    This is a first phase before we create the code, only respond with the collection name and database name.`),
-        // eslint-disable-next-line new-cap
-        vscode.LanguageModelChatMessage.User(request.prompt),
-      ];
+      const messages = NamespacePrompt.buildMessages({
+        request,
+      });
       const responseContent = await this.getChatResponseContent({
         messages,
         stream,
@@ -437,72 +408,12 @@ export class ParticipantController {
       abortController.abort();
     });
 
-    const databaseName = this._databaseName || 'mongodbVSCodeCopilotDB';
-    const collectionName = this._collectionName || 'results';
-
-    const messages = [
-      // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.Assistant(`You are a MongoDB expert!
-
-  You create MongoDB playgrounds and you are very good at it.
-  A user will provide the basis for the query.
-  Keep your response concise.
-  Respond in MongoDB shell syntax inside a single '''javascript markdown code snippet.
-  You can use only the following MongoDB Shell commands: use, aggregate, bulkWrite, countDocu, findOneAndReplace,
-  findOneAndUpdate, insert, insertMany, insertOne, remove, replaceOne, update, updateMany, updateOne.
-
-  Example 1:
-  ---
-  use('');
-
-  db.getCollection('').aggregate([
-    // Find all of the sales that occurred in 2014.
-    { $match: { date: { $gte: new Date('2014-01-01'), $lt: new Date('2015-01-01') } } },
-    // Group the total sales for each product.
-    { $group: { _id: '$item', totalSaleAmount: { $sum: { $multiply: [ '$price', '$quantity' ] } } } }
-  ]);
-  ---
-
-  Example 2:
-  ---
-  use('');
-
-  db.getCollection('').find({
-    date: { $gte: new Date('2014-04-04'), $lt: new Date('2014-04-05') }
-  }).count();
-
-  ---
-
-  Database name: ${databaseName}
-  Collection name: ${collectionName}
-
-  Explain the code snippet you have generated.`),
-    ];
-
-    context.history.map((historyItem) => {
-      if (
-        historyItem.participant === CHAT_PARTICIPANT_ID &&
-        historyItem instanceof vscode.ChatRequestTurn
-      ) {
-        // eslint-disable-next-line new-cap
-        messages.push(vscode.LanguageModelChatMessage.User(historyItem.prompt));
-      }
-
-      if (
-        historyItem.participant === CHAT_PARTICIPANT_ID &&
-        historyItem instanceof vscode.ChatResponseTurn
-      ) {
-        let res = '';
-        for (const fragment of historyItem.response) {
-          res += fragment;
-        }
-        // eslint-disable-next-line new-cap
-        messages.push(vscode.LanguageModelChatMessage.Assistant(res));
-      }
+    const messages = QueryPrompt.buildMessages({
+      request,
+      context,
+      databaseName: this._databaseName,
+      collectionName: this._collectionName,
     });
-
-    // eslint-disable-next-line new-cap
-    messages.push(vscode.LanguageModelChatMessage.User(request.prompt));
 
     const responseContent = await this.getChatResponseContent({
       messages,
@@ -537,7 +448,25 @@ export class ParticipantController {
       vscode.CancellationToken
     ]
   ): Promise<void> {
-    const [request] = args;
+    const [request, , stream] = args;
+
+    const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
+      StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE
+    );
+
+    if (!hasBeenShownWelcomeMessageAlready) {
+      stream.markdown(
+        vscode.l10n.t(`
+  Welcome to MongoDB Participant!\n\n
+  Interact with your MongoDB clusters and generate MongoDB-related code more efficiently with intelligent AI-powered feature, available today in the MongoDB extension.\n\n
+  Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.`)
+      );
+      void this._storageController.update(
+        StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
+        true
+      );
+    }
+
     if (request.command === 'query') {
       this._chatResult = await this.handleQueryRequest(...args);
       return;
@@ -553,9 +482,9 @@ export class ParticipantController {
       this._chatResult = await this.handleQueryRequest(...args);
       return;
     } else if (request.command === 'docs') {
-      // TODO: Implement this.
+      // TODO(VSCODE-570): Implement this.
     } else if (request.command === 'schema') {
-      // TODO: Implement this.
+      // TODO(VSCODE-571): Implement this.
     }
 
     await this.handleGenericRequest(...args);
