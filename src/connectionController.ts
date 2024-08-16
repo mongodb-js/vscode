@@ -419,9 +419,13 @@ export default class ConnectionController {
     }
 
     log.info('Successfully connected', { connectionId });
-    this._statusView.showMessage('MongoDB connection successful.');
+
+    const message = 'MongoDB connection successful.';
+    this._statusView.showMessage(message);
     setTimeout(() => {
-      this._statusView.hideMessage();
+      if (this._statusView._statusBarItem.text === message) {
+        this._statusView.hideMessage();
+      }
     }, 5000);
 
     dataService.addReauthenticationHandler(
@@ -608,9 +612,13 @@ export default class ConnectionController {
     );
 
     this._disconnecting = false;
-    this._statusView.showMessage('MongoDB disconnected.');
+
+    const message = 'MongoDB disconnected.';
+    this._statusView.showMessage(message);
     setTimeout(() => {
-      this._statusView.hideMessage();
+      if (this._statusView._statusBarItem.text === message) {
+        this._statusView.hideMessage();
+      }
     }, 5000);
 
     return true;
