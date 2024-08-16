@@ -15,7 +15,7 @@ import { NamespacePrompt } from './prompts/namespace';
 const log = createLogger('participant');
 
 enum QUERY_GENERATION_STATE {
-  READY = 'READY',
+  DEFAULT = 'DEFAULT',
   ASK_TO_CONNECT = 'ASK_TO_CONNECT',
   ASK_FOR_DATABASE_NAME = 'ASK_FOR_DATABASE_NAME',
   ASK_FOR_COLLECTION_NAME = 'ASK_FOR_COLLECTION_NAME',
@@ -227,7 +227,7 @@ export class ParticipantController {
 
     const connectionName = this._connectionController.getActiveConnectionName();
     if (connectionName) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.READY;
+      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
     }
 
     return vscode.commands.executeCommand('workbench.action.chat.open', {
@@ -344,7 +344,7 @@ export class ParticipantController {
     );
 
     if (isNewChat) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.READY;
+      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
       this._chatResult = undefined;
       this._databaseName = undefined;
       this._collectionName = undefined;
@@ -534,7 +534,7 @@ export class ParticipantController {
     });
 
     stream.markdown(responseContent);
-    this._queryGenerationState = QUERY_GENERATION_STATE.READY;
+    this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
 
     const runnableContent = getRunnableContentFromString(responseContent);
     if (runnableContent && runnableContent.trim().length) {
