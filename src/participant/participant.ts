@@ -23,7 +23,7 @@ enum QUERY_GENERATION_STATE {
 }
 
 interface ChatResult extends vscode.ChatResult {
-  metadata?: {
+  metadata: {
     responseContent?: string;
   };
 }
@@ -181,7 +181,7 @@ export class ParticipantController {
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
-  ) {
+  ): Promise<ChatResult> {
     const messages = GenericPrompt.buildMessages({
       request,
       context,
@@ -215,7 +215,7 @@ export class ParticipantController {
       return { metadata: { responseContent } };
     }
 
-    return;
+    return { metadata: {} };
   }
 
   async connectWithParticipant(id: string): Promise<boolean> {
@@ -243,7 +243,7 @@ export class ParticipantController {
     commandId: string;
     query?: string;
     name: string;
-  }) {
+  }): vscode.MarkdownString {
     const commandQuery = query ? `?%5B%22${query}%22%5D` : '';
     const connName = new vscode.MarkdownString(
       `- <a href="command:${commandId}${commandQuery}">${name}</a>\n`
@@ -334,7 +334,7 @@ export class ParticipantController {
     }
   }
 
-  _ifNewChatResetQueryGenerationState(context: vscode.ChatContext) {
+  _ifNewChatResetQueryGenerationState(context: vscode.ChatContext): void {
     const isNewChat = !context.history.find(
       (historyItem) => historyItem.participant === CHAT_PARTICIPANT_ID
     );
@@ -490,11 +490,11 @@ export class ParticipantController {
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
-  ) {
+  ): Promise<ChatResult> {
     this._ifNewChatResetQueryGenerationState(context);
 
     if (this._shouldAskToConnectIfNotConnected(stream)) {
-      return;
+      return { metadata: {} };
     }
 
     const shouldAskForNamespace = await this._shouldAskForNamespace(
@@ -505,7 +505,8 @@ export class ParticipantController {
     );
 
     if (shouldAskForNamespace) {
-      return await this._askForNamespace(request, stream);
+      await this._askForNamespace(request, stream);
+      return { metadata: {} };
     }
 
     const abortController = new AbortController();
