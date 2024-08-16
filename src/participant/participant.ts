@@ -60,10 +60,10 @@ export function getRunnableContentFromString(text: string) {
 
 export class ParticipantController {
   _participant?: vscode.ChatParticipant;
-  _chatResult?: ChatResult;
   _connectionController: ConnectionController;
   _storageController: StorageController;
   _queryGenerationState?: QUERY_GENERATION_STATE;
+  _chatResult?: ChatResult;
   _databaseName?: string;
   _collectionName?: string;
 
@@ -344,6 +344,8 @@ export class ParticipantController {
     );
 
     if (isNewChat) {
+      this._queryGenerationState = QUERY_GENERATION_STATE.READY;
+      this._chatResult = undefined;
       this._databaseName = undefined;
       this._collectionName = undefined;
     }
@@ -359,6 +361,7 @@ export class ParticipantController {
       return false;
     }
 
+    // If we're not waiting for a user to provide a namespace in the chat, search for it in the prompt.
     if (
       !this._queryGenerationState ||
       ![
@@ -393,6 +396,7 @@ export class ParticipantController {
   }
 
   _alreadyReceivedNamespaceFromUser(prompt: string): boolean {
+    // We are waiting for a user to provide a namespace in the chat.
     if (
       this._queryGenerationState ===
       QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME
@@ -417,6 +421,8 @@ export class ParticipantController {
         QUERY_GENERATION_STATE.READY_TO_GENERATE_QUERY;
       return true;
     }
+
+    // We have not found the database and collection names yet.
     if (!this._databaseName) {
       this._queryGenerationState = QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
       return false;
@@ -440,6 +446,9 @@ export class ParticipantController {
       return;
     }
 
+    // If no database or collection name is found in the user prompt,
+    // we retrieve the available namespaces from the current connection.
+    // Users can then select a value by clicking on an item in the list.
     if (!this._databaseName) {
       const tree = await this.getDatabasesTree(dataService);
       stream.markdown(
