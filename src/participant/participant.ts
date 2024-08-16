@@ -491,6 +491,8 @@ export class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
+    // TODO: Reset this._queryGenerationState to QUERY_GENERATION_STATE.DEFAULT
+    // when a command other than /query is called, as it disrupts the flow.
     this._ifNewChatResetQueryGenerationState(context);
 
     if (this._shouldAskToConnectIfNotConnected(stream)) {
