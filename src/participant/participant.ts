@@ -347,17 +347,7 @@ export class ParticipantController {
     }
   }
 
-  async _shouldAskForNamespace(
-    request: vscode.ChatRequest,
-    context: vscode.ChatContext,
-    stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
-  ) {
-    if (this._alreadyReceivedNamespaceFromUser(request.prompt)) {
-      return false;
-    }
-
-    // If we're not waiting for a user to provide a namespace in the chat, search for it in the prompt.
+  _waitingForUserToProvideNamespace(prompt: string): boolean {
     if (
       !this._queryGenerationState ||
       ![
@@ -365,67 +355,73 @@ export class ParticipantController {
         QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME,
       ].includes(this._queryGenerationState)
     ) {
-      const messagesWithNamespace = NamespacePrompt.buildMessages({
-        context,
-        request,
-      });
-      const responseContentWithNamespace = await this.getChatResponseContent({
-        messages: messagesWithNamespace,
-        stream,
-        token,
-      });
-      const namespace = parseForDatabaseAndCollectionName(
-        responseContentWithNamespace
-      );
-
-      this._databaseName = namespace.databaseName || this._databaseName;
-      this._collectionName = namespace.collectionName || this._collectionName;
-
-      if (namespace.databaseName && namespace.collectionName) {
-        this._queryGenerationState =
-          QUERY_GENERATION_STATE.READY_TO_GENERATE_QUERY;
-        return false;
-      }
+      return false;
     }
 
-    return true;
-  }
-
-  _alreadyReceivedNamespaceFromUser(prompt: string): boolean {
-    // We are waiting for a user to provide a namespace in the chat.
     if (
       this._queryGenerationState ===
       QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME
     ) {
       this._databaseName = prompt;
-      if (this._collectionName) {
+      if (!this._collectionName) {
         this._queryGenerationState =
-          QUERY_GENERATION_STATE.READY_TO_GENERATE_QUERY;
+          QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
         return true;
       }
-
-      this._queryGenerationState =
-        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
       return false;
     }
+
     if (
       this._queryGenerationState ===
       QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME
     ) {
       this._collectionName = prompt;
+      if (!this._databaseName) {
+        this._queryGenerationState =
+          QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
+        return true;
+      }
       this._queryGenerationState =
         QUERY_GENERATION_STATE.READY_TO_GENERATE_QUERY;
+      return false;
+    }
+
+    return false;
+  }
+
+  async _shouldAskForNamespace(
+    request: vscode.ChatRequest,
+    context: vscode.ChatContext,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ): Promise<boolean> {
+    if (this._waitingForUserToProvideNamespace(request.prompt)) {
       return true;
     }
 
-    // We have not found the database and collection names yet.
-    if (!this._databaseName) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
+    if (this._databaseName && this._collectionName) {
       return false;
     }
-    if (!this._collectionName) {
+
+    const messagesWithNamespace = NamespacePrompt.buildMessages({
+      context,
+      request,
+    });
+    const responseContentWithNamespace = await this.getChatResponseContent({
+      messages: messagesWithNamespace,
+      stream,
+      token,
+    });
+    const namespace = parseForDatabaseAndCollectionName(
+      responseContentWithNamespace
+    );
+
+    this._databaseName = namespace.databaseName || this._databaseName;
+    this._collectionName = namespace.collectionName || this._collectionName;
+
+    if (namespace.databaseName && namespace.collectionName) {
       this._queryGenerationState =
-        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
+        QUERY_GENERATION_STATE.READY_TO_GENERATE_QUERY;
       return false;
     }
 
