@@ -563,7 +563,7 @@ export class ParticipantController {
         vscode.l10n.t(`
   Welcome to MongoDB Participant!\n\n
   Interact with your MongoDB clusters and generate MongoDB-related code more efficiently with intelligent AI-powered feature, available today in the MongoDB extension.\n\n
-  Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.`)
+  Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.\n\n`)
       );
       void this._storageController.update(
         StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
