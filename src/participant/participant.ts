@@ -259,10 +259,6 @@ export class ParticipantController {
   // If we implement this, the "Add new connection" link may become redundant,
   // as this option is already available in the Command Palette dropdown.
   getConnectionsTree(): vscode.MarkdownString[] {
-    if (!Object.values(this._connectionController._connections).length) {
-      return [];
-    }
-
     return [
       this._createMarkdownLink({
         commandId: 'mdb.connectWithParticipant',
